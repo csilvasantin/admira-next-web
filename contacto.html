@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contacto | Admira Next</title>
+    <meta
+      name="description"
+      content="Contacta con Admira Next para preparar un piloto de Robot as a Service e IoT."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="Admira Next inicio">
+        <span class="brand-mark">AN</span>
+        <span>Admira Next</span>
+      </a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="./servicios.html">Servicios</a>
+        <a href="./plataforma.html">Plataforma</a>
+        <a href="./casos.html">Casos</a>
+        <a href="./contacto.html">Contacto</a>
+      </nav>
+      <a class="header-cta" href="./contacto.html">Plan piloto</a>
+    </header>
+
+    <main>
+      <section class="contact contact-page">
+        <div>
+          <p class="eyebrow">Siguiente paso</p>
+          <h1>Empezamos con un piloto pequeño y una métrica clara.</h1>
+          <p>
+            Cuéntanos el espacio, el dolor operativo y qué resultado tendría valor. Diseñamos el caso,
+            el stack y el modelo RaaS para probarlo sin convertirlo en una obra faraónica.
+          </p>
+        </div>
+        <form class="contact-form">
+          <label>
+            Nombre
+            <input type="text" name="name" placeholder="Tu nombre" />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" placeholder="nombre@empresa.com" />
+          </label>
+          <label>
+            Qué quieres automatizar
+            <textarea name="message" rows="4" placeholder="Recepción, logística, sensores, inspección..."></textarea>
+          </label>
+          <button class="button primary" type="submit">Preparar propuesta</button>
+          <p class="form-note" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Admira Next</span>
+      <span>Robot as a Service & IoT para operaciones físicas.</span>
+    </footer>
+
+    <script src="./translations.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
