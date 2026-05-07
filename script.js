@@ -93,6 +93,74 @@ const addArcadeDecor = () => {
   });
 };
 
+const addIntroGate = () => {
+  const forceIntro = new URLSearchParams(window.location.search).get("intro") === "1";
+
+  if (!forceIntro && sessionStorage.getItem("admira-next-intro-seen") === "true") {
+    return;
+  }
+
+  const intro = document.createElement("section");
+  intro.className = "intro-gate";
+  intro.setAttribute("aria-label", "Admira Next arcade intro");
+  intro.innerHTML = `
+    <div class="intro-noise" aria-hidden="true"></div>
+    <div class="intro-robot" aria-hidden="true">
+      <span class="antenna"></span>
+      <span class="head"><i></i><i></i></span>
+      <span class="torso"><i></i><i></i><i></i></span>
+      <span class="legs"></span>
+    </div>
+    <div class="intro-panel">
+      <p class="intro-lab">ADMIRA NEXT / RaaS BOOT SEQUENCE</p>
+      <h2>ROBOT SIGNAL ONLINE</h2>
+      <div class="intro-clock" aria-hidden="true">
+        <span data-intro-minutes>00</span><i>:</i><span data-intro-seconds>00</span><i>:</i><span data-intro-frames>00</span>
+      </div>
+      <p class="intro-status">[signal. found. robots. awake. operations. ready.]</p>
+      <button class="intro-enter" type="button">:: CLICK TO ENTER ::</button>
+      <p class="intro-speed">HOLD FOR SPEED</p>
+    </div>
+  `;
+
+  document.body.prepend(intro);
+  document.body.classList.add("is-intro-active");
+
+  const startedAt = performance.now();
+  const closeIntro = () => {
+    sessionStorage.setItem("admira-next-intro-seen", "true");
+    intro.classList.add("is-leaving");
+    document.body.classList.remove("is-intro-active");
+    window.setTimeout(() => intro.remove(), 520);
+  };
+
+  const tick = (now) => {
+    if (!document.body.contains(intro)) {
+      return;
+    }
+
+    const elapsed = Math.floor((now - startedAt) / 1000);
+    const frames = Math.floor(((now - startedAt) % 1000) / 10);
+    setText("[data-intro-minutes]", String(Math.floor(elapsed / 60)).padStart(2, "0"));
+    setText("[data-intro-seconds]", String(elapsed % 60).padStart(2, "0"));
+    setText("[data-intro-frames]", String(frames).padStart(2, "0"));
+    requestAnimationFrame(tick);
+  };
+
+  intro.querySelector(".intro-enter")?.addEventListener("click", closeIntro);
+  intro.addEventListener("pointerdown", () => intro.classList.add("is-speeding"));
+  intro.addEventListener("pointerup", () => intro.classList.remove("is-speeding"));
+  intro.addEventListener("pointerleave", () => intro.classList.remove("is-speeding"));
+  intro.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === "Escape" || event.key === " ") {
+      closeIntro();
+    }
+  });
+  intro.tabIndex = -1;
+  intro.focus({ preventScroll: true });
+  requestAnimationFrame(tick);
+};
+
 const pageTranslators = {
   "index.html": (page) => {
     setText(".hero .eyebrow", page.eyebrow);
@@ -302,5 +370,6 @@ contactForm?.addEventListener("submit", (event) => {
   contactForm.reset();
 });
 
-addArcadeDecor();
 applyLanguage(initialLanguage);
+addArcadeDecor();
+addIntroGate();
