@@ -57,6 +57,17 @@ const addArcadeDecor = () => {
   const mainStage = document.querySelector(".hero, .page-hero, .contact-page");
 
   if (mainStage) {
+    const hud = document.createElement("div");
+    hud.className = "arcade-hud";
+    hud.setAttribute("aria-hidden", "true");
+    hud.innerHTML = `
+      <span>1UP</span>
+      <strong>ADMIRA</strong>
+      <span>STAGE 01</span>
+      <span class="hud-bar"><i></i></span>
+    `;
+    mainStage.append(hud);
+
     const robot = document.createElement("div");
     robot.className = "arcade-robot arcade-robot-main";
     robot.setAttribute("aria-hidden", "true");
@@ -67,6 +78,11 @@ const addArcadeDecor = () => {
       <span class="legs"></span>
     `;
     mainStage.append(robot);
+
+    const floor = document.createElement("div");
+    floor.className = "arcade-floor";
+    floor.setAttribute("aria-hidden", "true");
+    mainStage.append(floor);
   }
 
   document.querySelectorAll(".service-grid article, .route-grid a, .case-list article").forEach((card, index) => {
