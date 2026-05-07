@@ -112,6 +112,7 @@ const addIntroGate = () => {
       <span class="legs"></span>
     </div>
     <div class="intro-panel">
+      <img class="intro-logo" src="./assets/admira-next-logo.svg" alt="Admira Next" />
       <p class="intro-lab">ADMIRA NEXT / RaaS BOOT SEQUENCE</p>
       <h2>ROBOT SIGNAL ONLINE</h2>
       <div class="intro-clock" aria-hidden="true">

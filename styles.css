@@ -2304,6 +2304,14 @@ h2 {
   text-align: center;
 }
 
+.intro-logo {
+  display: block;
+  width: min(300px, 58vw);
+  height: auto;
+  margin: 0 auto 18px;
+  filter: drop-shadow(5px 5px 0 #000);
+}
+
 .intro-lab,
 .intro-status,
 .intro-speed {
@@ -2583,6 +2591,11 @@ h2 {
     padding: 18px;
   }
 
+  .intro-logo {
+    width: min(210px, 70vw);
+    margin-bottom: 14px;
+  }
+
   .intro-panel h2 {
     font-size: clamp(1.72rem, 9vw, 2.45rem);
     line-height: 0.94;
@@ -2596,6 +2609,13 @@ h2 {
   .intro-status {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .intro-enter {
+    width: 100%;
+    padding-inline: 10px;
+    font-size: 0.78rem;
     white-space: nowrap;
   }
 
