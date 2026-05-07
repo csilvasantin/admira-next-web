@@ -8,6 +8,7 @@ The site is static, multipage and available in Spanish, English and Catalan.
 
 - `index.html`
 - `servicios.html`
+- `alquiler.html`
 - `plataforma.html`
 - `casos.html`
 - `contacto.html`
@@ -17,4 +18,3 @@ The site is static, multipage and available in Spanish, English and Catalan.
 ```sh
 python3 -m http.server 4827
 ```
-

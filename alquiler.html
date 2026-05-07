@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alquiler de robots | Admira Next</title>
+    <meta
+      name="description"
+      content="Alquiler de robots para eventos, ferias, retail, seguridad, limpieza y experiencias de marca con entrega, puesta en marcha y soporte."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="Admira Next inicio">
+        <span class="brand-mark">AN</span>
+        <span>Admira Next</span>
+      </a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="./servicios.html">Servicios</a>
+        <a href="./alquiler.html">Alquiler</a>
+        <a href="./plataforma.html">Plataforma</a>
+        <a href="./casos.html">Casos</a>
+        <a href="./contacto.html">Contacto</a>
+      </nav>
+      <a class="header-cta" href="./contacto.html">Plan piloto</a>
+    </header>
+
+    <main>
+      <section class="page-hero rental-hero">
+        <p class="eyebrow">Robot rental deck</p>
+        <h1>Alquila robots para eventos, espacios y operaciones.</h1>
+        <p>
+          Elige flota, escenario y fechas. Nosotros nos encargamos de entrega, puesta en marcha,
+          guion de interacción y soporte durante el servicio.
+        </p>
+      </section>
+
+      <section class="rental-shell">
+        <div class="rental-main">
+          <section class="rental-scenarios" aria-label="Escenarios populares">
+            <p class="eyebrow">Escenarios populares</p>
+            <div class="scenario-grid">
+              <span>Eventos corporativos</span>
+              <span>Ferias y stands</span>
+              <span>Retail y lanzamientos</span>
+              <span>Recepción VIP</span>
+              <span>Seguridad nocturna</span>
+              <span>Limpieza comercial</span>
+              <span>Shows y activaciones</span>
+              <span>Streaming y demos</span>
+            </div>
+          </section>
+
+          <section class="rental-catalog" aria-label="Catálogo de robots">
+            <div class="rental-catalog-head">
+              <div>
+                <p class="eyebrow">Flota disponible</p>
+                <h2>Robots listos para entrar en partida.</h2>
+              </div>
+              <div class="rental-filters" aria-label="Filtros de robots">
+                <button type="button" class="is-active" data-rental-filter="all">Todos</button>
+                <button type="button" data-rental-filter="humanoid">Humanoides</button>
+                <button type="button" data-rental-filter="quadruped">Cuadrúpedos</button>
+                <button type="button" data-rental-filter="service">Servicio</button>
+              </div>
+            </div>
+
+            <div class="robot-rental-grid">
+              <article class="rental-card" data-category="humanoid" data-name="A2 Host" data-price="890">
+                <div class="rental-sprite humanoid-sprite" aria-hidden="true"></div>
+                <span class="rental-type">Humanoide</span>
+                <h3>A2 Host</h3>
+                <p>Recepción, bienvenida, Q&A guiado, fotos con invitados y presencia de marca.</p>
+                <ul>
+                  <li>Idiomas y guion personalizados</li>
+                  <li>Modo evento y demo escénica</li>
+                  <li>Operador incluido</li>
+                </ul>
+                <div class="rental-price">
+                  <strong>desde 890€</strong>
+                  <span>/ día</span>
+                </div>
+                <button type="button" class="button primary rental-select">Añadir al briefing</button>
+              </article>
+
+              <article class="rental-card" data-category="humanoid" data-name="Mini Guide" data-price="620">
+                <div class="rental-sprite guide-sprite" aria-hidden="true"></div>
+                <span class="rental-type">Compacto</span>
+                <h3>Mini Guide</h3>
+                <p>Guía de espacios, narración de producto, rutas interiores y atención ligera.</p>
+                <ul>
+                  <li>Base de conocimiento del evento</li>
+                  <li>Teleoperación opcional</li>
+                  <li>Ideal para stands</li>
+                </ul>
+                <div class="rental-price">
+                  <strong>desde 620€</strong>
+                  <span>/ día</span>
+                </div>
+                <button type="button" class="button primary rental-select">Añadir al briefing</button>
+              </article>
+
+              <article class="rental-card" data-category="quadruped" data-name="D1 Patrol" data-price="760">
+                <div class="rental-sprite dog-sprite" aria-hidden="true"></div>
+                <span class="rental-type">Cuadrúpedo</span>
+                <h3>D1 Patrol</h3>
+                <p>Robot perro para inspección, seguridad, demostraciones dinámicas y exteriores.</p>
+                <ul>
+                  <li>Rutas y patrulla autónoma</li>
+                  <li>Vídeo remoto en directo</li>
+                  <li>Terreno irregular</li>
+                </ul>
+                <div class="rental-price">
+                  <strong>desde 760€</strong>
+                  <span>/ día</span>
+                </div>
+                <button type="button" class="button primary rental-select">Añadir al briefing</button>
+              </article>
+
+              <article class="rental-card" data-category="service" data-name="Clean C5" data-price="540">
+                <div class="rental-sprite clean-sprite" aria-hidden="true"></div>
+                <span class="rental-type">Limpieza</span>
+                <h3>Clean C5</h3>
+                <p>Limpieza autónoma para oficinas, centros comerciales, aeropuertos y eventos.</p>
+                <ul>
+                  <li>Barrido, fregado y mopa</li>
+                  <li>Rutas programadas</li>
+                  <li>Reporte de cobertura</li>
+                </ul>
+                <div class="rental-price">
+                  <strong>desde 540€</strong>
+                  <span>/ día</span>
+                </div>
+                <button type="button" class="button primary rental-select">Añadir al briefing</button>
+              </article>
+
+              <article class="rental-card" data-category="service" data-name="Number 5 Showbot" data-price="690">
+                <div class="rental-sprite tracked-sprite" aria-hidden="true"></div>
+                <span class="rental-type">Showbot</span>
+                <h3>Number 5 Showbot</h3>
+                <p>Robot con orugas, mirada expresiva y brazo de saludo para activar marca y público.</p>
+                <ul>
+                  <li>Foto-call y presentación</li>
+                  <li>Mensajes de marca</li>
+                  <li>Modo arcade demo</li>
+                </ul>
+                <div class="rental-price">
+                  <strong>desde 690€</strong>
+                  <span>/ día</span>
+                </div>
+                <button type="button" class="button primary rental-select">Añadir al briefing</button>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <aside class="rental-quote" aria-label="Briefing de alquiler">
+          <p class="eyebrow">Insert coin</p>
+          <h2>Briefing de alquiler</h2>
+          <p>Precios orientativos con entrega, desembalaje, configuración base y soporte remoto incluidos.</p>
+          <label>
+            Inicio
+            <input type="date" />
+          </label>
+          <label>
+            Fin
+            <input type="date" />
+          </label>
+          <label>
+            País
+            <select>
+              <option>España</option>
+              <option>Portugal</option>
+              <option>Francia</option>
+              <option>Italia</option>
+              <option>Alemania</option>
+            </select>
+          </label>
+          <div class="quote-lines">
+            <span>Robots seleccionados</span>
+            <strong data-rental-count>0</strong>
+          </div>
+          <div class="quote-lines">
+            <span>Estimación diaria</span>
+            <strong data-rental-total>0€</strong>
+          </div>
+          <ul class="quote-selected" data-rental-selected>
+            <li>Selecciona robots del catálogo.</li>
+          </ul>
+          <a class="button primary" href="./contacto.html">Solicitar disponibilidad</a>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Admira Next</span>
+      <span>Robot as a Service & IoT para operaciones físicas.</span>
+    </footer>
+
+    <script src="./translations.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>

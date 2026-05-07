@@ -85,7 +85,7 @@ const addArcadeDecor = () => {
     mainStage.append(floor);
   }
 
-  document.querySelectorAll(".service-grid article, .route-grid a, .case-list article").forEach((card, index) => {
+  document.querySelectorAll(".service-grid article, .route-grid a, .case-list article, .rental-card").forEach((card, index) => {
     const mini = document.createElement("span");
     mini.className = `mini-bot mini-bot-${(index % 3) + 1}`;
     mini.setAttribute("aria-hidden", "true");
@@ -179,13 +179,64 @@ const pageTranslators = {
     setText(".intro > p", page.introCopy);
     setText(".route-grid h3", page.route1Title, 0);
     setText(".route-grid p", page.route1Copy, 0);
-    setText(".route-grid h3", page.route2Title, 1);
-    setText(".route-grid p", page.route2Copy, 1);
-    setText(".route-grid h3", page.route3Title, 2);
-    setText(".route-grid p", page.route3Copy, 2);
+    setText(".route-grid h3", page.route4Title, 1);
+    setText(".route-grid p", page.route4Copy, 1);
+    setText(".route-grid h3", page.route2Title, 2);
+    setText(".route-grid p", page.route2Copy, 2);
+    setText(".route-grid h3", page.route3Title, 3);
+    setText(".route-grid p", page.route3Copy, 3);
     setText(".metrics span", page.metric1, 0);
     setText(".metrics span", page.metric2, 1);
     setText(".metrics span", page.metric3, 2);
+  },
+  "alquiler.html": (page) => {
+    setText(".page-hero .eyebrow", page.eyebrow);
+    setText(".page-hero h1", page.h1);
+    setText(".page-hero p:last-child", page.heroCopy);
+    setText(".rental-scenarios .eyebrow", page.scenariosEyebrow);
+    [
+      page.scenario1,
+      page.scenario2,
+      page.scenario3,
+      page.scenario4,
+      page.scenario5,
+      page.scenario6,
+      page.scenario7,
+      page.scenario8,
+    ].forEach((text, index) => setText(".scenario-grid span", text, index));
+    setText(".rental-catalog-head .eyebrow", page.catalogEyebrow);
+    setText(".rental-catalog-head h2", page.catalogTitle);
+    setText(".rental-filters button", page.filterAll, 0);
+    setText(".rental-filters button", page.filterHumanoid, 1);
+    setText(".rental-filters button", page.filterQuadruped, 2);
+    setText(".rental-filters button", page.filterService, 3);
+
+    for (let i = 1; i <= 5; i += 1) {
+      const cardIndex = i - 1;
+      setText(".rental-card .rental-type", page[`card${i}Type`], cardIndex);
+      setText(".rental-card h3", page[`card${i}Title`], cardIndex);
+      setText(".rental-card > p", page[`card${i}Copy`], cardIndex);
+      setText(".rental-card ul li", page[`card${i}Bullet1`], cardIndex * 3);
+      setText(".rental-card ul li", page[`card${i}Bullet2`], cardIndex * 3 + 1);
+      setText(".rental-card ul li", page[`card${i}Bullet3`], cardIndex * 3 + 2);
+      const card = document.querySelectorAll(".rental-card")[cardIndex];
+      const price = card?.dataset.price || "";
+      setText(".rental-card .rental-price strong", `${page.from} ${price}€`, cardIndex);
+      setText(".rental-card .rental-price span", page.perDay, cardIndex);
+      setText(".rental-card .rental-select", card?.classList.contains("is-selected") ? page.selectedButton : page.addButton, cardIndex);
+    }
+
+    setText(".rental-quote .eyebrow", page.quoteEyebrow);
+    setText(".rental-quote h2", page.quoteTitle);
+    setText(".rental-quote > p", page.quoteCopy);
+    setLabelText(".rental-quote label", page.start, 0);
+    setLabelText(".rental-quote label", page.end, 1);
+    setLabelText(".rental-quote label", page.country, 2);
+    setText(".quote-lines span", page.selectedRobots, 0);
+    setText(".quote-lines span", page.dailyEstimate, 1);
+    setText(".quote-selected li", page.empty, 0);
+    setText(".rental-quote .button", page.availability);
+    updateRentalQuote();
   },
   "servicios.html": (page) => {
     setText(".page-hero .eyebrow", page.eyebrow);
@@ -285,9 +336,10 @@ const applyLanguage = (language) => {
 
   setText(".brand span:last-child", common.brand);
   setText(".nav-links a", common.navServices, 0);
-  setText(".nav-links a", common.navPlatform, 1);
-  setText(".nav-links a", common.navCases, 2);
-  setText(".nav-links a", common.navContact, 3);
+  setText(".nav-links a", common.navRental, 1);
+  setText(".nav-links a", common.navPlatform, 2);
+  setText(".nav-links a", common.navCases, 3);
+  setText(".nav-links a", common.navContact, 4);
   setText(".header-cta", common.pilot);
   setText(".site-footer span", common.brand, 0);
   setText(".site-footer span", common.footer, 1);
@@ -352,6 +404,76 @@ if (counters.length) {
 
   counters.forEach((counter) => observer.observe(counter));
 }
+
+const rentalCards = document.querySelectorAll(".rental-card");
+const rentalFilters = document.querySelectorAll("[data-rental-filter]");
+const selectedRental = new Set();
+
+function getCurrentPageCopy() {
+  const language = localStorage.getItem("admira-next-language") || initialLanguage;
+  return translations[language]?.pages[currentPage] || translations.es.pages[currentPage] || {};
+}
+
+function updateRentalQuote() {
+  if (!rentalCards.length) {
+    return;
+  }
+
+  const page = getCurrentPageCopy();
+  const selectedList = document.querySelector("[data-rental-selected]");
+  const countNode = document.querySelector("[data-rental-count]");
+  const totalNode = document.querySelector("[data-rental-total]");
+  const selectedCards = [...rentalCards].filter((card) => selectedRental.has(card.dataset.name || ""));
+  const total = selectedCards.reduce((sum, card) => sum + Number(card.dataset.price || 0), 0);
+
+  if (countNode) {
+    countNode.textContent = String(selectedCards.length);
+  }
+
+  if (totalNode) {
+    totalNode.textContent = `${total.toLocaleString("es-ES")}€`;
+  }
+
+  if (selectedList) {
+    selectedList.innerHTML = selectedCards.length
+      ? selectedCards.map((card) => `<li>${card.dataset.name} · ${card.dataset.price}€</li>`).join("")
+      : `<li>${page.empty || "Selecciona robots del catálogo."}</li>`;
+  }
+
+  rentalCards.forEach((card) => {
+    const button = card.querySelector(".rental-select");
+    const isSelected = selectedRental.has(card.dataset.name || "");
+    card.classList.toggle("is-selected", isSelected);
+
+    if (button) {
+      button.textContent = isSelected ? page.selectedButton || "Añadido" : page.addButton || "Añadir al briefing";
+    }
+  });
+}
+
+rentalFilters.forEach((button) => {
+  button.addEventListener("click", () => {
+    const filter = button.dataset.rentalFilter || "all";
+    rentalFilters.forEach((filterButton) => filterButton.classList.toggle("is-active", filterButton === button));
+    rentalCards.forEach((card) => {
+      card.hidden = filter !== "all" && card.dataset.category !== filter;
+    });
+  });
+});
+
+rentalCards.forEach((card) => {
+  card.querySelector(".rental-select")?.addEventListener("click", () => {
+    const name = card.dataset.name || "";
+
+    if (selectedRental.has(name)) {
+      selectedRental.delete(name);
+    } else {
+      selectedRental.add(name);
+    }
+
+    updateRentalQuote();
+  });
+});
 
 contactForm?.addEventListener("submit", (event) => {
   event.preventDefault();
