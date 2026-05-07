@@ -49,6 +49,34 @@ const setAlt = (selector, value, index = 0) => {
   }
 };
 
+const addArcadeDecor = () => {
+  if (document.querySelector(".arcade-robot")) {
+    return;
+  }
+
+  const mainStage = document.querySelector(".hero, .page-hero, .contact-page");
+
+  if (mainStage) {
+    const robot = document.createElement("div");
+    robot.className = "arcade-robot arcade-robot-main";
+    robot.setAttribute("aria-hidden", "true");
+    robot.innerHTML = `
+      <span class="antenna"></span>
+      <span class="head"><i></i><i></i></span>
+      <span class="torso"><i></i><i></i><i></i></span>
+      <span class="legs"></span>
+    `;
+    mainStage.append(robot);
+  }
+
+  document.querySelectorAll(".service-grid article, .route-grid a, .case-list article").forEach((card, index) => {
+    const mini = document.createElement("span");
+    mini.className = `mini-bot mini-bot-${(index % 3) + 1}`;
+    mini.setAttribute("aria-hidden", "true");
+    card.append(mini);
+  });
+};
+
 const pageTranslators = {
   "index.html": (page) => {
     setText(".hero .eyebrow", page.eyebrow);
@@ -258,4 +286,5 @@ contactForm?.addEventListener("submit", (event) => {
   contactForm.reset();
 });
 
+addArcadeDecor();
 applyLanguage(initialLanguage);
