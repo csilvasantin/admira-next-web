@@ -211,20 +211,28 @@ const pageTranslators = {
     setText(".rental-filters button", page.filterQuadruped, 2);
     setText(".rental-filters button", page.filterService, 3);
 
-    for (let i = 1; i <= 5; i += 1) {
-      const cardIndex = i - 1;
-      setText(".rental-card .rental-type", page[`card${i}Type`], cardIndex);
-      setText(".rental-card h3", page[`card${i}Title`], cardIndex);
-      setText(".rental-card > p", page[`card${i}Copy`], cardIndex);
-      setText(".rental-card ul li", page[`card${i}Bullet1`], cardIndex * 3);
-      setText(".rental-card ul li", page[`card${i}Bullet2`], cardIndex * 3 + 1);
-      setText(".rental-card ul li", page[`card${i}Bullet3`], cardIndex * 3 + 2);
-      const card = document.querySelectorAll(".rental-card")[cardIndex];
-      const price = card?.dataset.price || "";
+    document.querySelectorAll(".rental-card").forEach((card, cardIndex) => {
+      const rentalCard = page.rentalCards?.[cardIndex];
+      const price = card.dataset.price || "";
+      const unit = card.dataset.unit === "3mo" ? page.perThreeMonths || "/ 3 meses" : page.perDay;
+
+      if (rentalCard) {
+        setText(".rental-card .rental-type", rentalCard.type, cardIndex);
+        setText(".rental-card h3", rentalCard.title, cardIndex);
+        setText(".rental-card p", rentalCard.copy, cardIndex);
+        setAlt(".rental-card .rental-photo", rentalCard.title, cardIndex);
+        rentalCard.bullets?.forEach((bullet, bulletIndex) => {
+          const bulletNode = card.querySelectorAll("li")[bulletIndex];
+          if (bulletNode) {
+            bulletNode.textContent = bullet;
+          }
+        });
+      }
+
       setText(".rental-card .rental-price strong", `${page.from} ${price}€`, cardIndex);
-      setText(".rental-card .rental-price span", page.perDay, cardIndex);
-      setText(".rental-card .rental-select", card?.classList.contains("is-selected") ? page.selectedButton : page.addButton, cardIndex);
-    }
+      setText(".rental-card .rental-price span", unit, cardIndex);
+      setText(".rental-card .rental-select", card.classList.contains("is-selected") ? page.selectedButton : page.addButton, cardIndex);
+    });
 
     setText(".rental-quote .eyebrow", page.quoteEyebrow);
     setText(".rental-quote h2", page.quoteTitle);
@@ -436,7 +444,9 @@ function updateRentalQuote() {
 
   if (selectedList) {
     selectedList.innerHTML = selectedCards.length
-      ? selectedCards.map((card) => `<li>${card.dataset.name} · ${card.dataset.price}€</li>`).join("")
+      ? selectedCards
+          .map((card) => `<li>${card.dataset.name} · ${card.dataset.price}€${card.dataset.unit === "3mo" ? " / 3mo" : ""}</li>`)
+          .join("")
       : `<li>${page.empty || "Selecciona robots del catálogo."}</li>`;
   }
 
