@@ -78,6 +78,14 @@ textarea {
   letter-spacing: 0.04em;
 }
 
+.brand-logo {
+  display: block;
+  width: clamp(128px, 12vw, 176px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(3px 3px 0 #000);
+}
+
 .nav-links {
   display: flex;
   justify-content: center;
@@ -790,8 +798,8 @@ h3 {
     padding-inline: 14px;
   }
 
-  .brand span:last-child {
-    display: none;
+  .brand-logo {
+    width: 118px;
   }
 
   .header-cta {
