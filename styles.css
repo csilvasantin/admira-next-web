@@ -2013,3 +2013,212 @@ h2 {
     transform: scale(0.62);
   }
 }
+
+/* Friendly tracked robot homage */
+.arcade-robot {
+  top: 14%;
+  width: 320px;
+  height: 430px;
+  right: clamp(8px, 6vw, 86px);
+  filter: drop-shadow(16px 16px 0 #000) drop-shadow(0 0 16px rgba(0, 229, 255, 0.18));
+  animation: robot-curious 1.6s steps(2, end) infinite;
+}
+
+.arcade-robot .antenna {
+  display: block;
+  left: 130px;
+  top: 0;
+  width: 58px;
+  height: 12px;
+  background: #cfd8df;
+  transform: rotate(-14deg);
+  box-shadow:
+    0 0 0 6px #000,
+    60px 0 0 #9caab8,
+    60px 0 0 6px #000;
+}
+
+.arcade-robot .head {
+  left: 82px;
+  top: 34px;
+  width: 176px;
+  height: 78px;
+  border: 8px solid #000;
+  background:
+    linear-gradient(90deg, #5e6b79 0 12%, #c7d1d9 12% 42%, #eef4f8 42% 68%, #8795a4 68% 100%);
+  box-shadow:
+    inset 0 -14px 0 #697887,
+    0 18px 0 #000;
+}
+
+.arcade-robot .head::before,
+.arcade-robot .head::after {
+  top: 18px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #151923 0 22%, #ffbf3d 22% 38%, #5c6673 38% 64%, #10131b 64%);
+  box-shadow: 0 0 0 7px #000;
+}
+
+.arcade-robot .head::before {
+  left: 22px;
+}
+
+.arcade-robot .head::after {
+  left: auto;
+  right: 22px;
+}
+
+.arcade-robot .head i:first-child {
+  left: 68px;
+  bottom: -28px;
+  width: 42px;
+  height: 18px;
+  background: #c63b2e;
+  box-shadow:
+    0 0 0 6px #000,
+    0 24px 0 #8b98a7,
+    0 24px 0 6px #000;
+}
+
+.arcade-robot .torso {
+  left: 106px;
+  top: 150px;
+  width: 118px;
+  height: 146px;
+  border: 8px solid #000;
+  clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%);
+  background:
+    linear-gradient(90deg, #6c7a88 0 18%, #d7e1e8 18% 55%, #f1f6f9 55% 72%, #7c8b9a 72% 100%);
+  box-shadow:
+    inset 0 -18px 0 #566575,
+    inset 0 18px 0 rgba(255, 255, 255, 0.2);
+}
+
+.arcade-robot .torso i {
+  width: 16px;
+  height: 36px;
+  top: 72px;
+  background: #11131b;
+  box-shadow: 0 0 0 5px #000;
+}
+
+.arcade-robot .torso i:nth-child(1) {
+  left: 32px;
+  background: var(--amber);
+}
+
+.arcade-robot .torso i:nth-child(2) {
+  left: 56px;
+  background: #2e3846;
+}
+
+.arcade-robot .torso i:nth-child(3) {
+  left: 80px;
+  background: var(--teal);
+}
+
+.arcade-robot .torso::before {
+  left: -108px;
+  top: 10px;
+  width: 102px;
+  height: 22px;
+  background: #cfd8df;
+  transform: rotate(-10deg);
+  box-shadow:
+    0 0 0 7px #000,
+    -34px -48px 0 #9caab8,
+    -34px -48px 0 7px #000,
+    -58px -86px 0 #dbe3e8,
+    -58px -86px 0 7px #000,
+    -74px -124px 0 #cfd8df,
+    -74px -124px 0 7px #000,
+    -66px -156px 0 var(--teal),
+    -90px -156px 0 var(--teal),
+    -114px -156px 0 var(--teal);
+}
+
+.arcade-robot .torso::after {
+  right: -100px;
+  top: -12px;
+  width: 58px;
+  height: 158px;
+  background:
+    linear-gradient(90deg, #151923 0 18%, #8795a4 18% 62%, #52b9ee 62% 100%);
+  transform: rotate(-14deg);
+  box-shadow:
+    0 0 0 7px #000,
+    inset 0 -20px 0 #263140;
+}
+
+.arcade-robot .legs {
+  left: 56px;
+  top: 314px;
+  width: 210px;
+  height: 54px;
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, #151923 0 16px, #6f7b87 16px 24px),
+    #4b5864;
+  box-shadow:
+    0 0 0 9px #000,
+    18px 44px 0 #cfd8df,
+    18px 44px 0 9px #000,
+    128px 44px 0 #cfd8df,
+    128px 44px 0 9px #000,
+    74px -26px 0 #52b9ee,
+    74px -26px 0 9px #000;
+}
+
+.mini-bot {
+  width: 58px;
+  height: 34px;
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, #151923 0 8px, #8a98a6 8px 12px);
+}
+
+.mini-bot::before {
+  left: 8px;
+  top: -40px;
+  width: 42px;
+  height: 28px;
+  background:
+    radial-gradient(circle at 30% 50%, #ffbf3d 0 18%, #11131b 18% 34%, transparent 34%),
+    radial-gradient(circle at 70% 50%, #ffbf3d 0 18%, #11131b 18% 34%, transparent 34%),
+    #cfd8df;
+  box-shadow: 0 0 0 5px #000, 8px 28px 0 #9caab8, 8px 28px 0 5px #000;
+}
+
+.mini-bot::after {
+  left: 21px;
+  top: -12px;
+  width: 14px;
+  height: 18px;
+  background: #9caab8;
+  box-shadow: 0 0 0 4px #000;
+}
+
+@keyframes robot-curious {
+  50% {
+    transform: translateY(-6px) rotate(-1deg);
+  }
+}
+
+@media (max-width: 920px) {
+  .arcade-robot {
+    transform: scale(0.72);
+    transform-origin: bottom right;
+  }
+}
+
+@media (max-width: 560px) {
+  .arcade-robot {
+    right: -112px;
+    bottom: 142px;
+    transform: scale(0.5);
+    opacity: 0.4;
+  }
+}
