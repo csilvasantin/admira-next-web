@@ -1576,6 +1576,39 @@
 
   // ============ IDLE TIMER ============
 
+  // Video idle: tras N segundos sin actividad, body.idle se activa →
+  // el wallpaper-video fade-in y la imagen fade-out (CSS hace el cross-fade).
+  const VIDEO_IDLE_MS = 8000;
+  let videoIdleTimer = null;
+  const wallpaperVideo = document.getElementById('wallpaperVideo');
+  function enterIdle() {
+    if (document.body.classList.contains('idle')) return;
+    if (document.getElementById('password-screen') &&
+        document.getElementById('password-screen').style.display !== 'none') return;
+    document.body.classList.add('idle');
+    if (wallpaperVideo) {
+      try { const p = wallpaperVideo.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+    }
+  }
+  function exitIdle() {
+    if (!document.body.classList.contains('idle')) return;
+    document.body.classList.remove('idle');
+  }
+  function resetVideoIdle() {
+    exitIdle();
+    clearTimeout(videoIdleTimer);
+    videoIdleTimer = setTimeout(enterIdle, VIDEO_IDLE_MS);
+  }
+  ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) {
+    document.addEventListener(ev, resetVideoIdle, { passive: true });
+  });
+  // Arranca el primer ciclo en cuanto cargue el documento
+  document.addEventListener('DOMContentLoaded', resetVideoIdle);
+  // También cuando el usuario desbloquea el gate
+  if (window.__gateUnlocked && typeof window.__gateUnlocked.then === 'function') {
+    window.__gateUnlocked.then(resetVideoIdle);
+  }
+
   const idleHintKeys = ['idle.1', 'idle.2', 'idle.3', 'idle.4', 'idle.5', 'idle.6'];
 
   function resetIdleTimer() {
