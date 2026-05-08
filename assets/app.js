@@ -619,7 +619,7 @@
 
   // ============ COMMAND FUNCTIONS ============
 
-  function cmdHelp() {
+  function buildHelpLines() {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
     const sectionStyle = 'text-transform:uppercase;letter-spacing:1px;font-size:0.75em';
     const lines = [
@@ -654,6 +654,30 @@
     lines.push({ text: _T('help.suffix'), cls: 'dim', style: 'opacity:0.5;font-style:italic' });
     return lines;
   }
+
+  function renderHelpLinesInto(container) {
+    container.innerHTML = '';
+    buildHelpLines().forEach(line => {
+      const div = document.createElement('div');
+      div.className = 'output-line' + (line.cls ? ' ' + line.cls : '');
+      if (line.style) div.setAttribute('style', line.style);
+      if (line.html) div.innerHTML = line.html;
+      else div.textContent = line.text;
+      container.appendChild(div);
+    });
+  }
+
+  function cmdHelp() {
+    const container = document.createElement('div');
+    container.className = 'help-block';
+    renderHelpLinesInto(container);
+    return container;
+  }
+
+  // Re-traduce los bloques /help ya rendered cuando el usuario cambia idioma
+  window.addEventListener('admiranext:langchanged', function () {
+    document.querySelectorAll('.help-block').forEach(c => renderHelpLinesInto(c));
+  });
 
   function cmdAbout() {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
