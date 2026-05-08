@@ -1,129 +1,616 @@
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admira Next | Robot as a Service & IoT</title>
-    <meta
-      name="description"
-      content="Admira Next despliega robots conectados, sensores IoT y operaciones gestionadas para automatizar espacios reales sin inversión inicial compleja."
-    />
-    <link rel="preconnect" href="https://images.unsplash.com" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <a class="brand" href="./index.html" aria-label="Admira Next inicio">
-        <img class="brand-logo" src="./assets/admira-next-logo.svg" alt="Admira Next" />
-      </a>
-      <nav class="nav-links" aria-label="Navegación principal">
-        <a href="./servicios.html">Servicios</a>
-        <a href="./alquiler.html">Alquiler</a>
-        <a href="./plataforma.html">Plataforma</a>
-        <a href="./casos.html">Casos</a>
-        <a href="./contacto.html">Contacto</a>
-      </nav>
-      <a class="header-cta" href="./contacto.html">Plan piloto</a>
-    </header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADmiraNeXT | Robot as a Service</title>
+  <meta name="description" content="ADmiraNeXT — An Everything as a Service company. We build Physical AI projects with a proprietary IoT platform and the best robots. Barcelona, Spain.">
+  <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.08.6" />
+  <link rel="manifest" href="site.webmanifest" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://csilvasantin.github.io/ADmiraNeXT/#organization",
+    "name": "ADmiraNeXT",
+    "url": "https://csilvasantin.github.io/ADmiraNeXT/",
+    "description": "An Everything as a Service company. We build Physical AI projects with a proprietary IoT platform and the best robots.",
+    "email": "info@admira.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Barcelona",
+      "addressCountry": "ES"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://csilvasantin.github.io/ADmiraNeXT/#website",
+    "name": "ADmiraNeXT",
+    "url": "https://csilvasantin.github.io/ADmiraNeXT/",
+    "publisher": { "@id": "https://csilvasantin.github.io/ADmiraNeXT/#organization" }
+  }
+  </script>
+  <link rel="canonical" href="index.html" />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://csilvasantin.github.io/ADmiraNeXT/" />
+  <meta property="og:title" content="ADmiraNeXT | Robot as a Service" />
+  <meta property="og:description" content="An Everything as a Service company. We build Physical AI projects with a proprietary IoT platform and the best robots. Barcelona, Spain." />
+  <meta property="og:site_name" content="ADmiraNeXT" />
+  <meta property="og:locale" content="en_US" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="ADmiraNeXT | Robot as a Service" />
+  <meta name="twitter:description" content="An Everything as a Service company. We build Physical AI projects with a proprietary IoT platform and the best robots." />
+  <link rel="preload" as="image" href="assets/cortocircuito.jpg" type="image/jpeg" fetchpriority="high">
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
+  <link rel="stylesheet" href="assets/app.css">
+  <script>
+    // ============ i18n bootstrap ============
+    // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
+    // cuando está en EN, "ENG" cuando está en ES). Persiste en localStorage.
+    (function () {
+      window.I18N = {
+        en: {
+          'titlebar.path.exit': 'user@admiranext ~ /exit',
+          'titlebar.path.portfolio': 'user@admiranext ~ /portfolio',
+          'titlebar.dot.close': 'Close',
+          'titlebar.dot.minimize': 'Minimize',
+          'titlebar.dot.maximize': 'Maximize',
+          'close.kill': '$ kill -9 portfolio',
+          'close.terminated': '✗ Process terminated.',
+          'close.tagline1': '  Creativity and innovation never end. We will keep working to improve.',
+          'close.tagline2': '  Hope to see you again.',
+          'close.reopen': 'Reopen terminal',
+          'sr.h1': 'ADmiraNeXT — Product Designer, Design Lead and Strategist',
+          'welcome.greeting': 'Welcome, visitor.',
+          'manifesto.title': 'Manifesto',
+          'manifesto.who.label': 'Who',
+          'manifesto.who.value': 'An Everything as a Service company',
+          'manifesto.what.label': 'What',
+          'manifesto.what.value': 'We build Physical AI projects',
+          'manifesto.how.label': 'How',
+          'manifesto.how.value': 'Proprietary IoT platform + the best robots',
+          'manifesto.why.label': 'Why',
+          'manifesto.why.value': 'Because it\'s our passion',
+          'nav.title': 'Navigation',
+          'nav.cmd.about': '/about',
+          'nav.cmd.work': '/work',
+          'nav.cmd.clients': '/clients',
+          'nav.cmd.skills': '/skills',
+          'nav.helphint': '... /help for all commands',
+          'nav.themehint': 'Try /themes to change the vibe',
+          'idle.1': 'Still there? Try /work to see what I\'ve built...',
+          'idle.2': 'This terminal has more commands than you think...',
+          'idle.3': 'Psst — ever tried typing ls in a portfolio?',
+          'idle.4': 'The Konami code works here. Just saying.',
+          'idle.5': 'Some commands don\'t need a slash. Try: whoami',
+          'idle.6': 'Type /secrets if you like finding hidden things.',
+          'whoami.line1': '  You are the person about to hire the best robot Service in Europe.',
+          'whoami.line2': '  (Trust the terminal. It knows things.)',
+          'milestone.3': 'You\'ve run 3 commands. There are more hiding beneath the surface.',
+          'milestone.5': 'Bored of the dark? Try /themes — there are 4 looks to choose from.',
+          'milestone.7': 'Getting curious? Try typing whoami or ls — this isn\'t your average terminal.',
+          'milestone.12': 'Power user detected. Type /secrets for the full map.',
+          'error.notfound': 'Command not found: "{cmd}"',
+          'error.hint1': 'Type /help to see available commands',
+          'error.hint2': 'Type /help to see available commands. Hint: some Unix commands work here too…',
+          'error.hint3': 'Type /help to see available commands. Or try something unexpected.',
+          'error.hint4': 'Type /help — or don\'t. Some commands aren\'t listed there.',
+          'cmd.about':    '/about',
+          'cmd.work':     '/work',
+          'cmd.clients':  '/clients',
+          'cmd.skills':   '/skills',
+          'cmd.contact':  '/contact',
+          'cmd.themes':   '/themes',
+          'comingSoon':   'Coming soon.',
+          'about.title':  'About ADmiraNeXT',
+          'about.l1':     'ADmiraNeXT is an Everything as a Service company. We design, deploy and operate Physical AI projects — robots in lobbies, shop floors, warehouses — so our customers can pay for outcomes instead of running fleets.',
+          'about.h1':     'Manifesto',
+          'about.who':    'Who: an Everything as a Service company.',
+          'about.what':   'What: we build Physical AI projects.',
+          'about.how':    'How: a proprietary IoT platform + the best robots.',
+          'about.why':    'Why: because it\'s our passion.',
+          'about.h2':     'How we work',
+          'about.l2':     'Robot as a Service. You bring the use case; we bring the platform, the orchestration, the connectivity, the maintenance and the SLA.',
+          'about.l3':     'No upfront capex. Pay for results.',
+          'about.tip.work':    'see what we are building',
+          'about.tip.contact': 'get in touch',
+          'about.tip.readme':  'try: cat readme.md',
+          'contact.title':  'Get in Touch',
+          'contact.openTo': 'Open to: pilot deployments, IoT integrations, fleet operations, partnerships and consulting.',
+          'contact.cta':    'Let\'s build something that ships.',
+          'contact.tip':    'or just say hi at info@admira.com',
+          'phone.title':  'Phone',
+          'phone.handle': 'tap to call',
+          'phone.tip':    'for all contact options',
+          'email.title':  'Email',
+          'email.handle': 'tap to send a mail',
+          'email.tip':    'for all contact options',
+          'agency.title': 'ADmiraNeXT',
+          'agency.l1':    'Robot as a Service company based in Barcelona, Spain.',
+          'agency.l2':    'We deploy and operate Physical AI for our customers.',
+          'agency.tip':   'see what we ship',
+          'location.title': 'Location',
+          'location.city':  'Barcelona, Spain',
+          'location.scope': 'Working across Europe and beyond.',
+          'location.tz':    'Central European Time (CET / UTC+1)',
+          'location.tip':   'to get in touch',
+          'work.title':       'Featured Work',
+          'work.l1':          'New case studies are on the way. Our first deployments are running and we are putting them on stage soon.',
+          'work.tip':         'to talk about your use case',
+          'clients.title':    'Customers',
+          'clients.l1':       'Our customer list is growing. Watch this space.',
+          'testimonials.title': 'Testimonials',
+          'testimonials.l1':    'Pilots are running. Real testimonials will land here as they come back.',
+          'testimonials.tip':   'to start your pilot',
+          'articles.title':   'Articles',
+          'articles.l1':      'Notes on Physical AI, IoT and robotics-as-a-service will be published here.',
+          'prompt.placeholder': 'Type a command... try "/help"',
+          'gate.tag': '▶ RESTRICTED ACCESS',
+          'gate.prompt': '> password',
+          'gate.button': 'UNLOCK',
+          'gate.error': '▲ INCORRECT PASSWORD',
+          'boot.l1': 'Booting portfolio system...',
+          'boot.l2': 'Loading design tokens...',
+          'boot.l3': 'Mounting component library... ',
+          'boot.l4': '[████████████████████████] ',
+          'boot.l5': 'done',
+          'boot.l6': '\nResolving 12 case studies...',
+          'boot.l7': 'Connecting to Product Rocket core... ',
+          'boot.l8': 'ok',
+          'boot.l9': '\nDesign systems: operational',
+          'boot.l10': 'UX research modules: loaded',
+          'boot.l11': 'Don\'t look for /secrets here...',
+          'boot.l12': 'Strategic thinking: activated',
+          'boot.l13': '\n✦ ',
+          'boot.l14': 'ADmiraNeXT v10.0',
+          'boot.l15': ' — ready.\n',
+          'boot.l16': 'Press Enter to continue...',
+        },
+        es: {
+          'titlebar.path.exit': 'user@admiranext ~ /salir',
+          'titlebar.path.portfolio': 'user@admiranext ~ /portafolio',
+          'titlebar.dot.close': 'Cerrar',
+          'titlebar.dot.minimize': 'Minimizar',
+          'titlebar.dot.maximize': 'Maximizar',
+          'close.kill': '$ kill -9 portafolio',
+          'close.terminated': '✗ Proceso terminado.',
+          'close.tagline1': '  La creatividad y la innovación nunca se acaban. Seguiremos trabajando para mejorar.',
+          'close.tagline2': '  Espero que nos volvamos a ver.',
+          'close.reopen': 'Reabrir terminal',
+          'sr.h1': 'ADmiraNeXT — Diseñador de Producto, Líder de Diseño y Estratega',
+          'welcome.greeting': 'Bienvenido, visitante.',
+          'manifesto.title': 'Manifiesto',
+          'manifesto.who.label': 'Quiénes',
+          'manifesto.who.value': 'Una empresa de Everything as a Service',
+          'manifesto.what.label': 'Qué',
+          'manifesto.what.value': 'Generamos proyectos de Physical AI',
+          'manifesto.how.label': 'Cómo',
+          'manifesto.how.value': 'Plataforma propia de IoT + los mejores robots',
+          'manifesto.why.label': 'Por qué',
+          'manifesto.why.value': 'Porque es nuestra pasión',
+          'nav.title': 'Navegación',
+          'nav.cmd.about': '/acerca',
+          'nav.cmd.work': '/trabajos',
+          'nav.cmd.clients': '/clientes',
+          'nav.cmd.skills': '/habilidades',
+          'nav.helphint': '... /ayuda para todos los comandos',
+          'nav.themehint': 'Prueba /temas para cambiar el rollo',
+          'idle.1': '¿Todavía estás? Prueba /trabajos para ver qué cosas hemos hecho...',
+          'idle.2': 'Este terminal tiene más comandos de los que crees...',
+          'idle.3': 'Pssst — ¿alguna vez has escrito ls en un portafolio?',
+          'idle.4': 'El código Konami funciona aquí. Solo lo digo.',
+          'idle.5': 'Algunos comandos no necesitan barra. Prueba: whoami',
+          'idle.6': 'Escribe /secretos si te gusta encontrar cosas escondidas.',
+          'whoami.line1': '  Eres la persona a punto de contratar el mejor servicio de robots de Europa.',
+          'whoami.line2': '  (Confía en el terminal. Sabe cosas.)',
+          'milestone.3': 'Has ejecutado 3 comandos. Hay más escondidos bajo la superficie.',
+          'milestone.5': '¿Aburrido de la oscuridad? Prueba /temas — hay 4 looks para elegir.',
+          'milestone.7': '¿Te pica la curiosidad? Prueba escribir whoami o ls — esto no es un terminal cualquiera.',
+          'milestone.12': 'Power user detectado. Escribe /secretos para ver el mapa completo.',
+          'error.notfound': 'Comando no encontrado: "{cmd}"',
+          'error.hint1': 'Escribe /ayuda para ver los comandos disponibles',
+          'error.hint2': 'Escribe /ayuda para ver los comandos disponibles. Pista: algunos comandos Unix también funcionan…',
+          'error.hint3': 'Escribe /ayuda para ver los comandos disponibles. O prueba algo inesperado.',
+          'error.hint4': 'Escribe /ayuda — o no. Algunos comandos no están en la lista.',
+          'cmd.about':    '/acerca',
+          'cmd.work':     '/trabajos',
+          'cmd.clients':  '/clientes',
+          'cmd.skills':   '/habilidades',
+          'cmd.contact':  '/contacto',
+          'cmd.themes':   '/temas',
+          'comingSoon':   'Próximamente.',
+          'about.title':  'Sobre ADmiraNeXT',
+          'about.l1':     'ADmiraNeXT es una empresa de Everything as a Service. Diseñamos, desplegamos y operamos proyectos de Physical AI — robots en lobbies, tiendas, almacenes — para que nuestros clientes paguen por resultados, no por flotas que mantener.',
+          'about.h1':     'Manifiesto',
+          'about.who':    'Quiénes: una empresa de Everything as a Service.',
+          'about.what':   'Qué: generamos proyectos de Physical AI.',
+          'about.how':    'Cómo: plataforma propia de IoT + los mejores robots.',
+          'about.why':    'Por qué: porque es nuestra pasión.',
+          'about.h2':     'Cómo trabajamos',
+          'about.l2':     'Robot as a Service. Tú traes el caso de uso; nosotros traemos la plataforma, la orquestación, la conectividad, el mantenimiento y el SLA.',
+          'about.l3':     'Sin inversión inicial. Pagas por resultados.',
+          'about.tip.work':    'para ver lo que estamos construyendo',
+          'about.tip.contact': 'para ponerse en contacto',
+          'about.tip.readme':  'prueba: cat readme.md',
+          'contact.title':  'Ponte en Contacto',
+          'contact.openTo': 'Abierto a: despliegues piloto, integraciones IoT, operación de flotas, partnerships y consultoría.',
+          'contact.cta':    'Construyamos algo que se entregue.',
+          'contact.tip':    'o simplemente escríbenos a info@admira.com',
+          'phone.title':  'Teléfono',
+          'phone.handle': 'toca para llamar',
+          'phone.tip':    'para todas las opciones de contacto',
+          'email.title':  'Correo Electrónico',
+          'email.handle': 'toca para enviar un correo',
+          'email.tip':    'para todas las opciones de contacto',
+          'agency.title': 'ADmiraNeXT',
+          'agency.l1':    'Empresa de Robot as a Service con sede en Barcelona, España.',
+          'agency.l2':    'Desplegamos y operamos Physical AI para nuestros clientes.',
+          'agency.tip':   'para ver lo que entregamos',
+          'location.title': 'Ubicación',
+          'location.city':  'Barcelona, España',
+          'location.scope': 'Trabajando en toda Europa y más allá.',
+          'location.tz':    'Hora Central Europea (CET / UTC+1)',
+          'location.tip':   'para ponerse en contacto',
+          'work.title':       'Trabajos Destacados',
+          'work.l1':          'Nuevos casos de estudio en camino. Los primeros despliegues ya están en marcha y los publicamos pronto.',
+          'work.tip':         'para hablar de tu caso de uso',
+          'clients.title':    'Clientes',
+          'clients.l1':       'La lista de clientes está creciendo. Atento a este espacio.',
+          'testimonials.title': 'Testimonios',
+          'testimonials.l1':    'Los pilotos están en marcha. Los testimonios reales llegarán aquí cuando vuelvan.',
+          'testimonials.tip':   'para empezar tu piloto',
+          'articles.title':   'Artículos',
+          'articles.l1':      'Notas sobre Physical AI, IoT y robotics-as-a-service se publicarán aquí.',
+          'prompt.placeholder': 'Escribe un comando... prueba "/ayuda"',
+          'gate.tag': '▶ ACCESO RESTRINGIDO',
+          'gate.prompt': '> contraseña',
+          'gate.button': 'DESBLOQUEAR',
+          'gate.error': '▲ CONTRASEÑA INCORRECTA',
+          'boot.l1': 'Iniciando sistema de portafolio...',
+          'boot.l2': 'Cargando tokens de diseño...',
+          'boot.l3': 'Montando biblioteca de componentes... ',
+          'boot.l4': '[████████████████████████] ',
+          'boot.l5': 'hecho',
+          'boot.l6': '\nResolviendo 12 casos de estudio...',
+          'boot.l7': 'Conectando con el núcleo de Product Rocket... ',
+          'boot.l8': 'ok',
+          'boot.l9': '\nSistemas de diseño: operativos',
+          'boot.l10': 'Módulos de investigación UX: cargados',
+          'boot.l11': 'No busques /secrets aquí...',
+          'boot.l12': 'Pensamiento estratégico: activado',
+          'boot.l13': '\n✦ ',
+          'boot.l14': 'ADmiraNeXT v10.0',
+          'boot.l15': ' — listo.\n',
+          'boot.l16': 'Presiona Enter para continuar...',
+        },
+      };
+      window.LANG_KEY = 'admiranext_lang';
+      try { window.currentLang = localStorage.getItem(window.LANG_KEY) || 'en'; }
+      catch (e) { window.currentLang = 'en'; }
+      window.t = function (key) {
+        var L = window.I18N[window.currentLang] || window.I18N.en;
+        return (L[key] != null ? L[key] : (window.I18N.en[key] != null ? window.I18N.en[key] : key));
+      };
+      window.applyLang = function () {
+        document.documentElement.lang = window.currentLang;
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+          el.textContent = window.t(el.getAttribute('data-i18n'));
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
+          el.title = window.t(el.getAttribute('data-i18n-title'));
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+          el.placeholder = window.t(el.getAttribute('data-i18n-placeholder'));
+        });
+        document.querySelectorAll('.lang-toggle').forEach(function (b) {
+          b.textContent = window.currentLang === 'en' ? 'ESP' : 'ENG';
+          b.title = window.currentLang === 'en' ? 'Cambiar a español' : 'Switch to English';
+        });
+        window.dispatchEvent(new CustomEvent('admiranext:langchanged', { detail: window.currentLang }));
+      };
+      window.setLang = function (l) {
+        if (l !== 'en' && l !== 'es') return;
+        window.currentLang = l;
+        try { localStorage.setItem(window.LANG_KEY, l); } catch (e) {}
+        window.applyLang();
+      };
+      window.toggleLang = function () { window.setLang(window.currentLang === 'en' ? 'es' : 'en'); };
+      document.addEventListener('DOMContentLoaded', window.applyLang);
+    })();
+  </script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body data-route="">
+<style id="crt-gate-style">
+  #password-screen{font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace}
+  #password-screen .crt{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;padding:34px 40px;background:#0a0703;border:1px solid #5a3a00;box-shadow:0 0 0 2px #1a0e00,0 0 60px rgba(255,176,0,.15) inset,0 0 80px rgba(255,176,0,.08);border-radius:8px;max-width:90vw;overflow:hidden}
+  #password-screen .crt::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0px,rgba(0,0,0,.18) 1px,transparent 1px,transparent 3px)}
+  #password-screen .crt::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+  #password-screen pre.logo{margin:0;font-family:inherit;font-size:9px;line-height:1.05;letter-spacing:0;color:#ffb000;text-shadow:0 0 4px #ffb000,0 0 12px rgba(255,176,0,.55),0 0 30px rgba(255,176,0,.25);white-space:pre;font-weight:700}
+  #password-screen pre.logo b{display:block;color:#ffb000;animation:crt-flicker 6s infinite}
+  #password-screen .gate-tag{font-size:11px;letter-spacing:.4em;color:#ffb000;text-shadow:0 0 6px rgba(255,176,0,.6);margin:0;text-transform:uppercase}
+  #password-screen .gate-prompt{margin:0;color:#cc8a00;font-size:12px;letter-spacing:.05em}
+  #password-screen .gate-prompt .cursor{display:inline-block;background:#ffb000;width:.6em;height:.9em;vertical-align:-2px;animation:crt-blink 1s steps(2) infinite}
+  #password-screen input{padding:11px 14px;font-size:14px;font-family:inherit;border:1px solid #5a3a00;background:#1a0e00;color:#ffb000;text-align:center;outline:0;width:280px;letter-spacing:.3em;text-shadow:0 0 4px #ffb000;caret-color:#ffb000}
+  #password-screen input:focus{border-color:#ffb000;box-shadow:0 0 0 2px rgba(255,176,0,.25)}
+  #password-screen button{width:100%;padding:11px;background:#ffb000;color:#1a0e00;border:0;cursor:pointer;font-weight:700;font-family:inherit;letter-spacing:.3em;font-size:13px;box-shadow:0 0 12px rgba(255,176,0,.4)}
+  #password-screen button:hover{background:#ffd166}
+  #password-screen #password-error{color:#ff4f4f;margin:0;font-size:11px;letter-spacing:.15em;text-shadow:0 0 6px rgba(255,79,79,.7)}
+  @keyframes crt-flicker{0%,90%,92%,100%{opacity:1}91%{opacity:.85}}
+  @keyframes crt-blink{0%{opacity:1}50%{opacity:0}}
+  @media(max-width:680px){#password-screen pre.logo{font-size:7px}}
+  @media(max-width:480px){#password-screen pre.logo{font-size:5px}#password-screen .crt{padding:22px 18px}#password-screen input{width:88vw;max-width:280px}}
+</style>
+<div id="password-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;padding:24px">
+  <div class="crt">
+    <pre class="logo" aria-label="ADMIRA NEXT"><b> █████╗ ██████╗ ███╗   ███╗██╗██████╗  █████╗
+██╔══██╗██╔══██╗████╗ ████║██║██╔══██╗██╔══██╗
+███████║██║  ██║██╔████╔██║██║██████╔╝███████║
+██╔══██║██║  ██║██║╚██╔╝██║██║██╔══██╗██╔══██║
+██║  ██║██████╔╝██║ ╚═╝ ██║██║██║  ██║██║  ██║
+╚═╝  ╚═╝╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝</b><b>           ███╗   ██╗███████╗██╗  ██╗████████╗
+          ████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝
+          ██╔██╗ ██║█████╗   ╚███╔╝    ██║
+          ██║╚██╗██║██╔══╝   ██╔██╗    ██║
+          ██║ ╚████║███████╗██╔╝ ██╗   ██║
+          ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝   </b></pre>
+    <p class="gate-tag" data-i18n="gate.tag"></p>
+    <p class="gate-prompt"><span data-i18n="gate.prompt">&gt; password</span><span class="cursor"></span></p>
+    <input type="password" id="password-input" autocomplete="current-password" autofocus>
+    <button id="password-btn" data-i18n="gate.button"></button>
+    <p id="password-error" style="display:none" data-i18n="gate.error"></p>
+  </div>
+</div>
+<script>
+  // Promise que el resto del JS (app.js / runBoot) espera para no robar
+  // foco ni capturar el Enter del gate antes de que el usuario lo desbloquee.
+  window.__gateUnlocked = new Promise(function(resolve) { window.__resolveGate = resolve; });
+  (function() {
+    const input = document.getElementById('password-input');
+    const btn = document.getElementById('password-btn');
+    const screen = document.getElementById('password-screen');
+    const error = document.getElementById('password-error');
 
-    <main>
-      <section class="hero">
-        <div class="hero-media" aria-hidden="true">
-          <img
-            src="https://images.unsplash.com/photo-1516192518150-0d8fee5425e3?auto=format&fit=crop&w=1800&q=82"
-            alt=""
-          />
-          <div class="sensor-map">
-            <span style="--x: 18%; --y: 32%"></span>
-            <span style="--x: 44%; --y: 22%"></span>
-            <span style="--x: 68%; --y: 45%"></span>
-            <span style="--x: 82%; --y: 62%"></span>
-          </div>
+    function check() {
+      if (input.value === 'admira') {
+        screen.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        if (typeof window.__resolveGate === 'function') {
+          window.__resolveGate();
+          window.__resolveGate = null;
+        }
+      } else {
+        error.style.display = 'block';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    // keydown captura ANTES que cualquier listener que app.js haya añadido a document
+    // (capture:true), evitando que el boot se trague el Enter del gate.
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); check(); }
+    }, true);
+    btn.addEventListener('click', check);
+
+    // Mientras el gate esté visible, devuelve foco al input si lo perdemos.
+    document.addEventListener('focusin', function(e) {
+      if (screen.style.display === 'none') return;
+      if (e.target !== input) input.focus();
+    });
+
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => input.focus(), 0);
+  })();
+</script>
+<div class="wallpaper" id="wallpaper">
+  <picture class="wallpaper-blur" id="wallpaper-picture">
+    <img src="assets/cortocircuito.jpg" alt="" loading="eager" width="1920" height="1080" fetchpriority="high">
+  </picture>
+  <picture class="wallpaper-sharp" id="wallpaper-sharp">
+    <img src="assets/cortocircuito.jpg" alt="" width="1920" height="1080" decoding="async">
+  </picture>
+</div>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KD696XW"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<!-- Matrix Rain -->
+<canvas id="matrixCanvas"></canvas>
+<!-- Confetti -->
+<canvas id="confettiCanvas"></canvas>
+
+<!-- Close Overlay -->
+<div class="close-overlay" id="closeOverlay">
+  <div class="close-window">
+    <div class="titlebar">
+      <div class="titlebar-dot red" data-i18n-title="titlebar.dot.close"></div>
+      <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
+      <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
+      <div class="titlebar-title" data-i18n="titlebar.path.exit"></div>
+      <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
+    </div>
+    <div class="close-body">
+      <div class="output-line red" data-i18n="close.kill"></div>
+      <div class="output-line red" data-i18n="close.terminated"></div>
+      <div class="output-line"></div>
+      <div class="output-line dim" data-i18n="close.tagline1"></div>
+      <div class="output-line accent" data-i18n="close.tagline2"></div>
+      <div class="close-actions">
+        <span class="output-line accent" style="margin-right:4px">></span>
+        <button class="close-btn" id="closeReopen" data-i18n="close.reopen"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Terminal Window -->
+<!-- psst... prueba escribiendo /secrets, sudo hire admiranext, o el código konami -->
+<div class="terminal-window booting" id="terminal">
+  <div class="titlebar">
+    <div class="titlebar-dot red" data-i18n-title="titlebar.dot.close"></div>
+    <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
+    <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
+    <div class="titlebar-title" data-i18n="titlebar.path.portfolio"></div>
+    <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
+  </div>
+
+  <div class="terminal-body" id="terminalBody">
+    <!-- Boot Sequence (shown only while .booting) -->
+    <div class="boot-text" id="bootText"></div>
+    <!-- Semantic heading for SEO (visually hidden, rendered as ASCII art) -->
+    <h1 class="sr-only" data-i18n="sr.h1"></h1>
+    <!-- ASCII Name -->
+    <pre class="ascii-name" id="asciiName" aria-hidden="true"></pre>
+
+    <!-- Welcome Box (Claude Code style) -->
+    <div class="welcome-box" id="welcomeBox">
+      <div class="welcome-left">
+        <h2 class="greeting" data-i18n="welcome.greeting"></h2>
+        <pre class="pixel-rocket"> ...          ....................   :=++**###=++-:. ..............................................:
+                ................  :+*%@@@@@@@@@@@@%*=.   ..........................................:
+                  ............. :+%@@@@@@@%%%#####%%@%#+:  .........................................
+                  ............ .*@@@@@@%#**++++===++*%@@@*: ........................................
+                    ...........*@@@@%#**++++======---=*#@%%= ..................................... .
+                    ......... +@@%%#*++==+=====-----::-+#%%%= .................................... .
+                    ........ :%@#*+++========----:::::::-#@%#: ...............   ................. .
+                     ....... =@#+++========----::::::::::=#%%+ ...............         ........... .
+                        .... *@+++=+=------------:::::::::*###= ............ .          .......... .
+                          .  #@+++====---:::----+*++=-::::=%%%*. ...........               ....... .
+                             #@+==+*#*+==--:..:=++*+--:::::*@*=.............                     . .
+                           . +@#=+#+===+**+=:.-#*=*+-==-.::-* -: ............                      .
+                           . :@%++**#*##@%++=::-++=---::..::+-:: ...........                       .
+                              *@+=+#*++##+++=--::-=--::.....=*:. .........                         .
+                               **====+++++++-::::-+=:.. ....==..  ......                           .
+                               :*====-+*#+++=::--.-=--......:-:. .   ....                          .
+                                =+===--+*+***+=--:::-==:....:: .                                   .
+                                -+===-=+++*+====:::-+=-:::..:-.  .                                 .
+                                .-+=+==+*#*==--:-:--::::::.::+@+   ...                             .
+                                  -++=-=++*+====-:..:..::::-:-@@+..    .                           .
+                                   :++++=======--:.::...::--.-@@@%#*=:                             .
+                                    .:=+=====----:::..::--::.#@@%@%@@@#-                           .
+                                       :*++===---::..----:. *@@@%@%%%%@@#+-:.                      .
+                                       *%+*++===-----=--:.:*@@@%%%%%%@@@@@@@%*=-.                  .
+                                      +@@#=+++****+=-:::-=%@@@@%%%%%@@@%@@@@@@@@%*+:               .
+                                     :%@@@*==+++=--::-=+#@@@@@%%%%%@@@@@@@@@@@@@@@@%#+:            .
+                                   :*@@@@@@*==++=====++#@@@%%%%%%%%%@@@@@@@@@@@@@@@@@@%*-          .
+                                .-*@@@@@@@@@#==++*++=-+%@@@@@@@@@@@@@@@%@@@@@@@@@@@@@@@@@#-        .
+                             :=+%@@@@@@@@@@@@#+=====+*%@@@@@@@@@@@@@@@@%@@%@@@@@@@@@@@@@%@@=       .
+                          .+#@@@@@@@@@@@@@@@@@@%%%%@@@@@@@@@@@%@@@@@@@@@@%@@@@%@@@@@@@%%%@@@#.     .
+                         :%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%@@@@@@@@@%@@@@%@@@@@%%%%%@@%%@%:    .
+                        -@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%@@@@@@@@@%@@@@%@@@@@%%%%%@@%%@%@@:   .
+                       .@@@@@@@@@@@@@@@@@@@@@@@@%@@%@@@@@@@@%@@@@@@@@@%@@@@%%%@@@%%%%%%@%#%%%%@#.  .
+                       +@@@@@@@@@@@@@@@@@@@@@@@@@@%@@@@@@@@%%@@@@@@@@@%@@@@%@@@@%%%%%%@%%%%%%%%@=  .
+                      .%@@@@@@@@@@@@@@@@@@@@@@@@@%%@@@@@@@@%@@@@@@@@@@@@@@@@@@@@@%%%%@%%%%%%%%%%%- .
+                      #@@@@@@@@@@@@@@@@@@@@@@@@@@%%@@@@@@@@%@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%%%%%%%%..
+                     -@@@@@@@@@@@@@@@@@@@@@@@#%@@@@@@@@@@@%%@@@@@@@@@@%@@@@@@@@@@@@%%%%%%%%%%%%%%%*.
+                     #@@@@@@@@@@@@@@@@@@@@@@@%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%@%%%#%%%%%%%%-
+                    .@@@@@@@@@@@@@@@@@@@@@@@@%@@@@@@@@@@@@@@@@@@@@@@@@@%@@@@@@#%@%@@@@#-::*@#*##%%%-
+                    =@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%@@@%+-=#@@:-*#%%%-
+                    -@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#+=*%#+####%%%@=
+                    *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*-#@#--#@@@%%%@+
+                   .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%@%+**%%#@*
+                   +@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%@%%@@@%%%*.:#%%@*
+                  .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%*=*%#%+
+                  -@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%@%%%%%-
+                  #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%@#:
+                 =@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%%%%%%%%%+.
+                .%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%@@%%@%%- 
+                *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%@@@%@@%%%:.
+               -%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%@@%%%%# .
+             .#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%%%* .
+            .#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%@%%%%+ .</pre>
+        <div class="subtitle">Robot as a Service &bull; Barcelona, Spain</div>
+        <div class="subtitle" id="emailSubtitle"></div>
+      </div>
+      <div class="welcome-right">
+        <div class="welcome-section">
+          <h2 class="welcome-section-title" data-i18n="manifesto.title"></h2>
+          <div class="item"><span class="label" data-i18n="manifesto.who.label"></span><span data-i18n="manifesto.who.value"></span></div>
+          <div class="item"><span class="label" data-i18n="manifesto.what.label"></span><span data-i18n="manifesto.what.value"></span></div>
+          <div class="item"><span class="label" data-i18n="manifesto.how.label"></span><span data-i18n="manifesto.how.value"></span></div>
+          <div class="item"><span class="label" data-i18n="manifesto.why.label"></span><span data-i18n="manifesto.why.value"></span></div>
         </div>
-        <div class="hero-content">
-          <p class="eyebrow">Robot as a Service · IoT · Operación gestionada</p>
-          <h1>Admira Next</h1>
-          <p class="hero-copy">
-            Automatizamos espacios físicos con robots conectados, sensores inteligentes y una capa
-            operativa que convierte cada despliegue en un servicio medible desde el primer día.
-          </p>
-          <div class="hero-actions">
-            <a class="button primary" href="./contacto.html">Diseñar un piloto</a>
-            <a class="button secondary" href="./servicios.html">Explorar servicios</a>
-          </div>
+        <div class="welcome-section">
+          <h2 class="welcome-section-title" data-i18n="nav.title"></h2>
+          <div class="item"><span data-i18n="nav.cmd.about"></span></div>
+          <div class="item"><span data-i18n="nav.cmd.work"></span></div>
+          <div class="item"><span data-i18n="nav.cmd.clients"></span></div>
+          <div class="item"><span data-i18n="nav.cmd.skills"></span></div>
+          <div class="command-hint" data-i18n="nav.helphint"></div>
+          <div class="command-hint" style="margin-top:6px;opacity:0.5" data-i18n="nav.themehint"></div>
         </div>
-        <aside class="hero-panel" aria-label="Indicadores de operación">
-          <div>
-            <span>Disponibilidad objetivo</span>
-            <strong>99.5%</strong>
-          </div>
-          <div>
-            <span>Modelo comercial</span>
-            <strong>RaaS</strong>
-          </div>
-          <div>
-            <span>Integración</span>
-            <strong>API + IoT</strong>
-          </div>
-        </aside>
-      </section>
+      </div>
+    </div>
 
-      <section class="section intro">
-        <div>
-          <p class="eyebrow">Qué hacemos</p>
-          <h2>Robots útiles, datos vivos y soporte humano para que la automatización no se quede en una demo.</h2>
-        </div>
-        <p>
-          Admira Next se encarga del diseño del caso, la selección de hardware, la conectividad, el
-          mantenimiento y la lectura operativa. Tú pagas por capacidad desplegada, resultados y evolución.
-        </p>
-      </section>
+    <!-- Command output appears here -->
+    <div class="output-area" id="outputArea"></div>
+  </div>
 
-      <section class="route-grid" aria-label="Secciones principales">
-        <a href="./servicios.html">
-          <span class="icon">01</span>
-          <h3>Servicios</h3>
-          <p>Robots como servicio, sensores IoT y operación remota con SLA.</p>
-        </a>
-        <a href="./alquiler.html">
-          <span class="icon">02</span>
-          <h3>Alquiler de robots</h3>
-          <p>Catálogo de robots para eventos, ferias, seguridad, limpieza y activaciones.</p>
-        </a>
-        <a href="./plataforma.html">
-          <span class="icon">03</span>
-          <h3>Plataforma</h3>
-          <p>La consola para coordinar flotas, mapas, tareas, alertas e integraciones.</p>
-        </a>
-        <a href="./casos.html">
-          <span class="icon">04</span>
-          <h3>Casos de uso</h3>
-          <p>Aplicaciones en oficinas, industria, logística, salud y servicios.</p>
-        </a>
-      </section>
+  <!-- Input -->
+  <div class="input-area">
+    <span class="input-prompt">&gt;</span>
+    <div class="input-wrapper">
+      <div class="autocomplete" id="autocomplete"></div>
+      <input
+        type="text"
+        class="input-field"
+        id="cmdInput"
+        data-i18n-placeholder="prompt.placeholder"
+        placeholder='Type a command... try "/help"'
+        autocomplete="off"
+        spellcheck="false"
+      >
+    </div>
+  </div>
+</div>
 
-      <section class="metrics">
-        <article>
-          <strong data-count="40">0</strong>
-          <span>% menos tareas repetitivas</span>
-        </article>
-        <article>
-          <strong data-count="30">0</strong>
-          <span>días para un piloto medible</span>
-        </article>
-        <article>
-          <strong data-count="24">0</strong>
-          <span>/7 monitorización remota</span>
-        </article>
-      </section>
-    </main>
+<!-- Semantic content: always in DOM for AI crawlers, visually hidden when JS runs -->
+<div class="seo-fallback" id="seoFallback">
+  <h1>ADmiraNeXT — Robot as a Service</h1>
+  <p>An Everything as a Service company. We build Physical AI projects with a proprietary IoT platform and the best robots.</p>
+  <h2>Manifesto</h2>
+  <ul>
+    <li><strong>Who:</strong> An Everything as a Service company.</li>
+    <li><strong>What:</strong> We build Physical AI projects.</li>
+    <li><strong>How:</strong> Proprietary IoT platform + the best robots.</li>
+    <li><strong>Why:</strong> Because it's our passion.</li>
+  </ul>
+  <h2>Contact</h2>
+  <p>info@admira.com — Barcelona, Spain</p>
+</div>
+<!-- Noscript: make semantic content visible when JS is disabled -->
+<noscript><style>.seo-fallback { position:static; width:auto; height:auto; padding:32px; margin:40px auto; max-width:720px; overflow:visible; clip:auto; white-space:normal; font-family:'JetBrains Mono',monospace; color:var(--text); line-height:1.7; } .seo-fallback h1 { color:var(--accent); font-size:1.5rem; margin-bottom:8px; } .seo-fallback h2 { color:var(--accent); font-size:1.1rem; margin:24px 0 8px; } .seo-fallback h3 { color:var(--text); font-size:0.95rem; margin:16px 0 4px; } .seo-fallback p,.seo-fallback li { color:var(--text-dim); font-size:0.85rem; } .seo-fallback ul { padding-left:20px; } .seo-fallback a { color:var(--accent); }</style></noscript>
 
-    <footer class="site-footer">
-      <span>Admira Next</span>
-      <span>Robot as a Service & IoT para operaciones físicas.</span>
-    </footer>
+<!-- Consent Mode + Google Tag Manager -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+// Default: analytics denied until user consents
+gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' });
+// Restore consent if previously accepted
+if (localStorage.getItem('cookie_consent') === 'granted') {
+  gtag('consent', 'update', { analytics_storage: 'granted' });
+}
+// Load GTM after page load
+window.addEventListener('load', function(){
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KD696XW');
+});
+</script>
 
-    <script src="./translations.js"></script>
-    <script src="./script.js"></script>
-  </body>
+</body>
 </html>
