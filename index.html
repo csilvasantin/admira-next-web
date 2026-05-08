@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNext v26.05.08.10" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.08.11" />
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">
   {
@@ -164,6 +164,7 @@
           'gate.prompt': '> password',
           'gate.button': 'UNLOCK',
           'gate.error': '▲ INCORRECT PASSWORD',
+          'gate.hint': '1234 is not a password ;)',
           'boot.l1': 'Booting portfolio system...',
           'boot.l2': 'Loading design tokens...',
           'boot.l3': 'Mounting component library... ',
@@ -287,6 +288,7 @@
           'gate.prompt': '> contraseña',
           'gate.button': 'DESBLOQUEAR',
           'gate.error': '▲ CONTRASEÑA INCORRECTA',
+          'gate.hint': '1234 no es un password ;)',
           'boot.l1': 'Iniciando sistema de portafolio...',
           'boot.l2': 'Cargando tokens de diseño...',
           'boot.l3': 'Montando biblioteca de componentes... ',
@@ -357,6 +359,7 @@
   #password-screen button{width:100%;padding:11px;background:#ffb000;color:#1a0e00;border:0;cursor:pointer;font-weight:700;font-family:inherit;letter-spacing:.3em;font-size:13px;box-shadow:0 0 12px rgba(255,176,0,.4)}
   #password-screen button:hover{background:#ffd166}
   #password-screen #password-error{color:#ff4f4f;margin:0;font-size:11px;letter-spacing:.15em;text-shadow:0 0 6px rgba(255,79,79,.7)}
+  #password-screen .gate-hint{margin:0;color:#cc8a00;font-size:11px;letter-spacing:.15em;text-shadow:0 0 6px rgba(255,176,0,.35);opacity:.85;font-style:italic}
   @keyframes crt-flicker{0%,90%,92%,100%{opacity:1}91%{opacity:.85}}
   @keyframes crt-blink{0%{opacity:1}50%{opacity:0}}
   @media(max-width:680px){#password-screen pre.logo{font-size:7px}}
@@ -379,6 +382,7 @@
     <p class="gate-prompt"><span data-i18n="gate.prompt">&gt; password</span><span class="cursor"></span></p>
     <input type="password" id="password-input" autocomplete="current-password" autofocus>
     <button id="password-btn" data-i18n="gate.button"></button>
+    <p class="gate-hint" data-i18n="gate.hint"></p>
     <p id="password-error" style="display:none" data-i18n="gate.error"></p>
   </div>
 </div>
@@ -393,7 +397,7 @@
     const error = document.getElementById('password-error');
 
     function check() {
-      if (input.value === 'admira') {
+      if (input.value === '1234') {
         screen.style.display = 'none';
         document.body.style.overflow = 'auto';
         if (typeof window.__resolveGate === 'function') {
