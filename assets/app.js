@@ -118,9 +118,13 @@
       desc: 'Dirección de correo electrónico',
       fn: cmdEmail
     },
-    '/agency': {
+    '/company': {
       desc: 'ADmiraNeXT — sobre nosotros',
       fn: cmdAgency
+    },
+    '/rental': {
+      desc: 'Alquiler Robot as a Service',
+      fn: cmdRental
     },
     '/location': {
       desc: 'Dónde me encuentro',
@@ -169,6 +173,8 @@
   // devuelve data.desc (Spanish original).
   const DESC_EN = {
     '/help':         'List all available commands',
+    '/rental':       'Robot as a Service rental',
+    '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
     '/work':         'Featured projects and case studies',
     '/clients':      'Companies we have worked with',
@@ -182,7 +188,6 @@
     '/clear':        'Clear the terminal',
     '/phone':        'Phone number',
     '/email':        'Email address',
-    '/agency':       'ADmiraNeXT — about us',
     '/location':     'Where we are',
     '/privacy':      'Privacy policy and cookies',
     '/dark':         'Dark mode (default)',
@@ -203,7 +208,8 @@
     '/clients': 'cmd.clients', '/skills': 'cmd.skills', '/philosophy': 'cmd.philosophy',
     '/social': 'cmd.social', '/articles': 'cmd.articles', '/testimonials': 'cmd.testimonials',
     '/awards': 'cmd.awards', '/contact': 'cmd.contact', '/clear': 'cmd.clear',
-    '/phone': 'cmd.phone', '/email': 'cmd.email', '/agency': 'cmd.agency',
+    '/phone': 'cmd.phone', '/email': 'cmd.email', '/company': 'cmd.company',
+    '/rental': 'cmd.rental',
     '/location': 'cmd.location', '/privacy': 'cmd.privacy',
     '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
     '/glass': 'cmd.glass', '/themes': 'cmd.themes',
@@ -244,7 +250,11 @@
     '/llamar': '/phone',
     '/temas': '/themes',
     '/tema': '/themes',
-    '/agencia': '/agency',
+    '/empresa': '/company',
+    '/agencia': '/company',
+    '/agency': '/company',
+    '/alquiler': '/rental',
+    '/alquilar': '/rental',
     '/ubicacion': '/location',
     '/ubicación': '/location',
     '/privacidad': '/privacy',
@@ -1008,7 +1018,7 @@
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
     const container = document.createElement('div');
     container.innerHTML = `
-      <div class="output-line heading">${_T('agency.title')}</div>
+      <div class="output-line heading">${_T('company.title')}</div>
       <div style="height:8px"></div>
     `;
     const link = document.createElement('a');
@@ -1026,18 +1036,43 @@
     const desc = document.createElement('div');
     desc.className = 'output-line';
     desc.style.marginTop = '8px';
-    desc.textContent = '  ' + _T('agency.l1');
+    desc.textContent = '  ' + _T('company.l1');
     container.appendChild(desc);
     const desc2 = document.createElement('div');
     desc2.className = 'output-line';
-    desc2.textContent = '  ' + _T('agency.l2');
+    desc2.textContent = '  ' + _T('company.l2');
     container.appendChild(desc2);
     const hint = document.createElement('div');
     hint.className = 'output-line dim';
     hint.style.marginTop = '12px';
-    hint.textContent = '  → ' + _T('cmd.work') + ' ' + _T('agency.tip');
+    hint.textContent = '  → ' + _T('cmd.work') + ' ' + _T('company.tip');
     container.appendChild(hint);
     return container;
+  }
+
+  function cmdRental() {
+    const _T = (typeof window.t === 'function') ? window.t : (k => k);
+    return [
+      { text: _T('rental.title'), cls: 'heading' },
+      { text: '' },
+      { text: '  ' + _T('rental.tagline'), cls: 'accent' },
+      { text: '' },
+      { text: _T('rental.h1'), cls: 'heading' },
+      { text: '' },
+      { text: '  ◆ ' + _T('rental.l1'), cls: 'cyan' },
+      { text: '  ◆ ' + _T('rental.l2'), cls: 'cyan' },
+      { text: '  ◆ ' + _T('rental.l3'), cls: 'cyan' },
+      { text: '  ◆ ' + _T('rental.l4'), cls: 'cyan' },
+      { text: '' },
+      { text: _T('rental.h2'), cls: 'heading' },
+      { text: '' },
+      { text: '  ' + _T('rental.l5') },
+      { text: '  ' + _T('rental.l6') },
+      { text: '' },
+      { text: '  ' + _T('rental.cta'), cls: 'green' },
+      { text: '' },
+      { text: '  → ' + _T('cmd.contact') + ' ' + _T('rental.tip'), cls: 'dim' },
+    ];
   }
 
   function cmdLocation() {
@@ -1777,7 +1812,8 @@
     // Awards
     { cmd: '/awards', phrases: ['your awards', 'recognition', 'have you won', 'won any awards', 'design awards', 'awwwards', 'the fwa', 'css design awards', 'css winner', 'certifications', 'certificates', 'growth design'] },
     // Agency
-    { cmd: '/agency', phrases: ['your agency', 'product rocket', 'your company', 'your studio'] },
+    { cmd: '/company', phrases: ['your company', 'about admiranext', 'your studio', 'who runs this'] },
+    { cmd: '/rental', phrases: ['rent a robot', 'rent robots', 'robot rental', 'how much', 'pricing', 'how does rental work', 'lease robots', 'subscription', 'monthly fee', 'pay per use'] },
     // Themes
     { cmd: '/themes', phrases: ['change theme', 'change color', 'change colours', 'dark mode', 'light mode', 'switch theme', 'change appearance', 'change the look', 'how to change theme', 'customize'] },
     // Help
@@ -1815,6 +1851,10 @@
     // Only return if confidence is reasonable
     return bestScore >= 0.4 ? bestMatch : null;
   }
+
+  // Expuesto para que botones del UI puedan disparar comandos del terminal
+  // (ej: el botón RENTAL en la titlebar invoca window.runCmd('/rental')).
+  window.runCmd = function (input) { try { executeCommand(input); } catch (e) {} };
 
   function executeCommand(input) {
     const raw = input.trim().toLowerCase();

@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNext v26.05.08.18" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.08.19" />
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">
   {
@@ -51,7 +51,7 @@
   <meta name="twitter:description" content="An Everything as a Service company. We build Physical AI projects with a proprietary IoT platform and the best robots." />
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.08.18">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.08.19">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -119,7 +119,8 @@
           'cmd.clear':        '/clear',
           'cmd.phone':        '/phone',
           'cmd.email':        '/email',
-          'cmd.agency':       '/agency',
+          'cmd.company':      '/company',
+          'cmd.rental':       '/rental',
           'cmd.location':     '/location',
           'cmd.privacy':      '/privacy',
           'cmd.dark':         '/dark',
@@ -150,10 +151,23 @@
           'email.title':  'Email',
           'email.handle': 'tap to send a mail',
           'email.tip':    'for all contact options',
-          'agency.title': 'ADmiraNeXT',
-          'agency.l1':    'Robot as a Service company based in Barcelona, Spain.',
-          'agency.l2':    'We deploy and operate Physical AI for our customers.',
-          'agency.tip':   'see what we ship',
+          'company.title': 'ADmiraNeXT',
+          'company.l1':    'Robot as a Service company based in Barcelona, Spain.',
+          'company.l2':    'We deploy and operate Physical AI for our customers.',
+          'company.tip':   'see what we ship',
+          'rental.title':   'Robot as a Service Rental',
+          'rental.tagline': 'Pay for outcomes, not fleets.',
+          'rental.h1':      'What\'s included',
+          'rental.l1':      'Deployment, IoT platform, fleet orchestration.',
+          'rental.l2':      'Maintenance, software updates, on-site support.',
+          'rental.l3':      'Connectivity, monitoring, edge runtime.',
+          'rental.l4':      'Defined SLA + uptime guarantee.',
+          'rental.h2':      'How it works',
+          'rental.l5':      'Pilot deployments in 4 weeks.',
+          'rental.l6':      'Monthly fee per unit. Custom quotes for fleets.',
+          'rental.cta':     'No upfront capex. You only pay for the result.',
+          'rental.tip':     'to start your pilot',
+          'rental.tooltip': 'See robot rental info',
           'location.title': 'Location',
           'location.city':  'Barcelona, Spain',
           'location.scope': 'Working across Europe and beyond.',
@@ -266,7 +280,8 @@
           'cmd.clear':        '/limpiar',
           'cmd.phone':        '/telefono',
           'cmd.email':        '/correo',
-          'cmd.agency':       '/agencia',
+          'cmd.company':      '/empresa',
+          'cmd.rental':       '/alquiler',
           'cmd.location':     '/ubicacion',
           'cmd.privacy':      '/privacidad',
           'cmd.dark':         '/oscuro',
@@ -297,10 +312,23 @@
           'email.title':  'Correo Electrónico',
           'email.handle': 'toca para enviar un correo',
           'email.tip':    'para todas las opciones de contacto',
-          'agency.title': 'ADmiraNeXT',
-          'agency.l1':    'Empresa de Robot as a Service con sede en Barcelona, España.',
-          'agency.l2':    'Desplegamos y operamos Physical AI para nuestros clientes.',
-          'agency.tip':   'para ver lo que entregamos',
+          'company.title': 'ADmiraNeXT',
+          'company.l1':    'Empresa de Robot as a Service con sede en Barcelona, España.',
+          'company.l2':    'Desplegamos y operamos Physical AI para nuestros clientes.',
+          'company.tip':   'para ver lo que entregamos',
+          'rental.title':   'Alquiler Robot as a Service',
+          'rental.tagline': 'Paga por resultados, no por flotas.',
+          'rental.h1':      'Qué incluye',
+          'rental.l1':      'Despliegue, plataforma IoT, orquestación de flota.',
+          'rental.l2':      'Mantenimiento, actualizaciones software, soporte on-site.',
+          'rental.l3':      'Conectividad, monitorización, edge runtime.',
+          'rental.l4':      'SLA definido + garantía de uptime.',
+          'rental.h2':      'Cómo funciona',
+          'rental.l5':      'Pilotos en 4 semanas.',
+          'rental.l6':      'Cuota mensual por unidad. Presupuestos a medida para flotas.',
+          'rental.cta':     'Sin inversión inicial. Solo pagas por el resultado.',
+          'rental.tip':     'para empezar tu piloto',
+          'rental.tooltip': 'Ver información de alquiler',
           'location.title': 'Ubicación',
           'location.city':  'Barcelona, España',
           'location.scope': 'Trabajando en toda Europa y más allá.',
@@ -371,7 +399,7 @@
         document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
           el.placeholder = window.t(el.getAttribute('data-i18n-placeholder'));
         });
-        document.querySelectorAll('.lang-toggle').forEach(function (b) {
+        document.querySelectorAll('.lang-toggle:not(.rental-toggle)').forEach(function (b) {
           b.textContent = window.currentLang === 'en' ? 'ESP' : 'ENG';
           b.title = window.currentLang === 'en' ? 'Cambiar a español' : 'Switch to English';
         });
@@ -387,7 +415,7 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=26.05.08.18" defer></script>
+  <script src="assets/app.js?v=26.05.08.19" defer></script>
 </head>
 <body data-route="">
 <style id="crt-gate-style">
@@ -504,6 +532,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
       <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
       <div class="titlebar-title" data-i18n="titlebar.path.exit"></div>
+      <button class="lang-toggle rental-toggle" type="button" data-i18n-title="rental.tooltip" onclick="window.runCmd && window.runCmd('/rental')">🤖 RENTAL</button>
       <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
     </div>
     <div class="close-body">
@@ -528,6 +557,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
     <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
     <div class="titlebar-title" data-i18n="titlebar.path.portfolio"></div>
+    <button class="lang-toggle rental-toggle" type="button" data-i18n-title="rental.tooltip" onclick="window.runCmd && window.runCmd('/rental')">🤖 RENTAL</button>
     <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
   </div>
 
