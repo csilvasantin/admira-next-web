@@ -106,6 +106,25 @@
     }
     .wallpaper-blur, .wallpaper-sharp { transition: opacity 1.2s ease-out; }
 
+    /* Boot video — visible solo durante el boot animation */
+    .boot-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+    }
+    body.booting .boot-video { opacity: 1; }
+    body.booting .wallpaper-blur,
+    body.booting .wallpaper-sharp,
+    body.booting .wallpaper-video {
+      opacity: 0 !important;
+    }
+
     .wallpaper-sharp { display: none; }
     body.minimized .wallpaper-blur { display: none; }
     body.minimized .wallpaper-sharp { display: block; }

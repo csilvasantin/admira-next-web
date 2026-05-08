@@ -451,8 +451,14 @@
     const routeCmd = document.body.dataset.route;
     const isDeepLink = routeCmd && routeCmd.length > 0;
 
+    // Marca body como "booting" para que el wallpaper muestre el banner video
+    document.body.classList.add('booting');
+    const bootVideo = document.getElementById('bootVideo');
+    if (bootVideo) { try { const p = bootVideo.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+
     if (isDeepLink) {
       // Skip boot animation for deep links — go straight to terminal
+      document.body.classList.remove('booting');
       terminal.classList.remove('booting');
       asciiNameEl.textContent = ASCII_NAME;
       scalePixelRocket();
@@ -496,6 +502,7 @@
       document.addEventListener('touchstart', onKey);
     });
 
+    document.body.classList.remove('booting');
     terminal.classList.remove('booting');
     bootText.textContent = '';
     asciiNameEl.textContent = ASCII_NAME;
@@ -520,13 +527,14 @@
   }
 
   function showConsentBanner() {
+    const _T = (typeof window.t === 'function') ? window.t : (k => k);
     const banner = document.createElement('div');
     banner.className = 'output-block';
     banner.id = 'consentBanner';
     const msg = document.createElement('div');
     msg.className = 'output-line dim';
     msg.style.fontStyle = 'italic';
-    msg.innerHTML = `  <span class="accent" style="opacity:0.7">[sistema]</span> Este sitio utiliza cookies de análisis (GA4) para comprender el tráfico.`;
+    msg.innerHTML = `  <span class="accent" style="opacity:0.7">[system]</span> <span data-consent-msg>${_T('consent.msg')}</span>`;
     banner.appendChild(msg);
 
     const actions = document.createElement('div');
@@ -534,11 +542,11 @@
     actions.style.marginTop = '4px';
     actions.innerHTML = `
       <span style="margin-left:2ch">
-        <a href="#" id="consentAccept" style="cursor:pointer;text-decoration:underline;color:var(--text-dim);font-style:italic">Aceptar</a>
+        <a href="#" id="consentAccept" style="cursor:pointer;text-decoration:underline;color:var(--text-dim);font-style:italic" data-consent-accept>${_T('consent.accept')}</a>
         <span class="dim"> · </span>
-        <a href="#" id="consentDecline" style="cursor:pointer;text-decoration:underline;color:var(--text-dim);font-style:italic">Rechazar</a>
+        <a href="#" id="consentDecline" style="cursor:pointer;text-decoration:underline;color:var(--text-dim);font-style:italic" data-consent-decline>${_T('consent.decline')}</a>
         <span class="dim"> · </span>
-        <span class="dim" style="font-style:italic">/privacy para más detalles</span>
+        <span class="dim" style="font-style:italic" data-consent-privacy>${_T('consent.privacy')}</span>
       </span>
     `;
     banner.appendChild(actions);
@@ -549,17 +557,30 @@
       e.preventDefault();
       localStorage.setItem('cookie_consent', 'granted');
       gtag('consent', 'update', { analytics_storage: 'granted' });
-      banner.innerHTML = '<div class="output-line dim" style="font-style:italic">  <span class="accent" style="opacity:0.7">[sistema]</span> Cookies de análisis aceptadas. Gracias.</div>';
+      banner.innerHTML = `<div class="output-line dim" style="font-style:italic">  <span class="accent" style="opacity:0.7">[system]</span> ${_T('consent.granted')}</div>`;
       setTimeout(() => banner.remove(), 3000);
     });
 
     document.getElementById('consentDecline').addEventListener('click', (e) => {
       e.preventDefault();
       localStorage.setItem('cookie_consent', 'denied');
-      banner.innerHTML = '<div class="output-line dim" style="font-style:italic">  <span class="accent" style="opacity:0.7">[sistema]</span> Cookies de análisis rechazadas. No se utilizarán cookies de seguimiento.</div>';
+      banner.innerHTML = `<div class="output-line dim" style="font-style:italic">  <span class="accent" style="opacity:0.7">[system]</span> ${_T('consent.denied')}</div>`;
       setTimeout(() => banner.remove(), 3000);
     });
   }
+
+  // Re-translate consent banner if user toggles language while it's visible
+  window.addEventListener('admiranext:langchanged', function () {
+    if (typeof window.t !== 'function') return;
+    const m = document.querySelector('[data-consent-msg]');
+    if (m) m.textContent = window.t('consent.msg');
+    const a = document.querySelector('[data-consent-accept]');
+    if (a) a.textContent = window.t('consent.accept');
+    const d = document.querySelector('[data-consent-decline]');
+    if (d) d.textContent = window.t('consent.decline');
+    const p = document.querySelector('[data-consent-privacy]');
+    if (p) p.textContent = window.t('consent.privacy');
+  });
 
   // ============ PROJECT DATA (shared by cmdWork + cmdProject) ============
   const PROJECTS = [
