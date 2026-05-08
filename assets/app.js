@@ -2255,6 +2255,31 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // ============ AUTO-VERSION-CHECK ============
+  // Fetch del HTML cada 5 min (y a los 30s del load) para detectar nuevos
+  // deploys aunque el navegador tenga cacheado el HTML/JS. Si la versión
+  // remota difiere de la cargada, recarga (con parámetro nocache para forzar
+  // re-validación de los assets).
+  async function checkAdmiranextVersion() {
+    try {
+      const r = await fetch('/?_vc=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const text = await r.text();
+      const m = text.match(/admiranext-version"\s+content="([^"]+)"/);
+      if (!m) return;
+      const remote = m[1];
+      const local = document.querySelector('meta[name="admiranext-version"]')?.content;
+      if (remote && local && remote !== local) {
+        // Hay nueva versión: reload con cache-bust
+        const url = new URL(window.location.href);
+        url.searchParams.set('_v', Date.now());
+        window.location.replace(url.toString());
+      }
+    } catch (e) { /* ignore network errors */ }
+  }
+  setTimeout(checkAdmiranextVersion, 30000);
+  setInterval(checkAdmiranextVersion, 5 * 60 * 1000);
+
   // ============ INIT ============
   runBoot();
 
