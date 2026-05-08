@@ -133,56 +133,9 @@
   };
 
   // ============ PROJECT COMMANDS ============
-  const PROJECT_COMMANDS = {
-    '/signals': {
-      desc: 'Signals — Plataforma de Integridad de Investigación',
-      fn: () => cmdProject('Signals')
-    },
-    '/anylyze': {
-      desc: 'Anylyze — Plataforma de Datos Analíticos',
-      fn: () => cmdProject('Anylyze')
-    },
-    '/liveu': {
-      desc: 'LiveU — Sistema de Diseño Signa',
-      fn: () => cmdProject('LiveU — Signa Design System')
-    },
-    '/tuiasi': {
-      desc: 'TUIASI — Rediseño Universitario',
-      fn: () => cmdProject('TUIASI — University Redesign')
-    },
-    '/resnet': {
-      desc: 'ResNet AI — Sistema de Diseño para Hostelería',
-      fn: () => cmdProject('ResNet AI')
-    },
-    '/socyal': {
-      desc: 'Socyal — Plataforma Móvil de RR.HH.',
-      fn: () => cmdProject('Socyal')
-    },
-    '/app4home': {
-      desc: 'App4Home — App IoT para el Hogar Inteligente',
-      fn: () => cmdProject('App4Home')
-    },
-    '/cyberghost': {
-      desc: 'CyberGhost VPN — Privacidad del Consumidor',
-      fn: () => cmdProject('CyberGhost VPN')
-    },
-    '/cognitiveseo': {
-      desc: 'CognitiveSEO — Panel de SEO',
-      fn: () => cmdProject('CognitiveSEO')
-    },
-    '/big5': {
-      desc: 'Big5 American Diner — Identidad de Marca de Restaurante',
-      fn: () => cmdProject('Big5 American Diner')
-    },
-    '/darnic': {
-      desc: 'Darnic — Branding de Campaña de ONG',
-      fn: () => cmdProject('Darnic for Education')
-    },
-    '/crafting-social': {
-      desc: 'Crafting Social Stories — Marca de Taller',
-      fn: () => cmdProject('Crafting Social Stories')
-    },
-  };
+  // Vacío hasta que tengamos casos de estudio reales de ADmiraNeXT.
+  // Mientras tanto /work / /proyectos muestra "Próximamente / Coming soon".
+  const PROJECT_COMMANDS = {};
 
   // ============ THEME COMMANDS ============
   const THEME_COMMANDS = {
@@ -682,10 +635,12 @@
     for (const [cmd, data] of Object.entries(INFO_COMMANDS)) {
       lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
-    lines.push({ text: '' });
-    lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.projects')}</span>` });
-    for (const [cmd, data] of Object.entries(PROJECT_COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
+    if (Object.keys(PROJECT_COMMANDS).length) {
+      lines.push({ text: '' });
+      lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.projects')}</span>` });
+      for (const [cmd, data] of Object.entries(PROJECT_COMMANDS)) {
+        lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
+      }
     }
     lines.push({ text: '' });
     lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.themes')}</span>` });
