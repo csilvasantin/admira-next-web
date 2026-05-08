@@ -119,7 +119,7 @@
       fn: cmdEmail
     },
     '/agency': {
-      desc: 'Product Rocket — mi agencia',
+      desc: 'ADmiraNeXT — sobre nosotros',
       fn: cmdAgency
     },
     '/location': {
@@ -211,6 +211,38 @@
   // Combined lookup for all command groups
   const ALL_COMMAND_GROUPS = [COMMANDS, INFO_COMMANDS, PROJECT_COMMANDS, THEME_COMMANDS];
 
+  // English descriptions for /help (ES descs viven en cada entry como fallback).
+  // Si el idioma activo es 'en', getDesc() devuelve esta versión; en caso contrario
+  // devuelve data.desc (Spanish original).
+  const DESC_EN = {
+    '/help':         'List all available commands',
+    '/about':        'Who is ADmiraNeXT?',
+    '/work':         'Featured projects and case studies',
+    '/clients':      'Companies we have worked with',
+    '/skills':       'Expertise and capabilities',
+    '/philosophy':   'Our design philosophy',
+    '/social':       'Social profiles and links',
+    '/articles':     'Published articles and guides',
+    '/testimonials': 'What people say',
+    '/awards':       'Awards and recognition',
+    '/contact':      'Get in touch',
+    '/clear':        'Clear the terminal',
+    '/phone':        'Phone number',
+    '/email':        'Email address',
+    '/agency':       'ADmiraNeXT — about us',
+    '/location':     'Where we are',
+    '/privacy':      'Privacy policy and cookies',
+    '/dark':         'Dark mode (default)',
+    '/light':        'Light mode',
+    '/retro':        'Retro CRT mode',
+    '/glass':        'Modern glass mode',
+    '/themes':       'Explore all themes',
+  };
+  function getDesc(cmd, fallback) {
+    if (window.currentLang === 'en' && DESC_EN[cmd]) return DESC_EN[cmd];
+    return fallback;
+  }
+
   // Command aliases
   const ALIASES = {
     // Spanish command aliases (válidos en cualquier idioma)
@@ -234,6 +266,8 @@
     '/contratar': '/contact',
     '/correo': '/email',
     '/telefono': '/phone',
+    '/teléfono': '/phone',
+    '/llamar': '/phone',
     '/temas': '/themes',
     '/tema': '/themes',
     '/agencia': '/agency',
@@ -606,34 +640,36 @@
   // ============ COMMAND FUNCTIONS ============
 
   function cmdHelp() {
+    const _T = (typeof window.t === 'function') ? window.t : (k => k);
+    const sectionStyle = 'text-transform:uppercase;letter-spacing:1px;font-size:0.75em';
     const lines = [
-      { text: 'Comandos Disponibles', cls: 'heading' },
+      { text: _T('help.title'), cls: 'heading' },
       { text: '' },
-      { html: '  <span class="cmd-desc" style="text-transform:uppercase;letter-spacing:1px;font-size:0.75em">Navegación</span>' },
+      { html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.nav')}</span>` },
     ];
     for (const [cmd, data] of Object.entries(COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${data.desc}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
-    lines.push({ html: '  <span class="cmd-desc" style="text-transform:uppercase;letter-spacing:1px;font-size:0.75em">Información Rápida</span>' });
+    lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.info')}</span>` });
     for (const [cmd, data] of Object.entries(INFO_COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${data.desc}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
-    lines.push({ html: '  <span class="cmd-desc" style="text-transform:uppercase;letter-spacing:1px;font-size:0.75em">Proyectos</span>' });
+    lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.projects')}</span>` });
     for (const [cmd, data] of Object.entries(PROJECT_COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${data.desc}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
-    lines.push({ html: '  <span class="cmd-desc" style="text-transform:uppercase;letter-spacing:1px;font-size:0.75em">Temas</span>' });
+    lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.themes')}</span>` });
     for (const [cmd, data] of Object.entries(THEME_COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${data.desc}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
-    lines.push({ text: 'Alias: /portfolio, /projects, /me, /hire, /call, /mail', cls: 'dim' });
-    lines.push({ text: 'Consejo: Usa las flechas ↑↓ para el historial, Tab para autocompletar', cls: 'dim' });
+    lines.push({ text: _T('help.aliases'), cls: 'dim' });
+    lines.push({ text: _T('help.tip'), cls: 'dim' });
     lines.push({ text: '' });
-    lines.push({ text: '  ...y algunos otros, si sabes dónde buscar.', cls: 'dim', style: 'opacity:0.5;font-style:italic' });
+    lines.push({ text: _T('help.suffix'), cls: 'dim', style: 'opacity:0.5;font-style:italic' });
     return lines;
   }
 
