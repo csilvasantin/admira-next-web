@@ -243,6 +243,27 @@
     return fallback;
   }
 
+  // Map de slug-canónico → key de i18n. Sólo para los comandos que tienen
+  // versión localizada (los proyectos /signals /liveu etc. mantienen su nombre).
+  const SLUG_KEY = {
+    '/help': 'cmd.help', '/about': 'cmd.about', '/work': 'cmd.work',
+    '/clients': 'cmd.clients', '/skills': 'cmd.skills', '/philosophy': 'cmd.philosophy',
+    '/social': 'cmd.social', '/articles': 'cmd.articles', '/testimonials': 'cmd.testimonials',
+    '/awards': 'cmd.awards', '/contact': 'cmd.contact', '/clear': 'cmd.clear',
+    '/phone': 'cmd.phone', '/email': 'cmd.email', '/agency': 'cmd.agency',
+    '/location': 'cmd.location', '/privacy': 'cmd.privacy',
+    '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
+    '/glass': 'cmd.glass', '/themes': 'cmd.themes',
+  };
+  function displaySlug(cmd) {
+    const k = SLUG_KEY[cmd];
+    if (k && typeof window.t === 'function') {
+      const v = window.t(k);
+      if (v && v !== k) return v;
+    }
+    return cmd;
+  }
+
   // Command aliases
   const ALIASES = {
     // Spanish command aliases (válidos en cualquier idioma)
@@ -271,6 +292,12 @@
     '/temas': '/themes',
     '/tema': '/themes',
     '/agencia': '/agency',
+    '/ubicacion': '/location',
+    '/ubicación': '/location',
+    '/privacidad': '/privacy',
+    '/oscuro': '/dark',
+    '/claro': '/light',
+    '/cristal': '/glass',
     '/articulos': '/articles',
     '/escritos': '/articles',
     '/premios': '/awards',
@@ -648,22 +675,22 @@
       { html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.nav')}</span>` },
     ];
     for (const [cmd, data] of Object.entries(COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
     lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.info')}</span>` });
     for (const [cmd, data] of Object.entries(INFO_COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
     lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.projects')}</span>` });
     for (const [cmd, data] of Object.entries(PROJECT_COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
     lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${_T('help.section.themes')}</span>` });
     for (const [cmd, data] of Object.entries(THEME_COMMANDS)) {
-      lines.push({ html: `  <span class="cmd-name">${cmd}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
+      lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
     lines.push({ text: '' });
     lines.push({ text: _T('help.aliases'), cls: 'dim' });
