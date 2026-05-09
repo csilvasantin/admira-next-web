@@ -1420,7 +1420,7 @@
       // { cmd: '/omniAdmira', label: 'OmniAdmira — ?', url: '?', color: 'accent' },
     ]},
     { group: '🎮  Cultura', items: [
-      { cmd: '/aventura',   label: 'Aventura SCUMM',                        url: 'https://csilvasantin.github.io/ConsejoAdmiraNextGame/',     color: 'purple' },
+      { cmd: '/aventura',   label: 'Aventura SCUMM',                        url: 'https://www.admira.live/council-scumm.html',                color: 'purple' },
       { cmd: '/diario',     label: 'Diario — bitácora',                     url: 'https://csilvasantin.github.io/18.-diario/',                color: 'blue' },
     ]},
     { group: '⚙️  Operaciones', items: [
@@ -1485,31 +1485,13 @@
       { text: _T('launch.opening'), cls: 'green' },
     ];
   }
-  registerHidden('/admiraxp', function() {
-    return launchEgg('AdmiraXperience — simulator', 'https://csilvasantin.github.io/01.-AdmiraXperience-Game/', 'purple');
+  // Registrar todos los launches desde INTRANET_CATALOG (única fuente de verdad).
+  // Evita duplicar URL/label entre el listado y el handler.
+  Object.values(INTRANET_BY_CMD).forEach(function(it) {
+    registerHidden(it.cmd, function() { return launchEgg(it.label, it.url, it.color); });
   });
-  registerHidden('/yarigai', function() {
-    return launchEgg('Yarigai — análisis de vídeos del Consejo', 'https://csilvasantin.github.io/03.-ControlCodexClaude/yarigai.html', 'cyan');
-  });
-  registerHidden('/consejo', function() {
-    return launchEgg('Consejo AdmiraNext — panel', 'https://csilvasantin.github.io/03.-ControlCodexClaude/consejo.html', 'green');
-  });
-  registerHidden('/pixer', function() {
-    return launchEgg('Pixer.ai — content engine', 'https://pixer.ai', 'accent');
-  });
-  registerHidden('/game', function() {
-    return launchEgg('ConsejoAdmiraNext — aventura SCUMM', 'https://csilvasantin.github.io/ConsejoAdmiraNextGame/', 'purple');
-  });
-  registerHidden('/aventura', function() { return HIDDEN_COMMANDS['/game'](); });
-  registerHidden('/diario', function() {
-    return launchEgg('Diario — bitácora', 'https://csilvasantin.github.io/18.-diario/', 'blue');
-  });
-  registerHidden('/equipo', function() {
-    return launchEgg('AdmiraNext Team — control', 'https://csilvasantin.github.io/03.-ControlCodexClaude/teamwork.html', 'green');
-  });
-  registerHidden('/control', function() {
-    return launchEgg('AdmiraNext Control — máquinas', 'https://csilvasantin.github.io/03.-ControlCodexClaude/control.html', 'blue');
-  });
+  // Alias /game = /aventura (mismo handler)
+  registerHidden('/game', function() { return HIDDEN_COMMANDS['/aventura'](); });
 
   // ls
   registerHidden('ls', function() {
