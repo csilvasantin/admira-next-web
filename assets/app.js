@@ -1397,6 +1397,42 @@
     ];
   });
 
+  // ── Launch commands (huevos de pascua que abren creaciones del ecosistema) ──
+  function launchEgg(label, url, color) {
+    const _T = (typeof window.t === 'function') ? window.t : (k => k);
+    setTimeout(() => { try { window.open(url, '_blank', 'noopener,noreferrer'); } catch(e){} }, 700);
+    return [
+      { text: `  ▶ ${label}`, cls: color || 'accent' },
+      { text: `  ${url}`, cls: 'dim' },
+      { text: _T('launch.opening'), cls: 'green' },
+    ];
+  }
+  registerHidden('/admiraxp', function() {
+    return launchEgg('AdmiraXperience — simulator', 'https://csilvasantin.github.io/01.-AdmiraXperience-Game/', 'purple');
+  });
+  registerHidden('/yarigai', function() {
+    return launchEgg('Yarigai — análisis de vídeos del Consejo', 'https://csilvasantin.github.io/03.-ControlCodexClaude/yarigai.html', 'cyan');
+  });
+  registerHidden('/consejo', function() {
+    return launchEgg('Consejo AdmiraNext — panel', 'https://csilvasantin.github.io/03.-ControlCodexClaude/consejo.html', 'green');
+  });
+  registerHidden('/pixer', function() {
+    return launchEgg('Pixer.ai — content engine', 'https://pixer.ai', 'accent');
+  });
+  registerHidden('/game', function() {
+    return launchEgg('ConsejoAdmiraNext — aventura SCUMM', 'https://csilvasantin.github.io/ConsejoAdmiraNextGame/', 'purple');
+  });
+  registerHidden('/aventura', function() { return HIDDEN_COMMANDS['/game'](); });
+  registerHidden('/diario', function() {
+    return launchEgg('Diario — bitácora', 'https://csilvasantin.github.io/18.-diario/', 'blue');
+  });
+  registerHidden('/equipo', function() {
+    return launchEgg('AdmiraNext Team — control', 'https://csilvasantin.github.io/03.-ControlCodexClaude/teamwork.html', 'green');
+  });
+  registerHidden('/control', function() {
+    return launchEgg('AdmiraNext Control — máquinas', 'https://csilvasantin.github.io/03.-ControlCodexClaude/control.html', 'blue');
+  });
+
   // ls
   registerHidden('ls', function() {
     return [
