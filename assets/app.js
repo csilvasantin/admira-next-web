@@ -1397,9 +1397,87 @@
     ];
   });
 
-  // ── Launch commands (huevos de pascua que abren creaciones del ecosistema) ──
+  // ── Intranet & Launch commands ────────────────────────────────────────────
+  // /intranet abre el gate (mismo CRT). Al acertar 1234, persiste sesión y muestra
+  // el listado. Los launches (/admiraxp etc.) requieren intranet desbloqueada.
+  function isIntranetUnlocked() {
+    try { return sessionStorage.getItem('intranetUnlocked') === '1'; } catch(e) { return false; }
+  }
+  function setIntranetUnlocked(v) {
+    try { sessionStorage.setItem('intranetUnlocked', v ? '1' : '0'); } catch(e) {}
+  }
+
+  // Catálogo único de proyectos. Categorías ordenadas; cada item: {cmd,label,url,color}.
+  const INTRANET_CATALOG = [
+    { group: '🤖  Robots & IoT', items: [
+      { cmd: '/admiraxp',   label: 'AdmiraXperience — simulador',           url: 'https://csilvasantin.github.io/01.-AdmiraXperience-Game/', color: 'purple' },
+      { cmd: '/pixer',      label: 'Pixer.ai — content engine',             url: 'https://pixer.ai',                                          color: 'accent' },
+    ]},
+    { group: '🧠  Consejo & gobernanza', items: [
+      { cmd: '/consejo',    label: 'Panel del Consejo',                     url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/consejo.html', color: 'green' },
+      { cmd: '/yarigai',    label: 'Análisis de vídeos del Consejo',        url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/yarigai.html', color: 'cyan' },
+      // TODO: /omniAdmira — pendiente URL/descripción del usuario
+      // { cmd: '/omniAdmira', label: 'OmniAdmira — ?', url: '?', color: 'accent' },
+    ]},
+    { group: '🎮  Cultura', items: [
+      { cmd: '/aventura',   label: 'Aventura SCUMM',                        url: 'https://csilvasantin.github.io/ConsejoAdmiraNextGame/',     color: 'purple' },
+      { cmd: '/diario',     label: 'Diario — bitácora',                     url: 'https://csilvasantin.github.io/18.-diario/',                color: 'blue' },
+    ]},
+    { group: '⚙️  Operaciones', items: [
+      { cmd: '/equipo',     label: 'Control del equipo',                    url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/teamwork.html', color: 'green' },
+      { cmd: '/control',    label: 'Máquinas',                              url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/control.html',  color: 'blue' },
+    ]},
+  ];
+
+  // Mapa cmd → item para resolver launches por nombre
+  const INTRANET_BY_CMD = {};
+  INTRANET_CATALOG.forEach(g => g.items.forEach(it => { INTRANET_BY_CMD[it.cmd] = it; }));
+
+  function renderIntranetListing() {
+    const out = [
+      { text: '  ┌─────────────────────────────────────────────────────────────┐', cls: 'accent' },
+      { text: '  │  INTRANET — Acceso a proyectos del ecosistema AdmiraNeXT    │', cls: 'accent' },
+      { text: '  └─────────────────────────────────────────────────────────────┘', cls: 'accent' },
+      { text: '' },
+    ];
+    INTRANET_CATALOG.forEach(g => {
+      out.push({ text: `  ${g.group}`, cls: 'cyan' });
+      g.items.forEach(it => {
+        out.push({ html: `    <span class="cmd-name">${it.cmd.padEnd(14)}</span><span class="dim">${it.label}</span>` });
+      });
+      out.push({ text: '' });
+    });
+    out.push({ text: '  → Escribe cualquier comando de arriba para entrar.', cls: 'green' });
+    return out;
+  }
+
+  registerHidden('/intranet', function() {
+    if (isIntranetUnlocked()) {
+      return renderIntranetListing();
+    }
+    // Mostrar gate; al cerrar, si OK, imprimir listado vía executeCommand
+    if (typeof window.showIntranetGate === 'function') {
+      window.showIntranetGate(function(ok) {
+        if (ok) {
+          setIntranetUnlocked(true);
+          // Re-ejecuta /intranet para imprimir el listado
+          setTimeout(() => executeCommand('/intranet'), 50);
+        }
+      });
+    }
+    return [
+      { text: '  🔒 Acceso restringido. Introduce credenciales en el CRT...', cls: 'accent' },
+    ];
+  });
+
   function launchEgg(label, url, color) {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
+    if (!isIntranetUnlocked()) {
+      return [
+        { text: `  🔒 ${label}`, cls: 'dim' },
+        { text: '  Acceso requerido. Escribe /intranet primero.', cls: 'accent' },
+      ];
+    }
     setTimeout(() => { try { window.open(url, '_blank', 'noopener,noreferrer'); } catch(e){} }, 700);
     return [
       { text: `  ▶ ${label}`, cls: color || 'accent' },

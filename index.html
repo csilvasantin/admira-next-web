@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNext v26.05.09.1" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.09.2" />
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">
   {
@@ -440,7 +440,7 @@
   @media(max-width:680px){#password-screen pre.logo{font-size:7px}}
   @media(max-width:480px){#password-screen pre.logo{font-size:5px}#password-screen .crt{padding:22px 18px}#password-screen input{width:88vw;max-width:280px}}
 </style>
-<div id="password-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;padding:24px">
+<div id="password-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999999;padding:24px">
   <div class="crt">
     <pre class="logo" aria-label="ADMIRA NEXT"><b> █████╗ ██████╗ ███╗   ███╗██╗██████╗  █████╗
 ██╔══██╗██╔══██╗████╗ ████║██║██╔══██╗██╔══██╗
@@ -461,23 +461,30 @@
   </div>
 </div>
 <script>
-  // Promise que el resto del JS (app.js / runBoot) espera para no robar
-  // foco ni capturar el Enter del gate antes de que el usuario lo desbloquee.
-  window.__gateUnlocked = new Promise(function(resolve) { window.__resolveGate = resolve; });
+  // El gate ya NO es la pantalla de inicio: la web pública es libre. El gate
+  // sólo se invoca desde el comando /intranet para entrar en la zona privada.
+  // __gateUnlocked se resuelve ya, para que código antiguo que la espere no bloquee.
+  window.__gateUnlocked = Promise.resolve();
   (function() {
     const input = document.getElementById('password-input');
     const btn = document.getElementById('password-btn');
     const screen = document.getElementById('password-screen');
     const error = document.getElementById('password-error');
+    let activeCallback = null;
+
+    function close() {
+      screen.style.display = 'none';
+      document.body.style.overflow = 'auto';
+      input.value = '';
+      error.style.display = 'none';
+      activeCallback = null;
+    }
 
     function check() {
       if (input.value === '1234') {
-        screen.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        if (typeof window.__resolveGate === 'function') {
-          window.__resolveGate();
-          window.__resolveGate = null;
-        }
+        const cb = activeCallback;
+        close();
+        if (typeof cb === 'function') cb(true);
       } else {
         error.style.display = 'block';
         input.value = '';
@@ -485,10 +492,13 @@
       }
     }
 
-    // keydown captura ANTES que cualquier listener que app.js haya añadido a document
-    // (capture:true), evitando que el boot se trague el Enter del gate.
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); check(); }
+      if (e.key === 'Escape') {
+        const cb = activeCallback;
+        close();
+        if (typeof cb === 'function') cb(false);
+      }
     }, true);
     btn.addEventListener('click', check);
 
@@ -498,8 +508,15 @@
       if (e.target !== input) input.focus();
     });
 
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => input.focus(), 0);
+    // API pública: muestra el gate y llama onResult(true) si OK, false si cancelado.
+    window.showIntranetGate = function(onResult) {
+      activeCallback = (typeof onResult === 'function') ? onResult : null;
+      screen.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      input.value = '';
+      error.style.display = 'none';
+      setTimeout(() => input.focus(), 0);
+    };
   })();
 </script>
 <div class="wallpaper" id="wallpaper">
