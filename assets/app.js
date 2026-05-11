@@ -13,6 +13,7 @@
     '/privacy': 'privacy',
     '/articles': 'articles',
     '/classic': 'classic',
+    '/robots': 'robots',
   };
   const ROUTE_TITLES = {
     '': 'ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
@@ -28,6 +29,7 @@
     'privacy': 'Política de Privacidad | ADmiraNeXT',
     'articles': 'Artículos sobre Sistemas de Diseño, UX y Estrategia | ADmiraNeXT',
     'classic': 'Web Clásica | ADmiraNeXT',
+    'robots': 'Robots | ADmiraNeXT',
   };
 
   function updateUrl(command) {
@@ -91,6 +93,10 @@
     '/articles': {
       desc: 'Artículos publicados y guías',
       fn: cmdArticles
+    },
+    '/robots': {
+      desc: 'Catálogo inicial de robots',
+      fn: cmdRobots
     },
     '/testimonials': {
       desc: 'Lo que la gente dice de mí',
@@ -176,6 +182,7 @@
   const DESC_EN = {
     '/help':         'List all available commands',
     '/classic':      'Open the classic web',
+    '/robots':       'Initial robot catalog',
     '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
     '/work':         'Featured projects and case studies',
@@ -212,6 +219,7 @@
     '/awards': 'cmd.awards', '/contact': 'cmd.contact', '/clear': 'cmd.clear',
     '/phone': 'cmd.phone', '/email': 'cmd.email', '/company': 'cmd.company',
     '/classic': 'cmd.classic',
+    '/robots': 'cmd.robots',
     '/location': 'cmd.location', '/privacy': 'cmd.privacy',
     '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
     '/glass': 'cmd.glass', '/themes': 'cmd.themes',
@@ -259,6 +267,11 @@
     '/alquilar': '/classic',
     '/web-clasica': '/classic',
     '/web-clásica': '/classic',
+    '/robot': '/robots',
+    '/robotica': '/robots',
+    '/robótica': '/robots',
+    '/catalogo': '/robots',
+    '/catálogo': '/robots',
     '/classic-web': '/classic',
     '/rental': '/classic',
     '/ubicacion': '/location',
@@ -638,6 +651,65 @@
     { name: 'Crafting Social Stories', year: '2024', type: 'Marca de Taller Educativo', desc: 'Identidad de doble atractivo para talleres infantiles: lúdica pero creíble para donantes corporativos.', tags: ['Branding', 'ONG', 'Identidad Visual'], stats: ['↑ registros de voluntarios', '↑ compromiso de donantes'] },
   ];
 
+  const ROBOTS = [
+    {
+      name: 'AgiBot A2 Ultra',
+      category: 'humanoid',
+      price: '€3.399',
+      badge: 'Premium',
+      image: 'https://www.agibot.com/public/uploads/images/20250922/7528a0359f8f7e09788972bdb5c35c2a.png',
+    },
+    {
+      name: 'AgiBot A2',
+      category: 'humanoid',
+      price: '€2.699',
+      badge: 'Best Seller',
+      image: 'https://www.agibot.com/public/uploads/images/20250924/07684c1e0bf74d8cec9aab593d3afa8a.png',
+    },
+    {
+      name: 'AgiBot X2 Ultra',
+      category: 'humanoid',
+      price: '€2.399',
+      badge: 'Agile',
+      image: 'https://www.agibot.com/public/uploads/images/20250924/bcdaf302f10439090f551e9906ef7285.png',
+    },
+    {
+      name: 'AgiBot X2 Lite',
+      category: 'humanoid',
+      price: '€1.999',
+      badge: 'Compact',
+      image: 'https://www.botsharing.eu/images/x2lite-robot.png',
+    },
+    {
+      name: 'AgiBot D1 MaxPro',
+      category: 'quadruped',
+      price: '€2.999',
+      badge: 'Quadruped',
+      image: 'https://agibotmall.com/uploads/attach/2026/01/20260130/f6c154606b00a6d27069cc3a9ed0705c.png',
+    },
+    {
+      name: 'AgiBot D1 Ultra',
+      category: 'quadruped',
+      price: '€899',
+      badge: 'Budget Friendly',
+      image: 'https://www.agibot.com/public/uploads/images/20250924/833452d6caa40f2728dae867dcdcfc2a.png',
+    },
+    {
+      name: 'AgiBot D1 Ultra-W',
+      category: 'quadruped',
+      price: '€999',
+      badge: 'Heavy Duty',
+      image: 'https://agibotmall.com/uploads/attach/2026/01/20260130/70c5491e9790116ef65fd5479c10916d.png',
+    },
+    {
+      name: 'AgiBot C5',
+      category: 'cleaning',
+      price: '€7.999/3mo',
+      badge: 'Smart Cleaning',
+      image: 'https://www.agibot.com/public/uploads/images/20251023/d59c5681d6db5d368849ac13334e98e9.png',
+    },
+  ];
+
   // ============ COMMAND FUNCTIONS ============
 
   function buildHelpLines() {
@@ -737,6 +809,88 @@
       { text: '' },
       { text: '  → ' + _T('cmd.contact') + ' ' + _T('work.tip'), cls: 'dim' },
     ];
+  }
+
+  function cmdRobots() {
+    const isSpanish = window.currentLang !== 'en';
+    const container = document.createElement('section');
+    container.className = 'robot-catalog-block';
+    container.setAttribute('aria-label', isSpanish ? 'Catálogo de robots' : 'Robot catalog');
+
+    const header = document.createElement('div');
+    header.className = 'robot-catalog-head';
+    header.innerHTML = `
+      <div>
+        <p class="robot-eyebrow">${isSpanish ? 'FLOTA INICIAL' : 'INITIAL FLEET'}</p>
+        <h2>${isSpanish ? 'Robots' : 'Robots'}</h2>
+      </div>
+      <p>${isSpanish ? 'Ocho opciones listas para pilots, eventos y operaciones conectadas.' : 'Eight options ready for pilots, events and connected operations.'}</p>
+    `;
+
+    const filters = document.createElement('div');
+    filters.className = 'robot-filters';
+    filters.setAttribute('aria-label', isSpanish ? 'Filtros de robots' : 'Robot filters');
+    [
+      ['all', 'All Robots'],
+      ['humanoid', 'Humanoid'],
+      ['quadruped', 'Quadruped'],
+      ['cleaning', 'Cleaning'],
+    ].forEach(([key, label], index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.robotFilter = key;
+      button.textContent = label;
+      if (index === 0) button.className = 'is-active';
+      filters.appendChild(button);
+    });
+
+    const grid = document.createElement('div');
+    grid.className = 'robot-grid';
+    ROBOTS.forEach(robot => {
+      const card = document.createElement('article');
+      card.className = 'robot-card';
+      card.dataset.category = robot.category;
+      card.innerHTML = `
+        <div class="robot-photo-frame">
+          <img src="${escapeHtml(robot.image)}" alt="${escapeHtml(robot.name)}" loading="lazy">
+        </div>
+        <div class="robot-card-body">
+          <h3>${escapeHtml(robot.name)}</h3>
+          <strong>${escapeHtml(robot.price)}</strong>
+          <span>${escapeHtml(robot.badge)}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    const note = document.createElement('p');
+    note.className = 'robot-note';
+    note.textContent = isSpanish
+      ? '* Precios orientativos con alquiler, entrega y puesta en marcha incluidos.'
+      : '* Prices include robot rental, delivery, and unboxing service.';
+
+    filters.addEventListener('click', event => {
+      const button = event.target.closest('[data-robot-filter]');
+      if (!button) return;
+      const filter = button.dataset.robotFilter;
+      filters.querySelectorAll('button').forEach(item => item.classList.toggle('is-active', item === button));
+      grid.querySelectorAll('.robot-card').forEach(card => {
+        const visible = filter === 'all' || card.dataset.category === filter;
+        card.hidden = !visible;
+      });
+      requestAnimationFrame(() => { terminalBody.scrollTop = terminalBody.scrollHeight; });
+    });
+
+    container.appendChild(header);
+    container.appendChild(filters);
+    container.appendChild(grid);
+    container.appendChild(note);
+    setTimeout(() => {
+      if (container.isConnected) {
+        container.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    }, 120);
+    return container;
   }
 
   function cmdClients() {
@@ -1834,7 +1988,7 @@
   // ============ COMMAND EXECUTION ============
 
   function applyStaggerAnimation(container) {
-    const selectors = '.output-line, .project-card, .client-item, .skill-bar';
+    const selectors = '.output-line, .project-card, .robot-card, .client-item, .skill-bar';
     const children = container.querySelectorAll(selectors);
     let index = 0;
     const maxStagger = 30;

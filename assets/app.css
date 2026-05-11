@@ -880,6 +880,157 @@
       color: var(--green);
     }
 
+    /* Robot catalog inside the terminal */
+    .robot-catalog-block {
+      border: 1px dashed var(--border-dashed);
+      border-radius: 8px;
+      margin-top: 10px;
+      padding: 18px;
+      background:
+        linear-gradient(180deg, rgba(124, 170, 232, 0.08), rgba(27, 28, 53, 0.18)),
+        rgba(27, 28, 53, 0.62);
+    }
+
+    .robot-catalog-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .robot-eyebrow {
+      color: var(--accent);
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      margin: 0 0 6px;
+      font-weight: 700;
+    }
+
+    .robot-catalog-head h2 {
+      color: var(--text);
+      font-size: clamp(1.45rem, 4vw, 3rem);
+      line-height: 1;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .robot-catalog-head p:last-child {
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin: 0;
+      max-width: 36ch;
+      text-align: right;
+    }
+
+    .robot-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .robot-filters button {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
+
+    .robot-filters button:hover,
+    .robot-filters button.is-active {
+      border-color: var(--blue);
+      background: rgba(124, 170, 232, 0.22);
+      color: var(--blue);
+    }
+
+    .robot-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .robot-card {
+      overflow: hidden;
+      border: 1px solid rgba(124, 170, 232, 0.28);
+      border-radius: 8px;
+      background: rgba(247, 248, 252, 0.92);
+      color: #171721;
+      min-height: 250px;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .robot-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(124, 170, 232, 0.8);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+    }
+
+    .robot-photo-frame {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1.12;
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff, #f3f5f9);
+    }
+
+    .robot-photo-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+
+    .robot-card-body {
+      display: grid;
+      justify-items: center;
+      gap: 7px;
+      padding: 14px 12px 16px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.76);
+    }
+
+    .robot-card h3 {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.18;
+      color: #15151d;
+    }
+
+    .robot-card strong {
+      font-size: 1.04rem;
+      line-height: 1;
+      color: #15151d;
+    }
+
+    .robot-card span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      background: rgba(0, 119, 255, 0.1);
+      color: #0077dd;
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .robot-note {
+      margin: 16px 0 0;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      text-align: center;
+    }
+
     /* Input area */
     .input-area {
       border-top: 1px solid var(--border);
@@ -1136,6 +1287,23 @@
       .ascii-name { font-size: 0.35rem; }
       .pixel-rocket { font-size: 0.22rem; }
       .client-grid { grid-template-columns: 1fr 1fr; }
+      .robot-catalog-block { padding: 14px; }
+      .robot-catalog-head {
+        display: block;
+      }
+      .robot-catalog-head p:last-child {
+        margin-top: 8px;
+        max-width: none;
+        text-align: left;
+      }
+      .robot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .robot-card { min-height: 210px; }
+      .robot-card h3 { font-size: 0.78rem; }
+      .robot-card strong { font-size: 0.9rem; }
+      .robot-photo-frame { padding: 12px; }
       .entry-screen {
         align-items: flex-start;
         padding: 130px 18px 18px;
@@ -1201,6 +1369,7 @@
     @media (max-width: 480px) {
       .ascii-name { font-size: 0.28rem; }
       .pixel-rocket { font-size: 0.16rem; }
+      .robot-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 360px) {
