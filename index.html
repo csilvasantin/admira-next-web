@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNext v26.05.11.4" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.11.5" />
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">
   {
@@ -52,7 +52,7 @@
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="image" href="assets/cortocircuito-bg.jpg" type="image/jpeg">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.11.4">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.11.5">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -605,7 +605,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="#entryGood" data-i18n="classic.good.label">Good</a>
       <a href="classic.html" data-i18n="classic.better.label">Better</a>
       <button type="button" data-entry-best data-i18n="classic.best.label">Best</button>
-      <a href="#entryGood" data-i18n="classic.good.cta">Direct contact</a>
+      <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Direct contact</button>
     </div>
   </nav>
   <div class="entry-shell">
@@ -620,7 +620,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <strong data-i18n="classic.good.title">Contact me</strong>
         <em data-i18n="classic.good.copy">Fastest path: tell us what you need and we call you back.</em>
         <b data-i18n="classic.good.cta">Go to contact</b>
-        <form class="entry-contact" id="entryContactForm">
+        <form class="entry-contact entry-contact-form" id="entryContactForm">
           <label>
             <span data-i18n="classic.good.form.name">Name</span>
             <input type="text" name="name" autocomplete="name" required>
@@ -656,6 +656,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <button class="entry-skip" type="button" data-entry-best data-i18n="classic.close">Skip</button>
   </div>
+  <div class="entry-contact-backdrop" data-entry-contact-close></div>
+  <aside class="entry-contact-panel" id="entryContactPanel" aria-hidden="true" aria-labelledby="entryContactPanelTitle">
+    <button class="entry-contact-close" type="button" data-entry-contact-close aria-label="Close contact panel">×</button>
+    <h2 id="entryContactPanelTitle">Contact us</h2>
+    <div class="entry-contact-panel-grid">
+      <div>Contact details</div>
+      <div>
+        <span>+34 930 000 000</span>
+        <span>info@admira.com</span>
+      </div>
+      <div>We call you</div>
+      <form class="entry-contact entry-contact-form entry-contact-panel-form" id="entryContactPanelForm">
+        <label>
+          <span data-i18n="classic.good.form.name">Name</span>
+          <input type="text" name="name" autocomplete="name" required>
+        </label>
+        <label>
+          <span data-i18n="classic.good.form.phone">Phone</span>
+          <input type="tel" name="phone" autocomplete="tel" required>
+        </label>
+        <label>
+          <span data-i18n="classic.good.form.reason">Reason</span>
+          <textarea name="reason" rows="3" required></textarea>
+        </label>
+        <div class="entry-contact-actions">
+          <button type="submit" data-i18n="classic.good.form.submit">Send request</button>
+          <a href="https://calendar.google.com/calendar/u/0/r/eventedit?text=Videoconferencia%20AdmiraNext&details=Quiero%20agendar%20una%20videoconferencia%20con%20AdmiraNext.&add=info%40admira.com" target="_blank" rel="noopener noreferrer" data-i18n="classic.good.form.calendar">Book a video call</a>
+        </div>
+        <p class="entry-contact-status" role="status" aria-live="polite"></p>
+      </form>
+      <div>Office</div>
+      <div>Barcelona, Spain</div>
+      <div>Social</div>
+      <div><a href="https://www.linkedin.com/company/admira-next/" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
+    </div>
+  </aside>
 </section>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -665,8 +701,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var hasAutoCommand = false;
     try { hasAutoCommand = !!sessionStorage.getItem('autoCommand'); } catch (e) {}
     if ((path && path !== 'index.html') || hasAutoCommand) entry.classList.add('hidden');
-    var contactForm = document.getElementById('entryContactForm');
-    if (contactForm) {
+    document.querySelectorAll('.entry-contact-form').forEach(function (contactForm) {
       contactForm.addEventListener('submit', function (event) {
         event.preventDefault();
         var name = contactForm.elements.name.value.trim();
@@ -695,7 +730,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           if (submit) submit.disabled = false;
         });
       });
-    }
+    });
+    var contactPanel = document.getElementById('entryContactPanel');
+    var toggleContactPanel = function (open) {
+      if (!contactPanel) return;
+      entry.classList.toggle('contact-open', open);
+      contactPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    };
+    document.querySelectorAll('[data-entry-contact-panel]').forEach(function (button) {
+      button.addEventListener('click', function () { toggleContactPanel(true); });
+    });
+    document.querySelectorAll('[data-entry-contact-close]').forEach(function (button) {
+      button.addEventListener('click', function () { toggleContactPanel(false); });
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') toggleContactPanel(false);
+    });
     document.querySelectorAll('[data-entry-best]').forEach(function (button) {
       button.addEventListener('click', function () {
         entry.classList.add('hidden');
