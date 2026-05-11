@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNext v26.05.11.1" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.11.2" />
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">
   {
@@ -51,7 +51,7 @@
   <meta name="twitter:description" content="Physical AI, IoT, robotics and connected operations from Barcelona." />
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.11.1">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.11.2">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -598,6 +598,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- Entry chooser: Good / Better / Best -->
 <section class="entry-screen" id="entryScreen" aria-labelledby="entryTitle">
+  <div class="entry-wave" aria-hidden="true"></div>
+  <nav class="entry-nav" aria-label="AdmiraNext entry navigation">
+    <a class="entry-brand" href="#entryGood">ADmiraNeXT</a>
+    <div class="entry-nav-links">
+      <a href="#entryGood" data-i18n="classic.good.label">Good</a>
+      <a href="classic.html" data-i18n="classic.better.label">Better</a>
+      <button type="button" data-entry-best data-i18n="classic.best.label">Best</button>
+    </div>
+  </nav>
   <div class="entry-shell">
     <div class="entry-copy">
       <p class="entry-kicker">ADmiraNeXT</p>
@@ -605,7 +614,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p data-i18n="classic.tagline">Same AdmiraNext content, in a familiar corporate website.</p>
     </div>
     <div class="entry-options" aria-label="Website mode selector">
-      <article class="entry-option entry-good">
+      <article class="entry-option entry-good" id="entryGood">
         <span data-i18n="classic.good.label">Good</span>
         <strong data-i18n="classic.good.title">Contact me</strong>
         <em data-i18n="classic.good.copy">Fastest path: tell us what you need and we call you back.</em>
