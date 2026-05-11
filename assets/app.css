@@ -63,13 +63,13 @@
       background: transparent;
     }
 
-    /* Wallpaper layer with blur */
+    /* Wallpaper layer with clearer video presence */
     .wallpaper {
       position: fixed;
       inset: 0;
       background-color: var(--bg);
-      filter: blur(2px);
-      transform: scale(1.02);
+      filter: blur(0.8px);
+      transform: scale(1.01);
       z-index: -1;
       transition: filter 0.5s ease, transform 0.5s ease;
     }
@@ -94,17 +94,20 @@
       height: 100%;
       object-fit: cover;
       object-position: center center;
-      opacity: 0;
+      opacity: 0.5;
       transition: opacity 1.2s ease-out;
       pointer-events: none;
     }
-    body.idle .wallpaper-video { opacity: 1; }
+    body.idle .wallpaper-video { opacity: 0.92; }
+    .wallpaper-blur,
+    .wallpaper-sharp {
+      opacity: 0.42;
+      transition: opacity 1.2s ease-out;
+    }
     body.idle .wallpaper-blur,
     body.idle .wallpaper-sharp {
       opacity: 0;
-      transition: opacity 1.2s ease-out;
     }
-    .wallpaper-blur, .wallpaper-sharp { transition: opacity 1.2s ease-out; }
 
     /* Boot video — visible solo durante el boot animation */
     .boot-video {
@@ -118,7 +121,7 @@
       transition: opacity 0.6s ease;
       pointer-events: none;
     }
-    body.booting .boot-video { opacity: 1; }
+    body.booting .boot-video { opacity: 0.95; }
     body.booting .wallpaper-blur,
     body.booting .wallpaper-sharp,
     body.booting .wallpaper-video {
@@ -133,7 +136,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(10, 10, 20, 0.55);
+      background: rgba(10, 10, 20, 0.34);
       transition: background 0.5s ease;
     }
 
@@ -143,13 +146,13 @@
       max-width: 960px;
       min-height: 600px;
       max-height: 85vh;
-      background: var(--bg-window);
+      background: rgba(37, 37, 64, 0.9);
       border-radius: 12px;
       box-shadow: 0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(6px);
       transition: max-width 0.3s ease, min-height 0.3s ease, max-height 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease;
     }
 
@@ -157,7 +160,7 @@
       display: flex;
       align-items: center;
       padding: 14px 18px;
-      background: var(--bg-darker);
+      background: rgba(30, 30, 53, 0.88);
       border-bottom: 1px solid var(--border);
       gap: 8px;
       flex-shrink: 0;
@@ -235,7 +238,7 @@
       display: flex;
       align-items: center;
       padding: 14px 18px;
-      background: var(--bg-darker);
+      background: rgba(30, 30, 53, 0.9);
       border-bottom: 1px solid var(--border);
       gap: 8px;
       user-select: none;

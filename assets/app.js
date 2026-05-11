@@ -15,7 +15,7 @@
     '/classic': 'classic',
   };
   const ROUTE_TITLES = {
-    '': 'ADmiraNeXT | Robot as a Service',
+    '': 'ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
     'about': 'Sobre ADmiraNeXT | 15 años en Diseño de Producto',
     'work': 'Trabajo | 12 Proyectos en 6 Países | ADmiraNeXT',
     'clients': 'Clientes | Más de 30 Empresas | ADmiraNeXT',
