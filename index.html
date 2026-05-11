@@ -52,7 +52,7 @@
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="image" href="assets/cortocircuito-bg.jpg" type="image/jpeg">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.11.11">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.11.12">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -186,6 +186,13 @@
           'classic.good.form.note': 'We will receive your request without opening your email app.',
           'classic.good.form.success': 'Request sent. We will call you shortly.',
           'classic.good.form.error': 'Could not send it right now. Please try again in a moment.',
+          'contact.panel.title': 'Contact us',
+          'contact.panel.details': 'Contact details',
+          'contact.panel.call': 'We call you',
+          'contact.panel.office': 'Office',
+          'contact.panel.city': 'Barcelona, Spain',
+          'contact.panel.social': 'Social',
+          'contact.panel.close': 'Close contact panel',
           'classic.better.label': 'Robots',
           'classic.better.title': 'Robots',
           'classic.better.copy': 'Available robot portfolio with humanoid, quadruped and cleaning options.',
@@ -374,6 +381,13 @@
           'classic.good.form.note': 'Recibiremos tu solicitud sin abrir ninguna app de correo.',
           'classic.good.form.success': 'Solicitud enviada. Te llamaremos en breve.',
           'classic.good.form.error': 'No se ha podido enviar ahora. Inténtalo de nuevo en un momento.',
+          'contact.panel.title': 'Contáctanos',
+          'contact.panel.details': 'Datos de contacto',
+          'contact.panel.call': 'Te llamamos',
+          'contact.panel.office': 'Oficina',
+          'contact.panel.city': 'Barcelona, España',
+          'contact.panel.social': 'Social',
+          'contact.panel.close': 'Cerrar panel de contacto',
           'classic.better.label': 'Robots',
           'classic.better.title': 'Robots',
           'classic.better.copy': 'Portfolio disponible con humanoides, cuadrúpedos y limpieza.',
@@ -473,7 +487,7 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=26.05.11.2" defer></script>
+  <script src="assets/app.js?v=26.05.11.3" defer></script>
 </head>
 <body data-route="">
 <style id="crt-gate-style">
@@ -614,15 +628,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="entry-screen" id="entryScreen" aria-label="AdmiraNext entry screen"></section>
 <div class="entry-contact-backdrop" data-entry-contact-close></div>
 <aside class="entry-contact-panel" id="entryContactPanel" aria-hidden="true" aria-labelledby="entryContactPanelTitle">
-  <button class="entry-contact-close" type="button" data-entry-contact-close aria-label="Close contact panel">×</button>
-  <h2 id="entryContactPanelTitle">Contact us</h2>
+  <button class="entry-contact-close" type="button" data-entry-contact-close aria-label="Close contact panel" data-i18n-title="contact.panel.close">×</button>
+  <h2 id="entryContactPanelTitle" data-i18n="contact.panel.title">Contact us</h2>
   <div class="entry-contact-panel-grid">
-    <div>Contact details</div>
+    <div data-i18n="contact.panel.details">Contact details</div>
     <div>
       <span>+34 930 000 000</span>
       <span>info@admira.com</span>
     </div>
-    <div>We call you</div>
+    <div data-i18n="contact.panel.call">We call you</div>
     <form class="entry-contact entry-contact-form entry-contact-panel-form" id="entryContactPanelForm">
       <label>
         <span data-i18n="classic.good.form.name">Name</span>
@@ -642,9 +656,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <p class="entry-contact-status" role="status" aria-live="polite"></p>
     </form>
-    <div>Office</div>
-    <div>Barcelona, Spain</div>
-    <div>Social</div>
+    <div data-i18n="contact.panel.office">Office</div>
+    <div data-i18n="contact.panel.city">Barcelona, Spain</div>
+    <div data-i18n="contact.panel.social">Social</div>
     <div><a href="https://www.linkedin.com/company/admira-next/" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
   </div>
 </aside>
@@ -711,6 +725,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       button.addEventListener('click', function () {
         toggleContactPanel(false);
         entry.classList.add('hidden');
+        runTerminalCommand(window.currentLang === 'es' ? '/plataforma' : '/intranet');
       });
     });
     var runTerminalCommand = function (command) {

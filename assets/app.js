@@ -14,6 +14,8 @@
     '/articles': 'articles',
     '/classic': 'classic',
     '/robots': 'robots',
+    '/intranet': 'intranet',
+    '/plataforma': 'plataforma',
   };
   const ROUTE_TITLES = {
     '': 'ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
@@ -30,6 +32,8 @@
     'articles': 'Artículos sobre Sistemas de Diseño, UX y Estrategia | ADmiraNeXT',
     'classic': 'Web Clásica | ADmiraNeXT',
     'robots': 'Robots | ADmiraNeXT',
+    'intranet': 'Intranet | ADmiraNeXT',
+    'plataforma': 'Plataforma | ADmiraNeXT',
   };
 
   function updateUrl(command) {
@@ -1645,6 +1649,7 @@
       { text: '  🔒 Acceso restringido. Introduce credenciales en el CRT...', cls: 'accent' },
     ];
   });
+  registerHidden('/plataforma', function() { return HIDDEN_COMMANDS['/intranet'](); });
 
   function launchEgg(label, url, color) {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
