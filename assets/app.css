@@ -291,6 +291,10 @@
       letter-spacing: 0.5px;
     }
 
+    .terminal-window > .titlebar .titlebar-title {
+      transform: translateX(20px);
+    }
+
     /* Language toggle (titlebar far right) */
     .lang-toggle {
       flex-shrink: 0;
@@ -386,7 +390,7 @@
     .entry-nav {
       position: fixed;
       z-index: 95;
-      top: 20px;
+      top: 70px;
       left: 22px;
       right: 22px;
       display: flex;
@@ -1310,7 +1314,7 @@
         overflow-y: auto;
       }
       .entry-nav {
-        top: 18px;
+        top: 24px;
         left: 18px;
         right: 18px;
         align-items: flex-start;
