@@ -400,13 +400,13 @@
       color: #fff;
     }
     body:has(.entry-screen.hidden) .entry-nav {
-      top: 0;
+      top: -4px;
       left: 0;
-      right: 22px;
-      min-height: 66px;
+      right: 34px;
+      min-height: 58px;
       align-items: center;
       box-sizing: border-box;
-      padding-left: 112px;
+      padding-left: 94px;
     }
     .entry-brand,
     .entry-nav-links a,
