@@ -120,7 +120,7 @@
           'cmd.phone':        '/phone',
           'cmd.email':        '/email',
           'cmd.company':      '/company',
-          'cmd.rental':       '/rental',
+          'cmd.classic':      '/classic',
           'cmd.location':     '/location',
           'cmd.privacy':      '/privacy',
           'cmd.dark':         '/dark',
@@ -168,6 +168,22 @@
           'rental.cta':     'No upfront capex. You only pay for the result.',
           'rental.tip':     'to start your pilot',
           'rental.tooltip': 'See robot rental info',
+          'classic.button': 'CLASSIC WEB',
+          'classic.title': 'Classic Web',
+          'classic.tagline': 'Same AdmiraNext content, in a familiar corporate website.',
+          'classic.good.label': 'Good',
+          'classic.good.title': 'Contact me',
+          'classic.good.copy': 'Fastest path: tell us what you need and we call you back.',
+          'classic.good.cta': 'Go to contact',
+          'classic.better.label': 'Better',
+          'classic.better.title': 'Classic Web',
+          'classic.better.copy': 'A traditional product website, closer to AgiBot or Unitree.',
+          'classic.better.cta': 'Open classic web',
+          'classic.best.label': 'Best',
+          'classic.best.title': 'Terminal Experience',
+          'classic.best.copy': 'The current interactive ADmiraNeXT experience: denser, stranger, more memorable.',
+          'classic.best.cta': 'Enter terminal',
+          'classic.close': 'Skip',
           'location.title': 'Location',
           'location.city':  'Barcelona, Spain',
           'location.scope': 'Working across Europe and beyond.',
@@ -282,7 +298,7 @@
           'cmd.phone':        '/telefono',
           'cmd.email':        '/correo',
           'cmd.company':      '/empresa',
-          'cmd.rental':       '/alquiler',
+          'cmd.classic':      '/web-clasica',
           'cmd.location':     '/ubicacion',
           'cmd.privacy':      '/privacidad',
           'cmd.dark':         '/oscuro',
@@ -330,6 +346,22 @@
           'rental.cta':     'Sin inversión inicial. Solo pagas por el resultado.',
           'rental.tip':     'para empezar tu piloto',
           'rental.tooltip': 'Ver información de alquiler',
+          'classic.button': 'WEB CLÁSICA',
+          'classic.title': 'Elige tu entrada',
+          'classic.tagline': 'Good, better or best depende de quién visita y de cuánto quiere explorar.',
+          'classic.good.label': 'Good',
+          'classic.good.title': 'Te llamamos',
+          'classic.good.copy': 'El camino rápido: deja el contacto y hablamos contigo.',
+          'classic.good.cta': 'Ir a contacto',
+          'classic.better.label': 'Better',
+          'classic.better.title': 'Web Clásica',
+          'classic.better.copy': 'Una web corporativa tradicional, más cercana a AgiBot o Unitree.',
+          'classic.better.cta': 'Abrir web clásica',
+          'classic.best.label': 'Best',
+          'classic.best.title': 'Experiencia Terminal',
+          'classic.best.copy': 'La experiencia interactiva actual de ADmiraNeXT: más densa, distinta y memorable.',
+          'classic.best.cta': 'Entrar al terminal',
+          'classic.close': 'Saltar',
           'location.title': 'Ubicación',
           'location.city':  'Barcelona, España',
           'location.scope': 'Trabajando en toda Europa y más allá.',
@@ -404,6 +436,9 @@
         document.querySelectorAll('.lang-toggle:not(.rental-toggle)').forEach(function (b) {
           b.textContent = window.currentLang === 'en' ? 'ESP' : 'ENG';
           b.title = window.currentLang === 'en' ? 'Cambiar a español' : 'Switch to English';
+        });
+        document.querySelectorAll('[data-classic-label]').forEach(function (b) {
+          b.textContent = window.t('classic.button');
         });
         window.dispatchEvent(new CustomEvent('admiranext:langchanged', { detail: window.currentLang }));
       };
@@ -543,6 +578,53 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- Confetti -->
 <canvas id="confettiCanvas"></canvas>
 
+<!-- Entry chooser: Good / Better / Best -->
+<section class="entry-screen" id="entryScreen" aria-labelledby="entryTitle">
+  <div class="entry-shell">
+    <div class="entry-copy">
+      <p class="entry-kicker">ADmiraNeXT</p>
+      <h1 id="entryTitle" data-i18n="classic.title">Classic Web</h1>
+      <p data-i18n="classic.tagline">Same AdmiraNext content, in a familiar corporate website.</p>
+    </div>
+    <div class="entry-options" aria-label="Website mode selector">
+      <a class="entry-option" href="mailto:info@admira.com?subject=Quiero%20que%20me%20llam%C3%A9is%20-%20AdmiraNext">
+        <span data-i18n="classic.good.label">Good</span>
+        <strong data-i18n="classic.good.title">Contact me</strong>
+        <em data-i18n="classic.good.copy">Fastest path: tell us what you need and we call you back.</em>
+        <b data-i18n="classic.good.cta">Go to contact</b>
+      </a>
+      <a class="entry-option is-recommended" href="classic.html">
+        <span data-i18n="classic.better.label">Better</span>
+        <strong data-i18n="classic.better.title">Classic Web</strong>
+        <em data-i18n="classic.better.copy">A traditional product website, closer to AgiBot or Unitree.</em>
+        <b data-i18n="classic.better.cta">Open classic web</b>
+      </a>
+      <button class="entry-option" type="button" data-entry-best>
+        <span data-i18n="classic.best.label">Best</span>
+        <strong data-i18n="classic.best.title">Terminal Experience</strong>
+        <em data-i18n="classic.best.copy">The current interactive ADmiraNeXT experience: denser, stranger, more memorable.</em>
+        <b data-i18n="classic.best.cta">Enter terminal</b>
+      </button>
+    </div>
+    <button class="entry-skip" type="button" data-entry-best data-i18n="classic.close">Skip</button>
+  </div>
+</section>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var entry = document.getElementById('entryScreen');
+    if (!entry) return;
+    var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+    var hasAutoCommand = false;
+    try { hasAutoCommand = !!sessionStorage.getItem('autoCommand'); } catch (e) {}
+    if ((path && path !== 'index.html') || hasAutoCommand) entry.classList.add('hidden');
+    document.querySelectorAll('[data-entry-best]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        entry.classList.add('hidden');
+      });
+    });
+  });
+</script>
+
 <!-- Close Overlay -->
 <div class="close-overlay" id="closeOverlay">
   <div class="close-window">
@@ -551,7 +633,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
       <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
       <div class="titlebar-title" data-i18n="titlebar.path.exit"></div>
-      <button class="lang-toggle rental-toggle" type="button" data-i18n-title="rental.tooltip" onclick="window.runCmd && window.runCmd('/rental')">🤖 RENTAL</button>
+      <button class="lang-toggle rental-toggle" type="button" data-classic-label data-i18n-title="classic.better.title" onclick="window.location.href='classic.html'">CLASSIC WEB</button>
       <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
     </div>
     <div class="close-body">
@@ -576,7 +658,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
     <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
     <div class="titlebar-title" data-i18n="titlebar.path.portfolio"></div>
-    <button class="lang-toggle rental-toggle" type="button" data-i18n-title="rental.tooltip" onclick="window.runCmd && window.runCmd('/rental')">🤖 RENTAL</button>
+    <button class="lang-toggle rental-toggle" type="button" data-classic-label data-i18n-title="classic.better.title" onclick="window.location.href='classic.html'">CLASSIC WEB</button>
     <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
   </div>
 

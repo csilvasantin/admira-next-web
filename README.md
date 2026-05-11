@@ -2,16 +2,18 @@
 
 Corporate website for Admira Next, a Robot as a Service and IoT company.
 
-The site is static, multipage and available in Spanish, English and Catalan.
+The site is static. The public entry point lets visitors choose:
+
+- Good: direct contact.
+- Better: classic corporate web.
+- Best: interactive terminal experience.
 
 ## Pages
 
 - `index.html`
-- `servicios.html`
-- `alquiler.html`
-- `plataforma.html`
-- `casos.html`
-- `contacto.html`
+- `classic.html`
+- `404.html`
+- `old/*.html` classic corporate web
 
 ## Local preview
 

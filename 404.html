@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ADmiraNeXT</title>
+    <script>
+      (function () {
+        var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+        var map = {
+          about: '/about',
+          work: '/work',
+          clients: '/clients',
+          skills: '/skills',
+          contact: '/contact',
+          social: '/social',
+          philosophy: '/philosophy',
+          testimonials: '/testimonials',
+          awards: '/awards',
+          privacy: '/privacy',
+          articles: '/articles',
+          classic: '/classic'
+        };
+        if (map[path]) {
+          try { sessionStorage.setItem('autoCommand', map[path]); } catch (e) {}
+        }
+        window.location.replace('/');
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecting to ADmiraNeXT...</p>
+  </body>
+</html>

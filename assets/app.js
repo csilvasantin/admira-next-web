@@ -12,9 +12,10 @@
     '/awards': 'awards',
     '/privacy': 'privacy',
     '/articles': 'articles',
+    '/classic': 'classic',
   };
   const ROUTE_TITLES = {
-    '': 'ADmiraNeXT | Diseñador de Producto y Líder de Sistemas de Diseño',
+    '': 'ADmiraNeXT | Robot as a Service',
     'about': 'Sobre ADmiraNeXT | 15 años en Diseño de Producto',
     'work': 'Trabajo | 12 Proyectos en 6 Países | ADmiraNeXT',
     'clients': 'Clientes | Más de 30 Empresas | ADmiraNeXT',
@@ -26,6 +27,7 @@
     'awards': 'Premios y Reconocimientos | ADmiraNeXT',
     'privacy': 'Política de Privacidad | ADmiraNeXT',
     'articles': 'Artículos sobre Sistemas de Diseño, UX y Estrategia | ADmiraNeXT',
+    'classic': 'Web Clásica | ADmiraNeXT',
   };
 
   function updateUrl(command) {
@@ -122,9 +124,9 @@
       desc: 'ADmiraNeXT — sobre nosotros',
       fn: cmdAgency
     },
-    '/rental': {
-      desc: 'Alquiler Robot as a Service',
-      fn: cmdRental
+    '/classic': {
+      desc: 'Abrir la web clásica',
+      fn: cmdClassic
     },
     '/location': {
       desc: 'Dónde me encuentro',
@@ -173,7 +175,7 @@
   // devuelve data.desc (Spanish original).
   const DESC_EN = {
     '/help':         'List all available commands',
-    '/rental':       'Robot as a Service rental',
+    '/classic':      'Open the classic web',
     '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
     '/work':         'Featured projects and case studies',
@@ -209,7 +211,7 @@
     '/social': 'cmd.social', '/articles': 'cmd.articles', '/testimonials': 'cmd.testimonials',
     '/awards': 'cmd.awards', '/contact': 'cmd.contact', '/clear': 'cmd.clear',
     '/phone': 'cmd.phone', '/email': 'cmd.email', '/company': 'cmd.company',
-    '/rental': 'cmd.rental',
+    '/classic': 'cmd.classic',
     '/location': 'cmd.location', '/privacy': 'cmd.privacy',
     '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
     '/glass': 'cmd.glass', '/themes': 'cmd.themes',
@@ -253,8 +255,12 @@
     '/empresa': '/company',
     '/agencia': '/company',
     '/agency': '/company',
-    '/alquiler': '/rental',
-    '/alquilar': '/rental',
+    '/alquiler': '/classic',
+    '/alquilar': '/classic',
+    '/web-clasica': '/classic',
+    '/web-clásica': '/classic',
+    '/classic-web': '/classic',
+    '/rental': '/classic',
     '/ubicacion': '/location',
     '/ubicación': '/location',
     '/privacidad': '/privacy',
@@ -477,7 +483,12 @@
       await window.__gateUnlocked;
     }
     // Check if we're on a deep-link route (e.g. /about, /work)
-    const routeCmd = document.body.dataset.route;
+    let routeCmd = document.body.dataset.route;
+    if (!routeCmd) {
+      const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      const match = Object.entries(ROUTE_MAP).find(([, slug]) => slug === path);
+      routeCmd = match ? match[0] : '';
+    }
     const isDeepLink = routeCmd && routeCmd.length > 0;
 
     // Marca body como "booting" para que el wallpaper muestre el banner video
@@ -1050,28 +1061,15 @@
     return container;
   }
 
-  function cmdRental() {
+  function cmdClassic() {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
+    setTimeout(() => { window.location.href = 'classic.html'; }, 450);
     return [
-      { text: _T('rental.title'), cls: 'heading' },
+      { text: _T('classic.better.title'), cls: 'heading' },
       { text: '' },
-      { text: '  ' + _T('rental.tagline'), cls: 'accent' },
+      { text: '  ' + _T('classic.better.copy'), cls: 'accent' },
       { text: '' },
-      { text: _T('rental.h1'), cls: 'heading' },
-      { text: '' },
-      { text: '  ◆ ' + _T('rental.l1'), cls: 'cyan' },
-      { text: '  ◆ ' + _T('rental.l2'), cls: 'cyan' },
-      { text: '  ◆ ' + _T('rental.l3'), cls: 'cyan' },
-      { text: '  ◆ ' + _T('rental.l4'), cls: 'cyan' },
-      { text: '' },
-      { text: _T('rental.h2'), cls: 'heading' },
-      { text: '' },
-      { text: '  ' + _T('rental.l5') },
-      { text: '  ' + _T('rental.l6') },
-      { text: '' },
-      { text: '  ' + _T('rental.cta'), cls: 'green' },
-      { text: '' },
-      { text: '  → ' + _T('cmd.contact') + ' ' + _T('rental.tip'), cls: 'dim' },
+      { text: '  → classic.html', cls: 'green' },
     ];
   }
 
@@ -1909,7 +1907,7 @@
     { cmd: '/awards', phrases: ['your awards', 'recognition', 'have you won', 'won any awards', 'design awards', 'awwwards', 'the fwa', 'css design awards', 'css winner', 'certifications', 'certificates', 'growth design'] },
     // Agency
     { cmd: '/company', phrases: ['your company', 'about admiranext', 'your studio', 'who runs this'] },
-    { cmd: '/rental', phrases: ['rent a robot', 'rent robots', 'robot rental', 'how much', 'pricing', 'how does rental work', 'lease robots', 'subscription', 'monthly fee', 'pay per use'] },
+    { cmd: '/classic', phrases: ['classic web', 'web clasica', 'web clásica', 'traditional website', 'normal website', 'corporate website', 'agibot', 'unitree'] },
     // Themes
     { cmd: '/themes', phrases: ['change theme', 'change color', 'change colours', 'dark mode', 'light mode', 'switch theme', 'change appearance', 'change the look', 'how to change theme', 'customize'] },
     // Help
@@ -1949,7 +1947,7 @@
   }
 
   // Expuesto para que botones del UI puedan disparar comandos del terminal
-  // (ej: el botón RENTAL en la titlebar invoca window.runCmd('/rental')).
+  // (ej: los botones del UI invocan comandos o abren la web clásica).
   window.runCmd = function (input) { try { executeCommand(input); } catch (e) {} };
 
   function executeCommand(input) {
