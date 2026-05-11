@@ -2353,7 +2353,9 @@
 
   // Also focus on any keypress
   document.addEventListener('keydown', (e) => {
-    if (e.target !== cmdInput && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+    const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+    const isTextEntry = tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable);
+    if (!document.body.classList.contains('contact-open') && !isTextEntry && e.target !== cmdInput && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
       cmdInput.focus();
     }
   });

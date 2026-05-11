@@ -424,6 +424,11 @@
       background: transparent;
       cursor: pointer;
     }
+    .entry-nav-links .entry-lang-toggle {
+      min-width: 42px;
+      padding-left: 10px;
+      border-left: 1px solid rgba(255,255,255,0.36);
+    }
     .entry-nav-links a:hover,
     .entry-nav-links button:hover,
     .entry-brand:hover {
