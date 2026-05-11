@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNext v26.05.11.7" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.11.8" />
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">
   {
@@ -52,7 +52,7 @@
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="image" href="assets/cortocircuito-bg.jpg" type="image/jpeg">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.11.7">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.11.8">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -597,54 +597,54 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- Confetti -->
 <canvas id="confettiCanvas"></canvas>
 
+<nav class="entry-nav" aria-label="AdmiraNext entry navigation">
+  <a class="entry-brand" href="/">ADmiraNeXT</a>
+  <div class="entry-nav-links">
+    <button type="button" data-entry-contact-panel data-i18n="classic.good.label">Good</button>
+    <a href="classic.html" data-i18n="classic.better.label">Better</a>
+    <button type="button" data-entry-best data-i18n="classic.best.label">Best</button>
+    <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Contact</button>
+  </div>
+</nav>
+
 <!-- Entry chooser: Good / Better / Best -->
-<section class="entry-screen" id="entryScreen" aria-labelledby="entryTitle">
-  <nav class="entry-nav" aria-label="AdmiraNext entry navigation">
-    <a class="entry-brand" href="/">ADmiraNeXT</a>
-    <div class="entry-nav-links">
-      <button type="button" data-entry-contact-panel data-i18n="classic.good.label">Good</button>
-      <a href="classic.html" data-i18n="classic.better.label">Better</a>
-      <button type="button" data-entry-best data-i18n="classic.best.label">Best</button>
-      <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Contact</button>
+<section class="entry-screen" id="entryScreen" aria-label="AdmiraNext entry screen"></section>
+<div class="entry-contact-backdrop" data-entry-contact-close></div>
+<aside class="entry-contact-panel" id="entryContactPanel" aria-hidden="true" aria-labelledby="entryContactPanelTitle">
+  <button class="entry-contact-close" type="button" data-entry-contact-close aria-label="Close contact panel">×</button>
+  <h2 id="entryContactPanelTitle">Contact us</h2>
+  <div class="entry-contact-panel-grid">
+    <div>Contact details</div>
+    <div>
+      <span>+34 930 000 000</span>
+      <span>info@admira.com</span>
     </div>
-  </nav>
-  <div class="entry-contact-backdrop" data-entry-contact-close></div>
-  <aside class="entry-contact-panel" id="entryContactPanel" aria-hidden="true" aria-labelledby="entryContactPanelTitle">
-    <button class="entry-contact-close" type="button" data-entry-contact-close aria-label="Close contact panel">×</button>
-    <h2 id="entryContactPanelTitle">Contact us</h2>
-    <div class="entry-contact-panel-grid">
-      <div>Contact details</div>
-      <div>
-        <span>+34 930 000 000</span>
-        <span>info@admira.com</span>
+    <div>We call you</div>
+    <form class="entry-contact entry-contact-form entry-contact-panel-form" id="entryContactPanelForm">
+      <label>
+        <span data-i18n="classic.good.form.name">Name</span>
+        <input type="text" name="name" autocomplete="name" required>
+      </label>
+      <label>
+        <span data-i18n="classic.good.form.phone">Phone</span>
+        <input type="tel" name="phone" autocomplete="tel" required>
+      </label>
+      <label>
+        <span data-i18n="classic.good.form.reason">Reason</span>
+        <textarea name="reason" rows="3" required></textarea>
+      </label>
+      <div class="entry-contact-actions">
+        <button type="submit" data-i18n="classic.good.form.submit">Send request</button>
+        <a href="https://calendar.google.com/calendar/u/0/r/eventedit?text=Videoconferencia%20AdmiraNext&details=Quiero%20agendar%20una%20videoconferencia%20con%20AdmiraNext.&add=info%40admira.com" target="_blank" rel="noopener noreferrer" data-i18n="classic.good.form.calendar">Book a video call</a>
       </div>
-      <div>We call you</div>
-      <form class="entry-contact entry-contact-form entry-contact-panel-form" id="entryContactPanelForm">
-        <label>
-          <span data-i18n="classic.good.form.name">Name</span>
-          <input type="text" name="name" autocomplete="name" required>
-        </label>
-        <label>
-          <span data-i18n="classic.good.form.phone">Phone</span>
-          <input type="tel" name="phone" autocomplete="tel" required>
-        </label>
-        <label>
-          <span data-i18n="classic.good.form.reason">Reason</span>
-          <textarea name="reason" rows="3" required></textarea>
-        </label>
-        <div class="entry-contact-actions">
-          <button type="submit" data-i18n="classic.good.form.submit">Send request</button>
-          <a href="https://calendar.google.com/calendar/u/0/r/eventedit?text=Videoconferencia%20AdmiraNext&details=Quiero%20agendar%20una%20videoconferencia%20con%20AdmiraNext.&add=info%40admira.com" target="_blank" rel="noopener noreferrer" data-i18n="classic.good.form.calendar">Book a video call</a>
-        </div>
-        <p class="entry-contact-status" role="status" aria-live="polite"></p>
-      </form>
-      <div>Office</div>
-      <div>Barcelona, Spain</div>
-      <div>Social</div>
-      <div><a href="https://www.linkedin.com/company/admira-next/" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
-    </div>
-  </aside>
-</section>
+      <p class="entry-contact-status" role="status" aria-live="polite"></p>
+    </form>
+    <div>Office</div>
+    <div>Barcelona, Spain</div>
+    <div>Social</div>
+    <div><a href="https://www.linkedin.com/company/admira-next/" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
+  </div>
+</aside>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var entry = document.getElementById('entryScreen');
@@ -686,7 +686,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     var contactPanel = document.getElementById('entryContactPanel');
     var toggleContactPanel = function (open) {
       if (!contactPanel) return;
-      entry.classList.toggle('contact-open', open);
+      document.body.classList.toggle('contact-open', open);
       contactPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
     };
     document.querySelectorAll('[data-entry-contact-panel]').forEach(function (button) {
@@ -700,10 +700,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
     document.querySelectorAll('[data-entry-best]').forEach(function (button) {
       button.addEventListener('click', function () {
+        toggleContactPanel(false);
         entry.classList.add('hidden');
       });
     });
     window.showEntryScreen = function () {
+      toggleContactPanel(false);
       entry.classList.remove('hidden');
     };
   });

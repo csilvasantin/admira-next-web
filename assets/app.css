@@ -384,8 +384,8 @@
       background: rgba(0, 0, 0, 0.62);
     }
     .entry-nav {
-      position: absolute;
-      z-index: 3;
+      position: fixed;
+      z-index: 95;
       top: 20px;
       left: 22px;
       right: 22px;
@@ -511,9 +511,9 @@
       cursor: wait;
     }
     .entry-contact-backdrop {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      z-index: 4;
+      z-index: 100;
       background: rgba(230, 230, 224, 0.64);
       opacity: 0;
       visibility: hidden;
@@ -522,7 +522,7 @@
     }
     .entry-contact-panel {
       position: fixed;
-      z-index: 5;
+      z-index: 110;
       top: 20px;
       right: 24px;
       bottom: 20px;
@@ -540,13 +540,13 @@
       transition: transform 0.38s cubic-bezier(.2,.8,.2,1), opacity 0.28s ease, visibility 0.28s ease;
       overflow-y: auto;
     }
-    .entry-screen.contact-open .entry-contact-backdrop,
-    .entry-screen.contact-open .entry-contact-panel {
+    body.contact-open .entry-contact-backdrop,
+    body.contact-open .entry-contact-panel {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
     }
-    .entry-screen.contact-open .entry-contact-panel {
+    body.contact-open .entry-contact-panel {
       transform: translateX(0);
     }
     .entry-contact-close {
@@ -1155,6 +1155,14 @@
       .entry-nav-links a,
       .entry-nav-links button {
         font-size: 0.62rem;
+      }
+      body:has(.entry-screen.hidden) {
+        align-items: flex-start;
+        padding-top: 116px;
+      }
+      body:has(.entry-screen.hidden) .terminal-window {
+        min-height: calc(100vh - 116px);
+        max-height: calc(100vh - 116px);
       }
       .entry-contact-panel {
         top: 12px;
