@@ -168,7 +168,7 @@
           'rental.cta':     'No upfront capex. You only pay for the result.',
           'rental.tip':     'to start your pilot',
           'rental.tooltip': 'See robot rental info',
-          'classic.button': 'CLASSIC WEB',
+          'classic.button': 'HOME',
           'classic.title': 'Classic Web',
           'classic.tagline': 'Same AdmiraNext content, in a familiar corporate website.',
           'classic.good.label': 'Good',
@@ -346,7 +346,7 @@
           'rental.cta':     'Sin inversión inicial. Solo pagas por el resultado.',
           'rental.tip':     'para empezar tu piloto',
           'rental.tooltip': 'Ver información de alquiler',
-          'classic.button': 'WEB CLÁSICA',
+          'classic.button': 'INICIO',
           'classic.title': 'Elige tu entrada',
           'classic.tagline': 'Good, better or best depende de quién visita y de cuánto quiere explorar.',
           'classic.good.label': 'Good',
@@ -622,6 +622,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         entry.classList.add('hidden');
       });
     });
+    window.showEntryScreen = function () {
+      entry.classList.remove('hidden');
+    };
   });
 </script>
 
@@ -633,7 +636,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
       <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
       <div class="titlebar-title" data-i18n="titlebar.path.exit"></div>
-      <button class="lang-toggle rental-toggle" type="button" data-classic-label data-i18n-title="classic.better.title" onclick="window.location.href='classic.html'">CLASSIC WEB</button>
+      <button class="lang-toggle rental-toggle" type="button" data-classic-label data-i18n-title="classic.title" onclick="window.showEntryScreen && window.showEntryScreen()">HOME</button>
       <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
     </div>
     <div class="close-body">
@@ -658,7 +661,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
     <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
     <div class="titlebar-title" data-i18n="titlebar.path.portfolio"></div>
-    <button class="lang-toggle rental-toggle" type="button" data-classic-label data-i18n-title="classic.better.title" onclick="window.location.href='classic.html'">CLASSIC WEB</button>
+    <button class="lang-toggle rental-toggle" type="button" data-classic-label data-i18n-title="classic.title" onclick="window.showEntryScreen && window.showEntryScreen()">HOME</button>
     <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
   </div>
 
