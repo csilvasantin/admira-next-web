@@ -399,6 +399,15 @@
       gap: 24px;
       color: #fff;
     }
+    body:has(.entry-screen.hidden) .entry-nav {
+      top: 0;
+      left: 0;
+      right: 22px;
+      min-height: 66px;
+      align-items: center;
+      box-sizing: border-box;
+      padding-left: 112px;
+    }
     .entry-brand,
     .entry-nav-links a,
     .entry-nav-links button {
