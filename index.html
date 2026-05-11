@@ -173,14 +173,17 @@
           'classic.tagline': 'Same AdmiraNext content, in a familiar corporate website.',
           'classic.good.label': 'Good',
           'classic.good.title': 'Contact me',
-          'classic.good.copy': 'Fastest path: leave your name and phone number, or book a video call.',
-          'classic.good.cta': 'Open contact options',
+          'classic.good.copy': 'Fastest path: send your details and we call you back, or book a video call.',
+          'classic.good.cta': 'Direct contact',
           'classic.good.form.title': 'We call you',
           'classic.good.form.name': 'Name',
           'classic.good.form.phone': 'Phone',
+          'classic.good.form.reason': 'Reason',
           'classic.good.form.submit': 'Send request',
           'classic.good.form.calendar': 'Book a video call',
-          'classic.good.form.note': 'This opens your email client so the request reaches info@admira.com.',
+          'classic.good.form.note': 'We will receive your request without opening your email app.',
+          'classic.good.form.success': 'Request sent. We will call you shortly.',
+          'classic.good.form.error': 'Could not send it right now. Please try again in a moment.',
           'classic.better.label': 'Better',
           'classic.better.title': 'Classic Web',
           'classic.better.copy': 'A traditional product website, closer to AgiBot or Unitree.',
@@ -357,14 +360,17 @@
           'classic.tagline': 'Good, better or best depende de quién visita y de cuánto quiere explorar.',
           'classic.good.label': 'Good',
           'classic.good.title': 'Te llamamos',
-          'classic.good.copy': 'El camino rápido: deja tu nombre y teléfono, o agenda una videoconferencia.',
-          'classic.good.cta': 'Abrir opciones de contacto',
+          'classic.good.copy': 'El camino rápido: envía tus datos y te llamamos, o reserva una videoconferencia.',
+          'classic.good.cta': 'Contacto directo',
           'classic.good.form.title': 'Te llamamos',
           'classic.good.form.name': 'Nombre',
           'classic.good.form.phone': 'Teléfono',
+          'classic.good.form.reason': 'Motivo',
           'classic.good.form.submit': 'Enviar solicitud',
           'classic.good.form.calendar': 'Agendar videoconferencia',
-          'classic.good.form.note': 'Se abrirá tu cliente de correo para que la solicitud llegue a info@admira.com.',
+          'classic.good.form.note': 'Recibiremos tu solicitud sin abrir ninguna app de correo.',
+          'classic.good.form.success': 'Solicitud enviada. Te llamaremos en breve.',
+          'classic.good.form.error': 'No se ha podido enviar ahora. Inténtalo de nuevo en un momento.',
           'classic.better.label': 'Better',
           'classic.better.title': 'Web Clásica',
           'classic.better.copy': 'Una web corporativa tradicional, más cercana a AgiBot o Unitree.',
@@ -599,12 +605,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p data-i18n="classic.tagline">Same AdmiraNext content, in a familiar corporate website.</p>
     </div>
     <div class="entry-options" aria-label="Website mode selector">
-      <button class="entry-option" type="button" data-entry-contact>
+      <article class="entry-option entry-good">
         <span data-i18n="classic.good.label">Good</span>
         <strong data-i18n="classic.good.title">Contact me</strong>
         <em data-i18n="classic.good.copy">Fastest path: tell us what you need and we call you back.</em>
         <b data-i18n="classic.good.cta">Go to contact</b>
-      </button>
+        <form class="entry-contact" id="entryContactForm">
+          <label>
+            <span data-i18n="classic.good.form.name">Name</span>
+            <input type="text" name="name" autocomplete="name" required>
+          </label>
+          <label>
+            <span data-i18n="classic.good.form.phone">Phone</span>
+            <input type="tel" name="phone" autocomplete="tel" required>
+          </label>
+          <label class="entry-contact-wide">
+            <span data-i18n="classic.good.form.reason">Reason</span>
+            <textarea name="reason" rows="3" required></textarea>
+          </label>
+          <div class="entry-contact-actions">
+            <button type="submit" data-i18n="classic.good.form.submit">Send request</button>
+            <a href="https://calendar.google.com/calendar/u/0/r/eventedit?text=Videoconferencia%20AdmiraNext&details=Quiero%20agendar%20una%20videoconferencia%20con%20AdmiraNext.&add=info%40admira.com" target="_blank" rel="noopener noreferrer" data-i18n="classic.good.form.calendar">Book a video call</a>
+          </div>
+          <p data-i18n="classic.good.form.note">We will receive your request without opening your email app.</p>
+          <p class="entry-contact-status" role="status" aria-live="polite"></p>
+        </form>
+      </article>
       <a class="entry-option is-recommended" href="classic.html">
         <span data-i18n="classic.better.label">Better</span>
         <strong data-i18n="classic.better.title">Classic Web</strong>
@@ -618,22 +644,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <b data-i18n="classic.best.cta">Enter terminal</b>
       </button>
     </div>
-    <form class="entry-contact" id="entryContactForm">
-      <strong data-i18n="classic.good.form.title">We call you</strong>
-      <label>
-        <span data-i18n="classic.good.form.name">Name</span>
-        <input type="text" name="name" autocomplete="name" required>
-      </label>
-      <label>
-        <span data-i18n="classic.good.form.phone">Phone</span>
-        <input type="tel" name="phone" autocomplete="tel" required>
-      </label>
-      <div class="entry-contact-actions">
-        <button type="submit" data-i18n="classic.good.form.submit">Send request</button>
-        <a href="https://calendar.google.com/calendar/u/0/r/eventedit?text=Videoconferencia%20AdmiraNext&details=Quiero%20agendar%20una%20videoconferencia%20con%20AdmiraNext.&add=info%40admira.com" target="_blank" rel="noopener noreferrer" data-i18n="classic.good.form.calendar">Book a video call</a>
-      </div>
-      <p data-i18n="classic.good.form.note">This opens your email client so the request reaches info@admira.com.</p>
-    </form>
     <button class="entry-skip" type="button" data-entry-best data-i18n="classic.close">Skip</button>
   </div>
 </section>
@@ -646,23 +656,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     try { hasAutoCommand = !!sessionStorage.getItem('autoCommand'); } catch (e) {}
     if ((path && path !== 'index.html') || hasAutoCommand) entry.classList.add('hidden');
     var contactForm = document.getElementById('entryContactForm');
-    document.querySelectorAll('[data-entry-contact]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        if (contactForm) {
-          contactForm.classList.toggle('visible');
-          var firstInput = contactForm.querySelector('input');
-          if (firstInput && contactForm.classList.contains('visible')) firstInput.focus();
-        }
-      });
-    });
     if (contactForm) {
       contactForm.addEventListener('submit', function (event) {
         event.preventDefault();
         var name = contactForm.elements.name.value.trim();
         var phone = contactForm.elements.phone.value.trim();
-        var subject = encodeURIComponent('Solicitud de llamada - AdmiraNext');
-        var body = encodeURIComponent('Nombre: ' + name + '\nTelefono: ' + phone + '\n\nQuiero que me llaméis para hablar de AdmiraNext.');
-        window.location.href = 'mailto:info@admira.com?subject=' + subject + '&body=' + body;
+        var reason = contactForm.elements.reason.value.trim();
+        var status = contactForm.querySelector('.entry-contact-status');
+        var submit = contactForm.querySelector('button[type="submit"]');
+        if (status) status.textContent = '';
+        if (submit) submit.disabled = true;
+        fetch('https://formsubmit.co/ajax/info@admira.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            _subject: 'Solicitud de llamada - AdmiraNext',
+            name: name,
+            phone: phone,
+            reason: reason
+          })
+        }).then(function (response) {
+          if (!response.ok) throw new Error('submit failed');
+          contactForm.reset();
+          if (status) status.textContent = window.t ? window.t('classic.good.form.success') : 'Request sent.';
+        }).catch(function () {
+          if (status) status.textContent = window.t ? window.t('classic.good.form.error') : 'Could not send it right now.';
+        }).finally(function () {
+          if (submit) submit.disabled = false;
+        });
       });
     }
     document.querySelectorAll('[data-entry-best]').forEach(function (button) {
