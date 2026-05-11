@@ -408,6 +408,9 @@
       box-sizing: border-box;
       padding-left: 94px;
     }
+    body.gate-open .entry-nav {
+      z-index: 1000000;
+    }
     .entry-brand,
     .entry-nav-links a,
     .entry-nav-links button {

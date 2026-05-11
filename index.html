@@ -52,7 +52,7 @@
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="image" href="assets/cortocircuito-bg.jpg" type="image/jpeg">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.11.14">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.11.15">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -544,6 +544,7 @@
 
     function close() {
       screen.style.display = 'none';
+      document.body.classList.remove('gate-open');
       document.body.style.overflow = 'auto';
       input.value = '';
       error.style.display = 'none';
@@ -581,12 +582,14 @@
     // API pública: muestra el gate y llama onResult(true) si OK, false si cancelado.
     window.showIntranetGate = function(onResult) {
       activeCallback = (typeof onResult === 'function') ? onResult : null;
+      document.body.classList.add('gate-open');
       screen.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       input.value = '';
       error.style.display = 'none';
       setTimeout(() => input.focus(), 0);
     };
+    window.hideIntranetGate = close;
   })();
 </script>
 <div class="wallpaper" id="wallpaper">
@@ -701,8 +704,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       });
     });
     var contactPanel = document.getElementById('entryContactPanel');
+    var closeIntranetGate = function () {
+      if (typeof window.hideIntranetGate === 'function') window.hideIntranetGate();
+    };
     var toggleContactPanel = function (open) {
       if (!contactPanel) return;
+      if (open) closeIntranetGate();
       document.body.classList.toggle('contact-open', open);
       contactPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
       if (open) {
@@ -723,6 +730,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
     document.querySelectorAll('[data-entry-best]').forEach(function (button) {
       button.addEventListener('click', function () {
+        closeIntranetGate();
         toggleContactPanel(false);
         entry.classList.add('hidden');
         runTerminalCommand(window.currentLang === 'es' ? '/plataforma' : '/intranet');
@@ -750,6 +758,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     };
     document.querySelectorAll('[data-entry-robots]').forEach(function (button) {
       button.addEventListener('click', function () {
+        closeIntranetGate();
         toggleContactPanel(false);
         entry.classList.add('hidden');
         runTerminalCommand('/robots');
@@ -757,12 +766,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
     document.querySelectorAll('[data-entry-about]').forEach(function (button) {
       button.addEventListener('click', function () {
+        closeIntranetGate();
         toggleContactPanel(false);
         entry.classList.add('hidden');
         runTerminalCommand('/about');
       });
     });
     window.showEntryScreen = function () {
+      closeIntranetGate();
       toggleContactPanel(false);
       entry.classList.remove('hidden');
     };
