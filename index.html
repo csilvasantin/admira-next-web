@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNext v26.05.11.3" />
+  <meta name="admiranext-version" content="AdmiraNext v26.05.11.4" />
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">
   {
@@ -52,7 +52,7 @@
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="image" href="assets/cortocircuito-bg.jpg" type="image/jpeg">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.11.3">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.11.4">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -600,14 +600,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- Entry chooser: Good / Better / Best -->
 <section class="entry-screen" id="entryScreen" aria-labelledby="entryTitle">
   <nav class="entry-nav" aria-label="AdmiraNext entry navigation">
-    <div class="entry-nav-inner">
-      <a class="entry-brand" href="#entryGood">ADmiraNeXT</a>
-      <span class="entry-menu-label">MENU</span>
-      <div class="entry-nav-links">
-        <a href="#entryGood" data-i18n="classic.good.label">Good</a>
-        <a href="classic.html" data-i18n="classic.better.label">Better</a>
-        <button type="button" data-entry-best data-i18n="classic.best.label">Best</button>
-      </div>
+    <a class="entry-brand" href="#entryGood">ADmiraNeXT</a>
+    <div class="entry-nav-links">
+      <a href="#entryGood" data-i18n="classic.good.label">Good</a>
+      <a href="classic.html" data-i18n="classic.better.label">Better</a>
+      <button type="button" data-entry-best data-i18n="classic.best.label">Best</button>
+      <a href="#entryGood" data-i18n="classic.good.cta">Direct contact</a>
     </div>
   </nav>
   <div class="entry-shell">
