@@ -657,6 +657,7 @@
       category: 'humanoid',
       price: '€3.399',
       badge: 'Premium',
+      badgeEs: 'Premium',
       image: 'https://www.agibot.com/public/uploads/images/20250922/7528a0359f8f7e09788972bdb5c35c2a.png',
     },
     {
@@ -664,6 +665,7 @@
       category: 'humanoid',
       price: '€2.699',
       badge: 'Best Seller',
+      badgeEs: 'Más elegido',
       image: 'https://www.agibot.com/public/uploads/images/20250924/07684c1e0bf74d8cec9aab593d3afa8a.png',
     },
     {
@@ -671,6 +673,7 @@
       category: 'humanoid',
       price: '€2.399',
       badge: 'Agile',
+      badgeEs: 'Ágil',
       image: 'https://www.agibot.com/public/uploads/images/20250924/bcdaf302f10439090f551e9906ef7285.png',
     },
     {
@@ -678,6 +681,7 @@
       category: 'humanoid',
       price: '€1.999',
       badge: 'Compact',
+      badgeEs: 'Compacto',
       image: 'https://www.botsharing.eu/images/x2lite-robot.png',
     },
     {
@@ -685,6 +689,7 @@
       category: 'quadruped',
       price: '€2.999',
       badge: 'Quadruped',
+      badgeEs: 'Cuadrúpedo',
       image: 'https://agibotmall.com/uploads/attach/2026/01/20260130/f6c154606b00a6d27069cc3a9ed0705c.png',
     },
     {
@@ -692,6 +697,7 @@
       category: 'quadruped',
       price: '€899',
       badge: 'Budget Friendly',
+      badgeEs: 'Económico',
       image: 'https://www.agibot.com/public/uploads/images/20250924/833452d6caa40f2728dae867dcdcfc2a.png',
     },
     {
@@ -699,6 +705,7 @@
       category: 'quadruped',
       price: '€999',
       badge: 'Heavy Duty',
+      badgeEs: 'Alto rendimiento',
       image: 'https://agibotmall.com/uploads/attach/2026/01/20260130/70c5491e9790116ef65fd5479c10916d.png',
     },
     {
@@ -706,6 +713,7 @@
       category: 'cleaning',
       price: '€7.999/3mo',
       badge: 'Smart Cleaning',
+      badgeEs: 'Limpieza inteligente',
       image: 'https://www.agibot.com/public/uploads/images/20251023/d59c5681d6db5d368849ac13334e98e9.png',
     },
   ];
@@ -811,7 +819,7 @@
     ];
   }
 
-  function cmdRobots() {
+  function buildRobotsCatalog(shouldScroll = true) {
     const isSpanish = window.currentLang !== 'en';
     const container = document.createElement('section');
     container.className = 'robot-catalog-block';
@@ -824,18 +832,24 @@
         <p class="robot-eyebrow">${isSpanish ? 'FLOTA INICIAL' : 'INITIAL FLEET'}</p>
         <h2>${isSpanish ? 'Robots' : 'Robots'}</h2>
       </div>
-      <p>${isSpanish ? 'Ocho opciones listas para pilots, eventos y operaciones conectadas.' : 'Eight options ready for pilots, events and connected operations.'}</p>
+      <p>${isSpanish ? 'Ocho opciones listas para pilotos, eventos y operaciones conectadas.' : 'Eight options ready for pilots, events and connected operations.'}</p>
     `;
 
     const filters = document.createElement('div');
     filters.className = 'robot-filters';
     filters.setAttribute('aria-label', isSpanish ? 'Filtros de robots' : 'Robot filters');
-    [
+    const filterLabels = isSpanish ? [
+      ['all', 'Todos'],
+      ['humanoid', 'Humanoides'],
+      ['quadruped', 'Cuadrúpedos'],
+      ['cleaning', 'Limpieza'],
+    ] : [
       ['all', 'All Robots'],
       ['humanoid', 'Humanoid'],
       ['quadruped', 'Quadruped'],
       ['cleaning', 'Cleaning'],
-    ].forEach(([key, label], index) => {
+    ];
+    filterLabels.forEach(([key, label], index) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.dataset.robotFilter = key;
@@ -857,7 +871,7 @@
         <div class="robot-card-body">
           <h3>${escapeHtml(robot.name)}</h3>
           <strong>${escapeHtml(robot.price)}</strong>
-          <span>${escapeHtml(robot.badge)}</span>
+          <span>${escapeHtml(isSpanish ? robot.badgeEs : robot.badge)}</span>
         </div>
       `;
       grid.appendChild(card);
@@ -885,13 +899,23 @@
     container.appendChild(filters);
     container.appendChild(grid);
     container.appendChild(note);
-    setTimeout(() => {
+    if (shouldScroll) setTimeout(() => {
       if (container.isConnected) {
         container.scrollIntoView({ block: 'start', behavior: 'smooth' });
       }
     }, 120);
     return container;
   }
+
+  function cmdRobots() {
+    return buildRobotsCatalog(true);
+  }
+
+  window.addEventListener('admiranext:langchanged', function () {
+    document.querySelectorAll('.robot-catalog-block').forEach(block => {
+      block.replaceWith(buildRobotsCatalog(false));
+    });
+  });
 
   function cmdClients() {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
