@@ -52,7 +52,7 @@
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="image" href="assets/cortocircuito-bg.jpg" type="image/jpeg">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.11.9">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.11.10">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -172,8 +172,8 @@
           'rental.tooltip': 'See robot rental info',
           'classic.button': 'HOME',
           'classic.title': 'Classic Web',
-          'classic.tagline': 'Same AdmiraNext content, in a familiar corporate website.',
-          'classic.good.label': 'Good',
+          'classic.tagline': 'Choose between About us, Robots or Platform depending on how much you want to explore.',
+          'classic.good.label': 'About us',
           'classic.good.title': 'Contact me',
           'classic.good.copy': 'Fastest path: send your details and we call you back, or book a video call.',
           'classic.good.cta': 'Contact',
@@ -190,7 +190,7 @@
           'classic.better.title': 'Robots',
           'classic.better.copy': 'Available robot portfolio with humanoid, quadruped and cleaning options.',
           'classic.better.cta': 'Open robots',
-          'classic.best.label': 'Best',
+          'classic.best.label': 'Platform',
           'classic.best.title': 'Terminal Experience',
           'classic.best.copy': 'The current interactive ADmiraNeXT experience: denser, stranger, more memorable.',
           'classic.best.cta': 'Enter terminal',
@@ -360,8 +360,8 @@
           'rental.tooltip': 'Ver información de alquiler',
           'classic.button': 'INICIO',
           'classic.title': 'Elige tu entrada',
-          'classic.tagline': 'Good, better or best depende de quién visita y de cuánto quiere explorar.',
-          'classic.good.label': 'Good',
+          'classic.tagline': 'Elige entre Acerca de, Robots o Plataforma según cuánto quieras explorar.',
+          'classic.good.label': 'Acerca de',
           'classic.good.title': 'Te llamamos',
           'classic.good.copy': 'El camino rápido: envía tus datos y te llamamos, o reserva una videoconferencia.',
           'classic.good.cta': 'Contacto',
@@ -378,7 +378,7 @@
           'classic.better.title': 'Robots',
           'classic.better.copy': 'Portfolio disponible con humanoides, cuadrúpedos y limpieza.',
           'classic.better.cta': 'Abrir robots',
-          'classic.best.label': 'Best',
+          'classic.best.label': 'Plataforma',
           'classic.best.title': 'Experiencia Terminal',
           'classic.best.copy': 'La experiencia interactiva actual de ADmiraNeXT: más densa, distinta y memorable.',
           'classic.best.cta': 'Entrar al terminal',
@@ -473,7 +473,7 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=26.05.11.1" defer></script>
+  <script src="assets/app.js?v=26.05.11.2" defer></script>
 </head>
 <body data-route="">
 <style id="crt-gate-style">
@@ -602,9 +602,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <nav class="entry-nav" aria-label="AdmiraNext entry navigation">
   <a class="entry-brand" href="/">ADmiraNeXT</a>
   <div class="entry-nav-links">
-    <button type="button" data-entry-contact-panel data-i18n="classic.good.label">Good</button>
+    <button type="button" data-entry-about data-i18n="classic.good.label">About us</button>
     <button type="button" data-entry-robots data-i18n="classic.better.label">Robots</button>
-    <button type="button" data-entry-best data-i18n="classic.best.label">Best</button>
+    <button type="button" data-entry-best data-i18n="classic.best.label">Platform</button>
     <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Contact</button>
     <button class="lang-toggle entry-lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
   </div>
@@ -740,6 +740,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         runTerminalCommand('/robots');
       });
     });
+    document.querySelectorAll('[data-entry-about]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        toggleContactPanel(false);
+        entry.classList.add('hidden');
+        runTerminalCommand('/about');
+      });
+    });
     window.showEntryScreen = function () {
       toggleContactPanel(false);
       entry.classList.remove('hidden');
@@ -755,8 +762,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
       <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
       <div class="titlebar-title" data-i18n="titlebar.path.exit"></div>
-      <button class="lang-toggle rental-toggle" type="button" data-classic-label data-i18n-title="classic.title" onclick="window.showEntryScreen && window.showEntryScreen()">HOME</button>
-      <button class="lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
     </div>
     <div class="close-body">
       <div class="output-line red" data-i18n="close.kill"></div>
