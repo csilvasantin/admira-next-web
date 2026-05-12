@@ -1615,6 +1615,9 @@
   INTRANET_CATALOG.forEach(g => g.items.forEach(it => { INTRANET_BY_CMD[it.cmd] = it; }));
 
   function renderIntranetListing() {
+    function commandLaunch(displayCmd, command) {
+      return `<button type="button" class="cmd-name cmd-launch" data-run-command="${escapeHtml(command)}">${escapeHtml(displayCmd)}</button>`;
+    }
     const out = [
       { text: '  ┌─────────────────────────────────────────────────────────────┐', cls: 'accent' },
       { text: '  │  INTRANET — Acceso a proyectos del ecosistema AdmiraNeXT    │', cls: 'accent' },
@@ -1625,7 +1628,7 @@
       out.push({ text: `  ${g.group}`, cls: 'cyan' });
       g.items.forEach(it => {
         const displayCmd = it.displayCmd || it.cmd;
-        out.push({ html: `    <span class="cmd-name">${displayCmd.padEnd(14)}</span><span class="dim">${it.label}</span>` });
+        out.push({ html: `    ${commandLaunch(displayCmd.padEnd(14), it.cmd)}<span class="dim">${escapeHtml(it.label)}</span>` });
       });
       out.push({ text: '' });
     });
@@ -2531,6 +2534,13 @@
 
   // Focus input on click anywhere in terminal body
   terminalBody.addEventListener('click', (e) => {
+    const commandButton = e.target.closest('[data-run-command]');
+    if (commandButton && terminalBody.contains(commandButton)) {
+      e.preventDefault();
+      e.stopPropagation();
+      executeCommand(commandButton.dataset.runCommand || commandButton.textContent.trim());
+      return;
+    }
     if (!window.getSelection().toString()) {
       cmdInput.focus();
     }

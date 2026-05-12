@@ -820,6 +820,16 @@
       display: inline-block;
       min-width: 11ch;
     }
+    .output-line button.cmd-name {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
     .output-line .cmd-desc {
       color: var(--text-dim);
     }
