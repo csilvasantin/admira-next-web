@@ -1018,6 +1018,28 @@
         desc: 'Capacidad de entrenar modelos en entornos virtuales (gemelos digitales) y transferir ese aprendizaje al mundo físico con un margen de error mínimo.'
       },
     ];
+    const toolsTitle = isEn ? 'Tools' : 'Herramientas';
+    const tools = isEn ? [
+      'Training (PyTorch and TensorFlow)',
+      'Simulation (Nvidia Isaac Sim)',
+      'Inference (Nvidia TensorRT)',
+      'Robotics (ROS 2 Robot Operating System)',
+      'Vision (OpenCV)',
+      'Deployment (K3s / Docker)',
+      'Communication (MQTT/AMQP)',
+      'Video Pipeline (GStreamer)',
+      'Monitoring (Grafana / Prometheus)',
+    ] : [
+      'Entrenamiento (PyTorch y TensorFlow)',
+      'Simulación (Nvidia Isaac Sim)',
+      'Inferencia (Nvidia TensorRT)',
+      'Robótica (ROS 2 Robot Operating System)',
+      'Visión (OpenCV)',
+      'Despliegue (K3s / Docker)',
+      'Comunicación (MQTT/AMQP)',
+      'Pipeline de Video (GStreamer)',
+      'Monitoreo (Grafana / Prometheus)',
+    ];
 
     const container = document.createElement('div');
     container.innerHTML = `<div class="output-line heading">${escapeHtml(title)}</div><div style="height:8px"></div>`;
@@ -1031,6 +1053,15 @@
       `;
       container.appendChild(row);
     });
+
+    const toolsSection = document.createElement('div');
+    toolsSection.innerHTML = `
+      <div class="output-line heading" style="margin-top:20px">${escapeHtml(toolsTitle)}</div>
+      <div class="output-line" style="margin-top:4px">  ${tools.slice(0, 3).map(escapeHtml).join(' &bull; ')}</div>
+      <div class="output-line">  ${tools.slice(3, 6).map(escapeHtml).join(' &bull; ')}</div>
+      <div class="output-line">  ${tools.slice(6).map(escapeHtml).join(' &bull; ')}</div>
+    `;
+    container.appendChild(toolsSection);
 
     const hint = document.createElement('div');
     hint.className = 'output-line dim';
