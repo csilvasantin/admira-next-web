@@ -1680,24 +1680,24 @@
 
   // Catálogo único de proyectos. Categorías ordenadas; cada item: {cmd,label,url,color}.
   const INTRANET_CATALOG = [
-    { group: '🤖  Robots & IoT', items: [
-      { cmd: '/admiraxp',   label: 'AdmiraXperience — simulador',           url: 'https://csilvasantin.github.io/01.-AdmiraXperience-Game/', color: 'purple' },
-      { cmd: '/xpaceos',    displayCmd: '/XpaceOS', label: 'XpaceOS — sistema operativo espacial', url: 'https://www.xpaceos.com', color: 'cyan' },
-      { cmd: '/pixer',      label: 'Pixer.ai — content engine',             url: 'https://pixer.ai',                                          color: 'accent' },
+    { groupEs: '🤖  Robots & IoT', groupEn: '🤖  Robots & IoT', items: [
+      { cmd: '/admiraxp',   labelEs: 'AdmiraXperience — simulador',             labelEn: 'AdmiraXperience — simulator',               url: 'https://csilvasantin.github.io/01.-AdmiraXperience-Game/', color: 'purple' },
+      { cmd: '/xpaceos',    displayCmd: '/XpaceOS', labelEs: 'XpaceOS — sistema operativo espacial', labelEn: 'XpaceOS — space operating system', url: 'https://www.xpaceos.com', color: 'cyan' },
+      { cmd: '/pixer',      labelEs: 'Pixer.ai — content engine',               labelEn: 'Pixer.ai — content engine',                 url: 'https://pixer.ai',                                          color: 'accent' },
     ]},
-    { group: '🧠  Consejo & gobernanza', items: [
-      { cmd: '/consejo',    label: 'Panel del Consejo',                     url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/consejo.html', color: 'green' },
-      { cmd: '/yarigai',    label: 'Análisis de vídeos del Consejo',        url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/yarigai.html', color: 'cyan' },
+    { groupEs: '🧠  Consejo & gobernanza', groupEn: '🧠  Council & governance', items: [
+      { cmd: '/consejo',    labelEs: 'Panel del Consejo',                       labelEn: 'Council panel',                            url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/consejo.html', color: 'green' },
+      { cmd: '/yarigai',    labelEs: 'Análisis de vídeos del Consejo',          labelEn: 'Council video analysis',                   url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/yarigai.html', color: 'cyan' },
       // TODO: /omniAdmira — pendiente URL/descripción del usuario
       // { cmd: '/omniAdmira', label: 'OmniAdmira — ?', url: '?', color: 'accent' },
     ]},
-    { group: '🎮  Cultura', items: [
-      { cmd: '/aventura',   label: 'Aventura SCUMM',                        url: 'https://www.admira.live/council-scumm.html',                color: 'purple' },
-      { cmd: '/diario',     label: 'Diario — bitácora',                     url: 'https://csilvasantin.github.io/18.-diario/',                color: 'blue' },
+    { groupEs: '🎮  Cultura', groupEn: '🎮  Culture', items: [
+      { cmd: '/aventura',   labelEs: 'Aventura SCUMM',                          labelEn: 'SCUMM adventure',                         url: 'https://www.admira.live/council-scumm.html',                color: 'purple' },
+      { cmd: '/diario',     labelEs: 'Diario — bitácora',                       labelEn: 'Diary — logbook',                         url: 'https://csilvasantin.github.io/18.-diario/',                color: 'blue' },
     ]},
-    { group: '⚙️  Operaciones', items: [
-      { cmd: '/equipo',     label: 'Control del equipo',                    url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/teamwork.html', color: 'green' },
-      { cmd: '/control',    label: 'Máquinas',                              url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/control.html',  color: 'blue' },
+    { groupEs: '⚙️  Operaciones', groupEn: '⚙️  Operations', items: [
+      { cmd: '/equipo',     labelEs: 'Control del equipo',                      labelEn: 'Team control',                            url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/teamwork.html', color: 'green' },
+      { cmd: '/control',    labelEs: 'Máquinas',                                labelEn: 'Machines',                                url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/control.html',  color: 'blue' },
     ]},
   ];
 
@@ -1706,24 +1706,34 @@
   INTRANET_CATALOG.forEach(g => g.items.forEach(it => { INTRANET_BY_CMD[it.cmd] = it; }));
 
   function renderIntranetListing() {
+    const isEn = window.currentLang === 'en';
+    const title = isEn
+      ? 'INTRANET — Access to ADmiraNeXT ecosystem projects'
+      : 'INTRANET — Acceso a proyectos del ecosistema ADmiraNeXT';
     function commandLaunch(displayCmd, command) {
       return `<button type="button" class="cmd-name cmd-launch" data-run-command="${escapeHtml(command)}">${escapeHtml(displayCmd)}</button>`;
     }
     const out = [
       { text: '  ┌─────────────────────────────────────────────────────────────┐', cls: 'accent' },
-      { text: '  │  INTRANET — Acceso a proyectos del ecosistema AdmiraNeXT    │', cls: 'accent' },
+      { text: `  │  ${title.padEnd(57)}│`, cls: 'accent' },
       { text: '  └─────────────────────────────────────────────────────────────┘', cls: 'accent' },
       { text: '' },
     ];
     INTRANET_CATALOG.forEach(g => {
-      out.push({ text: `  ${g.group}`, cls: 'cyan' });
+      out.push({ text: `  ${isEn ? g.groupEn : g.groupEs}`, cls: 'cyan' });
       g.items.forEach(it => {
         const displayCmd = it.displayCmd || it.cmd;
-        out.push({ html: `    ${commandLaunch(displayCmd.padEnd(14), it.cmd)}<span class="dim">${escapeHtml(it.label)}</span>` });
+        const label = isEn ? it.labelEn : it.labelEs;
+        out.push({ html: `    ${commandLaunch(displayCmd.padEnd(14), it.cmd)}<span class="dim">${escapeHtml(label)}</span>` });
       });
       out.push({ text: '' });
     });
-    out.push({ text: '  → Escribe cualquier comando de arriba para entrar.', cls: 'green' });
+    out.push({
+      text: isEn
+        ? '  → Type any command above to enter.'
+        : '  → Escribe cualquier comando de arriba para entrar.',
+      cls: 'green'
+    });
     return out;
   }
 
@@ -1742,7 +1752,12 @@
       });
     }
     return [
-      { text: '  🔒 Acceso restringido. Introduce credenciales en el CRT...', cls: 'accent' },
+      {
+        text: window.currentLang === 'en'
+          ? '  🔒 Restricted access. Enter credentials in the CRT...'
+          : '  🔒 Acceso restringido. Introduce credenciales en el CRT...',
+        cls: 'accent'
+      },
     ];
   });
   registerHidden('/plataforma', function() { return HIDDEN_COMMANDS['/intranet'](); });
@@ -1752,7 +1767,12 @@
     if (!isIntranetUnlocked()) {
       return [
         { text: `  🔒 ${label}`, cls: 'dim' },
-        { text: '  Acceso requerido. Escribe /intranet primero.', cls: 'accent' },
+        {
+          text: window.currentLang === 'en'
+            ? '  Access required. Type /intranet first.'
+            : '  Acceso requerido. Escribe /intranet primero.',
+          cls: 'accent'
+        },
       ];
     }
     setTimeout(() => { try { window.open(url, '_blank', 'noopener,noreferrer'); } catch(e){} }, 700);
@@ -1765,7 +1785,9 @@
   // Registrar todos los launches desde INTRANET_CATALOG (única fuente de verdad).
   // Evita duplicar URL/label entre el listado y el handler.
   Object.values(INTRANET_BY_CMD).forEach(function(it) {
-    registerHidden(it.cmd, function() { return launchEgg(it.label, it.url, it.color); });
+    registerHidden(it.cmd, function() {
+      return launchEgg(window.currentLang === 'en' ? it.labelEn : it.labelEs, it.url, it.color);
+    });
   });
   // Alias /game = /aventura (mismo handler)
   registerHidden('/game', function() { return HIDDEN_COMMANDS['/aventura'](); });
