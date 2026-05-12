@@ -390,13 +390,16 @@
     .entry-nav {
       position: fixed;
       z-index: 95;
-      top: 70px;
-      left: 22px;
-      right: 22px;
+      top: -4px;
+      left: 0;
+      right: 34px;
+      min-height: 58px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 24px;
+      box-sizing: border-box;
+      padding-left: 94px;
       color: #fff;
     }
     body:has(.entry-screen.hidden) .entry-nav {
@@ -410,6 +413,10 @@
     }
     body.gate-open .entry-nav {
       z-index: 1000000;
+    }
+    body.gate-open #password-screen {
+      background: rgba(6, 10, 18, 0.48) !important;
+      backdrop-filter: blur(3px) saturate(1.08);
     }
     .entry-brand,
     .entry-nav-links a,
