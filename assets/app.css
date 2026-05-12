@@ -760,6 +760,27 @@
       line-height: 1.7;
     }
 
+    .welcome-section .item-command {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      letter-spacing: inherit;
+      line-height: inherit;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+
+    .welcome-section .item-command:hover,
+    .welcome-section .item-command:focus-visible {
+      color: inherit;
+      outline: none;
+      text-decoration: none;
+    }
+
     .item .label {
       color: var(--text-dim);
       min-width: 90px;
