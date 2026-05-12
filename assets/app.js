@@ -1591,6 +1591,7 @@
   const INTRANET_CATALOG = [
     { group: '🤖  Robots & IoT', items: [
       { cmd: '/admiraxp',   label: 'AdmiraXperience — simulador',           url: 'https://csilvasantin.github.io/01.-AdmiraXperience-Game/', color: 'purple' },
+      { cmd: '/xpaceos',    displayCmd: '/XpaceOS', label: 'XpaceOS — sistema operativo espacial', url: 'https://www.xpaceos.com', color: 'cyan' },
       { cmd: '/pixer',      label: 'Pixer.ai — content engine',             url: 'https://pixer.ai',                                          color: 'accent' },
     ]},
     { group: '🧠  Consejo & gobernanza', items: [
@@ -1623,7 +1624,8 @@
     INTRANET_CATALOG.forEach(g => {
       out.push({ text: `  ${g.group}`, cls: 'cyan' });
       g.items.forEach(it => {
-        out.push({ html: `    <span class="cmd-name">${it.cmd.padEnd(14)}</span><span class="dim">${it.label}</span>` });
+        const displayCmd = it.displayCmd || it.cmd;
+        out.push({ html: `    <span class="cmd-name">${displayCmd.padEnd(14)}</span><span class="dim">${it.label}</span>` });
       });
       out.push({ text: '' });
     });
