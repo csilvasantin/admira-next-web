@@ -335,17 +335,13 @@
       position: fixed;
       inset: 0;
       z-index: 80;
-      display: flex;
+      display: none;
       align-items: flex-start;
       justify-content: center;
       padding: 94px 32px 32px;
       overflow-x: hidden;
       overflow-y: auto;
-      background:
-        linear-gradient(110deg, rgba(2, 5, 9, 0.94) 0%, rgba(4, 9, 16, 0.62) 45%, rgba(5, 13, 23, 0.34) 100%),
-        url('cortocircuito-bg.jpg') center center / cover no-repeat,
-        #05070b;
-      backdrop-filter: blur(14px);
+      background: transparent;
       isolation: isolate;
       transition: opacity 0.28s ease, visibility 0.28s ease;
     }

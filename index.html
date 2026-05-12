@@ -50,9 +50,8 @@
   <meta name="twitter:title" content="ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial" />
   <meta name="twitter:description" content="Physical AI, IoT, robotics and connected operations from Barcelona." />
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
-  <link rel="preload" as="image" href="assets/cortocircuito-bg.jpg" type="image/jpeg">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.12.2">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.12.3">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -487,7 +486,7 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=26.05.12.2" defer></script>
+  <script src="assets/app.js?v=26.05.12.3" defer></script>
 </head>
 <body data-route="">
 <style id="crt-gate-style">
@@ -617,7 +616,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <canvas id="confettiCanvas"></canvas>
 
 <nav class="entry-nav" aria-label="AdmiraNext entry navigation">
-  <a class="entry-brand" href="/">ADmiraNeXT</a>
+  <a class="entry-brand" href="/" data-entry-home>ADmiraNeXT</a>
   <div class="entry-nav-links">
     <button type="button" data-entry-about data-i18n="classic.good.label">About us</button>
     <button type="button" data-entry-robots data-i18n="classic.better.label">Robots</button>
@@ -628,7 +627,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </nav>
 
 <!-- Entry chooser: Good / Better / Best -->
-<section class="entry-screen" id="entryScreen" aria-label="AdmiraNext entry screen"></section>
+<section class="entry-screen hidden" id="entryScreen" aria-label="AdmiraNext entry screen"></section>
 <div class="entry-contact-backdrop" data-entry-contact-close></div>
 <aside class="entry-contact-panel" id="entryContactPanel" aria-hidden="true" aria-labelledby="entryContactPanelTitle">
   <button class="entry-contact-close" type="button" data-entry-contact-close aria-label="Close contact panel" data-i18n-title="contact.panel.close">×</button>
@@ -669,10 +668,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   document.addEventListener('DOMContentLoaded', function () {
     var entry = document.getElementById('entryScreen');
     if (!entry) return;
-    var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-    var hasAutoCommand = false;
-    try { hasAutoCommand = !!sessionStorage.getItem('autoCommand'); } catch (e) {}
-    if ((path && path !== 'index.html') || hasAutoCommand) entry.classList.add('hidden');
+    entry.classList.add('hidden');
     document.querySelectorAll('.entry-contact-form').forEach(function (contactForm) {
       contactForm.addEventListener('submit', function (event) {
         event.preventDefault();
@@ -756,6 +752,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         if (attempts > 40) clearInterval(timer);
       }, 250);
     };
+    var goHome = function () {
+      closeIntranetGate();
+      toggleContactPanel(false);
+      try { sessionStorage.removeItem('autoCommand'); } catch (e) {}
+      var target = window.location.protocol === 'file:' ? 'index.html' : '/';
+      window.location.href = target;
+    };
+    document.querySelectorAll('[data-entry-home]').forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        goHome();
+      });
+    });
     document.querySelectorAll('[data-entry-robots]').forEach(function (button) {
       button.addEventListener('click', function () {
         closeIntranetGate();
@@ -773,9 +782,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       });
     });
     window.showEntryScreen = function () {
-      closeIntranetGate();
-      toggleContactPanel(false);
-      entry.classList.remove('hidden');
+      goHome();
     };
   });
 </script>
