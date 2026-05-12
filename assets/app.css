@@ -1324,6 +1324,35 @@
       color: var(--text-dim);
     }
 
+    .capability-item {
+      border-left: 1px solid rgba(232,168,124,0.35);
+      margin: 10px 0;
+      padding: 2px 0 4px 14px;
+    }
+
+    .capability-title {
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .capability-title span {
+      color: var(--accent);
+      display: inline-block;
+      font-family: inherit;
+      margin-right: 10px;
+      min-width: 2ch;
+    }
+
+    .capability-desc {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin-top: 3px;
+      max-width: 92ch;
+    }
+
     /* Boot sequence — lives inside the terminal body */
     .boot-text {
       display: none;

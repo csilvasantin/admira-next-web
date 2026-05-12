@@ -933,52 +933,112 @@
   }
 
   function cmdSkills() {
-    const skills = [
-      { name: 'Diseño de Producto', pct: 97, color: 'accent' },
-      { name: 'Sistemas de Diseño', pct: 95, color: 'accent' },
-      { name: 'Investigación y Estrategia UX', pct: 90, color: 'green' },
-      { name: 'Diseño UI y Visual', pct: 95, color: 'green' },
-      { name: 'Visualización de Datos', pct: 88, color: 'blue' },
-      { name: 'Marca e Identidad', pct: 85, color: 'purple' },
-      { name: 'Liderazgo de Diseño', pct: 92, color: 'purple' },
-      { name: 'Accesibilidad (WCAG)', pct: 90, color: 'cyan' },
-      { name: 'Prototipado y Movimiento', pct: 85, color: 'cyan' },
-      { name: 'Facilitación de Talleres', pct: 88, color: 'blue' },
+    const isEn = window.currentLang === 'en';
+    const title = isEn ? '10 Critical Experiences and Capabilities' : '10 Experiencias y Capacidades Críticas';
+    const items = isEn ? [
+      {
+        name: 'Edge Optimization (Edge Computing)',
+        desc: 'The ability to run complex models locally without relying on the cloud. In the physical world, 100ms of latency can be the difference between success and a critical error.'
+      },
+      {
+        name: 'Sensor Fusion',
+        desc: 'Experience integrating data from different sources (cameras, LiDAR, weight sensors, infrared) to create a unified truth of the environment.'
+      },
+      {
+        name: 'Advanced Computer Vision',
+        desc: 'Beyond object detection: mastery of behavior analysis, pose estimation and multi-channel tracking in environments with changing light.'
+      },
+      {
+        name: 'Privacy by Design',
+        desc: 'Ability to process biometric or people-flow data anonymously from the source, meeting strict regulations without compromising analytics.'
+      },
+      {
+        name: 'Real-Time Data Orchestration',
+        desc: 'Management of massive information flows that must trigger physical responses immediately: screen changes, door opening, robotic movement.'
+      },
+      {
+        name: 'Predictive Hardware Maintenance',
+        desc: 'Capability for AI itself to monitor the health of physical devices (screens, sensors, hubs) and anticipate failures before they happen.'
+      },
+      {
+        name: 'Legacy System Interoperability',
+        desc: 'Experience connecting modern AI with older physical infrastructure: industrial PLCs, building management systems or POS terminals.'
+      },
+      {
+        name: 'HCI in Physical Spaces',
+        desc: 'Design of interfaces that do not require a touchscreen, such as gestures, voice or proximity-based interaction.'
+      },
+      {
+        name: 'Geographic Scalability',
+        desc: 'Ability to deploy and manage the same solution across 10 or 1,000 physical locations while maintaining model consistency.'
+      },
+      {
+        name: 'Simulation to Reality (Sim2Real)',
+        desc: 'Capability to train models in virtual environments (digital twins) and transfer that learning to the physical world with minimal error.'
+      },
+    ] : [
+      {
+        name: 'Optimización en el Edge (Edge Computing)',
+        desc: 'La capacidad de ejecutar modelos complejos localmente sin depender de la nube. En el mundo físico, la latencia de 100ms puede ser la diferencia entre un éxito y un error crítico.'
+      },
+      {
+        name: 'Fusión de Sensores (Sensor Fusion)',
+        desc: 'Experiencia integrando datos de distintas fuentes (cámaras, LiDAR, sensores de peso, infrarrojos) para crear una verdad unificada del entorno.'
+      },
+      {
+        name: 'Computer Vision Avanzada',
+        desc: 'Más allá de detectar objetos: dominio del análisis de comportamiento, estimación de pose y seguimiento multicanal en entornos con luz variable.'
+      },
+      {
+        name: 'Privacidad por Diseño (Privacy-by-Design)',
+        desc: 'Capacidad de procesar datos biométricos o de flujo de personas de forma anónima desde el origen, cumpliendo normativas estrictas sin comprometer la analítica.'
+      },
+      {
+        name: 'Orquestación de Datos en Tiempo Real',
+        desc: 'Gestión de flujos masivos de información que deben activar respuestas físicas de forma inmediata: cambios en pantallas, apertura de puertas, movimiento de robótica.'
+      },
+      {
+        name: 'Mantenimiento Predictivo de Hardware',
+        desc: 'Capacidad para que la propia IA monitorice la salud de los dispositivos físicos (pantallas, sensores, hubs) y anticipe fallos antes de que ocurran.'
+      },
+      {
+        name: 'Interoperabilidad con Sistemas Legados',
+        desc: 'Experiencia conectando IA moderna con infraestructuras físicas antiguas: PLCs industriales, sistemas de gestión de edificios o TPVs.'
+      },
+      {
+        name: 'HCI (Interacción Humano-Computadora) en Espacios Físicos',
+        desc: 'Diseño de interfaces que no requieren una pantalla táctil, como gestos, voz o interacción por proximidad.'
+      },
+      {
+        name: 'Escalabilidad Geográfica',
+        desc: 'Capacidad de desplegar y gestionar la misma solución en 10 o en 1.000 ubicaciones físicas manteniendo la consistencia del modelo.'
+      },
+      {
+        name: 'Simulación a Realidad (Sim2Real)',
+        desc: 'Capacidad de entrenar modelos en entornos virtuales (gemelos digitales) y transferir ese aprendizaje al mundo físico con un margen de error mínimo.'
+      },
     ];
 
     const container = document.createElement('div');
-    container.innerHTML = `<div class="output-line heading">Experiencia y Capacidades</div><div style="height:8px"></div>`;
+    container.innerHTML = `<div class="output-line heading">${escapeHtml(title)}</div><div style="height:8px"></div>`;
 
-    skills.forEach(s => {
-      const bar = document.createElement('div');
-      bar.className = 'skill-bar';
-      bar.innerHTML = `
-        <span class="skill-label">${s.name}</span>
-        <div class="bar-track"><div class="bar-fill ${s.color}" data-width="${s.pct}%"></div></div>
-        <span class="skill-pct">${s.pct}%</span>
+    items.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'capability-item';
+      row.innerHTML = `
+        <div class="capability-title"><span>${String(index + 1).padStart(2, '0')}</span>${escapeHtml(item.name)}</div>
+        <div class="capability-desc">${escapeHtml(item.desc)}</div>
       `;
-      container.appendChild(bar);
+      container.appendChild(row);
     });
 
-    const toolsSection = document.createElement('div');
-    toolsSection.innerHTML = `
-      <div class="output-line heading" style="margin-top:20px">Herramientas</div>
-      <div class="output-line" style="margin-top:4px">  Figma &bull; Adobe XD &bull; Sketch &bull; After Effects</div>
-      <div class="output-line">  Miro &bull; FigJam &bull; Notion &bull; Linear</div>
-      <div class="output-line">  HTML/CSS &bull; Webflow &bull; Framer</div>
-      <div class="output-line dim" style="margin-top:12px">  → /philosophy para ver cómo pienso</div>
-      <div class="output-line dim" style="margin-top:4px;opacity:0.4">  $ ls</div>
-    `;
-    container.appendChild(toolsSection);
-
-    // Animate bars after render
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        container.querySelectorAll('.bar-fill').forEach(el => {
-          el.style.width = el.dataset.width;
-        });
-      }, 100);
-    });
+    const hint = document.createElement('div');
+    hint.className = 'output-line dim';
+    hint.style.marginTop = '14px';
+    hint.textContent = isEn
+      ? '  → /contact to apply these capabilities to a physical AI project'
+      : '  → /contact para aplicar estas capacidades a un proyecto de IA física';
+    container.appendChild(hint);
 
     return container;
   }
