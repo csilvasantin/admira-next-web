@@ -14,6 +14,8 @@
     '/articles': 'articles',
     '/classic': 'classic',
     '/robots': 'robots',
+    '/identidad': 'identidad',
+    '/identity': 'identidad',
     '/intranet': 'intranet',
     '/plataforma': 'plataforma',
   };
@@ -32,6 +34,7 @@
     'articles': 'Artículos sobre Sistemas de Diseño, UX y Estrategia | ADmiraNeXT',
     'classic': 'Web Clásica | ADmiraNeXT',
     'robots': 'Robots | ADmiraNeXT',
+    'identidad': 'Identidad Visual | ADmiraNeXT',
     'intranet': 'Intranet | ADmiraNeXT',
     'plataforma': 'Plataforma | ADmiraNeXT',
   };
@@ -101,6 +104,10 @@
     '/robots': {
       desc: 'Catálogo inicial de robots',
       fn: cmdRobots
+    },
+    '/identidad': {
+      desc: 'Manual de identidad visual',
+      fn: cmdIdentidad
     },
     '/testimonials': {
       desc: 'Lo que la gente dice de mí',
@@ -187,6 +194,7 @@
     '/help':         'List all available commands',
     '/classic':      'Open the classic web',
     '/robots':       'Initial robot catalog',
+    '/identidad':    'Visual identity manual',
     '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
     '/work':         'Featured projects and case studies',
@@ -224,6 +232,7 @@
     '/phone': 'cmd.phone', '/email': 'cmd.email', '/company': 'cmd.company',
     '/classic': 'cmd.classic',
     '/robots': 'cmd.robots',
+    '/identidad': 'cmd.identidad',
     '/location': 'cmd.location', '/privacy': 'cmd.privacy',
     '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
     '/glass': 'cmd.glass', '/themes': 'cmd.themes',
@@ -276,6 +285,11 @@
     '/robótica': '/robots',
     '/catalogo': '/robots',
     '/catálogo': '/robots',
+    '/identity': '/identidad',
+    '/brand': '/identidad',
+    '/manual': '/identidad',
+    '/marca': '/identidad',
+    '/logo': '/identidad',
     '/classic-web': '/classic',
     '/rental': '/classic',
     '/ubicacion': '/location',
@@ -919,7 +933,197 @@
     document.querySelectorAll('.robot-catalog-block').forEach(block => {
       block.replaceWith(buildRobotsCatalog(false));
     });
+    document.querySelectorAll('.brand-block').forEach(block => {
+      block.replaceWith(buildBrandIdentity(false));
+    });
   });
+
+  // ============ BRAND IDENTITY (/identidad) ============
+  // Manual de identidad visual. Render directo a DOM (no a output-lines)
+  // para que el logo, los swatches y la tipografia se vean como assets
+  // de marca, no como ASCII.
+  const BRAND_PALETTE = [
+    { name: 'Blanco',         hex: '#FFFFFF', note: 'Fondo principal del logo' },
+    { name: 'Rojo Neón (N)',  hex: '#FF3366', note: 'Letra N del lockup NeXT', glowName: 'rojo' },
+    { name: 'Amarillo Neón (e)', hex: '#FFCC00', note: 'Letra e del lockup NeXT', glowName: 'amarillo' },
+    { name: 'Verde Neón (X)', hex: '#33FF99', note: 'Letra X del lockup NeXT', glowName: 'verde' },
+    { name: 'Magenta Neón (T)', hex: '#FF33CC', note: 'Letra T del lockup NeXT', glowName: 'magenta' },
+  ];
+
+  const BRAND_APPS_ES = [
+    { title: 'Cartelería retroiluminada', body: 'Logo blanco + NeXT neón sobre fondo oscuro. La tagline "AI · IMMERSIVE · DIGITAL SIGNAGE" acompaña al lockup en applications de gran formato.' },
+    { title: 'Edificio corporativo',      body: 'Logo a escala arquitectónica, mismo lockup con tratamiento neón. Funciona de día y de noche sin retoque.' },
+    { title: 'Tarjetería y papelería',    body: 'Tarjeta negra mate + logo en blanco. Texto en Univers 55 Roman. Reverso con isotipo cúbico de NeXT.' },
+    { title: 'Acreditaciones',            body: 'Lanyard negro con repetición del wordmark. Tarjeta colgante "ACCESS ALL AREAS" + isotipo.' },
+    { title: 'Merchandising',             body: 'Camisetas y sudaderas negras con wordmark blanco al pecho. Sin variaciones cromáticas — la marca se ve siempre limpia.' },
+    { title: 'Kiosko interactivo',        body: 'Headline "Inteligencia visual para experiencias extraordinarias" + isotipo cúbico de NeXT. Mismo lenguaje que el resto del touch.' },
+    { title: 'Plataforma de gestión',     body: 'Logo en cabecera + interfaz oscura con acentos neón en gráficas. Métricas de signage en directo.' },
+    { title: 'Digital Signage',           body: 'Pantallas en tránsito, lobbies y retail con el lockup principal y la baseline AI · IMMERSIVE · DIGITAL SIGNAGE.' },
+  ];
+
+  const BRAND_APPS_EN = [
+    { title: 'Backlit signage',           body: 'White wordmark + neon NeXT on dark. The "AI · IMMERSIVE · DIGITAL SIGNAGE" baseline travels with the lockup on large-format applications.' },
+    { title: 'Corporate building',        body: 'Wordmark scaled to architectural size. Same lockup, same neon treatment. Works day and night without rework.' },
+    { title: 'Stationery',                body: 'Matte black card + white wordmark. Body copy in Univers 55 Roman. Back side carries the NeXT cube monogram.' },
+    { title: 'Access badges',             body: 'Black lanyard with repeated wordmark. Badge reads "ACCESS ALL AREAS" with the cube monogram.' },
+    { title: 'Apparel',                   body: 'Black tees and hoodies with the white wordmark on chest. No colour variants — the brand always reads clean.' },
+    { title: 'Interactive kiosk',         body: 'Headline "Visual intelligence for extraordinary experiences" + NeXT cube monogram. Same language as the rest of the touch points.' },
+    { title: 'Management platform',       body: 'Wordmark in the header + dark UI with neon accents in charts. Live signage metrics.' },
+    { title: 'Digital signage',           body: 'Screens in transit, lobbies and retail showing the primary lockup and the AI · IMMERSIVE · DIGITAL SIGNAGE baseline.' },
+  ];
+
+  function buildBrandIdentity(shouldScroll = true) {
+    const isSpanish = window.currentLang !== 'en';
+    const T = {
+      eyebrow: isSpanish ? 'MANUAL DE IDENTIDAD · v1.0' : 'IDENTITY MANUAL · v1.0',
+      title:   isSpanish ? 'Identidad visual de ADmiraNeXT' : 'ADmiraNeXT visual identity',
+      intro:   isSpanish
+        ? 'Esta página documenta el sistema visual de ADmiraNeXT: logotipo definitivo, paleta cromática, tipografías y aplicaciones reales.'
+        : 'This page documents the ADmiraNeXT visual system: definitive wordmark, colour palette, typography and real-world applications.',
+      logoH:    isSpanish ? '1 · Logotipo oficial' : '1 · Official wordmark',
+      logoDesc: isSpanish
+        ? 'Este es el logotipo definitivo y oficial de ADmiraNeXT. La parte "ADmira" se mantiene en blanco puro para asegurar legibilidad y elegancia. La parte "NeXT" se distingue por un esquema neón vibrante (rojo, amarillo, verde y magenta) con efecto de resplandor (glow), simbolizando innovación, energía y futuro.'
+        : 'This is the definitive ADmiraNeXT wordmark. The "ADmira" part stays in pure white for legibility and elegance. The "NeXT" part uses a vibrant neon scheme (red, yellow, green, magenta) with a glow effect, symbolising innovation, energy and the future.',
+      typeH:    isSpanish ? '2 · Tipografía' : '2 · Typography',
+      typeLead: isSpanish
+        ? 'Dos familias: una para el lockup principal y los titulares, otra para el copy corporativo.'
+        : 'Two families: one for the primary lockup and headlines, one for body copy.',
+      colorH:   isSpanish ? '3 · Paleta cromática' : '3 · Colour palette',
+      colorLead: isSpanish
+        ? 'Cinco colores. Cualquier extensión de paleta debe respetar el contraste y el carácter neón del lockup.'
+        : 'Five colours. Any palette extension must respect contrast and the lockup\'s neon character.',
+      appsH:    isSpanish ? '4 · Aplicaciones' : '4 · Applications',
+      appsLead: isSpanish
+        ? 'Ejemplos de uso real en formato físico y digital.'
+        : 'Real-world examples across physical and digital formats.',
+      taglineH: isSpanish ? '5 · Tagline' : '5 · Tagline',
+      tagline:  isSpanish
+        ? 'CREAMOS EXPERIENCIAS. POTENCIAMOS MARCAS. INSPIRAMOS AL MUNDO.'
+        : 'WE CREATE EXPERIENCES. WE EMPOWER BRANDS. WE INSPIRE THE WORLD.',
+      foot:     isSpanish
+        ? 'ADmiraNeXT © 2026 · Manual de identidad v1.0 · Confidencial'
+        : 'ADmiraNeXT © 2026 · Identity manual v1.0 · Confidential',
+      sampleHead: isSpanish ? 'Muestra de uso' : 'Sample use',
+      typeFamPrimary: 'Montserrat Bold',
+      typeFamPrimaryUse: isSpanish ? 'Lockup principal · titulares · branding' : 'Primary lockup · headlines · branding',
+      typeFamBody:    'Univers 55 Roman',
+      typeFamBodyUse: isSpanish ? 'Cuerpo · copy corporativo · papelería' : 'Body · corporate copy · stationery',
+      noteLabel: isSpanish ? 'Uso' : 'Use',
+    };
+
+    const container = document.createElement('section');
+    container.className = 'brand-block';
+    container.setAttribute('aria-label', T.title);
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'brand-head';
+    header.innerHTML = `
+      <p class="brand-eyebrow">${escapeHtml(T.eyebrow)}</p>
+      <h2>${escapeHtml(T.title)}</h2>
+      <p class="brand-intro">${escapeHtml(T.intro)}</p>
+    `;
+    container.appendChild(header);
+
+    // 1. LOGO
+    const logoSection = document.createElement('article');
+    logoSection.className = 'brand-section brand-section-logo';
+    logoSection.innerHTML = `
+      <h3>${escapeHtml(T.logoH)}</h3>
+      <div class="brand-logo-stage" aria-hidden="true">
+        <span class="brand-logo-mark">
+          <span class="brand-logo-admira">ADmira</span><span class="brand-logo-next"><span class="bln bln-n">N</span><span class="bln bln-e">e</span><span class="bln bln-x">X</span><span class="bln bln-t">T</span></span>
+        </span>
+        <span class="brand-logo-baseline">AI · IMMERSIVE · DIGITAL SIGNAGE</span>
+      </div>
+      <p class="brand-section-text">${escapeHtml(T.logoDesc)}</p>
+    `;
+    container.appendChild(logoSection);
+
+    // 2. TIPOGRAFÍA
+    const typeSection = document.createElement('article');
+    typeSection.className = 'brand-section brand-section-typography';
+    typeSection.innerHTML = `
+      <h3>${escapeHtml(T.typeH)}</h3>
+      <p class="brand-section-lead">${escapeHtml(T.typeLead)}</p>
+      <div class="brand-type-grid">
+        <div class="brand-type-card brand-type-primary">
+          <span class="brand-type-sample brand-type-sample-primary">Aa Bb Cc</span>
+          <strong>${escapeHtml(T.typeFamPrimary)}</strong>
+          <span class="brand-type-use">${escapeHtml(T.typeFamPrimaryUse)}</span>
+        </div>
+        <div class="brand-type-card brand-type-body">
+          <span class="brand-type-sample brand-type-sample-body">Aa Bb Cc</span>
+          <strong>${escapeHtml(T.typeFamBody)}</strong>
+          <span class="brand-type-use">${escapeHtml(T.typeFamBodyUse)}</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(typeSection);
+
+    // 3. PALETA
+    const colorSection = document.createElement('article');
+    colorSection.className = 'brand-section brand-section-colors';
+    const swatchesHtml = BRAND_PALETTE.map(c => `
+      <div class="brand-swatch" style="--swatch:${c.hex};">
+        <div class="brand-swatch-chip" aria-hidden="true"></div>
+        <div class="brand-swatch-meta">
+          <strong>${escapeHtml(c.name)}</strong>
+          <code>${escapeHtml(c.hex)}</code>
+          <span>${escapeHtml(c.note)}</span>
+        </div>
+      </div>
+    `).join('');
+    colorSection.innerHTML = `
+      <h3>${escapeHtml(T.colorH)}</h3>
+      <p class="brand-section-lead">${escapeHtml(T.colorLead)}</p>
+      <div class="brand-color-grid">${swatchesHtml}</div>
+    `;
+    container.appendChild(colorSection);
+
+    // 4. APLICACIONES
+    const appsList = isSpanish ? BRAND_APPS_ES : BRAND_APPS_EN;
+    const appsSection = document.createElement('article');
+    appsSection.className = 'brand-section brand-section-apps';
+    const appsHtml = appsList.map(app => `
+      <div class="brand-app">
+        <strong>${escapeHtml(app.title)}</strong>
+        <span>${escapeHtml(app.body)}</span>
+      </div>
+    `).join('');
+    appsSection.innerHTML = `
+      <h3>${escapeHtml(T.appsH)}</h3>
+      <p class="brand-section-lead">${escapeHtml(T.appsLead)}</p>
+      <div class="brand-apps-grid">${appsHtml}</div>
+    `;
+    container.appendChild(appsSection);
+
+    // 5. TAGLINE
+    const taglineSection = document.createElement('article');
+    taglineSection.className = 'brand-section brand-section-tagline';
+    taglineSection.innerHTML = `
+      <h3>${escapeHtml(T.taglineH)}</h3>
+      <p class="brand-tagline">${escapeHtml(T.tagline)}</p>
+    `;
+    container.appendChild(taglineSection);
+
+    // Footer
+    const foot = document.createElement('div');
+    foot.className = 'brand-foot';
+    foot.textContent = T.foot;
+    container.appendChild(foot);
+
+    if (shouldScroll) setTimeout(() => {
+      if (container.isConnected) {
+        container.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    }, 120);
+    return container;
+  }
+
+  function cmdIdentidad() {
+    return buildBrandIdentity(true);
+  }
 
   function cmdClients() {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);

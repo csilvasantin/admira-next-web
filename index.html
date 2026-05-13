@@ -51,7 +51,7 @@
   <meta name="twitter:description" content="Physical AI, IoT, robotics and connected operations from Barcelona." />
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=26.05.12.6">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.13.1">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -105,6 +105,7 @@
           'error.hint3': 'Type /help to see available commands. Or try something unexpected.',
           'error.hint4': 'Type /help — or don\'t. Some commands aren\'t listed there.',
           'cmd.about':        '/about',
+          'cmd.identidad':    '/identity',
           'cmd.work':         '/work',
           'cmd.clients':      '/clients',
           'cmd.skills':       '/skills',
@@ -196,6 +197,7 @@
           'classic.better.title': 'Robots',
           'classic.better.copy': 'Available robot portfolio with humanoid, quadruped and cleaning options.',
           'classic.better.cta': 'Open robots',
+          'classic.identidad.label': 'Identity',
           'classic.best.label': 'Platform',
           'classic.best.title': 'Terminal Experience',
           'classic.best.copy': 'The current interactive ADmiraNeXT experience: denser, stranger, more memorable.',
@@ -300,6 +302,7 @@
           'error.hint3': 'Escribe /ayuda para ver los comandos disponibles. O prueba algo inesperado.',
           'error.hint4': 'Escribe /ayuda — o no. Algunos comandos no están en la lista.',
           'cmd.about':        '/acerca de',
+          'cmd.identidad':    '/identidad',
           'cmd.work':         '/proyectos',
           'cmd.clients':      '/clientes',
           'cmd.skills':       '/habilidades',
@@ -391,6 +394,7 @@
           'classic.better.title': 'Robots',
           'classic.better.copy': 'Portfolio disponible con humanoides, cuadrúpedos y limpieza.',
           'classic.better.cta': 'Abrir robots',
+          'classic.identidad.label': 'Identidad',
           'classic.best.label': 'Plataforma',
           'classic.best.title': 'Experiencia Terminal',
           'classic.best.copy': 'La experiencia interactiva actual de ADmiraNeXT: más densa, distinta y memorable.',
@@ -486,7 +490,7 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=26.05.12.6" defer></script>
+  <script src="assets/app.js?v=26.05.13.1" defer></script>
 </head>
 <body data-route="">
 <style id="crt-gate-style">
@@ -620,6 +624,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="entry-nav-links">
     <button type="button" data-entry-about data-i18n="classic.good.label">About us</button>
     <button type="button" data-entry-robots data-i18n="classic.better.label">Robots</button>
+    <button type="button" data-entry-identidad data-i18n="classic.identidad.label">Identity</button>
     <button type="button" data-entry-best data-i18n="classic.best.label">Platform</button>
     <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Contact</button>
     <button class="lang-toggle entry-lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
@@ -771,6 +776,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         toggleContactPanel(false);
         entry.classList.add('hidden');
         runTerminalCommand('/robots');
+      });
+    });
+    document.querySelectorAll('[data-entry-identidad]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        closeIntranetGate();
+        toggleContactPanel(false);
+        entry.classList.add('hidden');
+        runTerminalCommand('/identidad');
       });
     });
     document.querySelectorAll('[data-entry-about]').forEach(function (button) {

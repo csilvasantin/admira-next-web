@@ -1103,6 +1103,265 @@
       text-align: center;
     }
 
+    /* ============ BRAND IDENTITY (/identidad) ============ */
+    .brand-block {
+      border: 1px dashed var(--border-dashed);
+      border-radius: 8px;
+      margin-top: 10px;
+      padding: 24px;
+      background:
+        linear-gradient(180deg, rgba(124, 170, 232, 0.08), rgba(27, 28, 53, 0.18)),
+        rgba(8, 9, 22, 0.78);
+    }
+
+    .brand-head {
+      margin-bottom: 28px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-eyebrow {
+      color: var(--accent);
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      margin: 0 0 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .brand-head h2 {
+      color: var(--text);
+      font-size: clamp(1.45rem, 4vw, 2.6rem);
+      line-height: 1.1;
+      margin: 0 0 10px;
+      letter-spacing: 0;
+    }
+    .brand-intro {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      line-height: 1.55;
+      margin: 0;
+      max-width: 68ch;
+    }
+
+    .brand-section {
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px dashed var(--border-dashed);
+    }
+    .brand-section h3 {
+      color: var(--text);
+      font-size: 1.05rem;
+      margin: 0 0 6px;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+    .brand-section-lead {
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin: 0 0 14px;
+      max-width: 68ch;
+    }
+    .brand-section-text {
+      color: var(--text-dim);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      margin: 14px 0 0;
+      max-width: 68ch;
+    }
+
+    /* 1. Logo */
+    .brand-logo-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 42px 24px;
+      border-radius: 6px;
+      background: radial-gradient(circle at 50% 50%, #0a0a14 0%, #050509 80%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .brand-logo-mark {
+      font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 7vw, 4.6rem);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      display: inline-flex;
+      align-items: baseline;
+    }
+    .brand-logo-admira {
+      color: #FFFFFF;
+    }
+    .brand-logo-next {
+      display: inline-flex;
+    }
+    .bln {
+      display: inline-block;
+      font-weight: 800;
+    }
+    .bln-n { color: #FF3366; text-shadow: 0 0 8px rgba(255, 51, 102, 0.7), 0 0 22px rgba(255, 51, 102, 0.45); }
+    .bln-e { color: #FFCC00; text-shadow: 0 0 8px rgba(255, 204, 0, 0.7), 0 0 22px rgba(255, 204, 0, 0.45); }
+    .bln-x { color: #33FF99; text-shadow: 0 0 8px rgba(51, 255, 153, 0.7), 0 0 22px rgba(51, 255, 153, 0.45); }
+    .bln-t { color: #FF33CC; text-shadow: 0 0 8px rgba(255, 51, 204, 0.7), 0 0 22px rgba(255, 51, 204, 0.45); }
+    .brand-logo-baseline {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 0.78rem;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    /* 2. Typography */
+    .brand-type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .brand-type-card {
+      padding: 18px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 12, 24, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .brand-type-sample {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      line-height: 1.05;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .brand-type-sample-primary {
+      font-family: 'Montserrat', 'Helvetica Neue', system-ui, sans-serif;
+      font-weight: 800;
+    }
+    .brand-type-sample-body {
+      font-family: 'Univers LT W01_55 Roman', 'Univers 55 Roman', 'Helvetica', system-ui, sans-serif;
+      font-weight: 400;
+    }
+    .brand-type-card strong {
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+    .brand-type-use {
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      line-height: 1.4;
+    }
+
+    /* 3. Color palette */
+    .brand-color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+    .brand-swatch {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 0;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 12, 24, 0.6);
+    }
+    .brand-swatch-chip {
+      height: 64px;
+      background: var(--swatch, #fff);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.22);
+    }
+    .brand-swatch-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 12px 12px;
+    }
+    .brand-swatch-meta strong {
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .brand-swatch-meta code {
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+      letter-spacing: 0.04em;
+    }
+    .brand-swatch-meta span {
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      line-height: 1.4;
+    }
+
+    /* 4. Applications */
+    .brand-apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .brand-app {
+      padding: 14px 16px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 12, 24, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .brand-app strong {
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .brand-app span {
+      color: var(--text-dim);
+      font-size: 0.74rem;
+      line-height: 1.5;
+    }
+
+    /* 5. Tagline */
+    .brand-tagline {
+      margin: 0;
+      padding: 22px 18px;
+      border-radius: 6px;
+      background: radial-gradient(circle at 50% 50%, #0a0a14 0%, #050509 80%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: clamp(0.86rem, 2.2vw, 1.15rem);
+      letter-spacing: 0.18em;
+      text-align: center;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .brand-foot {
+      margin-top: 24px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      .brand-block { padding: 16px; }
+      .brand-logo-stage { padding: 28px 14px; }
+      .brand-color-grid,
+      .brand-type-grid,
+      .brand-apps-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .brand-color-grid,
+      .brand-type-grid,
+      .brand-apps-grid { grid-template-columns: 1fr; }
+    }
+
     /* Input area */
     .input-area {
       border-top: 1px solid var(--border);
