@@ -1414,21 +1414,28 @@
         top: 24px;
         left: 18px;
         right: 18px;
-        align-items: flex-start;
-        gap: 14px;
+        align-items: center;
+        gap: 10px;
       }
       .entry-brand {
         font-size: 0.78rem;
       }
       .entry-nav-links {
-        align-items: flex-end;
-        flex-direction: column;
-        flex-wrap: nowrap;
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-end;
         gap: 10px;
+        row-gap: 6px;
       }
       .entry-nav-links a,
       .entry-nav-links button {
-        font-size: 0.62rem;
+        font-size: 0.58rem;
+        letter-spacing: 0.05em;
+      }
+      .entry-nav-links .entry-lang-toggle {
+        min-width: 34px;
+        padding-left: 8px;
       }
       body:has(.entry-screen.hidden) {
         align-items: flex-start;
@@ -1477,6 +1484,11 @@
       .ascii-name { font-size: 0.22rem; }
       .pixel-rocket { display: none; }
       .welcome-left .greeting { font-size: 0.9rem; }
+      .entry-nav { gap: 8px; }
+      .entry-nav-links { gap: 8px; }
+      .entry-nav-links a,
+      .entry-nav-links button { font-size: 0.52rem; letter-spacing: 0.03em; }
+      .entry-brand { font-size: 0.7rem; }
     }
 
     /* Social links */
