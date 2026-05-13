@@ -440,11 +440,8 @@
     .entry-brand-admira { color: #FFFFFF; }
     .entry-brand-next { display: inline-flex; }
     .entry-brand-next .bln { font-weight: 800; }
-    /* Override .bln-* glow with a tighter (smaller) halo for the nav lockup */
-    .entry-brand .bln-n { text-shadow: 0 0 4px rgba(255,51,102,0.85), 0 0 10px rgba(255,51,102,0.45); }
-    .entry-brand .bln-e { text-shadow: 0 0 4px rgba(255,204,0,0.85), 0 0 10px rgba(255,204,0,0.45); }
-    .entry-brand .bln-x { text-shadow: 0 0 4px rgba(51,255,153,0.85), 0 0 10px rgba(51,255,153,0.45); }
-    .entry-brand .bln-t { text-shadow: 0 0 4px rgba(255,51,204,0.85), 0 0 10px rgba(255,51,204,0.45); }
+    /* Sin glow en el lockup del nav — solo color plano */
+    .entry-brand .bln { text-shadow: none; }
     .entry-nav-links {
       display: flex;
       align-items: center;
