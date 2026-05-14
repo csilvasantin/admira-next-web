@@ -303,6 +303,9 @@
       max-width: min(42vw, 420px);
       pointer-events: none;
     }
+    body.maximized:has(.entry-screen.hidden) .terminal-window > .titlebar .titlebar-title {
+      display: none;
+    }
 
     .titlebar-brand {
       display: inline-flex;
@@ -321,9 +324,6 @@
     .titlebar-brand .bln {
       font-weight: 800;
       text-shadow: none;
-    }
-    body.maximized:has(.entry-screen.hidden) .terminal-window > .titlebar .titlebar-brand {
-      display: none;
     }
 
     /* Language toggle (titlebar far right) */
@@ -347,6 +347,15 @@
       background: rgba(232,168,124,0.06);
     }
     .lang-toggle:active { transform: translateY(1px); }
+    .terminal-window > .titlebar .terminal-lang-toggle {
+      margin-left: auto;
+      color: var(--text);
+      border-color: rgba(255,255,255,0.24);
+      opacity: 0.86;
+    }
+    .terminal-window > .titlebar .terminal-lang-toggle:hover {
+      opacity: 1;
+    }
     /* Classic web button — mismo chunk style que el toggle pero con un punto verde */
     .lang-toggle.rental-toggle {
       color: var(--accent);
@@ -423,11 +432,12 @@
       min-height: 58px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 24px;
       box-sizing: border-box;
-      padding-left: 94px;
+      padding-left: 28px;
       color: #fff;
+      pointer-events: none;
     }
     body:has(.entry-screen.hidden) .entry-nav {
       top: -4px;
@@ -436,14 +446,14 @@
       min-height: 58px;
       align-items: center;
       box-sizing: border-box;
-      padding-left: 94px;
+      padding-left: 28px;
     }
     body.maximized:has(.entry-screen.hidden) .entry-nav {
       top: 0;
       right: 0;
       min-height: 43px;
-      padding-left: 78px;
-      padding-right: 28px;
+      padding-left: 28px;
+      padding-right: 88px;
       transition: min-height 0.24s ease, padding-left 0.24s ease, padding-right 0.24s ease, top 0.24s ease;
     }
     body.gate-open .entry-nav {
@@ -489,20 +499,15 @@
       align-items: center;
       justify-content: flex-end;
       gap: clamp(16px, 2.4vw, 34px);
+      pointer-events: auto;
     }
     .entry-nav-links button {
       border: 0;
       background: transparent;
       cursor: pointer;
     }
-    .entry-nav-links .entry-lang-toggle {
-      min-width: 42px;
-      padding-left: 10px;
-      border-left: 1px solid rgba(255,255,255,0.36);
-    }
     .entry-nav-links a:hover,
-    .entry-nav-links button:hover,
-    .entry-brand:hover {
+    .entry-nav-links button:hover {
       opacity: 0.68;
     }
     .entry-contact {
