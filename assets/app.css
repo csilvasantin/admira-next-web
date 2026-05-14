@@ -407,6 +407,14 @@
       box-sizing: border-box;
       padding-left: 94px;
     }
+    body.maximized:has(.entry-screen.hidden) .entry-nav {
+      top: 0;
+      right: 0;
+      min-height: 43px;
+      padding-left: 78px;
+      padding-right: 28px;
+      transition: min-height 0.24s ease, padding-left 0.24s ease, padding-right 0.24s ease, top 0.24s ease;
+    }
     body.gate-open .entry-nav {
       z-index: 1000000;
     }
@@ -436,6 +444,9 @@
       display: inline-flex;
       align-items: baseline;
       text-shadow: none;
+    }
+    body.maximized:has(.entry-screen.hidden) .entry-brand {
+      font-size: 0.82rem;
     }
     .entry-brand-admira { color: #FFFFFF; }
     .entry-brand-next { display: inline-flex; }
