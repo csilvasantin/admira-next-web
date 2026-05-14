@@ -16,6 +16,7 @@
     '/robots': 'robots',
     '/identidad': 'identidad',
     '/identity': 'identidad',
+    '/branding': 'identidad',
     '/intranet': 'intranet',
     '/plataforma': 'plataforma',
   };
@@ -286,6 +287,7 @@
     '/catalogo': '/robots',
     '/catálogo': '/robots',
     '/identity': '/identidad',
+    '/branding': '/identidad',
     '/brand': '/identidad',
     '/manual': '/identidad',
     '/marca': '/identidad',
@@ -351,7 +353,6 @@
     '/ui design': '/skills',
     '/ui': '/skills',
     '/data visualization': '/skills',
-    '/brand': '/skills',
     '/design leadership': '/skills',
     '/accessibility': '/skills',
     '/wcag': '/skills',

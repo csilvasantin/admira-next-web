@@ -83,7 +83,7 @@
           'nav.title': 'Navigation',
           'nav.cmd.about': '/about',
           'nav.cmd.work': '/work',
-          'nav.cmd.clients': '/clients',
+          'nav.cmd.identity': '/branding',
           'nav.cmd.skills': '/skills',
           'nav.helphint': '... /help for all commands',
           'nav.themehint': 'Try /themes to change the vibe',
@@ -105,7 +105,7 @@
           'error.hint3': 'Type /help to see available commands. Or try something unexpected.',
           'error.hint4': 'Type /help — or don\'t. Some commands aren\'t listed there.',
           'cmd.about':        '/about',
-          'cmd.identidad':    '/identity',
+          'cmd.identidad':    '/branding',
           'cmd.work':         '/work',
           'cmd.clients':      '/clients',
           'cmd.skills':       '/skills',
@@ -280,7 +280,7 @@
           'nav.title': 'Navegación',
           'nav.cmd.about': '/acerca de',
           'nav.cmd.work': '/proyectos',
-          'nav.cmd.clients': '/clientes',
+          'nav.cmd.identity': '/identidad',
           'nav.cmd.skills': '/habilidades',
           'nav.helphint': '... /ayuda para todos los comandos',
           'nav.themehint': 'Prueba /temas para cambiar el rollo',
@@ -490,7 +490,7 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=26.05.14.1" defer></script>
+  <script src="assets/app.js?v=26.05.14.2" defer></script>
 </head>
 <body data-route="">
 <style id="crt-gate-style">
@@ -623,7 +623,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="entry-nav-links">
     <button type="button" data-entry-best data-i18n="classic.best.label">Platform</button>
     <button type="button" data-entry-robots data-i18n="classic.better.label">Robots</button>
-    <button type="button" data-entry-identidad data-i18n="classic.identidad.label">Identity</button>
     <button type="button" data-entry-about data-i18n="classic.good.label">About us</button>
     <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Contact</button>
   </div>
@@ -776,14 +775,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         runTerminalCommand('/robots');
       });
     });
-    document.querySelectorAll('[data-entry-identidad]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        closeIntranetGate();
-        toggleContactPanel(false);
-        entry.classList.add('hidden');
-        runTerminalCommand('/identidad');
-      });
-    });
     document.querySelectorAll('[data-entry-about]').forEach(function (button) {
       button.addEventListener('click', function () {
         closeIntranetGate();
@@ -915,7 +906,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <h2 class="welcome-section-title" data-i18n="nav.title"></h2>
           <div class="item"><button type="button" class="item-command" data-run-command="/about"><span data-i18n="nav.cmd.about"></span></button></div>
           <div class="item"><button type="button" class="item-command" data-run-command="/work"><span data-i18n="nav.cmd.work"></span></button></div>
-          <div class="item"><button type="button" class="item-command" data-run-command="/clients"><span data-i18n="nav.cmd.clients"></span></button></div>
+          <div class="item"><button type="button" class="item-command" data-run-command="/identidad"><span data-i18n="nav.cmd.identity"></span></button></div>
           <div class="item"><button type="button" class="item-command" data-run-command="/skills"><span data-i18n="nav.cmd.skills"></span></button></div>
           <div class="command-hint" data-i18n="nav.helphint"></div>
           <div class="command-hint" style="margin-top:6px;opacity:0.5" data-i18n="nav.themehint"></div>
