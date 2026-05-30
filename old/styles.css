@@ -721,6 +721,142 @@ h3 {
   font-weight: 900;
 }
 
+.platform-hero {
+  gap: 20px;
+}
+
+.platform-hero-actions {
+  margin-top: 10px;
+}
+
+.yarig-section,
+.benefit-band,
+.concept-section {
+  width: min(1180px, calc(100vw - 36px));
+  margin: 0 auto;
+}
+
+.yarig-section {
+  padding: 0 0 clamp(64px, 10vw, 118px);
+}
+
+.feature-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.feature-grid article {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1fr);
+  gap: clamp(22px, 5vw, 58px);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.feature-grid article:nth-child(even) {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.78fr);
+}
+
+.feature-grid article:nth-child(even) img {
+  order: 2;
+}
+
+.feature-grid img {
+  height: 100%;
+  min-height: 330px;
+  object-fit: cover;
+}
+
+.feature-grid article > div {
+  padding: clamp(24px, 5vw, 46px);
+}
+
+.feature-grid p,
+.benefit-grid p,
+.concept-section p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.check-list.dark {
+  color: var(--ink);
+}
+
+.benefit-band {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: clamp(26px, 6vw, 72px);
+  align-items: start;
+  padding: clamp(42px, 7vw, 84px);
+  margin-bottom: clamp(64px, 10vw, 118px);
+  border-radius: 8px;
+  background: var(--ink);
+  color: #ffffff;
+}
+
+.benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.benefit-grid article {
+  min-height: 210px;
+  padding: 24px;
+  background: rgba(19, 36, 45, 0.88);
+}
+
+.benefit-grid span {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--lime);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.benefit-grid p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.concept-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.48fr);
+  gap: clamp(28px, 7vw, 92px);
+  align-items: center;
+  padding-bottom: clamp(64px, 10vw, 118px);
+}
+
+.concept-card {
+  display: grid;
+  gap: 8px;
+  padding: clamp(28px, 5vw, 44px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.concept-card strong {
+  display: block;
+  color: var(--teal-dark);
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
+  line-height: 0.92;
+}
+
+.concept-card span {
+  display: block;
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 @keyframes pulse {
   50% {
     transform: scale(1.25);
@@ -775,8 +911,16 @@ h3 {
   .metrics,
   .contact,
   .route-grid,
-  .split-section {
+  .split-section,
+  .feature-grid article,
+  .feature-grid article:nth-child(even),
+  .benefit-band,
+  .concept-section {
     grid-template-columns: 1fr;
+  }
+
+  .feature-grid article:nth-child(even) img {
+    order: 0;
   }
 
   .platform {
@@ -828,6 +972,10 @@ h3 {
   }
 
   .dash-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .benefit-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1637,10 +1785,54 @@ h2 {
 .case-list article,
 .route-grid a,
 .process-list article,
-.contact-form {
+.contact-form,
+.feature-grid article,
+.benefit-band,
+.concept-card {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 34%),
     #11182f;
+}
+
+.feature-grid article,
+.benefit-band,
+.concept-card {
+  border: 4px solid #000;
+  border-radius: 0;
+  box-shadow: 8px 8px 0 #000;
+}
+
+.feature-grid img {
+  filter: saturate(1.35) contrast(1.18);
+}
+
+.feature-grid p,
+.benefit-grid p,
+.concept-section p {
+  color: #d4e2f8;
+}
+
+.check-list.dark {
+  color: #d4e2f8;
+}
+
+.benefit-grid {
+  border: 4px solid #000;
+  border-radius: 0;
+  background: #000;
+}
+
+.benefit-grid article {
+  background: #141a44;
+}
+
+.benefit-grid span,
+.concept-card strong {
+  color: var(--amber);
+}
+
+.concept-card span {
+  color: #b7c7d9;
 }
 
 .arcade-hud {

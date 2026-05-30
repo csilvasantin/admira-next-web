@@ -193,7 +193,7 @@ const pageTranslators = {
   "alquiler.html": (page) => {
     setText(".page-hero .eyebrow", page.eyebrow);
     setText(".page-hero h1", page.h1);
-    setText(".page-hero p:last-child", page.heroCopy);
+    setText(".page-hero > p:not(.eyebrow)", page.heroCopy);
     setText(".rental-scenarios .eyebrow", page.scenariosEyebrow);
     [
       page.scenario1,
@@ -269,7 +269,9 @@ const pageTranslators = {
   "plataforma.html": (page) => {
     setText(".page-hero .eyebrow", page.eyebrow);
     setText(".page-hero h1", page.h1);
-    setText(".page-hero p:last-child", page.heroCopy);
+    setText(".page-hero > p:not(.eyebrow)", page.heroCopy);
+    setText(".platform-hero-actions .button", page.primary, 0);
+    setText(".platform-hero-actions .button", page.secondary, 1);
     setText(".platform-copy .eyebrow", page.platformEyebrow);
     setText(".platform-copy h2", page.platformTitle);
     setText(".platform-copy p:not(.eyebrow)", page.platformCopy);
@@ -281,6 +283,29 @@ const pageTranslators = {
     setText(".dash-stats span", page.stat1Label, 0);
     setText(".dash-stats span", page.stat2Label, 1);
     setText(".dash-stats span", page.stat3Label, 2);
+    setText(".task-features .section-heading .eyebrow", page.featureEyebrow);
+    setText(".task-features .section-heading h2", page.featureTitle);
+    page.featureCards?.forEach((card, cardIndex) => {
+      setText(".feature-grid h3", card.title, cardIndex);
+      setText(".feature-grid article > div > p", card.copy, cardIndex);
+      card.bullets?.forEach((bullet, bulletIndex) => {
+        const bulletNode = document.querySelectorAll(".feature-grid article")[cardIndex]?.querySelectorAll("li")[bulletIndex];
+        if (bulletNode) {
+          bulletNode.textContent = bullet;
+        }
+      });
+    });
+    setText(".benefit-band > div .eyebrow", page.benefitEyebrow);
+    setText(".benefit-band > div h2", page.benefitTitle);
+    page.benefits?.forEach((benefit, index) => {
+      setText(".benefit-grid span", benefit[0], index);
+      setText(".benefit-grid h3", benefit[1], index);
+      setText(".benefit-grid p", benefit[2], index);
+    });
+    setText(".concept-section .eyebrow", page.conceptEyebrow);
+    setText(".concept-section h2", page.conceptTitle);
+    setText(".concept-section > div > p:last-child", page.conceptCopy);
+    page.conceptStats?.forEach((stat, index) => setText(".concept-card span", stat, index));
   },
   "casos.html": (page) => {
     setText(".page-hero .eyebrow", page.eyebrow);
