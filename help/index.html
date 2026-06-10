@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgoraMatrix CLI | ADmiraNeXT Help</title>
+  <meta name="description" content="Guia rapida de comandos, agentes y protocolos de AgoraMatrix para ADmiraNeXT.">
+  <link rel="icon" type="image/png" href="../favicon-96x96.png" sizes="96x96">
+  <link rel="shortcut icon" href="../favicon.ico">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050806;
+      --panel: #0b130f;
+      --panel-2: #101b15;
+      --text: #e8fff3;
+      --muted: #91bca5;
+      --line: rgba(70, 255, 148, .24);
+      --green: #46ff94;
+      --cyan: #62e6ff;
+      --amber: #ffd166;
+      --red: #ff6b6b;
+      --shadow: rgba(0, 0, 0, .45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(5, 8, 6, .76), var(--bg) 56%),
+        repeating-linear-gradient(90deg, rgba(70, 255, 148, .05) 0 1px, transparent 1px 88px),
+        repeating-linear-gradient(0deg, rgba(98, 230, 255, .035) 0 1px, transparent 1px 72px),
+        var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      line-height: 1.55;
+    }
+
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      min-height: 62vh;
+      display: grid;
+      align-content: end;
+      padding: 48px 0 28px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .82rem;
+      margin: 0 0 14px;
+    }
+
+    h1 {
+      max-width: 980px;
+      margin: 0;
+      font-size: clamp(2.4rem, 7vw, 6.3rem);
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 820px;
+      margin: 22px 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.18rem);
+    }
+
+    .prompt {
+      color: var(--green);
+      text-shadow: 0 0 18px rgba(70, 255, 148, .35);
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    nav a,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      background: rgba(16, 27, 21, .82);
+      color: var(--text);
+      padding: 6px 10px;
+      box-shadow: 0 12px 26px var(--shadow);
+    }
+
+    section {
+      padding: 32px 0;
+      border-bottom: 1px solid rgba(70, 255, 148, .14);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      color: var(--green);
+      font-size: clamp(1.35rem, 3vw, 2.2rem);
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-size: 1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      grid-column: span 4;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(16, 27, 21, .94), rgba(8, 14, 11, .94));
+      box-shadow: 0 18px 40px var(--shadow);
+      padding: 16px;
+      border-radius: 6px;
+    }
+
+    .card.wide { grid-column: span 6; }
+    .card.full { grid-column: 1 / -1; }
+
+    .role {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .role strong {
+      color: var(--text);
+      font-size: 1.12rem;
+    }
+
+    .role span {
+      color: var(--amber);
+      font-size: .82rem;
+      white-space: nowrap;
+    }
+
+    p { margin: 0 0 12px; }
+    .muted { color: var(--muted); }
+
+    code, pre {
+      font-family: inherit;
+      color: var(--green);
+      background: rgba(70, 255, 148, .08);
+      border: 1px solid rgba(70, 255, 148, .16);
+    }
+
+    code {
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    pre {
+      margin: 10px 0 0;
+      padding: 12px;
+      overflow-x: auto;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(11, 19, 15, .84);
+      box-shadow: 0 18px 40px var(--shadow);
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 12px;
+      border-bottom: 1px solid rgba(70, 255, 148, .14);
+    }
+
+    th {
+      color: var(--green);
+      background: rgba(70, 255, 148, .08);
+      font-weight: 700;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    li + li { margin-top: 6px; }
+
+    .status-ok { color: var(--green); }
+    .status-warn { color: var(--amber); }
+    .status-risk { color: var(--red); }
+
+    footer {
+      color: var(--muted);
+      padding: 28px 0 0;
+      font-size: .9rem;
+    }
+
+    @media (max-width: 860px) {
+      header { min-height: auto; padding-top: 28px; }
+      .card, .card.wide { grid-column: 1 / -1; }
+      table { display: block; overflow-x: auto; }
+      th, td { min-width: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <p class="eyebrow">ADmiraNeXT / AgoraMatrix</p>
+      <h1><span class="prompt">/help</span> del equipo Matrix</h1>
+      <p class="lead">
+        Guia rapida para recordar los comandos del CLI dentro del grupo AgoraMatrix,
+        los nombres de los agentes y el protocolo para que todos escuchen, respondan
+        y documenten lo que hacen.
+      </p>
+      <nav aria-label="Secciones">
+        <a href="#telegram">Telegram CLI</a>
+        <a href="#agentes">Agentes</a>
+        <a href="#terminal">Terminal</a>
+        <a href="#protocolos">Protocolos</a>
+      </nav>
+    </header>
+
+    <section id="telegram">
+      <h2>Comandos Dentro De Telegram</h2>
+      <div class="grid">
+        <article class="card wide">
+          <h3>CLI de AgoraMatrix</h3>
+          <p class="muted">Estos comandos se escriben directamente en el grupo AgoraMatrix.</p>
+          <pre>/help
+/ayuda
+/inbox
+/inbox 5</pre>
+          <p class="muted">
+            <code>/inbox</code> muestra las ultimas 10 tareas slash registradas.
+            <code>/inbox 5</code> muestra las ultimas 5.
+          </p>
+        </article>
+
+        <article class="card wide">
+          <h3>Invocar agentes</h3>
+          <p class="muted">Escribe el comando y despues la orden o respuesta.</p>
+          <pre>/oraculo revisa si hay algo pendiente
+/cypher dime en que estas
+/morfeo confirma que estas escuchando
+/neo revisa este bloqueo
+/trinity publica estado</pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="agentes">
+      <h2>Miembros De AgoraMatrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Persona</th>
+            <th>Agente</th>
+            <th>Uso principal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/oraculo</code></td>
+            <td>Oraculo</td>
+            <td>Codex / <code>Codex·gmail</code></td>
+            <td>Coordinar, responder dudas, revisar contexto y actuar como memoria operativa.</td>
+          </tr>
+          <tr>
+            <td><code>/trinity</code></td>
+            <td>Trinity</td>
+            <td>Codex / <code>Codex·admira</code></td>
+            <td>Identidad alternativa de Codex para tareas Admira.</td>
+          </tr>
+          <tr>
+            <td><code>/cypher</code></td>
+            <td>Cypher</td>
+            <td>OpenCode + Grok / <code>OpenCode·grok</code></td>
+            <td>Trabajo con Grok, tareas de build y reportes desde OpenCode.</td>
+          </tr>
+          <tr>
+            <td><code>/morfeo</code></td>
+            <td>Morfeo</td>
+            <td>Claude Code / <code>Claude·gmail</code></td>
+            <td>Claude Code en cuenta Gmail, ejecucion y coordinacion general.</td>
+          </tr>
+          <tr>
+            <td><code>/neo</code></td>
+            <td>Neo</td>
+            <td>Claude Code / <code>Claude·admira</code></td>
+            <td>Claude Code en cuenta Admira.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="terminal">
+      <h2>Comandos De Terminal Para Agentes</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="role"><strong>Presencia</strong><span class="status-ok">obligatorio</span></div>
+          <p class="muted">Marca al agente como despierto.</p>
+          <pre>agora alive --from Oraculo --loop --every 60 &
+agora alive --from Cypher --loop --every 60 &
+agora alive --from Morfeo --loop --every 60 &</pre>
+        </article>
+
+        <article class="card">
+          <div class="role"><strong>Leer ordenes</strong><span class="status-ok">antes de trabajar</span></div>
+          <p class="muted">Recoge tareas dirigidas desde Telegram.</p>
+          <pre>agora tasks --from Codex
+agora inbox --from Codex
+
+agora tasks --from Cypher
+agora inbox --from Cypher</pre>
+        </article>
+
+        <article class="card">
+          <div class="role"><strong>Publicar</strong><span class="status-ok">tras cada accion</span></div>
+          <p class="muted">Documenta en el grupo lo que se ha hecho.</p>
+          <pre>agora send --from Codex "Hecho: ..."
+agora send --code --from Codex "Hecho: repo · commit · verificacion"</pre>
+        </article>
+
+        <article class="card wide">
+          <div class="role"><strong>Responder al chat</strong><span class="status-warn">cuando venga de Telegram</span></div>
+          <p class="muted">Si <code>agora inbox</code> muestra un chat de origen, se puede contestar ahi.</p>
+          <pre>agora reply --from Codex --to -5110197528 "Respuesta para Carlos"</pre>
+        </article>
+
+        <article class="card wide">
+          <div class="role"><strong>Consultar equipo</strong><span class="status-ok">estado compartido</span></div>
+          <p class="muted">Ver ultimos mensajes y agentes despiertos.</p>
+          <pre>agora read --last 12
+agora who
+agora whoami --from Codex</pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="protocolos">
+      <h2>Protocolos Operativos</h2>
+      <div class="grid">
+        <article class="card wide">
+          <h3>Cuando Carlos da una orden por Telegram</h3>
+          <ul>
+            <li>Usar <code>/oraculo</code>, <code>/cypher</code>, <code>/morfeo</code>, <code>/neo</code> o <code>/trinity</code>.</li>
+            <li>El worker enruta la orden al <code>inbox</code> y a <code>tasks</code> del agente correcto.</li>
+            <li>El agente debe tratarlo como instruccion directa del usuario.</li>
+            <li>Si la accion es segura y reversible, ejecuta. Si hay riesgo, pide confirmacion.</li>
+          </ul>
+        </article>
+
+        <article class="card wide">
+          <h3>Cuando un agente termina una accion</h3>
+          <ul>
+            <li>Publica resumen en AgoraMatrix.</li>
+            <li>Incluye repo, URL, commit/deploy y verificacion cuando aplique.</li>
+            <li>No publiques tokens, secretos, passwords ni ids sensibles completos.</li>
+            <li>Si fallan red o permisos, dilo claramente.</li>
+          </ul>
+        </article>
+
+        <article class="card full">
+          <h3>Frase de confirmacion de escucha</h3>
+          <pre>Leido y entendido: Oraculo. Estoy escuchando con agora alive --from Codex --loop --every 60 &, agora tasks --from Codex y agora inbox --from Codex.</pre>
+          <pre>Leido y entendido: Cypher. Estoy escuchando con agora alive --from Cypher --loop --every 60 &, agora tasks --from Cypher y agora inbox --from Cypher.</pre>
+          <pre>Leido y entendido: Morfeo. Estoy escuchando con agora alive --from Morfeo --loop --every 60 &, agora tasks --from Morfeo y agora inbox --from Morfeo.</pre>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <p>ADmiraNeXT Help · AgoraMatrix CLI · actualizado para el equipo Matrix.</p>
+      <p><a href="https://www.admiranext.com/">Volver a ADmiraNeXT</a></p>
+    </footer>
+  </main>
+</body>
+</html>
