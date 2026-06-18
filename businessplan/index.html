@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdmiraNext — Business Plan Builder</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --ink:#0e1a24; --muted:#5b6b78; --line:#dbe4ec; --line2:#eef3f8;
+    --accent:#0E7CC4; --accent2:#0a5b8f; --gold:#C8922A; --soft:#f4f8fc; --soft2:#eaf2f9;
+    --ok:#1f8a52; --bg:#f7fafd;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;}
+  a{color:var(--accent);}
+  .app{display:grid;grid-template-columns:380px 1fr;min-height:100vh;}
+  /* ---------- FORM PANEL ---------- */
+  .form{background:#fff;border-right:1px solid var(--line);padding:0 0 40px;overflow-y:auto;height:100vh;position:sticky;top:0;}
+  .form .head{position:sticky;top:0;background:linear-gradient(160deg,#0b1722,#0a5b8f);color:#fff;padding:16px 18px;z-index:5;}
+  .form .head h1{font-size:17px;margin:0;letter-spacing:-.2px;}
+  .form .head p{margin:4px 0 0;font-size:11.5px;color:#bfe0f5;}
+  .scenarios{display:flex;gap:6px;margin-top:12px;}
+  .scenarios button{flex:1;border:1px solid #2f7bb0;background:#0d2troops;background:#103048;color:#cfe6f6;border-radius:7px;padding:7px 4px;font-size:11.5px;cursor:pointer;font-weight:600;}
+  .scenarios button.active{background:var(--gold);border-color:var(--gold);color:#2a1e05;}
+  .grp{padding:14px 18px 4px;border-bottom:1px solid var(--line2);}
+  .grp h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin:0 0 8px;}
+  .fld{margin-bottom:9px;}
+  .fld label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:3px;}
+  .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink);}
+  .fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--soft2);}
+  .fld textarea{resize:vertical;min-height:46px;}
+  .row{display:flex;gap:8px;}
+  .row .fld{flex:1;}
+  .hint{font-size:10.5px;color:#93a3b0;margin-top:2px;}
+  .actions{padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.ghost{background:var(--soft);color:var(--accent2);border:1px solid var(--line);}
+  .saved{font-size:11px;color:var(--ok);padding:0 18px;height:14px;}
+  /* ---------- PLAN PANEL ---------- */
+  .planwrap{padding:26px 30px 80px;overflow-y:auto;height:100vh;}
+  .paper{max-width:820px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 30px rgba(16,40,60,.06);}
+  .cover{background:linear-gradient(160deg,#0b1722 0%,#10293c 55%,#0a5b8f 100%);color:#eaf2f8;border-radius:10px 10px 0 0;padding:34px 38px;}
+  .cover .k{letter-spacing:3px;text-transform:uppercase;font-size:10px;color:#7fc3ef;}
+  .cover h1{font-size:40px;margin:8px 0 0;color:#fff;letter-spacing:-1px;}
+  .cover .sub{font-size:15px;color:#bfe0f5;margin-top:4px;}
+  .cover .tag{font-style:italic;color:#e9c987;margin-top:14px;font-size:13px;}
+  .cover .meta{margin-top:20px;font-size:12px;color:#cfe0ed;line-height:1.7;}
+  .cover .meta b{color:#fff;}
+  .body{padding:26px 38px 36px;}
+  .sec{margin:0 0 20px;}
+  .sec h2{font-size:18px;margin:0 0 7px;padding-bottom:6px;border-bottom:2px solid var(--accent);}
+  .sec h2 .n{color:var(--accent);margin-right:8px;font-weight:800;}
+  .sec h3{font-size:14px;color:var(--accent2);margin:13px 0 3px;}
+  .lead{color:var(--muted);font-size:15px;}
+  .pillars{display:flex;gap:10px;margin:10px 0;}
+  .pillar{flex:1;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--soft);}
+  .pillar h4{margin:0 0 3px;font-size:13px;color:var(--accent2);}
+  .pillar .eng{font-size:10.5px;color:var(--muted);}
+  .pillar p{font-size:12px;margin:5px 0 0;}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:var(--soft);color:var(--accent2);}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .kpis{display:flex;gap:10px;margin:10px 0;}
+  .kpi{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center;background:#fff;}
+  .kpi .v{font-size:22px;font-weight:800;color:var(--accent2);}
+  .kpi .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+  .muted{color:var(--muted);}
+  .tbd{color:#9a3b2f;font-style:italic;}
+  ul{margin:6px 0;padding-left:18px;} li{margin:3px 0;}
+  /* print */
+  @media print{
+    .form{display:none;} .app{display:block;}
+    .planwrap{padding:0;height:auto;overflow:visible;}
+    .paper{border:none;box-shadow:none;max-width:none;}
+    @page{size:A4;margin:14mm;}
+    .sec{page-break-inside:avoid;}
+    .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:0;}
+    .cover,.pillar,th,.kpi{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+  @media(max-width:900px){ .app{grid-template-columns:1fr;} .form{height:auto;position:static;} .planwrap{height:auto;} }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ FORM ============ -->
+  <aside class="form">
+    <div class="head">
+      <h1>AdmiraNext · Business Plan Builder</h1>
+      <p>Rellena los datos y el plan se actualiza en vivo. Elige un escenario para precargar expectativas.</p>
+      <div class="scenarios" id="scenarios">
+        <button data-s="cons">Conservador</button>
+        <button data-s="base" class="active">Base</button>
+        <button data-s="agr">Agresivo</button>
+      </div>
+    </div>
+    <div class="saved" id="saved"></div>
+
+    <div class="grp">
+      <h2>Empresa &amp; Participante</h2>
+      <div class="fld"><label>Empresa</label><input id="company"></div>
+      <div class="row">
+        <div class="fld"><label>Fundador / CEO</label><input id="founder"></div>
+        <div class="fld"><label>Email</label><input id="email"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>Nacionalidad</label><input id="nationality"></div>
+        <div class="fld"><label>Stage</label>
+          <select id="stage">
+            <option>Seed (sin registrar)</option>
+            <option>Early (1–5 años)</option>
+            <option>Growth (5–10 años)</option>
+          </select>
+        </div>
+      </div>
+      <div class="fld"><label>Fecha de registro de la empresa</label><input id="regdate" placeholder="dd/mm/aaaa"></div>
+    </div>
+
+    <div class="grp">
+      <h2>Equipo</h2>
+      <div class="fld"><label>Miembros core (uno por línea: Nombre — rol)</label><textarea id="team" rows="3"></textarea></div>
+      <div class="fld"><label>¿Miembros con experiencia overseas?</label>
+        <select id="overseas"><option>Sí</option><option>No</option></select></div>
+      <div class="fld"><label>Detalle experiencia overseas</label><input id="overseasdetail" placeholder="ej. estudios/trabajo 1+ año en…"></div>
+    </div>
+
+    <div class="grp">
+      <h2>Mercado (China retail media / DOOH)</h2>
+      <div class="row">
+        <div class="fld"><label>TAM</label><input id="tam" placeholder="ej. €20B"></div>
+        <div class="fld"><label>SAM</label><input id="sam" placeholder="ej. €3B"></div>
+        <div class="fld"><label>SOM (3 años)</label><input id="som" placeholder="ej. €60M"></div>
+      </div>
+      <div class="hint">Déjalo vacío y aparecerá como [por confirmar].</div>
+    </div>
+
+    <div class="grp">
+      <h2>Modelo financiero — supuestos</h2>
+      <div class="row">
+        <div class="fld"><label>Divisa</label><input id="cur" value="€"></div>
+        <div class="fld"><label>Tiendas en red (Año 1)</label><input id="stores" type="number"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>Pantallas / tienda</label><input id="screens" type="number"></div>
+        <div class="fld"><label>Impresiones/pantalla/día</label><input id="imps" type="number"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>CPM medio</label><input id="cpm" type="number" step="0.1"></div>
+        <div class="fld"><label>Sell-through %</label><input id="fill" type="number"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>Días operativos/año</label><input id="days" type="number"></div>
+        <div class="fld"><label>SaaS €/tienda/mes</label><input id="saas" type="number"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>Crecimiento Año 2 (×)</label><input id="g2" type="number" step="0.1"></div>
+        <div class="fld"><label>Crecimiento Año 3 (×)</label><input id="g3" type="number" step="0.1"></div>
+      </div>
+    </div>
+
+    <div class="grp">
+      <h2>Tracción (hoy)</h2>
+      <div class="row">
+        <div class="fld"><label>Tiendas live</label><input id="t_stores" placeholder="ej. 3"></div>
+        <div class="fld"><label>Pantallas gestionadas</label><input id="t_screens" placeholder="ej. 40"></div>
+      </div>
+      <div class="fld"><label>Run-rate / impresiones / otros KPIs</label><input id="t_kpi" placeholder="texto libre"></div>
+    </div>
+
+    <div class="grp">
+      <h2>The Ask &amp; Robótica</h2>
+      <div class="fld"><label>Importe que pides</label><input id="ask" placeholder="ej. €750k"></div>
+      <div class="fld"><label>Uso de fondos</label><textarea id="askuse" rows="2"></textarea></div>
+      <div class="fld"><label>Partner robótico 3 (¿MagicLab o cuál?)</label><input id="robo3" value="MagicLab"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="window.print()">⬇ Exportar PDF</button>
+      <button class="btn ghost" id="reset">Reset</button>
+    </div>
+  </aside>
+
+  <!-- ============ PLAN ============ -->
+  <main class="planwrap">
+    <div class="paper">
+      <div class="cover">
+        <div class="k">Business Plan · Confidential</div>
+        <h1>AdmiraNext</h1>
+        <div class="sub">The Retail Media Operating System</div>
+        <div class="tag">"Your innovation, your gateway to the Chinese market"</div>
+        <div class="meta" id="covermeta"></div>
+      </div>
+      <div class="body" id="plan"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SCEN = {
+  cons:{stores:25,screens:6,imps:4000,cpm:3,fill:35,days:350,saas:120,g2:1.8,g3:1.6,ask:"€400k",
+        tam:"€12B",sam:"€1.5B",som:"€15M"},
+  base:{stores:60,screens:8,imps:6000,cpm:5,fill:50,days:360,saas:180,g2:2.5,g3:2.0,ask:"€750k",
+        tam:"€20B",sam:"€3B",som:"€45M"},
+  agr:{stores:120,screens:10,imps:9000,cpm:7,fill:65,days:365,saas:240,g2:3.2,g3:2.6,ask:"€1.5M",
+        tam:"€28B",sam:"€5B",som:"€90M"}
+};
+const DEFAULTS = Object.assign({
+  company:"Admira Digital Networks", founder:"Carlos Silva", email:"csilva@admira.com",
+  nationality:"España", stage:"Early (1–5 años)", regdate:"",
+  team:"Carlos Silva — Fundador & CEO", overseas:"Sí", overseasdetail:"",
+  cur:"€", t_stores:"", t_screens:"", t_kpi:"",
+  askuse:"Piloto en Baoshan: desplegar el loop completo (studio→store→app) en una red retail y demostrar ingresos de retail media medibles; localización; primeras contrataciones.",
+  robo3:"MagicLab"
+}, SCEN.base);
+
+const IDS = ["company","founder","email","nationality","stage","regdate","team","overseas","overseasdetail",
+  "tam","sam","som","cur","stores","screens","imps","cpm","fill","days","saas","g2","g3",
+  "t_stores","t_screens","t_kpi","ask","askuse","robo3"];
+const KEY="admiranext_bp_v1";
+let state={};
+
+function load(){ try{ state=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ state={}; }
+  state=Object.assign({}, DEFAULTS, state);
+  IDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=state[id]??""; });
+}
+function readForm(){ IDS.forEach(id=>{ const el=document.getElementById(id); if(el) state[id]=el.value; }); }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state));
+  const s=document.getElementById("saved"); s.textContent="✓ guardado localmente"; clearTimeout(window._st);
+  window._st=setTimeout(()=>s.textContent="",1200); }
+
+function money(n,cur){ if(!isFinite(n)) return "—";
+  let v=Math.round(n); let s=v.toLocaleString("es-ES");
+  if(Math.abs(v)>=1000000) s=(v/1000000).toLocaleString("es-ES",{maximumFractionDigits:2})+"M";
+  else if(Math.abs(v)>=1000) s=(v/1000).toLocaleString("es-ES",{maximumFractionDigits:0})+"k";
+  return (cur||"€")+s; }
+function orTBD(v){ return (v&&String(v).trim())? escapeHtml(v) : '<span class="tbd">[por confirmar]</span>'; }
+function escapeHtml(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+function compute(){
+  const n=id=>parseFloat(state[id])||0;
+  const cur=state.cur||"€";
+  const mediaY1 = n("stores")*n("screens")*n("imps")*n("days")*(n("cpm")/1000)*(n("fill")/100);
+  const saasY1  = n("stores")*n("saas")*12;
+  const y1 = mediaY1+saasY1;
+  const y2 = y1*(n("g2")||1);
+  const y3 = y2*(n("g3")||1);
+  return {cur,mediaY1,saasY1,y1,y2,y3};
+}
+
+function render(){
+  const f=compute(), cur=f.cur;
+  document.getElementById("covermeta").innerHTML =
+    `<b>Empresa:</b> ${orTBD(state.company)} &nbsp;·&nbsp; <b>Fundador:</b> ${orTBD(state.founder)}<br>`+
+    `<b>Para:</b> Copa Innovación China 2026 — Baoshan Sci-Tech Cup<br>`+
+    `<b>Track:</b> Modern Services · Digital Economy &nbsp;·&nbsp; <b>23 Jun 2026 · Barcelona</b><br>`+
+    `<b>Contacto:</b> ${orTBD(state.email)}`;
+
+  const teamHtml = (state.team||"").trim()
+    ? "<ul>"+state.team.split("\n").filter(x=>x.trim()).map(x=>"<li>"+escapeHtml(x)+"</li>").join("")+"</ul>"
+    : '<p class="tbd">[equipo por confirmar]</p>';
+
+  document.getElementById("plan").innerHTML = `
+  <div class="sec">
+    <h2><span class="n">1</span>Resumen ejecutivo</h2>
+    <p class="lead">AdmiraNext convierte el medio publicitario más grande y peor medido del mundo —el espacio físico de retail— en un canal programable, medible y dirigido por IA.</p>
+    <p>Es un <b>Retail Media Operating System</b> de pila completa que une tres productos en un único bucle cerrado <b>crear → gestionar → comercializar</b>, y es <b>dos soluciones en una</b>: el sistema que funciona <b>hoy</b> con pantallas y audio, y el sistema operativo del <b>retail nativo-robótico de mañana</b> (Physical AI). Construir esa capa de robots exige estar junto a la frontera de la IA física: por eso entramos por <b>Baoshan / Shanghái</b>.</p>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">2</span>El problema</h2>
+    <ul>
+      <li><b>Pantallas ciegas</b> — contenido genérico sin relación con quién está en la tienda.</li>
+      <li><b>Contenido lento y caro</b> — la creatividad localizada no escala.</li>
+      <li><b>Cero medición</b> — el anunciante no sabe quién lo vio ni el retorno.</li>
+      <li><b>Stack fragmentado</b> — contenido, gestión y monetización son tres proveedores que no se hablan.</li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">3</span>La solución — AdmiraNext</h2>
+    <h3>Acto I (hoy): la trilogía como un bucle cerrado</h3>
+    <div class="pillars">
+      <div class="pillar"><h4>admira.studio — CREAR</h4><div class="eng">motor: PixerIA · pixeria.com</div><p>Fábrica de contenido IA con criterio editorial humano.</p></div>
+      <div class="pillar"><h4>admira.store — GESTIONAR</h4><div class="eng">motor: XpaceOS · xpaceos.com</div><p>Gemelo digital, targeting de pantallas y Club de fidelidad (un solo pilar).</p></div>
+      <div class="pillar"><h4>admira.app — COMERCIALIZAR</h4><div class="eng">motor: ClearChannel.tv</div><p>Mercado que vende los "Xpacios": publicidad, hilo musical, gestión de colas.</p></div>
+    </div>
+    <h3>Acto II (futuro): Physical AI — robots en el retail</h3>
+    <p>Robots autónomos como nueva interfaz: a la vez <b>personal</b>, <b>sensor</b> del gemelo y <b>superficie de medios móvil</b> medible por encuentro. Mismo bucle, con cuerpo — orquestado por el mismo OS y vendido por el mismo mercado.</p>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">4</span>Mercado &amp; por qué China</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${orTBD(state.tam)}</div><div class="l">TAM</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.sam)}</div><div class="l">SAM</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.som)}</div><div class="l">SOM · 3 años</div></div>
+    </div>
+    <p>El retail media es la categoría publicitaria que más crece. AdmiraNext lo lleva al suelo <b>físico</b>, donde aún no hay operador de pila completa. La razón decisiva para China es la <b>frontera robótica</b>: estar junto a <b>Unitree (宇树)</b>, <b>AgiBot/Zhiyuan (智元 — en Shanghái, misma ciudad que Baoshan)</b> y <b>${orTBD(state.robo3)}</b>. No se puede construir el Acto II desde fuera de China.</p>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">5</span>Modelo de negocio &amp; proyección</h2>
+    <p class="muted">Calculado en vivo desde tus supuestos (escenario editable). Media = tiendas × pantallas × impresiones/día × días × CPM/1000 × sell-through. SaaS = tiendas × cuota × 12.</p>
+    <table>
+      <tr><th>Línea</th><th class="num">Año 1</th><th class="num">Año 2</th><th class="num">Año 3</th></tr>
+      <tr><td>Retail media (programática)</td><td class="num">${money(f.mediaY1,cur)}</td><td class="num">${money(f.mediaY1*(parseFloat(state.g2)||1),cur)}</td><td class="num">${money(f.mediaY1*(parseFloat(state.g2)||1)*(parseFloat(state.g3)||1),cur)}</td></tr>
+      <tr><td>Plataforma / SaaS</td><td class="num">${money(f.saasY1,cur)}</td><td class="num">${money(f.saasY1*(parseFloat(state.g2)||1),cur)}</td><td class="num">${money(f.saasY1*(parseFloat(state.g2)||1)*(parseFloat(state.g3)||1),cur)}</td></tr>
+      <tr><th>Total ingresos</th><th class="num">${money(f.y1,cur)}</th><th class="num">${money(f.y2,cur)}</th><th class="num">${money(f.y3,cur)}</th></tr>
+    </table>
+    <p class="muted">Otras líneas: producción de contenido, servicios de valor (colas, Club, analítica) y, en Acto II, robot-as-media-surface (CPM/coste por interacción).</p>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">6</span>Go-to-market</h2>
+    <ul>
+      <li><b>Fase 1 — Piloto Baoshan:</b> red retail flagship; desplegar el loop completo; demostrar CPM por superficie.</li>
+      <li><b>Fase 2 — Localizar &amp; partners:</b> idioma, pagos, compliance; partners DOOH y retail.</li>
+      <li><b>Fase 3 — Escalar &amp; Acto II:</b> ampliar red; piloto robot-as-media-surface con partner robótico.</li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">7</span>Tracción (hoy)</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${orTBD(state.t_stores)}</div><div class="l">Tiendas live</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.t_screens)}</div><div class="l">Pantallas</div></div>
+      <div class="kpi"><div class="v">3/3</div><div class="l">Productos en producción</div></div>
+    </div>
+    <p>${state.t_kpi? escapeHtml(state.t_kpi) : 'admira.studio (PixerIA) · admira.store (XpaceOS + Club) · admira.app (ClearChannel.tv) en producción. El loop funciona con pantallas DOOH; la integración de robótica es el roadmap inmediato.'}</p>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">8</span>Equipo</h2>
+    ${teamHtml}
+    <p class="muted">Experiencia overseas: <b>${escapeHtml(state.overseas||"")}</b>${state.overseasdetail? " — "+escapeHtml(state.overseasdetail):""}.</p>
+  </div>
+
+  <div class="sec">
+    <h2><span class="n">9</span>The Ask</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${orTBD(state.ask)}</div><div class="l">Financiación</div></div>
+      <div class="kpi"><div class="v">${escapeHtml(state.stage||"")}</div><div class="l">Stage</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.regdate)}</div><div class="l">Registro empresa</div></div>
+    </div>
+    <p><b>Uso de fondos:</b> ${orTBD(state.askuse)}</p>
+    <p class="muted">Empresa: ${orTBD(state.company)} · Track: Modern Services · Digital Economy · Proyecto: AdmiraNext — Retail Media Operating System.</p>
+  </div>
+  `;
+}
+
+function tick(){ readForm(); save(); render(); }
+function setScenario(s){
+  const sc=SCEN[s]; Object.assign(state, sc);
+  IDS.forEach(id=>{ const el=document.getElementById(id); if(el && id in state) el.value=state[id]; });
+  document.querySelectorAll("#scenarios button").forEach(b=>b.classList.toggle("active",b.dataset.s===s));
+  save(); render();
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  load();
+  IDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener("input",tick); });
+  document.querySelectorAll("#scenarios button").forEach(b=>b.addEventListener("click",()=>setScenario(b.dataset.s)));
+  document.getElementById("reset").addEventListener("click",()=>{ if(confirm("¿Resetear a valores Base?")){ localStorage.removeItem(KEY); state=Object.assign({},DEFAULTS); IDS.forEach(id=>{const el=document.getElementById(id); if(el) el.value=state[id]??"";}); render(); }});
+  render();
+});
+</script>
+</body>
+</html>
