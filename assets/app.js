@@ -1889,9 +1889,11 @@
       { cmd: '/admiraxp',   labelEs: 'AdmiraXperience — simulador',             labelEn: 'AdmiraXperience — simulator',               url: 'https://csilvasantin.github.io/01.-AdmiraXperience-Game/', color: 'purple' },
       { cmd: '/xpaceos',    displayCmd: '/XpaceOS', labelEs: 'XpaceOS — sistema operativo espacial', labelEn: 'XpaceOS — space operating system', url: 'https://www.xpaceos.com', color: 'cyan' },
       { cmd: '/pixer',      labelEs: 'Pixer.ai — content engine',               labelEn: 'Pixer.ai — content engine',                 url: 'https://pixer.ai',                                          color: 'accent' },
+      { cmd: '/shop',       labelEs: 'Admira.shop — venta y alquiler de robots', labelEn: 'Admira.shop — buy & rent robots',          url: 'https://www.admira.shop',                                   color: 'green' },
     ]},
     { groupEs: '🧠  Consejo & gobernanza', groupEn: '🧠  Council & governance', items: [
       { cmd: '/consejo',    labelEs: 'Panel del Consejo',                       labelEn: 'Council panel',                            url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/consejo.html', color: 'green' },
+      { cmd: '/live',       labelEs: 'admira.live — Consejo en vivo',           labelEn: 'admira.live — live Council',               url: 'https://www.admira.live',                                   color: 'purple' },
       { cmd: '/yarigai',    labelEs: 'Análisis de vídeos del Consejo',          labelEn: 'Council video analysis',                   url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/yarigai.html', color: 'cyan' },
       // TODO: /omniAdmira — pendiente URL/descripción del usuario
       // { cmd: '/omniAdmira', label: 'OmniAdmira — ?', url: '?', color: 'accent' },
