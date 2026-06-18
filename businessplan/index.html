@@ -16,13 +16,15 @@
     font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;}
   a{color:var(--accent);}
   .app{display:grid;grid-template-columns:380px 1fr;min-height:100vh;}
-  /* ---------- FORM PANEL ---------- */
   .form{background:#fff;border-right:1px solid var(--line);padding:0 0 40px;overflow-y:auto;height:100vh;position:sticky;top:0;}
-  .form .head{position:sticky;top:0;background:linear-gradient(160deg,#0b1722,#0a5b8f);color:#fff;padding:16px 18px;z-index:5;}
-  .form .head h1{font-size:17px;margin:0;letter-spacing:-.2px;}
+  .form .head{position:sticky;top:0;background:linear-gradient(160deg,#0b1722,#0a5b8f);color:#fff;padding:14px 18px;z-index:5;}
+  .form .head h1{font-size:16px;margin:0;letter-spacing:-.2px;}
   .form .head p{margin:4px 0 0;font-size:11.5px;color:#bfe0f5;}
-  .scenarios{display:flex;gap:6px;margin-top:12px;}
-  .scenarios button{flex:1;border:1px solid #2f7bb0;background:#0d2troops;background:#103048;color:#cfe6f6;border-radius:7px;padding:7px 4px;font-size:11.5px;cursor:pointer;font-weight:600;}
+  .langs{display:flex;gap:5px;margin-top:10px;}
+  .langs button{flex:1;border:1px solid #2f7bb0;background:#0e2troops;background:#0d2438;color:#cfe6f6;border-radius:6px;padding:5px 4px;font-size:11.5px;cursor:pointer;font-weight:700;}
+  .langs button.active{background:#fff;border-color:#fff;color:#0a5b8f;}
+  .scenarios{display:flex;gap:6px;margin-top:8px;}
+  .scenarios button{flex:1;border:1px solid #2f7bb0;background:#103048;color:#cfe6f6;border-radius:7px;padding:7px 4px;font-size:11.5px;cursor:pointer;font-weight:600;}
   .scenarios button.active{background:var(--gold);border-color:var(--gold);color:#2a1e05;}
   .grp{padding:14px 18px 4px;border-bottom:1px solid var(--line2);}
   .grp h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin:0 0 8px;}
@@ -31,15 +33,13 @@
   .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink);}
   .fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--soft2);}
   .fld textarea{resize:vertical;min-height:46px;}
-  .row{display:flex;gap:8px;}
-  .row .fld{flex:1;}
+  .row{display:flex;gap:8px;} .row .fld{flex:1;}
   .hint{font-size:10.5px;color:#93a3b0;margin-top:2px;}
   .actions{padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap;}
   .btn{border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;}
   .btn.primary{background:var(--accent);color:#fff;}
   .btn.ghost{background:var(--soft);color:var(--accent2);border:1px solid var(--line);}
   .saved{font-size:11px;color:var(--ok);padding:0 18px;height:14px;}
-  /* ---------- PLAN PANEL ---------- */
   .planwrap{padding:26px 30px 80px;overflow-y:auto;height:100vh;}
   .paper{max-width:820px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 30px rgba(16,40,60,.06);}
   .cover{background:linear-gradient(160deg,#0b1722 0%,#10293c 55%,#0a5b8f 100%);color:#eaf2f8;border-radius:10px 10px 0 0;padding:34px 38px;}
@@ -66,19 +66,16 @@
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
   .kpis{display:flex;gap:10px;margin:10px 0;}
   .kpi{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center;background:#fff;}
-  .kpi .v{font-size:22px;font-weight:800;color:var(--accent2);}
+  .kpi .v{font-size:21px;font-weight:800;color:var(--accent2);}
   .kpi .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
-  .muted{color:var(--muted);}
-  .tbd{color:#9a3b2f;font-style:italic;}
+  .muted{color:var(--muted);} .tbd{color:#9a3b2f;font-style:italic;}
   ul{margin:6px 0;padding-left:18px;} li{margin:3px 0;}
-  /* print */
   @media print{
     .form{display:none;} .app{display:block;}
     .planwrap{padding:0;height:auto;overflow:visible;}
     .paper{border:none;box-shadow:none;max-width:none;}
     @page{size:A4;margin:14mm;}
     .sec{page-break-inside:avoid;}
-    .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:0;}
     .cover,.pillar,th,.kpi{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   }
   @media(max-width:900px){ .app{grid-template-columns:1fr;} .form{height:auto;position:static;} .planwrap{height:auto;} }
@@ -86,111 +83,107 @@
 </head>
 <body>
 <div class="app">
-  <!-- ============ FORM ============ -->
   <aside class="form">
     <div class="head">
-      <h1>AdmiraNext · Business Plan Builder</h1>
-      <p>Rellena los datos y el plan se actualiza en vivo. Elige un escenario para precargar expectativas.</p>
+      <h1 data-i="app_title">AdmiraNext · Business Plan Builder</h1>
+      <p data-i="intro"></p>
+      <div class="langs" id="langs">
+        <button data-l="es">Español</button>
+        <button data-l="en">English</button>
+        <button data-l="zh">中文</button>
+      </div>
       <div class="scenarios" id="scenarios">
-        <button data-s="cons">Conservador</button>
-        <button data-s="base" class="active">Base</button>
-        <button data-s="agr">Agresivo</button>
+        <button data-s="cons" data-i="sc_cons"></button>
+        <button data-s="base" class="active" data-i="sc_base"></button>
+        <button data-s="agr" data-i="sc_agr"></button>
       </div>
     </div>
     <div class="saved" id="saved"></div>
 
     <div class="grp">
-      <h2>Empresa &amp; Participante</h2>
-      <div class="fld"><label>Empresa</label><input id="company"></div>
+      <h2 data-i="g_company"></h2>
+      <div class="fld"><label data-i="l_company"></label><input id="company"></div>
       <div class="row">
-        <div class="fld"><label>Fundador / CEO</label><input id="founder"></div>
-        <div class="fld"><label>Email</label><input id="email"></div>
+        <div class="fld"><label data-i="l_founder"></label><input id="founder"></div>
+        <div class="fld"><label data-i="l_email"></label><input id="email"></div>
       </div>
       <div class="row">
-        <div class="fld"><label>Nacionalidad</label><input id="nationality"></div>
-        <div class="fld"><label>Stage</label>
-          <select id="stage">
-            <option>Seed (sin registrar)</option>
-            <option>Early (1–5 años)</option>
-            <option>Growth (5–10 años)</option>
-          </select>
-        </div>
+        <div class="fld"><label data-i="l_nationality"></label><input id="nationality"></div>
+        <div class="fld"><label data-i="l_stage"></label><select id="stage"></select></div>
       </div>
-      <div class="fld"><label>Fecha de registro de la empresa</label><input id="regdate" placeholder="dd/mm/aaaa"></div>
+      <div class="fld"><label data-i="l_regdate"></label><input id="regdate" data-iph="ph_date"></div>
     </div>
 
     <div class="grp">
-      <h2>Equipo</h2>
-      <div class="fld"><label>Miembros core (uno por línea: Nombre — rol)</label><textarea id="team" rows="3"></textarea></div>
-      <div class="fld"><label>¿Miembros con experiencia overseas?</label>
-        <select id="overseas"><option>Sí</option><option>No</option></select></div>
-      <div class="fld"><label>Detalle experiencia overseas</label><input id="overseasdetail" placeholder="ej. estudios/trabajo 1+ año en…"></div>
+      <h2 data-i="g_team"></h2>
+      <div class="fld"><label data-i="l_team"></label><textarea id="team" rows="3"></textarea></div>
+      <div class="fld"><label data-i="l_overseas"></label><select id="overseas"></select></div>
+      <div class="fld"><label data-i="l_overseasdetail"></label><input id="overseasdetail" data-iph="ph_overseas"></div>
     </div>
 
     <div class="grp">
-      <h2>Mercado (China retail media / DOOH)</h2>
+      <h2 data-i="g_market"></h2>
       <div class="row">
-        <div class="fld"><label>TAM</label><input id="tam" placeholder="ej. €20B"></div>
-        <div class="fld"><label>SAM</label><input id="sam" placeholder="ej. €3B"></div>
-        <div class="fld"><label>SOM (3 años)</label><input id="som" placeholder="ej. €60M"></div>
+        <div class="fld"><label data-i="l_tam"></label><input id="tam" data-iph="ph_tam"></div>
+        <div class="fld"><label data-i="l_sam"></label><input id="sam" data-iph="ph_sam"></div>
+        <div class="fld"><label data-i="l_som"></label><input id="som" data-iph="ph_som"></div>
       </div>
-      <div class="hint">Déjalo vacío y aparecerá como [por confirmar].</div>
+      <div class="hint" data-i="market_hint"></div>
     </div>
 
     <div class="grp">
-      <h2>Modelo financiero — supuestos</h2>
+      <h2 data-i="g_finance"></h2>
       <div class="row">
-        <div class="fld"><label>Divisa</label><input id="cur" value="€"></div>
-        <div class="fld"><label>Tiendas en red (Año 1)</label><input id="stores" type="number"></div>
+        <div class="fld"><label data-i="l_cur"></label><input id="cur" value="€"></div>
+        <div class="fld"><label data-i="l_stores"></label><input id="stores" type="number"></div>
       </div>
       <div class="row">
-        <div class="fld"><label>Pantallas / tienda</label><input id="screens" type="number"></div>
-        <div class="fld"><label>Impresiones/pantalla/día</label><input id="imps" type="number"></div>
+        <div class="fld"><label data-i="l_screens"></label><input id="screens" type="number"></div>
+        <div class="fld"><label data-i="l_imps"></label><input id="imps" type="number"></div>
       </div>
       <div class="row">
-        <div class="fld"><label>CPM medio</label><input id="cpm" type="number" step="0.1"></div>
-        <div class="fld"><label>Sell-through %</label><input id="fill" type="number"></div>
+        <div class="fld"><label data-i="l_cpm"></label><input id="cpm" type="number" step="0.1"></div>
+        <div class="fld"><label data-i="l_fill"></label><input id="fill" type="number"></div>
       </div>
       <div class="row">
-        <div class="fld"><label>Días operativos/año</label><input id="days" type="number"></div>
-        <div class="fld"><label>SaaS €/tienda/mes</label><input id="saas" type="number"></div>
+        <div class="fld"><label data-i="l_days"></label><input id="days" type="number"></div>
+        <div class="fld"><label data-i="l_saas"></label><input id="saas" type="number"></div>
       </div>
       <div class="row">
-        <div class="fld"><label>Crecimiento Año 2 (×)</label><input id="g2" type="number" step="0.1"></div>
-        <div class="fld"><label>Crecimiento Año 3 (×)</label><input id="g3" type="number" step="0.1"></div>
+        <div class="fld"><label data-i="l_g2"></label><input id="g2" type="number" step="0.1"></div>
+        <div class="fld"><label data-i="l_g3"></label><input id="g3" type="number" step="0.1"></div>
       </div>
     </div>
 
     <div class="grp">
-      <h2>Tracción (hoy)</h2>
+      <h2 data-i="g_traction"></h2>
       <div class="row">
-        <div class="fld"><label>Tiendas live</label><input id="t_stores" placeholder="ej. 3"></div>
-        <div class="fld"><label>Pantallas gestionadas</label><input id="t_screens" placeholder="ej. 40"></div>
+        <div class="fld"><label data-i="l_tstores"></label><input id="t_stores" data-iph="ph_3"></div>
+        <div class="fld"><label data-i="l_tscreens"></label><input id="t_screens" data-iph="ph_40"></div>
       </div>
-      <div class="fld"><label>Run-rate / impresiones / otros KPIs</label><input id="t_kpi" placeholder="texto libre"></div>
+      <div class="fld"><label data-i="l_tkpi"></label><input id="t_kpi" data-iph="ph_free"></div>
     </div>
 
     <div class="grp">
-      <h2>The Ask &amp; Robótica</h2>
-      <div class="fld"><label>Importe que pides</label><input id="ask" placeholder="ej. €750k"></div>
-      <div class="fld"><label>Uso de fondos</label><textarea id="askuse" rows="2"></textarea></div>
-      <div class="fld"><label>Partner robótico 3 (¿MagicLab o cuál?)</label><input id="robo3" value="MagicLab"></div>
+      <h2 data-i="g_ask"></h2>
+      <div class="fld"><label data-i="l_ask"></label><input id="ask" data-iph="ph_ask"></div>
+      <div class="fld"><label data-i="l_askuse"></label><textarea id="askuse" rows="2"></textarea></div>
+      <div class="fld"><label data-i="l_robo3"></label><input id="robo3" value="MagicLab"></div>
     </div>
 
     <div class="actions">
-      <button class="btn primary" onclick="window.print()">⬇ Exportar PDF</button>
-      <button class="btn ghost" id="reset">Reset</button>
+      <button class="btn primary" id="exportBtn" onclick="window.print()"></button>
+      <button class="btn ghost" id="reset"></button>
     </div>
   </aside>
 
-  <!-- ============ PLAN ============ -->
   <main class="planwrap">
     <div class="paper">
       <div class="cover">
-        <div class="k">Business Plan · Confidential</div>
+        <div class="k" data-i="cover_k"></div>
         <h1>AdmiraNext</h1>
-        <div class="sub">The Retail Media Operating System</div>
-        <div class="tag">"Your innovation, your gateway to the Chinese market"</div>
+        <div class="sub" data-i="cover_sub"></div>
+        <div class="tag" data-i="cover_tag"></div>
         <div class="meta" id="covermeta"></div>
       </div>
       <div class="body" id="plan"></div>
@@ -199,172 +192,271 @@
 </div>
 
 <script>
+/* ===== i18n ===== */
+const I18N = {
+ es:{
+  intro:"Rellena los datos y el plan se actualiza en vivo. Elige un escenario para precargar expectativas.",
+  sc_cons:"Conservador", sc_base:"Base", sc_agr:"Agresivo", saved:"✓ guardado localmente",
+  g_company:"Empresa & Participante", g_team:"Equipo", g_market:"Mercado (China retail media / DOOH)",
+  g_finance:"Modelo financiero — supuestos", g_traction:"Tracción (hoy)", g_ask:"The Ask & Robótica",
+  l_company:"Empresa", l_founder:"Fundador / CEO", l_email:"Email", l_nationality:"Nacionalidad", l_stage:"Stage",
+  l_regdate:"Fecha de registro de la empresa", l_team:"Miembros core (uno por línea: Nombre — rol)",
+  l_overseas:"¿Miembros con experiencia overseas?", l_overseasdetail:"Detalle experiencia overseas",
+  l_tam:"TAM", l_sam:"SAM", l_som:"SOM (3 años)", market_hint:"Déjalo vacío y aparecerá como [por confirmar].",
+  l_cur:"Divisa", l_stores:"Tiendas en red (Año 1)", l_screens:"Pantallas / tienda", l_imps:"Impresiones/pantalla/día",
+  l_cpm:"CPM medio", l_fill:"Sell-through %", l_days:"Días operativos/año", l_saas:"SaaS €/tienda/mes",
+  l_g2:"Crecimiento Año 2 (×)", l_g3:"Crecimiento Año 3 (×)",
+  l_tstores:"Tiendas live", l_tscreens:"Pantallas gestionadas", l_tkpi:"Run-rate / impresiones / otros KPIs",
+  l_ask:"Importe que pides", l_askuse:"Uso de fondos", l_robo3:"Partner robótico 3 (¿MagicLab o cuál?)",
+  exportBtn:"⬇ Exportar PDF", reset:"Reset",
+  ph_date:"dd/mm/aaaa", ph_overseas:"ej. estudios/trabajo 1+ año en…", ph_tam:"ej. €20B", ph_sam:"ej. €3B",
+  ph_som:"ej. €60M", ph_3:"ej. 3", ph_40:"ej. 40", ph_free:"texto libre", ph_ask:"ej. €750k",
+  stage:["Seed (sin registrar)","Early (1–5 años)","Growth (5–10 años)"], yesno:["Sí","No"],
+  tbd:"[por confirmar]",
+  cover_k:"Business Plan · Confidencial", cover_sub:"El Sistema Operativo de Retail Media",
+  cover_tag:"\"Tu innovación, tu puerta al mercado chino\"",
+  m_company:"Empresa", m_founder:"Fundador", m_for:"Para", m_for_v:"Copa Innovación China 2026 — Baoshan Sci-Tech Cup",
+  m_track:"Track", m_track_v:"Modern Services · Digital Economy · 23 Jun 2026 · Barcelona", m_contact:"Contacto",
+  s1:"Resumen ejecutivo",
+  s1_lead:"AdmiraNext convierte el medio publicitario más grande y peor medido del mundo —el espacio físico de retail— en un canal programable, medible y dirigido por IA.",
+  s1_p:"Es un <b>Retail Media Operating System</b> de pila completa que une tres productos en un único bucle cerrado <b>crear → gestionar → comercializar</b>, y es <b>dos soluciones en una</b>: el sistema que funciona <b>hoy</b> con pantallas y audio, y el sistema operativo del <b>retail nativo-robótico de mañana</b> (Physical AI). Construir esa capa de robots exige estar junto a la frontera de la IA física: por eso entramos por <b>Baoshan / Shanghái</b>.",
+  s2:"El problema",
+  s2_li:["<b>Pantallas ciegas</b> — contenido genérico sin relación con quién está en la tienda.","<b>Contenido lento y caro</b> — la creatividad localizada no escala.","<b>Cero medición</b> — el anunciante no sabe quién lo vio ni el retorno.","<b>Stack fragmentado</b> — contenido, gestión y monetización son tres proveedores que no se hablan."],
+  s3:"La solución — AdmiraNext", s3_h1:"Acto I (hoy): la trilogía como un bucle cerrado",
+  p_studio:["admira.studio — CREAR","motor: PixerIA · pixeria.com","Fábrica de contenido IA con criterio editorial humano."],
+  p_store:["admira.store — GESTIONAR","motor: XpaceOS · xpaceos.com","Gemelo digital, targeting de pantallas y Club de fidelidad (un solo pilar)."],
+  p_app:["admira.app — COMERCIALIZAR","motor: ClearChannel.tv","Mercado que vende los \"Xpacios\": publicidad, hilo musical, gestión de colas."],
+  s3_h2:"Acto II (futuro): Physical AI — robots en el retail",
+  s3_p2:"Robots autónomos como nueva interfaz: a la vez <b>personal</b>, <b>sensor</b> del gemelo y <b>superficie de medios móvil</b> medible por encuentro. Mismo bucle, con cuerpo — orquestado por el mismo OS y vendido por el mismo mercado.",
+  s4:"Mercado & por qué China", k_tam:"TAM", k_sam:"SAM", k_som:"SOM · 3 años",
+  s4_p:"El retail media es la categoría publicitaria que más crece. AdmiraNext lo lleva al suelo <b>físico</b>, donde aún no hay operador de pila completa. La razón decisiva para China es la <b>frontera robótica</b>: estar junto a <b>Unitree (宇树)</b>, <b>AgiBot/Zhiyuan (智元 — en Shanghái, misma ciudad que Baoshan)</b> y <b>{ROBO3}</b>. No se puede construir el Acto II desde fuera de China.",
+  s5:"Modelo de negocio & proyección",
+  s5_note:"Calculado en vivo desde tus supuestos (escenario editable). Media = tiendas × pantallas × impresiones/día × días × CPM/1000 × sell-through. SaaS = tiendas × cuota × 12.",
+  t_line:"Línea", t_y1:"Año 1", t_y2:"Año 2", t_y3:"Año 3", t_media:"Retail media (programática)", t_saas:"Plataforma / SaaS", t_total:"Total ingresos",
+  s5_after:"Otras líneas: producción de contenido, servicios de valor (colas, Club, analítica) y, en Acto II, robot-as-media-surface (CPM/coste por interacción).",
+  s6:"Go-to-market",
+  s6_li:["<b>Fase 1 — Piloto Baoshan:</b> red retail flagship; desplegar el loop completo; demostrar CPM por superficie.","<b>Fase 2 — Localizar & partners:</b> idioma, pagos, compliance; partners DOOH y retail.","<b>Fase 3 — Escalar & Acto II:</b> ampliar red; piloto robot-as-media-surface con partner robótico."],
+  s7:"Tracción (hoy)", k_tstores:"Tiendas live", k_tscreens:"Pantallas", k_prod:"Productos en producción",
+  s7_default:"admira.studio (PixerIA) · admira.store (XpaceOS + Club) · admira.app (ClearChannel.tv) en producción. El loop funciona con pantallas DOOH; la integración de robótica es el roadmap inmediato.",
+  s8:"Equipo", s8_overseas:"Experiencia overseas:", s8_team_tbd:"[equipo por confirmar]",
+  s9:"The Ask", k_fund:"Financiación", k_stage:"Stage", k_reg:"Registro empresa", s9_use:"Uso de fondos:",
+  s9_meta:"Empresa: {C} · Track: Modern Services · Digital Economy · Proyecto: AdmiraNext — Retail Media Operating System."
+ },
+ en:{
+  intro:"Fill in the data and the plan updates live. Pick a scenario to preload expectations.",
+  sc_cons:"Conservative", sc_base:"Base", sc_agr:"Aggressive", saved:"✓ saved locally",
+  g_company:"Company & Participant", g_team:"Team", g_market:"Market (China retail media / DOOH)",
+  g_finance:"Financial model — assumptions", g_traction:"Traction (today)", g_ask:"The Ask & Robotics",
+  l_company:"Company", l_founder:"Founder / CEO", l_email:"Email", l_nationality:"Nationality", l_stage:"Stage",
+  l_regdate:"Company registration date", l_team:"Core team (one per line: Name — role)",
+  l_overseas:"Members with overseas experience?", l_overseasdetail:"Overseas experience detail",
+  l_tam:"TAM", l_sam:"SAM", l_som:"SOM (3 yrs)", market_hint:"Leave empty to show as [to confirm].",
+  l_cur:"Currency", l_stores:"Stores in network (Year 1)", l_screens:"Screens / store", l_imps:"Impressions/screen/day",
+  l_cpm:"Avg CPM", l_fill:"Sell-through %", l_days:"Operating days/year", l_saas:"SaaS /store/month",
+  l_g2:"Year 2 growth (×)", l_g3:"Year 3 growth (×)",
+  l_tstores:"Stores live", l_tscreens:"Screens managed", l_tkpi:"Run-rate / impressions / other KPIs",
+  l_ask:"Amount requested", l_askuse:"Use of funds", l_robo3:"Robotics partner 3 (MagicLab or which?)",
+  exportBtn:"⬇ Export PDF", reset:"Reset",
+  ph_date:"dd/mm/yyyy", ph_overseas:"e.g. studied/worked 1+ yr abroad…", ph_tam:"e.g. €20B", ph_sam:"e.g. €3B",
+  ph_som:"e.g. €60M", ph_3:"e.g. 3", ph_40:"e.g. 40", ph_free:"free text", ph_ask:"e.g. €750k",
+  stage:["Seed (not registered)","Early (1–5 years)","Growth (5–10 years)"], yesno:["Yes","No"],
+  tbd:"[to confirm]",
+  cover_k:"Business Plan · Confidential", cover_sub:"The Retail Media Operating System",
+  cover_tag:"\"Your innovation, your gateway to the Chinese market\"",
+  m_company:"Company", m_founder:"Founder", m_for:"For", m_for_v:"Copa Innovación China 2026 — Baoshan Sci-Tech Cup",
+  m_track:"Track", m_track_v:"Modern Services · Digital Economy · 23 Jun 2026 · Barcelona", m_contact:"Contact",
+  s1:"Executive Summary",
+  s1_lead:"AdmiraNext turns the world's largest and least-measured advertising medium — physical retail space — into a programmable, AI-driven, measurable media channel.",
+  s1_p:"It is a full-stack <b>Retail Media Operating System</b> that unifies three products into one closed loop — <b>create → manage → commercialize</b> — and it is <b>two solutions in one</b>: the system that works <b>today</b> with screens and audio, and the operating system for <b>robot-native retail tomorrow</b> (Physical AI). Building that robot layer requires being beside the physical-AI frontier — which is why we enter through <b>Baoshan / Shanghai</b>.",
+  s2:"The Problem",
+  s2_li:["<b>Dumb screens</b> — generic content disconnected from who is in the store.","<b>Slow, costly content</b> — localized creative doesn't scale.","<b>No measurement</b> — brands can't prove who saw it or the return.","<b>Disconnected stack</b> — content, management and monetization are three vendors that never talk."],
+  s3:"The Solution — AdmiraNext", s3_h1:"Act I (today): the trilogy as one closed loop",
+  p_studio:["admira.studio — CREATE","engine: PixerIA · pixeria.com","AI content factory with a human editorial-criterion layer."],
+  p_store:["admira.store — MANAGE","engine: XpaceOS · xpaceos.com","Digital twin, screen targeting and Loyalty Club (one single pillar)."],
+  p_app:["admira.app — COMMERCIALIZE","engine: ClearChannel.tv","Marketplace that sells the \"Xpacios\": advertising, in-store music, queue management."],
+  s3_h2:"Act II (future): Physical AI — robots in retail",
+  s3_p2:"Autonomous robots as the next interface: at once <b>staff</b>, <b>sensor</b> of the twin and a <b>moving media surface</b> measurable per encounter. Same loop, with a body — orchestrated by the same OS and sold through the same marketplace.",
+  s4:"Market & Why China", k_tam:"TAM", k_sam:"SAM", k_som:"SOM · 3 yrs",
+  s4_p:"Retail media is the fastest-growing ad category. AdmiraNext brings it to the <b>physical</b> floor, where no full-stack operator yet exists. The decisive reason for China is the <b>robotics frontier</b>: being beside <b>Unitree (宇树)</b>, <b>AgiBot/Zhiyuan (智元 — in Shanghai, the same city as Baoshan)</b> and <b>{ROBO3}</b>. You cannot build Act II from outside China.",
+  s5:"Business Model & Projection",
+  s5_note:"Computed live from your assumptions (editable scenario). Media = stores × screens × impressions/day × days × CPM/1000 × sell-through. SaaS = stores × fee × 12.",
+  t_line:"Line", t_y1:"Year 1", t_y2:"Year 2", t_y3:"Year 3", t_media:"Retail media (programmatic)", t_saas:"Platform / SaaS", t_total:"Total revenue",
+  s5_after:"Other lines: content production, value-added services (queues, Club, analytics) and, in Act II, robot-as-media-surface (CPM / cost-per-interaction).",
+  s6:"Go-to-Market",
+  s6_li:["<b>Phase 1 — Baoshan pilot:</b> flagship retail network; deploy the full loop; prove CPM per surface.","<b>Phase 2 — Localize & partner:</b> language, payments, compliance; DOOH and retail partners.","<b>Phase 3 — Scale & Act II:</b> expand the network; robot-as-media-surface pilot with a robotics partner."],
+  s7:"Traction (today)", k_tstores:"Stores live", k_tscreens:"Screens", k_prod:"Products in production",
+  s7_default:"admira.studio (PixerIA) · admira.store (XpaceOS + Club) · admira.app (ClearChannel.tv) in production. The loop works with DOOH screens; robotics integration is the immediate roadmap.",
+  s8:"Team", s8_overseas:"Overseas experience:", s8_team_tbd:"[team to confirm]",
+  s9:"The Ask", k_fund:"Funding", k_stage:"Stage", k_reg:"Company registration", s9_use:"Use of funds:",
+  s9_meta:"Company: {C} · Track: Modern Services · Digital Economy · Project: AdmiraNext — Retail Media Operating System."
+ },
+ zh:{
+  intro:"填写数据，方案实时更新。选择一个情景以预载预期。",
+  sc_cons:"保守", sc_base:"基准", sc_agr:"激进", saved:"✓ 已本地保存",
+  g_company:"公司与参赛者", g_team:"团队", g_market:"市场（中国零售媒体 / DOOH）",
+  g_finance:"财务模型 — 假设", g_traction:"进展（当前）", g_ask:"融资请求与机器人",
+  l_company:"公司", l_founder:"创始人 / CEO", l_email:"邮箱", l_nationality:"国籍", l_stage:"阶段",
+  l_regdate:"公司注册日期", l_team:"核心团队（每行一位：姓名 — 角色）",
+  l_overseas:"有海外经历的成员？", l_overseasdetail:"海外经历详情",
+  l_tam:"TAM", l_sam:"SAM", l_som:"SOM（3年）", market_hint:"留空则显示为[待确认]。",
+  l_cur:"货币", l_stores:"门店数（第1年）", l_screens:"每店屏幕数", l_imps:"每屏每日曝光",
+  l_cpm:"平均CPM", l_fill:"售出率 %", l_days:"年运营天数", l_saas:"SaaS 每店每月",
+  l_g2:"第2年增长（×）", l_g3:"第3年增长（×）",
+  l_tstores:"已上线门店", l_tscreens:"管理的屏幕", l_tkpi:"运营率 / 曝光 / 其他KPI",
+  l_ask:"融资金额", l_askuse:"资金用途", l_robo3:"机器人伙伴3（MagicLab？）",
+  exportBtn:"⬇ 导出PDF", reset:"重置",
+  ph_date:"日/月/年", ph_overseas:"例：海外学习/工作1年以上…", ph_tam:"例：€20B", ph_sam:"例：€3B",
+  ph_som:"例：€60M", ph_3:"例：3", ph_40:"例：40", ph_free:"自由文本", ph_ask:"例：€750k",
+  stage:["种子期（未注册）","早期（1–5年）","成长期（5–10年）"], yesno:["是","否"],
+  tbd:"[待确认]",
+  cover_k:"商业计划书 · 保密", cover_sub:"零售媒体操作系统",
+  cover_tag:"\"你的创新，进入中国市场的门户\"",
+  m_company:"公司", m_founder:"创始人", m_for:"参赛", m_for_v:"2026 中国创新杯 — 宝山科技杯",
+  m_track:"赛道", m_track_v:"现代服务 · 数字经济 · 2026年6月23日 · 巴塞罗那", m_contact:"联系",
+  s1:"执行摘要",
+  s1_lead:"AdmiraNext 把全球最大、却最缺乏测量的广告媒介——实体零售空间——变成可编程、可测量、由AI驱动的媒体渠道。",
+  s1_p:"它是一个全栈<b>零售媒体操作系统</b>，将三个产品整合为一个闭环——<b>创作 → 管理 → 商业化</b>，并且是<b>二合一的方案</b>：<b>今天</b>就能用屏幕与音频运行的系统，以及<b>明天机器人原生零售</b>（物理AI）的操作系统。构建机器人这一层必须身处物理AI的前沿——因此我们从<b>宝山 / 上海</b>切入。",
+  s2:"问题",
+  s2_li:["<b>盲目的屏幕</b> — 通用内容，与店内是谁无关。","<b>内容缓慢且昂贵</b> — 本地化创意无法规模化。","<b>零测量</b> — 品牌无法证明谁看过或回报如何。","<b>割裂的技术栈</b> — 内容、管理与变现是三家互不相通的供应商。"],
+  s3:"解决方案 — AdmiraNext", s3_h1:"第一幕（现状）：三位一体的闭环",
+  p_studio:["admira.studio — 创作","引擎：PixerIA · pixeria.com","结合人类编辑标准的AI内容工厂。"],
+  p_store:["admira.store — 管理","引擎：XpaceOS · xpaceos.com","数字孪生、屏幕定向与忠诚度俱乐部（同一个支柱）。"],
+  p_app:["admira.app — 商业化","引擎：ClearChannel.tv","销售零售空间（Xpacios）的市场：程序化广告、店内音乐、排队管理。"],
+  s3_h2:"第二幕（未来）：物理AI — 零售中的机器人",
+  s3_p2:"自主机器人成为新界面：同时是<b>员工</b>、孪生的<b>传感器</b>，以及可按次测量的<b>移动媒体界面</b>。同一闭环，拥有身体——由同一操作系统编排，通过同一市场销售。",
+  s4:"市场与为何选择中国", k_tam:"TAM", k_sam:"SAM", k_som:"SOM · 3年",
+  s4_p:"零售媒体是增长最快的广告品类。AdmiraNext 把它带到<b>实体</b>卖场，那里尚无全栈运营商。选择中国的决定性理由是<b>机器人前沿</b>：身处<b>宇树 Unitree</b>、<b>智元 AgiBot（位于上海，与宝山同城）</b>与<b>{ROBO3}</b>之畔。第二幕无法在中国之外构建。",
+  s5:"商业模式与预测",
+  s5_note:"根据你的假设实时计算（情景可编辑）。媒体 = 门店 × 屏幕 × 每日曝光 × 天数 × CPM/1000 × 售出率。SaaS = 门店 × 月费 × 12。",
+  t_line:"项目", t_y1:"第1年", t_y2:"第2年", t_y3:"第3年", t_media:"零售媒体（程序化）", t_saas:"平台 / SaaS", t_total:"总收入",
+  s5_after:"其他收入：内容制作、增值服务（排队、俱乐部、分析），以及第二幕的机器人即媒体界面（CPM / 每次互动成本）。",
+  s6:"市场进入策略",
+  s6_li:["<b>第一阶段 — 宝山试点：</b>旗舰零售网络；部署完整闭环；验证每面CPM。","<b>第二阶段 — 本地化与伙伴：</b>语言、支付、合规；DOOH与零售伙伴。","<b>第三阶段 — 规模化与第二幕：</b>扩展网络；与机器人伙伴试点机器人即媒体界面。"],
+  s7:"进展（当前）", k_tstores:"已上线门店", k_tscreens:"屏幕", k_prod:"已投产产品",
+  s7_default:"admira.studio (PixerIA) · admira.store (XpaceOS + 俱乐部) · admira.app (ClearChannel.tv) 已投产。闭环已用DOOH屏幕运行；机器人整合是近期路线图。",
+  s8:"团队", s8_overseas:"海外经历：", s8_team_tbd:"[团队待确认]",
+  s9:"融资请求", k_fund:"融资", k_stage:"阶段", k_reg:"公司注册", s9_use:"资金用途：",
+  s9_meta:"公司：{C} · 赛道：现代服务 · 数字经济 · 项目：AdmiraNext — 零售媒体操作系统。"
+ }
+};
+
+/* scenarios: language-independent numeric expectations */
 const SCEN = {
-  cons:{stores:25,screens:6,imps:4000,cpm:3,fill:35,days:350,saas:120,g2:1.8,g3:1.6,ask:"€400k",
-        tam:"€12B",sam:"€1.5B",som:"€15M"},
-  base:{stores:60,screens:8,imps:6000,cpm:5,fill:50,days:360,saas:180,g2:2.5,g3:2.0,ask:"€750k",
-        tam:"€20B",sam:"€3B",som:"€45M"},
-  agr:{stores:120,screens:10,imps:9000,cpm:7,fill:65,days:365,saas:240,g2:3.2,g3:2.6,ask:"€1.5M",
-        tam:"€28B",sam:"€5B",som:"€90M"}
+  cons:{stores:25,screens:6,imps:4000,cpm:3,fill:35,days:350,saas:120,g2:1.8,g3:1.6,ask:"€400k",tam:"€12B",sam:"€1.5B",som:"€15M"},
+  base:{stores:60,screens:8,imps:6000,cpm:5,fill:50,days:360,saas:180,g2:2.5,g3:2.0,ask:"€750k",tam:"€20B",sam:"€3B",som:"€45M"},
+  agr:{stores:120,screens:10,imps:9000,cpm:7,fill:65,days:365,saas:240,g2:3.2,g3:2.6,ask:"€1.5M",tam:"€28B",sam:"€5B",som:"€90M"}
 };
 const DEFAULTS = Object.assign({
   company:"Admira Digital Networks", founder:"Carlos Silva", email:"csilva@admira.com",
-  nationality:"España", stage:"Early (1–5 años)", regdate:"",
-  team:"Carlos Silva — Fundador & CEO", overseas:"Sí", overseasdetail:"",
-  cur:"€", t_stores:"", t_screens:"", t_kpi:"",
-  askuse:"Piloto en Baoshan: desplegar el loop completo (studio→store→app) en una red retail y demostrar ingresos de retail media medibles; localización; primeras contrataciones.",
+  nationality:"España", stageIdx:1, regdate:"", team:"Carlos Silva — Founder & CEO", overseasIdx:0, overseasdetail:"",
+  cur:"€", t_stores:"", t_screens:"", t_kpi:"", ask:"€750k",
+  askuse:"Baoshan pilot: deploy the full loop (studio→store→app) on a retail network and prove measurable retail-media revenue; localization; first hires.",
   robo3:"MagicLab"
 }, SCEN.base);
 
-const IDS = ["company","founder","email","nationality","stage","regdate","team","overseas","overseasdetail",
-  "tam","sam","som","cur","stores","screens","imps","cpm","fill","days","saas","g2","g3",
-  "t_stores","t_screens","t_kpi","ask","askuse","robo3"];
-const KEY="admiranext_bp_v1";
-let state={};
+const TEXT_IDS=["company","founder","email","nationality","regdate","team","overseasdetail","tam","sam","som","cur","stores","screens","imps","cpm","fill","days","saas","g2","g3","t_stores","t_screens","t_kpi","ask","askuse","robo3"];
+const KEY="admiranext_bp_v1", LKEY="admiranext_bp_lang";
+let state={}, lang="es";
+const t=k=>I18N[lang][k];
 
-function load(){ try{ state=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ state={}; }
-  state=Object.assign({}, DEFAULTS, state);
-  IDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=state[id]??""; });
+function load(){ try{state=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){state={};}
+  state=Object.assign({},DEFAULTS,state);
+  lang=localStorage.getItem(LKEY)||"es"; document.documentElement.lang=lang;
 }
-function readForm(){ IDS.forEach(id=>{ const el=document.getElementById(id); if(el) state[id]=el.value; }); }
-function save(){ localStorage.setItem(KEY, JSON.stringify(state));
-  const s=document.getElementById("saved"); s.textContent="✓ guardado localmente"; clearTimeout(window._st);
-  window._st=setTimeout(()=>s.textContent="",1200); }
-
-function money(n,cur){ if(!isFinite(n)) return "—";
-  let v=Math.round(n); let s=v.toLocaleString("es-ES");
-  if(Math.abs(v)>=1000000) s=(v/1000000).toLocaleString("es-ES",{maximumFractionDigits:2})+"M";
-  else if(Math.abs(v)>=1000) s=(v/1000).toLocaleString("es-ES",{maximumFractionDigits:0})+"k";
-  return (cur||"€")+s; }
-function orTBD(v){ return (v&&String(v).trim())? escapeHtml(v) : '<span class="tbd">[por confirmar]</span>'; }
-function escapeHtml(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
-
-function compute(){
-  const n=id=>parseFloat(state[id])||0;
-  const cur=state.cur||"€";
-  const mediaY1 = n("stores")*n("screens")*n("imps")*n("days")*(n("cpm")/1000)*(n("fill")/100);
-  const saasY1  = n("stores")*n("saas")*12;
-  const y1 = mediaY1+saasY1;
-  const y2 = y1*(n("g2")||1);
-  const y3 = y2*(n("g3")||1);
-  return {cur,mediaY1,saasY1,y1,y2,y3};
+function paintUI(){
+  document.querySelectorAll("[data-i]").forEach(el=>{ const v=t(el.dataset.i); if(v!=null) el.textContent=v; });
+  document.querySelectorAll("[data-iph]").forEach(el=>{ const v=t(el.dataset.iph); if(v!=null) el.placeholder=v; });
+  // selects
+  const st=document.getElementById("stage"); st.innerHTML=t("stage").map((o,i)=>`<option value="${i}">${o}</option>`).join(""); st.value=state.stageIdx??1;
+  const ov=document.getElementById("overseas"); ov.innerHTML=t("yesno").map((o,i)=>`<option value="${i}">${o}</option>`).join(""); ov.value=state.overseasIdx??0;
+  // text inputs
+  TEXT_IDS.forEach(id=>{const el=document.getElementById(id); if(el) el.value=state[id]??"";});
+  document.querySelectorAll("#langs button").forEach(b=>b.classList.toggle("active",b.dataset.l===lang));
 }
+function readForm(){
+  TEXT_IDS.forEach(id=>{const el=document.getElementById(id); if(el) state[id]=el.value;});
+  state.stageIdx=+document.getElementById("stage").value;
+  state.overseasIdx=+document.getElementById("overseas").value;
+}
+function save(){ localStorage.setItem(KEY,JSON.stringify(state)); localStorage.setItem(LKEY,lang);
+  const s=document.getElementById("saved"); s.textContent=t("saved"); clearTimeout(window._st); window._st=setTimeout(()=>s.textContent="",1200);}
+function money(n,cur){ if(!isFinite(n))return"—"; let v=Math.round(n);
+  if(Math.abs(v)>=1e6) return (cur||"€")+(v/1e6).toLocaleString("en-US",{maximumFractionDigits:2})+"M";
+  if(Math.abs(v)>=1e3) return (cur||"€")+(v/1e3).toLocaleString("en-US",{maximumFractionDigits:0})+"k";
+  return (cur||"€")+v.toLocaleString("en-US"); }
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function orTBD(v){return (v&&String(v).trim())?esc(v):`<span class="tbd">${t("tbd")}</span>`;}
+function compute(){ const n=id=>parseFloat(state[id])||0; const cur=state.cur||"€";
+  const mediaY1=n("stores")*n("screens")*n("imps")*n("days")*(n("cpm")/1000)*(n("fill")/100);
+  const saasY1=n("stores")*n("saas")*12; const y1=mediaY1+saasY1; const g2=n("g2")||1,g3=n("g3")||1;
+  return {cur,mediaY1,saasY1,y1,y2:y1*g2,y3:y1*g3*g2,m2:mediaY1*g2,m3:mediaY1*g2*g3,sa2:saasY1*g2,sa3:saasY1*g2*g3}; }
+
+function pillar(a){return `<div class="pillar"><h4>${a[0]}</h4><div class="eng">${a[1]}</div><p>${a[2]}</p></div>`;}
 
 function render(){
   const f=compute(), cur=f.cur;
-  document.getElementById("covermeta").innerHTML =
-    `<b>Empresa:</b> ${orTBD(state.company)} &nbsp;·&nbsp; <b>Fundador:</b> ${orTBD(state.founder)}<br>`+
-    `<b>Para:</b> Copa Innovación China 2026 — Baoshan Sci-Tech Cup<br>`+
-    `<b>Track:</b> Modern Services · Digital Economy &nbsp;·&nbsp; <b>23 Jun 2026 · Barcelona</b><br>`+
-    `<b>Contacto:</b> ${orTBD(state.email)}`;
-
-  const teamHtml = (state.team||"").trim()
-    ? "<ul>"+state.team.split("\n").filter(x=>x.trim()).map(x=>"<li>"+escapeHtml(x)+"</li>").join("")+"</ul>"
-    : '<p class="tbd">[equipo por confirmar]</p>';
-
-  document.getElementById("plan").innerHTML = `
-  <div class="sec">
-    <h2><span class="n">1</span>Resumen ejecutivo</h2>
-    <p class="lead">AdmiraNext convierte el medio publicitario más grande y peor medido del mundo —el espacio físico de retail— en un canal programable, medible y dirigido por IA.</p>
-    <p>Es un <b>Retail Media Operating System</b> de pila completa que une tres productos en un único bucle cerrado <b>crear → gestionar → comercializar</b>, y es <b>dos soluciones en una</b>: el sistema que funciona <b>hoy</b> con pantallas y audio, y el sistema operativo del <b>retail nativo-robótico de mañana</b> (Physical AI). Construir esa capa de robots exige estar junto a la frontera de la IA física: por eso entramos por <b>Baoshan / Shanghái</b>.</p>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">2</span>El problema</h2>
-    <ul>
-      <li><b>Pantallas ciegas</b> — contenido genérico sin relación con quién está en la tienda.</li>
-      <li><b>Contenido lento y caro</b> — la creatividad localizada no escala.</li>
-      <li><b>Cero medición</b> — el anunciante no sabe quién lo vio ni el retorno.</li>
-      <li><b>Stack fragmentado</b> — contenido, gestión y monetización son tres proveedores que no se hablan.</li>
-    </ul>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">3</span>La solución — AdmiraNext</h2>
-    <h3>Acto I (hoy): la trilogía como un bucle cerrado</h3>
-    <div class="pillars">
-      <div class="pillar"><h4>admira.studio — CREAR</h4><div class="eng">motor: PixerIA · pixeria.com</div><p>Fábrica de contenido IA con criterio editorial humano.</p></div>
-      <div class="pillar"><h4>admira.store — GESTIONAR</h4><div class="eng">motor: XpaceOS · xpaceos.com</div><p>Gemelo digital, targeting de pantallas y Club de fidelidad (un solo pilar).</p></div>
-      <div class="pillar"><h4>admira.app — COMERCIALIZAR</h4><div class="eng">motor: ClearChannel.tv</div><p>Mercado que vende los "Xpacios": publicidad, hilo musical, gestión de colas.</p></div>
-    </div>
-    <h3>Acto II (futuro): Physical AI — robots en el retail</h3>
-    <p>Robots autónomos como nueva interfaz: a la vez <b>personal</b>, <b>sensor</b> del gemelo y <b>superficie de medios móvil</b> medible por encuentro. Mismo bucle, con cuerpo — orquestado por el mismo OS y vendido por el mismo mercado.</p>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">4</span>Mercado &amp; por qué China</h2>
+  const stageTxt=t("stage")[state.stageIdx??1], overTxt=t("yesno")[state.overseasIdx??0];
+  document.getElementById("covermeta").innerHTML=
+    `<b>${t("m_company")}:</b> ${orTBD(state.company)} &nbsp;·&nbsp; <b>${t("m_founder")}:</b> ${orTBD(state.founder)}<br>`+
+    `<b>${t("m_for")}:</b> ${t("m_for_v")}<br>`+
+    `<b>${t("m_track")}:</b> ${t("m_track_v")}<br>`+
+    `<b>${t("m_contact")}:</b> ${orTBD(state.email)}`;
+  const teamHtml=(state.team||"").trim()
+    ? "<ul>"+state.team.split("\n").filter(x=>x.trim()).map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>"
+    : `<p class="tbd">${t("s8_team_tbd")}</p>`;
+  document.getElementById("plan").innerHTML=`
+  <div class="sec"><h2><span class="n">1</span>${t("s1")}</h2><p class="lead">${t("s1_lead")}</p><p>${t("s1_p")}</p></div>
+  <div class="sec"><h2><span class="n">2</span>${t("s2")}</h2><ul>${t("s2_li").map(x=>"<li>"+x+"</li>").join("")}</ul></div>
+  <div class="sec"><h2><span class="n">3</span>${t("s3")}</h2>
+    <h3>${t("s3_h1")}</h3>
+    <div class="pillars">${pillar(t("p_studio"))}${pillar(t("p_store"))}${pillar(t("p_app"))}</div>
+    <h3>${t("s3_h2")}</h3><p>${t("s3_p2")}</p></div>
+  <div class="sec"><h2><span class="n">4</span>${t("s4")}</h2>
     <div class="kpis">
-      <div class="kpi"><div class="v">${orTBD(state.tam)}</div><div class="l">TAM</div></div>
-      <div class="kpi"><div class="v">${orTBD(state.sam)}</div><div class="l">SAM</div></div>
-      <div class="kpi"><div class="v">${orTBD(state.som)}</div><div class="l">SOM · 3 años</div></div>
-    </div>
-    <p>El retail media es la categoría publicitaria que más crece. AdmiraNext lo lleva al suelo <b>físico</b>, donde aún no hay operador de pila completa. La razón decisiva para China es la <b>frontera robótica</b>: estar junto a <b>Unitree (宇树)</b>, <b>AgiBot/Zhiyuan (智元 — en Shanghái, misma ciudad que Baoshan)</b> y <b>${orTBD(state.robo3)}</b>. No se puede construir el Acto II desde fuera de China.</p>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">5</span>Modelo de negocio &amp; proyección</h2>
-    <p class="muted">Calculado en vivo desde tus supuestos (escenario editable). Media = tiendas × pantallas × impresiones/día × días × CPM/1000 × sell-through. SaaS = tiendas × cuota × 12.</p>
+      <div class="kpi"><div class="v">${orTBD(state.tam)}</div><div class="l">${t("k_tam")}</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.sam)}</div><div class="l">${t("k_sam")}</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.som)}</div><div class="l">${t("k_som")}</div></div>
+    </div><p>${t("s4_p").replace("{ROBO3}",orTBD(state.robo3))}</p></div>
+  <div class="sec"><h2><span class="n">5</span>${t("s5")}</h2><p class="muted">${t("s5_note")}</p>
     <table>
-      <tr><th>Línea</th><th class="num">Año 1</th><th class="num">Año 2</th><th class="num">Año 3</th></tr>
-      <tr><td>Retail media (programática)</td><td class="num">${money(f.mediaY1,cur)}</td><td class="num">${money(f.mediaY1*(parseFloat(state.g2)||1),cur)}</td><td class="num">${money(f.mediaY1*(parseFloat(state.g2)||1)*(parseFloat(state.g3)||1),cur)}</td></tr>
-      <tr><td>Plataforma / SaaS</td><td class="num">${money(f.saasY1,cur)}</td><td class="num">${money(f.saasY1*(parseFloat(state.g2)||1),cur)}</td><td class="num">${money(f.saasY1*(parseFloat(state.g2)||1)*(parseFloat(state.g3)||1),cur)}</td></tr>
-      <tr><th>Total ingresos</th><th class="num">${money(f.y1,cur)}</th><th class="num">${money(f.y2,cur)}</th><th class="num">${money(f.y3,cur)}</th></tr>
-    </table>
-    <p class="muted">Otras líneas: producción de contenido, servicios de valor (colas, Club, analítica) y, en Acto II, robot-as-media-surface (CPM/coste por interacción).</p>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">6</span>Go-to-market</h2>
-    <ul>
-      <li><b>Fase 1 — Piloto Baoshan:</b> red retail flagship; desplegar el loop completo; demostrar CPM por superficie.</li>
-      <li><b>Fase 2 — Localizar &amp; partners:</b> idioma, pagos, compliance; partners DOOH y retail.</li>
-      <li><b>Fase 3 — Escalar &amp; Acto II:</b> ampliar red; piloto robot-as-media-surface con partner robótico.</li>
-    </ul>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">7</span>Tracción (hoy)</h2>
+      <tr><th>${t("t_line")}</th><th class="num">${t("t_y1")}</th><th class="num">${t("t_y2")}</th><th class="num">${t("t_y3")}</th></tr>
+      <tr><td>${t("t_media")}</td><td class="num">${money(f.mediaY1,cur)}</td><td class="num">${money(f.m2,cur)}</td><td class="num">${money(f.m3,cur)}</td></tr>
+      <tr><td>${t("t_saas")}</td><td class="num">${money(f.saasY1,cur)}</td><td class="num">${money(f.sa2,cur)}</td><td class="num">${money(f.sa3,cur)}</td></tr>
+      <tr><th>${t("t_total")}</th><th class="num">${money(f.y1,cur)}</th><th class="num">${money(f.y2,cur)}</th><th class="num">${money(f.y3,cur)}</th></tr>
+    </table><p class="muted">${t("s5_after")}</p></div>
+  <div class="sec"><h2><span class="n">6</span>${t("s6")}</h2><ul>${t("s6_li").map(x=>"<li>"+x+"</li>").join("")}</ul></div>
+  <div class="sec"><h2><span class="n">7</span>${t("s7")}</h2>
     <div class="kpis">
-      <div class="kpi"><div class="v">${orTBD(state.t_stores)}</div><div class="l">Tiendas live</div></div>
-      <div class="kpi"><div class="v">${orTBD(state.t_screens)}</div><div class="l">Pantallas</div></div>
-      <div class="kpi"><div class="v">3/3</div><div class="l">Productos en producción</div></div>
-    </div>
-    <p>${state.t_kpi? escapeHtml(state.t_kpi) : 'admira.studio (PixerIA) · admira.store (XpaceOS + Club) · admira.app (ClearChannel.tv) en producción. El loop funciona con pantallas DOOH; la integración de robótica es el roadmap inmediato.'}</p>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">8</span>Equipo</h2>
-    ${teamHtml}
-    <p class="muted">Experiencia overseas: <b>${escapeHtml(state.overseas||"")}</b>${state.overseasdetail? " — "+escapeHtml(state.overseasdetail):""}.</p>
-  </div>
-
-  <div class="sec">
-    <h2><span class="n">9</span>The Ask</h2>
+      <div class="kpi"><div class="v">${orTBD(state.t_stores)}</div><div class="l">${t("k_tstores")}</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.t_screens)}</div><div class="l">${t("k_tscreens")}</div></div>
+      <div class="kpi"><div class="v">3/3</div><div class="l">${t("k_prod")}</div></div>
+    </div><p>${state.t_kpi?esc(state.t_kpi):t("s7_default")}</p></div>
+  <div class="sec"><h2><span class="n">8</span>${t("s8")}</h2>${teamHtml}
+    <p class="muted">${t("s8_overseas")} <b>${esc(overTxt)}</b>${state.overseasdetail?" — "+esc(state.overseasdetail):""}.</p></div>
+  <div class="sec"><h2><span class="n">9</span>${t("s9")}</h2>
     <div class="kpis">
-      <div class="kpi"><div class="v">${orTBD(state.ask)}</div><div class="l">Financiación</div></div>
-      <div class="kpi"><div class="v">${escapeHtml(state.stage||"")}</div><div class="l">Stage</div></div>
-      <div class="kpi"><div class="v">${orTBD(state.regdate)}</div><div class="l">Registro empresa</div></div>
-    </div>
-    <p><b>Uso de fondos:</b> ${orTBD(state.askuse)}</p>
-    <p class="muted">Empresa: ${orTBD(state.company)} · Track: Modern Services · Digital Economy · Proyecto: AdmiraNext — Retail Media Operating System.</p>
-  </div>
-  `;
+      <div class="kpi"><div class="v">${orTBD(state.ask)}</div><div class="l">${t("k_fund")}</div></div>
+      <div class="kpi"><div class="v">${esc(stageTxt)}</div><div class="l">${t("k_stage")}</div></div>
+      <div class="kpi"><div class="v">${orTBD(state.regdate)}</div><div class="l">${t("k_reg")}</div></div>
+    </div><p><b>${t("s9_use")}</b> ${orTBD(state.askuse)}</p>
+    <p class="muted">${t("s9_meta").replace("{C}",orTBD(state.company))}</p></div>`;
 }
 
 function tick(){ readForm(); save(); render(); }
-function setScenario(s){
-  const sc=SCEN[s]; Object.assign(state, sc);
-  IDS.forEach(id=>{ const el=document.getElementById(id); if(el && id in state) el.value=state[id]; });
+function setLang(l){ readForm(); lang=l; document.documentElement.lang=l; save(); paintUI(); render(); }
+function setScenario(s){ readForm(); Object.assign(state,SCEN[s]);
   document.querySelectorAll("#scenarios button").forEach(b=>b.classList.toggle("active",b.dataset.s===s));
-  save(); render();
-}
+  TEXT_IDS.forEach(id=>{const el=document.getElementById(id); if(el&&id in state) el.value=state[id];});
+  save(); render(); }
 
 document.addEventListener("DOMContentLoaded",()=>{
-  load();
-  IDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener("input",tick); });
+  load(); paintUI(); render();
+  TEXT_IDS.forEach(id=>{const el=document.getElementById(id); if(el) el.addEventListener("input",tick);});
+  document.getElementById("stage").addEventListener("change",tick);
+  document.getElementById("overseas").addEventListener("change",tick);
+  document.querySelectorAll("#langs button").forEach(b=>b.addEventListener("click",()=>setLang(b.dataset.l)));
   document.querySelectorAll("#scenarios button").forEach(b=>b.addEventListener("click",()=>setScenario(b.dataset.s)));
-  document.getElementById("reset").addEventListener("click",()=>{ if(confirm("¿Resetear a valores Base?")){ localStorage.removeItem(KEY); state=Object.assign({},DEFAULTS); IDS.forEach(id=>{const el=document.getElementById(id); if(el) el.value=state[id]??"";}); render(); }});
-  render();
+  document.getElementById("reset").addEventListener("click",()=>{ if(confirm("Reset → Base?")){ localStorage.removeItem(KEY); state=Object.assign({},DEFAULTS); paintUI(); render(); }});
 });
 </script>
 </body>
