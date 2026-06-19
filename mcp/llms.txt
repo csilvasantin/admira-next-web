@@ -33,7 +33,7 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 ## Federación (viceversa)
 
 Misma convención `/mcp/` en cada pata:
-- Tienda de robots: https://www.admira.shop/mcp/
+- Tienda de robots: https://admira.shop/mcp/
 - Consejo (API viva): https://www.admira.live/mcp/ — estado de flota, AgoraMatrix, tareas.
 
 ## Convenciones
