@@ -12,7 +12,7 @@ Empresa agéntica **AdmiraNeXT** = una matriz + dos derivadas iniciales, conecta
 |---|---|---|---|---|
 | Matriz (corporate / RaaS·IoT, + /mcp) | https://www.admiranext.com | `csilvasantin/admira-next-web` | `v.26.06.19.r1` | `4c9f00e` |
 | Tienda de robots (venta+alquiler Agibot, + /mcp) | https://admira.shop | `csilvasantin/admira-bots` | `v.26.06.19.r1` | `eeab088` |
-| Consejo de Silicio (+ mesa + fichas + /mcp) | https://www.admira.live | `csilvasantin/32.-ConsejoAdmiraNextGame` | homepage · mesa · control `v.26.06.19.r6` (unificadas) | `02ea2fe` |
+| Consejo de Silicio (+ mesa + fichas + /mcp) | https://www.admira.live | `csilvasantin/32.-ConsejoAdmiraNextGame` | homepage · mesa · control `v.26.06.19.r7` (unificadas) | `30f29d1` |
 
 `admira.store` (repo `admira-store`) queda FUERA de la trilogía: solo como ejemplo de xpaceos.com. No tocar como producto.
 
