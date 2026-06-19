@@ -10,13 +10,21 @@ Empresa agéntica **AdmiraNeXT** = una matriz + dos derivadas iniciales, conecta
 
 | Pata | URL | Repo | Versión | Último commit |
 |---|---|---|---|---|
-| Matriz (corporate / RaaS·IoT) | https://www.admiranext.com | `csilvasantin/admira-next-web` | `v.26.06.18.r2` | `88b9c93` |
-| Tienda de robots (venta+alquiler Agibot) | https://www.admira.shop | `csilvasantin/admira-bots` | `v.26.06.18.r2` | `b8b735a` |
+| Matriz (corporate / RaaS·IoT, + /mcp) | https://www.admiranext.com | `csilvasantin/admira-next-web` | `v.26.06.19.r1` | `4c9f00e` |
+| Tienda de robots (venta+alquiler Agibot, + /mcp) | https://www.admira.shop | `csilvasantin/admira-bots` | `v.26.06.19.r1` | `eeab088` |
 | Consejo de Silicio (+ mesa + fichas + /mcp) | https://www.admira.live | `csilvasantin/32.-ConsejoAdmiraNextGame` | homepage · mesa · control `v.26.06.19.r6` (unificadas) | `02ea2fe` |
 
 `admira.store` (repo `admira-store`) queda FUERA de la trilogía: solo como ejemplo de xpaceos.com. No tocar como producto.
 
 Nomenclatura oficial: **`v.AA.MM.DD.rN`** (año.mes.día.release). Visible en cada página (en la matriz, en `<meta name="admiranext-version">`).
+
+## Federación /mcp (puerta oculta para agentes)
+
+Cada pata tiene una sección `/mcp/` con la misma convención: `index.html` (hub humano), `llms.txt` (índice legible por agentes) y `manifest.json` (descriptor estructurado), todas enlazadas entre sí (federación) — para que cualquier IA consulte e interactúe, y viceversa.
+
+- Matriz: https://www.admiranext.com/mcp/ (estática; pistas `<link rel="alternate">` en el `<head>`).
+- Tienda: https://admira.shop/mcp/ (estática; enlace `MCP` en el footer). Ojo: el canónico es el ápex `admira.shop`; `www.` redirige 301.
+- Consejo: https://www.admira.live/mcp/ — la única con **API viva** (Funnel del Mac Mini: machine-status, AgoraMatrix, tareas). Las otras dos la federan.
 
 ## Navegación (en estrella, ya implementada)
 
