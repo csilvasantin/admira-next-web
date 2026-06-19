@@ -1,0 +1,34 @@
+{
+  "name": "admiranext-matriz",
+  "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
+  "description": "Hub MCP de la matriz de la trilogía AdmiraNeXT. Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
+  "version": "v.26.06.19.r1",
+  "type": "static-site",
+  "site": "https://www.admiranext.com",
+  "hub": "https://www.admiranext.com/mcp/",
+  "llms_txt": "https://www.admiranext.com/mcp/llms.txt",
+  "repo": "https://github.com/csilvasantin/admira-next-web",
+  "contact": { "telegram_group": "AdmiraXP", "signature": "Admira IA" },
+
+  "model": "Robots-as-a-Service (RaaS) + IoT con IA",
+
+  "pages": [
+    { "path": "/", "desc": "Home: tres entradas (contacto, web clásica, terminal interactiva)." },
+    { "path": "/classic.html", "desc": "Web corporativa clásica." },
+    { "path": "/businessplan/", "desc": "Plan de negocio." },
+    { "path": "/help/", "desc": "Ayuda." },
+    { "path": "/intranet", "desc": "Comando de terminal: zona privada con accesos /shop y /live." }
+  ],
+
+  "docs": {
+    "handoff": "https://www.admiranext.com/HANDOFF.md",
+    "readme": "https://www.admiranext.com/README.md"
+  },
+
+  "federation": {
+    "note": "Misma convención /mcp/ en cada pata de la trilogía (viceversa).",
+    "tienda": "https://www.admira.shop/mcp/",
+    "consejo": "https://www.admira.live/mcp/",
+    "consejo_live_api": "https://macmini.tail48b61c.ts.net"
+  }
+}

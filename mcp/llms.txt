@@ -1,0 +1,42 @@
+# AdmiraNeXT (matriz · admiranext.com)
+
+> Matriz de la trilogía AdmiraNeXT: empresa agéntica de Robots-as-a-Service (RaaS)
+> e IoT con inteligencia artificial. Punto de entrada corporativo. Esta sección /mcp
+> es la puerta para que cualquier agente entienda la empresa, navegue sus superficies
+> y salte al resto de la trilogía — y viceversa. Sitio estático; la API operativa
+> viva vive en el Consejo (admira.live) y se federa desde aquí.
+
+Sitio: https://www.admiranext.com
+Hub MCP: https://www.admiranext.com/mcp/
+Manifest máquina: https://www.admiranext.com/mcp/manifest.json
+Versión: v.26.06.19.r1
+Repo: https://github.com/csilvasantin/admira-next-web
+
+## Qué es
+
+AdmiraNeXT conecta las cosas a internet con IA. Modelo: Robots-as-a-Service (RaaS) + IoT.
+La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio (admira.live).
+
+## Superficie pública (sitio estático)
+
+- Home: https://www.admiranext.com/ — tres entradas (contacto directo, web clásica, terminal interactiva).
+- Web clásica: https://www.admiranext.com/classic.html
+- Plan de negocio: https://www.admiranext.com/businessplan/
+- Ayuda: https://www.admiranext.com/help/
+- Intranet: comando `/intranet` (en la terminal de la home) con accesos `/shop` y `/live`.
+
+## Documentación
+
+- HANDOFF de la trilogía: https://www.admiranext.com/HANDOFF.md
+- README: https://www.admiranext.com/README.md
+
+## Federación (viceversa)
+
+Misma convención `/mcp/` en cada pata:
+- Tienda de robots: https://www.admira.shop/mcp/
+- Consejo (API viva): https://www.admira.live/mcp/ — estado de flota, AgoraMatrix, tareas.
+
+## Convenciones
+
+- Versionado visible: v.AA.MM.DD.rN.
+- Avisos de cambios: Telegram grupo AdmiraXP, firmados "Admira IA".
