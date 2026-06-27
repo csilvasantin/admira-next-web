@@ -106,7 +106,7 @@
   #muteFloat:hover{border-color:var(--amber)}
   #muteFloat.off{background:#3a1000;border-color:#a33;color:#ff7a7a}
 </style>
-<script src="/comic.js?v=20260627c"></script>
+<script src="/comic.js?v=20260627d"></script>
 </head>
 <body>
 <div class="hud">
@@ -390,7 +390,7 @@ async function send(){
   const b=bubble('them','<span style="color:var(--mut)">pensando…</span>');
   try{ const ans=await askOne(curNPC.role,curNPC.gen,curNPC.persona,q); b.innerHTML=fmt(ans);
     const cm=document.createElement('span'); cm.className='comic'; cm.textContent='🎨 Cómic';
-    cm.onclick=()=>AdmiraComic.open({panels:panels(curNPC,ans),tema:'AdmiraNext · '+q,names:[curNPC.persona],engine:'grok'});
+    cm.onclick=()=>AdmiraComic.open({panels:panels(curNPC,ans),tema:'AdmiraNext · '+q,names:[curNPC.persona],engine:'good'});
     b.appendChild(cm);
     const sv=document.createElement('span'); sv.className='comic'; sv.style.marginLeft='6px'; sv.textContent='📋 guardar';
     sv.onclick=()=>{ saveDecision({tema:q,participantes:[curNPC.role],acta:ans,ts:Date.now()}); sv.textContent='✓ guardada'; };
@@ -442,7 +442,7 @@ function findRole(s){ s=(s||'').trim(); const u=s.toUpperCase(); return COUNCIL.
 async function cliAsk(t,q){ const d=cliPrint('s','['+t.role+'] '+t.persona+' pensando…');
   try{ const ans=await askOne(t.role,t.gen,t.persona,q);
     d.className='a'; d.innerHTML='<span style="color:'+(RCOL[t.role]||'#ffb000')+';font-weight:700">['+t.role+'] '+t.persona+':</span> '+fmt(ans)+' <span class="comic">🎨 cómic</span>';
-    d.querySelector('.comic').onclick=()=>AdmiraComic.open({panels:panels(t,ans),tema:'AdmiraNext · '+q,names:[t.persona],engine:'grok'});
+    d.querySelector('.comic').onclick=()=>AdmiraComic.open({panels:panels(t,ans),tema:'AdmiraNext · '+q,names:[t.persona],engine:'good'});
     speak(ans,t.role);
   }catch(e){ d.className='e'; d.textContent='['+t.role+'] error: '+e.message; sfx('err'); } }
 async function cliRun(line){ cliPrint('u','consejo&gt; '+esc(line));
@@ -525,7 +525,7 @@ function renderBoard(){ const a=decisions(), L=document.getElementById('boardLis
   L.innerHTML=''; a.forEach(d=>{ const el=document.createElement('div'); el.className='dec';
     el.innerHTML='<div class="t">'+esc(d.tema)+'</div><div class="meta">'+fechaTxt(d.ts)+' · '+(d.participantes||[]).join(' · ')+'</div><div class="acta">'+fmt(d.acta)+'</div>'+
       '<div class="acts"><button data-a="comic">🎨 Cómic</button><button data-a="exp">⬇ Exportar</button><button data-a="del">✕ Borrar</button></div>';
-    el.querySelector('[data-a="comic"]').onclick=()=>AdmiraComic.open({panels:actaPanels(d),tema:'Acta · '+d.tema,names:['Consejo'],engine:'grok'});
+    el.querySelector('[data-a="comic"]').onclick=()=>AdmiraComic.open({panels:actaPanels(d),tema:'Acta · '+d.tema,names:['Consejo'],engine:'good'});
     el.querySelector('[data-a="exp"]').onclick=()=>expDecision(d);
     el.querySelector('[data-a="del"]').onclick=()=>delDecision(d.ts);
     L.appendChild(el); }); }
@@ -567,7 +567,7 @@ async function buildPlan(){
 document.getElementById('detGo').onclick=buildPlan;
 document.getElementById('detTopic').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') buildPlan(); else if(e.key==='Escape') exitDetail(); });
 document.querySelector('#detConcl .acts').addEventListener('click',e=>{ const a=e.target.dataset.a; if(!a||!detPlan) return;
-  if(a==='comic') AdmiraComic.open({panels:actaPanels({acta:detPlan.acta}),tema:'Plan · '+detPlan.tema,names:['Consejo'],engine:'grok'});
+  if(a==='comic') AdmiraComic.open({panels:actaPanels({acta:detPlan.acta}),tema:'Plan · '+detPlan.tema,names:['Consejo'],engine:'good'});
   else if(a==='save'){ saveDecision(detPlan); e.target.textContent='✓ guardada'; }
   else if(a==='exp') expDecision(detPlan); });
 

@@ -70,7 +70,7 @@
     padding:2px 9px;font-size:11px;font-weight:700;background:#1a0e00;display:none}
   .ans .h .comic:hover{border-color:var(--amber);background:#241400}
 </style>
-<script src="/comic.js?v=20260627c"></script>
+<script src="/comic.js?v=20260627d"></script>
 </head>
 <body>
 <div class="wrap">
@@ -186,7 +186,7 @@ function panelsFromAnswer(role, persona, content){
 function fill(el, content){
   el.querySelector('.st').textContent=''; el.querySelector('.body').innerHTML=fmt(content); el._meta.content=content;
   const cb=el.querySelector('.comic'); cb.style.display='inline-block';
-  cb.onclick=()=>AdmiraComic.open({ panels:panelsFromAnswer(el._meta.role,el._meta.persona,el._meta.content), tema:'AdmiraNext · '+(el._meta.question||''), names:[el._meta.persona], engine:'grok' });
+  cb.onclick=()=>AdmiraComic.open({ panels:panelsFromAnswer(el._meta.role,el._meta.persona,el._meta.content), tema:'AdmiraNext · '+(el._meta.question||''), names:[el._meta.persona], engine:'good' });
 }
 function fail(el, msg){ el.classList.add('err'); el.querySelector('.st').textContent=''; el.querySelector('.body').textContent='— '+msg; }
 

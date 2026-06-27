@@ -23,7 +23,7 @@
   const GROK_VIDEO = 'https://admira-grok-proxy.csilvasantin.workers.dev/grok/video'; // Grok anima el cómic (vídeo)
   const MAX_PANELS = 6;
   const LABELS = { good: 'good · SVG', grok: 'grok · Grok dibuja', better: 'better · ChatGPT (auto)', best: 'best · gpt-image-1' };
-  const defEngine = () => localStorage.getItem('comicEngine') || 'grok';
+  const defEngine = () => localStorage.getItem('comicEngine') || 'good';
   const setDef = e => { try { localStorage.setItem('comicEngine', e); } catch (x) {} };
 
   let CUR = { b64: null, data: null };  // imagen actual (dataURL) lista para enviar
