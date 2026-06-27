@@ -15,7 +15,8 @@
 (function () {
   'use strict';
   const COMIC_API = 'https://fallback.admira.store/comic';            // gpt-image-1
-  const TG_API = 'https://fallback.admira.store/comic-telegram';      // envío al grupo
+  const TG_API = 'https://fallback.admira.store/comic-telegram';      // envío imagen al grupo
+  const TG_VIDEO_API = 'https://fallback.admira.store/comic-telegram-video'; // envío vídeo al grupo
   const BRIDGE = 'http://127.0.0.1:9189';                             // puente local ChatGPT (suscripción, sin API key)
   const STOCK_API = 'https://api.admira.store/stock/publish';         // sube el cómic al Stock de Pixeria (emitible en DOOH)
   const GROK_IMG = 'https://admira-grok-proxy.csilvasantin.workers.dev/grok/image';   // Grok dibuja el cómic (xAI grok-2-image)
@@ -175,7 +176,12 @@
       if (s.done && s.url) {
         CUR.videoUrl = s.url;
         vb.innerHTML = `<video controls autoplay loop muted playsinline src="${s.url}" style="max-width:100%;border-radius:8px;margin-top:12px;border:1px solid #2a2f45"></video>
-          <div style="margin-top:6px"><a href="${s.url}" target="_blank" rel="noopener" style="color:#5bd6c0;font-size:13px">💾 Descargar / abrir vídeo</a></div>`;
+          <div style="margin-top:8px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap">
+            <a href="${s.url}" target="_blank" rel="noopener" style="color:#5bd6c0;font-size:13px">💾 Descargar / abrir</a>
+            <button id="ac-vsend" style="background:#2a8;color:#04231e;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:12px;font-weight:700">📤 Enviar vídeo al grupo</button>
+          </div>`;
+        const vs = card.querySelector('#ac-vsend');
+        if (vs) vs.onclick = () => sendVideoGroup(vs, data);
         btn.textContent = '🎬 vídeo listo'; return;
       }
       if (s.ok === false) return vFail(vb, btn, s.message || s.error || 'error de estado');
@@ -208,6 +214,18 @@
       if (r.ok && d.ok) { b.textContent = '✅ enviado al grupo'; }
       else { b.textContent = '⚠️ ' + (d.error || ('HTTP ' + r.status)); b.disabled = false; }
     } catch (e) { b.textContent = '⚠️ ' + e.message; b.disabled = false; }
+  }
+
+  // ── Enviar el VÍDEO (animación Grok) al grupo de Telegram ──
+  async function sendVideoGroup(btn, data) {
+    if (!CUR.videoUrl) return;
+    btn.textContent = '⏳ enviando…'; btn.disabled = true;
+    try {
+      const r = await fetch(TG_VIDEO_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: CUR.videoUrl, caption: '🎬 ' + caption(data) }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { btn.textContent = '✅ vídeo enviado'; }
+      else { btn.textContent = '⚠️ ' + (d.error || ('HTTP ' + r.status)); btn.disabled = false; }
+    } catch (e) { btn.textContent = '⚠️ ' + e.message; btn.disabled = false; }
   }
 
   // ── Puente local de ChatGPT: genera la imagen con la suscripción (sin API key) ──
