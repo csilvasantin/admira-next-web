@@ -30,6 +30,9 @@
 
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const trim = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+  // xAI devuelve el coste en "ticks" (1 USD = 1e10 ticks).
+  const costUsd = u => { const t = u && u.cost_in_usd_ticks; return (t != null && isFinite(t)) ? ('$' + (Number(t) / 1e10).toFixed(2)) : null; };
+  const costNote = (label, cost) => cost ? `<div style="text-align:center;color:#8a97ab;font-size:11px;margin-top:4px">💸 ${label}: ${cost}</div>` : '';
 
   function pickPanels(panels) {
     if (panels.length <= MAX_PANELS) return panels;
@@ -180,7 +183,7 @@
             <a href="${s.url}" target="_blank" rel="noopener" style="color:#5bd6c0;font-size:13px">💾 Descargar / abrir</a>
             <button id="ac-vstock" style="background:#7a5cff;color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:12px;font-weight:700" title="Publica el vídeo en el Stock de Pixeria (emitible en DOOH)">📦 Vídeo al Stock</button>
             <button id="ac-vsend" style="background:#2a8;color:#04231e;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:12px;font-weight:700">📤 Enviar vídeo al grupo</button>
-          </div>`;
+          </div>` + costNote('Vídeo Grok', costUsd(s.usage));
         const vs = card.querySelector('#ac-vsend');
         if (vs) vs.onclick = () => sendVideoGroup(vs, data);
         const vst = card.querySelector('#ac-vstock');
@@ -310,7 +313,7 @@
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok && (d.b64 || d.url)) {
           const url = d.b64 ? ('data:image/png;base64,' + d.b64) : d.url;
-          CUR.b64 = url; body.innerHTML = imgPreview(url) + videoBar(); wireVideo(card, data);
+          CUR.b64 = url; body.innerHTML = imgPreview(url) + costNote('Imagen Grok', costUsd(d.usage)) + videoBar(); wireVideo(card, data);
           setSendable(card, true); maybeAutoStock(card, data); return;
         }
         body.innerHTML = `<div style="padding:18px;color:#ffb454">Grok no pudo dibujar (${esc(d.message || d.error || ('HTTP ' + r.status))}). Cambia a «good» o «best».</div>`;
