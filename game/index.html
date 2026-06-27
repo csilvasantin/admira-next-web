@@ -99,6 +99,12 @@
   #detail .concl .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
   #detail .concl .acts button{background:#16271f;color:var(--amber);border:1px solid #2c4a3c;border-radius:8px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer}
   #detail .concl .acts button:hover{border-color:var(--amber)}
+  /* botón flotante de silencio maestro — accesible en CUALQUIER punto (encima de todos los overlays) */
+  #muteFloat{position:fixed;right:39px;bottom:118px;z-index:90;width:44px;height:44px;border-radius:50%;
+    background:#1a0e00;border:1px solid var(--line);color:var(--amber);font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px #000a;font-family:var(--mono)}
+  #muteFloat:hover{border-color:var(--amber)}
+  #muteFloat.off{background:#3a1000;border-color:#a33;color:#ff7a7a}
 </style>
 <script src="/comic.js"></script>
 </head>
@@ -112,6 +118,7 @@
 
 <div id="pad"><div class="u"></div><div class="d"></div><div class="l"></div><div class="r"></div></div>
 <button id="act">E</button>
+<button id="muteFloat" title="Silenciar todo (tecla M)" aria-label="Silenciar todo">🔊</button>
 
 <div id="chat"><div class="panel">
   <div class="ch"><canvas class="av" width="24" height="24"></canvas><div class="who"><div class="r"></div><div class="p"></div></div><button class="x">×</button></div>
@@ -330,6 +337,8 @@ function inTable(x,y){ return x>TABLE.x-9&&x<TABLE.x+TABLE.w+9&&y>TABLE.y-2&&y<T
 /* ===== input ===== */
 const keys=new Set(), touch={u:0,d:0,l:0,r:0};
 addEventListener('keydown',e=>{ ensureAudio();
+  const tag=(e.target&&e.target.tagName)||'';
+  if((e.key==='m'||e.key==='M')&&tag!=='INPUT'&&tag!=='TEXTAREA'){ e.preventDefault(); silenceAll(!audioAllOff()); return; }  // silenciar todo, en cualquier estado
   if(detailOpen){ if(e.key==='Escape') exitDetail(); return; }
   if(cliOpen) return;
   const k=e.key.toLowerCase(); keys.add(k);
@@ -412,8 +421,13 @@ function sfx(k){ if(k==='open'){ tone(440,0.06,'square',0.06); setTimeout(()=>to
 function startMusic(){ if(mTimer) return; const beat=0.26;
   mTimer=setInterval(()=>{ if(!AC||MUTED) return; tone(MELODY[mStep%MELODY.length],beat*0.9,'triangle',0.035);
     if(mStep%4===0) tone(98,beat*0.9,'square',0.03); mStep++; }, beat*1000); }
-function setMute(m){ MUTED=m; document.getElementById('muteBtn').textContent=m?'🔇':'🔊'; }
+function setMute(m){ MUTED=m; document.getElementById('muteBtn').textContent=m?'🔇':'🔊'; syncFloat(); }
 document.getElementById('muteBtn').onclick=e=>{ e.preventDefault(); ensureAudio(); setMute(!MUTED); };
+// ── silencio MAESTRO (música+SFX+voz) reachable desde cualquier punto ──
+function audioAllOff(){ return MUTED && !VOICE; }
+function syncFloat(){ const fb=document.getElementById('muteFloat'); if(!fb) return; const off=audioAllOff(); fb.textContent=off?'🔇':'🔊'; fb.classList.toggle('off',off); fb.title=off?'Sonido silenciado — pulsa para activar (M)':'Silenciar todo (tecla M)'; }
+function silenceAll(off){ setMute(off); setVoice(!off); if(off&&TTS){ try{speechSynthesis.cancel()}catch(e){} } syncFloat(); }
+document.getElementById('muteFloat').onclick=e=>{ e.preventDefault(); ensureAudio(); silenceAll(!audioAllOff()); };
 
 /* ===== CLI / consola de comandos ===== */
 const cli=document.getElementById('cli'), cliOut=document.getElementById('cliOut'), cliIn=document.getElementById('cliIn');
@@ -461,7 +475,7 @@ function speak(text,role){ if(!VOICE||!TTS||!text) return; try{ speechSynthesis.
   const u=new SpeechSynthesisUtterance(String(text).replace(/\*\*/g,'').replace(/[•▸→📋🎨]/g,'').slice(0,560));
   u.lang='es-ES'; if(voices.length){ const i=ROLES8.indexOf(role); u.voice=voices[(i<0?0:i)%voices.length]; }
   u.pitch=VPITCH[role]||1; u.rate=1.03; speechSynthesis.speak(u); }catch(e){} }
-function setVoice(v){ VOICE=v; const b=document.getElementById('voiceBtn'); b.textContent=v?'🗣️ voz':'🔇 voz'; b.style.opacity=v?1:.55; if(!v&&TTS) try{speechSynthesis.cancel()}catch(e){} }
+function setVoice(v){ VOICE=v; const b=document.getElementById('voiceBtn'); b.textContent=v?'🗣️ voz':'🔇 voz'; b.style.opacity=v?1:.55; if(!v&&TTS) try{speechSynthesis.cancel()}catch(e){} syncFloat(); }
 document.getElementById('voiceBtn').onclick=e=>{ e.preventDefault(); setVoice(!VOICE); };
 
 /* ===== Secretario: acta / síntesis ===== */
