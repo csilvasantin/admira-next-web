@@ -66,7 +66,11 @@
   .ans.err{border-left-color:var(--red)} .ans.err .r{color:var(--red)}
   .typing{display:inline-block;color:var(--amber)}
   footer{margin-top:40px;color:var(--mut);font-size:11px;border-top:1px solid var(--line);padding-top:14px}
+  .ans .h .comic{margin-left:8px;cursor:pointer;color:var(--amber);border:1px solid var(--line);border-radius:7px;
+    padding:2px 9px;font-size:11px;font-weight:700;background:#1a0e00;display:none}
+  .ans .h .comic:hover{border-color:var(--amber);background:#241400}
 </style>
+<script src="/comic.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -164,18 +168,32 @@ async function askOne(role, gen, persona, message){
   }
   throw new Error('no se pudo contactar al Consejo');
 }
-function card(role, persona, area){
+const COMIC_COLORS={CEO:'#ffb000',CTO:'#4ea1ff',COO:'#7ee0a0',CFO:'#ffd166',CCO:'#ff7ad9',CDO:'#b89cff',CXO:'#ff9f57',CSO:'#5be0e0'};
+function card(role, persona, area, question){
   const el=document.createElement('div'); el.className='ans';
-  el.innerHTML=`<div class="h"><span class="r">${role}</span><span class="p">${persona}</span><span class="a">${area||''}</span><span class="st"><span class="typing">deliberando…</span></span></div><div class="body"></div>`;
+  el.innerHTML=`<div class="h"><span class="r">${role}</span><span class="p">${persona}</span><span class="a">${area||''}</span><button class="comic">🎨 Cómic</button><span class="st"><span class="typing">deliberando…</span></span></div><div class="body"></div>`;
+  el._meta={role,persona,question};
   $('#out').prepend(el); return el;
 }
-function fill(el, content){ el.querySelector('.st').textContent=''; el.querySelector('.body').innerHTML=fmt(content); }
+// Divide la explicación del consejero en 2-5 viñetas (por frases) para el cómic.
+function panelsFromAnswer(role, persona, content){
+  const color=COMIC_COLORS[role]||'#ffb000';
+  const sents=String(content).replace(/\n+/g,' ').split(/(?<=[.!?])\s+/).map(s=>s.trim().replace(/\*\*/g,'')).filter(s=>s.length>4);
+  const N=Math.min(5,Math.max(2,Math.round(sents.length/2))), per=Math.max(1,Math.ceil(sents.length/N)), out=[];
+  for(let i=0;i<sents.length && out.length<5;i+=per) out.push({persona,role,text:sents.slice(i,i+per).join(' ').slice(0,200),avatarStyle:'',color});
+  return out.length?out:[{persona,role,text:String(content).slice(0,200),avatarStyle:'',color}];
+}
+function fill(el, content){
+  el.querySelector('.st').textContent=''; el.querySelector('.body').innerHTML=fmt(content); el._meta.content=content;
+  const cb=el.querySelector('.comic'); cb.style.display='inline-block';
+  cb.onclick=()=>AdmiraComic.open({ panels:panelsFromAnswer(el._meta.role,el._meta.persona,el._meta.content), tema:'AdmiraNext · '+(el._meta.question||''), names:[el._meta.persona], engine:'good' });
+}
 function fail(el, msg){ el.classList.add('err'); el.querySelector('.st').textContent=''; el.querySelector('.body').textContent='— '+msg; }
 
 async function doOne(){
   const q=$('#q').value.trim(); if(!q){ $('#q').focus(); return; }
   if(BUSY) return; BUSY=true; $('#askOne').disabled=$('#askAll').disabled=true;
-  const c=ROSTER[GEN][SEL]; const el=card(c[0],c[2],c[1]);
+  const c=ROSTER[GEN][SEL]; const el=card(c[0],c[2],c[1],q);
   try{ const a=await askOne(c[0],GEN,c[2],q); fill(el,a.content); }catch(e){ fail(el,e.message); }
   BUSY=false; $('#askOne').disabled=$('#askAll').disabled=false;
 }
@@ -183,7 +201,7 @@ async function doAll(){
   const q=$('#q').value.trim(); if(!q){ $('#q').focus(); return; }
   if(BUSY) return; BUSY=true; $('#askOne').disabled=$('#askAll').disabled=true;
   for(const c of ROSTER[GEN]){
-    const el=card(c[0],c[2],c[1]);
+    const el=card(c[0],c[2],c[1],q);
     try{ const a=await askOne(c[0],GEN,c[2],q); fill(el,a.content); }catch(e){ fail(el,e.message); }
     await new Promise(s=>setTimeout(s,1500));   // pausa entre consejeros (rate limit)
   }
