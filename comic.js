@@ -143,7 +143,7 @@
       <div id="ac-vid"></div></div>`;
   }
   function videoPrompt(data) {
-    return `Anima en un vídeo corto (5s) esta escena de cómic: una reunión del Consejo de Admira en una sala de control futurista, estilo cómic moderno colorido, cámara suave. Tema: "${trim(data.tema, 90)}".`;
+    return `Da vida a esta tira de cómic: los personajes y la cámara se mueven ligeramente, la escena cobra vida manteniendo el estilo. Reunión del Consejo de Admira en una sala de control futurista. Tema: "${trim(data.tema, 90)}".`;
   }
   function wireVideo(card, data) {
     const btn = card.querySelector('#ac-video'); if (!btn) return;
@@ -158,7 +158,10 @@
     btn.disabled = true; btn.textContent = '🎬 Grok generando vídeo…'; vb.innerHTML = '';
     let id;
     try {
-      const r = await fetch(GROK_VIDEO, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: videoPrompt(data) }) });
+      // image-to-video: anima la VIÑETA exacta (CUR.b64 = el cómic ya dibujado); si no hay, texto→vídeo
+      const payload = { prompt: videoPrompt(data), duration: 6 };
+      if (CUR.b64) payload.image = CUR.b64;
+      const r = await fetch(GROK_VIDEO, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const d = await r.json().catch(() => ({}));
       if (!(r.ok && d.ok && d.id)) return vFail(vb, btn, d.message || d.error || ('HTTP ' + r.status));
       id = d.id;
