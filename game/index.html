@@ -138,9 +138,9 @@ const QUIPS={CEO:'La sencillez es la máxima sofisticación.',CTO:'Si funciona y
   COO:'La cadena de suministro ES la estrategia.',CFO:'Precio es lo que pagas; valor lo que recibes.',
   CCO:'Si lo puedes soñar, lo puedes hacer.',CDO:'Menos, pero mejor.',
   CXO:'No vendemos producto: vendemos experiencia.',CSO:'Una buena historia lo cambia todo.'};
-// Recepcionista (guía, no consejero): da la bienvenida y explica el Xpacio.
-const RECEPTION={role:'HOST',persona:'Recepción',area:'Anfitrión',guide:true,
-  pal:{skin:'#caa06a',hair:'#2a2a2a',shirt:'#7a4a14',accent:'#ffd166',glasses:0,beard:0,bald:0}};
+// Maestro de Ceremonias (Carlos Silva): te recibe y explica el Xpacio.
+const RECEPTION={role:'MC',persona:'Carlos Silva',area:'Master of Ceremony',guide:true,
+  pal:{skin:'#e0b088',hair:'#3a2a1a',shirt:'#241400',accent:'#ffd166',glasses:1,beard:'mustache',bald:0}};
 
 const cv=document.getElementById('cv'), g=cv.getContext('2d'); g.imageSmoothingEnabled=false;
 const W=cv.width, H=cv.height;
@@ -261,12 +261,12 @@ function loop(){
   // ordena por y para profundidad
   const ents=[...ALL.map(c=>({y:c.y,d:()=>{ drawPerson(c.x,c.y,c.pal,1,Math.sin(frame/40+c.x)*0.4);
         g.fillStyle=near===c?'#ffd166':(c.guide?'#caa86a':'#caa86a'); g.font='6px monospace'; g.textAlign='center';
-        g.fillText(c.guide?'?':c.role,c.x,c.y-24); g.textAlign='left'; }})),
+        g.fillText(c.guide?'MC':c.role,c.x,c.y-24); g.textAlign='left'; }})),
       {y:player.y,d:()=>drawPerson(player.x,player.y,PLAYER_PAL,1,Math.abs(Math.sin(player.step))* -1)}];
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.d());
   // frase flotante + prompt de interacción
   if(near && !chatOpen){
-    const q = near.guide ? 'Bienvenido. Pulsa E o abre la consola con /' : (QUIPS[near.role]||'');
+    const q = near.guide ? 'Soy Carlos, vuestro Maestro de Ceremonias — pulsa E' : (QUIPS[near.role]||'');
     if(q) bubbleHud(near.x, near.y-32, q);
     g.fillStyle='#ffb000'; g.font='7px monospace'; g.textAlign='center';
     g.fillText('E ▸ '+near.persona, near.x, near.y-(q?44:32)); g.textAlign='left';
@@ -302,13 +302,13 @@ document.getElementById('act').addEventListener('touchstart',e=>{e.preventDefaul
 const chat=document.getElementById('chat');
 let chatOpen=false, curNPC=null, busy=false;
 function openChat(c){ curNPC=c; chatOpen=true; chat.style.display='flex'; sfx('open');
-  chat.querySelector('.who .r').textContent=c.guide?'RECEPCIÓN':(c.role+' · '+c.area);
+  chat.querySelector('.who .r').textContent=c.guide?'MASTER OF CEREMONY':(c.role+' · '+c.area);
   chat.querySelector('.who .p').textContent=c.persona;
   drawPortrait(chat.querySelector('.av').getContext('2d'),c.pal,2);
   chat.querySelector('.msgs').innerHTML='';
   const row=chat.querySelector('.row'), chips=chat.querySelector('.chips');
   if(c.guide){
-    bubble('them','Bienvenido al <strong>Xpacio del Consejo de AdmiraNext</strong> — los 8 asesores legendarios.\n\n• Muévete con <strong>WASD</strong>/flechas. Acércate a un asesor y pulsa <strong>E</strong> para consultarle (te responden <strong>en voz</strong> 🗣️).\n• Abre la <strong>consola</strong> con <strong>/</strong>: <strong>mesa CEO CFO ¿tema?</strong> convoca una reunión donde DEBATEN y firman un <strong>acta</strong>.\n• El <strong>📋 tablero de decisiones</strong> guarda las actas (exportar, compartir, cómic).');
+    bubble('them','Soy **Carlos Silva**, vuestro **Maestro de Ceremonias**. Bienvenido al **Xpacio del Consejo de AdmiraNext** — os presento a los 8 asesores legendarios.\n\n• Muévete con **WASD**/flechas. Acércate a un asesor y pulsa **E** para consultarle (te responden **en voz** 🗣️).\n• Abre la **consola** con **/** y prueba **mesa CEO CFO ¿prioridad del trimestre?** — los asesores DEBATEN y firman un **acta**.\n• El **📋 tablero de decisiones** guarda las actas (exportar, compartir, cómic).');
     chips.innerHTML=''; row.style.display='none'; return;
   }
   row.style.display='flex';
