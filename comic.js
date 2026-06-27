@@ -1,12 +1,13 @@
 /* ============================================================================
  * comic.js — cómic de viñetas de una reunión del Consejo
  * ----------------------------------------------------------------------------
- * Al cerrar la Mesa, convierte la conversación en una tira de cómic. 3 calidades:
- *   • good   = SVG en la web (viñetas con avatares — SIEMPRE funciona)
- *   • better = tu ChatGPT (suscripción, sin API key): AUTO vía puente local (chatgpt-bridge);
- *              si no hay puente, cae al manual (copia prompt, abre ChatGPT, pega imagen) ← DEFECTO
- *   • best   = gpt-image-1 (OpenAI, automático vía worker — cuando haya API key)
- * Default elegible y persistido (localStorage 'comicEngine', init 'better').
+ * Al cerrar la Mesa, convierte la conversación en una tira de cómic. Escalera de calidad:
+ *   • good          = SVG en la web (viñetas — SIEMPRE funciona, gratis) ← DEFECTO
+ *   • better (key)  = tu ChatGPT por SUSCRIPCIÓN (puente local chatgpt-bridge, SIN API key;
+ *                     si no hay puente, manual: copia prompt → ChatGPT → pega imagen). En medio.
+ *   • grok (key)    = Grok (xAI, API de pago) — etiqueta "better · Grok": dibuja + anima en vídeo.
+ *   • best          = gpt-image-1 (OpenAI, API) — FUERA del selector para no gastar sin querer.
+ * Default elegible y persistido (localStorage 'comicEngine', init 'good').
  * Al terminar, se puede ENVIAR AL GRUPO de Telegram (AdmiraXP) vía el worker.
  *
  * API: AdmiraComic.open({panels, tema, names, engine?})
@@ -22,7 +23,9 @@
   const GROK_IMG = 'https://admira-grok-proxy.csilvasantin.workers.dev/grok/image';   // Grok dibuja el cómic (xAI grok-2-image)
   const GROK_VIDEO = 'https://admira-grok-proxy.csilvasantin.workers.dev/grok/video'; // Grok anima el cómic (vídeo)
   const MAX_PANELS = 6;
-  const LABELS = { good: 'good · SVG', grok: 'grok · Grok dibuja', better: 'better · ChatGPT (auto)', best: 'best · gpt-image-1' };
+  // Escalera de calidad: good (SVG, gratis) → ChatGPT (suscripción, sin API) → better (Grok, API de pago).
+  // 'best' (gpt-image-1, API de OpenAI) queda fuera del selector para no gastar sin querer.
+  const LABELS = { good: 'good · SVG', better: 'ChatGPT · suscripción', grok: 'better · Grok', best: 'best · gpt-image-1' };
   const defEngine = () => localStorage.getItem('comicEngine') || 'good';
   const setDef = e => { try { localStorage.setItem('comicEngine', e); } catch (x) {} };
 
@@ -60,7 +63,7 @@
     const opt = e => `<option value="${e}"${engine === e ? ' selected' : ''}>${LABELS[e]}</option>`;
     return `<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid #2a2f45;position:sticky;top:0;background:#11131f;z-index:2;flex-wrap:wrap">
       <b style="color:#e8eef7;font-size:15px">🎨 Cómic del Consejo</b>
-      <select id="ac-engine" title="calidad" style="margin-left:auto;background:#1a2030;color:#e8eef7;border:1px solid #2a2f45;border-radius:8px;padding:6px 8px;font:inherit;font-size:12px">${opt('grok')}${opt('good')}${opt('better')}${opt('best')}</select>
+      <select id="ac-engine" title="calidad" style="margin-left:auto;background:#1a2030;color:#e8eef7;border:1px solid #2a2f45;border-radius:8px;padding:6px 8px;font:inherit;font-size:12px">${opt('good')}${opt('better')}${opt('grok')}</select>
       <label style="color:#8a97ab;font-size:11px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="ac-def"> por defecto</label>
       <button id="ac-regen" style="background:#1a2030;color:#e8eef7;border:1px solid #2a2f45;border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:12px">↻</button>
       <button id="ac-stock" disabled style="background:#7a5cff;color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:12px;font-weight:700;opacity:.5" title="Sube el cómic al Stock de Pixeria (emitible en DOOH)">📦 Stock</button>
