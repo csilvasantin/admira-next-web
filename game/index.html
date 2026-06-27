@@ -60,13 +60,27 @@
   #cli .cli-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
   #cli .prompt{color:var(--amber);font-weight:700}
   #cli input{flex:1;background:transparent;border:0;outline:0;color:var(--amber2);font-family:var(--mono);font-size:14px}
+  /* tablero de decisiones */
+  #board{position:fixed;inset:0;background:rgba(8,5,2,.85);display:none;align-items:center;justify-content:center;z-index:26;padding:16px}
+  #board .panel{width:100%;max-width:780px;height:min(80vh,560px);background:linear-gradient(180deg,#1a0e00,#140d04);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column}
+  #board .bh{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+  #board .bh b{color:var(--amber);font-size:14px} #board .bh .x{margin-left:auto;cursor:pointer;color:var(--mut);font-size:20px;background:0;border:0}
+  #board .list{flex:1;overflow:auto;padding:12px 16px;display:flex;flex-direction:column;gap:12px}
+  #board .dec{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:11px;background:#120c03;padding:12px 14px}
+  #board .dec .t{color:var(--amber2);font-weight:700} #board .dec .meta{color:var(--mut);font-size:11px;margin:2px 0 8px}
+  #board .dec .acta{white-space:pre-wrap;font-size:13px;line-height:1.5}
+  #board .dec .acta strong{color:var(--amber)}
+  #board .dec .acts{display:flex;gap:8px;margin-top:10px}
+  #board .dec .acts button{background:#1a0e00;color:var(--amber);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font:inherit;font-size:11px;cursor:pointer}
+  #board .dec .acts button:hover{border-color:var(--amber)}
+  #board .empty{color:var(--mut);text-align:center;padding:40px 10px}
 </style>
 <script src="/comic.js"></script>
 </head>
 <body>
 <div class="hud">
   <span class="brand">ADmira<b>NeXT</b></span><span class="crumb">› Xpacio del Consejo</span>
-  <span class="links"><a href="#" id="cliBtn">⌨ consola</a> <a href="#" id="muteBtn">🔊</a> <a href="/consejo/">vista chat</a> <a href="/">admiranext.com</a></span>
+  <span class="links"><a href="#" id="boardBtn">📋 decisiones</a> <a href="#" id="cliBtn">⌨ consola</a> <a href="#" id="voiceBtn">🗣️ voz</a> <a href="#" id="muteBtn">🔊</a> <a href="/consejo/">chat</a> <a href="/">admiranext.com</a></span>
 </div>
 <div id="stage"><canvas id="cv" width="320" height="192"></canvas></div>
 <div class="tip" id="tip">Muévete con <b>WASD</b>/flechas · acércate a un consejero y pulsa <b>E</b> para hablar</div>
@@ -83,7 +97,12 @@
 
 <div id="cli"><div class="panel">
   <div class="cli-out" id="cliOut"></div>
-  <div class="cli-row"><span class="prompt">consejo&gt;</span><input id="cliIn" autocomplete="off" spellcheck="false" placeholder="help"></div>
+  <div class="cli-row"><span class="prompt">consejo&gt;</span><input id="cliIn" autocomplete="off" spellcheck="false" placeholder="help · prueba: mesa CEO CFO ¿prioridad del trimestre?"></div>
+</div></div>
+
+<div id="board"><div class="panel">
+  <div class="bh"><b>📋 Tablero de decisiones</b><span style="color:var(--mut);font-size:11px">actas del Consejo (este navegador)</span><button class="x" id="boardX">×</button></div>
+  <div class="list" id="boardList"></div>
 </div></div>
 
 <script>
@@ -289,7 +308,7 @@ function openChat(c){ curNPC=c; chatOpen=true; chat.style.display='flex'; sfx('o
   chat.querySelector('.msgs').innerHTML='';
   const row=chat.querySelector('.row'), chips=chat.querySelector('.chips');
   if(c.guide){
-    bubble('them','Bienvenido al <strong>Xpacio del Consejo de AdmiraNext</strong> — los 8 asesores legendarios.\n\n• Muévete con <strong>WASD</strong>/flechas.\n• Acércate a un asesor y pulsa <strong>E</strong> para consultarle.\n• Abre la <strong>consola</strong> con la tecla <strong>/</strong> (comandos: who, ask, all, goto…).\n• Cada respuesta se puede convertir en <strong>cómic</strong> 🎨.');
+    bubble('them','Bienvenido al <strong>Xpacio del Consejo de AdmiraNext</strong> — los 8 asesores legendarios.\n\n• Muévete con <strong>WASD</strong>/flechas. Acércate a un asesor y pulsa <strong>E</strong> para consultarle (te responden <strong>en voz</strong> 🗣️).\n• Abre la <strong>consola</strong> con <strong>/</strong>: <strong>mesa CEO CFO ¿tema?</strong> convoca una reunión donde DEBATEN y firman un <strong>acta</strong>.\n• El <strong>📋 tablero de decisiones</strong> guarda las actas (exportar, compartir, cómic).');
     chips.innerHTML=''; row.style.display='none'; return;
   }
   row.style.display='flex';
@@ -313,6 +332,10 @@ async function send(){
     const cm=document.createElement('span'); cm.className='comic'; cm.textContent='🎨 Cómic';
     cm.onclick=()=>AdmiraComic.open({panels:panels(curNPC,ans),tema:'AdmiraNext · '+q,names:[curNPC.persona],engine:'good'});
     b.appendChild(cm);
+    const sv=document.createElement('span'); sv.className='comic'; sv.style.marginLeft='6px'; sv.textContent='📋 guardar';
+    sv.onclick=()=>{ saveDecision({tema:q,participantes:[curNPC.role],acta:ans,ts:Date.now()}); sv.textContent='✓ guardada'; };
+    b.appendChild(sv);
+    speak(ans,curNPC.role);
   }catch(e){ b.innerHTML='— '+fmt(e.message); }
   busy=false; chat.querySelector('.send').disabled=false;
 }
@@ -355,16 +378,19 @@ async function cliAsk(t,q){ const d=cliPrint('s','['+t.role+'] '+t.persona+' pen
   try{ const ans=await askOne(t.role,t.gen,t.persona,q);
     d.className='a'; d.innerHTML='<span style="color:'+(RCOL[t.role]||'#ffb000')+';font-weight:700">['+t.role+'] '+t.persona+':</span> '+fmt(ans)+' <span class="comic">🎨 cómic</span>';
     d.querySelector('.comic').onclick=()=>AdmiraComic.open({panels:panels(t,ans),tema:'AdmiraNext · '+q,names:[t.persona],engine:'good'});
+    speak(ans,t.role);
   }catch(e){ d.className='e'; d.textContent='['+t.role+'] error: '+e.message; sfx('err'); } }
 async function cliRun(line){ cliPrint('u','consejo&gt; '+esc(line));
   const parts=line.trim().split(/\s+/); const c=(parts[0]||'').toLowerCase(); const rest=parts.slice(1), arg=rest.join(' ');
-  if(c==='help'||c==='?') return cliPrint('a','Comandos:\n  who               lista los consejeros\n  ask &lt;ROL&gt; &lt;pregunta&gt;  consulta a un consejero\n  all &lt;pregunta&gt;    pregunta a TODO el Consejo\n  goto &lt;ROL&gt;        camina hasta un consejero\n  clear             limpia la consola\n  salir             cierra la consola\n  (↑/↓ historial · Esc cierra)');
+  if(c==='help'||c==='?') return cliPrint('a','Comandos:\n  who                   lista los consejeros\n  ask &lt;ROL&gt; &lt;pregunta&gt;     consulta a un consejero\n  all &lt;pregunta&gt;        pregunta a TODO el Consejo\n  mesa &lt;ROL&gt; &lt;ROL&gt;… &lt;tema&gt;  reunión: debaten y firman un ACTA\n  decisiones            abre el tablero de actas\n  goto &lt;ROL&gt;            camina hasta un consejero\n  clear · salir         limpia · cierra\n  (↑/↓ historial · Esc cierra)');
   if(c==='who'||c==='consejo') return cliPrint('a',COUNCIL.map(x=>'  '+x.role.padEnd(4)+' · '+x.persona+'  ('+x.area+')').join('\n'));
   if(c==='clear'){ cliOut.innerHTML=''; return; }
   if(c==='salir'||c==='exit'||c==='q') return closeCli();
   if(c==='goto'){ const t=findRole(arg); if(!t) return cliPrint('e','no encontré «'+esc(arg)+'»'); player.x=t.x; player.y=t.y+14; return cliPrint('s','→ caminando hasta '+t.persona); }
   if(c==='ask'){ const t=findRole(rest[0]); const q=rest.slice(1).join(' '); if(!t||!q) return cliPrint('e','uso: ask &lt;ROL&gt; &lt;pregunta&gt;'); return cliAsk(t,q); }
   if(c==='all'){ if(!arg) return cliPrint('e','uso: all &lt;pregunta&gt;'); for(const t of COUNCIL){ await cliAsk(t,arg); await new Promise(s=>setTimeout(s,1200)); } return; }
+  if(c==='mesa'){ const rs=[]; let i=0; while(i<rest.length && COUNCIL.some(x=>x.role===rest[i].toUpperCase())){ rs.push(rest[i]); i++; } return mesa(rs, rest.slice(i).join(' ')); }
+  if(c==='decisiones'||c==='tablero'||c==='actas') return openBoard();
   if(c) cliPrint('e','comando desconocido: '+esc(c)+' · escribe help');
 }
 cliIn.addEventListener('keydown',e=>{ e.stopPropagation();
@@ -373,6 +399,75 @@ cliIn.addEventListener('keydown',e=>{ e.stopPropagation();
   else if(e.key==='ArrowUp'){ if(histI>0){ histI--; cliIn.value=cliHist[histI]||''; } e.preventDefault(); }
   else if(e.key==='ArrowDown'){ if(histI<cliHist.length){ histI++; cliIn.value=cliHist[histI]||''; } e.preventDefault(); } });
 document.getElementById('cliBtn').onclick=e=>{ e.preventDefault(); ensureAudio(); cliOpen?closeCli():openCli(); };
+
+/* ===== voz (TTS) — cada consejero habla con su tono ===== */
+let VOICE=true, voices=[]; const TTS='speechSynthesis' in window;
+function loadVoices(){ const all=TTS?(speechSynthesis.getVoices()||[]):[]; voices=all.filter(v=>/^es/i.test(v.lang)); if(!voices.length) voices=all; }
+if(TTS){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+const ROLES8=['CEO','CTO','COO','CFO','CCO','CDO','CXO','CSO','HOST'];
+const VPITCH={CEO:1.0,CTO:1.18,COO:0.92,CFO:0.8,CCO:1.22,CDO:0.86,CXO:1.06,CSO:0.84,HOST:1.0};
+function speak(text,role){ if(!VOICE||!TTS||!text) return; try{ speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(String(text).replace(/\*\*/g,'').replace(/[•▸→📋🎨]/g,'').slice(0,560));
+  u.lang='es-ES'; if(voices.length){ const i=ROLES8.indexOf(role); u.voice=voices[(i<0?0:i)%voices.length]; }
+  u.pitch=VPITCH[role]||1; u.rate=1.03; speechSynthesis.speak(u); }catch(e){} }
+function setVoice(v){ VOICE=v; const b=document.getElementById('voiceBtn'); b.textContent=v?'🗣️ voz':'🔇 voz'; b.style.opacity=v?1:.55; if(!v&&TTS) try{speechSynthesis.cancel()}catch(e){} }
+document.getElementById('voiceBtn').onclick=e=>{ e.preventDefault(); setVoice(!VOICE); };
+
+/* ===== Secretario: acta / síntesis ===== */
+async function synthesize(tema, history){
+  const d=cliPrint('s','📋 Secretario redactando el acta…');
+  const tr=history.map(h=>'['+h.role+'] '+h.persona+': '+h.text).join('\n');
+  const prompt='Actúa como el SECRETARIO del Consejo (neutral, SIN persona ni acotaciones). Redacta el ACTA de la deliberación del Consejo de AdmiraNext sobre «'+tema+'».\nIntervenciones:\n'+tr+
+    '\n\nDevuelve SOLO el acta, breve, exactamente así:\n**ACUERDO:** …\n**RIESGOS:** …\n**RECOMENDACIÓN:** … (accionable y concreta para AdmiraNext)';
+  try{ const ans=await askOne('COO','leyendas','Secretario',prompt);
+    d.className='a'; d.innerHTML='<span style="color:var(--amber);font-weight:700">📋 ACTA</span>\n'+fmt(ans); speak('Acta del consejo. '+ans,'HOST'); return ans;
+  }catch(e){ d.className='e'; d.textContent='acta error: '+e.message; return ''; }
+}
+
+/* ===== La Mesa: debate entre consejeros ===== */
+async function mesa(roles, tema){
+  const parts=roles.map(r=>COUNCIL.find(c=>c.role===r.toUpperCase())).filter(Boolean);
+  if(parts.length<2) return cliPrint('e','La Mesa necesita 2+ consejeros · ej: mesa CEO CFO ¿tema?');
+  if(!tema) return cliPrint('e','falta el tema · ej: mesa CEO CFO ¿prioridad del trimestre?');
+  cliPrint('s','🪑 La Mesa · '+parts.map(p=>p.role).join(' · ')+' · «'+esc(tema)+'»');
+  const history=[];
+  for(const c of parts){
+    const others=parts.filter(p=>p!==c).map(p=>p.persona+' ('+p.role+')').join(', ');
+    const prior=history.length?'\nLo dicho hasta ahora:\n'+history.slice(-4).map(h=>'['+h.role+'] '+h.text).join('\n'):'';
+    const msg='Estás en una REUNIÓN del Consejo de AdmiraNext con '+others+'. Tema a decidir: '+tema+'.'+prior+
+      '\nDa TU postura en 2-3 frases, en tu persona, reaccionando a los demás si procede. Concreto para AdmiraNext.';
+    const d=cliPrint('s','['+c.role+'] '+c.persona+' interviene…');
+    try{ const ans=await askOne(c.role,c.gen,c.persona,msg); history.push({role:c.role,persona:c.persona,text:ans});
+      d.className='a'; d.innerHTML='<span style="color:'+(RCOL[c.role]||'#ffb000')+';font-weight:700">['+c.role+'] '+c.persona+':</span> '+fmt(ans); cliOut.scrollTop=1e9; speak(ans,c.role);
+    }catch(e){ d.className='e'; d.textContent='['+c.role+'] error: '+e.message; }
+    await new Promise(s=>setTimeout(s,1500));
+  }
+  if(history.length>=2){ const acta=await synthesize(tema,history);
+    if(acta){ saveDecision({tema,participantes:parts.map(p=>p.role),acta,ts:Date.now()}); cliPrint('s','✓ guardada en 📋 decisiones'); } }
+}
+
+/* ===== Tablero de decisiones (persistente) ===== */
+function decisions(){ try{ return JSON.parse(localStorage.getItem('consejo_decisiones')||'[]'); }catch(e){ return []; } }
+function saveDecision(d){ const a=decisions(); a.unshift(d); localStorage.setItem('consejo_decisiones',JSON.stringify(a.slice(0,50))); }
+function delDecision(ts){ localStorage.setItem('consejo_decisiones',JSON.stringify(decisions().filter(d=>d.ts!==ts))); renderBoard(); }
+function fechaTxt(ts){ try{ return new Date(ts).toLocaleString('es-ES'); }catch(e){ return ''; } }
+function actaPanels(d){ const s=String(d.acta).split(/\n+/).map(x=>x.replace(/\*\*/g,'').trim()).filter(x=>x.length>3).slice(0,5);
+  return s.length?s.map(t=>({persona:'Consejo',role:'ACTA',text:t.slice(0,200),avatarStyle:'',color:'#ffb000'})):[{persona:'Consejo',role:'ACTA',text:String(d.acta).slice(0,200),avatarStyle:'',color:'#ffb000'}]; }
+function expDecision(d){ const txt='ACTA DEL CONSEJO DE ADMIRANEXT\nTema: '+d.tema+'\nFecha: '+fechaTxt(d.ts)+'\nConsejeros: '+(d.participantes||[]).join(', ')+'\n\n'+String(d.acta).replace(/\*\*/g,'');
+  const b=new Blob([txt],{type:'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a'); a.href=u; a.download='acta-'+d.ts+'.txt'; a.click(); URL.revokeObjectURL(u); }
+function renderBoard(){ const a=decisions(), L=document.getElementById('boardList');
+  if(!a.length){ L.innerHTML='<div class="empty">Aún no hay decisiones.\n\nConvoca La Mesa en la consola (/):\n<span style="color:var(--amber)">mesa CEO CFO ¿prioridad del trimestre?</span></div>'; return; }
+  L.innerHTML=''; a.forEach(d=>{ const el=document.createElement('div'); el.className='dec';
+    el.innerHTML='<div class="t">'+esc(d.tema)+'</div><div class="meta">'+fechaTxt(d.ts)+' · '+(d.participantes||[]).join(' · ')+'</div><div class="acta">'+fmt(d.acta)+'</div>'+
+      '<div class="acts"><button data-a="comic">🎨 Cómic</button><button data-a="exp">⬇ Exportar</button><button data-a="del">✕ Borrar</button></div>';
+    el.querySelector('[data-a="comic"]').onclick=()=>AdmiraComic.open({panels:actaPanels(d),tema:'Acta · '+d.tema,names:['Consejo'],engine:'good'});
+    el.querySelector('[data-a="exp"]').onclick=()=>expDecision(d);
+    el.querySelector('[data-a="del"]').onclick=()=>delDecision(d.ts);
+    L.appendChild(el); }); }
+function openBoard(){ renderBoard(); document.getElementById('board').style.display='flex'; }
+document.getElementById('boardBtn').onclick=e=>{ e.preventDefault(); openBoard(); };
+document.getElementById('boardX').onclick=()=>document.getElementById('board').style.display='none';
+document.getElementById('board').addEventListener('click',e=>{ if(e.target.id==='board') document.getElementById('board').style.display='none'; });
 
 /* ===== escala el canvas al viewport (pixel perfect) ===== */
 function fit(){ const pad=24; const s=Math.max(1,Math.floor(Math.min((innerWidth-pad)/W,(innerHeight-pad)/H)));
