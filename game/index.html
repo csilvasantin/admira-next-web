@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>El Consejo · Xpacio · ADmiraNeXT</title>
+<meta name="description" content="Entra al Xpacio del Consejo de ADmiraNeXT y habla con los 8 asesores como en un videojuego.">
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root{ --amber:#ffb000; --amber2:#ffd166; --bg:#0a0703; --panel:#1a0e00; --line:#3a2600; --ink:#f3e2c0; --mut:#7a5e22; --red:#ff4f4f;
+    --mono:'JetBrains Mono','Fira Code',ui-monospace,monospace; }
+  *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--mono);overflow:hidden}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{image-rendering:pixelated;image-rendering:crisp-edges;background:#120c03;box-shadow:0 0 0 2px #000,0 20px 60px #000;border-radius:4px}
+  /* HUD */
+  .hud{position:fixed;top:10px;left:12px;right:12px;display:flex;align-items:center;gap:12px;pointer-events:none;z-index:5}
+  .hud .brand{font-weight:800;color:var(--amber);letter-spacing:1px;font-size:14px}
+  .hud .brand b{color:var(--amber2)}
+  .hud .crumb{color:var(--mut);font-size:11px}
+  .hud .links{margin-left:auto;display:flex;gap:14px;font-size:11px;pointer-events:auto}
+  .hud a{color:var(--amber);text-decoration:none} .hud a:hover{color:var(--amber2)}
+  .tip{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(20,12,2,.92);border:1px solid var(--line);
+    border-radius:10px;padding:7px 14px;font-size:12px;color:var(--ink);z-index:5;white-space:nowrap}
+  .tip b{color:var(--amber)}
+  /* d-pad táctil */
+  #pad{position:fixed;bottom:20px;left:20px;width:140px;height:140px;z-index:6;display:none;touch-action:none}
+  #pad div{position:absolute;width:46px;height:46px;background:rgba(255,176,0,.14);border:1px solid var(--line);border-radius:8px}
+  #pad .u{top:0;left:47px}#pad .d{bottom:0;left:47px}#pad .l{top:47px;left:0}#pad .r{top:47px;right:0}
+  #act{position:fixed;bottom:30px;right:24px;width:74px;height:74px;border-radius:50%;background:var(--amber);color:#1a0e00;
+    border:0;font-family:var(--mono);font-weight:800;font-size:13px;z-index:6;display:none}
+  /* diálogo / chat */
+  #chat{position:fixed;inset:0;background:rgba(8,5,2,.78);display:none;align-items:flex-end;justify-content:center;z-index:20;padding:0 0 0}
+  #chat .panel{width:100%;max-width:780px;max-height:82vh;background:linear-gradient(180deg,#1a0e00,#140d04);border:1px solid var(--line);
+    border-bottom:0;border-radius:16px 16px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 50px #000}
+  #chat .ch{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  #chat .av{width:40px;height:40px;border-radius:8px;image-rendering:pixelated;background:#0f0a02;border:1px solid var(--line)}
+  #chat .who .r{color:var(--amber);font-weight:800;font-size:12px;letter-spacing:.5px}
+  #chat .who .p{font-weight:700}
+  #chat .x{margin-left:auto;cursor:pointer;color:var(--mut);font-size:20px;background:0;border:0}
+  #chat .msgs{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  #chat .b{max-width:88%;padding:10px 13px;border-radius:12px;white-space:pre-wrap;line-height:1.55}
+  #chat .b.me{align-self:flex-end;background:#2a1800;border:1px solid var(--line);color:var(--amber2)}
+  #chat .b.them{align-self:flex-start;background:#120c03;border:1px solid var(--line);border-left:3px solid var(--amber)}
+  #chat .b strong{color:var(--amber2)}
+  #chat .b .comic{display:block;margin-top:8px;cursor:pointer;color:var(--amber);font-size:11px;border:1px solid var(--line);border-radius:7px;padding:3px 9px;width:max-content}
+  #chat .row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+  #chat textarea{flex:1;min-height:42px;max-height:120px;resize:none;background:#0a0703;color:var(--ink);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:14px;outline:none}
+  #chat textarea:focus{border-color:var(--amber)}
+  #chat .send{background:var(--amber);color:#1a0e00;border:0;border-radius:10px;padding:0 18px;font-weight:800;font-family:var(--mono);cursor:pointer}
+  #chat .send:disabled{opacity:.5}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}
+  .chips span{cursor:pointer;color:var(--mut);font-size:11px;border:1px dashed var(--line);border-radius:999px;padding:3px 9px}
+  .chips span:hover{color:var(--amber);border-color:var(--amber)}
+</style>
+<script src="/comic.js"></script>
+</head>
+<body>
+<div class="hud">
+  <span class="brand">ADmira<b>NeXT</b></span><span class="crumb">› Xpacio del Consejo</span>
+  <span class="links"><a href="/consejo/">vista chat</a> <a href="/">admiranext.com</a></span>
+</div>
+<div id="stage"><canvas id="cv" width="320" height="192"></canvas></div>
+<div class="tip" id="tip">Muévete con <b>WASD</b>/flechas · acércate a un consejero y pulsa <b>E</b> para hablar</div>
+
+<div id="pad"><div class="u"></div><div class="d"></div><div class="l"></div><div class="r"></div></div>
+<button id="act">E</button>
+
+<div id="chat"><div class="panel">
+  <div class="ch"><canvas class="av" width="24" height="24"></canvas><div class="who"><div class="r"></div><div class="p"></div></div><button class="x">×</button></div>
+  <div class="msgs"></div>
+  <div class="chips"></div>
+  <div class="row"><textarea placeholder="Pregúntale algo sobre AdmiraNext…"></textarea><button class="send">Enviar</button></div>
+</div></div>
+
+<script>
+/* ===== Consejo: motor de respuestas (reusa el del subsite) ===== */
+const API='https://macmini.tail48b61c.ts.net/council/api/council/ask-one';
+const TOKEN='admira2026';
+const CONTEXT='Eres asesor del Consejo de ADmiraNeXT, empresa REAL española de IA física: Robot-as-a-Service '+
+  '(alquiler de robots Unitree/Agibot a empresas en España), IoT con IA, y XpaceOS (Pixer.ai, Admira XP gemelo '+
+  'digital, OmniPublicity). Responde a lo planteado APLICADO a esta empresa real, breve (3-5 frases), concreto y en tu persona.';
+async function askOne(role,gen,persona,message){
+  const body=JSON.stringify({message:CONTEXT+'\n\nPregunta: '+message,agent_name:role,generation:gen,llm:'claude-sonnet',report:false});
+  for(let a=0;a<3;a++){ try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','X-Council-Token':TOKEN},body});
+    if(r.status===429){ await new Promise(s=>setTimeout(s,5000)); continue; }
+    const d=await r.json(); if(d&&d.content) return d.content; throw new Error(d&&d.error||'sin respuesta');
+  }catch(e){ if(a===2) throw e; await new Promise(s=>setTimeout(s,2000)); } }
+}
+
+/* ===== Consejeros (pixel art procedural) ===== */
+// skin, hair, shirt, accent(detalle/corbata), glasses(bool), beard(bool|'mustache'|'full'), bald(bool)
+const COUNCIL=[
+  {role:'CEO',persona:'Steve Jobs',gen:'leyendas',area:'Estrategia', pal:{skin:'#e8b88a',hair:'#3a3a3a',shirt:'#111',accent:'#5b6cff',glasses:1,beard:0,bald:0}},
+  {role:'CTO',persona:'Steve Wozniak',gen:'leyendas',area:'Tecnología', pal:{skin:'#e8b88a',hair:'#5a3a1e',shirt:'#2e7d32',accent:'#9ccc65',glasses:1,beard:'full',bald:0}},
+  {role:'COO',persona:'Tim Cook',gen:'leyendas',area:'Operaciones', pal:{skin:'#e8b88a',hair:'#cfcfcf',shirt:'#1b3a5b',accent:'#7aa2ff',glasses:1,beard:0,bald:0}},
+  {role:'CFO',persona:'Warren Buffett',gen:'leyendas',area:'Finanzas', pal:{skin:'#e8c0a0',hair:'#e8e8e8',shirt:'#3a2a5a',accent:'#ffd166',glasses:1,beard:0,bald:0}},
+  {role:'CCO',persona:'Walt Disney',gen:'leyendas',area:'Creatividad', pal:{skin:'#e8b88a',hair:'#4a3520',shirt:'#5a3a1e',accent:'#ff7ad9',glasses:0,beard:'mustache',bald:0}},
+  {role:'CDO',persona:'Dieter Rams',gen:'leyendas',area:'Diseño', pal:{skin:'#e8c0a0',hair:'#bdbdbd',shirt:'#37474f',accent:'#cfd8dc',glasses:1,beard:0,bald:1}},
+  {role:'CXO',persona:'Howard Schultz',gen:'leyendas',area:'Experiencia', pal:{skin:'#d8a878',hair:'#2a2a2a',shirt:'#1e4d3a',accent:'#37c08a',glasses:0,beard:0,bald:0}},
+  {role:'CSO',persona:'George Lucas',gen:'leyendas',area:'Relato', pal:{skin:'#e8b88a',hair:'#888',shirt:'#5a2e2e',accent:'#ff9f57',glasses:1,beard:'full',bald:0}},
+];
+
+const cv=document.getElementById('cv'), g=cv.getContext('2d'); g.imageSmoothingEnabled=false;
+const W=cv.width, H=cv.height;
+function px(c,x,y,w,h){ g.fillStyle=c; g.fillRect(x|0,y|0,w||1,h||1); }
+// dibuja una persona 14x22 front-facing en (x,y)= pies-centro, escala s
+function drawPerson(x,y,pal,s,bob){
+  s=s||1; bob=bob||0; const ox=x-7*s, oy=y-22*s+bob;
+  const P=(c,a,b,w,h)=>px(c,ox+a*s,oy+b*s,(w||1)*s,(h||1)*s);
+  // sombra
+  px('rgba(0,0,0,.35)',x-5*s,y-1*s,10*s,2*s);
+  // piernas
+  P('#23324a',4,18,3,4); P('#23324a',7,18,3,4);
+  P('#111',4,21,3,1); P('#111',7,21,3,1);
+  // cuerpo (camisa)
+  P(pal.shirt,3,11,8,8);
+  // brazos
+  P(pal.shirt,2,11,1,6); P(pal.shirt,11,11,1,6);
+  P(pal.skin,2,17,1,1); P(pal.skin,11,17,1,1);
+  // detalle/corbata
+  P(pal.accent,6,12,2,5);
+  // cuello + cabeza
+  P(pal.skin,6,9,2,2);
+  P(pal.skin,4,3,6,7);
+  // orejas
+  P(pal.skin,3,6,1,2); P(pal.skin,10,6,1,2);
+  // pelo
+  if(!pal.bald){ P(pal.hair,4,2,6,2); P(pal.hair,3,3,1,3); P(pal.hair,10,3,1,3); }
+  else { P(pal.skin,4,2,6,1); P(pal.hair,3,3,1,2); P(pal.hair,10,3,1,2); }
+  // ojos
+  P('#1a1a1a',5,6,1,1); P('#1a1a1a',8,6,1,1);
+  // gafas
+  if(pal.glasses){ P('#1a1a1a',4,5,2,2); P('#1a1a1a',8,5,2,2); P('#1a1a1a',6,6,2,1); }
+  // barba/bigote
+  if(pal.beard==='full'){ P(pal.hair,4,7,6,3); P(pal.skin,6,7,2,1); }
+  else if(pal.beard==='mustache'){ P(pal.hair,5,7,4,1); }
+}
+// retrato (cabeza) para el chat, escala s en canvas dado
+function drawPortrait(ctx,pal,s){
+  const f=(c,a,b,w,h)=>{ctx.fillStyle=c;ctx.fillRect(a*s,b*s,(w||1)*s,(h||1)*s);};
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  f(pal.shirt,1,9,10,3); f(pal.skin,3,2,6,7); f(pal.skin,2,5,1,2); f(pal.skin,9,5,1,2);
+  if(!pal.bald){ f(pal.hair,3,1,6,2); f(pal.hair,2,2,1,3); f(pal.hair,9,2,1,3); } else { f(pal.hair,2,2,1,2); f(pal.hair,9,2,1,2); }
+  f('#1a1a1a',4,5,1,1); f('#1a1a1a',7,5,1,1);
+  if(pal.glasses){ f('#1a1a1a',3,4,2,2); f('#7',7,4,2,2); f('#1a1a1a',7,4,2,2); f('#1a1a1a',5,5,2,1); }
+  if(pal.beard==='full'){ f(pal.hair,3,6,6,3); f(pal.skin,5,6,2,1); } else if(pal.beard==='mustache'){ f(pal.hair,4,6,4,1); }
+}
+
+/* ===== Xpacio: sala del Consejo (tipo Xtanco/boardroom) ===== */
+// mesa central (colisión), consejeros alrededor, jugador entra por abajo.
+const TABLE={x:96,y:78,w:128,h:54};
+// posiciones de los 8 alrededor de la mesa
+const SEATS=[
+  [TABLE.x+18,TABLE.y-8],[TABLE.x+TABLE.w/2,TABLE.y-8],[TABLE.x+TABLE.w-18,TABLE.y-8],   // arriba x3
+  [TABLE.x+TABLE.w+10,TABLE.y+TABLE.h/2],                                                 // derecha
+  [TABLE.x+TABLE.w-18,TABLE.y+TABLE.h+10],[TABLE.x+TABLE.w/2,TABLE.y+TABLE.h+10],[TABLE.x+18,TABLE.y+TABLE.h+10], // abajo x3
+  [TABLE.x-10,TABLE.y+TABLE.h/2],                                                         // izquierda
+];
+COUNCIL.forEach((c,i)=>{ c.x=SEATS[i][0]; c.y=SEATS[i][1]; });
+const player={x:W/2,y:H-22,dir:1,step:0};
+let near=null, frame=0;
+
+function drawRoom(){
+  // suelo (parqué ámbar oscuro)
+  for(let ty=0;ty<H;ty+=16) for(let tx=0;tx<W;tx+=16){
+    px(((tx/16+ty/16)%2)?'#1c1206':'#180f04',tx,ty,16,16);
+    px('#120c03',tx,ty,16,1);
+  }
+  // paredes
+  px('#0e0902',0,0,W,14); px('#241600',0,14,W,2);
+  px('#0e0902',0,0,4,H); px('#0e0902',W-4,0,4,H);
+  // estanterías (productos = "robots"/cajas) a los lados, hueco central para el letrero
+  for(let i=0;i<7;i++){ if(i===3) continue; const x=20+i*42; px('#2a1a06',x,4,34,9); for(let j=0;j<3;j++){ px(['#ffb000','#7aa2ff','#37c08a','#ff7ad9'][(i+j)%4],x+3+j*10,6,7,5);} }
+  // letrero central (placa)
+  px('#241600',W/2-60,2,120,11); px('#3a2410',W/2-58,3,116,9);
+  g.fillStyle='#ffd166'; g.font='7px monospace'; g.textAlign='center'; g.fillText('EL CONSEJO · ADMIRANEXT',W/2,10); g.textAlign='left';
+  // mesa (madera) con sombra
+  px('rgba(0,0,0,.4)',TABLE.x+3,TABLE.y+4,TABLE.w,TABLE.h);
+  px('#3a2410',TABLE.x,TABLE.y,TABLE.w,TABLE.h);
+  px('#5a3a1e',TABLE.x+2,TABLE.y+2,TABLE.w-4,TABLE.h-4);
+  px('#6b4a26',TABLE.x+6,TABLE.y+6,TABLE.w-12,TABLE.h-12);
+  // "papeles" en la mesa
+  for(let i=0;i<6;i++) px('#e8dcc0',TABLE.x+16+i*18,TABLE.y+TABLE.h/2-3,7,5);
+}
+
+function loop(){
+  frame++;
+  // input
+  let vx=0,vy=0; const sp=1.1;
+  if(keys.has('w')||keys.has('arrowup')||touch.u) vy-=sp;
+  if(keys.has('s')||keys.has('arrowdown')||touch.d) vy+=sp;
+  if(keys.has('a')||keys.has('arrowleft')||touch.l){ vx-=sp; player.dir=-1; }
+  if(keys.has('d')||keys.has('arrowright')||touch.r){ vx+=sp; player.dir=1; }
+  if(chatOpen){ vx=vy=0; }
+  // mover con colisión (paredes + mesa)
+  const nx=player.x+vx, ny=player.y+vy;
+  const okX=nx>10&&nx<W-10 && !inTable(nx,player.y);
+  const okY=ny>22&&ny<H-4 && !inTable(player.x,ny);
+  if(okX) player.x=nx; if(okY) player.y=ny;
+  if(vx||vy) player.step+=0.25;
+  // proximidad
+  near=null; let bd=22*22;
+  for(const c of COUNCIL){ const dx=c.x-player.x, dy=(c.y+4)-player.y, d=dx*dx+dy*dy; if(d<bd){ bd=d; near=c; } }
+  // render
+  g.clearRect(0,0,W,H); drawRoom();
+  // ordena por y para profundidad
+  const ents=[...COUNCIL.map(c=>({y:c.y,d:()=>{ drawPerson(c.x,c.y,c.pal,1,Math.sin(frame/40+c.x)*0.4);
+        g.fillStyle=near===c?'#ffd166':'#caa86a'; g.font='6px monospace'; g.textAlign='center'; g.fillText(c.role,c.x,c.y-24); g.textAlign='left'; }})),
+      {y:player.y,d:()=>drawPerson(player.x,player.y,PLAYER_PAL,1,Math.abs(Math.sin(player.step))* -1)}];
+  ents.sort((a,b)=>a.y-b.y).forEach(e=>e.d());
+  // prompt de interacción
+  if(near && !chatOpen){ const t='▲ '+near.persona; g.fillStyle='rgba(20,12,2,.9)'; const w=g.measureText(t).width;
+    g.fillStyle='#ffb000'; g.font='7px monospace'; g.textAlign='center';
+    g.fillText('E ▸ '+near.persona,near.x,near.y-32); g.textAlign='left'; }
+  document.getElementById('tip').innerHTML = near && !chatOpen
+    ? 'Pulsa <b>E</b> para hablar con <b>'+near.persona+'</b> ('+near.role+')'
+    : 'Muévete con <b>WASD</b>/flechas · acércate a un consejero y pulsa <b>E</b>';
+  requestAnimationFrame(loop);
+}
+const PLAYER_PAL={skin:'#e8b88a',hair:'#1a1a1a',shirt:'#ffb000',accent:'#1a0e00',glasses:0,beard:0,bald:0};
+function inTable(x,y){ return x>TABLE.x-9&&x<TABLE.x+TABLE.w+9&&y>TABLE.y-2&&y<TABLE.y+TABLE.h+12; }
+
+/* ===== input ===== */
+const keys=new Set(), touch={u:0,d:0,l:0,r:0};
+addEventListener('keydown',e=>{ const k=e.key.toLowerCase(); keys.add(k);
+  if(k==='e'&&near&&!chatOpen) openChat(near);
+  if(k==='escape'&&chatOpen) closeChat();
+  if(['arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault();
+});
+addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+// d-pad táctil
+const pad=document.getElementById('pad');
+if(matchMedia('(pointer:coarse)').matches){ pad.style.display='block'; document.getElementById('act').style.display='block'; }
+function bindPad(sel,k){ const el=pad.querySelector(sel);
+  const on=e=>{e.preventDefault();touch[k]=1;}, off=e=>{e.preventDefault();touch[k]=0;};
+  el.addEventListener('touchstart',on);el.addEventListener('touchend',off);el.addEventListener('touchcancel',off);
+}
+bindPad('.u','u');bindPad('.d','d');bindPad('.l','l');bindPad('.r','r');
+document.getElementById('act').addEventListener('touchstart',e=>{e.preventDefault(); if(chatOpen)return; if(near)openChat(near);});
+
+/* ===== chat con un consejero ===== */
+const chat=document.getElementById('chat');
+let chatOpen=false, curNPC=null, busy=false;
+function openChat(c){ curNPC=c; chatOpen=true; chat.style.display='flex';
+  chat.querySelector('.who .r').textContent=c.role+' · '+c.area;
+  chat.querySelector('.who .p').textContent=c.persona;
+  drawPortrait(chat.querySelector('.av').getContext('2d'),c.pal,2);
+  chat.querySelector('.msgs').innerHTML='';
+  bubble('them','Soy '+c.persona+', '+c.role+' del Consejo de AdmiraNext. ¿Qué decisión quieres consultarme?');
+  const chips=['¿Prioridad del trimestre?','¿Cómo escalamos el RaaS en España?','¿Qué métrica perseguimos?','Tu mayor riesgo ahora'];
+  chat.querySelector('.chips').innerHTML=chips.map(x=>'<span>'+x+'</span>').join('');
+  chat.querySelectorAll('.chips span').forEach(s=>s.onclick=()=>{ chat.querySelector('textarea').value=s.textContent; });
+  setTimeout(()=>chat.querySelector('textarea').focus(),50);
+}
+function closeChat(){ chatOpen=false; chat.style.display='none'; curNPC=null; }
+chat.querySelector('.x').onclick=closeChat;
+chat.addEventListener('click',e=>{ if(e.target===chat) closeChat(); });
+function fmt(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>'); }
+function bubble(side,html){ const d=document.createElement('div'); d.className='b '+side; d.innerHTML=fmt(html);
+  chat.querySelector('.msgs').appendChild(d); chat.querySelector('.msgs').scrollTop=1e9; return d; }
+async function send(){
+  if(busy||!curNPC) return; const ta=chat.querySelector('textarea'); const q=ta.value.trim(); if(!q) return;
+  ta.value=''; bubble('me',q); busy=true; chat.querySelector('.send').disabled=true;
+  const b=bubble('them','<span style="color:var(--mut)">pensando…</span>');
+  try{ const ans=await askOne(curNPC.role,curNPC.gen,curNPC.persona,q); b.innerHTML=fmt(ans);
+    const cm=document.createElement('span'); cm.className='comic'; cm.textContent='🎨 Cómic';
+    cm.onclick=()=>AdmiraComic.open({panels:panels(curNPC,ans),tema:'AdmiraNext · '+q,names:[curNPC.persona],engine:'good'});
+    b.appendChild(cm);
+  }catch(e){ b.innerHTML='— '+fmt(e.message); }
+  busy=false; chat.querySelector('.send').disabled=false;
+}
+chat.querySelector('.send').onclick=send;
+chat.querySelector('textarea').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } });
+function panels(c,content){ const color=({CEO:'#ffb000',CTO:'#4ea1ff',COO:'#7ee0a0',CFO:'#ffd166',CCO:'#ff7ad9',CDO:'#b89cff',CXO:'#ff9f57',CSO:'#5be0e0'})[c.role]||'#ffb000';
+  const s=String(content).replace(/\n+/g,' ').split(/(?<=[.!?])\s+/).map(x=>x.trim().replace(/\*\*/g,'')).filter(x=>x.length>4);
+  const N=Math.min(5,Math.max(2,Math.round(s.length/2))),per=Math.max(1,Math.ceil(s.length/N)),out=[];
+  for(let i=0;i<s.length&&out.length<5;i+=per) out.push({persona:c.persona,role:c.role,text:s.slice(i,i+per).join(' ').slice(0,200),avatarStyle:'',color});
+  return out.length?out:[{persona:c.persona,role:c.role,text:String(content).slice(0,200),avatarStyle:'',color}];
+}
+
+/* ===== escala el canvas al viewport (pixel perfect) ===== */
+function fit(){ const pad=24; const s=Math.max(1,Math.floor(Math.min((innerWidth-pad)/W,(innerHeight-pad)/H)));
+  cv.style.width=(W*s)+'px'; cv.style.height=(H*s)+'px'; }
+addEventListener('resize',fit); fit();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
