@@ -74,6 +74,31 @@
   #board .dec .acts button{background:#1a0e00;color:var(--amber);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font:inherit;font-size:11px;cursor:pointer}
   #board .dec .acts button:hover{border-color:var(--amber)}
   #board .empty{color:var(--mut);text-align:center;padding:40px 10px}
+  /* modo detalle: Pizarra Estratégica (fase aparte) */
+  #detail{position:fixed;inset:0;background:#0a0703;display:none;flex-direction:column;z-index:30}
+  #detail .dh{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);background:#140d04}
+  #detail .dh b{color:var(--amber);font-size:15px;letter-spacing:.5px} #detail .dh .sub{color:var(--mut);font-size:11px}
+  #detail .dh .right{margin-left:auto;display:flex;gap:10px}
+  #detail .dh button{background:#1a0e00;color:var(--amber);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer}
+  #detail .dh button:hover{border-color:var(--amber)}
+  #detail .board{flex:1;overflow:auto;margin:16px;border-radius:12px;border:6px solid #3a2410;
+    background:repeating-linear-gradient(0deg,#10211a,#10211a 28px,#0e1d17 28px,#0e1d17 29px),#10211a;
+    box-shadow:inset 0 0 60px #000,0 10px 40px #000;padding:18px 20px}
+  #detail .board .title{color:#cfeede;font-size:16px;font-weight:700;text-align:center;margin-bottom:6px;text-shadow:0 1px 0 #000}
+  #detail .board .topicrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0 16px}
+  #detail .board input{flex:1;max-width:520px;background:rgba(0,0,0,.25);color:#eafff5;border:1px solid #2c4a3c;border-radius:9px;padding:9px 12px;font-family:var(--mono);font-size:14px;outline:none}
+  #detail .board input:focus{border-color:#7fe0b0}
+  #detail .board .go{background:var(--amber);color:#1a0e00;border:0;border-radius:9px;padding:9px 16px;font-weight:800;font-family:var(--mono);cursor:pointer;white-space:nowrap}
+  #detail .notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:6px}
+  #detail .note{background:#16271f;border:1px solid #2c4a3c;border-top:3px solid var(--amber);border-radius:10px;padding:10px 12px;min-height:74px}
+  #detail .note .r{font-weight:800;font-size:11px;letter-spacing:.5px} #detail .note .p{color:#9fc7b3;font-size:11px;margin-bottom:5px}
+  #detail .note .txt{color:#eafff5;font-size:13px;line-height:1.45;white-space:pre-wrap}
+  #detail .concl{margin-top:18px;border-top:1px dashed #2c4a3c;padding-top:14px}
+  #detail .concl .lab{color:var(--amber);font-weight:800;font-size:13px;margin-bottom:6px}
+  #detail .concl .body{color:#eafff5;white-space:pre-wrap;line-height:1.5} #detail .concl .body strong{color:var(--amber2)}
+  #detail .concl .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  #detail .concl .acts button{background:#16271f;color:var(--amber);border:1px solid #2c4a3c;border-radius:8px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer}
+  #detail .concl .acts button:hover{border-color:var(--amber)}
 </style>
 <script src="/comic.js"></script>
 </head>
@@ -104,6 +129,21 @@
   <div class="bh"><b>📋 Tablero de decisiones</b><span style="color:var(--mut);font-size:11px">actas del Consejo (este navegador)</span><button class="x" id="boardX">×</button></div>
   <div class="list" id="boardList"></div>
 </div></div>
+
+<div id="detail">
+  <div class="dh"><b>✎ PIZARRA ESTRATÉGICA</b><span class="sub">AdmiraNext · modo detalle</span>
+    <span class="right"><button id="detExit">← volver al Xpacio</button></span></div>
+  <div class="board">
+    <div class="title">PLAN ESTRATÉGICO DEL CONSEJO</div>
+    <div class="topicrow">
+      <input id="detTopic" placeholder="Escribe el reto a planificar… (p. ej. escalar el RaaS en España en 2026)">
+      <button class="go" id="detGo">✍️ El Consejo traza el plan</button>
+    </div>
+    <div class="notes" id="detNotes"></div>
+    <div class="concl" id="detConcl" style="display:none"><div class="lab">📌 CONCLUSIÓN DEL CONSEJO</div><div class="body" id="detConclBody"></div>
+      <div class="acts"><button data-a="comic">🎨 Cómic</button><button data-a="save">💾 Guardar en decisiones</button><button data-a="exp">⬇ Exportar</button></div></div>
+  </div>
+</div>
 
 <script>
 /* ===== Consejo: motor de respuestas (reusa el del subsite) ===== */
@@ -213,7 +253,8 @@ COUNCIL.forEach((c,i)=>{ c.x=SEATS[i][0]; c.y=SEATS[i][1]; });
 RECEPTION.x=40; RECEPTION.y=H-26;                 // junto a la entrada
 const ALL=[...COUNCIL, RECEPTION];                // entidades con las que se interactúa
 const player={x:W/2,y:H-22,dir:1,step:0};
-let near=null, frame=0;
+const PIZARRA={board:true, persona:'Pizarra estratégica', x:W-26, y:96};
+let near=null, frame=0, detailOpen=false;
 
 function drawRoom(){
   // suelo (parqué ámbar oscuro)
@@ -236,6 +277,12 @@ function drawRoom(){
   px('#6b4a26',TABLE.x+6,TABLE.y+6,TABLE.w-12,TABLE.h-12);
   // "papeles" en la mesa
   for(let i=0;i<6;i++) px('#e8dcc0',TABLE.x+16+i*18,TABLE.y+TABLE.h/2-3,7,5);
+  // pizarra estratégica (pared derecha) + brillo si estás cerca
+  const PB={x:W-22,y:58,w:16,h:72};
+  px(near&&near.board?'#5a3a14':'#2a1a06',PB.x-2,PB.y-2,PB.w+4,PB.h+4); px('#10211a',PB.x,PB.y,PB.w,PB.h);
+  px('#cfeede',PB.x+2,PB.y+3,PB.w-4,1); px('#7fe0b0',PB.x+2,PB.y+6,PB.w-6,1);
+  [44,40,42,36,38,30].forEach((v,i)=>px('#7fe0b0',PB.x+2+i*2,PB.y+v,2,2));
+  g.fillStyle='#cfeede'; g.font='5px monospace'; g.textAlign='center'; g.fillText('PLAN',PB.x+PB.w/2,PB.y+PB.h-6); g.textAlign='left';
 }
 
 function loop(){
@@ -246,7 +293,7 @@ function loop(){
   if(keys.has('s')||keys.has('arrowdown')||touch.d) vy+=sp;
   if(keys.has('a')||keys.has('arrowleft')||touch.l){ vx-=sp; player.dir=-1; }
   if(keys.has('d')||keys.has('arrowright')||touch.r){ vx+=sp; player.dir=1; }
-  if(chatOpen||cliOpen){ vx=vy=0; }
+  if(chatOpen||cliOpen||detailOpen){ vx=vy=0; }
   // mover con colisión (paredes + mesa)
   const nx=player.x+vx, ny=player.y+vy;
   const okX=nx>10&&nx<W-10 && !inTable(nx,player.y);
@@ -256,6 +303,7 @@ function loop(){
   // proximidad
   near=null; let bd=22*22;
   for(const c of ALL){ const dx=c.x-player.x, dy=(c.y+4)-player.y, d=dx*dx+dy*dy; if(d<bd){ bd=d; near=c; } }
+  { const dx=PIZARRA.x-player.x, dy=PIZARRA.y-player.y, d=dx*dx+dy*dy; if(d<bd){ bd=d; near=PIZARRA; } }  // pizarra
   // render
   g.clearRect(0,0,W,H); drawRoom();
   // ordena por y para profundidad
@@ -265,8 +313,8 @@ function loop(){
       {y:player.y,d:()=>drawPerson(player.x,player.y,PLAYER_PAL,1,Math.abs(Math.sin(player.step))* -1)}];
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.d());
   // frase flotante + prompt de interacción
-  if(near && !chatOpen){
-    const q = near.guide ? 'Soy Carlos, vuestro Maestro de Ceremonias — pulsa E' : (QUIPS[near.role]||'');
+  if(near && !chatOpen && !detailOpen){
+    const q = near.board ? 'Pizarra estratégica · entra en modo detalle' : (near.guide ? 'Soy Carlos, vuestro Maestro de Ceremonias — pulsa E' : (QUIPS[near.role]||''));
     if(q) bubbleHud(near.x, near.y-32, q);
     g.fillStyle='#ffb000'; g.font='7px monospace'; g.textAlign='center';
     g.fillText('E ▸ '+near.persona, near.x, near.y-(q?44:32)); g.textAlign='left';
@@ -281,8 +329,11 @@ function inTable(x,y){ return x>TABLE.x-9&&x<TABLE.x+TABLE.w+9&&y>TABLE.y-2&&y<T
 
 /* ===== input ===== */
 const keys=new Set(), touch={u:0,d:0,l:0,r:0};
-addEventListener('keydown',e=>{ ensureAudio(); if(cliOpen) return; const k=e.key.toLowerCase(); keys.add(k);
-  if(k==='e'&&near&&!chatOpen) openChat(near);
+addEventListener('keydown',e=>{ ensureAudio();
+  if(detailOpen){ if(e.key==='Escape') exitDetail(); return; }
+  if(cliOpen) return;
+  const k=e.key.toLowerCase(); keys.add(k);
+  if(k==='e'&&near&&!chatOpen){ near.board?enterDetail():openChat(near); }
   if(k==='/'&&!chatOpen){ e.preventDefault(); openCli(); }
   if(k==='escape'&&chatOpen) closeChat();
   if(['arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault();
@@ -296,7 +347,7 @@ function bindPad(sel,k){ const el=pad.querySelector(sel);
   el.addEventListener('touchstart',on);el.addEventListener('touchend',off);el.addEventListener('touchcancel',off);
 }
 bindPad('.u','u');bindPad('.d','d');bindPad('.l','l');bindPad('.r','r');
-document.getElementById('act').addEventListener('touchstart',e=>{e.preventDefault(); if(chatOpen)return; if(near)openChat(near);});
+document.getElementById('act').addEventListener('touchstart',e=>{e.preventDefault(); if(chatOpen||detailOpen)return; if(near){ near.board?enterDetail():openChat(near); }});
 
 /* ===== chat con un consejero ===== */
 const chat=document.getElementById('chat');
@@ -468,6 +519,43 @@ function openBoard(){ renderBoard(); document.getElementById('board').style.disp
 document.getElementById('boardBtn').onclick=e=>{ e.preventDefault(); openBoard(); };
 document.getElementById('boardX').onclick=()=>document.getElementById('board').style.display='none';
 document.getElementById('board').addEventListener('click',e=>{ if(e.target.id==='board') document.getElementById('board').style.display='none'; });
+
+/* ===== modo detalle: Pizarra Estratégica (fase aparte) ===== */
+const detail=document.getElementById('detail'); let detPlan=null, detBusy=false;
+function enterDetail(){ detailOpen=true; detail.style.display='flex'; keys.clear();
+  document.getElementById('detNotes').innerHTML=''; document.getElementById('detConcl').style.display='none';
+  setTimeout(()=>document.getElementById('detTopic').focus(),40); }
+function exitDetail(){ detailOpen=false; detail.style.display='none'; if(TTS) try{speechSynthesis.cancel()}catch(e){} }
+document.getElementById('detExit').onclick=exitDetail;
+function sticky(c){ const el=document.createElement('div'); el.className='note';
+  el.innerHTML='<div class="r" style="color:'+(RCOL[c.role]||'#ffb000')+'">'+c.role+'</div><div class="p">'+c.persona+'</div><div class="txt" style="color:#9fc7b3">…</div>';
+  document.getElementById('detNotes').appendChild(el); return el; }
+async function buildPlan(){
+  if(detBusy) return; const tema=document.getElementById('detTopic').value.trim(); if(!tema){ document.getElementById('detTopic').focus(); return; }
+  detBusy=true; const go=document.getElementById('detGo'); go.disabled=true;
+  document.getElementById('detNotes').innerHTML=''; document.getElementById('detConcl').style.display='none';
+  const history=[];
+  for(const c of COUNCIL){ const el=sticky(c);
+    try{ const ans=await askOne(c.role,c.gen,c.persona,'Plan estratégico de AdmiraNext sobre: '+tema+'. Aporta UNA jugada estratégica concreta y breve (1-2 frases) desde tu rol como '+c.role+', sin preámbulo.');
+      el.querySelector('.txt').style.color='#eafff5'; el.querySelector('.txt').textContent=ans; history.push({role:c.role,persona:c.persona,text:ans}); speak(ans,c.role);
+    }catch(e){ el.querySelector('.txt').textContent='— '+e.message; }
+    await new Promise(s=>setTimeout(s,1100));
+  }
+  const cb=document.getElementById('detConclBody'); document.getElementById('detConcl').style.display='block'; cb.textContent='Secretario redactando el plan…';
+  let acta='';
+  try{ const tr=history.map(h=>'['+h.role+'] '+h.persona+': '+h.text).join('\n');
+    acta=await askOne('COO','leyendas','Secretario','Eres el SECRETARIO del Consejo (neutral, sin persona). Sobre «'+tema+'» y estas aportaciones del Consejo de AdmiraNext:\n'+tr+'\n\nRedacta el PLAN final, breve y accionable, exactamente así:\n**PRIORIDAD:** …\n**3 PASOS:** 1) … 2) … 3) …\n**MÉTRICA CLAVE:** …');
+    cb.innerHTML=fmt(acta); speak('Conclusión del plan. '+acta,'HOST');
+  }catch(e){ cb.textContent='error: '+e.message; }
+  detPlan={tema, participantes:COUNCIL.map(c=>c.role), acta, ts:Date.now()};
+  detBusy=false; go.disabled=false;
+}
+document.getElementById('detGo').onclick=buildPlan;
+document.getElementById('detTopic').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') buildPlan(); else if(e.key==='Escape') exitDetail(); });
+document.querySelector('#detConcl .acts').addEventListener('click',e=>{ const a=e.target.dataset.a; if(!a||!detPlan) return;
+  if(a==='comic') AdmiraComic.open({panels:actaPanels({acta:detPlan.acta}),tema:'Plan · '+detPlan.tema,names:['Consejo'],engine:'good'});
+  else if(a==='save'){ saveDecision(detPlan); e.target.textContent='✓ guardada'; }
+  else if(a==='exp') expDecision(detPlan); });
 
 /* ===== escala el canvas al viewport (pixel perfect) ===== */
 function fit(){ const pad=24; const s=Math.max(1,Math.floor(Math.min((innerWidth-pad)/W,(innerHeight-pad)/H)));
