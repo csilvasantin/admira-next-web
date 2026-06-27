@@ -52,13 +52,21 @@
   .chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}
   .chips span{cursor:pointer;color:var(--mut);font-size:11px;border:1px dashed var(--line);border-radius:999px;padding:3px 9px}
   .chips span:hover{color:var(--amber);border-color:var(--amber)}
+  /* CLI / consola */
+  #cli{position:fixed;inset:0;background:rgba(8,5,2,.82);display:none;align-items:center;justify-content:center;z-index:25;padding:16px}
+  #cli .panel{width:100%;max-width:760px;height:min(70vh,460px);background:#0a0703;border:1px solid var(--amber);border-radius:12px;display:flex;flex-direction:column;box-shadow:0 0 40px #000}
+  #cli .cli-out{flex:1;overflow:auto;padding:14px 16px;font-size:13px;line-height:1.55;white-space:pre-wrap}
+  #cli .cli-out .u{color:var(--amber2)} #cli .cli-out .s{color:var(--mut)} #cli .cli-out .a{color:var(--ink)} #cli .cli-out .e{color:var(--red)} #cli .cli-out .comic{color:var(--amber);cursor:pointer;text-decoration:underline}
+  #cli .cli-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+  #cli .prompt{color:var(--amber);font-weight:700}
+  #cli input{flex:1;background:transparent;border:0;outline:0;color:var(--amber2);font-family:var(--mono);font-size:14px}
 </style>
 <script src="/comic.js"></script>
 </head>
 <body>
 <div class="hud">
   <span class="brand">ADmira<b>NeXT</b></span><span class="crumb">› Xpacio del Consejo</span>
-  <span class="links"><a href="/consejo/">vista chat</a> <a href="/">admiranext.com</a></span>
+  <span class="links"><a href="#" id="cliBtn">⌨ consola</a> <a href="#" id="muteBtn">🔊</a> <a href="/consejo/">vista chat</a> <a href="/">admiranext.com</a></span>
 </div>
 <div id="stage"><canvas id="cv" width="320" height="192"></canvas></div>
 <div class="tip" id="tip">Muévete con <b>WASD</b>/flechas · acércate a un consejero y pulsa <b>E</b> para hablar</div>
@@ -71,6 +79,11 @@
   <div class="msgs"></div>
   <div class="chips"></div>
   <div class="row"><textarea placeholder="Pregúntale algo sobre AdmiraNext…"></textarea><button class="send">Enviar</button></div>
+</div></div>
+
+<div id="cli"><div class="panel">
+  <div class="cli-out" id="cliOut"></div>
+  <div class="cli-row"><span class="prompt">consejo&gt;</span><input id="cliIn" autocomplete="off" spellcheck="false" placeholder="help"></div>
 </div></div>
 
 <script>
@@ -101,6 +114,14 @@ const COUNCIL=[
   {role:'CXO',persona:'Howard Schultz',gen:'leyendas',area:'Experiencia', pal:{skin:'#d8a878',hair:'#2a2a2a',shirt:'#1e4d3a',accent:'#37c08a',glasses:0,beard:0,bald:0}},
   {role:'CSO',persona:'George Lucas',gen:'leyendas',area:'Relato', pal:{skin:'#e8b88a',hair:'#888',shirt:'#5a2e2e',accent:'#ff9f57',glasses:1,beard:'full',bald:0}},
 ];
+// frase flotante característica de cada consejero (aparece al pasar cerca)
+const QUIPS={CEO:'La sencillez es la máxima sofisticación.',CTO:'Si funciona y es elegante, lo hicimos bien.',
+  COO:'La cadena de suministro ES la estrategia.',CFO:'Precio es lo que pagas; valor lo que recibes.',
+  CCO:'Si lo puedes soñar, lo puedes hacer.',CDO:'Menos, pero mejor.',
+  CXO:'No vendemos producto: vendemos experiencia.',CSO:'Una buena historia lo cambia todo.'};
+// Recepcionista (guía, no consejero): da la bienvenida y explica el Xpacio.
+const RECEPTION={role:'HOST',persona:'Recepción',area:'Anfitrión',guide:true,
+  pal:{skin:'#caa06a',hair:'#2a2a2a',shirt:'#7a4a14',accent:'#ffd166',glasses:0,beard:0,bald:0}};
 
 const cv=document.getElementById('cv'), g=cv.getContext('2d'); g.imageSmoothingEnabled=false;
 const W=cv.width, H=cv.height;
@@ -148,6 +169,17 @@ function drawPortrait(ctx,pal,s){
   if(pal.beard==='full'){ f(pal.hair,3,6,6,3); f(pal.skin,5,6,2,1); } else if(pal.beard==='mustache'){ f(pal.hair,4,6,4,1); }
 }
 
+// burbuja de frase flotante sobre una entidad (texto pixel, una línea)
+function bubbleHud(cx, by, text){
+  g.font='6px monospace'; let t=text; const maxw=210;
+  while(g.measureText(t).width>maxw-12 && t.length>6) t=t.slice(0,-2);
+  if(t!==text) t=t.replace(/[ ,.;]+$/,'')+'…';
+  const w=g.measureText(t).width+12, x=Math.max(4,Math.min(W-w-4,cx-w/2)), y=Math.max(15,by-9);
+  g.fillStyle='rgba(20,12,2,.94)'; g.fillRect(x,y,w,11);
+  g.fillStyle='#3a2600'; g.fillRect(x,y,w,1); g.fillRect(x,y+10,w,1); g.fillRect(x,y,1,11); g.fillRect(x+w-1,y,1,11);
+  g.fillStyle='#ffd166'; g.textAlign='left'; g.fillText(t,x+6,y+8);
+}
+
 /* ===== Xpacio: sala del Consejo (tipo Xtanco/boardroom) ===== */
 // mesa central (colisión), consejeros alrededor, jugador entra por abajo.
 const TABLE={x:96,y:78,w:128,h:54};
@@ -159,6 +191,8 @@ const SEATS=[
   [TABLE.x-10,TABLE.y+TABLE.h/2],                                                         // izquierda
 ];
 COUNCIL.forEach((c,i)=>{ c.x=SEATS[i][0]; c.y=SEATS[i][1]; });
+RECEPTION.x=40; RECEPTION.y=H-26;                 // junto a la entrada
+const ALL=[...COUNCIL, RECEPTION];                // entidades con las que se interactúa
 const player={x:W/2,y:H-22,dir:1,step:0};
 let near=null, frame=0;
 
@@ -193,7 +227,7 @@ function loop(){
   if(keys.has('s')||keys.has('arrowdown')||touch.d) vy+=sp;
   if(keys.has('a')||keys.has('arrowleft')||touch.l){ vx-=sp; player.dir=-1; }
   if(keys.has('d')||keys.has('arrowright')||touch.r){ vx+=sp; player.dir=1; }
-  if(chatOpen){ vx=vy=0; }
+  if(chatOpen||cliOpen){ vx=vy=0; }
   // mover con colisión (paredes + mesa)
   const nx=player.x+vx, ny=player.y+vy;
   const okX=nx>10&&nx<W-10 && !inTable(nx,player.y);
@@ -202,18 +236,22 @@ function loop(){
   if(vx||vy) player.step+=0.25;
   // proximidad
   near=null; let bd=22*22;
-  for(const c of COUNCIL){ const dx=c.x-player.x, dy=(c.y+4)-player.y, d=dx*dx+dy*dy; if(d<bd){ bd=d; near=c; } }
+  for(const c of ALL){ const dx=c.x-player.x, dy=(c.y+4)-player.y, d=dx*dx+dy*dy; if(d<bd){ bd=d; near=c; } }
   // render
   g.clearRect(0,0,W,H); drawRoom();
   // ordena por y para profundidad
-  const ents=[...COUNCIL.map(c=>({y:c.y,d:()=>{ drawPerson(c.x,c.y,c.pal,1,Math.sin(frame/40+c.x)*0.4);
-        g.fillStyle=near===c?'#ffd166':'#caa86a'; g.font='6px monospace'; g.textAlign='center'; g.fillText(c.role,c.x,c.y-24); g.textAlign='left'; }})),
+  const ents=[...ALL.map(c=>({y:c.y,d:()=>{ drawPerson(c.x,c.y,c.pal,1,Math.sin(frame/40+c.x)*0.4);
+        g.fillStyle=near===c?'#ffd166':(c.guide?'#caa86a':'#caa86a'); g.font='6px monospace'; g.textAlign='center';
+        g.fillText(c.guide?'?':c.role,c.x,c.y-24); g.textAlign='left'; }})),
       {y:player.y,d:()=>drawPerson(player.x,player.y,PLAYER_PAL,1,Math.abs(Math.sin(player.step))* -1)}];
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.d());
-  // prompt de interacción
-  if(near && !chatOpen){ const t='▲ '+near.persona; g.fillStyle='rgba(20,12,2,.9)'; const w=g.measureText(t).width;
+  // frase flotante + prompt de interacción
+  if(near && !chatOpen){
+    const q = near.guide ? 'Bienvenido. Pulsa E o abre la consola con /' : (QUIPS[near.role]||'');
+    if(q) bubbleHud(near.x, near.y-32, q);
     g.fillStyle='#ffb000'; g.font='7px monospace'; g.textAlign='center';
-    g.fillText('E ▸ '+near.persona,near.x,near.y-32); g.textAlign='left'; }
+    g.fillText('E ▸ '+near.persona, near.x, near.y-(q?44:32)); g.textAlign='left';
+  }
   document.getElementById('tip').innerHTML = near && !chatOpen
     ? 'Pulsa <b>E</b> para hablar con <b>'+near.persona+'</b> ('+near.role+')'
     : 'Muévete con <b>WASD</b>/flechas · acércate a un consejero y pulsa <b>E</b>';
@@ -224,8 +262,9 @@ function inTable(x,y){ return x>TABLE.x-9&&x<TABLE.x+TABLE.w+9&&y>TABLE.y-2&&y<T
 
 /* ===== input ===== */
 const keys=new Set(), touch={u:0,d:0,l:0,r:0};
-addEventListener('keydown',e=>{ const k=e.key.toLowerCase(); keys.add(k);
+addEventListener('keydown',e=>{ ensureAudio(); if(cliOpen) return; const k=e.key.toLowerCase(); keys.add(k);
   if(k==='e'&&near&&!chatOpen) openChat(near);
+  if(k==='/'&&!chatOpen){ e.preventDefault(); openCli(); }
   if(k==='escape'&&chatOpen) closeChat();
   if(['arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault();
 });
@@ -243,14 +282,20 @@ document.getElementById('act').addEventListener('touchstart',e=>{e.preventDefaul
 /* ===== chat con un consejero ===== */
 const chat=document.getElementById('chat');
 let chatOpen=false, curNPC=null, busy=false;
-function openChat(c){ curNPC=c; chatOpen=true; chat.style.display='flex';
-  chat.querySelector('.who .r').textContent=c.role+' · '+c.area;
+function openChat(c){ curNPC=c; chatOpen=true; chat.style.display='flex'; sfx('open');
+  chat.querySelector('.who .r').textContent=c.guide?'RECEPCIÓN':(c.role+' · '+c.area);
   chat.querySelector('.who .p').textContent=c.persona;
   drawPortrait(chat.querySelector('.av').getContext('2d'),c.pal,2);
   chat.querySelector('.msgs').innerHTML='';
+  const row=chat.querySelector('.row'), chips=chat.querySelector('.chips');
+  if(c.guide){
+    bubble('them','Bienvenido al <strong>Xpacio del Consejo de AdmiraNext</strong> — los 8 asesores legendarios.\n\n• Muévete con <strong>WASD</strong>/flechas.\n• Acércate a un asesor y pulsa <strong>E</strong> para consultarle.\n• Abre la <strong>consola</strong> con la tecla <strong>/</strong> (comandos: who, ask, all, goto…).\n• Cada respuesta se puede convertir en <strong>cómic</strong> 🎨.');
+    chips.innerHTML=''; row.style.display='none'; return;
+  }
+  row.style.display='flex';
   bubble('them','Soy '+c.persona+', '+c.role+' del Consejo de AdmiraNext. ¿Qué decisión quieres consultarme?');
-  const chips=['¿Prioridad del trimestre?','¿Cómo escalamos el RaaS en España?','¿Qué métrica perseguimos?','Tu mayor riesgo ahora'];
-  chat.querySelector('.chips').innerHTML=chips.map(x=>'<span>'+x+'</span>').join('');
+  const cs=['¿Prioridad del trimestre?','¿Cómo escalamos el RaaS en España?','¿Qué métrica perseguimos?','Tu mayor riesgo ahora'];
+  chips.innerHTML=cs.map(x=>'<span>'+x+'</span>').join('');
   chat.querySelectorAll('.chips span').forEach(s=>s.onclick=()=>{ chat.querySelector('textarea').value=s.textContent; });
   setTimeout(()=>chat.querySelector('textarea').focus(),50);
 }
@@ -262,7 +307,7 @@ function bubble(side,html){ const d=document.createElement('div'); d.className='
   chat.querySelector('.msgs').appendChild(d); chat.querySelector('.msgs').scrollTop=1e9; return d; }
 async function send(){
   if(busy||!curNPC) return; const ta=chat.querySelector('textarea'); const q=ta.value.trim(); if(!q) return;
-  ta.value=''; bubble('me',q); busy=true; chat.querySelector('.send').disabled=true;
+  ta.value=''; bubble('me',q); sfx('send'); busy=true; chat.querySelector('.send').disabled=true;
   const b=bubble('them','<span style="color:var(--mut)">pensando…</span>');
   try{ const ans=await askOne(curNPC.role,curNPC.gen,curNPC.persona,q); b.innerHTML=fmt(ans);
     const cm=document.createElement('span'); cm.className='comic'; cm.textContent='🎨 Cómic';
@@ -279,6 +324,55 @@ function panels(c,content){ const color=({CEO:'#ffb000',CTO:'#4ea1ff',COO:'#7ee0
   for(let i=0;i<s.length&&out.length<5;i+=per) out.push({persona:c.persona,role:c.role,text:s.slice(i,i+per).join(' ').slice(0,200),avatarStyle:'',color});
   return out.length?out:[{persona:c.persona,role:c.role,text:String(content).slice(0,200),avatarStyle:'',color}];
 }
+
+/* ===== audio: chiptune + SFX ===== */
+let AC=null, MUTED=false, mTimer=null, mStep=0;
+const MELODY=[392,0,523,0,659,587,523,0,440,0,523,494,440,0,392,0];
+function ensureAudio(){ if(AC) return; try{ AC=new (window.AudioContext||window.webkitAudioContext)(); startMusic(); }catch(e){} }
+function tone(freq,dur,type,vol){ if(!AC||MUTED||!freq) return; const t=AC.currentTime;
+  const o=AC.createOscillator(), gn=AC.createGain(); o.type=type||'square'; o.frequency.value=freq;
+  gn.gain.setValueAtTime(0.0001,t); gn.gain.linearRampToValueAtTime(vol||0.05,t+0.01); gn.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t+dur); }
+function sfx(k){ if(k==='open'){ tone(440,0.06,'square',0.06); setTimeout(()=>tone(660,0.08,'square',0.05),60); }
+  else if(k==='send'){ tone(880,0.05,'square',0.05); } else if(k==='err'){ tone(150,0.18,'sawtooth',0.05); } }
+function startMusic(){ if(mTimer) return; const beat=0.26;
+  mTimer=setInterval(()=>{ if(!AC||MUTED) return; tone(MELODY[mStep%MELODY.length],beat*0.9,'triangle',0.035);
+    if(mStep%4===0) tone(98,beat*0.9,'square',0.03); mStep++; }, beat*1000); }
+function setMute(m){ MUTED=m; document.getElementById('muteBtn').textContent=m?'🔇':'🔊'; }
+document.getElementById('muteBtn').onclick=e=>{ e.preventDefault(); ensureAudio(); setMute(!MUTED); };
+
+/* ===== CLI / consola de comandos ===== */
+const cli=document.getElementById('cli'), cliOut=document.getElementById('cliOut'), cliIn=document.getElementById('cliIn');
+let cliOpen=false; const cliHist=[]; let histI=0;
+const RCOL={CEO:'#ffb000',CTO:'#4ea1ff',COO:'#7ee0a0',CFO:'#ffd166',CCO:'#ff7ad9',CDO:'#b89cff',CXO:'#ff9f57',CSO:'#5be0e0'};
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function cliPrint(cls,txt){ const d=document.createElement('div'); d.className=cls; d.innerHTML=txt; cliOut.appendChild(d); cliOut.scrollTop=1e9; return d; }
+function openCli(){ cliOpen=true; cli.style.display='flex'; keys.clear(); setTimeout(()=>cliIn.focus(),30);
+  if(!cliOut.childElementCount) cliPrint('s','Consola del Consejo de AdmiraNext · escribe <span style="color:var(--amber)">help</span>'); }
+function closeCli(){ cliOpen=false; cli.style.display='none'; }
+function findRole(s){ s=(s||'').trim(); const u=s.toUpperCase(); return COUNCIL.find(c=>c.role===u)||COUNCIL.find(c=>c.persona.toLowerCase().includes(s.toLowerCase())); }
+async function cliAsk(t,q){ const d=cliPrint('s','['+t.role+'] '+t.persona+' pensando…');
+  try{ const ans=await askOne(t.role,t.gen,t.persona,q);
+    d.className='a'; d.innerHTML='<span style="color:'+(RCOL[t.role]||'#ffb000')+';font-weight:700">['+t.role+'] '+t.persona+':</span> '+fmt(ans)+' <span class="comic">🎨 cómic</span>';
+    d.querySelector('.comic').onclick=()=>AdmiraComic.open({panels:panels(t,ans),tema:'AdmiraNext · '+q,names:[t.persona],engine:'good'});
+  }catch(e){ d.className='e'; d.textContent='['+t.role+'] error: '+e.message; sfx('err'); } }
+async function cliRun(line){ cliPrint('u','consejo&gt; '+esc(line));
+  const parts=line.trim().split(/\s+/); const c=(parts[0]||'').toLowerCase(); const rest=parts.slice(1), arg=rest.join(' ');
+  if(c==='help'||c==='?') return cliPrint('a','Comandos:\n  who               lista los consejeros\n  ask &lt;ROL&gt; &lt;pregunta&gt;  consulta a un consejero\n  all &lt;pregunta&gt;    pregunta a TODO el Consejo\n  goto &lt;ROL&gt;        camina hasta un consejero\n  clear             limpia la consola\n  salir             cierra la consola\n  (↑/↓ historial · Esc cierra)');
+  if(c==='who'||c==='consejo') return cliPrint('a',COUNCIL.map(x=>'  '+x.role.padEnd(4)+' · '+x.persona+'  ('+x.area+')').join('\n'));
+  if(c==='clear'){ cliOut.innerHTML=''; return; }
+  if(c==='salir'||c==='exit'||c==='q') return closeCli();
+  if(c==='goto'){ const t=findRole(arg); if(!t) return cliPrint('e','no encontré «'+esc(arg)+'»'); player.x=t.x; player.y=t.y+14; return cliPrint('s','→ caminando hasta '+t.persona); }
+  if(c==='ask'){ const t=findRole(rest[0]); const q=rest.slice(1).join(' '); if(!t||!q) return cliPrint('e','uso: ask &lt;ROL&gt; &lt;pregunta&gt;'); return cliAsk(t,q); }
+  if(c==='all'){ if(!arg) return cliPrint('e','uso: all &lt;pregunta&gt;'); for(const t of COUNCIL){ await cliAsk(t,arg); await new Promise(s=>setTimeout(s,1200)); } return; }
+  if(c) cliPrint('e','comando desconocido: '+esc(c)+' · escribe help');
+}
+cliIn.addEventListener('keydown',e=>{ e.stopPropagation();
+  if(e.key==='Enter'){ const v=cliIn.value; if(v.trim()){ cliHist.push(v); histI=cliHist.length; } cliIn.value=''; cliRun(v); }
+  else if(e.key==='Escape') closeCli();
+  else if(e.key==='ArrowUp'){ if(histI>0){ histI--; cliIn.value=cliHist[histI]||''; } e.preventDefault(); }
+  else if(e.key==='ArrowDown'){ if(histI<cliHist.length){ histI++; cliIn.value=cliHist[histI]||''; } e.preventDefault(); } });
+document.getElementById('cliBtn').onclick=e=>{ e.preventDefault(); ensureAudio(); cliOpen?closeCli():openCli(); };
 
 /* ===== escala el canvas al viewport (pixel perfect) ===== */
 function fit(){ const pad=24; const s=Math.max(1,Math.floor(Math.min((innerWidth-pad)/W,(innerHeight-pad)/H)));
