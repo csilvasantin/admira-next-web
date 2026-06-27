@@ -18,9 +18,11 @@
   const TG_API = 'https://fallback.admira.store/comic-telegram';      // envío al grupo
   const BRIDGE = 'http://127.0.0.1:9189';                             // puente local ChatGPT (suscripción, sin API key)
   const STOCK_API = 'https://api.admira.store/stock/publish';         // sube el cómic al Stock de Pixeria (emitible en DOOH)
+  const GROK_IMG = 'https://admira-grok-proxy.csilvasantin.workers.dev/grok/image';   // Grok dibuja el cómic (xAI grok-2-image)
+  const GROK_VIDEO = 'https://admira-grok-proxy.csilvasantin.workers.dev/grok/video'; // Grok anima el cómic (vídeo)
   const MAX_PANELS = 6;
-  const LABELS = { good: 'good · SVG', better: 'better · ChatGPT (auto)', best: 'best · gpt-image-1' };
-  const defEngine = () => localStorage.getItem('comicEngine') || 'better';
+  const LABELS = { good: 'good · SVG', grok: 'grok · Grok dibuja', better: 'better · ChatGPT (auto)', best: 'best · gpt-image-1' };
+  const defEngine = () => localStorage.getItem('comicEngine') || 'grok';
   const setDef = e => { try { localStorage.setItem('comicEngine', e); } catch (x) {} };
 
   let CUR = { b64: null, data: null };  // imagen actual (dataURL) lista para enviar
@@ -54,7 +56,7 @@
     const opt = e => `<option value="${e}"${engine === e ? ' selected' : ''}>${LABELS[e]}</option>`;
     return `<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid #2a2f45;position:sticky;top:0;background:#11131f;z-index:2;flex-wrap:wrap">
       <b style="color:#e8eef7;font-size:15px">🎨 Cómic del Consejo</b>
-      <select id="ac-engine" title="calidad" style="margin-left:auto;background:#1a2030;color:#e8eef7;border:1px solid #2a2f45;border-radius:8px;padding:6px 8px;font:inherit;font-size:12px">${opt('good')}${opt('better')}${opt('best')}</select>
+      <select id="ac-engine" title="calidad" style="margin-left:auto;background:#1a2030;color:#e8eef7;border:1px solid #2a2f45;border-radius:8px;padding:6px 8px;font:inherit;font-size:12px">${opt('grok')}${opt('good')}${opt('better')}${opt('best')}</select>
       <label style="color:#8a97ab;font-size:11px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="ac-def"> por defecto</label>
       <button id="ac-regen" style="background:#1a2030;color:#e8eef7;border:1px solid #2a2f45;border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:12px">↻</button>
       <button id="ac-stock" disabled style="background:#7a5cff;color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:12px;font-weight:700;opacity:.5" title="Sube el cómic al Stock de Pixeria (emitible en DOOH)">📦 Stock</button>
@@ -130,9 +132,55 @@
   }
 
   function imgPreview(url) {
-    return `<div style="padding:14px;text-align:center">
+    return `<div style="padding:14px 14px 0;text-align:center">
       <img src="${url}" style="max-width:100%;border-radius:8px;border:1px solid #2a2f45">
       <div style="margin-top:8px"><a href="${url}" download="comic-consejo.png" style="color:#5bd6c0;font-size:13px">💾 Descargar</a></div></div>`;
+  }
+  // ── Vídeo con Grok: anima el cómic ya dibujado ──
+  function videoBar() {
+    return `<div style="text-align:center;padding:6px 14px 16px">
+      <button id="ac-video" style="background:#1a2030;color:#e8eef7;border:1px solid #2a2f45;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit;font-size:13px;font-weight:700">🎬 Animar con Grok (vídeo)</button>
+      <div id="ac-vid"></div></div>`;
+  }
+  function videoPrompt(data) {
+    return `Anima en un vídeo corto (5s) esta escena de cómic: una reunión del Consejo de Admira en una sala de control futurista, estilo cómic moderno colorido, cámara suave. Tema: "${trim(data.tema, 90)}".`;
+  }
+  function wireVideo(card, data) {
+    const btn = card.querySelector('#ac-video'); if (!btn) return;
+    btn.onclick = () => genVideo(card, data);
+  }
+  function vFail(vb, btn, msg) {
+    vb.innerHTML = `<div style="color:#ffb454;font-size:12px;margin-top:10px">Vídeo no disponible: ${esc(msg)}</div>`;
+    btn.disabled = false; btn.textContent = '🎬 reintentar vídeo';
+  }
+  async function genVideo(card, data) {
+    const btn = card.querySelector('#ac-video'), vb = card.querySelector('#ac-vid');
+    btn.disabled = true; btn.textContent = '🎬 Grok generando vídeo…'; vb.innerHTML = '';
+    let id;
+    try {
+      const r = await fetch(GROK_VIDEO, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: videoPrompt(data) }) });
+      const d = await r.json().catch(() => ({}));
+      if (!(r.ok && d.ok && d.id)) return vFail(vb, btn, d.message || d.error || ('HTTP ' + r.status));
+      id = d.id;
+    } catch (e) { return vFail(vb, btn, e.message); }
+    // El vídeo es asíncrono: sondear hasta "done"
+    let tries = 0;
+    const poll = async () => {
+      tries++;
+      let s = {};
+      try { s = await fetch(GROK_VIDEO + '?id=' + encodeURIComponent(id)).then(x => x.json()); } catch (e) { /* reintenta */ }
+      if (s.done && s.url) {
+        CUR.videoUrl = s.url;
+        vb.innerHTML = `<video controls autoplay loop muted playsinline src="${s.url}" style="max-width:100%;border-radius:8px;margin-top:12px;border:1px solid #2a2f45"></video>
+          <div style="margin-top:6px"><a href="${s.url}" target="_blank" rel="noopener" style="color:#5bd6c0;font-size:13px">💾 Descargar / abrir vídeo</a></div>`;
+        btn.textContent = '🎬 vídeo listo'; return;
+      }
+      if (s.ok === false) return vFail(vb, btn, s.message || s.error || 'error de estado');
+      if (tries > 50) return vFail(vb, btn, 'tardó demasiado, reintenta');
+      btn.textContent = '🎬 Grok generando vídeo…' + (s.progress != null ? ' ' + s.progress + '%' : '');
+      setTimeout(poll, 6000);
+    };
+    setTimeout(poll, 4000);
   }
   function dropZone(prompt) {
     return `<div style="padding:16px;color:#cdd6e6;font-size:13px">
@@ -207,6 +255,21 @@
       const onPaste = e => { for (const it of (e.clipboardData || {}).items || []) if (it.type.indexOf('image') === 0) take(it.getAsFile()); };
       document.addEventListener('paste', onPaste);
       card._cleanup = () => document.removeEventListener('paste', onPaste);
+      return;
+    }
+
+    if (engine === 'grok') {
+      body.innerHTML = '<div style="padding:28px;text-align:center;color:#8a97ab">🎨 Grok está dibujando el cómic…<div style="font-size:11px;margin-top:6px;color:#5a6479">xAI · grok-2-image</div></div>';
+      try {
+        const r = await fetch(GROK_IMG, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok && (d.b64 || d.url)) {
+          const url = d.b64 ? ('data:image/png;base64,' + d.b64) : d.url;
+          CUR.b64 = url; body.innerHTML = imgPreview(url) + videoBar(); wireVideo(card, data);
+          setSendable(card, true); maybeAutoStock(card, data); return;
+        }
+        body.innerHTML = `<div style="padding:18px;color:#ffb454">Grok no pudo dibujar (${esc(d.message || d.error || ('HTTP ' + r.status))}). Cambia a «good» o «best».</div>`;
+      } catch (e) { body.innerHTML = '<div style="padding:18px;color:#ffb454">Grok error: ' + esc(e.message) + '</div>'; }
       return;
     }
 

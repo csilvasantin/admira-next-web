@@ -186,7 +186,7 @@ function panelsFromAnswer(role, persona, content){
 function fill(el, content){
   el.querySelector('.st').textContent=''; el.querySelector('.body').innerHTML=fmt(content); el._meta.content=content;
   const cb=el.querySelector('.comic'); cb.style.display='inline-block';
-  cb.onclick=()=>AdmiraComic.open({ panels:panelsFromAnswer(el._meta.role,el._meta.persona,el._meta.content), tema:'AdmiraNext · '+(el._meta.question||''), names:[el._meta.persona], engine:'good' });
+  cb.onclick=()=>AdmiraComic.open({ panels:panelsFromAnswer(el._meta.role,el._meta.persona,el._meta.content), tema:'AdmiraNext · '+(el._meta.question||''), names:[el._meta.persona], engine:'grok' });
 }
 function fail(el, msg){ el.classList.add('err'); el.querySelector('.st').textContent=''; el.querySelector('.body').textContent='— '+msg; }
 
