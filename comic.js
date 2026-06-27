@@ -178,10 +178,13 @@
         vb.innerHTML = `<video controls autoplay loop muted playsinline src="${s.url}" style="max-width:100%;border-radius:8px;margin-top:12px;border:1px solid #2a2f45"></video>
           <div style="margin-top:8px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap">
             <a href="${s.url}" target="_blank" rel="noopener" style="color:#5bd6c0;font-size:13px">💾 Descargar / abrir</a>
+            <button id="ac-vstock" style="background:#7a5cff;color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:12px;font-weight:700" title="Publica el vídeo en el Stock de Pixeria (emitible en DOOH)">📦 Vídeo al Stock</button>
             <button id="ac-vsend" style="background:#2a8;color:#04231e;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:12px;font-weight:700">📤 Enviar vídeo al grupo</button>
           </div>`;
         const vs = card.querySelector('#ac-vsend');
         if (vs) vs.onclick = () => sendVideoGroup(vs, data);
+        const vst = card.querySelector('#ac-vstock');
+        if (vst) vst.onclick = () => sendVideoStock(vst, data);
         btn.textContent = '🎬 vídeo listo'; return;
       }
       if (s.ok === false) return vFail(vb, btn, s.message || s.error || 'error de estado');
@@ -214,6 +217,27 @@
       if (r.ok && d.ok) { b.textContent = '✅ enviado al grupo'; }
       else { b.textContent = '⚠️ ' + (d.error || ('HTTP ' + r.status)); b.disabled = false; }
     } catch (e) { b.textContent = '⚠️ ' + e.message; b.disabled = false; }
+  }
+
+  // ── Publicar el VÍDEO en el Stock de Pixeria (emitible en DOOH) ──
+  async function sendVideoStock(btn, data) {
+    if (!CUR.videoUrl) return;
+    btn.textContent = '⏳ subiendo…'; btn.disabled = true;
+    try {
+      const r = await fetch(STOCK_API, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'video', motor: 'consejo-comic', mime: 'video/mp4', quality: 'best',
+          sourceUrl: CUR.videoUrl,
+          title: 'Vídeo del Consejo — ' + trim(data.tema || 'reunión', 60),
+          tags: ['consejo', 'comic', 'video'],
+          prompt: videoPrompt(data).slice(0, 500),
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { btn.textContent = '✅ vídeo en el Stock'; }
+      else { btn.textContent = '⚠️ ' + (d.error || ('HTTP ' + r.status)); btn.disabled = false; }
+    } catch (e) { btn.textContent = '⚠️ ' + e.message; btn.disabled = false; }
   }
 
   // ── Enviar el VÍDEO (animación Grok) al grupo de Telegram ──
