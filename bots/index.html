@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robots Agibot · AdmiraNeXT → admira.shop</title>
+  <!-- Redirección a la tienda de robots. La fuente de verdad es admira.shop -->
+  <meta http-equiv="refresh" content="0; url=https://admira.shop/">
+  <link rel="canonical" href="https://admira.shop/">
+  <meta name="robots" content="noindex,follow">
+  <meta name="theme-color" content="#0a0a0a">
+  <script>location.replace('https://admira.shop/' + (location.hash || ''));</script>
+  <style>
+    html,body{margin:0;height:100%;background:#0a0a0a;color:#e8e8e8;
+      font-family:'Space Grotesk',system-ui,-apple-system,sans-serif}
+    .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#daa520;box-shadow:0 0 16px #daa520;animation:p 1s infinite}
+    @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+    a{color:#daa520;text-decoration:none;font-weight:600}
+    a:hover{text-decoration:underline}
+    .muted{color:#8a8a8a;font-size:.95rem}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="dot"></div>
+    <p>Llevándote a la tienda de robots de Admira…</p>
+    <p class="muted">Si no avanza, entra en <a href="https://admira.shop/">admira.shop</a></p>
+  </div>
+</body>
+</html>
