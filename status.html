@@ -6,8 +6,8 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r2">
-  <meta name="admiranext-status-build" content="draw-custom-arctrace+bg-image+drop-applies">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r3">
+  <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
@@ -278,7 +278,7 @@
   <header class="hdr">
     <div class="hdr-side left">
       <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
-              title="Opciones — vistas (ORDENADOR / AGENTE / MISIÓN / SISTEMA OPERATIVO)">☰</button>
+              title="Opciones — vistas (ORDENADOR / PROYECTOS / AGENTE / MISIÓN / SISTEMA OPERATIVO)">☰</button>
     </div>
 
     <div class="hdr-center">
@@ -306,7 +306,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r2</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r3</span></span>
   </div>
 
   <div id="card"></div>
@@ -322,6 +322,7 @@
     <button class="pf-close" id="closeLeft" aria-label="Cerrar opciones">×</button>
     <h4>Opciones · vistas</h4>
     <button class="pf-vbtn active" data-view="machine"><span class="ic">▢</span> Por ordenador</button>
+    <button class="pf-vbtn" data-view="project"><span class="ic">❖</span> Por proyectos</button>
     <button class="pf-vbtn" data-view="agent"><span class="ic">◈</span> Por agente</button>
     <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Por misión</button>
     <button class="pf-vbtn" data-view="os"><span class="ic">⌘</span> Por sistema operativo</button>
@@ -460,6 +461,33 @@
     for (const k in AGENT_MISSION){ if (n.includes(k)) return AGENT_MISSION[k]; }
     return 'Sin misión';
   }
+
+  // -------- PROYECTOS CANÓNICOS (la cartera — fácil de ampliar) --------
+  // Vista POR PROYECTOS: estos 6 aparecen SIEMPRE, tengan o no nodos ahora
+  // mismo (se ve el hueco). Etiqueta visible = el dominio tal cual.
+  const CANON_PROJECTS = [
+    'www.pixeria.com',
+    'www.xpaceos.com',
+    'www.clearchannel.tv',
+    'www.admiranext.com',
+    'www.admira.live',
+    'www.yokup.com',
+  ];
+  const UNASSIGNED_PROJECT = 'sin asignar';   // cajón para lo que no case
+  // Normaliza una misión/proyecto para comparar: minúsculas, sin "www.",
+  // sin barra final, sin espacios. pixeria.com ≡ www.pixeria.com ≡ Pixeria.com/
+  function normProject(s){
+    return (s||'').toLowerCase().replace(/\s+/g,'').replace(/\/+$/,'').replace(/^www\./,'');
+  }
+  // Mapea la misión/proyecto actual de un nodo («www.admiranext.com ·
+  // Coordinación», «pixeria.com», «Consejo · Infra»…) a su proyecto canónico:
+  // casa si el texto CONTIENE el dominio normalizado. Sin match → sin asignar.
+  function canonProjectFor(mission){
+    const n = normProject(mission);
+    if(!n) return null;
+    for(const cp of CANON_PROJECTS){ if(n.includes(normProject(cp))) return cp; }
+    return null;
+  }
   // Deriva el SISTEMA OPERATIVO de una máquina por su nombre/host (regla de la
   // casa). Si el roster de fleet trae `platform`, se usa como confirmación.
   //   MacBook*/MacMini/mac.lan/Mac* → macOS · AsusZenbook → Windows
@@ -519,9 +547,9 @@
 
   // ---------- estado de datos y vistas ----------
   // Guardamos el "mundo" crudo tras cada carga, y derivamos nodos por vista.
-  let WORLD = { machines:[], agents:[], missions:[], os:[] };
-  const VIEWS = ['machine','agent','mission','os'];
-  const VIEW_LABEL = { machine:'por ordenador', agent:'por agente', mission:'por misión', os:'por sistema operativo' };
+  let WORLD = { machines:[], agents:[], missions:[], os:[], projects:[] };
+  const VIEWS = ['machine','project','agent','mission','os'];
+  const VIEW_LABEL = { machine:'por ordenador', project:'por proyectos', agent:'por agente', mission:'por misión', os:'por sistema operativo' };
   let viewIdx = 0;
   let currentView = 'machine';
 
@@ -921,6 +949,11 @@
         `<div class="cp">runtime · <b>${n.sub||'—'}</b></div>`+
         `<div class="row"><span class="lab">máquinas</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
         `<div class="row"><span class="lab">misión</span><span class="val">${n.mission||'—'}</span></div>`;
+    } else if(currentView==='project'){
+      rows =
+        `<div class="cp">proyecto · <b>${n.label}</b></div>`+
+        `<div class="row"><span class="lab">equipos</span><span class="val">${(n.machines||[]).join(', ')||'— (sin nodos ahora)'}</span></div>`+
+        `<div class="row"><span class="lab">agentes</span><span class="val">${(n.agentNames||[]).join(', ')||'—'}</span></div>`;
     } else if(currentView==='os'){
       rows =
         `<div class="cp">sistema operativo · <b>${n.label}</b></div>`+
@@ -1075,6 +1108,7 @@
     WORLD.agents   = buildAgents(pres && pres.presence ? pres.presence : [], isFresh);
     WORLD.missions = buildMissions(machines, WORLD.agents);
     WORLD.os       = buildOS(machines);
+    WORLD.projects = buildProjects(machines, WORLD.agents);
 
     applyView(); // recoloca nodos según la vista activa
 
@@ -1153,6 +1187,39 @@
       .sort((a,b)=>(b.online-a.online)||((ORD[a.os]==null?9:ORD[a.os])-(ORD[b.os]==null?9:ORD[b.os])));
   }
 
+  // Vista POR PROYECTOS — la cartera de Carlos: nodos = los 6 proyectos
+  // canónicos (SIEMPRE visibles, con o sin equipos) + «sin asignar» si hay
+  // restos. Equipos por su misión/proyecto actual (canonProjectFor) y
+  // agentes por su misión de referencia. Orden fijo de cartera.
+  function buildProjects(machines, agents){
+    const by={};
+    const add=(name)=>{ if(!by[name]) by[name]={id:'proj:'+norm(name), project:name,
+       updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:'', decisions:0, tokens:0, reqs:0}; return by[name]; };
+    for(const cp of CANON_PROJECTS) add(cp);           // los 6, SIEMPRE (aunque vacíos)
+    for(const m of machines){
+      const e=add(canonProjectFor(m.project) || UNASSIGNED_PROJECT);
+      e.machinesSet.add(m.machine);
+      e.decisions=(e.decisions||0)+(+m.decisions||0);
+      e.tokens=(e.tokens||0)+(+m.tokens||0);   // tokens por proyecto = suma de sus equipos (sin doble conteo)
+      e.reqs=(e.reqs||0)+(+m.reqs||0);
+      if(m.online) e.online=true;
+      if((m.updated||0)>e.updated) e.updated=m.updated;
+      if(m.foco && !e.foco) e.foco=m.foco;
+    }
+    for(const a of agents){
+      const e=add(canonProjectFor(a.mission) || UNASSIGNED_PROJECT);
+      e.agentsSet.add(a.persona);
+      if(a.online) e.online=true;
+      if((a.updated||0)>e.updated) e.updated=a.updated;
+    }
+    // orden fijo: la cartera tal cual, «sin asignar» al final (si tiene algo)
+    const ORD={}; CANON_PROJECTS.forEach((cp,i)=>ORD[cp]=i);
+    return Object.values(by)
+      .filter(e=>e.project!==UNASSIGNED_PROJECT || e.machinesSet.size || e.agentsSet.size)
+      .map(e=>({...e, machines:[...e.machinesSet], agentNames:[...e.agentsSet]}))
+      .sort((a,b)=>(ORD[a.project]==null?99:ORD[a.project])-(ORD[b.project]==null?99:ORD[b.project]));
+  }
+
   // Traduce el WORLD a nodos genéricos para la vista activa y recoloca
   function applyView(){
     let list=[];
@@ -1169,6 +1236,14 @@
         personas:[{persona:a.persona,runtime:a.runtime}], machines:a.machines, mission:a.mission,
         online:a.online, updated:a.updated, foco:a.foco, mode:a.mode, count:a.machines.length,
         decisions:a.decisions||0, tokens:a.tokens||0, reqs:a.reqs||0,
+      }));
+    } else if(currentView==='project'){
+      list = WORLD.projects.map(pr=>({
+        id:pr.id, label:pr.project,
+        sub:(pr.machines.length||pr.agentNames.length) ? (pr.machines.length+' eq · '+pr.agentNames.length+' ag') : 'sin nodos ahora',
+        machines:pr.machines, agentNames:pr.agentNames, online:pr.online, updated:pr.updated,
+        foco:pr.foco, count:pr.machines.length+pr.agentNames.length,
+        decisions:pr.decisions||0, tokens:pr.tokens||0, reqs:pr.reqs||0,
       }));
     } else if(currentView==='os'){
       list = WORLD.os.map(o=>({
@@ -1961,7 +2036,7 @@
   const CLI_HELP=[
     'comandos disponibles (consola local):',
     '  help                  esta ayuda',
-    '  view <m|a|mi|os>      cambia de vista (machine/agent/mission/os)',
+    '  view <m|p|a|mi|os>    cambia de vista (machine/project/agent/mission/os)',
     '  live                   nº de nodos vivos y umbral actual',
     '  nodes                  lista los nodos de la vista activa',
     '  threshold <min>        fija el umbral de «vivo» (1-30)',
@@ -1986,9 +2061,9 @@
     switch(cmd.toLowerCase()){
       case 'help': case '?': cliPrint(CLI_HELP); break;
       case 'view': {
-        const map={m:'machine',machine:'machine',a:'agent',agent:'agent',mi:'mission',mission:'mission',os:'os',so:'os',sistema:'os'};
+        const map={m:'machine',machine:'machine',p:'project',proj:'project',project:'project',proyecto:'project',proyectos:'project',a:'agent',agent:'agent',mi:'mission',mission:'mission',os:'os',so:'os',sistema:'os'};
         if(map[a0]){ setView(map[a0],true); cliPrint('vista → '+VIEW_LABEL[map[a0]]); }
-        else cliPrint('uso: view <machine|agent|mission|os>','err');
+        else cliPrint('uso: view <machine|project|agent|mission|os>','err');
         break;
       }
       case 'live': {
