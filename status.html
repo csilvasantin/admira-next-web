@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.10">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.11">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -354,8 +354,13 @@
       <label>Filtros</label>
       <label class="pf-check"><input type="checkbox" id="advOnlyLive"> Sólo nodos vivos</label>
     </div>
-    <div class="pf-field" style="margin-bottom:0">
+    <div class="pf-field">
       <label class="pf-check"><input type="checkbox" id="advLabels" checked> Mostrar etiquetas</label>
+    </div>
+    <div class="pf-field" style="margin-bottom:0">
+      <label>Ambiente</label>
+      <label class="pf-check"><input type="checkbox" id="advHeartAudio"> Latido ambiente (sonar)</label>
+      <div class="hint" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5">Thump-thump grave que sigue el BPM medio de la flota. Requiere un clic (política de audio del navegador).</div>
     </div>
   </aside>
 
@@ -448,6 +453,7 @@
   let ROTATE_MS_DYN  = ROTATE_MS;
   let ONLY_LIVE = false;
   let SHOW_LABELS = true;
+  let FLEET_BPM = 60;   // BPM medio de la flota viva (lo actualiza el render; guía el audio)
 
   // ---------- util ----------
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -591,6 +597,76 @@
     return out;
   }
 
+  // ============================================================
+  // VIDA DE LOS NODOS — dos capas (estética ALIEN)
+  //   1) LATIDO tipo corazón «lub-dub» del Nostromo (halo sonar)
+  //   2) TAMAÑO ∝ VOLUMEN de trabajo (proxy hoy, tokens mañana)
+  // Ambas funcionan en las 3 vistas (ordenador/agente/misión).
+  // ============================================================
+
+  // --- ACTIVIDAD del nodo en 0..1 -----------------------------------
+  // Mezcla señales de presencia disponibles:
+  //   · frescura de `updated` (cuanto más reciente el beat, más activo)
+  //   · `decisions` acumuladas (más decisiones → más actividad)
+  //   · `mode` (autónomo pesa más que pasivo)
+  // Un nodo en reposo → ~0 ; un nodo muy activo → ~1.
+  function nodeActivity(n){
+    if(!n.online) return 0;
+    // frescura: 1 si acaba de latir, →0 al acercarse al umbral de vivo
+    const age = Math.max(0, SERVER_NOW - (n.updated||0));
+    const fresh = Math.max(0, 1 - age / (ONLINE_SEC_DYN||600));
+    // decisiones: saturación suave (log), 0 dec → 0, mucho → →1
+    const dec = Math.min(1, Math.log1p(Math.max(0, n.decisions||0)) / Math.log1p(40));
+    // modo: autónomo/autonomo empuja el latido
+    const m = (n.mode||'').toLowerCase();
+    const modeBoost = /aut[oó]nom/.test(m) ? 0.35 : (m && m!=='pasivo' ? 0.15 : 0);
+    // combinación (frescura domina, decisiones y modo suman) → clamp 0..1
+    return Math.min(1, fresh*0.6 + dec*0.5 + modeBoost);
+  }
+
+  // --- BPM del nodo: reposo 60 → mucha actividad 120 ----------------
+  const BPM_MIN = 60, BPM_MAX = 120;
+  function nodeBPM(n){ return BPM_MIN + (BPM_MAX - BPM_MIN) * nodeActivity(n); }
+
+  // --- Envolvente cardiaca «lub-dub» en función de la fase 0..1 ------
+  // Dos golpes seguidos (lub, dub) y luego una pausa larga, como el pulso
+  // ambiental del Nostromo. `ph` es la fase del ciclo (0..1). Devuelve 0..1.
+  function heartEnvelope(ph){
+    ph = ph - Math.floor(ph);                 // normaliza a 0..1
+    const lub = Math.exp(-Math.pow((ph-0.06)/0.045, 2));  // 1er golpe (fuerte)
+    const dub = 0.72*Math.exp(-Math.pow((ph-0.20)/0.05, 2)); // 2º golpe (más suave)
+    return Math.min(1, lub + dub);            // resto del ciclo ≈ pausa (≈0)
+  }
+  // Fase acumulada por nodo (independiente de fps): avanza a beats/segundo.
+  function advanceHeart(n, dtSec){
+    const bps = nodeBPM(n)/60;                 // beats por segundo
+    n._hp = (n._hp||0) + bps*dtSec;            // fase acumulada (ciclos)
+  }
+
+  // --- VOLUMEN de trabajo del nodo (radio ∝ volumen) ----------------
+  // ÚNICA función a tocar cuando exista feed de tokens: hoy devuelve el
+  // PROXY (decisiones acumuladas + tamaño del grupo); mañana `n.tokens`.
+  function nodeVolume(n){
+    if(n && typeof n.tokens==='number' && n.tokens>0) return n.tokens; // futuro: tokens reales
+    // proxy honesto: decisiones + nº de agentes/máquinas agrupados
+    const grp = Math.max(0, (n.count||1)-1);
+    return (n.decisions||0) + grp*3;
+  }
+  // Etiqueta honesta de la métrica usada (para la tarjeta hover).
+  function nodeVolumeLabel(n){
+    if(n && typeof n.tokens==='number' && n.tokens>0) return 'tokens: '+n.tokens;
+    return 'actividad: '+nodeVolume(n)+' (proxy: decisiones+grupo)';
+  }
+  // Radio base a partir del volumen, clampeado para que la galaxia sea legible.
+  // Escala logarítmica: diferencias visibles sin que un nodo se coma la pantalla.
+  const R_MIN = 5, R_MAX = 15;
+  function volumeRadius(n){
+    const v = nodeVolume(n);
+    const k = Math.min(1, Math.log1p(Math.max(0,v)) / Math.log1p(60));
+    const base = R_MIN + (R_MAX - R_MIN) * k;
+    return n.online ? base : Math.max(R_MIN-1, base*0.7);
+  }
+
   let last=performance.now();
   let paused=false;
   document.addEventListener('visibilitychange',()=>{
@@ -642,25 +718,55 @@
       }
     }
 
-    const t=now*0.001;
+    const dtSec = dt*0.001;
+    let bpmSum=0, bpmN=0;   // para el audio ambiente (BPM medio de la flota viva)
     for(const n of nodes){
       // en modo draw, los nodos sobrantes quedan tenues (orbitando)
       const dimNode = DRAW_ACTIVE && n._inShape===false;
       ctx.globalAlpha = dimNode ? 0.22 : 1;
-      // el tamaño crece con la actividad: nº de personas/máquinas agrupadas
-      const grp = Math.max(0, (n.count||1)-1);
-      const base = n.online ? 7+Math.min(7, grp*1.6) : 5+Math.min(4,grp*1.2);
-      const pulse = n.online ? (0.5+0.5*Math.sin(t*2+n.phase)) : 0;
-      const r = base + pulse*2;
+
+      // --- LATIDO: avanza la fase cardiaca del nodo a su BPM (60–120) ---
+      advanceHeart(n, dtSec);
+      const env = n.online ? heartEnvelope(n._hp) : 0;  // envolvente lub-dub 0..1
+      if(n.online){ bpmSum += nodeBPM(n); bpmN++; }
+
+      // --- TAMAÑO ∝ VOLUMEN de trabajo (transición suave) ---
+      const targetR = volumeRadius(n);
+      n._rSmooth = n._rSmooth!=null ? n._rSmooth + (targetR - n._rSmooth)*Math.min(1, dtSec*3) : targetR;
+      // el núcleo late un poco con cada golpe del corazón
+      const r = n._rSmooth + env*2.2;
       n.r=r; n._sx=n.x+cam.x; n._sy=n.y+cam.y;
+
+      // halo base (respiración suave del gradiente con el latido)
       const hg=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,r*4.5);
-      if(n.online){ hg.addColorStop(0,`rgba(34,230,255,${0.32+pulse*0.18})`); hg.addColorStop(1,'rgba(34,230,255,0)'); }
+      if(n.online){ hg.addColorStop(0,`rgba(34,230,255,${0.28+env*0.24})`); hg.addColorStop(1,'rgba(34,230,255,0)'); }
       else { hg.addColorStop(0,'rgba(120,140,160,0.10)'); hg.addColorStop(1,'rgba(120,140,160,0)'); }
       ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(n.x,n.y,r*4.5,0,7); ctx.fill();
+
+      // --- ANILLO SONAR del latido: se expande y desvanece con cada golpe ---
+      // dos ondas concéntricas desfasadas medio ciclo → sensación «lub-dub»
+      // constante y ominosa aunque el nodo esté en reposo (latido lento y tenue).
+      if(n.online){
+        const rings=[ n._hp, n._hp-0.5 ];
+        for(const rp of rings){
+          const frac = rp - Math.floor(rp);         // 0..1 desde el golpe
+          if(frac<0.5){                              // el anillo vive media fase
+            const grow = frac/0.5;                   // 0→1
+            const rr = r*(1.3 + grow*2.6);           // se expande hacia fuera
+            const al = (1-grow)*0.5*(0.35+0.65*nodeActivity(n)); // se desvanece
+            if(al>0.01){
+              ctx.beginPath(); ctx.arc(n.x,n.y,rr,0,7);
+              ctx.strokeStyle=`rgba(34,230,255,${al})`;
+              ctx.lineWidth=1.3; ctx.stroke();
+            }
+          }
+        }
+      }
+
       ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7);
       ctx.fillStyle = n.online ? '#eafcff' : '#4a5866';
       ctx.shadowColor = n.online ? 'rgba(34,230,255,.9)' : 'transparent';
-      ctx.shadowBlur = n.online ? 14+pulse*10 : 0;
+      ctx.shadowBlur = n.online ? 12+env*14 : 0;
       ctx.fill(); ctx.shadowBlur=0;
       if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle='#22e6ff'; ctx.fill(); }
       const isHover = hover && hover.id===n.id;
@@ -676,6 +782,8 @@
       if(n.sub && !dimNode) ctx.fillText(n.sub, n.x, n.y+r+27);
       ctx.globalAlpha=1;
     }
+    // BPM medio de la flota viva → guía el tempo del audio ambiente
+    FLEET_BPM = bpmN ? bpmSum/bpmN : BPM_MIN;
 
     // trazo libre en curso (feedback mientras el usuario dibuja)
     if(draw.freeing && draw.path.length>1){
@@ -722,9 +830,15 @@
         `<div class="row"><span class="lab">equipos</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
         `<div class="row"><span class="lab">agentes</span><span class="val">${(n.agentNames||[]).join(', ')||'—'}</span></div>`;
     }
+    // vida del nodo: latido (BPM) + volumen (métrica honesta usada para el tamaño)
+    const bpm = Math.round(nodeBPM(n));
+    const vidaRows = n.online
+      ? `<div class="row"><span class="lab">latido</span><span class="val">${bpm} BPM · ${nodeVolumeLabel(n)}</span></div>`
+      : `<div class="row"><span class="lab">latido</span><span class="val">reposo · ${nodeVolumeLabel(n)}</span></div>`;
     card.innerHTML =
       `<div class="cn">${n.label}</div>`+ rows +
       `<div class="row"><span class="lab">señal</span><span class="val">hace ${ago(n.updated)}</span></div>`+
+      vidaRows+
       foco+
       `<span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>`;
     card.style.display='block';
@@ -798,7 +912,8 @@
         byMachine[key] = {
           machine:m.name, personas:[], updated:m.lastSeen||0,
           // un equipo que late en el roster (DGX, ThinkStation…) cuenta como VIVO
-          online:isFresh(m.lastSeen), foco:'', mode:'', platform:m.platform||''
+          online:isFresh(m.lastSeen), foco:'', mode:'', platform:m.platform||'',
+          decisions:0, // proxy de VOLUMEN de trabajo (ver nodeVolume). Mañana: tokens.
         };
       }
     }
@@ -825,10 +940,11 @@
       for(const p of pres.presence){
         const key=resolveMachineKey(p.machine);
         let e=byMachine[key];
-        if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:''}; byMachine[key]=e; }
+        if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0}; byMachine[key]=e; }
         const fresh=isFresh(p.updated);
         e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||''});
         if((p.updated||0) > e.updated) e.updated=p.updated;
+        e.decisions = (e.decisions||0) + (+p.decisions||0); // suma de decisiones de sus agentes (proxy de volumen)
         if(fresh) e.online=true;
         if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
         if(fresh && p.mode) e.mode=p.mode;
@@ -864,10 +980,11 @@
       const id = norm(p.persona)+'|'+norm(p.runtime||'');
       let e=by[id];
       if(!e){ e={id:'agent:'+id, persona:p.persona, runtime:p.runtime||'', machinesSet:new Set(),
-                 updated:0, online:false, foco:'', mode:'', mission:missionForAgent(p.persona)}; by[id]=e; }
+                 updated:0, online:false, foco:'', mode:'', decisions:0, mission:missionForAgent(p.persona)}; by[id]=e; }
       const fresh=isFresh(p.updated);
       e.machinesSet.add(p.machine);
       if((p.updated||0)>e.updated) e.updated=p.updated;
+      e.decisions=(e.decisions||0)+(+p.decisions||0);
       if(fresh) e.online=true;
       if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
       if(fresh && p.mode) e.mode=p.mode;
@@ -880,10 +997,11 @@
   function buildMissions(machines, agents){
     const by={};
     const add=(name)=>{ const key=name||'Sin misión'; if(!by[key]) by[key]={id:'mission:'+norm(key), mission:key,
-       updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:''}; return by[key]; };
+       updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:'', decisions:0}; return by[key]; };
     for(const m of machines){
       const e=add(m.project);
       e.machinesSet.add(m.machine);
+      e.decisions=(e.decisions||0)+(+m.decisions||0);
       if(m.online) e.online=true;
       if((m.updated||0)>e.updated) e.updated=m.updated;
       if(m.foco && !e.foco) e.foco=m.foco;
@@ -906,18 +1024,21 @@
         id:'m:'+norm(m.machine), label:m.machine, sub:m.project,
         personas:m.personas, machines:[m.machine], online:m.online, updated:m.updated,
         foco:m.foco, mode:m.mode, platform:m.platform, count:m.personas.length,
+        decisions:m.decisions||0,
       }));
     } else if(currentView==='agent'){
       list = WORLD.agents.map(a=>({
         id:a.id, label:a.persona, sub:a.runtime,
         personas:[{persona:a.persona,runtime:a.runtime}], machines:a.machines, mission:a.mission,
         online:a.online, updated:a.updated, foco:a.foco, mode:a.mode, count:a.machines.length,
+        decisions:a.decisions||0,
       }));
     } else {
       list = WORLD.missions.map(mi=>({
         id:mi.id, label:mi.mission, sub:(mi.machines.length+' eq · '+mi.agentNames.length+' ag'),
         machines:mi.machines, agentNames:mi.agentNames, online:mi.online, updated:mi.updated,
         foco:mi.foco, count:mi.machines.length+mi.agentNames.length,
+        decisions:mi.decisions||0,
       }));
     }
     if(typeof ONLY_LIVE!=='undefined' && ONLY_LIVE) list = list.filter(n=>n.online);
@@ -1378,6 +1499,48 @@
   document.getElementById('advAutoRotate').addEventListener('change',e=>{ setAutoRotate(e.target.checked); });
   document.getElementById('advOnlyLive').addEventListener('change',e=>{ ONLY_LIVE=e.target.checked; applyView(); });
   document.getElementById('advLabels').addEventListener('change',e=>{ SHOW_LABELS=e.target.checked; });
+
+  // --- AUDIO AMBIENTE: «thump-thump» grave tipo sonar (WebAudio) ------
+  // OFF por defecto (el audio requiere gesto del usuario). Al activarlo,
+  // programa golpes lub-dub cuyo tempo sigue FLEET_BPM (BPM medio de la flota).
+  const heartAudio = (()=>{
+    let ac=null, on=false, timer=null, nextT=0;
+    function thump(at, gain){
+      // oscilador grave con envolvente de percusión (kick sordo tipo sonar)
+      const o=ac.createOscillator(), g=ac.createGain(), f=ac.createBiquadFilter();
+      f.type='lowpass'; f.frequency.value=180;
+      o.type='sine'; o.frequency.setValueAtTime(90, at); o.frequency.exponentialRampToValueAtTime(38, at+0.16);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(gain, at+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, at+0.34);
+      o.connect(f); f.connect(g); g.connect(ac.destination);
+      o.start(at); o.stop(at+0.4);
+    }
+    function schedule(){
+      if(!on||!ac) return;
+      const period=60/Math.max(30,Math.min(140,FLEET_BPM)); // s por latido (lub-dub+pausa)
+      const look=ac.currentTime+0.25;
+      while(nextT<look){
+        thump(nextT, 0.32);            // lub (fuerte)
+        thump(nextT+period*0.20, 0.20); // dub (más suave)
+        nextT+=period;                 // pausa hasta el siguiente ciclo
+      }
+      timer=setTimeout(schedule, 120);
+    }
+    return {
+      enable(){
+        try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return false; }
+        if(ac.state==='suspended') ac.resume();
+        on=true; nextT=ac.currentTime+0.1; schedule(); return true;
+      },
+      disable(){ on=false; if(timer){ clearTimeout(timer); timer=null; } }
+    };
+  })();
+  const advHeartAudio=document.getElementById('advHeartAudio');
+  if(advHeartAudio) advHeartAudio.addEventListener('change',e=>{
+    if(e.target.checked){ if(!heartAudio.enable()){ e.target.checked=false; cliPrint && cliPrint('audio no disponible en este navegador','err'); } }
+    else heartAudio.disable();
+  });
 
   // --- EXPERTO: consola CLI (local, no ejecuta acciones de flota) ---
   const cliInput=document.getElementById('cliInput'), cliOut=document.getElementById('cliOut');
