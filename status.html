@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.7">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.8">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -728,9 +728,13 @@
   }
 
   async function load(){
+    // Ambos feeds EN PARALELO y se espera a los dos antes de pintar: si se
+    // hicieran en serie, un primer render con sólo `fleet` resuelto mostraba
+    // 3 vivos (fleet+self) hasta que llegaba `presence` → parpadeo «3 nodos».
     let pres=null, fleet=null;
-    try{ pres = await jget(PRESENCE_URL); }catch(e){ console.warn('presence',e); }
-    try{ fleet = await jget(FLEET_URL); }catch(e){ console.warn('fleet',e); }
+    const [rp,rf]=await Promise.allSettled([ jget(PRESENCE_URL), jget(FLEET_URL) ]);
+    if(rp.status==='fulfilled') pres=rp.value; else console.warn('presence',rp.reason);
+    if(rf.status==='fulfilled') fleet=rf.value; else console.warn('fleet',rf.reason);
 
     // ---- FIX «0 nodos vivos» ----------------------------------------
     // La frescura se mide RELATIVA al reloj del servidor (máximo timestamp
@@ -756,9 +760,28 @@
         };
       }
     }
+    // Resuelve el nombre de una máquina de presence a una clave del roster de
+    // fleet aunque no coincida exacto (p.ej. presence "MacMini" ↔ fleet
+    // "Mac Mini (Carlos)"): evita nodos FANTASMA muertos duplicando a los vivos.
+    const fleetKeys=Object.keys(byMachine);
+    function resolveMachineKey(name){
+      const k=norm(name);
+      if(byMachine[k]) return k;                       // match exacto
+      if(k.length<5) return k;                          // demasiado corto para fiar del substring
+      // elige el candidato de fleet con el solape más largo (evita falsos positivos)
+      let best=null, bestLen=0;
+      for(const fk of fleetKeys){
+        if(fk.length<5) continue;
+        if(fk.includes(k) || k.includes(fk)){
+          const l=Math.min(fk.length,k.length);
+          if(l>bestLen){ bestLen=l; best=fk; }
+        }
+      }
+      return best || k;                                  // sin match: clave propia
+    }
     if(pres && pres.presence){
       for(const p of pres.presence){
-        const key=norm(p.machine);
+        const key=resolveMachineKey(p.machine);
         let e=byMachine[key];
         if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:''}; byMachine[key]=e; }
         const fresh=isFresh(p.updated);
