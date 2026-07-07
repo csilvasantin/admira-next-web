@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.2">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.3">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -161,6 +161,98 @@
       #card{max-width:76vw}
     }
     .noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--text-dim)}
+
+    /* ============================================================
+       CUADRÁTICA — marco de 4 barras (patrón portería, norma de la casa)
+       Todo colapsado por defecto: la galaxia manda a pantalla completa.
+       Iconos toggle recogidos a los bordes (estilo #pf-toggles admira.live).
+       ============================================================ */
+
+    /* --- barra de iconos toggle (recogidos a los bordes) --- */
+    #pf-toggles{
+      position:fixed;z-index:40;display:flex;gap:8px;pointer-events:auto;
+    }
+    #pf-toggles.tg-right{top:50%;right:10px;transform:translateY(-50%);flex-direction:column}
+    #pf-toggles.tg-bottom{bottom:10px;left:50%;transform:translateX(-50%);flex-direction:row}
+    #pf-toggles.tg-left{top:50%;left:10px;transform:translateY(-50%);flex-direction:column}
+    .pf-tg{
+      font-family:inherit;font-size:15px;line-height:1;width:38px;height:38px;
+      display:flex;align-items:center;justify-content:center;
+      color:var(--cyan-dim);background:rgba(3,8,16,.78);backdrop-filter:blur(6px);
+      border:1px solid var(--cyan-dim);border-radius:9px;cursor:pointer;
+      transition:color .2s,border-color .2s,box-shadow .2s,background .2s;
+    }
+    .pf-tg:hover,.pf-tg:focus-visible{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(34,230,255,.35);outline:none}
+    .pf-tg[aria-expanded="true"]{color:#eafcff;border-color:var(--cyan);background:rgba(34,230,255,.14);box-shadow:0 0 16px rgba(34,230,255,.4)}
+    .pf-tg .lb{font-size:8px;letter-spacing:.1em;display:none}
+
+    /* --- paneles colapsables (superpuestos, sin pisar la galaxia) --- */
+    .pf-panel{
+      position:fixed;z-index:38;background:rgba(3,8,16,.92);backdrop-filter:blur(9px);
+      border:1px solid var(--cyan-dim);box-shadow:0 0 30px rgba(34,230,255,.16),0 10px 50px rgba(0,0,0,.6);
+      color:var(--text);opacity:0;visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .24s;
+      pointer-events:none;
+    }
+    .pf-panel.open{opacity:1;visibility:visible;pointer-events:auto}
+    .pf-panel h4{
+      font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan);
+      margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(34,230,255,.16);
+      text-shadow:0 0 8px rgba(34,230,255,.4);display:flex;align-items:center;gap:8px;
+    }
+    .pf-panel h4::before{content:"▸";color:var(--cyan-dim)}
+    .pf-close{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--cyan-dim);font-size:16px;cursor:pointer;font-family:inherit;line-height:1}
+    .pf-close:hover,.pf-close:focus-visible{color:var(--cyan);outline:none}
+
+    /* IZQUIERDA — opciones (menú vertical de vistas) */
+    #panelLeft{top:50%;left:0;transform:translate(-100%,-50%);width:210px;max-height:80vh;padding:16px 16px 18px;border-left:0;border-radius:0 12px 12px 0;overflow-y:auto}
+    #panelLeft.open{transform:translate(0,-50%)}
+    .pf-vbtn{
+      display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+      font-family:inherit;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--text-dim);background:transparent;border:1px solid transparent;border-radius:8px;
+      padding:11px 12px;cursor:pointer;transition:color .2s,background .2s,border-color .2s;margin-bottom:6px;
+    }
+    .pf-vbtn .ic{color:var(--cyan-dim);font-size:13px}
+    .pf-vbtn:hover,.pf-vbtn:focus-visible{color:var(--text);background:rgba(34,230,255,.06);border-color:rgba(34,230,255,.18);outline:none}
+    .pf-vbtn.active{color:#eafcff;background:rgba(34,230,255,.12);border-color:var(--cyan-dim);text-shadow:0 0 8px rgba(34,230,255,.5)}
+    .pf-vbtn.active .ic{color:var(--cyan)}
+    #panelLeft .hint{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-top:10px;line-height:1.5}
+
+    /* DERECHA — AVANZADO */
+    #panelRight{top:50%;right:0;transform:translate(100%,-50%);width:240px;max-height:80vh;padding:16px 16px 18px;border-right:0;border-radius:12px 0 0 12px;overflow-y:auto}
+    #panelRight.open{transform:translate(0,-50%)}
+    .pf-field{margin-bottom:16px}
+    .pf-field label{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan-dim);margin-bottom:7px}
+    .pf-field .rowval{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text)}
+    .pf-field input[type=range]{width:100%;accent-color:var(--cyan);background:transparent;cursor:pointer}
+    .pf-field .valnum{color:var(--cyan);font-size:11px;min-width:44px;text-align:right}
+    .pf-check{display:flex;align-items:center;gap:9px;font-size:10px;color:var(--text);letter-spacing:.04em;cursor:pointer}
+    .pf-check input{accent-color:var(--cyan);cursor:pointer}
+
+    /* INFERIOR — EXPERTO + CLI */
+    #panelBottom{bottom:0;left:0;right:0;transform:translateY(100%);max-height:42vh;padding:14px 18px 16px;border-bottom:0;border-radius:12px 12px 0 0}
+    #panelBottom.open{transform:translateY(0)}
+    #panelBottom h4{margin-bottom:9px}
+    .cli-wrap{display:flex;align-items:center;gap:9px;border:1px solid var(--cyan-dim);border-radius:9px;background:rgba(1,4,10,.6);padding:0 12px}
+    .cli-wrap .ps1{color:var(--cyan);font-size:12px;flex:0 0 auto;text-shadow:0 0 8px rgba(34,230,255,.5)}
+    .cli-wrap input{
+      flex:1;background:transparent;border:0;outline:none;color:var(--text);
+      font-family:inherit;font-size:12px;padding:11px 0;letter-spacing:.03em;
+    }
+    .cli-wrap input::placeholder{color:var(--text-dim)}
+    #cliOut{margin-top:10px;max-height:22vh;overflow-y:auto;font-size:11px;line-height:1.6;color:var(--text-dim)}
+    #cliOut .line{white-space:pre-wrap;word-break:break-word}
+    #cliOut .line .in{color:var(--cyan)}
+    #cliOut .line .err{color:var(--amber)}
+    #panelBottom .hint{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-top:8px}
+
+    @media (max-width:640px){
+      .pf-tg{width:34px;height:34px;font-size:14px}
+      #panelLeft,#panelRight{width:78vw;max-height:70vh}
+      #panelBottom{max-height:52vh}
+      #pf-toggles.tg-left{top:auto;bottom:56px}
+      #pf-toggles.tg-right{top:auto;bottom:56px}
+    }
   </style>
 </head>
 <body>
@@ -192,6 +284,77 @@
   </div>
 
   <div id="card"></div>
+
+  <!-- ============================================================
+       CUADRÁTICA — 4 barras (patrón portería). Todo colapsado por
+       defecto: sólo se ven los iconos toggle recogidos a los bordes.
+       ============================================================ -->
+
+  <!-- iconos toggle IZQUIERDA (opciones) -->
+  <div id="pf-toggles" class="tg-left">
+    <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
+            title="Opciones — vistas (ORDENADOR / AGENTE / MISIÓN)">☰</button>
+  </div>
+  <!-- iconos toggle DERECHA (avanzado) -->
+  <div id="pf-toggles-r" class="tg-right" style="position:fixed;z-index:40;display:flex;flex-direction:column;top:50%;right:10px;transform:translateY(-50%);gap:8px;pointer-events:auto">
+    <button class="pf-tg" id="tgRight" aria-expanded="false" aria-controls="panelRight"
+            title="Avanzado — filtros, umbral de vivo, velocidad">⚙</button>
+  </div>
+  <!-- icono toggle INFERIOR (experto / CLI) -->
+  <div id="pf-toggles-b" class="tg-bottom" style="position:fixed;z-index:40;display:flex;flex-direction:row;bottom:44px;left:50%;transform:translateX(-50%);gap:8px;pointer-events:auto">
+    <button class="pf-tg" id="tgBottom" aria-expanded="false" aria-controls="panelBottom"
+            title="Experto — consola CLI">&gt;_</button>
+  </div>
+
+  <!-- BARRA IZQUIERDA — opciones (menú vertical de vistas) -->
+  <aside class="pf-panel" id="panelLeft" role="region" aria-label="Opciones de vista">
+    <button class="pf-close" id="closeLeft" aria-label="Cerrar opciones">×</button>
+    <h4>Opciones · vistas</h4>
+    <button class="pf-vbtn active" data-view="machine"><span class="ic">▢</span> Por ordenador</button>
+    <button class="pf-vbtn" data-view="agent"><span class="ic">◈</span> Por agente</button>
+    <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Por misión</button>
+    <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; usa ⏸ auto arriba para pausar.</div>
+  </aside>
+
+  <!-- BARRA DERECHA — AVANZADO -->
+  <aside class="pf-panel" id="panelRight" role="region" aria-label="Ajustes avanzados">
+    <button class="pf-close" id="closeRight" aria-label="Cerrar avanzado">×</button>
+    <h4>Avanzado</h4>
+    <div class="pf-field">
+      <label for="advThreshold">Umbral de «vivo» (min)</label>
+      <div class="rowval">
+        <input type="range" id="advThreshold" min="1" max="30" step="1" value="5">
+        <span class="valnum" id="advThresholdVal">5 min</span>
+      </div>
+    </div>
+    <div class="pf-field">
+      <label for="advRotate">Rotación de vista (s)</label>
+      <div class="rowval">
+        <input type="range" id="advRotate" min="5" max="60" step="5" value="20">
+        <span class="valnum" id="advRotateVal">20 s</span>
+      </div>
+    </div>
+    <div class="pf-field">
+      <label>Filtros</label>
+      <label class="pf-check"><input type="checkbox" id="advOnlyLive"> Sólo nodos vivos</label>
+    </div>
+    <div class="pf-field" style="margin-bottom:0">
+      <label class="pf-check"><input type="checkbox" id="advLabels" checked> Mostrar etiquetas</label>
+    </div>
+  </aside>
+
+  <!-- BARRA INFERIOR — EXPERTO + CLI -->
+  <section class="pf-panel" id="panelBottom" role="region" aria-label="Consola experto">
+    <button class="pf-close" id="closeBottom" aria-label="Cerrar consola">×</button>
+    <h4>Experto · consola</h4>
+    <div class="cli-wrap">
+      <span class="ps1">admiranext:/status$</span>
+      <input type="text" id="cliInput" autocomplete="off" spellcheck="false"
+             placeholder="help · view <machine|agent|mission> · live · nodes · clear" aria-label="Entrada de consola">
+    </div>
+    <div id="cliOut"></div>
+    <div class="hint">Consola local (no ejecuta acciones de flota). Escribe <b style="color:var(--cyan)">help</b> para ver comandos.</div>
+  </section>
 
   <noscript><div class="noscript">Activa JavaScript para ver la constelación en vivo de la flota AdmiraNeXT.</div></noscript>
 
@@ -429,6 +592,7 @@
       ctx.fill(); ctx.shadowBlur=0;
       if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle='#22e6ff'; ctx.fill(); }
       const isHover = hover && hover.id===n.id;
+      if(typeof SHOW_LABELS!=='undefined' && !SHOW_LABELS && !isHover){ continue; }
       ctx.font = (isHover?'700 ':'')+'11px JetBrains Mono, monospace';
       ctx.textAlign='center';
       ctx.fillStyle = n.online ? (isHover?'#eafcff':'#bfe9f2') : '#6f8090';
@@ -524,7 +688,7 @@
     if(fleet && fleet.updatedAt && fleet.updatedAt>maxTs) maxTs=fleet.updatedAt;
     // fallback: si por lo que sea no hay datos, usa el reloj local.
     SERVER_NOW = maxTs || Math.floor(Date.now()/1000);
-    const isFresh = ts => (SERVER_NOW - (ts||0)) < ONLINE_SEC;
+    const isFresh = ts => (SERVER_NOW - (ts||0)) < ONLINE_SEC_DYN;
 
     // ---- construir el mundo por máquina ----
     const byMachine = {}; // normMachine -> {machine, personas[], updated, online, foco, mode, platform}
@@ -637,6 +801,7 @@
         foco:mi.foco, count:mi.machines.length+mi.agentNames.length,
       }));
     }
+    if(typeof ONLY_LIVE!=='undefined' && ONLY_LIVE) list = list.filter(n=>n.online);
     layoutNodes(list);
     document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
   }
@@ -650,6 +815,7 @@
   function setView(v, byUser){
     currentView = v; viewIdx = VIEWS.indexOf(v);
     [...switchEl.querySelectorAll('button')].forEach(b=>b.classList.toggle('active', b.dataset.view===v));
+    if(typeof syncLeftMenu==='function') syncLeftMenu(v);
     card.style.display='none'; hover=null;
     applyView();
     if(byUser){ rotStart=performance.now(); } // reinicia el temporizador al elegir a mano
@@ -657,8 +823,9 @@
   function tickRotation(now){
     if(rotPaused || paused){ rotRAF=requestAnimationFrame(tickRotation); return; }
     const el = now - rotStart;
-    progEl.style.width = Math.min(100, (el/ROTATE_MS)*100)+'%';
-    if(el>=ROTATE_MS){
+    const rm = (typeof ROTATE_MS_DYN==='number') ? ROTATE_MS_DYN : ROTATE_MS;
+    progEl.style.width = Math.min(100, (el/rm)*100)+'%';
+    if(el>=rm){
       rotStart=now;
       setView(VIEWS[(viewIdx+1)%VIEWS.length], false);
     }
@@ -676,6 +843,102 @@
     pauseBtn.textContent = rotPaused ? '▶ fijo' : '⏸ auto';
     if(!rotPaused) rotStart=performance.now();
   });
+
+  // ============================================================
+  // CUADRÁTICA — lógica de las 4 barras (toggles, avanzado, CLI)
+  // ============================================================
+  const panels = {
+    left:   {panel:document.getElementById('panelLeft'),   tg:document.getElementById('tgLeft')},
+    right:  {panel:document.getElementById('panelRight'),  tg:document.getElementById('tgRight')},
+    bottom: {panel:document.getElementById('panelBottom'), tg:document.getElementById('tgBottom')},
+  };
+  function setPanel(key, open){
+    const {panel,tg}=panels[key];
+    panel.classList.toggle('open', open);
+    tg.setAttribute('aria-expanded', open?'true':'false');
+    if(open){ const f=panel.querySelector('input,button:not(.pf-close),[tabindex]'); if(f) setTimeout(()=>f.focus(),60); }
+  }
+  function togglePanel(key){ setPanel(key, !panels[key].panel.classList.contains('open')); }
+  Object.keys(panels).forEach(k=>{
+    panels[k].tg.addEventListener('click',()=>togglePanel(k));
+  });
+  document.getElementById('closeLeft').addEventListener('click',()=>{setPanel('left',false);panels.left.tg.focus();});
+  document.getElementById('closeRight').addEventListener('click',()=>{setPanel('right',false);panels.right.tg.focus();});
+  document.getElementById('closeBottom').addEventListener('click',()=>{setPanel('bottom',false);panels.bottom.tg.focus();});
+  // ESC cierra cualquier panel abierto
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      let any=false;
+      Object.keys(panels).forEach(k=>{ if(panels[k].panel.classList.contains('open')){ setPanel(k,false); panels[k].tg.focus(); any=true; } });
+    }
+  });
+
+  // --- menú vertical IZQUIERDA sincronizado con el conmutador superior ---
+  const leftBtns = panelLeft.querySelectorAll('.pf-vbtn');
+  leftBtns.forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view,true)));
+  function syncLeftMenu(v){ leftBtns.forEach(b=>b.classList.toggle('active', b.dataset.view===v)); }
+
+  // --- AVANZADO: umbral de vivo, velocidad de rotación, filtros, etiquetas ---
+  let ONLINE_SEC_DYN = ONLINE_SEC;   // sustituye a la const en isFresh (ver load)
+  let ROTATE_MS_DYN  = ROTATE_MS;
+  let ONLY_LIVE = false;
+  let SHOW_LABELS = true;
+  const advThreshold=document.getElementById('advThreshold'), advThresholdVal=document.getElementById('advThresholdVal');
+  const advRotate=document.getElementById('advRotate'), advRotateVal=document.getElementById('advRotateVal');
+  advThreshold.addEventListener('input',()=>{ ONLINE_SEC_DYN=advThreshold.value*60; advThresholdVal.textContent=advThreshold.value+' min'; load(); });
+  advRotate.addEventListener('input',()=>{ ROTATE_MS_DYN=advRotate.value*1000; advRotateVal.textContent=advRotate.value+' s'; rotStart=performance.now(); });
+  document.getElementById('advOnlyLive').addEventListener('change',e=>{ ONLY_LIVE=e.target.checked; applyView(); });
+  document.getElementById('advLabels').addEventListener('change',e=>{ SHOW_LABELS=e.target.checked; });
+
+  // --- EXPERTO: consola CLI (local, no ejecuta acciones de flota) ---
+  const cliInput=document.getElementById('cliInput'), cliOut=document.getElementById('cliOut');
+  function cliPrint(txt, cls){ const d=document.createElement('div'); d.className='line'; if(cls) d.innerHTML=`<span class="${cls}">${txt}</span>`; else d.textContent=txt; cliOut.appendChild(d); cliOut.scrollTop=cliOut.scrollHeight; }
+  const CLI_HELP=[
+    'comandos disponibles (consola local):',
+    '  help                 esta ayuda',
+    '  view <m|a|mi>        cambia de vista (machine/agent/mission)',
+    '  live                  nº de nodos vivos y umbral actual',
+    '  nodes                 lista los nodos de la vista activa',
+    '  threshold <min>       fija el umbral de «vivo» (1-30)',
+    '  rotate <s|off>        velocidad de rotación (o pausa)',
+    '  clear                 limpia la consola',
+  ].join('\n');
+  function cliRun(raw){
+    const line=raw.trim(); if(!line) return;
+    cliPrint('admiranext:/status$ '+line,'in');
+    const [cmd,...args]=line.split(/\s+/); const a0=(args[0]||'').toLowerCase();
+    switch(cmd.toLowerCase()){
+      case 'help': case '?': cliPrint(CLI_HELP); break;
+      case 'view': {
+        const map={m:'machine',machine:'machine',a:'agent',agent:'agent',mi:'mission',mission:'mission'};
+        if(map[a0]){ setView(map[a0],true); cliPrint('vista → '+VIEW_LABEL[map[a0]]); }
+        else cliPrint('uso: view <machine|agent|mission>','err');
+        break;
+      }
+      case 'live': {
+        const n=(WORLD.machines||[]).filter(m=>m.online).length;
+        cliPrint(n+' nodos vivos · umbral '+(ONLINE_SEC_DYN/60)+' min'); break;
+      }
+      case 'nodes': {
+        if(!nodes.length){ cliPrint('(sin nodos)'); break; }
+        nodes.forEach(n=>cliPrint('  '+(n.online?'●':'○')+' '+n.label+(n.sub?'  · '+n.sub:''))); break;
+      }
+      case 'threshold': {
+        const v=parseInt(a0,10);
+        if(v>=1&&v<=30){ advThreshold.value=v; advThreshold.dispatchEvent(new Event('input')); cliPrint('umbral → '+v+' min'); }
+        else cliPrint('uso: threshold <1-30>','err');
+        break;
+      }
+      case 'rotate': {
+        if(a0==='off'){ if(!rotPaused) pauseBtn.click(); cliPrint('rotación en pausa'); }
+        else { const v=parseInt(a0,10); if(v>=5&&v<=60){ advRotate.value=v; advRotate.dispatchEvent(new Event('input')); if(rotPaused) pauseBtn.click(); cliPrint('rotación → '+v+' s'); } else cliPrint('uso: rotate <5-60|off>','err'); }
+        break;
+      }
+      case 'clear': cliOut.innerHTML=''; break;
+      default: cliPrint('comando desconocido: '+cmd+' — escribe «help»','err');
+    }
+  }
+  cliInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ cliRun(cliInput.value); cliInput.value=''; } });
 
   // ---------- boot ----------
   resize(); seedStars();
