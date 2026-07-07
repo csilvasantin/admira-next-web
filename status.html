@@ -6,25 +6,25 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r6">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r7">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
        Detrás de un FLAG mientras Carlos no autorice el origen www.admiranext.com
        en la consola de Google (Authorized JavaScript origins del OAuth client):
-       con el flag OFF la página es el visor público de siempre; ?gate=on lo
-       enciende (persiste en localStorage), ?gate=off lo apaga. Cuando el origen
-       esté autorizado → cambiar GATE_DEFAULT a 'on' (un commit de una línea). -->
+       verja ACTIVA por defecto (r7, orden de Carlos): solo usuarios de la lista
+       de admira.live. ?gate=off es un escape SOLO para esa carga (no persiste),
+       por si el login se rompe; ?gate=on redundante. -->
   <script>
   (function(){
-    var GATE_DEFAULT = 'off';   // ← pasar a 'on' cuando Carlos autorice el origen en Google Cloud
-    try{
-      var q = new URLSearchParams(location.search).get('gate');
-      if(q==='on'||q==='off') localStorage.setItem('admiranext-status-gate', q);
-    }catch(e){}
+    var GATE_DEFAULT = 'on';    // verja activa (r7) — la autoridad real sigue siendo server-side
     var on = GATE_DEFAULT;
-    try{ on = localStorage.getItem('admiranext-status-gate') || GATE_DEFAULT; }catch(e){}
-    if(on!=='on') return;                     // visor público: sin gate, cero cambios
+    try{
+      localStorage.removeItem('admiranext-status-gate'); // limpia bypass persistidos de la era ?gate
+      var q = new URLSearchParams(location.search).get('gate');
+      if(q==='on'||q==='off') on = q;         // escape puntual, solo esta carga
+    }catch(e){}
+    if(on!=='on') return;                     // visor sin gate SOLO con ?gate=off explícito
     var s=document.createElement('script'); s.src='auth-gate.js';
     (document.head||document.documentElement).appendChild(s);
     // Si a los 10s el gate sigue bloqueando y no hay sesión, lo más probable es
@@ -314,7 +314,7 @@
     <div class="hdr-center">
       <div class="hdr-line">
         <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
-        <span class="ver" id="verTop">v.2026.07.07.r6</span>
+        <span class="ver" id="verTop">v.2026.07.07.r7</span>
         <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
         <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
       </div>
@@ -335,7 +335,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r6</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r7</span></span>
   </div>
 
   <div id="card"></div>
