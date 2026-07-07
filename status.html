@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r7">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r8">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -172,6 +172,14 @@
     #card .asg-tit{font-size:9px;letter-spacing:.16em;color:#ffb545;margin-bottom:5px}
     #card #asgSel{width:100%;background:#06121f;color:var(--text);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:10.5px;padding:4px 6px;cursor:pointer}
     #card .asg-msg{font-size:9.5px;margin-top:5px;color:var(--text-dim);min-height:12px}
+    /* GESTIÓN (r8): listas con 🗑 por fila en AVANZADO */
+    #gestionBox{max-height:290px;overflow-y:auto;border:1px solid rgba(34,230,255,.14);border-radius:8px;padding:6px 8px;background:rgba(2,10,20,.5)}
+    #gestionBox .g-sec{font-size:8.5px;letter-spacing:.16em;color:var(--cyan-dim);margin:7px 0 3px}
+    #gestionBox .g-sec:first-child{margin-top:1px}
+    #gestionBox .g-row{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;color:var(--text);padding:2px 0}
+    #gestionBox .g-row .g-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+    #gestionBox .g-row .g-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:11px;padding:0 3px;flex:0 0 auto;line-height:1}
+    #gestionBox .g-row .g-del:hover{color:#ff6b6b}
 
     @media (max-width:640px){
       .hdr{padding:10px 12px 8px;gap:8px}
@@ -314,9 +322,9 @@
     <div class="hdr-center">
       <div class="hdr-line">
         <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
-        <span class="ver" id="verTop">v.2026.07.07.r7</span>
+        <span class="ver" id="verTop">v.2026.07.07.r8</span>
         <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
-        <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
+        <span class="live"><span class="dot"></span><span id="liveCount">—</span></span>
       </div>
     </div>
 
@@ -333,9 +341,9 @@
   <div class="legend">
     <span class="k"><span class="s on"></span> vivo (señal &lt; 10 min)</span>
     <span class="k"><span class="s off"></span> en reposo</span>
-    <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
+    <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r7</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r8</span></span>
   </div>
 
   <div id="card"></div>
@@ -350,11 +358,12 @@
   <aside class="pf-panel" id="panelLeft" role="region" aria-label="Opciones de vista">
     <button class="pf-close" id="closeLeft" aria-label="Cerrar opciones">×</button>
     <h4>Opciones · vistas</h4>
-    <button class="pf-vbtn active" data-view="machine"><span class="ic">▢</span> Por ordenador</button>
-    <button class="pf-vbtn" data-view="project"><span class="ic">❖</span> Por proyectos</button>
-    <button class="pf-vbtn" data-view="agent"><span class="ic">◈</span> Por agente</button>
-    <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Por misión</button>
-    <button class="pf-vbtn" data-view="os"><span class="ic">⌘</span> Por sistema operativo</button>
+    <!-- máxima AdmiraNeXT: menos es más — singular y sin adverbios delante -->
+    <button class="pf-vbtn active" data-view="machine"><span class="ic">▢</span> Ordenador</button>
+    <button class="pf-vbtn" data-view="project"><span class="ic">❖</span> Proyecto</button>
+    <button class="pf-vbtn" data-view="agent"><span class="ic">◈</span> Agente</button>
+    <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Misión</button>
+    <button class="pf-vbtn" data-view="os"><span class="ic">⌘</span> Sistema operativo</button>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
   </aside>
 
@@ -398,6 +407,19 @@
                 style="background:rgba(34,230,255,.08);color:var(--cyan);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:9px;letter-spacing:.1em;padding:5px 9px;cursor:pointer">ACTIVAR</button>
       </div>
       <div class="hint" id="mandoHint" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5">Sin token, la página es el visor de siempre. Con mando activo: clic en un nodo (vista ordenador/agente) → ASIGNAR PROYECTO ▾.</div>
+    </div>
+    <!-- GESTIÓN (r8): solo con mando activo. Eliminar ordenadores/agentes/misiones/
+         proyectos y añadir proyectos — cada acción se anuncia a toda la flota. -->
+    <div class="pf-field" id="gestionField" style="display:none;margin-bottom:0">
+      <label>Gestión</label>
+      <div id="gestionBox"></div>
+      <div class="rowval" style="margin-top:8px">
+        <input type="text" id="gpNew" placeholder="www.nuevoproyecto.com" autocomplete="off"
+               style="flex:1;min-width:0;background:#06121f;color:var(--text);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:10.5px;padding:5px 7px">
+        <button id="gpAdd" title="Añadir proyecto a la cartera"
+                style="background:rgba(34,230,255,.08);color:var(--cyan);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:11px;padding:4px 10px;cursor:pointer">＋</button>
+      </div>
+      <div class="hint" id="gestionMsg" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5;min-height:12px">Eliminar aquí lo ve TODA la flota (se anuncia en Agora).</div>
     </div>
   </aside>
 
@@ -473,6 +495,9 @@
   // ASIGNACIONES (FASE 1): Carlos asigna proyectos a ordenadores/agentes desde aquí.
   // GET público (lista vigente) + POST protegido con el token de mando (Bearer).
   const ASSIGN_URL       = 'https://admira-telegram.csilvasantin.workers.dev/api/assign';
+  // GESTIÓN (r8): eliminar nodos/misiones y editar la cartera de proyectos.
+  const MANAGE_URL       = 'https://admira-telegram.csilvasantin.workers.dev/api/manage';
+  const PROJECTS_URL     = 'https://admira-telegram.csilvasantin.workers.dev/api/projects';
   // MODO MANDO — dos vías (la sesión Google manda):
   //  1) SESIÓN GOOGLE del auth-gate (localStorage.admira_gate, el mismo de
   //     admira.live): si hay sesión vigente de un usuario de la whitelist, el
@@ -511,6 +536,11 @@
 
   // ---------- util ----------
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  // NADA de nombres de persona en los ordenadores (orden de Carlos, r8): el
+  // roster decora con el dueño — "Mac Mini (Carlos)" se muestra y se guarda
+  // como "Mac Mini". Se aplica en la INGESTA (fleet y presence), así etiquetas,
+  // fichas y targets de asignación quedan limpios y sin divergencia.
+  const stripOwner = s => String(s||'').replace(/\s*\([^)]*\)\s*/g,' ').replace(/\s+/g,' ').trim();
   function projectFor(machine){
     const n = norm(machine);
     if (PROJECTS[n]) return PROJECTS[n];
@@ -524,10 +554,11 @@
     return 'Sin misión';
   }
 
-  // -------- PROYECTOS CANÓNICOS (la cartera — fácil de ampliar) --------
-  // Vista POR PROYECTOS: estos 6 aparecen SIEMPRE, tengan o no nodos ahora
-  // mismo (se ve el hueco). Etiqueta visible = el dominio tal cual.
-  const CANON_PROJECTS = [
+  // -------- PROYECTOS CANÓNICOS (la cartera) --------
+  // Vista POR PROYECTOS: aparecen SIEMPRE, tengan o no nodos ahora mismo.
+  // Desde r8 la lista VIVA está en la D1 del worker (GET /api/projects,
+  // editable desde Gestión sin release); esta constante es el fallback.
+  let CANON_PROJECTS = [
     'www.pixeria.com',
     'www.xpaceos.com',
     'www.clearchannel.tv',
@@ -619,7 +650,8 @@
   // Guardamos el "mundo" crudo tras cada carga, y derivamos nodos por vista.
   let WORLD = { machines:[], agents:[], missions:[], os:[], projects:[] };
   const VIEWS = ['machine','project','agent','mission','os'];
-  const VIEW_LABEL = { machine:'por ordenador', project:'por proyectos', agent:'por agente', mission:'por misión', os:'por sistema operativo' };
+  // máxima AdmiraNeXT: menos es más — singular y sin adverbios delante
+  const VIEW_LABEL = { machine:'ordenador', project:'proyecto', agent:'agente', mission:'misión', os:'sistema operativo' };
   let viewIdx = 0;
   let currentView = 'machine';
 
@@ -1190,10 +1222,14 @@
     // 3 vivos (fleet+self) hasta que llegaba `presence` → parpadeo «3 nodos».
     let pres=null, fleet=null, asg=null;
     const presWithFallback=async()=>{ try{ return await jget(PRESENCE_URL); }catch(e){ return await jget(PRESENCE_URL_ALT); } };
-    const [rp,rf,ra]=await Promise.allSettled([ presWithFallback(), jget(FLEET_URL), jget(ASSIGN_URL) ]);
+    const [rp,rf,ra,rj]=await Promise.allSettled([ presWithFallback(), jget(FLEET_URL), jget(ASSIGN_URL), jget(PROJECTS_URL) ]);
     if(rp.status==='fulfilled') pres=rp.value; else console.warn('presence',rp.reason);
     if(rf.status==='fulfilled') fleet=rf.value; else console.warn('fleet',rf.reason);
     if(ra.status==='fulfilled') asg=ra.value; else console.warn('assign',ra.reason);
+    // cartera VIVA de proyectos (D1 del worker); si falla, queda el fallback
+    if(rj.status==='fulfilled' && rj.value && Array.isArray(rj.value.projects) && rj.value.projects.length){
+      CANON_PROJECTS = rj.value.projects;
+    }
 
     // ---- ASIGNACIONES (FASE 1) ----
     // Mapa target→asignación por tipo. La búsqueda tolera nombres que no casan
@@ -1227,9 +1263,10 @@
     const byMachine = {}; // normMachine -> {machine, personas[], updated, online, foco, mode, platform}
     if(fleet && fleet.machines){
       for(const m of fleet.machines){
-        const key=norm(m.name);
+        const clean=stripOwner(m.name);          // "Mac Mini (Carlos)" → "Mac Mini"
+        const key=norm(clean);
         byMachine[key] = {
-          machine:m.name, personas:[], updated:m.lastSeen||0,
+          machine:clean, personas:[], updated:m.lastSeen||0,
           // un equipo que late en el roster (DGX, ThinkStation…) cuenta como VIVO
           online:isFresh(m.lastSeen), foco:'', mode:'', platform:m.platform||'',
           decisions:0, // proxy de VOLUMEN de trabajo (ver nodeVolume).
@@ -1258,9 +1295,10 @@
     }
     if(pres && pres.presence){
       for(const p of pres.presence){
-        const key=resolveMachineKey(p.machine);
+        const pclean=stripOwner(p.machine);
+        const key=resolveMachineKey(pclean);
         let e=byMachine[key];
-        if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0,tokens:0,reqs:0}; byMachine[key]=e; }
+        if(!e){ e={machine:pclean,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0,tokens:0,reqs:0}; byMachine[key]=e; }
         const fresh=isFresh(p.updated);
         e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0});
         if((p.updated||0) > e.updated) e.updated=p.updated;
@@ -1295,9 +1333,10 @@
     applyView(); // recoloca nodos según la vista activa
 
     // contador de VIVOS de la vista POR ORDENADOR (verdad de la flota)
-    const liveN = machines.filter(n=>n.online).length;
-    document.getElementById('liveCount').textContent = liveN;
+    updateLiveCounter();   // contador de cabecera, sensible a la vista activa
     document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    // Gestión (r8): refresca sus listas si el panel AVANZADO está abierto
+    if(typeof renderGestion==='function' && document.getElementById('panelRight').classList.contains('open')) renderGestion();
   }
 
   // Vista POR AGENTE: agrupa por persona+runtime (Morfeo·Claude ≠ Trinity·Codex)
@@ -1405,6 +1444,32 @@
       .sort((a,b)=>(ORD[a.project]==null?99:ORD[a.project])-(ORD[b.project]==null?99:ORD[b.project]));
   }
 
+  // Contador de cabecera SENSIBLE A LA VISTA (r8): mismo formato compacto,
+  // sin adverbios; se actualiza al rotar/cambiar de vista y en cada carga.
+  function updateLiveCounter(){
+    const el=document.getElementById('liveCount'); if(!el) return;
+    const M=WORLD.machines||[], A=WORLD.agents||[], P=WORLD.projects||[], MI=WORLD.missions||[], OS=WORLD.os||[];
+    const on=list=>list.filter(n=>n.online).length;
+    let txt;
+    if(currentView==='project'){
+      const n=on(P), x=on(A);
+      txt=`${n} ${n===1?'proyecto vivo':'proyectos vivos'} en ${x} ${x===1?'agente':'agentes'}`;
+    } else if(currentView==='agent'){
+      const n=on(A);
+      txt=`${n} ${n===1?'agente vivo':'agentes vivos'} de ${A.length}`;
+    } else if(currentView==='mission'){
+      const n=on(MI);
+      txt=`${n} ${n===1?'misión viva':'misiones vivas'} de ${MI.length}`;
+    } else if(currentView==='os'){
+      const n=on(OS);
+      txt=`${n} ${n===1?'sistema con vida':'sistemas con vida'} de ${OS.length}`;
+    } else {
+      const n=on(M);
+      txt=`${n} ${n===1?'nodo vivo':'nodos vivos'} de ${M.length} ordenadores`;
+    }
+    el.textContent=txt;
+  }
+
   // Traduce el WORLD a nodos genéricos para la vista activa y recoloca
   function applyView(){
     let list=[];
@@ -1462,6 +1527,7 @@
       }
     }
     document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
+    updateLiveCounter();   // el contador de cabecera acompaña a la vista
     repinAfterView();   // modo mando: re-engancha la ficha fijada al nodo recién construido
   }
 
@@ -2150,7 +2216,7 @@
   }
   function togglePanel(key){ setPanel(key, !panels[key].panel.classList.contains('open')); }
   Object.keys(panels).forEach(k=>{
-    panels[k].tg.addEventListener('click',()=>togglePanel(k));
+    panels[k].tg.addEventListener('click',()=>{ togglePanel(k); if(k==='right' && typeof renderGestion==='function') renderGestion(); });
   });
   document.getElementById('closeLeft').addEventListener('click',()=>{setPanel('left',false);panels.left.tg.focus();});
   document.getElementById('closeRight').addEventListener('click',()=>{setPanel('right',false);panels.right.tg.focus();});
@@ -2202,6 +2268,9 @@
       mandoHintEl.textContent='Entra con tu Google de admira.live (?gate=on) o pega el token de mando. Sin ninguno de los dos, la página es el visor de siempre.';
     }
   }
+  // la sección Gestión sigue el estado del mando (se define más abajo)
+  const _refreshMandoUI_base = refreshMandoUI;
+  refreshMandoUI = function(){ _refreshMandoUI_base(); if(typeof renderGestion==='function') renderGestion(); };
   mandoBtnEl.addEventListener('click',()=>{
     if(mandoOn()){
       MANDO_TOKEN=''; try{ localStorage.removeItem(MANDO_LS_KEY); }catch(e){}
@@ -2216,6 +2285,69 @@
   });
   mandoTokEl.addEventListener('keydown',e=>{ if(e.key==='Enter') mandoBtnEl.click(); });
   refreshMandoUI();
+
+  // --- GESTIÓN (r8): eliminar ordenadores/agentes/misiones/proyectos ---------
+  // Solo con mando activo. Todo pasa por POST /api/manage (misma auth que
+  // asignar); cada acción se anuncia en Agora y la ve toda la flota.
+  // (lookups perezosos dentro de cada función: refreshMandoUI llama a
+  //  renderGestion ANTES de que este bloque termine de evaluarse — nada de
+  //  const de módulo aquí o caería en TDZ)
+  function mandoBearer(){ const g=googleGate(); return g? g.cred : MANDO_TOKEN; }
+  async function manage(payload){
+    const r=await fetch(MANAGE_URL,{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+mandoBearer()},
+      body:JSON.stringify(payload)});
+    return { status:r.status, data: await r.json().catch(()=>({})) };
+  }
+  function gMsg(t,bad){ const el=document.getElementById('gestionMsg'); if(el){ el.textContent=t; el.style.color=bad?'#ff6b6b':'var(--text-dim)'; } }
+  async function gestionDo(confirmText, payload){
+    if(!confirm('¿Eliminar '+confirmText+'? Esta acción la ve toda la flota.')) return;
+    gMsg('enviando…');
+    try{
+      const {status,data}=await manage(payload);
+      if(status===401){ gMsg('✗ sesión/token de mando rechazado — recarga y vuelve a entrar', true); return; }
+      if(data.ok){ gMsg('✓ hecho — anunciado a la flota'); await load(); renderGestion(); }
+      else gMsg('✗ '+(data.error||'error'), true);
+    }catch(e){ gMsg('✗ sin conexión con el worker', true); }
+  }
+  function escH(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function renderGestion(){
+    const gestionField=document.getElementById('gestionField');
+    const gestionBox=document.getElementById('gestionBox');
+    if(!gestionField || !gestionBox) return;
+    if(!mandoOn()){ gestionField.style.display='none'; return; }
+    gestionField.style.display='';
+    const secs=[];
+    const row=(name, data)=>`<div class="g-row"><span class="g-name">${escH(name)}</span><button class="g-del" title="Eliminar" data-g='${escH(JSON.stringify(data))}'>🗑</button></div>`;
+    secs.push('<div class="g-sec">ORDENADORES</div>'+ (WORLD.machines||[]).map(m=>row(m.machine,{t:'node',kind:'machine',target:m.machine})).join(''));
+    secs.push('<div class="g-sec">AGENTES</div>'+ (WORLD.agents||[]).map(a=>row(a.persona+' · '+(a.runtime||'—'),{t:'node',kind:'agent',target:a.persona})).join(''));
+    secs.push('<div class="g-sec">MISIONES</div>'+ (WORLD.missions||[]).map(mi=>row(mi.mission,
+      {t:'mission',mission:mi.mission,targets:(mi.machines||[]).map(x=>({kind:'machine',target:x})).concat((mi.agentNames||[]).map(x=>({kind:'agent',target:x})))})).join(''));
+    secs.push('<div class="g-sec">PROYECTOS</div>'+ (CANON_PROJECTS||[]).map(p=>row(p,{t:'project',name:p})).join(''));
+    gestionBox.innerHTML=secs.join('');
+    gestionBox.querySelectorAll('.g-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        let d; try{ d=JSON.parse(btn.dataset.g); }catch(e){ return; }
+        if(d.t==='node')    gestionDo((d.kind==='machine'?'el ordenador ':'el agente ')+d.target, {action:'del_node', kind:d.kind, target:d.target});
+        if(d.t==='mission') gestionDo('la misión «'+d.mission+'» (limpia el foco de sus nodos)', {action:'del_mission', mission:d.mission, targets:d.targets});
+        if(d.t==='project') gestionDo('el proyecto '+d.name+' (libera sus asignaciones)', {action:'del_project', name:d.name});
+      });
+    });
+  }
+  document.getElementById('gpAdd').addEventListener('click',async()=>{
+    const inp=document.getElementById('gpNew');
+    const name=(inp.value||'').trim().toLowerCase();
+    if(!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(name)){ gMsg('✗ dominio no válido (ej: www.nuevoproyecto.com)', true); inp.focus(); return; }
+    gMsg('enviando…');
+    try{
+      const {status,data}=await manage({action:'add_project', name});
+      if(status===401){ gMsg('✗ sesión/token de mando rechazado', true); return; }
+      if(data.ok){ inp.value=''; gMsg('✓ proyecto añadido a la cartera'); await load(); renderGestion(); }
+      else gMsg('✗ '+(data.error||'error'), true);
+    }catch(e){ gMsg('✗ sin conexión con el worker', true); }
+  });
+  document.getElementById('gpNew').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('gpAdd').click(); });
+  renderGestion();
 
   // --- AUDIO AMBIENTE: «thump-thump» grave tipo sonar (WebAudio) ------
   // OFF por defecto (el audio requiere gesto del usuario). Al activarlo,
