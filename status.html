@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.8">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.9">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -391,8 +391,13 @@
     'cypher':'www.admira.live',
   };
 
-  const PRESENCE_URL = 'https://admira-telegram.csilvasantin.workers.dev/api/presence';
-  const FLEET_URL    = 'https://admira-fleet.csilvasantin.workers.dev/machines';
+  // El worker de presencia (admira-telegram) sólo permite CORS desde admira.live,
+  // así que admiranext.com NO puede leerlo directo (el fetch fallaba y el contador
+  // caía a «3 vivos» = sólo fleet). Lo leemos vía un proxy neutral CORS-abierto
+  // (draw-gen /presence, service-binding worker→worker). Fallback al directo.
+  const PRESENCE_URL     = 'https://draw-gen.csilvasantin.workers.dev/presence';
+  const PRESENCE_URL_ALT = 'https://admira-telegram.csilvasantin.workers.dev/api/presence';
+  const FLEET_URL        = 'https://admira-fleet.csilvasantin.workers.dev/machines'; // CORS abierto
   const ONLINE_SEC   = 600;    // vivo si la señal es < 10 min (RELATIVO al reloj del servidor).
                                // 10 min (antes 5) evita el parpadeo del contador con latidos
                                // intermitentes al borde del umbral; los nodos muertos de verdad
@@ -732,7 +737,8 @@
     // hicieran en serie, un primer render con sólo `fleet` resuelto mostraba
     // 3 vivos (fleet+self) hasta que llegaba `presence` → parpadeo «3 nodos».
     let pres=null, fleet=null;
-    const [rp,rf]=await Promise.allSettled([ jget(PRESENCE_URL), jget(FLEET_URL) ]);
+    const presWithFallback=async()=>{ try{ return await jget(PRESENCE_URL); }catch(e){ return await jget(PRESENCE_URL_ALT); } };
+    const [rp,rf]=await Promise.allSettled([ presWithFallback(), jget(FLEET_URL) ]);
     if(rp.status==='fulfilled') pres=rp.value; else console.warn('presence',rp.reason);
     if(rf.status==='fulfilled') fleet=rf.value; else console.warn('fleet',rf.reason);
 
