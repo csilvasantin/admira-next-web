@@ -6,6 +6,9 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r1">
+  <meta name="admiranext-status-build" content="os-view+full-height-bars+read-freeze-30s+tokens">
+
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -192,9 +195,12 @@
     .pf-close{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--cyan-dim);font-size:16px;cursor:pointer;font-family:inherit;line-height:1}
     .pf-close:hover,.pf-close:focus-visible{color:var(--cyan);outline:none}
 
-    /* IZQUIERDA — opciones (menú vertical de vistas) */
-    #panelLeft{top:50%;left:0;transform:translate(-100%,-50%);width:210px;max-height:80vh;padding:16px 16px 18px;border-left:0;border-radius:0 12px 12px 0;overflow-y:auto}
-    #panelLeft.open{transform:translate(0,-50%)}
+    /* IZQUIERDA — opciones (menú vertical de vistas)
+       BARRA A TODA ALTURA: de la cabecera al pie (top:0→bottom:0), misma anchura
+       que la derecha → la composición queda como una cuadrícula perfecta. */
+    #panelLeft{top:0;bottom:0;left:0;transform:translateX(-100%);width:232px;padding:74px 16px 18px;border-top:0;border-bottom:0;border-left:0;border-radius:0;overflow-y:auto}
+    #panelLeft.open{transform:translateX(0)}
+    #panelLeft .pf-close,#panelRight .pf-close{top:76px}
     .pf-vbtn{
       display:flex;align-items:center;gap:10px;width:100%;text-align:left;
       font-family:inherit;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
@@ -207,9 +213,9 @@
     .pf-vbtn.active .ic{color:var(--cyan)}
     #panelLeft .hint{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-top:10px;line-height:1.5}
 
-    /* DERECHA — AVANZADO */
-    #panelRight{top:50%;right:0;transform:translate(100%,-50%);width:240px;max-height:80vh;padding:16px 16px 18px;border-right:0;border-radius:12px 0 0 12px;overflow-y:auto}
-    #panelRight.open{transform:translate(0,-50%)}
+    /* DERECHA — AVANZADO (BARRA A TODA ALTURA, misma anchura que la izquierda) */
+    #panelRight{top:0;bottom:0;right:0;transform:translateX(100%);width:232px;padding:74px 16px 18px;border-top:0;border-bottom:0;border-right:0;border-radius:0;overflow-y:auto}
+    #panelRight.open{transform:translateX(0)}
     .pf-field{margin-bottom:16px}
     .pf-field label{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan-dim);margin-bottom:7px}
     .pf-field .rowval{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text)}
@@ -264,7 +270,9 @@
 
     @media (max-width:640px){
       .pf-tg{width:34px;height:34px;font-size:14px}
-      #panelLeft,#panelRight{width:78vw;max-height:70vh}
+      /* barras full-height como overlay en móvil (no rompen la galaxia) */
+      #panelLeft,#panelRight{width:82vw;max-width:300px;padding-top:128px}
+      #panelLeft .pf-close,#panelRight .pf-close{top:130px}
       #panelBottom{max-height:52vh}
     }
   </style>
@@ -283,7 +291,7 @@
   <header class="hdr">
     <div class="hdr-side left">
       <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
-              title="Opciones — vistas (ORDENADOR / AGENTE / MISIÓN)">☰</button>
+              title="Opciones — vistas (ORDENADOR / AGENTE / MISIÓN / SISTEMA OPERATIVO)">☰</button>
     </div>
 
     <div class="hdr-center">
@@ -310,7 +318,8 @@
     <span class="k"><span class="s on"></span> vivo (señal &lt; 10 min)</span>
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span></span>
+    <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r1</span></span>
   </div>
 
   <div id="card"></div>
@@ -328,6 +337,7 @@
     <button class="pf-vbtn active" data-view="machine"><span class="ic">▢</span> Por ordenador</button>
     <button class="pf-vbtn" data-view="agent"><span class="ic">◈</span> Por agente</button>
     <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Por misión</button>
+    <button class="pf-vbtn" data-view="os"><span class="ic">⌘</span> Por sistema operativo</button>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
   </aside>
 
@@ -469,6 +479,21 @@
     for (const k in AGENT_MISSION){ if (n.includes(k)) return AGENT_MISSION[k]; }
     return 'Sin misión';
   }
+  // Deriva el SISTEMA OPERATIVO de una máquina por su nombre/host (regla de la
+  // casa). Si el roster de fleet trae `platform`, se usa como confirmación.
+  //   MacBook*/MacMini/mac.lan/Mac* → macOS · AsusZenbook → Windows
+  //   dgx-spark/DGX/lenovo-thinkstation/ThinkStation → Linux · resto → «otros»
+  function osFor(machine, platform){
+    const pf = (platform||'').toLowerCase();
+    if (pf.includes('mac')||pf.includes('darwin')||pf.includes('ios')) return 'macOS';
+    if (pf.includes('win')) return 'Windows';
+    if (pf.includes('linux')||pf.includes('nix')||pf.includes('ubuntu')||pf.includes('debian')) return 'Linux';
+    const n = norm(machine);
+    if (n.includes('macbook')||n.includes('macmini')||n.includes('imac')||n.includes('macpro')||n.includes('maclan')||n.startsWith('mac')) return 'macOS';
+    if (n.includes('zenbook')||n.includes('asus')||n.includes('windows')||n.includes('surface')) return 'Windows';
+    if (n.includes('dgx')||n.includes('spark')||n.includes('thinkstation')||n.includes('lenovo')||n.includes('linux')||n.includes('ubuntu')||n.includes('nixos')) return 'Linux';
+    return 'otros';
+  }
   // "hace X" relativo al reloj del servidor (evita desfases de reloj cliente↔worker)
   let SERVER_NOW = Math.floor(Date.now()/1000);
   function ago(sec){
@@ -478,6 +503,15 @@
     if (d < 3600) return Math.floor(d/60)+'m';
     if (d < 86400) return Math.floor(d/3600)+'h';
     return Math.floor(d/86400)+'d';
+  }
+  // Formato de números / tokens legible (es-ES: 1.234 · 12k · 1,2M). Honesto:
+  // si no hay dato (0/ausente/NaN) devuelve «s/d», nunca inventa una cifra.
+  function fmtNum(v){ v=+v||0; return v.toLocaleString('es-ES'); }
+  function fmtTokens(v){
+    if (v==null || isNaN(v) || v<=0) return 's/d';
+    if (v>=1e6) return (v/1e6).toLocaleString('es-ES',{maximumFractionDigits:1})+'M';
+    if (v>=1e4) return Math.round(v/1000).toLocaleString('es-ES')+'k';
+    return Math.round(v).toLocaleString('es-ES');
   }
 
   // ---------- canvas / galaxy ----------
@@ -504,9 +538,9 @@
 
   // ---------- estado de datos y vistas ----------
   // Guardamos el "mundo" crudo tras cada carga, y derivamos nodos por vista.
-  let WORLD = { machines:[], agents:[], missions:[] };
-  const VIEWS = ['machine','agent','mission'];
-  const VIEW_LABEL = { machine:'por ordenador', agent:'por agente', mission:'por misión' };
+  let WORLD = { machines:[], agents:[], missions:[], os:[] };
+  const VIEWS = ['machine','agent','mission','os'];
+  const VIEW_LABEL = { machine:'por ordenador', agent:'por agente', mission:'por misión', os:'por sistema operativo' };
   let viewIdx = 0;
   let currentView = 'machine';
 
@@ -884,6 +918,7 @@
   }
   function showCard(n,mx,my){
     if(!n){card.style.display='none';return;}
+    bumpReadFreeze();   // leer una ficha CONGELA la rotación de vistas 30s
     const personas = (n.personas||[]).map(p=>`${p.persona}<span style="color:var(--cyan-dim)">·${p.runtime}</span>`).join(' &nbsp; ');
     const foco = n.foco ? `<div class="foco">“${n.foco}”</div>` : '';
     let rows = '';
@@ -898,6 +933,11 @@
         `<div class="cp">runtime · <b>${n.sub||'—'}</b></div>`+
         `<div class="row"><span class="lab">máquinas</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
         `<div class="row"><span class="lab">misión</span><span class="val">${n.mission||'—'}</span></div>`;
+    } else if(currentView==='os'){
+      rows =
+        `<div class="cp">sistema operativo · <b>${n.label}</b></div>`+
+        `<div class="row"><span class="lab">equipos</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
+        `<div class="row"><span class="lab">agentes</span><span class="val">${(n.agentNames||[]).join(', ')||'—'}</span></div>`;
     } else {
       rows =
         `<div class="cp">misión · <b>${n.label}</b></div>`+
@@ -909,9 +949,14 @@
     const vidaRows = n.online
       ? `<div class="row"><span class="lab">latido</span><span class="val">${bpm} BPM · ${nodeVolumeLabel(n)}</span></div>`
       : `<div class="row"><span class="lab">latido</span><span class="val">reposo · ${nodeVolumeLabel(n)}</span></div>`;
+    // TOKENS consumidos — MUY pedido. Misma fuente que el resto de la ficha
+    // (feed de presencia). Si el feed aún no publica tokens → «s/d» honesto.
+    const tokensRow =
+      `<div class="row"><span class="lab">tokens</span><span class="val">${fmtTokens(n.tokens)}${(n.reqs>0)?` · ${fmtNum(n.reqs)} reqs`:''}</span></div>`;
     card.innerHTML =
       `<div class="cn">${n.label}</div>`+ rows +
       `<div class="row"><span class="lab">señal</span><span class="val">hace ${ago(n.updated)}</span></div>`+
+      tokensRow+
       vidaRows+
       foco+
       `<span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>`;
@@ -987,7 +1032,8 @@
           machine:m.name, personas:[], updated:m.lastSeen||0,
           // un equipo que late en el roster (DGX, ThinkStation…) cuenta como VIVO
           online:isFresh(m.lastSeen), foco:'', mode:'', platform:m.platform||'',
-          decisions:0, // proxy de VOLUMEN de trabajo (ver nodeVolume). Mañana: tokens.
+          decisions:0, // proxy de VOLUMEN de trabajo (ver nodeVolume).
+          tokens:0, reqs:0, // consumo real (se llena si el feed de presencia lo trae)
         };
       }
     }
@@ -1014,11 +1060,13 @@
       for(const p of pres.presence){
         const key=resolveMachineKey(p.machine);
         let e=byMachine[key];
-        if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0}; byMachine[key]=e; }
+        if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0,tokens:0,reqs:0}; byMachine[key]=e; }
         const fresh=isFresh(p.updated);
-        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||''});
+        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0});
         if((p.updated||0) > e.updated) e.updated=p.updated;
         e.decisions = (e.decisions||0) + (+p.decisions||0); // suma de decisiones de sus agentes (proxy de volumen)
+        e.tokens = (e.tokens||0) + (+p.tokens||0);           // tokens consumidos por sus agentes (real, si el feed lo trae)
+        e.reqs   = (e.reqs||0)   + (+p.reqs||0);
         if(fresh) e.online=true;
         if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
         if(fresh && p.mode) e.mode=p.mode;
@@ -1031,13 +1079,14 @@
     if(byMachine[selfKey]){ byMachine[selfKey].online = true; byMachine[selfKey]._self=true; if(!byMachine[selfKey].updated) byMachine[selfKey].updated=SERVER_NOW; }
 
     const machines = Object.values(byMachine).map(e=>({
-      ...e, project:projectFor(e.machine),
+      ...e, project:projectFor(e.machine), os:osFor(e.machine, e.platform),
       personas:(e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)),
     })).sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
 
     WORLD.machines = machines;
     WORLD.agents   = buildAgents(pres && pres.presence ? pres.presence : [], isFresh);
     WORLD.missions = buildMissions(machines, WORLD.agents);
+    WORLD.os       = buildOS(machines);
 
     applyView(); // recoloca nodos según la vista activa
 
@@ -1054,11 +1103,13 @@
       const id = norm(p.persona)+'|'+norm(p.runtime||'');
       let e=by[id];
       if(!e){ e={id:'agent:'+id, persona:p.persona, runtime:p.runtime||'', machinesSet:new Set(),
-                 updated:0, online:false, foco:'', mode:'', decisions:0, mission:missionForAgent(p.persona)}; by[id]=e; }
+                 updated:0, online:false, foco:'', mode:'', decisions:0, tokens:0, reqs:0, mission:missionForAgent(p.persona)}; by[id]=e; }
       const fresh=isFresh(p.updated);
       e.machinesSet.add(p.machine);
       if((p.updated||0)>e.updated) e.updated=p.updated;
       e.decisions=(e.decisions||0)+(+p.decisions||0);
+      e.tokens=(e.tokens||0)+(+p.tokens||0);
+      e.reqs=(e.reqs||0)+(+p.reqs||0);
       if(fresh) e.online=true;
       if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
       if(fresh && p.mode) e.mode=p.mode;
@@ -1071,11 +1122,13 @@
   function buildMissions(machines, agents){
     const by={};
     const add=(name)=>{ const key=name||'Sin misión'; if(!by[key]) by[key]={id:'mission:'+norm(key), mission:key,
-       updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:'', decisions:0}; return by[key]; };
+       updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:'', decisions:0, tokens:0, reqs:0}; return by[key]; };
     for(const m of machines){
       const e=add(m.project);
       e.machinesSet.add(m.machine);
       e.decisions=(e.decisions||0)+(+m.decisions||0);
+      e.tokens=(e.tokens||0)+(+m.tokens||0);   // tokens por misión = suma de sus equipos (evita doble conteo)
+      e.reqs=(e.reqs||0)+(+m.reqs||0);
       if(m.online) e.online=true;
       if((m.updated||0)>e.updated) e.updated=m.updated;
       if(m.foco && !e.foco) e.foco=m.foco;
@@ -1090,6 +1143,28 @@
       .sort((a,b)=>(b.online-a.online)||(a.mission>b.mission?1:-1));
   }
 
+  // Vista POR SISTEMA OPERATIVO: nodos = SO (macOS/Windows/Linux/otros);
+  // agrupa los equipos por su sistema derivado (osFor) y suma su volumen/tokens.
+  function buildOS(machines){
+    const by={};
+    const add=(name)=>{ const key=name||'otros'; if(!by[key]) by[key]={id:'os:'+norm(key), os:key,
+       updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:'', decisions:0, tokens:0, reqs:0}; return by[key]; };
+    for(const m of machines){
+      const e=add(m.os || osFor(m.machine, m.platform));
+      e.machinesSet.add(m.machine);
+      e.decisions=(e.decisions||0)+(+m.decisions||0);
+      e.tokens=(e.tokens||0)+(+m.tokens||0);
+      e.reqs=(e.reqs||0)+(+m.reqs||0);
+      for(const p of (m.personas||[])) if(p && p.persona) e.agentsSet.add(p.persona);
+      if(m.online) e.online=true;
+      if((m.updated||0)>e.updated) e.updated=m.updated;
+      if(m.foco && !e.foco) e.foco=m.foco;
+    }
+    const ORD={ 'macOS':0, 'Windows':1, 'Linux':2, 'otros':3 };
+    return Object.values(by).map(e=>({...e, machines:[...e.machinesSet], agentNames:[...e.agentsSet]}))
+      .sort((a,b)=>(b.online-a.online)||((ORD[a.os]==null?9:ORD[a.os])-(ORD[b.os]==null?9:ORD[b.os])));
+  }
+
   // Traduce el WORLD a nodos genéricos para la vista activa y recoloca
   function applyView(){
     let list=[];
@@ -1097,22 +1172,29 @@
       list = WORLD.machines.map(m=>({
         id:'m:'+norm(m.machine), label:m.machine, sub:m.project,
         personas:m.personas, machines:[m.machine], online:m.online, updated:m.updated,
-        foco:m.foco, mode:m.mode, platform:m.platform, count:m.personas.length,
-        decisions:m.decisions||0,
+        foco:m.foco, mode:m.mode, platform:m.platform, os:m.os, count:m.personas.length,
+        decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0,
       }));
     } else if(currentView==='agent'){
       list = WORLD.agents.map(a=>({
         id:a.id, label:a.persona, sub:a.runtime,
         personas:[{persona:a.persona,runtime:a.runtime}], machines:a.machines, mission:a.mission,
         online:a.online, updated:a.updated, foco:a.foco, mode:a.mode, count:a.machines.length,
-        decisions:a.decisions||0,
+        decisions:a.decisions||0, tokens:a.tokens||0, reqs:a.reqs||0,
+      }));
+    } else if(currentView==='os'){
+      list = WORLD.os.map(o=>({
+        id:o.id, label:o.os, sub:(o.machines.length+' eq · '+o.agentNames.length+' ag'),
+        machines:o.machines, agentNames:o.agentNames, online:o.online, updated:o.updated,
+        foco:o.foco, count:o.machines.length+o.agentNames.length,
+        decisions:o.decisions||0, tokens:o.tokens||0, reqs:o.reqs||0,
       }));
     } else {
       list = WORLD.missions.map(mi=>({
         id:mi.id, label:mi.mission, sub:(mi.machines.length+' eq · '+mi.agentNames.length+' ag'),
         machines:mi.machines, agentNames:mi.agentNames, online:mi.online, updated:mi.updated,
         foco:mi.foco, count:mi.machines.length+mi.agentNames.length,
-        decisions:mi.decisions||0,
+        decisions:mi.decisions||0, tokens:mi.tokens||0, reqs:mi.reqs||0,
       }));
     }
     if(typeof ONLY_LIVE!=='undefined' && ONLY_LIVE) list = list.filter(n=>n.online);
@@ -1626,7 +1708,17 @@
 
   // ---------- rotación de vistas (20s) ----------
   const progEl   = document.getElementById('rotProg');
+  const rotRead  = document.getElementById('rotRead');
   let rotPaused=false, rotStart=0, rotRAF=0;
+
+  // --- CONGELAR AL LEER UNA FICHA -----------------------------------
+  // Abrir/hoverear una ficha detalle pausa la rotación de vistas durante
+  // 30s; mientras el ratón siga sobre el nodo/ficha se mantiene congelada
+  // (el temporizador se reinicia). Pasados 30s de la última interacción,
+  // se reanuda la rotación normal.
+  const READ_FREEZE_MS = 30000;
+  let readFreezeUntil = 0;
+  function bumpReadFreeze(){ readFreezeUntil = performance.now() + READ_FREEZE_MS; }
 
   function setView(v, byUser){
     currentView = v; viewIdx = VIEWS.indexOf(v);
@@ -1636,8 +1728,17 @@
     if(byUser){ rotStart=performance.now(); } // reinicia el temporizador al elegir a mano
   }
   function tickRotation(now){
-    // draw activo o pausado: congela la rotación (el trazo manda)
-    if(rotPaused || paused || (typeof DRAW_ACTIVE!=='undefined' && DRAW_ACTIVE)){ rotRAF=requestAnimationFrame(tickRotation); return; }
+    // mientras el ratón siga sobre un nodo/ficha, renueva el congelado
+    if(hover) bumpReadFreeze();
+    const frozen = performance.now() < readFreezeUntil;
+    if(rotRead) rotRead.style.display = frozen ? '' : 'none';
+    // draw activo, pausado por el usuario o CONGELADO por lectura de ficha:
+    // la rotación de vistas no avanza (la barra de progreso queda a 0).
+    if(rotPaused || paused || frozen || (typeof DRAW_ACTIVE!=='undefined' && DRAW_ACTIVE)){
+      if(frozen && !rotPaused){ rotStart=now; progEl.style.width='0%'; progEl.classList.add('paused'); }
+      rotRAF=requestAnimationFrame(tickRotation); return;
+    }
+    if(!rotPaused) progEl.classList.remove('paused');   // se reanuda tras la lectura
     const el = now - rotStart;
     const rm = (typeof ROTATE_MS_DYN==='number') ? ROTATE_MS_DYN : ROTATE_MS;
     progEl.style.width = Math.min(100, (el/rm)*100)+'%';
@@ -1750,7 +1851,7 @@
   const CLI_HELP=[
     'comandos disponibles (consola local):',
     '  help                  esta ayuda',
-    '  view <m|a|mi>         cambia de vista (machine/agent/mission)',
+    '  view <m|a|mi|os>      cambia de vista (machine/agent/mission/os)',
     '  live                   nº de nodos vivos y umbral actual',
     '  nodes                  lista los nodos de la vista activa',
     '  threshold <min>        fija el umbral de «vivo» (1-30)',
@@ -1774,9 +1875,9 @@
     switch(cmd.toLowerCase()){
       case 'help': case '?': cliPrint(CLI_HELP); break;
       case 'view': {
-        const map={m:'machine',machine:'machine',a:'agent',agent:'agent',mi:'mission',mission:'mission'};
+        const map={m:'machine',machine:'machine',a:'agent',agent:'agent',mi:'mission',mission:'mission',os:'os',so:'os',sistema:'os'};
         if(map[a0]){ setView(map[a0],true); cliPrint('vista → '+VIEW_LABEL[map[a0]]); }
-        else cliPrint('uso: view <machine|agent|mission>','err');
+        else cliPrint('uso: view <machine|agent|mission|os>','err');
         break;
       }
       case 'live': {
