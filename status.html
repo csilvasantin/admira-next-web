@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r8">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r9">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -68,11 +68,18 @@
       overflow:hidden;
       -webkit-font-smoothing:antialiased;
     }
-    #galaxy{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+    /* ============ ESCENARIO RESPONSIVE (r9) ============
+       #stage = fila flex a pantalla completa: riel izq | centro | riel dcha.
+       En escritorio los paneles son COLUMNAS EN FLUJO: al abrirse, el centro
+       (y su canvas) se ESTRECHA de verdad — nada tapado, jamás. En móvil los
+       paneles vuelven a ser cajón overlay (regla base .pf-panel). */
+    #stage{position:fixed;inset:0;display:flex;align-items:stretch;overflow:hidden}
+    #stageCenter{position:relative;flex:1 1 auto;min-width:0;height:100%;overflow:hidden}
+    #galaxy{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
     #galaxy:active{cursor:grabbing}
 
     /* ---- CRT / phosphor overlay (TRON 1982 tribute) ---- */
-    #crt{position:fixed;inset:0;z-index:15;pointer-events:none;mix-blend-mode:screen;opacity:.5}
+    #crt{position:absolute;inset:0;z-index:15;pointer-events:none;mix-blend-mode:screen;opacity:.5}
     #crt::before{
       content:"";position:absolute;inset:0;
       background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,20,28,.28) 3px,rgba(0,0,0,0) 4px);
@@ -128,9 +135,9 @@
     #rotProg{position:fixed;top:0;left:0;height:2px;z-index:23;background:rgba(34,230,255,.7);box-shadow:0 0 6px var(--cyan);width:0;transition:opacity .3s}
     #rotProg.paused{opacity:.2}
 
-    /* Footer legend */
+    /* Footer legend — vive DENTRO del centro: acompaña al canvas cuando se estrecha */
     .legend{
-      position:fixed;bottom:0;left:0;right:0;z-index:20;
+      position:absolute;bottom:0;left:0;right:0;z-index:20;
       padding:12px 22px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;
       font-size:11px;color:var(--text-dim);letter-spacing:.04em;
       background:linear-gradient(0deg,rgba(1,4,10,.8) 0%,rgba(1,4,10,0) 100%);
@@ -145,9 +152,10 @@
     .legend a{color:var(--cyan-dim);pointer-events:auto;text-decoration:none}
     .legend a:hover{color:var(--cyan)}
 
-    /* Node card (hover/click) */
+    /* Node card (hover/click) — absoluta DENTRO del centro: sus coordenadas son
+       las del canvas, así nunca se desalinea cuando los rieles estrechan el mapa */
     #card{
-      position:fixed;z-index:30;min-width:240px;max-width:320px;
+      position:absolute;z-index:30;min-width:240px;max-width:320px;
       background:var(--card);border:1px solid var(--cyan-dim);border-radius:12px;
       padding:14px 16px;backdrop-filter:blur(8px);
       box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 24px rgba(34,230,255,.12);
@@ -293,6 +301,23 @@
     }
     #dropOverlay .drop-ic{font-size:26px;animation:pulse 1.6s infinite}
 
+    /* ESCRITORIO (>640px): OPCIONES y AVANZADO son COLUMNAS EN FLUJO del #stage.
+       Cerrados se recogen por margen negativo (el contenido interno no refluye);
+       abiertos empujan el centro, que se estrecha con transición suave y el
+       canvas se REDIMENSIONA de verdad (ResizeObserver + re-encuadre en JS). */
+    @media (min-width:641px){
+      #panelLeft,#panelRight{
+        position:relative;top:auto;bottom:auto;left:auto;right:auto;
+        height:100%;flex:0 0 232px;z-index:38;
+        transform:none;
+        transition:margin .28s cubic-bezier(.2,.8,.2,1),opacity .24s,visibility .24s;
+      }
+      #panelLeft{order:-1;margin-left:-232px}
+      #panelLeft.open{margin-left:0;transform:none}
+      #panelRight{order:1;margin-right:-232px}
+      #panelRight.open{margin-right:0;transform:none}
+    }
+
     @media (max-width:640px){
       .pf-tg{width:34px;height:34px;font-size:14px}
       /* barras full-height como overlay en móvil (no rompen la galaxia) */
@@ -303,55 +328,33 @@
   </style>
 </head>
 <body>
+  <!-- ============================================================
+       ESCENARIO r9 — fila flex a pantalla completa: riel izq | centro | riel dcha.
+       El canvas vive en #stageCenter: al abrir un riel el centro se estrecha y
+       el mapa se redimensiona de verdad (nada tapado). Los rieles van en el DOM
+       tras la ficha; CSS order los coloca a izquierda (-1) y derecha (1).
+       ============================================================ -->
+  <div id="stage">
+  <div id="stageCenter">
   <canvas id="galaxy"></canvas>
   <div id="crt"></div>
-
-  <!-- ============================================================
-       CUADRO de 3 zonas (patrón portería):
-         · IZQ  → ☰ OPCIONES (extremo izquierdo)
-         · CENTRO → marca (enlace a inicio) + versión + frase + contador «nodos vivos»
-         · DCHA → ⚙ AVANZADO + >_ EXPERTO (extremo derecho)
-       Layout flex: cada zona reserva su ancho, NADA se pisa.
-       ============================================================ -->
-  <header class="hdr">
-    <div class="hdr-side left">
-      <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
-              title="Opciones — vistas (ORDENADOR / PROYECTOS / AGENTE / MISIÓN / SISTEMA OPERATIVO)">☰</button>
-    </div>
-
-    <div class="hdr-center">
-      <div class="hdr-line">
-        <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
-        <span class="ver" id="verTop">v.2026.07.07.r8</span>
-        <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
-        <span class="live"><span class="dot"></span><span id="liveCount">—</span></span>
-      </div>
-    </div>
-
-    <div class="hdr-side right">
-      <button class="pf-tg" id="tgRight" aria-expanded="false" aria-controls="panelRight"
-              title="Avanzado — filtros, umbral de vivo, velocidad, rotación">⚙</button>
-      <button class="pf-tg" id="tgBottom" aria-expanded="false" aria-controls="panelBottom"
-              title="Experto — consola CLI">&gt;_</button>
-    </div>
-  </header>
-
-  <span id="rotProg"></span>
 
   <div class="legend">
     <span class="k"><span class="s on"></span> vivo (señal &lt; 10 min)</span>
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r8</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r9</span></span>
   </div>
 
   <div id="card"></div>
+  </div><!-- /stageCenter -->
 
   <!-- ============================================================
        Paneles colapsables (patrón portería). Colapsados por defecto:
        la galaxia manda a pantalla completa. Los toggles viven ahora
        en las zonas laterales del header (ver <header class="hdr">).
+       En escritorio son columnas EN FLUJO del #stage; en móvil, cajón overlay.
        ============================================================ -->
 
   <!-- BARRA IZQUIERDA — opciones (menú vertical de vistas) -->
@@ -422,6 +425,39 @@
       <div class="hint" id="gestionMsg" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5;min-height:12px">Eliminar aquí lo ve TODA la flota (se anuncia en Agora).</div>
     </div>
   </aside>
+  </div><!-- /stage -->
+
+  <!-- ============================================================
+       CUADRO de 3 zonas (patrón portería):
+         · IZQ  → ☰ OPCIONES (extremo izquierdo)
+         · CENTRO → marca (enlace a inicio) + versión + frase + contador «nodos vivos»
+         · DCHA → ⚙ AVANZADO + >_ EXPERTO (extremo derecho)
+       Layout flex: cada zona reserva su ancho, NADA se pisa.
+       ============================================================ -->
+  <header class="hdr">
+    <div class="hdr-side left">
+      <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
+              title="Opciones — vistas (ORDENADOR / PROYECTOS / AGENTE / MISIÓN / SISTEMA OPERATIVO)">☰</button>
+    </div>
+
+    <div class="hdr-center">
+      <div class="hdr-line">
+        <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
+        <span class="ver" id="verTop">v.2026.07.07.r9</span>
+        <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
+        <span class="live"><span class="dot"></span><span id="liveCount">—</span></span>
+      </div>
+    </div>
+
+    <div class="hdr-side right">
+      <button class="pf-tg" id="tgRight" aria-expanded="false" aria-controls="panelRight"
+              title="Avanzado — filtros, umbral de vivo, velocidad, rotación">⚙</button>
+      <button class="pf-tg" id="tgBottom" aria-expanded="false" aria-controls="panelBottom"
+              title="Experto — consola CLI">&gt;_</button>
+    </div>
+  </header>
+
+  <span id="rotProg"></span>
 
   <!-- BARRA INFERIOR — EXPERTO + CLI -->
   <section class="pf-panel" id="panelBottom" role="region" aria-label="Consola experto">
@@ -630,11 +666,54 @@
   let W=0,H=0,DPR=1;
   function resize(){
     DPR = Math.min(window.devicePixelRatio||1, 2);
+    const ow=W, oh=H;
     W = cv.clientWidth; H = cv.clientHeight;
     cv.width = W*DPR; cv.height = H*DPR;
     ctx.setTransform(DPR,0,0,DPR,0,0);
+    // r9: el centro cambia de ancho al abrir/cerrar los rieles → RE-ENCUADRE
+    // real para que la constelación quede centrada y completa en el nuevo marco.
+    if(ow&&oh&&(ow!==W||oh!==H)) refitToViewport(ow,oh);
+  }
+  // Re-encuadre al cambiar el tamaño del marco (rieles en flujo, r9):
+  //  · nodos: reescalado proporcional (ratios compuestos → idempotente en transición)
+  //  · figuras DRAW: se recalculan sus targets con el nuevo W/H (misma vía que applyView)
+  //  · ficha FIJADA: se re-ancla a su nodo para que nunca quede huérfana fuera de vista
+  function refitToViewport(ow,oh){
+    const sx=W/ow, sy=H/oh;
+    if(!isFinite(sx)||!isFinite(sy)||sx<=0||sy<=0) return;
+    nodes.forEach(n=>{
+      n.x*=sx; n.y*=sy;
+      if(n._sx!=null) n._sx*=sx;
+      if(n._sy!=null) n._sy*=sy;
+    });
+    try{
+      if(typeof DRAW_ACTIVE!=='undefined' && DRAW_ACTIVE && typeof drawShape!=='undefined' && drawShape){
+        if(DRAW_MODE==='shape' && typeof drawShapeName!=='undefined' && drawShapeName) drawNamedShape(drawShapeName);
+        else if(DRAW_MODE==='shape' && typeof lastCustomShape!=='undefined' && lastCustomShape){
+          assignTargets(lastCustomShape.pts.map(unitToWorld));
+          buildDrawEdges(lastCustomShape.edges);
+        }
+        /* poly3d se re-proyecta solo cada frame con W/H; trazo libre conserva su lienzo */
+      }
+      if(typeof PINNED!=='undefined' && PINNED){
+        const nn = nodes.find(n=>n.id===PINNED.id) || PINNED;
+        const px = (nn._sx!=null?nn._sx:nn.x-cam.x), py=(nn._sy!=null?nn._sy:nn.y-cam.y);
+        showCard(PINNED, px, py);
+      }
+    }catch(e){ console.warn('refit', e); }
   }
   window.addEventListener('resize', resize);
+  // r9: observa el CENTRO del escenario — dispara también cuando un riel se abre
+  // o se cierra (la ventana no cambia, el contenedor sí). El loop RAF re-pinta
+  // cada frame durante la transición; las estrellas se re-siembran al asentarse.
+  if(window.ResizeObserver){
+    let _roT=null;
+    new ResizeObserver(()=>{
+      resize();
+      if(_roT) clearTimeout(_roT);
+      _roT=setTimeout(()=>{ try{ seedStars(); }catch(e){} }, 160);
+    }).observe(document.getElementById('stageCenter'));
+  }
 
   // starfield (deep background)
   const stars = [];
