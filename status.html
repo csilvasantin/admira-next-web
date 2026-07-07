@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r3">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r4">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
@@ -59,7 +59,7 @@
 
     /* ============================================================
        Header — CUADRO de 3 zonas (patrón portería). Layout robusto:
-       [ ☰ opciones | ····· centro (marca+frase+contador+UPLINK) ····· | ⚙ >_ ]
+       [ ☰ opciones | ····· centro (marca+versión+frase+contador) ····· | ⚙ >_ ]
        Cada zona reserva su ancho con flex+gap; los toggles NUNCA se
        superponen al contador «nodos vivos» ni al título.
        ============================================================ */
@@ -73,7 +73,7 @@
     /* zonas izquierda / derecha: sólo alojan toggles, no se encogen */
     .hdr-side{display:flex;gap:8px;flex:0 0 auto;pointer-events:auto}
     .hdr-side.right{justify-content:flex-end}
-    /* zona central: marca + frase + contador + UPLINK, ocupa el resto.
+    /* zona central: marca + versión + frase + contador, ocupa el resto.
        flex-basis:0 + min-width:0 = NUNCA reclama el ancho de su contenido,
        así las zonas laterales (toggles) conservan su sitio y no se salen. */
     .hdr-center{
@@ -82,8 +82,10 @@
       overflow-wrap:anywhere;
     }
     .hdr-line{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-    .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.6);font-weight:700;white-space:nowrap}
+    .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.6);font-weight:700;white-space:nowrap;text-decoration:none}
     .hdr .brand b{color:#fff}
+    .hdr a.brand:hover,.hdr a.brand:focus-visible{text-shadow:0 0 18px rgba(34,230,255,.9)}
+    .hdr .ver{font-size:11px;letter-spacing:.18em;color:var(--cyan-dim);white-space:nowrap}
     .hdr .tag{font-size:12px;color:var(--text-dim);letter-spacing:.02em}
     .hdr .tag em{color:var(--text);font-style:normal}
     .hdr .live{
@@ -93,15 +95,6 @@
     }
     .hdr .live .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);margin-right:6px;animation:pulse 2s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-
-    /* ---- Sci-fi tribute banner (declared in the UI, house rule) ---- */
-    /* fluye dentro de la zona central del header, bajo la marca (sin fixed) */
-    .uplink{
-      font-size:9.5px;letter-spacing:.22em;color:var(--cyan-dim);
-      text-transform:uppercase;pointer-events:none;line-height:1.4;
-    }
-    .uplink b{color:var(--cyan);text-shadow:0 0 8px rgba(34,230,255,.4)}
-    .uplink .muthur{color:var(--amber)}
 
     /* auto-rotation progress bar (hilo fino bajo la barra superior) */
     #rotProg{position:fixed;top:0;left:0;height:2px;z-index:23;background:rgba(34,230,255,.7);box-shadow:0 0 6px var(--cyan);width:0;transition:opacity .3s}
@@ -153,7 +146,7 @@
       .hdr .brand{font-size:12px;letter-spacing:.2em}
       .hdr .live{font-size:10px;padding:4px 10px;align-self:flex-start}
       .hdr .tag{font-size:10.5px}
-      .uplink{font-size:8px;letter-spacing:.16em}
+      .hdr .ver{font-size:9px;letter-spacing:.12em}
       .legend{padding:10px 14px;font-size:10px;gap:12px}
       #card{max-width:76vw}
     }
@@ -271,7 +264,7 @@
   <!-- ============================================================
        CUADRO de 3 zonas (patrón portería):
          · IZQ  → ☰ OPCIONES (extremo izquierdo)
-         · CENTRO → marca + frase + contador «nodos vivos» + UPLINK
+         · CENTRO → marca (enlace a inicio) + versión + frase + contador «nodos vivos»
          · DCHA → ⚙ AVANZADO + >_ EXPERTO (extremo derecho)
        Layout flex: cada zona reserva su ancho, NADA se pisa.
        ============================================================ -->
@@ -283,12 +276,11 @@
 
     <div class="hdr-center">
       <div class="hdr-line">
-        <span class="brand">ADmira<b>NeXT</b> · STATUS</span>
+        <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
+        <span class="ver" id="verTop">v.2026.07.07.r4</span>
         <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
         <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
       </div>
-      <!-- Sci-fi tribute, declared in the interface (house rule) -->
-      <div class="uplink">UPLINK · estética inspirada en <b>TRON (1982)</b> &amp; <span class="muthur">MU-TH-UR 6000 · ALIEN (1979)</span> — retícula de fósforo, sin centro</div>
     </div>
 
     <div class="hdr-side right">
@@ -306,7 +298,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r3</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r4</span></span>
   </div>
 
   <div id="card"></div>
