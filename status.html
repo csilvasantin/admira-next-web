@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.1">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.2">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -21,6 +21,7 @@
       --cyan:#22e6ff;
       --cyan-dim:#0a7a8c;
       --cyan-soft:rgba(34,230,255,.14);
+      --amber:#ffb545;
       --text:#dfeef3;
       --text-dim:#7f97a3;
       --grid:rgba(34,230,255,.06);
@@ -39,15 +40,29 @@
     #galaxy{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
     #galaxy:active{cursor:grabbing}
 
+    /* ---- CRT / phosphor overlay (TRON 1982 tribute) ---- */
+    #crt{position:fixed;inset:0;z-index:15;pointer-events:none;mix-blend-mode:screen;opacity:.5}
+    #crt::before{
+      content:"";position:absolute;inset:0;
+      background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,20,28,.28) 3px,rgba(0,0,0,0) 4px);
+    }
+    #crt::after{
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.55) 100%);
+      mix-blend-mode:multiply;
+    }
+    @keyframes flick{0%,97%,100%{opacity:.5}98%{opacity:.4}99%{opacity:.56}}
+    #crt{animation:flick 7s infinite}
+
     /* Header */
     .hdr{
       position:fixed;top:0;left:0;right:0;z-index:20;
-      padding:16px 22px;
+      padding:14px 22px 10px;
       display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
-      background:linear-gradient(180deg,rgba(1,4,10,.86) 0%,rgba(1,4,10,0) 100%);
+      background:linear-gradient(180deg,rgba(1,4,10,.9) 0%,rgba(1,4,10,0) 100%);
       pointer-events:none;
     }
-    .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.5);font-weight:700}
+    .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.6);font-weight:700}
     .hdr .brand b{color:#fff}
     .hdr .tag{font-size:12px;color:var(--text-dim);letter-spacing:.02em}
     .hdr .tag em{color:var(--text);font-style:normal}
@@ -58,6 +73,45 @@
     }
     .hdr .live .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);margin-right:6px;animation:pulse 2s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+    /* ---- Sci-fi tribute banner (declared in the UI, house rule) ---- */
+    .uplink{
+      position:fixed;top:44px;left:22px;z-index:20;pointer-events:none;
+      font-size:9.5px;letter-spacing:.22em;color:var(--cyan-dim);
+      text-transform:uppercase;
+    }
+    .uplink b{color:var(--cyan);text-shadow:0 0 8px rgba(34,230,255,.4)}
+    .uplink .muthur{color:var(--amber)}
+
+    /* ---- View switcher (POR ORDENADOR / AGENTE / MISIÓN) ---- */
+    .views{
+      position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:22;
+      display:flex;gap:0;border:1px solid var(--cyan-dim);border-radius:8px;
+      background:rgba(3,8,16,.82);backdrop-filter:blur(6px);overflow:hidden;
+      box-shadow:0 0 22px rgba(34,230,255,.14);
+    }
+    .views button{
+      font-family:inherit;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+      color:var(--text-dim);background:transparent;border:0;padding:7px 14px;cursor:pointer;
+      position:relative;transition:color .25s,background .25s;white-space:nowrap;
+    }
+    .views button + button{border-left:1px solid rgba(34,230,255,.14)}
+    .views button:hover{color:var(--text)}
+    .views button.active{color:#eafcff;background:rgba(34,230,255,.12);text-shadow:0 0 8px rgba(34,230,255,.6)}
+    .views button.active::after{
+      content:"";position:absolute;left:8px;right:8px;bottom:3px;height:2px;border-radius:2px;
+      background:var(--cyan);box-shadow:0 0 8px var(--cyan);
+    }
+    /* auto-rotation progress bar under the switcher */
+    .views .prog{position:absolute;left:0;bottom:0;height:2px;background:rgba(34,230,255,.7);box-shadow:0 0 6px var(--cyan);width:0}
+    .views.paused .prog{opacity:.25}
+    .rotpause{
+      position:fixed;top:12px;left:calc(50% + 160px);z-index:22;pointer-events:auto;
+      font-family:inherit;font-size:9px;letter-spacing:.14em;color:var(--cyan-dim);
+      border:1px solid var(--cyan-dim);border-radius:6px;background:rgba(3,8,16,.82);
+      padding:6px 9px;cursor:pointer;transition:color .2s,border-color .2s;text-transform:uppercase;
+    }
+    .rotpause:hover{color:var(--cyan);border-color:var(--cyan)}
 
     /* Footer legend */
     .legend{
@@ -71,6 +125,7 @@
     .legend .s{width:9px;height:9px;border-radius:50%}
     .legend .s.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
     .legend .s.off{background:var(--off)}
+    .legend .mode-name{color:var(--cyan)}
     .legend .upd{margin-left:auto}
     .legend a{color:var(--cyan-dim);pointer-events:auto;text-decoration:none}
     .legend a:hover{color:var(--cyan)}
@@ -98,6 +153,10 @@
       .hdr{padding:12px 14px;gap:8px}
       .hdr .tag{width:100%;font-size:11px}
       .hdr .live{margin-left:0}
+      .uplink{top:auto;bottom:52px;left:14px;font-size:8.5px}
+      .views{top:8px}
+      .views button{padding:6px 9px;font-size:9px;letter-spacing:.08em}
+      .rotpause{left:auto;right:10px}
       .legend{padding:10px 14px;font-size:10px;gap:12px}
       #card{max-width:76vw}
     }
@@ -106,6 +165,7 @@
 </head>
 <body>
   <canvas id="galaxy"></canvas>
+  <div id="crt"></div>
 
   <header class="hdr">
     <span class="brand">ADmira<b>NeXT</b> · STATUS</span>
@@ -113,11 +173,22 @@
     <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
   </header>
 
+  <!-- Sci-fi tribute, declared in the interface (house rule) -->
+  <div class="uplink">UPLINK · estética inspirada en <b>TRON (1982)</b> &amp; <span class="muthur">MU-TH-UR 6000 · ALIEN (1979)</span> — retícula de fósforo, sin centro</div>
+
+  <nav class="views" id="viewSwitch">
+    <button data-view="machine" class="active">Por ordenador</button>
+    <button data-view="agent">Por agente</button>
+    <button data-view="mission">Por misión</button>
+    <span class="prog" id="rotProg"></span>
+  </nav>
+  <button class="rotpause" id="rotPause" title="Fijar / reanudar la rotación automática (20s)">⏸ auto</button>
+
   <div class="legend">
     <span class="k"><span class="s on"></span> vivo (señal &lt; 5 min)</span>
     <span class="k"><span class="s off"></span> en reposo</span>
-    <span class="k">malla de constelación · arrastra para orbitar</span>
-    <span class="upd">actualiza cada 20s · <span id="lastUpd">—</span></span>
+    <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span></span>
   </div>
 
   <div id="card"></div>
@@ -127,34 +198,52 @@
   <script>
   /* ============================================================
      ADmiraNeXT /status — constelación de la flota (sin centro)
+     Estética: TRON (1982) + MU-TH-UR / ALIEN — CRT de fósforo cian.
      Datos en vivo:
        presencia: admira-telegram worker /api/presence
        roster:    admira-fleet worker /machines
+     3 vistas rotatorias (20s): POR ORDENADOR · POR AGENTE · POR MISIÓN
      ============================================================ */
 
   // -------- MAPA DE RESPONSABLES (fuente de verdad de hoy) --------
-  // Editable aquí. TODO: en el futuro puede leerse de admira-fleet.
   const PROJECTS = {
     'macbookaircrema':   'www.admira.live',
     'crema':             'www.admira.live',
+    'asuszenbook':       'www.admira.live',
+    'zenbook':           'www.admira.live',
     'dgxspark':          'www.xpaceOS.com',
     'dgx':               'www.xpaceOS.com',
-    'thinkstationpgx':   'www.clearchannel.tv',
     'thinkstation':      'www.clearchannel.tv',
+    'thinkstationpgx':   'www.clearchannel.tv',
     'macbookairrosa':    'pixeria.com',
     'rosa':              'pixeria.com',
     'macbookpronegro14': 'www.admiranext.com · Coordinación',
     'negro14':           'www.admiranext.com · Coordinación',
-    'macbookpro16':      '(sin asignar)',
-    'asuszenbook':       '(sin asignar)',
-    'zenbook':           '(sin asignar)',
-    'macmini':           '(sin asignar)',
+    'macbookpro16':      'www.admiranext.com',
+    'macmini':           'Consejo · Infra',
+    'macbookairazul':    'Editor Xpacios',
+    'macbookair16plata': 'www.admira.live',
+    'macbookair16':      'www.admira.live',
+  };
+
+  // Persona -> misión de referencia (para la vista POR MISIÓN a través del agente)
+  const AGENT_MISSION = {
+    'neo':'Consejo · Coordinación',
+    'morfeo':'www.admiranext.com',
+    'submorfeo':'www.admiranext.com',
+    'inframorfeo':'www.admiranext.com',
+    'trinity':'www.admira.live',
+    'oraculo':'www.admira.live',
+    'oráculo':'www.admira.live',
+    'smith':'www.admira.live',
+    'cypher':'www.admira.live',
   };
 
   const PRESENCE_URL = 'https://admira-telegram.csilvasantin.workers.dev/api/presence';
   const FLEET_URL    = 'https://admira-fleet.csilvasantin.workers.dev/machines';
-  const ONLINE_SEC   = 300;   // vivo si updated < 5 min
-  const REFRESH_MS   = 20000;
+  const ONLINE_SEC   = 300;    // vivo si la señal es < 5 min (RELATIVO al reloj del servidor)
+  const REFRESH_MS   = 20000;  // recarga de datos
+  const ROTATE_MS    = 20000;  // rotación automática de vista
 
   // ---------- util ----------
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -164,9 +253,17 @@
     for (const k in PROJECTS){ if (n.includes(k) || k.includes(n)) return PROJECTS[k]; }
     return '(sin asignar)';
   }
+  function missionForAgent(persona){
+    const n = norm(persona);
+    if (AGENT_MISSION[n]) return AGENT_MISSION[n];
+    for (const k in AGENT_MISSION){ if (n.includes(k)) return AGENT_MISSION[k]; }
+    return 'Sin misión';
+  }
+  // "hace X" relativo al reloj del servidor (evita desfases de reloj cliente↔worker)
+  let SERVER_NOW = Math.floor(Date.now()/1000);
   function ago(sec){
     if (!sec) return '—';
-    const d = Math.max(0, Math.floor(Date.now()/1000 - sec));
+    const d = Math.max(0, Math.floor(SERVER_NOW - sec));
     if (d < 60) return d+'s';
     if (d < 3600) return Math.floor(d/60)+'m';
     if (d < 86400) return Math.floor(d/3600)+'h';
@@ -195,19 +292,26 @@
     }
   }
 
-  // nodes: force-directed-ish drift, NO center
-  let nodes = [];        // {machine, personas[], project, online, updated, foco, x,y,vx,vy,ox,oy, r, phase}
+  // ---------- estado de datos y vistas ----------
+  // Guardamos el "mundo" crudo tras cada carga, y derivamos nodos por vista.
+  let WORLD = { machines:[], agents:[], missions:[] };
+  const VIEWS = ['machine','agent','mission'];
+  const VIEW_LABEL = { machine:'por ordenador', agent:'por agente', mission:'por misión' };
+  let viewIdx = 0;
+  let currentView = 'machine';
+
+  // nodes activos en pantalla (por id estable dentro de la vista)
+  let nodes = [];        // {id, label, sub, personas[], online, updated, foco, mode, platform, count, x,y,vx,vy, r, phase}
   let hover = null;
-  // camera drift (parallax) — a slow, ownerless orbit of the whole universe
-  const cam = {x:0,y:0,vx:0,vy:0,drag:false,px:0,py:0,ux:0,uy:0};
+  const cam = {x:0,y:0,vx:0,vy:0,drag:false,px:0,py:0};
 
   function layoutNodes(list){
-    // Preserve positions for machines already placed; place new ones on a wide ring
-    const prev = {}; nodes.forEach(n=>prev[n.machine]=n);
+    // Preserva posiciones para ids ya colocados; coloca nuevos en un anillo amplio
+    const prev = {}; nodes.forEach(n=>prev[n.id]=n);
     const cx=W/2, cy=H/2;
     const R = Math.min(W,H)*0.34;
     nodes = list.map((m,i)=>{
-      const p = prev[m.machine];
+      const p = prev[m.id];
       const ang = (i/list.length)*Math.PI*2 + (i*0.618);
       const rr = R*(0.55+0.6*((i*0.31)%1));
       return {
@@ -216,7 +320,7 @@
         y: p? p.y : cy + Math.sin(ang)*rr + (Math.random()-.5)*40,
         vx: p? p.vx : 0, vy: p? p.vy : 0,
         phase: p? p.phase : Math.random()*Math.PI*2,
-        r: 0, // computed from activity
+        r: 0,
       };
     });
   }
@@ -225,7 +329,6 @@
     const cx=W/2, cy=H/2;
     for (let i=0;i<nodes.length;i++){
       const a=nodes[i];
-      // gentle repulsion between all nodes (keeps the mesh spread, no collapse)
       for (let j=i+1;j<nodes.length;j++){
         const b=nodes[j];
         let dx=a.x-b.x, dy=a.y-b.y;
@@ -239,22 +342,18 @@
           b.vx-=ux*f; b.vy-=uy*f;
         }
       }
-      // very soft containment so the universe stays on screen (not a hub — a boundary)
       const dcx=a.x-cx, dcy=a.y-cy;
       const dist=Math.hypot(dcx,dcy)||1;
       const maxR=Math.min(W,H)*0.42;
       if (dist>maxR){ const f=(dist-maxR)/maxR*0.6; a.vx-=dcx/dist*f; a.vy-=dcy/dist*f; }
-      // continuous slow drift (each star has its own wander)
       a.phase += dt*0.0004;
       a.vx += Math.cos(a.phase*1.3+ i)*0.012;
       a.vy += Math.sin(a.phase      + i)*0.012;
-      // integrate + damping
       a.vx*=0.90; a.vy*=0.90;
       a.x+=a.vx; a.y+=a.vy;
     }
   }
 
-  // mesh: connect each node to its 2-3 nearest neighbours (constellation, not spokes)
   function meshEdges(){
     const edges=[];
     for (let i=0;i<nodes.length;i++){
@@ -266,7 +365,6 @@
       const k=Math.min(3, ds.length);
       for (let t=0;t<k;t++){ const j=ds[t][1]; if(i<j) edges.push([i,j,ds[t][0]]); else edges.push([j,i,ds[t][0]]); }
     }
-    // dedup
     const seen=new Set(), out=[];
     for(const e of edges){ const key=e[0]+'-'+e[1]; if(!seen.has(key)){seen.add(key);out.push(e);} }
     return out;
@@ -274,16 +372,19 @@
 
   let last=performance.now();
   let paused=false;
-  document.addEventListener('visibilitychange',()=>{ paused=document.hidden; if(!paused){last=performance.now();requestAnimationFrame(frame);} });
+  document.addEventListener('visibilitychange',()=>{
+    paused=document.hidden;
+    if(paused){ stopRotation(); }
+    else { last=performance.now(); startRotation(); requestAnimationFrame(frame); }
+  });
 
   function frame(now){
     if(paused) return;
     const dt=Math.min(50, now-last); last=now;
-    // camera inertia
     cam.vx*=0.92; cam.vy*=0.92; cam.x+=cam.vx; cam.y+=cam.vy;
 
     ctx.clearRect(0,0,W,H);
-    // background stars
+    // fondo de estrellas
     ctx.save();
     for(const s of stars){
       s.tw += dt*0.002*s.sp;
@@ -297,7 +398,6 @@
     physics(dt);
     const edges=meshEdges();
 
-    // draw mesh
     ctx.save();
     ctx.translate(cam.x,cam.y);
     const maxD=Math.min(W,H)*0.5;
@@ -310,36 +410,34 @@
       ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
     }
 
-    // draw nodes
     const t=now*0.001;
     for(const n of nodes){
-      const base = n.online ? 7+Math.min(6,(n.personas.length-1)*2) : 5;
+      // el tamaño crece con la actividad: nº de personas/máquinas agrupadas
+      const grp = Math.max(0, (n.count||1)-1);
+      const base = n.online ? 7+Math.min(7, grp*1.6) : 5+Math.min(4,grp*1.2);
       const pulse = n.online ? (0.5+0.5*Math.sin(t*2+n.phase)) : 0;
       const r = base + pulse*2;
       n.r=r; n._sx=n.x+cam.x; n._sy=n.y+cam.y;
-      // halo
       const hg=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,r*4.5);
       if(n.online){ hg.addColorStop(0,`rgba(34,230,255,${0.32+pulse*0.18})`); hg.addColorStop(1,'rgba(34,230,255,0)'); }
       else { hg.addColorStop(0,'rgba(120,140,160,0.10)'); hg.addColorStop(1,'rgba(120,140,160,0)'); }
       ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(n.x,n.y,r*4.5,0,7); ctx.fill();
-      // core
       ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7);
       ctx.fillStyle = n.online ? '#eafcff' : '#4a5866';
       ctx.shadowColor = n.online ? 'rgba(34,230,255,.9)' : 'transparent';
       ctx.shadowBlur = n.online ? 14+pulse*10 : 0;
       ctx.fill(); ctx.shadowBlur=0;
       if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle='#22e6ff'; ctx.fill(); }
-      // label
-      const isHover = hover && hover.machine===n.machine;
+      const isHover = hover && hover.id===n.id;
       ctx.font = (isHover?'700 ':'')+'11px JetBrains Mono, monospace';
       ctx.textAlign='center';
       ctx.fillStyle = n.online ? (isHover?'#eafcff':'#bfe9f2') : '#6f8090';
       ctx.shadowColor=n.online?'rgba(34,230,255,.5)':'transparent'; ctx.shadowBlur=n.online?6:0;
-      ctx.fillText(n.machine, n.x, n.y+r+15);
+      ctx.fillText(n.label, n.x, n.y+r+15);
       ctx.shadowBlur=0;
       ctx.font='9px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
-      ctx.fillText(n.project, n.x, n.y+r+27);
+      if(n.sub) ctx.fillText(n.sub, n.x, n.y+r+27);
     }
     ctx.restore();
 
@@ -358,14 +456,28 @@
   }
   function showCard(n,mx,my){
     if(!n){card.style.display='none';return;}
-    const personas = n.personas.map(p=>`${p.persona}<span style="color:var(--cyan-dim)">·${p.runtime}</span>`).join(' &nbsp; ');
+    const personas = (n.personas||[]).map(p=>`${p.persona}<span style="color:var(--cyan-dim)">·${p.runtime}</span>`).join(' &nbsp; ');
     const foco = n.foco ? `<div class="foco">“${n.foco}”</div>` : '';
+    let rows = '';
+    if(currentView==='machine'){
+      rows =
+        `<div class="cp">proyecto · <b>${n.sub||'(sin asignar)'}</b></div>`+
+        `<div class="row"><span class="lab">quién</span><span class="val">${personas||'—'}</span></div>`+
+        `<div class="row"><span class="lab">modo</span><span class="val">${n.mode||'—'}</span></div>`+
+        `<div class="row"><span class="lab">plataforma</span><span class="val">${n.platform||'—'}</span></div>`;
+    } else if(currentView==='agent'){
+      rows =
+        `<div class="cp">runtime · <b>${n.sub||'—'}</b></div>`+
+        `<div class="row"><span class="lab">máquinas</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
+        `<div class="row"><span class="lab">misión</span><span class="val">${n.mission||'—'}</span></div>`;
+    } else {
+      rows =
+        `<div class="cp">misión · <b>${n.label}</b></div>`+
+        `<div class="row"><span class="lab">equipos</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
+        `<div class="row"><span class="lab">agentes</span><span class="val">${(n.agentNames||[]).join(', ')||'—'}</span></div>`;
+    }
     card.innerHTML =
-      `<div class="cn">${n.machine}</div>`+
-      `<div class="cp">proyecto · <b>${n.project}</b></div>`+
-      `<div class="row"><span class="lab">quién</span><span class="val">${personas||'—'}</span></div>`+
-      `<div class="row"><span class="lab">modo</span><span class="val">${n.mode||'—'}</span></div>`+
-      `<div class="row"><span class="lab">plataforma</span><span class="val">${n.platform||'—'}</span></div>`+
+      `<div class="cn">${n.label}</div>`+ rows +
       `<div class="row"><span class="lab">señal</span><span class="val">hace ${ago(n.updated)}</span></div>`+
       foco+
       `<span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>`;
@@ -386,7 +498,6 @@
   cv.addEventListener('mousedown',e=>{ const r=cv.getBoundingClientRect(); cam.px=e.clientX-r.left; cam.py=e.clientY-r.top; if(!pickNode(cam.px,cam.py)){cam.drag=true;} });
   window.addEventListener('mouseup',()=>{cam.drag=false;});
   cv.addEventListener('mouseleave',()=>{card.style.display='none';hover=null;});
-  // touch
   cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;const n=pickNode(mx,my);if(n){showCard(n,mx,my);}else{cam.drag=true;cam.px=mx;cam.py=my;}},{passive:true});
   cv.addEventListener('touchmove',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;if(cam.drag){cam.vx+=(mx-cam.px)*0.2;cam.vy+=(my-cam.py)*0.2;cam.px=mx;cam.py=my;}},{passive:true});
   cv.addEventListener('touchend',()=>{cam.drag=false;});
@@ -403,50 +514,176 @@
     try{ pres = await jget(PRESENCE_URL); }catch(e){ console.warn('presence',e); }
     try{ fleet = await jget(FLEET_URL); }catch(e){ console.warn('fleet',e); }
 
-    const now = Date.now()/1000;
-    const byMachine = {}; // normMachine -> {machine, personas[], updated, online, foco, mode, platform}
+    // ---- FIX «0 nodos vivos» ----------------------------------------
+    // La frescura se mide RELATIVA al reloj del servidor (máximo timestamp
+    // del propio feed), no a Date.now() del navegador: así un desfase de
+    // reloj cliente↔worker no marca offline a toda la flota.
+    let maxTs = 0;
+    if(pres && pres.presence) for(const p of pres.presence){ if((p.updated||0)>maxTs) maxTs=p.updated; }
+    if(fleet && fleet.machines) for(const m of fleet.machines){ if((m.lastSeen||0)>maxTs) maxTs=m.lastSeen; }
+    if(fleet && fleet.updatedAt && fleet.updatedAt>maxTs) maxTs=fleet.updatedAt;
+    // fallback: si por lo que sea no hay datos, usa el reloj local.
+    SERVER_NOW = maxTs || Math.floor(Date.now()/1000);
+    const isFresh = ts => (SERVER_NOW - (ts||0)) < ONLINE_SEC;
 
-    // roster first: every registered machine gets a node (even if quiet)
+    // ---- construir el mundo por máquina ----
+    const byMachine = {}; // normMachine -> {machine, personas[], updated, online, foco, mode, platform}
     if(fleet && fleet.machines){
       for(const m of fleet.machines){
         const key=norm(m.name);
-        byMachine[key] = { machine:m.name, personas:[], updated:m.lastSeen||0, online:false, foco:'', mode:'', platform:m.platform||'' };
+        byMachine[key] = {
+          machine:m.name, personas:[], updated:m.lastSeen||0,
+          // un equipo que late en el roster (DGX, ThinkStation…) cuenta como VIVO
+          online:isFresh(m.lastSeen), foco:'', mode:'', platform:m.platform||''
+        };
       }
     }
-    // overlay presence (the live pulse: personas, focus, freshness)
     if(pres && pres.presence){
       for(const p of pres.presence){
         const key=norm(p.machine);
         let e=byMachine[key];
         if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:''}; byMachine[key]=e; }
-        const fresh=(now - (p.updated||0)) < ONLINE_SEC;
-        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh});
+        const fresh=isFresh(p.updated);
+        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||''});
         if((p.updated||0) > e.updated) e.updated=p.updated;
         if(fresh) e.online=true;
-        // pick the freshest non-empty focus as the machine's micro-foco
         if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
         if(fresh && p.mode) e.mode=p.mode;
       }
     }
 
-    const list = Object.values(byMachine)
-      .map(e=>({ ...e, project:projectFor(e.machine),
-                 // keep only fresh personas for display; if none fresh, show most recent one
-                 personas: (e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)) }))
-      .sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
+    // Garantiza que Negro14 (Coordinador, esta propia página) cuente como vivo:
+    // si su beat no llega pero la página está viva, lo marcamos por señal propia.
+    const selfKey = 'macbookpronegro14';
+    if(byMachine[selfKey]){ byMachine[selfKey].online = true; byMachine[selfKey]._self=true; if(!byMachine[selfKey].updated) byMachine[selfKey].updated=SERVER_NOW; }
 
-    layoutNodes(list);
+    const machines = Object.values(byMachine).map(e=>({
+      ...e, project:projectFor(e.machine),
+      personas:(e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)),
+    })).sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
 
-    const liveN = list.filter(n=>n.online).length;
+    WORLD.machines = machines;
+    WORLD.agents   = buildAgents(pres && pres.presence ? pres.presence : [], isFresh);
+    WORLD.missions = buildMissions(machines, WORLD.agents);
+
+    applyView(); // recoloca nodos según la vista activa
+
+    // contador de VIVOS de la vista POR ORDENADOR (verdad de la flota)
+    const liveN = machines.filter(n=>n.online).length;
     document.getElementById('liveCount').textContent = liveN;
     document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }
 
+  // Vista POR AGENTE: agrupa por persona+runtime (Morfeo·Claude ≠ Trinity·Codex)
+  function buildAgents(presence, isFresh){
+    const by={};
+    for(const p of presence){
+      const id = norm(p.persona)+'|'+norm(p.runtime||'');
+      let e=by[id];
+      if(!e){ e={id:'agent:'+id, persona:p.persona, runtime:p.runtime||'', machinesSet:new Set(),
+                 updated:0, online:false, foco:'', mode:'', mission:missionForAgent(p.persona)}; by[id]=e; }
+      const fresh=isFresh(p.updated);
+      e.machinesSet.add(p.machine);
+      if((p.updated||0)>e.updated) e.updated=p.updated;
+      if(fresh) e.online=true;
+      if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
+      if(fresh && p.mode) e.mode=p.mode;
+    }
+    return Object.values(by).map(e=>({...e, machines:[...e.machinesSet]}))
+      .sort((a,b)=>(b.online-a.online)||(a.persona>b.persona?1:-1));
+  }
+
+  // Vista POR MISIÓN: nodos = proyectos; equipos/agentes orbitan su misión
+  function buildMissions(machines, agents){
+    const by={};
+    const add=(name)=>{ const key=name||'Sin misión'; if(!by[key]) by[key]={id:'mission:'+norm(key), mission:key,
+       updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:''}; return by[key]; };
+    for(const m of machines){
+      const e=add(m.project);
+      e.machinesSet.add(m.machine);
+      if(m.online) e.online=true;
+      if((m.updated||0)>e.updated) e.updated=m.updated;
+      if(m.foco && !e.foco) e.foco=m.foco;
+    }
+    for(const a of agents){
+      const e=add(a.mission);
+      e.agentsSet.add(a.persona);
+      if(a.online) e.online=true;
+      if((a.updated||0)>e.updated) e.updated=a.updated;
+    }
+    return Object.values(by).map(e=>({...e, machines:[...e.machinesSet], agentNames:[...e.agentsSet]}))
+      .sort((a,b)=>(b.online-a.online)||(a.mission>b.mission?1:-1));
+  }
+
+  // Traduce el WORLD a nodos genéricos para la vista activa y recoloca
+  function applyView(){
+    let list=[];
+    if(currentView==='machine'){
+      list = WORLD.machines.map(m=>({
+        id:'m:'+norm(m.machine), label:m.machine, sub:m.project,
+        personas:m.personas, machines:[m.machine], online:m.online, updated:m.updated,
+        foco:m.foco, mode:m.mode, platform:m.platform, count:m.personas.length,
+      }));
+    } else if(currentView==='agent'){
+      list = WORLD.agents.map(a=>({
+        id:a.id, label:a.persona, sub:a.runtime,
+        personas:[{persona:a.persona,runtime:a.runtime}], machines:a.machines, mission:a.mission,
+        online:a.online, updated:a.updated, foco:a.foco, mode:a.mode, count:a.machines.length,
+      }));
+    } else {
+      list = WORLD.missions.map(mi=>({
+        id:mi.id, label:mi.mission, sub:(mi.machines.length+' eq · '+mi.agentNames.length+' ag'),
+        machines:mi.machines, agentNames:mi.agentNames, online:mi.online, updated:mi.updated,
+        foco:mi.foco, count:mi.machines.length+mi.agentNames.length,
+      }));
+    }
+    layoutNodes(list);
+    document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
+  }
+
+  // ---------- rotación de vistas (20s) ----------
+  const switchEl = document.getElementById('viewSwitch');
+  const progEl   = document.getElementById('rotProg');
+  const pauseBtn = document.getElementById('rotPause');
+  let rotPaused=false, rotStart=0, rotRAF=0;
+
+  function setView(v, byUser){
+    currentView = v; viewIdx = VIEWS.indexOf(v);
+    [...switchEl.querySelectorAll('button')].forEach(b=>b.classList.toggle('active', b.dataset.view===v));
+    card.style.display='none'; hover=null;
+    applyView();
+    if(byUser){ rotStart=performance.now(); } // reinicia el temporizador al elegir a mano
+  }
+  function tickRotation(now){
+    if(rotPaused || paused){ rotRAF=requestAnimationFrame(tickRotation); return; }
+    const el = now - rotStart;
+    progEl.style.width = Math.min(100, (el/ROTATE_MS)*100)+'%';
+    if(el>=ROTATE_MS){
+      rotStart=now;
+      setView(VIEWS[(viewIdx+1)%VIEWS.length], false);
+    }
+    rotRAF=requestAnimationFrame(tickRotation);
+  }
+  function startRotation(){ if(rotRAF) cancelAnimationFrame(rotRAF); rotStart=performance.now(); rotRAF=requestAnimationFrame(tickRotation); }
+  function stopRotation(){ if(rotRAF){ cancelAnimationFrame(rotRAF); rotRAF=0; } }
+
+  switchEl.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{ setView(b.dataset.view, true); });
+  });
+  pauseBtn.addEventListener('click',()=>{
+    rotPaused=!rotPaused;
+    switchEl.classList.toggle('paused', rotPaused);
+    pauseBtn.textContent = rotPaused ? '▶ fijo' : '⏸ auto';
+    if(!rotPaused) rotStart=performance.now();
+  });
+
   // ---------- boot ----------
   resize(); seedStars();
   window.addEventListener('resize',()=>{seedStars();});
+  setView('machine', false);
   load();
   setInterval(load, REFRESH_MS);
+  startRotation();
   requestAnimationFrame(frame);
   </script>
 </body>
