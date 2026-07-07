@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.6">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.7">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -280,7 +280,7 @@
   <span id="rotProg"></span>
 
   <div class="legend">
-    <span class="k"><span class="s on"></span> vivo (señal &lt; 5 min)</span>
+    <span class="k"><span class="s on"></span> vivo (señal &lt; 10 min)</span>
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
     <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span></span>
@@ -311,8 +311,8 @@
     <div class="pf-field">
       <label for="advThreshold">Umbral de «vivo» (min)</label>
       <div class="rowval">
-        <input type="range" id="advThreshold" min="1" max="30" step="1" value="5">
-        <span class="valnum" id="advThresholdVal">5 min</span>
+        <input type="range" id="advThreshold" min="1" max="30" step="1" value="10">
+        <span class="valnum" id="advThresholdVal">10 min</span>
       </div>
     </div>
     <div class="pf-field">
@@ -393,7 +393,10 @@
 
   const PRESENCE_URL = 'https://admira-telegram.csilvasantin.workers.dev/api/presence';
   const FLEET_URL    = 'https://admira-fleet.csilvasantin.workers.dev/machines';
-  const ONLINE_SEC   = 300;    // vivo si la señal es < 5 min (RELATIVO al reloj del servidor)
+  const ONLINE_SEC   = 600;    // vivo si la señal es < 10 min (RELATIVO al reloj del servidor).
+                               // 10 min (antes 5) evita el parpadeo del contador con latidos
+                               // intermitentes al borde del umbral; los nodos muertos de verdad
+                               // (>10 min sin señal) siguen fuera. Ajustable en AVANZADO.
   const REFRESH_MS   = 20000;  // recarga de datos
   const ROTATE_MS    = 20000;  // rotación automática de vista
 
