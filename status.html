@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.4">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.5">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -54,31 +54,48 @@
     @keyframes flick{0%,97%,100%{opacity:.5}98%{opacity:.4}99%{opacity:.56}}
     #crt{animation:flick 7s infinite}
 
-    /* Header */
+    /* ============================================================
+       Header — CUADRO de 3 zonas (patrón portería). Layout robusto:
+       [ ☰ opciones | ····· centro (marca+frase+contador+UPLINK) ····· | ⚙ >_ ]
+       Cada zona reserva su ancho con flex+gap; los toggles NUNCA se
+       superponen al contador «nodos vivos» ni al título.
+       ============================================================ */
     .hdr{
-      position:fixed;top:0;left:0;right:0;z-index:20;
-      padding:14px 22px 10px;
-      display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
-      background:linear-gradient(180deg,rgba(1,4,10,.9) 0%,rgba(1,4,10,0) 100%);
+      position:fixed;top:0;left:0;right:0;z-index:40;
+      padding:12px 18px 10px;
+      display:flex;align-items:flex-start;gap:14px;
+      background:linear-gradient(180deg,rgba(1,4,10,.92) 0%,rgba(1,4,10,0) 100%);
       pointer-events:none;
     }
-    .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.6);font-weight:700}
+    /* zonas izquierda / derecha: sólo alojan toggles, no se encogen */
+    .hdr-side{display:flex;gap:8px;flex:0 0 auto;pointer-events:auto}
+    .hdr-side.right{justify-content:flex-end}
+    /* zona central: marca + frase + contador + UPLINK, ocupa el resto.
+       flex-basis:0 + min-width:0 = NUNCA reclama el ancho de su contenido,
+       así las zonas laterales (toggles) conservan su sitio y no se salen. */
+    .hdr-center{
+      flex:1 1 0;min-width:0;
+      display:flex;flex-direction:column;gap:5px;
+      overflow-wrap:anywhere;
+    }
+    .hdr-line{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+    .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.6);font-weight:700;white-space:nowrap}
     .hdr .brand b{color:#fff}
     .hdr .tag{font-size:12px;color:var(--text-dim);letter-spacing:.02em}
     .hdr .tag em{color:var(--text);font-style:normal}
     .hdr .live{
-      margin-left:auto;font-size:11px;letter-spacing:.14em;color:var(--cyan);
+      font-size:11px;letter-spacing:.14em;color:var(--cyan);
       border:1px solid var(--cyan-dim);border-radius:20px;padding:5px 12px;
-      background:rgba(34,230,255,.05);white-space:nowrap;
+      background:rgba(34,230,255,.05);white-space:nowrap;flex:0 0 auto;
     }
     .hdr .live .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);margin-right:6px;animation:pulse 2s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
     /* ---- Sci-fi tribute banner (declared in the UI, house rule) ---- */
+    /* fluye dentro de la zona central del header, bajo la marca (sin fixed) */
     .uplink{
-      position:fixed;top:44px;left:22px;z-index:20;pointer-events:none;
       font-size:9.5px;letter-spacing:.22em;color:var(--cyan-dim);
-      text-transform:uppercase;
+      text-transform:uppercase;pointer-events:none;line-height:1.4;
     }
     .uplink b{color:var(--cyan);text-shadow:0 0 8px rgba(34,230,255,.4)}
     .uplink .muthur{color:var(--amber)}
@@ -124,11 +141,16 @@
     #card .stat.off{color:var(--text-dim);border:1px solid var(--off)}
 
     @media (max-width:640px){
-      .hdr{padding:12px 14px;gap:8px}
-      .hdr .tag{width:100%;font-size:11px}
-      .hdr .live{margin-left:0}
-      .uplink{top:auto;bottom:52px;left:14px;font-size:8.5px}
-      #pf-topbar{top:8px;right:10px;gap:6px}
+      .hdr{padding:10px 12px 8px;gap:8px}
+      .hdr-side{gap:6px}
+      .hdr-line{gap:8px 10px}
+      /* la zona central apila en columna: marca → contador → frase; así la
+         fila del header queda [☰ | centro estrecho | ⚙ >_] SIN solaparse */
+      .hdr-line{flex-direction:column;align-items:flex-start;gap:7px}
+      .hdr .brand{font-size:12px;letter-spacing:.2em}
+      .hdr .live{font-size:10px;padding:4px 10px;align-self:flex-start}
+      .hdr .tag{font-size:10.5px}
+      .uplink{font-size:8px;letter-spacing:.16em}
       .legend{padding:10px 14px;font-size:10px;gap:12px}
       #card{max-width:76vw}
     }
@@ -140,11 +162,8 @@
        Iconos toggle recogidos a los bordes (estilo #pf-toggles admira.live).
        ============================================================ */
 
-    /* --- barra de iconos toggle: TODOS ARRIBA, junto a la barra principal --- */
-    #pf-topbar{
-      position:fixed;top:10px;right:18px;z-index:40;
-      display:flex;flex-direction:row;gap:8px;pointer-events:auto;
-    }
+    /* --- iconos toggle: viven en las zonas laterales del header (flex),
+       nunca superpuestos al contador ni al título --- */
     .pf-tg{
       font-family:inherit;font-size:15px;line-height:1;width:38px;height:38px;
       display:flex;align-items:center;justify-content:center;
@@ -227,14 +246,36 @@
   <canvas id="galaxy"></canvas>
   <div id="crt"></div>
 
+  <!-- ============================================================
+       CUADRO de 3 zonas (patrón portería):
+         · IZQ  → ☰ OPCIONES (extremo izquierdo)
+         · CENTRO → marca + frase + contador «nodos vivos» + UPLINK
+         · DCHA → ⚙ AVANZADO + >_ EXPERTO (extremo derecho)
+       Layout flex: cada zona reserva su ancho, NADA se pisa.
+       ============================================================ -->
   <header class="hdr">
-    <span class="brand">ADmira<b>NeXT</b> · STATUS</span>
-    <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
-    <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
-  </header>
+    <div class="hdr-side left">
+      <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
+              title="Opciones — vistas (ORDENADOR / AGENTE / MISIÓN)">☰</button>
+    </div>
 
-  <!-- Sci-fi tribute, declared in the interface (house rule) -->
-  <div class="uplink">UPLINK · estética inspirada en <b>TRON (1982)</b> &amp; <span class="muthur">MU-TH-UR 6000 · ALIEN (1979)</span> — retícula de fósforo, sin centro</div>
+    <div class="hdr-center">
+      <div class="hdr-line">
+        <span class="brand">ADmira<b>NeXT</b> · STATUS</span>
+        <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
+        <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
+      </div>
+      <!-- Sci-fi tribute, declared in the interface (house rule) -->
+      <div class="uplink">UPLINK · estética inspirada en <b>TRON (1982)</b> &amp; <span class="muthur">MU-TH-UR 6000 · ALIEN (1979)</span> — retícula de fósforo, sin centro</div>
+    </div>
+
+    <div class="hdr-side right">
+      <button class="pf-tg" id="tgRight" aria-expanded="false" aria-controls="panelRight"
+              title="Avanzado — filtros, umbral de vivo, velocidad, rotación">⚙</button>
+      <button class="pf-tg" id="tgBottom" aria-expanded="false" aria-controls="panelBottom"
+              title="Experto — consola CLI">&gt;_</button>
+    </div>
+  </header>
 
   <span id="rotProg"></span>
 
@@ -248,19 +289,10 @@
   <div id="card"></div>
 
   <!-- ============================================================
-       CUADRÁTICA — 4 barras (patrón portería). Todo colapsado por
-       defecto: sólo se ven los iconos toggle recogidos a los bordes.
+       Paneles colapsables (patrón portería). Colapsados por defecto:
+       la galaxia manda a pantalla completa. Los toggles viven ahora
+       en las zonas laterales del header (ver <header class="hdr">).
        ============================================================ -->
-
-  <!-- TOGGLES arriba, junto a la barra principal (todos accesibles, sin pisar la galaxia) -->
-  <div id="pf-topbar">
-    <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
-            title="Opciones — vistas (ORDENADOR / AGENTE / MISIÓN)">☰</button>
-    <button class="pf-tg" id="tgRight" aria-expanded="false" aria-controls="panelRight"
-            title="Avanzado — filtros, umbral de vivo, velocidad, rotación">⚙</button>
-    <button class="pf-tg" id="tgBottom" aria-expanded="false" aria-controls="panelBottom"
-            title="Experto — consola CLI">&gt;_</button>
-  </div>
 
   <!-- BARRA IZQUIERDA — opciones (menú vertical de vistas) -->
   <aside class="pf-panel" id="panelLeft" role="region" aria-label="Opciones de vista">
