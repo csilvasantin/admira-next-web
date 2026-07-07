@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.11">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -371,7 +371,7 @@
     <div class="cli-wrap">
       <span class="ps1">admiranext:/status$</span>
       <input type="text" id="cliInput" autocomplete="off" spellcheck="false"
-             placeholder="help · view · live · draw estrella|nike|dragón · draw custom(imagen) · clear" aria-label="Entrada de consola">
+             placeholder="help · view · live · draw (decaedro 3D) · draw estrella|nike|dragón · draw custom(imagen) · draw galaxy" aria-label="Entrada de consola">
     </div>
     <div class="cli-img">
       <button class="pf-imgbtn" id="imgUploadBtn" type="button">⬆ subir imagen</button>
@@ -537,6 +537,40 @@
 
   function physics(dt){
     const cx=W/2, cy=H/2;
+    // --- modo DECAEDRO 3D: rota el poliedro y ancla nodos a sus vértices ---
+    if(DRAW_ACTIVE && DRAW_MODE==='poly3d' && POLY3D){
+      POLY3D.ry += dt*0.00042;          // giro continuo en Y (eje principal)
+      POLY3D.rx += dt*0.00019;          // ligera inclinación en X → se ve 3D
+      const scale=Math.min(W,H)*0.30;
+      const cx=W/2, cy=H/2;
+      // proyecta los 10 vértices y guárdalo para el render
+      POLY3D._proj = POLY3D.verts.map(v=>{
+        const r=rot3D(v, POLY3D.rx, POLY3D.ry);
+        const p=project3D(r, scale, cx, cy);
+        return {x:p[0], y:p[1], f:p[2], z:r[2]};
+      });
+      // ancla los primeros min(10,nodes) nodos a los vértices (easing suave)
+      const nv=Math.min(POLY3D.verts.length, nodes.length);
+      const k=Math.min(1, dt*0.010);
+      drawTargets=new Array(nodes.length).fill(null);
+      for(let i=0;i<nodes.length;i++){
+        const a=nodes[i];
+        if(i<nv){
+          const pj=POLY3D._proj[i];
+          a.x+=(pj.x-a.x)*k; a.y+=(pj.y-a.y)*k; a.vx*=0.6; a.vy*=0.6;
+          a._inShape=true; a._proj=pj;
+          drawTargets[i]={x:pj.x,y:pj.y,ti:i};
+        } else {  // nodos sobrantes: orbitan tenues muy lejos
+          a._inShape=false; a._proj=null;
+          a.phase += dt*0.0006;
+          a.vx += Math.cos(a.phase*1.1+i)*0.02; a.vy += Math.sin(a.phase+i)*0.02;
+          a.vx*=0.94; a.vy*=0.94; a.x+=a.vx; a.y+=a.vy;
+          const dcx=a.x-cx, dcy=a.y-cy, dist=Math.hypot(dcx,dcy)||1, maxR=Math.min(W,H)*0.48;
+          if(dist>maxR){ a.vx-=dcx/dist*0.6; a.vy-=dcy/dist*0.6; }
+        }
+      }
+      return;
+    }
     // --- modo DRAW: los nodos morphean suave hacia el punto de la figura ---
     if(DRAW_ACTIVE){
       const k=Math.min(1, dt*0.006); // easing por frame (independiente de fps)
@@ -697,12 +731,52 @@
     ctx.save();
     ctx.translate(cam.x,cam.y);
     const maxD=Math.min(W,H)*0.5;
-    if(DRAW_ACTIVE){
-      // trazar SÓLO el contorno de la figura (líneas brillantes)
+    if(DRAW_ACTIVE && DRAW_MODE==='poly3d' && POLY3D && POLY3D._proj){
+      // ── DECAEDRO 3D (TRON): caras tenues + aristas wireframe con glow ──
+      // pj está en coords de MUNDO (mismo espacio que n.x/n.y); ctx ya trasladado por cam.
+      const pj=POLY3D._proj;
+      // caras insinuadas (relleno muy tenue, sólo las que miran a cámara)
+      for(const f of POLY3D.faces){
+        let zc=0; for(const vi of f) zc+=pj[vi].z; zc/=f.length;
+        if(zc<0) continue; // cara trasera: no rellena
+        ctx.beginPath();
+        ctx.moveTo(pj[f[0]].x, pj[f[0]].y);
+        for(let s=1;s<f.length;s++) ctx.lineTo(pj[f[s]].x, pj[f[s]].y);
+        ctx.closePath();
+        ctx.fillStyle=`rgba(34,230,255,${0.03+0.05*zc})`;
+        ctx.fill();
+      }
+      // aristas wireframe: más brillo las frontales (z alto)
+      for(const [i,j] of POLY3D.edges){
+        const a=pj[i], b=pj[j]; if(!a||!b) continue;
+        const zc=(a.z+b.z)/2;                 // -1..1 aprox
+        const front=(zc+1)/2;                 // 0..1
+        const al=0.22+0.6*front;
+        ctx.strokeStyle=`rgba(34,230,255,${al})`;
+        ctx.lineWidth=0.8+1.6*front;
+        ctx.shadowColor=`rgba(34,230,255,${0.4+0.4*front})`; ctx.shadowBlur=6+9*front;
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+      ctx.shadowBlur=0;
+    } else if(DRAW_ACTIVE){
+      // ── CAPA 1: POLVO DE ESTRELLAS (silueta densa, tenue, con twinkle) ──
+      if(siluetaDust.length){
+        for(const d of siluetaDust){
+          d.tw += dt*0.003*d.sp; d.jp += dt*0.0016;
+          const jit=1.1;
+          const px=d.x + Math.cos(d.jp)*d.jx*jit;
+          const py=d.y + Math.sin(d.jp)*d.jy*jit;
+          const a=0.18+0.42*(0.5+0.5*Math.sin(d.tw));   // twinkle tenue
+          ctx.globalAlpha=a; ctx.fillStyle='#bfe9f2';
+          ctx.beginPath(); ctx.arc(px,py,d.r,0,7); ctx.fill();
+        }
+        ctx.globalAlpha=1;
+      }
+      // ── contorno de la figura (líneas brillantes, sobre el polvo) ──
       for(const [i,j] of drawEdges){
         const a=nodes[i],b=nodes[j]; if(!a||!b) continue;
-        ctx.strokeStyle='rgba(34,230,255,.55)';
-        ctx.lineWidth=1.4; ctx.shadowColor='rgba(34,230,255,.6)'; ctx.shadowBlur=8;
+        ctx.strokeStyle='rgba(34,230,255,.45)';
+        ctx.lineWidth=1.2; ctx.shadowColor='rgba(34,230,255,.5)'; ctx.shadowBlur=7;
         ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
       }
       ctx.shadowBlur=0;
@@ -1045,7 +1119,8 @@
     layoutNodes(list);
     // si hay una figura activa, re-mapea targets al nuevo set de nodos
     if(DRAW_ACTIVE && drawShape){
-      if(DRAW_MODE==='shape' && drawShapeName) drawNamedShape(drawShapeName);
+      if(DRAW_MODE==='poly3d'){ /* el decaedro re-ancla nodos cada frame en physics; nada que remapear */ }
+      else if(DRAW_MODE==='shape' && drawShapeName) drawNamedShape(drawShapeName);
     }
     document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
   }
@@ -1160,6 +1235,120 @@
   let drawEdges   = [];         // edges a trazar (índices de nodo)
   const draw = { freeing:false, path:[] };
 
+  // ── CAPA 1: POLVO DE ESTRELLAS ─────────────────────────────
+  // Silueta densa: muchos puntos pequeños y tenues (200-400) que trazan la
+  // forma. Cada partícula guarda su posición de mundo + fase de twinkle/jitter.
+  let siluetaDust = [];   // [{x,y,r,tw,sp,jx,jy}] en coords de MUNDO
+  const DUST_TARGET = 320;  // nº aprox. de estrellitas menores de la silueta
+
+  // Densifica el contorno de una figura (pts/edges 0..1) en MUCHOS puntos:
+  // interpola a lo largo de cada arista + un poco de relleno interior tenue,
+  // para que la silueta se lea como un campo denso de estrellas menores.
+  // Devuelve puntos NORMALIZADOS 0..1 (luego shapeToWorld los coloca).
+  function densifyShape(pts, edges){
+    const out=[];
+    const E=(edges&&edges.length)?edges:[];
+    // 1) reparte puntos por longitud de arista (contorno)
+    if(E.length){
+      // longitud total para repartir DUST_TARGET proporcionalmente
+      let tot=0; const lens=[];
+      for(const [a,b] of E){
+        const p=pts[a],q=pts[b]; if(!p||!q){lens.push(0);continue;}
+        const l=Math.hypot(q[0]-p[0],q[1]-p[1]); lens.push(l); tot+=l;
+      }
+      tot=tot||1;
+      for(let k=0;k<E.length;k++){
+        const [a,b]=E[k]; const p=pts[a],q=pts[b]; if(!p||!q) continue;
+        const n=Math.max(2, Math.round(DUST_TARGET*(lens[k]/tot)));
+        for(let s=0;s<n;s++){
+          const t=s/n;
+          out.push([ p[0]+(q[0]-p[0])*t, p[1]+(q[1]-p[1])*t ]);
+        }
+      }
+    } else {
+      // sin edges: usa los propios puntos (nube ya densa, p.ej. custom)
+      for(const p of pts) out.push([p[0],p[1]]);
+    }
+    // 2) si aún hay pocos, añade jitter alrededor de los existentes
+    if(out.length && out.length<DUST_TARGET*0.6){
+      const base=out.slice(); const need=Math.round(DUST_TARGET*0.6)-out.length;
+      for(let i=0;i<need;i++){
+        const p=base[i%base.length];
+        out.push([ p[0]+(Math.random()-0.5)*0.02, p[1]+(Math.random()-0.5)*0.02 ]);
+      }
+    }
+    return out;
+  }
+
+  // Construye la capa de polvo (coords de mundo) a partir de pts/edges 0..1.
+  function buildSilhouetteDust(pts, edges){
+    const dn=densifyShape(pts, edges);
+    const world=shapeToWorld(dn);
+    siluetaDust = world.map(([x,y])=>({
+      x, y,
+      r: 0.5 + Math.random()*1.1,          // estrellita menor
+      tw: Math.random()*Math.PI*2,          // fase de twinkle
+      sp: 0.6 + Math.random()*0.9,          // velocidad de twinkle
+      jx: (Math.random()-0.5),              // dirección de jitter
+      jy: (Math.random()-0.5),
+      jp: Math.random()*Math.PI*2,          // fase de jitter
+    }));
+  }
+
+  // ============================================================
+  // DECAEDRO 3D — estado de REPOSO del modo draw (default)
+  // Antiprisma pentagonal: 10 vértices en 2 anillos de 5 (girados 36°),
+  // proyectado en pseudo-3D y ROTANDO continuamente sobre X e Y.
+  // Vértices = nodos de la flota (grandes, latiendo). Aristas = wireframe
+  // cian con glow (TRON). Es el protagonista de `draw` sin argumento.
+  // ============================================================
+  let POLY3D = null;   // {verts:[[x,y,z]], edges:[[i,j]], faces:[[...]], rx, ry}
+
+  // Construye el antiprisma pentagonal (radio unidad).
+  function buildDecahedron(){
+    const V=[]; const R=1, Hh=0.62; // radio de anillo, media altura
+    for(let k=0;k<5;k++){ const a=k*2*Math.PI/5;          // anillo superior
+      V.push([Math.cos(a)*R, -Hh, Math.sin(a)*R]); }
+    for(let k=0;k<5;k++){ const a=k*2*Math.PI/5 + Math.PI/5; // inferior, girado 36°
+      V.push([Math.cos(a)*R,  Hh, Math.sin(a)*R]); }
+    const E=[];
+    for(let k=0;k<5;k++){ E.push([k,(k+1)%5]); E.push([5+k,5+(k+1)%5]); } // 2 pentágonos
+    for(let k=0;k<5;k++){ E.push([k,5+k]); E.push([k,5+((k+4)%5)]); }     // zig-zag lateral
+    // caras triangulares laterales (para insinuarlas tenues)
+    const F=[];
+    for(let k=0;k<5;k++){ F.push([k, 5+k, 5+((k+4)%5)]); F.push([k, (k+1)%5, 5+k]); }
+    F.push([0,1,2,3,4]); F.push([5,6,7,8,9]);
+    return { verts:V, edges:E, faces:F, rx:0, ry:0 };
+  }
+
+  // Proyecta un punto 3D (ya rotado) a 2D con perspectiva sencilla.
+  function project3D(p, scale, cx, cy){
+    const D=3.2;                       // distancia de cámara
+    const z=p[2];
+    const f=D/(D - z);                 // factor perspectiva (más cerca = más grande)
+    return [ cx + p[0]*scale*f, cy + p[1]*scale*f, f, z ];
+  }
+  // Rota un vértice por (rx, ry).
+  function rot3D(v, rx, ry){
+    let [x,y,z]=v;
+    // rotación en X
+    let cy0=Math.cos(rx), sy0=Math.sin(rx);
+    let y1=y*cy0 - z*sy0, z1=y*sy0 + z*cy0;
+    // rotación en Y
+    let cx0=Math.cos(ry), sx0=Math.sin(ry);
+    let x2=x*cx0 + z1*sx0, z2=-x*sx0 + z1*cx0;
+    return [x2, y1, z2];
+  }
+
+  // Activa el modo decaedro 3D (default / reposo del modo draw).
+  function drawDecahedron(){
+    POLY3D = buildDecahedron();
+    drawShape={title:'DECAEDRO · ANTIPRISMA PENTAGONAL'}; drawShapeName=null;
+    DRAW_MODE='poly3d'; DRAW_ACTIVE=true;
+    siluetaDust=[]; drawEdges=[]; drawTargets=new Array(nodes.length).fill(null);
+    return true;
+  }
+
   // convierte puntos normalizados a coordenadas de mundo (centrado, escalado)
   function shapeToWorld(pts){
     const cx=W/2, cy=H/2;
@@ -1206,7 +1395,8 @@
     const world=shapeToWorld(s.pts);
     assignTargets(world);
     buildDrawEdges(s.edges);
-    drawShape=s; drawShapeName=name; DRAW_MODE='shape'; DRAW_ACTIVE=true;
+    buildSilhouetteDust(s.pts, s.edges);   // CAPA 1: polvo de estrellas
+    drawShape=s; drawShapeName=name; DRAW_MODE='shape'; DRAW_ACTIVE=true; POLY3D=null;
     return true;
   }
 
@@ -1216,7 +1406,8 @@
     const world=shapeToWorld(pts);
     assignTargets(world);
     buildDrawEdges(edges||[]);
-    drawShape={title:title||'GENERADA', pts, edges}; drawShapeName=null; DRAW_MODE='shape'; DRAW_ACTIVE=true;
+    buildSilhouetteDust(pts, edges||[]);   // CAPA 1: polvo de estrellas
+    drawShape={title:title||'GENERADA', pts, edges}; drawShapeName=null; DRAW_MODE='shape'; DRAW_ACTIVE=true; POLY3D=null;
     return true;
   }
 
@@ -1412,12 +1603,23 @@
     const byTi={}; nodes.forEach((n,ni)=>{ if(drawTargets[ni]) byTi[drawTargets[ni].ti]=ni; });
     drawEdges=[];
     for(let t=1;t<count;t++){ if(byTi[t-1]!=null&&byTi[t]!=null) drawEdges.push([byTi[t-1],byTi[t]]); }
-    drawShape={title:'TRAZO LIBRE'}; DRAW_MODE='free'; DRAW_ACTIVE=true;
+    // CAPA 1 para el trazo libre: densifica la polilínea del path
+    const dnPts=world.map((p,i)=>[p[0],p[1]]); // ya en mundo; construimos dust en mundo directo
+    siluetaDust = [];
+    for(let i=1;i<world.length;i++){
+      const p=world[i-1], q=world[i];
+      const seg=Math.max(2, Math.round(Math.hypot(q[0]-p[0],q[1]-p[1])/6));
+      for(let s=0;s<seg;s++){ const t=s/seg;
+        siluetaDust.push({x:p[0]+(q[0]-p[0])*t, y:p[1]+(q[1]-p[1])*t,
+          r:0.5+Math.random()*1.1, tw:Math.random()*6.28, sp:0.6+Math.random()*0.9,
+          jx:Math.random()-0.5, jy:Math.random()-0.5, jp:Math.random()*6.28}); }
+    }
+    drawShape={title:'TRAZO LIBRE'}; DRAW_MODE='free'; DRAW_ACTIVE=true; POLY3D=null;
     return true;
   }
 
   function drawClear(){
-    DRAW_ACTIVE=false; DRAW_MODE=null; drawShape=null; drawTargets=[]; drawEdges=[]; draw.freeing=false; draw.path=[];
+    DRAW_ACTIVE=false; DRAW_MODE=null; drawShape=null; drawTargets=[]; drawEdges=[]; siluetaDust=[]; POLY3D=null; draw.freeing=false; draw.path=[];
     cv.style.cursor='grab';
   }
   function drawList(){ return Object.keys(SHAPES); }
@@ -1556,13 +1758,14 @@
     '  clear                  limpia la consola',
     '',
     '  · FUNCIONES AVANZADAS ·',
-    '  draw <figura>          los nodos FORMAN una constelación',
-    '  draw                   figura por defecto (osamayor)',
+    '  draw                   DECAEDRO 3D girando (default · reposo del modo draw)',
+    '  draw <figura>          los nodos FORMAN una constelación (silueta en polvo de estrellas)',
     '  draw <lo que sea>      genera cualquier forma vía IA (dragón, casa…)',
     '  draw custom            escanea la ÚLTIMA IMAGEN subida y forma su silueta',
     '  draw list              figuras del catálogo local',
     '  draw free              modo dibujo libre (traza con el ratón)',
-    '  draw galaxy | clear    vuelve a la galaxia libre',
+    '  draw clear | default   vuelve al decaedro 3D',
+    '  draw galaxy | off      vuelve a la galaxia/mapa de flota',
   ].join('\n');
   function cliRun(raw){
     const line=raw.trim(); if(!line) return;
@@ -1605,16 +1808,23 @@
           break;
         }
         if(a0==='custom' || a0==='foto' || a0==='imagen' || a0==='image'){ drawCustom(); break; }
-        if(a0==='list'){ cliPrint('constelaciones: '+drawList().join(' · ')+' · custom(imagen)  — uso: draw <nombre>'); break; }
-        if(a0==='clear' || a0==='galaxy' || a0==='off'){
+        if(a0==='list'){ cliPrint('constelaciones: '+drawList().join(' · ')+' · custom(imagen) · decaedro  — uso: draw <nombre>'); break; }
+        // `draw galaxy|off` → vuelve a la galaxia/mapa de flota normal
+        if(a0==='galaxy' || a0==='off'){
           drawClear(); cliPrint('CONSTELACIÓN LIBERADA · los nodos vuelven a la galaxia.'); break;
         }
-        // `draw` sin argumento → figura POR DEFECTO.
-        const name = a0 || DEFAULT_SHAPE;
+        // `draw` sin arg, `draw clear`, `draw default`, `draw decaedro` → DECAEDRO 3D (reposo del modo draw)
+        if(!a0 || a0==='clear' || a0==='default' || a0==='decaedro' || a0==='decahedron' || a0==='reset'){
+          if(rotPaused===false) setAutoRotate(false);
+          drawDecahedron();
+          cliPrint('RENDERING POLYHEDRON · DECAEDRO · antiprisma pentagonal en rotación 3D…');
+          break;
+        }
+        const name = a0;
         if(SHAPES[name]){
           if(rotPaused===false) setAutoRotate(false);      // pausa la rotación mientras dura el trazo
           drawNamedShape(name);
-          cliPrint('TRACING CONSTELLATION · '+resolveShape(name).title+(a0?'':' (figura por defecto)')+'…');
+          cliPrint('TRACING CONSTELLATION · '+resolveShape(name).title+'…');
         } else {
           // figura no local → intenta la vía GENERATIVA (worker), con fallback.
           cliPrint('«'+name+'» no está en el catálogo — consultando generador…');
