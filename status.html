@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.5">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.6">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -339,7 +339,7 @@
     <div class="cli-wrap">
       <span class="ps1">admiranext:/status$</span>
       <input type="text" id="cliInput" autocomplete="off" spellcheck="false"
-             placeholder="help · view · live · nodes · draw osamayor|unicornio · clear" aria-label="Entrada de consola">
+             placeholder="help · view · live · nodes · draw estrella|nike|dragón · clear" aria-label="Entrada de consola">
     </div>
     <div id="cliOut"></div>
     <div class="hint">Consola local (no ejecuta acciones de flota). Escribe <b style="color:var(--cyan)">help</b> para ver comandos.</div>
@@ -396,6 +396,14 @@
   const ONLINE_SEC   = 300;    // vivo si la señal es < 5 min (RELATIVO al reloj del servidor)
   const REFRESH_MS   = 20000;  // recarga de datos
   const ROTATE_MS    = 20000;  // rotación automática de vista
+
+  // Ajustes dinámicos (umbral/rotación/filtros). Se declaran ARRIBA, junto a
+  // sus consts base, para que isFresh() en load() nunca caiga en la TDZ de un
+  // `let` declarado más abajo (era frágil: bastaba llamar load() antes de tiempo).
+  let ONLINE_SEC_DYN = ONLINE_SEC;   // sustituye a la const en isFresh (ver load)
+  let ROTATE_MS_DYN  = ROTATE_MS;
+  let ONLY_LIVE = false;
+  let SHOW_LABELS = true;
 
   // ---------- util ----------
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -848,7 +856,7 @@
     layoutNodes(list);
     // si hay una figura activa, re-mapea targets al nuevo set de nodos
     if(DRAW_ACTIVE && drawShape){
-      if(DRAW_MODE==='shape'){ const nm=Object.keys(SHAPES).find(k=>SHAPES[k]===drawShape); if(nm) drawNamedShape(nm); }
+      if(DRAW_MODE==='shape' && drawShapeName) drawNamedShape(drawShapeName);
     }
     document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
   }
@@ -893,7 +901,68 @@
         [5,17],[17,7]                                     // crin
       ],
     },
+    // ── swoosh Nike (silueta a mano, puntos fijos) ──────────────
+    nike: {
+      title:'NIKE · SWOOSH',
+      pts:[
+        [0.06,0.62],[0.20,0.56],[0.40,0.50],[0.60,0.44], // curva inferior (cola→punta)
+        [0.78,0.36],[0.92,0.22],                          // punta que sube
+        [0.86,0.30],[0.66,0.42],[0.44,0.52],[0.22,0.60],  // borde superior de vuelta
+        [0.12,0.66]                                        // remate de la cola
+      ],
+      edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,0]],
+    },
+    // ── formas PROCEDURALES (paramétricas): se generan al vuelo ──
+    estrella: { title:'ESTRELLA · 5 PUNTAS', gen:()=>starShape(5,0.5,0.5,0.42,0.17) },
+    corazon:  { title:'CORAZÓN',              gen:()=>heartShape(28) },
+    poligono: { title:'POLÍGONO',             gen:()=>polygonShape(6,0.5,0.5,0.4) },
+    circulo:  { title:'CÍRCULO',              gen:()=>polygonShape(24,0.5,0.5,0.42) },
   };
+
+  // Forma por defecto de `draw` sin argumento (se anuncia en la CLI).
+  const DEFAULT_SHAPE = 'osamayor';
+
+  // ── generadores procedurales (devuelven {pts:[[x,y]0..1], edges:[[i,j]]}) ──
+  // Estrella de n puntas: alterna radio exterior/interior alrededor del centro.
+  function starShape(points, cx, cy, rOut, rIn){
+    const pts=[], edges=[]; const N=points*2;
+    for(let i=0;i<N;i++){
+      const ang=-Math.PI/2 + i*Math.PI/points;   // arranca en la punta superior
+      const r=(i%2===0)?rOut:rIn;
+      pts.push([cx+Math.cos(ang)*r, cy+Math.sin(ang)*r]);
+      edges.push([i,(i+1)%N]);                    // contorno cerrado
+    }
+    return {pts, edges};
+  }
+  // Polígono/círculo regular de n lados.
+  function polygonShape(n, cx, cy, r){
+    const pts=[], edges=[];
+    for(let i=0;i<n;i++){
+      const ang=-Math.PI/2 + i*2*Math.PI/n;
+      pts.push([cx+Math.cos(ang)*r, cy+Math.sin(ang)*r]);
+      edges.push([i,(i+1)%n]);
+    }
+    return {pts, edges};
+  }
+  // Corazón paramétrico clásico (curva de coseno), n puntos en el contorno.
+  function heartShape(n){
+    const pts=[], edges=[];
+    for(let i=0;i<n;i++){
+      const t=Math.PI - (i/(n-1))*2*Math.PI;      // de +π a -π
+      const x=16*Math.pow(Math.sin(t),3);
+      const y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+      pts.push([0.5 + x/40, 0.5 - y/40]);          // normaliza y centra (invierte Y)
+      if(i>0) edges.push([i-1,i]);
+    }
+    edges.push([n-1,0]);
+    return {pts, edges};
+  }
+  // Resuelve una figura (fija o procedural) a {title, pts, edges}.
+  function resolveShape(name){
+    const s=SHAPES[name]; if(!s) return null;
+    if(typeof s.gen==='function'){ const g=s.gen(); return {title:s.title, pts:g.pts, edges:g.edges}; }
+    return {title:s.title, pts:s.pts, edges:s.edges};
+  }
 
   let DRAW_ACTIVE = false;      // hay una figura/trazo activo
   let DRAW_MODE   = null;       // 'shape' | 'free'
@@ -942,13 +1011,42 @@
     }
   }
 
+  let drawShapeName=null;   // nombre de la figura activa (para re-mapear en applyView)
   function drawNamedShape(name){
-    const s=SHAPES[name]; if(!s) return false;
+    const s=resolveShape(name); if(!s) return false;
     const world=shapeToWorld(s.pts);
     assignTargets(world);
     buildDrawEdges(s.edges);
-    drawShape=s; DRAW_MODE='shape'; DRAW_ACTIVE=true;
+    drawShape=s; drawShapeName=name; DRAW_MODE='shape'; DRAW_ACTIVE=true;
     return true;
+  }
+
+  // Dibuja una figura a partir de pts/edges NORMALIZADOS (0..1) ya resueltos
+  // (p.ej. los que devuelve el worker generativo draw-gen).
+  function drawNormalizedShape(pts, edges, title){
+    const world=shapeToWorld(pts);
+    assignTargets(world);
+    buildDrawEdges(edges||[]);
+    drawShape={title:title||'GENERADA', pts, edges}; drawShapeName=null; DRAW_MODE='shape'; DRAW_ACTIVE=true;
+    return true;
+  }
+
+  // ── P3: vía GENERATIVA — pide la figura a un worker LLM neutral y la anima.
+  const DRAW_GEN_URL='https://draw-gen.csilvasantin.workers.dev/';
+  async function drawGenerative(name){
+    try{
+      const r=await fetch(DRAW_GEN_URL+'?shape='+encodeURIComponent(name),{cache:'no-store'});
+      const d=await r.json();
+      if(d && d.ok && Array.isArray(d.pts) && d.pts.length>=3){
+        if(rotPaused===false) setAutoRotate(false);
+        drawNormalizedShape(d.pts, d.edges, d.title||name.toUpperCase());
+        cliPrint('TRACING CONSTELLATION · '+(d.title||name.toUpperCase())+'  ('+d.pts.length+' pts · '+(d.source||'gen')+')');
+      } else {
+        cliPrint('no se pudo generar «'+name+'» — prueba: '+drawList().join(', '),'err');
+      }
+    }catch(e){
+      cliPrint('generador no disponible — figuras locales: '+drawList().join(', '),'err');
+    }
   }
 
   // reparte N puntos equiespaciados a lo largo de un trazo libre (path px)
@@ -1056,10 +1154,7 @@
   function syncLeftMenu(v){ leftBtns.forEach(b=>b.classList.toggle('active', b.dataset.view===v)); }
 
   // --- AVANZADO: umbral de vivo, velocidad de rotación, filtros, etiquetas ---
-  let ONLINE_SEC_DYN = ONLINE_SEC;   // sustituye a la const en isFresh (ver load)
-  let ROTATE_MS_DYN  = ROTATE_MS;
-  let ONLY_LIVE = false;
-  let SHOW_LABELS = true;
+  // (ONLINE_SEC_DYN / ROTATE_MS_DYN / ONLY_LIVE / SHOW_LABELS declarados arriba)
   const advThreshold=document.getElementById('advThreshold'), advThresholdVal=document.getElementById('advThresholdVal');
   const advRotate=document.getElementById('advRotate'), advRotateVal=document.getElementById('advRotateVal');
   advThreshold.addEventListener('input',()=>{ ONLINE_SEC_DYN=advThreshold.value*60; advThresholdVal.textContent=advThreshold.value+' min'; load(); });
@@ -1083,8 +1178,10 @@
     '',
     '  · FUNCIONES AVANZADAS ·',
     '  draw <figura>          los nodos FORMAN una constelación',
-    '  draw list              figuras disponibles',
-    '  draw                   modo dibujo libre (traza con el ratón)',
+    '  draw                   figura por defecto (osamayor)',
+    '  draw <lo que sea>      genera cualquier forma vía IA (dragón, casa…)',
+    '  draw list              figuras del catálogo local',
+    '  draw free              modo dibujo libre (traza con el ratón)',
     '  draw galaxy | clear    vuelve a la galaxia libre',
   ].join('\n');
   function cliRun(raw){
@@ -1121,7 +1218,8 @@
       }
       case 'clear': cliOut.innerHTML=''; break;
       case 'draw': {
-        if(!a0 || a0==='free'){
+        // `draw free` → dibujo libre con el ratón.
+        if(a0==='free'){
           draw.freeing=true; cv.style.cursor='crosshair';
           cliPrint('MODO DIBUJO LIBRE · traza un trazo sobre el canvas — al soltar, los nodos lo forman.');
           break;
@@ -1130,12 +1228,16 @@
         if(a0==='clear' || a0==='galaxy' || a0==='off'){
           drawClear(); cliPrint('CONSTELACIÓN LIBERADA · los nodos vuelven a la galaxia.'); break;
         }
-        if(SHAPES[a0]){
+        // `draw` sin argumento → figura POR DEFECTO.
+        const name = a0 || DEFAULT_SHAPE;
+        if(SHAPES[name]){
           if(rotPaused===false) setAutoRotate(false);      // pausa la rotación mientras dura el trazo
-          drawNamedShape(a0);
-          cliPrint('TRACING CONSTELLATION · '+SHAPES[a0].title+'…');
+          drawNamedShape(name);
+          cliPrint('TRACING CONSTELLATION · '+resolveShape(name).title+(a0?'':' (figura por defecto)')+'…');
         } else {
-          cliPrint('figura desconocida: '+a0+' — «draw list» para verlas','err');
+          // figura no local → intenta la vía GENERATIVA (worker), con fallback.
+          cliPrint('«'+name+'» no está en el catálogo — consultando generador…');
+          drawGenerative(name);
         }
         break;
       }
