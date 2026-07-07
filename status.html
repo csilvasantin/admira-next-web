@@ -6,8 +6,8 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r1">
-  <meta name="admiranext-status-build" content="os-view+full-height-bars+read-freeze-30s+tokens">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r2">
+  <meta name="admiranext-status-build" content="draw-custom-arctrace+bg-image+drop-applies">
 
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
@@ -241,19 +241,6 @@
     #cliOut .line .err{color:var(--amber)}
     #panelBottom .hint{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-top:8px}
 
-    /* subida de imagen (draw custom) */
-    .cli-img{display:flex;align-items:center;gap:11px;margin-top:10px;flex-wrap:wrap}
-    .pf-imgbtn{
-      font-family:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-      color:var(--cyan);background:rgba(34,230,255,.06);border:1px solid var(--cyan-dim);
-      border-radius:8px;padding:8px 13px;cursor:pointer;transition:color .2s,background .2s,box-shadow .2s;
-    }
-    .pf-imgbtn:hover,.pf-imgbtn:focus-visible{color:#eafcff;background:rgba(34,230,255,.14);box-shadow:0 0 14px rgba(34,230,255,.3);outline:none}
-    .cli-img-hint{font-size:9.5px;color:var(--text-dim);letter-spacing:.05em}
-    .cli-img-hint b{color:var(--text)}
-    #imgThumb{display:none;width:44px;height:44px;object-fit:cover;border:1px solid var(--cyan-dim);border-radius:7px;box-shadow:0 0 10px rgba(34,230,255,.2)}
-    #imgThumb.has{display:block}
-
     /* overlay de drop */
     #dropOverlay{
       position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
@@ -319,7 +306,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r1</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r2</span></span>
   </div>
 
   <div id="card"></div>
@@ -381,20 +368,14 @@
     <div class="cli-wrap">
       <span class="ps1">admiranext:/status$</span>
       <input type="text" id="cliInput" autocomplete="off" spellcheck="false"
-             placeholder="help · view · live · draw (decaedro 3D) · draw estrella|nike|dragón · draw custom(imagen) · draw galaxy" aria-label="Entrada de consola">
-    </div>
-    <div class="cli-img">
-      <button class="pf-imgbtn" id="imgUploadBtn" type="button">⬆ subir imagen</button>
-      <span class="cli-img-hint">o <b>arrastra</b> una imagen sobre la galaxia · luego <b style="color:var(--cyan)">draw custom</b></span>
-      <img id="imgThumb" alt="última imagen" />
-      <input type="file" id="imgInput" accept="image/*" hidden>
+             placeholder="help · view · live · draw (decaedro 3D) · draw estrella|nike|dragón · draw custom · draw galaxy" aria-label="Entrada de consola">
     </div>
     <div id="cliOut"></div>
-    <div class="hint">Consola local (no ejecuta acciones de flota). Escribe <b style="color:var(--cyan)">help</b> para ver comandos.</div>
+    <div class="hint">Consola local (no ejecuta acciones de flota). Escribe <b style="color:var(--cyan)">help</b> para ver comandos. <b>Arrastra una imagen</b> sobre la galaxia → sus trazos se convierten en constelación al instante.</div>
   </section>
 
   <!-- Overlay de arrastrar-soltar imagen (aparece al arrastrar sobre el canvas) -->
-  <div id="dropOverlay"><div class="drop-inner"><span class="drop-ic">⬇</span> SUELTA LA IMAGEN · se escaneará su silueta</div></div>
+  <div id="dropOverlay"><div class="drop-inner"><span class="drop-ic">⬇</span> SUELTA LA IMAGEN · sus trazos se convertirán en constelación</div></div>
 
   <noscript><div class="noscript">Activa JavaScript para ver la constelación en vivo de la flota AdmiraNeXT.</div></noscript>
 
@@ -793,6 +774,13 @@
       }
       ctx.shadowBlur=0;
     } else if(DRAW_ACTIVE){
+      // ── CAPA 0: la IMAGEN ORIGINAL tintada al fósforo, tenue, de fondo ──
+      // (sólo en draw custom; ayuda a leer la composición sin comerse las estrellas)
+      if(CUSTOM_BG && CUSTOM_BG.canvas){
+        ctx.globalAlpha=0.18;
+        ctx.drawImage(CUSTOM_BG.canvas, CUSTOM_BG.x0, CUSTOM_BG.y0, CUSTOM_BG.w, CUSTOM_BG.h);
+        ctx.globalAlpha=1;
+      }
       // ── CAPA 1: POLVO DE ESTRELLAS (silueta densa, tenue, con twinkle) ──
       if(siluetaDust.length){
         for(const d of siluetaDust){
@@ -1203,6 +1191,11 @@
     if(DRAW_ACTIVE && drawShape){
       if(DRAW_MODE==='poly3d'){ /* el decaedro re-ancla nodos cada frame en physics; nada que remapear */ }
       else if(DRAW_MODE==='shape' && drawShapeName) drawNamedShape(drawShapeName);
+      else if(DRAW_MODE==='shape' && lastCustomShape){
+        // figura custom (imagen): re-asigna nodos a los mismos targets de arco
+        assignTargets(lastCustomShape.pts.map(unitToWorld));
+        buildDrawEdges(lastCustomShape.edges);
+      }
     }
     document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
   }
@@ -1428,6 +1421,7 @@
     drawShape={title:'DECAEDRO · ANTIPRISMA PENTAGONAL'}; drawShapeName=null;
     DRAW_MODE='poly3d'; DRAW_ACTIVE=true;
     siluetaDust=[]; drawEdges=[]; drawTargets=new Array(nodes.length).fill(null);
+    CUSTOM_BG=null; lastCustomShape=null;
     return true;
   }
 
@@ -1479,6 +1473,7 @@
     buildDrawEdges(s.edges);
     buildSilhouetteDust(s.pts, s.edges);   // CAPA 1: polvo de estrellas
     drawShape=s; drawShapeName=name; DRAW_MODE='shape'; DRAW_ACTIVE=true; POLY3D=null;
+    CUSTOM_BG=null; lastCustomShape=null;
     return true;
   }
 
@@ -1490,6 +1485,7 @@
     buildDrawEdges(edges||[]);
     buildSilhouetteDust(pts, edges||[]);   // CAPA 1: polvo de estrellas
     drawShape={title:title||'GENERADA', pts, edges}; drawShapeName=null; DRAW_MODE='shape'; DRAW_ACTIVE=true; POLY3D=null;
+    CUSTOM_BG=null; lastCustomShape=null;
     return true;
   }
 
@@ -1513,12 +1509,16 @@
 
   // ============================================================
   // DRAW CUSTOM — la forma sale de una FOTO (100% cliente, sin backend)
-  // Pipeline: imagen → canvas offscreen ~256px → gris → Otsu (con Sobel
-  // de refuerzo) → muestreo de ~N píxeles "encendidos" → normaliza 0..1
-  // respetando aspect-ratio y centrado. Sirve para cualquier imagen:
-  // silueta rellena o dibujo de línea (swoosh a boli, estrella, logo…).
+  // Pipeline v2 (r2): imagen → canvas offscreen ~512px → gris → Otsu →
+  // máscara de tinta → TRAZADO DE CONTORNOS (Moore-neighbor: polilíneas
+  // que RECORREN cada línea del dibujo) → remuestreo por LONGITUD DE ARCO:
+  //   · capa densa de estrellas decorativas cubriendo TODOS los trazos
+  //   · nodos de la flota a intervalos IGUALES de arco (simétricos)
+  // + la imagen original tintada al fósforo, tenue, de fondo.
   // ============================================================
   const CUSTOM_IMG_KEY = 'admiranext.customImage'; // dataURL de la última imagen
+  let CUSTOM_BG = null;        // {canvas, x0,y0,w,h} imagen tintada en coords de MUNDO
+  let lastCustomShape = null;  // última figura extraída (para re-mapear en applyView)
 
   // Carga un dataURL a un HTMLImageElement (promesa).
   function loadImageEl(src){
@@ -1540,13 +1540,67 @@
     return thr;
   }
 
-  // Extrae ~count puntos [x,y] en 0..1 que representan la forma de la imagen.
-  // Devuelve {pts, edges} (edges = cadena a lo largo del contorno ordenado por
-  // ángulo respecto al centroide → traza reconocible del perfil).
-  async function extractShapeFromImage(src, count){
-    const im = await loadImageEl(src);
-    // 1) escala a ~256px lado mayor conservando aspecto
-    const MAX=256;
+  // ── TRAZADO DE CONTORNOS (Moore-neighbor / radial sweep) ──────────
+  // Recorre el borde de cada mancha de tinta y devuelve POLILÍNEAS que
+  // siguen los trazos del dibujo (un trazo fino ⇒ contorno que lo abraza;
+  // una ventana de cuadrícula ⇒ contornos interiores también). Es la base
+  // para que las estrellas RECORRAN el perfil en vez de esparcirse.
+  function traceContours(mask, w, h){
+    const visited=new Uint8Array(w*h);
+    const at=(x,y)=>(x>=0&&y>=0&&x<w&&y<h)?mask[y*w+x]:0;
+    // vecinos Moore en sentido horario, empezando por Oeste
+    const DX=[-1,-1,0,1,1,1,0,-1], DY=[0,-1,-1,-1,0,1,1,1];
+    const out=[];
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+      const i=y*w+x;
+      if(!mask[i]||visited[i]) continue;
+      // sólo arranca en píxel de BORDE (algún 4-vecino apagado)
+      if(at(x-1,y)&&at(x+1,y)&&at(x,y-1)&&at(x,y+1)) continue;
+      // radial sweep: prevDir = dirección hacia el píxel anterior del contorno
+      let px=x, py=y, prevDir=0;             // "venimos" del Oeste (barrido)
+      const poly=[[px,py]]; visited[i]=1;
+      const maxSteps=w*h;
+      for(let s=0;s<maxSteps;s++){
+        let found=-1;
+        for(let k=1;k<=8;k++){
+          const d=(prevDir+k)%8;
+          if(at(px+DX[d], py+DY[d])){ found=d; break; }
+        }
+        if(found<0) break;                    // píxel aislado
+        px+=DX[found]; py+=DY[found];
+        prevDir=(found+4)%8;                  // desde el nuevo píxel, el anterior queda enfrente
+        if(px===x&&py===y) break;             // contorno cerrado
+        poly.push([px,py]); visited[py*w+px]=1;
+      }
+      if(poly.length>=8) out.push(poly);      // descarta motas de ruido
+    }
+    return out;
+  }
+
+  // Longitud de arco acumulada de una polilínea. Devuelve {len, acc[]}.
+  function polyArc(poly){
+    const acc=[0];
+    for(let i=1;i<poly.length;i++)
+      acc.push(acc[i-1]+Math.hypot(poly[i][0]-poly[i-1][0], poly[i][1]-poly[i-1][1]));
+    return {len:acc[acc.length-1], acc};
+  }
+  // Punto a distancia de arco s dentro de una polilínea (interpolado).
+  function polyPointAt(poly, arc, s){
+    const acc=arc.acc;
+    let lo=0, hi=acc.length-1;
+    while(lo<hi){ const mid=(lo+hi)>>1; if(acc[mid]<s) lo=mid+1; else hi=mid; }
+    const i=Math.max(1,lo);
+    const seg=acc[i]-acc[i-1]||1, t=(s-acc[i-1])/seg;
+    return [ poly[i-1][0]+(poly[i][0]-poly[i-1][0])*t, poly[i-1][1]+(poly[i][1]-poly[i-1][1])*t ];
+  }
+
+  // Extrae del dibujo: contornos → nodos (arco simétrico) + polvo (denso).
+  // Devuelve {pts, edges, dust, meta} con TODO normalizado 0..1 en el MISMO
+  // marco (cuadrado unidad, aspecto conservado) — así nodos, polvo e imagen
+  // de fondo quedan perfectamente alineados.
+  function extractShapeFromImage(im, count){
+    // 1) escala a ~512px lado mayor (r2: antes 256 — precisión al doble)
+    const MAX=512;
     const scale=Math.min(1, MAX/Math.max(im.width, im.height)) || 1;
     const w=Math.max(8, Math.round(im.width*scale)), h=Math.max(8, Math.round(im.height*scale));
     const oc=document.createElement('canvas'); oc.width=w; oc.height=h;
@@ -1564,98 +1618,152 @@
     }
     const thr=otsuThreshold(hist, gray.length);
 
-    // 3) decide polaridad: ¿la forma es lo oscuro (dibujo a boli) o lo claro?
-    //    Cuenta píxeles por debajo del umbral; si son MUCHOS (>55%), el fondo
-    //    es oscuro → invertimos (la forma es lo claro). Así un swoosh negro
-    //    sobre papel y una silueta blanca sobre negro funcionan igual.
+    // 3) polaridad: ¿la tinta es lo oscuro (boli sobre papel) o lo claro?
     let below=0; for(let i=0;i<gray.length;i++) if(gray[i]<thr) below++;
-    const darkIsShape = below <= gray.length*0.55; // por defecto: la tinta oscura es la forma
+    const darkIsShape = below <= gray.length*0.55;
 
-    // 4) Sobel para reforzar bordes (dibujos de línea con sombras): un píxel
-    //    cuenta como "forma" si es del lado correcto del umbral O si es borde.
-    const mag=new Float32Array(w*h); let maxMag=0;
-    const at=(x,y)=>gray[(y<0?0:y>=h?h-1:y)*w + (x<0?0:x>=w?w-1:x)];
+    // 4) máscara de tinta + limpieza de motas aisladas
+    const mask=new Uint8Array(w*h);
+    for(let i=0;i<gray.length;i++) mask[i]=(darkIsShape ? gray[i]<thr : gray[i]>thr)?1:0;
+    const clean=new Uint8Array(w*h);
     for(let y=0;y<h;y++) for(let x=0;x<w;x++){
-      const gx=-at(x-1,y-1)-2*at(x-1,y)-at(x-1,y+1)+at(x+1,y-1)+2*at(x+1,y)+at(x+1,y+1);
-      const gy=-at(x-1,y-1)-2*at(x,y-1)-at(x+1,y-1)+at(x-1,y+1)+2*at(x,y+1)+at(x+1,y+1);
-      const m=Math.hypot(gx,gy); mag[y*w+x]=m; if(m>maxMag) maxMag=m;
-    }
-    const edgeThr=maxMag*0.28;
-
-    // 5) recolecta píxeles "encendidos" (miembros de la forma)
-    const on=[];
-    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
-      const i=y*w+x;
-      const filled = darkIsShape ? (gray[i]<thr) : (gray[i]>thr);
-      const edge = mag[i]>edgeThr;
-      if(filled || edge) on.push([x,y]);
-    }
-    if(on.length<8) return null;
-
-    // 6) ignora ruido pequeño: descarta píxeles muy aislados (sin vecino en la lista)
-    //    con una rejilla de ocupación rápida.
-    const grid=new Uint8Array(w*h);
-    for(const [x,y] of on) grid[y*w+x]=1;
-    const dense=on.filter(([x,y])=>{
-      let c=0; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
-        const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=w||ny>=h) continue;
-        if(grid[ny*w+nx]) c++;
+      const i=y*w+x; if(!mask[i]) continue;
+      let c=0;
+      for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+        const nx=x+dx, ny=y+dy;
+        if(nx>=0&&ny>=0&&nx<w&&ny<h&&mask[ny*w+nx]) c++;
       }
-      return c>=3; // al menos 2 vecinos + él mismo
-    });
-    const src2 = dense.length>=8 ? dense : on;
-
-    // 7) muestrea count puntos equiespaciados del conjunto (barajado determinista)
-    const N=Math.max(3, Math.min(count, 200));
-    let pick;
-    if(src2.length<=N){ pick=src2.slice(); }
-    else {
-      pick=[]; const stride=src2.length/N;
-      for(let k=0;k<N;k++) pick.push(src2[Math.floor(k*stride)]);
+      if(c>=3) clean[i]=1; // él mismo + ≥2 vecinos
     }
 
-    // 8) normaliza 0..1 respetando aspect-ratio y centrado dentro de un
-    //    cuadrado unidad (la escena luego lo escala a pantalla).
+    // 5) CONTORNOS: polilíneas que recorren cada trazo del dibujo
+    let contours=traceContours(clean, w, h);
+    if(!contours.length) return null;
+    const arcs=contours.map(polyArc);
+    // descarta contornos minúsculos (< 2% del mayor) y ordena por longitud
+    const maxLen=Math.max(...arcs.map(a=>a.len));
+    const keep=[];
+    for(let i=0;i<contours.length;i++) if(arcs[i].len>=Math.max(10,maxLen*0.02)) keep.push(i);
+    if(!keep.length) return null;
+    const totalLen=keep.reduce((s,i)=>s+arcs[i].len,0);
+
+    // 6) NODOS de la flota: intervalos IGUALES de longitud de arco sobre el
+    //    conjunto de trazos (simétrico), recorriendo contorno a contorno.
+    const N=Math.max(3, Math.min(count, 200));
+    const spacing=totalLen/N;
+    const nodePts=[]; const nodeContour=[];
+    { let target=spacing/2, walked=0, ki=0;
+      for(let k=0;k<N;k++){
+        while(ki<keep.length && walked+arcs[keep[ki]].len < target){ walked+=arcs[keep[ki]].len; ki++; }
+        if(ki>=keep.length) break;
+        const ci=keep[ki];
+        nodePts.push(polyPointAt(contours[ci], arcs[ci], target-walked));
+        nodeContour.push(ci);
+        target+=spacing;
+      }
+    }
+    if(nodePts.length<3) return null;
+
+    // 7) edges: encadena nodos consecutivos del MISMO contorno → las líneas
+    //    brillantes siguen el trazo real, no saltan entre trazos.
+    const edges=[];
+    for(let k=1;k<nodePts.length;k++) if(nodeContour[k]===nodeContour[k-1]) edges.push([k-1,k]);
+
+    // 8) POLVO decorativo: muestreo denso por arco de TODOS los trazos
+    //    (cientos de estrellitas — el dibujo se lee entero en el cielo).
+    const DUST_N=Math.min(900, Math.max(300, Math.round(totalLen/3)));
+    const dust=[];
+    { const step=totalLen/DUST_N;
+      for(const ci of keep){
+        const n=Math.max(2, Math.round(arcs[ci].len/step));
+        for(let s=0;s<n;s++) dust.push(polyPointAt(contours[ci], arcs[ci], (s+0.5)*(arcs[ci].len/n)));
+      }
+    }
+
+    // 9) normalización ÚNICA (bbox de los contornos conservando aspecto):
+    //    nodos, polvo e imagen de fondo comparten este mismo marco 0..1.
     let minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
-    for(const [x,y] of pick){ if(x<minx)minx=x; if(y<miny)miny=y; if(x>maxx)maxx=x; if(y>maxy)maxy=y; }
+    for(const ci of keep) for(const [x,y] of contours[ci]){
+      if(x<minx)minx=x; if(y<miny)miny=y; if(x>maxx)maxx=x; if(y>maxy)maxy=y;
+    }
     const bw=(maxx-minx)||1, bh=(maxy-miny)||1, side=Math.max(bw,bh);
     const offx=(side-bw)/2, offy=(side-bh)/2;
-    const pts=pick.map(([x,y])=>[ (x-minx+offx)/side, (y-miny+offy)/side ]);
+    const nrm=([x,y])=>[ (x-minx+offx)/side, (y-miny+offy)/side ];
 
-    // 9) edges: contorno ordenando los puntos por ángulo respecto al centroide.
-    //    Da un perfil cerrado reconocible sin conocer la topología real.
-    let cx=0,cy=0; for(const [x,y] of pts){ cx+=x; cy+=y; } cx/=pts.length; cy/=pts.length;
-    const order=pts.map((p,i)=>[Math.atan2(p[1]-cy,p[0]-cx), i]).sort((a,b)=>a[0]-b[0]).map(o=>o[1]);
-    const edges=[]; for(let k=0;k<order.length;k++) edges.push([order[k], order[(k+1)%order.length]]);
-
-    return {pts, edges, count:pts.length, meta:{w,h,thr,darkIsShape,onPix:on.length}};
+    return {
+      pts:nodePts.map(nrm), edges, dust:dust.map(nrm),
+      meta:{w,h,thr,darkIsShape,minx,miny,offx,offy,side,contours:keep.length,totalLen:Math.round(totalLen)},
+    };
   }
 
-  // Guarda una imagen (File o dataURL) como "última imagen" y avisa.
-  function storeCustomImage(dataURL){
-    try{ localStorage.setItem(CUSTOM_IMG_KEY, dataURL); }catch(e){}
-    if(typeof cliPrint==='function') cliPrint('IMAGE LOADED · guardada como última imagen — escribe «draw custom» para escanearla.');
+  // Mapea el marco normalizado 0..1 del custom a coordenadas de MUNDO
+  // (cuadrado unidad → centrado en pantalla, mismo S que shapeToWorld).
+  function unitToWorld(p){
+    const cx=W/2, cy=H/2, S=Math.min(W,H)*0.78;
+    return [ cx+(p[0]-0.5)*S, cy+(p[1]-0.5)*S ];
   }
+
+  // Imagen original TINTADA AL FÓSFORO de fondo: la tinta del dibujo se
+  // convierte en cian (alfa ∝ intensidad de tinta, papel transparente) y
+  // se coloca EXACTAMENTE bajo la constelación (mismo marco normalizado).
+  function buildCustomBg(im, meta){
+    const oc=document.createElement('canvas'); oc.width=meta.w; oc.height=meta.h;
+    const c2=oc.getContext('2d', {willReadFrequently:true});
+    c2.drawImage(im, 0, 0, meta.w, meta.h);
+    const id=c2.getImageData(0,0,meta.w,meta.h), d=id.data;
+    for(let i=0;i<d.length;i+=4){
+      const al=d[i+3]/255;
+      let g=(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]); g=g*al+255*(1-al);
+      const ink = meta.darkIsShape ? (255-g) : g;        // tinta → brillo
+      d[i]=34; d[i+1]=230; d[i+2]=255;                   // fósforo cian
+      d[i+3]=Math.max(0, Math.min(255, ink*1.5));
+    }
+    c2.putImageData(id,0,0);
+    // rectángulo de la imagen en coords de MUNDO (mismo mapeo que los puntos)
+    const [x0,y0]=unitToWorld([ (0-meta.minx+meta.offx)/meta.side, (0-meta.miny+meta.offy)/meta.side ]);
+    const S=Math.min(W,H)*0.78;
+    CUSTOM_BG={ canvas:oc, x0, y0, w:meta.w/meta.side*S, h:meta.h/meta.side*S };
+  }
+
+  // Aplica la figura custom: nodos + polvo + imagen de fondo, todo alineado.
+  function applyCustomShape(shape, im){
+    lastCustomShape=shape;
+    assignTargets(shape.pts.map(unitToWorld));
+    buildDrawEdges(shape.edges);
+    siluetaDust=shape.dust.map(p=>{ const [x,y]=unitToWorld(p); return {
+      x, y, r:0.5+Math.random()*1.1, tw:Math.random()*6.28, sp:0.6+Math.random()*0.9,
+      jx:Math.random()-0.5, jy:Math.random()-0.5, jp:Math.random()*6.28 }; });
+    if(im) buildCustomBg(im, shape.meta);
+    drawShape={title:'IMAGEN · SILUETA'}; drawShapeName=null;
+    DRAW_MODE='shape'; DRAW_ACTIVE=true; POLY3D=null;
+    return true;
+  }
+
   function fileToDataURL(file){
     return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); });
   }
+  // Guarda la imagen como "última imagen" (para re-aplicar con `draw custom`).
   async function handleImageFile(file){
-    if(!file || !/^image\//.test(file.type)){ cliPrint && cliPrint('el archivo no es una imagen','err'); return; }
-    const url=await fileToDataURL(file); storeCustomImage(url);
+    if(!file || !/^image\//.test(file.type)){ cliPrint && cliPrint('el archivo no es una imagen','err'); return false; }
+    const url=await fileToDataURL(file);
+    try{ localStorage.setItem(CUSTOM_IMG_KEY, url); }catch(e){}
+    return true;
   }
 
-  // `draw custom` — usa la última imagen subida y anima los nodos a su forma.
+  // `draw custom` — (re)aplica la última imagen arrastrada: trazos → constelación.
   async function drawCustom(){
     const src=(()=>{ try{ return localStorage.getItem(CUSTOM_IMG_KEY); }catch(e){ return null; } })();
-    if(!src){ cliPrint('no hay imagen — sube o arrastra una imagen sobre el canvas primero (⚙ EXPERTO ▸ subir imagen).','err'); return; }
-    cliPrint('SCANNING IMAGE · EXTRACTING SILHOUETTE…');
+    if(!src){ cliPrint('no hay imagen — arrastra una imagen sobre la galaxia.','err'); return; }
+    cliPrint('SCANNING IMAGE · TRACING INK PATHS…');
     try{
-      const shape=await extractShapeFromImage(src, Math.max(3, nodes.length));
+      const im=await loadImageEl(src);
+      const shape=extractShapeFromImage(im, Math.max(3, nodes.length));
       if(!shape){ cliPrint('no se pudo extraer forma de la imagen (¿demasiado uniforme?)','err'); return; }
       if(rotPaused===false) setAutoRotate(false);
-      drawNormalizedShape(shape.pts, shape.edges, 'IMAGEN · SILUETA');
-      cliPrint('SILHOUETTE LOCKED · '+shape.count+' nodes on target'+
-               ' ('+shape.meta.w+'×'+shape.meta.h+' · '+(shape.meta.darkIsShape?'tinta oscura':'silueta clara')+')');
+      applyCustomShape(shape, im);
+      cliPrint('SILHOUETTE LOCKED · '+shape.pts.length+' nodos + '+shape.dust.length+' estrellas sobre '
+               +shape.meta.contours+' trazos ('+shape.meta.w+'×'+shape.meta.h+' · '
+               +(shape.meta.darkIsShape?'tinta oscura':'silueta clara')+')');
     }catch(e){ cliPrint('fallo escaneando la imagen: '+(e&&e.message||e),'err'); }
   }
 
@@ -1697,11 +1805,13 @@
           jx:Math.random()-0.5, jy:Math.random()-0.5, jp:Math.random()*6.28}); }
     }
     drawShape={title:'TRAZO LIBRE'}; DRAW_MODE='free'; DRAW_ACTIVE=true; POLY3D=null;
+    CUSTOM_BG=null; lastCustomShape=null;
     return true;
   }
 
   function drawClear(){
     DRAW_ACTIVE=false; DRAW_MODE=null; drawShape=null; drawTargets=[]; drawEdges=[]; siluetaDust=[]; POLY3D=null; draw.freeing=false; draw.path=[];
+    CUSTOM_BG=null; lastCustomShape=null;
     cv.style.cursor='grab';
   }
   function drawList(){ return Object.keys(SHAPES); }
@@ -1862,7 +1972,8 @@
     '  draw                   DECAEDRO 3D girando (default · reposo del modo draw)',
     '  draw <figura>          los nodos FORMAN una constelación (silueta en polvo de estrellas)',
     '  draw <lo que sea>      genera cualquier forma vía IA (dragón, casa…)',
-    '  draw custom            escanea la ÚLTIMA IMAGEN subida y forma su silueta',
+    '  draw custom            re-aplica la ÚLTIMA IMAGEN arrastrada (trazos → constelación)',
+    '                         (arrastra una imagen sobre la galaxia → se aplica al instante)',
     '  draw list              figuras del catálogo local',
     '  draw free              modo dibujo libre (traza con el ratón)',
     '  draw clear | default   vuelve al decaedro 3D',
@@ -1938,25 +2049,11 @@
   }
   cliInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ cliRun(cliInput.value); cliInput.value=''; } });
 
-  // ---------- subida / arrastre de imagen (draw custom) ----------
-  const imgInput=document.getElementById('imgInput');
-  const imgUploadBtn=document.getElementById('imgUploadBtn');
-  const imgThumb=document.getElementById('imgThumb');
+  // ---------- arrastre de imagen (draw custom) ----------
+  // ARRASTRAR = APLICAR: al soltar una imagen sobre la galaxia se ejecuta
+  // `draw custom` inmediatamente (sin teclear nada). El comando `draw custom`
+  // sigue existiendo para re-aplicar la última imagen.
   const dropOverlay=document.getElementById('dropOverlay');
-
-  function refreshThumb(){
-    let src=null; try{ src=localStorage.getItem(CUSTOM_IMG_KEY); }catch(e){}
-    if(src){ imgThumb.src=src; imgThumb.classList.add('has'); imgThumb.title='última imagen — draw custom'; }
-    else { imgThumb.classList.remove('has'); }
-  }
-  // envuelve storeCustomImage para refrescar el thumbnail tras guardar
-  const _storeCustomImage=storeCustomImage;
-  storeCustomImage=function(url){ _storeCustomImage(url); refreshThumb(); };
-
-  imgUploadBtn.addEventListener('click',()=>imgInput.click());
-  imgInput.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) handleImageFile(f); imgInput.value=''; });
-
-  // Arrastrar-soltar sobre TODA la ventana (galaxia incluida)
   let dragDepth=0;
   window.addEventListener('dragenter',e=>{ if(e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files')){ e.preventDefault(); dragDepth++; dropOverlay.classList.add('on'); } });
   window.addEventListener('dragover',e=>{ if(dropOverlay.classList.contains('on')) e.preventDefault(); });
@@ -1965,15 +2062,11 @@
     if(!(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length)) return;
     e.preventDefault(); dragDepth=0; dropOverlay.classList.remove('on');
     const f=e.dataTransfer.files[0];
-    handleImageFile(f).then(()=>{
-      // abre la consola experto para que el usuario vea el hint y pueda escribir draw custom
-      if(!panels.bottom.panel.classList.contains('open')) setPanel('bottom', true);
-    });
+    handleImageFile(f).then(ok=>{ if(ok) drawCustom(); });
   });
 
   // ---------- boot ----------
   resize(); seedStars();
-  refreshThumb();
   window.addEventListener('resize',()=>{seedStars();});
   setView('machine', false);
   load();
