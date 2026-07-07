@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.9">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.10">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -235,6 +235,33 @@
     #cliOut .line .err{color:var(--amber)}
     #panelBottom .hint{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-top:8px}
 
+    /* subida de imagen (draw custom) */
+    .cli-img{display:flex;align-items:center;gap:11px;margin-top:10px;flex-wrap:wrap}
+    .pf-imgbtn{
+      font-family:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+      color:var(--cyan);background:rgba(34,230,255,.06);border:1px solid var(--cyan-dim);
+      border-radius:8px;padding:8px 13px;cursor:pointer;transition:color .2s,background .2s,box-shadow .2s;
+    }
+    .pf-imgbtn:hover,.pf-imgbtn:focus-visible{color:#eafcff;background:rgba(34,230,255,.14);box-shadow:0 0 14px rgba(34,230,255,.3);outline:none}
+    .cli-img-hint{font-size:9.5px;color:var(--text-dim);letter-spacing:.05em}
+    .cli-img-hint b{color:var(--text)}
+    #imgThumb{display:none;width:44px;height:44px;object-fit:cover;border:1px solid var(--cyan-dim);border-radius:7px;box-shadow:0 0 10px rgba(34,230,255,.2)}
+    #imgThumb.has{display:block}
+
+    /* overlay de drop */
+    #dropOverlay{
+      position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+      background:rgba(1,6,14,.72);backdrop-filter:blur(3px);pointer-events:none;
+    }
+    #dropOverlay.on{display:flex}
+    #dropOverlay .drop-inner{
+      border:2px dashed var(--cyan);border-radius:16px;padding:34px 46px;
+      color:var(--cyan);font-size:14px;letter-spacing:.16em;text-transform:uppercase;
+      text-shadow:0 0 12px rgba(34,230,255,.6);box-shadow:0 0 40px rgba(34,230,255,.25) inset;
+      display:flex;align-items:center;gap:14px;background:rgba(3,10,20,.6);
+    }
+    #dropOverlay .drop-ic{font-size:26px;animation:pulse 1.6s infinite}
+
     @media (max-width:640px){
       .pf-tg{width:34px;height:34px;font-size:14px}
       #panelLeft,#panelRight{width:78vw;max-height:70vh}
@@ -339,11 +366,20 @@
     <div class="cli-wrap">
       <span class="ps1">admiranext:/status$</span>
       <input type="text" id="cliInput" autocomplete="off" spellcheck="false"
-             placeholder="help · view · live · nodes · draw estrella|nike|dragón · clear" aria-label="Entrada de consola">
+             placeholder="help · view · live · draw estrella|nike|dragón · draw custom(imagen) · clear" aria-label="Entrada de consola">
+    </div>
+    <div class="cli-img">
+      <button class="pf-imgbtn" id="imgUploadBtn" type="button">⬆ subir imagen</button>
+      <span class="cli-img-hint">o <b>arrastra</b> una imagen sobre la galaxia · luego <b style="color:var(--cyan)">draw custom</b></span>
+      <img id="imgThumb" alt="última imagen" />
+      <input type="file" id="imgInput" accept="image/*" hidden>
     </div>
     <div id="cliOut"></div>
     <div class="hint">Consola local (no ejecuta acciones de flota). Escribe <b style="color:var(--cyan)">help</b> para ver comandos.</div>
   </section>
+
+  <!-- Overlay de arrastrar-soltar imagen (aparece al arrastrar sobre el canvas) -->
+  <div id="dropOverlay"><div class="drop-inner"><span class="drop-ic">⬇</span> SUELTA LA IMAGEN · se escaneará su silueta</div></div>
 
   <noscript><div class="noscript">Activa JavaScript para ver la constelación en vivo de la flota AdmiraNeXT.</div></noscript>
 
@@ -1081,6 +1117,154 @@
     }
   }
 
+  // ============================================================
+  // DRAW CUSTOM — la forma sale de una FOTO (100% cliente, sin backend)
+  // Pipeline: imagen → canvas offscreen ~256px → gris → Otsu (con Sobel
+  // de refuerzo) → muestreo de ~N píxeles "encendidos" → normaliza 0..1
+  // respetando aspect-ratio y centrado. Sirve para cualquier imagen:
+  // silueta rellena o dibujo de línea (swoosh a boli, estrella, logo…).
+  // ============================================================
+  const CUSTOM_IMG_KEY = 'admiranext.customImage'; // dataURL de la última imagen
+
+  // Carga un dataURL a un HTMLImageElement (promesa).
+  function loadImageEl(src){
+    return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=src; });
+  }
+
+  // Umbral de Otsu sobre un histograma de 256 niveles de gris.
+  function otsuThreshold(hist, total){
+    let sum=0; for(let i=0;i<256;i++) sum+=i*hist[i];
+    let sumB=0, wB=0, maxVar=-1, thr=127;
+    for(let i=0;i<256;i++){
+      wB+=hist[i]; if(wB===0) continue;
+      const wF=total-wB; if(wF===0) break;
+      sumB+=i*hist[i];
+      const mB=sumB/wB, mF=(sum-sumB)/wF;
+      const between=wB*wF*(mB-mF)*(mB-mF);
+      if(between>maxVar){ maxVar=between; thr=i; }
+    }
+    return thr;
+  }
+
+  // Extrae ~count puntos [x,y] en 0..1 que representan la forma de la imagen.
+  // Devuelve {pts, edges} (edges = cadena a lo largo del contorno ordenado por
+  // ángulo respecto al centroide → traza reconocible del perfil).
+  async function extractShapeFromImage(src, count){
+    const im = await loadImageEl(src);
+    // 1) escala a ~256px lado mayor conservando aspecto
+    const MAX=256;
+    const scale=Math.min(1, MAX/Math.max(im.width, im.height)) || 1;
+    const w=Math.max(8, Math.round(im.width*scale)), h=Math.max(8, Math.round(im.height*scale));
+    const oc=document.createElement('canvas'); oc.width=w; oc.height=h;
+    const octx=oc.getContext('2d', {willReadFrequently:true});
+    octx.drawImage(im, 0, 0, w, h);
+    const data=octx.getImageData(0,0,w,h).data;
+
+    // 2) gris + histograma; transparencia = fondo (gris claro)
+    const gray=new Float32Array(w*h); const hist=new Uint32Array(256);
+    for(let i=0,p=0;i<gray.length;i++,p+=4){
+      const al=data[p+3]/255;
+      let g=(0.299*data[p]+0.587*data[p+1]+0.114*data[p+2]);
+      g=g*al + 255*(1-al); // sobre blanco
+      const gi=g|0; gray[i]=g; hist[gi<0?0:gi>255?255:gi]++;
+    }
+    const thr=otsuThreshold(hist, gray.length);
+
+    // 3) decide polaridad: ¿la forma es lo oscuro (dibujo a boli) o lo claro?
+    //    Cuenta píxeles por debajo del umbral; si son MUCHOS (>55%), el fondo
+    //    es oscuro → invertimos (la forma es lo claro). Así un swoosh negro
+    //    sobre papel y una silueta blanca sobre negro funcionan igual.
+    let below=0; for(let i=0;i<gray.length;i++) if(gray[i]<thr) below++;
+    const darkIsShape = below <= gray.length*0.55; // por defecto: la tinta oscura es la forma
+
+    // 4) Sobel para reforzar bordes (dibujos de línea con sombras): un píxel
+    //    cuenta como "forma" si es del lado correcto del umbral O si es borde.
+    const mag=new Float32Array(w*h); let maxMag=0;
+    const at=(x,y)=>gray[(y<0?0:y>=h?h-1:y)*w + (x<0?0:x>=w?w-1:x)];
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+      const gx=-at(x-1,y-1)-2*at(x-1,y)-at(x-1,y+1)+at(x+1,y-1)+2*at(x+1,y)+at(x+1,y+1);
+      const gy=-at(x-1,y-1)-2*at(x,y-1)-at(x+1,y-1)+at(x-1,y+1)+2*at(x,y+1)+at(x+1,y+1);
+      const m=Math.hypot(gx,gy); mag[y*w+x]=m; if(m>maxMag) maxMag=m;
+    }
+    const edgeThr=maxMag*0.28;
+
+    // 5) recolecta píxeles "encendidos" (miembros de la forma)
+    const on=[];
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+      const i=y*w+x;
+      const filled = darkIsShape ? (gray[i]<thr) : (gray[i]>thr);
+      const edge = mag[i]>edgeThr;
+      if(filled || edge) on.push([x,y]);
+    }
+    if(on.length<8) return null;
+
+    // 6) ignora ruido pequeño: descarta píxeles muy aislados (sin vecino en la lista)
+    //    con una rejilla de ocupación rápida.
+    const grid=new Uint8Array(w*h);
+    for(const [x,y] of on) grid[y*w+x]=1;
+    const dense=on.filter(([x,y])=>{
+      let c=0; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+        const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=w||ny>=h) continue;
+        if(grid[ny*w+nx]) c++;
+      }
+      return c>=3; // al menos 2 vecinos + él mismo
+    });
+    const src2 = dense.length>=8 ? dense : on;
+
+    // 7) muestrea count puntos equiespaciados del conjunto (barajado determinista)
+    const N=Math.max(3, Math.min(count, 200));
+    let pick;
+    if(src2.length<=N){ pick=src2.slice(); }
+    else {
+      pick=[]; const stride=src2.length/N;
+      for(let k=0;k<N;k++) pick.push(src2[Math.floor(k*stride)]);
+    }
+
+    // 8) normaliza 0..1 respetando aspect-ratio y centrado dentro de un
+    //    cuadrado unidad (la escena luego lo escala a pantalla).
+    let minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+    for(const [x,y] of pick){ if(x<minx)minx=x; if(y<miny)miny=y; if(x>maxx)maxx=x; if(y>maxy)maxy=y; }
+    const bw=(maxx-minx)||1, bh=(maxy-miny)||1, side=Math.max(bw,bh);
+    const offx=(side-bw)/2, offy=(side-bh)/2;
+    const pts=pick.map(([x,y])=>[ (x-minx+offx)/side, (y-miny+offy)/side ]);
+
+    // 9) edges: contorno ordenando los puntos por ángulo respecto al centroide.
+    //    Da un perfil cerrado reconocible sin conocer la topología real.
+    let cx=0,cy=0; for(const [x,y] of pts){ cx+=x; cy+=y; } cx/=pts.length; cy/=pts.length;
+    const order=pts.map((p,i)=>[Math.atan2(p[1]-cy,p[0]-cx), i]).sort((a,b)=>a[0]-b[0]).map(o=>o[1]);
+    const edges=[]; for(let k=0;k<order.length;k++) edges.push([order[k], order[(k+1)%order.length]]);
+
+    return {pts, edges, count:pts.length, meta:{w,h,thr,darkIsShape,onPix:on.length}};
+  }
+
+  // Guarda una imagen (File o dataURL) como "última imagen" y avisa.
+  function storeCustomImage(dataURL){
+    try{ localStorage.setItem(CUSTOM_IMG_KEY, dataURL); }catch(e){}
+    if(typeof cliPrint==='function') cliPrint('IMAGE LOADED · guardada como última imagen — escribe «draw custom» para escanearla.');
+  }
+  function fileToDataURL(file){
+    return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); });
+  }
+  async function handleImageFile(file){
+    if(!file || !/^image\//.test(file.type)){ cliPrint && cliPrint('el archivo no es una imagen','err'); return; }
+    const url=await fileToDataURL(file); storeCustomImage(url);
+  }
+
+  // `draw custom` — usa la última imagen subida y anima los nodos a su forma.
+  async function drawCustom(){
+    const src=(()=>{ try{ return localStorage.getItem(CUSTOM_IMG_KEY); }catch(e){ return null; } })();
+    if(!src){ cliPrint('no hay imagen — sube o arrastra una imagen sobre el canvas primero (⚙ EXPERTO ▸ subir imagen).','err'); return; }
+    cliPrint('SCANNING IMAGE · EXTRACTING SILHOUETTE…');
+    try{
+      const shape=await extractShapeFromImage(src, Math.max(3, nodes.length));
+      if(!shape){ cliPrint('no se pudo extraer forma de la imagen (¿demasiado uniforme?)','err'); return; }
+      if(rotPaused===false) setAutoRotate(false);
+      drawNormalizedShape(shape.pts, shape.edges, 'IMAGEN · SILUETA');
+      cliPrint('SILHOUETTE LOCKED · '+shape.count+' nodes on target'+
+               ' ('+shape.meta.w+'×'+shape.meta.h+' · '+(shape.meta.darkIsShape?'tinta oscura':'silueta clara')+')');
+    }catch(e){ cliPrint('fallo escaneando la imagen: '+(e&&e.message||e),'err'); }
+  }
+
   // reparte N puntos equiespaciados a lo largo de un trazo libre (path px)
   function pathResample(path, count){
     if(path.length<2) return path.slice(0,count);
@@ -1212,6 +1396,7 @@
     '  draw <figura>          los nodos FORMAN una constelación',
     '  draw                   figura por defecto (osamayor)',
     '  draw <lo que sea>      genera cualquier forma vía IA (dragón, casa…)',
+    '  draw custom            escanea la ÚLTIMA IMAGEN subida y forma su silueta',
     '  draw list              figuras del catálogo local',
     '  draw free              modo dibujo libre (traza con el ratón)',
     '  draw galaxy | clear    vuelve a la galaxia libre',
@@ -1256,7 +1441,8 @@
           cliPrint('MODO DIBUJO LIBRE · traza un trazo sobre el canvas — al soltar, los nodos lo forman.');
           break;
         }
-        if(a0==='list'){ cliPrint('constelaciones: '+drawList().join(' · ')+'  — uso: draw <nombre>'); break; }
+        if(a0==='custom' || a0==='foto' || a0==='imagen' || a0==='image'){ drawCustom(); break; }
+        if(a0==='list'){ cliPrint('constelaciones: '+drawList().join(' · ')+' · custom(imagen)  — uso: draw <nombre>'); break; }
         if(a0==='clear' || a0==='galaxy' || a0==='off'){
           drawClear(); cliPrint('CONSTELACIÓN LIBERADA · los nodos vuelven a la galaxia.'); break;
         }
@@ -1278,8 +1464,42 @@
   }
   cliInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ cliRun(cliInput.value); cliInput.value=''; } });
 
+  // ---------- subida / arrastre de imagen (draw custom) ----------
+  const imgInput=document.getElementById('imgInput');
+  const imgUploadBtn=document.getElementById('imgUploadBtn');
+  const imgThumb=document.getElementById('imgThumb');
+  const dropOverlay=document.getElementById('dropOverlay');
+
+  function refreshThumb(){
+    let src=null; try{ src=localStorage.getItem(CUSTOM_IMG_KEY); }catch(e){}
+    if(src){ imgThumb.src=src; imgThumb.classList.add('has'); imgThumb.title='última imagen — draw custom'; }
+    else { imgThumb.classList.remove('has'); }
+  }
+  // envuelve storeCustomImage para refrescar el thumbnail tras guardar
+  const _storeCustomImage=storeCustomImage;
+  storeCustomImage=function(url){ _storeCustomImage(url); refreshThumb(); };
+
+  imgUploadBtn.addEventListener('click',()=>imgInput.click());
+  imgInput.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) handleImageFile(f); imgInput.value=''; });
+
+  // Arrastrar-soltar sobre TODA la ventana (galaxia incluida)
+  let dragDepth=0;
+  window.addEventListener('dragenter',e=>{ if(e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files')){ e.preventDefault(); dragDepth++; dropOverlay.classList.add('on'); } });
+  window.addEventListener('dragover',e=>{ if(dropOverlay.classList.contains('on')) e.preventDefault(); });
+  window.addEventListener('dragleave',e=>{ dragDepth=Math.max(0,dragDepth-1); if(dragDepth===0) dropOverlay.classList.remove('on'); });
+  window.addEventListener('drop',e=>{
+    if(!(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length)) return;
+    e.preventDefault(); dragDepth=0; dropOverlay.classList.remove('on');
+    const f=e.dataTransfer.files[0];
+    handleImageFile(f).then(()=>{
+      // abre la consola experto para que el usuario vea el hint y pueda escribir draw custom
+      if(!panels.bottom.panel.classList.contains('open')) setPanel('bottom', true);
+    });
+  });
+
   // ---------- boot ----------
   resize(); seedStars();
+  refreshThumb();
   window.addEventListener('resize',()=>{seedStars();});
   setView('machine', false);
   load();
