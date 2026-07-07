@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r4">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r5">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
@@ -135,6 +135,15 @@
     #card .stat{display:inline-block;font-size:9px;letter-spacing:.16em;padding:2px 8px;border-radius:10px;margin-top:9px}
     #card .stat.on{color:var(--cyan);border:1px solid var(--cyan-dim);background:rgba(34,230,255,.06)}
     #card .stat.off{color:var(--text-dim);border:1px solid var(--off)}
+    /* FUERA DE CARRIL: asignación de Carlos ≠ misión reportada (ámbar) */
+    #card .stat.rail{color:#ffb545;border:1px solid rgba(255,181,69,.5);background:rgba(255,181,69,.07);margin-left:6px}
+    /* MODO MANDO: selector de asignación en la ficha fijada */
+    #card .card-close{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--cyan-dim);font-size:14px;cursor:pointer;line-height:1;padding:2px 4px}
+    #card .card-close:hover{color:var(--cyan)}
+    #card .asg-block{margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,181,69,.3)}
+    #card .asg-tit{font-size:9px;letter-spacing:.16em;color:#ffb545;margin-bottom:5px}
+    #card #asgSel{width:100%;background:#06121f;color:var(--text);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:10.5px;padding:4px 6px;cursor:pointer}
+    #card .asg-msg{font-size:9.5px;margin-top:5px;color:var(--text-dim);min-height:12px}
 
     @media (max-width:640px){
       .hdr{padding:10px 12px 8px;gap:8px}
@@ -277,7 +286,7 @@
     <div class="hdr-center">
       <div class="hdr-line">
         <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
-        <span class="ver" id="verTop">v.2026.07.07.r4</span>
+        <span class="ver" id="verTop">v.2026.07.07.r5</span>
         <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
         <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
       </div>
@@ -298,7 +307,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">por ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r4</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r5</span></span>
   </div>
 
   <div id="card"></div>
@@ -347,10 +356,20 @@
     <div class="pf-field">
       <label class="pf-check"><input type="checkbox" id="advLabels" checked> Mostrar etiquetas</label>
     </div>
-    <div class="pf-field" style="margin-bottom:0">
+    <div class="pf-field">
       <label>Ambiente</label>
       <label class="pf-check"><input type="checkbox" id="advHeartAudio"> Latido ambiente (sonar)</label>
       <div class="hint" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5">Thump-thump grave que sigue el BPM medio de la flota. Requiere un clic (política de audio del navegador).</div>
+    </div>
+    <div class="pf-field" style="margin-bottom:0">
+      <label for="mandoTok">Modo mando (asignar proyectos)</label>
+      <div class="rowval" id="mandoRow">
+        <input type="password" id="mandoTok" placeholder="token de mando" autocomplete="off"
+               style="flex:1;min-width:0;background:#06121f;color:var(--text);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:10.5px;padding:5px 7px">
+        <button id="mandoBtn"
+                style="background:rgba(34,230,255,.08);color:var(--cyan);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:9px;letter-spacing:.1em;padding:5px 9px;cursor:pointer">ACTIVAR</button>
+      </div>
+      <div class="hint" id="mandoHint" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5">Sin token, la página es el visor de siempre. Con mando activo: clic en un nodo (vista ordenador/agente) → ASIGNAR PROYECTO ▾.</div>
     </div>
   </aside>
 
@@ -423,6 +442,15 @@
   const PRESENCE_URL     = 'https://draw-gen.csilvasantin.workers.dev/presence';
   const PRESENCE_URL_ALT = 'https://admira-telegram.csilvasantin.workers.dev/api/presence';
   const FLEET_URL        = 'https://admira-fleet.csilvasantin.workers.dev/machines'; // CORS abierto
+  // ASIGNACIONES (FASE 1): Carlos asigna proyectos a ordenadores/agentes desde aquí.
+  // GET público (lista vigente) + POST protegido con el token de mando (Bearer).
+  const ASSIGN_URL       = 'https://admira-telegram.csilvasantin.workers.dev/api/assign';
+  // MODO MANDO: sin token la página es el visor de siempre. El token se pide UNA
+  // vez (⚙ AVANZADO) y se guarda en localStorage; jamás se muestra ni se envía a
+  // ningún sitio que no sea el worker de asignaciones.
+  const MANDO_LS_KEY = 'admiranext-status-mando-token';
+  let MANDO_TOKEN = (()=>{ try{ return localStorage.getItem(MANDO_LS_KEY)||''; }catch(e){ return ''; } })();
+  function mandoOn(){ return !!MANDO_TOKEN; }
   const ONLINE_SEC   = 600;    // vivo si la señal es < 10 min (RELATIVO al reloj del servidor).
                                // 10 min (antes 5) evita el parpadeo del contador con latidos
                                // intermitentes al borde del umbral; los nodos muertos de verdad
@@ -479,6 +507,14 @@
     if(!n) return null;
     for(const cp of CANON_PROJECTS){ if(n.includes(normProject(cp))) return cp; }
     return null;
+  }
+  // FUERA DE CARRIL: el nodo tiene una ASIGNACIÓN de Carlos pero reporta una
+  // misión que mapea a OTRO proyecto canónico. (Si lo reportado no mapea a
+  // ningún canónico no se marca: no se puede afirmar que sea otro carril.)
+  function offRailFor(assignment, reported){
+    if(!assignment || !assignment.project) return false;
+    const rep = canonProjectFor(reported);
+    return !!rep && rep !== assignment.project;
   }
   // Deriva el SISTEMA OPERATIVO de una máquina por su nombre/host (regla de la
   // casa). Si el roster de fleet trae `platform`, se usa como confirmación.
@@ -896,6 +932,13 @@
       ctx.font='9px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
       if(n.sub && !dimNode) ctx.fillText(n.sub, n.x, n.y+r+27);
+      // FUERA DE CARRIL (ámbar): asignación de Carlos ≠ misión reportada
+      if(n.offRail && !dimNode){
+        ctx.fillStyle='rgba(255,181,69,.9)';
+        ctx.shadowColor='rgba(255,181,69,.5)'; ctx.shadowBlur=5;
+        ctx.fillText('⚠ FUERA DE CARRIL', n.x, n.y+r+(n.sub?39:27));
+        ctx.shadowBlur=0;
+      }
       ctx.globalAlpha=1;
     }
     // BPM medio de la flota viva → guía el tempo del audio ambiente
@@ -930,15 +973,23 @@
     const personas = (n.personas||[]).map(p=>`${p.persona}<span style="color:var(--cyan-dim)">·${p.runtime}</span>`).join(' &nbsp; ');
     const foco = n.foco ? `<div class="foco">“${n.foco}”</div>` : '';
     let rows = '';
+    // ASIGNADO (por Carlos) vs REPORTADO (lo que dice el nodo): dos verdades a la
+    // vista. Solo en las vistas con nodo individual (ordenador/agente).
+    const asgRow = (currentView==='machine'||currentView==='agent')
+      ? `<div class="row"><span class="lab">asignado</span><span class="val">${n.assignment?n.assignment.project:'— (libre)'}</span></div>`
+      : '';
     if(currentView==='machine'){
       rows =
         `<div class="cp">proyecto · <b>${n.sub||'(sin asignar)'}</b></div>`+
+        asgRow+
+        `<div class="row"><span class="lab">reportado</span><span class="val">${n.repProject||'—'}</span></div>`+
         `<div class="row"><span class="lab">quién</span><span class="val">${personas||'—'}</span></div>`+
         `<div class="row"><span class="lab">modo</span><span class="val">${n.mode||'—'}</span></div>`+
         `<div class="row"><span class="lab">plataforma</span><span class="val">${n.platform||'—'}</span></div>`;
     } else if(currentView==='agent'){
       rows =
         `<div class="cp">runtime · <b>${n.sub||'—'}</b></div>`+
+        asgRow+
         `<div class="row"><span class="lab">máquinas</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
         `<div class="row"><span class="lab">misión</span><span class="val">${n.mission||'—'}</span></div>`;
     } else if(currentView==='project'){
@@ -966,25 +1017,83 @@
     // (feed de presencia). Si el feed aún no publica tokens → «s/d» honesto.
     const tokensRow =
       `<div class="row"><span class="lab">tokens</span><span class="val">${fmtTokens(n.tokens)}${(n.reqs>0)?` · ${fmtNum(n.reqs)} reqs`:''}</span></div>`;
+    // Badge FUERA DE CARRIL (ámbar): asignación ≠ misión reportada (canónicas)
+    const railBadge = n.offRail ? `<span class="stat rail">⚠ FUERA DE CARRIL</span>` : '';
+    // MODO MANDO + ficha FIJADA (clic) en vista ordenador/agente → selector de asignación
+    const isPinned = PINNED && PINNED.id===n.id;
+    const canAssign = isPinned && mandoOn() && (currentView==='machine'||currentView==='agent');
+    const asgBlock = canAssign ? (()=>{
+      const cur = n.assignment ? n.assignment.project : '';
+      return `<div class="asg-block">`+
+        `<div class="asg-tit">ASIGNAR PROYECTO ▾</div>`+
+        `<select id="asgSel">`+
+          `<option value=""${cur===''?' selected':''}>— libre (sin asignación) —</option>`+
+          CANON_PROJECTS.map(cp=>`<option value="${cp}"${cur===cp?' selected':''}>${cp}</option>`).join('')+
+        `</select>`+
+        `<div class="asg-msg" id="asgMsg"></div>`+
+      `</div>`;
+    })() : '';
+    const closeBtn = isPinned ? `<button class="card-close" id="cardClose" aria-label="Cerrar ficha">×</button>` : '';
     card.innerHTML =
+      closeBtn+
       `<div class="cn">${n.label}</div>`+ rows +
       `<div class="row"><span class="lab">señal</span><span class="val">hace ${ago(n.updated)}</span></div>`+
       tokensRow+
       vidaRows+
       foco+
-      `<span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>`;
+      `<span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>`+railBadge+
+      asgBlock;
+    // la ficha fijada es interactiva (selector); la de hover, transparente al ratón
+    card.style.pointerEvents = isPinned ? 'auto' : 'none';
+    if(isPinned){
+      const sel=document.getElementById('asgSel');
+      if(sel) sel.addEventListener('change',()=>doAssign(n, sel.value||null));
+      const cb=document.getElementById('cardClose');
+      if(cb) cb.addEventListener('click',unpinCard);
+    }
     card.style.display='block';
     const cw=card.offsetWidth, ch=card.offsetHeight;
     let x=mx+18, y=my+18;
     if(x+cw>W-10) x=mx-cw-18; if(y+ch>H-10) y=my-ch-18;
-    card.style.left=Math.max(8,x)+'px'; card.style.top=Math.max(8,y)+'px';
+    x=Math.max(8,x); y=Math.max(8,y);
+    card.style.left=x+'px'; card.style.top=y+'px';
+    if(isPinned){ PINNED_POS=[mx,my]; }
+  }
+
+  // ---------- MODO MANDO: fijar ficha + asignar proyecto ----------
+  let PINNED=null, PINNED_POS=null;
+  function pinCard(n,mx,my){ PINNED=n; showCard(n,mx,my); }
+  function unpinCard(){ PINNED=null; PINNED_POS=null; card.style.pointerEvents='none'; card.style.display='none'; }
+  // tras recargar datos/vista, re-engancha la ficha fijada al nodo nuevo con el mismo id
+  function repinAfterView(){
+    if(!PINNED) return;
+    const nn = nodes.find(x=>x.id===PINNED.id);
+    if(nn && PINNED_POS){ PINNED=nn; showCard(nn, PINNED_POS[0], PINNED_POS[1]); }
+    else unpinCard();
+  }
+  async function doAssign(n, project){
+    const msg=document.getElementById('asgMsg');
+    const kind = n.kindFor || (currentView==='agent'?'agent':'machine');
+    const target = n.label;
+    if(msg) msg.textContent='enviando…';
+    try{
+      const r=await fetch(ASSIGN_URL,{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+MANDO_TOKEN},
+        body:JSON.stringify({target, kind, project, by:'Carlos'})});
+      const d=await r.json().catch(()=>({}));
+      if(r.status===401){ if(msg){msg.textContent='✗ token de mando rechazado (revísalo en ⚙ AVANZADO)'; msg.style.color='#ff6b6b';} return; }
+      if(d.ok){ if(msg){msg.textContent=project?('✓ asignado a '+project):'✓ liberado'; msg.style.color='var(--cyan)';} load(); }
+      else { if(msg){msg.textContent='✗ '+(d.error||'error'); msg.style.color='#ff6b6b';} }
+    }catch(e){ if(msg){msg.textContent='✗ sin conexión con el worker'; msg.style.color='#ff6b6b';} }
   }
 
   let freeDrawing=false;
   cv.addEventListener('mousemove',e=>{
     const r=cv.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top;
     if(freeDrawing){ draw.path.push([mx+cam.x,my+cam.y]); return; } // guarda en coords de mundo
-    if(cam.drag){ cam.vx += (mx-cam.px)*0.25; cam.vy += (my-cam.py)*0.25; cam.px=mx; cam.py=my; card.style.display='none'; hover=null; return; }
+    if(cam.drag){ cam.vx += (mx-cam.px)*0.25; cam.vy += (my-cam.py)*0.25; cam.px=mx; cam.py=my; if(!PINNED){card.style.display='none'; hover=null;} return; }
+    // ficha FIJADA (modo mando): no la pisa el hover; la rotación sigue congelada
+    if(PINNED){ bumpReadFreeze(); return; }
     hover=pickNode(mx,my);
     cv.style.cursor = draw.freeing ? 'crosshair' : (hover ? 'pointer' : 'grab');
     if(hover) showCard(hover,mx,my); else card.style.display='none';
@@ -992,8 +1101,15 @@
   cv.addEventListener('mousedown',e=>{
     const r=cv.getBoundingClientRect(); cam.px=e.clientX-r.left; cam.py=e.clientY-r.top;
     if(draw.freeing){ freeDrawing=true; draw.path=[[cam.px+cam.x,cam.py+cam.y]]; card.style.display='none'; return; }
-    if(!pickNode(cam.px,cam.py)){cam.drag=true;}
+    const hit=pickNode(cam.px,cam.py);
+    // MODO MANDO: clic en un nodo (ordenador/agente) FIJA la ficha con el selector
+    if(mandoOn() && (currentView==='machine'||currentView==='agent')){
+      if(hit){ hover=null; pinCard(hit,cam.px,cam.py); return; }
+      if(PINNED){ unpinCard(); }
+    }
+    if(!hit){cam.drag=true;}
   });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape' && PINNED) unpinCard(); });
   window.addEventListener('mouseup',()=>{
     if(freeDrawing){ freeDrawing=false; finishFreeDraw(); }
     cam.drag=false;
@@ -1002,7 +1118,7 @@
     if(draw.path.length>2){ if(drawFromPath(draw.path)) cliPrint && cliPrint('DISTRIBUTING NODES ALONG STROKE… ('+draw.path.length+' pts)'); }
     draw.freeing=false; draw.path=[]; cv.style.cursor='grab';
   }
-  cv.addEventListener('mouseleave',()=>{card.style.display='none';hover=null;});
+  cv.addEventListener('mouseleave',()=>{ if(!PINNED){card.style.display='none';hover=null;} });
   cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;const n=pickNode(mx,my);if(n){showCard(n,mx,my);}else{cam.drag=true;cam.px=mx;cam.py=my;}},{passive:true});
   cv.addEventListener('touchmove',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;if(cam.drag){cam.vx+=(mx-cam.px)*0.2;cam.vy+=(my-cam.py)*0.2;cam.px=mx;cam.py=my;}},{passive:true});
   cv.addEventListener('touchend',()=>{cam.drag=false;});
@@ -1018,11 +1134,28 @@
     // Ambos feeds EN PARALELO y se espera a los dos antes de pintar: si se
     // hicieran en serie, un primer render con sólo `fleet` resuelto mostraba
     // 3 vivos (fleet+self) hasta que llegaba `presence` → parpadeo «3 nodos».
-    let pres=null, fleet=null;
+    let pres=null, fleet=null, asg=null;
     const presWithFallback=async()=>{ try{ return await jget(PRESENCE_URL); }catch(e){ return await jget(PRESENCE_URL_ALT); } };
-    const [rp,rf]=await Promise.allSettled([ presWithFallback(), jget(FLEET_URL) ]);
+    const [rp,rf,ra]=await Promise.allSettled([ presWithFallback(), jget(FLEET_URL), jget(ASSIGN_URL) ]);
     if(rp.status==='fulfilled') pres=rp.value; else console.warn('presence',rp.reason);
     if(rf.status==='fulfilled') fleet=rf.value; else console.warn('fleet',rf.reason);
+    if(ra.status==='fulfilled') asg=ra.value; else console.warn('assign',ra.reason);
+
+    // ---- ASIGNACIONES (FASE 1) ----
+    // Mapa target→asignación por tipo. La búsqueda tolera nombres que no casan
+    // exactos (presence "MacMini" ↔ asignación "Mac Mini"), igual que el roster.
+    const ASG_BY = { machine:{}, agent:{} };
+    if(asg && asg.assignments) for(const a of asg.assignments){
+      if(ASG_BY[a.kind]) ASG_BY[a.kind][norm(a.target)] = a;
+    }
+    function asgFor(kind, name){
+      const map=ASG_BY[kind]||{}; const k=norm(name);
+      if(map[k]) return map[k];
+      if(k.length<5) return null;
+      for(const t in map){ if(t.length>=5 && (t.includes(k)||k.includes(t))) return map[t]; }
+      return null;
+    }
+    WORLD.asgFor = asgFor; // disponible para buildAgents/buildProjects
 
     // ---- FIX «0 nodos vivos» ----------------------------------------
     // La frescura se mide RELATIVA al reloj del servidor (máximo timestamp
@@ -1083,6 +1216,8 @@
         if(fresh) e.online=true;
         if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
         if(fresh && p.mode) e.mode=p.mode;
+        // proyecto REPORTADO en vivo por el latido (p.project): el más reciente gana
+        if(p.project && (!e._projAt || (p.updated||0)>e._projAt)){ e.repProject=p.project; e._projAt=p.updated||0; }
       }
     }
 
@@ -1093,6 +1228,7 @@
 
     const machines = Object.values(byMachine).map(e=>({
       ...e, project:projectFor(e.machine), os:osFor(e.machine, e.platform),
+      assignment: asgFor('machine', e.machine),   // asignación de Carlos (FASE 1); null = libre
       personas:(e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)),
     })).sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
 
@@ -1127,8 +1263,10 @@
       if(fresh) e.online=true;
       if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
       if(fresh && p.mode) e.mode=p.mode;
+      if(p.project && (!e._projAt || (p.updated||0)>e._projAt)){ e.repProject=p.project; e._projAt=p.updated||0; }
     }
-    return Object.values(by).map(e=>({...e, machines:[...e.machinesSet]}))
+    return Object.values(by).map(e=>({...e, machines:[...e.machinesSet],
+        assignment:(WORLD.asgFor?WORLD.asgFor('agent', e.persona):null)}))
       .sort((a,b)=>(b.online-a.online)||(a.persona>b.persona?1:-1));
   }
 
@@ -1189,7 +1327,8 @@
        updated:0, online:false, machinesSet:new Set(), agentsSet:new Set(), foco:'', decisions:0, tokens:0, reqs:0}; return by[name]; };
     for(const cp of CANON_PROJECTS) add(cp);           // los 6, SIEMPRE (aunque vacíos)
     for(const m of machines){
-      const e=add(canonProjectFor(m.project) || UNASSIGNED_PROJECT);
+      // La ASIGNACIÓN de Carlos (si existe) manda sobre la misión reportada.
+      const e=add((m.assignment&&m.assignment.project) || canonProjectFor(m.repProject||m.project) || UNASSIGNED_PROJECT);
       e.machinesSet.add(m.machine);
       e.decisions=(e.decisions||0)+(+m.decisions||0);
       e.tokens=(e.tokens||0)+(+m.tokens||0);   // tokens por proyecto = suma de sus equipos (sin doble conteo)
@@ -1199,7 +1338,7 @@
       if(m.foco && !e.foco) e.foco=m.foco;
     }
     for(const a of agents){
-      const e=add(canonProjectFor(a.mission) || UNASSIGNED_PROJECT);
+      const e=add((a.assignment&&a.assignment.project) || canonProjectFor(a.repProject||a.mission) || UNASSIGNED_PROJECT);
       e.agentsSet.add(a.persona);
       if(a.online) e.online=true;
       if((a.updated||0)>e.updated) e.updated=a.updated;
@@ -1221,6 +1360,8 @@
         personas:m.personas, machines:[m.machine], online:m.online, updated:m.updated,
         foco:m.foco, mode:m.mode, platform:m.platform, os:m.os, count:m.personas.length,
         decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0,
+        assignment:m.assignment||null, repProject:m.repProject||m.project||'',
+        offRail: offRailFor(m.assignment, m.repProject||m.project), kindFor:'machine',
       }));
     } else if(currentView==='agent'){
       list = WORLD.agents.map(a=>({
@@ -1228,6 +1369,8 @@
         personas:[{persona:a.persona,runtime:a.runtime}], machines:a.machines, mission:a.mission,
         online:a.online, updated:a.updated, foco:a.foco, mode:a.mode, count:a.machines.length,
         decisions:a.decisions||0, tokens:a.tokens||0, reqs:a.reqs||0,
+        assignment:a.assignment||null, repProject:a.repProject||a.mission||'',
+        offRail: offRailFor(a.assignment, a.repProject||a.mission), kindFor:'agent',
       }));
     } else if(currentView==='project'){
       list = WORLD.projects.map(pr=>({
@@ -1265,6 +1408,7 @@
       }
     }
     document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
+    repinAfterView();   // modo mando: re-engancha la ficha fijada al nodo recién construido
   }
 
   // ============================================================
@@ -1905,8 +2049,8 @@
     if(byUser){ rotStart=performance.now(); } // reinicia el temporizador al elegir a mano
   }
   function tickRotation(now){
-    // mientras el ratón siga sobre un nodo/ficha, renueva el congelado
-    if(hover) bumpReadFreeze();
+    // mientras el ratón siga sobre un nodo/ficha (o haya ficha FIJADA), renueva el congelado
+    if(hover || PINNED) bumpReadFreeze();
     const frozen = performance.now() < readFreezeUntil;
     if(rotRead) rotRead.style.display = frozen ? '' : 'none';
     // draw activo, pausado por el usuario o CONGELADO por lectura de ficha:
@@ -1979,6 +2123,36 @@
   document.getElementById('advAutoRotate').addEventListener('change',e=>{ setAutoRotate(e.target.checked); });
   document.getElementById('advOnlyLive').addEventListener('change',e=>{ ONLY_LIVE=e.target.checked; applyView(); });
   document.getElementById('advLabels').addEventListener('change',e=>{ SHOW_LABELS=e.target.checked; });
+
+  // --- MODO MANDO (asignaciones): activar/desactivar con token, persistido en localStorage ---
+  const mandoTokEl=document.getElementById('mandoTok');
+  const mandoBtnEl=document.getElementById('mandoBtn');
+  const mandoHintEl=document.getElementById('mandoHint');
+  function refreshMandoUI(){
+    if(mandoOn()){
+      mandoBtnEl.textContent='DESACTIVAR';
+      mandoTokEl.style.display='none';
+      mandoHintEl.innerHTML='<b style="color:#ffb545">MANDO ACTIVO</b> — clic en un nodo (vista ordenador/agente) para fijar su ficha y asignarle proyecto. El token queda solo en este navegador.';
+    } else {
+      mandoBtnEl.textContent='ACTIVAR';
+      mandoTokEl.style.display='';
+      mandoHintEl.textContent='Sin token, la página es el visor de siempre. Con mando activo: clic en un nodo (vista ordenador/agente) → ASIGNAR PROYECTO ▾.';
+    }
+  }
+  mandoBtnEl.addEventListener('click',()=>{
+    if(mandoOn()){
+      MANDO_TOKEN=''; try{ localStorage.removeItem(MANDO_LS_KEY); }catch(e){}
+      if(typeof unpinCard==='function') unpinCard();
+    } else {
+      const v=(mandoTokEl.value||'').trim();
+      if(!v){ mandoTokEl.focus(); return; }
+      MANDO_TOKEN=v; try{ localStorage.setItem(MANDO_LS_KEY, v); }catch(e){}
+      mandoTokEl.value='';
+    }
+    refreshMandoUI();
+  });
+  mandoTokEl.addEventListener('keydown',e=>{ if(e.key==='Enter') mandoBtnEl.click(); });
+  refreshMandoUI();
 
   // --- AUDIO AMBIENTE: «thump-thump» grave tipo sonar (WebAudio) ------
   // OFF por defecto (el audio requiere gesto del usuario). Al activarlo,
