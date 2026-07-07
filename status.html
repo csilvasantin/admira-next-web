@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
-  <meta name="admiranext-version" content="AdmiraNext v26.07.07.3">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.4">
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -83,35 +83,9 @@
     .uplink b{color:var(--cyan);text-shadow:0 0 8px rgba(34,230,255,.4)}
     .uplink .muthur{color:var(--amber)}
 
-    /* ---- View switcher (POR ORDENADOR / AGENTE / MISIÓN) ---- */
-    .views{
-      position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:22;
-      display:flex;gap:0;border:1px solid var(--cyan-dim);border-radius:8px;
-      background:rgba(3,8,16,.82);backdrop-filter:blur(6px);overflow:hidden;
-      box-shadow:0 0 22px rgba(34,230,255,.14);
-    }
-    .views button{
-      font-family:inherit;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-      color:var(--text-dim);background:transparent;border:0;padding:7px 14px;cursor:pointer;
-      position:relative;transition:color .25s,background .25s;white-space:nowrap;
-    }
-    .views button + button{border-left:1px solid rgba(34,230,255,.14)}
-    .views button:hover{color:var(--text)}
-    .views button.active{color:#eafcff;background:rgba(34,230,255,.12);text-shadow:0 0 8px rgba(34,230,255,.6)}
-    .views button.active::after{
-      content:"";position:absolute;left:8px;right:8px;bottom:3px;height:2px;border-radius:2px;
-      background:var(--cyan);box-shadow:0 0 8px var(--cyan);
-    }
-    /* auto-rotation progress bar under the switcher */
-    .views .prog{position:absolute;left:0;bottom:0;height:2px;background:rgba(34,230,255,.7);box-shadow:0 0 6px var(--cyan);width:0}
-    .views.paused .prog{opacity:.25}
-    .rotpause{
-      position:fixed;top:12px;left:calc(50% + 160px);z-index:22;pointer-events:auto;
-      font-family:inherit;font-size:9px;letter-spacing:.14em;color:var(--cyan-dim);
-      border:1px solid var(--cyan-dim);border-radius:6px;background:rgba(3,8,16,.82);
-      padding:6px 9px;cursor:pointer;transition:color .2s,border-color .2s;text-transform:uppercase;
-    }
-    .rotpause:hover{color:var(--cyan);border-color:var(--cyan)}
+    /* auto-rotation progress bar (hilo fino bajo la barra superior) */
+    #rotProg{position:fixed;top:0;left:0;height:2px;z-index:23;background:rgba(34,230,255,.7);box-shadow:0 0 6px var(--cyan);width:0;transition:opacity .3s}
+    #rotProg.paused{opacity:.2}
 
     /* Footer legend */
     .legend{
@@ -154,9 +128,7 @@
       .hdr .tag{width:100%;font-size:11px}
       .hdr .live{margin-left:0}
       .uplink{top:auto;bottom:52px;left:14px;font-size:8.5px}
-      .views{top:8px}
-      .views button{padding:6px 9px;font-size:9px;letter-spacing:.08em}
-      .rotpause{left:auto;right:10px}
+      #pf-topbar{top:8px;right:10px;gap:6px}
       .legend{padding:10px 14px;font-size:10px;gap:12px}
       #card{max-width:76vw}
     }
@@ -168,13 +140,11 @@
        Iconos toggle recogidos a los bordes (estilo #pf-toggles admira.live).
        ============================================================ */
 
-    /* --- barra de iconos toggle (recogidos a los bordes) --- */
-    #pf-toggles{
-      position:fixed;z-index:40;display:flex;gap:8px;pointer-events:auto;
+    /* --- barra de iconos toggle: TODOS ARRIBA, junto a la barra principal --- */
+    #pf-topbar{
+      position:fixed;top:10px;right:18px;z-index:40;
+      display:flex;flex-direction:row;gap:8px;pointer-events:auto;
     }
-    #pf-toggles.tg-right{top:50%;right:10px;transform:translateY(-50%);flex-direction:column}
-    #pf-toggles.tg-bottom{bottom:10px;left:50%;transform:translateX(-50%);flex-direction:row}
-    #pf-toggles.tg-left{top:50%;left:10px;transform:translateY(-50%);flex-direction:column}
     .pf-tg{
       font-family:inherit;font-size:15px;line-height:1;width:38px;height:38px;
       display:flex;align-items:center;justify-content:center;
@@ -250,8 +220,6 @@
       .pf-tg{width:34px;height:34px;font-size:14px}
       #panelLeft,#panelRight{width:78vw;max-height:70vh}
       #panelBottom{max-height:52vh}
-      #pf-toggles.tg-left{top:auto;bottom:56px}
-      #pf-toggles.tg-right{top:auto;bottom:56px}
     }
   </style>
 </head>
@@ -268,13 +236,7 @@
   <!-- Sci-fi tribute, declared in the interface (house rule) -->
   <div class="uplink">UPLINK · estética inspirada en <b>TRON (1982)</b> &amp; <span class="muthur">MU-TH-UR 6000 · ALIEN (1979)</span> — retícula de fósforo, sin centro</div>
 
-  <nav class="views" id="viewSwitch">
-    <button data-view="machine" class="active">Por ordenador</button>
-    <button data-view="agent">Por agente</button>
-    <button data-view="mission">Por misión</button>
-    <span class="prog" id="rotProg"></span>
-  </nav>
-  <button class="rotpause" id="rotPause" title="Fijar / reanudar la rotación automática (20s)">⏸ auto</button>
+  <span id="rotProg"></span>
 
   <div class="legend">
     <span class="k"><span class="s on"></span> vivo (señal &lt; 5 min)</span>
@@ -290,18 +252,12 @@
        defecto: sólo se ven los iconos toggle recogidos a los bordes.
        ============================================================ -->
 
-  <!-- iconos toggle IZQUIERDA (opciones) -->
-  <div id="pf-toggles" class="tg-left">
+  <!-- TOGGLES arriba, junto a la barra principal (todos accesibles, sin pisar la galaxia) -->
+  <div id="pf-topbar">
     <button class="pf-tg" id="tgLeft" aria-expanded="false" aria-controls="panelLeft"
             title="Opciones — vistas (ORDENADOR / AGENTE / MISIÓN)">☰</button>
-  </div>
-  <!-- iconos toggle DERECHA (avanzado) -->
-  <div id="pf-toggles-r" class="tg-right" style="position:fixed;z-index:40;display:flex;flex-direction:column;top:50%;right:10px;transform:translateY(-50%);gap:8px;pointer-events:auto">
     <button class="pf-tg" id="tgRight" aria-expanded="false" aria-controls="panelRight"
-            title="Avanzado — filtros, umbral de vivo, velocidad">⚙</button>
-  </div>
-  <!-- icono toggle INFERIOR (experto / CLI) -->
-  <div id="pf-toggles-b" class="tg-bottom" style="position:fixed;z-index:40;display:flex;flex-direction:row;bottom:44px;left:50%;transform:translateX(-50%);gap:8px;pointer-events:auto">
+            title="Avanzado — filtros, umbral de vivo, velocidad, rotación">⚙</button>
     <button class="pf-tg" id="tgBottom" aria-expanded="false" aria-controls="panelBottom"
             title="Experto — consola CLI">&gt;_</button>
   </div>
@@ -313,7 +269,7 @@
     <button class="pf-vbtn active" data-view="machine"><span class="ic">▢</span> Por ordenador</button>
     <button class="pf-vbtn" data-view="agent"><span class="ic">◈</span> Por agente</button>
     <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Por misión</button>
-    <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; usa ⏸ auto arriba para pausar.</div>
+    <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
   </aside>
 
   <!-- BARRA DERECHA — AVANZADO -->
@@ -333,6 +289,7 @@
         <input type="range" id="advRotate" min="5" max="60" step="5" value="20">
         <span class="valnum" id="advRotateVal">20 s</span>
       </div>
+      <label class="pf-check" style="margin-top:9px"><input type="checkbox" id="advAutoRotate" checked> Rotación automática</label>
     </div>
     <div class="pf-field">
       <label>Filtros</label>
@@ -350,7 +307,7 @@
     <div class="cli-wrap">
       <span class="ps1">admiranext:/status$</span>
       <input type="text" id="cliInput" autocomplete="off" spellcheck="false"
-             placeholder="help · view <machine|agent|mission> · live · nodes · clear" aria-label="Entrada de consola">
+             placeholder="help · view · live · nodes · draw osamayor|unicornio · clear" aria-label="Entrada de consola">
     </div>
     <div id="cliOut"></div>
     <div class="hint">Consola local (no ejecuta acciones de flota). Escribe <b style="color:var(--cyan)">help</b> para ver comandos.</div>
@@ -490,6 +447,23 @@
 
   function physics(dt){
     const cx=W/2, cy=H/2;
+    // --- modo DRAW: los nodos morphean suave hacia el punto de la figura ---
+    if(DRAW_ACTIVE){
+      const k=Math.min(1, dt*0.006); // easing por frame (independiente de fps)
+      for(let i=0;i<nodes.length;i++){
+        const a=nodes[i], tg=drawTargets[i];
+        if(tg){ a.x+=(tg.x-a.x)*k; a.y+=(tg.y-a.y)*k; a.vx*=0.6; a.vy*=0.6; a._inShape=true; }
+        else {  // sobrantes: orbitan tenues muy lejos, sin colisionar
+          a._inShape=false;
+          a.phase += dt*0.0006;
+          a.vx += Math.cos(a.phase*1.1+i)*0.02; a.vy += Math.sin(a.phase+i)*0.02;
+          a.vx*=0.94; a.vy*=0.94; a.x+=a.vx; a.y+=a.vy;
+          const dcx=a.x-cx, dcy=a.y-cy, dist=Math.hypot(dcx,dcy)||1, maxR=Math.min(W,H)*0.48;
+          if(dist>maxR){ a.vx-=dcx/dist*0.6; a.vy-=dcy/dist*0.6; }
+        }
+      }
+      return;
+    }
     for (let i=0;i<nodes.length;i++){
       const a=nodes[i];
       for (let j=i+1;j<nodes.length;j++){
@@ -559,22 +533,36 @@
     ctx.restore();
 
     physics(dt);
-    const edges=meshEdges();
 
     ctx.save();
     ctx.translate(cam.x,cam.y);
     const maxD=Math.min(W,H)*0.5;
-    for(const [i,j,d] of edges){
-      const a=nodes[i],b=nodes[j];
-      const alpha=Math.max(0.03, 0.28*(1-d/maxD));
-      const liveBoost=(a.online||b.online)?1.6:1;
-      ctx.strokeStyle=`rgba(34,230,255,${Math.min(.4,alpha*liveBoost)})`;
-      ctx.lineWidth=(a.online&&b.online)?1.1:0.6;
-      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    if(DRAW_ACTIVE){
+      // trazar SÓLO el contorno de la figura (líneas brillantes)
+      for(const [i,j] of drawEdges){
+        const a=nodes[i],b=nodes[j]; if(!a||!b) continue;
+        ctx.strokeStyle='rgba(34,230,255,.55)';
+        ctx.lineWidth=1.4; ctx.shadowColor='rgba(34,230,255,.6)'; ctx.shadowBlur=8;
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+      ctx.shadowBlur=0;
+    } else {
+      const edges=meshEdges();
+      for(const [i,j,d] of edges){
+        const a=nodes[i],b=nodes[j];
+        const alpha=Math.max(0.03, 0.28*(1-d/maxD));
+        const liveBoost=(a.online||b.online)?1.6:1;
+        ctx.strokeStyle=`rgba(34,230,255,${Math.min(.4,alpha*liveBoost)})`;
+        ctx.lineWidth=(a.online&&b.online)?1.1:0.6;
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
     }
 
     const t=now*0.001;
     for(const n of nodes){
+      // en modo draw, los nodos sobrantes quedan tenues (orbitando)
+      const dimNode = DRAW_ACTIVE && n._inShape===false;
+      ctx.globalAlpha = dimNode ? 0.22 : 1;
       // el tamaño crece con la actividad: nº de personas/máquinas agrupadas
       const grp = Math.max(0, (n.count||1)-1);
       const base = n.online ? 7+Math.min(7, grp*1.6) : 5+Math.min(4,grp*1.2);
@@ -601,7 +589,17 @@
       ctx.shadowBlur=0;
       ctx.font='9px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
-      if(n.sub) ctx.fillText(n.sub, n.x, n.y+r+27);
+      if(n.sub && !dimNode) ctx.fillText(n.sub, n.x, n.y+r+27);
+      ctx.globalAlpha=1;
+    }
+
+    // trazo libre en curso (feedback mientras el usuario dibuja)
+    if(draw.freeing && draw.path.length>1){
+      ctx.strokeStyle='rgba(255,181,69,.7)'; ctx.lineWidth=1.6;
+      ctx.shadowColor='rgba(255,181,69,.5)'; ctx.shadowBlur=6;
+      ctx.beginPath(); ctx.moveTo(draw.path[0][0]-cam.x,draw.path[0][1]-cam.y);
+      for(let i=1;i<draw.path.length;i++) ctx.lineTo(draw.path[i][0]-cam.x,draw.path[i][1]-cam.y);
+      ctx.stroke(); ctx.shadowBlur=0;
     }
     ctx.restore();
 
@@ -652,15 +650,28 @@
     card.style.left=Math.max(8,x)+'px'; card.style.top=Math.max(8,y)+'px';
   }
 
+  let freeDrawing=false;
   cv.addEventListener('mousemove',e=>{
     const r=cv.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top;
+    if(freeDrawing){ draw.path.push([mx+cam.x,my+cam.y]); return; } // guarda en coords de mundo
     if(cam.drag){ cam.vx += (mx-cam.px)*0.25; cam.vy += (my-cam.py)*0.25; cam.px=mx; cam.py=my; card.style.display='none'; hover=null; return; }
     hover=pickNode(mx,my);
-    cv.style.cursor = hover ? 'pointer' : 'grab';
+    cv.style.cursor = draw.freeing ? 'crosshair' : (hover ? 'pointer' : 'grab');
     if(hover) showCard(hover,mx,my); else card.style.display='none';
   });
-  cv.addEventListener('mousedown',e=>{ const r=cv.getBoundingClientRect(); cam.px=e.clientX-r.left; cam.py=e.clientY-r.top; if(!pickNode(cam.px,cam.py)){cam.drag=true;} });
-  window.addEventListener('mouseup',()=>{cam.drag=false;});
+  cv.addEventListener('mousedown',e=>{
+    const r=cv.getBoundingClientRect(); cam.px=e.clientX-r.left; cam.py=e.clientY-r.top;
+    if(draw.freeing){ freeDrawing=true; draw.path=[[cam.px+cam.x,cam.py+cam.y]]; card.style.display='none'; return; }
+    if(!pickNode(cam.px,cam.py)){cam.drag=true;}
+  });
+  window.addEventListener('mouseup',()=>{
+    if(freeDrawing){ freeDrawing=false; finishFreeDraw(); }
+    cam.drag=false;
+  });
+  function finishFreeDraw(){
+    if(draw.path.length>2){ if(drawFromPath(draw.path)) cliPrint && cliPrint('DISTRIBUTING NODES ALONG STROKE… ('+draw.path.length+' pts)'); }
+    draw.freeing=false; draw.path=[]; cv.style.cursor='grab';
+  }
   cv.addEventListener('mouseleave',()=>{card.style.display='none';hover=null;});
   cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;const n=pickNode(mx,my);if(n){showCard(n,mx,my);}else{cam.drag=true;cam.px=mx;cam.py=my;}},{passive:true});
   cv.addEventListener('touchmove',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;if(cam.drag){cam.vx+=(mx-cam.px)*0.2;cam.vy+=(my-cam.py)*0.2;cam.px=mx;cam.py=my;}},{passive:true});
@@ -803,25 +814,161 @@
     }
     if(typeof ONLY_LIVE!=='undefined' && ONLY_LIVE) list = list.filter(n=>n.online);
     layoutNodes(list);
+    // si hay una figura activa, re-mapea targets al nuevo set de nodos
+    if(DRAW_ACTIVE && drawShape){
+      if(DRAW_MODE==='shape'){ const nm=Object.keys(SHAPES).find(k=>SHAPES[k]===drawShape); if(nm) drawNamedShape(nm); }
+    }
     document.getElementById('modeName').textContent = VIEW_LABEL[currentView];
   }
 
+  // ============================================================
+  // DRAW — los nodos se recolocan para FORMAR una figura/constelación
+  // Framework extensible: cada figura = array de puntos normalizados
+  // [x,y] en 0..1, y un array de segmentos (pares de índices) para el
+  // contorno. Añadir figuras nuevas = añadir una entrada a SHAPES.
+  // ============================================================
+  const SHAPES = {
+    osamayor: {
+      title:'OSA MAYOR · BIG DIPPER',
+      // 7 estrellas del cazo (Dubhe, Merak, Phecda, Megrez, Alioth, Mizar, Alkaid)
+      pts:[
+        [0.18,0.62],[0.30,0.66],[0.40,0.55],[0.34,0.44],
+        [0.52,0.40],[0.68,0.33],[0.84,0.24]
+      ],
+      // línea del cazo: cuadrilátero + mango
+      edges:[[0,1],[1,2],[2,3],[3,0],[3,4],[4,5],[5,6]],
+    },
+    unicornio: {
+      title:'UNICORNIO · CONSTELACIÓN',
+      // silueta estilizada: cuerpo, patas, cuello, cabeza, cuerno + crin
+      pts:[
+        [0.22,0.60],[0.30,0.52],[0.44,0.50],[0.58,0.52], // lomo (grupa→cruz)
+        [0.66,0.44],[0.70,0.34],                          // cuello
+        [0.74,0.26],[0.82,0.24],                          // cabeza
+        [0.90,0.14],                                      // punta del cuerno
+        [0.78,0.30],[0.72,0.34],                          // hocico / mandíbula
+        [0.60,0.60],[0.60,0.76],                          // pata delantera
+        [0.30,0.62],[0.30,0.78],                          // pata trasera
+        [0.20,0.60],[0.16,0.72],                          // grupa / cola
+        [0.64,0.30]                                       // crin
+      ],
+      edges:[
+        [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8], // lomo→cuello→cabeza→cuerno
+        [8,9],[9,10],[10,5],                              // cuerno→hocico→mandíbula→cuello
+        [3,11],[11,12],                                   // pata delantera
+        [0,13],[13,14],                                   // pata trasera
+        [0,15],[15,16],                                   // grupa→cola
+        [5,17],[17,7]                                     // crin
+      ],
+    },
+  };
+
+  let DRAW_ACTIVE = false;      // hay una figura/trazo activo
+  let DRAW_MODE   = null;       // 'shape' | 'free'
+  let drawShape   = null;       // {title, pts:[[x,y]px], edges:[[i,j]]}
+  let drawTargets = [];         // targets absolutos por índice de nodo
+  let drawEdges   = [];         // edges a trazar (índices de nodo)
+  const draw = { freeing:false, path:[] };
+
+  // convierte puntos normalizados a coordenadas de mundo (centrado, escalado)
+  function shapeToWorld(pts){
+    const cx=W/2, cy=H/2;
+    const S=Math.min(W,H)*0.78;
+    // centro del bounding box de la figura para centrarla
+    let minx=1,miny=1,maxx=0,maxy=0;
+    for(const[px,py]of pts){ minx=Math.min(minx,px);miny=Math.min(miny,py);maxx=Math.max(maxx,px);maxy=Math.max(maxy,py); }
+    const bw=(maxx-minx)||1, bh=(maxy-miny)||1;
+    const ox=(minx+maxx)/2, oy=(miny+maxy)/2;
+    return pts.map(([px,py])=>[ cx+(px-ox)*S, cy+(py-oy)*S ]);
+  }
+
+  // asigna cada punto-target al nodo más cercano (greedy) para que el morph
+  // sea el más corto posible; nodos sobrantes quedan tenues orbitando.
+  function assignTargets(worldPts){
+    drawTargets = new Array(nodes.length).fill(null);
+    const usedNode=new Set();
+    // para cada target, busca el nodo libre más cercano
+    for(let t=0;t<worldPts.length;t++){
+      let best=-1,bd=1e12;
+      for(let n=0;n<nodes.length;n++){ if(usedNode.has(n))continue;
+        const d=Math.hypot(nodes[n].x-worldPts[t][0], nodes[n].y-worldPts[t][1]);
+        if(d<bd){bd=d;best=n;} }
+      if(best>=0){ usedNode.add(best); drawTargets[best]={x:worldPts[t][0],y:worldPts[t][1],ti:t}; }
+    }
+    return usedNode;
+  }
+
+  // traza el contorno: mapea los edges de la figura (índices de punto) a
+  // los índices de nodo que ocupan cada punto
+  function buildDrawEdges(shapeEdges){
+    // ti(punto) -> índice de nodo
+    const pointNode={};
+    nodes.forEach((n,ni)=>{ if(drawTargets[ni]) pointNode[drawTargets[ni].ti]=ni; });
+    drawEdges=[];
+    for(const[a,b]of (shapeEdges||[])){
+      if(pointNode[a]!=null && pointNode[b]!=null) drawEdges.push([pointNode[a],pointNode[b]]);
+    }
+  }
+
+  function drawNamedShape(name){
+    const s=SHAPES[name]; if(!s) return false;
+    const world=shapeToWorld(s.pts);
+    assignTargets(world);
+    buildDrawEdges(s.edges);
+    drawShape=s; DRAW_MODE='shape'; DRAW_ACTIVE=true;
+    return true;
+  }
+
+  // reparte N puntos equiespaciados a lo largo de un trazo libre (path px)
+  function pathResample(path, count){
+    if(path.length<2) return path.slice(0,count);
+    let total=0; const seg=[];
+    for(let i=1;i<path.length;i++){ const d=Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]); seg.push(d); total+=d; }
+    const out=[]; const step=total/(count-1||1); let acc=0, si=0;
+    out.push(path[0].slice());
+    for(let k=1;k<count;k++){
+      let want=k*step;
+      while(si<seg.length && acc+seg[si]<want){ acc+=seg[si]; si++; }
+      if(si>=seg.length){ out.push(path[path.length-1].slice()); continue; }
+      const t=(want-acc)/(seg[si]||1);
+      out.push([ path[si][0]+(path[si+1][0]-path[si][0])*t, path[si][1]+(path[si+1][1]-path[si][1])*t ]);
+    }
+    return out;
+  }
+
+  function drawFromPath(pathPx){
+    if(pathPx.length<2) return false;
+    const count=Math.max(2, Math.min(nodes.length, pathPx.length));
+    const world=pathResample(pathPx, count);
+    assignTargets(world);
+    // edges: cadena a lo largo del trazo, en orden de ti
+    const byTi={}; nodes.forEach((n,ni)=>{ if(drawTargets[ni]) byTi[drawTargets[ni].ti]=ni; });
+    drawEdges=[];
+    for(let t=1;t<count;t++){ if(byTi[t-1]!=null&&byTi[t]!=null) drawEdges.push([byTi[t-1],byTi[t]]); }
+    drawShape={title:'TRAZO LIBRE'}; DRAW_MODE='free'; DRAW_ACTIVE=true;
+    return true;
+  }
+
+  function drawClear(){
+    DRAW_ACTIVE=false; DRAW_MODE=null; drawShape=null; drawTargets=[]; drawEdges=[]; draw.freeing=false; draw.path=[];
+    cv.style.cursor='grab';
+  }
+  function drawList(){ return Object.keys(SHAPES); }
+
   // ---------- rotación de vistas (20s) ----------
-  const switchEl = document.getElementById('viewSwitch');
   const progEl   = document.getElementById('rotProg');
-  const pauseBtn = document.getElementById('rotPause');
   let rotPaused=false, rotStart=0, rotRAF=0;
 
   function setView(v, byUser){
     currentView = v; viewIdx = VIEWS.indexOf(v);
-    [...switchEl.querySelectorAll('button')].forEach(b=>b.classList.toggle('active', b.dataset.view===v));
     if(typeof syncLeftMenu==='function') syncLeftMenu(v);
     card.style.display='none'; hover=null;
     applyView();
     if(byUser){ rotStart=performance.now(); } // reinicia el temporizador al elegir a mano
   }
   function tickRotation(now){
-    if(rotPaused || paused){ rotRAF=requestAnimationFrame(tickRotation); return; }
+    // draw activo o pausado: congela la rotación (el trazo manda)
+    if(rotPaused || paused || (typeof DRAW_ACTIVE!=='undefined' && DRAW_ACTIVE)){ rotRAF=requestAnimationFrame(tickRotation); return; }
     const el = now - rotStart;
     const rm = (typeof ROTATE_MS_DYN==='number') ? ROTATE_MS_DYN : ROTATE_MS;
     progEl.style.width = Math.min(100, (el/rm)*100)+'%';
@@ -834,15 +981,13 @@
   function startRotation(){ if(rotRAF) cancelAnimationFrame(rotRAF); rotStart=performance.now(); rotRAF=requestAnimationFrame(tickRotation); }
   function stopRotation(){ if(rotRAF){ cancelAnimationFrame(rotRAF); rotRAF=0; } }
 
-  switchEl.querySelectorAll('button').forEach(b=>{
-    b.addEventListener('click',()=>{ setView(b.dataset.view, true); });
-  });
-  pauseBtn.addEventListener('click',()=>{
-    rotPaused=!rotPaused;
-    switchEl.classList.toggle('paused', rotPaused);
-    pauseBtn.textContent = rotPaused ? '▶ fijo' : '⏸ auto';
+  // pausa/reanuda la rotación automática (control desde AVANZADO)
+  function setAutoRotate(on){
+    rotPaused=!on;
+    progEl.classList.toggle('paused', rotPaused);
     if(!rotPaused) rotStart=performance.now();
-  });
+    const chk=document.getElementById('advAutoRotate'); if(chk) chk.checked=on;
+  }
 
   // ============================================================
   // CUADRÁTICA — lógica de las 4 barras (toggles, avanzado, CLI)
@@ -887,6 +1032,7 @@
   const advRotate=document.getElementById('advRotate'), advRotateVal=document.getElementById('advRotateVal');
   advThreshold.addEventListener('input',()=>{ ONLINE_SEC_DYN=advThreshold.value*60; advThresholdVal.textContent=advThreshold.value+' min'; load(); });
   advRotate.addEventListener('input',()=>{ ROTATE_MS_DYN=advRotate.value*1000; advRotateVal.textContent=advRotate.value+' s'; rotStart=performance.now(); });
+  document.getElementById('advAutoRotate').addEventListener('change',e=>{ setAutoRotate(e.target.checked); });
   document.getElementById('advOnlyLive').addEventListener('change',e=>{ ONLY_LIVE=e.target.checked; applyView(); });
   document.getElementById('advLabels').addEventListener('change',e=>{ SHOW_LABELS=e.target.checked; });
 
@@ -895,13 +1041,19 @@
   function cliPrint(txt, cls){ const d=document.createElement('div'); d.className='line'; if(cls) d.innerHTML=`<span class="${cls}">${txt}</span>`; else d.textContent=txt; cliOut.appendChild(d); cliOut.scrollTop=cliOut.scrollHeight; }
   const CLI_HELP=[
     'comandos disponibles (consola local):',
-    '  help                 esta ayuda',
-    '  view <m|a|mi>        cambia de vista (machine/agent/mission)',
-    '  live                  nº de nodos vivos y umbral actual',
-    '  nodes                 lista los nodos de la vista activa',
-    '  threshold <min>       fija el umbral de «vivo» (1-30)',
-    '  rotate <s|off>        velocidad de rotación (o pausa)',
-    '  clear                 limpia la consola',
+    '  help                  esta ayuda',
+    '  view <m|a|mi>         cambia de vista (machine/agent/mission)',
+    '  live                   nº de nodos vivos y umbral actual',
+    '  nodes                  lista los nodos de la vista activa',
+    '  threshold <min>        fija el umbral de «vivo» (1-30)',
+    '  rotate <s|on|off>      velocidad de rotación (o pausa)',
+    '  clear                  limpia la consola',
+    '',
+    '  · FUNCIONES AVANZADAS ·',
+    '  draw <figura>          los nodos FORMAN una constelación',
+    '  draw list              figuras disponibles',
+    '  draw                   modo dibujo libre (traza con el ratón)',
+    '  draw galaxy | clear    vuelve a la galaxia libre',
   ].join('\n');
   function cliRun(raw){
     const line=raw.trim(); if(!line) return;
@@ -930,11 +1082,31 @@
         break;
       }
       case 'rotate': {
-        if(a0==='off'){ if(!rotPaused) pauseBtn.click(); cliPrint('rotación en pausa'); }
-        else { const v=parseInt(a0,10); if(v>=5&&v<=60){ advRotate.value=v; advRotate.dispatchEvent(new Event('input')); if(rotPaused) pauseBtn.click(); cliPrint('rotación → '+v+' s'); } else cliPrint('uso: rotate <5-60|off>','err'); }
+        if(a0==='off'){ setAutoRotate(false); cliPrint('rotación en pausa'); }
+        else if(a0==='on'){ setAutoRotate(true); cliPrint('rotación reanudada'); }
+        else { const v=parseInt(a0,10); if(v>=5&&v<=60){ advRotate.value=v; advRotate.dispatchEvent(new Event('input')); setAutoRotate(true); cliPrint('rotación → '+v+' s'); } else cliPrint('uso: rotate <5-60|on|off>','err'); }
         break;
       }
       case 'clear': cliOut.innerHTML=''; break;
+      case 'draw': {
+        if(!a0 || a0==='free'){
+          draw.freeing=true; cv.style.cursor='crosshair';
+          cliPrint('MODO DIBUJO LIBRE · traza un trazo sobre el canvas — al soltar, los nodos lo forman.');
+          break;
+        }
+        if(a0==='list'){ cliPrint('constelaciones: '+drawList().join(' · ')+'  — uso: draw <nombre>'); break; }
+        if(a0==='clear' || a0==='galaxy' || a0==='off'){
+          drawClear(); cliPrint('CONSTELACIÓN LIBERADA · los nodos vuelven a la galaxia.'); break;
+        }
+        if(SHAPES[a0]){
+          if(rotPaused===false) setAutoRotate(false);      // pausa la rotación mientras dura el trazo
+          drawNamedShape(a0);
+          cliPrint('TRACING CONSTELLATION · '+SHAPES[a0].title+'…');
+        } else {
+          cliPrint('figura desconocida: '+a0+' — «draw list» para verlas','err');
+        }
+        break;
+      }
       default: cliPrint('comando desconocido: '+cmd+' — escribe «help»','err');
     }
   }
