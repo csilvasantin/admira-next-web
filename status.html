@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADmiraNeXT | Status — Constelación de la flota</title>
+  <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
+  <meta name="admiranext-version" content="AdmiraNext v26.07.07.1">
+  <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.admiranext.com/status" />
+  <meta property="og:title" content="ADmiraNeXT | Status" />
+  <meta property="og:description" content="Admira no tiene centro — es un universo que se expande." />
+  <style>
+    :root{
+      --bg:#03060c;
+      --bg2:#060b16;
+      --cyan:#22e6ff;
+      --cyan-dim:#0a7a8c;
+      --cyan-soft:rgba(34,230,255,.14);
+      --text:#dfeef3;
+      --text-dim:#7f97a3;
+      --grid:rgba(34,230,255,.06);
+      --card:rgba(6,14,24,.92);
+      --off:#3a4756;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      background:radial-gradient(ellipse at 30% 20%,#071324 0%,var(--bg) 60%,#01030a 100%);
+      color:var(--text);
+      font-family:'JetBrains Mono','Fira Code','Cascadia Code',ui-monospace,monospace;
+      overflow:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+    #galaxy{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+    #galaxy:active{cursor:grabbing}
+
+    /* Header */
+    .hdr{
+      position:fixed;top:0;left:0;right:0;z-index:20;
+      padding:16px 22px;
+      display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
+      background:linear-gradient(180deg,rgba(1,4,10,.86) 0%,rgba(1,4,10,0) 100%);
+      pointer-events:none;
+    }
+    .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.5);font-weight:700}
+    .hdr .brand b{color:#fff}
+    .hdr .tag{font-size:12px;color:var(--text-dim);letter-spacing:.02em}
+    .hdr .tag em{color:var(--text);font-style:normal}
+    .hdr .live{
+      margin-left:auto;font-size:11px;letter-spacing:.14em;color:var(--cyan);
+      border:1px solid var(--cyan-dim);border-radius:20px;padding:5px 12px;
+      background:rgba(34,230,255,.05);white-space:nowrap;
+    }
+    .hdr .live .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);margin-right:6px;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+    /* Footer legend */
+    .legend{
+      position:fixed;bottom:0;left:0;right:0;z-index:20;
+      padding:12px 22px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;
+      font-size:11px;color:var(--text-dim);letter-spacing:.04em;
+      background:linear-gradient(0deg,rgba(1,4,10,.8) 0%,rgba(1,4,10,0) 100%);
+      pointer-events:none;
+    }
+    .legend .k{display:flex;align-items:center;gap:7px}
+    .legend .s{width:9px;height:9px;border-radius:50%}
+    .legend .s.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+    .legend .s.off{background:var(--off)}
+    .legend .upd{margin-left:auto}
+    .legend a{color:var(--cyan-dim);pointer-events:auto;text-decoration:none}
+    .legend a:hover{color:var(--cyan)}
+
+    /* Node card (hover/click) */
+    #card{
+      position:fixed;z-index:30;min-width:240px;max-width:320px;
+      background:var(--card);border:1px solid var(--cyan-dim);border-radius:12px;
+      padding:14px 16px;backdrop-filter:blur(8px);
+      box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 24px rgba(34,230,255,.12);
+      display:none;pointer-events:none;
+    }
+    #card .cn{font-size:13px;color:var(--cyan);letter-spacing:.06em;font-weight:700;margin-bottom:2px;text-shadow:0 0 8px rgba(34,230,255,.4)}
+    #card .cp{font-size:11px;color:var(--text);margin-bottom:9px;word-break:break-word}
+    #card .cp b{color:var(--cyan)}
+    #card .row{font-size:11px;color:var(--text-dim);margin:3px 0;display:flex;gap:6px}
+    #card .row .lab{color:var(--cyan-dim);min-width:56px;flex:0 0 auto}
+    #card .row .val{color:var(--text);word-break:break-word}
+    #card .foco{margin-top:9px;padding-top:9px;border-top:1px solid rgba(34,230,255,.14);font-size:11px;color:var(--text);line-height:1.5;font-style:italic}
+    #card .stat{display:inline-block;font-size:9px;letter-spacing:.16em;padding:2px 8px;border-radius:10px;margin-top:9px}
+    #card .stat.on{color:var(--cyan);border:1px solid var(--cyan-dim);background:rgba(34,230,255,.06)}
+    #card .stat.off{color:var(--text-dim);border:1px solid var(--off)}
+
+    @media (max-width:640px){
+      .hdr{padding:12px 14px;gap:8px}
+      .hdr .tag{width:100%;font-size:11px}
+      .hdr .live{margin-left:0}
+      .legend{padding:10px 14px;font-size:10px;gap:12px}
+      #card{max-width:76vw}
+    }
+    .noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--text-dim)}
+  </style>
+</head>
+<body>
+  <canvas id="galaxy"></canvas>
+
+  <header class="hdr">
+    <span class="brand">ADmira<b>NeXT</b> · STATUS</span>
+    <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
+    <span class="live"><span class="dot"></span><span id="liveCount">—</span> nodos vivos</span>
+  </header>
+
+  <div class="legend">
+    <span class="k"><span class="s on"></span> vivo (señal &lt; 5 min)</span>
+    <span class="k"><span class="s off"></span> en reposo</span>
+    <span class="k">malla de constelación · arrastra para orbitar</span>
+    <span class="upd">actualiza cada 20s · <span id="lastUpd">—</span></span>
+  </div>
+
+  <div id="card"></div>
+
+  <noscript><div class="noscript">Activa JavaScript para ver la constelación en vivo de la flota AdmiraNeXT.</div></noscript>
+
+  <script>
+  /* ============================================================
+     ADmiraNeXT /status — constelación de la flota (sin centro)
+     Datos en vivo:
+       presencia: admira-telegram worker /api/presence
+       roster:    admira-fleet worker /machines
+     ============================================================ */
+
+  // -------- MAPA DE RESPONSABLES (fuente de verdad de hoy) --------
+  // Editable aquí. TODO: en el futuro puede leerse de admira-fleet.
+  const PROJECTS = {
+    'macbookaircrema':   'www.admira.live',
+    'crema':             'www.admira.live',
+    'dgxspark':          'www.xpaceOS.com',
+    'dgx':               'www.xpaceOS.com',
+    'thinkstationpgx':   'www.clearchannel.tv',
+    'thinkstation':      'www.clearchannel.tv',
+    'macbookairrosa':    'pixeria.com',
+    'rosa':              'pixeria.com',
+    'macbookpronegro14': 'www.admiranext.com · Coordinación',
+    'negro14':           'www.admiranext.com · Coordinación',
+    'macbookpro16':      '(sin asignar)',
+    'asuszenbook':       '(sin asignar)',
+    'zenbook':           '(sin asignar)',
+    'macmini':           '(sin asignar)',
+  };
+
+  const PRESENCE_URL = 'https://admira-telegram.csilvasantin.workers.dev/api/presence';
+  const FLEET_URL    = 'https://admira-fleet.csilvasantin.workers.dev/machines';
+  const ONLINE_SEC   = 300;   // vivo si updated < 5 min
+  const REFRESH_MS   = 20000;
+
+  // ---------- util ----------
+  const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  function projectFor(machine){
+    const n = norm(machine);
+    if (PROJECTS[n]) return PROJECTS[n];
+    for (const k in PROJECTS){ if (n.includes(k) || k.includes(n)) return PROJECTS[k]; }
+    return '(sin asignar)';
+  }
+  function ago(sec){
+    if (!sec) return '—';
+    const d = Math.max(0, Math.floor(Date.now()/1000 - sec));
+    if (d < 60) return d+'s';
+    if (d < 3600) return Math.floor(d/60)+'m';
+    if (d < 86400) return Math.floor(d/3600)+'h';
+    return Math.floor(d/86400)+'d';
+  }
+
+  // ---------- canvas / galaxy ----------
+  const cv = document.getElementById('galaxy');
+  const ctx = cv.getContext('2d');
+  let W=0,H=0,DPR=1;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio||1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W*DPR; cv.height = H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', resize);
+
+  // starfield (deep background)
+  const stars = [];
+  function seedStars(){
+    stars.length = 0;
+    const n = Math.floor((W*H)/9000);
+    for (let i=0;i<n;i++){
+      stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.1+.2,tw:Math.random()*Math.PI*2,sp:.4+Math.random()});
+    }
+  }
+
+  // nodes: force-directed-ish drift, NO center
+  let nodes = [];        // {machine, personas[], project, online, updated, foco, x,y,vx,vy,ox,oy, r, phase}
+  let hover = null;
+  // camera drift (parallax) — a slow, ownerless orbit of the whole universe
+  const cam = {x:0,y:0,vx:0,vy:0,drag:false,px:0,py:0,ux:0,uy:0};
+
+  function layoutNodes(list){
+    // Preserve positions for machines already placed; place new ones on a wide ring
+    const prev = {}; nodes.forEach(n=>prev[n.machine]=n);
+    const cx=W/2, cy=H/2;
+    const R = Math.min(W,H)*0.34;
+    nodes = list.map((m,i)=>{
+      const p = prev[m.machine];
+      const ang = (i/list.length)*Math.PI*2 + (i*0.618);
+      const rr = R*(0.55+0.6*((i*0.31)%1));
+      return {
+        ...m,
+        x: p? p.x : cx + Math.cos(ang)*rr + (Math.random()-.5)*40,
+        y: p? p.y : cy + Math.sin(ang)*rr + (Math.random()-.5)*40,
+        vx: p? p.vx : 0, vy: p? p.vy : 0,
+        phase: p? p.phase : Math.random()*Math.PI*2,
+        r: 0, // computed from activity
+      };
+    });
+  }
+
+  function physics(dt){
+    const cx=W/2, cy=H/2;
+    for (let i=0;i<nodes.length;i++){
+      const a=nodes[i];
+      // gentle repulsion between all nodes (keeps the mesh spread, no collapse)
+      for (let j=i+1;j<nodes.length;j++){
+        const b=nodes[j];
+        let dx=a.x-b.x, dy=a.y-b.y;
+        let d2=dx*dx+dy*dy; if(d2<1)d2=1;
+        const d=Math.sqrt(d2);
+        const min=Math.min(W,H)*0.19;
+        if (d<min){
+          const f=(min-d)/min*0.9;
+          const ux=dx/d, uy=dy/d;
+          a.vx+=ux*f; a.vy+=uy*f;
+          b.vx-=ux*f; b.vy-=uy*f;
+        }
+      }
+      // very soft containment so the universe stays on screen (not a hub — a boundary)
+      const dcx=a.x-cx, dcy=a.y-cy;
+      const dist=Math.hypot(dcx,dcy)||1;
+      const maxR=Math.min(W,H)*0.42;
+      if (dist>maxR){ const f=(dist-maxR)/maxR*0.6; a.vx-=dcx/dist*f; a.vy-=dcy/dist*f; }
+      // continuous slow drift (each star has its own wander)
+      a.phase += dt*0.0004;
+      a.vx += Math.cos(a.phase*1.3+ i)*0.012;
+      a.vy += Math.sin(a.phase      + i)*0.012;
+      // integrate + damping
+      a.vx*=0.90; a.vy*=0.90;
+      a.x+=a.vx; a.y+=a.vy;
+    }
+  }
+
+  // mesh: connect each node to its 2-3 nearest neighbours (constellation, not spokes)
+  function meshEdges(){
+    const edges=[];
+    for (let i=0;i<nodes.length;i++){
+      const a=nodes[i];
+      const ds=[];
+      for (let j=0;j<nodes.length;j++){ if(i===j)continue;
+        const b=nodes[j]; ds.push([Math.hypot(a.x-b.x,a.y-b.y), j]); }
+      ds.sort((p,q)=>p[0]-q[0]);
+      const k=Math.min(3, ds.length);
+      for (let t=0;t<k;t++){ const j=ds[t][1]; if(i<j) edges.push([i,j,ds[t][0]]); else edges.push([j,i,ds[t][0]]); }
+    }
+    // dedup
+    const seen=new Set(), out=[];
+    for(const e of edges){ const key=e[0]+'-'+e[1]; if(!seen.has(key)){seen.add(key);out.push(e);} }
+    return out;
+  }
+
+  let last=performance.now();
+  let paused=false;
+  document.addEventListener('visibilitychange',()=>{ paused=document.hidden; if(!paused){last=performance.now();requestAnimationFrame(frame);} });
+
+  function frame(now){
+    if(paused) return;
+    const dt=Math.min(50, now-last); last=now;
+    // camera inertia
+    cam.vx*=0.92; cam.vy*=0.92; cam.x+=cam.vx; cam.y+=cam.vy;
+
+    ctx.clearRect(0,0,W,H);
+    // background stars
+    ctx.save();
+    for(const s of stars){
+      s.tw += dt*0.002*s.sp;
+      const a = 0.25+0.55*(0.5+0.5*Math.sin(s.tw));
+      const px = (s.x*W + cam.x*0.3)% W, py=(s.y*H + cam.y*0.3)%H;
+      ctx.globalAlpha=a; ctx.fillStyle='#bfe9f2';
+      ctx.beginPath(); ctx.arc((px+W)%W,(py+H)%H,s.r,0,7); ctx.fill();
+    }
+    ctx.restore();
+
+    physics(dt);
+    const edges=meshEdges();
+
+    // draw mesh
+    ctx.save();
+    ctx.translate(cam.x,cam.y);
+    const maxD=Math.min(W,H)*0.5;
+    for(const [i,j,d] of edges){
+      const a=nodes[i],b=nodes[j];
+      const alpha=Math.max(0.03, 0.28*(1-d/maxD));
+      const liveBoost=(a.online||b.online)?1.6:1;
+      ctx.strokeStyle=`rgba(34,230,255,${Math.min(.4,alpha*liveBoost)})`;
+      ctx.lineWidth=(a.online&&b.online)?1.1:0.6;
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    }
+
+    // draw nodes
+    const t=now*0.001;
+    for(const n of nodes){
+      const base = n.online ? 7+Math.min(6,(n.personas.length-1)*2) : 5;
+      const pulse = n.online ? (0.5+0.5*Math.sin(t*2+n.phase)) : 0;
+      const r = base + pulse*2;
+      n.r=r; n._sx=n.x+cam.x; n._sy=n.y+cam.y;
+      // halo
+      const hg=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,r*4.5);
+      if(n.online){ hg.addColorStop(0,`rgba(34,230,255,${0.32+pulse*0.18})`); hg.addColorStop(1,'rgba(34,230,255,0)'); }
+      else { hg.addColorStop(0,'rgba(120,140,160,0.10)'); hg.addColorStop(1,'rgba(120,140,160,0)'); }
+      ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(n.x,n.y,r*4.5,0,7); ctx.fill();
+      // core
+      ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7);
+      ctx.fillStyle = n.online ? '#eafcff' : '#4a5866';
+      ctx.shadowColor = n.online ? 'rgba(34,230,255,.9)' : 'transparent';
+      ctx.shadowBlur = n.online ? 14+pulse*10 : 0;
+      ctx.fill(); ctx.shadowBlur=0;
+      if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle='#22e6ff'; ctx.fill(); }
+      // label
+      const isHover = hover && hover.machine===n.machine;
+      ctx.font = (isHover?'700 ':'')+'11px JetBrains Mono, monospace';
+      ctx.textAlign='center';
+      ctx.fillStyle = n.online ? (isHover?'#eafcff':'#bfe9f2') : '#6f8090';
+      ctx.shadowColor=n.online?'rgba(34,230,255,.5)':'transparent'; ctx.shadowBlur=n.online?6:0;
+      ctx.fillText(n.machine, n.x, n.y+r+15);
+      ctx.shadowBlur=0;
+      ctx.font='9px JetBrains Mono, monospace';
+      ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
+      ctx.fillText(n.project, n.x, n.y+r+27);
+    }
+    ctx.restore();
+
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- interaction ----------
+  const card=document.getElementById('card');
+  function pickNode(mx,my){
+    let best=null,bd=1e9;
+    for(const n of nodes){
+      const d=Math.hypot((n._sx||n.x)-mx,(n._sy||n.y)-my);
+      if(d< (n.r+22) && d<bd){bd=d;best=n;}
+    }
+    return best;
+  }
+  function showCard(n,mx,my){
+    if(!n){card.style.display='none';return;}
+    const personas = n.personas.map(p=>`${p.persona}<span style="color:var(--cyan-dim)">·${p.runtime}</span>`).join(' &nbsp; ');
+    const foco = n.foco ? `<div class="foco">“${n.foco}”</div>` : '';
+    card.innerHTML =
+      `<div class="cn">${n.machine}</div>`+
+      `<div class="cp">proyecto · <b>${n.project}</b></div>`+
+      `<div class="row"><span class="lab">quién</span><span class="val">${personas||'—'}</span></div>`+
+      `<div class="row"><span class="lab">modo</span><span class="val">${n.mode||'—'}</span></div>`+
+      `<div class="row"><span class="lab">plataforma</span><span class="val">${n.platform||'—'}</span></div>`+
+      `<div class="row"><span class="lab">señal</span><span class="val">hace ${ago(n.updated)}</span></div>`+
+      foco+
+      `<span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>`;
+    card.style.display='block';
+    const cw=card.offsetWidth, ch=card.offsetHeight;
+    let x=mx+18, y=my+18;
+    if(x+cw>W-10) x=mx-cw-18; if(y+ch>H-10) y=my-ch-18;
+    card.style.left=Math.max(8,x)+'px'; card.style.top=Math.max(8,y)+'px';
+  }
+
+  cv.addEventListener('mousemove',e=>{
+    const r=cv.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top;
+    if(cam.drag){ cam.vx += (mx-cam.px)*0.25; cam.vy += (my-cam.py)*0.25; cam.px=mx; cam.py=my; card.style.display='none'; hover=null; return; }
+    hover=pickNode(mx,my);
+    cv.style.cursor = hover ? 'pointer' : 'grab';
+    if(hover) showCard(hover,mx,my); else card.style.display='none';
+  });
+  cv.addEventListener('mousedown',e=>{ const r=cv.getBoundingClientRect(); cam.px=e.clientX-r.left; cam.py=e.clientY-r.top; if(!pickNode(cam.px,cam.py)){cam.drag=true;} });
+  window.addEventListener('mouseup',()=>{cam.drag=false;});
+  cv.addEventListener('mouseleave',()=>{card.style.display='none';hover=null;});
+  // touch
+  cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;const n=pickNode(mx,my);if(n){showCard(n,mx,my);}else{cam.drag=true;cam.px=mx;cam.py=my;}},{passive:true});
+  cv.addEventListener('touchmove',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;if(cam.drag){cam.vx+=(mx-cam.px)*0.2;cam.vy+=(my-cam.py)*0.2;cam.px=mx;cam.py=my;}},{passive:true});
+  cv.addEventListener('touchend',()=>{cam.drag=false;});
+
+  // ---------- data ----------
+  async function jget(url){
+    const r=await fetch(url,{cache:'no-store'});
+    if(!r.ok) throw new Error(url+' '+r.status);
+    return r.json();
+  }
+
+  async function load(){
+    let pres=null, fleet=null;
+    try{ pres = await jget(PRESENCE_URL); }catch(e){ console.warn('presence',e); }
+    try{ fleet = await jget(FLEET_URL); }catch(e){ console.warn('fleet',e); }
+
+    const now = Date.now()/1000;
+    const byMachine = {}; // normMachine -> {machine, personas[], updated, online, foco, mode, platform}
+
+    // roster first: every registered machine gets a node (even if quiet)
+    if(fleet && fleet.machines){
+      for(const m of fleet.machines){
+        const key=norm(m.name);
+        byMachine[key] = { machine:m.name, personas:[], updated:m.lastSeen||0, online:false, foco:'', mode:'', platform:m.platform||'' };
+      }
+    }
+    // overlay presence (the live pulse: personas, focus, freshness)
+    if(pres && pres.presence){
+      for(const p of pres.presence){
+        const key=norm(p.machine);
+        let e=byMachine[key];
+        if(!e){ e={machine:p.machine,personas:[],updated:0,online:false,foco:'',mode:'',platform:''}; byMachine[key]=e; }
+        const fresh=(now - (p.updated||0)) < ONLINE_SEC;
+        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh});
+        if((p.updated||0) > e.updated) e.updated=p.updated;
+        if(fresh) e.online=true;
+        // pick the freshest non-empty focus as the machine's micro-foco
+        if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
+        if(fresh && p.mode) e.mode=p.mode;
+      }
+    }
+
+    const list = Object.values(byMachine)
+      .map(e=>({ ...e, project:projectFor(e.machine),
+                 // keep only fresh personas for display; if none fresh, show most recent one
+                 personas: (e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)) }))
+      .sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
+
+    layoutNodes(list);
+
+    const liveN = list.filter(n=>n.online).length;
+    document.getElementById('liveCount').textContent = liveN;
+    document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+
+  // ---------- boot ----------
+  resize(); seedStars();
+  window.addEventListener('resize',()=>{seedStars();});
+  load();
+  setInterval(load, REFRESH_MS);
+  requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
