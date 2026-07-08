@@ -1185,6 +1185,12 @@
         ctx.fillStyle='rgba(120,200,220,.6)';
         ctx.fillText(parts.join(' · '), n.x, n.y+r+(isSat?31:37));
       }
+      // Bajo cada ORDENADOR online (sin `since`, con cpu): uso de CPU del equipo.
+      else if(!dimNode && n.online && !n.since && +n.cpu>0){
+        ctx.font='8px JetBrains Mono, monospace';
+        ctx.fillStyle='rgba(120,200,220,.55)';
+        ctx.fillText('cpu '+Math.round(n.cpu)+'%', n.x, n.y+r+(isSat?31:37));
+      }
       // FUERA DE CARRIL (ámbar): asignación de Carlos ≠ misión reportada
       if(n.offRail && !dimNode){
         ctx.fillStyle='rgba(255,181,69,.9)';
@@ -1310,7 +1316,11 @@
     // DEDICADO: solo los agentes llevan `since` (tiempo activo continuo observado
     // por el panel; el feed no trae inicio de tarea). Va junto a tokens, bajo la tarea.
     const dedicRow = n.since
-      ? `<div class="row"><span class="lab">dedicado</span><span class="val">${fmtDur((WORLD.serverNow||Math.floor(Date.now()/1000))-n.since)} activo</span></div>`
+      ? `<div class="row"><span class="lab">dedicado</span><span class="val">${fmtDur((WORLD.serverNow||Math.floor(Date.now()/1000))-n.since)}${n.sinceExact?'':' · ~visto'}</span></div>`
+      : '';
+    // CPU del EQUIPO (0–100). Solo si el feed lo trae (>0).
+    const cpuRow = (+n.cpu>0)
+      ? `<div class="row"><span class="lab">cpu equipo</span><span class="val">${Math.round(n.cpu)}%</span></div>`
       : '';
     // Badge FUERA DE CARRIL (ámbar): asignación ≠ misión reportada (canónicas)
     const railBadge = n.offRail ? `<span class="stat rail">⚠ FUERA DE CARRIL</span>` : '';
@@ -1334,6 +1344,7 @@
       `<div class="cn">${n.label}</div>`+ rows +
       `<div class="row"><span class="lab">señal</span><span class="val">hace ${ago(n.updated)}</span></div>`+
       dedicRow+
+      cpuRow+
       tokensRow+
       vidaRows+
       foco+
@@ -1492,7 +1503,7 @@
           // un equipo que late en el roster (DGX, ThinkStation…) cuenta como VIVO
           online:isFresh(m.lastSeen), foco:'', mode:'', platform:m.platform||'',
           decisions:0, // proxy de VOLUMEN de trabajo (ver nodeVolume).
-          tokens:0, reqs:0, // consumo real (se llena si el feed de presencia lo trae)
+          tokens:0, reqs:0, cpu:0, // consumo real (se llena si el feed de presencia lo trae)
         };
       }
     }
@@ -1520,13 +1531,15 @@
         const pclean=stripOwner(p.machine);
         const key=resolveMachineKey(pclean);
         let e=byMachine[key];
-        if(!e){ e={machine:pclean,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0,tokens:0,reqs:0}; byMachine[key]=e; }
+        if(!e){ e={machine:pclean,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0,tokens:0,reqs:0,cpu:0}; byMachine[key]=e; }
         const fresh=isFresh(p.updated);
-        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0,project:p.project||''});
+        // since (arranque de sesión, EXACTO del feed) y cpu (de la máquina) por agente.
+        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0,project:p.project||'',since:+p.since||0,cpu:+p.cpu||0});
         if((p.updated||0) > e.updated) e.updated=p.updated;
         e.decisions = (e.decisions||0) + (+p.decisions||0); // suma de decisiones de sus agentes (proxy de volumen)
         e.tokens = (e.tokens||0) + (+p.tokens||0);           // tokens consumidos por sus agentes (real, si el feed lo trae)
         e.reqs   = (e.reqs||0)   + (+p.reqs||0);
+        if(fresh && +p.cpu>0) e.cpu = Math.max(e.cpu||0, +p.cpu||0);  // CPU del EQUIPO (misma para sus agentes)
         if(fresh) e.online=true;
         if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
         if(fresh && p.mode) e.mode=p.mode;
@@ -1600,9 +1613,12 @@
       if(p.focus && (!e._focoAt || (p.updated||0)>e._focoAt)){ e.foco=p.focus.slice(0,160); e._focoAt=p.updated||0; }
       if(fresh && p.mode) e.mode=p.mode;
       if(p.project && (!e._projAt || (p.updated||0)>e._projAt)){ e.repProject=p.project; e._projAt=p.updated||0; }
+      if(+p.since>0) e.sinceFeed = e.sinceFeed ? Math.min(e.sinceFeed, +p.since) : +p.since;  // arranque más antiguo
+      if(+p.cpu>0) e.cpu = Math.max(e.cpu||0, +p.cpu||0);
     }
     const out = Object.values(by).map(e=>({...e, machines:[...e.machinesSet],
-        since:(WORLD.activeSince||{})[norm(e.persona)+'|'+norm(e.runtime||'')]||0,
+        since:(e.sinceFeed>0 ? e.sinceFeed : (WORLD.activeSince||{})[norm(e.persona)+'|'+norm(e.runtime||'')]||0),
+        sinceExact:(e.sinceFeed>0),
         assignment:(WORLD.asgFor?WORLD.asgFor('agent', e.persona):null)}));
     // JERARQUÍA (satélites): sub<persona>/infra<persona> orbitan a <persona>.
     // La convención de nombres YA existe (morfeo→submorfeo/inframorfeo). Se
@@ -1657,7 +1673,7 @@
         id:mid, label:m.machine, sub:m.project||'', kindFor:'all-machine',
         online:m.online, updated:m.updated, foco:m.foco||'', mode:m.mode||'',
         platform:m.platform||'', os:m.os, personas:ags, agentNames:ags.map(a=>a.persona),
-        decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0,
+        decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0, cpu:m.cpu||0,
         count:ags.length, machines:[m.machine], mission:m.project||'',
       });
       // Los agentes SOLO orbitan si el ordenador está conectado (online). Si el
@@ -1673,7 +1689,8 @@
           sub:a.runtime||'', kindFor:'all-agent', parentId:mid, tier:'orb',
           online:!!a.fresh, updated:a.updated||0, foco:a.focus||'', mode:a.mode||'',
           proj, decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
-          since:(WORLD.activeSince||{})[norm(a.persona)+'|'+norm(a.runtime||'')]||0,
+          since:(+a.since>0 ? +a.since : (WORLD.activeSince||{})[norm(a.persona)+'|'+norm(a.runtime||'')]||0),
+          sinceExact:(+a.since>0), cpu:m.cpu||0,
           machines:[m.machine], persona:a.persona, runtime:a.runtime,
         });
       }
@@ -1802,7 +1819,7 @@
         id:'m:'+norm(m.machine), label:m.machine, sub:m.project,
         personas:m.personas, machines:[m.machine], online:m.online, updated:m.updated,
         foco:m.foco, mode:m.mode, platform:m.platform, os:m.os, count:m.personas.length,
-        decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0,
+        decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0, cpu:m.cpu||0,
         assignment:m.assignment||null, repProject:m.repProject||m.project||'',
         offRail: offRailFor(m.assignment, m.repProject||m.project), kindFor:'machine',
       }));
