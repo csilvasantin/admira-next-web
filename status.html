@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.08.r10">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.08.r11">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -357,7 +357,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.08.r10</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.08.r11</span></span>
   </div>
 
   <div id="card"></div>
@@ -387,7 +387,7 @@
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión (movida desde la barra superior) -->
-    <div class="pf-ver" id="verRail">v.2026.07.08.r10</div>
+    <div class="pf-ver" id="verRail">v.2026.07.08.r11</div>
   </aside>
 
   <!-- BARRA DERECHA — AVANZADO -->
@@ -408,6 +408,13 @@
         <span class="valnum" id="advRotateVal">20 s</span>
       </div>
       <label class="pf-check" style="margin-top:9px"><input type="checkbox" id="advAutoRotate" checked> Rotación automática</label>
+    </div>
+    <div class="pf-field">
+      <label for="advOrbit">Velocidad de órbita (×)</label>
+      <div class="rowval">
+        <input type="range" id="advOrbit" min="0" max="2" step="0.1" value="0.5">
+        <span class="valnum" id="advOrbitVal">×0,5</span>
+      </div>
     </div>
     <div class="pf-field">
       <label>Filtros</label>
@@ -590,6 +597,35 @@
   let FLEET_BPM = 60;   // BPM medio de la flota viva (lo actualiza el render; guía el audio)
   let FOCUS_MACHINE = null;  // norm(nombre) del ordenador con foco en la vista TODO, o null
   let VIEW_ZOOM = 1;         // zoom efectivo (agranda nodos/órbitas al enfocar un ordenador)
+  // ── r11: INTERACCIÓN DE ÓRBITAS ──────────────────────────────────────────
+  // Velocidad orbital global (slider AVANZADO): ×0=paradas … ×2. Default ×0.5
+  // («a veces va muy rápido» — Carlos). Persistido en localStorage.
+  const ORBIT_LS_KEY='admiranext-status-orbit-speed';
+  let ORBIT_SPEED=(()=>{ try{ const v=parseFloat(localStorage.getItem(ORBIT_LS_KEY)); return (isNaN(v)||v<0||v>2)?0.5:v; }catch(e){ return 0.5; } })();
+  // Zoom de RUEDA: multiplica al zoom de foco. ZSM = zoom suavizado (render),
+  // evita saltos y hace de histéresis natural para el nivel de detalle.
+  let WHEEL_ZOOM=1, ZSM=1;
+  function effZoom(){ return Math.min(3.4, VIEW_ZOOM*WHEEL_ZOOM); }
+  // Pausa de órbita por click: id del nodo raíz pausado; su subárbol congela
+  // con él (orbita congelado). FROZEN se recalcula en physics() cada frame.
+  let ORBIT_PAUSED=null, FROZEN=new Set();
+  function pausedSet(){
+    const s=new Set(); if(!ORBIT_PAUSED) return s;
+    s.add(ORBIT_PAUSED);
+    let grew=true;
+    while(grew){ grew=false; for(const n of nodes){ if(n.parentId && s.has(n.parentId) && !s.has(n.id)){ s.add(n.id); grew=true; } } }
+    return s;
+  }
+  // Nivel de detalle por zoom (histéresis: no parpadea en el borde del umbral).
+  //   1 lejos: solo nombre · 2 medio: + proyecto y ⏱ tiempo·app · 3 cerca: + tokens
+  let LOD=2;
+  function lodUpdate(z){
+    const T12=0.85, T23=1.45, HYS=0.07;
+    if(z>=T23+HYS) LOD=3;
+    else if(z<=T12-HYS) LOD=1;
+    else if(z>=T12+HYS && z<=T23-HYS) LOD=2;
+    return LOD;
+  }
 
   // ---------- util ----------
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -799,6 +835,9 @@
   }
 
   function physics(dt){
+    // r11: zoom suavizado hacia el objetivo (rueda × foco) + órbitas congeladas
+    ZSM += (effZoom()-ZSM)*Math.min(1, dt*0.008);
+    FROZEN = pausedSet();
     const cx=W/2, cy=H/2;
     // --- modo DECAEDRO 3D: rota el poliedro y ancla nodos a sus vértices ---
     if(DRAW_ACTIVE && DRAW_MODE==='poly3d' && POLY3D){
@@ -859,10 +898,13 @@
         const par=byId[a.parentId];
         // Órbitas ANIDADAS: principal (agente↔ordenador) amplia; sub (↔agente)
         // media; infra (↔sub) pequeña y cercana. Cada capa más ceñida a su padre.
-        const spd  = a.tier==='infra' ? 0.00110 : a.tier==='sub' ? 0.00085 : 0.00060;
-        a._orb = (a._orb||0) + dt*spd;
+        // r11: × ORBIT_SPEED (slider AVANZADO) y congelado si está en pausa
+        // por click (el subárbol orbita congelado: sigue amarrado a su punto,
+        // que solo se mueve si se mueve el padre).
+        const spd  = (a.tier==='infra' ? 0.00110 : a.tier==='sub' ? 0.00085 : 0.00060) * ORBIT_SPEED;
+        if(!FROZEN.has(a.id)) a._orb = (a._orb||0) + dt*spd;
         const rF   = a.tier==='infra' ? 0.034 : a.tier==='sub' ? 0.058 : 0.115;
-        const rSat = Math.min(W,H) * rF * VIEW_ZOOM;
+        const rSat = Math.min(W,H) * rF * ZSM;
         const tx = par.x + Math.cos(a._orb)*rSat;
         const ty = par.y + Math.sin(a._orb)*rSat;
         // Si quedó lejos del padre (cambio de vista, arrastre), reengánchalo cerca
@@ -879,6 +921,9 @@
         a.vx*=0.80; a.vy*=0.80; a.x+=a.vx; a.y+=a.vy;
         continue;
       }
+      // r11: PRINCIPAL pausado por click → se frena y queda quieto (legible);
+      // sus satélites congelados lo acompañan por el muelle orbital.
+      if(FROZEN.has(a.id)){ a.vx*=0.82; a.vy*=0.82; a.x+=a.vx; a.y+=a.vy; continue; }
       // --- PRINCIPAL: repulsión (solo contra otros principales) + clamp + deriva.
       for (let j=i+1;j<nodes.length;j++){
         const b=nodes[j];
@@ -994,8 +1039,8 @@
     // Cualquier satélite (sub/infra en vista AGENTE, o agente-en-máquina en TODO)
     // es más pequeño que su principal.
     if(n.parentId) base *= (n.tier==='infra' ? 0.42 : n.tier==='sub' ? 0.56 : 0.72);
-    base *= VIEW_ZOOM;   // zoom efectivo al enfocar un ordenador
-    return n.online ? base : Math.max((n.parentId?3:R_MIN-1)*VIEW_ZOOM, base*0.7);
+    base *= ZSM;   // zoom efectivo suavizado (foco × rueda) — el nodo CRECE al acercarse
+    return n.online ? base : Math.max((n.parentId?3:R_MIN-1)*ZSM, base*0.7);
   }
 
   let last=performance.now();
@@ -1102,14 +1147,19 @@
       for(const n of nodes){
         if(!n.parentId) continue; const par=byId[n.parentId]; if(!par) continue;
         const live = n.online || par.online;
-        ctx.strokeStyle = live ? 'rgba(34,230,255,.30)' : 'rgba(120,140,160,.16)';
-        ctx.lineWidth = 0.7; ctx.setLineDash([2,4]);
+        // r11: órbita PAUSADA (click) → hilo sólido y más presente; en marcha → punteado
+        const frz = FROZEN.has(n.id);
+        ctx.strokeStyle = frz ? 'rgba(34,230,255,.55)' : (live ? 'rgba(34,230,255,.30)' : 'rgba(120,140,160,.16)');
+        ctx.lineWidth = frz ? 1.1 : 0.7; ctx.setLineDash(frz ? [] : [2,4]);
         ctx.beginPath(); ctx.moveTo(par.x,par.y); ctx.lineTo(n.x,n.y); ctx.stroke();
       }
       ctx.setLineDash([]);
     }
 
     const dtSec = dt*0.001;
+    // r11: nivel de detalle según zoom suavizado + factor de tipografía (crece al acercarse)
+    lodUpdate(ZSM);
+    const fz = Math.max(0.9, Math.min(1.7, ZSM));
     let bpmSum=0, bpmN=0;   // para el audio ambiente (BPM medio de la flota viva)
     for(const n of nodes){
       // en modo draw, los nodos sobrantes quedan tenues (orbitando)
@@ -1160,50 +1210,61 @@
       ctx.shadowBlur = n.online ? 12+env*14 : 0;
       ctx.fill(); ctx.shadowBlur=0;
       if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle='#22e6ff'; ctx.fill(); }
+      // r11: anillo de PAUSA sobre el nodo raíz pausado (glow leve, órbita legible)
+      if(!DRAW_ACTIVE && ORBIT_PAUSED===n.id){
+        ctx.beginPath(); ctx.arc(n.x,n.y,r+5,0,7);
+        ctx.strokeStyle='rgba(34,230,255,.55)'; ctx.lineWidth=1.2;
+        ctx.shadowColor='rgba(34,230,255,.5)'; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+      }
       const isHover = hover && hover.id===n.id;
       if(typeof SHOW_LABELS!=='undefined' && !SHOW_LABELS && !isHover){ continue; }
+      // r11: nivel de detalle efectivo — al pasar el ratón, detalle completo.
+      const lvl = isHover ? 3 : LOD;
       // Satélites: etiqueta más pequeña (jerarquía visible) y pegada al nodo.
+      // La tipografía y el interlineado CRECEN suave con el zoom (factor fz).
       const isSat = !!n.parentId;
-      const lblPx = isSat ? 9 : 11;
+      const lblPx = Math.round((isSat ? 9 : 11)*fz);
       ctx.font = (isHover?'700 ':'')+lblPx+'px JetBrains Mono, monospace';
       ctx.textAlign='center';
       ctx.fillStyle = n.online ? (isHover?'#eafcff':'#bfe9f2') : '#6f8090';
       ctx.shadowColor=n.online?'rgba(34,230,255,.5)':'transparent'; ctx.shadowBlur=n.online?6:0;
-      ctx.fillText(n.label, n.x, n.y+r+(isSat?11:15));
+      ctx.fillText(n.label, n.x, n.y+r+(isSat?11:15)*fz);
       ctx.shadowBlur=0;
-      ctx.font='9px JetBrains Mono, monospace';
+      ctx.font=Math.round(9*fz)+'px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
-      // Vista TODO: junto al agente, SIEMPRE su proyecto principal (orden de Carlos).
-      if(n.proj && !dimNode){
+      // Vista TODO: junto al agente, su proyecto principal (orden de Carlos) —
+      // a partir del nivel MEDIO (de lejos, solo el nombre).
+      if(lvl>=2 && n.proj && !dimNode){
         const clean = n.proj.replace(/^www\./,'');
         const pj = clean.length>22 ? clean.slice(0,21)+'…' : clean;
-        ctx.fillText(pj, n.x, n.y+r+(isSat?21:27));
-      } else if(n.sub && !dimNode && (!isSat || isHover)){
+        ctx.fillText(pj, n.x, n.y+r+(isSat?21:27)*fz);
+      } else if(lvl>=2 && n.sub && !dimNode && (!isSat || isHover)){
         // El runtime secundario de un satélite solo al pasar el ratón (menos ruido).
-        ctx.fillText(n.sub, n.x, n.y+r+(isSat?21:27));
+        ctx.fillText(n.sub, n.x, n.y+r+(isSat?21:27)*fz);
       }
-      // Bajo cada AGENTE (tiene `since`): tiempo dedicado + tokens consumidos.
-      if(!dimNode && n.online && n.since){
+      // Bajo cada AGENTE (tiene `since`): ⏱ tiempo · APP gestora (nivel MEDIO);
+      // acercándose (nivel CERCA) se despliega la CAPA DE TOKENS consumidos —
+      // para TODAS las capas; sin dato → «— tok» (la capa no se oculta).
+      if(lvl>=2 && !dimNode && n.online && n.since){
         const now=(WORLD.serverNow||Math.floor(Date.now()/1000));
-        // ⏱ tiempo · APP que gestiona al agente (runtime normalizado) · tokens.
         const parts=['⏱ '+fmtDur(now-n.since), runtimeApp(n.runtime||n.sub)];
-        // los tokens sólo en principales o con zoom → no ensancha órbitas densas.
-        if(+n.tokens>0 && (!isSat || VIEW_ZOOM>1.3)) parts.push(fmtTokens(n.tokens)+' tok');
-        ctx.font='8px JetBrains Mono, monospace';
+        if(lvl>=3) parts.push((+n.tokens>0 ? fmtTokens(n.tokens) : '—')+' tok');
+        ctx.font=Math.round(8*fz)+'px JetBrains Mono, monospace';
         ctx.fillStyle='rgba(120,200,220,.6)';
-        ctx.fillText(parts.join(' · '), n.x, n.y+r+(isSat?31:37));
+        ctx.fillText(parts.join(' · '), n.x, n.y+r+(isSat?31:37)*fz);
       }
       // Bajo cada ORDENADOR online (sin `since`, con cpu): uso de CPU del equipo.
-      else if(!dimNode && n.online && !n.since && +n.cpu>0){
-        ctx.font='8px JetBrains Mono, monospace';
+      else if(lvl>=2 && !dimNode && n.online && !n.since && +n.cpu>0){
+        ctx.font=Math.round(8*fz)+'px JetBrains Mono, monospace';
         ctx.fillStyle='rgba(120,200,220,.55)';
-        ctx.fillText('cpu '+Math.round(n.cpu)+'%', n.x, n.y+r+(isSat?31:37));
+        ctx.fillText('cpu '+Math.round(n.cpu)+'%', n.x, n.y+r+(isSat?31:37)*fz);
       }
       // FUERA DE CARRIL (ámbar): asignación de Carlos ≠ misión reportada
+      // (alerta: visible en TODOS los niveles de zoom)
       if(n.offRail && !dimNode){
         ctx.fillStyle='rgba(255,181,69,.9)';
         ctx.shadowColor='rgba(255,181,69,.5)'; ctx.shadowBlur=5;
-        ctx.fillText('⚠ FUERA DE CARRIL', n.x, n.y+r+(n.sub?39:27));
+        ctx.fillText('⚠ FUERA DE CARRIL', n.x, n.y+r+(n.sub?39:27)*fz);
         ctx.shadowBlur=0;
       }
       ctx.globalAlpha=1;
@@ -1377,8 +1438,10 @@
 
   // ---------- MODO MANDO: fijar ficha + asignar proyecto ----------
   let PINNED=null, PINNED_POS=null;
-  function pinCard(n,mx,my){ PINNED=n; showCard(n,mx,my); }
-  function unpinCard(){ PINNED=null; PINNED_POS=null; card.style.pointerEvents='none'; card.style.display='none'; }
+  // r11: en modo mando la pausa de órbita acompaña a la ficha fijada
+  // (fijar = pausar, soltar = reanudar), no es un toggle aparte.
+  function pinCard(n,mx,my){ PINNED=n; ORBIT_PAUSED=n.id; showCard(n,mx,my); }
+  function unpinCard(){ PINNED=null; PINNED_POS=null; ORBIT_PAUSED=null; card.style.pointerEvents='none'; card.style.display='none'; }
   // tras recargar datos/vista, re-engancha la ficha fijada al nodo nuevo con el mismo id
   function repinAfterView(){
     if(!PINNED) return;
@@ -1430,13 +1493,26 @@
     if(draw.freeing){ freeDrawing=true; draw.path=[[cam.px+cam.x,cam.py+cam.y]]; card.style.display='none'; return; }
     const hit=pickNode(cam.px,cam.py);
     // MODO MANDO: clic en un nodo (ordenador/agente) FIJA la ficha con el selector
+    // (fijar ficha = pausar su órbita; soltar = reanudar — ver pinCard/unpinCard)
     if(mandoOn() && (currentView==='machine'||currentView==='agent')){
       if(hit){ hover=null; pinCard(hit,cam.px,cam.py); return; }
       if(PINNED){ unpinCard(); }
     }
-    if(!hit){cam.drag=true;}
+    // r11: click en un nodo = PAUSA su órbita (y su subárbol congela con él)
+    // para poder leerlo; segundo click en el mismo, o click en vacío, reanuda.
+    if(hit){ ORBIT_PAUSED = (ORBIT_PAUSED===hit.id) ? null : hit.id; return; }
+    ORBIT_PAUSED=null;
+    cam.drag=true;
   });
-  window.addEventListener('keydown',e=>{ if(e.key==='Escape' && PINNED) unpinCard(); });
+  // r11: RUEDA = zoom con detalle progresivo. Los nodos CRECEN (tamaño y
+  // tipografía suavizados vía ZSM) y el detalle se despliega por niveles.
+  cv.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const f = Math.exp(-e.deltaY*0.0012);
+    WHEEL_ZOOM = Math.min(3, Math.max(0.55, WHEEL_ZOOM*f));
+    bumpReadFreeze();   // leyendo con zoom → la rotación de vista no interrumpe
+  },{passive:false});
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(PINNED) unpinCard(); else ORBIT_PAUSED=null; } });
   window.addEventListener('mouseup',()=>{
     if(freeDrawing){ freeDrawing=false; finishFreeDraw(); }
     cam.drag=false;
@@ -1446,7 +1522,7 @@
     draw.freeing=false; draw.path=[]; cv.style.cursor='grab';
   }
   cv.addEventListener('mouseleave',()=>{ if(!PINNED){card.style.display='none';hover=null;} });
-  cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;const n=pickNode(mx,my);if(n){showCard(n,mx,my);}else{cam.drag=true;cam.px=mx;cam.py=my;}},{passive:true});
+  cv.addEventListener('touchstart',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;const n=pickNode(mx,my);if(n){showCard(n,mx,my);ORBIT_PAUSED=(ORBIT_PAUSED===n.id)?null:n.id;}else{ORBIT_PAUSED=null;cam.drag=true;cam.px=mx;cam.py=my;}},{passive:true});
   cv.addEventListener('touchmove',e=>{const t=e.touches[0];const r=cv.getBoundingClientRect();const mx=t.clientX-r.left,my=t.clientY-r.top;if(cam.drag){cam.vx+=(mx-cam.px)*0.2;cam.vy+=(my-cam.py)*0.2;cam.px=mx;cam.py=my;}},{passive:true});
   cv.addEventListener('touchend',()=>{cam.drag=false;});
 
@@ -2691,6 +2767,14 @@
   const advRotate=document.getElementById('advRotate'), advRotateVal=document.getElementById('advRotateVal');
   advThreshold.addEventListener('input',()=>{ ONLINE_SEC_DYN=advThreshold.value*60; advThresholdVal.textContent=advThreshold.value+' min'; load(); });
   advRotate.addEventListener('input',()=>{ ROTATE_MS_DYN=advRotate.value*1000; advRotateVal.textContent=advRotate.value+' s'; rotStart=performance.now(); });
+  // r11: velocidad de órbita (×0 paradas … ×2), persistida en localStorage.
+  const advOrbit=document.getElementById('advOrbit'), advOrbitVal=document.getElementById('advOrbitVal');
+  const fmtOrbX=v=>'×'+(+v).toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1});
+  advOrbit.value=ORBIT_SPEED; advOrbitVal.textContent=fmtOrbX(ORBIT_SPEED);
+  advOrbit.addEventListener('input',()=>{
+    ORBIT_SPEED=+advOrbit.value; advOrbitVal.textContent=fmtOrbX(ORBIT_SPEED);
+    try{ localStorage.setItem(ORBIT_LS_KEY, String(ORBIT_SPEED)); }catch(e){}
+  });
   document.getElementById('advAutoRotate').addEventListener('change',e=>{ setAutoRotate(e.target.checked); });
   document.getElementById('advOnlyLive').addEventListener('change',e=>{ ONLY_LIVE=e.target.checked; applyView(); });
   document.getElementById('advLabels').addEventListener('change',e=>{ SHOW_LABELS=e.target.checked; });
