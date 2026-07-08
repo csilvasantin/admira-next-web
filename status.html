@@ -258,6 +258,17 @@
     .pf-vbtn.active{color:#eafcff;background:rgba(34,230,255,.12);border-color:var(--cyan-dim);text-shadow:0 0 8px rgba(34,230,255,.5)}
     .pf-vbtn.active .ic{color:var(--cyan)}
     #panelLeft .hint{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-top:10px;line-height:1.5}
+    .pf-sec{margin-top:12px;padding-top:10px;border-top:1px solid rgba(34,230,255,.12)}
+    .pf-seclabel{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan-dim);margin-bottom:7px}
+    .pf-fbtn{
+      display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:inherit;
+      font-size:10px;letter-spacing:.06em;color:var(--text-dim);background:transparent;
+      border:1px solid transparent;border-radius:7px;padding:7px 10px;cursor:pointer;margin-bottom:4px;
+      transition:color .2s,background .2s,border-color .2s;
+    }
+    .pf-fbtn .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);flex:0 0 auto}
+    .pf-fbtn:hover,.pf-fbtn:focus-visible{color:var(--text);background:rgba(34,230,255,.06);border-color:rgba(34,230,255,.18);outline:none}
+    .pf-fbtn.active{color:#eafcff;background:rgba(34,230,255,.12);border-color:var(--cyan-dim)}
 
     /* DERECHA — AVANZADO (BARRA A TODA ALTURA, misma anchura que la izquierda) */
     #panelRight{top:0;bottom:0;right:0;transform:translateX(100%);width:232px;padding:74px 16px 18px;border-top:0;border-bottom:0;border-right:0;border-radius:0;overflow-y:auto}
@@ -368,6 +379,10 @@
     <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Misión</button>
     <button class="pf-vbtn" data-view="os"><span class="ic">⌘</span> Sistema operativo</button>
     <button class="pf-vbtn" data-view="all"><span class="ic">◉</span> Todo</button>
+    <div class="pf-sec" id="focusSec">
+      <div class="pf-seclabel">Foco · ordenador</div>
+      <div id="focusList"><!-- se rellena con los ordenadores online --></div>
+    </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
   </aside>
 
@@ -570,6 +585,8 @@
   let ONLY_LIVE = false;
   let SHOW_LABELS = true;
   let FLEET_BPM = 60;   // BPM medio de la flota viva (lo actualiza el render; guía el audio)
+  let FOCUS_MACHINE = null;  // norm(nombre) del ordenador con foco en la vista TODO, o null
+  let VIEW_ZOOM = 1;         // zoom efectivo (agranda nodos/órbitas al enfocar un ordenador)
 
   // ---------- util ----------
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -831,13 +848,20 @@
         const par=byId[a.parentId];
         const spd  = a.tier==='infra' ? 0.00072 : 0.00095;  // infra un poco más lento
         a._orb = (a._orb||0) + dt*spd;
-        const rSat = Math.min(W,H) * (a.tier==='infra' ? 0.085 : 0.058);
+        const rSat = Math.min(W,H) * (a.tier==='infra' ? 0.085 : 0.058) * VIEW_ZOOM;
         const tx = par.x + Math.cos(a._orb)*rSat;
         const ty = par.y + Math.sin(a._orb)*rSat;
         // Si quedó lejos del padre (cambio de vista, arrastre), reengánchalo cerca
         // en vez de cruzar el mapa lentamente.
         if(Math.hypot(a.x-par.x, a.y-par.y) > rSat*3){ a.x=tx; a.y=ty; a.vx=a.vy=0; }
         a.vx += (tx-a.x)*0.09; a.vy += (ty-a.y)*0.09;   // muelle firme al punto orbital
+        a.vx*=0.80; a.vy*=0.80; a.x+=a.vx; a.y+=a.vy;
+        continue;
+      }
+      // --- FOCO: el ordenador enfocado se ancla al centro (los demás nodos ya
+      // están filtrados fuera en applyView), para que quede centrado el zoom.
+      if(FOCUS_MACHINE && a.id==='all:'+FOCUS_MACHINE){
+        a.vx += (cx-a.x)*0.06; a.vy += (cy-a.y)*0.06;
         a.vx*=0.80; a.vy*=0.80; a.x+=a.vx; a.y+=a.vy;
         continue;
       }
@@ -956,7 +980,8 @@
     // Cualquier satélite (sub/infra en vista AGENTE, o agente-en-máquina en TODO)
     // es más pequeño que su principal.
     if(n.parentId) base *= (n.tier==='infra' ? 0.48 : 0.60);
-    return n.online ? base : Math.max((n.parentId?3:R_MIN-1), base*0.7);
+    base *= VIEW_ZOOM;   // zoom efectivo al enfocar un ordenador
+    return n.online ? base : Math.max((n.parentId?3:R_MIN-1)*VIEW_ZOOM, base*0.7);
   }
 
   let last=performance.now();
@@ -1134,8 +1159,15 @@
       ctx.shadowBlur=0;
       ctx.font='9px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
-      // El runtime secundario de un satélite solo al pasar el ratón (menos ruido).
-      if(n.sub && !dimNode && (!isSat || isHover)) ctx.fillText(n.sub, n.x, n.y+r+(isSat?21:27));
+      // Vista TODO: junto al agente, SIEMPRE su proyecto principal (orden de Carlos).
+      if(n.proj && !dimNode){
+        const clean = n.proj.replace(/^www\./,'');
+        const pj = clean.length>22 ? clean.slice(0,21)+'…' : clean;
+        ctx.fillText(pj, n.x, n.y+r+(isSat?21:27));
+      } else if(n.sub && !dimNode && (!isSat || isHover)){
+        // El runtime secundario de un satélite solo al pasar el ratón (menos ruido).
+        ctx.fillText(n.sub, n.x, n.y+r+(isSat?21:27));
+      }
       // FUERA DE CARRIL (ámbar): asignación de Carlos ≠ misión reportada
       if(n.offRail && !dimNode){
         ctx.fillStyle='rgba(255,181,69,.9)';
@@ -1219,6 +1251,7 @@
         const par = nodes.find(x=>x.id===n.parentId);
         rows =
           `<div class="cp">agente · <b>${n.label}</b> <span style="color:var(--cyan-dim)">· ${n.sub||'—'}</span></div>`+
+          `<div class="row"><span class="lab">proyecto</span><span class="val">${n.proj||'—'}</span></div>`+
           `<div class="row"><span class="lab">ordenador</span><span class="val">${par?par.label:(n.machines||[])[0]||'—'}</span></div>`+
           `<div class="row"><span class="lab">estado</span><span class="val">${n.online?'online':'en reposo'}</span></div>`+
           `<div class="row"><span class="lab">tarea</span><span class="val">${n.foco?n.foco:'—'}</span></div>`;
@@ -1458,7 +1491,7 @@
         let e=byMachine[key];
         if(!e){ e={machine:pclean,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0,tokens:0,reqs:0}; byMachine[key]=e; }
         const fresh=isFresh(p.updated);
-        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0});
+        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0,project:p.project||''});
         if((p.updated||0) > e.updated) e.updated=p.updated;
         e.decisions = (e.decisions||0) + (+p.decisions||0); // suma de decisiones de sus agentes (proxy de volumen)
         e.tokens = (e.tokens||0) + (+p.tokens||0);           // tokens consumidos por sus agentes (real, si el feed lo trae)
@@ -1493,6 +1526,7 @@
 
     // contador de VIVOS de la vista POR ORDENADOR (verdad de la flota)
     updateLiveCounter();   // contador de cabecera, sensible a la vista activa
+    if(typeof renderFocusList==='function') renderFocusList();   // refresca la lista de foco por ordenador
     document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     // Gestión (r8): refresca sus listas si el panel AVANZADO está abierto
     if(typeof renderGestion==='function' && document.getElementById('panelRight').classList.contains('open')) renderGestion();
@@ -1575,12 +1609,19 @@
         decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0,
         count:ags.length, machines:[m.machine], mission:m.project||'',
       });
+      // Los agentes SOLO orbitan si el ordenador está conectado (online). Si el
+      // equipo no está conectado, se ve el nodo del ordenador pero sin satélites,
+      // para que la foto sea más fácil de leer (orden de Carlos).
+      if(!m.online) continue;
       for(const a of ags){
+        // proyecto principal del agente: el que reporta en vivo, si no su misión
+        // de referencia, y como último recurso el proyecto del ordenador.
+        const proj = a.project || missionForAgent(a.persona) || m.project || '';
         list.push({
           id:mid+'|'+norm(a.persona)+'|'+norm(a.runtime||''), label:a.persona,
           sub:a.runtime||'', kindFor:'all-agent', parentId:mid, tier:'orb',
           online:!!a.fresh, updated:a.updated||0, foco:a.focus||'', mode:a.mode||'',
-          decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
+          proj, decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
           machines:[m.machine], persona:a.persona, runtime:a.runtime,
         });
       }
@@ -1703,6 +1744,7 @@
   // Traduce el WORLD a nodos genéricos para la vista activa y recoloca
   function applyView(){
     let list=[];
+    VIEW_ZOOM = 1;   // por defecto sin zoom; la rama TODO con foco lo sube
     if(currentView==='machine'){
       list = WORLD.machines.map(m=>({
         id:'m:'+norm(m.machine), label:m.machine, sub:m.project,
@@ -1740,6 +1782,15 @@
     } else if(currentView==='all'){
       // WORLD.all ya viene como nodos (ordenador principal + agentes-satélite).
       list = (WORLD.all||[]).map(n=>({...n}));
+      // FOCO ordenador: si hay uno elegido, deja solo ese equipo + sus agentes,
+      // y amplía tamaños/órbitas (zoom efectivo) para centrar la atención.
+      if(FOCUS_MACHINE){
+        const mid='all:'+FOCUS_MACHINE;
+        list = list.filter(n=> n.id===mid || n.parentId===mid);
+        if(list.length) VIEW_ZOOM = 1.9;
+        else if((WORLD.all||[]).length){ FOCUS_MACHINE=null; VIEW_ZOOM=1; list=(WORLD.all||[]).map(n=>({...n})); } // datos cargados pero el equipo ya no está: vuelve a todos
+        // si WORLD.all aún no cargó (arranque por deep-link), conserva el foco: load() reaplicará
+      }
     } else {
       list = WORLD.missions.map(mi=>({
         id:mi.id, label:mi.mission, sub:(mi.machines.length+' eq · '+mi.agentNames.length+' ag'),
@@ -2468,6 +2519,26 @@
   leftBtns.forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view,true)));
   function syncLeftMenu(v){ leftBtns.forEach(b=>b.classList.toggle('active', b.dataset.view===v)); }
 
+  // FOCO · ORDENADOR: lista de equipos online en el panel de opciones. Elegir uno
+  // fija el foco en la vista TODO (solo ese ordenador + sus agentes, con zoom).
+  function renderFocusList(){
+    const box=document.getElementById('focusList'); if(!box) return;
+    const mach=(WORLD.all||[]).filter(n=>n.kindFor==='all-machine' && n.online)
+      .sort((a,b)=>a.label>b.label?1:-1);
+    let html=`<button class="pf-fbtn${!FOCUS_MACHINE?' active':''}" data-fm="">Todos</button>`;
+    for(const m of mach){
+      const key=norm(m.label);
+      html+=`<button class="pf-fbtn${FOCUS_MACHINE===key?' active':''}" data-fm="${key}"><span class="dot"></span>${m.label}</button>`;
+    }
+    box.innerHTML=html;
+    box.querySelectorAll('.pf-fbtn').forEach(b=>b.addEventListener('click',()=>{
+      FOCUS_MACHINE = b.dataset.fm || null;
+      if(FOCUS_MACHINE) setAutoRotate(false);   // al enfocar, no rotar (quédate ahí)
+      setView('all', true);                     // el foco vive en la vista TODO
+      renderFocusList();
+    }));
+  }
+
   // --- AVANZADO: umbral de vivo, velocidad de rotación, filtros, etiquetas ---
   // (ONLINE_SEC_DYN / ROTATE_MS_DYN / ONLY_LIVE / SHOW_LABELS declarados arriba)
   const advThreshold=document.getElementById('advThreshold'), advThresholdVal=document.getElementById('advThresholdVal');
@@ -2631,7 +2702,7 @@
   const CLI_HELP=[
     'comandos disponibles (consola local):',
     '  help                  esta ayuda',
-    '  view <m|p|a|mi|os>    cambia de vista (machine/project/agent/mission/os)',
+    '  view <m|p|a|mi|os|all> cambia de vista (machine/project/agent/mission/os/todo)',
     '  live                   nº de nodos vivos y umbral actual',
     '  nodes                  lista los nodos de la vista activa',
     '  threshold <min>        fija el umbral de «vivo» (1-30)',
@@ -2738,7 +2809,22 @@
   // ---------- boot ----------
   resize(); seedStars();
   window.addEventListener('resize',()=>{seedStars();});
-  setView('machine', false);
+  // DEEP-LINK: ?view=<machine|project|agent|mission|os|all|todo> y ?focus=<ordenador>
+  // abren directamente una vista (p.ej. el navegador de la derecha en /status?view=all,
+  // o /status?focus=MacBookPro16 para caer con foco+zoom en ese ordenador).
+  (function initFromURL(){
+    let pinned=false;
+    try{
+      const q=new URLSearchParams(location.search);
+      const vmap={machine:'machine',ordenador:'machine',project:'project',proyecto:'project',agent:'agent',agente:'agent',mission:'mission',mision:'mission','misión':'mission',os:'os',so:'os',all:'all',todo:'all'};
+      const v=(q.get('view')||'').toLowerCase();
+      const f=(q.get('focus')||q.get('ordenador')||'').trim();
+      if(f){ FOCUS_MACHINE=norm(f); setView('all',true); pinned=true; }
+      else if(vmap[v]){ setView(vmap[v],true); pinned=true; }
+      else setView('machine', false);
+    }catch(e){ setView('machine', false); }
+    if(pinned) setAutoRotate(false);   // si vienes por deep-link, no rotes: quédate en esa vista
+  })();
   load();
   setInterval(load, REFRESH_MS);
   startRotation();
