@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.08.r11">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.08.r12">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -357,7 +357,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.08.r11</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.08.r12</span></span>
   </div>
 
   <div id="card"></div>
@@ -387,7 +387,7 @@
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión (movida desde la barra superior) -->
-    <div class="pf-ver" id="verRail">v.2026.07.08.r11</div>
+    <div class="pf-ver" id="verRail">v.2026.07.08.r12</div>
   </aside>
 
   <!-- BARRA DERECHA — AVANZADO -->
@@ -1232,11 +1232,15 @@
       ctx.shadowBlur=0;
       ctx.font=Math.round(9*fz)+'px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
-      // Vista TODO: junto al agente, su proyecto principal (orden de Carlos) —
-      // a partir del nivel MEDIO (de lejos, solo el nombre).
-      if(lvl>=2 && n.proj && !dimNode){
-        const clean = n.proj.replace(/^www\./,'');
+      // Vista TODO: junto al agente, su LÍNEA DE MISIÓN (r12, precedencia
+      // estricta: focus fresco → asignación de mando → «Sin misión»; el
+      // proyecto sticky NO cuenta — sigue visible en la ficha de detalle).
+      // A partir del nivel MEDIO (de lejos, solo el nombre).
+      const mline = (n.kindFor==='all-agent') ? n.missionLine : n.proj;
+      if(lvl>=2 && mline && !dimNode){
+        const clean = mline.replace(/^www\./,'');
         const pj = clean.length>22 ? clean.slice(0,21)+'…' : clean;
+        if(mline==='Sin misión') ctx.fillStyle = n.online? 'rgba(140,160,175,.55)':'rgba(140,160,175,.4)';  // neutro, no cian
         ctx.fillText(pj, n.x, n.y+r+(isSat?21:27)*fz);
       } else if(lvl>=2 && n.sub && !dimNode && (!isSat || isHover)){
         // El runtime secundario de un satélite solo al pasar el ratón (menos ruido).
@@ -1833,14 +1837,24 @@
           else if(mainNorm&&mainNorm!==nn) parentId=idOf[mainNorm]; // fallback: principal de la máquina
           else parentId=mid;                            // último recurso: el ordenador (nunca se pierde)
         }
-        // proyecto principal del agente: el que reporta en vivo, si no su misión
-        // de referencia, y como último recurso el proyecto del ordenador.
+        // proyecto principal del agente (sticky) — SOLO para la ficha de detalle:
+        // el que reporta en vivo, si no su misión de referencia, y como último
+        // recurso el proyecto del ordenador.
         const proj = a.project || missionForAgent(a.persona) || m.project || '';
+        // r12: LÍNEA DE MISIÓN de la órbita — precedencia ESTRICTA (Carlos):
+        //   1) focus FRESCO → la misión real de ahora mismo
+        //   2) si no, asignación de MANDO si existe
+        //   3) si no, «Sin misión» — el project sticky de presencia NO cuenta
+        //      (agente parado arrastrando proyecto viejo ≠ en misión).
+        const asgA = WORLD.asgFor ? WORLD.asgFor('agent', a.persona) : null;
+        const missionLine = (a.fresh && (a.focus||'').trim()) ? a.focus.trim()
+                          : (asgA && asgA.project) ? asgA.project
+                          : 'Sin misión';
         list.push({
           id:idOf[nn], label:a.persona,
           sub:a.runtime||'', kindFor:'all-agent', parentId, tier,
           online:!!a.fresh, updated:a.updated||0, foco:a.focus||'', mode:a.mode||'',
-          proj, decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
+          proj, missionLine, decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
           since:(+a.since>0 ? +a.since : (WORLD.activeSince||{})[nn+'|'+norm(a.runtime||'')]||0),
           sinceExact:(+a.since>0), cpu:m.cpu||0,
           machines:[m.machine], persona:a.persona, runtime:a.runtime,
