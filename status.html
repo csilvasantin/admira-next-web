@@ -754,8 +754,18 @@
         y: p? p.y : cy + Math.sin(ang)*rr + (Math.random()-.5)*40,
         vx: p? p.vx : 0, vy: p? p.vy : 0,
         phase: p? p.phase : Math.random()*Math.PI*2,
+        _orb: p? p._orb : (i*1.7),   // ángulo orbital del satélite (si lo es)
         r: 0,
       };
+    });
+    // Segunda pasada: los satélites nuevos nacen JUNTO a su padre (ya colocado
+    // arriba porque buildAgents los ordena detrás), no lanzados desde el anillo.
+    const byId={}; nodes.forEach(n=>byId[n.id]=n);
+    nodes.forEach(n=>{
+      if(n.parentId && !prev[n.id]){
+        const par=byId[n.parentId];
+        if(par){ n.x=par.x+Math.cos(n._orb)*46; n.y=par.y+Math.sin(n._orb)*46; }
+      }
     });
   }
 
@@ -812,10 +822,28 @@
       }
       return;
     }
+    const byId={}; nodes.forEach(n=>byId[n.id]=n);
     for (let i=0;i<nodes.length;i++){
       const a=nodes[i];
+      // --- SATÉLITE: orbita a su agente principal, al margen de la física global.
+      if(a.parentId && byId[a.parentId]){
+        const par=byId[a.parentId];
+        const spd  = a.tier==='infra' ? 0.00072 : 0.00095;  // infra un poco más lento
+        a._orb = (a._orb||0) + dt*spd;
+        const rSat = Math.min(W,H) * (a.tier==='infra' ? 0.085 : 0.058);
+        const tx = par.x + Math.cos(a._orb)*rSat;
+        const ty = par.y + Math.sin(a._orb)*rSat;
+        // Si quedó lejos del padre (cambio de vista, arrastre), reengánchalo cerca
+        // en vez de cruzar el mapa lentamente.
+        if(Math.hypot(a.x-par.x, a.y-par.y) > rSat*3){ a.x=tx; a.y=ty; a.vx=a.vy=0; }
+        a.vx += (tx-a.x)*0.09; a.vy += (ty-a.y)*0.09;   // muelle firme al punto orbital
+        a.vx*=0.80; a.vy*=0.80; a.x+=a.vx; a.y+=a.vy;
+        continue;
+      }
+      // --- PRINCIPAL: repulsión (solo contra otros principales) + clamp + deriva.
       for (let j=i+1;j<nodes.length;j++){
         const b=nodes[j];
+        if(b.parentId) continue;          // los satélites no empujan el mapa
         let dx=a.x-b.x, dy=a.y-b.y;
         let d2=dx*dx+dy*dy; if(d2<1)d2=1;
         const d=Math.sqrt(d2);
@@ -843,9 +871,11 @@
     const edges=[];
     for (let i=0;i<nodes.length;i++){
       const a=nodes[i];
+      if(a.parentId) continue;          // los satélites no tejen malla (tienen su amarre)
       const ds=[];
       for (let j=0;j<nodes.length;j++){ if(i===j)continue;
-        const b=nodes[j]; ds.push([Math.hypot(a.x-b.x,a.y-b.y), j]); }
+        const b=nodes[j]; if(b.parentId) continue;   // ni se conectan a satélites ajenos
+        ds.push([Math.hypot(a.x-b.x,a.y-b.y), j]); }
       ds.sort((p,q)=>p[0]-q[0]);
       const k=Math.min(3, ds.length);
       for (let t=0;t<k;t++){ const j=ds[t][1]; if(i<j) edges.push([i,j,ds[t][0]]); else edges.push([j,i,ds[t][0]]); }
@@ -921,8 +951,11 @@
   function volumeRadius(n){
     const v = nodeVolume(n);
     const k = Math.min(1, Math.log1p(Math.max(0,v)) / Math.log1p(60));
-    const base = R_MIN + (R_MAX - R_MIN) * k;
-    return n.online ? base : Math.max(R_MIN-1, base*0.7);
+    let base = R_MIN + (R_MAX - R_MIN) * k;
+    // Satélites (sub/infra): más pequeños que su agente principal.
+    if(n.tier==='sub')   base *= 0.60;
+    else if(n.tier==='infra') base *= 0.48;
+    return n.online ? base : Math.max((n.parentId?3:R_MIN-1), base*0.7);
   }
 
   let last=performance.now();
@@ -1023,6 +1056,19 @@
       }
     }
 
+    // --- AMARRE de satélites: hilo tenue del sub/infra-agente a su principal ---
+    if(!DRAW_ACTIVE && nodes.some(n=>n.parentId)){
+      const byId={}; nodes.forEach(n=>byId[n.id]=n);
+      for(const n of nodes){
+        if(!n.parentId) continue; const par=byId[n.parentId]; if(!par) continue;
+        const live = n.online || par.online;
+        ctx.strokeStyle = live ? 'rgba(34,230,255,.30)' : 'rgba(120,140,160,.16)';
+        ctx.lineWidth = 0.7; ctx.setLineDash([2,4]);
+        ctx.beginPath(); ctx.moveTo(par.x,par.y); ctx.lineTo(n.x,n.y); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+
     const dtSec = dt*0.001;
     let bpmSum=0, bpmN=0;   // para el audio ambiente (BPM medio de la flota viva)
     for(const n of nodes){
@@ -1076,15 +1122,19 @@
       if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle='#22e6ff'; ctx.fill(); }
       const isHover = hover && hover.id===n.id;
       if(typeof SHOW_LABELS!=='undefined' && !SHOW_LABELS && !isHover){ continue; }
-      ctx.font = (isHover?'700 ':'')+'11px JetBrains Mono, monospace';
+      // Satélites: etiqueta más pequeña (jerarquía visible) y pegada al nodo.
+      const isSat = !!n.parentId;
+      const lblPx = isSat ? 9 : 11;
+      ctx.font = (isHover?'700 ':'')+lblPx+'px JetBrains Mono, monospace';
       ctx.textAlign='center';
       ctx.fillStyle = n.online ? (isHover?'#eafcff':'#bfe9f2') : '#6f8090';
       ctx.shadowColor=n.online?'rgba(34,230,255,.5)':'transparent'; ctx.shadowBlur=n.online?6:0;
-      ctx.fillText(n.label, n.x, n.y+r+15);
+      ctx.fillText(n.label, n.x, n.y+r+(isSat?11:15));
       ctx.shadowBlur=0;
       ctx.font='9px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
-      if(n.sub && !dimNode) ctx.fillText(n.sub, n.x, n.y+r+27);
+      // El runtime secundario de un satélite solo al pasar el ratón (menos ruido).
+      if(n.sub && !dimNode && (!isSat || isHover)) ctx.fillText(n.sub, n.x, n.y+r+(isSat?21:27));
       // FUERA DE CARRIL (ámbar): asignación de Carlos ≠ misión reportada
       if(n.offRail && !dimNode){
         ctx.fillStyle='rgba(255,181,69,.9)';
@@ -1140,8 +1190,15 @@
         `<div class="row"><span class="lab">modo</span><span class="val">${n.mode||'—'}</span></div>`+
         `<div class="row"><span class="lab">plataforma</span><span class="val">${n.platform||'—'}</span></div>`;
     } else if(currentView==='agent'){
+      // Jerarquía: principal ↔ satélites (sub/infra). Aclara de un vistazo el rol.
+      const kids = nodes.filter(x=>x.parentId===n.id);
+      const par  = n.parentId ? nodes.find(x=>x.id===n.parentId) : null;
+      const tierRow = n.parentId
+        ? `<div class="row"><span class="lab">tipo</span><span class="val">${n.tier==='infra'?'infra-agente':'subagente'} · orbita a <b>${par?par.label:'—'}</b></span></div>`
+        : `<div class="row"><span class="lab">tipo</span><span class="val">agente principal${kids.length?` · ${kids.length} satélite${kids.length>1?'s':''} (${kids.map(k=>k.label).join(', ')})`:''}</span></div>`;
       rows =
         `<div class="cp">runtime · <b>${n.sub||'—'}</b></div>`+
+        tierRow+
         asgRow+
         `<div class="row"><span class="lab">máquinas</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
         `<div class="row"><span class="lab">misión</span><span class="val">${n.mission||'—'}</span></div>`;
@@ -1437,9 +1494,42 @@
       if(fresh && p.mode) e.mode=p.mode;
       if(p.project && (!e._projAt || (p.updated||0)>e._projAt)){ e.repProject=p.project; e._projAt=p.updated||0; }
     }
-    return Object.values(by).map(e=>({...e, machines:[...e.machinesSet],
-        assignment:(WORLD.asgFor?WORLD.asgFor('agent', e.persona):null)}))
-      .sort((a,b)=>(b.online-a.online)||(a.persona>b.persona?1:-1));
+    const out = Object.values(by).map(e=>({...e, machines:[...e.machinesSet],
+        assignment:(WORLD.asgFor?WORLD.asgFor('agent', e.persona):null)}));
+    // JERARQUÍA (satélites): sub<persona>/infra<persona> orbitan a <persona>.
+    // La convención de nombres YA existe (morfeo→submorfeo/inframorfeo). Se
+    // enlaza SOLO si el agente principal está presente con el mismo runtime;
+    // si no, el nodo queda como principal normal (degrada limpio). Marca:
+    //   e.tier = 'main' | 'sub' | 'infra' ; e.parentId = id del principal.
+    const byPersona = {};
+    for(const e of out) byPersona[norm(e.persona)+'|'+norm(e.runtime||'')] = e;
+    for(const e of out){
+      const t = agentTier(e.persona);          // {base, tier}
+      e.tier = 'main';
+      if(t.tier!=='main'){
+        const parent = byPersona[t.base+'|'+norm(e.runtime||'')];
+        if(parent && parent!==e){ e.tier=t.tier; e.parentId=parent.id; parent.hasSats=true; }
+      }
+    }
+    // Orden: principales por online/nombre; los satélites SIEMPRE detrás de su
+    // principal (para que layout/física los coloque junto a un padre ya situado).
+    out.sort((a,b)=>(b.online-a.online)||(a.persona>b.persona?1:-1));
+    const mains = out.filter(e=>!e.parentId);
+    const sats  = out.filter(e=>e.parentId);
+    const ordered=[]; const pushed=new Set();
+    for(const m of mains){ ordered.push(m); pushed.add(m.id);
+      for(const s of sats){ if(s.parentId===m.id){ ordered.push(s); pushed.add(s.id); } } }
+    for(const s of sats){ if(!pushed.has(s.id)) ordered.push(s); } // huérfanos por si acaso
+    return ordered;
+  }
+
+  // Deriva el TIER de un agente por su nombre: infra<x>/sub<x> → hijo de <x>.
+  // base = persona padre normalizada; tier = 'main'|'sub'|'infra'.
+  function agentTier(persona){
+    const n = norm(persona);
+    if(n.startsWith('infra') && n.length>5) return { base:n.slice(5), tier:'infra' };
+    if(n.startsWith('sub')   && n.length>3) return { base:n.slice(3), tier:'sub' };
+    return { base:n, tier:'main' };
   }
 
   // Vista POR MISIÓN: nodos = proyectos; equipos/agentes orbitan su misión
@@ -1569,6 +1659,7 @@
         decisions:a.decisions||0, tokens:a.tokens||0, reqs:a.reqs||0,
         assignment:a.assignment||null, repProject:a.repProject||a.mission||'',
         offRail: offRailFor(a.assignment, a.repProject||a.mission), kindFor:'agent',
+        parentId:a.parentId||null, tier:a.tier||'main',   // jerarquía satélite (sub/infra → principal)
       }));
     } else if(currentView==='project'){
       list = WORLD.projects.map(pr=>({
