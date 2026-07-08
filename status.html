@@ -590,6 +590,14 @@
 
   // ---------- util ----------
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  // Duración legible: 45s · 12m · 1h 20m
+  function fmtDur(secs){
+    secs=Math.max(0,Math.floor(secs||0));
+    if(secs<60) return secs+'s';
+    const m=Math.floor(secs/60); if(m<60) return m+'m';
+    const h=Math.floor(m/60), mm=m%60; return h+'h'+(mm?(' '+mm+'m'):'');
+  }
+  // (fmtTokens y fmtNum están definidas más abajo, junto a ago())
   // NADA de nombres de persona en los ordenadores (orden de Carlos, r8): el
   // roster decora con el dueño — "Mac Mini (Carlos)" se muestra y se guarda
   // como "Mac Mini". Se aplica en la INGESTA (fleet y presence), así etiquetas,
@@ -1168,6 +1176,15 @@
         // El runtime secundario de un satélite solo al pasar el ratón (menos ruido).
         ctx.fillText(n.sub, n.x, n.y+r+(isSat?21:27));
       }
+      // Bajo cada AGENTE (tiene `since`): tiempo dedicado + tokens consumidos.
+      if(!dimNode && n.online && n.since){
+        const now=(WORLD.serverNow||Math.floor(Date.now()/1000));
+        const parts=['⏱ '+fmtDur(now-n.since)];
+        if(+n.tokens>0) parts.push(fmtTokens(n.tokens)+' tok');
+        ctx.font='8px JetBrains Mono, monospace';
+        ctx.fillStyle='rgba(120,200,220,.6)';
+        ctx.fillText(parts.join(' · '), n.x, n.y+r+(isSat?31:37));
+      }
       // FUERA DE CARRIL (ámbar): asignación de Carlos ≠ misión reportada
       if(n.offRail && !dimNode){
         ctx.fillStyle='rgba(255,181,69,.9)';
@@ -1258,8 +1275,16 @@
       } else {
         // Principal: un ordenador con TODOS sus agentes y en qué anda cada uno.
         const ags=(n.personas||[]);
+        const nowS=(WORLD.serverNow||Math.floor(Date.now()/1000));
         const roster = ags.length
-          ? ags.map(a=>`<div class="row"><span class="lab">${a.fresh?'●':'○'} ${a.persona}</span><span class="val">${(a.focus||'—')}</span></div>`).join('')
+          ? ags.map(a=>{
+              const since=(WORLD.activeSince||{})[norm(a.persona)+'|'+norm(a.runtime||'')];
+              const meta=[];
+              if(a.fresh && since) meta.push('⏱ '+fmtDur(nowS-since));
+              if(+a.tokens>0) meta.push(fmtTokens(a.tokens)+' tok');
+              const m = meta.length?` <span style="color:var(--cyan-dim)">· ${meta.join(' · ')}</span>`:'';
+              return `<div class="row"><span class="lab">${a.fresh?'●':'○'} ${a.persona}</span><span class="val">${(a.focus||'—')}${m}</span></div>`;
+            }).join('')
           : `<div class="row"><span class="lab">agentes</span><span class="val">— (ninguno reportando)</span></div>`;
         rows =
           `<div class="cp">ordenador · <b>${n.label}</b> <span style="color:var(--cyan-dim)">· ${n.online?'online':'en reposo'}</span></div>`+
@@ -1282,6 +1307,11 @@
     // (feed de presencia). Si el feed aún no publica tokens → «s/d» honesto.
     const tokensRow =
       `<div class="row"><span class="lab">tokens</span><span class="val">${fmtTokens(n.tokens)}${(n.reqs>0)?` · ${fmtNum(n.reqs)} reqs`:''}</span></div>`;
+    // DEDICADO: solo los agentes llevan `since` (tiempo activo continuo observado
+    // por el panel; el feed no trae inicio de tarea). Va junto a tokens, bajo la tarea.
+    const dedicRow = n.since
+      ? `<div class="row"><span class="lab">dedicado</span><span class="val">${fmtDur((WORLD.serverNow||Math.floor(Date.now()/1000))-n.since)} activo</span></div>`
+      : '';
     // Badge FUERA DE CARRIL (ámbar): asignación ≠ misión reportada (canónicas)
     const railBadge = n.offRail ? `<span class="stat rail">⚠ FUERA DE CARRIL</span>` : '';
     // MODO MANDO + ficha FIJADA (clic) en vista ordenador/agente → selector de asignación
@@ -1303,6 +1333,7 @@
       closeBtn+
       `<div class="cn">${n.label}</div>`+ rows +
       `<div class="row"><span class="lab">señal</span><span class="val">hace ${ago(n.updated)}</span></div>`+
+      dedicRow+
       tokensRow+
       vidaRows+
       foco+
@@ -1515,6 +1546,25 @@
       personas:(e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)),
     })).sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
 
+    // ---- TIEMPO ACTIVO por agente (observado por el panel) ----
+    // El feed NO trae inicio de tarea, así que medimos cuánto lleva cada agente
+    // ACTIVO de forma continua desde que este panel lo ve por primera vez, y lo
+    // persistimos en localStorage (sobrevive recargas). Si el agente deja de estar
+    // fresco, se reinicia su reloj (no acumulamos tiempo de sesiones muertas).
+    // Clave por persona+runtime (Morfeo·Claude ≠ Trinity·Codex).
+    const ACTIVE_KEY='admiranext-status-active-since';
+    let ACTIVE_SINCE={}; try{ ACTIVE_SINCE=JSON.parse(localStorage.getItem(ACTIVE_KEY)||'{}')||{}; }catch(e){ ACTIVE_SINCE={}; }
+    const _seenFresh=new Set();
+    if(pres && pres.presence) for(const p of pres.presence){
+      if(!isFresh(p.updated)) continue;
+      const k=norm(p.persona)+'|'+norm(p.runtime||'');
+      _seenFresh.add(k);
+      if(!ACTIVE_SINCE[k]) ACTIVE_SINCE[k]=SERVER_NOW;   // primera vez activo → arranca el reloj
+    }
+    for(const k of Object.keys(ACTIVE_SINCE)){ if(!_seenFresh.has(k)) delete ACTIVE_SINCE[k]; }
+    try{ localStorage.setItem(ACTIVE_KEY, JSON.stringify(ACTIVE_SINCE)); }catch(e){}
+    WORLD.activeSince = ACTIVE_SINCE; WORLD.serverNow = SERVER_NOW;
+
     WORLD.machines = machines;
     WORLD.agents   = buildAgents(pres && pres.presence ? pres.presence : [], isFresh);
     WORLD.missions = buildMissions(machines, WORLD.agents);
@@ -1552,6 +1602,7 @@
       if(p.project && (!e._projAt || (p.updated||0)>e._projAt)){ e.repProject=p.project; e._projAt=p.updated||0; }
     }
     const out = Object.values(by).map(e=>({...e, machines:[...e.machinesSet],
+        since:(WORLD.activeSince||{})[norm(e.persona)+'|'+norm(e.runtime||'')]||0,
         assignment:(WORLD.asgFor?WORLD.asgFor('agent', e.persona):null)}));
     // JERARQUÍA (satélites): sub<persona>/infra<persona> orbitan a <persona>.
     // La convención de nombres YA existe (morfeo→submorfeo/inframorfeo). Se
@@ -1622,6 +1673,7 @@
           sub:a.runtime||'', kindFor:'all-agent', parentId:mid, tier:'orb',
           online:!!a.fresh, updated:a.updated||0, foco:a.focus||'', mode:a.mode||'',
           proj, decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
+          since:(WORLD.activeSince||{})[norm(a.persona)+'|'+norm(a.runtime||'')]||0,
           machines:[m.machine], persona:a.persona, runtime:a.runtime,
         });
       }
