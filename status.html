@@ -367,6 +367,7 @@
     <button class="pf-vbtn" data-view="agent"><span class="ic">◈</span> Agente</button>
     <button class="pf-vbtn" data-view="mission"><span class="ic">✦</span> Misión</button>
     <button class="pf-vbtn" data-view="os"><span class="ic">⌘</span> Sistema operativo</button>
+    <button class="pf-vbtn" data-view="all"><span class="ic">◉</span> Todo</button>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
   </aside>
 
@@ -728,9 +729,9 @@
   // ---------- estado de datos y vistas ----------
   // Guardamos el "mundo" crudo tras cada carga, y derivamos nodos por vista.
   let WORLD = { machines:[], agents:[], missions:[], os:[], projects:[] };
-  const VIEWS = ['machine','project','agent','mission','os'];
+  const VIEWS = ['machine','project','agent','mission','os','all'];
   // máxima AdmiraNeXT: menos es más — singular y sin adverbios delante
-  const VIEW_LABEL = { machine:'ordenador', project:'proyecto', agent:'agente', mission:'misión', os:'sistema operativo' };
+  const VIEW_LABEL = { machine:'ordenador', project:'proyecto', agent:'agente', mission:'misión', os:'sistema operativo', all:'todo' };
   let viewIdx = 0;
   let currentView = 'machine';
 
@@ -952,9 +953,9 @@
     const v = nodeVolume(n);
     const k = Math.min(1, Math.log1p(Math.max(0,v)) / Math.log1p(60));
     let base = R_MIN + (R_MAX - R_MIN) * k;
-    // Satélites (sub/infra): más pequeños que su agente principal.
-    if(n.tier==='sub')   base *= 0.60;
-    else if(n.tier==='infra') base *= 0.48;
+    // Cualquier satélite (sub/infra en vista AGENTE, o agente-en-máquina en TODO)
+    // es más pequeño que su principal.
+    if(n.parentId) base *= (n.tier==='infra' ? 0.48 : 0.60);
     return n.online ? base : Math.max((n.parentId?3:R_MIN-1), base*0.7);
   }
 
@@ -1212,6 +1213,27 @@
         `<div class="cp">sistema operativo · <b>${n.label}</b></div>`+
         `<div class="row"><span class="lab">equipos</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
         `<div class="row"><span class="lab">agentes</span><span class="val">${(n.agentNames||[]).join(', ')||'—'}</span></div>`;
+    } else if(currentView==='all'){
+      if(n.kindFor==='all-agent'){
+        // Satélite: un agente corriendo en un ordenador, con su tarea.
+        const par = nodes.find(x=>x.id===n.parentId);
+        rows =
+          `<div class="cp">agente · <b>${n.label}</b> <span style="color:var(--cyan-dim)">· ${n.sub||'—'}</span></div>`+
+          `<div class="row"><span class="lab">ordenador</span><span class="val">${par?par.label:(n.machines||[])[0]||'—'}</span></div>`+
+          `<div class="row"><span class="lab">estado</span><span class="val">${n.online?'online':'en reposo'}</span></div>`+
+          `<div class="row"><span class="lab">tarea</span><span class="val">${n.foco?n.foco:'—'}</span></div>`;
+      } else {
+        // Principal: un ordenador con TODOS sus agentes y en qué anda cada uno.
+        const ags=(n.personas||[]);
+        const roster = ags.length
+          ? ags.map(a=>`<div class="row"><span class="lab">${a.fresh?'●':'○'} ${a.persona}</span><span class="val">${(a.focus||'—')}</span></div>`).join('')
+          : `<div class="row"><span class="lab">agentes</span><span class="val">— (ninguno reportando)</span></div>`;
+        rows =
+          `<div class="cp">ordenador · <b>${n.label}</b> <span style="color:var(--cyan-dim)">· ${n.online?'online':'en reposo'}</span></div>`+
+          `<div class="row"><span class="lab">proyecto</span><span class="val">${n.sub||'—'}</span></div>`+
+          `<div class="row"><span class="lab">SO</span><span class="val">${n.os||'—'}</span></div>`+
+          roster;
+      }
     } else {
       rows =
         `<div class="cp">misión · <b>${n.label}</b></div>`+
@@ -1465,6 +1487,7 @@
     WORLD.missions = buildMissions(machines, WORLD.agents);
     WORLD.os       = buildOS(machines);
     WORLD.projects = buildProjects(machines, WORLD.agents);
+    WORLD.all      = buildAll(machines);
 
     applyView(); // recoloca nodos según la vista activa
 
@@ -1530,6 +1553,39 @@
     if(n.startsWith('infra') && n.length>5) return { base:n.slice(5), tier:'infra' };
     if(n.startsWith('sub')   && n.length>3) return { base:n.slice(3), tier:'sub' };
     return { base:n, tier:'main' };
+  }
+
+  // Vista TODO: la foto completa de la flota. Nodos principales = ordenadores;
+  // los AGENTES que corren en cada uno orbitan como satélites, y cada satélite
+  // lleva su TAREA (focus). Un vistazo → qué máquinas online, qué agentes y en
+  // qué están. Devuelve ya la lista de nodos (principal + satélites).
+  function buildAll(machines){
+    const list=[];
+    for(const m of machines){
+      const ags=(m.personas||[]);
+      // TODO = quién está trabajando: ordenadores online o con algún agente
+      // reportando. Se omiten los equipos offline y vacíos (infra dormida) que
+      // solo añadirían ruido.
+      if(!m.online && !ags.length) continue;
+      const mid='all:'+norm(m.machine);
+      list.push({
+        id:mid, label:m.machine, sub:m.project||'', kindFor:'all-machine',
+        online:m.online, updated:m.updated, foco:m.foco||'', mode:m.mode||'',
+        platform:m.platform||'', os:m.os, personas:ags, agentNames:ags.map(a=>a.persona),
+        decisions:m.decisions||0, tokens:m.tokens||0, reqs:m.reqs||0,
+        count:ags.length, machines:[m.machine], mission:m.project||'',
+      });
+      for(const a of ags){
+        list.push({
+          id:mid+'|'+norm(a.persona)+'|'+norm(a.runtime||''), label:a.persona,
+          sub:a.runtime||'', kindFor:'all-agent', parentId:mid, tier:'orb',
+          online:!!a.fresh, updated:a.updated||0, foco:a.focus||'', mode:a.mode||'',
+          decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
+          machines:[m.machine], persona:a.persona, runtime:a.runtime,
+        });
+      }
+    }
+    return list;
   }
 
   // Vista POR MISIÓN: nodos = proyectos; equipos/agentes orbitan su misión
@@ -1632,6 +1688,11 @@
     } else if(currentView==='os'){
       const n=on(OS);
       txt=`${n} ${n===1?'sistema con vida':'sistemas con vida'} de ${OS.length}`;
+    } else if(currentView==='all'){
+      const ALL=WORLD.all||[];
+      const mo=ALL.filter(n=>n.kindFor==='all-machine'&&n.online).length;
+      const ao=ALL.filter(n=>n.kindFor==='all-agent'&&n.online).length;
+      txt=`${mo} ${mo===1?'ordenador online':'ordenadores online'} · ${ao} ${ao===1?'agente activo':'agentes activos'}`;
     } else {
       const n=on(M);
       txt=`${n} ${n===1?'nodo vivo':'nodos vivos'} de ${M.length} ordenadores`;
@@ -1676,6 +1737,9 @@
         foco:o.foco, count:o.machines.length+o.agentNames.length,
         decisions:o.decisions||0, tokens:o.tokens||0, reqs:o.reqs||0,
       }));
+    } else if(currentView==='all'){
+      // WORLD.all ya viene como nodos (ordenador principal + agentes-satélite).
+      list = (WORLD.all||[]).map(n=>({...n}));
     } else {
       list = WORLD.missions.map(mi=>({
         id:mi.id, label:mi.mission, sub:(mi.machines.length+' eq · '+mi.agentNames.length+' ag'),
@@ -2592,9 +2656,9 @@
     switch(cmd.toLowerCase()){
       case 'help': case '?': cliPrint(CLI_HELP); break;
       case 'view': {
-        const map={m:'machine',machine:'machine',p:'project',proj:'project',project:'project',proyecto:'project',proyectos:'project',a:'agent',agent:'agent',mi:'mission',mission:'mission',os:'os',so:'os',sistema:'os'};
+        const map={m:'machine',machine:'machine',p:'project',proj:'project',project:'project',proyecto:'project',proyectos:'project',a:'agent',agent:'agent',mi:'mission',mission:'mission',os:'os',so:'os',sistema:'os',all:'all',todo:'all',t:'all'};
         if(map[a0]){ setView(map[a0],true); cliPrint('vista → '+VIEW_LABEL[map[a0]]); }
-        else cliPrint('uso: view <machine|project|agent|mission|os>','err');
+        else cliPrint('uso: view <machine|project|agent|mission|os|all>','err');
         break;
       }
       case 'live': {
