@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.07.r9">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.08.r10">
   <meta name="admiranext-status-build" content="projects-view-canonical-6">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -244,7 +244,7 @@
     /* IZQUIERDA — opciones (menú vertical de vistas)
        BARRA A TODA ALTURA: de la cabecera al pie (top:0→bottom:0), misma anchura
        que la derecha → la composición queda como una cuadrícula perfecta. */
-    #panelLeft{top:0;bottom:0;left:0;transform:translateX(-100%);width:232px;padding:74px 16px 18px;border-top:0;border-bottom:0;border-left:0;border-radius:0;overflow-y:auto}
+    #panelLeft{top:0;bottom:0;left:0;transform:translateX(-100%);width:232px;padding:74px 16px 18px;border-top:0;border-bottom:0;border-left:0;border-radius:0;overflow-y:auto;display:flex;flex-direction:column}
     #panelLeft.open{transform:translateX(0)}
     #panelLeft .pf-close,#panelRight .pf-close{top:76px}
     .pf-vbtn{
@@ -258,6 +258,8 @@
     .pf-vbtn.active{color:#eafcff;background:rgba(34,230,255,.12);border-color:var(--cyan-dim);text-shadow:0 0 8px rgba(34,230,255,.5)}
     .pf-vbtn.active .ic{color:var(--cyan)}
     #panelLeft .hint{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-top:10px;line-height:1.5}
+    /* pie del riel — versión (patrón admira.tv: monospace pequeño, dim, pegado abajo) */
+    .pf-ver{margin-top:auto;padding-top:12px;border-top:1px solid rgba(34,230,255,.12);font-family:inherit;font-size:9px;letter-spacing:.14em;color:var(--cyan-dim);white-space:nowrap}
     .pf-sec{margin-top:12px;padding-top:10px;border-top:1px solid rgba(34,230,255,.12)}
     .pf-seclabel{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan-dim);margin-bottom:7px}
     .pf-fbtn{
@@ -355,7 +357,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.07.r9</span></span>
+    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.08.r10</span></span>
   </div>
 
   <div id="card"></div>
@@ -384,6 +386,8 @@
       <div id="focusList"><!-- se rellena con los ordenadores online --></div>
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
+    <!-- pie del riel: versión (movida desde la barra superior) -->
+    <div class="pf-ver" id="verRail">v.2026.07.08.r10</div>
   </aside>
 
   <!-- BARRA DERECHA — AVANZADO -->
@@ -459,7 +463,6 @@
     <div class="hdr-center">
       <div class="hdr-line">
         <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
-        <span class="ver" id="verTop">v.2026.07.07.r9</span>
         <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
         <span class="live"><span class="dot"></span><span id="liveCount">—</span></span>
       </div>
@@ -854,9 +857,12 @@
       // --- SATÉLITE: orbita a su agente principal, al margen de la física global.
       if(a.parentId && byId[a.parentId]){
         const par=byId[a.parentId];
-        const spd  = a.tier==='infra' ? 0.00072 : 0.00095;  // infra un poco más lento
+        // Órbitas ANIDADAS: principal (agente↔ordenador) amplia; sub (↔agente)
+        // media; infra (↔sub) pequeña y cercana. Cada capa más ceñida a su padre.
+        const spd  = a.tier==='infra' ? 0.00110 : a.tier==='sub' ? 0.00085 : 0.00060;
         a._orb = (a._orb||0) + dt*spd;
-        const rSat = Math.min(W,H) * (a.tier==='infra' ? 0.085 : 0.058) * VIEW_ZOOM;
+        const rF   = a.tier==='infra' ? 0.034 : a.tier==='sub' ? 0.058 : 0.115;
+        const rSat = Math.min(W,H) * rF * VIEW_ZOOM;
         const tx = par.x + Math.cos(a._orb)*rSat;
         const ty = par.y + Math.sin(a._orb)*rSat;
         // Si quedó lejos del padre (cambio de vista, arrastre), reengánchalo cerca
@@ -987,7 +993,7 @@
     let base = R_MIN + (R_MAX - R_MIN) * k;
     // Cualquier satélite (sub/infra en vista AGENTE, o agente-en-máquina en TODO)
     // es más pequeño que su principal.
-    if(n.parentId) base *= (n.tier==='infra' ? 0.48 : 0.60);
+    if(n.parentId) base *= (n.tier==='infra' ? 0.42 : n.tier==='sub' ? 0.56 : 0.72);
     base *= VIEW_ZOOM;   // zoom efectivo al enfocar un ordenador
     return n.online ? base : Math.max((n.parentId?3:R_MIN-1)*VIEW_ZOOM, base*0.7);
   }
@@ -1179,8 +1185,10 @@
       // Bajo cada AGENTE (tiene `since`): tiempo dedicado + tokens consumidos.
       if(!dimNode && n.online && n.since){
         const now=(WORLD.serverNow||Math.floor(Date.now()/1000));
-        const parts=['⏱ '+fmtDur(now-n.since)];
-        if(+n.tokens>0) parts.push(fmtTokens(n.tokens)+' tok');
+        // ⏱ tiempo · APP que gestiona al agente (runtime normalizado) · tokens.
+        const parts=['⏱ '+fmtDur(now-n.since), runtimeApp(n.runtime||n.sub)];
+        // los tokens sólo en principales o con zoom → no ensancha órbitas densas.
+        if(+n.tokens>0 && (!isSat || VIEW_ZOOM>1.3)) parts.push(fmtTokens(n.tokens)+' tok');
         ctx.font='8px JetBrains Mono, monospace';
         ctx.fillStyle='rgba(120,200,220,.6)';
         ctx.fillText(parts.join(' · '), n.x, n.y+r+(isSat?31:37));
@@ -1557,6 +1565,7 @@
       ...e, project:projectFor(e.machine), os:osFor(e.machine, e.platform),
       assignment: asgFor('machine', e.machine),   // asignación de Carlos (FASE 1); null = libre
       personas:(e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)),
+      allPersonas: e.personas,   // lista COMPLETA (con stale) — sólo para anclas de la galaxia (vista TODO)
     })).sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
 
     // ---- TIEMPO ACTIVO por agente (observado por el panel) ----
@@ -1625,35 +1634,80 @@
     // enlaza SOLO si el agente principal está presente con el mismo runtime;
     // si no, el nodo queda como principal normal (degrada limpio). Marca:
     //   e.tier = 'main' | 'sub' | 'infra' ; e.parentId = id del principal.
-    const byPersona = {};
-    for(const e of out) byPersona[norm(e.persona)+'|'+norm(e.runtime||'')] = e;
+    // ANIDADO por NOMBRE: el runtime del hijo difiere del padre por diseño
+    // (Neo=Fable, subNeo=Opus, infraNeo=Sonnet), así que enlazamos por persona.
+    // sub<X> orbita a <X>; infra<X> orbita a sub<X>. Sin padre → principal limpio.
+    const byName = {};
+    for(const e of out) byName[norm(e.persona)] = e;   // uno por persona en esta vista
     for(const e of out){
-      const t = agentTier(e.persona);          // {base, tier}
+      const kin = agentKin(e.persona);
       e.tier = 'main';
-      if(t.tier!=='main'){
-        const parent = byPersona[t.base+'|'+norm(e.runtime||'')];
-        if(parent && parent!==e){ e.tier=t.tier; e.parentId=parent.id; parent.hasSats=true; }
+      if(kin.tier!=='main'){
+        let par=null;
+        for(const c of kin.parents){ const cand=byName[c]; if(cand && cand!==e){ par=cand; break; } }
+        if(par){ e.tier=kin.tier; e.parentId=par.id; par.hasSats=true; }
       }
     }
-    // Orden: principales por online/nombre; los satélites SIEMPRE detrás de su
-    // principal (para que layout/física los coloque junto a un padre ya situado).
+    // Orden TOPOLÓGICO: cada nodo se empuja DESPUÉS de su cadena de padres, para
+    // que layout/física coloquen sub tras su principal e infra tras su sub.
     out.sort((a,b)=>(b.online-a.online)||(a.persona>b.persona?1:-1));
-    const mains = out.filter(e=>!e.parentId);
-    const sats  = out.filter(e=>e.parentId);
     const ordered=[]; const pushed=new Set();
-    for(const m of mains){ ordered.push(m); pushed.add(m.id);
-      for(const s of sats){ if(s.parentId===m.id){ ordered.push(s); pushed.add(s.id); } } }
-    for(const s of sats){ if(!pushed.has(s.id)) ordered.push(s); } // huérfanos por si acaso
+    const pushChain=(e)=>{ if(!e||pushed.has(e.id))return;
+      if(e.parentId){ const p=out.find(x=>x.id===e.parentId); if(p&&!pushed.has(p.id)) pushChain(p); }
+      ordered.push(e); pushed.add(e.id); };
+    for(const e of out) pushChain(e);
     return ordered;
   }
 
-  // Deriva el TIER de un agente por su nombre: infra<x>/sub<x> → hijo de <x>.
-  // base = persona padre normalizada; tier = 'main'|'sub'|'infra'.
-  function agentTier(persona){
+  // ── JERARQUÍA DE AGENTES (galaxias de conocimiento) ─────────────────────
+  // Convención del equipo: sub<X> orbita a <X>; infra<X> orbita a sub<X>.
+  //   subNeo→Neo · subMorfeo/subMorfeo2→Morfeo · infraNeo→subNeo · infraMorfeo→subMorfeo
+  // Agentes PRINCIPALES conocidos (orbitan directamente su ordenador):
+  const MAIN_AGENTS = new Set(['neo','morfeo','trinity','oraculo','orculo','cypher','smith','fable','claude']);
+  // Nombres propios SIN prefijo que NO son principales → padre deseado explícito
+  // (WhiteRabbit ejecuta bajo Neo). Si el padre no está presente, el resolvedor
+  // cae al principal de la máquina y, en último término, al propio ordenador.
+  const KIN_EXPLICIT = { 'whiterabbit':'neo' };
+  const stripNum = s => (s||'').replace(/[0-9]+$/,'');
+  // Devuelve {tier:'main'|'sub'|'infra', parents:[nombres-padre normalizados]}.
+  // `parents` se prueba en orden; gana el PRIMERO presente en la misma máquina.
+  function agentKin(persona){
     const n = norm(persona);
-    if(n.startsWith('infra') && n.length>5) return { base:n.slice(5), tier:'infra' };
-    if(n.startsWith('sub')   && n.length>3) return { base:n.slice(3), tier:'sub' };
-    return { base:n, tier:'main' };
+    if(n.startsWith('infra') && n.length>5){
+      const rest=n.slice(5);
+      return { tier:'infra', parents:['sub'+rest,'sub'+stripNum(rest),rest,stripNum(rest)] };
+    }
+    if(n.startsWith('sub') && n.length>3){
+      const rest=n.slice(3);
+      return { tier:'sub', parents:[rest,stripNum(rest)] };
+    }
+    if(KIN_EXPLICIT[n]) return { tier:'sub', parents:[KIN_EXPLICIT[n]] };
+    return { tier:'main', parents:[] };
+  }
+  // Conserva los agentes FRESCOS y, además, ATENUADOS, los padres stale que
+  // anclan a un hijo fresco → la órbita anidada nunca pierde su estrella-ancla.
+  function keepWithAnchors(personas){
+    const fresh = personas.filter(x=>x.fresh);
+    if(!fresh.length) return personas.slice(-1);
+    const present = new Set(personas.map(x=>norm(x.persona)));
+    const need = new Set();
+    const addNeed = nn=>{ const kin=agentKin(nn);
+      for(const c of kin.parents){ if(c && present.has(c) && !need.has(c)){ need.add(c); addNeed(c); break; } } };
+    for(const f of fresh) addNeed(norm(f.persona));
+    const keep = fresh.slice(); const anchored = new Set();
+    for(const x of personas){ if(x.fresh) continue; const nn=norm(x.persona);
+      if(need.has(nn) && !anchored.has(nn)){ keep.push(x); anchored.add(nn); } }
+    return keep;
+  }
+  // App que GESTIONA al agente, derivada del campo `runtime` de presencia y
+  // normalizada a los valores permitidos: Claude · Codex · OpenCode · CLI.
+  // Grok corre en CLI; «pipeline» u otros desconocidos → CLI.
+  function runtimeApp(rt){
+    const r=(rt||'').toLowerCase();
+    if(r.indexOf('claude')>=0)   return 'Claude';
+    if(r.indexOf('opencode')>=0) return 'OpenCode';
+    if(r.indexOf('codex')>=0)    return 'Codex';
+    return 'CLI';
   }
 
   // Vista TODO: la foto completa de la flota. Nodos principales = ordenadores;
@@ -1663,7 +1717,8 @@
   function buildAll(machines){
     const list=[];
     for(const m of machines){
-      const ags=(m.personas||[]);
+      // Órbitas de la galaxia = frescos + padres-ancla stale (dim) de esta máquina.
+      const ags=(m.allPersonas ? keepWithAnchors(m.allPersonas) : (m.personas||[]));
       // TODO = quién está trabajando: ordenadores online o con algún agente
       // reportando. Se omiten los equipos offline y vacíos (infra dormida) que
       // solo añadirían ruido.
@@ -1680,16 +1735,37 @@
       // equipo no está conectado, se ve el nodo del ordenador pero sin satélites,
       // para que la foto sea más fácil de leer (orden de Carlos).
       if(!m.online) continue;
-      for(const a of ags){
+      // ── GALAXIA DE CONOCIMIENTO de esta máquina ──────────────────────────
+      // Estrella = ordenador. El agente PRINCIPAL orbita el ordenador; sub<X>
+      // orbita a <X>; infra<X> orbita a sub<X> (órbitas anidadas). Los padres se
+      // buscan SÓLO dentro de esta máquina; si no se resuelven, el hijo cae al
+      // principal de la máquina y, en último término, al propio ordenador.
+      const idOf={}, kinOf={};
+      for(const a of ags){ const nn=norm(a.persona); idOf[nn]=mid+'|'+nn+'|'+norm(a.runtime||''); kinOf[nn]=agentKin(a.persona); }
+      const mainA = ags.find(a=>MAIN_AGENTS.has(norm(a.persona))) || ags.find(a=>kinOf[norm(a.persona)].tier==='main');
+      const mainNorm = mainA ? norm(mainA.persona) : null;
+      // empuje PRINCIPALES → SUBS → INFRAS (el padre entra antes que el hijo)
+      const tierRank={main:0,sub:1,infra:2};
+      const ordered=ags.slice().sort((p,q)=>tierRank[kinOf[norm(p.persona)].tier]-tierRank[kinOf[norm(q.persona)].tier]);
+      for(const a of ordered){
+        const nn=norm(a.persona), kin=kinOf[nn];
+        let parentId=mid, tier='main';                 // principal → orbita el ordenador
+        if(kin.tier!=='main'){
+          tier=kin.tier;
+          const pn=kin.parents.find(c=>c&&c!==nn&&idOf[c]);      // padre presente EN LA MÁQUINA
+          if(pn) parentId=idOf[pn];
+          else if(mainNorm&&mainNorm!==nn) parentId=idOf[mainNorm]; // fallback: principal de la máquina
+          else parentId=mid;                            // último recurso: el ordenador (nunca se pierde)
+        }
         // proyecto principal del agente: el que reporta en vivo, si no su misión
         // de referencia, y como último recurso el proyecto del ordenador.
         const proj = a.project || missionForAgent(a.persona) || m.project || '';
         list.push({
-          id:mid+'|'+norm(a.persona)+'|'+norm(a.runtime||''), label:a.persona,
-          sub:a.runtime||'', kindFor:'all-agent', parentId:mid, tier:'orb',
+          id:idOf[nn], label:a.persona,
+          sub:a.runtime||'', kindFor:'all-agent', parentId, tier,
           online:!!a.fresh, updated:a.updated||0, foco:a.focus||'', mode:a.mode||'',
           proj, decisions:0, tokens:a.tokens||0, reqs:a.reqs||0, count:1,
-          since:(+a.since>0 ? +a.since : (WORLD.activeSince||{})[norm(a.persona)+'|'+norm(a.runtime||'')]||0),
+          since:(+a.since>0 ? +a.since : (WORLD.activeSince||{})[nn+'|'+norm(a.runtime||'')]||0),
           sinceExact:(+a.since>0), cpu:m.cpu||0,
           machines:[m.machine], persona:a.persona, runtime:a.runtime,
         });
@@ -1855,7 +1931,8 @@
       // y amplía tamaños/órbitas (zoom efectivo) para centrar la atención.
       if(FOCUS_MACHINE){
         const mid='all:'+FOCUS_MACHINE;
-        list = list.filter(n=> n.id===mid || n.parentId===mid);
+        // subárbol completo del ordenador enfocado (principal + sub + infra anidados)
+        list = list.filter(n=> n.id===mid || n.id.indexOf(mid+'|')===0);
         if(list.length) VIEW_ZOOM = 1.9;
         else if((WORLD.all||[]).length){ FOCUS_MACHINE=null; VIEW_ZOOM=1; list=(WORLD.all||[]).map(n=>({...n})); } // datos cargados pero el equipo ya no está: vuelve a todos
         // si WORLD.all aún no cargó (arranque por deep-link), conserva el foco: load() reaplicará
