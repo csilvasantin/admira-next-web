@@ -6,8 +6,8 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.09.r14">
-  <meta name="admiranext-status-build" content="adaptive-heads-polling-1">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.09.r15">
+  <meta name="admiranext-status-build" content="resizable-porteria-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
        Detrás de un FLAG mientras Carlos no autorice el origen www.admiranext.com
@@ -58,6 +58,10 @@
       --grid:rgba(34,230,255,.06);
       --card:rgba(6,14,24,.92);
       --off:#3a4756;
+      /* r15: anchos/alto de las barras del cuadro, redimensionables por asa
+         (persisten en localStorage: admira_pf_w_left / _right / _h_bottom) */
+      --pf-w-left:232px;
+      --pf-w-right:232px;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
@@ -256,7 +260,7 @@
     /* IZQUIERDA — opciones (menú vertical de vistas)
        BARRA A TODA ALTURA: de la cabecera al pie (top:0→bottom:0), misma anchura
        que la derecha → la composición queda como una cuadrícula perfecta. */
-    #panelLeft{top:0;bottom:0;left:0;transform:translateX(-100%);width:232px;padding:74px 16px 18px;border-top:0;border-bottom:0;border-left:0;border-radius:0;overflow-y:auto;display:flex;flex-direction:column}
+    #panelLeft{top:0;bottom:0;left:0;transform:translateX(-100%);width:var(--pf-w-left);padding:74px 16px 18px;border-top:0;border-bottom:0;border-left:0;border-radius:0;overflow-y:auto;display:flex;flex-direction:column}
     #panelLeft.open{transform:translateX(0)}
     #panelLeft .pf-close,#panelRight .pf-close{top:76px}
     .pf-vbtn{
@@ -285,7 +289,7 @@
     .pf-fbtn.active{color:#eafcff;background:rgba(34,230,255,.12);border-color:var(--cyan-dim)}
 
     /* DERECHA — AVANZADO (BARRA A TODA ALTURA, misma anchura que la izquierda) */
-    #panelRight{top:0;bottom:0;right:0;transform:translateX(100%);width:232px;padding:74px 16px 18px;border-top:0;border-bottom:0;border-right:0;border-radius:0;overflow-y:auto}
+    #panelRight{top:0;bottom:0;right:0;transform:translateX(100%);width:var(--pf-w-right);padding:74px 16px 18px;border-top:0;border-bottom:0;border-right:0;border-radius:0;overflow-y:auto}
     #panelRight.open{transform:translateX(0)}
     .pf-field{margin-bottom:16px}
     .pf-field label{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan-dim);margin-bottom:7px}
@@ -333,18 +337,64 @@
     @media (min-width:641px){
       #panelLeft,#panelRight{
         position:relative;top:auto;bottom:auto;left:auto;right:auto;
-        height:100%;flex:0 0 232px;z-index:38;
+        height:100%;z-index:38;
         transform:none;
         transition:margin .28s cubic-bezier(.2,.8,.2,1),opacity .24s,visibility .24s;
       }
-      #panelLeft{order:-1;margin-left:-232px}
+      /* r15: anchura por variable → el asa la cambia en vivo y TODO refluye
+         (flex-basis para la columna + margen negativo equivalente al cerrar) */
+      #panelLeft{order:-1;flex:0 0 var(--pf-w-left);margin-left:calc(-1 * var(--pf-w-left))}
       #panelLeft.open{margin-left:0;transform:none}
-      #panelRight{order:1;margin-right:-232px}
+      #panelRight{order:2;flex:0 0 var(--pf-w-right);margin-right:calc(-1 * var(--pf-w-right))}
       #panelRight.open{margin-right:0;transform:none}
+      /* asas laterales: solo visibles con su panel abierto (columna real) */
+      #panelLeft.open + #rzLeft{display:block}
+      #panelRight.open + #rzRight{display:block}
+      /* r15: hamburguesa/toggles centrados respecto a la línea "ADmiraNeXT":
+         cada elemento de la línea central se centra dentro de una franja de
+         38px (la altura del toggle) → los centros verticales coinciden,
+         incluso cuando la línea envuelve en dos filas. */
+      .hdr-line{align-items:center}
+      .hdr-line>*{min-height:38px;display:inline-flex;align-items:center}
+      .hdr-side{min-height:38px;align-items:center}
+    }
+
+    /* r15: ASAS DE REDIMENSIONADO (drag). Laterales = flex items de 8px entre
+       panel y centro (solo escritorio); inferior = franja superior del cajón.
+       Línea cian sutil al hover/drag, estética existente. */
+    .pf-rz{
+      display:none;flex:0 0 8px;position:relative;z-index:39;
+      cursor:col-resize;touch-action:none;background:transparent;
+    }
+    #rzLeft{order:-1}
+    #rzRight{order:1}
+    .pf-rz::after{
+      content:"";position:absolute;top:0;bottom:0;left:3px;width:2px;
+      background:rgba(34,230,255,.10);transition:background .2s,box-shadow .2s;
+    }
+    .pf-rz:hover::after,.pf-rz.dragging::after{
+      background:var(--cyan);box-shadow:0 0 10px rgba(34,230,255,.55);
+    }
+    #rzBottom{
+      position:absolute;top:0;left:0;right:0;height:8px;
+      cursor:row-resize;touch-action:none;background:transparent;z-index:2;
+    }
+    #rzBottom::after{
+      content:"";position:absolute;left:0;right:0;top:3px;height:2px;
+      background:rgba(34,230,255,.10);transition:background .2s,box-shadow .2s;
+    }
+    #rzBottom:hover::after,#rzBottom.dragging::after{
+      background:var(--cyan);box-shadow:0 0 10px rgba(34,230,255,.55);
+    }
+    @media (max-width:640px){
+      /* móvil: los paneles siguen siendo cajón overlay — sin redimensionado */
+      .pf-rz,#rzBottom{display:none!important}
     }
 
     @media (max-width:640px){
       .pf-tg{width:34px;height:34px;font-size:14px}
+      /* r15: la marca centra su línea contra los toggles de 34px */
+      .hdr .brand{min-height:34px;display:inline-flex;align-items:center}
       /* barras full-height como overlay en móvil (no rompen la galaxia) */
       #panelLeft,#panelRight{width:82vw;max-width:300px;padding-top:128px}
       #panelLeft .pf-close,#panelRight .pf-close{top:130px}
@@ -369,7 +419,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos en vivo · <span id="lastUpd">—</span> · <span id="dataAge" style="color:var(--cyan-dim)"></span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.09.r14</span></span>
+    <span class="upd">rota cada 20s · datos en vivo · <span id="lastUpd">—</span> · <span id="dataAge" style="color:var(--cyan-dim)"></span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.09.r15</span></span>
   </div>
 
   <div id="card"></div>
@@ -399,8 +449,10 @@
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión (movida desde la barra superior) -->
-    <div class="pf-ver" id="verRail">v.2026.07.09.r14</div>
+    <div class="pf-ver" id="verRail">v.2026.07.09.r15</div>
   </aside>
+  <!-- r15: asa de redimensionado del riel izquierdo (doble clic = restaurar) -->
+  <div class="pf-rz" id="rzLeft" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
 
   <!-- BARRA DERECHA — AVANZADO -->
   <aside class="pf-panel" id="panelRight" role="region" aria-label="Ajustes avanzados">
@@ -464,6 +516,8 @@
       <div class="hint" id="gestionMsg" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5;min-height:12px">Eliminar aquí lo ve TODA la flota (se anuncia en Agora).</div>
     </div>
   </aside>
+  <!-- r15: asa de redimensionado del riel derecho (doble clic = restaurar) -->
+  <div class="pf-rz" id="rzRight" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
   </div><!-- /stage -->
 
   <!-- ============================================================
@@ -499,6 +553,8 @@
 
   <!-- BARRA INFERIOR — EXPERTO + CLI -->
   <section class="pf-panel" id="panelBottom" role="region" aria-label="Consola experto">
+    <!-- r15: asa superior de redimensionado del cajón (doble clic = restaurar) -->
+    <div id="rzBottom" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
     <button class="pf-close" id="closeBottom" aria-label="Cerrar consola">×</button>
     <h4>Experto · consola</h4>
     <div class="cli-wrap">
@@ -2890,6 +2946,97 @@
       Object.keys(panels).forEach(k=>{ if(panels[k].panel.classList.contains('open')){ setPanel(k,false); panels[k].tg.focus(); any=true; } });
     }
   });
+
+  // ============================================================
+  // r15 — BARRAS REDIMENSIONABLES (asas de arrastre, patrón portería)
+  // Laterales: cambian --pf-w-left/right → flex-basis de la columna → el
+  // centro refluye y el ResizeObserver de #stageCenter recalcula el canvas
+  // (resize() en vivo + seedStars() debounced). Inferior: altura del cajón.
+  // Persistencia en localStorage; doble clic en el asa = restaurar.
+  // Solo escritorio (>640px); en móvil los paneles siguen siendo overlay.
+  // ============================================================
+  (function pfResize(){
+    const LS = { left:'admira_pf_w_left', right:'admira_pf_w_right', bottom:'admira_pf_h_bottom' };
+    const DEF_W = 232, MIN_W = 200, MIN_H = 120;
+    const root = document.documentElement;
+    const pb = document.getElementById('panelBottom');
+    const cliOut = document.getElementById('cliOut');
+    const lsGet = k => { try{ const v=parseInt(localStorage.getItem(k),10); return isFinite(v)?v:null; }catch(e){ return null; } };
+    const lsSet = (k,v) => { try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,String(v)); }catch(e){} };
+
+    function maxW(side){
+      // tope 55vw, y además deja SIEMPRE ≥160px de centro aunque el otro riel esté abierto
+      const other = side==='left' ? 'right' : 'left';
+      const otherW = panels[other].panel.classList.contains('open')
+        ? (parseInt(getComputedStyle(root).getPropertyValue('--pf-w-'+other),10)||DEF_W) : 0;
+      return Math.max(MIN_W, Math.min(innerWidth*0.55, innerWidth-otherW-160));
+    }
+    const maxH = () => Math.floor(innerHeight*0.6);
+    const clamp = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
+
+    function applyW(side, px){ root.style.setProperty('--pf-w-'+side, px+'px'); }
+    function applyH(px){
+      pb.style.height=px+'px'; pb.style.maxHeight=maxH()+'px';
+      // que la altura extra la aproveche la salida de la consola
+      if(cliOut) cliOut.style.maxHeight=Math.max(60, px-150)+'px';
+    }
+    function resetW(side){ root.style.removeProperty('--pf-w-'+side); lsSet(LS[side],null); }
+    function resetH(){ pb.style.height=''; pb.style.maxHeight=''; if(cliOut) cliOut.style.maxHeight=''; lsSet(LS.bottom,null); }
+
+    // restaurar tamaños guardados al arrancar
+    const w0l=lsGet(LS.left), w0r=lsGet(LS.right), h0=lsGet(LS.bottom);
+    if(w0l) applyW('left',  clamp(w0l, MIN_W, Math.floor(innerWidth*0.55)));
+    if(w0r) applyW('right', clamp(w0r, MIN_W, Math.floor(innerWidth*0.55)));
+    if(h0)  applyH(clamp(h0, MIN_H, maxH()));
+
+    function bindHandle(el, opts){
+      if(!el) return;
+      let raf=null, pend=null, active=false;
+      el.addEventListener('pointerdown', e=>{
+        if(innerWidth<=640) return;               // móvil: overlay intacto, sin drag
+        e.preventDefault(); active=true;
+        try{ el.setPointerCapture(e.pointerId); }catch(err){}
+        el.classList.add('dragging');
+        document.body.style.userSelect='none';
+        document.body.style.cursor=opts.axis==='x'?'col-resize':'row-resize';
+        if(typeof bumpReadFreeze==='function') bumpReadFreeze();
+      });
+      el.addEventListener('pointermove', e=>{
+        if(!active) return;
+        pend = opts.measure(e);
+        if(raf) return;
+        raf = requestAnimationFrame(()=>{ raf=null; if(pend!=null) opts.apply(clamp(pend, opts.min(), opts.max())); });
+      });
+      const end = e=>{
+        if(!active) return; active=false;
+        el.classList.remove('dragging');
+        document.body.style.userSelect=''; document.body.style.cursor='';
+        if(pend!=null) { const v=clamp(pend, opts.min(), opts.max()); opts.apply(v); lsSet(opts.ls, Math.round(v)); pend=null; }
+      };
+      el.addEventListener('pointerup', end);
+      el.addEventListener('pointercancel', end);
+      el.addEventListener('dblclick', ()=>{ opts.reset(); });
+    }
+
+    bindHandle(document.getElementById('rzLeft'), {
+      axis:'x', ls:LS.left,
+      measure:e=>e.clientX - 4,                       // borde interior del riel izq (asa de 8px)
+      min:()=>MIN_W, max:()=>maxW('left'),
+      apply:v=>applyW('left',v), reset:()=>resetW('left'),
+    });
+    bindHandle(document.getElementById('rzRight'), {
+      axis:'x', ls:LS.right,
+      measure:e=>innerWidth - e.clientX - 4,          // borde interior del riel dcho
+      min:()=>MIN_W, max:()=>maxW('right'),
+      apply:v=>applyW('right',v), reset:()=>resetW('right'),
+    });
+    bindHandle(document.getElementById('rzBottom'), {
+      axis:'y', ls:LS.bottom,
+      measure:e=>innerHeight - e.clientY - 4,         // borde superior del cajón
+      min:()=>MIN_H, max:maxH,
+      apply:applyH, reset:resetH,
+    });
+  })();
 
   // --- menú vertical IZQUIERDA sincronizado con el conmutador superior ---
   const leftBtns = panelLeft.querySelectorAll('.pf-vbtn');
