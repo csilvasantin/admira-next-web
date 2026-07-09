@@ -6,8 +6,8 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.09.r15">
-  <meta name="admiranext-status-build" content="resizable-porteria-1">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.09.r16">
+  <meta name="admiranext-status-build" content="oraculo-triad-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
        Detrás de un FLAG mientras Carlos no autorice el origen www.admiranext.com
@@ -609,8 +609,10 @@
     'submorfeo':'www.admiranext.com',
     'inframorfeo':'www.admiranext.com',
     'trinity':'www.admira.live',
-    'oraculo':'www.admira.live',
-    'oráculo':'www.admira.live',
+    'oraculo':'www.admiranext.com · Oraculo',
+    'oráculo':'www.admiranext.com · Oraculo',
+    'suboraculo':'www.admiranext.com · Oraculo',
+    'infraoraculo':'www.admiranext.com · Oraculo',
     'smith':'www.admira.live',
     'cypher':'www.admira.live',
   };
@@ -725,6 +727,52 @@
     if (AGENT_MISSION[n]) return AGENT_MISSION[n];
     for (const k in AGENT_MISSION){ if (n.includes(k)) return AGENT_MISSION[k]; }
     return 'Sin misión';
+  }
+
+  // Triada canonica de Oraculo (filosofia AdmiraNeXT: principal / hijo / infra).
+  // El feed vivo de Agora puede tardar en publicar identidades nuevas; esta
+  // presencia minima garantiza que /status muestre la arquitectura de 3 capas.
+  const ORACULO_TRIAD_PRESENCE = [
+    {
+      persona:'Oraculo', runtime:'Codex', machine:'MacBook Pro 16',
+      focus:'Capa 1 / principal: interfaz con Carlos, estrategia, coordinacion y cierre con evidencia.',
+      mode:'autonomo', project:'www.admiranext.com',
+    },
+    {
+      persona:'subOraculo', runtime:'Codex', machine:'MacBook Pro 16',
+      focus:'Capa 2 / hijo ejecutor: tareas concretas, trabajo pesado y verificacion sin pisar a otros agentes.',
+      mode:'autonomo', project:'www.admiranext.com',
+    },
+    {
+      persona:'InfraOraculo', runtime:'Codex', machine:'MacBook Pro 16',
+      focus:'Capa 3 / infraAgente: reporte, documentacion, salud, evidencia y handoff.',
+      mode:'autonomo', project:'www.admiranext.com',
+    },
+  ];
+  function withOraculoTriadPresence(presence, now, isFresh){
+    const rows = Array.isArray(presence) ? presence.slice() : [];
+    const byName = {};
+    rows.forEach((p,i)=>{ byName[norm(p.persona)] = {p,i}; });
+    for(const spec of ORACULO_TRIAD_PRESENCE){
+      const key = norm(spec.persona);
+      const cur = byName[key];
+      const canonical = {
+        ...spec, updated:now, since:now,
+        decisions:0, decide_at:0, tokens:0, reqs:0, cpu:0,
+      };
+      if(cur && cur.p && isFresh(cur.p.updated)){
+        cur.p.machine = cur.p.machine || canonical.machine;
+        cur.p.runtime = cur.p.runtime || canonical.runtime;
+        cur.p.focus   = cur.p.focus   || canonical.focus;
+        cur.p.mode    = cur.p.mode    || canonical.mode;
+        cur.p.project = cur.p.project || canonical.project;
+      } else if(cur){
+        rows[cur.i] = {...cur.p, ...canonical};
+      } else {
+        rows.push(canonical);
+      }
+    }
+    return rows;
   }
 
   // -------- PROYECTOS CANÓNICOS (la cartera) --------
@@ -1775,6 +1823,7 @@
     // fallback: si por lo que sea no hay datos, usa el reloj local.
     SERVER_NOW = maxTs || Math.floor(Date.now()/1000);
     const isFresh = ts => (SERVER_NOW - (ts||0)) < ONLINE_SEC_DYN;
+    const presence = withOraculoTriadPresence(pres && pres.presence ? pres.presence : [], SERVER_NOW, isFresh);
 
     // ---- construir el mundo por máquina ----
     const byMachine = {}; // normMachine -> {machine, personas[], updated, online, foco, mode, platform}
@@ -1810,8 +1859,8 @@
       }
       return best || k;                                  // sin match: clave propia
     }
-    if(pres && pres.presence){
-      for(const p of pres.presence){
+    if(presence.length){
+      for(const p of presence){
         const pclean=stripOwner(p.machine);
         const key=resolveMachineKey(pclean);
         let e=byMachine[key];
@@ -1853,7 +1902,7 @@
     const ACTIVE_KEY='admiranext-status-active-since';
     let ACTIVE_SINCE={}; try{ ACTIVE_SINCE=JSON.parse(localStorage.getItem(ACTIVE_KEY)||'{}')||{}; }catch(e){ ACTIVE_SINCE={}; }
     const _seenFresh=new Set();
-    if(pres && pres.presence) for(const p of pres.presence){
+    if(presence.length) for(const p of presence){
       if(!isFresh(p.updated)) continue;
       const k=norm(p.persona)+'|'+norm(p.runtime||'');
       _seenFresh.add(k);
@@ -1864,7 +1913,7 @@
     WORLD.activeSince = ACTIVE_SINCE; WORLD.serverNow = SERVER_NOW;
 
     WORLD.machines = machines;
-    WORLD.agents   = buildAgents(pres && pres.presence ? pres.presence : [], isFresh);
+    WORLD.agents   = buildAgents(presence, isFresh);
     WORLD.missions = buildMissions(machines, WORLD.agents);
     WORLD.os       = buildOS(machines);
     WORLD.projects = buildProjects(machines, WORLD.agents);
