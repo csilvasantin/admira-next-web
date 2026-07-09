@@ -257,8 +257,8 @@
     '/acerca-de': '/about',
     '/quien': '/about',
     '/quienes': '/about',
-    '/filosofia': '/philosophy',
-    '/filosofía': '/philosophy',
+    // /filosofia y /filosofía NO son alias: son comandos que ABREN la página
+    // /filosofia (los 10 Mandamientos + Máximas del equipo). Ver cmdFilosofia().
     '/trabajo': '/work',
     '/trabajos': '/work',
     '/proyectos': '/work',
@@ -1551,6 +1551,20 @@
     ];
   }
 
+  // /filosofia — ABRE la página de filosofía del equipo (10 Mandamientos + Máximas).
+  // No es contenido inline: navega a /filosofia (o filosofia.html en file://).
+  function cmdFilosofia() {
+    const target = (window.location.protocol === 'file:') ? 'filosofia.html' : '/filosofia';
+    setTimeout(() => { window.location.href = target; }, 450);
+    return [
+      { text: 'Filosofía del equipo · AdmiraNeXT', cls: 'heading' },
+      { text: '' },
+      { text: '  Los 10 Mandamientos y las Máximas del equipo.', cls: 'accent' },
+      { text: '' },
+      { text: '  → /filosofia', cls: 'green' },
+    ];
+  }
+
   function cmdLocation() {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
     return [
@@ -1891,6 +1905,16 @@
       { cmd: '/pixer',      labelEs: 'Pixer.ai — content engine',               labelEn: 'Pixer.ai — content engine',                 url: 'https://pixer.ai',                                          color: 'accent' },
       { cmd: '/shop',       labelEs: 'Admira.shop — venta y alquiler de robots', labelEn: 'Admira.shop — buy & rent robots',          url: 'https://www.admira.shop',                                   color: 'green' },
     ]},
+    { groupEs: '🏗️  Desarrollo · Admira', groupEn: '🏗️  Development · Admira', items: [
+      { cmd: '/pixeria',      labelEs: 'Pixeria — distribución de contenido',     labelEn: 'Pixeria — content distribution',           url: 'https://www.pixeria.com',      color: 'accent' },
+      { cmd: '/clearchannel', labelEs: 'Clear Channel TV',                         labelEn: 'Clear Channel TV',                          url: 'https://www.clearchannel.tv',  color: 'blue' },
+      { cmd: '/admiratv',     labelEs: 'admira.tv — canal',                        labelEn: 'admira.tv — channel',                       url: 'https://admira.tv',            color: 'purple' },
+    ]},
+    { groupEs: '🚀  Desarrollo · AdmiraNeXT', groupEn: '🚀  Development · AdmiraNeXT', items: [
+      { cmd: '/admiralive',   labelEs: 'admira.live — el Consejo',                 labelEn: 'admira.live — the Council',                 url: 'https://www.admira.live',      color: 'purple' },
+      { cmd: '/yokup',        labelEs: 'Yokup — intervenciones técnicas',          labelEn: 'Yokup — technical interventions',           url: 'https://www.yokup.com',        color: 'green' },
+      { cmd: '/xpace',        displayCmd: '/xpaceos', labelEs: 'XpaceOS — sistema operativo espacial', labelEn: 'XpaceOS — space operating system', url: 'https://www.xpaceos.com', color: 'cyan' },
+    ]},
     { groupEs: '🧠  Consejo & gobernanza', groupEn: '🧠  Council & governance', items: [
       { cmd: '/consejo',    labelEs: 'Panel del Consejo',                       labelEn: 'Council panel',                            url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/consejo.html', color: 'green' },
       { cmd: '/live',       labelEs: 'admira.live — Consejo en vivo',           labelEn: 'admira.live — live Council',               url: 'https://www.admira.live',                                   color: 'purple' },
@@ -1968,6 +1992,9 @@
     ];
   });
   registerHidden('/plataforma', function() { return HIDDEN_COMMANDS['/intranet'](); });
+  // Filosofía del equipo: /filosofia y /filosofía abren la página del manifiesto.
+  registerHidden('/filosofia', cmdFilosofia);
+  registerHidden('/filosofía', cmdFilosofia);
 
   function launchEgg(label, url, color) {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
