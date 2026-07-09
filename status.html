@@ -6,8 +6,8 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.09.r13">
-  <meta name="admiranext-status-build" content="projects-view-canonical-6">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.09.r14">
+  <meta name="admiranext-status-build" content="adaptive-heads-polling-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
        Detrás de un FLAG mientras Carlos no autorice el origen www.admiranext.com
@@ -369,7 +369,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos cada 20s · <span id="lastUpd">—</span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.09.r13</span></span>
+    <span class="upd">rota cada 20s · datos en vivo · <span id="lastUpd">—</span> · <span id="dataAge" style="color:var(--cyan-dim)"></span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.09.r14</span></span>
   </div>
 
   <div id="card"></div>
@@ -399,7 +399,7 @@
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión (movida desde la barra superior) -->
-    <div class="pf-ver" id="verRail">v.2026.07.09.r13</div>
+    <div class="pf-ver" id="verRail">v.2026.07.09.r14</div>
   </aside>
 
   <!-- BARRA DERECHA — AVANZADO -->
@@ -572,6 +572,10 @@
   // GESTIÓN (r8): eliminar nodos/misiones y editar la cartera de proyectos.
   const MANAGE_URL       = 'https://admira-telegram.csilvasantin.workers.dev/api/manage';
   const PROJECTS_URL     = 'https://admira-telegram.csilvasantin.workers.dev/api/projects';
+  // POLLING ADAPTATIVO (r14): endpoint barato de metadatos (MAX id/updated por tabla).
+  // Se sondea cada 3s y solo se recarga TODO (load) si su firma cambió → baja la
+  // latencia encargo→pantalla de 20s a ~3s sin machacar los feeds pesados.
+  const HEADS_URL        = 'https://admira-telegram.csilvasantin.workers.dev/api/heads';
   // MODO MANDO — dos vías (la sesión Google manda):
   //  1) SESIÓN GOOGLE del auth-gate (localStorage.admira_gate, el mismo de
   //     admira.live): si hay sesión vigente de un usuario de la whitelist, el
@@ -1816,6 +1820,7 @@
     updateLiveCounter();   // contador de cabecera, sensible a la vista activa
     if(typeof renderFocusList==='function') renderFocusList();   // refresca la lista de foco por ordenador
     document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    window.__lastDataAt = Date.now();   // r14: marca de frescura para el ticker «datos hace Xs»
     // Gestión (r8): refresca sus listas si el panel AVANZADO está abierto
     if(typeof renderGestion==='function' && document.getElementById('panelRight').classList.contains('open')) renderGestion();
   }
@@ -3206,7 +3211,54 @@
     if(pinned) setAutoRotate(false);   // si vienes por deep-link, no rotes: quédate en esa vista
   })();
   load();
+  // Red de seguridad: recarga completa periódica (nunca se queda sin refrescar,
+  // aunque /api/heads falle o el navegador estrangule los timers en background).
   setInterval(load, REFRESH_MS);
+
+  // ── POLLING ADAPTATIVO (r14) ─────────────────────────────────────────────
+  // Sondea /api/heads (metadatos baratos) cada 3s; si la firma cambia respecto
+  // a la anterior, dispara load(). Guarda un mínimo de 2s entre loads completos
+  // para no solapar. Si /api/heads falla, la red de seguridad de 20s sigue viva.
+  (function adaptivePolling(){
+    const HEADS_MS = 3000;      // cada cuánto miramos la cabecera
+    const MIN_LOAD_GAP = 2000;  // mínimo entre recargas completas
+    let lastSig = null;         // firma anterior (null = aún sin línea base)
+    let lastLoadAt = Date.now();// load() ya se llamó arriba
+    let pending = null;         // timer de load diferido si estamos dentro del gap
+
+    function requestLoad(){
+      const now = Date.now(), gap = now - lastLoadAt;
+      if(gap >= MIN_LOAD_GAP){ lastLoadAt = now; load(); }
+      else if(!pending){ pending = setTimeout(()=>{ pending=null; lastLoadAt=Date.now(); load(); }, MIN_LOAD_GAP-gap); }
+    }
+
+    async function pollHeads(){
+      try{
+        const r = await fetch(HEADS_URL, {cache:'no-store'});
+        if(!r.ok) throw new Error('heads '+r.status);
+        const d = await r.json();
+        if(!d || !d.ok) throw new Error('heads not ok');
+        const sig = JSON.stringify([d.diary,d.inbox,d.presence,d.assign,d.projects,d.status]);
+        if(lastSig === null){ lastSig = sig; }          // 1ª vez: fija línea base (load ya corrió)
+        else if(sig !== lastSig){ lastSig = sig; requestLoad(); }
+      }catch(e){ /* silencioso: la red de seguridad de 20s cubre el fallo */ }
+    }
+    setInterval(pollHeads, HEADS_MS);
+    pollHeads();  // primer sondeo inmediato para fijar la línea base
+
+    // Refresco por evento: al volver a ver/enfocar la pestaña, mira ya la cabecera.
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pollHeads(); });
+    window.addEventListener('focus', pollHeads);
+
+    // Ticker de frescura: «datos hace Xs», actualizado cada segundo (discreto).
+    const ageEl = document.getElementById('dataAge');
+    if(ageEl) setInterval(()=>{
+      const t = window.__lastDataAt; if(!t){ ageEl.textContent=''; return; }
+      const s = Math.max(0, Math.round((Date.now()-t)/1000));
+      ageEl.textContent = 'datos hace '+s+'s';
+    }, 1000);
+  })();
+
   startRotation();
   requestAnimationFrame(frame);
   </script>
