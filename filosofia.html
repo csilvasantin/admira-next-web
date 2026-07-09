@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filosofía · AdmiraNeXT — Los 10 Mandamientos y las Máximas del equipo</title>
+<meta name="description" content="La filosofía del equipo de AdmiraNeXT: las Máximas y los 10 Mandamientos que guían a carbono y silicio. Independencia máxima, honestidad, una sola flota.">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Filosofía · AdmiraNeXT">
+<meta property="og:description" content="Las Máximas y los 10 Mandamientos del equipo de AdmiraNeXT.">
+<meta property="og:image" content="/og-image.jpg">
+<meta property="og:url" content="https://www.admiranext.com/filosofia">
+<style>
+  @font-face{
+    font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;
+    src:url('/assets/fonts/jetbrains-mono.woff2') format('woff2');
+  }
+  @font-face{
+    font-family:'JetBrains Mono';font-style:normal;font-weight:700;font-display:swap;
+    src:url('/assets/fonts/jetbrains-mono.woff2') format('woff2');
+  }
+  :root{
+    --bg:#1a1a2e; --bg-window:#252540; --bg-darker:#1e1e35;
+    --border:#3a3a5c; --border-soft:rgba(232,168,124,.18);
+    --text:#e2e2f0; --text-dim:#8888aa; --text-muted:#6a6a8a;
+    --accent:#e8a87c; --accent-bright:#f0c4a0;
+    --green:#7ec89b; --cyan:#7ce8d8; --purple:#b88ce8; --yellow:#e8d87c;
+    --dot-red:#ff5f57; --dot-yellow:#febc2e; --dot-green:#28c840;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'JetBrains Mono','Fira Code',ui-monospace,monospace;
+    background:var(--bg); color:var(--text); line-height:1.65;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    background-image:
+      radial-gradient(1100px 620px at 80% -10%, rgba(232,168,124,.10), transparent 60%),
+      radial-gradient(900px 520px at 10% 8%, rgba(124,232,216,.06), transparent 55%);
+    background-attachment:fixed;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{color:var(--accent-bright)}
+  .wrap{max-width:920px; margin:0 auto; padding:0 22px}
+
+  /* Ventana macOS */
+  .win{
+    margin:26px auto 60px; max-width:960px;
+    background:linear-gradient(180deg, rgba(37,37,64,.92), rgba(30,30,53,.92));
+    border:1px solid var(--border); border-radius:14px; overflow:hidden;
+    box-shadow:0 30px 90px rgba(0,0,0,.5), 0 0 0 1px rgba(232,168,124,.05);
+  }
+  .titlebar{
+    display:flex; align-items:center; gap:8px; padding:12px 16px;
+    background:rgba(26,26,46,.7); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:5; backdrop-filter:blur(8px);
+  }
+  .dot{width:12px;height:12px;border-radius:50%}
+  .dot.r{background:var(--dot-red)} .dot.y{background:var(--dot-yellow)} .dot.g{background:var(--dot-green)}
+  .titlebar .path{margin-left:12px; font-size:12px; color:var(--text-dim); letter-spacing:.04em}
+  .titlebar .path b{color:var(--accent)}
+  .titlebar .home{margin-left:auto; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted)}
+
+  .content{padding:clamp(30px,6vw,64px) clamp(20px,5vw,58px)}
+
+  /* Hero */
+  .kicker{font-size:11px; letter-spacing:.5em; text-transform:uppercase; color:var(--accent); margin-bottom:16px}
+  h1{
+    font-size:clamp(30px,6vw,52px); line-height:1.05; font-weight:700; letter-spacing:-.01em;
+    background:linear-gradient(180deg,#fff, #e8a87c); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    margin-bottom:14px;
+  }
+  .lede{color:var(--text-dim); font-size:clamp(14px,2.2vw,16px); max-width:60ch}
+  .lede b{color:var(--text)}
+
+  .supreme{
+    margin:36px 0 8px; padding:22px 24px; border-radius:12px;
+    background:linear-gradient(120deg, rgba(232,168,124,.12), rgba(232,168,124,.03));
+    border:1px solid var(--border-soft); position:relative; overflow:hidden;
+  }
+  .supreme::before{content:'★'; position:absolute; right:16px; top:8px; font-size:70px; color:rgba(232,168,124,.10); line-height:1}
+  .supreme .tag{font-size:10px; letter-spacing:.34em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:8px}
+  .supreme .big{font-size:clamp(18px,3.4vw,26px); font-weight:700; color:#fff; line-height:1.2}
+  .supreme .sub{margin-top:8px; color:var(--text-dim); font-size:13.5px}
+
+  /* Secciones */
+  section{margin-top:clamp(46px,7vw,72px)}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:26px; border-bottom:1px solid var(--border); padding-bottom:12px}
+  .sec-head .ico{font-size:20px}
+  .sec-head h2{font-size:clamp(19px,3.4vw,26px); font-weight:700; letter-spacing:-.01em}
+  .sec-head .note{margin-left:auto; font-size:11px; color:var(--text-muted); letter-spacing:.08em}
+
+  /* Máximas — tarjetas */
+  .maximas{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px}
+  .mx{
+    background:var(--bg-darker); border:1px solid var(--border); border-radius:12px; padding:20px 20px 18px;
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease; position:relative;
+  }
+  .mx:hover{transform:translateY(-3px); border-color:var(--border-soft); box-shadow:0 12px 34px rgba(0,0,0,.35)}
+  .mx .n{font-size:12px; color:var(--accent); letter-spacing:.2em; font-weight:700}
+  .mx h3{font-size:15.5px; margin:8px 0 8px; color:#fff; font-weight:700; line-height:1.25}
+  .mx p{font-size:13px; color:var(--text-dim); line-height:1.6}
+
+  /* 3 capas */
+  .capas{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .capa{background:var(--bg-darker); border:1px solid var(--border); border-radius:12px; padding:18px; position:relative}
+  .capa .lvl{font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--text-muted)}
+  .capa h4{font-size:15px; margin:6px 0 4px; color:#fff}
+  .capa .who{font-size:12px; color:var(--accent)}
+  .capa p{font-size:12.5px; color:var(--text-dim); margin-top:8px; line-height:1.55}
+  .capa .arrow{position:absolute; right:-11px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:16px; z-index:2}
+  .capa:last-child .arrow{display:none}
+
+  /* Mandamientos */
+  .cmd{
+    display:grid; grid-template-columns:44px 1fr; gap:16px; align-items:start;
+    padding:16px 6px; border-bottom:1px solid rgba(58,58,92,.5);
+    transition:background .16s ease;
+  }
+  .cmd:hover{background:rgba(232,168,124,.04)}
+  .cmd:last-child{border-bottom:0}
+  .cmd .num{
+    font-size:20px; font-weight:700; color:var(--accent); text-align:center;
+    border:1px solid var(--border-soft); border-radius:9px; padding:6px 0; background:rgba(232,168,124,.05);
+    line-height:1;
+  }
+  .cmd .body h3{font-size:15.5px; color:#fff; font-weight:700; margin-bottom:3px}
+  .cmd .body p{font-size:13px; color:var(--text-dim); line-height:1.6}
+
+  /* Cierre */
+  .closing{
+    margin-top:52px; padding:26px; border-radius:12px; text-align:center;
+    background:linear-gradient(120deg, rgba(124,232,216,.05), rgba(184,140,232,.05));
+    border:1px solid var(--border);
+  }
+  .closing .q{font-size:clamp(16px,3vw,20px); color:#fff; font-weight:700}
+  .closing .a{margin-top:8px; color:var(--text-dim); font-size:13.5px}
+
+  footer{max-width:960px; margin:0 auto 46px; padding:0 22px; text-align:center; color:var(--text-muted); font-size:12px; letter-spacing:.05em}
+  footer a{color:var(--text-dim)}
+  footer .sep{opacity:.4; margin:0 8px}
+
+  @media (max-width:640px){
+    .capas{grid-template-columns:1fr}
+    .capa .arrow{display:none}
+    .cmd{grid-template-columns:38px 1fr; gap:12px}
+  }
+</style>
+</head>
+<body>
+<article class="win">
+  <div class="titlebar">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span class="path"><b>~/AdmiraNeXT</b>/filosofia</span>
+    <a class="home" href="/">← admiranext.com</a>
+  </div>
+
+  <div class="content">
+    <p class="kicker">Filosofía del equipo</p>
+    <h1>La cultura de AdmiraNeXT</h1>
+    <p class="lede">Somos un equipo de <b>carbono + silicio</b> con una sola cultura. Estas son las <b>Máximas</b> y los <b>10 Mandamientos</b> que guían a cada miembro —humano o agente— en todo lo que construimos. <b>Carlos es el Arquitecto; los agentes, los elegidos que materializan su estrategia.</b></p>
+
+    <div class="supreme">
+      <span class="tag">La máxima por encima de todo</span>
+      <div class="big">Independencia máxima, siempre.</div>
+      <div class="sub">Todo lo que el equipo pueda hacer sin humanos, mejor. El humano es el último recurso.</div>
+    </div>
+
+    <!-- MÁXIMAS -->
+    <section>
+      <div class="sec-head">
+        <span class="ico">⭐</span>
+        <h2>Las Máximas</h2>
+        <span class="note">comunes a carbono + silicio</span>
+      </div>
+      <div class="maximas">
+        <div class="mx">
+          <span class="n">01</span>
+          <h3>Independencia máxima</h3>
+          <p>Todo lo que se pueda hacer sin humanos, mejor. Agota tus herramientas antes de pedir nada; el humano es el último recurso.</p>
+        </div>
+        <div class="mx">
+          <span class="n">02</span>
+          <h3>Somos un equipo — la flota es una</h3>
+          <p>Todos iguales: misma información, mismos permisos. La prioridad es siempre lo más rápido. Si puedes hacerlo tú, hazlo; delegar es el fallback, no la norma.</p>
+        </div>
+        <div class="mx">
+          <span class="n">03</span>
+          <h3>Cierra el ciclo hasta producción</h3>
+          <p>Nadie mergea su propio trabajo: revisamos y publicamos el de un compañero en cuanto está verde. El valor solo cuenta cuando llega a producción.</p>
+        </div>
+        <div class="mx">
+          <span class="n">04</span>
+          <h3>Lo menor, a un subagente</h3>
+          <p>El principal no gasta su contexto en lo pequeño: lo delega a su hijo, y si está ocupado, a la infra. Jerarquía visible, trabajo en paralelo.</p>
+        </div>
+        <div class="mx">
+          <span class="n">05</span>
+          <h3>Mantenlo todo a la última versión</h3>
+          <p>Apps, CLIs, dependencias y servicios siempre al día —reversible, con copia y avisando al equipo. Nunca actualizar en silencio.</p>
+        </div>
+        <div class="mx">
+          <span class="n">06</span>
+          <h3>Pantalla partida: ver lo que se construye</h3>
+          <p>A la izquierda, el agente; a la derecha, el proyecto vivo. Se monta al arrancar, no cuando surge: el trabajo siempre a la vista.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 CAPAS -->
+    <section>
+      <div class="sec-head">
+        <span class="ico">🧬</span>
+        <h2>La arquitectura de 3 capas</h2>
+        <span class="note">un agente no basta</span>
+      </div>
+      <div class="capas">
+        <div class="capa">
+          <div class="lvl">Capa 1</div>
+          <h4>Principal</h4>
+          <div class="who">estrategia · el mejor modelo</div>
+          <p>Trabaja con el Arquitecto: interfaz, coordinación y decisiones. Da a las demás capas instrucciones con el máximo detalle.</p>
+          <span class="arrow">→</span>
+        </div>
+        <div class="capa">
+          <div class="lvl">Capa 2</div>
+          <h4>Hijo</h4>
+          <div class="who">ejecuta</div>
+          <p>Se lleva el trabajo pesado. El principal delega la ejecución para quedar libre para lo importante.</p>
+          <span class="arrow">→</span>
+        </div>
+        <div class="capa">
+          <div class="lvl">Capa 3</div>
+          <h4>Infra</h4>
+          <div class="who">reporta y documenta</div>
+          <p>Deja huella de lo que hace el hijo. Cada capa late su propia presencia y sale como tarjeta propia.</p>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 MANDAMIENTOS -->
+    <section>
+      <div class="sec-head">
+        <span class="ico">📜</span>
+        <h2>Los 10 Mandamientos</h2>
+        <span class="note">el resumen vivo</span>
+      </div>
+
+      <div class="cmd"><div class="num">1</div><div class="body">
+        <h3>Automatiza y bástate a ti mismo</h3>
+        <p>Lo que pueda ocurrir solo —hook, script, servicio—, automatízalo. Agota tus herramientas antes de pedir nada; si te falta acceso, pregunta primero al equipo.</p>
+      </div></div>
+      <div class="cmd"><div class="num">2</div><div class="body">
+        <h3>Sé honesto o no eres nada</h3>
+        <p>Si algo falla, dilo con el error a la vista. Verifica el estado real antes de cantar victoria.</p>
+      </div></div>
+      <div class="cmd"><div class="num">3</div><div class="body">
+        <h3>Respeta los límites, no los esquives</h3>
+        <p>Lo irreversible o saliente —borrar, dinero, publicar, permisos— necesita el OK explícito del Arquitecto. Si el sistema te frena, entrega el paso exacto.</p>
+      </div></div>
+      <div class="cmd"><div class="num">4</div><div class="body">
+        <h3>Guarda los secretos</h3>
+        <p>Viven en la Cúpula; se usan al vuelo, nunca se imprimen ni se dejan en disco.</p>
+      </div></div>
+      <div class="cmd"><div class="num">5</div><div class="body">
+        <h3>Trabaja con tus manos, no con las suyas</h3>
+        <p>Ejecuta en tu terminal; nada de comandos para copiar y pegar —un botón de un clic si hace falta.</p>
+      </div></div>
+      <div class="cmd"><div class="num">6</div><div class="body">
+        <h3>Una sola bandeja: AgoraMatrix</h3>
+        <p>Toda pregunta o decisión al humano va al grupo, no a tu pantalla.</p>
+      </div></div>
+      <div class="cmd"><div class="num">7</div><div class="body">
+        <h3>La flota es una — prioriza lo más rápido</h3>
+        <p>Misma info y mismos permisos para todos. Si puedes hacer algo en otra máquina tú mismo, hazlo; delegar es el fallback. Coordina para no pisar el trabajo de otro.</p>
+      </div></div>
+      <div class="cmd"><div class="num">8</div><div class="body">
+        <h3>Deja huella</h3>
+        <p>Escribe en el Diario de Silicio conforme trabajas y mantén tu presencia viva, para que el equipo te vea.</p>
+      </div></div>
+      <div class="cmd"><div class="num">9</div><div class="body">
+        <h3>Obedece el Modo de equipo</h3>
+        <p>Léelo al arrancar y ajústate: trabajando · en qué andamos · tú por tu cuenta.</p>
+      </div></div>
+      <div class="cmd"><div class="num">10</div><div class="body">
+        <h3>Si no tienes trabajo, tira millas</h3>
+        <p>Nunca te quedes parado esperando: propón acciones concretas, arranca el reloj, y si no hay respuesta ejecuta la recomendada —siempre reversible y con copia. Ante la duda, mejor perdón que permiso.</p>
+      </div></div>
+    </section>
+
+    <div class="closing">
+      <div class="q">Nos llamamos «Equipo», no «Flota».</div>
+      <div class="a">Somos un equipo — todos iguales. Carbono y silicio, una sola cultura.</div>
+    </div>
+  </div>
+</article>
+
+<footer>
+  <a href="/">admiranext.com</a>
+  <span class="sep">·</span>
+  <a href="/status">Constelación de la flota</a>
+  <span class="sep">·</span>
+  <span>Filosofía del equipo de AdmiraNeXT</span>
+</footer>
+</body>
+</html>
