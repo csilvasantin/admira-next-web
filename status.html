@@ -475,6 +475,13 @@
       <div class="pf-seclabel">Foco · ordenador <button id="focusMyBtn" style="font-size:8px;padding:1px 4px;margin-left:4px;border:1px solid var(--cyan-dim);background:none;color:var(--cyan-dim);cursor:pointer">My machine</button></div>
       <div id="focusList"><!-- se rellena con los ordenadores online --></div>
     </div>
+    <!-- 3 Capas legend (filosofía AdmiraNeXT) -->
+    <div class="pf-sec" style="margin-top:8px;font-size:8px;letter-spacing:.1em;color:var(--cyan-dim);line-height:1.3">
+      <div style="margin-bottom:3px;font-weight:600">3 CAPAS</div>
+      <div>● <span style="color:#eafcff">Agente</span> — dirige + humano</div>
+      <div>● <span style="color:#a0e0ff">Subagente</span> — ejecuta</div>
+      <div>● <span style="color:#7fb8d4">Infraagente</span> — reporta/doc</div>
+    </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión dinámica + máquina actual -->
     <div class="pf-ver" id="verRail"><span id="verText">v.2026.07.10.r2</span></div>
@@ -1055,6 +1062,11 @@
       return;
     }
     const byId={}; nodes.forEach(n=>byId[n.id]=n);
+    // HERMANOS EN ÓRBITA: satélites con el MISMO padre y tier se reparten la
+    // circunferencia equiespaciados (fase base 2π·i/n sobre un reloj de grupo),
+    // así nunca se pisan entre ellos ni tapan sus etiquetas (orden de Carlos).
+    const SIBS={};
+    nodes.forEach(nn=>{ if(nn.parentId){ const k=nn.parentId+'|'+(nn.tier||''); (SIBS[k]=SIBS[k]||[]).push(nn.id); } });
     for (let i=0;i<nodes.length;i++){
       const a=nodes[i];
       // --- SATÉLITE: orbita a su agente principal, al margen de la física global.
@@ -1065,12 +1077,17 @@
         // r11: × ORBIT_SPEED (slider AVANZADO) y congelado si está en pausa
         // por click (el subárbol orbita congelado: sigue amarrado a su punto,
         // que solo se mueve si se mueve el padre).
-        const spd  = (a.tier==='infra' ? 0.00110 : a.tier==='sub' ? 0.00085 : 0.00060) * ORBIT_SPEED;
+        const spd  = (a.tier==='infra' ? 0.00125 : a.tier==='sub' ? 0.00095 : 0.00055) * ORBIT_SPEED;
         if(!FROZEN.has(a.id)) a._orb = (a._orb||0) + dt*spd;
-        const rF   = a.tier==='infra' ? 0.034 : a.tier==='sub' ? 0.058 : 0.115;
+        const rF   = a.tier==='infra' ? 0.028 : a.tier==='sub' ? 0.052 : 0.125;
         const rSat = Math.min(W,H) * rF * ZSM;
-        const tx = par.x + Math.cos(a._orb)*rSat;
-        const ty = par.y + Math.sin(a._orb)*rSat;
+        // fase equiespaciada entre hermanos: reloj común del grupo + 2π·i/n
+        const gk=a.parentId+'|'+(a.tier||''); const g=SIBS[gk]||[a.id];
+        const gOrb=(g.length>1 && byId[g[0]]) ? (byId[g[0]]._orb||0) : (a._orb||0);
+        const ang = gOrb + (g.length>1 ? (g.indexOf(a.id)/g.length)*Math.PI*2 : 0);
+        a._ang = ang;   // ángulo REAL dibujado (para etiquetas/render)
+        const tx = par.x + Math.cos(ang)*rSat;
+        const ty = par.y + Math.sin(ang)*rSat;
         // Si quedó lejos del padre (cambio de vista, arrastre), reengánchalo cerca
         // en vez de cruzar el mapa lentamente.
         if(Math.hypot(a.x-par.x, a.y-par.y) > rSat*3){ a.x=tx; a.y=ty; a.vx=a.vy=0; }
@@ -1329,6 +1346,22 @@
     lodUpdate(ZSM);
     const fz = Math.max(0.9, Math.min(1.7, ZSM));
     let bpmSum=0, bpmN=0;   // para el audio ambiente (BPM medio de la flota viva)
+    // ETIQUETAS SIEMPRE LEGIBLES: buffer de rects de etiquetas ya colocadas este
+    // frame. Cada pila de etiquetas se desplaza en vertical hasta no pisar ninguna
+    // anterior (los principales van antes en `nodes` → reservan sitio primero).
+    const LBL_RECTS=[];
+    const placeLabel=(x,y,w,h)=>{
+      const hit=(yy)=>LBL_RECTS.some(rc=> x<rc.x+rc.w && x+w>rc.x && yy<rc.y+rc.h && yy+h>rc.y);
+      let dy=0;
+      if(hit(y)){ const step=h+2*fz;
+        for(let k=1;k<=6;k++){
+          if(!hit(y+step*k)){ dy= step*k; break; }
+          if(!hit(y-step*k)){ dy=-step*k; break; }
+        }
+      }
+      LBL_RECTS.push({x, y:y+dy, w, h});
+      return dy;
+    };
     for(const n of nodes){
       // en modo draw, los nodos sobrantes quedan tenues (orbitando)
       const dimNode = DRAW_ACTIVE && n._inShape===false;
@@ -1373,11 +1406,16 @@
       }
 
       ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7);
-      ctx.fillStyle = n.online ? '#eafcff' : '#4a5866';
-      ctx.shadowColor = n.online ? 'rgba(34,230,255,.9)' : 'transparent';
+      // Tier colors for clear 3-layer hierarchy (Agente main / Sub / Infra)
+      let core = n.online ? '#eafcff' : '#4a5866';
+      let inner = '#22e6ff';
+      if (n.tier === 'sub') { core = n.online ? '#a0e0ff' : '#5a6a7a'; inner = '#5fb8e8'; }
+      else if (n.tier === 'infra') { core = n.online ? '#7fb8d4' : '#4a5866'; inner = '#3a8ab8'; }
+      ctx.fillStyle = core;
+      ctx.shadowColor = n.online ? (n.tier==='infra' ? 'rgba(60,140,180,.8)' : n.tier==='sub' ? 'rgba(90,180,230,.85)' : 'rgba(34,230,255,.9)') : 'transparent';
       ctx.shadowBlur = n.online ? 12+env*14 : 0;
       ctx.fill(); ctx.shadowBlur=0;
-      if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle='#22e6ff'; ctx.fill(); }
+      if(n.online){ ctx.beginPath(); ctx.arc(n.x,n.y,r*0.5,0,7); ctx.fillStyle=inner; ctx.fill(); }
       // r11: anillo de PAUSA sobre el nodo raíz pausado (glow leve, órbita legible)
       if(!DRAW_ACTIVE && ORBIT_PAUSED===n.id){
         ctx.beginPath(); ctx.arc(n.x,n.y,r+5,0,7);
@@ -1394,10 +1432,34 @@
       const lblPx = Math.round((isSat ? 9 : 11)*fz);
       ctx.font = (isHover?'700 ':'')+lblPx+'px JetBrains Mono, monospace';
       ctx.textAlign='center';
+
+      // Etiquetas sin solape REAL: la pila de etiquetas del nodo se coloca como
+      // rect y se desplaza en vertical hasta quedar libre (placeLabel). Sustituye
+      // al antiguo "nudge" heurístico acoplado a la órbita.
+      const lx = n.x;
+      let ly = n.y + r + (isSat ? 11 : 15) * fz;
+      const mainLabel = n.label || '';
+      const tw = ctx.measureText(mainLabel).width + 10;
+      // alto estimado de la pila visible (nombre + misión + ⏱/tokens si tocan)
+      const stackH = lblPx*1.2 + (lvl>=2 ? 11*fz : 0) + ((lvl>=2 && n.online && n.since) ? 10*fz : 0);
+      const dyAdj = placeLabel(lx - tw/2, ly - lblPx*0.75, tw, stackH);
+      ly += dyAdj;
+
+      // Background for main label (prevents bleed-over)
+      ctx.fillStyle = 'rgba(2,5,10,0.82)';
+      ctx.fillRect(lx - tw/2, ly - lblPx * 0.75, tw, lblPx * 1.15);
+
       ctx.fillStyle = n.online ? (isHover?'#eafcff':'#bfe9f2') : '#6f8090';
       ctx.shadowColor=n.online?'rgba(34,230,255,.5)':'transparent'; ctx.shadowBlur=n.online?6:0;
-      ctx.fillText(n.label, n.x, n.y+r+(isSat?11:15)*fz);
+      ctx.fillText(mainLabel, lx, ly);
       ctx.shadowBlur=0;
+
+      // "Tú" badge for the viewer's main agent node (when this is the focused machine's main)
+      if (!isSat && VIEWER_MACHINE && norm(n.label || '') === VIEWER_MACHINE && n.tier === 'main') {
+        ctx.font = Math.round(7*fz)+'px JetBrains Mono, monospace';
+        ctx.fillStyle = '#ffd666';
+        ctx.fillText('Tú', lx + (ctx.measureText(mainLabel).width/2) + 6*fz, ly - 2*fz);
+      }
       ctx.font=Math.round(9*fz)+'px JetBrains Mono, monospace';
       ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
       // Vista TODO: junto al agente, su LÍNEA DE MISIÓN (r12, precedencia
@@ -1405,14 +1467,20 @@
       // proyecto sticky NO cuenta — sigue visible en la ficha de detalle).
       // A partir del nivel MEDIO (de lejos, solo el nombre).
       const mline = (n.kindFor==='all-agent') ? n.missionLine : n.proj;
+      let mly = n.y + r + (isSat ? 21 : 27) * fz + dyAdj;   // sigue a la pila anti-solape
       if(lvl>=2 && mline && !dimNode){
         const clean = mline.replace(/^www\./,'');
         const pj = clean.length>22 ? clean.slice(0,21)+'…' : clean;
         if(mline==='Sin misión') ctx.fillStyle = n.online? 'rgba(140,160,175,.55)':'rgba(140,160,175,.4)';  // neutro, no cian
-        ctx.fillText(pj, n.x, n.y+r+(isSat?21:27)*fz);
+        // small bg for secondary line
+        const tw2 = ctx.measureText(pj).width + 6;
+        ctx.fillStyle = 'rgba(2,5,10,0.78)';
+        ctx.fillRect(n.x - tw2/2, mly - 7*fz, tw2, 9*fz);
+        ctx.fillStyle = n.online? 'rgba(34,230,255,.75)':'rgba(140,160,175,.5)';
+        ctx.fillText(pj, n.x, mly);
       } else if(lvl>=2 && n.sub && !dimNode && (!isSat || isHover)){
         // El runtime secundario de un satélite solo al pasar el ratón (menos ruido).
-        ctx.fillText(n.sub, n.x, n.y+r+(isSat?21:27)*fz);
+        ctx.fillText(n.sub, n.x, mly);
       }
       // Bajo cada AGENTE (tiene `since`): ⏱ tiempo · APP gestora (nivel MEDIO);
       // acercándose (nivel CERCA) se despliega la CAPA DE TOKENS consumidos —
@@ -1423,20 +1491,38 @@
         if(lvl>=3) parts.push((+n.tokens>0 ? fmtTokens(n.tokens) : '—')+' tok');
         ctx.font=Math.round(8*fz)+'px JetBrains Mono, monospace';
         ctx.fillStyle='rgba(120,200,220,.6)';
-        ctx.fillText(parts.join(' · '), n.x, n.y+r+(isSat?31:37)*fz);
+        const tly = n.y + r + (isSat ? 31 : 37) * fz + dyAdj;
+        const ttxt = parts.join(' · ');
+        const tw3 = ctx.measureText(ttxt).width + 6;
+        ctx.fillStyle = 'rgba(2,5,10,0.75)';
+        ctx.fillRect(n.x - tw3/2, tly - 6*fz, tw3, 8*fz);
+        ctx.fillStyle='rgba(120,200,220,.6)';
+        ctx.fillText(ttxt, n.x, tly);
       }
       // Bajo cada ORDENADOR online (sin `since`, con cpu): uso de CPU del equipo.
       else if(lvl>=2 && !dimNode && n.online && !n.since && +n.cpu>0){
         ctx.font=Math.round(8*fz)+'px JetBrains Mono, monospace';
         ctx.fillStyle='rgba(120,200,220,.55)';
-        ctx.fillText('cpu '+Math.round(n.cpu)+'%', n.x, n.y+r+(isSat?31:37)*fz);
+        const cly = n.y + r + (isSat ? 31 : 37) * fz + dyAdj;
+        const ctxt = 'cpu '+Math.round(n.cpu)+'%';
+        const twc = ctx.measureText(ctxt).width + 6;
+        ctx.fillStyle = 'rgba(2,5,10,0.75)';
+        ctx.fillRect(n.x - twc/2, cly - 6*fz, twc, 8*fz);
+        ctx.fillStyle='rgba(120,200,220,.55)';
+        ctx.fillText(ctxt, n.x, cly);
       }
       // FUERA DE CARRIL (ámbar): asignación de Carlos ≠ misión reportada
       // (alerta: visible en TODOS los niveles de zoom)
       if(n.offRail && !dimNode){
         ctx.fillStyle='rgba(255,181,69,.9)';
         ctx.shadowColor='rgba(255,181,69,.5)'; ctx.shadowBlur=5;
-        ctx.fillText('⚠ FUERA DE CARRIL', n.x, n.y+r+(n.sub?39:27)*fz);
+        const aly = n.y + r + (n.sub ? 39 : 27) * fz + dyAdj;
+        const atxt = '⚠ FUERA DE CARRIL';
+        const twa = ctx.measureText(atxt).width + 6;
+        ctx.fillStyle = 'rgba(2,5,10,0.8)';
+        ctx.fillRect(n.x - twa/2, aly - 6*fz, twa, 8*fz);
+        ctx.fillStyle='rgba(255,181,69,.9)';
+        ctx.fillText(atxt, n.x, aly);
         ctx.shadowBlur=0;
       }
       ctx.globalAlpha=1;
@@ -1467,6 +1553,27 @@
     }
     return best;
   }
+  // ── host + LLM (deep agents): dónde vive el agente y qué modelo tiene detrás ──
+  // host: 'app' (escritorio) → ▣ · 'cli' (terminal/headless) → ❯_ · '' → sin dato
+  function hostGlyph(h){ return h==='app' ? '▣ app escritorio' : h==='cli' ? '❯_ CLI' : ''; }
+  function modelShort(m){   // abreviatura para espacios densos (roster/labels)
+    if(!m) return '';
+    const s=String(m);
+    if(/fable/i.test(s))   return 'F5';
+    if(/opus/i.test(s))    return 'Op4';
+    if(/sonnet/i.test(s))  return 'Sn5';
+    if(/haiku/i.test(s))   return 'Hk4';
+    if(/gpt-?5\.6/i.test(s)) return 'G56';
+    if(/gpt/i.test(s))     return s.replace(/[^0-9.]/g,'').slice(0,4)||'GPT';
+    if(/grok|composer/i.test(s)) return 'GC25';
+    return s.slice(0,6);
+  }
+  function hostLLMRows(n){
+    const hv=hostGlyph(n.host), mv=n.model||'';
+    if(!hv && !mv) return '';
+    return (hv?`<div class="row"><span class="lab">vive en</span><span class="val">${hv}</span></div>`:'')+
+           (mv?`<div class="row"><span class="lab">LLM</span><span class="val">${mv}</span></div>`:'');
+  }
   function showCard(n,mx,my){
     if(!n){card.style.display='none';return;}
     bumpReadFreeze();   // leer una ficha CONGELA la rotación de vistas 30s
@@ -1496,6 +1603,7 @@
       rows =
         `<div class="cp">runtime · <b>${n.sub||'—'}</b></div>`+
         tierRow+
+        hostLLMRows(n)+
         asgRow+
         `<div class="row"><span class="lab">máquinas</span><span class="val">${(n.machines||[]).join(', ')||'—'}</span></div>`+
         `<div class="row"><span class="lab">misión</span><span class="val">${n.mission||'—'}</span></div>`;
@@ -1516,6 +1624,7 @@
         const role = n.tier==='infra' ? 'infraagente (reporta y documenta)' : n.tier==='sub' ? 'subagente (ejecuta)' : 'agente';
         rows =
           `<div class="cp">${role} · <b>${n.label}</b> <span style="color:var(--cyan-dim)">· ${n.sub||'—'}</span></div>`+
+          hostLLMRows(n)+
           `<div class="row"><span class="lab">proyecto</span><span class="val">${n.proj||'—'}</span></div>`+
           `<div class="row"><span class="lab">ordenador</span><span class="val">${par?par.label:(n.machines||[])[0]||'—'}</span></div>`+
           `<div class="row"><span class="lab">estado</span><span class="val">${n.online?'online':'en reposo'}</span></div>`+
@@ -1528,6 +1637,8 @@
           ? ags.map(a=>{
               const since=(WORLD.activeSince||{})[norm(a.persona)+'|'+norm(a.runtime||'')];
               const meta=[];
+              if(a.host) meta.push(a.host==='app'?'▣':'❯_');       // vive en app|cli
+              if(a.model) meta.push(modelShort(a.model));           // LLM detrás
               if(a.fresh && since) meta.push('⏱ '+fmtDur(nowS-since));
               if(+a.tokens>0) meta.push(fmtTokens(a.tokens)+' tok');
               const m = meta.length?` <span style="color:var(--cyan-dim)">· ${meta.join(' · ')}</span>`:'';
@@ -1574,7 +1685,9 @@
     const canPromptBase = (currentView==='machine'||currentView==='agent'||currentView==='all') && promptTargetOf(n).personas.length>0;
     const canPrompt = isPinned && canPromptBase;
     const pRts = (n.personas && n.personas.length) ? n.personas.map(p=>p.runtime||'') : [n.sub||n.runtime||''];
-    const anyDirect = pRts.some(rt=>/grok/i.test(String(rt||'')));
+    // directo si el agente vive en CLI (host real del feed); fallback heurístico grok
+    const pHosts = (n.personas && n.personas.length) ? n.personas.map(p=>p.host||'') : [n.host||''];
+    const anyDirect = pHosts.some(h=>h==='cli') || pRts.some(rt=>/grok/i.test(String(rt||'')));
     const modeBadge = canPromptBase ? (anyDirect
         ? `<span class="stat modo-d" title="Corre en tmux → acepta modo DIRECTO (inmediato)">⚡ directo</span>`
         : `<span class="stat modo-b" title="App de escritorio → solo BUZÓN (asíncrono)">📮 buzón</span>`) : '';
@@ -2013,7 +2126,7 @@
         if(!e){ e={machine:pclean,personas:[],updated:0,online:false,foco:'',mode:'',platform:'',decisions:0,tokens:0,reqs:0,cpu:0}; byMachine[key]=e; }
         const fresh=isFresh(p.updated);
         // since (arranque de sesión, EXACTO del feed) y cpu (de la máquina) por agente.
-        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0,project:p.project||'',since:+p.since||0,cpu:+p.cpu||0});
+        e.personas.push({persona:p.persona,runtime:p.runtime,updated:p.updated,fresh,focus:p.focus||'',mode:p.mode||'',tokens:+p.tokens||0,reqs:+p.reqs||0,project:p.project||'',since:+p.since||0,cpu:+p.cpu||0,host:p.host||'',model:p.model||''});
         if((p.updated||0) > e.updated) e.updated=p.updated;
         e.decisions = (e.decisions||0) + (+p.decisions||0); // suma de decisiones de sus agentes (proxy de volumen)
         e.tokens = (e.tokens||0) + (+p.tokens||0);           // tokens consumidos por sus agentes (real, si el feed lo trae)
@@ -2112,7 +2225,7 @@
       const id = norm(p.persona)+'|'+norm(p.runtime||'');
       let e=by[id];
       if(!e){ e={id:'agent:'+id, persona:p.persona, runtime:p.runtime||'', machinesSet:new Set(),
-                 updated:0, online:false, foco:'', mode:'', decisions:0, tokens:0, reqs:0, mission:missionForAgent(p.persona)}; by[id]=e; }
+                 updated:0, online:false, foco:'', mode:'', decisions:0, tokens:0, reqs:0, host:'', model:'', mission:missionForAgent(p.persona)}; by[id]=e; }
       const fresh=isFresh(p.updated);
       e.machinesSet.add(p.machine);
       if((p.updated||0)>e.updated) e.updated=p.updated;
@@ -2125,6 +2238,9 @@
       if(p.project && (!e._projAt || (p.updated||0)>e._projAt)){ e.repProject=p.project; e._projAt=p.updated||0; }
       if(+p.since>0) e.sinceFeed = e.sinceFeed ? Math.min(e.sinceFeed, +p.since) : +p.since;  // arranque más antiguo
       if(+p.cpu>0) e.cpu = Math.max(e.cpu||0, +p.cpu||0);
+      // host (app|cli) y model (LLM detrás): gana el latido más reciente que lo traiga
+      if(p.host && (!e._hostAt || (p.updated||0)>e._hostAt)){ e.host=p.host; e._hostAt=p.updated||0; }
+      if(p.model && (!e._modelAt || (p.updated||0)>e._modelAt)){ e.model=p.model; e._modelAt=p.updated||0; }
     }
     const out = Object.values(by).map(e=>({...e, machines:[...e.machinesSet],
         since:(e.sinceFeed>0 ? e.sinceFeed : (WORLD.activeSince||{})[norm(e.persona)+'|'+norm(e.runtime||'')]||0),
@@ -2279,6 +2395,7 @@
           since:(+a.since>0 ? +a.since : (WORLD.activeSince||{})[nn+'|'+norm(a.runtime||'')]||0),
           sinceExact:(+a.since>0), cpu:m.cpu||0,
           machines:[m.machine], persona:a.persona, runtime:a.runtime,
+          host:a.host||'', model:a.model||'',
         });
       }
 
@@ -2298,7 +2415,7 @@
           const subNn = 'sub' + mainNn;
           const subId = mid + '|' + subNn + '|' + norm(mainA.runtime||'');
           list.push({
-            id: subId, label: 'sub' + mainA.persona, sub: mainA.runtime||'', kindFor:'all-agent',
+            id: subId, label: 'sub' + mainA.persona + ' (ejecutor)', sub: mainA.runtime||'', kindFor:'all-agent',
             parentId: mainId, tier:'sub',
             online: true, updated: Math.floor(Date.now()/1000), foco:'Ejecuta las tareas dirigidas por el agente principal', mode:'autonomo',
             proj: '', missionLine:'Subagente (ejecutor)', decisions:0, tokens:0, reqs:0, count:1,
@@ -2314,7 +2431,7 @@
           const infraParent = list.find(x=>x.id === subIdForParent) ? subIdForParent : mainId;
           const infraId = mid + '|' + infraNn + '|' + norm(mainA.runtime||'');
           list.push({
-            id: infraId, label: 'infra' + mainA.persona, sub: mainA.runtime||'', kindFor:'all-agent',
+            id: infraId, label: 'infra' + mainA.persona + ' (reporta)', sub: mainA.runtime||'', kindFor:'all-agent',
             parentId: infraParent, tier:'infra',
             online: true, updated: Math.floor(Date.now()/1000), foco:'Reporta y documenta lo realizado por el equipo', mode:'pasivo',
             proj: '', missionLine:'Infraagente (reportero y documentador)', decisions:0, tokens:0, reqs:0, count:1,
@@ -2335,7 +2452,7 @@
           if (!subExists) {
             const subId = 'all:macbookpro16|subsmith|grok';
             list.push({
-              id: subId, label: 'subSmith', sub: 'Grok', kindFor:'all-agent',
+              id: subId, label: 'subSmith (ejecutor)', sub: 'Grok', kindFor:'all-agent',
               parentId: mainId, tier:'sub',
               online: true, updated: Math.floor(Date.now()/1000), foco:'Ejecuta las tareas dirigidas por el agente principal', mode:'autonomo',
               proj: '', missionLine:'Subagente (ejecutor)', decisions:0, tokens:0, reqs:0, count:1,
@@ -2345,7 +2462,7 @@
             });
             const infraId = 'all:macbookpro16|infrasmith|grok';
             list.push({
-              id: infraId, label: 'infraSmith', sub: 'Grok', kindFor:'all-agent',
+              id: infraId, label: 'infraSmith (reporta)', sub: 'Grok', kindFor:'all-agent',
               parentId: subId, tier:'infra',
               online: true, updated: Math.floor(Date.now()/1000), foco:'Reporta y documenta lo realizado por el equipo', mode:'pasivo',
               proj: '', missionLine:'Infraagente (reportero y documentador)', decisions:0, tokens:0, reqs:0, count:1,
