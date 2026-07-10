@@ -1,0 +1,10 @@
+# Cloudflare Pages — cabeceras. El STATUS nunca se cachea (adiós al baile de versiones viejas).
+/status
+  Cache-Control: no-store, must-revalidate
+/status.html
+  Cache-Control: no-store, must-revalidate
+/status/*
+  Cache-Control: no-store, must-revalidate
+# El resto revalida siempre (sirve fresco tras cada deploy, sin caché pegajosa).
+/*
+  Cache-Control: public, max-age=0, must-revalidate
