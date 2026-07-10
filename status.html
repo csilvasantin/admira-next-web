@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.10.r3 (botón PROMPT)">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.10.r4 (modo directo/buzón + pista)">
   <meta name="admiranext-status-build" content="oraculo-triad-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -199,6 +199,9 @@
     /* Fila del estado (● VIVO) + botón PROMPT en la ficha FIJADA */
     #card .statrow{display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap}
     #card .statrow .stat{margin-top:0}
+    #card .stat.modo-d{color:var(--cyan);border-color:var(--cyan-dim)}
+    #card .stat.modo-b{color:var(--amber);border-color:rgba(255,181,69,.45)}
+    #card .prompt-hint{font-size:9px;letter-spacing:.1em;color:var(--cyan);opacity:.9;animation:pulse 2.2s infinite}
     #card .promptbtn{font-family:inherit;font-size:9px;letter-spacing:.14em;padding:3px 10px;border-radius:10px;
       background:rgba(34,230,255,.10);border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;
       text-shadow:0 0 6px rgba(34,230,255,.4)}
@@ -1566,8 +1569,18 @@
     // MODO MANDO + ficha FIJADA (clic) en vista ordenador/agente → selector de asignación
     const isPinned = PINNED && PINNED.id===n.id;
     const canAssign = isPinned && mandoOn() && (currentView==='machine'||currentView==='agent');
-    // PROMPT: escribir al agente (ficha fijada, vistas con persona destinataria)
-    const canPrompt = isPinned && (currentView==='machine'||currentView==='agent') && promptTargetOf(n).personas.length>0;
+    // PROMPT: escribir al agente. El botón CLICABLE exige ficha FIJADA (clic); en hover se
+    // muestra una PISTA + el badge de modo (⚡ directo si corre en tmux · 📮 buzón si no).
+    const canPromptBase = (currentView==='machine'||currentView==='agent') && promptTargetOf(n).personas.length>0;
+    const canPrompt = isPinned && canPromptBase;
+    const pRts = (currentView==='agent') ? [n.sub||n.runtime||''] : (n.personas||[]).map(p=>p.runtime||'');
+    const anyDirect = pRts.some(rt=>/grok/i.test(String(rt||'')));
+    const modeBadge = canPromptBase ? (anyDirect
+        ? `<span class="stat modo-d" title="Corre en tmux → acepta modo DIRECTO (inmediato)">⚡ directo</span>`
+        : `<span class="stat modo-b" title="App de escritorio → solo BUZÓN (asíncrono)">📮 buzón</span>`) : '';
+    const promptCell = canPrompt
+        ? `<button class="promptbtn" id="cardPrompt" type="button">✎ PROMPT</button>`
+        : (canPromptBase ? `<span class="prompt-hint">clic para escribir ✎</span>` : '');
     const asgBlock = canAssign ? (()=>{
       const cur = n.assignment ? n.assignment.project : '';
       return `<div class="asg-block">`+
@@ -1618,7 +1631,7 @@
       tokensRow+
       vidaRows+
       foco+
-      `<div class="statrow"><span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>${railBadge}${canPrompt?`<button class="promptbtn" id="cardPrompt" type="button">✎ PROMPT</button>`:''}</div>`+
+      `<div class="statrow"><span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>${railBadge}${modeBadge}${promptCell}</div>`+
       asgBlock+
       histBlock;
     // ámbar en el marco = estás viendo HISTÓRICO, no el estado en vivo
@@ -1777,6 +1790,11 @@
     if(!t.personas.length) return;
     document.getElementById('pcPersonaWrap').innerHTML = pcSelOrText('pcPersona', t.personas);
     document.getElementById('pcMachine').innerHTML = t.machines.length>1 ? pcSelOrText('pcMachine2', t.machines) : (t.machines[0]||'');
+    // Modo DIRECTO solo si el runtime corre en tmux (hoy: Grok). Si no, se fuerza Buzón.
+    const pRts=(currentView==='agent')?[n.sub||n.runtime||'']:(n.personas||[]).map(p=>p.runtime||'');
+    const direct=pRts.some(rt=>/grok/i.test(String(rt||'')));
+    const modeSel=document.getElementById('pcMode');
+    if(modeSel){ const od=modeSel.querySelector('option[value="direct"]'); if(od) od.disabled=!direct; modeSel.value = direct?'direct':'inbox'; }
     document.getElementById('promptComposer').hidden=false;
     const msg=document.getElementById('pcMsg'); msg.textContent=''; msg.className='pc-msg';
     setPanel('bottom', true);
