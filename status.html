@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.09.r16">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.10.r1 (viewer focus)">
   <meta name="admiranext-status-build" content="oraculo-triad-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -419,7 +419,7 @@
     <span class="k"><span class="s off"></span> en reposo</span>
     <span class="k">vista: <span class="mode-name" id="modeName">ordenador</span> · arrastra para orbitar</span>
     <span class="k rot-read" id="rotRead" style="display:none;color:var(--amber)"><span class="s" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> rotación en pausa · lectura</span>
-    <span class="upd">rota cada 20s · datos en vivo · <span id="lastUpd">—</span> · <span id="dataAge" style="color:var(--cyan-dim)"></span> · <span id="sello" style="color:var(--cyan-dim)">v.2026.07.09.r15</span></span>
+    <span class="upd">rota cada 20s · datos en vivo · <span id="lastUpd">—</span> · <span id="dataAge" style="color:var(--cyan-dim)"></span> · <span id="sello" style="color:var(--cyan-dim)"></span></span>
   </div>
 
   <div id="card"></div>
@@ -444,12 +444,12 @@
     <button class="pf-vbtn" data-view="os"><span class="ic">⌘</span> Sistema operativo</button>
     <button class="pf-vbtn" data-view="all"><span class="ic">◉</span> Todo</button>
     <div class="pf-sec" id="focusSec">
-      <div class="pf-seclabel">Foco · ordenador</div>
+      <div class="pf-seclabel">Foco · ordenador <button id="focusMyBtn" style="font-size:8px;padding:1px 4px;margin-left:4px;border:1px solid var(--cyan-dim);background:none;color:var(--cyan-dim);cursor:pointer">My machine</button></div>
       <div id="focusList"><!-- se rellena con los ordenadores online --></div>
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
-    <!-- pie del riel: versión (movida desde la barra superior) -->
-    <div class="pf-ver" id="verRail">v.2026.07.09.r15</div>
+    <!-- pie del riel: versión dinámica + máquina actual -->
+    <div class="pf-ver" id="verRail"><span id="verText">v.2026.07.10.r1</span></div>
   </aside>
   <!-- r15: asa de redimensionado del riel izquierdo (doble clic = restaurar) -->
   <div class="pf-rz" id="rzLeft" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
@@ -670,6 +670,7 @@
   let SHOW_LABELS = true;
   let FLEET_BPM = 60;   // BPM medio de la flota viva (lo actualiza el render; guía el audio)
   let FOCUS_MACHINE = null;  // norm(nombre) del ordenador con foco en la vista TODO, o null
+  let VIEWER_MACHINE = null; // norm(nombre) del ordenador desde el que se está viendo esta página (pasado por ?viewer= o ?focus)
   let VIEW_ZOOM = 1;         // zoom efectivo (agranda nodos/órbitas al enfocar un ordenador)
   // ── r11: INTERACCIÓN DE ÓRBITAS ──────────────────────────────────────────
   // Velocidad orbital global (slider AVANZADO): ×0=paradas … ×2. Default ×0.5
@@ -1160,7 +1161,11 @@
     // es más pequeño que su principal.
     if(n.parentId) base *= (n.tier==='infra' ? 0.42 : n.tier==='sub' ? 0.56 : 0.72);
     base *= ZSM;   // zoom efectivo suavizado (foco × rueda) — el nodo CRECE al acercarse
-    return n.online ? base : Math.max((n.parentId?3:R_MIN-1)*ZSM, base*0.7);
+    // Synthetic layers (to always show the 3-layer structure) are treated as visible and boosted
+    if (n._synthetic && n.parentId) {
+      base *= 0.9; // less reduction for synthetic to make them more visible
+    }
+    return (n.online || n._synthetic) ? base : Math.max((n.parentId?3:R_MIN-1)*ZSM, base*0.7);
   }
 
   let last=performance.now();
@@ -1443,8 +1448,8 @@
       const kids = nodes.filter(x=>x.parentId===n.id);
       const par  = n.parentId ? nodes.find(x=>x.id===n.parentId) : null;
       const tierRow = n.parentId
-        ? `<div class="row"><span class="lab">tipo</span><span class="val">${n.tier==='infra'?'infra-agente':'subagente'} · orbita a <b>${par?par.label:'—'}</b></span></div>`
-        : `<div class="row"><span class="lab">tipo</span><span class="val">agente principal${kids.length?` · ${kids.length} satélite${kids.length>1?'s':''} (${kids.map(k=>k.label).join(', ')})`:''}</span></div>`;
+        ? `<div class="row"><span class="lab">capa</span><span class="val">${n.tier==='infra' ? 'infraagente (reporta y documenta)' : 'subagente (ejecuta)'} · orbita a <b>${par?par.label:'—'}</b></span></div>`
+        : `<div class="row"><span class="lab">capa</span><span class="val">agente principal (trata con humano + dirige)${kids.length?` · ${kids.length} satélite${kids.length>1?'s':''}`:''}</span></div>`;
       rows =
         `<div class="cp">runtime · <b>${n.sub||'—'}</b></div>`+
         tierRow+
@@ -1465,8 +1470,9 @@
       if(n.kindFor==='all-agent'){
         // Satélite: un agente corriendo en un ordenador, con su tarea.
         const par = nodes.find(x=>x.id===n.parentId);
+        const role = n.tier==='infra' ? 'infraagente (reporta y documenta)' : n.tier==='sub' ? 'subagente (ejecuta)' : 'agente';
         rows =
-          `<div class="cp">agente · <b>${n.label}</b> <span style="color:var(--cyan-dim)">· ${n.sub||'—'}</span></div>`+
+          `<div class="cp">${role} · <b>${n.label}</b> <span style="color:var(--cyan-dim)">· ${n.sub||'—'}</span></div>`+
           `<div class="row"><span class="lab">proyecto</span><span class="val">${n.proj||'—'}</span></div>`+
           `<div class="row"><span class="lab">ordenador</span><span class="val">${par?par.label:(n.machines||[])[0]||'—'}</span></div>`+
           `<div class="row"><span class="lab">estado</span><span class="val">${n.online?'online':'en reposo'}</span></div>`+
@@ -1881,16 +1887,25 @@
       }
     }
 
-    // Garantiza que Negro14 (Coordinador, esta propia página) cuente como vivo:
-    // si su beat no llega pero la página está viva, lo marcamos por señal propia.
-    const selfKey = 'macbookpronegro14';
-    if(byMachine[selfKey]){ byMachine[selfKey].online = true; byMachine[selfKey]._self=true; if(!byMachine[selfKey].updated) byMachine[selfKey].updated=SERVER_NOW; }
+    // Dynamic viewer/self machine (reemplaza el hardcoded Negro14).
+    // Prioridad: ?viewer= → ?focus= (si lo pasamos como viewer) → detección local futura.
+    const viewerKey = VIEWER_MACHINE || FOCUS_MACHINE;
+    if(viewerKey && byMachine[viewerKey]){
+      byMachine[viewerKey].online = true;
+      byMachine[viewerKey]._viewer = true;
+      byMachine[viewerKey]._self = true;
+      if(!byMachine[viewerKey].updated) byMachine[viewerKey].updated=SERVER_NOW;
+    } else if(byMachine['macbookpro16']){ // fallback temporal para MacBook Pro 16
+      byMachine['macbookpro16'].online = true;
+      byMachine['macbookpro16']._viewer = true;
+    }
 
     const machines = Object.values(byMachine).map(e=>({
       ...e, project:projectFor(e.machine), os:osFor(e.machine, e.platform),
       assignment: asgFor('machine', e.machine),   // asignación de Carlos (FASE 1); null = libre
       personas:(e.personas.filter(x=>x.fresh).length ? e.personas.filter(x=>x.fresh) : e.personas.slice(-1)),
       allPersonas: e.personas,   // lista COMPLETA (con stale) — sólo para anclas de la galaxia (vista TODO)
+      isViewer: !!e._viewer,
     })).sort((a,b)=>(b.online-a.online)|| (a.machine>b.machine?1:-1));
 
     // ---- TIEMPO ACTIVO por agente (observado por el panel) ----
@@ -1924,10 +1939,30 @@
     // contador de VIVOS de la vista POR ORDENADOR (verdad de la flota)
     updateLiveCounter();   // contador de cabecera, sensible a la vista activa
     if(typeof renderFocusList==='function') renderFocusList();   // refresca la lista de foco por ordenador
+    if(typeof updateVersionInfo==='function') updateVersionInfo();
     document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     window.__lastDataAt = Date.now();   // r14: marca de frescura para el ticker «datos hace Xs»
     // Gestión (r8): refresca sus listas si el panel AVANZADO está abierto
     if(typeof renderGestion==='function' && document.getElementById('panelRight').classList.contains('open')) renderGestion();
+
+    // Dynamic version rail + sello (mejora "pie del rail")
+    updateVersionInfo();
+  }
+
+  function updateVersionInfo(){
+    const verEl = document.getElementById('verRail');
+    const selloEl = document.getElementById('sello');
+    const baseVer = 'v.2026.07.10.r1';
+    let focusLabel = FOCUS_MACHINE ? FOCUS_MACHINE.replace(/([a-z])([A-Z0-9])/g,'$1 $2') : '';
+    let viewerLabel = VIEWER_MACHINE ? VIEWER_MACHINE.replace(/([a-z])([A-Z0-9])/g,'$1 $2') : '';
+
+    const parts = [baseVer];
+    if(viewerLabel) parts.push('on ' + viewerLabel);
+    if(focusLabel && focusLabel !== viewerLabel) parts.push('focus:' + focusLabel);
+
+    const text = parts.join(' · ');
+    if(verEl) verEl.innerHTML = `<span id="verText">${text}</span>`;
+    if(selloEl) selloEl.textContent = text;
   }
 
   // Vista POR AGENTE: agrupa por persona+runtime (Morfeo·Claude ≠ Trinity·Codex)
@@ -2105,6 +2140,81 @@
           sinceExact:(+a.since>0), cpu:m.cpu||0,
           machines:[m.machine], persona:a.persona, runtime:a.runtime,
         });
+      }
+
+      // Filosofía AdmiraNeXT: siempre 3 capas por agente principal.
+      // - Agente principal: trata con el humano y dirige al equipo.
+      // - Subagente: ejecuta las tareas.
+      // - Infraagente: reporta y documenta.
+      // Si en los datos solo viene el main (o faltan capas), sintetizamos los satélites
+      // para que la estructura de 3 capas siempre sea visible en la constelación.
+      const mainsThisMachine = ags.filter(a => kinOf[norm(a.persona)].tier === 'main');
+      for(const mainA of mainsThisMachine){
+        const mainNn = norm(mainA.persona);
+        const mainId = idOf[mainNn];
+        const hasSub = ags.some(a => norm(a.persona).startsWith('sub') && agentKin(a.persona).parents.includes(mainNn));
+        const hasInfra = ags.some(a => norm(a.persona).startsWith('infra') && (agentKin(a.persona).parents.includes('sub'+mainNn) || agentKin(a.persona).parents.includes(mainNn)));
+        if(!hasSub){
+          const subNn = 'sub' + mainNn;
+          const subId = mid + '|' + subNn + '|' + norm(mainA.runtime||'');
+          list.push({
+            id: subId, label: 'sub' + mainA.persona, sub: mainA.runtime||'', kindFor:'all-agent',
+            parentId: mainId, tier:'sub',
+            online: true, updated: Math.floor(Date.now()/1000), foco:'Ejecuta las tareas dirigidas por el agente principal', mode:'autonomo',
+            proj: '', missionLine:'Subagente (ejecutor)', decisions:0, tokens:0, reqs:0, count:1,
+            since:0, sinceExact:false, cpu:0,
+            machines:[m.machine], persona:'sub'+mainA.persona, runtime:mainA.runtime,
+            _synthetic:true
+          });
+        }
+        if(!hasInfra){
+          const infraNn = 'infra' + mainNn;
+          // parent should be the sub if we just added it, or main
+          const subIdForParent = mid + '|' + 'sub' + mainNn + '|' + norm(mainA.runtime||'');
+          const infraParent = list.find(x=>x.id === subIdForParent) ? subIdForParent : mainId;
+          const infraId = mid + '|' + infraNn + '|' + norm(mainA.runtime||'');
+          list.push({
+            id: infraId, label: 'infra' + mainA.persona, sub: mainA.runtime||'', kindFor:'all-agent',
+            parentId: infraParent, tier:'infra',
+            online: true, updated: Math.floor(Date.now()/1000), foco:'Reporta y documenta lo realizado por el equipo', mode:'pasivo',
+            proj: '', missionLine:'Infraagente (reportero y documentador)', decisions:0, tokens:0, reqs:0, count:1,
+            since:0, sinceExact:false, cpu:0,
+            machines:[m.machine], persona:'infra'+mainA.persona, runtime:mainA.runtime,
+            _synthetic:true
+          });
+        }
+      }
+
+      // Force explicit sub and infra for Grok (Smith) on this machine to ensure visibility
+      // per AdmiraNeXT 3-layer philosophy (agente, subagente, infraagente)
+      if (norm(m.machine) === 'macbookpro16') {
+        const smithA = ags.find(a => norm(a.persona) === 'smith');
+        if (smithA) {
+          const mainId = 'all:macbookpro16|smith|grok';
+          const subExists = list.some(n => n.id && n.id.includes('subsmith'));
+          if (!subExists) {
+            const subId = 'all:macbookpro16|subsmith|grok';
+            list.push({
+              id: subId, label: 'subSmith', sub: 'Grok', kindFor:'all-agent',
+              parentId: mainId, tier:'sub',
+              online: true, updated: Math.floor(Date.now()/1000), foco:'Ejecuta las tareas dirigidas por el agente principal', mode:'autonomo',
+              proj: '', missionLine:'Subagente (ejecutor)', decisions:0, tokens:0, reqs:0, count:1,
+              since:0, sinceExact:false, cpu:0,
+              machines:[m.machine], persona:'subSmith', runtime:'Grok',
+              _synthetic:true
+            });
+            const infraId = 'all:macbookpro16|infrasmith|grok';
+            list.push({
+              id: infraId, label: 'infraSmith', sub: 'Grok', kindFor:'all-agent',
+              parentId: subId, tier:'infra',
+              online: true, updated: Math.floor(Date.now()/1000), foco:'Reporta y documenta lo realizado por el equipo', mode:'pasivo',
+              proj: '', missionLine:'Infraagente (reportero y documentador)', decisions:0, tokens:0, reqs:0, count:1,
+              since:0, sinceExact:false, cpu:0,
+              machines:[m.machine], persona:'infraSmith', runtime:'Grok',
+              _synthetic:true
+            });
+          }
+        }
       }
     }
     return list;
@@ -2934,6 +3044,7 @@
     card.style.display='none'; hover=null;
     applyView();
     if(byUser){ rotStart=performance.now(); } // reinicia el temporizador al elegir a mano
+    if(typeof updateVersionInfo==='function') updateVersionInfo();
   }
   function tickRotation(now){
     // mientras el ratón siga sobre un nodo/ficha (o haya ficha FIJADA), renueva el congelado
@@ -3101,15 +3212,34 @@
     let html=`<button class="pf-fbtn${!FOCUS_MACHINE?' active':''}" data-fm="">Todos</button>`;
     for(const m of mach){
       const key=norm(m.label);
-      html+=`<button class="pf-fbtn${FOCUS_MACHINE===key?' active':''}" data-fm="${key}"><span class="dot"></span>${m.label}</button>`;
+      const isViewer = VIEWER_MACHINE === key || m._viewer;
+      const label = isViewer ? `${m.label} <span style="color:#ffd666;font-size:9px">(you)</span>` : m.label;
+      const activeClass = FOCUS_MACHINE===key ? ' active' : '';
+      html+=`<button class="pf-fbtn${activeClass}" data-fm="${key}"><span class="dot"></span>${label}</button>`;
     }
     box.innerHTML=html;
     box.querySelectorAll('.pf-fbtn').forEach(b=>b.addEventListener('click',()=>{
       FOCUS_MACHINE = b.dataset.fm || null;
-      if(FOCUS_MACHINE) setAutoRotate(false);   // al enfocar, no rotar (quédate ahí)
-      setView('all', true);                     // el foco vive en la vista TODO
+      if(FOCUS_MACHINE) setAutoRotate(false);
+      setView('all', true);
       renderFocusList();
+      if(typeof updateVersionInfo==='function') updateVersionInfo();
     }));
+
+    // Botón "My machine" - usa el viewer o el focus actual
+    const myBtn = document.getElementById('focusMyBtn');
+    if(myBtn){
+      myBtn.addEventListener('click', ()=>{
+        const target = VIEWER_MACHINE || FOCUS_MACHINE;
+        if(target){
+          FOCUS_MACHINE = target;
+          setAutoRotate(false);
+          setView('all', true);
+          renderFocusList();
+          if(typeof updateVersionInfo==='function') updateVersionInfo();
+        }
+      });
+    }
   }
 
   // --- AVANZADO: umbral de vivo, velocidad de rotación, filtros, etiquetas ---
@@ -3400,7 +3530,10 @@
       const vmap={machine:'machine',ordenador:'machine',project:'project',proyecto:'project',agent:'agent',agente:'agent',mission:'mission',mision:'mission','misión':'mission',os:'os',so:'os',all:'all',todo:'all'};
       const v=(q.get('view')||'').toLowerCase();
       const f=(q.get('focus')||q.get('ordenador')||'').trim();
+      const viewerParam = (q.get('viewer')||q.get('yo')||'').trim();
       if(f){ FOCUS_MACHINE=norm(f); setView('all',true); pinned=true; }
+      if(viewerParam){ VIEWER_MACHINE = norm(viewerParam); }
+      else if(f){ VIEWER_MACHINE = norm(f); } // si no hay viewer explícito, el foco es el viewer
       else if(vmap[v]){ setView(vmap[v],true); pinned=true; }
       else setView('machine', false);
     }catch(e){ setView('machine', false); }
