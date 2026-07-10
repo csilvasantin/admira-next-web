@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.10.r4 (modo directo/buzón + pista)">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.10.r5 (botón PROMPT también en vista TODO)">
   <meta name="admiranext-status-build" content="oraculo-triad-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -1571,9 +1571,9 @@
     const canAssign = isPinned && mandoOn() && (currentView==='machine'||currentView==='agent');
     // PROMPT: escribir al agente. El botón CLICABLE exige ficha FIJADA (clic); en hover se
     // muestra una PISTA + el badge de modo (⚡ directo si corre en tmux · 📮 buzón si no).
-    const canPromptBase = (currentView==='machine'||currentView==='agent') && promptTargetOf(n).personas.length>0;
+    const canPromptBase = (currentView==='machine'||currentView==='agent'||currentView==='all') && promptTargetOf(n).personas.length>0;
     const canPrompt = isPinned && canPromptBase;
-    const pRts = (currentView==='agent') ? [n.sub||n.runtime||''] : (n.personas||[]).map(p=>p.runtime||'');
+    const pRts = (n.personas && n.personas.length) ? n.personas.map(p=>p.runtime||'') : [n.sub||n.runtime||''];
     const anyDirect = pRts.some(rt=>/grok/i.test(String(rt||'')));
     const modeBadge = canPromptBase ? (anyDirect
         ? `<span class="stat modo-d" title="Corre en tmux → acepta modo DIRECTO (inmediato)">⚡ directo</span>`
@@ -1778,6 +1778,11 @@
     if(!n) return {personas:[],machines:[]};
     if(currentView==='agent')   return { personas:[n.label].filter(Boolean), machines:(n.machines||[]) };
     if(currentView==='machine') return { personas:(n.personas||[]).map(p=>p.persona).filter(Boolean), machines:[n.label] };
+    // Vista TODO: el nodo es un agente (all-agent) o un ordenador (all-machine) concreto.
+    if(currentView==='all'){
+      if(n.kindFor==='all-agent')   return { personas:[n.label].filter(Boolean), machines:(n.machines||[]) };
+      if(n.kindFor==='all-machine') return { personas:(n.personas||[]).map(p=>p.persona).filter(Boolean), machines:[n.label] };
+    }
     return { personas:[], machines:[] };
   }
   function pcSelOrText(id, arr){
@@ -1791,7 +1796,7 @@
     document.getElementById('pcPersonaWrap').innerHTML = pcSelOrText('pcPersona', t.personas);
     document.getElementById('pcMachine').innerHTML = t.machines.length>1 ? pcSelOrText('pcMachine2', t.machines) : (t.machines[0]||'');
     // Modo DIRECTO solo si el runtime corre en tmux (hoy: Grok). Si no, se fuerza Buzón.
-    const pRts=(currentView==='agent')?[n.sub||n.runtime||'']:(n.personas||[]).map(p=>p.runtime||'');
+    const pRts=(n.personas && n.personas.length)?n.personas.map(p=>p.runtime||''):[n.sub||n.runtime||''];
     const direct=pRts.some(rt=>/grok/i.test(String(rt||'')));
     const modeSel=document.getElementById('pcMode');
     if(modeSel){ const od=modeSel.querySelector('option[value="direct"]'); if(od) od.disabled=!direct; modeSel.value = direct?'direct':'inbox'; }
