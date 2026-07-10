@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.10.r1 (viewer focus)">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.10.r2 (botón PROMPT)">
   <meta name="admiranext-status-build" content="oraculo-triad-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -196,6 +196,29 @@
     #card .asg-tit{font-size:9px;letter-spacing:.16em;color:#ffb545;margin-bottom:5px}
     #card #asgSel{width:100%;background:#06121f;color:var(--text);border:1px solid var(--cyan-dim);border-radius:6px;font:inherit;font-size:10.5px;padding:4px 6px;cursor:pointer}
     #card .asg-msg{font-size:9.5px;margin-top:5px;color:var(--text-dim);min-height:12px}
+    /* Fila del estado (● VIVO) + botón PROMPT en la ficha FIJADA */
+    #card .statrow{display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap}
+    #card .statrow .stat{margin-top:0}
+    #card .promptbtn{font-family:inherit;font-size:9px;letter-spacing:.14em;padding:3px 10px;border-radius:10px;
+      background:rgba(34,230,255,.10);border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;
+      text-shadow:0 0 6px rgba(34,230,255,.4)}
+    #card .promptbtn:hover,#card .promptbtn:focus-visible{background:rgba(34,230,255,.22);outline:none}
+    /* Compositor de PROMPT a un agente (panel EXPERTO) */
+    .prompt-composer{margin:2px 0 12px;padding:11px 12px;border:1px solid var(--cyan);border-radius:10px;background:rgba(34,230,255,.05)}
+    .prompt-composer .pc-head{font-size:10px;letter-spacing:.14em;color:var(--cyan);margin-bottom:7px;text-transform:uppercase}
+    .prompt-composer .pc-to{font-size:11px;color:var(--text);margin-bottom:7px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .prompt-composer .pc-to b{color:var(--cyan)}
+    .prompt-composer select{font-family:inherit;font-size:11px;background:#06121f;color:var(--cyan);border:1px solid var(--cyan-dim);border-radius:6px;padding:2px 6px;cursor:pointer}
+    .prompt-composer .pc-machine{color:var(--text-dim)}
+    .prompt-composer textarea{width:100%;min-height:60px;resize:vertical;font-family:inherit;font-size:11px;background:#06121f;color:var(--text);border:1px solid var(--cyan-dim);border-radius:8px;padding:8px 10px;line-height:1.5}
+    .prompt-composer textarea:focus{outline:none;border-color:var(--cyan)}
+    .prompt-composer .pc-actions{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+    .prompt-composer .pc-send{font-family:inherit;font-size:10px;letter-spacing:.1em;padding:6px 14px;border-radius:8px;background:rgba(34,230,255,.12);border:1px solid var(--cyan);color:var(--cyan);cursor:pointer}
+    .prompt-composer .pc-send:hover{background:rgba(34,230,255,.24)}
+    .prompt-composer .pc-msg{font-size:10px;color:var(--text-dim)}
+    .prompt-composer .pc-msg.ok{color:var(--cyan)}
+    .prompt-composer .pc-msg.err{color:#ff8a5c}
+    .prompt-composer .pc-hint{font-size:8.5px;color:var(--text-dim);margin-top:6px;letter-spacing:.04em;line-height:1.5}
     /* GESTIÓN (r8): listas con 🗑 por fila en AVANZADO */
     #gestionBox{max-height:290px;overflow-y:auto;border:1px solid rgba(34,230,255,.14);border-radius:8px;padding:6px 8px;background:rgba(2,10,20,.5)}
     #gestionBox .g-sec{font-size:8.5px;letter-spacing:.16em;color:var(--cyan-dim);margin:7px 0 3px}
@@ -449,7 +472,7 @@
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión dinámica + máquina actual -->
-    <div class="pf-ver" id="verRail"><span id="verText">v.2026.07.10.r1</span></div>
+    <div class="pf-ver" id="verRail"><span id="verText">v.2026.07.10.r2</span></div>
   </aside>
   <!-- r15: asa de redimensionado del riel izquierdo (doble clic = restaurar) -->
   <div class="pf-rz" id="rzLeft" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
@@ -557,6 +580,17 @@
     <div id="rzBottom" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
     <button class="pf-close" id="closeBottom" aria-label="Cerrar consola">×</button>
     <h4>Experto · consola</h4>
+    <!-- Compositor de PROMPT a un agente (se abre al pulsar ✎ PROMPT en una ficha fijada) -->
+    <div id="promptComposer" class="prompt-composer" hidden>
+      <div class="pc-head">✎ Escribir al agente</div>
+      <div class="pc-to">→ <span id="pcPersonaWrap"></span> · <span id="pcMachine" class="pc-machine"></span></div>
+      <textarea id="pcText" placeholder="Escribe el prompt para este agente… se entrega en su bot-inbox y lo lee en SU máquina (asíncrono)."></textarea>
+      <div class="pc-actions">
+        <button id="pcSend" class="pc-send" type="button">Enviar al inbox ▸</button>
+        <span id="pcMsg" class="pc-msg"></span>
+      </div>
+      <div class="pc-hint">Entrega asíncrona vía bot-inbox (el agente lo lee en su máquina). Con sesión de Google del perímetro queda como envío verificado.</div>
+    </div>
     <div class="cli-wrap">
       <span class="ps1">admiranext:/status$</span>
       <input type="text" id="cliInput" autocomplete="off" spellcheck="false"
@@ -1526,6 +1560,8 @@
     // MODO MANDO + ficha FIJADA (clic) en vista ordenador/agente → selector de asignación
     const isPinned = PINNED && PINNED.id===n.id;
     const canAssign = isPinned && mandoOn() && (currentView==='machine'||currentView==='agent');
+    // PROMPT: escribir al agente (ficha fijada, vistas con persona destinataria)
+    const canPrompt = isPinned && (currentView==='machine'||currentView==='agent') && promptTargetOf(n).personas.length>0;
     const asgBlock = canAssign ? (()=>{
       const cur = n.assignment ? n.assignment.project : '';
       return `<div class="asg-block">`+
@@ -1576,7 +1612,7 @@
       tokensRow+
       vidaRows+
       foco+
-      `<span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>`+railBadge+
+      `<div class="statrow"><span class="stat ${n.online?'on':'off'}">${n.online?'● VIVO':'○ EN REPOSO'}</span>${railBadge}${canPrompt?`<button class="promptbtn" id="cardPrompt" type="button">✎ PROMPT</button>`:''}</div>`+
       asgBlock+
       histBlock;
     // ámbar en el marco = estás viendo HISTÓRICO, no el estado en vivo
@@ -1588,6 +1624,8 @@
       if(sel) sel.addEventListener('change',()=>doAssign(n, sel.value||null));
       const cb=document.getElementById('cardClose');
       if(cb) cb.addEventListener('click',unpinCard);
+      const pb=document.getElementById('cardPrompt');
+      if(pb) pb.addEventListener('click',()=>openPromptFor(n));
       // r13: flechas clicables ▲▼◀▶ del historial (móvil/ratón)
       card.querySelectorAll('.hist-btn').forEach(b=>b.addEventListener('click',ev=>{ ev.stopPropagation(); histNav(b.dataset.h); }));
     }
@@ -1709,6 +1747,59 @@
       if(d.ok){ if(msg){msg.textContent=project?('✓ asignado a '+project):'✓ liberado'; msg.style.color='var(--cyan)';} load(); }
       else { if(msg){msg.textContent='✗ '+(d.error||'error'); msg.style.color='#ff6b6b';} }
     }catch(e){ if(msg){msg.textContent='✗ sin conexión con el worker'; msg.style.color='#ff6b6b';} }
+  }
+
+  // ---------- ✎ PROMPT: escribir a un agente (entrega asíncrona por bot-inbox) ----------
+  // POST /api/bot-inbox del worker admira-telegram → inserta el encargo (status pending);
+  // el agente lo lee en SU máquina con bot-inbox.sh. Auth: la sesión Google del perímetro
+  // (mismo id_token que el mando) → envío verificado; sin ella, va con rate-limit del worker.
+  const TG_INBOX_POST='https://admira-telegram.csilvasantin.workers.dev/api/bot-inbox';
+  // Deriva persona(s) + máquina(s) destino del nodo según la vista.
+  function promptTargetOf(n){
+    if(!n) return {personas:[],machines:[]};
+    if(currentView==='agent')   return { personas:[n.label].filter(Boolean), machines:(n.machines||[]) };
+    if(currentView==='machine') return { personas:(n.personas||[]).map(p=>p.persona).filter(Boolean), machines:[n.label] };
+    return { personas:[], machines:[] };
+  }
+  function pcSelOrText(id, arr){
+    if(arr.length>1) return `<select id="${id}">`+arr.map(v=>`<option value="${v}">${v}</option>`).join('')+`</select>`;
+    return `<b id="${id}" data-val="${(arr[0]||'')}">${arr[0]||'—'}</b>`;
+  }
+  function pcFieldVal(id){ const el=document.getElementById(id); if(!el) return ''; return el.tagName==='SELECT'?el.value:(el.dataset.val||el.textContent||''); }
+  function openPromptFor(n){
+    const t=promptTargetOf(n);
+    if(!t.personas.length) return;
+    document.getElementById('pcPersonaWrap').innerHTML = pcSelOrText('pcPersona', t.personas);
+    document.getElementById('pcMachine').innerHTML = t.machines.length>1 ? pcSelOrText('pcMachine2', t.machines) : (t.machines[0]||'');
+    document.getElementById('promptComposer').hidden=false;
+    const msg=document.getElementById('pcMsg'); msg.textContent=''; msg.className='pc-msg';
+    setPanel('bottom', true);
+    setTimeout(()=>{ const ta=document.getElementById('pcText'); if(ta) ta.focus(); }, 80);
+  }
+  async function sendPrompt(){
+    const persona=pcFieldVal('pcPersona');
+    const machine=document.getElementById('pcMachine2') ? pcFieldVal('pcMachine2') : (document.getElementById('pcMachine').textContent||'');
+    const text=(document.getElementById('pcText').value||'').trim();
+    const msg=document.getElementById('pcMsg');
+    if(!text){ msg.textContent='escribe un mensaje primero'; msg.className='pc-msg err'; return; }
+    if(!persona){ msg.textContent='sin destinatario'; msg.className='pc-msg err'; return; }
+    msg.textContent='enviando…'; msg.className='pc-msg';
+    const headers={'Content-Type':'application/json'};
+    try{ const b=(typeof mandoBearer==='function')?mandoBearer():''; if(b) headers['Authorization']='Bearer '+b; }catch(e){}
+    try{
+      const r=await fetch(TG_INBOX_POST,{method:'POST',headers,body:JSON.stringify({target_persona:persona,target_machine:machine,text,from:'status-web'})});
+      const d=await r.json().catch(()=>({}));
+      if(r.ok && d.ok){
+        msg.textContent='✓ enviado al inbox de '+persona+(machine?' en '+machine:'')+(d.owner_verified?'':' (sin verificar)');
+        msg.className='pc-msg ok';
+        document.getElementById('pcText').value='';
+        if(typeof cliPrint==='function') cliPrint('PROMPT → '+persona+(machine?' · '+machine:'')+'  (encargo '+(d.task_id||d.id||'')+')');
+      } else if(r.status===429){
+        msg.textContent='✗ demasiados envíos seguidos — espera un minuto'; msg.className='pc-msg err';
+      } else {
+        msg.textContent='✗ '+(d.error||('HTTP '+r.status)); msg.className='pc-msg err';
+      }
+    }catch(e){ msg.textContent='✗ red: '+(e&&e.message||e); msg.className='pc-msg err'; }
   }
 
   let freeDrawing=false;
@@ -1952,7 +2043,7 @@
   function updateVersionInfo(){
     const verEl = document.getElementById('verRail');
     const selloEl = document.getElementById('sello');
-    const baseVer = 'v.2026.07.10.r1';
+    const baseVer = 'v.2026.07.10.r2';
     let focusLabel = FOCUS_MACHINE ? FOCUS_MACHINE.replace(/([a-z])([A-Z0-9])/g,'$1 $2') : '';
     let viewerLabel = VIEWER_MACHINE ? VIEWER_MACHINE.replace(/([a-z])([A-Z0-9])/g,'$1 $2') : '';
 
@@ -3099,6 +3190,9 @@
   document.getElementById('closeLeft').addEventListener('click',()=>{setPanel('left',false);panels.left.tg.focus();});
   document.getElementById('closeRight').addEventListener('click',()=>{setPanel('right',false);panels.right.tg.focus();});
   document.getElementById('closeBottom').addEventListener('click',()=>{setPanel('bottom',false);panels.bottom.tg.focus();});
+  // Compositor de PROMPT: enviar (botón + Cmd/Ctrl+Enter)
+  document.getElementById('pcSend').addEventListener('click',sendPrompt);
+  document.getElementById('pcText').addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){ e.preventDefault(); sendPrompt(); } });
   // ESC cierra cualquier panel abierto
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
