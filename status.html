@@ -6,7 +6,7 @@
   <title>ADmiraNeXT | Status — Constelación de la flota</title>
   <meta name="description" content="Admira no tiene centro — es un universo que se expande. Estado en vivo de la flota AdmiraNeXT: cada ordenador es una estrella con su proyecto y su foco.">
   <meta name="admiranext-version" content="AdmiraNext v26.07.07.12">
-  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.11.r6 (tríada AdmiraNvidia con presencia real)">
+  <meta name="admiranext-status-version" content="admiranext-status v.2026.07.13.r1 (capas sub/infra bajo demanda en AVANZADO)">
   <meta name="admiranext-status-build" content="admiranvidia-real-triad-1">
 
   <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
@@ -481,10 +481,11 @@
       <div>● <span style="color:#eafcff">Agente</span> — dirige + humano</div>
       <div>● <span style="color:#a0e0ff">Subagente</span> — ejecuta</div>
       <div>● <span style="color:#7fb8d4">Infraagente</span> — reporta/doc</div>
+      <div style="margin-top:4px;color:var(--text-dim)">sub/infra ocultos por defecto — actívalos en ⚙ AVANZADO</div>
     </div>
     <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión dinámica + máquina actual -->
-    <div class="pf-ver" id="verRail"><span id="verText">v.2026.07.11.r6</span></div>
+    <div class="pf-ver" id="verRail"><span id="verText">v.2026.07.13.r1</span></div>
   </aside>
   <!-- r15: asa de redimensionado del riel izquierdo (doble clic = restaurar) -->
   <div class="pf-rz" id="rzLeft" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
@@ -518,6 +519,9 @@
     <div class="pf-field">
       <label>Filtros</label>
       <label class="pf-check"><input type="checkbox" id="advOnlyLive"> Sólo nodos vivos</label>
+      <label class="pf-check"><input type="checkbox" id="advShowSub"> Subagentes (ejecutan)</label>
+      <label class="pf-check"><input type="checkbox" id="advShowInfra"> Infraagentes (reportan/doc)</label>
+      <div class="hint" style="font-size:8.5px;color:var(--text-dim);letter-spacing:.05em;margin-top:6px;line-height:1.5">Las capas satélite (sub/infra) están ocultas por defecto para leer la flota de un vistazo. Actívalas aquí para ver la constelación completa; se recuerda en este navegador.</div>
     </div>
     <div class="pf-field">
       <label class="pf-check"><input type="checkbox" id="advLabels" checked> Mostrar etiquetas</label>
@@ -721,6 +725,19 @@
   let ROTATE_MS_DYN  = ROTATE_MS;
   let ONLY_LIVE = false;
   let SHOW_LABELS = true;
+  // r17: capas satélite BAJO DEMANDA — los subagentes e infraagentes NO se
+  // muestran por defecto; se activan con sus checkboxes en ⚙ AVANZADO y la
+  // elección se recuerda en localStorage (por navegador, como el resto).
+  const SHOW_SUB_LS_KEY   = 'admiranext-status-show-sub';
+  const SHOW_INFRA_LS_KEY = 'admiranext-status-show-infra';
+  let SHOW_SUBAGENTS  = (()=>{ try{ return localStorage.getItem(SHOW_SUB_LS_KEY)==='1'; }catch(e){ return false; } })();
+  let SHOW_INFRAGENTS = (()=>{ try{ return localStorage.getItem(SHOW_INFRA_LS_KEY)==='1'; }catch(e){ return false; } })();
+  // ¿Este nodo pasa el filtro de capas? (main siempre; sub/infra según checkbox)
+  function tierVisible(n){
+    if(n.tier==='sub')   return SHOW_SUBAGENTS;
+    if(n.tier==='infra') return SHOW_INFRAGENTS;
+    return true;
+  }
   let FLEET_BPM = 60;   // BPM medio de la flota viva (lo actualiza el render; guía el audio)
   let FOCUS_MACHINE = null;  // norm(nombre) del ordenador con foco en la vista TODO, o null
   let VIEWER_MACHINE = null; // norm(nombre) del ordenador desde el que se está viendo esta página (pasado por ?viewer= o ?focus)
@@ -2175,7 +2192,7 @@
   function updateVersionInfo(){
     const verEl = document.getElementById('verRail');
     const selloEl = document.getElementById('sello');
-    const baseVer = 'v.2026.07.11.r6';
+    const baseVer = 'v.2026.07.13.r1';
     let focusLabel = FOCUS_MACHINE ? FOCUS_MACHINE.replace(/([a-z])([A-Z0-9])/g,'$1 $2') : '';
     let viewerLabel = VIEWER_MACHINE ? VIEWER_MACHINE.replace(/([a-z])([A-Z0-9])/g,'$1 $2') : '';
 
@@ -2514,8 +2531,9 @@
       const n=on(P), x=on(A);
       txt=`${n} ${n===1?'proyecto vivo':'proyectos vivos'} en ${x} ${x===1?'agente':'agentes'}`;
     } else if(currentView==='agent'){
-      const n=on(A);
-      txt=`${n} ${n===1?'agente vivo':'agentes vivos'} de ${A.length}`;
+      const Av=A.filter(tierVisible);   // r17: el contador acompaña al filtro de capas
+      const n=on(Av);
+      txt=`${n} ${n===1?'agente vivo':'agentes vivos'} de ${Av.length}`;
     } else if(currentView==='mission'){
       const n=on(MI);
       txt=`${n} ${n===1?'misión viva':'misiones vivas'} de ${MI.length}`;
@@ -2525,7 +2543,7 @@
     } else if(currentView==='all'){
       const ALL=WORLD.all||[];
       const mo=ALL.filter(n=>n.kindFor==='all-machine'&&n.online).length;
-      const ao=ALL.filter(n=>n.kindFor==='all-agent'&&n.online).length;
+      const ao=ALL.filter(n=>n.kindFor==='all-agent'&&n.online&&tierVisible(n)).length;   // r17
       txt=`${mo} ${mo===1?'ordenador online':'ordenadores online'} · ${ao} ${ao===1?'agente activo':'agentes activos'}`;
     } else {
       const n=on(M);
@@ -2592,6 +2610,19 @@
         foco:mi.foco, count:mi.machines.length+mi.agentNames.length,
         decisions:mi.decisions||0, tokens:mi.tokens||0, reqs:mi.reqs||0,
       }));
+    }
+    // r17: capas satélite bajo demanda — sub/infra fuera salvo checkbox en
+    // AVANZADO. Si se muestra un infra cuyo sub queda oculto, se reengancha al
+    // ancestro visible más cercano (su principal o el ordenador): ningún
+    // satélite se queda huérfano flotando como principal.
+    if(!SHOW_SUBAGENTS || !SHOW_INFRAGENTS){
+      const byIdAll={}; list.forEach(n=>byIdAll[n.id]=n);
+      for(const n of list){
+        if(!tierVisible(n) || !n.parentId) continue;
+        let p=byIdAll[n.parentId];
+        while(p && !tierVisible(p)){ n.parentId=p.parentId||null; p=n.parentId?byIdAll[n.parentId]:null; }
+      }
+      list = list.filter(tierVisible);
     }
     if(typeof ONLY_LIVE!=='undefined' && ONLY_LIVE) list = list.filter(n=>n.online);
     layoutNodes(list);
@@ -3464,6 +3495,21 @@
   document.getElementById('advAutoRotate').addEventListener('change',e=>{ setAutoRotate(e.target.checked); });
   document.getElementById('advOnlyLive').addEventListener('change',e=>{ ONLY_LIVE=e.target.checked; applyView(); });
   document.getElementById('advLabels').addEventListener('change',e=>{ SHOW_LABELS=e.target.checked; });
+  // r17: capas satélite (sub/infra) — apagadas por defecto, persistidas.
+  const advShowSub=document.getElementById('advShowSub');
+  const advShowInfra=document.getElementById('advShowInfra');
+  advShowSub.checked=SHOW_SUBAGENTS;
+  advShowInfra.checked=SHOW_INFRAGENTS;
+  advShowSub.addEventListener('change',e=>{
+    SHOW_SUBAGENTS=e.target.checked;
+    try{ localStorage.setItem(SHOW_SUB_LS_KEY, SHOW_SUBAGENTS?'1':'0'); }catch(err){}
+    applyView();
+  });
+  advShowInfra.addEventListener('change',e=>{
+    SHOW_INFRAGENTS=e.target.checked;
+    try{ localStorage.setItem(SHOW_INFRA_LS_KEY, SHOW_INFRAGENTS?'1':'0'); }catch(err){}
+    applyView();
+  });
 
   // --- MODO MANDO (asignaciones): activar/desactivar con token, persistido en localStorage ---
   const mandoTokEl=document.getElementById('mandoTok');
