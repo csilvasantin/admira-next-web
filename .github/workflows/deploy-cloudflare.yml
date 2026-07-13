@@ -1,0 +1,48 @@
+# Publica admiranext.com en CLOUDFLARE PAGES (proyecto 'admiranext') en cada push
+# a main. Espejo del deploy.sh local: git archive → wrangler pages deploy. Desde
+# 2026-07-10 el ORIGEN de producción es Cloudflare Pages (custom domain
+# www.admiranext.com), NO GitHub Pages — así /status nunca sirve caché vieja.
+#
+# Requiere el secret CLOUDFLARE_API_TOKEN (Settings → Secrets and variables →
+# Actions). Sin él, el job avisa y termina en verde sin desplegar — no rompe CI.
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Comprobar CLOUDFLARE_API_TOKEN
+        id: tok
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "has=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=0" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_API_TOKEN no está configurado en los secrets del repo — deploy a Cloudflare Pages OMITIDO. Añádelo una vez y todos los merges se publicarán solos."
+          fi
+
+      - name: Deploy a Cloudflare Pages
+        if: steps.tok.outputs.has == '1'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          TMP="$(mktemp -d)"
+          git archive HEAD | tar -x -C "$TMP"
+          npx --yes wrangler@latest pages deploy "$TMP" --project-name admiranext --branch main
+          echo "✓ https://www.admiranext.com/status (Cloudflare Pages) · mirror https://admiranext.pages.dev"
