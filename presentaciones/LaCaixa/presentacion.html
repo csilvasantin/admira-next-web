@@ -410,6 +410,10 @@ b,strong{font-weight:700}
 
   // fullscreen
   function toggleFs(){
+    if(window.self!==window.top){
+      window.parent.postMessage({type:'admira-toggle-presentation-fullscreen'},location.origin);
+      return;
+    }
     var active=document.fullscreenElement||document.webkitFullscreenElement;
     if(active){
       if(document.exitFullscreen){ document.exitFullscreen(); }
