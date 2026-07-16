@@ -1,5 +1,6 @@
 (function(){
   'use strict';
+  document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'); let slugTouched=true;
   const languagePanel=document.createElement('section'); languagePanel.className='panel language-panel';
@@ -15,7 +16,7 @@
   slug.addEventListener('input',()=>{slugTouched=Boolean(slug.value)}); display.addEventListener('input',()=>{if(!slugTouched)slug.value=slugify(display.value)});
   function message(value,error){status.textContent=value;status.className=`status${error?' error':''}`}
   form.addEventListener('submit',async event=>{
-    event.preventDefault(); submit.disabled=true; result.classList.remove('show'); message('Analizando el problema y construyendo la presentación…');
+    event.preventDefault(); event.stopImmediatePropagation(); submit.disabled=true; result.classList.remove('show'); message('Analizando el problema y construyendo la presentación…');
     const data=Object.fromEntries(new FormData(form).entries()); data.overwrite=document.getElementById('overwrite').checked; data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value);
     try{
       const response=await fetch('/presentaciones/api/generate',{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(data)});
@@ -23,6 +24,6 @@
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
       document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); message(`Creada: ${body.displayName}`);
     }catch(error){message(error.message,true)}finally{submit.disabled=false}
-  });
+  },true);
   document.addEventListener('click',async event=>{const button=event.target.closest('[data-copy]');if(!button)return;const node=document.getElementById(button.dataset.copy);try{await navigator.clipboard.writeText(node.textContent);const before=button.textContent;button.textContent='Copiado';setTimeout(()=>button.textContent=before,1200)}catch(_){}});
 })();
