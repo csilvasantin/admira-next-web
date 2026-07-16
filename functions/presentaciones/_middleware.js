@@ -124,24 +124,33 @@ export async function onRequest(context){
   const isIdeasEditor = !isGallery && second === 'ideas';
   const isIdeasApi = !isGallery && second === 'api' && third === 'ideas';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
-  const isIdeasArea = isIdeasEditor || isIdeasWrite;
+  const isGeneratorPage = first === 'generador' && parts.length === 1;
+  const isGeneratorApi = first === 'api' && second === 'generate';
+  const isInternalArea = isIdeasEditor || isIdeasWrite || isGeneratorPage || isGeneratorApi;
 
   const cookieName = 'pres_' + (isGallery ? 'admin' : seg);
   const cookieSlug = isGallery ? '_admin' : seg;                 // lo que se firma
   const secretName = isGallery ? 'PRES_ADMIN'
                                : 'PRES_' + seg.toUpperCase().replace(/[^A-Z0-9]+/g, '_');
   const names = { lacaixa:'La Caixa', clearchannel:'Clear Channel', lenovo:'Lenovo', caixa:'La Caixa' };
-  const clientTitle = names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1);
-  const title = isGallery ? 'Presentaciones' : (isIdeasArea ? `${clientTitle} · Ideas` : clientTitle);
 
   const signKey = env.PRES_SIGNING_KEY;
   const expected = env[secretName];
   const master = env.PRES_ADMIN;   // clave interna del equipo = MAESTRA: abre cualquier deck
   const editor = env.PRES_EDITOR;  // clave interna limitada a /Ideas y a su API
   const cleanPath = url.pathname;
+  // Los clientes creados desde /generador viven en KV. Solo guardamos un
+  // verificador HMAC; la contraseña nunca queda almacenada en texto claro.
+  let generated = null;
+  if (!isGallery && env.PRESENTATION_IDEAS && !isGeneratorApi && !isGeneratorPage) {
+    generated = await env.PRESENTATION_IDEAS.get(`presentation:${seg}`, { type:'json' });
+  }
+  const dynamicVerifier = generated?.passwordVerifier || '';
+  const clientTitle = generated?.displayName || names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1);
+  const title = isGallery ? 'Presentaciones' : (isGeneratorPage || isGeneratorApi ? 'Generador de presentaciones' : (isInternalArea ? `${clientTitle} · Ideas` : clientTitle));
 
   // Sin clave de firma, o sin password del espacio NI maestra → fail-closed (nunca público).
-  if (!signKey || (!expected && !master)){
+  if (!signKey || (!expected && !dynamicVerifier && !master)){
     return new Response(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'),
       { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   }
@@ -162,14 +171,17 @@ export async function onRequest(context){
     // clave MAESTRA del equipo → cookie 'pres_master' que abre TODOS los decks + galería
     if (master && ctEq(pw, master)) return await setCookie('pres_master', '_master');
     // clave del editor → solo /Ideas y API de ideas; nunca abre otras presentaciones.
-    if (isIdeasArea && editor && ctEq(pw, editor)) return await setCookie('pres_editor', '_editor');
+    if (isInternalArea && editor && ctEq(pw, editor)) return await setCookie('pres_editor', '_editor');
     // El cliente no puede entrar en /Ideas ni en su API con su propia clave.
-    if (isIdeasArea){
+    if (isInternalArea){
       return new Response(loginPage(title, cleanPath, 'Esta zona requiere acceso interno de Admira.'),
         { status: 401, headers: { 'content-type':'text/html; charset=utf-8', 'cache-control':'no-store' } });
     }
     // clave del propio espacio (cliente, o galería)
     if (expected && ctEq(pw, expected)) return await setCookie(cookieName, cookieSlug);
+    if (dynamicVerifier && ctEq(await hmac(signKey, `password:${seg}:${pw}`), dynamicVerifier)) {
+      return await setCookie(cookieName, cookieSlug);
+    }
     return new Response(loginPage(title, cleanPath, 'Contraseña incorrecta.'),
       { status: 401, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   }
@@ -177,8 +189,8 @@ export async function onRequest(context){
   // GET = ¿cookie válida? (maestra del equipo → todo · o la del propio espacio)
   const cks = readCookies(request);
   if (await validToken(signKey, '_master', cks['pres_master'])) return next();
-  if ((isIdeasEditor || isIdeasApi) && editor && await validToken(signKey, '_editor', cks['pres_editor'])) return next();
-  if (isIdeasArea){
+  if ((isIdeasEditor || isIdeasApi || isGeneratorPage || isGeneratorApi) && editor && await validToken(signKey, '_editor', cks['pres_editor'])) return next();
+  if (isInternalArea){
     return new Response(loginPage(title, cleanPath, ''),
       { status: 401, headers: { 'content-type':'text/html; charset=utf-8', 'cache-control':'no-store' } });
   }

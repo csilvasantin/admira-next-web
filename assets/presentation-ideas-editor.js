@@ -1,10 +1,10 @@
 (function(){
   'use strict';
   const body = document.body;
-  const client = body.dataset.client;
-  const displayName = body.dataset.name;
+  const client = body.dataset.client || location.pathname.split('/').filter(Boolean)[1].toLowerCase();
+  const displayName = body.dataset.name || client;
   const apiUrl = new URL(`./api/ideas`, location.href).pathname;
-  const defaultUrl = new URL(`./ideas.json`, location.href).pathname;
+  const defaultUrl = `${apiUrl}?base=1`;
   const $ = (id) => document.getElementById(id);
   let model = null;
 
@@ -34,6 +34,7 @@
   }
   function field(id, value){ $(id).value = value || ''; }
   function render(){
+    document.querySelectorAll('[data-client-name]').forEach(node => { node.textContent = model.displayName || displayName; });
     field('displayName', model.displayName || displayName);
     field('eyebrow', model.hero?.eyebrow);
     field('title', model.hero?.title);

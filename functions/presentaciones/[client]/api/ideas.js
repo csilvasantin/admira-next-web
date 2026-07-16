@@ -1,4 +1,4 @@
-const ALLOWED = new Set(['lacaixa', 'clearchannel', 'lenovo']);
+const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
 
 function response(body, status = 200){
@@ -49,12 +49,16 @@ function normalize(payload, client){
 
 export async function onRequest(context){
   const client = String(context.params.client || '').toLowerCase();
-  if (!ALLOWED.has(client)) return response({ error: 'Cliente no válido.' }, 404);
   if (!context.env.PRESENTATION_IDEAS) return response({ error: 'Almacenamiento no configurado.' }, 503);
+  const validSlug = /^[a-z0-9][a-z0-9-]{1,62}$/.test(client);
+  const generated = validSlug ? await context.env.PRESENTATION_IDEAS.get(`presentation:${client}`, { type:'json' }) : null;
+  if (!BUILT_IN.has(client) && !generated) return response({ error: 'Cliente no válido.' }, 404);
 
   const key = `ideas:${client}`;
   if (context.request.method === 'GET'){
-    const saved = await context.env.PRESENTATION_IDEAS.get(key, { type: 'json' });
+    const requestedKey = new URL(context.request.url).searchParams.get('base') === '1' ? `ideas-base:${client}` : key;
+    const saved = await context.env.PRESENTATION_IDEAS.get(requestedKey, { type: 'json' }) ||
+      await context.env.PRESENTATION_IDEAS.get(key, { type: 'json' });
     return saved ? response(saved) : response({ error: 'Todavía no hay una versión guardada.' }, 404);
   }
 
