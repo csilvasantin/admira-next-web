@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "admiranext",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-07-16",
+  "kv_namespaces": [
+    {
+      "binding": "PRESENTATION_IDEAS",
+      "id": "865b826b5e0f4093b693583d46fe69e0"
+    }
+  ]
+}

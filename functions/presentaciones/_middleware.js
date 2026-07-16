@@ -109,18 +109,27 @@ export async function onRequest(context){
   const first = (parts[0] || '').replace(/\.html$/i, '').toLowerCase();
   const isGallery = (parts.length === 0 || (parts.length === 1 && first === 'index'));
   const seg = isGallery ? '' : first;
+  // El editor y su API son internos: nunca se abren con la clave del cliente.
+  // Solo la cookie maestra del equipo puede leerlos o modificarlos.
+  const second = (parts[1] || '').replace(/\.html$/i, '').toLowerCase();
+  const third = (parts[2] || '').replace(/\.html$/i, '').toLowerCase();
+  const isIdeasEditor = !isGallery && second === 'ideas';
+  const isIdeasApi = !isGallery && second === 'api' && third === 'ideas';
+  const isIdeasWrite = isIdeasApi && request.method !== 'GET';
+  const isIdeasArea = isIdeasEditor || isIdeasWrite;
 
   const cookieName = 'pres_' + (isGallery ? 'admin' : seg);
   const cookieSlug = isGallery ? '_admin' : seg;                 // lo que se firma
   const secretName = isGallery ? 'PRES_ADMIN'
                                : 'PRES_' + seg.toUpperCase().replace(/[^A-Z0-9]+/g, '_');
   const names = { lacaixa:'La Caixa', clearchannel:'Clear Channel', lenovo:'Lenovo', caixa:'La Caixa' };
-  const title = isGallery ? 'Presentaciones'
-                          : (names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1));
+  const clientTitle = names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1);
+  const title = isGallery ? 'Presentaciones' : (isIdeasArea ? `${clientTitle} · Ideas` : clientTitle);
 
   const signKey = env.PRES_SIGNING_KEY;
   const expected = env[secretName];
   const master = env.PRES_ADMIN;   // clave interna del equipo = MAESTRA: abre cualquier deck
+  const editor = env.PRES_EDITOR;  // clave interna limitada a /Ideas y a su API
   const cleanPath = url.pathname;
 
   // Sin clave de firma, o sin password del espacio NI maestra → fail-closed (nunca público).
@@ -144,6 +153,13 @@ export async function onRequest(context){
     try { pw = (await request.formData()).get('password') || ''; } catch (_) {}
     // clave MAESTRA del equipo → cookie 'pres_master' que abre TODOS los decks + galería
     if (master && ctEq(pw, master)) return await setCookie('pres_master', '_master');
+    // clave del editor → solo /Ideas y API de ideas; nunca abre otras presentaciones.
+    if (isIdeasArea && editor && ctEq(pw, editor)) return await setCookie('pres_editor', '_editor');
+    // El cliente no puede entrar en /Ideas ni en su API con su propia clave.
+    if (isIdeasArea){
+      return new Response(loginPage(title, cleanPath, 'Esta zona requiere acceso interno de Admira.'),
+        { status: 401, headers: { 'content-type':'text/html; charset=utf-8', 'cache-control':'no-store' } });
+    }
     // clave del propio espacio (cliente, o galería)
     if (expected && ctEq(pw, expected)) return await setCookie(cookieName, cookieSlug);
     return new Response(loginPage(title, cleanPath, 'Contraseña incorrecta.'),
@@ -153,6 +169,11 @@ export async function onRequest(context){
   // GET = ¿cookie válida? (maestra del equipo → todo · o la del propio espacio)
   const cks = readCookies(request);
   if (await validToken(signKey, '_master', cks['pres_master'])) return next();
+  if ((isIdeasEditor || isIdeasApi) && editor && await validToken(signKey, '_editor', cks['pres_editor'])) return next();
+  if (isIdeasArea){
+    return new Response(loginPage(title, cleanPath, ''),
+      { status: 401, headers: { 'content-type':'text/html; charset=utf-8', 'cache-control':'no-store' } });
+  }
   if (await validToken(signKey, cookieSlug, cks[cookieName])) return next();
 
   return new Response(loginPage(title, cleanPath, ''),

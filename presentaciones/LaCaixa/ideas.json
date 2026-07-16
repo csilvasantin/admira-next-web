@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "client": "lacaixa",
+  "displayName": "CaixaBank",
+  "hero": {
+    "eyebrow": "Presentación privada · CaixaBank",
+    "title": "La oficina, convertida en medio inteligente.",
+    "summary": "Conectar marca, contenido, pantallas, espacio y medición en un único ciclo operativo para transformar la red física en un medio inteligente."
+  },
+  "objective": "Acordar una oficina piloto donde activar las cuatro capas de Admira y medir el recorrido completo desde el brief hasta el dato.",
+  "skeleton": [
+    { "id": "punto-partida", "title": "El punto de partida", "message": "Cada oficina ya es una pantalla, un dato y una decisión.", "detail": "Hoy contenido, señalización, sensores y medición viven en silos. La oportunidad es cerrar el círculo.", "enabled": true },
+    { "id": "ecosistema", "title": "Un solo sistema operativo", "message": "Crear, emitir, entender y medir el espacio físico desde una única arquitectura.", "detail": "Pixeria, admira.tv, XpaceOS y OmniPublicity funcionan como capas conectadas, no como herramientas aisladas.", "enabled": true },
+    { "id": "crear", "title": "Crear con Pixeria", "message": "Del brief al contenido publicado sin salir del sistema.", "detail": "Piezas y variantes por formato, audiencia y contexto, siempre dentro del criterio de marca CaixaBank.", "enabled": true },
+    { "id": "emitir", "title": "Emitir con admira.tv", "message": "Cada contenido llega a la pantalla correcta en el momento correcto.", "detail": "Programación, flota, prueba de emisión y control operativo de la red desde un solo lugar.", "enabled": true },
+    { "id": "entender", "title": "Entender con XpaceOS", "message": "El gemelo digital convierte cada oficina en un espacio gobernable.", "detail": "Aforo, flujos, colas y salud de pantallas con privacidad desde el diseño.", "enabled": true },
+    { "id": "medir", "title": "Medir y monetizar", "message": "Cada impresión se mide y el aprendizaje vuelve al siguiente contenido.", "detail": "OmniPublicity conecta superficies, audiencias, atribución y activación del inventario físico.", "enabled": true },
+    { "id": "oficina", "title": "La oficina CaixaBank", "message": "Bienvenida, espera, atención y comunicación se convierten en una experiencia coherente.", "detail": "Control central, adaptación local y datos anónimos para operar mejor sin vigilar a nadie.", "enabled": true },
+    { "id": "prueba", "title": "Ya funciona", "message": "El ecosistema ya se ha mostrado en vivo y opera con una flota real.", "detail": "Shoptalk Europe, 20 aplicaciones operativas, inferencia edge y marketplace integrado.", "enabled": true }
+  ],
+  "closing": { "title": "Elijamos una oficina y montemos el piloto.", "action": "Definir oficina, dos recorridos, responsables y métricas de éxito." },
+  "notes": "Mantener el lenguaje cercano, útil y orientado a experiencia de cliente. Usar siempre el logotipo y los colores oficiales de CaixaBank."
+}

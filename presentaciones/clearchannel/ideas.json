@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "client": "clearchannel",
+  "displayName": "Clear Channel",
+  "hero": {
+    "eyebrow": "Presentación privada · Clear Channel",
+    "title": "La primera solución agéntica de RetailMedia y DOOH.",
+    "summary": "Una flota de agentes crea, opera, emite y mide el inventario físico para llenar más huecos, activar audiencias y demostrar cada impresión."
+  },
+  "objective": "Mostrar dos casos vivos y acordar cómo integrar el ciclo agéntico en el inventario de Clear Channel.",
+  "skeleton": [
+    { "id": "cambio", "title": "El cambio", "message": "La diferencia no es una pantalla nueva: es quién la opera.", "detail": "El ciclo deja de depender de una persona delante de un CMS y pasa a una flota coordinada de agentes.", "enabled": true },
+    { "id": "bucle", "title": "El ciclo agéntico", "message": "Crear → Operar → Emitir → Medir, sin manos en el CMS.", "detail": "Cada agente hace su parte y el dato de medición vuelve al principio para mejorar la siguiente decisión.", "enabled": true },
+    { "id": "crear", "title": "Crear", "message": "Pixeria mantiene un stock vivo de piezas y variantes.", "detail": "Creatividades siempre frescas, adaptadas a formatos, audiencias y contexto sin una agencia por pieza.", "enabled": true },
+    { "id": "operar", "title": "Operar", "message": "XpaceOS gobierna espacios, pantallas y reglas desde su gemelo digital.", "detail": "El inventario físico se vuelve visible, programable y coordinado.", "enabled": true },
+    { "id": "canalkiosk", "title": "Caso DOOH · CanalKiosk", "message": "El quiosco que se programa solo.", "detail": "Contenido segmentado por audiencia, emisión en directo y proof-of-play listo para medición e inventario.", "enabled": true },
+    { "id": "xtanco", "title": "Caso RetailMedia · Xtanco", "message": "La tienda que se opera sola.", "detail": "Gemelo digital, audio, pantallas y segmentación orquestados por agentes dentro del punto de venta.", "enabled": true },
+    { "id": "medicion", "title": "Medir", "message": "Cada reproducción devuelve proof-of-play y KPIs reales.", "detail": "DVR por día, rendimiento por pantalla y trazabilidad para convertir el hueco en una impresión vendible.", "enabled": true },
+    { "id": "economia", "title": "Monetizar", "message": "Cada hueco puede subastarse por impresión.", "detail": "El inventario deja de ser capacidad no utilizada y se convierte en una superficie medible y activable.", "enabled": true }
+  ],
+  "closing": { "title": "Una plataforma agéntica para DOOH y RetailMedia.", "action": "Elegir inventario, caso inicial, integración y métricas del piloto." },
+  "notes": "Conservar el tono tecnológico y demostrable. Priorizar siempre los casos vivos y la prueba de emisión sobre las promesas abstractas."
+}

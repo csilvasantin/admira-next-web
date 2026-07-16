@@ -135,9 +135,15 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
 
 <main>
   <section class="hero wrap">
-    <div class="eyebrow mono"><span class="tick"></span>Documentación</div>
-    <h1>Solución agéntica de <span class="g">RetailMedia y DOOH</span></h1>
-    <p class="support">Todo el material que acompaña a la propuesta para <b>Clear Channel</b>: el site de presentación, los resúmenes en audio y vídeo, las diapositivas, los documentos de trabajo y la infografía final.</p>
+    <div class="eyebrow mono" data-ideas-eyebrow><span class="tick"></span>Documentación</div>
+    <h1 data-ideas-title>Solución agéntica de RetailMedia y DOOH</h1>
+    <p class="support" data-ideas-summary>Todo el material que acompaña a la propuesta para Clear Channel: el site de presentación, los resúmenes en audio y vídeo, las diapositivas, los documentos de trabajo y la infografía final.</p>
+  </section>
+
+  <!-- ── ESQUELETO ── -->
+  <section class="sec wrap">
+    <div class="sec-h"><span class="n">00</span><h2>Esqueleto</h2><span class="hint">Resumen editable de la presentación</span></div>
+    <div data-presentation-skeleton data-client="clearchannel" data-base="/presentaciones/clearchannel"></div>
   </section>
 
   <!-- ── SITE ── -->
@@ -306,5 +312,6 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
     <span><a href="mailto:info@admira.com">info@admira.com</a></span>
   </div>
 </footer>
+<script src="/assets/presentation-skeleton.js"></script>
 </body>
 </html>

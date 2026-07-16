@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "client": "lenovo",
+  "displayName": "Lenovo",
+  "hero": {
+    "eyebrow": "Presentación privada · Lenovo",
+    "title": "El espacio físico, convertido en medio inteligente sobre ThinkEdge.",
+    "summary": "Admira conecta contenido, pantallas, gemelo digital y medición sobre Lenovo ThinkEdge + GPU Nvidia para operar cada espacio en el borde."
+  },
+  "objective": "Acordar un espacio piloto donde ejecutar las cuatro capas de Admira sobre hardware Lenovo ThinkEdge y medirlo de punta a punta.",
+  "skeleton": [
+    { "id": "punto-partida", "title": "El punto de partida", "message": "Cada espacio ya es una pantalla, un dato y una decisión.", "detail": "Contenido, señalización, sensores y medición siguen separados; Admira los unifica.", "enabled": true },
+    { "id": "ecosistema", "title": "Un sistema operativo para el espacio", "message": "Crear, emitir, entender y monetizar desde cuatro capas conectadas.", "detail": "Pixeria, admira.tv, XpaceOS y OmniPublicity forman un único bucle operativo.", "enabled": true },
+    { "id": "pixeria", "title": "Contenido con IA", "message": "Pixeria convierte el brief en piezas listas para pantalla.", "detail": "Vídeo, imagen, audio y texto con criterio de marca y modelos seleccionados por tarea.", "enabled": true },
+    { "id": "admira-tv", "title": "Señalización DOOH", "message": "admira.tv gobierna cada canal, player y pantalla.", "detail": "Una flota real de aplicaciones operativas para programar y verificar la emisión.", "enabled": true },
+    { "id": "thinkedge", "title": "Gemelo digital sobre ThinkEdge", "message": "XpaceOS entiende y gobierna el espacio en tiempo real.", "detail": "Inferencia local con ThinkEdge + GPU Nvidia: baja latencia y el dato permanece en el local.", "enabled": true },
+    { "id": "rtb", "title": "Marketplace RTB", "message": "OmniPublicity convierte cada superficie en inventario medible.", "detail": "Audiencia, atribución y puja por impresión sobre activos físicos ya existentes.", "enabled": true },
+    { "id": "casos", "title": "Casos de uso", "message": "Retail, experience centers, campus y ferias operados desde el borde.", "detail": "Desde un flagship hasta un stand, cada espacio se comporta como un medio que se gobierna solo.", "enabled": true },
+    { "id": "prueba", "title": "Ya funciona", "message": "El ecosistema se mostró en vivo en Shoptalk Europe 2026.", "detail": "20 aplicaciones operativas, inferencia edge y un marketplace de RetailMedia integrado.", "enabled": true }
+  ],
+  "closing": { "title": "Elijamos un espacio y montémoslo sobre ThinkEdge.", "action": "Definir hardware, espacio, dos recorridos, responsables y métricas del piloto." },
+  "notes": "Dar protagonismo a Lenovo ThinkEdge y Nvidia como infraestructura del ecosistema. Mantener lenguaje de edge, privacidad, baja latencia y operación real."
+}
