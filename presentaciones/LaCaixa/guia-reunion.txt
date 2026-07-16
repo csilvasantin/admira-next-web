@@ -1,0 +1,28 @@
+GUÍA DE REUNIÓN · ADMIRA × CAIXABANK
+
+APERTURA
+La oportunidad no consiste en instalar más pantallas, sino en conectar contenido, operación, contexto y medición para que cada oficina funcione como un medio inteligente.
+
+PREGUNTAS DE DESCUBRIMIENTO
+1. ¿Qué comunicaciones cambian hoy por oficina, franja o tipología de cliente?
+2. ¿Quién crea, valida, programa y mide actualmente cada pieza?
+3. ¿Qué datos de contexto están disponibles en la oficina y cuáles pueden activarse con privacidad desde el diseño?
+4. ¿Cómo se demuestra hoy que una pieza se emitió y produjo la interacción esperada?
+5. ¿Qué oficina reúne las mejores condiciones para un piloto controlado?
+
+RECORRIDO DE LA DEMO
+1. Pixeria recibe el brief y genera las variantes.
+2. admira.tv publica y prueba la emisión.
+3. XpaceOS representa la oficina y aplica reglas de contexto.
+4. OmniPublicity mide, atribuye y devuelve el aprendizaje al siguiente ciclo.
+
+DECISIÓN QUE BUSCAMOS
+Acordar una oficina piloto, dos casos de uso, responsables de marca/operación/datos y métricas de éxito.
+
+MÉTRICAS PROPUESTAS
+- Tiempo desde el brief hasta la emisión.
+- Porcentaje de piezas adaptadas automáticamente sin retrabajo.
+- Disponibilidad y prueba de emisión por pantalla.
+- Interacciones o atención por zona y contenido.
+- Aprendizajes reutilizables para una segunda oficina.
+
