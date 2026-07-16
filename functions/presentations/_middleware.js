@@ -113,32 +113,40 @@ export async function onRequest(context){
 
   const signKey = env.PRES_SIGNING_KEY;
   const expected = env[secretName];
+  const master = env.PRES_ADMIN;   // clave interna del equipo = MAESTRA: abre cualquier deck
   const cleanPath = isGallery ? '/presentations/' : '/presentations/' + seg;
 
-  // Sin clave de firma o sin password configurada → fail-closed (nunca público).
-  if (!signKey || !expected){
+  // Sin clave de firma, o sin password del espacio NI maestra → fail-closed (nunca público).
+  if (!signKey || (!expected && !master)){
     return new Response(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'),
       { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   }
+
+  const setCookie = (name, slug) => {
+    const exp = Math.floor(Date.now() / 1000) + MAXAGE;
+    return makeToken(signKey, slug, exp).then((token) => {
+      const h = new Headers({ 'Location': cleanPath, 'cache-control': 'no-store' });
+      h.append('Set-Cookie', `${name}=${token}; Path=/presentations; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
+      return new Response(null, { status: 303, headers: h });
+    });
+  };
 
   // POST = intento de login
   if (request.method === 'POST'){
     let pw = '';
     try { pw = (await request.formData()).get('password') || ''; } catch (_) {}
-    if (ctEq(pw, expected)){
-      const exp = Math.floor(Date.now() / 1000) + MAXAGE;
-      const token = await makeToken(signKey, cookieSlug, exp);
-      const h = new Headers({ 'Location': cleanPath, 'cache-control': 'no-store' });
-      h.append('Set-Cookie', `${cookieName}=${token}; Path=/presentations; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
-      return new Response(null, { status: 303, headers: h });
-    }
+    // clave MAESTRA del equipo → cookie 'pres_master' que abre TODOS los decks + galería
+    if (master && ctEq(pw, master)) return await setCookie('pres_master', '_master');
+    // clave del propio espacio (cliente, o galería)
+    if (expected && ctEq(pw, expected)) return await setCookie(cookieName, cookieSlug);
     return new Response(loginPage(title, cleanPath, 'Contraseña incorrecta.'),
       { status: 401, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   }
 
-  // GET = ¿cookie válida para ESTE cliente?
-  const ck = readCookies(request)[cookieName];
-  if (await validToken(signKey, cookieSlug, ck)) return next();  // autorizado → sirve el deck
+  // GET = ¿cookie válida? (maestra del equipo → todo · o la del propio espacio)
+  const cks = readCookies(request);
+  if (await validToken(signKey, '_master', cks['pres_master'])) return next();
+  if (await validToken(signKey, cookieSlug, cks[cookieName])) return next();
 
   return new Response(loginPage(title, cleanPath, ''),
     { status: 401, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
