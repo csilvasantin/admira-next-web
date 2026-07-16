@@ -6,7 +6,19 @@
   const apiUrl = new URL(`./api/ideas`, location.href).pathname;
   const defaultUrl = `${apiUrl}?base=1`;
   const $ = (id) => document.getElementById(id);
+  const ALL_OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
   let model = null;
+
+  const outputPanel = document.createElement('section');
+  outputPanel.className = 'panel output-panel';
+  outputPanel.innerHTML = '<div class="panel-h"><div><h2>¿Qué queremos obtener?</h2><p class="sub">Selecciona los contenidos que AdmiraNeXT debe recrear para esta presentación.</p></div></div><div class="output-grid"><label class="output"><input type="checkbox" name="output" value="website"><b>01</b><span>Website</span></label><label class="output"><input type="checkbox" name="output" value="audio"><b>02</b><span>Audio</span></label><label class="output"><input type="checkbox" name="output" value="video"><b>03</b><span>Vídeo</span></label><label class="output"><input type="checkbox" name="output" value="pdf"><b>04</b><span>PDF</span></label><label class="output"><input type="checkbox" name="output" value="powerpoint"><b>05</b><span>PowerPoint</span></label><label class="output"><input type="checkbox" name="output" value="documents"><b>06</b><span>Documento de trabajo</span></label><label class="output"><input type="checkbox" name="output" value="infographic"><b>07</b><span>Infografía</span></label><label class="output all"><input type="checkbox" id="allOutputs"><b>08</b><span>Todo</span></label></div>';
+  const outputStyle = document.createElement('style');
+  outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}@media(max-width:720px){.output-grid{grid-template-columns:1fr}}';
+  document.head.appendChild(outputStyle);
+  document.querySelector('.savebar').before(outputPanel);
+  document.querySelector('.savebar .btn.primary').textContent = 'Generar presentación';
+  const outputBoxes = [...outputPanel.querySelectorAll('input[name="output"]')];
+  const allOutputs = $('allOutputs');
 
   function esc(value){
     return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -44,7 +56,13 @@
     field('closingAction', model.closing?.action);
     field('notes', model.notes);
     renderIdeas();
+    renderOutputs();
     syncRaw();
+  }
+  function renderOutputs(){
+    const selected = new Set(Array.isArray(model.outputs) && model.outputs.length ? model.outputs : ALL_OUTPUTS);
+    outputBoxes.forEach(box => { box.checked = selected.has(box.value); });
+    allOutputs.checked = outputBoxes.every(box => box.checked);
   }
   function renderIdeas(){
     const host = $('ideas'); host.innerHTML = '';
@@ -65,6 +83,7 @@
       hero:{eyebrow:$('eyebrow').value,title:$('title').value,summary:$('summary').value},
       objective:$('objective').value,
       skeleton:ideas,
+      outputs:outputBoxes.filter(box => box.checked).map(box => box.value),
       closing:{title:$('closingTitle').value,action:$('closingAction').value},
       notes:$('notes').value
     };
@@ -109,6 +128,14 @@
     const node = button.closest('.idea'); const index = Number(node.dataset.index); const action = button.dataset.action;
     if (action === 'up') move(index,-1); else if (action === 'down') move(index,1); else if (action === 'remove') { model=readForm(); model.skeleton.splice(index,1); renderIdeas(); syncRaw(); }
   });
+  allOutputs.addEventListener('change', () => {
+    outputBoxes.forEach(box => { box.checked = allOutputs.checked; });
+    syncRaw();
+  });
+  outputBoxes.forEach(box => box.addEventListener('change', () => {
+    allOutputs.checked = outputBoxes.every(item => item.checked);
+    syncRaw();
+  }));
   document.addEventListener('input', (event) => { if (event.target.id !== 'raw') syncRaw(); });
   $('addIdea').addEventListener('click', addIdea);
   $('save').addEventListener('click', save);

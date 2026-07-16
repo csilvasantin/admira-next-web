@@ -18,6 +18,15 @@
     if (!r.ok) throw new Error(String(r.status)); return r.json();
   }
   function el(tag, cls, text){ const node=document.createElement(tag); if(cls)node.className=cls; if(text!=null)node.textContent=text; return node; }
+  function applyOutputs(data){
+    const all=['website','audio','video','pdf','powerpoint','documents','infographic'];
+    const selected=new Set(Array.isArray(data.outputs)&&data.outputs.length?data.outputs:all);
+    const map={site:'website',audio:'audio','vídeo':'video',video:'video',pdf:'pdf',powerpoint:'powerpoint','documentos de trabajo':'documents',infografía:'infographic',infografia:'infographic'};
+    document.querySelectorAll('section.sec').forEach(section=>{
+      const title=section.querySelector('.sec-h h2')?.textContent.trim().toLowerCase();
+      if(title&&map[title]) section.style.display=selected.has(map[title])?'':'none';
+    });
+  }
   function render(data){
     style(); host.textContent='';
     const objective=el('p','ps-objective'); objective.append(el('strong','', 'Objetivo · '),document.createTextNode(data.objective||'')); host.append(objective);
@@ -30,6 +39,7 @@
     const eyebrow=document.querySelector('[data-ideas-eyebrow]'); if(eyebrow&&data.hero?.eyebrow)eyebrow.textContent=data.hero.eyebrow;
     const title=document.querySelector('[data-ideas-title]'); if(title&&data.hero?.title)title.textContent=data.hero.title;
     const summary=document.querySelector('[data-ideas-summary]'); if(summary&&data.hero?.summary)summary.textContent=data.hero.summary;
+    applyOutputs(data);
   }
   (async()=>{ try{render(await json(api));}catch(_){try{render(await json(fallback));}catch(__){host.textContent='Esqueleto no disponible.';}} })();
 })();

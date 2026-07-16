@@ -1,5 +1,6 @@
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
+const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
 
 function response(body, status = 200){
   return new Response(body == null ? null : JSON.stringify(body), {
@@ -20,6 +21,9 @@ function normalize(payload, client){
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Formato no válido.');
   const skeleton = Array.isArray(payload.skeleton) ? payload.skeleton.slice(0, 20) : [];
   if (!skeleton.length) throw new Error('Añade al menos una idea al esqueleto.');
+  const requested = Array.isArray(payload.outputs) ? payload.outputs.map(value => String(value).toLowerCase()) : OUTPUTS;
+  const outputs = [...new Set(requested.filter(value => OUTPUTS.includes(value)))];
+  if (!outputs.length) throw new Error('Selecciona al menos un contenido para generar.');
 
   return {
     schemaVersion: 1,
@@ -31,6 +35,7 @@ function normalize(payload, client){
       summary: cleanText(payload.hero?.summary, 900)
     },
     objective: cleanText(payload.objective, 1200),
+    outputs,
     skeleton: skeleton.map((item, index) => ({
       id: cleanText(item?.id, 80) || `idea-${index + 1}`,
       title: cleanText(item?.title, 180) || `Idea ${index + 1}`,
@@ -78,6 +83,12 @@ export async function onRequest(context){
   try { data = normalize(payload, client); }
   catch (error) { return response({ error: error.message || 'Contenido no válido.' }, 400); }
 
-  await context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(data));
+  const writes = [context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(data))];
+  if (generated){
+    generated.outputs = data.outputs;
+    generated.updatedAt = data.updatedAt;
+    writes.push(context.env.PRESENTATION_IDEAS.put(`presentation:${client}`, JSON.stringify(generated)));
+  }
+  await Promise.all(writes);
   return response({ ok: true, data });
 }
