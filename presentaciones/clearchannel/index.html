@@ -82,8 +82,14 @@ img{max-width:100%;display:block}
 .player audio{width:100%;margin-top:2px}
 .player video{width:100%;border-radius:11px;background:#000;display:block;max-height:70vh}
 
+/* Embedded presentation site */
+.site-frame{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.site-frame iframe{width:100%;height:min(76vh,760px);border:0;display:block;background:#05070d}
+.site-actions{display:flex;justify-content:flex-end;margin-top:12px}
+
 /* Grid of file cards */
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid.single{grid-template-columns:1fr}
 @media(max-width:640px){.grid{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;transition:border-color .25s,transform .25s}
 .card:hover{border-color:var(--line-2);transform:translateY(-2px)}
@@ -110,13 +116,6 @@ img{max-width:100%;display:block}
 .infographic img{width:100%;max-width:100%;border-radius:10px}
 .infographic .cap{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:12px 4px 4px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 
-/* Interactive banner */
-.inter{background:linear-gradient(120deg,rgba(170,136,255,.1),rgba(80,200,255,.06));border:1px solid var(--line-2);border-radius:16px;
-  padding:clamp(20px,3.5vw,30px);display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:space-between}
-.inter .txt{max-width:560px}
-.inter h3{font-size:18px;font-weight:750;letter-spacing:-.01em}
-.inter p{color:var(--ink-soft);font-size:14px;margin-top:7px;line-height:1.5}
-
 /* Footer */
 footer{margin-top:clamp(46px,7vw,72px);padding:34px 0 56px;border-top:1px solid var(--line);color:var(--mut);
   font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
@@ -138,13 +137,23 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
   <section class="hero wrap">
     <div class="eyebrow mono"><span class="tick"></span>Documentación</div>
     <h1>Solución agéntica de <span class="g">RetailMedia y DOOH</span></h1>
-    <p class="support">Todo el material que acompaña a la presentación de <b>clearchannel.tv</b>: el resumen en audio y en vídeo, las diapositivas, el informe estratégico, la guía de estudio, la guía de ventas con FAQ, la cronología del demo y la infografía. Al final, material interactivo con quiz y flashcards.</p>
+    <p class="support">Todo el material que acompaña a la propuesta para <b>Clear Channel</b>: el site de presentación, los resúmenes en audio y vídeo, las diapositivas, los documentos de trabajo y la infografía final.</p>
   </section>
 
-  <!-- ── RESÚMENES (audio + vídeo) ── -->
+  <!-- ── SITE ── -->
   <section class="sec wrap">
-    <div class="sec-h"><span class="n">01</span><h2>Resúmenes</h2><span class="hint">Audio · Vídeo</span></div>
+    <div class="sec-h"><span class="n">01</span><h2>Site</h2><span class="hint">Presentación web</span></div>
+    <div class="site-frame">
+      <iframe src="presentacion.html" title="Clear Channel × Admira — presentación web" loading="eager"></iframe>
+    </div>
+    <div class="site-actions">
+      <a class="btn primary" href="presentacion.html" target="_blank" rel="noopener">Abrir site completo</a>
+    </div>
+  </section>
 
+  <!-- ── AUDIO ── -->
+  <section class="sec wrap">
+    <div class="sec-h"><span class="n">02</span><h2>Audio</h2><span class="hint">NotebookLM · 27:11</span></div>
     <div class="player">
       <div class="top">
         <div class="ico a-operar" aria-hidden="true">
@@ -158,7 +167,11 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
       </div>
       <audio controls preload="none" src="media/audio.m4a"></audio>
     </div>
+  </section>
 
+  <!-- ── VÍDEO ── -->
+  <section class="sec wrap">
+    <div class="sec-h"><span class="n">03</span><h2>Vídeo</h2><span class="hint">NotebookLM · 6:41</span></div>
     <div class="player">
       <div class="top">
         <div class="ico a-medir" aria-hidden="true">
@@ -174,10 +187,10 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
     </div>
   </section>
 
-  <!-- ── DIAPOSITIVAS ── -->
+  <!-- ── PDF ── -->
   <section class="sec wrap">
-    <div class="sec-h"><span class="n">02</span><h2>Diapositivas</h2><span class="hint">PDF · PPTX</span></div>
-    <div class="grid">
+    <div class="sec-h"><span class="n">04</span><h2>PDF</h2><span class="hint">Diapositivas</span></div>
+    <div class="grid single">
       <div class="card">
         <div class="row">
           <div class="ico a-medir" aria-hidden="true">
@@ -192,6 +205,13 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Descargar</a>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ── POWERPOINT ── -->
+  <section class="sec wrap">
+    <div class="sec-h"><span class="n">05</span><h2>PowerPoint</h2><span class="hint">Diapositivas editables</span></div>
+    <div class="grid single">
       <div class="card">
         <div class="row">
           <div class="ico a-operar" aria-hidden="true">
@@ -209,7 +229,7 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
 
   <!-- ── DOCUMENTOS ── -->
   <section class="sec wrap">
-    <div class="sec-h"><span class="n">03</span><h2>Documentos</h2><span class="hint">Informe · Estudio · Ventas · Cronología</span></div>
+    <div class="sec-h"><span class="n">06</span><h2>Documentos de trabajo</h2><span class="hint">Informe · Estudio · Ventas · Cronología</span></div>
     <div class="grid">
       <div class="card">
         <div class="row">
@@ -270,30 +290,19 @@ footer .seal{color:var(--dim);letter-spacing:.14em}
 
   <!-- ── INFOGRAFÍA ── -->
   <section class="sec wrap">
-    <div class="sec-h"><span class="n">04</span><h2>Infografía</h2><span class="hint">Imagen</span></div>
+    <div class="sec-h"><span class="n">07</span><h2>Infografía</h2><span class="hint">Cierre visual</span></div>
     <figure class="infographic">
       <img src="revolucion-agentica-retail-media.png" alt="Infografía: la revolución agéntica en Retail Media — del operador humano a la flota de agentes que crea, opera, emite y mide." loading="lazy">
       <figcaption class="cap"><span>Revolución agéntica en Retail Media</span><a class="btn" href="revolucion-agentica-retail-media.png" download style="margin-top:-4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>PNG · 6 MB</a></figcaption>
     </figure>
   </section>
 
-  <!-- ── INTERACTIVO ── -->
-  <section class="sec wrap">
-    <div class="sec-h"><span class="n">05</span><h2>Interactivo</h2><span class="hint">Quiz · Flashcards</span></div>
-    <div class="inter">
-      <div class="txt">
-        <h3>Quiz y flashcards del cuaderno</h3>
-        <p>Preguntas tipo test y tarjetas de memoria preparadas en NotebookLM. El equipo de Admira las activa durante la sesión para mantener todo el material dentro del acceso controlado.</p>
-      </div>
-      <span class="btn primary" aria-label="Disponible durante la sesión">Disponible durante la sesión</span>
-    </div>
-  </section>
 </main>
 
 <footer>
   <div class="wrap">
     <span>CLEARCHANNEL<b>.TV</b> · Documentación · Solución agéntica de RetailMedia y DOOH · I+D incubado por AdmiraNeXT</span>
-    <span class="seal">cc-v.13.07.2026.r7</span>
+    <span class="seal">cc-v.16.07.2026.r8</span>
     <span><a href="mailto:info@admira.com">info@admira.com</a></span>
   </div>
 </footer>
