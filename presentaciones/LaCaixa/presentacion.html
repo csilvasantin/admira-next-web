@@ -447,15 +447,16 @@ b,strong{font-weight:700}
   function applyEditableContent(lang){
     var content=localizedContent(lang);
     if(!content) return;
-    setLocalized(slides[0].querySelector('h1'),lang,content.title);
-    setLocalized(slides[0].querySelector('.lead'),lang,content.summary);
+    setLocalized(slides[0].querySelector('h1'),lang,content.hero&&content.hero.title);
+    setLocalized(slides[0].querySelector('.lead'),lang,content.hero&&content.hero.summary);
     (content.skeleton||[]).slice(0,8).forEach(function(block,idx){
       var slide=slides[idx+1]; if(!slide) return;
       setLocalized(slide.querySelector('.eyebrow'),lang,block.title);
       setLocalized(slide.querySelector('h2'),lang,block.message);
       setLocalized(slide.querySelector('.lead'),lang,block.detail);
     });
-    setLocalized(slides[10].querySelector('h2'),lang,content.closing);
+    setLocalized(slides[10].querySelector('h2'),lang,content.closing&&content.closing.title);
+    setLocalized(slides[10].querySelector('.lead'),lang,content.closing&&content.closing.action);
   }
 
   function applyLanguage(lang){
