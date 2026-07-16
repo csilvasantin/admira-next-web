@@ -5,7 +5,7 @@ export async function onRequestGet(context){
   const found=await context.env.PRESENTATION_IDEAS.list({prefix:'presentation:'});
   const clients=(await Promise.all(found.keys.map(async key=>{
     const item=await context.env.PRESENTATION_IDEAS.get(key.name,{type:'json'}); if(!item)return null;
-    return {slug:item.slug,displayName:item.displayName,website:item.website||'',problem:item.problem||'',theme:item.theme||{},createdAt:item.createdAt,updatedAt:item.updatedAt};
+    return {slug:item.slug,displayName:item.displayName,website:item.website||'',problem:item.problem||'',theme:item.theme||{},outputs:item.outputs||[],createdAt:item.createdAt,updatedAt:item.updatedAt};
   }))).filter(Boolean).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
   return json({clients});
 }

@@ -8,6 +8,7 @@ export async function onRequestGet(context){
     context.env.PRESENTATION_IDEAS?.get(`ideas:${client}`,{type:'json'})
   ]);
   if(!config||!ideas) return context.next();
+  if(Array.isArray(config.outputs)&&config.outputs.length&&!config.outputs.includes('website')) return new Response('Website no solicitado',{status:404});
   const primary=color(config.theme?.primary,'#12233e'),accent=color(config.theme?.accent,'#ffb000');
   const name=esc(config.displayName); const blocks=(ideas.skeleton||[]).filter(item=>item.enabled!==false);
   const slides=blocks.map((item,index)=>`<section class="slide"><div class="inner"><span class="num">${String(index+1).padStart(2,'0')}</span><h2>${esc(item.title)}</h2><p class="message">${esc(item.message)}</p><p class="detail">${esc(item.detail)}</p></div></section>`).join('');
