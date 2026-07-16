@@ -1,4 +1,4 @@
-const VALID_STATUSES = new Set(['queued','processing','ready','failed','skipped']);
+const VALID_STATUSES = new Set(['queued','processing','ready','complete','failed','skipped']);
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), {
