@@ -55,7 +55,7 @@
     <h1>Presentaciones</h1>
     <p class="lead">El ecosistema Admira —Pixeria, admira.tv, XpaceOS y OmniPublicity— contado para cada cliente. Presentaciones en castellano, a pantalla completa desde el navegador.</p>
 
-    <div class="grid">
+    <div class="grid" id="presentationGrid">
       <a class="card generator" href="/presentaciones/generador">
         <span class="badge">Herramienta interna</span>
         <h2>Generar una presentación</h2>
@@ -93,5 +93,8 @@
       <a href="mailto:csilva@admira.com">csilva@admira.com</a>
     </div>
   </main>
+  <script>
+  (async()=>{try{const r=await fetch('/presentaciones/api/clients',{headers:{accept:'application/json'},cache:'no-store'});if(!r.ok)return;const data=await r.json();const grid=document.getElementById('presentationGrid');(data.clients||[]).forEach(client=>{const a=document.createElement('a');a.className='card';a.style.setProperty('--accent',client.theme?.accent||'#3df08a');a.href='/presentaciones/'+encodeURIComponent(client.slug)+'/';const problem=client.problem||'Presentación generada desde un problema concreto.';a.innerHTML='<span class="badge"></span><h2></h2><p class="sub"></p><div class="meta"><span>Generada</span><span>Castellano</span><span>Editable</span></div><span class="go">Abrir presentación <span class="ar">→</span></span>';a.querySelector('.badge').textContent=client.displayName;a.querySelector('h2').textContent='Ecosistema Admira × '+client.displayName;a.querySelector('.sub').textContent=problem;grid.appendChild(a)})}catch(_){}})();
+  </script>
 </body>
 </html>

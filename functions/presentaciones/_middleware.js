@@ -126,7 +126,8 @@ export async function onRequest(context){
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
   const isGeneratorApi = first === 'api' && second === 'generate';
-  const isInternalArea = isIdeasEditor || isIdeasWrite || isGeneratorPage || isGeneratorApi;
+  const isClientsApi = first === 'api' && second === 'clients';
+  const isInternalArea = isIdeasEditor || isIdeasWrite || isGeneratorPage || isGeneratorApi || isClientsApi;
 
   const cookieName = 'pres_' + (isGallery ? 'admin' : seg);
   const cookieSlug = isGallery ? '_admin' : seg;                 // lo que se firma
@@ -147,7 +148,7 @@ export async function onRequest(context){
   }
   const dynamicVerifier = generated?.passwordVerifier || '';
   const clientTitle = generated?.displayName || names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1);
-  const title = isGallery ? 'Presentaciones' : (isGeneratorPage || isGeneratorApi ? 'Generador de presentaciones' : (isInternalArea ? `${clientTitle} · Ideas` : clientTitle));
+  const title = isGallery ? 'Presentaciones' : (isGeneratorPage || isGeneratorApi || isClientsApi ? 'Generador de presentaciones' : (isInternalArea ? `${clientTitle} · Ideas` : clientTitle));
 
   // Sin clave de firma, o sin password del espacio NI maestra → fail-closed (nunca público).
   if (!signKey || (!expected && !dynamicVerifier && !master)){
@@ -189,7 +190,7 @@ export async function onRequest(context){
   // GET = ¿cookie válida? (maestra del equipo → todo · o la del propio espacio)
   const cks = readCookies(request);
   if (await validToken(signKey, '_master', cks['pres_master'])) return next();
-  if ((isIdeasEditor || isIdeasApi || isGeneratorPage || isGeneratorApi) && editor && await validToken(signKey, '_editor', cks['pres_editor'])) return next();
+  if ((isIdeasEditor || isIdeasApi || isGeneratorPage || isGeneratorApi || isClientsApi) && editor && await validToken(signKey, '_editor', cks['pres_editor'])) return next();
   if (isInternalArea){
     return new Response(loginPage(title, cleanPath, ''),
       { status: 401, headers: { 'content-type':'text/html; charset=utf-8', 'cache-control':'no-store' } });
