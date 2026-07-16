@@ -1,14 +1,425 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-lang="es" data-theme="caixa">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="refresh" content="0; url=/presentations/caixa.html">
-<link rel="canonical" href="/presentations/caixa.html">
-<title>Redirigiendo…</title>
-<script>location.replace('/presentations/caixa.html');</script>
+<title>Admira × La Caixa · Ecosistema del espacio inteligente</title>
+<meta name="description" content="El ecosistema Admira presentado a La Caixa: Pixeria, admira.tv, XpaceOS y OmniPublicity — crear, emitir, medir y monetizar cada espacio físico.">
+<link rel="alternate" hreflang="en" href="/presentations/caixa.html">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DECK ADMIRA — motor compartido. El look & feel vive 100% en las variables de
+   :root, así que el gemelo de Lenovo es este mismo archivo con otra paleta.
+   TEMA: La Caixa — claro, banca, celeste + navy + acento oro (estrella).
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#ffffff; --bg2:#eef4fb; --panel:#f6f9fd; --panel2:#ffffff;
+  --ink:#0a1f44; --ink2:#3c5580; --dim:#7186a8; --line:#d6e2f1;
+  --brand:#007eae; --brand-d:#005b80; --navy:#002e72; --gold:#f4a81d; --star:#ffc400;
+  --cover-bg:radial-gradient(120% 120% at 78% 12%, #0b3a86 0%, #002e72 46%, #001a44 100%);
+  --cover-ink:#eaf2ff; --cover-dim:#9db9e6; --cover-accent:var(--star);
+  --pill-bg:rgba(0,126,174,.10); --pill-ink:var(--brand-d);
+  /* controles del chrome — el gemelo de Lenovo solo cambia esto (tema oscuro) */
+  --ctrl-bg:rgba(255,255,255,.72); --ctrl-line:var(--line); --ctrl-ink:var(--ink2); --ctrl-dim:var(--dim); --pressed-ink:#fff;
+  --dark-accent:var(--star); --dark-accent-ink:var(--navy);
+  --shadow:0 18px 50px rgba(6,26,64,.14); --shadow-s:0 8px 22px rgba(6,26,64,.10);
+  --radius:18px; --maxw:1160px;
+  --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --f-hero:clamp(34px,6.2vw,74px); --f-h2:clamp(26px,3.9vw,46px); --f-lead:clamp(16px,1.7vw,21px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+h1,h2,h3{margin:0;line-height:1.05;letter-spacing:-.02em}
+p{margin:0}
+b,strong{font-weight:700}
+
+/* ── DECK / SLIDES ───────────────────────────────────────────────────────── */
+.deck{position:fixed;inset:0;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  padding:min(8vh,74px) clamp(24px,6vw,90px);background:var(--bg);
+  transform:translateX(100%);transition:transform .55s cubic-bezier(.6,0,.2,1);will-change:transform}
+.slide.alt{background:var(--bg2)}
+.slide.active{transform:translateX(0);z-index:2}
+.slide.prev{transform:translateX(-100%)}
+.inner{width:100%;max-width:var(--maxw);margin:0 auto}
+.eyebrow{font:700 12px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--brand);margin-bottom:22px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--brand);display:inline-block}
+.lead{font-size:var(--f-lead);line-height:1.5;color:var(--ink2);max-width:46ch;margin-top:20px}
+
+/* ── COVER (slide 1) ─────────────────────────────────────────────────────── */
+.slide.cover{background:var(--cover-bg);color:var(--cover-ink);justify-content:center}
+.cover .eyebrow{color:var(--cover-accent)}.cover .eyebrow::before{background:var(--cover-accent)}
+.cover h1{font-size:var(--f-hero);font-weight:800;max-width:16ch}
+.cover h1 .hl{color:var(--cover-accent)}
+.cover .lead{color:var(--cover-dim);max-width:52ch}
+.cover .meta{margin-top:44px;display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;font:600 13px/1 var(--mono);color:var(--cover-dim);letter-spacing:.04em}
+.cover .meta .dot{width:6px;height:6px;border-radius:50%;background:var(--cover-accent);display:inline-block;margin-right:9px;vertical-align:1px}
+.cover .pillars{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px}
+.cover .pillars span{font:600 12px/1 var(--mono);letter-spacing:.06em;padding:8px 13px;border:1px solid rgba(255,255,255,.22);border-radius:999px;color:var(--cover-ink);background:rgba(255,255,255,.05)}
+
+/* ── HEADINGS estándar ───────────────────────────────────────────────────── */
+.slide h2{font-size:var(--f-h2);font-weight:800;max-width:18ch}
+.slide h2 .hl{color:var(--brand)}
+
+/* ── PILLAR MAP (slide 3) ────────────────────────────────────────────────── */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:38px}
+.node{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px;box-shadow:var(--shadow-s)}
+.node .n{font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.node h3{font-size:19px;margin:12px 0 8px;font-weight:800}
+.node p{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.node .verb{position:absolute;top:-11px;left:18px;background:var(--brand);color:#fff;font:700 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;border-radius:6px}
+.node::after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--brand);font-size:22px;font-weight:700;z-index:3}
+.node:last-child::after{content:""}
+
+/* ── PRODUCT slides (split) ──────────────────────────────────────────────── */
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,5vw,72px);align-items:center}
+.kv{margin-top:26px;display:flex;flex-direction:column;gap:14px}
+.kv .row{display:flex;gap:14px;align-items:flex-start}
+.kv .row .b{flex:none;width:30px;height:30px;border-radius:9px;background:var(--pill-bg);color:var(--brand-d);display:grid;place-items:center;font:700 13px/1 var(--mono)}
+.kv .row .t{font-size:15px;line-height:1.5;color:var(--ink2)}
+.kv .row .t b{color:var(--ink)}
+.viz{aspect-ratio:4/3;border-radius:var(--radius);border:1px solid var(--line);background:var(--panel2);box-shadow:var(--shadow);position:relative;overflow:hidden;display:grid;place-items:center}
+.viz .tag{position:absolute;top:14px;left:14px;font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brand);background:var(--pill-bg);padding:6px 10px;border-radius:6px}
+.viz .big{font:800 clamp(40px,7vw,86px)/.9 var(--sans);color:var(--brand);letter-spacing:-.03em}
+.viz .big small{display:block;font:600 13px/1.4 var(--mono);letter-spacing:.05em;color:var(--dim);margin-top:14px;text-transform:none}
+
+/* ── STATS / traction ───────────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:36px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px 20px;box-shadow:var(--shadow-s)}
+.stat .num{font:800 clamp(28px,4vw,44px)/1 var(--sans);color:var(--brand);letter-spacing:-.02em}
+.stat .lbl{margin-top:10px;font-size:13px;line-height:1.45;color:var(--ink2)}
+
+/* ── USE CASE (vertical) ─────────────────────────────────────────────────── */
+.uc{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:34px}
+.uc .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 20px;box-shadow:var(--shadow-s)}
+.uc .card .h{display:flex;align-items:center;gap:11px;font-weight:800;font-size:16px;margin-bottom:9px}
+.uc .card .h .ic{width:34px;height:34px;border-radius:9px;background:var(--pill-bg);display:grid;place-items:center;color:var(--brand-d);flex:none}
+.uc .card p{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.uc .card .p{margin-top:10px;font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+
+/* ── CLOSE ───────────────────────────────────────────────────────────────── */
+.slide.close{background:var(--cover-bg);color:var(--cover-ink);justify-content:center}
+.close .eyebrow{color:var(--cover-accent)}.close .eyebrow::before{background:var(--cover-accent)}
+.close h2{font-size:var(--f-hero);font-weight:800;max-width:15ch}
+.close h2 .hl{color:var(--cover-accent)}
+.close .lead{color:var(--cover-dim)}
+.close .cta{margin-top:36px;display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center;font:600 15px/1 var(--mono);color:var(--cover-ink)}
+.close .cta .mail{color:var(--cover-accent);border-bottom:1px solid var(--cover-accent);padding-bottom:2px}
+
+/* ── CHROME: nav, progreso, toggles ──────────────────────────────────────── */
+.chrome{position:fixed;z-index:20;left:0;right:0;bottom:0;top:0;pointer-events:none}
+.topbar{position:absolute;top:0;left:0;right:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,44px);pointer-events:none}
+.brand{display:flex;align-items:center;gap:9px;font:800 15px/1 var(--sans);letter-spacing:-.01em;color:var(--ink);pointer-events:auto}
+.brand .star{width:16px;height:16px;color:var(--brand)}
+.slide.cover ~ .chrome .brand,.on-dark .brand{color:#fff}
+.ctrls{display:flex;align-items:center;gap:8px;pointer-events:auto}
+.btn{appearance:none;border:1px solid var(--ctrl-line);background:var(--ctrl-bg);color:var(--ctrl-ink);border-radius:9px;height:32px;padding:0 11px;font:700 11px/1 var(--mono);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;gap:6px;backdrop-filter:blur(6px);transition:.15s}
+.btn:hover{color:var(--brand);border-color:var(--brand)}
+.btn svg{width:14px;height:14px}
+.lang{display:inline-flex;border:1px solid var(--ctrl-line);border-radius:9px;overflow:hidden;backdrop-filter:blur(6px);background:var(--ctrl-bg)}
+.lang button{appearance:none;border:0;background:transparent;color:var(--ctrl-dim);font:700 11px/1 var(--mono);letter-spacing:.06em;padding:0 11px;height:32px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--brand);color:var(--pressed-ink)}
+.on-dark .btn,.on-dark .lang{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#e8ecf5}
+.on-dark .btn:hover{color:#fff;border-color:#fff}
+.on-dark .lang button{color:rgba(255,255,255,.7)}
+.on-dark .lang button[aria-pressed="true"]{background:var(--dark-accent);color:var(--dark-accent-ink)}
+
+.nav{position:absolute;bottom:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;gap:16px;pointer-events:none}
+.dots{display:flex;gap:7px;pointer-events:auto}
+.dots button{appearance:none;border:0;width:8px;height:8px;border-radius:50%;background:var(--ctrl-line);cursor:pointer;padding:0;transition:.2s}
+.dots button[aria-current="true"]{background:var(--brand);transform:scale(1.35)}
+.on-dark .dots button{background:rgba(255,255,255,.28)}
+.on-dark .dots button[aria-current="true"]{background:var(--dark-accent)}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid var(--ctrl-line);background:var(--ctrl-bg);color:var(--ctrl-ink);display:grid;place-items:center;cursor:pointer;pointer-events:auto;backdrop-filter:blur(6px);transition:.15s}
+.arrow:hover{color:var(--brand);border-color:var(--brand)}
+.arrow.l{left:clamp(10px,2vw,24px)}.arrow.r{right:clamp(10px,2vw,24px)}
+.arrow svg{width:18px;height:18px}
+.on-dark .arrow{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#e8ecf5}
+.counter{position:absolute;bottom:18px;right:clamp(20px,4vw,44px);font:700 11px/1 var(--mono);letter-spacing:.1em;color:var(--dim);pointer-events:none}
+.on-dark .counter{color:var(--cover-dim)}
+.pbar{position:absolute;top:0;left:0;height:3px;background:var(--brand);width:0;transition:width .5s ease;z-index:30}
+.pbar.on-dark{background:var(--dark-accent)}
+
+@media (max-width:860px){
+  .flow,.stats{grid-template-columns:repeat(2,1fr)}
+  .node::after{display:none}
+  .split,.uc{grid-template-columns:1fr}
+  .viz{aspect-ratio:16/9}
+  .arrow{display:none}
+}
+@media (prefers-reduced-motion:reduce){.slide{transition:none}}
+[data-lang="es"] [data-en]{display:none}
+[data-lang="en"] [data-es]{display:none}
+</style>
 </head>
-<body style="background:#070a10;color:#9db0cc;font-family:system-ui,sans-serif;padding:40px">
-Redirigiendo a <a href="/presentations/caixa.html" style="color:#3df08a">/presentations/caixa.html</a>…
+<body>
+
+<main class="deck" id="deck">
+
+  <!-- 1 · COVER -->
+  <section class="slide cover active" data-dark="1">
+    <div class="inner">
+      <div class="eyebrow"><span data-es="ADmiraNeXT · Ecosistema</span><span data-en="ADmiraNeXT · Ecosystem">ADmiraNeXT · Ecosistema</span></div>
+      <h1><span data-es="1">El espacio físico, convertido en <span class="hl">medio inteligente</span>.</span><span data-en="1">Physical space, turned into <span class="hl">intelligent media</span>.</span></h1>
+      <p class="lead"><span data-es="Un solo sistema operativo que crea el contenido, lo emite en pantalla, entiende el espacio y subasta cada impresión. Cuatro capas, un ecosistema.">Un solo sistema operativo que crea el contenido, lo emite en pantalla, entiende el espacio y subasta cada impresión. Cuatro capas, un ecosistema.</span><span data-en="One operating system that creates the content, broadcasts it on screen, understands the space and auctions every impression. Four layers, one ecosystem.">One operating system that creates the content, broadcasts it on screen, understands the space and auctions every impression. Four layers, one ecosystem.</span></p>
+      <div class="pillars">
+        <span>Pixeria</span><span>admira.tv</span><span>XpaceOS</span><span>OmniPublicity</span>
+      </div>
+      <div class="meta">
+        <span><span class="dot"></span><span data-es="Presentado a La Caixa">Presentado a La Caixa</span><span data-en="Presented to La Caixa">Presented to La Caixa</span></span>
+        <span data-es="16 julio 2026">16 julio 2026</span><span data-en="July 16, 2026">July 16, 2026</span>
+        <span>csilva@admira.com</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · TESIS -->
+  <section class="slide">
+    <div class="inner">
+      <div class="eyebrow"><span data-es="El punto de partida">El punto de partida</span><span data-en="The premise">The premise</span></div>
+      <h2><span data-es="Cada oficina es ya una <span class='hl'>pantalla, un dato y una decisión</span>.">Cada oficina es ya una <span class="hl">pantalla, un dato y una decisión</span>.</span><span data-en="Every branch is already a <span class='hl'>screen, a signal and a decision</span>.">Every branch is already a <span class="hl">screen, a signal and a decision</span>.</span></h2>
+      <p class="lead"><span data-es="Hoy las pantallas, los sensores y el contenido viven en silos distintos: una agencia crea, un integrador instala, un tercero mide. Nadie cierra el círculo. Admira lo unifica: crear, emitir, medir y monetizar el espacio físico desde un único sistema.">Hoy las pantallas, los sensores y el contenido viven en silos distintos: una agencia crea, un integrador instala, un tercero mide. Nadie cierra el círculo. Admira lo unifica: crear, emitir, medir y monetizar el espacio físico desde un único sistema.</span><span data-en="Today screens, sensors and content live in separate silos: an agency creates, an integrator installs, a third party measures. Nobody closes the loop. Admira unifies it: create, broadcast, measure and monetize physical space from a single system.">Today screens, sensors and content live in separate silos: an agency creates, an integrator installs, a third party measures. Nobody closes the loop. Admira unifies it: create, broadcast, measure and monetize physical space from a single system.</span></p>
+    </div>
+  </section>
+
+  <!-- 3 · MAPA DEL ECOSISTEMA -->
+  <section class="slide alt">
+    <div class="inner">
+      <div class="eyebrow"><span data-es="El ecosistema">El ecosistema</span><span data-en="The ecosystem">The ecosystem</span></div>
+      <h2><span data-es="Un sistema operativo para el <span class='hl'>espacio físico</span>.">Un sistema operativo para el <span class="hl">espacio físico</span>.</span><span data-en="An operating system for <span class='hl'>physical space</span>.">An operating system for <span class="hl">physical space</span>.</span></h2>
+      <div class="flow">
+        <div class="node"><span class="verb" data-es="Crear">Crear</span><span class="verb" data-en="Create">Create</span><span class="n">Pixeria</span><h3 data-es="Contenido con IA">Contenido con IA</h3><h3 data-en="AI content">AI content</h3><p data-es="Del brief al creativo listo para pantalla, en minutos.">Del brief al creativo listo para pantalla, en minutos.</p><p data-en="From brief to screen-ready asset, in minutes.">From brief to screen-ready asset, in minutes.</p></div>
+        <div class="node"><span class="verb" data-es="Emitir">Emitir</span><span class="verb" data-en="Broadcast">Broadcast</span><span class="n">admira.tv</span><h3 data-es="Señalización DOOH">Señalización DOOH</h3><h3 data-en="DOOH signage">DOOH signage</h3><p data-es="El canal que pone el contenido en cada pantalla de la red.">El canal que pone el contenido en cada pantalla de la red.</p><p data-en="The channel that puts content on every screen in the network.">The channel that puts content on every screen in the network.</p></div>
+        <div class="node"><span class="verb" data-es="Entender">Entender</span><span class="verb" data-en="Understand">Understand</span><span class="n">XpaceOS</span><h3 data-es="Gemelo digital">Gemelo digital</h3><h3 data-en="Digital twin">Digital twin</h3><p data-es="El espacio, modelado y gobernado en tiempo real.">El espacio, modelado y gobernado en tiempo real.</p><p data-en="The space, modeled and governed in real time.">The space, modeled and governed in real time.</p></div>
+        <div class="node"><span class="verb" data-es="Monetizar">Monetizar</span><span class="verb" data-en="Monetize">Monetize</span><span class="n">OmniPublicity</span><h3 data-es="Marketplace RTB">Marketplace RTB</h3><h3 data-en="RTB marketplace">RTB marketplace</h3><p data-es="Cada hueco físico, subastado por impresión.">Cada hueco físico, subastado por impresión.</p><p data-en="Every physical slot, auctioned by impression.">Every physical slot, auctioned by impression.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · PIXERIA -->
+  <section class="slide">
+    <div class="inner split">
+      <div>
+        <div class="eyebrow">Pixeria · <span data-es="Crear">Crear</span><span data-en="Create">Create</span></div>
+        <h2><span data-es="Del brief al contenido publicado, <span class='hl'>sin salir del sistema</span>.">Del brief al contenido publicado, <span class="hl">sin salir del sistema</span>.</span><span data-en="From brief to published content, <span class='hl'>without leaving the system</span>.">From brief to published content, <span class="hl">without leaving the system</span>.</span></h2>
+        <div class="kv">
+          <div class="row"><span class="b">1</span><span class="t"><b data-es="Todos los medios.">Todos los medios.</b><b data-en="Every medium.">Every medium.</b> <span data-es="Vídeo, imagen, audio y texto en una sola mesa de producción.">Vídeo, imagen, audio y texto en una sola mesa de producción.</span><span data-en="Video, image, audio and text in one production desk.">Video, image, audio and text in one production desk.</span></span></div>
+          <div class="row"><span class="b">2</span><span class="t"><b data-es="Radar de modelos.">Radar de modelos.</b><b data-en="Model radar.">Model radar.</b> <span data-es="Un observatorio que dice qué modelo de IA merece atención ahora.">Un observatorio que dice qué modelo de IA merece atención ahora.</span><span data-en="An observatory of which AI model deserves attention now.">An observatory of which AI model deserves attention now.</span></span></div>
+          <div class="row"><span class="b">3</span><span class="t"><b data-es="Criterio de marca.">Criterio de marca.</b><b data-en="Brand system.">Brand system.</b> <span data-es="Pipelines y sistemas de marca: menos demo, más sistema reproducible.">Pipelines y sistemas de marca: menos demo, más sistema reproducible.</span><span data-en="Pipelines and brand systems: less demo, more reproducible system.">Pipelines and brand systems: less demo, more reproducible system.</span></span></div>
+        </div>
+      </div>
+      <div class="viz"><span class="tag">pixeria.com</span><div class="big">IA<small data-es="brief → creativo en minutos">brief → creativo en minutos</small><small data-en="brief → asset in minutes">brief → asset in minutes</small></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · ADMIRA.TV -->
+  <section class="slide alt">
+    <div class="inner split">
+      <div class="viz"><span class="tag">admira.tv</span><div class="big">20<small data-es="apps operativas + flota real">apps operativas + flota real</small><small data-en="operational apps + live fleet">operational apps + live fleet</small></div></div>
+      <div>
+        <div class="eyebrow">admira.tv · <span data-es="Emitir">Emitir</span><span data-en="Broadcast">Broadcast</span></div>
+        <h2><span data-es="El canal que pone el contenido <span class='hl'>en pantalla</span>.">El canal que pone el contenido <span class="hl">en pantalla</span>.</span><span data-en="The channel that puts content <span class='hl'>on screen</span>.">The channel that puts content <span class="hl">on screen</span>.</span></h2>
+        <div class="kv">
+          <div class="row"><span class="b">1</span><span class="t"><b data-es="Emisión DOOH.">Emisión DOOH.</b><b data-en="DOOH broadcast.">DOOH broadcast.</b> <span data-es="Programa y emite tu cartelería en toda la red, gobernada como un canal de TV.">Programa y emite tu cartelería en toda la red, gobernada como un canal de TV.</span><span data-en="Schedule and broadcast signage across the network, governed like a TV channel.">Schedule and broadcast signage across the network, governed like a TV channel.</span></span></div>
+          <div class="row"><span class="b">2</span><span class="t"><b data-es="20 apps del stack.">20 apps del stack.</b><b data-en="20-app stack.">20-app stack.</b> <span data-es="Señalización, catálogo, colas, salas, notificaciones, IoT… en una lanzadera.">Señalización, catálogo, colas, salas, notificaciones, IoT… en una lanzadera.</span><span data-en="Signage, catalogue, queues, rooms, notifications, IoT… in one launcher.">Signage, catalogue, queues, rooms, notifications, IoT… in one launcher.</span></span></div>
+          <div class="row"><span class="b">3</span><span class="t"><b data-es="Flota viva.">Flota viva.</b><b data-en="Live fleet.">Live fleet.</b> <span data-es="Cada pantalla y player, visible y gobernado desde un solo sitio.">Cada pantalla y player, visible y gobernado desde un solo sitio.</span><span data-en="Every screen and player, visible and governed from one place.">Every screen and player, visible and governed from one place.</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · XPACEOS -->
+  <section class="slide">
+    <div class="inner split">
+      <div>
+        <div class="eyebrow">XpaceOS · <span data-es="Entender">Entender</span><span data-en="Understand">Understand</span></div>
+        <h2><span data-es="El <span class='hl'>gemelo digital</span> que gobierna el espacio.">El <span class="hl">gemelo digital</span> que gobierna el espacio.</span><span data-en="The <span class='hl'>digital twin</span> that governs the space.">The <span class="hl">digital twin</span> that governs the space.</span></h2>
+        <div class="kv">
+          <div class="row"><span class="b">1</span><span class="t"><b data-es="Señalización sobre el gemelo.">Señalización sobre el gemelo.</b><b data-en="Signage on top of the twin.">Signage on top of the twin.</b> <span data-es="Cada pantalla se coloca sobre un modelo vivo del espacio real.">Cada pantalla se coloca sobre un modelo vivo del espacio real.</span><span data-en="Every screen sits on a live model of the real space.">Every screen sits on a live model of the real space.</span></span></div>
+          <div class="row"><span class="b">2</span><span class="t"><b data-es="Aforo y colas medidos.">Aforo y colas medidos.</b><b data-en="Occupancy & queues measured.">Occupancy & queues measured.</b> <span data-es="La afluencia se cuenta de forma anónima, sin identificar a nadie.">La afluencia se cuenta de forma anónima, sin identificar a nadie.</span><span data-en="Footfall is counted anonymously, identifying no one.">Footfall is counted anonymously, identifying no one.</span></span></div>
+          <div class="row"><span class="b">3</span><span class="t"><b data-es="En el borde.">En el borde.</b><b data-en="At the edge.">At the edge.</b> <span data-es="Inferencia local sobre hardware edge + GPU: la decisión ocurre en el sitio.">Inferencia local sobre hardware edge + GPU: la decisión ocurre en el sitio.</span><span data-en="Local inference on edge hardware + GPU: the decision happens on-site.">Local inference on edge hardware + GPU: the decision happens on-site.</span></span></div>
+        </div>
+      </div>
+      <div class="viz"><span class="tag">xpaceos.com</span><div class="big">◱<small data-es="gemelo digital en tiempo real">gemelo digital en tiempo real</small><small data-en="real-time digital twin">real-time digital twin</small></div></div>
+    </div>
+  </section>
+
+  <!-- 7 · OMNIPUBLICITY / CLEARCHANNEL -->
+  <section class="slide alt">
+    <div class="inner split">
+      <div class="viz"><span class="tag">OmniPublicity × Clear Channel</span><div class="big">RTB<small data-es="cada superficie, pujada en vivo">cada superficie, pujada en vivo</small><small data-en="every surface, bid in real time">every surface, bid in real time</small></div></div>
+      <div>
+        <div class="eyebrow">OmniPublicity · <span data-es="Monetizar">Monetizar</span><span data-en="Monetize">Monetize</span></div>
+        <h2><span data-es="Cada hueco físico, <span class='hl'>subastado por impresión</span>.">Cada hueco físico, <span class="hl">subastado por impresión</span>.</span><span data-en="Every physical slot, <span class='hl'>auctioned by impression</span>.">Every physical slot, <span class="hl">auctioned by impression</span>.</span></h2>
+        <div class="kv">
+          <div class="row"><span class="b">1</span><span class="t"><b data-es="Marketplace RTB.">Marketplace RTB.</b><b data-en="RTB marketplace.">RTB marketplace.</b> <span data-es="Programática del mundo real: cada superficie visible se puja en tiempo real.">Programática del mundo real: cada superficie visible se puja en tiempo real.</span><span data-en="Real-world programmatic: every visible surface is bid in real time.">Real-world programmatic: every visible surface is bid in real time.</span></span></div>
+          <div class="row"><span class="b">2</span><span class="t"><b data-es="Mapa de espacios.">Mapa de espacios.</b><b data-en="Map of spaces.">Map of spaces.</b> <span data-es="Con Clear Channel: busca un local, entra a su perfil y ve sus superficies pujando.">Con Clear Channel: busca un local, entra a su perfil y ve sus superficies pujando.</span><span data-en="With Clear Channel: search a store, open its profile, watch its surfaces bidding.">With Clear Channel: search a store, open its profile, watch its surfaces bidding.</span></span></div>
+          <div class="row"><span class="b">3</span><span class="t"><b data-es="Nuevo ingreso.">Nuevo ingreso.</b><b data-en="New revenue.">New revenue.</b> <span data-es="El espacio propio deja de ser coste y pasa a ser inventario que renta.">El espacio propio deja de ser coste y pasa a ser inventario que renta.</span><span data-en="Your own space stops being a cost and becomes revenue-generating inventory.">Your own space stops being a cost and becomes revenue-generating inventory.</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · EL BUCLE -->
+  <section class="slide">
+    <div class="inner">
+      <div class="eyebrow"><span data-es="Cómo encaja">Cómo encaja</span><span data-en="How it fits">How it fits</span></div>
+      <h2><span data-es="Un bucle cerrado, no cuatro herramientas sueltas.">Un bucle cerrado, no cuatro herramientas sueltas.</span><span data-en="A closed loop, not four disconnected tools.">A closed loop, not four disconnected tools.</span></h2>
+      <div class="flow">
+        <div class="node"><span class="n">01</span><h3 data-es="Crear">Crear</h3><h3 data-en="Create">Create</h3><p data-es="Pixeria genera el creativo a partir del brief y la marca.">Pixeria genera el creativo a partir del brief y la marca.</p><p data-en="Pixeria generates the asset from brief and brand.">Pixeria generates the asset from brief and brand.</p></div>
+        <div class="node"><span class="n">02</span><h3 data-es="Colocar">Colocar</h3><h3 data-en="Place">Place</h3><p data-es="admira.tv lo emite en la pantalla correcta, en el momento correcto.">admira.tv lo emite en la pantalla correcta, en el momento correcto.</p><p data-en="admira.tv broadcasts it on the right screen at the right moment.">admira.tv broadcasts it on the right screen at the right moment.</p></div>
+        <div class="node"><span class="n">03</span><h3 data-es="Medir">Medir</h3><h3 data-en="Measure">Measure</h3><p data-es="XpaceOS mide aforo y atención de forma anónima sobre el gemelo.">XpaceOS mide aforo y atención de forma anónima sobre el gemelo.</p><p data-en="XpaceOS measures footfall and attention anonymously on the twin.">XpaceOS measures footfall and attention anonymously on the twin.</p></div>
+        <div class="node"><span class="n">04</span><h3 data-es="Monetizar">Monetizar</h3><h3 data-en="Monetize">Monetize</h3><p data-es="OmniPublicity subasta la impresión y devuelve el dato al inicio.">OmniPublicity subasta la impresión y devuelve el dato al inicio.</p><p data-en="OmniPublicity auctions the impression and feeds the data back to the start.">OmniPublicity auctions the impression and feeds the data back to the start.</p></div>
+      </div>
+      <p class="lead" data-es="Cada vuelta afina la siguiente: qué se crea, dónde se emite y cuánto vale.">Cada vuelta afina la siguiente: qué se crea, dónde se emite y cuánto vale.</p>
+      <p class="lead" data-en="Each turn sharpens the next: what gets created, where it airs, and what it's worth.">Each turn sharpens the next: what gets created, where it airs, and what it's worth.</p>
+    </div>
+  </section>
+
+  <!-- 9 · CASO DE USO (VERTICAL: LA CAIXA) -->
+  <section class="slide alt">
+    <div class="inner">
+      <div class="eyebrow"><span data-es="En una oficina de la Caixa">En una oficina de la Caixa</span><span data-en="Inside a La Caixa branch">Inside a La Caixa branch</span></div>
+      <h2><span data-es="La red de oficinas como <span class='hl'>medio, experiencia y dato</span>.">La red de oficinas como <span class="hl">medio, experiencia y dato</span>.</span><span data-en="The branch network as <span class='hl'>media, experience and data</span>.">The branch network as <span class="hl">media, experience and data</span>.</span></h2>
+      <div class="uc">
+        <div class="card"><div class="h"><span class="ic">✦</span><span data-es="Bienvenida y espera">Bienvenida y espera</span><span data-en="Welcome & waiting">Welcome & waiting</span></div><p data-es="Contenido de bienvenida y gestión de colas por cita: la espera se convierte en experiencia y en momento de comunicación.">Contenido de bienvenida y gestión de colas por cita: la espera se convierte en experiencia y en momento de comunicación.</p><p data-en="Welcome content and appointment-based queue management: waiting becomes experience and a moment to communicate.">Welcome content and appointment-based queue management: waiting becomes experience and a moment to communicate.</p><div class="p">admira.tv + Pixeria</div></div>
+        <div class="card"><div class="h"><span class="ic">◱</span><span data-es="Gemelo de la red">Gemelo de la red</span><span data-en="Twin of the network">Twin of the network</span></div><p data-es="Cada oficina, modelada como gemelo digital: aforo, flujos y salud de las pantallas gobernados desde un solo panel.">Cada oficina, modelada como gemelo digital: aforo, flujos y salud de las pantallas gobernados desde un solo panel.</p><p data-en="Every branch modeled as a digital twin: occupancy, flows and screen health governed from a single dashboard.">Every branch modeled as a digital twin: occupancy, flows and screen health governed from a single dashboard.</p><div class="p">XpaceOS</div></div>
+        <div class="card"><div class="h"><span class="ic">🔒</span><span data-es="Dato con privacidad">Dato con privacidad</span><span data-en="Privacy-first data">Privacy-first data</span></div><p data-es="La afluencia se mide de forma anónima, sin identificar a ningún cliente. El dato sirve para operar, no para vigilar.">La afluencia se mide de forma anónima, sin identificar a ningún cliente. El dato sirve para operar, no para vigilar.</p><p data-en="Footfall is measured anonymously, identifying no customer. Data to operate, never to surveil.">Footfall is measured anonymously, identifying no customer. Data to operate, never to surveil.</p><div class="p" data-es="Privacidad por diseño">Privacidad por diseño</div><div class="p" data-en="Privacy by design">Privacy by design</div></div>
+        <div class="card"><div class="h"><span class="ic">↗</span><span data-es="Inventario que renta">Inventario que renta</span><span data-en="Inventory that earns">Inventory that earns</span></div><p data-es="Las superficies de la red pueden abrirse a retail media: nuevo ingreso sobre un activo que ya existe.">Las superficies de la red pueden abrirse a retail media: nuevo ingreso sobre un activo que ya existe.</p><p data-en="Network surfaces can open to retail media: new revenue on an asset that already exists.">Network surfaces can open to retail media: new revenue on an asset that already exists.</p><div class="p">OmniPublicity</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · TRACCIÓN -->
+  <section class="slide">
+    <div class="inner">
+      <div class="eyebrow"><span data-es="No es una maqueta">No es una maqueta</span><span data-en="Not a mockup">Not a mockup</span></div>
+      <h2><span data-es="Ya funciona, y ya se ha <span class='hl'>enseñado en vivo</span>.">Ya funciona, y ya se ha <span class="hl">enseñado en vivo</span>.</span><span data-en="Already working, already <span class='hl'>shown live</span>.">Already working, already <span class="hl">shown live</span>.</span></h2>
+      <div class="stats">
+        <div class="stat"><div class="num">Shoptalk</div><div class="lbl" data-es="Europe 2026, Fira Barcelona: el ecosistema, en vivo.">Europe 2026, Fira Barcelona: el ecosistema, en vivo.</div><div class="lbl" data-en="Europe 2026, Fira Barcelona: the ecosystem, live.">Europe 2026, Fira Barcelona: the ecosystem, live.</div></div>
+        <div class="stat"><div class="num">20</div><div class="lbl" data-es="apps operativas sobre admira.tv, con flota real gobernada.">apps operativas sobre admira.tv, con flota real gobernada.</div><div class="lbl" data-en="operational apps on admira.tv, governing a live fleet.">operational apps on admira.tv, governing a live fleet.</div></div>
+        <div class="stat"><div class="num">Edge+GPU</div><div class="lbl" data-es="inferencia local sobre hardware edge y GPU, en el propio local.">inferencia local sobre hardware edge y GPU, en el propio local.</div><div class="lbl" data-en="local inference on edge hardware and GPU, on-site.">local inference on edge hardware and GPU, on-site.</div></div>
+        <div class="stat"><div class="num">Clear Channel</div><div class="lbl" data-es="marketplace de retail media del mundo real, integrado.">marketplace de retail media del mundo real, integrado.</div><div class="lbl" data-en="real-world retail-media marketplace, integrated.">real-world retail-media marketplace, integrated.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · CIERRE -->
+  <section class="slide close" data-dark="1">
+    <div class="inner">
+      <div class="eyebrow"><span data-es="El siguiente paso">El siguiente paso</span><span data-en="The next step">The next step</span></div>
+      <h2><span data-es="Elijamos una oficina y <span class='hl'>montemos el piloto</span>.">Elijamos una oficina y <span class="hl">montemos el piloto</span>.</span><span data-en="Let's pick one branch and <span class='hl'>build the pilot</span>.">Let's pick one branch and <span class="hl">build the pilot</span>.</span></h2>
+      <p class="lead"><span data-es="Un espacio real, las cuatro capas encendidas, medido de punta a punta. De la demo al dato en semanas.">Un espacio real, las cuatro capas encendidas, medido de punta a punta. De la demo al dato en semanas.</span><span data-en="One real space, all four layers switched on, measured end to end. From demo to data in weeks.">One real space, all four layers switched on, measured end to end. From demo to data in weeks.</span></p>
+      <div class="cta">
+        <span>Carlos Silva · ADmiraNeXT</span>
+        <span class="mail">csilva@admira.com</span>
+        <span>Pixeria · admira.tv · XpaceOS · OmniPublicity</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── CHROME ─────────────────────────────────────────────────────────────── -->
+<div class="pbar" id="pbar"></div>
+<div class="chrome">
+  <div class="topbar">
+    <div class="brand"><svg class="star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>Admira <span style="opacity:.5;font-weight:400">×</span> La Caixa</div>
+    <div class="ctrls">
+      <div class="lang" role="group" aria-label="Idioma / Language">
+        <button data-setlang="es" aria-pressed="true">ES</button>
+        <button data-setlang="en" aria-pressed="false">EN</button>
+      </div>
+      <button class="btn" id="fsBtn" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span data-es="Pantalla">Pantalla</span><span data-en="Full">Full</span></button>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="dots" id="dots" role="tablist" aria-label="Diapositivas"></div>
+  </div>
+  <button class="arrow l" id="prevBtn" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <button class="arrow r" id="nextBtn" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+  <div class="counter" id="counter">01 / 11</div>
+</div>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0, N=slides.length;
+  var deck=document.getElementById('deck'), root=document.documentElement;
+  var counter=document.getElementById('counter'), pbar=document.getElementById('pbar');
+  var chrome=document.querySelector('.chrome');
+
+  // dots
+  var dots=document.getElementById('dots');
+  slides.forEach(function(s,idx){
+    var b=document.createElement('button'); b.setAttribute('role','tab');
+    b.setAttribute('aria-label','Slide '+(idx+1));
+    b.addEventListener('click',function(){go(idx);});
+    dots.appendChild(b);
+  });
+  var dotBtns=[].slice.call(dots.children);
+
+  function render(){
+    slides.forEach(function(s,idx){
+      s.classList.toggle('active',idx===i);
+      s.classList.toggle('prev',idx<i);
+    });
+    dotBtns.forEach(function(b,idx){ b.setAttribute('aria-current',idx===i?'true':'false'); });
+    var n2=function(x){return (x<9?'0':'')+(x+1);};
+    counter.textContent=n2(i)+' / '+n2(N-1);
+    pbar.style.width=((i)/(N-1)*100)+'%';
+    // chrome oscuro cuando la slide es "dark" (cover/cierre) para contraste de controles
+    var dark=slides[i].hasAttribute('data-dark');
+    chrome.classList.toggle('on-dark',dark);
+    pbar.classList.toggle('on-dark',dark);
+    counter.classList.toggle('on-dark',dark);
+    location.hash='s'+(i+1);
+  }
+  function go(n){ i=Math.max(0,Math.min(N-1,n)); render(); }
+  function next(){ go(i+1); } function prev(){ go(i-1); }
+
+  document.getElementById('nextBtn').addEventListener('click',next);
+  document.getElementById('prevBtn').addEventListener('click',prev);
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();next();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+    else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(N-1);}
+    else if(e.key==='f'||e.key==='F'){toggleFs();}
+    else if(e.key>='1'&&e.key<='9'){go(parseInt(e.key,10)-1);}
+  });
+  // swipe táctil
+  var x0=null;
+  deck.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});
+  deck.addEventListener('touchend',function(e){
+    if(x0===null)return; var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){ dx<0?next():prev(); } x0=null;
+  },{passive:true});
+
+  // idioma
+  document.querySelectorAll('[data-setlang]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var l=b.getAttribute('data-setlang');
+      if(l===root.getAttribute('data-lang')) return;
+      location.href=(l==='es'?'/presentaciones/':'/presentations/')+'caixa.html'+location.hash;
+    });
+  });
+
+  // fullscreen
+  function toggleFs(){
+    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){})(); }
+    else if(document.exitFullscreen){ document.exitFullscreen(); }
+  }
+  document.getElementById('fsBtn').addEventListener('click',toggleFs);
+
+  // hash inicial
+  var m=(location.hash||'').match(/^#s(\d+)$/);
+  if(m){ i=Math.max(0,Math.min(N-1,parseInt(m[1],10)-1)); }
+  render();
+})();
+</script>
 </body>
 </html>

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
 # Fija/actualiza la contraseña de un espacio de presentaciones (secret de
-# Cloudflare Pages del proyecto 'admiranext'). Tú tecleas la clave; no se muestra
-# ni se guarda en el historial. Aislamiento por cliente: cada slug su password.
+# Cloudflare Pages del proyecto 'admiranext'). La misma clave abre la versión
+# castellana en /presentaciones y la inglesa en /presentations. Tú tecleas la
+# clave; no se muestra ni se guarda en el historial. Aislamiento por cliente.
 #
 #   Uso:  ./scripts/set-presentation-access.sh <slug>
 #   Slugs: caixa · lenovo · admin (galería) · <nuevo-cliente>…

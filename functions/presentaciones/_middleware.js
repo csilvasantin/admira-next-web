@@ -1,6 +1,6 @@
 /*
- * Client gatekeeper for the English route /presentations/*.
- * Cookies are shared with /presentaciones/* so one login opens both languages.
+ * Gatekeeper por cliente para la ruta castellana /presentaciones/*.
+ * Las cookies se comparten con /presentations/* para abrir ambos idiomas una vez.
  *
  * Verifica una password EN EL EDGE antes de servir el deck: el HTML del deck no
  * se envía hasta que la contraseña es correcta (protección real, no un candado JS
@@ -11,10 +11,10 @@
  *
  * SECRETS (Cloudflare Pages → Settings → Environment variables, tipo "Secret"):
  *   PRES_SIGNING_KEY  — clave para firmar las cookies (aleatoria; la fija el sistema).
- *   PRES_ADMIN        — password de la galería /presentations/ (interna, solo equipo).
+ *   PRES_ADMIN        — password de las galerías (interna, solo equipo).
  *   PRES_<CLIENTE>    — password de cada deck. slug 'lenovo' → PRES_LENOVO, 'caixa' → PRES_CAIXA.
  *
- * Añadir un cliente = crear /presentations/<slug>.html + `wrangler pages secret put
+ * Añadir un cliente = crear /presentaciones/<slug>.html + `wrangler pages secret put
  * PRES_<SLUG>` + deploy. Sin secret configurado, el espacio queda BLOQUEADO (fail-closed).
  */
 
@@ -58,9 +58,9 @@ function readCookies(req){
 function esc(s){ return String(s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
 
 function loginPage(title, action, error){
-  return `<!doctype html><html lang="en"><head>
+  return `<!doctype html><html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow"><title>${esc(title)} · Access</title>
+<meta name="robots" content="noindex, nofollow"><title>${esc(title)} · Acceso</title>
 <style>
   :root{--bg:#070a10;--panel:#0d1522;--line:#1e2940;--ink:#e8eef8;--dim:#7186a8;--brand:#3df08a}
   *{box-sizing:border-box}
@@ -85,12 +85,12 @@ function loginPage(title, action, error){
   .foot{margin-top:22px;text-align:center;font:600 11px/1 ui-monospace,monospace;letter-spacing:.04em;color:var(--dim)}
 </style></head>
 <body><form class="box" method="POST" action="${esc(action)}" autocomplete="off">
-  <div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentation</div>
+  <div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div>
   <h1>${esc(title)}</h1>
-  <p class="sub">This content is protected. Enter the password provided by our team.</p>
-  <label for="p">Password</label>
+  <p class="sub">Este contenido está protegido. Introduce la contraseña que te hemos facilitado.</p>
+  <label for="p">Contraseña</label>
   <input id="p" name="password" type="password" autofocus required autocomplete="off" inputmode="text">
-  <button type="submit">Enter</button>
+  <button type="submit">Entrar</button>
   ${error ? `<div class="err">${esc(error)}</div>` : ''}
   <div class="foot">admiranext.com</div>
 </form></body></html>`;
@@ -100,8 +100,8 @@ export async function onRequest(context){
   const { request, env, next } = context;
   const url = new URL(request.url);
 
-  // slug del espacio: /presentations → galería; /presentations/lenovo(.html) → 'lenovo'
-  let seg = url.pathname.replace(/^\/presentations\/?/, '').replace(/\/+$/, '');
+  // slug del espacio: /presentaciones → galería; /presentaciones/lenovo(.html) → 'lenovo'
+  let seg = url.pathname.replace(/^\/presentaciones\/?/, '').replace(/\/+$/, '');
   seg = seg.replace(/\.html$/i, '').toLowerCase();
   const isGallery = (seg === '' || seg === 'index');
 
@@ -109,17 +109,17 @@ export async function onRequest(context){
   const cookieSlug = isGallery ? '_admin' : seg;                 // lo que se firma
   const secretName = isGallery ? 'PRES_ADMIN'
                                : 'PRES_' + seg.toUpperCase().replace(/[^A-Z0-9]+/g, '_');
-  const title = isGallery ? 'Presentations'
+  const title = isGallery ? 'Presentaciones'
                           : seg.charAt(0).toUpperCase() + seg.slice(1);
 
   const signKey = env.PRES_SIGNING_KEY;
   const expected = env[secretName];
   const master = env.PRES_ADMIN;   // clave interna del equipo = MAESTRA: abre cualquier deck
-  const cleanPath = isGallery ? '/presentations/' : '/presentations/' + seg;
+  const cleanPath = isGallery ? '/presentaciones/' : '/presentaciones/' + seg;
 
   // Sin clave de firma, o sin password del espacio NI maestra → fail-closed (nunca público).
   if (!signKey || (!expected && !master)){
-    return new Response(loginPage(title, cleanPath, 'Access is temporarily unavailable.'),
+    return new Response(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'),
       { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   }
 
@@ -140,7 +140,7 @@ export async function onRequest(context){
     if (master && ctEq(pw, master)) return await setCookie('pres_master', '_master');
     // clave del propio espacio (cliente, o galería)
     if (expected && ctEq(pw, expected)) return await setCookie(cookieName, cookieSlug);
-    return new Response(loginPage(title, cleanPath, 'Incorrect password.'),
+    return new Response(loginPage(title, cleanPath, 'Contraseña incorrecta.'),
       { status: 401, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   }
 
