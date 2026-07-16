@@ -8,6 +8,16 @@ export async function onRequestGet(context){
     context.env.PRESENTATION_IDEAS?.get(`presentation:${client}`,{type:'json'}),
     context.env.PRESENTATION_IDEAS?.get(`ideas:${client}`,{type:'json'})
   ]);
+  if(client==='lacaixa'&&ideas&&context.env.ASSETS){
+    const source=new URL('/presentaciones/LaCaixa/presentacion.html',context.request.url);
+    const asset=await context.env.ASSETS.fetch(source);
+    if(asset.ok){
+      const marker='<script src="/presentaciones/LaCaixa/content-data?v=20260716-1"></script>';
+      const embedded=`<script>window.__ADMIRA_PRESENTATION_CONTENT__=${safeJson(ideas)};</script>`;
+      const html=(await asset.text()).replace(marker,embedded);
+      return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store, must-revalidate','x-robots-tag':'noindex, nofollow'}});
+    }
+  }
   if(!config||!ideas) return context.next();
   if(Array.isArray(config.outputs)&&config.outputs.length&&!config.outputs.includes('website')) return new Response('Website no solicitado',{status:404});
 
