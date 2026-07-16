@@ -347,6 +347,7 @@ b,strong{font-weight:700}
   <div class="counter" id="counter">01 / 11</div>
 </div>
 
+<script src="/presentaciones/LaCaixa/content-data"></script>
 <script>
 (function(){
   var slides=[].slice.call(document.querySelectorAll('.slide'));
@@ -546,10 +547,7 @@ b,strong{font-weight:700}
   var m=(location.hash||'').match(/^#s(\d+)$/);
   if(m){ i=Math.max(0,Math.min(N-1,parseInt(m[1],10)-1)); }
   prepareCatalan();
-  fetch('/presentaciones/LaCaixa/content',{credentials:'same-origin'})
-    .then(function(response){return response.ok?response.json():null;})
-    .then(function(data){ideas=data;applyEditableContent(root.getAttribute('data-lang')||'es');})
-    .catch(function(){});
+  ideas=window.__ADMIRA_PRESENTATION_CONTENT__||null;
   applyLanguage('es');
   render();
 })();
