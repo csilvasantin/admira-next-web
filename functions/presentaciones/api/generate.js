@@ -1,6 +1,7 @@
 const MAX_BYTES = 32 * 1024;
 const enc = new TextEncoder();
 const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
+const LANGUAGES = ['es','ca','en'];
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), { status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'} });
@@ -22,12 +23,12 @@ async function hmac(key, message){
   return btoa(out).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
 function idea(id,title,message,detail){ return {id,title,message,detail,enabled:true}; }
-function buildIdeas(input, slug){
+function buildIdeas(input, slug, languages){
   const name=input.displayName;
   const problem=input.problem || `Convertir los espacios físicos de ${name} en una experiencia conectada, medible y capaz de mejorar en tiempo real.`;
   const audience=input.audience || 'Dirección de negocio, experiencia, operaciones, marketing e innovación';
   return {
-    schemaVersion:1, client:slug, displayName:name,
+    schemaVersion:1, client:slug, displayName:name, languages, translations:{},
     hero:{eyebrow:`Presentación privada · ${name}`,title:input.title || `${name}: cada espacio puede aprender.`,summary:input.summary || `Una propuesta para conectar contenido, operación, experiencia y medición alrededor de un problema concreto: ${problem}`},
     objective:input.objective || `Acordar un piloto concreto con ${name}, responsables, alcance y métricas de éxito.`,
     skeleton:[
@@ -60,6 +61,9 @@ export async function onRequestPut(context){
   const requested=Array.isArray(raw.outputs)?raw.outputs.map(value=>String(value).toLowerCase()):[];
   const outputs=[...new Set(requested.filter(value=>OUTPUTS.includes(value)))];
   if (!outputs.length) return json({error:'Selecciona al menos un entregable.'},400);
+  const requestedLanguages=Array.isArray(raw.languages)?raw.languages.map(value=>String(value).toLowerCase()):['es'];
+  const languages=[...new Set(requestedLanguages.filter(value=>LANGUAGES.includes(value)))];
+  if (!languages.length) return json({error:'Selecciona al menos un idioma.'},400);
   const supplied=text(raw.password,100);
   if (supplied && supplied.length<10) return json({error:'La contraseña debe tener al menos 10 caracteres.'},400);
   const password=supplied || (existing ? '' : randomPassword());
@@ -70,9 +74,9 @@ export async function onRequestPut(context){
     website:text(raw.website,500), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000')
   };
   if (input.website && !/^https:\/\//i.test(input.website)) return json({error:'La web debe comenzar por https://'},400);
-  const ideas=buildIdeas(input,slug);
+  const ideas=buildIdeas(input,slug,languages);
   const presentation={
-    schemaVersion:1,slug,displayName,website:input.website,problem:input.problem,audience:input.audience,outputs,
+    schemaVersion:1,slug,displayName,website:input.website,problem:input.problem,audience:input.audience,outputs,languages,
     theme:{primary:input.primaryColor,accent:input.accentColor},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
@@ -82,5 +86,5 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`ideas:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas))
   ]);
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

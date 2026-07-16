@@ -152,8 +152,9 @@ b,strong{font-weight:700}
   .arrow{display:none}
 }
 @media (prefers-reduced-motion:reduce){.slide{transition:none}}
-[data-lang="es"] [data-en]{display:none}
-[data-lang="en"] [data-es]{display:none}
+[data-lang="es"] [data-en],[data-lang="es"] [data-ca]{display:none}
+[data-lang="ca"] [data-es],[data-lang="ca"] [data-en]{display:none}
+[data-lang="en"] [data-es],[data-lang="en"] [data-ca]{display:none}
 </style>
 </head>
 <body>
@@ -163,8 +164,8 @@ b,strong{font-weight:700}
   <!-- 1 · COVER -->
   <section class="slide cover active" data-dark="1">
     <div class="inner">
-      <div class="eyebrow"><span data-es="ADmiraNeXT · Ecosistema</span><span data-en="ADmiraNeXT · Ecosystem">ADmiraNeXT · Ecosistema</span></div>
-      <h1><span data-es="1">El espacio físico, convertido en <span class="hl">medio inteligente</span>.</span><span data-en="1">Physical space, turned into <span class="hl">intelligent media</span>.</span></h1>
+      <div class="eyebrow"><span data-es="ADmiraNeXT · Ecosistema">ADmiraNeXT · Ecosistema</span><span data-en="ADmiraNeXT · Ecosystem">ADmiraNeXT · Ecosystem</span></div>
+      <h1><span data-es="El espacio físico, convertido en medio inteligente.">El espacio físico, convertido en <span class="hl">medio inteligente</span>.</span><span data-en="Physical space, turned into intelligent media.">Physical space, turned into <span class="hl">intelligent media</span>.</span></h1>
       <p class="lead"><span data-es="Un solo sistema operativo que crea el contenido, lo emite en pantalla, entiende el espacio y subasta cada impresión. Cuatro capas, un ecosistema.">Un solo sistema operativo que crea el contenido, lo emite en pantalla, entiende el espacio y subasta cada impresión. Cuatro capas, un ecosistema.</span><span data-en="One operating system that creates the content, broadcasts it on screen, understands the space and auctions every impression. Four layers, one ecosystem.">One operating system that creates the content, broadcasts it on screen, understands the space and auctions every impression. Four layers, one ecosystem.</span></p>
       <div class="pillars">
         <span>Pixeria</span><span>admira.tv</span><span>XpaceOS</span><span>OmniPublicity</span>
@@ -332,6 +333,7 @@ b,strong{font-weight:700}
     <div class="ctrls">
       <div class="lang" role="group" aria-label="Idioma / Language">
         <button data-setlang="es" aria-pressed="true">ES</button>
+        <button data-setlang="ca" aria-pressed="false">CA</button>
         <button data-setlang="en" aria-pressed="false">EN</button>
       </div>
       <button class="btn" id="fsBtn" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span data-es="Pantalla">Pantalla</span><span data-en="Full">Full</span></button>
@@ -352,6 +354,116 @@ b,strong{font-weight:700}
   var deck=document.getElementById('deck'), root=document.documentElement;
   var counter=document.getElementById('counter'), pbar=document.getElementById('pbar');
   var chrome=document.querySelector('.chrome');
+  var ideas=null;
+
+  var ca={
+    "ADmiraNeXT · Ecosistema":"ADmiraNeXT · Ecosistema",
+    "El espacio físico, convertido en medio inteligente.":"L'espai físic, convertit en mitjà intel·ligent.",
+    "Un solo sistema operativo que crea el contenido, lo emite en pantalla, entiende el espacio y subasta cada impresión. Cuatro capas, un ecosistema.":"Un únic sistema operatiu que crea el contingut, l'emet en pantalla, entén l'espai i subhasta cada impressió. Quatre capes, un ecosistema.",
+    "Presentado a CaixaBank":"Presentat a CaixaBank",
+    "16 julio 2026":"16 de juliol de 2026",
+    "Pantalla":"Pantalla",
+    "El punto de partida":"El punt de partida",
+    "Cada oficina es ya una <span class='hl'>pantalla, un dato y una decisión</span>.":"Cada oficina ja és una <span class='hl'>pantalla, una dada i una decisió</span>.",
+    "Hoy las pantallas, los sensores y el contenido viven en silos distintos: una agencia crea, un integrador instala, un tercero mide. Nadie cierra el círculo. Admira lo unifica: crear, emitir, medir y monetizar el espacio físico desde un único sistema.":"Avui les pantalles, els sensors i el contingut viuen en sitges diferents: una agència crea, un integrador instal·la i un tercer mesura. Ningú tanca el cercle. Admira ho unifica: crear, emetre, mesurar i monetitzar l'espai físic des d'un únic sistema.",
+    "El ecosistema":"L'ecosistema",
+    "Un sistema operativo para el <span class='hl'>espacio físico</span>.":"Un sistema operatiu per a l'<span class='hl'>espai físic</span>.",
+    "Crear":"Crear","Emitir":"Emetre","Entender":"Entendre","Monetizar":"Monetitzar","Colocar":"Col·locar","Medir":"Mesurar",
+    "Contenido con IA":"Contingut amb IA","Señalización DOOH":"Senyalització DOOH","Gemelo digital":"Bessó digital","Marketplace RTB":"Marketplace RTB",
+    "Del brief al creativo listo para pantalla, en minutos.":"Del brífing a la creativitat llesta per a pantalla, en minuts.",
+    "El canal que pone el contenido en cada pantalla de la red.":"El canal que posa el contingut a cada pantalla de la xarxa.",
+    "El espacio, modelado y gobernado en tiempo real.":"L'espai, modelat i governat en temps real.",
+    "Cada hueco físico, subastado por impresión.":"Cada espai físic, subhastat per impressió.",
+    "Del brief al contenido publicado, <span class='hl'>sin salir del sistema</span>.":"Del brífing al contingut publicat, <span class='hl'>sense sortir del sistema</span>.",
+    "Todos los medios.":"Tots els mitjans.","Radar de modelos.":"Radar de models.","Criterio de marca.":"Criteri de marca.",
+    "Vídeo, imagen, audio y texto en una sola mesa de producción.":"Vídeo, imatge, àudio i text en una sola taula de producció.",
+    "Un observatorio que dice qué modelo de IA merece atención ahora.":"Un observatori que indica quin model d'IA mereix atenció ara.",
+    "Pipelines y sistemas de marca: menos demo, más sistema reproducible.":"Pipelines i sistemes de marca: menys demo, més sistema reproduïble.",
+    "brief → creativo en minutos":"brífing → creativitat en minuts",
+    "El canal que pone el contenido <span class='hl'>en pantalla</span>.":"El canal que posa el contingut <span class='hl'>en pantalla</span>.",
+    "Emisión DOOH.":"Emissió DOOH.","20 apps del stack.":"20 apps de l'stack.","Flota viva.":"Flota activa.",
+    "Programa y emite tu cartelería en toda la red, gobernada como un canal de TV.":"Programa i emet la teva cartelleria a tota la xarxa, governada com un canal de TV.",
+    "Señalización, catálogo, colas, salas, notificaciones, IoT… en una lanzadera.":"Senyalització, catàleg, cues, sales, notificacions, IoT… en un únic llançador.",
+    "Cada pantalla y player, visible y gobernado desde un solo sitio.":"Cada pantalla i reproductor, visible i governat des d'un únic lloc.",
+    "apps operativas + flota real":"apps operatives + flota real",
+    "El <span class='hl'>gemelo digital</span> que gobierna el espacio.":"El <span class='hl'>bessó digital</span> que governa l'espai.",
+    "Señalización sobre el gemelo.":"Senyalització sobre el bessó.","Aforo y colas medidos.":"Aforament i cues mesurats.","En el borde.":"A l'edge.",
+    "Cada pantalla se coloca sobre un modelo vivo del espacio real.":"Cada pantalla es col·loca sobre un model viu de l'espai real.",
+    "La afluencia se cuenta de forma anónima, sin identificar a nadie.":"L'afluència es compta de manera anònima, sense identificar ningú.",
+    "Inferencia local sobre hardware edge + GPU: la decisión ocurre en el sitio.":"Inferència local sobre maquinari edge + GPU: la decisió es pren al mateix lloc.",
+    "gemelo digital en tiempo real":"bessó digital en temps real",
+    "Cada hueco físico, <span class='hl'>subastado por impresión</span>.":"Cada espai físic, <span class='hl'>subhastat per impressió</span>.",
+    "Marketplace RTB.":"Marketplace RTB.","Mapa de espacios.":"Mapa d'espais.","Nuevo ingreso.":"Nou ingrés.",
+    "Programática del mundo real: cada superficie visible se puja en tiempo real.":"Programàtica del món real: cada superfície visible es licita en temps real.",
+    "En CaixaBank: selecciona una oficina, entra en su gemelo y activa sus superficies.":"A CaixaBank: selecciona una oficina, entra al seu bessó i activa'n les superfícies.",
+    "El espacio propio deja de ser coste y pasa a ser inventario que renta.":"L'espai propi deixa de ser un cost i es converteix en inventari que genera rendiment.",
+    "cada superficie, pujada en vivo":"cada superfície, licitada en directe",
+    "Cómo encaja":"Com encaixa","Un bucle cerrado, no cuatro herramientas sueltas.":"Un bucle tancat, no quatre eines desconnectades.",
+    "Pixeria genera el creativo a partir del brief y la marca.":"Pixeria genera la creativitat a partir del brífing i la marca.",
+    "admira.tv lo emite en la pantalla correcta, en el momento correcto.":"admira.tv l'emet a la pantalla correcta, en el moment adequat.",
+    "XpaceOS mide aforo y atención de forma anónima sobre el gemelo.":"XpaceOS mesura l'aforament i l'atenció de manera anònima sobre el bessó.",
+    "OmniPublicity subasta la impresión y devuelve el dato al inicio.":"OmniPublicity subhasta la impressió i retorna la dada a l'inici.",
+    "Cada vuelta afina la siguiente: qué se crea, dónde se emite y cuánto vale.":"Cada volta afina la següent: què es crea, on s'emet i quant val.",
+    "En una oficina CaixaBank":"En una oficina CaixaBank",
+    "La red de oficinas como <span class='hl'>medio, experiencia y dato</span>.":"La xarxa d'oficines com a <span class='hl'>mitjà, experiència i dada</span>.",
+    "Bienvenida y espera":"Benvinguda i espera","Gemelo de la red":"Bessó de la xarxa","Dato con privacidad":"Dada amb privacitat","Inventario que renta":"Inventari que rendeix",
+    "Contenido de bienvenida y gestión de colas por cita: la espera se convierte en experiencia y en momento de comunicación.":"Contingut de benvinguda i gestió de cues amb cita: l'espera es converteix en experiència i en un moment de comunicació.",
+    "Cada oficina, modelada como gemelo digital: aforo, flujos y salud de las pantallas gobernados desde un solo panel.":"Cada oficina, modelada com a bessó digital: aforament, fluxos i estat de les pantalles governats des d'un únic panell.",
+    "La afluencia se mide de forma anónima, sin identificar a ningún cliente. El dato sirve para operar, no para vigilar.":"L'afluència es mesura de manera anònima, sense identificar cap client. La dada serveix per operar, no per vigilar.",
+    "Privacidad por diseño":"Privacitat des del disseny",
+    "Las superficies de la red pueden abrirse a retail media: nuevo ingreso sobre un activo que ya existe.":"Les superfícies de la xarxa es poden obrir al retail media: nous ingressos sobre un actiu que ja existeix.",
+    "No es una maqueta":"No és una maqueta","Ya funciona, y ya se ha <span class='hl'>enseñado en vivo</span>.":"Ja funciona i ja s'ha <span class='hl'>mostrat en directe</span>.",
+    "Europe 2026, Fira Barcelona: el ecosistema, en vivo.":"Europe 2026, Fira Barcelona: l'ecosistema, en directe.",
+    "apps operativas sobre admira.tv, con flota real gobernada.":"apps operatives sobre admira.tv, amb una flota real governada.",
+    "inferencia local sobre hardware edge y GPU, en el propio local.":"inferència local sobre maquinari edge i GPU, al mateix establiment.",
+    "marketplace de retail media del mundo real, integrado.":"marketplace de retail media del món real, integrat.",
+    "El siguiente paso":"El pas següent","Elijamos una oficina y <span class='hl'>montemos el piloto</span>.":"Triem una oficina i <span class='hl'>posem en marxa el pilot</span>.",
+    "Un espacio real, las cuatro capas encendidas, medido de punta a punta. De la demo al dato en semanas.":"Un espai real, les quatre capes activades, mesurat de punta a punta. De la demo a la dada en setmanes."
+  };
+
+  function prepareCatalan(){
+    document.querySelectorAll('[data-es]').forEach(function(el){
+      if(el.hasAttribute('data-ca')) return;
+      var clone=el.cloneNode(true), key=el.getAttribute('data-es');
+      clone.removeAttribute('data-es'); clone.setAttribute('data-ca',key);
+      clone.innerHTML=ca[key]||el.innerHTML;
+      el.parentNode.insertBefore(clone,el.nextSibling);
+    });
+  }
+
+  function localizedContent(lang){
+    if(!ideas) return null;
+    if(lang==='es') return ideas;
+    return ideas.translations&&ideas.translations[lang] ? ideas.translations[lang] : ideas;
+  }
+
+  function setLocalized(container,lang,value){
+    if(!value) return;
+    var target=container&&container.querySelector('[data-'+lang+']');
+    if(target) target.textContent=value;
+  }
+
+  function applyEditableContent(lang){
+    var content=localizedContent(lang);
+    if(!content) return;
+    setLocalized(slides[0].querySelector('h1'),lang,content.title);
+    setLocalized(slides[0].querySelector('.lead'),lang,content.summary);
+    (content.skeleton||[]).slice(0,8).forEach(function(block,idx){
+      var slide=slides[idx+1]; if(!slide) return;
+      setLocalized(slide.querySelector('.eyebrow'),lang,block.title);
+      setLocalized(slide.querySelector('h2'),lang,block.message);
+      setLocalized(slide.querySelector('.lead'),lang,block.detail);
+    });
+    setLocalized(slides[10].querySelector('h2'),lang,content.closing);
+  }
+
+  function applyLanguage(lang){
+    root.setAttribute('data-lang',lang); root.setAttribute('lang',lang);
+    document.querySelectorAll('[data-setlang]').forEach(function(b){
+      b.setAttribute('aria-pressed',b.getAttribute('data-setlang')===lang?'true':'false');
+    });
+    applyEditableContent(lang);
+  }
 
   // dots
   var dots=document.getElementById('dots');
@@ -399,12 +511,11 @@ b,strong{font-weight:700}
     if(Math.abs(dx)>50){ dx<0?next():prev(); } x0=null;
   },{passive:true});
 
-  // idioma
+  // idiomas: las tres versiones viven en el mismo site y toman los textos de /ideas
   document.querySelectorAll('[data-setlang]').forEach(function(b){
     b.addEventListener('click',function(){
       var l=b.getAttribute('data-setlang');
-      if(l===root.getAttribute('data-lang')) return;
-      location.href=(l==='es'?'/presentaciones/LaCaixa/presentacion.html':'/presentations/LaCaixa')+location.hash;
+      applyLanguage(l);
     });
   });
 
@@ -434,6 +545,12 @@ b,strong{font-weight:700}
   // hash inicial
   var m=(location.hash||'').match(/^#s(\d+)$/);
   if(m){ i=Math.max(0,Math.min(N-1,parseInt(m[1],10)-1)); }
+  prepareCatalan();
+  fetch('/presentaciones/LaCaixa/api/ideas',{credentials:'same-origin'})
+    .then(function(response){return response.ok?response.json():null;})
+    .then(function(data){ideas=data;applyEditableContent(root.getAttribute('data-lang')||'es');})
+    .catch(function(){});
+  applyLanguage('es');
   render();
 })();
 </script>

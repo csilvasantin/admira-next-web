@@ -8,8 +8,16 @@
   const defaultUrl = `${apiUrl}?base=1`;
   const $ = (id) => document.getElementById(id);
   const ALL_OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
+  const ALL_LANGUAGES = ['es','ca','en'];
+  const LANGUAGE_NAMES = {es:'Castellano',ca:'Català',en:'English'};
   let model = null;
   let generation = null;
+  let activeLanguage = 'es';
+
+  const languagePanel = document.createElement('section');
+  languagePanel.className = 'panel editor-language-panel';
+  languagePanel.innerHTML = '<div class="panel-h"><div><h2>Idioma que estás editando</h2><p class="sub">Cada idioma conserva sus propios titulares, argumentos y cierre.</p></div></div><div class="editor-language-tabs" id="languageTabs"></div>';
+  document.querySelector('main .panel').before(languagePanel);
 
   const outputPanel = document.createElement('section');
   outputPanel.className = 'panel output-panel';
@@ -17,6 +25,9 @@
   const outputStyle = document.createElement('style');
   outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}.generation-panel{margin-top:18px}.generation-panel[hidden]{display:none}.generation-badge{border:1px solid var(--ok);border-radius:999px;padding:8px 11px;color:var(--ok);font:800 10px/1 var(--mono);letter-spacing:.09em}.generation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.generation-item{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#091427;font:700 12px/1.3 var(--sans)}.generation-item small{color:var(--muted);font:800 9px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.generation-item.ready small{color:var(--ok)}.generation-item.failed small{color:#ff7b8a}@media(max-width:720px){.output-grid,.generation-grid{grid-template-columns:1fr}}';
   document.head.appendChild(outputStyle);
+  const languageStyle = document.createElement('style');
+  languageStyle.textContent = '.editor-language-panel{margin-bottom:18px}.editor-language-tabs{display:flex;gap:9px;flex-wrap:wrap}.language-tab{border:1px solid var(--line);background:#091427;color:var(--muted);border-radius:999px;padding:11px 15px;font:800 11px/1 var(--mono);cursor:pointer}.language-tab.active{border-color:var(--ok);background:rgba(82,229,154,.1);color:var(--ok)}';
+  document.head.appendChild(languageStyle);
   document.querySelector('.savebar').before(outputPanel);
   const generationPanel = document.createElement('section');
   generationPanel.className = 'panel generation-panel';
@@ -54,17 +65,52 @@
     finally { body.classList.remove('loading'); }
   }
   function field(id, value){ $(id).value = value || ''; }
+  function enabledLanguages(){
+    const selected=Array.isArray(model.languages)?model.languages.filter(lang=>ALL_LANGUAGES.includes(lang)):[];
+    return selected.length?selected:ALL_LANGUAGES;
+  }
+  function baseContent(){
+    return {hero:model.hero||{},objective:model.objective||'',skeleton:model.skeleton||[],closing:model.closing||{},notes:model.notes||''};
+  }
+  function contentFor(language){
+    if(language==='es') return baseContent();
+    model.translations=model.translations&&typeof model.translations==='object'?model.translations:{};
+    if(!model.translations[language]) model.translations[language]=JSON.parse(JSON.stringify(baseContent()));
+    return model.translations[language];
+  }
+  function visibleContent(){
+    const ideas = [...document.querySelectorAll('.idea')].map((node, index) => {
+      const value = (key) => node.querySelector(`[data-key="${key}"]`);
+      return {id:value('id')?.value||idFor(value('title').value,index),title:value('title').value,message:value('message').value,detail:value('detail').value,enabled:value('enabled').checked};
+    });
+    return {hero:{eyebrow:$('eyebrow').value,title:$('title').value,summary:$('summary').value},objective:$('objective').value,skeleton:ideas,closing:{title:$('closingTitle').value,action:$('closingAction').value},notes:$('notes').value};
+  }
+  function commitLanguage(){
+    if(!model||!document.querySelector('.idea')) return;
+    const content=visibleContent();
+    if(activeLanguage==='es') Object.assign(model,content);
+    else { model.translations=model.translations||{}; model.translations[activeLanguage]=content; }
+  }
+  function renderLanguageTabs(){
+    const host=$('languageTabs'); host.innerHTML='';
+    const languages=enabledLanguages();
+    if(!languages.includes(activeLanguage)) activeLanguage=languages[0];
+    languages.forEach(language=>{
+      const button=document.createElement('button'); button.type='button'; button.className=`language-tab${language===activeLanguage?' active':''}`;
+      button.dataset.language=language; button.textContent=`${language.toUpperCase()} · ${LANGUAGE_NAMES[language]}`; host.appendChild(button);
+    });
+  }
+  function renderLanguage(){
+    const content=contentFor(activeLanguage);
+    field('eyebrow',content.hero?.eyebrow); field('title',content.hero?.title); field('summary',content.hero?.summary);
+    field('objective',content.objective); field('closingTitle',content.closing?.title); field('closingAction',content.closing?.action); field('notes',content.notes);
+    renderIdeas(content.skeleton||[]); renderLanguageTabs();
+  }
   function render(){
     document.querySelectorAll('[data-client-name]').forEach(node => { node.textContent = model.displayName || displayName; });
     field('displayName', model.displayName || displayName);
-    field('eyebrow', model.hero?.eyebrow);
-    field('title', model.hero?.title);
-    field('summary', model.hero?.summary);
-    field('objective', model.objective);
-    field('closingTitle', model.closing?.title);
-    field('closingAction', model.closing?.action);
-    field('notes', model.notes);
-    renderIdeas();
+    model.languages=enabledLanguages(); model.translations=model.translations||{};
+    renderLanguage();
     renderOutputs();
     syncRaw();
   }
@@ -88,42 +134,30 @@
       return `<div class="generation-item ${esc(status)}">${content}<small>${esc(label)}</small></div>`;
     }).join('');
   }
-  function renderIdeas(){
+  function renderIdeas(ideas){
     const host = $('ideas'); host.innerHTML = '';
-    (model.skeleton || []).forEach((idea, index) => {
+    (ideas || []).forEach((idea, index) => {
       const node = document.createElement('article'); node.className = 'idea'; node.dataset.index = index;
-      node.innerHTML = `<div class="idea-top"><span class="handle">${String(index+1).padStart(2,'0')} · BLOQUE</span><label class="check"><input type="checkbox" data-key="enabled" ${idea.enabled !== false ? 'checked' : ''}>Visible</label><div class="idea-actions"><button class="btn icon" type="button" data-action="up" title="Subir">↑</button><button class="btn icon" type="button" data-action="down" title="Bajar">↓</button><button class="btn icon danger" type="button" data-action="remove" title="Eliminar">×</button></div></div><div class="grid"><div class="field"><label>Título del bloque</label><input data-key="title" value="${esc(idea.title)}"></div><div class="field"><label>Idea principal</label><input data-key="message" value="${esc(idea.message)}"></div><div class="field full"><label>Detalle / argumentos</label><textarea data-key="detail">${esc(idea.detail)}</textarea></div></div>`;
+      node.innerHTML = `<input type="hidden" data-key="id" value="${esc(idea.id)}"><div class="idea-top"><span class="handle">${String(index+1).padStart(2,'0')} · BLOQUE</span><label class="check"><input type="checkbox" data-key="enabled" ${idea.enabled !== false ? 'checked' : ''}>Visible</label><div class="idea-actions"><button class="btn icon" type="button" data-action="up" title="Subir">↑</button><button class="btn icon" type="button" data-action="down" title="Bajar">↓</button><button class="btn icon danger" type="button" data-action="remove" title="Eliminar">×</button></div></div><div class="grid"><div class="field"><label>Título del bloque</label><input data-key="title" value="${esc(idea.title)}"></div><div class="field"><label>Idea principal</label><input data-key="message" value="${esc(idea.message)}"></div><div class="field full"><label>Detalle / argumentos</label><textarea data-key="detail">${esc(idea.detail)}</textarea></div></div>`;
       host.appendChild(node);
     });
   }
   function readForm(){
-    const ideas = [...document.querySelectorAll('.idea')].map((node, index) => {
-      const value = (key) => node.querySelector(`[data-key="${key}"]`);
-      return { id:idFor(value('title').value,index), title:value('title').value, message:value('message').value, detail:value('detail').value, enabled:value('enabled').checked };
-    });
-    return {
-      schemaVersion:1, client,
-      displayName:$('displayName').value,
-      hero:{eyebrow:$('eyebrow').value,title:$('title').value,summary:$('summary').value},
-      objective:$('objective').value,
-      skeleton:ideas,
-      outputs:outputBoxes.filter(box => box.checked).map(box => box.value),
-      closing:{title:$('closingTitle').value,action:$('closingAction').value},
-      notes:$('notes').value
-    };
+    commitLanguage();
+    return {...model,schemaVersion:2,client,displayName:$('displayName').value,languages:enabledLanguages(),outputs:outputBoxes.filter(box=>box.checked).map(box=>box.value)};
   }
   function syncRaw(){ $('raw').value = JSON.stringify(readForm(), null, 2); }
   function addIdea(){
     model = readForm();
-    model.skeleton.push({id:`idea-${model.skeleton.length+1}`,title:'Nueva idea',message:'Mensaje principal',detail:'Argumentos y detalles que deben aparecer en la presentación.',enabled:true});
-    renderIdeas(); syncRaw();
+    const content=contentFor(activeLanguage); content.skeleton.push({id:`idea-${content.skeleton.length+1}`,title:'Nueva idea',message:'Mensaje principal',detail:'Argumentos y detalles que deben aparecer en la presentación.',enabled:true});
+    renderIdeas(content.skeleton); syncRaw();
     document.querySelector('.idea:last-child input[data-key="title"]').focus();
   }
   function move(index, delta){
-    model = readForm(); const target = index + delta;
-    if (target < 0 || target >= model.skeleton.length) return;
-    [model.skeleton[index], model.skeleton[target]] = [model.skeleton[target], model.skeleton[index]];
-    renderIdeas(); syncRaw();
+    model = readForm(); const content=contentFor(activeLanguage); const target=index+delta;
+    if (target < 0 || target >= content.skeleton.length) return;
+    [content.skeleton[index],content.skeleton[target]]=[content.skeleton[target],content.skeleton[index]];
+    renderIdeas(content.skeleton); syncRaw();
   }
   async function save(){
     model = readForm();
@@ -151,7 +185,11 @@
   $('ideas').addEventListener('click', (event) => {
     const button = event.target.closest('[data-action]'); if (!button) return;
     const node = button.closest('.idea'); const index = Number(node.dataset.index); const action = button.dataset.action;
-    if (action === 'up') move(index,-1); else if (action === 'down') move(index,1); else if (action === 'remove') { model=readForm(); model.skeleton.splice(index,1); renderIdeas(); syncRaw(); }
+    if (action === 'up') move(index,-1); else if (action === 'down') move(index,1); else if (action === 'remove') { model=readForm(); const content=contentFor(activeLanguage); content.skeleton.splice(index,1); renderIdeas(content.skeleton); syncRaw(); }
+  });
+  $('languageTabs').addEventListener('click',event=>{
+    const button=event.target.closest('[data-language]'); if(!button||button.dataset.language===activeLanguage) return;
+    commitLanguage(); activeLanguage=button.dataset.language; renderLanguage(); syncRaw();
   });
   allOutputs.addEventListener('change', () => {
     outputBoxes.forEach(box => { box.checked = allOutputs.checked; });
