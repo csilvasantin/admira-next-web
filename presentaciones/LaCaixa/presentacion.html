@@ -410,8 +410,20 @@ b,strong{font-weight:700}
 
   // fullscreen
   function toggleFs(){
-    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){})(); }
-    else if(document.exitFullscreen){ document.exitFullscreen(); }
+    var active=document.fullscreenElement||document.webkitFullscreenElement;
+    if(active){
+      if(document.exitFullscreen){ document.exitFullscreen(); }
+      else if(document.webkitExitFullscreen){ document.webkitExitFullscreen(); }
+      return;
+    }
+    var target=document.documentElement;
+    try{
+      if(target.requestFullscreen){
+        var request=target.requestFullscreen();
+        if(request&&request.catch){ request.catch(function(){ window.open(location.href,'_blank','noopener'); }); }
+      }else if(target.webkitRequestFullscreen){ target.webkitRequestFullscreen(); }
+      else{ window.open(location.href,'_blank','noopener'); }
+    }catch(error){ window.open(location.href,'_blank','noopener'); }
   }
   document.getElementById('fsBtn').addEventListener('click',toggleFs);
 
