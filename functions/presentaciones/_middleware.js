@@ -6,8 +6,10 @@
  * se envía hasta que la contraseña es correcta (protección real, no un candado JS
  * que se ve con "ver código fuente").
  *
- * AISLAMIENTO POR CLIENTE: cada deck tiene su propia password (secret de Cloudflare)
- * y su propia cookie firmada. La clave/cookie de Lenovo NO abre Caixa, y así con todos.
+ * AISLAMIENTO POR CLIENTE: cada espacio tiene su propia password (secret de Cloudflare)
+ * y su propia cookie firmada. La clave/cookie de Lenovo NO abre La Caixa ni Clear
+ * Channel. Todos los recursos bajo /presentaciones/<cliente>/ heredan la clave del
+ * primer segmento, incluidos audio, vídeo, PDF y documentos.
  *
  * SECRETS (Cloudflare Pages → Settings → Environment variables, tipo "Secret"):
  *   PRES_SIGNING_KEY  — clave para firmar las cookies (aleatoria; la fija el sistema).
@@ -100,22 +102,26 @@ export async function onRequest(context){
   const { request, env, next } = context;
   const url = new URL(request.url);
 
-  // slug del espacio: /presentaciones → galería; /presentaciones/lenovo(.html) → 'lenovo'
-  let seg = url.pathname.replace(/^\/presentaciones\/?/, '').replace(/\/+$/, '');
-  seg = seg.replace(/\.html$/i, '').toLowerCase();
-  const isGallery = (seg === '' || seg === 'index');
+  // Primer segmento = cliente. Las subrutas conservan el mismo aislamiento:
+  // /presentaciones/clearchannel/media/audio.m4a → slug 'clearchannel'.
+  const rel = url.pathname.replace(/^\/presentaciones\/?/i, '').replace(/^\/+|\/+$/g, '');
+  const parts = rel ? rel.split('/').filter(Boolean) : [];
+  const first = (parts[0] || '').replace(/\.html$/i, '').toLowerCase();
+  const isGallery = (parts.length === 0 || (parts.length === 1 && first === 'index'));
+  const seg = isGallery ? '' : first;
 
   const cookieName = 'pres_' + (isGallery ? 'admin' : seg);
   const cookieSlug = isGallery ? '_admin' : seg;                 // lo que se firma
   const secretName = isGallery ? 'PRES_ADMIN'
                                : 'PRES_' + seg.toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+  const names = { lacaixa:'La Caixa', clearchannel:'Clear Channel', lenovo:'Lenovo', caixa:'La Caixa' };
   const title = isGallery ? 'Presentaciones'
-                          : seg.charAt(0).toUpperCase() + seg.slice(1);
+                          : (names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1));
 
   const signKey = env.PRES_SIGNING_KEY;
   const expected = env[secretName];
   const master = env.PRES_ADMIN;   // clave interna del equipo = MAESTRA: abre cualquier deck
-  const cleanPath = isGallery ? '/presentaciones/' : '/presentaciones/' + seg;
+  const cleanPath = url.pathname;
 
   // Sin clave de firma, o sin password del espacio NI maestra → fail-closed (nunca público).
   if (!signKey || (!expected && !master)){
