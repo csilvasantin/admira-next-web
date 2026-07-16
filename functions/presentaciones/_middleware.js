@@ -123,11 +123,12 @@ export async function onRequest(context){
   const third = (parts[2] || '').replace(/\.html$/i, '').toLowerCase();
   const isIdeasEditor = !isGallery && second === 'ideas';
   const isIdeasApi = !isGallery && second === 'api' && third === 'ideas';
+  const isGenerationApi = !isGallery && second === 'api' && third === 'generation';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
   const isGeneratorApi = first === 'api' && second === 'generate';
   const isClientsApi = first === 'api' && second === 'clients';
-  const isInternalArea = isIdeasEditor || isIdeasWrite || isGeneratorPage || isGeneratorApi || isClientsApi;
+  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isGeneratorPage || isGeneratorApi || isClientsApi;
 
   const cookieName = 'pres_' + (isGallery ? 'admin' : seg);
   const cookieSlug = isGallery ? '_admin' : seg;                 // lo que se firma
@@ -190,7 +191,7 @@ export async function onRequest(context){
   // GET = ¿cookie válida? (maestra del equipo → todo · o la del propio espacio)
   const cks = readCookies(request);
   if (await validToken(signKey, '_master', cks['pres_master'])) return next();
-  if ((isIdeasEditor || isIdeasApi || isGeneratorPage || isGeneratorApi || isClientsApi) && editor && await validToken(signKey, '_editor', cks['pres_editor'])) return next();
+  if ((isIdeasEditor || isIdeasApi || isGenerationApi || isGeneratorPage || isGeneratorApi || isClientsApi) && editor && await validToken(signKey, '_editor', cks['pres_editor'])) return next();
   if (isInternalArea){
     return new Response(loginPage(title, cleanPath, ''),
       { status: 401, headers: { 'content-type':'text/html; charset=utf-8', 'cache-control':'no-store' } });

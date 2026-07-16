@@ -1,6 +1,10 @@
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
 const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
+const OUTPUT_LABELS = {
+  website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
+  documents:'Documento de trabajo', infographic:'Infografía'
+};
 
 function response(body, status = 200){
   return new Response(body == null ? null : JSON.stringify(body), {
@@ -52,6 +56,51 @@ function normalize(payload, client){
   };
 }
 
+function buildSource(data){
+  const blocks = data.skeleton.filter(item => item.enabled !== false).map((item, index) =>
+    `${index + 1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`
+  ).join('\n\n');
+  return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n` +
+    `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n` +
+    `${blocks}\n\nCIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n\n` +
+    `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual principal es AdmiraNeXT × ${data.displayName}.\n` +
+    `- Mantener un tono ejecutivo, claro, humano y orientado a decisión.\n` +
+    `- Respetar la marca, logotipo y colores oficiales del cliente.\n` +
+    `- No inventar cifras ni afirmaciones que no estén respaldadas por las fuentes.\n` +
+    `- Notas del editor: ${data.notes || 'Sin notas adicionales.'}`;
+}
+
+function buildGeneration(data){
+  const now = new Date().toISOString();
+  const id = crypto.randomUUID();
+  const artifacts = Object.fromEntries(data.outputs.map(output => [output, {
+    label: OUTPUT_LABELS[output],
+    status: output === 'website' ? 'ready' : 'queued',
+    url: output === 'website' ? `/presentaciones/${data.client}/presentacion` : null,
+    updatedAt: now
+  }]));
+  const pending = data.outputs.some(output => output !== 'website');
+  return {
+    schemaVersion: 1,
+    id,
+    client: data.client,
+    displayName: data.displayName,
+    status: pending ? 'queued' : 'complete',
+    requested: data.outputs,
+    artifacts,
+    sourceText: buildSource(data),
+    provider: 'notebooklm',
+    createdAt: now,
+    updatedAt: now
+  };
+}
+
+function publicGeneration(job){
+  if (!job) return null;
+  const { sourceText, provider, ...safe } = job;
+  return safe;
+}
+
 export async function onRequest(context){
   const client = String(context.params.client || '').toLowerCase();
   if (!context.env.PRESENTATION_IDEAS) return response({ error: 'Almacenamiento no configurado.' }, 503);
@@ -83,12 +132,16 @@ export async function onRequest(context){
   try { data = normalize(payload, client); }
   catch (error) { return response({ error: error.message || 'Contenido no válido.' }, 400); }
 
-  const writes = [context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(data))];
+  const generation = buildGeneration(data);
+  const writes = [
+    context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(data)),
+    context.env.PRESENTATION_IDEAS.put(`generation:${client}`, JSON.stringify(generation))
+  ];
   if (generated){
     generated.outputs = data.outputs;
     generated.updatedAt = data.updatedAt;
     writes.push(context.env.PRESENTATION_IDEAS.put(`presentation:${client}`, JSON.stringify(generated)));
   }
   await Promise.all(writes);
-  return response({ ok: true, data });
+  return response({ ok: true, data, generation: publicGeneration(generation) });
 }

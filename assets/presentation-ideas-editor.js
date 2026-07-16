@@ -4,18 +4,25 @@
   const client = body.dataset.client || location.pathname.split('/').filter(Boolean)[1].toLowerCase();
   const displayName = body.dataset.name || client;
   const apiUrl = new URL(`./api/ideas`, location.href).pathname;
+  const generationUrl = new URL(`./api/generation`, location.href).pathname;
   const defaultUrl = `${apiUrl}?base=1`;
   const $ = (id) => document.getElementById(id);
   const ALL_OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
   let model = null;
+  let generation = null;
 
   const outputPanel = document.createElement('section');
   outputPanel.className = 'panel output-panel';
   outputPanel.innerHTML = '<div class="panel-h"><div><h2>¿Qué queremos obtener?</h2><p class="sub">Selecciona los contenidos que AdmiraNeXT debe recrear para esta presentación.</p></div></div><div class="output-grid"><label class="output"><input type="checkbox" name="output" value="website"><b>01</b><span>Website</span></label><label class="output"><input type="checkbox" name="output" value="audio"><b>02</b><span>Audio</span></label><label class="output"><input type="checkbox" name="output" value="video"><b>03</b><span>Vídeo</span></label><label class="output"><input type="checkbox" name="output" value="pdf"><b>04</b><span>PDF</span></label><label class="output"><input type="checkbox" name="output" value="powerpoint"><b>05</b><span>PowerPoint</span></label><label class="output"><input type="checkbox" name="output" value="documents"><b>06</b><span>Documento de trabajo</span></label><label class="output"><input type="checkbox" name="output" value="infographic"><b>07</b><span>Infografía</span></label><label class="output all"><input type="checkbox" id="allOutputs"><b>08</b><span>Todo</span></label></div>';
   const outputStyle = document.createElement('style');
-  outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}@media(max-width:720px){.output-grid{grid-template-columns:1fr}}';
+  outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}.generation-panel{margin-top:18px}.generation-panel[hidden]{display:none}.generation-badge{border:1px solid var(--ok);border-radius:999px;padding:8px 11px;color:var(--ok);font:800 10px/1 var(--mono);letter-spacing:.09em}.generation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.generation-item{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#091427;font:700 12px/1.3 var(--sans)}.generation-item small{color:var(--muted);font:800 9px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.generation-item.ready small{color:var(--ok)}.generation-item.failed small{color:#ff7b8a}@media(max-width:720px){.output-grid,.generation-grid{grid-template-columns:1fr}}';
   document.head.appendChild(outputStyle);
   document.querySelector('.savebar').before(outputPanel);
+  const generationPanel = document.createElement('section');
+  generationPanel.className = 'panel generation-panel';
+  generationPanel.hidden = true;
+  generationPanel.innerHTML = '<div class="panel-h"><div><h2>Estado de producción</h2><p class="sub" id="generationSummary">Preparando la solicitud…</p></div><span class="generation-badge" id="generationBadge">PENDIENTE</span></div><div class="generation-grid" id="generationArtifacts"></div>';
+  outputPanel.after(generationPanel);
   document.querySelector('.savebar .btn.primary').textContent = 'Generar presentación';
   const outputBoxes = [...outputPanel.querySelectorAll('input[name="output"]')];
   const allOutputs = $('allOutputs');
@@ -41,6 +48,8 @@
       try { model = await getJson(apiUrl); setStatus('Versión guardada en producción cargada.', 'ok'); }
       catch (_) { model = await getJson(defaultUrl); setStatus('Copia base cargada. Guarda para publicarla.', ''); }
       render();
+      try { generation = (await getJson(generationUrl)).generation; renderGeneration(); }
+      catch (_) { generation = null; }
     } catch (error){ setStatus(`No se pudo cargar: ${error.message}`, 'error'); }
     finally { body.classList.remove('loading'); }
   }
@@ -63,6 +72,21 @@
     const selected = new Set(Array.isArray(model.outputs) && model.outputs.length ? model.outputs : ALL_OUTPUTS);
     outputBoxes.forEach(box => { box.checked = selected.has(box.value); });
     allOutputs.checked = outputBoxes.every(box => box.checked);
+  }
+  function renderGeneration(){
+    if (!generation) { generationPanel.hidden = true; return; }
+    generationPanel.hidden = false;
+    const states = {queued:'En cola',processing:'En producción',ready:'Listo',failed:'Error',skipped:'Omitido',complete:'Completado'};
+    $('generationBadge').textContent = states[generation.status] || generation.status || 'En cola';
+    const date = generation.createdAt ? new Date(generation.createdAt).toLocaleString('es-ES') : '';
+    $('generationSummary').textContent = `Solicitud ${date} · el website se publica al instante y los archivos se incorporan cuando termina la producción.`;
+    $('generationArtifacts').innerHTML = Object.values(generation.artifacts || {}).map(item => {
+      const status = item.status || 'queued';
+      const label = states[status] || status;
+      const name = esc(item.label || 'Entregable');
+      const content = item.url ? `<a href="${esc(item.url)}" target="_blank" rel="noopener">${name}</a>` : `<span>${name}</span>`;
+      return `<div class="generation-item ${esc(status)}">${content}<small>${esc(label)}</small></div>`;
+    }).join('');
   }
   function renderIdeas(){
     const host = $('ideas'); host.innerHTML = '';
@@ -104,13 +128,14 @@
   async function save(){
     model = readForm();
     if (!model.hero.title.trim() || !model.skeleton.length){ setStatus('Falta el título o al menos una idea.', 'error'); return; }
-    body.classList.add('loading'); setStatus('Guardando y regenerando la presentación…', '');
+    body.classList.add('loading'); setStatus('Creando la orden de producción…', '');
     try {
       const response = await fetch(apiUrl, {method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(model)});
       const result = await response.json().catch(()=>({}));
       if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
-      model = result.data; render();
-      setStatus(`Publicado · ${new Date(model.updatedAt).toLocaleString('es-ES')}`, 'ok');
+      model = result.data; generation = result.generation; render(); renderGeneration();
+      generationPanel.scrollIntoView({behavior:'smooth',block:'center'});
+      setStatus(`Orden creada · ${new Date(model.updatedAt).toLocaleString('es-ES')}`, 'ok');
     } catch (error){ setStatus(`No se pudo guardar: ${error.message}`, 'error'); }
     finally { body.classList.remove('loading'); }
   }
