@@ -546,7 +546,7 @@ b,strong{font-weight:700}
   var m=(location.hash||'').match(/^#s(\d+)$/);
   if(m){ i=Math.max(0,Math.min(N-1,parseInt(m[1],10)-1)); }
   prepareCatalan();
-  fetch('/presentaciones/LaCaixa/api/ideas',{credentials:'same-origin'})
+  fetch('/presentaciones/LaCaixa/content',{credentials:'same-origin'})
     .then(function(response){return response.ok?response.json():null;})
     .then(function(data){ideas=data;applyEditableContent(root.getAttribute('data-lang')||'es');})
     .catch(function(){});
