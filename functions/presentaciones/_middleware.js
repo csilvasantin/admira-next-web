@@ -109,6 +109,14 @@ export async function onRequest(context){
   const first = (parts[0] || '').replace(/\.html$/i, '').toLowerCase();
   const isGallery = (parts.length === 0 || (parts.length === 1 && first === 'index'));
   const seg = isGallery ? '' : first;
+  // Alias humano usado en propuestas y mensajes: /Ideas lleva a la URL canónica
+  // /ideas. Se resuelve aquí porque Pages no distingue mayúsculas al emparejar
+  // nombres de Functions y una función Ideas.js también interceptaría /ideas.
+  if (request.method === 'GET' && parts[1] === 'Ideas') {
+    const canonical = new URL(request.url);
+    canonical.pathname = canonical.pathname.replace(/\/Ideas\/?$/, '/ideas');
+    return Response.redirect(canonical.toString(), 308);
+  }
   // El editor y su API son internos: nunca se abren con la clave del cliente.
   // Solo la cookie maestra del equipo puede leerlos o modificarlos.
   const second = (parts[1] || '').replace(/\.html$/i, '').toLowerCase();
