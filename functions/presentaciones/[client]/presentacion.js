@@ -13,8 +13,9 @@ export async function onRequestGet(context){
     const asset=await context.env.ASSETS.fetch(source);
     if(asset.ok){
       const marker='<script src="/presentaciones/LaCaixa/content-data?v=20260716-1"></script>';
-      const embedded=`<script>window.__ADMIRA_PRESENTATION_CONTENT__=${safeJson(ideas)};</script>`;
-      const html=(await asset.text()).replace(marker,embedded);
+      const html=(await asset.text())
+        .replace(marker,'')
+        .replace('ideas=window.__ADMIRA_PRESENTATION_CONTENT__||null;',`ideas=${safeJson(ideas)};`);
       return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store, must-revalidate','x-robots-tag':'noindex, nofollow'}});
     }
   }
