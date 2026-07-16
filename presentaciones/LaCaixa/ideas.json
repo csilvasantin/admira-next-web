@@ -1,7 +1,50 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "client": "lacaixa",
   "displayName": "CaixaBank",
+  "languages": ["es", "ca", "en"],
+  "translations": {
+    "ca": {
+      "hero": {
+        "eyebrow": "Presentació privada · CaixaBank",
+        "title": "L'oficina, convertida en un mitjà intel·ligent.",
+        "summary": "Connectar marca, contingut, pantalles, espai i mesurament en un únic cicle operatiu per transformar la xarxa física en un mitjà intel·ligent."
+      },
+      "objective": "Acordar una oficina pilot on activar les quatre capes d'Admira i mesurar el recorregut complet des del brífing fins a la dada.",
+      "skeleton": [
+        { "id": "punto-partida", "title": "El punt de partida", "message": "Cada oficina ja és una pantalla, una dada i una decisió.", "detail": "Avui, el contingut, la senyalització, els sensors i el mesurament viuen en sitges. L'oportunitat és tancar el cercle.", "enabled": true },
+        { "id": "ecosistema", "title": "Un únic sistema operatiu", "message": "Crear, emetre, entendre i mesurar l'espai físic des d'una única arquitectura.", "detail": "Pixeria, admira.tv, XpaceOS i OmniPublicity funcionen com a capes connectades, no com a eines aïllades.", "enabled": true },
+        { "id": "crear", "title": "Crear amb Pixeria", "message": "Del brífing al contingut publicat sense sortir del sistema.", "detail": "Peces i variants per format, audiència i context, sempre dins dels criteris de marca de CaixaBank.", "enabled": true },
+        { "id": "emitir", "title": "Emetre amb admira.tv", "message": "Cada contingut arriba a la pantalla correcta en el moment adequat.", "detail": "Programació, flota, prova d'emissió i control operatiu de la xarxa des d'un únic lloc.", "enabled": true },
+        { "id": "entender", "title": "Entendre amb XpaceOS", "message": "El bessó digital converteix cada oficina en un espai governable.", "detail": "Aforament, fluxos, cues i estat de les pantalles amb privacitat des del disseny.", "enabled": true },
+        { "id": "medir", "title": "Mesurar i monetitzar", "message": "Cada impressió es mesura i l'aprenentatge torna al contingut següent.", "detail": "OmniPublicity connecta superfícies, audiències, atribució i activació de l'inventari físic.", "enabled": true },
+        { "id": "oficina", "title": "L'oficina CaixaBank", "message": "Benvinguda, espera, atenció i comunicació es converteixen en una experiència coherent.", "detail": "Control central, adaptació local i dades anònimes per operar millor sense vigilar ningú.", "enabled": true },
+        { "id": "prueba", "title": "Ja funciona", "message": "L'ecosistema ja s'ha mostrat en directe i opera amb una flota real.", "detail": "Shoptalk Europe, 20 aplicacions operatives, inferència edge i marketplace integrat.", "enabled": true }
+      ],
+      "closing": { "title": "Triem una oficina i posem en marxa el pilot.", "action": "Definir l'oficina, dos recorreguts, responsables i mètriques d'èxit." },
+      "notes": "Mantenir un llenguatge proper, útil i orientat a l'experiència de client. Fer servir sempre el logotip i els colors oficials de CaixaBank."
+    },
+    "en": {
+      "hero": {
+        "eyebrow": "Private presentation · CaixaBank",
+        "title": "The branch, turned into intelligent media.",
+        "summary": "Connecting brand, content, screens, space and measurement in a single operating cycle to turn the physical network into intelligent media."
+      },
+      "objective": "Agree on one pilot branch where the four Admira layers can be activated and the full journey measured from brief to data.",
+      "skeleton": [
+        { "id": "punto-partida", "title": "The starting point", "message": "Every branch is already a screen, a signal and a decision.", "detail": "Content, signage, sensors and measurement currently live in silos. The opportunity is to close the loop.", "enabled": true },
+        { "id": "ecosistema", "title": "One operating system", "message": "Create, broadcast, understand and measure physical space from one architecture.", "detail": "Pixeria, admira.tv, XpaceOS and OmniPublicity work as connected layers, not isolated tools.", "enabled": true },
+        { "id": "crear", "title": "Create with Pixeria", "message": "From brief to published content without leaving the system.", "detail": "Assets and variants by format, audience and context, always within CaixaBank's brand standards.", "enabled": true },
+        { "id": "emitir", "title": "Broadcast with admira.tv", "message": "Every piece of content reaches the right screen at the right time.", "detail": "Scheduling, fleet, proof of play and network operations controlled from one place.", "enabled": true },
+        { "id": "entender", "title": "Understand with XpaceOS", "message": "The digital twin turns every branch into a governable space.", "detail": "Occupancy, flows, queues and screen health with privacy by design.", "enabled": true },
+        { "id": "medir", "title": "Measure and monetize", "message": "Every impression is measured and each insight improves the next piece of content.", "detail": "OmniPublicity connects surfaces, audiences, attribution and activation of physical inventory.", "enabled": true },
+        { "id": "oficina", "title": "The CaixaBank branch", "message": "Welcome, waiting, service and communication become one coherent experience.", "detail": "Central control, local adaptation and anonymous data to operate better without surveilling anyone.", "enabled": true },
+        { "id": "prueba", "title": "Already working", "message": "The ecosystem has already been shown live and runs with a real fleet.", "detail": "Shoptalk Europe, 20 operational applications, edge inference and an integrated marketplace.", "enabled": true }
+      ],
+      "closing": { "title": "Let's choose one branch and launch the pilot.", "action": "Define the branch, two journeys, owners and success metrics." },
+      "notes": "Keep the language approachable, useful and focused on customer experience. Always use CaixaBank's official logo and colours."
+    }
+  },
   "hero": {
     "eyebrow": "Presentación privada · CaixaBank",
     "title": "La oficina, convertida en medio inteligente.",
