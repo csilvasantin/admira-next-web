@@ -1,0 +1,67 @@
+ADMIRANEXT × CAIXABANK
+PILOT D'OFICINA INTEL·LIGENT — DOCUMENT DE TREBALL
+
+1. RESUM EXECUTIU
+
+La proposta converteix una oficina CaixaBank en un mitjà intel·ligent on marca, contingut, pantalles, espai i mesurament formen un únic cicle operatiu. El pilot validarà el recorregut complet, des del brífing i la creació de continguts fins a l'emissió, l'observació anònima de l'espai i l'aprenentatge.
+
+2. PROBLEMA I OPORTUNITAT
+
+Avui la senyalització, els sensors, el mesurament i la creació de continguts funcionen en sitges. L'oportunitat és connectar-los per operar l'oficina amb una visió comuna, mesurar l'impacte i utilitzar aquest aprenentatge en la decisió de contingut següent.
+
+3. ARQUITECTURA DE QUATRE CAPES
+
+- Pixeria: creació de peces i variants per format, audiència i context sota els criteris de marca de CaixaBank.
+- admira.tv: programació, gestió de flota, prova d'emissió i control operatiu de la xarxa.
+- XpaceOS: bessó digital per a aforament, fluxos, cues i estat de les pantalles, amb privacitat des del disseny.
+- OmniPublicity: mesurament, atribució i activació de l'inventari físic.
+
+4. RECORREGUT DEL CLIENT
+
+- Benvinguda: adaptar el missatge inicial al context de l'oficina.
+- Espera: observar fluxos i cues i emetre contingut útil per a aquell moment.
+- Atenció: mantenir una comunicació coherent amb l'experiència del client.
+- Sortida: mesurar l'impacte agregat i retornar l'aprenentatge al contingut següent.
+
+5. ABAST DEL PILOT
+
+El pilot ha d'activar les quatre capes en una oficina real i mesurar dos recorreguts concrets. Inclou configuració, operació i quadre de mètriques. Les integracions transaccionals, el maquinari nou i el desplegament massiu queden fora fins que se'n validi el resultat.
+
+6. RESPONSABILITATS
+
+AdmiraNeXT aporta arquitectura, configuració tècnica, suport operatiu i analítica. CaixaBank selecciona l'oficina, defineix els objectius, valida la marca i designa els responsables interns.
+
+7. PLA PER FASES
+
+1) Selecció: oficina, responsables i dos recorreguts.
+2) Implementació: configuració de XpaceOS, Pixeria i dispositius.
+3) Activació: programació amb admira.tv i posada en marxa operativa.
+4) Mesurament: anàlisi amb OmniPublicity i tancament del cicle d'aprenentatge.
+
+8. MÈTRIQUES D'ÈXIT
+
+- Aforament i patrons de flux.
+- Temps d'espera i eficiència de les cues.
+- Disponibilitat de pantalles i compliment de l'emissió.
+- Relació entre continguts, audiències agregades i comportament observat.
+- Capacitat de convertir les dades del pilot en decisions de contingut.
+
+9. RISCOS I MITIGACIONS
+
+- Privacitat: processament anònim i privacitat des del disseny.
+- Continuïtat tècnica: monitoratge de dispositius i prova d'emissió.
+- Abast difús: dos recorreguts, responsables i mètriques acordats abans del desplegament.
+- Manca d'adopció: revisió conjunta i lliurables operatius des de la primera fase.
+
+10. PREGUNTES OBERTES
+
+- Quina oficina s'utilitzarà com a pilot?
+- Quins dos recorreguts de client es mesuraran?
+- Qui valida negoci, marca, tecnologia i privacitat?
+- Quines mètriques determinaran que el pilot pot escalar?
+
+11. PAS SEGÜENT
+
+Escollir l'oficina, els dos recorreguts, els responsables i les mètriques d'èxit. Amb aquestes quatre decisions es pot tancar l'abast i convocar la sessió tècnica d'arrencada.
+
+Preparat per AdmiraNeXT per a CaixaBank.
