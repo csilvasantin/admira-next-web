@@ -1,9 +1,16 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260717-1';
+  window.__ADMIRA_GENERATOR_VERSION__='20260717-2';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
-  const display=document.getElementById('displayName'),slug=document.getElementById('slug'); let slugTouched=true;
+  const display=document.getElementById('displayName'),slug=document.getElementById('slug'); let slugTouched=true,inspirationAnalysis=null;
+  const inspirationStep=document.querySelector('.flow span:nth-child(2)'); if(inspirationStep)inspirationStep.innerHTML='<b>02</b> Inspiración';
+  const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Inspiración e identidad'; thesisPanel.querySelector('.sub').textContent='Usa una web como referencia de dirección de arte para toda la presentación, especialmente el site.';
+  const inspirationField=document.createElement('div'); inspirationField.className='field full inspiration-field';
+  inspirationField.innerHTML='<label for="inspirationUrl">Web inspiradora · opcional</label><div class="inspiration-input"><input id="inspirationUrl" name="inspirationUrl" type="url" placeholder="https://web-que-nos-inspira.com/"><button class="btn" id="analyzeInspiration" type="button">Analizar estilo</button></div><p class="field-help">Extraemos paleta, tipografía, geometría, densidad y composición. No copiamos código ni elementos de marca.</p><div class="inspiration-preview" id="inspirationPreview" hidden><div class="inspiration-palette" id="inspirationPalette"></div><div><b id="inspirationTitle">Dirección visual</b><span id="inspirationTraits"></span></div></div>';
+  thesisGrid.prepend(inspirationField);
+  const inspirationStyle=document.createElement('style'); inspirationStyle.textContent='.inspiration-input{display:grid;grid-template-columns:1fr auto;gap:9px}.inspiration-input .btn{white-space:nowrap}.field-help{margin:9px 0 0;color:var(--mut);font-size:12px}.inspiration-preview{margin-top:14px;display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:13px;padding:14px;background:#08111e}.inspiration-preview[hidden]{display:none}.inspiration-preview b,.inspiration-preview span{display:block}.inspiration-preview b{font-size:14px}.inspiration-preview span{margin-top:4px;color:var(--mut);font:700 10px/1.45 var(--mono);text-transform:uppercase;letter-spacing:.05em}.inspiration-palette{display:flex;flex:none}.inspiration-palette i{width:25px;height:42px;border:2px solid #08111e;margin-left:-5px}.inspiration-palette i:first-child{margin-left:0;border-radius:9px 0 0 9px}.inspiration-palette i:last-child{border-radius:0 9px 9px 0}@media(max-width:680px){.inspiration-input{grid-template-columns:1fr}.inspiration-input .btn{width:100%}}'; document.head.appendChild(inspirationStyle);
+  const inspirationUrl=document.getElementById('inspirationUrl'),analyzeButton=document.getElementById('analyzeInspiration');
   const languagePanel=document.createElement('section'); languagePanel.className='panel language-panel';
   languagePanel.innerHTML='<h2>4. Idiomas</h2><p class="sub">Selecciona las versiones del site. Después podrás editar cada idioma por separado.</p><div class="language-grid"><label class="language"><input type="checkbox" name="language" value="es" checked><b>ES</b><span>Castellano</span></label><label class="language"><input type="checkbox" name="language" value="ca" checked><b>CA</b><span>Català</span></label><label class="language"><input type="checkbox" name="language" value="en" checked><b>EN</b><span>English</span></label></div>';
   const outputPanel=document.createElement('section'); outputPanel.className='panel output-panel';
@@ -17,6 +24,24 @@
   function slugify(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,63)}
   slug.addEventListener('input',()=>{slugTouched=Boolean(slug.value)}); display.addEventListener('input',()=>{if(!slugTouched)slug.value=slugify(display.value)});
   function message(value,error){status.textContent=value;status.className=`status${error?' error':''}`}
+  function renderInspiration(inspiration){
+    const preview=document.getElementById('inspirationPreview'); if(!inspiration){preview.hidden=true;return}
+    document.getElementById('inspirationPalette').innerHTML=(inspiration.palette||[]).slice(0,5).map(color=>`<i style="background:${color}" title="${color}"></i>`).join('');
+    document.getElementById('inspirationTitle').textContent=inspiration.title||inspiration.host||'Dirección visual';
+    document.getElementById('inspirationTraits').textContent=[inspiration.profile,inspiration.mode,inspiration.fontStyle,inspiration.radiusStyle,inspiration.density,inspiration.layout].filter(Boolean).join(' · ');
+    preview.hidden=false;
+  }
+  async function analyzeInspiration(){
+    const url=inspirationUrl.value.trim(); if(!url){inspirationAnalysis=null;renderInspiration(null);return null}
+    analyzeButton.disabled=true; message('Analizando la dirección de arte de la web inspiradora…');
+    try{
+      const response=await fetch('/presentaciones/api/inspiration',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({url})});
+      const body=await response.json().catch(()=>({})); if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
+      inspirationAnalysis=body.inspiration; document.getElementById('primaryColor').value=inspirationAnalysis.primary; document.getElementById('accentColor').value=inspirationAnalysis.accent; renderInspiration(inspirationAnalysis); message(`Estilo inspirado en ${inspirationAnalysis.host}. Puedes ajustar los colores antes de generar.`); return inspirationAnalysis;
+    }finally{analyzeButton.disabled=false}
+  }
+  analyzeButton.addEventListener('click',()=>analyzeInspiration().catch(error=>message(error.message,true)));
+  inspirationUrl.addEventListener('input',()=>{if(inspirationAnalysis&&inspirationUrl.value.trim()!==inspirationAnalysis.url){inspirationAnalysis=null;renderInspiration(null)}});
   function renderGeneration(generation){
     const tasks=Object.values(generation?.tasks||{}); if(!tasks.length){createdMatrix.innerHTML='';return}
     const languageNames={es:'Castellano',ca:'Català',en:'English'},states={queued:'En cola',processing:'Produciendo',ready:'Listo',published:'Publicado',failed:'Error'};
@@ -24,8 +49,10 @@
   }
   form.addEventListener('submit',async event=>{
     event.preventDefault(); event.stopImmediatePropagation(); submit.disabled=true; result.classList.remove('show'); message('Analizando el problema y construyendo la presentación…');
-    const data=Object.fromEntries(new FormData(form).entries()); data.overwrite=document.getElementById('overwrite').checked; data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value);
     try{
+      if(inspirationUrl.value.trim()&&!inspirationAnalysis)await analyzeInspiration();
+      message('Construyendo el relato y aplicando la dirección visual…');
+      const data=Object.fromEntries(new FormData(form).entries()); data.overwrite=document.getElementById('overwrite').checked; data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;
       const response=await fetch('/presentaciones/api/generate',{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(data)});
       const body=await response.json().catch(()=>({})); if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';

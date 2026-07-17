@@ -1,4 +1,5 @@
 import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
+import { normalizeInspiration } from '../../_inspiration.js';
 
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
@@ -45,10 +46,12 @@ function normalize(payload, client){
     translations[language]=normalizeContent(payload.translations[language]);
   }
 
+  const inspiration=payload.inspiration?.url?normalizeInspiration(payload.inspiration,payload.inspiration.url):null;
   return {
     schemaVersion: 2,
     client,
     displayName: cleanText(payload.displayName, 100),
+    inspiration,
     languages,
     translations,
     hero: {
@@ -83,12 +86,13 @@ function buildSource(data){
     const localizedBlocks=(content.skeleton||[]).filter(item=>item.enabled!==false).map((item,index)=>`${index+1}. ${item.title}\n${item.message}\n${item.detail}`).join('\n\n');
     return `\n\nVERSIÓN ${language.toUpperCase()}\n${content.hero?.title||''}\n${content.hero?.summary||''}\n\n${localizedBlocks}\n\n${content.closing?.title||''}\n${content.closing?.action||''}`;
   }).join('');
+  const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL\nReferencia: ${data.inspiration.url}\nPerfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\nInterpretar, no copiar: conservar el ADN visual en todos los entregables sin reutilizar marca, código ni textos propietarios.\n`:'';
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n` +
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n` +
-    `${blocks}\n\nCIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n\n` +
+    `${blocks}\n\nCIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}\n` +
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual principal es AdmiraNeXT × ${data.displayName}.\n` +
     `- Mantener un tono ejecutivo, claro, humano y orientado a decisión.\n` +
-    `- Respetar la marca, logotipo y colores oficiales del cliente.\n` +
+    `- Respetar la marca, logotipo y colores oficiales del cliente y la dirección visual inspiradora.\n` +
     `- No inventar cifras ni afirmaciones que no estén respaldadas por las fuentes.\n` +
     `- En vídeo, eliminar únicamente la tarjeta final del proveedor y prolongar el último fotograma limpio durante ese tramo.\n` +
     `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.\n` +

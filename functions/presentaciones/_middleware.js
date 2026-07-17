@@ -110,7 +110,7 @@ export async function onRequest(context){
   const isGenerationApi = !isGallery && second === 'api' && third === 'generation';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
-  const isGeneratorApi = first === 'api' && second === 'generate';
+  const isGeneratorApi = first === 'api' && ['generate','inspiration'].includes(second);
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
   const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;

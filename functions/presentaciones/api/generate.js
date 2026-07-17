@@ -1,4 +1,5 @@
 import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
+import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 
 const MAX_BYTES = 32 * 1024;
 const enc = new TextEncoder();
@@ -28,7 +29,7 @@ function buildIdeas(input, slug, languages){
   const problem=input.problem || `Convertir los espacios físicos de ${name} en una experiencia conectada, medible y capaz de mejorar en tiempo real.`;
   const audience=input.audience || 'Dirección de negocio, experiencia, operaciones, marketing e innovación';
   return {
-    schemaVersion:1, client:slug, displayName:name, languages, translations:{},
+    schemaVersion:2, client:slug, displayName:name, languages, translations:{}, inspiration:input.inspiration||null,
     hero:{eyebrow:`Presentación privada · ${name}`,title:input.title || `${name}: cada espacio puede aprender.`,summary:input.summary || `Una propuesta para conectar contenido, operación, experiencia y medición alrededor de un problema concreto: ${problem}`},
     objective:input.objective || `Acordar un piloto concreto con ${name}, responsables, alcance y métricas de éxito.`,
     skeleton:[
@@ -42,7 +43,7 @@ function buildIdeas(input, slug, languages){
       idea('piloto','El primer piloto',`Empezar pequeño, medir de verdad y escalar lo que funciona.`,`Un espacio, dos recorridos prioritarios, cuatro semanas de aprendizaje y un cuadro compartido de métricas.`)
     ],
     closing:{title:`Elijamos el primer espacio de ${name}.`,action:'Definir problema, ubicación, responsables, señales disponibles y tres métricas de éxito.'},
-    notes:`Fuente inicial generada para ${name}. Validar identidad, datos, problema y lenguaje antes de compartir. Referencia: ${input.website || 'web oficial pendiente'}.`,
+    notes:`Fuente inicial generada para ${name}. Validar identidad, datos, problema y lenguaje antes de compartir. Web oficial: ${input.website || 'pendiente'}. Inspiración visual: ${input.inspiration?.url || 'dirección propia de ADmiraNeXT'}.`,
     updatedAt:new Date().toISOString()
   };
 }
@@ -51,13 +52,15 @@ function buildSource(data){
   const blocks=data.skeleton.filter(item=>item.enabled!==false).map((item,index)=>
     `${index+1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`
   ).join('\n\n');
+  const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL INSPIRADORA\n- Referencia: ${data.inspiration.url}\n- Perfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\n- Paleta extraída: ${(data.inspiration.palette||[]).join(', ')}.\n- Interpretar estos rasgos en clave ADmiraNeXT × ${data.displayName}; no copiar código, logotipos, textos ni elementos propietarios.\n`:'';
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n`+
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n${blocks}\n\n`+
-    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n\n`+
+    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}\n`+
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}.\n`+
     `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
     `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.\n`+
     `- En vídeo, eliminar únicamente la tarjeta final del proveedor y prolongar el último fotograma limpio durante ese tramo.\n`+
+    `- Mantener la misma dirección visual inspiradora en website, PDF, PowerPoint, documentos e infografía.\n`+
     `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.`;
 }
 
@@ -85,14 +88,22 @@ export async function onRequestPut(context){
   const input={
     displayName, problem:text(raw.problem,1200), audience:text(raw.audience,500),
     title:text(raw.title,220), summary:text(raw.summary,900), objective:text(raw.objective,1200),
-    website:text(raw.website,500), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000')
+    website:text(raw.website,500), inspirationUrl:text(raw.inspirationUrl,500), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000')
   };
   if (input.website && !/^https:\/\//i.test(input.website)) return json({error:'La web debe comenzar por https://'},400);
+  let inspiration=null;
+  if(input.inspirationUrl){
+    try{
+      inspiration=normalizeInspiration(raw.inspiration,input.inspirationUrl) || await analyzeInspiration(input.inspirationUrl);
+      if(!raw.inspiration){input.primaryColor=inspiration.primary;input.accentColor=inspiration.accent}
+    }catch(error){return json({error:error.message||'No se pudo analizar la web inspiradora.'},422)}
+  }
+  input.inspiration=inspiration;
   const ideas=buildIdeas(input,slug,languages);
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
-    schemaVersion:1,slug,displayName,website:input.website,problem:input.problem,audience:input.audience,outputs,languages,
-    theme:{primary:input.primaryColor,accent:input.accentColor},
+    schemaVersion:2,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspiration,problem:input.problem,audience:input.audience,outputs,languages,
+    theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
   };
