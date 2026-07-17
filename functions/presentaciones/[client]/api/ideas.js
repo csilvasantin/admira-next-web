@@ -90,7 +90,8 @@ function buildSource(data){
     `- Mantener un tono ejecutivo, claro, humano y orientado a decisión.\n` +
     `- Respetar la marca, logotipo y colores oficiales del cliente.\n` +
     `- No inventar cifras ni afirmaciones que no estén respaldadas por las fuentes.\n` +
-    `- Eliminar cualquier marca o portada final del proveedor y cerrar siempre con la tarjeta AdmiraNeXT «Gracias / Thank you».\n` +
+    `- En vídeo, eliminar únicamente la tarjeta final del proveedor y prolongar el último fotograma limpio durante ese tramo.\n` +
+    `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.\n` +
     `- Notas del editor: ${data.notes || 'Sin notas adicionales.'}${translated}`;
 }
 

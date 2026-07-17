@@ -9,6 +9,17 @@ export const VALID_STATUSES = new Set(['queued','processing','ready','published'
 
 export function taskKey(language, output){ return `${language}:${output}`; }
 
+function postProcess(output){
+  if (output !== 'video') return undefined;
+  return {
+    providerCleanup:'ending-only',
+    strategy:'freeze-last-clean-frame',
+    preserveVisualStyle:true,
+    preserveDuration:true,
+    defaultEndingSeconds:2
+  };
+}
+
 function taskUrl(client, language, output){
   return output === 'website' ? `/presentaciones/${client}/presentacion?lang=${language}` : null;
 }
@@ -22,7 +33,7 @@ export function buildGeneration({client, displayName, outputs, languages, source
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],
         status:output === 'website' ? 'ready' : 'queued',
-        url:taskUrl(client, language, output), attempts:0, updatedAt:now
+        url:taskUrl(client, language, output), attempts:0, postProcess:postProcess(output), updatedAt:now
       };
     }
   }
@@ -34,7 +45,12 @@ export function buildGeneration({client, displayName, outputs, languages, source
 
 export function normalizeGeneration(job){
   if (!job || typeof job !== 'object') return job;
-  if (job.schemaVersion >= 2 && job.tasks && typeof job.tasks === 'object') return recomputeGeneration(job);
+  if (job.schemaVersion >= 2 && job.tasks && typeof job.tasks === 'object') {
+    for (const task of Object.values(job.tasks)) {
+      if (task?.output === 'video' && !task.postProcess) task.postProcess = postProcess('video');
+    }
+    return recomputeGeneration(job);
+  }
   const languages = Array.isArray(job.languages) && job.languages.length ? job.languages : ['es'];
   const outputs = Array.isArray(job.requested) && job.requested.length ? job.requested : Object.keys(job.artifacts || {});
   const tasks = {};
@@ -46,6 +62,7 @@ export function normalizeGeneration(job){
         id:key, language, languageLabel:LANGUAGE_LABELS[language] || language.toUpperCase(), output,
         label:old.label || OUTPUT_LABELS[output] || output, status:VALID_STATUSES.has(old.status) ? old.status : 'queued',
         url:old.url || taskUrl(job.client, language, output), error:old.error, attempts:0,
+        postProcess:postProcess(output),
         updatedAt:old.updatedAt || job.updatedAt || job.createdAt || new Date().toISOString()
       };
     }

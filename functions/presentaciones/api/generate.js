@@ -57,7 +57,8 @@ function buildSource(data){
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}.\n`+
     `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
     `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.\n`+
-    `- Sustituir siempre la portada final del proveedor por el cierre corporativo AdmiraNeXT «Gracias / Thank you».`;
+    `- En vídeo, eliminar únicamente la tarjeta final del proveedor y prolongar el último fotograma limpio durante ese tramo.\n`+
+    `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.`;
 }
 
 export async function onRequestPut(context){
