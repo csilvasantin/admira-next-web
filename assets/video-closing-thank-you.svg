@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <radialGradient id="glow" cx="82%" cy="12%" r="75%">
+      <stop offset="0" stop-color="#173657"/>
+      <stop offset="0.58" stop-color="#0b192b"/>
+      <stop offset="1" stop-color="#07101c"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <circle cx="1115" cy="-45" r="275" fill="none" stroke="#3df08a" stroke-opacity=".13" stroke-width="76"/>
+  <circle cx="1115" cy="-45" r="155" fill="none" stroke="#3df08a" stroke-opacity=".08" stroke-width="34"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+    <text x="112" y="124" fill="#3df08a" font-size="21" font-weight="800" letter-spacing="5">ADMIRANEXT</text>
+    <rect x="112" y="166" width="74" height="6" rx="3" fill="#3df08a"/>
+    <text x="108" y="404" fill="#f5f9ff" font-size="126" font-weight="780" letter-spacing="-5">Gracias</text>
+    <text x="116" y="482" fill="#91a5c0" font-size="39" font-weight="520" letter-spacing="1">Thank you</text>
+    <text x="112" y="628" fill="#607792" font-size="20" font-weight="650" letter-spacing="3">ADMIRANEXT.COM</text>
+  </g>
+</svg>

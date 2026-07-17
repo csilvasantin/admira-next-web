@@ -56,7 +56,8 @@ function buildSource(data){
     `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n\n`+
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}.\n`+
     `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
-    `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.`;
+    `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.\n`+
+    `- Sustituir siempre la portada final del proveedor por el cierre corporativo AdmiraNeXT «Gracias / Thank you».`;
 }
 
 export async function onRequestPut(context){
