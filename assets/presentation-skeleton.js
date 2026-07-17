@@ -59,5 +59,12 @@
     currentLanguage=language;
     if(model) render(model,currentLanguage);
   });
-  (async()=>{ try{model=await json(api);}catch(_){try{model=await json(fallback);}catch(__){host.textContent='Esqueleto no disponible.';return;}} render(model,currentLanguage); })();
+  (async()=>{
+    let local=null, saved=null;
+    try{local=await json(fallback);}catch(_){}
+    try{saved=await json(api);}catch(_){}
+    if(!local&&!saved){host.textContent='Esqueleto no disponible.';return;}
+    model={...(local||{}),...(saved||{}),translations:{...(local?.translations||{}),...(saved?.translations||{})}};
+    render(model,currentLanguage);
+  })();
 })();
