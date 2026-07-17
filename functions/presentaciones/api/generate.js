@@ -1,7 +1,7 @@
+import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
+
 const MAX_BYTES = 32 * 1024;
 const enc = new TextEncoder();
-const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
-const LANGUAGES = ['es','ca','en'];
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), { status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'} });
@@ -47,6 +47,18 @@ function buildIdeas(input, slug, languages){
   };
 }
 
+function buildSource(data){
+  const blocks=data.skeleton.filter(item=>item.enabled!==false).map((item,index)=>
+    `${index+1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`
+  ).join('\n\n');
+  return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n`+
+    `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n${blocks}\n\n`+
+    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n\n`+
+    `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}.\n`+
+    `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
+    `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.`;
+}
+
 export async function onRequestPut(context){
   if (!context.env.PRESENTATION_IDEAS || !context.env.PRES_SIGNING_KEY) return json({error:'Generador no configurado.'},503);
   const origin=context.request.headers.get('Origin'); const url=new URL(context.request.url);
@@ -75,6 +87,7 @@ export async function onRequestPut(context){
   };
   if (input.website && !/^https:\/\//i.test(input.website)) return json({error:'La web debe comenzar por https://'},400);
   const ideas=buildIdeas(input,slug,languages);
+  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
     schemaVersion:1,slug,displayName,website:input.website,problem:input.problem,audience:input.audience,outputs,languages,
     theme:{primary:input.primaryColor,accent:input.accentColor},
@@ -84,7 +97,8 @@ export async function onRequestPut(context){
   await Promise.all([
     context.env.PRESENTATION_IDEAS.put(`presentation:${slug}`,JSON.stringify(presentation)),
     context.env.PRESENTATION_IDEAS.put(`ideas:${slug}`,JSON.stringify(ideas)),
-    context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas))
+    context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas)),
+    context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

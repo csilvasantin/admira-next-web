@@ -1,11 +1,7 @@
+import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
+
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
-const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
-const LANGUAGES = ['es','ca','en'];
-const OUTPUT_LABELS = {
-  website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
-  documents:'Documento de trabajo', infographic:'Infografía'
-};
 
 function response(body, status = 200){
   return new Response(body == null ? null : JSON.stringify(body), {
@@ -97,37 +93,6 @@ function buildSource(data){
     `- Notas del editor: ${data.notes || 'Sin notas adicionales.'}${translated}`;
 }
 
-function buildGeneration(data){
-  const now = new Date().toISOString();
-  const id = crypto.randomUUID();
-  const artifacts = Object.fromEntries(data.outputs.map(output => [output, {
-    label: OUTPUT_LABELS[output],
-    status: output === 'website' ? 'ready' : 'queued',
-    url: output === 'website' ? `/presentaciones/${data.client}/presentacion` : null,
-    updatedAt: now
-  }]));
-  const pending = data.outputs.some(output => output !== 'website');
-  return {
-    schemaVersion: 1,
-    id,
-    client: data.client,
-    displayName: data.displayName,
-    status: pending ? 'queued' : 'complete',
-    requested: data.outputs,
-    artifacts,
-    sourceText: buildSource(data),
-    provider: 'notebooklm',
-    createdAt: now,
-    updatedAt: now
-  };
-}
-
-function publicGeneration(job){
-  if (!job) return null;
-  const { sourceText, provider, ...safe } = job;
-  return safe;
-}
-
 export async function onRequest(context){
   const client = String(context.params.client || '').toLowerCase();
   if (!context.env.PRESENTATION_IDEAS) return response({ error: 'Almacenamiento no configurado.' }, 503);
@@ -159,7 +124,7 @@ export async function onRequest(context){
   try { data = normalize(payload, client); }
   catch (error) { return response({ error: error.message || 'Contenido no válido.' }, 400); }
 
-  const generation = buildGeneration(data);
+  const generation = buildGeneration({...data, sourceText:buildSource(data)});
   const writes = [
     context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(data)),
     context.env.PRESENTATION_IDEAS.put(`generation:${client}`, JSON.stringify(generation))

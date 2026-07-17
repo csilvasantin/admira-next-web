@@ -7,7 +7,7 @@ function pending(number,title,hint,icon,copy){
 }
 
 function artifact(number,title,hint,icon,copy,item,kind){
-  if (!item || item.status !== 'ready' || !item.url) return pending(number,title,hint,icon,copy);
+  if (!item || !['ready','published','complete'].includes(item.status) || !item.url) return pending(number,title,hint,icon,copy);
   const url=esc(item.url);
   let media='';
   if(kind==='audio') media=`<audio class="media" controls preload="metadata" src="${url}"></audio>`;
