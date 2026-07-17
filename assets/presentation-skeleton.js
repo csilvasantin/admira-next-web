@@ -6,6 +6,8 @@
   const base = host.dataset.base || location.pathname.replace(/[^/]*$/, '');
   const api = `/presentaciones/${client}/api/ideas`;
   const fallback = `${base.replace(/\/$/,'')}/ideas.json`;
+  let model = null;
+  let currentLanguage = document.documentElement.lang || 'es';
 
   function style(){
     if (document.getElementById('presentation-skeleton-style')) return;
@@ -23,23 +25,39 @@
     const selected=new Set(Array.isArray(data.outputs)&&data.outputs.length?data.outputs:all);
     const map={site:'website',audio:'audio','vídeo':'video',video:'video',pdf:'pdf',powerpoint:'powerpoint','documentos de trabajo':'documents',infografía:'infographic',infografia:'infographic'};
     document.querySelectorAll('section.sec').forEach(section=>{
+      const output=section.dataset.output;
       const title=section.querySelector('.sec-h h2')?.textContent.trim().toLowerCase();
-      if(title&&map[title]) section.style.display=selected.has(map[title])?'':'none';
+      const key=output||map[title];
+      const cardLanguageAllowed=!section.hasAttribute('data-multilingual-cards')||[...section.querySelectorAll('.card[data-lang-only]')].some(card=>card.dataset.langOnly.split(',').includes(currentLanguage));
+      const languageAllowed=(!section.dataset.langOnly||section.dataset.langOnly.split(',').includes(currentLanguage))&&cardLanguageAllowed;
+      if(key) section.style.display=selected.has(key)&&languageAllowed?'':'none';
     });
   }
-  function render(data){
+  function localized(data, language){
+    if(language==='es'||!data.translations?.[language]) return data;
+    return {...data,...data.translations[language],outputs:data.outputs,translations:data.translations};
+  }
+  function render(data, language=currentLanguage){
+    const content=localized(data,language);
     style(); host.textContent='';
-    const objective=el('p','ps-objective'); objective.append(el('strong','', 'Objetivo · '),document.createTextNode(data.objective||'')); host.append(objective);
+    const objectiveLabels={es:'Objetivo · ',ca:'Objectiu · ',en:'Objective · '};
+    const objective=el('p','ps-objective'); objective.append(el('strong','',objectiveLabels[language]||objectiveLabels.es),document.createTextNode(content.objective||'')); host.append(objective);
     const grid=el('div','ps-grid');
-    (data.skeleton||[]).filter(x=>x.enabled!==false).forEach((item,index)=>{
+    (content.skeleton||[]).filter(x=>x.enabled!==false).forEach((item,index)=>{
       const card=el('article','ps-card'); card.append(el('span','ps-num',String(index+1).padStart(2,'0')),el('h3','',item.title),el('p','ps-message',item.message),el('p','ps-detail',item.detail)); grid.append(card);
     });
     host.append(grid);
-    const close=el('div','ps-close'); close.append(el('strong','',data.closing?.title||''),el('span','',data.closing?.action||'')); host.append(close);
-    const eyebrow=document.querySelector('[data-ideas-eyebrow]'); if(eyebrow&&data.hero?.eyebrow)eyebrow.textContent=data.hero.eyebrow;
-    const title=document.querySelector('[data-ideas-title]'); if(title&&data.hero?.title)title.textContent=data.hero.title;
-    const summary=document.querySelector('[data-ideas-summary]'); if(summary&&data.hero?.summary)summary.textContent=data.hero.summary;
+    const close=el('div','ps-close'); close.append(el('strong','',content.closing?.title||''),el('span','',content.closing?.action||'')); host.append(close);
+    const eyebrow=document.querySelector('[data-ideas-eyebrow]'); if(eyebrow&&content.hero?.eyebrow)eyebrow.textContent=content.hero.eyebrow;
+    const title=document.querySelector('[data-ideas-title]'); if(title&&content.hero?.title)title.textContent=content.hero.title;
+    const summary=document.querySelector('[data-ideas-summary]'); if(summary&&content.hero?.summary)summary.textContent=content.hero.summary;
     applyOutputs(data);
   }
-  (async()=>{ try{render(await json(api));}catch(_){try{render(await json(fallback));}catch(__){host.textContent='Esqueleto no disponible.';}} })();
+  window.addEventListener('admira-language-change',event=>{
+    const language=event.detail?.language;
+    if(!['es','ca','en'].includes(language)) return;
+    currentLanguage=language;
+    if(model) render(model,currentLanguage);
+  });
+  (async()=>{ try{model=await json(api);}catch(_){try{model=await json(fallback);}catch(__){host.textContent='Esqueleto no disponible.';return;}} render(model,currentLanguage); })();
 })();

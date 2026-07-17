@@ -467,6 +467,13 @@ b,strong{font-weight:700}
     applyEditableContent(lang);
   }
 
+  window.addEventListener('message',function(event){
+    if(event.origin!==location.origin||event.source!==window.parent) return;
+    if(event.data&&event.data.type==='admira-set-language'&&['es','ca','en'].indexOf(event.data.language)!==-1){
+      applyLanguage(event.data.language);
+    }
+  });
+
   // dots
   var dots=document.getElementById('dots');
   slides.forEach(function(s,idx){
@@ -549,7 +556,8 @@ b,strong{font-weight:700}
   if(m){ i=Math.max(0,Math.min(N-1,parseInt(m[1],10)-1)); }
   prepareCatalan();
   ideas=window.__ADMIRA_PRESENTATION_CONTENT__||null;
-  applyLanguage('es');
+  var requestedLanguage=new URL(location.href).searchParams.get('lang');
+  applyLanguage(['es','ca','en'].indexOf(requestedLanguage)!==-1?requestedLanguage:'es');
   render();
 })();
 </script>
