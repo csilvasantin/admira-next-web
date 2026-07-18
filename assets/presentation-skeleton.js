@@ -28,7 +28,9 @@
       const output=section.dataset.output;
       const title=section.querySelector('.sec-h h2')?.textContent.trim().toLowerCase();
       const key=output||map[title];
-      const cardLanguageAllowed=!section.hasAttribute('data-multilingual-cards')||[...section.querySelectorAll('.card[data-lang-only]')].some(card=>card.dataset.langOnly.split(',').includes(currentLanguage));
+      const multilingualCards=[...section.querySelectorAll('.card[data-lang-only]')];
+      multilingualCards.forEach(card=>{card.style.display=card.dataset.langOnly.split(',').includes(currentLanguage)?'':'none'});
+      const cardLanguageAllowed=!section.hasAttribute('data-multilingual-cards')||multilingualCards.some(card=>card.dataset.langOnly.split(',').includes(currentLanguage));
       const languageAllowed=(!section.dataset.langOnly||section.dataset.langOnly.split(',').includes(currentLanguage))&&cardLanguageAllowed;
       if(key) section.style.display=selected.has(key)&&languageAllowed?'':'none';
     });

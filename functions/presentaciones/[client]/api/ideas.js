@@ -1,4 +1,4 @@
-import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
+import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration, languageReadiness, productionLevelBrief } from '../../_generation.js';
 import { normalizeInspiration } from '../../_inspiration.js';
 import { normalizeMood, normalizePresentationStyle, themeFromPresentationStyle, presentationStyleBrief } from '../../_mood.js';
 
@@ -93,9 +93,10 @@ function buildSource(data){
   }).join('');
   const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL\nReferencia: ${data.inspiration.url}\nPerfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\nInterpretar, no copiar: conservar el ADN visual en todos los entregables sin reutilizar marca, código ni textos propietarios.\n`:'';
   const presentationStyle=presentationStyleBrief(data.presentationStyle,data.mood,data.displayName);
+  const productionLevel=productionLevelBrief(data.presentationStyle);
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n` +
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n` +
-    `${blocks}\n\nCIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${presentationStyle}${inspiration}\n` +
+    `${blocks}\n\nCIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${presentationStyle}${productionLevel}${inspiration}\n` +
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual principal es AdmiraNeXT × ${data.displayName}.\n` +
     `- Mantener un tono ejecutivo, claro, humano y orientado a decisión.\n` +
     `- Respetar la marca, logotipo y colores oficiales del cliente y la dirección visual inspiradora.\n` +
@@ -136,7 +137,8 @@ export async function onRequest(context){
   try { data = normalize(payload, client); }
   catch (error) { return response({ error: error.message || 'Contenido no válido.' }, 400); }
 
-  const generation = buildGeneration({...data, presentationStyle:data.presentationStyle, mood:data.mood, sourceText:buildSource(data)});
+  const readiness=languageReadiness(data,data.languages);
+  const generation = buildGeneration({...data, presentationStyle:data.presentationStyle, mood:data.mood, languageReadiness:readiness, sourceText:buildSource(data)});
   const writes = [
     context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(data)),
     context.env.PRESENTATION_IDEAS.put(`generation:${client}`, JSON.stringify(generation))

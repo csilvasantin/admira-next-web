@@ -1,4 +1,4 @@
-import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
+import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration, languageReadiness, productionLevelBrief } from '../_generation.js';
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 import { normalizeMood, normalizePresentationStyle, themeFromPresentationStyle, presentationStyleBrief } from '../_mood.js';
 
@@ -70,9 +70,10 @@ function buildSource(data){
   ).join('\n\n');
   const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL INSPIRADORA\n- Referencia: ${data.inspiration.url}\n- Perfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\n- Paleta extraída: ${(data.inspiration.palette||[]).join(', ')}.\n- Interpretar estos rasgos en clave ADmiraNeXT × ${data.displayName}; no copiar código, logotipos, textos ni elementos propietarios.\n`:'';
   const presentationStyle=presentationStyleBrief(data.presentationStyle,data.mood,data.displayName);
+  const productionLevel=productionLevelBrief(data.presentationStyle);
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n`+
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n${blocks}\n\n`+
-    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${presentationStyle}${inspiration}\n`+
+    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${presentationStyle}${productionLevel}${inspiration}\n`+
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}.\n`+
     `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
     `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.\n`+
@@ -119,7 +120,8 @@ export async function onRequestPut(context){
   input.presentationStyle=normalizePresentationStyle(raw.presentationStyle,'movie');
   input.mood=input.presentationStyle==='movie'?normalizeMood(raw.mood||raw.moodMovie,{randomWhenEmpty:true}):null;
   const ideas=buildIdeas(input,slug,languages);
-  const generation=buildGeneration({client:slug,displayName,outputs,languages,presentationStyle:input.presentationStyle,mood:input.mood,sourceText:buildSource(ideas)});
+  const readiness=languageReadiness(ideas,languages);
+  const generation=buildGeneration({client:slug,displayName,outputs,languages,presentationStyle:input.presentationStyle,mood:input.mood,languageReadiness:readiness,sourceText:buildSource(ideas)});
   const moodOverrides={};
   if(/^#[0-9a-f]{6}$/i.test(String(raw.primaryColor||'')))moodOverrides.primary=input.primaryColor;
   if(/^#[0-9a-f]{6}$/i.test(String(raw.accentColor||'')))moodOverrides.accent=input.accentColor;

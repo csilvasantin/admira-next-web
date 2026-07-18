@@ -26,7 +26,7 @@
   outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}.generation-panel{margin-top:18px}.generation-panel[hidden]{display:none}.generation-badge{border:1px solid var(--ok);border-radius:999px;padding:8px 11px;color:var(--ok);font:800 10px/1 var(--mono);letter-spacing:.09em}.generation-languages{display:grid;gap:14px}.generation-language{border-top:1px solid var(--line);padding-top:13px}.generation-language:first-child{border-top:0;padding-top:0}.generation-language h3{margin:0 0 9px;font:800 11px/1 var(--mono);letter-spacing:.09em;color:var(--muted);text-transform:uppercase}.generation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.generation-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#091427;font:700 12px/1.3 var(--sans)}.generation-item small{color:var(--muted);font:800 9px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.generation-item.ready small,.generation-item.published small,.generation-item.complete small{color:var(--ok)}.generation-item.processing small{color:#72a7ff}.generation-item.failed small{color:#ff7b8a}.task-actions{grid-column:1/-1;display:flex;gap:7px}.task-action{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px 9px;font:800 9px/1 var(--mono);cursor:pointer}.task-action:hover{border-color:var(--ok);color:var(--ok)}@media(max-width:720px){.output-grid,.generation-grid{grid-template-columns:1fr}}';
   document.head.appendChild(outputStyle);
   const languageStyle = document.createElement('style');
-  languageStyle.textContent = '.editor-language-panel{margin-bottom:18px}.editor-language-tabs{display:flex;gap:9px;flex-wrap:wrap}.language-tab{border:1px solid var(--line);background:#091427;color:var(--muted);border-radius:999px;padding:11px 15px;font:800 11px/1 var(--mono);cursor:pointer}.language-tab.active{border-color:var(--ok);background:rgba(82,229,154,.1);color:var(--ok)}';
+  languageStyle.textContent = '.editor-language-panel{margin-bottom:18px}.editor-language-tabs{display:flex;gap:9px;flex-wrap:wrap}.language-tab{border:1px solid var(--line);background:#091427;color:var(--muted);border-radius:999px;padding:11px 15px;font:800 11px/1 var(--mono);cursor:pointer}.language-tab.pending{border-style:dashed;color:#ffbf69}.language-tab.active{border-color:var(--ok);background:rgba(82,229,154,.1);color:var(--ok)}';
   document.head.appendChild(languageStyle);
   document.querySelector('.savebar').before(outputPanel);
   const generationPanel = document.createElement('section');
@@ -72,10 +72,17 @@
   function baseContent(){
     return {hero:model.hero||{},objective:model.objective||'',skeleton:model.skeleton||[],closing:model.closing||{},notes:model.notes||''};
   }
+  function emptyTranslation(){
+    return {hero:{eyebrow:'',title:'',summary:''},objective:'',skeleton:(model.skeleton||[]).map((item,index)=>({id:item.id||`idea-${index+1}`,title:'',message:'',detail:'',enabled:item.enabled!==false})),closing:{title:'',action:''},notes:''};
+  }
+  function contentComplete(content){
+    const blocks=(content?.skeleton||[]).filter(item=>item.enabled!==false);
+    return Boolean(content?.hero?.title?.trim()&&content?.hero?.summary?.trim()&&content?.objective?.trim()&&blocks.length&&blocks.every(item=>item.title?.trim()&&item.message?.trim())&&content?.closing?.title?.trim()&&content?.closing?.action?.trim());
+  }
   function contentFor(language){
     if(language==='es') return baseContent();
     model.translations=model.translations&&typeof model.translations==='object'?model.translations:{};
-    if(!model.translations[language]) model.translations[language]=JSON.parse(JSON.stringify(baseContent()));
+    if(!model.translations[language]) model.translations[language]=emptyTranslation();
     return model.translations[language];
   }
   function visibleContent(){
@@ -96,8 +103,10 @@
     const languages=enabledLanguages();
     if(!languages.includes(activeLanguage)) activeLanguage=languages[0];
     languages.forEach(language=>{
+      const complete=language==='es'?contentComplete(baseContent()):contentComplete(model.translations?.[language]);
       const button=document.createElement('button'); button.type='button'; button.className=`language-tab${language===activeLanguage?' active':''}`;
-      button.dataset.language=language; button.textContent=`${language.toUpperCase()} · ${LANGUAGE_NAMES[language]}`; host.appendChild(button);
+      if(!complete)button.classList.add('pending');
+      button.dataset.language=language; button.textContent=`${language.toUpperCase()} · ${LANGUAGE_NAMES[language]}${complete?'':' · Pendiente'}`; host.appendChild(button);
     });
   }
   function renderLanguage(){
@@ -122,10 +131,11 @@
   function renderGeneration(){
     if (!generation) { generationPanel.hidden = true; return; }
     generationPanel.hidden = false;
-    const states = {queued:'En cola',processing:'En producción',ready:'Listo',published:'Publicado',failed:'Error',skipped:'Omitido',complete:'Completado'};
+    const states = {waiting:'Falta traducción',queued:'En cola',processing:'En producción',ready:'Listo',published:'Publicado',failed:'Error',skipped:'Omitido',complete:'Completado'};
     $('generationBadge').textContent = states[generation.status] || generation.status || 'En cola';
     const date = generation.createdAt ? new Date(generation.createdAt).toLocaleString('es-ES') : '';
-    $('generationSummary').textContent = `Solicitud ${date} · el website se publica al instante y los archivos se incorporan cuando termina la producción.`;
+    const level=generation.productionLevel||{};
+    $('generationSummary').textContent = `Solicitud ${date} · ${level.label||'Nivel'} / ${level.look||'Look'}${level.durationSeconds?` · audio y vídeo objetivo ${level.durationSeconds/60} min por idioma`:''}. Cada archivo aparece solo cuando existe realmente.`;
     const tasks = Object.values(generation.tasks || {});
     if (!tasks.length) {
       $('generationArtifacts').innerHTML = Object.values(generation.artifacts || {}).map(item => {
@@ -140,10 +150,11 @@
       const localized=tasks.filter(task=>task.language===language); if(!localized.length)return '';
       const items=localized.map(task=>{
         const status=task.status||'queued'; const name=esc(task.label||task.output); const state=esc(states[status]||status);
+        const duration=task.actualDurationSeconds?` · real ${Math.floor(task.actualDurationSeconds/60)}:${String(Math.round(task.actualDurationSeconds%60)).padStart(2,'0')}`:task.targetDurationSeconds?` · objetivo ${task.targetDurationSeconds/60} min`:'';
         const content=task.url?`<a href="${esc(task.url)}" target="_blank" rel="noopener">${name}</a>`:`<span>${name}</span>`;
         const retry=['failed','skipped'].includes(status)?`<button class="task-action" data-task-action="retry" data-task="${esc(task.id)}">Reintentar</button>`:'';
         const publish=['ready','complete'].includes(status)&&task.url?`<button class="task-action" data-task-action="publish" data-task="${esc(task.id)}">Publicar</button>`:'';
-        return `<div class="generation-item ${esc(status)}">${content}<small>${state}</small>${retry||publish?`<div class="task-actions">${retry}${publish}</div>`:''}</div>`;
+        return `<div class="generation-item ${esc(status)}">${content}<small>${state}${esc(duration)}</small>${retry||publish?`<div class="task-actions">${retry}${publish}</div>`:''}</div>`;
       }).join('');
       return `<section class="generation-language"><h3>${esc(language.toUpperCase())} · ${esc(LANGUAGE_NAMES[language]||language)}</h3><div class="generation-grid">${items}</div></section>`;
     }).join('');
@@ -167,7 +178,7 @@
   }
   function readForm(){
     commitLanguage();
-    return {...model,schemaVersion:2,client,displayName:$('displayName').value,languages:enabledLanguages(),outputs:outputBoxes.filter(box=>box.checked).map(box=>box.value)};
+    return {...model,schemaVersion:3,client,displayName:$('displayName').value,languages:enabledLanguages(),outputs:outputBoxes.filter(box=>box.checked).map(box=>box.value)};
   }
   function syncRaw(){ $('raw').value = JSON.stringify(readForm(), null, 2); }
   function addIdea(){

@@ -9,6 +9,7 @@ function json(body, status = 200){
 
 function cleanUrl(value){ return typeof value === 'string' && value.length <= 1000 ? value : null; }
 function cleanError(value){ return typeof value === 'string' && value.length <= 500 ? value : null; }
+function cleanDuration(value){ const number=Number(value); return Number.isFinite(number)&&number>0&&number<=36000?number:null; }
 
 export async function onRequest(context){
   if (!context.env.PRESENTATION_IDEAS) return json({error:'Almacenamiento no configurado.'},503);
@@ -36,9 +37,9 @@ export async function onRequest(context){
     const keys = requested.length ? requested : Object.keys(job.tasks).filter(key => job.tasks[key].status === 'failed');
     for (const taskId of keys) {
       const task = job.tasks[taskId];
-      if (!task) continue;
+      if (!task || task.status === 'waiting') continue;
       task.status = task.output === 'website' ? 'ready' : 'queued';
-      task.url = task.output === 'website' ? (task.url || `/presentaciones/${client}/presentacion?lang=${task.language}`) : null;
+      task.url = task.output === 'website' ? (task.url || `/presentaciones/${client}/presentacion?lang=${task.language}&look=${job.presentationStyle||'classic'}`) : null;
       delete task.error;
       task.attempts = Number(task.attempts || 0) + 1;
       task.updatedAt = now;
@@ -62,6 +63,7 @@ export async function onRequest(context){
       if (VALID_STATUSES.has(update.status)) task.status = update.status;
       const nextUrl = cleanUrl(update.url); if (nextUrl !== null) task.url = nextUrl;
       const nextError = cleanError(update.error); if (nextError !== null) task.error = nextError;
+      const nextDuration=cleanDuration(update.actualDurationSeconds); if(nextDuration!==null)task.actualDurationSeconds=nextDuration;
       task.updatedAt = now;
     }
   }
@@ -70,12 +72,14 @@ export async function onRequest(context){
   if (payload.artifacts && typeof payload.artifacts === 'object') {
     for (const [output, update] of Object.entries(payload.artifacts)) {
       if (!update || typeof update !== 'object') continue;
-      for (const task of Object.values(job.tasks).filter(item => item.output === output)) {
-        if (VALID_STATUSES.has(update.status)) task.status = update.status;
-        const nextUrl = cleanUrl(update.url); if (nextUrl !== null) task.url = nextUrl;
-        const nextError = cleanError(update.error); if (nextError !== null) task.error = nextError;
-        task.updatedAt = now;
-      }
+      const candidates=Object.values(job.tasks).filter(item=>item.output===output);
+      const language=typeof update.language==='string'?update.language:job.languages?.[0];
+      const task=candidates.find(item=>item.language===language); if(!task)continue;
+      if (VALID_STATUSES.has(update.status)) task.status = update.status;
+      const nextUrl = cleanUrl(update.url); if (nextUrl !== null) task.url = nextUrl;
+      const nextError = cleanError(update.error); if (nextError !== null) task.error = nextError;
+      const nextDuration=cleanDuration(update.actualDurationSeconds); if(nextDuration!==null)task.actualDurationSeconds=nextDuration;
+      task.updatedAt = now;
     }
   }
 
