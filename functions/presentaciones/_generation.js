@@ -1,4 +1,6 @@
 export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
+export const DEFAULT_OUTPUTS = ['website','audio','video','infographic'];
+export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','infographic']);
 export const LANGUAGES = ['es','ca','en'];
 export const OUTPUT_LABELS = {
   website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
@@ -12,7 +14,9 @@ export function taskKey(language, output){ return `${language}:${output}`; }
 
 export function updateTaskStatus(task, status, now = new Date().toISOString()){
   task.status = status;
-  if (!task.startedAt && status !== 'skipped') task.startedAt = now;
+  if (status === 'queued') task.requestedAt ||= now;
+  else if (!task.startedAt && status !== 'skipped') task.startedAt = now;
+  if (status === 'processing') task.submittedAt ||= now;
   if (COMPLETE_STATUSES.has(status)) {
     task.completedAt ||= now;
     delete task.failedAt;
@@ -54,7 +58,8 @@ export function buildGeneration({client, displayName, outputs, languages, source
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],
         status:output === 'website' ? 'ready' : 'queued',
         url:taskUrl(client, language, output), attempts:0, postProcess:postProcess(output),
-        startedAt:now, completedAt:output === 'website' ? now : undefined, updatedAt:now
+        provider:NOTEBOOKLM_OUTPUTS.has(output)?'notebooklm':'admiranext', requestedAt:now,
+        startedAt:output === 'website' ? now : undefined, completedAt:output === 'website' ? now : undefined, updatedAt:now
       };
     }
   }
@@ -69,7 +74,10 @@ export function normalizeGeneration(job){
   if (job.schemaVersion >= 2 && job.tasks && typeof job.tasks === 'object') {
     for (const task of Object.values(job.tasks)) {
       if (task?.output === 'video' && !task.postProcess) task.postProcess = postProcess('video');
-      if (!task?.startedAt && task?.status !== 'skipped') task.startedAt = job.createdAt || task.updatedAt || new Date().toISOString();
+      if (!task?.requestedAt) task.requestedAt = job.createdAt || task.updatedAt || new Date().toISOString();
+      if (!task?.provider) task.provider = NOTEBOOKLM_OUTPUTS.has(task?.output)?'notebooklm':'admiranext';
+      if (!task?.startedAt && !['queued','skipped'].includes(task?.status)) task.startedAt = task.submittedAt || task.updatedAt || job.createdAt;
+      if (task?.status === 'processing' && !task.submittedAt) task.submittedAt = task.startedAt;
       if (COMPLETE_STATUSES.has(task?.status) && !task.completedAt) task.completedAt = task.updatedAt || task.startedAt;
       if (['failed','skipped'].includes(task?.status) && !task.failedAt) task.failedAt = task.updatedAt || task.startedAt || job.createdAt;
     }
@@ -87,7 +95,10 @@ export function normalizeGeneration(job){
         label:old.label || OUTPUT_LABELS[output] || output, status:VALID_STATUSES.has(old.status) ? old.status : 'queued',
         url:old.url || taskUrl(job.client, language, output), error:old.error, attempts:0,
         postProcess:postProcess(output),
-        startedAt:old.startedAt || job.createdAt || old.updatedAt || job.updatedAt,
+        provider:NOTEBOOKLM_OUTPUTS.has(output)?'notebooklm':'admiranext',
+        requestedAt:old.requestedAt || job.createdAt || old.updatedAt || job.updatedAt,
+        startedAt:old.startedAt || old.submittedAt,
+        submittedAt:old.submittedAt,
         completedAt:old.completedAt, failedAt:old.failedAt,
         updatedAt:old.updatedAt || job.updatedAt || job.createdAt || new Date().toISOString()
       };
@@ -110,13 +121,15 @@ export function recomputeGeneration(job){
     let status = published ? 'published' : ready ? 'ready' : processing ? 'processing' : allFailed ? 'failed' : allTerminal ? 'complete' : 'queued';
     const available = published || ready;
     const failed = variants.find(task => ['failed','skipped'].includes(task.status) && task.error) || variants.find(task => ['failed','skipped'].includes(task.status));
-    const dates = variants.map(task => Date.parse(task.startedAt || task.updatedAt || '')).filter(Number.isFinite);
+    const dates = variants.map(task => Date.parse(task.startedAt || task.submittedAt || '')).filter(Number.isFinite);
+    const requests = variants.map(task => Date.parse(task.requestedAt || '')).filter(Number.isFinite);
     const updates = variants.map(task => Date.parse(task.updatedAt || '')).filter(Number.isFinite);
     artifacts[output] = {
       label:OUTPUT_LABELS[output] || output, status, url:available?.url || null,
       language:available?.language || null, variants:variants.map(task => task.id),
       ready:variants.filter(task => ['ready','published','complete'].includes(task.status)).length,
-      total:variants.length, startedAt:dates.length ? new Date(Math.min(...dates)).toISOString() : job.createdAt || null,
+      total:variants.length, requestedAt:requests.length ? new Date(Math.min(...requests)).toISOString() : job.createdAt || null,
+      startedAt:dates.length ? new Date(Math.min(...dates)).toISOString() : null,
       completedAt:available?.completedAt || null, failedAt:failed?.failedAt || null,
       error:failed?.error || null,
       updatedAt:updates.length ? new Date(Math.max(...updates)).toISOString() : now

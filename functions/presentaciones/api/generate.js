@@ -1,4 +1,4 @@
-import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
+import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 
 const MAX_BYTES = 32 * 1024;
@@ -75,7 +75,7 @@ export async function onRequestPut(context){
   if (['api','generador','index','assets'].includes(slug)) return json({error:'Ese identificador está reservado.'},400);
   const existing=await context.env.PRESENTATION_IDEAS.get(`presentation:${slug}`,{type:'json'});
   if (existing && raw.overwrite!==true) return json({error:'Ya existe una presentación con ese identificador.',exists:true,slug},409);
-  const requested=Array.isArray(raw.outputs)?raw.outputs.map(value=>String(value).toLowerCase()):[];
+  const requested=Array.isArray(raw.outputs)?raw.outputs.map(value=>String(value).toLowerCase()):DEFAULT_OUTPUTS;
   const outputs=[...new Set(requested.filter(value=>OUTPUTS.includes(value)))];
   if (!outputs.length) return json({error:'Selecciona al menos un entregable.'},400);
   const requestedLanguages=Array.isArray(raw.languages)?raw.languages.map(value=>String(value).toLowerCase()):['es'];

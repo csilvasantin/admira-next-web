@@ -1,4 +1,4 @@
-import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
+import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
 import { normalizeInspiration } from '../../_inspiration.js';
 
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
@@ -23,7 +23,7 @@ function normalize(payload, client){
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Formato no válido.');
   const skeleton = Array.isArray(payload.skeleton) ? payload.skeleton.slice(0, 20) : [];
   if (!skeleton.length) throw new Error('Añade al menos una idea al esqueleto.');
-  const requested = Array.isArray(payload.outputs) ? payload.outputs.map(value => String(value).toLowerCase()) : OUTPUTS;
+  const requested = Array.isArray(payload.outputs) ? payload.outputs.map(value => String(value).toLowerCase()) : DEFAULT_OUTPUTS;
   const outputs = [...new Set(requested.filter(value => OUTPUTS.includes(value)))];
   if (!outputs.length) throw new Error('Selecciona al menos un contenido para generar.');
   const requestedLanguages = Array.isArray(payload.languages) ? payload.languages.map(value => String(value).toLowerCase()) : LANGUAGES;

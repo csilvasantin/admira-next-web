@@ -37,7 +37,9 @@ export async function onRequest(context){
     for (const taskId of keys) {
       const task = job.tasks[taskId];
       if (!task) continue;
+      delete task.requestedAt;
       delete task.startedAt;
+      delete task.submittedAt;
       updateTaskStatus(task,task.output === 'website' ? 'ready' : 'queued',now);
       task.url = task.output === 'website' ? (task.url || `/presentaciones/${client}/presentacion?lang=${task.language}`) : null;
       task.attempts = Number(task.attempts || 0) + 1;
