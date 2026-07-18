@@ -6,8 +6,28 @@ export const OUTPUT_LABELS = {
 };
 export const LANGUAGE_LABELS = { es:'Castellano', ca:'Català', en:'English' };
 export const VALID_STATUSES = new Set(['queued','processing','ready','published','complete','failed','skipped']);
+const COMPLETE_STATUSES = new Set(['ready','published','complete']);
 
 export function taskKey(language, output){ return `${language}:${output}`; }
+
+export function updateTaskStatus(task, status, now = new Date().toISOString()){
+  task.status = status;
+  if (!task.startedAt && status !== 'skipped') task.startedAt = now;
+  if (COMPLETE_STATUSES.has(status)) {
+    task.completedAt ||= now;
+    delete task.failedAt;
+    delete task.error;
+  } else if (['failed','skipped'].includes(status)) {
+    task.failedAt ||= now;
+    delete task.completedAt;
+  } else {
+    delete task.completedAt;
+    delete task.failedAt;
+    if (status !== 'skipped') delete task.error;
+  }
+  task.updatedAt = now;
+  return task;
+}
 
 function postProcess(output){
   if (output !== 'video') return undefined;
@@ -33,7 +53,8 @@ export function buildGeneration({client, displayName, outputs, languages, source
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],
         status:output === 'website' ? 'ready' : 'queued',
-        url:taskUrl(client, language, output), attempts:0, postProcess:postProcess(output), updatedAt:now
+        url:taskUrl(client, language, output), attempts:0, postProcess:postProcess(output),
+        startedAt:now, completedAt:output === 'website' ? now : undefined, updatedAt:now
       };
     }
   }
@@ -48,6 +69,9 @@ export function normalizeGeneration(job){
   if (job.schemaVersion >= 2 && job.tasks && typeof job.tasks === 'object') {
     for (const task of Object.values(job.tasks)) {
       if (task?.output === 'video' && !task.postProcess) task.postProcess = postProcess('video');
+      if (!task?.startedAt && task?.status !== 'skipped') task.startedAt = job.createdAt || task.updatedAt || new Date().toISOString();
+      if (COMPLETE_STATUSES.has(task?.status) && !task.completedAt) task.completedAt = task.updatedAt || task.startedAt;
+      if (['failed','skipped'].includes(task?.status) && !task.failedAt) task.failedAt = task.updatedAt || task.startedAt || job.createdAt;
     }
     return recomputeGeneration(job);
   }
@@ -63,6 +87,8 @@ export function normalizeGeneration(job){
         label:old.label || OUTPUT_LABELS[output] || output, status:VALID_STATUSES.has(old.status) ? old.status : 'queued',
         url:old.url || taskUrl(job.client, language, output), error:old.error, attempts:0,
         postProcess:postProcess(output),
+        startedAt:old.startedAt || job.createdAt || old.updatedAt || job.updatedAt,
+        completedAt:old.completedAt, failedAt:old.failedAt,
         updatedAt:old.updatedAt || job.updatedAt || job.createdAt || new Date().toISOString()
       };
     }
@@ -83,11 +109,17 @@ export function recomputeGeneration(job){
     const allFailed = variants.length && variants.every(task => ['failed','skipped'].includes(task.status));
     let status = published ? 'published' : ready ? 'ready' : processing ? 'processing' : allFailed ? 'failed' : allTerminal ? 'complete' : 'queued';
     const available = published || ready;
+    const failed = variants.find(task => ['failed','skipped'].includes(task.status) && task.error) || variants.find(task => ['failed','skipped'].includes(task.status));
+    const dates = variants.map(task => Date.parse(task.startedAt || task.updatedAt || '')).filter(Number.isFinite);
+    const updates = variants.map(task => Date.parse(task.updatedAt || '')).filter(Number.isFinite);
     artifacts[output] = {
       label:OUTPUT_LABELS[output] || output, status, url:available?.url || null,
       language:available?.language || null, variants:variants.map(task => task.id),
       ready:variants.filter(task => ['ready','published','complete'].includes(task.status)).length,
-      total:variants.length, updatedAt:now
+      total:variants.length, startedAt:dates.length ? new Date(Math.min(...dates)).toISOString() : job.createdAt || null,
+      completedAt:available?.completedAt || null, failedAt:failed?.failedAt || null,
+      error:failed?.error || null,
+      updatedAt:updates.length ? new Date(Math.max(...updates)).toISOString() : now
     };
   }
   const statuses = tasks.map(task => task.status);

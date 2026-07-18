@@ -1,4 +1,4 @@
-import { VALID_STATUSES, normalizeGeneration, recomputeGeneration, publicGeneration } from '../../_generation.js';
+import { VALID_STATUSES, normalizeGeneration, recomputeGeneration, publicGeneration, updateTaskStatus } from '../../_generation.js';
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), {
@@ -37,11 +37,10 @@ export async function onRequest(context){
     for (const taskId of keys) {
       const task = job.tasks[taskId];
       if (!task) continue;
-      task.status = task.output === 'website' ? 'ready' : 'queued';
+      delete task.startedAt;
+      updateTaskStatus(task,task.output === 'website' ? 'ready' : 'queued',now);
       task.url = task.output === 'website' ? (task.url || `/presentaciones/${client}/presentacion?lang=${task.language}`) : null;
-      delete task.error;
       task.attempts = Number(task.attempts || 0) + 1;
-      task.updatedAt = now;
     }
   }
 
@@ -50,7 +49,7 @@ export async function onRequest(context){
     for (const taskId of requested) {
       const task = job.tasks[taskId];
       if (task && task.url && ['ready','complete','published'].includes(task.status)) {
-        task.status = 'published'; task.updatedAt = now; delete task.error;
+        updateTaskStatus(task,'published',now);
       }
     }
   }
@@ -59,7 +58,7 @@ export async function onRequest(context){
     for (const [taskId, update] of Object.entries(payload.tasks)) {
       const task = job.tasks[taskId];
       if (!task || !update || typeof update !== 'object') continue;
-      if (VALID_STATUSES.has(update.status)) task.status = update.status;
+      if (VALID_STATUSES.has(update.status)) updateTaskStatus(task,update.status,now);
       const nextUrl = cleanUrl(update.url); if (nextUrl !== null) task.url = nextUrl;
       const nextError = cleanError(update.error); if (nextError !== null) task.error = nextError;
       task.updatedAt = now;
@@ -71,7 +70,7 @@ export async function onRequest(context){
     for (const [output, update] of Object.entries(payload.artifacts)) {
       if (!update || typeof update !== 'object') continue;
       for (const task of Object.values(job.tasks).filter(item => item.output === output)) {
-        if (VALID_STATUSES.has(update.status)) task.status = update.status;
+        if (VALID_STATUSES.has(update.status)) updateTaskStatus(task,update.status,now);
         const nextUrl = cleanUrl(update.url); if (nextUrl !== null) task.url = nextUrl;
         const nextError = cleanError(update.error); if (nextError !== null) task.error = nextError;
         task.updatedAt = now;

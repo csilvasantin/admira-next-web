@@ -23,7 +23,7 @@
   outputPanel.className = 'panel output-panel';
   outputPanel.innerHTML = '<div class="panel-h"><div><h2>¿Qué queremos obtener?</h2><p class="sub">Selecciona los contenidos que AdmiraNeXT debe recrear para esta presentación.</p></div></div><div class="output-grid"><label class="output"><input type="checkbox" name="output" value="website"><b>01</b><span>Website</span></label><label class="output"><input type="checkbox" name="output" value="audio"><b>02</b><span>Audio</span></label><label class="output"><input type="checkbox" name="output" value="video"><b>03</b><span>Vídeo</span></label><label class="output"><input type="checkbox" name="output" value="pdf"><b>04</b><span>PDF</span></label><label class="output"><input type="checkbox" name="output" value="powerpoint"><b>05</b><span>PowerPoint</span></label><label class="output"><input type="checkbox" name="output" value="documents"><b>06</b><span>Documento de trabajo</span></label><label class="output"><input type="checkbox" name="output" value="infographic"><b>07</b><span>Infografía</span></label><label class="output all"><input type="checkbox" id="allOutputs"><b>08</b><span>Todo</span></label></div>';
   const outputStyle = document.createElement('style');
-  outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}.generation-panel{margin-top:18px}.generation-panel[hidden]{display:none}.generation-badge{border:1px solid var(--ok);border-radius:999px;padding:8px 11px;color:var(--ok);font:800 10px/1 var(--mono);letter-spacing:.09em}.generation-languages{display:grid;gap:14px}.generation-language{border-top:1px solid var(--line);padding-top:13px}.generation-language:first-child{border-top:0;padding-top:0}.generation-language h3{margin:0 0 9px;font:800 11px/1 var(--mono);letter-spacing:.09em;color:var(--muted);text-transform:uppercase}.generation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.generation-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#091427;font:700 12px/1.3 var(--sans)}.generation-item small{color:var(--muted);font:800 9px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.generation-item.ready small,.generation-item.published small,.generation-item.complete small{color:var(--ok)}.generation-item.processing small{color:#72a7ff}.generation-item.failed small{color:#ff7b8a}.task-actions{grid-column:1/-1;display:flex;gap:7px}.task-action{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px 9px;font:800 9px/1 var(--mono);cursor:pointer}.task-action:hover{border-color:var(--ok);color:var(--ok)}@media(max-width:720px){.output-grid,.generation-grid{grid-template-columns:1fr}}';
+  outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}.generation-panel{margin-top:18px}.generation-panel[hidden]{display:none}.generation-badge{border:1px solid var(--ok);border-radius:999px;padding:8px 11px;color:var(--ok);font:800 10px/1 var(--mono);letter-spacing:.09em}.generation-languages{display:grid;gap:14px}.generation-language{border-top:1px solid var(--line);padding-top:13px}.generation-language:first-child{border-top:0;padding-top:0}.generation-language h3{margin:0 0 9px;font:800 11px/1 var(--mono);letter-spacing:.09em;color:var(--muted);text-transform:uppercase}.generation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.generation-item{display:grid;grid-template-columns:1fr minmax(110px,auto);align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#091427;font:700 12px/1.3 var(--sans)}.generation-item small{color:var(--muted);font:800 9px/1.35 var(--mono);letter-spacing:.04em;text-align:right;max-width:230px}.generation-item.ready small,.generation-item.published small,.generation-item.complete small{color:var(--ok)}.generation-item.processing small,.generation-item.queued small{color:#72a7ff}.generation-item.failed small,.generation-item.skipped small{color:#ff7b8a}.task-actions{grid-column:1/-1;display:flex;gap:7px}.task-action{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px 9px;font:800 9px/1 var(--mono);cursor:pointer}.task-action:hover{border-color:var(--ok);color:var(--ok)}@media(max-width:720px){.output-grid,.generation-grid{grid-template-columns:1fr}.generation-item{grid-template-columns:1fr}.generation-item small{text-align:left;max-width:none}}';
   document.head.appendChild(outputStyle);
   const languageStyle = document.createElement('style');
   languageStyle.textContent = '.editor-language-panel{margin-bottom:18px}.editor-language-tabs{display:flex;gap:9px;flex-wrap:wrap}.language-tab{border:1px solid var(--line);background:#091427;color:var(--muted);border-radius:999px;padding:11px 15px;font:800 11px/1 var(--mono);cursor:pointer}.language-tab.active{border-color:var(--ok);background:rgba(82,229,154,.1);color:var(--ok)}';
@@ -32,7 +32,7 @@
   const generationPanel = document.createElement('section');
   generationPanel.className = 'panel generation-panel';
   generationPanel.hidden = true;
-  generationPanel.innerHTML = '<div class="panel-h"><div><h2>Estado de producción</h2><p class="sub" id="generationSummary">Preparando la solicitud…</p></div><span class="generation-badge" id="generationBadge">PENDIENTE</span></div><div class="generation-grid" id="generationArtifacts"></div>';
+  generationPanel.innerHTML = '<div class="panel-h"><div><h2>Estado de producción</h2><p class="sub" id="generationSummary">Consultando el estado…</p></div><span class="generation-badge" id="generationBadge">CARGANDO</span></div><div class="generation-grid" id="generationArtifacts"></div>';
   outputPanel.after(generationPanel);
   document.querySelector('.savebar .btn.primary').textContent = 'Generar presentación';
   const outputBoxes = [...outputPanel.querySelectorAll('input[name="output"]')];
@@ -119,11 +119,22 @@
     outputBoxes.forEach(box => { box.checked = selected.has(box.value); });
     allOutputs.checked = outputBoxes.every(box => box.checked);
   }
+  function lifecycleDate(value){
+    const date=new Date(value||'');
+    return Number.isFinite(date.getTime())?date.toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'}):'';
+  }
+  function lifecycleState(item){
+    const status=item?.status||'queued';
+    if(['ready','published','complete'].includes(status)) return `Hecho${lifecycleDate(item.completedAt||item.updatedAt)?` · ${lifecycleDate(item.completedAt||item.updatedAt)}`:''}`;
+    if(['failed','skipped'].includes(status)) return `Error: ${item.error||(status==='skipped'?'entregable omitido':'el proveedor no devolvió el archivo')}`;
+    const since=lifecycleDate(item.startedAt||item.updatedAt||generation?.createdAt);
+    return since?`Procesándose desde ${since}`:'Procesándose';
+  }
   function renderGeneration(){
     if (!generation) { generationPanel.hidden = true; return; }
     generationPanel.hidden = false;
-    const states = {queued:'En cola',processing:'En producción',ready:'Listo',published:'Publicado',failed:'Error',skipped:'Omitido',complete:'Completado'};
-    $('generationBadge').textContent = states[generation.status] || generation.status || 'En cola';
+    const badgeStates = {queued:'PROCESÁNDOSE',processing:'PROCESÁNDOSE',ready:'HECHO',published:'HECHO',complete:'HECHO',failed:'ERROR',skipped:'ERROR'};
+    $('generationBadge').textContent = badgeStates[generation.status] || 'PROCESÁNDOSE';
     const date = generation.createdAt ? new Date(generation.createdAt).toLocaleString('es-ES') : '';
     $('generationSummary').textContent = `Solicitud ${date} · el website se publica al instante y los archivos se incorporan cuando termina la producción.`;
     const tasks = Object.values(generation.tasks || {});
@@ -131,7 +142,7 @@
       $('generationArtifacts').innerHTML = Object.values(generation.artifacts || {}).map(item => {
         const status=item.status||'queued'; const name=esc(item.label||'Entregable');
         const content=item.url?`<a href="${esc(item.url)}" target="_blank" rel="noopener">${name}</a>`:`<span>${name}</span>`;
-        return `<div class="generation-item ${esc(status)}">${content}<small>${esc(states[status]||status)}</small></div>`;
+        return `<div class="generation-item ${esc(status)}">${content}<small>${esc(lifecycleState(item))}</small></div>`;
       }).join('');
       return;
     }
@@ -139,7 +150,7 @@
     $('generationArtifacts').innerHTML=(generation.languages||ALL_LANGUAGES).map(language=>{
       const localized=tasks.filter(task=>task.language===language); if(!localized.length)return '';
       const items=localized.map(task=>{
-        const status=task.status||'queued'; const name=esc(task.label||task.output); const state=esc(states[status]||status);
+        const status=task.status||'queued'; const name=esc(task.label||task.output); const state=esc(lifecycleState(task));
         const content=task.url?`<a href="${esc(task.url)}" target="_blank" rel="noopener">${name}</a>`:`<span>${name}</span>`;
         const retry=['failed','skipped'].includes(status)?`<button class="task-action" data-task-action="retry" data-task="${esc(task.id)}">Reintentar</button>`:'';
         const publish=['ready','complete'].includes(status)&&task.url?`<button class="task-action" data-task-action="publish" data-task="${esc(task.id)}">Publicar</button>`:'';
@@ -154,7 +165,7 @@
     try{
       const response=await fetch(generationUrl,{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({id:generation.id,action,task})});
       const result=await response.json().catch(()=>({})); if(!response.ok)throw new Error(result.error||`HTTP ${response.status}`);
-      generation=result.generation; renderGeneration(); setStatus(action==='retry'?'Entregable devuelto a la cola.':'Entregable publicado.','ok');
+      generation=result.generation; renderGeneration(); setStatus(action==='retry'?'Entregable procesándose de nuevo.':'Entregable publicado.','ok');
     }catch(error){setStatus(`No se pudo actualizar: ${error.message}`,'error')}
   }
   function renderIdeas(ideas){
@@ -228,5 +239,9 @@
   $('save').addEventListener('click', save);
   $('restore').addEventListener('click', restore);
   $('applyRaw').addEventListener('click', applyRaw);
+  setInterval(async()=>{
+    if(!generation||!Object.values(generation.tasks||{}).some(task=>['queued','processing'].includes(task.status))) return;
+    try{generation=(await getJson(generationUrl)).generation;renderGeneration()}catch(_){}
+  },15000);
   load();
 })();
