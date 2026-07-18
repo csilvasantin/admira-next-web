@@ -40,6 +40,14 @@ const PRESETS = [
   }
 ];
 
+// Fondos originales generados para los presets. Son rutas locales y no se
+// aceptan URLs externas ni valores introducidos por el usuario.
+const MOOD_BACKGROUND_ASSETS = Object.freeze({
+  ghostbusters:'/assets/moods/ghostbusters-pop-original.png',
+  'back-to-the-future':'/assets/moods/back-to-the-future-pop-original.png',
+  alien:'/assets/moods/alien-pop-original.png'
+});
+
 const PRESENTATION_STYLES = {
   classic:{
     key:'classic',tier:'good',label:'Classic',description:'Clara, profesional y centrada en el cliente.',
@@ -65,6 +73,11 @@ function randomPreset(){
 }
 
 export function listMoodPresets(){return PRESETS.map(clonePreset);}
+
+export function moodBackgroundAsset(mood){
+  const key=clean(typeof mood==='object'&&mood?mood.key:mood,80);
+  return MOOD_BACKGROUND_ASSETS[key]||null;
+}
 
 export function listPresentationStyles(){return Object.values(PRESENTATION_STYLES).map(style=>({...style,theme:{...style.theme}}));}
 

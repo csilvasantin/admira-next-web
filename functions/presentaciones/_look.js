@@ -1,4 +1,4 @@
-import { normalizePresentationStyle, themeFromPresentationStyle } from './_mood.js';
+import { moodBackgroundAsset, normalizePresentationStyle, themeFromPresentationStyle } from './_mood.js';
 
 export const PRESENTATION_LOOKS = [
   {key:'classic',tier:'Good',label:'Classic'},
@@ -15,5 +15,5 @@ export function presentationLookState(config = {}){
   };
   if(config.theme&&typeof config.theme==='object') themes[selected]={...themes[selected],...config.theme};
   const moodKey=['ghostbusters','back-to-the-future','alien'].includes(config.mood?.key)?config.mood.key:'custom';
-  return {selected,moodKey,themes,looks:PRESENTATION_LOOKS};
+  return {selected,moodKey,moodBackground:moodBackgroundAsset(config.mood),themes,looks:PRESENTATION_LOOKS};
 }
