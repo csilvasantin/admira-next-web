@@ -1,15 +1,57 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260717-2';
+  window.__ADMIRA_GENERATOR_VERSION__='20260718-4';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'); let slugTouched=true,inspirationAnalysis=null;
-  const inspirationStep=document.querySelector('.flow span:nth-child(2)'); if(inspirationStep)inspirationStep.innerHTML='<b>02</b> Inspiración';
-  const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Inspiración e identidad'; thesisPanel.querySelector('.sub').textContent='Usa una web como referencia de dirección de arte para toda la presentación, especialmente el site.';
+  const flowLabels=['Cliente','Tipo','Mood','Relato','Entregables']; document.querySelectorAll('.flow span').forEach((step,index)=>{if(flowLabels[index])step.innerHTML=`<b>${String(index+1).padStart(2,'0')}</b> ${flowLabels[index]}`});
+  const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Tipo, Mood e identidad'; thesisPanel.querySelector('.sub').textContent='El tipo gobierna toda la producción. En De película, Mood añade una dirección cinematográfica concreta.';
+  const movieMoods=[
+    {key:'ghostbusters',film:'Cazafantasmas',year:1984,primary:'#281544',accent:'#73ff83',secondary:'#ff5f8f',description:'Paranormal urbano · ciencia de garaje · ectoplasma lúdico'},
+    {key:'back-to-the-future',film:'Regreso al Futuro',year:1985,primary:'#062a4d',accent:'#ff6a1a',secondary:'#22d3ee',description:'Velocidad · optimismo tecnológico · estelas de neón'},
+    {key:'alien',film:'Alien',year:1979,primary:'#071410',accent:'#b4ff35',secondary:'#6c8f7b',description:'Tensión espacial · precisión industrial · silencio'}
+  ];
+  const presentationTypes=[
+    {key:'classic',tier:'Good',label:'Clásica',description:'Profesional, luminosa y centrada en el cliente.',primary:'#172b55',accent:'#f5a623'},
+    {key:'admira',tier:'Better',label:'Admira',description:'Tecnológica, oscura y cuadrática. ADN AdmiraNeXT.',primary:'#071a2f',accent:'#3df08a'},
+    {key:'movie',tier:'Best',label:'De película',description:'Inmersiva y narrativa. El Mood dirige la atmósfera.'}
+  ];
+  const typeField=document.createElement('fieldset'); typeField.className='field full presentation-type-field';
+  typeField.innerHTML='<legend>Tipo de presentación</legend><div class="presentation-types">'+presentationTypes.map((type,index)=>`<label class="presentation-type"><input type="radio" name="presentationStyle" value="${type.key}" ${index===2?'checked':''}><span class="presentation-tier">${type.tier}</span><b>${type.label}</b><small>${type.description}</small></label>`).join('')+'</div><p class="field-help">Se aplica al site, portal del proyecto, PDF, PowerPoint, documentos de trabajo, infografía, audio y vídeo.</p>';
+  thesisGrid.prepend(typeField);
+  const moodField=document.createElement('div'); moodField.className='field full mood-field';
+  moodField.innerHTML='<label for="moodMovie">Mood · película de referencia</label><div class="mood-input"><input id="moodMovie" name="moodMovie" type="text" list="moodMovies" autocomplete="off" placeholder="Escribe cualquier película…"><button class="btn" id="randomMood" type="button" title="Elegir otro mood al azar">↻ Aleatoria 80/90</button></div><datalist id="moodMovies"><option value="Cazafantasmas"><option value="Regreso al Futuro"><option value="Alien"></datalist><div class="mood-presets" id="moodPresets"></div><p class="field-help">El contenido no cambia: Mood transforma paleta, tipografía, composición, ritmo y textura. Por ahora el azar elige entre estas tres referencias de cultura pop.</p><div class="mood-preview" id="moodPreview" role="status" aria-live="polite"></div>';
+  thesisGrid.insertBefore(moodField,typeField.nextSibling);
   const inspirationField=document.createElement('div'); inspirationField.className='field full inspiration-field';
   inspirationField.innerHTML='<label for="inspirationUrl">Web inspiradora · opcional</label><div class="inspiration-input"><input id="inspirationUrl" name="inspirationUrl" type="url" placeholder="https://web-que-nos-inspira.com/"><button class="btn" id="analyzeInspiration" type="button">Analizar estilo</button></div><p class="field-help">Extraemos paleta, tipografía, geometría, densidad y composición. No copiamos código ni elementos de marca.</p><div class="inspiration-preview" id="inspirationPreview" hidden><div class="inspiration-palette" id="inspirationPalette"></div><div><b id="inspirationTitle">Dirección visual</b><span id="inspirationTraits"></span></div></div>';
-  thesisGrid.prepend(inspirationField);
-  const inspirationStyle=document.createElement('style'); inspirationStyle.textContent='.inspiration-input{display:grid;grid-template-columns:1fr auto;gap:9px}.inspiration-input .btn{white-space:nowrap}.field-help{margin:9px 0 0;color:var(--mut);font-size:12px}.inspiration-preview{margin-top:14px;display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:13px;padding:14px;background:#08111e}.inspiration-preview[hidden]{display:none}.inspiration-preview b,.inspiration-preview span{display:block}.inspiration-preview b{font-size:14px}.inspiration-preview span{margin-top:4px;color:var(--mut);font:700 10px/1.45 var(--mono);text-transform:uppercase;letter-spacing:.05em}.inspiration-palette{display:flex;flex:none}.inspiration-palette i{width:25px;height:42px;border:2px solid #08111e;margin-left:-5px}.inspiration-palette i:first-child{margin-left:0;border-radius:9px 0 0 9px}.inspiration-palette i:last-child{border-radius:0 9px 9px 0}@media(max-width:680px){.inspiration-input{grid-template-columns:1fr}.inspiration-input .btn{width:100%}}'; document.head.appendChild(inspirationStyle);
+  thesisGrid.insertBefore(inspirationField,moodField.nextSibling);
+  const inspirationStyle=document.createElement('style'); inspirationStyle.textContent='.presentation-type-field{border:0;padding:0;margin:0}.presentation-type-field legend{font:750 10px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}.presentation-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.presentation-type{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:7px 9px;border:1px solid var(--line);border-radius:13px;padding:15px;background:#08111e;cursor:pointer;margin:0;color:var(--ink);text-transform:none;letter-spacing:0}.presentation-type:has(input:checked){border-color:var(--green);background:rgba(61,240,138,.07);box-shadow:inset 0 0 0 1px rgba(61,240,138,.16)}.presentation-type input{grid-row:1/3;width:auto;margin:0;accent-color:var(--green)}.presentation-type b{font-size:15px}.presentation-type small{grid-column:2;color:var(--mut);font-size:11px;line-height:1.4}.presentation-tier{font:800 9px/1 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--green)}.mood-field[hidden]{display:none}.mood-input,.inspiration-input{display:grid;grid-template-columns:1fr auto;gap:9px}.mood-input .btn,.inspiration-input .btn{white-space:nowrap}.mood-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.mood-chip{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:#08111e;color:var(--mut);font:800 10px/1 var(--mono);cursor:pointer}.mood-chip:hover,.mood-chip.active{border-color:var(--green);color:var(--green);background:rgba(61,240,138,.07)}.field-help{margin:9px 0 0;color:var(--mut);font-size:12px}.mood-preview,.inspiration-preview{margin-top:14px;display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:13px;padding:14px;background:#08111e}.mood-preview b,.mood-preview span,.inspiration-preview b,.inspiration-preview span{display:block}.mood-preview b,.inspiration-preview b{font-size:14px}.mood-preview span,.inspiration-preview span{margin-top:4px;color:var(--mut);font:700 10px/1.45 var(--mono);text-transform:uppercase;letter-spacing:.05em}.mood-palette,.inspiration-palette{display:flex;flex:none}.mood-palette i,.inspiration-palette i{width:25px;height:42px;border:2px solid #08111e;margin-left:-5px}.mood-palette i:first-child,.inspiration-palette i:first-child{margin-left:0;border-radius:9px 0 0 9px}.mood-palette i:last-child,.inspiration-palette i:last-child{border-radius:0 9px 9px 0}@media(max-width:680px){.presentation-types,.mood-input,.inspiration-input{grid-template-columns:1fr}.mood-input .btn,.inspiration-input .btn{width:100%}.mood-preview{align-items:flex-start}}'; document.head.appendChild(inspirationStyle);
+  const typeInputs=[...typeField.querySelectorAll('input[name="presentationStyle"]')],moodMovie=document.getElementById('moodMovie'),moodPresets=document.getElementById('moodPresets'),moodPreview=document.getElementById('moodPreview'),randomMoodButton=document.getElementById('randomMood');
+  moodPresets.innerHTML=movieMoods.map(mood=>`<button class="mood-chip" type="button" data-mood="${mood.key}">${mood.film}</button>`).join('');
+  function normalizeMovie(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
+  function moodPreset(value){const normalized=normalizeMovie(value);return movieMoods.find(mood=>normalizeMovie(mood.film)===normalized||mood.key.replace(/-/g,' ')===normalized)}
+  function renderMood(applyColors=false){
+    const preset=moodPreset(moodMovie.value); moodPresets.querySelectorAll('[data-mood]').forEach(button=>button.classList.toggle('active',button.dataset.mood===preset?.key));
+    if(preset){
+      if(applyColors){document.getElementById('primaryColor').value=preset.primary;document.getElementById('accentColor').value=preset.accent}
+      moodPreview.innerHTML=`<div class="mood-palette"><i style="background:${preset.primary}"></i><i style="background:${preset.accent}"></i><i style="background:${preset.secondary}"></i></div><div><b>${preset.film} · ${preset.year}</b><span>${preset.description}</span></div>`;
+    }else{
+      const title=moodMovie.value.trim()||'Mood personalizado'; moodPreview.innerHTML=`<div><b>${title}</b><span>Dirección cinematográfica personalizada · sin copiar elementos protegidos</span></div>`;
+    }
+  }
+  function chooseRandomMood(){
+    const current=moodPreset(moodMovie.value); const choices=movieMoods.filter(mood=>movieMoods.length<2||mood.key!==current?.key); let index=Math.floor(Math.random()*choices.length);
+    try{const values=new Uint32Array(1);crypto.getRandomValues(values);index=values[0]%choices.length}catch(_){}
+    moodMovie.value=choices[index].film; renderMood(true);
+  }
+  function currentPresentationStyle(){return typeInputs.find(input=>input.checked)?.value||'movie'}
+  function applyPresentationStyle(style=currentPresentationStyle(),applyColors=true){
+    const type=presentationTypes.find(item=>item.key===style)||presentationTypes[2]; moodField.hidden=type.key!=='movie'; moodMovie.disabled=type.key!=='movie';
+    if(!applyColors)return;
+    if(type.key==='movie')renderMood(true); else{document.getElementById('primaryColor').value=type.primary;document.getElementById('accentColor').value=type.accent}
+  }
+  moodPresets.addEventListener('click',event=>{const button=event.target.closest('[data-mood]');if(!button)return;const preset=movieMoods.find(mood=>mood.key===button.dataset.mood);moodMovie.value=preset.film;renderMood(true)});
+  randomMoodButton.addEventListener('click',chooseRandomMood); moodMovie.addEventListener('input',()=>renderMood(false)); typeInputs.forEach(input=>input.addEventListener('change',()=>applyPresentationStyle(input.value,true))); chooseRandomMood(); applyPresentationStyle('movie',true);
   const inspirationUrl=document.getElementById('inspirationUrl'),analyzeButton=document.getElementById('analyzeInspiration');
   const languagePanel=document.createElement('section'); languagePanel.className='panel language-panel';
   languagePanel.innerHTML='<h2>4. Idiomas</h2><p class="sub">Selecciona las versiones del site. Después podrás editar cada idioma por separado.</p><div class="language-grid"><label class="language"><input type="checkbox" name="language" value="es" checked><b>ES</b><span>Castellano</span></label><label class="language"><input type="checkbox" name="language" value="ca" checked><b>CA</b><span>Català</span></label><label class="language"><input type="checkbox" name="language" value="en" checked><b>EN</b><span>English</span></label></div>';
@@ -37,7 +79,7 @@
     try{
       const response=await fetch('/presentaciones/api/inspiration',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({url})});
       const body=await response.json().catch(()=>({})); if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
-      inspirationAnalysis=body.inspiration; document.getElementById('primaryColor').value=inspirationAnalysis.primary; document.getElementById('accentColor').value=inspirationAnalysis.accent; renderInspiration(inspirationAnalysis); message(`Estilo inspirado en ${inspirationAnalysis.host}. Puedes ajustar los colores antes de generar.`); return inspirationAnalysis;
+      inspirationAnalysis=body.inspiration; document.getElementById('primaryColor').value=inspirationAnalysis.primary; document.getElementById('accentColor').value=inspirationAnalysis.accent; renderInspiration(inspirationAnalysis); if(currentPresentationStyle()==='movie'&&moodPreset(moodMovie.value))renderMood(true); message('Inspiración analizada y combinada con el tipo elegido. Puedes ajustar los colores antes de generar.'); return inspirationAnalysis;
     }finally{analyzeButton.disabled=false}
   }
   analyzeButton.addEventListener('click',()=>analyzeInspiration().catch(error=>message(error.message,true)));
@@ -52,11 +94,11 @@
     try{
       if(inspirationUrl.value.trim()&&!inspirationAnalysis)await analyzeInspiration();
       message('Construyendo el relato y aplicando la dirección visual…');
-      const data=Object.fromEntries(new FormData(form).entries()); data.overwrite=document.getElementById('overwrite').checked; data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;
+      const data=Object.fromEntries(new FormData(form).entries()); data.overwrite=document.getElementById('overwrite').checked; data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis; data.presentationStyle=currentPresentationStyle(); data.moodMovie=data.presentationStyle==='movie'?moodMovie.value.trim():'';
       const response=await fetch('/presentaciones/api/generate',{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(data)});
       const body=await response.json().catch(()=>({})); if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
-      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); renderGeneration(body.generation); result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); message(`Orden creada: ${body.displayName}`);
+      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); renderGeneration(body.generation); result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); const type=presentationTypes.find(item=>item.key===body.presentationStyle)||presentationTypes[2]; message(`Orden creada: ${body.displayName} · ${type.tier} / ${type.label}${body.mood?.film?` · Mood ${body.mood.film}`:''}`);
     }catch(error){message(error.message,true)}finally{submit.disabled=false}
   },true);
   document.addEventListener('click',async event=>{const button=event.target.closest('[data-copy]');if(!button)return;const node=document.getElementById(button.dataset.copy);try{await navigator.clipboard.writeText(node.textContent);const before=button.textContent;button.textContent='Copiado';setTimeout(()=>button.textContent=before,1200)}catch(_){}});

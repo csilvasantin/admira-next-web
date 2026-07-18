@@ -24,7 +24,7 @@ function taskUrl(client, language, output){
   return output === 'website' ? `/presentaciones/${client}/presentacion?lang=${language}` : null;
 }
 
-export function buildGeneration({client, displayName, outputs, languages, sourceText = ''}){
+export function buildGeneration({client, displayName, outputs, languages, presentationStyle = 'movie', mood = null, sourceText = ''}){
   const now = new Date().toISOString();
   const tasks = {};
   for (const language of languages) {
@@ -38,7 +38,7 @@ export function buildGeneration({client, displayName, outputs, languages, source
     }
   }
   return recomputeGeneration({
-    schemaVersion:2, id:crypto.randomUUID(), client, displayName, requested:outputs, languages, tasks,
+    schemaVersion:2, id:crypto.randomUUID(), client, displayName, requested:outputs, languages, presentationStyle, mood, tasks,
     artifacts:{}, sourceText, provider:'notebooklm', createdAt:now, updatedAt:now
   });
 }

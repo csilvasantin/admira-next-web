@@ -1,5 +1,6 @@
 import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
+import { normalizeMood, normalizePresentationStyle, themeFromPresentationStyle, presentationStyleBrief } from '../_mood.js';
 
 const MAX_BYTES = 32 * 1024;
 const enc = new TextEncoder();
@@ -29,7 +30,7 @@ function buildIdeas(input, slug, languages){
   const problem=input.problem || `Convertir los espacios físicos de ${name} en una experiencia conectada, medible y capaz de mejorar en tiempo real.`;
   const audience=input.audience || 'Dirección de negocio, experiencia, operaciones, marketing e innovación';
   return {
-    schemaVersion:2, client:slug, displayName:name, languages, translations:{}, inspiration:input.inspiration||null,
+    schemaVersion:2, client:slug, displayName:name, languages, translations:{}, inspiration:input.inspiration||null, presentationStyle:input.presentationStyle, mood:input.mood||null,
     hero:{eyebrow:`Presentación privada · ${name}`,title:input.title || `${name}: cada espacio puede aprender.`,summary:input.summary || `Una propuesta para conectar contenido, operación, experiencia y medición alrededor de un problema concreto: ${problem}`},
     objective:input.objective || `Acordar un piloto concreto con ${name}, responsables, alcance y métricas de éxito.`,
     skeleton:[
@@ -53,9 +54,10 @@ function buildSource(data){
     `${index+1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`
   ).join('\n\n');
   const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL INSPIRADORA\n- Referencia: ${data.inspiration.url}\n- Perfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\n- Paleta extraída: ${(data.inspiration.palette||[]).join(', ')}.\n- Interpretar estos rasgos en clave ADmiraNeXT × ${data.displayName}; no copiar código, logotipos, textos ni elementos propietarios.\n`:'';
+  const presentationStyle=presentationStyleBrief(data.presentationStyle,data.mood,data.displayName);
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n`+
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n${blocks}\n\n`+
-    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}\n`+
+    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${presentationStyle}${inspiration}\n`+
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}.\n`+
     `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
     `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.\n`+
@@ -99,11 +101,17 @@ export async function onRequestPut(context){
     }catch(error){return json({error:error.message||'No se pudo analizar la web inspiradora.'},422)}
   }
   input.inspiration=inspiration;
+  input.presentationStyle=normalizePresentationStyle(raw.presentationStyle,'movie');
+  input.mood=input.presentationStyle==='movie'?normalizeMood(raw.mood||raw.moodMovie,{randomWhenEmpty:true}):null;
   const ideas=buildIdeas(input,slug,languages);
-  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
+  const generation=buildGeneration({client:slug,displayName,outputs,languages,presentationStyle:input.presentationStyle,mood:input.mood,sourceText:buildSource(ideas)});
+  const moodOverrides={};
+  if(/^#[0-9a-f]{6}$/i.test(String(raw.primaryColor||'')))moodOverrides.primary=input.primaryColor;
+  if(/^#[0-9a-f]{6}$/i.test(String(raw.accentColor||'')))moodOverrides.accent=input.accentColor;
+  if(input.presentationStyle==='movie'&&!input.mood?.theme&&inspiration){Object.assign(moodOverrides,{background:inspiration.background,surface:inspiration.surface,text:inspiration.text,fontStyle:inspiration.fontStyle,radius:inspiration.radius,radiusStyle:inspiration.radiusStyle,density:inspiration.density,layout:inspiration.layout});}
   const presentation={
-    schemaVersion:2,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspiration,problem:input.problem,audience:input.audience,outputs,languages,
-    theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
+    schemaVersion:2,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspiration,presentationStyle:input.presentationStyle,mood:input.mood,problem:input.problem,audience:input.audience,outputs,languages,
+    theme:themeFromPresentationStyle(input.presentationStyle,input.mood,moodOverrides),
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
   };
@@ -113,5 +121,5 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,presentationStyle:input.presentationStyle,mood:input.mood,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

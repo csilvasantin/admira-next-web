@@ -1,16 +1,191 @@
 export async function onRequestGet(){
-  const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Control de presentaciones · ADmiraNeXT</title><style>
-  :root{--bg:#070a10;--panel:#0d1522;--panel2:#101b2b;--line:#1e2940;--ink:#e8eef8;--mut:#9db0cc;--dim:#6b7d9a;--green:#3df08a;--blue:#4a86ff;--yellow:#ffc400;--red:#ff6b6b;--mono:ui-monospace,"SF Mono",Menlo,monospace;--sans:-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(80% 55% at 85% -10%,rgba(74,134,255,.13),transparent 62%)}button,input,select{font:inherit}.wrap{position:relative;width:min(1380px,calc(100% - 34px));margin:auto}.top{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);background:rgba(7,10,16,.92);backdrop-filter:blur(18px)}.top .wrap{height:72px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{font:800 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}.brand b{color:var(--green)}.top a{color:var(--mut);text-decoration:none;font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.hero{padding:58px 0 30px}.eyebrow{color:var(--green);font:800 11px/1 var(--mono);letter-spacing:.17em;text-transform:uppercase}.hero h1{font-size:clamp(34px,5vw,58px);letter-spacing:-.035em;margin:18px 0 9px}.hero p{color:var(--mut);font-size:17px;margin:0}.filters{display:grid;grid-template-columns:2fr repeat(3,minmax(130px,1fr)) auto;gap:10px;margin:24px 0}.field{background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--ink);padding:12px 13px;outline:none}.field:focus{border-color:var(--green)}.refresh{border:0;border-radius:12px;background:var(--green);color:#052013;font:850 12px/1 var(--mono);padding:0 18px;cursor:pointer}.metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.metric{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:15px;padding:18px}.metric span{display:block;color:var(--dim);font:750 10px/1.2 var(--mono);letter-spacing:.09em;text-transform:uppercase}.metric strong{display:block;font-size:30px;margin-top:9px}.layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(290px,.8fr);gap:16px;margin:18px 0 60px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:17px 18px;border-bottom:1px solid var(--line)}.panel-h h2{font-size:16px;margin:0}.panel-h span,.stamp{color:var(--dim);font:650 10px/1 var(--mono)}.table-wrap{overflow:auto;max-height:720px}table{width:100%;border-collapse:collapse;min-width:850px}th{text-align:left;position:sticky;top:0;background:#101827;color:var(--dim);font:750 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:12px 14px}td{padding:13px 14px;border-top:1px solid rgba(30,41,64,.72);font-size:13px;vertical-align:top}.who b{display:block}.who span,.technical{color:var(--dim);font-size:11px}.pill{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:5px 8px;font:750 9px/1 var(--mono);text-transform:uppercase;white-space:nowrap}.pill.page_view{color:#87b3ff}.pill.download{color:var(--green)}.pill.login_failed{color:var(--red)}.pill.media_play{color:var(--yellow)}.clients{padding:14px;display:grid;gap:10px}.client{border:1px solid var(--line);border-radius:12px;padding:13px}.client-row{display:flex;justify-content:space-between;gap:10px}.client b{font-size:13px}.client small{color:var(--dim);font:650 10px/1.4 var(--mono)}.bar{height:5px;border-radius:9px;background:#17243a;margin-top:10px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:inherit}.empty{padding:50px 20px;color:var(--dim);text-align:center}.export{border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:9px;padding:8px 10px;font:750 10px/1 var(--mono);cursor:pointer}@media(max-width:1000px){.metrics{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}.filters .search{grid-column:1/-1}.refresh{min-height:43px}}@media(max-width:620px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr}.filters .search{grid-column:auto}.hero{padding-top:38px}}
-  </style></head><body><header class="top"><div class="wrap"><div class="brand"><b>ADmiraNeXT</b> · Control</div><a href="/presentaciones/">← Presentaciones</a></div></header><main class="wrap"><section class="hero"><div class="eyebrow">Actividad privada · últimos accesos</div><h1>Control de presentaciones</h1><p>Quién entra, cuándo accede y cómo utiliza cada material.</p></section><section class="filters"><input class="field search" id="search" type="search" placeholder="Buscar nombre, correo, cliente o recurso…"><select class="field" id="client"><option value="">Todos los clientes</option></select><select class="field" id="type"><option value="">Todos los eventos</option><option value="page_view">Visitas</option><option value="download">Descargas</option><option value="media_play">Reproducciones</option><option value="login_success">Inicios de sesión</option><option value="login_failed">Accesos fallidos</option><option value="language_change">Cambio de idioma</option></select><select class="field" id="days"><option value="1">24 horas</option><option value="7">7 días</option><option value="30" selected>30 días</option><option value="90">90 días</option><option value="180">180 días</option></select><button class="refresh" id="refresh">Actualizar</button></section><section class="metrics"><div class="metric"><span>Personas</span><strong id="visitors">—</strong></div><div class="metric"><span>Visitas</span><strong id="views">—</strong></div><div class="metric"><span>Descargas</span><strong id="downloads">—</strong></div><div class="metric"><span>Reproducciones</span><strong id="plays">—</strong></div><div class="metric"><span>Eventos 24 h</span><strong id="last24h">—</strong></div><div class="metric"><span>Total eventos</span><strong id="events">—</strong></div></section><section class="layout"><div class="panel"><div class="panel-h"><div><h2>Actividad reciente</h2><span id="resultCount">Cargando…</span></div><button class="export" id="export">Exportar CSV</button></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Persona</th><th>Cliente</th><th>Acción</th><th>Recurso</th><th>Ubicación</th></tr></thead><tbody id="rows"></tbody></table><div class="empty" id="empty" hidden>No hay actividad con estos filtros.</div></div></div><aside class="panel"><div class="panel-h"><h2>Por presentación</h2><span id="stamp"></span></div><div class="clients" id="clients"></div></aside></section></main><script>
-  const state={data:null,events:[]};const $=id=>document.getElementById(id);const labels={page_view:'Visita',download:'Descarga',media_play:'Reproducción',login_success:'Acceso correcto',login_failed:'Acceso fallido',identity_confirmed:'Identidad',language_change:'Idioma',external_link:'Enlace externo',fullscreen:'Pantalla completa'};
-  function date(value){return new Intl.DateTimeFormat('es-ES',{dateStyle:'short',timeStyle:'short'}).format(new Date(value))}
-  function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function render(){const q=$('search').value.trim().toLowerCase();const events=(state.data?.events||[]).filter(e=>!q||[e.name,e.email,e.client,e.target,e.path,e.type].some(v=>String(v||'').toLowerCase().includes(q)));state.events=events;$('resultCount').textContent=events.length+' eventos';$('empty').hidden=events.length>0;$('rows').innerHTML=events.map(e=>'<tr><td>'+esc(date(e.timestamp))+'</td><td class="who"><b>'+esc(e.name||'Sin identificar')+'</b><span>'+esc(e.email||e.visitorId||'—')+'</span></td><td><b>'+esc(e.client||'—')+'</b><div class="technical">'+esc((e.language||'').toUpperCase())+'</div></td><td><span class="pill '+esc(e.type)+'">'+esc(labels[e.type]||e.type)+'</span></td><td>'+esc(e.target||e.path||'—')+'</td><td>'+esc([e.city,e.country].filter(Boolean).join(', ')||'—')+'<div class="technical">'+esc(e.ip||'')+'</div></td></tr>').join('');
-  }
-  async function load(){const params=new URLSearchParams({days:$('days').value});if($('client').value)params.set('client',$('client').value);if($('type').value)params.set('type',$('type').value);$('refresh').disabled=true;try{const r=await fetch('/presentaciones/control/api/events?'+params,{headers:{accept:'application/json'},cache:'no-store'});const data=await r.json();if(!r.ok)throw new Error(data.error||'No se pudo cargar');state.data=data;for(const id of ['visitors','views','downloads','plays','last24h','events'])$(id).textContent=data.summary[id]??0;const options=[...$('client').options].map(o=>o.value);data.clients.forEach(c=>{if(!options.includes(c.client)){const o=document.createElement('option');o.value=c.client;o.textContent=c.client;$('client').appendChild(o)}});const max=Math.max(1,...data.clients.map(c=>c.events));$('clients').innerHTML=data.clients.map(c=>'<div class="client"><div class="client-row"><div><b>'+esc(c.client)+'</b><br><small>'+c.visitors+' personas · '+c.views+' visitas · '+c.downloads+' descargas</small></div><small>'+esc(date(c.lastAccess))+'</small></div><div class="bar"><i style="width:'+Math.max(4,Math.round(c.events/max*100))+'%"></i></div></div>').join('')||'<div class="empty">Sin actividad</div>';$('stamp').textContent='Actualizado '+new Intl.DateTimeFormat('es-ES',{timeStyle:'short'}).format(new Date(data.generatedAt));render()}catch(e){$('resultCount').textContent=e.message;$('rows').innerHTML=''}finally{$('refresh').disabled=false}}
-  function exportCsv(){const cols=['timestamp','name','email','client','type','path','target','language','ip','city','country','userAgent'];const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=[cols.join(','),...state.events.map(e=>cols.map(c=>quote(e[c])).join(','))].join('\\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='accesos-presentaciones-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(a.href)}
-  $('refresh').onclick=load;$('search').oninput=render;$('client').onchange=load;$('type').onchange=load;$('days').onchange=load;$('export').onclick=exportCsv;load();setInterval(load,60000);
-  </script></body></html>`;
-  return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
+  const html=`<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#070a10">
+  <meta name="admiranext-presentation-control-version" content="v.2026.07.18.r1">
+  <title>Control de presentaciones · ADmiraNeXT</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/presentation-control.css?v=20260718-1">
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Saltar al contenido</a>
+
+  <header class="quad-header" aria-label="Menú superior">
+    <div class="header-side header-left">
+      <button class="quad-toggle" id="toggleOptions" type="button" aria-expanded="false" aria-controls="panelOptions" aria-label="Abrir opciones" aria-keyshortcuts="O" title="Opciones · tecla O">
+        <span aria-hidden="true">☰</span><span class="toggle-label">Opciones</span>
+      </button>
+    </div>
+    <div class="header-center">
+      <div class="header-primary">
+        <a class="brand" href="/presentaciones/" aria-label="Volver a presentaciones">ADmira<b>NeXT</b></a>
+        <span class="header-title">Control de presentaciones</span>
+      </div>
+      <div class="header-status" id="headerStatus" role="status" aria-live="polite">
+        <span class="live-dot" aria-hidden="true"></span><span id="headerPulse">Conectando…</span>
+      </div>
+    </div>
+    <div class="header-side header-right">
+      <button class="quad-toggle" id="toggleAdvanced" type="button" aria-expanded="false" aria-controls="panelAdvanced" aria-label="Abrir ajustes avanzados" aria-keyshortcuts="A" title="Avanzado · tecla A">
+        <span aria-hidden="true">⚙</span><span class="toggle-label">Avanzado</span>
+      </button>
+      <button class="quad-toggle expert-toggle" id="toggleExpert" type="button" aria-expanded="false" aria-controls="panelExpert" aria-label="Abrir consola experta" aria-keyshortcuts="E" title="Experto · tecla E">
+        <span aria-hidden="true">&gt;_</span><span class="toggle-label">Experto</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="panel-scrim" id="panelScrim" aria-hidden="true"></div>
+
+  <aside class="quad-panel panel-left" id="panelOptions" aria-labelledby="optionsTitle" aria-hidden="true">
+    <button class="panel-close" type="button" data-close-panel="options" aria-label="Cerrar opciones">×</button>
+    <h2 id="optionsTitle">Opciones</h2>
+    <p class="panel-kicker">Vista</p>
+    <nav class="view-menu" aria-label="Vistas del control">
+      <button class="view-button active" type="button" data-view="overview" aria-current="page"><span aria-hidden="true">◫</span><span><b>Resumen</b><small>Indicadores y actividad</small></span></button>
+      <button class="view-button" type="button" data-view="activity"><span aria-hidden="true">≋</span><span><b>Actividad</b><small>Registro completo</small></span></button>
+      <button class="view-button" type="button" data-view="presentations"><span aria-hidden="true">▦</span><span><b>Presentaciones</b><small>Rendimiento por cliente</small></span></button>
+    </nav>
+    <div class="panel-section shortcuts">
+      <p class="panel-kicker">Acceso universal</p>
+      <dl>
+        <div><dt>O</dt><dd>Opciones</dd></div>
+        <div><dt>A</dt><dd>Avanzado</dd></div>
+        <div><dt>E</dt><dd>Experto</dd></div>
+        <div><dt>/</dt><dd>Buscar</dd></div>
+        <div><dt>R</dt><dd>Actualizar</dd></div>
+        <div><dt>Esc</dt><dd>Cerrar panel</dd></div>
+      </dl>
+    </div>
+    <div class="panel-version">v.2026.07.18.r1 · cuadrática</div>
+  </aside>
+
+  <aside class="quad-panel panel-right" id="panelAdvanced" aria-labelledby="advancedTitle" aria-hidden="true">
+    <button class="panel-close" type="button" data-close-panel="advanced" aria-label="Cerrar avanzado">×</button>
+    <h2 id="advancedTitle">Avanzado</h2>
+    <form id="filterForm" autocomplete="off">
+      <div class="control-field">
+        <label for="search">Buscar</label>
+        <input class="field" id="search" type="search" aria-keyshortcuts="/" placeholder="Nombre, correo, cliente o recurso…">
+      </div>
+      <div class="control-field">
+        <label for="client">Cliente</label>
+        <select class="field" id="client"><option value="">Todos los clientes</option></select>
+      </div>
+      <div class="control-field">
+        <label for="type">Evento</label>
+        <select class="field" id="type">
+          <option value="">Todos los eventos</option>
+          <option value="page_view">Visitas</option>
+          <option value="download">Descargas</option>
+          <option value="media_play">Reproducciones</option>
+          <option value="login_success">Inicios de sesión</option>
+          <option value="login_failed">Accesos fallidos</option>
+          <option value="language_change">Cambios de idioma</option>
+          <option value="fullscreen">Pantalla completa</option>
+        </select>
+      </div>
+      <div class="control-field split-field">
+        <div>
+          <label for="days">Periodo</label>
+          <select class="field" id="days">
+            <option value="1">24 horas</option><option value="7">7 días</option><option value="30" selected>30 días</option><option value="90">90 días</option><option value="180">180 días</option>
+          </select>
+        </div>
+        <div>
+          <label for="autoRefresh">Autoactualizar</label>
+          <select class="field" id="autoRefresh">
+            <option value="0">No</option><option value="30">30 s</option><option value="60" selected>60 s</option><option value="300">5 min</option>
+          </select>
+        </div>
+      </div>
+      <button class="primary-action" id="refresh" type="button" aria-keyshortcuts="R">Actualizar datos</button>
+    </form>
+
+    <div class="panel-section preferences">
+      <p class="panel-kicker">Lectura y privacidad</p>
+      <label class="check-row"><input type="checkbox" id="largeText"><span>Texto ampliado</span></label>
+      <label class="check-row"><input type="checkbox" id="highContrast"><span>Contraste reforzado</span></label>
+      <label class="check-row"><input type="checkbox" id="reduceMotion"><span>Reducir movimiento</span></label>
+      <label class="check-row"><input type="checkbox" id="compactMode"><span>Densidad compacta</span></label>
+      <label class="check-row"><input type="checkbox" id="maskTechnical"><span>Ocultar IP y datos técnicos</span></label>
+      <button class="text-action" id="resetPreferences" type="button">Restaurar preferencias</button>
+    </div>
+  </aside>
+
+  <section class="quad-panel panel-bottom" id="panelExpert" aria-labelledby="expertTitle" aria-hidden="true">
+    <button class="panel-close" type="button" data-close-panel="expert" aria-label="Cerrar consola experta">×</button>
+    <div class="expert-heading">
+      <div><h2 id="expertTitle">Experto</h2><p>Consulta local · no ejecuta acciones remotas</p></div>
+      <button class="text-action" id="clearConsole" type="button">Limpiar</button>
+    </div>
+    <div class="cli-shell">
+      <label class="sr-only" for="cliInput">Comando de consola</label>
+      <span class="prompt" aria-hidden="true">admiranext:/presentaciones$</span>
+      <input id="cliInput" type="text" autocomplete="off" spellcheck="false" placeholder="help · resumen · vista · filtro · cliente · tipo · dias · exportar">
+    </div>
+    <div class="cli-output" id="cliOutput" role="log" aria-live="polite" aria-relevant="additions"></div>
+  </section>
+
+  <main class="control-main" id="mainContent" tabindex="-1">
+    <section class="hero" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">Actividad privada · acceso universal</p>
+        <h1 id="pageTitle">Control de presentaciones</h1>
+        <p class="lead">Quién entra, cuándo accede y cómo utiliza cada material.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="secondary-action" id="openFilters" type="button">Filtrar</button>
+        <button class="secondary-action" id="export" type="button">Exportar CSV</button>
+      </div>
+    </section>
+
+    <div class="notice" id="notice" role="status" aria-live="polite">Cargando actividad…</div>
+
+    <section class="view-section" id="overviewView" data-view-section="overview" aria-labelledby="metricsTitle">
+      <h2 class="sr-only" id="metricsTitle">Resumen de actividad</h2>
+      <div class="metrics">
+        <article class="metric"><span>Personas</span><strong id="visitors">—</strong><small>identidades únicas</small></article>
+        <article class="metric"><span>Visitas</span><strong id="views">—</strong><small>páginas abiertas</small></article>
+        <article class="metric"><span>Descargas</span><strong id="downloads">—</strong><small>materiales guardados</small></article>
+        <article class="metric"><span>Reproducciones</span><strong id="plays">—</strong><small>audio y vídeo</small></article>
+        <article class="metric"><span>Últimas 24 h</span><strong id="last24h">—</strong><small>eventos recientes</small></article>
+        <article class="metric"><span>Total</span><strong id="events">—</strong><small>eventos del periodo</small></article>
+      </div>
+      <div class="dashboard-grid">
+        <section class="content-panel activity-panel" aria-labelledby="recentTitle">
+          <div class="content-heading"><div><p class="section-index">01</p><h2 id="recentTitle">Actividad reciente</h2></div><span id="resultCount">Cargando…</span></div>
+          <div class="table-wrap compact-table"><table><caption class="sr-only">Últimos eventos de acceso a presentaciones</caption><thead><tr><th scope="col">Fecha</th><th scope="col">Persona</th><th scope="col">Cliente</th><th scope="col">Acción</th><th scope="col">Recurso</th></tr></thead><tbody id="overviewRows"></tbody></table><div class="empty" id="overviewEmpty" hidden>No hay actividad con estos filtros.</div></div>
+        </section>
+        <aside class="content-panel clients-panel" aria-labelledby="clientSummaryTitle">
+          <div class="content-heading"><div><p class="section-index">02</p><h2 id="clientSummaryTitle">Por presentación</h2></div><span id="stamp"></span></div>
+          <div class="clients" id="overviewClients"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="view-section content-panel" id="activityView" data-view-section="activity" aria-labelledby="activityTitle" hidden>
+      <div class="content-heading"><div><p class="section-index">01</p><h2 id="activityTitle">Actividad completa</h2></div><span id="activityCount">—</span></div>
+      <div class="table-wrap"><table><caption class="sr-only">Registro completo de eventos de acceso a presentaciones</caption><thead><tr><th scope="col">Fecha</th><th scope="col">Persona</th><th scope="col">Cliente</th><th scope="col">Acción</th><th scope="col">Recurso</th><th scope="col">Ubicación</th></tr></thead><tbody id="activityRows"></tbody></table><div class="empty" id="activityEmpty" hidden>No hay actividad con estos filtros.</div></div>
+    </section>
+
+    <section class="view-section content-panel" id="presentationsView" data-view-section="presentations" aria-labelledby="presentationsTitle" hidden>
+      <div class="content-heading"><div><p class="section-index">01</p><h2 id="presentationsTitle">Presentaciones</h2></div><span id="presentationsCount">—</span></div>
+      <div class="presentation-grid" id="presentationClients"></div>
+    </section>
+
+    <footer class="control-footer">
+      <span>ADmiraNeXT · control privado</span>
+      <span>O opciones · A avanzado · E experto · / buscar · R actualizar</span>
+    </footer>
+  </main>
+
+  <script src="/assets/presentation-control.js?v=20260718-1" defer></script>
+</body>
+</html>`;
+  return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow','x-content-type-options':'nosniff'}});
 }

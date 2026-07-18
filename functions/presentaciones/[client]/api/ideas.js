@@ -1,5 +1,6 @@
 import { OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
 import { normalizeInspiration } from '../../_inspiration.js';
+import { normalizeMood, normalizePresentationStyle, themeFromPresentationStyle, presentationStyleBrief } from '../../_mood.js';
 
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
@@ -47,11 +48,15 @@ function normalize(payload, client){
   }
 
   const inspiration=payload.inspiration?.url?normalizeInspiration(payload.inspiration,payload.inspiration.url):null;
+  const presentationStyle=normalizePresentationStyle(payload.presentationStyle,payload.mood?'movie':'classic');
+  const mood=presentationStyle==='movie'?normalizeMood(payload.mood,{randomWhenEmpty:false}):null;
   return {
     schemaVersion: 2,
     client,
     displayName: cleanText(payload.displayName, 100),
     inspiration,
+    presentationStyle,
+    mood,
     languages,
     translations,
     hero: {
@@ -87,9 +92,10 @@ function buildSource(data){
     return `\n\nVERSIÓN ${language.toUpperCase()}\n${content.hero?.title||''}\n${content.hero?.summary||''}\n\n${localizedBlocks}\n\n${content.closing?.title||''}\n${content.closing?.action||''}`;
   }).join('');
   const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL\nReferencia: ${data.inspiration.url}\nPerfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\nInterpretar, no copiar: conservar el ADN visual en todos los entregables sin reutilizar marca, código ni textos propietarios.\n`:'';
+  const presentationStyle=presentationStyleBrief(data.presentationStyle,data.mood,data.displayName);
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n` +
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n` +
-    `${blocks}\n\nCIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}\n` +
+    `${blocks}\n\nCIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${presentationStyle}${inspiration}\n` +
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual principal es AdmiraNeXT × ${data.displayName}.\n` +
     `- Mantener un tono ejecutivo, claro, humano y orientado a decisión.\n` +
     `- Respetar la marca, logotipo y colores oficiales del cliente y la dirección visual inspiradora.\n` +
@@ -130,7 +136,7 @@ export async function onRequest(context){
   try { data = normalize(payload, client); }
   catch (error) { return response({ error: error.message || 'Contenido no válido.' }, 400); }
 
-  const generation = buildGeneration({...data, sourceText:buildSource(data)});
+  const generation = buildGeneration({...data, presentationStyle:data.presentationStyle, mood:data.mood, sourceText:buildSource(data)});
   const writes = [
     context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(data)),
     context.env.PRESENTATION_IDEAS.put(`generation:${client}`, JSON.stringify(generation))
@@ -138,6 +144,12 @@ export async function onRequest(context){
   if (generated){
     generated.outputs = data.outputs;
     generated.languages = data.languages;
+    generated.presentationStyle = data.presentationStyle;
+    generated.mood = data.mood;
+    const themeOverrides={};
+    if(generated.theme?.primary)themeOverrides.primary=generated.theme.primary;
+    if(generated.theme?.accent)themeOverrides.accent=generated.theme.accent;
+    generated.theme=themeFromPresentationStyle(data.presentationStyle,data.mood,themeOverrides);
     generated.updatedAt = data.updatedAt;
     writes.push(context.env.PRESENTATION_IDEAS.put(`presentation:${client}`, JSON.stringify(generated)));
   }
