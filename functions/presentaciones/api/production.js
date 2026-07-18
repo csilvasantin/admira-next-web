@@ -45,6 +45,14 @@ async function brandAsset(context,client){
   const headers=new Headers({'cache-control':'private, max-age=3600','x-content-type-options':'nosniff'});object.writeHttpMetadata(headers);headers.set('etag',object.httpEtag);
   return new Response(object.body,{headers});
 }
+async function publishedAsset(context,client,output,language){
+  if(!NOTEBOOK_OUTPUTS.has(output)||!['es','ca','en'].includes(language)||!context.env.PRESENTATION_MEDIA)return json({error:'Entregable no encontrado.'},404);
+  const job=await getJob(context.env,client),task=job?.tasks?.[`${language}:${output}`],filename=String(task?.url||'').split('/').pop()||'';
+  if(!filename||filename.includes('..'))return json({error:'Entregable no encontrado.'},404);
+  const object=await context.env.PRESENTATION_MEDIA.get(`presentations/${client}/${language}/${filename}`);if(!object)return json({error:'Entregable no encontrado.'},404);
+  const headers=new Headers({'cache-control':'private, max-age=3600','x-content-type-options':'nosniff'});object.writeHttpMetadata(headers);headers.set('etag',object.httpEtag);
+  return new Response(object.body,{headers});
+}
 async function putJob(env,client,job){
   recomputeGeneration(job);
   await env.PRESENTATION_IDEAS.put(`generation:${client}`,JSON.stringify(job));
@@ -57,7 +65,9 @@ function notebookTasks(job,statuses=['queued']){
 async function listQueue(context){
   const requestUrl=new URL(context.request.url),client=cleanClient(requestUrl.searchParams.get('client'));
   if(client){
-    if(requestUrl.searchParams.get('asset')==='logo')return brandAsset(context,client);
+    const asset=String(requestUrl.searchParams.get('asset')||'').toLowerCase();
+    if(asset==='logo')return brandAsset(context,client);
+    if(NOTEBOOK_OUTPUTS.has(asset))return publishedAsset(context,client,asset,String(requestUrl.searchParams.get('language')||'en').toLowerCase());
     const [job,presentation]=await Promise.all([
       getJob(context.env,client),
       context.env.PRESENTATION_IDEAS.get(`presentation:${client}`,{type:'json'})
@@ -87,7 +97,7 @@ async function refreshBrand(context,payload){
   try{
     const analysis=await analyzeInspiration(presentation.website);
     const brand=await persistBrandLogo(context.env,{slug:client,displayName:presentation.displayName,website:presentation.website,analysis});
-    presentation.brand=brand;presentation.schemaVersion=Math.max(3,Number(presentation.schemaVersion)||0);presentation.updatedAt=new Date().toISOString();
+    presentation.brand=brand;presentation.inspirationSource=presentation.inspirationSource||(presentation.inspirationUrl&&presentation.inspirationUrl!==presentation.website?'explicit':'client-website');presentation.schemaVersion=Math.max(3,Number(presentation.schemaVersion)||0);presentation.updatedAt=new Date().toISOString();
     const ideas=await context.env.PRESENTATION_IDEAS.get(`ideas:${client}`,{type:'json'});if(ideas){ideas.brand=brand;ideas.updatedAt=presentation.updatedAt;}
     await Promise.all([context.env.PRESENTATION_IDEAS.put(`presentation:${client}`,JSON.stringify(presentation)),ideas?context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas)):Promise.resolve()]);
     return json({ok:true,client,brand});
