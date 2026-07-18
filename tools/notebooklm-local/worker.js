@@ -74,9 +74,11 @@ async function cleanInfographicBranding(file,clientLogo){
   // Gemini Notebook sitúa su firma en la última franja derecha. Clonamos una
   // franja de fondo inmediatamente anterior para conservar papel, grano y luz.
   const background=await sharp(file).extract({left:sampleLeft,top,width:coverWidth,height:coverHeight}).png().toBuffer();
-  const logo=await clientLogoBadge(clientLogo,Math.ceil(width*.14),Math.ceil(height*.065)),logoMeta=await sharp(logo).metadata();
+  const footerHeight=Math.max(96,Math.ceil(height*.085)),logo=await clientLogoBadge(clientLogo,Math.ceil(width*.14),Math.ceil(footerHeight*.62)),logoMeta=await sharp(logo).metadata();
+  const pixel=await sharp(file).extract({left:0,top:height-1,width:1,height:1}).ensureAlpha().raw().toBuffer(),footerColor={r:pixel[0],g:pixel[1],b:pixel[2],alpha:(pixel[3]??255)/255};
   const output=path.join(path.dirname(file),`${path.basename(file,'.png')}.admiranext.png`);
-  await sharp(file).composite([{input:background,left:width-coverWidth,top},{input:logo,left:Math.max(18,width-Number(logoMeta.width)-Math.ceil(width*.018)),top:Math.ceil(height*.018)}]).png().toFile(output);
+  const cleaned=await sharp(file).composite([{input:background,left:width-coverWidth,top}]).png().toBuffer();
+  await sharp(cleaned).extend({bottom:footerHeight,background:footerColor}).composite([{input:logo,left:Math.max(18,width-Number(logoMeta.width)-Math.ceil(width*.018)),top:height+Math.max(0,Math.floor((footerHeight-Number(logoMeta.height))/2))}]).png().toFile(output);
   return output;
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
