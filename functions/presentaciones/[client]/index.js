@@ -62,10 +62,12 @@ export async function onRequestGet(context){
   const heroPad=density==='airy'?'clamp(92px,13vw,154px)':density==='compact'?'clamp(52px,7vw,82px)':'clamp(68px,10vw,120px)',sectionPad=density==='airy'?'52px':density==='compact'?'27px':'38px';
   const muted=mode==='dark'?'#a7b3c7':'#607087',line=mode==='dark'?'#293449':'#dce4ec';
   const name=esc(config.displayName); const website=config.website && /^https:\/\//i.test(config.website)?esc(config.website):'';
+  const logo=config.brand?.logoUrl===`/presentaciones/${client}/brand/logo`?esc(config.brand.logoUrl):'';
   const allOutputs=['website','audio','video','pdf','powerpoint','documents','infographic'];
   const selected=new Set(Array.isArray(config.outputs)&&config.outputs.length?config.outputs:allOutputs);
   const positions={website:3,audio:4,video:5,pdf:6,powerpoint:7,documents:8,infographic:9};
-  const hiddenCss=allOutputs.filter(item=>!selected.has(item)).map(item=>`.sec:nth-of-type(${positions[item]}){display:none}`).join('')+(selected.has('website')?'':'.tools .primary{display:none}');
+  const logoCss=logo?`.brand{display:flex;align-items:center;gap:12px}.brand:before{content:"";display:block;width:148px;height:40px;flex:none;background:url("${logo}") left center/contain no-repeat}@media(max-width:700px){.brand{font-size:0}.brand:before{width:116px;height:34px}}`:'';
+  const hiddenCss=logoCss+allOutputs.filter(item=>!selected.has(item)).map(item=>`.sec:nth-of-type(${positions[item]}){display:none}`).join('')+(selected.has('website')?'':'.tools .primary{display:none}');
   const currentGeneration=normalizeGeneration(generation);
   const arts=currentGeneration?.artifacts||{};
   const html=`<!doctype html><html lang="es" data-mode="${mode}" data-layout="${layout}" data-profile="${profile}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${name} · ADmiraNeXT</title><style>

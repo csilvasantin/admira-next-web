@@ -1,13 +1,14 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260718-3';
+  window.__ADMIRA_GENERATOR_VERSION__='20260718-4';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
-  const display=document.getElementById('displayName'),slug=document.getElementById('slug'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='';
+  const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='';
+  website.required=true;website.closest('.field')?.querySelector('label')?.append(' · logo obligatorio');
   const inspirationStep=document.querySelector('.flow span:nth-child(2)'); if(inspirationStep)inspirationStep.innerHTML='<b>02</b> Inspiración';
-  const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Inspiración e identidad'; thesisPanel.querySelector('.sub').textContent='Usa una web como referencia de dirección de arte para toda la presentación, especialmente el site.';
+  const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Inspiración e identidad'; thesisPanel.querySelector('.sub').textContent='La web oficial aporta la identidad y el logo. Si indicas otra inspiración, solo sustituye la dirección de arte.';
   const inspirationField=document.createElement('div'); inspirationField.className='field full inspiration-field';
-  inspirationField.innerHTML='<label for="inspirationUrl">Web inspiradora · opcional</label><div class="inspiration-input"><input id="inspirationUrl" name="inspirationUrl" type="url" placeholder="https://web-que-nos-inspira.com/"><button class="btn" id="analyzeInspiration" type="button">Analizar estilo</button></div><p class="field-help">Extraemos paleta, tipografía, geometría, densidad y composición. No copiamos código ni elementos de marca.</p><div class="inspiration-preview" id="inspirationPreview" hidden><div class="inspiration-palette" id="inspirationPalette"></div><div><b id="inspirationTitle">Dirección visual</b><span id="inspirationTraits"></span></div></div>';
+  inspirationField.innerHTML='<label for="inspirationUrl">Web inspiradora · opcional</label><div class="inspiration-input"><input id="inspirationUrl" name="inspirationUrl" type="url" placeholder="Vacío = web oficial del cliente"><button class="btn" id="analyzeInspiration" type="button">Analizar identidad</button></div><p class="field-help">Si se deja vacío, usamos la web oficial como inspiración. El logo del cliente siempre se detecta allí, se guarda y aparece en toda la presentación.</p><div class="inspiration-preview" id="inspirationPreview" hidden><div class="inspiration-palette" id="inspirationPalette"></div><div><b id="inspirationTitle">Dirección visual</b><span id="inspirationTraits"></span></div></div>';
   thesisGrid.prepend(inspirationField);
   const inspirationStyle=document.createElement('style'); inspirationStyle.textContent='.inspiration-input{display:grid;grid-template-columns:1fr auto;gap:9px}.inspiration-input .btn{white-space:nowrap}.field-help{margin:9px 0 0;color:var(--mut);font-size:12px}.inspiration-preview{margin-top:14px;display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:13px;padding:14px;background:#08111e}.inspiration-preview[hidden]{display:none}.inspiration-preview b,.inspiration-preview span{display:block}.inspiration-preview b{font-size:14px}.inspiration-preview span{margin-top:4px;color:var(--mut);font:700 10px/1.45 var(--mono);text-transform:uppercase;letter-spacing:.05em}.inspiration-palette{display:flex;flex:none}.inspiration-palette i{width:25px;height:42px;border:2px solid #08111e;margin-left:-5px}.inspiration-palette i:first-child{margin-left:0;border-radius:9px 0 0 9px}.inspiration-palette i:last-child{border-radius:0 9px 9px 0}@media(max-width:680px){.inspiration-input{grid-template-columns:1fr}.inspiration-input .btn{width:100%}}'; document.head.appendChild(inspirationStyle);
   const overwriteStyle=document.createElement('style'); overwriteStyle.textContent='.overwrite-dialog{width:min(540px,calc(100% - 28px));border:1px solid var(--line);border-radius:20px;padding:0;background:linear-gradient(145deg,var(--panel),var(--panel2));color:var(--ink);box-shadow:0 28px 90px rgba(0,0,0,.55)}.overwrite-dialog::backdrop{background:rgba(2,6,12,.78);backdrop-filter:blur(5px)}.overwrite-body{padding:28px}.overwrite-kicker{color:#f5a623;font:800 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}.overwrite-dialog h2{font-size:25px;line-height:1.15;margin:14px 0 10px}.overwrite-dialog p{color:var(--mut);font-size:14px;margin:0}.overwrite-target{display:block;margin-top:17px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--ink);background:#07101c;font:700 11px/1.4 var(--mono);overflow-wrap:anywhere}.overwrite-warning{margin-top:14px!important;color:#ffbf70!important}.overwrite-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px}.overwrite-actions .danger{background:#ff6b6b;border-color:#ff6b6b;color:#240707}@media(max-width:560px){.overwrite-actions{flex-direction:column-reverse}.overwrite-actions .btn{width:100%}}'; document.head.appendChild(overwriteStyle);
@@ -55,20 +56,21 @@
     const preview=document.getElementById('inspirationPreview'); if(!inspiration){preview.hidden=true;return}
     document.getElementById('inspirationPalette').innerHTML=(inspiration.palette||[]).slice(0,5).map(color=>`<i style="background:${color}" title="${color}"></i>`).join('');
     document.getElementById('inspirationTitle').textContent=inspiration.title||inspiration.host||'Dirección visual';
-    document.getElementById('inspirationTraits').textContent=[inspiration.profile,inspiration.mode,inspiration.fontStyle,inspiration.radiusStyle,inspiration.density,inspiration.layout].filter(Boolean).join(' · ');
+    document.getElementById('inspirationTraits').textContent=[inspiration.profile,inspiration.mode,inspiration.fontStyle,inspiration.radiusStyle,inspiration.density,inspiration.layout,!inspirationUrl.value.trim()?(inspiration.logo?'logo oficial detectado':'logo por verificar'):'referencia estética externa'].filter(Boolean).join(' · ');
     preview.hidden=false;
   }
   async function analyzeInspiration(){
-    const url=inspirationUrl.value.trim(); if(!url){inspirationAnalysis=null;renderInspiration(null);return null}
+    const explicit=inspirationUrl.value.trim(),url=explicit||website.value.trim(); if(!url){inspirationAnalysis=null;renderInspiration(null);throw new Error('Indica la web oficial del cliente.')}
     analyzeButton.disabled=true; message('Analizando la dirección de arte de la web inspiradora…');
     try{
       const response=await fetch('/presentaciones/api/inspiration',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({url})});
       const body=await response.json().catch(()=>({})); if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
-      inspirationAnalysis=body.inspiration; document.getElementById('primaryColor').value=inspirationAnalysis.primary; document.getElementById('accentColor').value=inspirationAnalysis.accent; renderInspiration(inspirationAnalysis); message(`Estilo inspirado en ${inspirationAnalysis.host}. Puedes ajustar los colores antes de generar.`); return inspirationAnalysis;
+      inspirationAnalysis=body.inspiration; document.getElementById('primaryColor').value=inspirationAnalysis.primary; document.getElementById('accentColor').value=inspirationAnalysis.accent; renderInspiration(inspirationAnalysis); message(`${explicit?'Inspiración':'Identidad oficial'} analizada en ${inspirationAnalysis.host}${!explicit&&inspirationAnalysis.logo?' · logo detectado':''}.`); return inspirationAnalysis;
     }finally{analyzeButton.disabled=false}
   }
   analyzeButton.addEventListener('click',()=>analyzeInspiration().catch(error=>message(error.message,true)));
   inspirationUrl.addEventListener('input',()=>{if(inspirationAnalysis&&inspirationUrl.value.trim()!==inspirationAnalysis.url){inspirationAnalysis=null;renderInspiration(null)}});
+  website.addEventListener('input',()=>{if(!inspirationUrl.value.trim()&&inspirationAnalysis&&website.value.trim()!==inspirationAnalysis.url){inspirationAnalysis=null;renderInspiration(null)}});
   function renderGeneration(generation){
     currentGeneration=generation;
     const tasks=Object.values(generation?.tasks||{}); if(!tasks.length){createdMatrix.innerHTML='';return}
@@ -79,7 +81,7 @@
   form.addEventListener('submit',async event=>{
     event.preventDefault(); event.stopImmediatePropagation(); submit.disabled=true; result.classList.remove('show'); message('Analizando el problema y construyendo la presentación…');
     try{
-      if(inspirationUrl.value.trim()&&!inspirationAnalysis)await analyzeInspiration();
+      if(!inspirationAnalysis)await analyzeInspiration();
       message('Construyendo el relato y aplicando la dirección visual…');
       const data=Object.fromEntries(new FormData(form).entries()); data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;
       const body=await createPresentation(data); if(!body){message('No se ha modificado la presentación existente.');return}

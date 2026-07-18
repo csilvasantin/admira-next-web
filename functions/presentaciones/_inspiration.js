@@ -1,9 +1,52 @@
-const MAX_HTML_BYTES = 480 * 1024;
+const MAX_HTML_BYTES = 900 * 1024;
 const MAX_CSS_BYTES = 220 * 1024;
 const MAX_STYLESHEETS = 3;
 
 function clean(value, max = 180){
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
+function attribute(tag, name){
+  const match=String(tag||'').match(new RegExp(`\\s${name}\\s*=\\s*(?:["']([^"']*)["']|([^\\s>]+))`,'i'));
+  return clean(match?.[1]||match?.[2],2000);
+}
+
+function absoluteHttps(value, base){
+  try{const url=new URL(String(value||''),base);return url.protocol==='https:'?url.toString():'';}catch(_){return '';}
+}
+
+function sanitizeSvg(value){
+  let svg=String(value||'').trim();
+  if(!/^<svg\b/i.test(svg)||!/<\/svg>\s*$/i.test(svg)||svg.length>120*1024)return '';
+  svg=svg.replace(/<script\b[\s\S]*?<\/script>/gi,'').replace(/<foreignObject\b[\s\S]*?<\/foreignObject>/gi,'').replace(/\s(?:on\w+|href|xlink:href)\s*=\s*(?:"[^"]*"|'[^']*')/gi,'');
+  if(!/\sxmlns=/.test(svg))svg=svg.replace(/^<svg\b/i,'<svg xmlns="http://www.w3.org/2000/svg"');
+  return svg;
+}
+
+function extractLogo(html,base){
+  const candidates=[];
+  for(const match of html.matchAll(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi)){
+    const svg=sanitizeSvg(match[0]);if(!svg)continue;
+    const opening=svg.slice(0,Math.min(svg.indexOf('>')+1,1500));
+    const nearby=html.slice(Math.max(0,match.index-220),match.index+Math.min(match[0].length,1400));
+    const signal=`${opening} ${nearby}`;
+    let score=(/logo/i.test(signal)?90:0)+(/brand|wordmark|identity/i.test(signal)?28:0)+(/href=["']\/?["']/i.test(nearby)?12:0)+(/viewBox/i.test(opening)?4:0);
+    if(/cookie|social|icon/i.test(signal))score-=55;
+    candidates.push({score,type:'svg',svg,sourceUrl:String(base),alt:'Logo oficial'});
+  }
+  for(const match of html.matchAll(/<img\b[^>]*>/gi)){
+    const tag=match[0],src=attribute(tag,'src')||attribute(tag,'data-src')||attribute(tag,'data-lazy-src');
+    const url=absoluteHttps(src,base);if(!url)continue;
+    const signal=[attribute(tag,'alt'),attribute(tag,'class'),attribute(tag,'id'),src].join(' ');
+    let score=(/logo|wordmark/i.test(signal)?78:0)+(/brand|identity/i.test(signal)?24:0)+(/header|nav/i.test(signal)?10:0);
+    if(/cookie|store|payment|partner|social|footer|app/i.test(signal))score-=48;
+    if(score>0)candidates.push({score,type:'url',url,sourceUrl:url,alt:attribute(tag,'alt')||'Logo oficial'});
+  }
+  for(const match of html.matchAll(/<link\b[^>]*>/gi)){
+    const tag=match[0],rel=attribute(tag,'rel');if(!/(?:^|\s)(?:icon|shortcut icon|apple-touch-icon)(?:\s|$)/i.test(rel))continue;
+    const url=absoluteHttps(attribute(tag,'href'),base);if(url)candidates.push({score:/apple-touch-icon/i.test(rel)?18:10,type:'url',url,sourceUrl:url,alt:'Icono oficial'});
+  }
+  return candidates.sort((a,b)=>b.score-a.score)[0]||null;
 }
 
 function assertPublicHttps(value){
@@ -112,9 +155,10 @@ export function extractInspiration({url, finalUrl, html, css = ''}){
   const title = clean(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1].replace(/<[^>]+>/g, '') || new URL(finalUrl || url).hostname, 140);
   const description = clean(html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i)?.[1] || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1], 240);
   const profile = traits.gradients >= 4 ? 'immersive' : traits.fontStyle === 'serif' ? 'editorial' : traits.radius >= 18 ? 'friendly' : traits.shadows <= 2 ? 'minimal' : 'structured';
+  const logo=extractLogo(html,finalUrl||url);
   return {
     schemaVersion:1, url:String(url), finalUrl:String(finalUrl || url), host:new URL(finalUrl || url).hostname,
-    title, description, ...palette, ...traits, profile,
+    title, description, ...palette, ...traits, profile, logo,
     analyzedAt:new Date().toISOString()
   };
 }
@@ -125,6 +169,14 @@ export function normalizeInspiration(value, expectedUrl = ''){
   if (expectedUrl && new URL(value.url || expectedUrl).toString() !== new URL(expectedUrl).toString()) return null;
   const allowed = (candidate, values, fallback) => values.includes(candidate) ? candidate : fallback;
   const validColor = (candidate, fallback) => normalizeHex(candidate) || fallback;
+  let logo=null;
+  if(value.logo&&typeof value.logo==='object'){
+    if(value.logo.type==='svg'){
+      const svg=sanitizeSvg(value.logo.svg);if(svg)logo={type:'svg',svg,sourceUrl:clean(value.logo.sourceUrl||url,1000),alt:clean(value.logo.alt,140)||'Logo oficial'};
+    }else if(value.logo.type==='url'){
+      try{const logoUrl=assertPublicHttps(value.logo.url).toString();logo={type:'url',url:logoUrl,sourceUrl:logoUrl,alt:clean(value.logo.alt,140)||'Logo oficial'};}catch(_){}
+    }
+  }
   return {
     schemaVersion:1, url, finalUrl:clean(value.finalUrl || url, 500), host:clean(value.host || new URL(url).hostname, 180),
     title:clean(value.title, 140), description:clean(value.description, 240),
@@ -132,7 +184,7 @@ export function normalizeInspiration(value, expectedUrl = ''){
     palette:(Array.isArray(value.palette) ? value.palette : []).map(color => normalizeHex(color)).filter(Boolean).slice(0, 7),
     mode:allowed(value.mode, ['dark','light'], 'light'), fontStyle:allowed(value.fontStyle, ['grotesk','serif','rounded','mono'], 'grotesk'), sourceFont:clean(value.sourceFont, 120),
     radius:Math.max(0, Math.min(32, Number(value.radius) || 0)), radiusStyle:allowed(value.radiusStyle, ['sharp','soft','rounded'], 'soft'), density:allowed(value.density, ['compact','balanced','airy'], 'balanced'), layout:allowed(value.layout, ['editorial','centered'], 'editorial'),
-    gradients:Math.max(0, Math.min(99, Number(value.gradients) || 0)), shadows:Math.max(0, Math.min(99, Number(value.shadows) || 0)), profile:allowed(value.profile, ['immersive','editorial','friendly','minimal','structured'], 'structured'), analyzedAt:clean(value.analyzedAt, 40) || new Date().toISOString()
+    gradients:Math.max(0, Math.min(99, Number(value.gradients) || 0)), shadows:Math.max(0, Math.min(99, Number(value.shadows) || 0)), profile:allowed(value.profile, ['immersive','editorial','friendly','minimal','structured'], 'structured'), logo, analyzedAt:clean(value.analyzedAt, 40) || new Date().toISOString()
   };
 }
 

@@ -40,19 +40,33 @@ async function upload(job,task,file){
   const response=await fetch(`${API}?${query}`,{method:'PUT',headers:{authorization:`Bearer ${TOKEN}`,'content-type':types[ext]||'application/octet-stream','x-file-name':path.basename(file),'x-worker':WORKER},body:bytes});
   const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||`Upload ${response.status}`);return data;
 }
-function cleanVideoEnding(file){
+async function clientLogoBadge(logo,maxWidth,maxHeight){
+  const resized=await sharp(logo).resize({width:maxWidth,height:maxHeight,fit:'inside',withoutEnlargement:true}).png().toBuffer();
+  const metadata=await sharp(resized).metadata(),pad=Math.max(10,Math.round(Math.min(maxWidth,maxHeight)*.14));
+  return sharp({create:{width:Number(metadata.width)+pad*2,height:Number(metadata.height)+pad*2,channels:4,background:{r:255,g:255,b:255,alpha:.92}}}).composite([{input:resized,left:pad,top:pad}]).png().toBuffer();
+}
+async function downloadClientLogo(client){
+  const query=new URLSearchParams({client,asset:'logo'});let response=await fetch(`${API}?${query}`,{headers:{authorization:`Bearer ${TOKEN}`}});
+  if(response.status===404){await api('POST','',{action:'refresh-brand',client});response=await fetch(`${API}?${query}`,{headers:{authorization:`Bearer ${TOKEN}`}});}
+  if(!response.ok)throw new Error(`No se pudo obtener el logo oficial (${response.status}).`);
+  const bytes=Buffer.from(await response.arrayBuffer()),dir=path.join(RUNTIME,'brands');await fs.mkdir(dir,{recursive:true});
+  const output=path.join(dir,`${client}.png`);await sharp(bytes,{density:240}).trim().resize({width:1200,height:500,fit:'inside',withoutEnlargement:true}).png().toFile(output);return output;
+}
+async function cleanVideoEnding(file,clientLogo){
   const duration=Number(execFileSync('mdls',['-raw','-name','kMDItemDurationSeconds',file],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim());
   if(!ffmpegPath||!Number.isFinite(duration)||duration<=4)throw new Error('No se pudo preparar el cierre limpio del vídeo.');
   const cut=(duration-3).toFixed(3),total=duration.toFixed(3);
   const output=path.join(path.dirname(file),`${path.basename(file,'.mp4')}.admiranext.mp4`);
   const badge=path.join(RUNTIME,'admiranext-video-badge.png');
+  const clientBadge=path.join(RUNTIME,`${path.basename(file,'.mp4')}.client-logo.png`);
   execFileSync('sips',['-s','format','png',path.join(ROOT,'presentaciones/LaCaixa/assets/admiranext-video-badge.svg'),'--out',badge],{stdio:'ignore'});
   execFileSync('sips',['-Z','180',badge],{stdio:'ignore'});
-  const filter=`[0:v][1:v]overlay=W-w-18:H-h-18:format=auto,trim=start=0:end=${cut},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=3,trim=duration=${total},format=yuv420p[v];[0:a]atrim=start=0:end=${total},asetpts=PTS-STARTPTS[a]`;
-  execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','warning','-i',file,'-loop','1','-i',badge,'-filter_complex',filter,'-map','[v]','-map','[a]','-c:v','libx264','-preset','medium','-crf','21','-profile:v','high','-r','24','-c:a','aac','-b:a','80k','-movflags','+faststart','-metadata','comment=NotebookLM branding removed · AdmiraNeXT identity applied · duration preserved','-shortest',output],{stdio:'ignore'});
+  await fs.writeFile(clientBadge,await clientLogoBadge(clientLogo,210,62));
+  const filter=`[0:v][1:v]overlay=W-w-18:H-h-18:format=auto[admira];[admira][2:v]overlay=18:18:format=auto,trim=start=0:end=${cut},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=3,trim=duration=${total},format=yuv420p[v];[0:a]atrim=start=0:end=${total},asetpts=PTS-STARTPTS[a]`;
+  execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','warning','-i',file,'-loop','1','-i',badge,'-loop','1','-i',clientBadge,'-filter_complex',filter,'-map','[v]','-map','[a]','-c:v','libx264','-preset','medium','-crf','21','-profile:v','high','-r','24','-c:a','aac','-b:a','80k','-movflags','+faststart','-metadata','comment=NotebookLM branding removed · AdmiraNeXT and client identity applied · duration preserved','-shortest',output],{stdio:'ignore'});
   return output;
 }
-async function cleanInfographicBranding(file){
+async function cleanInfographicBranding(file,clientLogo){
   const metadata=await sharp(file).metadata(),width=Number(metadata.width),height=Number(metadata.height);
   if(!width||!height)throw new Error('No se pudo leer la infografía descargada.');
   const coverWidth=Math.ceil(width*.09),coverHeight=Math.ceil(height*.035),top=height-coverHeight;
@@ -60,8 +74,9 @@ async function cleanInfographicBranding(file){
   // Gemini Notebook sitúa su firma en la última franja derecha. Clonamos una
   // franja de fondo inmediatamente anterior para conservar papel, grano y luz.
   const background=await sharp(file).extract({left:sampleLeft,top,width:coverWidth,height:coverHeight}).png().toBuffer();
+  const logo=await clientLogoBadge(clientLogo,Math.ceil(width*.14),Math.ceil(height*.065)),logoMeta=await sharp(logo).metadata();
   const output=path.join(path.dirname(file),`${path.basename(file,'.png')}.admiranext.png`);
-  await sharp(file).composite([{input:background,left:width-coverWidth,top}]).png().toFile(output);
+  await sharp(file).composite([{input:background,left:width-coverWidth,top},{input:logo,left:Math.max(18,width-Number(logoMeta.width)-Math.ceil(width*.018)),top:Math.ceil(height*.018)}]).png().toFile(output);
   return output;
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -77,9 +92,10 @@ async function fillByLabel(page,label,value){
 const LANGUAGE_OPTIONS={es:'español',ca:'català',en:'English'};
 const LANGUAGE_NAMES={es:'Spanish',ca:'Catalan',en:'English'};
 function visualStyle(presentation={}){
-  if(/(?:^|\.)zero\.university/i.test(String(presentation.inspirationUrl||'')))return 'Zero University-inspired digital editorial design: stark black and warm off-white fields, oversized condensed neo-grotesk typography, dramatic scale shifts, tight modular grid, electric cobalt and acid-lime accents, simple geometric diagrams, crisp product-interface fragments and premium tech-culture energy. No stock-photo corporate aesthetic and no provider branding.';
+  const logoRule=` The official ${presentation.displayName||'client'} logo is mandatory, must preserve its proportions and colors, and must remain visible throughout every visual deliverable.`;
+  if(/(?:^|\.)zero\.university/i.test(String(presentation.inspirationUrl||'')))return `Zero University-inspired digital editorial design: stark black and warm off-white fields, oversized condensed neo-grotesk typography, dramatic scale shifts, tight modular grid, electric cobalt and acid-lime accents, simple geometric diagrams, crisp product-interface fragments and premium tech-culture energy. No stock-photo corporate aesthetic and no provider branding.${logoRule}`;
   const theme=presentation.theme||{};
-  return `Premium ${theme.profile||'structured'} ${theme.layout||'editorial'} brand system with ${theme.mode||'light'} surfaces, primary ${theme.primary||'#12233e'}, accent ${theme.accent||'#ffb000'}, ${theme.fontStyle||'grotesk'} typography, a clear modular grid, simple geometric diagrams and generous whitespace. No stock-photo corporate aesthetic and no provider branding.`;
+  return `Premium ${theme.profile||'structured'} ${theme.layout||'editorial'} brand system with ${theme.mode||'light'} surfaces, primary ${theme.primary||'#12233e'}, accent ${theme.accent||'#ffb000'}, ${theme.fontStyle||'grotesk'} typography, a clear modular grid, simple geometric diagrams and generous whitespace. No stock-photo corporate aesthetic and no provider branding.${logoRule}`;
 }
 async function selectLanguage(page,language){
   const option=LANGUAGE_OPTIONS[language]||'English';
@@ -135,21 +151,21 @@ async function processNext(browser){
     // nunca convierte trabajos preparados en errores ni los deja a medias.
     await ensureNotebookAccount(page);
     const summary=queue.jobs[0],language=String(summary.tasks[0]||'en:').split(':')[0];
+    const details=await api('GET',`?client=${encodeURIComponent(summary.client)}`),presentation=details.presentation||{},style=visualStyle({...presentation,displayName:summary.displayName}),clientLogo=await downloadClientLogo(summary.client);
     const claimIds=summary.tasks.filter(id=>id.startsWith(`${language}:`));
     const claimed=await api('POST','',{action:'claim',client:summary.client,id:summary.id,tasks:claimIds,worker:WORKER});
     job=claimed.job;tasks=Object.values(job.tasks).filter(task=>claimIds.includes(task.id));
-    const details=await api('GET',`?client=${encodeURIComponent(job.client)}`),style=visualStyle(details.presentation||{});
     const session=await page.createCDPSession();await session.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:DOWNLOADS,eventsEnabled:true});
     const notebookUrl=await newNotebook(page,job);
     await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{url:notebookUrl,account:ACCOUNT,submittedAt:new Date().toISOString()}});
     for(const task of tasks){if(task.output==='audio')await generateAudio(page,task.language);else if(task.output==='video')await generateVideo(page,task.language,style);else if(task.output==='infographic')await generateInfographic(page,task.language,style);await sleep(700);}
     // La descarga se completa en una segunda fase del mismo proceso. Se mantiene
     // el navegador vivo y se observa Studio sin consultar APIs privadas de Google.
-    await waitAndPublish(page,job,tasks);
+    await waitAndPublish(page,job,tasks,clientLogo);
     return true;
   }catch(error){if(job)await markFailed(job,tasks,error);throw error;}finally{await page.close().catch(()=>{});}
 }
-async function waitAndPublish(page,job,tasks){
+async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
   const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',infographic:'stacked_bar_chart'};
   while(pending.size&&Date.now()<deadline){
@@ -170,7 +186,7 @@ async function waitAndPublish(page,job,tasks){
       let file='';for(let i=0;i<60&&!file;i+=1){await sleep(1000);const files=await fs.readdir(DOWNLOADS).catch(()=>[]);file=files.find(name=>!before.has(name)&&!name.endsWith('.crdownload'))||'';}
       if(file){
         const downloaded=path.join(DOWNLOADS,file);
-        const publishable=output==='video'?cleanVideoEnding(downloaded):output==='infographic'?await cleanInfographicBranding(downloaded):downloaded;
+        const publishable=output==='video'?await cleanVideoEnding(downloaded,clientLogo):output==='infographic'?await cleanInfographicBranding(downloaded,clientLogo):downloaded;
         await upload(job,task,publishable);pending.delete(output);
       }
     }

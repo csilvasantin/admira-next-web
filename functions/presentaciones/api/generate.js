@@ -1,7 +1,8 @@
 import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
+import { persistBrandLogo } from '../_brand.js';
 
-const MAX_BYTES = 32 * 1024;
+const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
 
 function json(body, status = 200){
@@ -29,7 +30,7 @@ function buildIdeas(input, slug, languages){
   const problem=input.problem || `Convertir los espacios físicos de ${name} en una experiencia conectada, medible y capaz de mejorar en tiempo real.`;
   const audience=input.audience || 'Dirección de negocio, experiencia, operaciones, marketing e innovación';
   return {
-    schemaVersion:2, client:slug, displayName:name, languages, translations:{}, inspiration:input.inspiration||null,
+    schemaVersion:2, client:slug, displayName:name, languages, translations:{}, inspiration:input.inspiration||null, brand:input.brand||null,
     hero:{eyebrow:`Presentación privada · ${name}`,title:input.title || `${name}: cada espacio puede aprender.`,summary:input.summary || `Una propuesta para conectar contenido, operación, experiencia y medición alrededor de un problema concreto: ${problem}`},
     objective:input.objective || `Acordar un piloto concreto con ${name}, responsables, alcance y métricas de éxito.`,
     skeleton:[
@@ -43,7 +44,7 @@ function buildIdeas(input, slug, languages){
       idea('piloto','El primer piloto',`Empezar pequeño, medir de verdad y escalar lo que funciona.`,`Un espacio, dos recorridos prioritarios, cuatro semanas de aprendizaje y un cuadro compartido de métricas.`)
     ],
     closing:{title:`Elijamos el primer espacio de ${name}.`,action:'Definir problema, ubicación, responsables, señales disponibles y tres métricas de éxito.'},
-    notes:`Fuente inicial generada para ${name}. Validar identidad, datos, problema y lenguaje antes de compartir. Web oficial: ${input.website || 'pendiente'}. Inspiración visual: ${input.inspiration?.url || 'dirección propia de ADmiraNeXT'}.`,
+    notes:`Fuente inicial generada para ${name}. Validar identidad, datos, problema y lenguaje antes de compartir. Web oficial y fuente de marca: ${input.website}. Inspiración visual: ${input.inspiration?.url || input.website}. Logo oficial obligatorio: ${input.brand?.logoUrl || 'no localizado'}.`,
     updatedAt:new Date().toISOString()
   };
 }
@@ -52,13 +53,14 @@ function buildSource(data){
   const blocks=data.skeleton.filter(item=>item.enabled!==false).map((item,index)=>
     `${index+1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`
   ).join('\n\n');
-  const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL INSPIRADORA\n- Referencia: ${data.inspiration.url}\n- Perfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\n- Paleta extraída: ${(data.inspiration.palette||[]).join(', ')}.\n- Interpretar estos rasgos en clave ADmiraNeXT × ${data.displayName}; no copiar código, logotipos, textos ni elementos propietarios.\n`:'';
+  const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL INSPIRADORA\n- Referencia: ${data.inspiration.url}\n- Perfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\n- Paleta extraída: ${(data.inspiration.palette||[]).join(', ')}.\n- Interpretar estos rasgos en clave ADmiraNeXT × ${data.displayName}; no copiar código, textos, logotipos ni elementos propietarios de la web inspiradora.\n`:'';
+  const brand=data.brand?`\nIDENTIDAD OFICIAL DEL CLIENTE\n- Fuente oficial: ${data.brand.website}\n- El logo oficial de ${data.displayName} es obligatorio y debe aparecer de forma consistente en toda la presentación, cada diapositiva y cada pieza visual.\n- Mantener proporciones, colores y área de respeto; no redibujar, reinterpretar ni sustituir el logo por texto.\n`:'';
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n`+
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n${blocks}\n\n`+
-    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}\n`+
-    `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}.\n`+
+    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}${brand}\n`+
+    `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}; ambas marcas deben convivir.\n`+
     `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
-    `- No mostrar referencias gráficas al proveedor de producción; la marca visible es AdmiraNeXT.\n`+
+    `- No mostrar referencias gráficas al proveedor de producción; las marcas visibles son AdmiraNeXT y el logo oficial de ${data.displayName}.\n`+
     `- En vídeo, eliminar únicamente la tarjeta final del proveedor y prolongar el último fotograma limpio durante ese tramo.\n`+
     `- Mantener la misma dirección visual inspiradora en website, PDF, PowerPoint, documentos e infografía.\n`+
     `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.`;
@@ -88,21 +90,25 @@ export async function onRequestPut(context){
   const input={
     displayName, problem:text(raw.problem,1200), audience:text(raw.audience,500),
     title:text(raw.title,220), summary:text(raw.summary,900), objective:text(raw.objective,1200),
-    website:text(raw.website,500), inspirationUrl:text(raw.inspirationUrl,500), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000')
+    website:text(raw.website,500), requestedInspirationUrl:text(raw.inspirationUrl,500), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000')
   };
-  if (input.website && !/^https:\/\//i.test(input.website)) return json({error:'La web debe comenzar por https://'},400);
+  if (!input.website) return json({error:'Indica la web oficial del cliente: es la fuente del logo y la inspiración por defecto.'},400);
+  if (!/^https:\/\//i.test(input.website)) return json({error:'La web oficial debe comenzar por https://'},400);
+  if (input.requestedInspirationUrl && !/^https:\/\//i.test(input.requestedInspirationUrl)) return json({error:'La web inspiradora debe comenzar por https://'},400);
+  input.inspirationUrl=input.requestedInspirationUrl||input.website;
   let inspiration=null;
-  if(input.inspirationUrl){
-    try{
-      inspiration=normalizeInspiration(raw.inspiration,input.inspirationUrl) || await analyzeInspiration(input.inspirationUrl);
-      if(!raw.inspiration){input.primaryColor=inspiration.primary;input.accentColor=inspiration.accent}
-    }catch(error){return json({error:error.message||'No se pudo analizar la web inspiradora.'},422)}
-  }
+  let brandAnalysis=null;
+  try{
+    inspiration=normalizeInspiration(raw.inspiration,input.inspirationUrl) || await analyzeInspiration(input.inspirationUrl);
+    brandAnalysis=input.inspirationUrl===input.website?inspiration:await analyzeInspiration(input.website);
+    if(!raw.inspiration){input.primaryColor=inspiration.primary;input.accentColor=inspiration.accent}
+    input.brand=await persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis});
+  }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
   input.inspiration=inspiration;
   const ideas=buildIdeas(input,slug,languages);
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
-    schemaVersion:2,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspiration,problem:input.problem,audience:input.audience,outputs,languages,
+    schemaVersion:3,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()

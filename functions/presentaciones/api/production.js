@@ -1,4 +1,6 @@
 import { normalizeGeneration, publicGeneration, recomputeGeneration, updateTaskStatus, VALID_STATUSES } from '../_generation.js';
+import { analyzeInspiration } from '../_inspiration.js';
+import { persistBrandLogo } from '../_brand.js';
 
 const enc = new TextEncoder();
 const NOTEBOOK_OUTPUTS = new Set(['audio','video','infographic']);
@@ -35,6 +37,14 @@ async function getJob(env,client){
   const saved=await env.PRESENTATION_IDEAS.get(`generation:${client}`,{type:'json'});
   return saved?normalizeGeneration(saved):null;
 }
+async function brandAsset(context,client){
+  const presentation=await context.env.PRESENTATION_IDEAS.get(`presentation:${client}`,{type:'json'});
+  const key=String(presentation?.brand?.logoKey||'');
+  if(!key.startsWith(`presentations/${client}/brand/`)||!context.env.PRESENTATION_MEDIA)return json({error:'Logo no encontrado.'},404);
+  const object=await context.env.PRESENTATION_MEDIA.get(key);if(!object)return json({error:'Logo no encontrado.'},404);
+  const headers=new Headers({'cache-control':'private, max-age=3600','x-content-type-options':'nosniff'});object.writeHttpMetadata(headers);headers.set('etag',object.httpEtag);
+  return new Response(object.body,{headers});
+}
 async function putJob(env,client,job){
   recomputeGeneration(job);
   await env.PRESENTATION_IDEAS.put(`generation:${client}`,JSON.stringify(job));
@@ -45,14 +55,15 @@ function notebookTasks(job,statuses=['queued']){
 }
 
 async function listQueue(context){
-  const client=cleanClient(new URL(context.request.url).searchParams.get('client'));
+  const requestUrl=new URL(context.request.url),client=cleanClient(requestUrl.searchParams.get('client'));
   if(client){
+    if(requestUrl.searchParams.get('asset')==='logo')return brandAsset(context,client);
     const [job,presentation]=await Promise.all([
       getJob(context.env,client),
       context.env.PRESENTATION_IDEAS.get(`presentation:${client}`,{type:'json'})
     ]);
     if(!job)return json({error:'Generación no encontrada.'},404);
-    return json({ok:true,job:safeJob(job),presentation:presentation?{displayName:presentation.displayName,website:presentation.website,inspirationUrl:presentation.inspirationUrl,theme:presentation.theme,languages:presentation.languages}:null});
+    return json({ok:true,job:safeJob(job),presentation:presentation?{displayName:presentation.displayName,website:presentation.website,inspirationUrl:presentation.inspirationUrl,inspirationSource:presentation.inspirationSource,theme:presentation.theme,brand:presentation.brand,languages:presentation.languages}:null});
   }
   const jobs=[];let cursor;
   do{
@@ -66,6 +77,21 @@ async function listQueue(context){
   }while(cursor);
   jobs.sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
   return json({ok:true,jobs});
+}
+
+async function refreshBrand(context,payload){
+  const client=cleanClient(payload.client);if(!client)return json({error:'Cliente no válido.'},400);
+  const presentation=await context.env.PRESENTATION_IDEAS.get(`presentation:${client}`,{type:'json'});
+  if(!presentation)return json({error:'Presentación no encontrada.'},404);
+  if(!presentation.website)return json({error:'La presentación no tiene web oficial.'},422);
+  try{
+    const analysis=await analyzeInspiration(presentation.website);
+    const brand=await persistBrandLogo(context.env,{slug:client,displayName:presentation.displayName,website:presentation.website,analysis});
+    presentation.brand=brand;presentation.schemaVersion=Math.max(3,Number(presentation.schemaVersion)||0);presentation.updatedAt=new Date().toISOString();
+    const ideas=await context.env.PRESENTATION_IDEAS.get(`ideas:${client}`,{type:'json'});if(ideas){ideas.brand=brand;ideas.updatedAt=presentation.updatedAt;}
+    await Promise.all([context.env.PRESENTATION_IDEAS.put(`presentation:${client}`,JSON.stringify(presentation)),ideas?context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas)):Promise.resolve()]);
+    return json({ok:true,client,brand});
+  }catch(error){return json({error:error.message||'No se pudo actualizar el logo oficial.'},422);}
 }
 
 async function updateJob(context,payload){
@@ -126,5 +152,6 @@ export async function onRequest(context){
   if(context.request.method==='PUT')return uploadArtifact(context);
   if(context.request.method!=='POST')return json({error:'Método no permitido.'},405);
   let payload;try{payload=await context.request.json();}catch(_){return json({error:'JSON no válido.'},400);}
+  if(payload?.action==='refresh-brand')return refreshBrand(context,payload);
   return updateJob(context,payload||{});
 }
