@@ -111,9 +111,14 @@ export async function onRequest(context){
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
   const isGeneratorApi = first === 'api' && ['generate','inspiration'].includes(second);
+  const isProductionApi = first === 'api' && second === 'production';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
   const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;
+
+  // El productor local se autentica con un Bearer token propio. No debe atravesar
+  // el formulario/cookie de las áreas humanas antes de llegar a su endpoint.
+  if (isProductionApi) return next();
 
   const cookieName = `pres_${isGallery ? 'admin' : seg}`;
   const cookieSlug = isGallery ? '_admin' : seg;

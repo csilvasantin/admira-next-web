@@ -8,5 +8,11 @@
       "binding": "PRESENTATION_IDEAS",
       "id": "865b826b5e0f4093b693583d46fe69e0"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PRESENTATION_MEDIA",
+      "bucket_name": "admiranext-presentations"
+    }
   ]
 }

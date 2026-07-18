@@ -1,0 +1,13 @@
+{
+  "name": "admiranext-notebooklm-local",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node worker.js",
+    "setup": "node worker.js --setup",
+    "once": "node worker.js --once"
+  },
+  "dependencies": {
+    "puppeteer": "^25.3.0"
+  }
+}

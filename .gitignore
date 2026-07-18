@@ -1,2 +1,4 @@
 .claude/
 .wrangler/
+.runtime/
+tools/notebooklm-local/node_modules/
