@@ -26,3 +26,6 @@ PPTX; el logo oficial del cliente se aplica a todas las diapositivas antes de su
 
 Variables opcionales: `VISUAL_BRIEF_MODEL`, `VISUAL_BRIEF_OLLAMA_URL` y
 `VISUAL_BRIEF_MODE=off` para desactivar temporalmente el análisis visual.
+`NOTEBOOKLM_CLIENT=portaventura` y `NOTEBOOKLM_OUTPUTS=pdf,powerpoint` permiten
+procesar un caso o unos entregables concretos durante una prueba sin reclamar el
+resto de la cola.

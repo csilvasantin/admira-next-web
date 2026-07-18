@@ -18,6 +18,8 @@ const ACCOUNT=process.env.NOTEBOOKLM_ACCOUNT||'csilvasantin@gmail.com';
 const WORKER=`notebooklm-${os.hostname().toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,48)}`;
 const POLL_MS=Math.max(15000,Number(process.env.NOTEBOOKLM_POLL_MS)||30000);
 const once=process.argv.includes('--once'),setup=process.argv.includes('--setup');
+const CLIENT_FILTER=String(process.env.NOTEBOOKLM_CLIENT||'').trim().toLowerCase();
+const OUTPUT_FILTER=new Set(String(process.env.NOTEBOOKLM_OUTPUTS||'').split(',').map(value=>value.trim().toLowerCase()).filter(Boolean));
 
 function token(){
   if(process.env.PRESENTATION_WORKER_TOKEN)return process.env.PRESENTATION_WORKER_TOKEN.trim();
@@ -161,9 +163,10 @@ async function processNext(browser){
     // La sesión se valida antes de reclamar la cola: una autenticación caducada
     // nunca convierte trabajos preparados en errores ni los deja a medias.
     await ensureNotebookAccount(page);
-    const summary=queue.jobs[0],language=String(summary.tasks[0]||'en:').split(':')[0];
+    const summary=queue.jobs.find(item=>(!CLIENT_FILTER||item.client===CLIENT_FILTER)&&(!OUTPUT_FILTER.size||item.tasks.some(id=>OUTPUT_FILTER.has(String(id).split(':')[1]))));if(!summary)return false;
+    const eligible=summary.tasks.filter(id=>!OUTPUT_FILTER.size||OUTPUT_FILTER.has(String(id).split(':')[1])),language=String(eligible[0]||'en:').split(':')[0];
     const details=await api('GET',`?client=${encodeURIComponent(summary.client)}`),presentation={...(details.presentation||{}),displayName:summary.displayName},clientLogo=await downloadClientLogo(summary.client);
-    const claimIds=summary.tasks.filter(id=>id.startsWith(`${language}:`));
+    const claimIds=eligible.filter(id=>id.startsWith(`${language}:`));
     const claimed=await api('POST','',{action:'claim',client:summary.client,id:summary.id,tasks:claimIds,worker:WORKER});
     job=claimed.job;tasks=Object.values(job.tasks).filter(task=>claimIds.includes(task.id));
     await setStage(job,tasks,'Analizando la referencia y construyendo la guía visual');

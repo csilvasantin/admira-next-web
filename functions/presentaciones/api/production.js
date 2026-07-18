@@ -1,4 +1,4 @@
-import { normalizeGeneration, publicGeneration, recomputeGeneration, updateTaskStatus, VALID_STATUSES } from '../_generation.js';
+import { LANGUAGE_LABELS, OUTPUT_LABELS, normalizeGeneration, publicGeneration, recomputeGeneration, taskKey, updateTaskStatus, VALID_STATUSES } from '../_generation.js';
 import { analyzeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
 
@@ -114,7 +114,16 @@ async function updateJob(context,payload){
   if(!job)return json({error:'Generación no encontrada.'},404);
   if(payload.id&&payload.id!==job.id)return json({error:'La generación ya no es la vigente.'},409);
   const now=new Date().toISOString();
-  if(payload.action==='claim'){
+  if(payload.action==='enqueue'){
+    const outputs=[...new Set((Array.isArray(payload.outputs)?payload.outputs:[]).map(value=>String(value||'').toLowerCase()).filter(value=>NOTEBOOK_OUTPUTS.has(value)))];
+    const languages=[...new Set((Array.isArray(payload.languages)&&payload.languages.length?payload.languages:job.languages||[]).map(value=>String(value||'').toLowerCase()).filter(value=>['es','ca','en'].includes(value)))];
+    if(!outputs.length||!languages.length)return json({error:'Indica entregables e idiomas válidos.'},400);
+    job.requested=[...new Set([...(job.requested||[]),...outputs])];job.languages=[...new Set([...(job.languages||[]),...languages])];
+    for(const language of languages)for(const output of outputs){
+      const id=taskKey(language,output),existing=job.tasks?.[id];if(existing&&!payload.force)continue;
+      job.tasks[id]={id,language,languageLabel:LANGUAGE_LABELS[language],output,label:OUTPUT_LABELS[output],status:'queued',url:null,attempts:Number(existing?.attempts||0),provider:'notebooklm',requestedAt:now,updatedAt:now,...(['pdf','powerpoint'].includes(output)?{postProcess:{providerCleanup:'brand-overlay',clientLogoEverySlide:true,preserveVisualStyle:true}}:{})};
+    }
+  }else if(payload.action==='claim'){
     const requested=new Set(Array.isArray(payload.tasks)?payload.tasks:[]);
     const candidates=notebookTasks(job,['queued']).filter(task=>!requested.size||requested.has(task.id));
     if(!candidates.length)return json({error:'No hay tareas preparadas para reclamar.'},409);
