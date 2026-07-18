@@ -8,7 +8,7 @@ fi
 
 INPUT="$1"
 OUTPUT="$2"
-REMOVE_SECONDS="${3:-2}"
+REMOVE_SECONDS="${3:-3}"
 MODE="${4:-freeze}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CARD="$ROOT/assets/video-closing-thank-you.svg"

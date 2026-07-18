@@ -40,7 +40,7 @@ function postProcess(output){
     strategy:'freeze-last-clean-frame',
     preserveVisualStyle:true,
     preserveDuration:true,
-    defaultEndingSeconds:2
+    defaultEndingSeconds:3
   };
 }
 
