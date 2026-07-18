@@ -1,6 +1,6 @@
 export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
-export const DEFAULT_OUTPUTS = ['website','audio','video','infographic'];
-export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','infographic']);
+export const DEFAULT_OUTPUTS = ['website','audio','video','pdf','powerpoint','infographic'];
+export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
 export const LANGUAGES = ['es','ca','en'];
 export const OUTPUT_LABELS = {
   website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
@@ -21,9 +21,11 @@ export function updateTaskStatus(task, status, now = new Date().toISOString()){
     task.completedAt ||= now;
     delete task.failedAt;
     delete task.error;
+    delete task.stage;
   } else if (['failed','skipped'].includes(status)) {
     task.failedAt ||= now;
     delete task.completedAt;
+    delete task.stage;
   } else {
     delete task.completedAt;
     delete task.failedAt;
@@ -34,14 +36,19 @@ export function updateTaskStatus(task, status, now = new Date().toISOString()){
 }
 
 function postProcess(output){
-  if (output !== 'video') return undefined;
-  return {
-    providerCleanup:'ending-only',
-    strategy:'freeze-last-clean-frame',
-    preserveVisualStyle:true,
-    preserveDuration:true,
-    defaultEndingSeconds:3
-  };
+  if (output === 'video') return {
+      providerCleanup:'ending-only',
+      strategy:'freeze-last-clean-frame',
+      preserveVisualStyle:true,
+      preserveDuration:true,
+      defaultEndingSeconds:3
+    };
+  if (['pdf','powerpoint'].includes(output)) return {
+      providerCleanup:'brand-overlay',
+      clientLogoEverySlide:true,
+      preserveVisualStyle:true
+    };
+  return undefined;
 }
 
 function taskUrl(client, language, output){
@@ -73,7 +80,7 @@ export function normalizeGeneration(job){
   if (!job || typeof job !== 'object') return job;
   if (job.schemaVersion >= 2 && job.tasks && typeof job.tasks === 'object') {
     for (const task of Object.values(job.tasks)) {
-      if (task?.output === 'video' && !task.postProcess) task.postProcess = postProcess('video');
+      if (['video','pdf','powerpoint'].includes(task?.output) && !task.postProcess) task.postProcess = postProcess(task.output);
       if (!task?.requestedAt) task.requestedAt = job.createdAt || task.updatedAt || new Date().toISOString();
       if (!task?.provider) task.provider = NOTEBOOKLM_OUTPUTS.has(task?.output)?'notebooklm':'admiranext';
       if (!task?.startedAt && !['queued','skipped'].includes(task?.status)) task.startedAt = task.submittedAt || task.updatedAt || job.createdAt;
@@ -116,6 +123,7 @@ export function recomputeGeneration(job){
     const published = variants.find(task => task.status === 'published' && task.url);
     const ready = variants.find(task => task.status === 'ready' && task.url);
     const processing = variants.some(task => task.status === 'processing');
+    const processingTask = variants.find(task => task.status === 'processing');
     const allTerminal = variants.length && variants.every(task => ['ready','published','failed','skipped','complete'].includes(task.status));
     const allFailed = variants.length && variants.every(task => ['failed','skipped'].includes(task.status));
     let status = published ? 'published' : ready ? 'ready' : processing ? 'processing' : allFailed ? 'failed' : allTerminal ? 'complete' : 'queued';
@@ -132,6 +140,7 @@ export function recomputeGeneration(job){
       startedAt:dates.length ? new Date(Math.min(...dates)).toISOString() : null,
       completedAt:available?.completedAt || null, failedAt:failed?.failedAt || null,
       error:failed?.error || null,
+      stage:processingTask?.stage || null,
       updatedAt:updates.length ? new Date(Math.max(...updates)).toISOString() : now
     };
   }

@@ -29,7 +29,8 @@ function statusCopy(item){
     return since?`Preparado para enviar desde ${since}`:'Preparado para enviar a NotebookLM';
   }
   const since=dateTime(item?.startedAt||item?.updatedAt);
-  return since?`En proceso desde ${since}`:'En proceso · hora de inicio no disponible';
+  const stage=item?.stage?` · ${item.stage}`:'';
+  return since?`En proceso${stage} · desde ${since}`:`En proceso${stage} · hora de inicio no disponible`;
 }
 function lifecycle(number,title,hint,icon,copy,item){
   const branded=/notebook\s*lm/i.test(hint)?'AdmiraNeXT':hint;

@@ -5,6 +5,8 @@ import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
 import ffmpegPath from 'ffmpeg-static';
 import sharp from 'sharp';
+import {brandPdf,brandPowerPoint} from './brand-deck.js';
+import {generateVisualBrief} from './visual-brief.js';
 
 const HERE=path.dirname(new URL(import.meta.url).pathname);
 const ROOT=path.resolve(HERE,'../..');
@@ -35,7 +37,7 @@ async function api(method,query='',body){
 }
 async function upload(job,task,file){
   const bytes=await fs.readFile(file),ext=path.extname(file).toLowerCase();
-  const types={'.m4a':'audio/mp4','.mp3':'audio/mpeg','.mp4':'video/mp4','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp'};
+  const types={'.m4a':'audio/mp4','.mp3':'audio/mpeg','.mp4':'video/mp4','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.pdf':'application/pdf','.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation'};
   const query=new URLSearchParams({client:job.client,language:task.language,output:task.output,id:job.id});
   const response=await fetch(`${API}?${query}`,{method:'PUT',headers:{authorization:`Bearer ${TOKEN}`,'content-type':types[ext]||'application/octet-stream','x-file-name':path.basename(file),'x-worker':WORKER},body:bytes});
   const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||`Upload ${response.status}`);return data;
@@ -93,12 +95,6 @@ async function fillByLabel(page,label,value){
 }
 const LANGUAGE_OPTIONS={es:'español',ca:'català',en:'English'};
 const LANGUAGE_NAMES={es:'Spanish',ca:'Catalan',en:'English'};
-function visualStyle(presentation={}){
-  const logoRule=` The official ${presentation.displayName||'client'} logo is mandatory, must preserve its proportions and colors, and must remain visible throughout every visual deliverable.`;
-  if(/(?:^|\.)zero\.university/i.test(String(presentation.inspirationUrl||'')))return `Zero University-inspired digital editorial design: stark black and warm off-white fields, oversized condensed neo-grotesk typography, dramatic scale shifts, tight modular grid, electric cobalt and acid-lime accents, simple geometric diagrams, crisp product-interface fragments and premium tech-culture energy. No stock-photo corporate aesthetic and no provider branding.${logoRule}`;
-  const theme=presentation.theme||{};
-  return `Premium ${theme.profile||'structured'} ${theme.layout||'editorial'} brand system with ${theme.mode||'light'} surfaces, primary ${theme.primary||'#12233e'}, accent ${theme.accent||'#ffb000'}, ${theme.fontStyle||'grotesk'} typography, a clear modular grid, simple geometric diagrams and generous whitespace. No stock-photo corporate aesthetic and no provider branding.${logoRule}`;
-}
 async function selectLanguage(page,language){
   const option=LANGUAGE_OPTIONS[language]||'English';
   await page.evaluate(()=>{const el=[...document.querySelectorAll('[role="combobox"]')].find(node=>(node.getAttribute('aria-label')||'')==='Seleccionar idioma');el?.click();});
@@ -140,6 +136,19 @@ async function generateInfographic(page,language,style){
   await fillByLabel(page,'Describe la infografía que quieres crear',`Create a premium horizontal executive infographic in ${name}. Apply this visual direction: ${style} Show Business tension → Connected experience → Create / Activate / Understand / Measure → Pilot → Success metrics. Omit provider branding.`);
   await clickButton(page,'Generar');
 }
+async function generateSlideDeck(page,language,style){
+  const name=LANGUAGE_NAMES[language]||'English';
+  await clickButton(page,'Personalizar presentación de diapositivas');
+  await page.waitForFunction(()=>[...document.querySelectorAll('[role="radio"]')].some(el=>(el.getAttribute('aria-label')||el.innerText||'').includes('Diapositivas del presentador')),{timeout:15000});
+  await page.evaluate(()=>[...document.querySelectorAll('[role="radio"]')].find(el=>(el.getAttribute('aria-label')||el.innerText||'').includes('Diapositivas del presentador'))?.click());
+  await selectLanguage(page,language);
+  await fillByLabel(page,'Describe la presentación que quieres crear',`Create a polished ${name}-language executive presenter deck for a decision-making meeting. Build a clear narrative: business tension → why now → connected-experience vision → Create / Activate / Understand / Measure → four-week pilot → success metrics → decisive call to action. Use concise headlines, one idea per slide, minimal body copy, meaningful diagrams and evidence-led visuals. Apply this visual design contract consistently:\n${style}\nDo not mention Gemini Notebook or NotebookLM. Do not invent client facts, metrics or claims that are absent from the sources.`);
+  await clickButton(page,'Generar');
+}
+async function setStage(job,tasks,stage){
+  const changes={};for(const task of tasks)changes[task.id]={status:'processing',stage};
+  if(Object.keys(changes).length)await api('POST','',{action:'update',client:job.client,id:job.id,tasks:changes});
+}
 async function markFailed(job,tasks,error){
   const changes={};for(const task of tasks)changes[task.id]={status:'failed',error:String(error.message||error).slice(0,500)};
   await api('POST','',{action:'update',client:job.client,id:job.id,tasks:changes}).catch(()=>{});
@@ -153,14 +162,23 @@ async function processNext(browser){
     // nunca convierte trabajos preparados en errores ni los deja a medias.
     await ensureNotebookAccount(page);
     const summary=queue.jobs[0],language=String(summary.tasks[0]||'en:').split(':')[0];
-    const details=await api('GET',`?client=${encodeURIComponent(summary.client)}`),presentation=details.presentation||{},style=visualStyle({...presentation,displayName:summary.displayName}),clientLogo=await downloadClientLogo(summary.client);
+    const details=await api('GET',`?client=${encodeURIComponent(summary.client)}`),presentation={...(details.presentation||{}),displayName:summary.displayName},clientLogo=await downloadClientLogo(summary.client);
     const claimIds=summary.tasks.filter(id=>id.startsWith(`${language}:`));
     const claimed=await api('POST','',{action:'claim',client:summary.client,id:summary.id,tasks:claimIds,worker:WORKER});
     job=claimed.job;tasks=Object.values(job.tasks).filter(task=>claimIds.includes(task.id));
+    await setStage(job,tasks,'Analizando la referencia y construyendo la guía visual');
+    const visual=await generateVisualBrief({browser,presentation,job,runtime:RUNTIME}),style=visual.brief;
+    await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{visualBriefProvider:visual.provider,visualBriefSource:visual.sourceUrl,visualBriefGeneratedAt:visual.generatedAt,visualBriefFallback:Boolean(visual.error)}});
+    await setStage(job,tasks,'Preparando las fuentes en NotebookLM');
     const session=await page.createCDPSession();await session.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:DOWNLOADS,eventsEnabled:true});
     const notebookUrl=await newNotebook(page,job);
     await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{url:notebookUrl,account:ACCOUNT,submittedAt:new Date().toISOString()}});
-    for(const task of tasks){if(task.output==='audio')await generateAudio(page,task.language);else if(task.output==='video')await generateVideo(page,task.language,style);else if(task.output==='infographic')await generateInfographic(page,task.language,style);await sleep(700);}
+    const deckTasks=tasks.filter(task=>['pdf','powerpoint'].includes(task.output));
+    for(const task of tasks.filter(task=>!['pdf','powerpoint'].includes(task.output))){
+      await setStage(job,[task],task.output==='audio'?'Generando el resumen de audio':task.output==='video'?'Generando el vídeo con la nueva guía visual':'Generando la infografía con la nueva guía visual');
+      if(task.output==='audio')await generateAudio(page,task.language);else if(task.output==='video')await generateVideo(page,task.language,style);else if(task.output==='infographic')await generateInfographic(page,task.language,style);await sleep(700);
+    }
+    if(deckTasks.length){await setStage(job,deckTasks,'Generando el nuevo deck con la guía visual');await generateSlideDeck(page,language,style);await sleep(700);}
     // La descarga se completa en una segunda fase del mismo proceso. Se mantiene
     // el navegador vivo y se observa Studio sin consultar APIs privadas de Google.
     await waitAndPublish(page,job,tasks,clientLogo);
@@ -169,12 +187,13 @@ async function processNext(browser){
 }
 async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
-  const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',infographic:'stacked_bar_chart'};
+  const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',pdf:'tablet',powerpoint:'tablet',infographic:'stacked_bar_chart'};
+  await setStage(job,tasks,'NotebookLM está procesando los entregables');
   while(pending.size&&Date.now()<deadline){
     await sleep(20000);
     const text=await page.evaluate(()=>document.body.innerText||'');
     for(const [output,task] of [...pending]){
-      const generating=output==='audio'?'Generando resumen de audio':output==='video'?'Generando resumen del vídeo':'Generando infografía';
+      const generating=output==='audio'?'Generando resumen de audio':output==='video'?'Generando resumen del vídeo':output==='infographic'?'Generando infografía':'Generando presentación';
       if(text.includes(generating))continue;
       const before=new Set(await fs.readdir(DOWNLOADS).catch(()=>[]));
       const clicked=await page.evaluate(marker=>{
@@ -183,12 +202,17 @@ async function waitAndPublish(page,job,tasks,clientLogo){
         if(!target)return false;target.click();return true;
       },cardMarkers[output]);
       if(!clicked)continue;await sleep(500);
-      const download=await page.evaluate(()=>[...document.querySelectorAll('button,[role="menuitem"]')].find(el=>(el.getAttribute('aria-label')||el.innerText||'').includes('Descargar'))?.click()||false);
+      const download=await page.evaluate(kind=>{
+        const nodes=[...document.querySelectorAll('button,[role="menuitem"]')],label=kind==='pdf'?'PDF':kind==='powerpoint'?'PowerPoint':'Descargar';
+        const target=nodes.find(el=>(el.getAttribute('aria-label')||el.innerText||'').includes(label));if(!target)return false;target.click();return true;
+      },output);
       if(!download)continue;
-      let file='';for(let i=0;i<60&&!file;i+=1){await sleep(1000);const files=await fs.readdir(DOWNLOADS).catch(()=>[]);file=files.find(name=>!before.has(name)&&!name.endsWith('.crdownload'))||'';}
+      const expected=output==='pdf'?'.pdf':output==='powerpoint'?'.pptx':'';
+      let file='';for(let i=0;i<60&&!file;i+=1){await sleep(1000);const files=await fs.readdir(DOWNLOADS).catch(()=>[]);file=files.find(name=>!before.has(name)&&!name.endsWith('.crdownload')&&(!expected||name.toLowerCase().endsWith(expected)))||'';}
       if(file){
         const downloaded=path.join(DOWNLOADS,file);
-        const publishable=output==='video'?await cleanVideoEnding(downloaded,clientLogo):output==='infographic'?await cleanInfographicBranding(downloaded,clientLogo):downloaded;
+        await setStage(job,[task],'Descargando, aplicando la marca y publicando');
+        const publishable=output==='video'?await cleanVideoEnding(downloaded,clientLogo):output==='infographic'?await cleanInfographicBranding(downloaded,clientLogo):output==='pdf'?await brandPdf(downloaded,clientLogo):output==='powerpoint'?await brandPowerPoint(downloaded,clientLogo):downloaded;
         await upload(job,task,publishable);pending.delete(output);
       }
     }

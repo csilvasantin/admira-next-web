@@ -3,10 +3,12 @@ import { analyzeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
 
 const enc = new TextEncoder();
-const NOTEBOOK_OUTPUTS = new Set(['audio','video','infographic']);
+const NOTEBOOK_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
 const MIME_EXTENSIONS = {
   'audio/mp4':'m4a', 'audio/m4a':'m4a', 'audio/mpeg':'mp3',
-  'video/mp4':'mp4', 'image/png':'png', 'image/jpeg':'jpg', 'image/webp':'webp'
+  'video/mp4':'mp4', 'image/png':'png', 'image/jpeg':'jpg', 'image/webp':'webp',
+  'application/pdf':'pdf',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation':'pptx'
 };
 
 function json(body,status=200){
@@ -28,6 +30,7 @@ function cleanClient(value){
 }
 function cleanWorker(value){return String(value||'notebooklm-local').replace(/[^a-z0-9_.-]/gi,'').slice(0,80)||'notebooklm-local';}
 function cleanError(value){return typeof value==='string'?value.trim().slice(0,500):'';}
+function cleanStage(value){return typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,160):'';}
 function safeJob(job){
   if(!job)return null;
   const safe=publicGeneration(job);
@@ -73,7 +76,7 @@ async function listQueue(context){
       context.env.PRESENTATION_IDEAS.get(`presentation:${client}`,{type:'json'})
     ]);
     if(!job)return json({error:'Generación no encontrada.'},404);
-    return json({ok:true,job:safeJob(job),presentation:presentation?{displayName:presentation.displayName,website:presentation.website,inspirationUrl:presentation.inspirationUrl,inspirationSource:presentation.inspirationSource,theme:presentation.theme,brand:presentation.brand,languages:presentation.languages}:null});
+    return json({ok:true,job:safeJob(job),presentation:presentation?{displayName:presentation.displayName,website:presentation.website,inspirationUrl:presentation.inspirationUrl,inspirationSource:presentation.inspirationSource,inspiration:presentation.inspiration,theme:presentation.theme,brand:presentation.brand,languages:presentation.languages}:null});
   }
   const jobs=[];let cursor;
   do{
@@ -123,6 +126,7 @@ async function updateJob(context,payload){
       if(VALID_STATUSES.has(change.status))updateTaskStatus(task,change.status,now);
       if(typeof change.url==='string'&&change.url.length<=1000)task.url=change.url;
       const error=cleanError(change.error);if(error)task.error=error;
+      const stage=cleanStage(change.stage);if(stage&&task.status==='processing')task.stage=stage;
     }
     if(payload.providerJob&&typeof payload.providerJob==='object')job.providerJob={...(job.providerJob||{}),...payload.providerJob,updatedAt:now};
   }else return json({error:'Acción no admitida.'},400);
@@ -141,7 +145,7 @@ async function uploadArtifact(context){
   const contentType=(context.request.headers.get('content-type')||'application/octet-stream').split(';')[0].trim().toLowerCase();
   const hinted=String(context.request.headers.get('x-file-name')||'').toLowerCase().match(/\.([a-z0-9]{2,5})$/)?.[1];
   const extension=MIME_EXTENSIONS[contentType]||hinted;
-  if(!extension||!['m4a','mp3','mp4','png','jpg','jpeg','webp'].includes(extension))return json({error:'Formato de archivo no admitido.'},415);
+  if(!extension||!['m4a','mp3','mp4','png','jpg','jpeg','webp','pdf','pptx'].includes(extension))return json({error:'Formato de archivo no admitido.'},415);
   const stamp=new Date().toISOString().replace(/[-:.TZ]/g,'');
   const filename=`${output}-${language}-${stamp}.${extension}`;
   const objectKey=`presentations/${client}/${language}/${filename}`;
