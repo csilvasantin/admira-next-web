@@ -23,7 +23,7 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 - Web clásica: https://www.admiranext.com/classic.html
 - Plan de negocio: https://www.admiranext.com/businessplan/
 - Ayuda: https://www.admiranext.com/help/
-- Intranet: comando `/intranet` (en la terminal de la home) con accesos `/shop` y `/live`.
+- Intranet: comando `/intranet` (en la terminal de la home) con acceso al ecosistema; `/presentaciones` abre el generador de presentaciones.
 
 ## Documentación
 

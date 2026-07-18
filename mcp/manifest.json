@@ -17,7 +17,7 @@
     { "path": "/classic.html", "desc": "Web corporativa clásica." },
     { "path": "/businessplan/", "desc": "Plan de negocio." },
     { "path": "/help/", "desc": "Ayuda." },
-    { "path": "/intranet", "desc": "Comando de terminal: zona privada con accesos /shop y /live." }
+    { "path": "/intranet", "desc": "Comando de terminal: zona privada con acceso al ecosistema y al generador mediante /presentaciones." }
   ],
 
   "docs": {

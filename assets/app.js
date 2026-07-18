@@ -1912,6 +1912,7 @@
     ]},
     { groupEs: '🚀  Desarrollo · AdmiraNeXT', groupEn: '🚀  Development · AdmiraNeXT', items: [
       { cmd: '/admiralive',   labelEs: 'admira.live — el Consejo',                 labelEn: 'admira.live — the Council',                 url: 'https://www.admira.live',      color: 'purple' },
+      { cmd: '/presentaciones', labelEs: 'Generador de presentaciones',               labelEn: 'Presentation generator',                      url: 'https://www.admiranext.com/presentaciones/generador', color: 'accent' },
       { cmd: '/yokup',        labelEs: 'Yokup — intervenciones técnicas',          labelEn: 'Yokup — technical interventions',           url: 'https://www.yokup.com',        color: 'green' },
       { cmd: '/xpace',        displayCmd: '/xpaceos', labelEs: 'XpaceOS — sistema operativo espacial', labelEn: 'XpaceOS — space operating system', url: 'https://www.xpaceos.com', color: 'cyan' },
     ]},
