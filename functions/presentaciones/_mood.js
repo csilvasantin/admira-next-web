@@ -42,7 +42,7 @@ const PRESETS = [
 
 const PRESENTATION_STYLES = {
   classic:{
-    key:'classic',tier:'good',label:'Clásica',description:'Clara, profesional y centrada en el cliente.',
+    key:'classic',tier:'good',label:'Classic',description:'Clara, profesional y centrada en el cliente.',
     theme:{primary:'#172b55',accent:'#f5a623',secondary:'#4a86ff',background:'#f4f6f8',surface:'#ffffff',text:'#142238',mode:'light',fontStyle:'grotesk',radius:10,radiusStyle:'soft',density:'balanced',layout:'editorial',profile:'structured',texture:'none'}
   },
   admira:{
@@ -50,7 +50,7 @@ const PRESENTATION_STYLES = {
     theme:{primary:'#071a2f',accent:'#3df08a',secondary:'#4a86ff',background:'#070a10',surface:'#0d1522',text:'#eef4fc',mode:'dark',fontStyle:'grotesk',radius:8,radiusStyle:'sharp',density:'balanced',layout:'editorial',profile:'editorial',texture:'quadratic'}
   },
   movie:{
-    key:'movie',tier:'best',label:'De película',description:'Dirección cinematográfica inmersiva gobernada por Mood.',
+    key:'movie',tier:'best',label:'Película',description:'Dirección cinematográfica inmersiva gobernada por Mood.',
     theme:{primary:'#12233e',accent:'#ffb000',secondary:'#4a86ff',background:'#07101b',surface:'#111827',text:'#f8fbff',mode:'dark',fontStyle:'grotesk',radius:10,radiusStyle:'soft',density:'balanced',layout:'editorial',profile:'immersive',texture:'cinematic'}
   }
 };
@@ -114,10 +114,10 @@ export function presentationStyleBrief(style,mood,displayName='la presentación'
   const key=normalizePresentationStyle(style);
   const meta=PRESENTATION_STYLES[key];
   const direction=key==='classic'
-    ?'- Dirección Clásica: luminosa, sobria, profesional, legible y centrada en el cliente. Jerarquía editorial limpia, geometría contenida y movimiento mínimo.'
+    ?'- Dirección Classic: luminosa, sobria, profesional, legible y centrada en el cliente. Jerarquía editorial limpia, geometría contenida y movimiento mínimo.'
     :key==='admira'
       ?'- Dirección Admira: interfaz oscura y tecnológica de AdmiraNeXT, composición cuadrática, retícula visible, acentos verde y azul, precisión operativa y movimiento funcional.'
-      :'- Dirección De película: inmersiva, narrativa y sensorial. El Mood elegido gobierna la atmósfera sin alterar el contenido.';
+      :'- Dirección Película: inmersiva, narrativa y sensorial. El Mood elegido gobierna la atmósfera sin alterar el contenido.';
   const moodBrief=key==='movie'?moodProductionBrief(mood,displayName):'';
   return `\nTIPO DE PRESENTACIÓN · ${meta.tier.toUpperCase()} / ${meta.label.toUpperCase()}\n${direction}\n- Esta dirección es transversal: aplicarla al website de presentación y al portal del proyecto, PDF, PowerPoint, documentos de trabajo, infografía, audio y vídeo.\n- En documentos de trabajo, trasladarla a portada, jerarquías, tablas, destacados, ritmo de página, tratamiento de imagen y llamadas a la acción; no limitarla a una nota para NotebookLM.\n- Mantener idénticos el relato, las afirmaciones, los datos, el orden narrativo y la identidad AdmiraNeXT × cliente al cambiar de tipo.\n${moodBrief}`;
 }

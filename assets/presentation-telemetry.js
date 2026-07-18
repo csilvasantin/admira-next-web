@@ -8,7 +8,7 @@
   var sent=new Set();
   function language(){return document.documentElement.lang||new URL(location.href).searchParams.get('lang')||''}
   function send(type,target,extra){
-    var key=[type,target||'',extra||''].join('|'); if(sent.has(key)&&type!=='language_change')return; sent.add(key);
+    var key=[type,target||'',extra||''].join('|'); if(sent.has(key)&&!['language_change','look_change'].includes(type))return; sent.add(key);
     var body=JSON.stringify({type:type,target:target||'',language:language(),detail:extra||'',path:location.pathname});
     if(navigator.sendBeacon){try{navigator.sendBeacon(endpoint,new Blob([body],{type:'application/json'}));return}catch(_){}}
     fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',keepalive:true,body:body}).catch(function(){});
@@ -25,5 +25,6 @@
   document.addEventListener('play',function(event){
     var media=event.target;if(media&&/^(AUDIO|VIDEO)$/.test(media.tagName))send('media_play',new URL(media.currentSrc||media.src,location.href).pathname,media.tagName.toLowerCase());
   },true);
-  window.addEventListener('admira-language-change',function(event){send('language_change',location.pathname,event.detail&&event.detail.language||language())});
+  window.addEventListener('admira-language-change',function(event){if(!event.detail||!event.detail.silent)send('language_change',location.pathname,event.detail&&event.detail.language||language())});
+  window.addEventListener('admira-look-change',function(event){if(!event.detail||!event.detail.silent)send('look_change',location.pathname,event.detail&&event.detail.style||'')});
 })();

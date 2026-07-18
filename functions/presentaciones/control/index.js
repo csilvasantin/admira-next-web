@@ -86,6 +86,7 @@ export async function onRequestGet(){
           <option value="login_success">Inicios de sesión</option>
           <option value="login_failed">Accesos fallidos</option>
           <option value="language_change">Cambios de idioma</option>
+          <option value="look_change">Cambios de look &amp; feel</option>
           <option value="fullscreen">Pantalla completa</option>
         </select>
       </div>

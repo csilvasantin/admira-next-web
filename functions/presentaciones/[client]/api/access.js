@@ -10,7 +10,7 @@ export async function onRequestPost(context){
   if (!identity) return json({error:'Identidad no confirmada.'}, 401);
   let body = {};
   try { body = await context.request.json(); } catch (_) { return json({error:'JSON no válido.'}, 400); }
-  const allowed = new Set(['download','external_link','fullscreen','media_play','language_change']);
+  const allowed = new Set(['download','external_link','fullscreen','media_play','language_change','look_change']);
   if (!allowed.has(body.type)) return json({error:'Evento no permitido.'}, 400);
   const client = String(context.params.client || '').toLowerCase().slice(0, 80);
   await writeAccessEvent(context.env, context.request, {

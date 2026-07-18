@@ -84,7 +84,7 @@ async function injectTelemetry(response){
     existingHeaders.delete('content-length');
     return new Response(text, {status:response.status, statusText:response.statusText, headers:existingHeaders});
   }
-  const html = text.replace(/<\/body>/i, '<script src="/assets/presentation-telemetry.js?v=20260717-1"></script></body>');
+  const html = text.replace(/<\/body>/i, '<script src="/assets/presentation-telemetry.js?v=20260718-2"></script></body>');
   const headers = new Headers(response.headers); headers.delete('content-length'); headers.set('cache-control', 'no-store');
   return new Response(html, {status:response.status, statusText:response.statusText, headers});
 }

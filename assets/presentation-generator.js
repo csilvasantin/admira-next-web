@@ -1,20 +1,20 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260718-5';
+  window.__ADMIRA_GENERATOR_VERSION__='20260718-6';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'); let slugTouched=true,inspirationAnalysis=null;
   const flowLabels=['Cliente','Tipo','Mood','Relato','Entregables']; document.querySelectorAll('.flow span').forEach((step,index)=>{if(flowLabels[index])step.innerHTML=`<b>${String(index+1).padStart(2,'0')}</b> ${flowLabels[index]}`});
-  const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Tipo, Mood e identidad'; thesisPanel.querySelector('.sub').textContent='El tipo gobierna toda la producción. En De película, Mood añade una dirección cinematográfica concreta.';
+  const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Tipo, Mood e identidad'; thesisPanel.querySelector('.sub').textContent='El tipo gobierna toda la producción. En Película, Mood añade una dirección cinematográfica concreta.';
   const movieMoods=[
     {key:'ghostbusters',film:'Cazafantasmas',year:1984,primary:'#281544',accent:'#73ff83',secondary:'#ff5f8f',description:'Paranormal urbano · ciencia de garaje · ectoplasma lúdico'},
     {key:'back-to-the-future',film:'Regreso al Futuro',year:1985,primary:'#062a4d',accent:'#ff6a1a',secondary:'#22d3ee',description:'Velocidad · optimismo tecnológico · estelas de neón'},
     {key:'alien',film:'Alien',year:1979,primary:'#071410',accent:'#b4ff35',secondary:'#6c8f7b',description:'Tensión espacial · precisión industrial · silencio'}
   ];
   const presentationTypes=[
-    {key:'classic',tier:'Good',label:'Clásica',description:'Profesional, luminosa y centrada en el cliente.',primary:'#172b55',accent:'#f5a623'},
+    {key:'classic',tier:'Good',label:'Classic',description:'Profesional, luminosa y centrada en el cliente.',primary:'#172b55',accent:'#f5a623'},
     {key:'admira',tier:'Better',label:'Admira',description:'Tecnológica, oscura y cuadrática. ADN AdmiraNeXT.',primary:'#071a2f',accent:'#3df08a'},
-    {key:'movie',tier:'Best',label:'De película',description:'Inmersiva y narrativa. El Mood dirige la atmósfera.'}
+    {key:'movie',tier:'Best',label:'Película',description:'Inmersiva y narrativa. El Mood dirige la atmósfera.'}
   ];
   const replacementDialog=document.createElement('dialog'); replacementDialog.className='replacement-dialog'; replacementDialog.setAttribute('aria-labelledby','replacementTitle');
   replacementDialog.innerHTML='<div class="replacement-modal"><span class="replacement-kicker">Control de versiones</span><h2 id="replacementTitle">Ya existe una presentación</h2><p id="replacementCopy"></p><div class="replacement-backup"><b>Backup automático</b><span>Guardaremos configuración, esqueleto y trabajos anteriores antes de crear la nueva versión.</span></div><div class="replacement-actions"><button class="btn" id="keepPresentation" type="button">No, conservar la actual</button><button class="btn primary" id="replacePresentation" type="button">Sí, crear otra</button></div></div>';
@@ -33,7 +33,7 @@
   document.getElementById('replacePresentation').addEventListener('click',()=>finishReplacement(true));
   replacementDialog.addEventListener('cancel',event=>{event.preventDefault();finishReplacement(false)});
   const typeField=document.createElement('fieldset'); typeField.className='field full presentation-type-field';
-  typeField.innerHTML='<legend>Tipo de presentación</legend><div class="presentation-types">'+presentationTypes.map((type,index)=>`<label class="presentation-type"><input type="radio" name="presentationStyle" value="${type.key}" ${index===2?'checked':''}><span class="presentation-tier">${type.tier}</span><b>${type.label}</b><small>${type.description}</small></label>`).join('')+'</div><p class="field-help">Se aplica al site, portal del proyecto, PDF, PowerPoint, documentos de trabajo, infografía, audio y vídeo.</p>';
+  typeField.innerHTML='<legend>Look & feel · Good / Better / Best</legend><div class="presentation-types">'+presentationTypes.map((type,index)=>`<label class="presentation-type"><input type="radio" name="presentationStyle" value="${type.key}" ${index===2?'checked':''}><span class="presentation-tier">${type.tier}</span><b>${type.label}</b><small>${type.description}</small></label>`).join('')+'</div><p class="field-help">Funciona como el idioma: el contenido se mantiene y cambia la dirección visual de todo el sistema —site, portal, PDF, PowerPoint, documentos, infografía, audio y vídeo.</p>';
   thesisGrid.prepend(typeField);
   const moodField=document.createElement('div'); moodField.className='field full mood-field';
   moodField.innerHTML='<label for="moodMovie">Mood · película de referencia</label><div class="mood-input"><input id="moodMovie" name="moodMovie" type="text" list="moodMovies" autocomplete="off" placeholder="Escribe cualquier película…"><button class="btn" id="randomMood" type="button" title="Elegir otro mood al azar">↻ Aleatoria 80/90</button></div><datalist id="moodMovies"><option value="Cazafantasmas"><option value="Regreso al Futuro"><option value="Alien"></datalist><div class="mood-presets" id="moodPresets"></div><p class="field-help">El contenido no cambia: Mood transforma paleta, tipografía, composición, ritmo y textura. Por ahora el azar elige entre estas tres referencias de cultura pop.</p><div class="mood-preview" id="moodPreview" role="status" aria-live="polite"></div>';

@@ -2,7 +2,7 @@
   'use strict';
 
   const state={data:null,events:[],view:'overview',refreshTimer:null,panelStack:[]};
-  const labels={page_view:'Visita',download:'Descarga',media_play:'Reproducción',login_success:'Acceso correcto',login_failed:'Acceso fallido',identity_confirmed:'Identidad',language_change:'Idioma',external_link:'Enlace externo',fullscreen:'Pantalla completa'};
+  const labels={page_view:'Visita',download:'Descarga',media_play:'Reproducción',login_success:'Acceso correcto',login_failed:'Acceso fallido',identity_confirmed:'Identidad',language_change:'Idioma',look_change:'Look & feel',external_link:'Enlace externo',fullscreen:'Pantalla completa'};
   const preferenceIds=['largeText','highContrast','reduceMotion','compactMode','maskTechnical'];
   const preferenceClasses={largeText:'large-text',highContrast:'high-contrast',reduceMotion:'reduce-motion',compactMode:'compact',maskTechnical:'mask-technical'};
   const panelNames={options:['Abrir opciones','Cerrar opciones'],advanced:['Abrir ajustes avanzados','Cerrar ajustes avanzados'],expert:['Abrir consola experta','Cerrar consola experta']};
