@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260718-4';
+  window.__ADMIRA_GENERATOR_VERSION__='20260718-5';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'); let slugTouched=true,inspirationAnalysis=null;
@@ -16,6 +16,22 @@
     {key:'admira',tier:'Better',label:'Admira',description:'Tecnológica, oscura y cuadrática. ADN AdmiraNeXT.',primary:'#071a2f',accent:'#3df08a'},
     {key:'movie',tier:'Best',label:'De película',description:'Inmersiva y narrativa. El Mood dirige la atmósfera.'}
   ];
+  const replacementDialog=document.createElement('dialog'); replacementDialog.className='replacement-dialog'; replacementDialog.setAttribute('aria-labelledby','replacementTitle');
+  replacementDialog.innerHTML='<div class="replacement-modal"><span class="replacement-kicker">Control de versiones</span><h2 id="replacementTitle">Ya existe una presentación</h2><p id="replacementCopy"></p><div class="replacement-backup"><b>Backup automático</b><span>Guardaremos configuración, esqueleto y trabajos anteriores antes de crear la nueva versión.</span></div><div class="replacement-actions"><button class="btn" id="keepPresentation" type="button">No, conservar la actual</button><button class="btn primary" id="replacePresentation" type="button">Sí, crear otra</button></div></div>';
+  document.body.appendChild(replacementDialog);
+  const replacementStyle=document.createElement('style'); replacementStyle.textContent='.replacement-dialog{width:min(560px,calc(100% - 28px));padding:0;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--ink);box-shadow:0 32px 100px rgba(0,0,0,.55)}.replacement-dialog::backdrop{background:rgba(2,7,13,.76);backdrop-filter:blur(8px)}.replacement-modal{padding:clamp(24px,5vw,38px)}.replacement-kicker{display:block;color:var(--green);font:800 10px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase}.replacement-modal h2{font-size:clamp(27px,5vw,39px);line-height:1.05;letter-spacing:-.035em;margin:14px 0 12px}.replacement-modal p{margin:0;color:var(--mut);font-size:15px}.replacement-backup{display:grid;gap:5px;margin:23px 0;padding:16px;border:1px solid rgba(61,240,138,.28);border-radius:13px;background:rgba(61,240,138,.07)}.replacement-backup b{color:var(--green);font-size:13px}.replacement-backup span{color:var(--mut);font-size:13px;line-height:1.45}.replacement-actions{display:flex;justify-content:flex-end;gap:9px}.replacement-actions .btn{margin:0}@media(max-width:560px){.replacement-actions{flex-direction:column-reverse}.replacement-actions .btn{width:100%}}'; document.head.appendChild(replacementStyle);
+  let replacementResolver=null;
+  function finishReplacement(value){if(!replacementResolver)return;const resolve=replacementResolver;replacementResolver=null;if(replacementDialog.open)replacementDialog.close();resolve(value)}
+  function confirmReplacement(name){
+    const prompt=`Ya existe una presentación para ${name||'este cliente'}. ¿Quieres crear una nueva versión? La actual se guardará primero como backup recuperable.`;
+    if(typeof replacementDialog.showModal!=='function')return Promise.resolve(window.confirm(prompt));
+    document.getElementById('replacementCopy').textContent=prompt;
+    if(replacementDialog.open)replacementDialog.close();
+    return new Promise(resolve=>{replacementResolver=resolve;replacementDialog.showModal();document.getElementById('keepPresentation').focus()});
+  }
+  document.getElementById('keepPresentation').addEventListener('click',()=>finishReplacement(false));
+  document.getElementById('replacePresentation').addEventListener('click',()=>finishReplacement(true));
+  replacementDialog.addEventListener('cancel',event=>{event.preventDefault();finishReplacement(false)});
   const typeField=document.createElement('fieldset'); typeField.className='field full presentation-type-field';
   typeField.innerHTML='<legend>Tipo de presentación</legend><div class="presentation-types">'+presentationTypes.map((type,index)=>`<label class="presentation-type"><input type="radio" name="presentationStyle" value="${type.key}" ${index===2?'checked':''}><span class="presentation-tier">${type.tier}</span><b>${type.label}</b><small>${type.description}</small></label>`).join('')+'</div><p class="field-help">Se aplica al site, portal del proyecto, PDF, PowerPoint, documentos de trabajo, infografía, audio y vídeo.</p>';
   thesisGrid.prepend(typeField);
@@ -89,16 +105,28 @@
     const languageNames={es:'Castellano',ca:'Català',en:'English'},states={queued:'En cola',processing:'Produciendo',ready:'Listo',published:'Publicado',failed:'Error'};
     createdMatrix.innerHTML=(generation.languages||[]).map(language=>{const items=tasks.filter(task=>task.language===language).map(task=>`<div class="created-task ${task.status}"><span>${task.label}</span><small>${states[task.status]||task.status}</small></div>`).join('');return `<section class="created-language"><h3>${language.toUpperCase()} · ${languageNames[language]||language}</h3><div class="created-tasks">${items}</div></section>`}).join('');
   }
+  async function requestGeneration(overwrite=false){
+    const data=Object.fromEntries(new FormData(form).entries()); data.overwrite=overwrite; data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis; data.presentationStyle=currentPresentationStyle(); data.moodMovie=data.presentationStyle==='movie'?moodMovie.value.trim():'';
+    const response=await fetch('/presentaciones/api/generate',{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(data)});
+    const body=await response.json().catch(()=>({}));
+    if(response.status===409&&body.exists&&!overwrite){
+      const confirmed=await confirmReplacement(display.value.trim());
+      if(!confirmed){message('Se conserva la presentación actual. No se ha realizado ningún cambio.');return null}
+      message('Guardando la versión anterior como backup antes de crear la nueva…');
+      return requestGeneration(true);
+    }
+    if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
+    return body;
+  }
   form.addEventListener('submit',async event=>{
     event.preventDefault(); event.stopImmediatePropagation(); submit.disabled=true; result.classList.remove('show'); message('Analizando el problema y construyendo la presentación…');
     try{
       if(inspirationUrl.value.trim()&&!inspirationAnalysis)await analyzeInspiration();
       message('Construyendo el relato y aplicando la dirección visual…');
-      const data=Object.fromEntries(new FormData(form).entries()); data.overwrite=document.getElementById('overwrite').checked; data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis; data.presentationStyle=currentPresentationStyle(); data.moodMovie=data.presentationStyle==='movie'?moodMovie.value.trim():'';
-      const response=await fetch('/presentaciones/api/generate',{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(data)});
-      const body=await response.json().catch(()=>({})); if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
+      const body=await requestGeneration(false); if(!body)return;
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
-      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); renderGeneration(body.generation); result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); const type=presentationTypes.find(item=>item.key===body.presentationStyle)||presentationTypes[2]; message(`Orden creada: ${body.displayName} · ${type.tier} / ${type.label}${body.mood?.film?` · Mood ${body.mood.film}`:''}`);
+      result.querySelector('p').textContent=body.backup?`La versión anterior se ha guardado como backup recuperable · ${body.backup.id.slice(0,8)}.`:'Guarda la contraseña y abre el editor para revisar el relato antes de compartirlo.';
+      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); renderGeneration(body.generation); result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); const type=presentationTypes.find(item=>item.key===body.presentationStyle)||presentationTypes[2]; message(`${body.backup?'Backup guardado · ':''}Orden creada: ${body.displayName} · ${type.tier} / ${type.label}${body.mood?.film?` · Mood ${body.mood.film}`:''}`);
     }catch(error){message(error.message,true)}finally{submit.disabled=false}
   },true);
   document.addEventListener('click',async event=>{const button=event.target.closest('[data-copy]');if(!button)return;const node=document.getElementById(button.dataset.copy);try{await navigator.clipboard.writeText(node.textContent);const before=button.textContent;button.textContent='Copiado';setTimeout(()=>button.textContent=before,1200)}catch(_){}});

@@ -18,6 +18,21 @@ function randomPassword(){
   const bytes=crypto.getRandomValues(new Uint8Array(18));
   return Array.from(bytes, value => alphabet[value % alphabet.length]).join('');
 }
+async function backupExistingPresentation(store, slug, presentation){
+  const id=crypto.randomUUID();
+  const createdAt=new Date().toISOString();
+  const [ideas,ideasBase,generation]=await Promise.all([
+    store.get(`ideas:${slug}`,{type:'json'}),
+    store.get(`ideas-base:${slug}`,{type:'json'}),
+    store.get(`generation:${slug}`,{type:'json'})
+  ]);
+  const backup={
+    schemaVersion:1,id,client:slug,createdAt,reason:'replacement-confirmed',
+    snapshot:{presentation,ideas,ideasBase,generation}
+  };
+  await store.put(`presentation-backup:${slug}:${id}`,JSON.stringify(backup));
+  return {id,createdAt};
+}
 async function hmac(key, message){
   const cryptoKey=await crypto.subtle.importKey('raw',enc.encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const bytes=new Uint8Array(await crypto.subtle.sign('HMAC',cryptoKey,enc.encode(message)));
@@ -115,11 +130,12 @@ export async function onRequestPut(context){
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
   };
+  const backup=existing?await backupExistingPresentation(context.env.PRESENTATION_IDEAS,slug,existing):null;
   await Promise.all([
     context.env.PRESENTATION_IDEAS.put(`presentation:${slug}`,JSON.stringify(presentation)),
     context.env.PRESENTATION_IDEAS.put(`ideas:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,presentationStyle:input.presentationStyle,mood:input.mood,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),backup,outputs,languages,presentationStyle:input.presentationStyle,mood:input.mood,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }
