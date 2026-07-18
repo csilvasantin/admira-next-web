@@ -180,7 +180,12 @@ async function waitAndPublish(page,job,tasks){
 
 await fs.mkdir(DOWNLOADS,{recursive:true});
 const chrome='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const browser=await puppeteer.launch({headless:false,userDataDir:PROFILE,executablePath:await fs.access(chrome).then(()=>chrome).catch(()=>undefined),args:['--no-first-run','--disable-session-crashed-bubble'],defaultViewport:{width:1500,height:980}});
-if(setup){const page=await browser.newPage();await page.goto('https://notebooklm.google.com/');console.log(`Accede como ${ACCOUNT} y cierra con Ctrl+C cuando veas tus cuadernos.`);await new Promise(()=>{});}else{
+const browser=await puppeteer.launch({headless:false,pipe:true,userDataDir:PROFILE,executablePath:await fs.access(chrome).then(()=>chrome).catch(()=>undefined),args:['--no-first-run','--disable-session-crashed-bubble'],defaultViewport:{width:1500,height:980}});
+if(setup){
+  const page=await browser.newPage();await page.goto('https://notebooklm.google.com/');
+  console.log(`Accede como ${ACCOUNT}; la ventana se cerrará sola cuando la sesión quede validada.`);
+  let valid=false;while(!valid){await sleep(2000);valid=await page.evaluate(email=>[...document.querySelectorAll('[aria-label]')].some(el=>(el.getAttribute('aria-label')||'').includes(email)),ACCOUNT).catch(()=>false);}
+  console.log(`Sesión validada: ${ACCOUNT}`);await browser.close();
+}else{
   try{do{const worked=await processNext(browser).catch(error=>{console.error(new Date().toISOString(),error.message);return false});if(once)break;if(!worked)await sleep(POLL_MS);}while(true);}finally{await browser.close();}
 }
