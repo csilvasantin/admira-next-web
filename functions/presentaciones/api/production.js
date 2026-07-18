@@ -81,8 +81,16 @@ async function listQueue(context){
   const jobs=[];let cursor;
   do{
     const page=await context.env.PRESENTATION_IDEAS.list({prefix:'generation:',limit:100,cursor});
-    const values=await Promise.all(page.keys.map(async key=>({client:key.name.slice(11),job:await context.env.PRESENTATION_IDEAS.get(key.name,{type:'json'})})));
+    const values=await Promise.all(page.keys.map(async key=>{
+      const client=key.name.slice(11);
+      const [job,presentation]=await Promise.all([
+        context.env.PRESENTATION_IDEAS.get(key.name,{type:'json'}),
+        context.env.PRESENTATION_IDEAS.get(`presentation:${client}`,{type:'json'})
+      ]);
+      return {client,job,presentation};
+    }));
     for(const item of values){
+      if(!item.presentation)continue;
       const job=normalizeGeneration(item.job);const tasks=notebookTasks(job,['queued']);
       if(tasks.length)jobs.push({client:item.client,id:job.id,displayName:job.displayName,createdAt:job.createdAt,updatedAt:job.updatedAt,languages:job.languages,tasks:tasks.map(task=>task.id)});
     }

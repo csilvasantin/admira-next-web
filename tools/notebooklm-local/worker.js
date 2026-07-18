@@ -214,8 +214,9 @@ async function waitAndPublish(page,job,tasks,clientLogo){
       let file='';for(let i=0;i<60&&!file;i+=1){await sleep(1000);const files=await fs.readdir(DOWNLOADS).catch(()=>[]);file=files.find(name=>!before.has(name)&&!name.endsWith('.crdownload')&&(!expected||name.toLowerCase().endsWith(expected)))||'';}
       if(file){
         const downloaded=path.join(DOWNLOADS,file);
-        await setStage(job,[task],'Descargando, aplicando la marca y publicando');
-        const publishable=output==='video'?await cleanVideoEnding(downloaded,clientLogo):output==='infographic'?await cleanInfographicBranding(downloaded,clientLogo):output==='pdf'?await brandPdf(downloaded,clientLogo):output==='powerpoint'?await brandPowerPoint(downloaded,clientLogo):downloaded;
+        await setStage(job,[task],'Descargando, verificando la marca y publicando');
+        const forceDeckLogo=process.env.NOTEBOOKLM_DECK_LOGO_MODE==='overlay';
+        const publishable=output==='video'?await cleanVideoEnding(downloaded,clientLogo):output==='infographic'?await cleanInfographicBranding(downloaded,clientLogo):output==='pdf'&&forceDeckLogo?await brandPdf(downloaded,clientLogo):output==='powerpoint'&&forceDeckLogo?await brandPowerPoint(downloaded,clientLogo):downloaded;
         await upload(job,task,publishable);pending.delete(output);
       }
     }

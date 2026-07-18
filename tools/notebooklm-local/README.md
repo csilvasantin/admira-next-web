@@ -22,7 +22,7 @@ Antes de abrir NotebookLM, captura dos pantallas de la web inspiradora y crea un
 guía visual con el modelo local `gemma4:31b` de Ollama. La guía se guarda por
 generación y se reutiliza en vídeo, deck e infografía. Si Ollama no está disponible,
 el trabajo continúa con una guía determinista. Los decks se descargan como PDF y
-PPTX; el logo oficial del cliente se aplica a todas las diapositivas antes de subirlos.
+PPTX; la guía visual exige el logo oficial en todas las diapositivas. Para decks heredados que no lo incorporen puede forzarse una segunda capa con `NOTEBOOKLM_DECK_LOGO_MODE=overlay`.
 
 Variables opcionales: `VISUAL_BRIEF_MODEL`, `VISUAL_BRIEF_OLLAMA_URL` y
 `VISUAL_BRIEF_MODE=off` para desactivar temporalmente el análisis visual.
