@@ -65,11 +65,16 @@ function assertPublicHttps(value){
 }
 
 async function limitedText(response, maximum){
-  const length = Number(response.headers.get('content-length') || 0);
-  if (length > maximum) throw new Error('La página inspiradora es demasiado grande para analizarla.');
-  const buffer = await response.arrayBuffer();
-  if (buffer.byteLength > maximum) throw new Error('La página inspiradora es demasiado grande para analizarla.');
-  return new TextDecoder().decode(buffer);
+  if(!response.body){const buffer=await response.arrayBuffer();return new TextDecoder().decode(buffer.slice(0,maximum));}
+  const reader=response.body.getReader(),decoder=new TextDecoder();let total=0,out='';
+  while(true){
+    const {done,value}=await reader.read();if(done)break;
+    const remaining=maximum-total;if(remaining<=0){await reader.cancel();break;}
+    const chunk=value.byteLength>remaining?value.slice(0,remaining):value;
+    out+=decoder.decode(chunk,{stream:true});total+=chunk.byteLength;
+    if(value.byteLength>remaining||total>=maximum){await reader.cancel();break;}
+  }
+  return out+decoder.decode();
 }
 
 function normalizeHex(value){
