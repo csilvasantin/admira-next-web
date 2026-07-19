@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequest as handleInlineEdit} from '../functions/presentaciones/[client]/api/inline-edit.js';
+import {onRequest as readImages} from '../functions/presentaciones/[client]/api/images.js';
 import {onRequestGet as renderPresentation} from '../functions/presentaciones/[client]/presentacion.js';
 
 const presentation={displayName:'Cliente Demo',outputs:['website'],languages:['es','ca','en'],theme:{},updatedAt:'2026-07-19T10:00:00.000Z'};
@@ -54,4 +55,34 @@ test('the website renders only verified images as slide backgrounds and marks ev
   assert.match(html,/data-edit-field="skeleton.message"/);
   assert.match(html,/data-edit-field="closing.action"/);
   assert.match(html,/__ADMIRA_PRESENTATION_STATE__/);
+  assert.match(html,/data-image-index="0"/);
+});
+
+test('a presentation without Grok images remains complete and imports verified backgrounds later',async()=>{
+  const values=new Map([
+    ['presentation:cliente-demo',JSON.stringify({...presentation,outputs:['website','backgrounds'],languages:['es']})],
+    ['ideas:cliente-demo',JSON.stringify({...ideas,languages:['es']})]
+  ]);
+  const env={PRESENTATION_IDEAS:kv(values)};
+  const response=await renderPresentation({params:{client:'cliente-demo'},env,request:new Request('https://admiranext.test/presentaciones/cliente-demo/presentacion'),next(){return new Response('missing',{status:404})}});
+  assert.equal(response.status,200);
+  const html=await response.text();
+  assert.equal((html.match(/<section class="slide[^>]*data-has-image="true"/g)||[]).length,0);
+  assert.match(html,/fetch\('api\/images'/);
+  assert.match(html,/setInterval\(syncImages,10000\)/);
+  assert.match(html,/slide\.style\.setProperty\('--slide-image'/);
+  const inlineScripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  assert.doesNotThrow(()=>new Function(inlineScripts.at(-1)[1]));
+
+  const pending=await readImages({request:new Request('https://admiranext.test/presentaciones/cliente-demo/api/images'),params:{client:'cliente-demo'},env});
+  assert.equal(pending.status,200);
+  assert.deepEqual((await pending.json()).imageSet,null);
+
+  values.set('image-set:cliente-demo',JSON.stringify({schemaVersion:2,slides:[{index:1,role:'cover',status:'ready',textFreeVerified:true,url:'/presentaciones/cliente-demo/images/cover.jpg'}]}));
+  const ready=await readImages({request:new Request('https://admiranext.test/presentaciones/cliente-demo/api/images'),params:{client:'cliente-demo'},env});
+  const body=await ready.json();
+  assert.equal(body.imageSet.slides[0].url,'/presentaciones/cliente-demo/images/cover.jpg');
+  assert.equal('prompt' in body.imageSet.slides[0],false);
+  const writeAttempt=await readImages({request:new Request('https://admiranext.test/presentaciones/cliente-demo/api/images',{method:'POST'}),params:{client:'cliente-demo'},env});
+  assert.equal(writeAttempt.status,405);
 });

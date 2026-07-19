@@ -92,5 +92,8 @@ test('generator and editor expose progress bars, timelines and interruption reco
   assert.match(generator,/Continuar imágenes con Grok/);
   assert.match(generator,/body\.outputs\.includes\('backgrounds'\).*runImageGeneration\(false\)/s);
   assert.match(generator,/Imágenes de fondo/);
+  assert.match(generator,/Presentación lista:/);
+  assert.match(generator,/La presentación sigue lista sin los fondos pendientes/);
+  assert.match(generator,/imageMessage/);
   assert.match(editor,/value="backgrounds"/);
 });
