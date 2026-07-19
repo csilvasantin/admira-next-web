@@ -1,6 +1,7 @@
 import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
+import { DEFAULT_PRESENTATION_PASSWORD, ensureHttpsUrl } from '../_defaults.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -13,11 +14,6 @@ function slugify(value){
   return text(value,80).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,63);
 }
 function color(value, fallback){ return /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value).toLowerCase() : fallback; }
-function randomPassword(){
-  const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-  const bytes=crypto.getRandomValues(new Uint8Array(18));
-  return Array.from(bytes, value => alphabet[value % alphabet.length]).join('');
-}
 async function hmac(key, message){
   const cryptoKey=await crypto.subtle.importKey('raw',enc.encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const bytes=new Uint8Array(await crypto.subtle.sign('HMAC',cryptoKey,enc.encode(message)));
@@ -86,12 +82,12 @@ export async function onRequestPut(context){
   if (!languages.length) return json({error:'Selecciona al menos un idioma.'},400);
   const supplied=text(raw.password,100);
   if (supplied && supplied.length<10) return json({error:'La contraseña debe tener al menos 10 caracteres.'},400);
-  const password=supplied || (existing ? '' : randomPassword());
+  const password=supplied || (existing ? '' : DEFAULT_PRESENTATION_PASSWORD);
   const passwordVerifier=password ? await hmac(context.env.PRES_SIGNING_KEY,`password:${slug}:${password}`) : existing.passwordVerifier;
   const input={
     displayName, problem:text(raw.problem,1200), audience:text(raw.audience,500),
     title:text(raw.title,220), summary:text(raw.summary,900), objective:text(raw.objective,1200),
-    website:text(raw.website,500), requestedInspirationUrl:text(raw.inspirationUrl,500), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000')
+    website:ensureHttpsUrl(raw.website), requestedInspirationUrl:ensureHttpsUrl(raw.inspirationUrl), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000')
   };
   if (!input.website) return json({error:'Indica la web oficial del cliente: es la fuente del logo y la inspiración por defecto.'},400);
   if (!/^https:\/\//i.test(input.website)) return json({error:'La web oficial debe comenzar por https://'},400);

@@ -1,5 +1,5 @@
 export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
-export const DEFAULT_OUTPUTS = ['website','audio','video','pdf','powerpoint','infographic'];
+export const DEFAULT_OUTPUTS = ['website','documents'];
 export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
 export const LANGUAGES = ['es','ca','en'];
 export const OUTPUT_LABELS = {
