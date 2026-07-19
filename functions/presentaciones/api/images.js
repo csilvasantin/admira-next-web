@@ -3,6 +3,7 @@ import {buildImageSet, publicImageSet, recomputeImageSet} from '../_grok-images.
 const MAX_BODY_BYTES = 32 * 1024;
 const MAX_BASE64_CHARS = 14 * 1024 * 1024;
 const PROCESSING_TIMEOUT_MS = 10 * 60 * 1000;
+const MAX_TEXT_RETRIES = 3;
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), {status, headers:{
@@ -56,7 +57,46 @@ async function generateImage(env, prompt){
   const payload = await response.json();
   const item = payload?.data?.[0];
   const bytes = decodeBase64(item?.b64_json);
-  return {bytes, ...imageType(bytes), revisedPrompt:typeof item?.revised_prompt === 'string' ? item.revised_prompt.slice(0, 1000) : ''};
+  return {bytes, base64:item.b64_json, ...imageType(bytes), revisedPrompt:typeof item?.revised_prompt === 'string' ? item.revised_prompt.slice(0, 1000) : ''};
+}
+
+async function validateTextFree(env, image){
+  const response = await fetch('https://api.x.ai/v1/responses', {
+    method:'POST', headers:{'content-type':'application/json', authorization:`Bearer ${env.XAI_API_KEY}`},
+    body:JSON.stringify({
+      model:env.XAI_VISION_MODEL || env.XAI_TEXT_MODEL || 'grok-4.5', store:false,
+      input:[
+        {role:'system', content:[{type:'input_text', text:'You are a strict visual quality gate. Reject any image containing visible or pseudo-text, including isolated letters, numbers, glyphs, signage, labels, logos, watermarks or typography-like marks. When uncertain, reject.'}]},
+        {role:'user', content:[
+          {type:'input_text', text:'Inspect this presentation background. Does any visible text or typography-like mark appear anywhere in the pixels?'},
+          {type:'input_image', image_url:`data:${image.contentType};base64,${image.base64}`, detail:'high'}
+        ]}
+      ],
+      text:{format:{type:'json_schema', name:'text_free_image_check', strict:true, schema:{
+        type:'object', additionalProperties:false,
+        properties:{has_visible_text:{type:'boolean'}, confidence:{type:'number'}, evidence:{type:'string'}},
+        required:['has_visible_text','confidence','evidence']
+      }}}
+    })
+  });
+  if(!response.ok) throw new Error('No se pudo verificar que la imagen esté libre de texto. No se publicará.');
+  const length = Number(response.headers.get('content-length') || 0);
+  if(length > MAX_BODY_BYTES) throw new Error('La verificación visual devolvió una respuesta demasiado grande.');
+  const payload = await response.json();
+  const outputText=payload?.output?.find(item=>item?.type==='message')?.content?.find(item=>item?.type==='output_text')?.text;
+  let result;
+  try{ result = JSON.parse(outputText || ''); }
+  catch(_){ throw new Error('La verificación visual no devolvió un resultado válido.'); }
+  if(typeof result?.has_visible_text !== 'boolean') throw new Error('La verificación visual no pudo confirmar la ausencia de texto.');
+  const confidence=Math.max(0,Math.min(1,Number(result.confidence||0)));
+  return {passed:result.has_visible_text === false&&confidence>=0.9, confidence, evidence:String(result.evidence || '').slice(0, 300)};
+}
+
+function textDetectedError(validation){
+  const error = new Error('La imagen contenía texto o marcas tipográficas y ha sido descartada automáticamente.');
+  error.code = 'visible_text_detected';
+  error.validation = validation;
+  return error;
 }
 
 async function prepare(context, payload){
@@ -101,21 +141,25 @@ async function generate(context, payload){
     return json({error:'La imagen ya se está generando.', imageSet:publicImageSet(recomputeImageSet(set))}, 409);
   }
   const now = new Date().toISOString();
-  slide.status = 'processing'; slide.updatedAt = now; delete slide.error;
+  slide.status = 'processing'; slide.updatedAt = now; slide.attempts = Number(slide.attempts || 0) + 1;
+  delete slide.error; delete slide.retryable; delete slide.textFreeVerified;
   recomputeImageSet(set, now);
   await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
   try{
     const generated = await generateImage(context.env, slide.prompt);
+    const validation = await validateTextFree(context.env, generated);
+    if(!validation.passed) throw textDetectedError(validation);
     const suffix = set.id.replace(/-/g, '').slice(0, 10);
     const filename = `${slide.id}-${suffix}.${generated.extension}`;
     const key = `presentations/${client}/grok-images/${filename}`;
     await context.env.PRESENTATION_MEDIA.put(key, generated.bytes, {
       httpMetadata:{contentType:generated.contentType, cacheControl:'private, max-age=3600'},
-      customMetadata:{client, setId:set.id, slideId:slide.id, provider:'xai', model:set.model, safetyContract:set.safetyContract}
+      customMetadata:{client, setId:set.id, slideId:slide.id, provider:'xai', model:set.model, safetyContract:set.safetyContract, textFreeVerified:'true'}
     });
     const completedAt = new Date().toISOString();
     slide.status = 'ready'; slide.url = `/presentaciones/${client}/images/${filename}`;
     slide.objectKey = key; slide.generatedAt = completedAt; slide.updatedAt = completedAt;
+    slide.textFreeVerified = true; slide.textValidation = validation; slide.retryable = false;
     if(generated.revisedPrompt) slide.revisedPrompt = generated.revisedPrompt;
     recomputeImageSet(set, completedAt);
     await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
@@ -123,11 +167,14 @@ async function generate(context, payload){
   }catch(error){
     const failedAt = new Date().toISOString();
     slide.status = 'failed'; slide.error = String(error?.message || 'No se pudo generar la imagen.').slice(0, 220);
+    slide.errorCode = String(error?.code || 'generation_failed').slice(0, 80);
+    slide.retryable = slide.errorCode === 'visible_text_detected' && slide.attempts < MAX_TEXT_RETRIES;
+    if(error?.validation) slide.textValidation = error.validation;
     slide.failedAt = failedAt; slide.updatedAt = failedAt;
     recomputeImageSet(set, failedAt);
     await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
     console.error(JSON.stringify({message:'grok image generation failed', client, setId:set.id, slideId:slide.id, error:slide.error}));
-    return json({error:slide.error, imageSet:publicImageSet(set)}, 502);
+    return json({error:slide.error, retryable:slide.retryable, imageSet:publicImageSet(set)}, 502);
   }
 }
 

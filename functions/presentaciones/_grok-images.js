@@ -46,15 +46,17 @@ export function buildImagePrompt({slide, presentation, ideas}){
   const message = removeClientReferences(slide.message, displayName);
   const detail = removeClientReferences(slide.detail, displayName);
   const prompt = [
-    'Create one original widescreen editorial image for a premium business presentation.',
+    'Create one original widescreen editorial BACKGROUND IMAGE for a premium business presentation.',
     `Slide role: ${slide.role}.`,
     `Theme: ${title || 'connected experience'}.`,
     message ? `Core concept: ${message}.` : '',
     detail ? `Visual context: ${detail}.` : '',
     `Art direction: ${themeDirection(presentation)}. Build a coherent visual system with strong composition, depth and one clear focal idea.`,
-    'Use an original conceptual scene or abstract editorial metaphor. Keep generous negative space so presentation copy can be placed later.',
+    'Use an original conceptual scene or abstract editorial metaphor. Keep generous negative space so presentation copy can be overlaid later.',
     'IP-safe contract: do not imitate any named artist, studio, campaign or existing artwork. Do not show logos, trademarks, brand names, recognizable products, copyrighted characters, public figures or identifiable real people. Do not copy a website or reference design.',
-    'Do not render words, letters, numbers, captions, interface screenshots, signatures or watermarks. Use generic people only when essential. Do not invent factual claims.',
+    'ABSOLUTE TEXT-FREE CONTRACT: the image must contain zero visible text and zero typography. Do not render words, letters, numbers, glyphs, captions, labels, symbols that resemble writing, signatures or watermarks.',
+    'Avoid every surface that commonly contains text: signs, screens, interfaces, dashboards, books, documents, packaging, maps, charts, clothing graphics, license plates and architectural lettering.',
+    'Use generic people only when essential. Do not invent factual claims. Return visual background art only; all presentation copy is added separately by the website.',
     'The result must be suitable for human review before commercial publication.'
   ].filter(Boolean).join('\n');
   return prompt.slice(0, MAX_PROMPT_CHARS);
@@ -69,6 +71,7 @@ function slideSources(ideas){
   const enabled = (Array.isArray(ideas?.skeleton) ? ideas.skeleton : []).filter(item => item?.enabled !== false);
   return [
     {sourceId:'cover', role:'cover', title:ideas?.hero?.title, message:ideas?.hero?.summary, detail:ideas?.objective},
+    {sourceId:'objective', role:'objective', title:'Objective', message:ideas?.objective, detail:'A focused visual metaphor for the decision this presentation should enable.'},
     ...enabled.map((item, index) => ({sourceId:item?.id || `idea-${index + 1}`, role:'content', title:item?.title, message:item?.message, detail:item?.detail})),
     {sourceId:'closing', role:'closing', title:ideas?.closing?.title, message:ideas?.closing?.action, detail:'A decisive, optimistic final image with a clear sense of forward movement.'}
   ].slice(0, MAX_SLIDES);
@@ -95,7 +98,7 @@ export async function buildImageSet({client, presentation, ideas, model = 'grok-
   return recomputeImageSet({
     schemaVersion:1, id, client, displayName:clean(presentation?.displayName || ideas?.displayName, 100),
     provider:'xai', model, aspectRatio:'16:9', resolution:'1k', sourceHash,
-    safetyContract:'original-theme-v1', humanReviewRequired:true,
+    safetyContract:'original-background-no-text-v2', textFreeValidationRequired:true, humanReviewRequired:true,
     sourceUpdatedAt:ideas?.updatedAt || presentation?.updatedAt || now,
     slides, status:'queued', createdAt:now, updatedAt:now
   }, now);
@@ -122,14 +125,15 @@ export function publicImageSet(set){
   return {
     schemaVersion:set.schemaVersion, id:set.id, client:set.client, displayName:set.displayName,
     provider:set.provider, model:set.model, aspectRatio:set.aspectRatio, resolution:set.resolution,
-    sourceHash:set.sourceHash, safetyContract:set.safetyContract, humanReviewRequired:Boolean(set.humanReviewRequired),
+    sourceHash:set.sourceHash, safetyContract:set.safetyContract,
+    textFreeValidationRequired:Boolean(set.textFreeValidationRequired), humanReviewRequired:Boolean(set.humanReviewRequired),
     sourceUpdatedAt:set.sourceUpdatedAt, status:set.status, completed:Number(set.completed || 0),
     failed:Number(set.failed || 0), total:Number(set.total || 0), createdAt:set.createdAt,
     completedAt:set.completedAt || null, updatedAt:set.updatedAt,
     slides:(set.slides || []).map(slide => ({
       id:slide.id, index:slide.index, role:slide.role, title:slide.title, status:slide.status,
-      url:slide.url || null, error:slide.error || null, generatedAt:slide.generatedAt || null, updatedAt:slide.updatedAt
+      url:slide.url || null, error:slide.error || null, retryable:Boolean(slide.retryable),
+      textFreeVerified:Boolean(slide.textFreeVerified), generatedAt:slide.generatedAt || null, updatedAt:slide.updatedAt
     }))
   };
 }
-

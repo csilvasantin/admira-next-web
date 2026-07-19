@@ -44,6 +44,7 @@ function buildIdeas(input, slug, languages){
       idea('piloto','El primer piloto',`Empezar pequeño, medir de verdad y escalar lo que funciona.`,`Un espacio, dos recorridos prioritarios, cuatro semanas de aprendizaje y un cuadro compartido de métricas.`)
     ],
     closing:{title:`Elijamos el primer espacio de ${name}.`,action:'Definir problema, ubicación, responsables, señales disponibles y tres métricas de éxito.'},
+    labels:{objective:'El objetivo',next:'Siguiente paso'},
     notes:`Fuente inicial generada para ${name}. Validar identidad, datos, problema y lenguaje antes de compartir. Web oficial y fuente de marca: ${input.website}. Inspiración visual: ${input.inspiration?.url || input.website}. Logo oficial obligatorio: ${input.brand?.logoUrl || 'no localizado'}.`,
     updatedAt:new Date().toISOString()
   };
@@ -119,6 +120,6 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
-  const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+2;
+  const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
   return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

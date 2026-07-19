@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260719-1';
+  window.__ADMIRA_GENERATOR_VERSION__='20260719-2';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -87,8 +87,8 @@
     imageAction.hidden=false;imageAction.textContent=set?.status==='complete'?'Regenerar imágenes con Grok':set?'Continuar imágenes con Grok':`Crear ${total} imágenes con Grok`;
     const slides=set?.slides||[];imageWorkspace.hidden=false;
     const state=set?.status==='complete'?'Completado':set?.status==='partial'?'Revisión necesaria':set?.status==='processing'?'Generando':'Preparado';
-    const cards=slides.length?slides.map(slide=>{const ready=slide.status==='ready'&&slide.url,failed=slide.status==='failed';return `<article class="image-card${failed?' failed':''}">${ready?`<a href="${html(slide.url)}" target="_blank" rel="noopener"><img src="${html(slide.url)}" alt="${html(slide.title)}"></a>`:`<div class="placeholder">${failed?'REINTENTAR':slide.status==='processing'?'GENERANDO':'PENDIENTE'}</div>`}<span><b>${String(slide.index).padStart(2,'0')}</b>${html(slide.title)}${failed?` · ${html(slide.error||'Error')}`:''}</span></article>`}).join(''):`<div class="image-card"><div class="placeholder">${total} IMÁGENES</div><span>Una imagen temática por diapositiva</span></div>`;
-    imageWorkspace.innerHTML=`<div class="image-head"><div><h3>Imágenes de las diapositivas</h3><p>Grok genera escenas originales 16:9 a partir del tema, sin logos, personajes, artistas ni campañas copiadas.</p></div><span class="image-progress">${state} · ${set?.completed||0}/${total}</span></div><div class="image-grid">${cards}</div><p class="image-note">Revisión humana obligatoria antes de incorporar las imágenes a una presentación comercial.</p>`;
+    const cards=slides.length?slides.map(slide=>{const ready=slide.status==='ready'&&slide.url&&slide.textFreeVerified,failed=slide.status==='failed';return `<article class="image-card${failed?' failed':''}">${ready?`<a href="${html(slide.url)}" target="_blank" rel="noopener"><img src="${html(slide.url)}" alt="Fondo visual de la diapositiva ${slide.index}"></a>`:`<div class="placeholder">${failed?(slide.retryable?'REINTENTANDO':'REVISAR'):slide.status==='processing'?'GENERANDO':'PENDIENTE'}</div>`}<span><b>${String(slide.index).padStart(2,'0')}</b>${html(slide.title)}${ready?' · SIN TEXTO VERIFICADO':''}${failed?` · ${html(slide.error||'Error')}`:''}</span></article>`}).join(''):`<div class="image-card"><div class="placeholder">${total} FONDOS</div><span>Un fondo visual sin texto por diapositiva</span></div>`;
+    imageWorkspace.innerHTML=`<div class="image-head"><div><h3>Fondos de las diapositivas</h3><p>Grok genera escenas originales 16:9. Cada resultado se revisa automáticamente y sólo se incorpora si no contiene texto, números ni marcas tipográficas.</p></div><span class="image-progress">${state} · ${set?.completed||0}/${total}</span></div><div class="image-grid">${cards}</div><p class="image-note">Los fondos se colocan por debajo del contenido y sirven para reforzar el mensaje en todos los idiomas.</p>`;
   }
   async function imageApi(payload){
     const response=await fetch('/presentaciones/api/images',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload)}),body=await response.json().catch(()=>({}));
@@ -108,9 +108,12 @@
       const prepared=await imageApi({action:'prepare',client:currentClient,force}),set=prepared.imageSet;renderImageSet(set);
       const pending=(set.slides||[]).filter(slide=>slide.status!=='ready');
       for(let index=0;index<pending.length;index+=1){
-        const slide=pending[index];message(`Grok está creando la imagen ${slide.index} de ${set.total}: ${slide.title}`);
-        try{const generated=await imageApi({action:'generate',client:currentClient,setId:set.id,slideId:slide.id});renderImageSet(generated.imageSet)}
-        catch(error){if(error.data?.imageSet)renderImageSet(error.data.imageSet);else throw error}
+        const slide=pending[index];let retry=true;
+        while(retry){
+          retry=false;message(`Grok está creando y verificando el fondo ${slide.index} de ${set.total}: ${slide.title}`);
+          try{const generated=await imageApi({action:'generate',client:currentClient,setId:set.id,slideId:slide.id});renderImageSet(generated.imageSet)}
+          catch(error){if(error.data?.imageSet)renderImageSet(error.data.imageSet);else throw error;retry=Boolean(error.data?.retryable);if(retry)message(`El fondo ${slide.index} contenía texto. Descartado; Grok lo intenta de nuevo…`)}
+        }
       }
       const failed=currentImageSet?.failed||0;message(failed?`Paquete visual creado con ${failed} imagen${failed===1?'':'es'} pendiente${failed===1?'':'s'} de reintento.`:`Paquete visual completo: ${currentImageSet?.completed||0} imágenes listas.`,Boolean(failed));
     }catch(error){message(error.message,true)}finally{imageAction.disabled=false}

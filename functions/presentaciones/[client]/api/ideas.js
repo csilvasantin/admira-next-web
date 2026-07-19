@@ -38,6 +38,7 @@ function normalize(payload, client){
       title:cleanText(item?.title,180)||`Idea ${index+1}`, message:cleanText(item?.message,900), detail:cleanText(item?.detail,1600), enabled:item?.enabled!==false
     })),
     closing:{title:cleanText(source?.closing?.title,220),action:cleanText(source?.closing?.action,700)},
+    labels:{objective:cleanText(source?.labels?.objective,80),next:cleanText(source?.labels?.next,80)},
     notes:cleanText(source?.notes,4000)
   });
   const translations={};
@@ -71,6 +72,10 @@ function normalize(payload, client){
     closing: {
       title: cleanText(payload.closing?.title, 220),
       action: cleanText(payload.closing?.action, 700)
+    },
+    labels: {
+      objective: cleanText(payload.labels?.objective, 80) || 'El objetivo',
+      next: cleanText(payload.labels?.next, 80) || 'Siguiente paso'
     },
     notes: cleanText(payload.notes, 4000),
     updatedAt: new Date().toISOString()

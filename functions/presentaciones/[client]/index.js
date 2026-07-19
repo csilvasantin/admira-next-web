@@ -52,10 +52,10 @@ function artifact(number,title,hint,icon,copy,item,kind){
 
 function imageGallery(rawSet){
   const set=publicImageSet(rawSet?recomputeImageSet(rawSet):null);
-  const slides=(set?.slides||[]).filter(slide=>slide.status==='ready'&&slide.url);
+  const slides=(set?.slides||[]).filter(slide=>slide.status==='ready'&&slide.url&&slide.textFreeVerified);
   if(!slides.length)return '';
-  const cards=slides.map(slide=>`<a class="slide-image" href="${esc(slide.url)}" target="_blank" rel="noopener"><img src="${esc(slide.url)}" alt="Imagen temática para ${esc(slide.title)}" loading="lazy"><span><b>${String(slide.index).padStart(2,'0')}</b>${esc(slide.title)}</span></a>`).join('');
-  return `<section class="sec wrap"><div class="sec-h"><span class="n">08</span><h2>Imágenes de las diapositivas</h2><span class="hint">Grok · revisión humana</span></div><div class="card"><div class="row"><div class="ico">IMG</div><div><h3>Paquete visual temático</h3><p>Una imagen original por diapositiva, preparada para revisión antes de incorporarla a materiales comerciales.</p><div class="fmt">${slides.length} de ${set.total} imágenes disponibles</div></div></div><div class="slide-images">${cards}</div></div></section>`;
+  const cards=slides.map(slide=>`<a class="slide-image" href="${esc(slide.url)}" target="_blank" rel="noopener"><img src="${esc(slide.url)}" alt="Fondo visual de la diapositiva ${slide.index}" loading="lazy"><span><b>${String(slide.index).padStart(2,'0')}</b>${esc(slide.title)} · sin texto verificado</span></a>`).join('');
+  return `<section class="sec wrap"><div class="sec-h"><span class="n">08</span><h2>Fondos de las diapositivas</h2><span class="hint">Grok · texto cero</span></div><div class="card"><div class="row"><div class="ico">IMG</div><div><h3>Paquete visual temático</h3><p>Un fondo original por diapositiva, validado automáticamente para no contener texto y colocado por debajo del contenido.</p><div class="fmt">${slides.length} de ${set.total} fondos disponibles</div></div></div><div class="slide-images">${cards}</div></div></section>`;
 }
 
 export async function onRequestGet(context){

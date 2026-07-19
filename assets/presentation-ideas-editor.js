@@ -71,7 +71,7 @@
     return selected.length?selected:ALL_LANGUAGES;
   }
   function baseContent(){
-    return {hero:model.hero||{},objective:model.objective||'',skeleton:model.skeleton||[],closing:model.closing||{},notes:model.notes||''};
+    return {hero:model.hero||{},objective:model.objective||'',skeleton:model.skeleton||[],closing:model.closing||{},labels:model.labels||{objective:'El objetivo',next:'Siguiente paso'},notes:model.notes||''};
   }
   function contentFor(language){
     if(language==='es') return baseContent();
@@ -84,7 +84,7 @@
       const value = (key) => node.querySelector(`[data-key="${key}"]`);
       return {id:value('id')?.value||idFor(value('title').value,index),title:value('title').value,message:value('message').value,detail:value('detail').value,enabled:value('enabled').checked};
     });
-    return {hero:{eyebrow:$('eyebrow').value,title:$('title').value,summary:$('summary').value},objective:$('objective').value,skeleton:ideas,closing:{title:$('closingTitle').value,action:$('closingAction').value},notes:$('notes').value};
+    return {hero:{eyebrow:$('eyebrow').value,title:$('title').value,summary:$('summary').value},objective:$('objective').value,skeleton:ideas,closing:{title:$('closingTitle').value,action:$('closingAction').value},labels:contentFor(activeLanguage).labels||{objective:'El objetivo',next:'Siguiente paso'},notes:$('notes').value};
   }
   function commitLanguage(){
     if(!model||!document.querySelector('.idea')) return;
