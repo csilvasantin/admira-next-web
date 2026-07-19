@@ -8,8 +8,11 @@ del navegador de trabajo.
 2. `pnpm setup` y acceder una sola vez con `csilvasantin@gmail.com`.
 3. `pnpm start` para procesar continuamente o `pnpm once` para una sola presentación.
 
-El token se obtiene de `PRESENTATION_WORKER_TOKEN`, de `admira-vault` o del llavero
-de macOS (`admiranext-presentations / notebooklm-local`). El servicio
+El token se obtiene de `PRESENTATION_WORKER_TOKEN`, de
+`.runtime/notebooklm-local/worker.token` (modo `0600`), de `admira-vault` o del
+llavero de macOS (`admiranext-presentations / notebooklm-local`). El fichero privado
+permite ejecutar el LaunchAgent de forma desatendida cuando macOS no da acceso al
+llavero desde una sesión remota. El servicio
 solo recibe guiones de la cola interna autenticada y publica los archivos en el R2
 privado de la presentación.
 

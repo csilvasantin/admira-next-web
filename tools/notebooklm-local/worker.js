@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -23,6 +24,8 @@ const OUTPUT_FILTER=new Set(String(process.env.NOTEBOOKLM_OUTPUTS||'').split(','
 
 function token(){
   if(process.env.PRESENTATION_WORKER_TOKEN)return process.env.PRESENTATION_WORKER_TOKEN.trim();
+  try{return fsSync.readFileSync(path.join(RUNTIME,'worker.token'),'utf8').trim();}
+  catch(_){}
   try{return execFileSync('bash',[path.join(os.homedir(),'Claude/admira-vault/vault-get.sh'),'PRESENTATION_WORKER_TOKEN'],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}
   catch(_){}
   try{return execFileSync('security',['find-generic-password','-a','notebooklm-local','-s','admiranext-presentations','-w'],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}
