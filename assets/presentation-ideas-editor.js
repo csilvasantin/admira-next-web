@@ -5,6 +5,7 @@
   const displayName = body.dataset.name || client;
   const apiUrl = new URL(`./api/ideas`, location.href).pathname;
   const generationUrl = new URL(`./api/generation`, location.href).pathname;
+  const historyLink=document.createElement('a');historyLink.className='btn';historyLink.href=new URL('./versiones',location.href).pathname;historyLink.textContent='Historial';document.querySelector('.top-actions')?.insertBefore(historyLink,document.querySelector('.top-actions .primary'));
   const defaultUrl = `${apiUrl}?base=1`;
   const $ = (id) => document.getElementById(id);
   const ALL_OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic','backgrounds'];

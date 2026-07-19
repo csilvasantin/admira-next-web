@@ -8,6 +8,7 @@ const LIMITS = {
   'skeleton.title':180, 'skeleton.message':900, 'skeleton.detail':1600,
   'closing.title':220, 'closing.action':700, 'labels.objective':80, 'labels.next':80
 };
+import {captureVersion} from '../../_versions.js';
 
 function response(body, status = 200){
   return new Response(JSON.stringify(body), {status, headers:{
@@ -128,5 +129,6 @@ export async function onRequest(context){
   }catch(error){ return response({error:error.message||'No se pudo aplicar la edición.'},409); }
   ideas.updatedAt=new Date().toISOString();
   await context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas));
+  await captureVersion(context.env,client,`textos ${language.toUpperCase()} guardados`,{presentation,ideas});
   return response({ok:true,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages),translated:targetLanguages});
 }

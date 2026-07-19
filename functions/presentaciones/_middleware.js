@@ -106,6 +106,8 @@ export async function onRequest(context){
   const isIdeasApi = !isGallery && second === 'api' && third === 'ideas';
   const isGenerationApi = !isGallery && second === 'api' && third === 'generation';
   const isInlineEditApi = !isGallery && second === 'api' && third === 'inline-edit';
+  const isVersionsApi = !isGallery && second === 'api' && third === 'versions';
+  const isVersionsPage = !isGallery && second === 'versiones';
   const isSlideImages = !isGallery && second === 'images';
   const isPresentationMode = !isGallery && second === 'presentacion';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
@@ -114,7 +116,7 @@ export async function onRequest(context){
   const isProductionApi = first === 'api' && second === 'production';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
-  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isInlineEditApi || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;
+  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isInlineEditApi || isVersionsApi || isVersionsPage || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;
 
   // El productor local se autentica con un Bearer token propio. No debe atravesar
   // el formulario/cookie de las áreas humanas antes de llegar a su endpoint.
@@ -145,7 +147,7 @@ export async function onRequest(context){
     validToken(signKey, cookieSlug, cookies[cookieName]),
     readIdentity(request, signKey)
   ]);
-  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isInlineEditApi || isSlideImages || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
+  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
   const authorized = masterValid || (editorAllowed && editorValid) || (!isInternalArea && clientValid);
   const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : 'client';
   const contentType = request.headers.get('content-type') || '';

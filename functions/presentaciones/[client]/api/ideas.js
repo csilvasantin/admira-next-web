@@ -1,5 +1,6 @@
 import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
 import { normalizeInspiration } from '../../_inspiration.js';
+import {captureVersion} from '../../_versions.js';
 
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
@@ -147,5 +148,6 @@ export async function onRequest(context){
     writes.push(context.env.PRESENTATION_IDEAS.put(`presentation:${client}`, JSON.stringify(generated)));
   }
   await Promise.all(writes);
+  await captureVersion(context.env,client,'esqueleto guardado',{presentation:generated?{...generated,outputs:data.outputs,languages:data.languages,updatedAt:data.updatedAt}:undefined,ideas:data,generation});
   return response({ ok: true, data, generation: publicGeneration(generation) });
 }

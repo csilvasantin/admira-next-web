@@ -2,6 +2,7 @@ import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration 
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
 import { DEFAULT_PRESENTATION_PASSWORD, ensureHttpsUrl } from '../_defaults.js';
+import {captureVersion} from '../_versions.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -173,6 +174,7 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
+  await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null});
   const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
   return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }
