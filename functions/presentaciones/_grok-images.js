@@ -84,7 +84,7 @@ export async function buildImageSet({client, presentation, ideas, model = 'grok-
     const number = String(index + 1).padStart(2, '0');
     const sourceId = safeId(source.sourceId, `slide-${number}`);
     const slide = {
-      id:`slide-${number}-${sourceId}`, index:index + 1, role:source.role,
+      id:`slide-${number}-${sourceId}`, sourceId, index:index + 1, role:source.role,
       title:clean(source.title, 180) || `Diapositiva ${index + 1}`,
       message:clean(source.message, 900), detail:clean(source.detail, 1400), status:'queued',
       progress:0, requestedAt:now, updatedAt:now
@@ -153,8 +153,9 @@ export function publicImageSet(set){
     startedAt:set.startedAt || null, lastActivityAt:set.lastActivityAt || set.updatedAt,
     completedAt:set.completedAt || null, finishedAt:set.finishedAt || set.completedAt || null, updatedAt:set.updatedAt,
     slides:(set.slides || []).map(slide => ({
-      id:slide.id, index:slide.index, role:slide.role, title:slide.title, status:slide.status,
+      id:slide.id, sourceId:slide.sourceId || null, index:slide.index, role:slide.role, title:slide.title, status:slide.status,
       url:slide.url || null, error:slide.error || null, retryable:Boolean(slide.retryable),
+      source:slide.source || null, manual:Boolean(slide.manual),
       progress:Number(slide.progress || 0), stage:slide.stage || null, attempts:Number(slide.attempts || 0),
       textFreeVerified:Boolean(slide.textFreeVerified), requestedAt:slide.requestedAt || null,
       submittedAt:slide.submittedAt || null, startedAt:slide.startedAt || null,

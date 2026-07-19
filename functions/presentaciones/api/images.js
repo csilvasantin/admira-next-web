@@ -2,6 +2,8 @@ import {buildImageSet, publicImageSet, recomputeImageSet} from '../_grok-images.
 
 const MAX_BODY_BYTES = 32 * 1024;
 const MAX_BASE64_CHARS = 14 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_MULTIPART_BYTES = MAX_UPLOAD_BYTES + 256 * 1024;
 const PROCESSING_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_TEXT_RETRIES = 3;
 
@@ -53,7 +55,44 @@ function decodeBase64(value){
 function imageType(bytes){
   if(bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return {extension:'png', contentType:'image/png'};
   if(bytes[0] === 0xff && bytes[1] === 0xd8) return {extension:'jpg', contentType:'image/jpeg'};
-  throw new Error('Grok devolvió un formato de imagen no admitido.');
+  if(bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return {extension:'webp', contentType:'image/webp'};
+  throw new Error('El archivo no es una imagen PNG, JPEG o WebP válida.');
+}
+
+function slideSourceId(slide){
+  return cleanId(slide?.sourceId) || String(slide?.id || '').replace(/^slide-\d+-/, '');
+}
+
+function preserveManualImages(previous, candidate){
+  const manualBySource = new Map((previous?.slides || [])
+    .filter(slide => slide.manual === true && slide.status === 'ready' && slide.url && slide.textFreeVerified)
+    .map(slide => [slideSourceId(slide), slide]));
+  for(const slide of candidate.slides || []){
+    const preserved = manualBySource.get(slideSourceId(slide));
+    if(!preserved) continue;
+    Object.assign(slide, {
+      status:'ready', url:preserved.url, objectKey:preserved.objectKey,
+      source:'manual-upload', manual:true, textFreeVerified:true,
+      textValidation:preserved.textValidation, generatedAt:preserved.generatedAt,
+      completedAt:preserved.completedAt, progress:100, stage:'Imagen manual conservada',
+      retryable:false, updatedAt:candidate.updatedAt
+    });
+  }
+  return recomputeImageSet(candidate, candidate.updatedAt);
+}
+
+function supersededError(set){
+  const error = new Error('La imagen de Grok ya no es la vigente para esta diapositiva.');
+  error.code = 'generation_superseded';
+  error.imageSet = set;
+  return error;
+}
+
+async function activeGeneration(env, client, setId, slideId, requestId){
+  const set = await env.PRESENTATION_IDEAS.get(`image-set:${client}`, {type:'json'});
+  const slide = (set?.slides || []).find(item => item.id === slideId);
+  if(!set || set.id !== setId || !slide || slide.requestId !== requestId || slide.manual === true) throw supersededError(set ? recomputeImageSet(set) : null);
+  return {set, slide};
 }
 function providerMessage(status){
   if(status === 401 || status === 403) return 'La credencial de xAI no es válida.';
@@ -130,8 +169,47 @@ async function prepare(context, payload){
     }
     return json({ok:true, reused:true, imageSet:publicImageSet(inputs.imageSet)});
   }
+  if(inputs.imageSet && payload.force !== true) preserveManualImages(inputs.imageSet, candidate);
   await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(candidate));
   return json({ok:true, reused:false, imageSet:publicImageSet(candidate)}, 201);
+}
+
+async function upload(context, form){
+  if(!context.env.PRESENTATION_MEDIA) return json({error:'El almacenamiento de imágenes no está configurado.'}, 503);
+  const client = cleanClient(form.get('client')), setId = cleanId(form.get('setId')), slideId = cleanId(form.get('slideId'));
+  if(!client || !setId || !slideId) return json({error:'Destino de imagen no válido.'}, 400);
+  if(form.get('textFreeConfirmed') !== 'true') return json({error:'Confirma que la imagen no contiene texto, números, logos ni marcas tipográficas.'}, 400);
+  const file = form.get('file');
+  if(!file || typeof file.arrayBuffer !== 'function' || !Number.isFinite(Number(file.size))) return json({error:'Selecciona una imagen para esta diapositiva.'}, 400);
+  if(file.size < 4 || file.size > MAX_UPLOAD_BYTES) return json({error:'La imagen debe pesar entre 4 bytes y 10 MB.'}, 413);
+  const set = await context.env.PRESENTATION_IDEAS.get(`image-set:${client}`, {type:'json'});
+  if(!set || set.id !== setId) return json({error:'El paquete visual ya no es el vigente.'}, 409);
+  recoverStalled(set);
+  const slide = (set.slides || []).find(item => item.id === slideId);
+  if(!slide) return json({error:'La diapositiva no existe.'}, 404);
+  if(slide.status === 'processing') return json({error:'Grok está trabajando en esta diapositiva. Espera a que termine o se interrumpa antes de sustituirla.', imageSet:publicImageSet(recomputeImageSet(set))}, 409);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if(bytes.byteLength > MAX_UPLOAD_BYTES) return json({error:'La imagen supera el límite de 10 MB.'}, 413);
+  let type;
+  try{ type = imageType(bytes); }
+  catch(error){ return json({error:error.message}, 415); }
+  const now = new Date().toISOString();
+  const filename = `manual-${slide.id}-${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}.${type.extension}`;
+  const key = `presentations/${client}/grok-images/${filename}`;
+  await context.env.PRESENTATION_MEDIA.put(key, bytes, {
+    httpMetadata:{contentType:type.contentType, cacheControl:'private, max-age=3600'},
+    customMetadata:{client, setId:set.id, slideId:slide.id, provider:'manual-upload', safetyContract:set.safetyContract, textFreeVerified:'human-confirmed'}
+  });
+  Object.assign(slide, {
+    status:'ready', url:`/presentaciones/${client}/images/${filename}`, objectKey:key,
+    source:'manual-upload', manual:true, generatedAt:now, completedAt:now, updatedAt:now,
+    progress:100, stage:'Imagen manual asignada', textFreeVerified:true, retryable:false,
+    textValidation:{provider:'human-confirmation', passed:true, confirmedAt:now}
+  });
+  delete slide.error; delete slide.errorCode; delete slide.failedAt; delete slide.requestId;
+  recomputeImageSet(set, now);
+  await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
+  return json({ok:true, imageSet:publicImageSet(set)}, 201);
 }
 
 async function generate(context, payload){
@@ -139,28 +217,32 @@ async function generate(context, payload){
   if(!context.env.PRESENTATION_MEDIA) return json({error:'El almacenamiento de imágenes no está configurado.'}, 503);
   const client = cleanClient(payload.client), setId = cleanId(payload.setId), slideId = cleanId(payload.slideId);
   if(!client || !setId || !slideId) return json({error:'Solicitud de imagen no válida.'}, 400);
-  const set = await context.env.PRESENTATION_IDEAS.get(`image-set:${client}`, {type:'json'});
+  let set = await context.env.PRESENTATION_IDEAS.get(`image-set:${client}`, {type:'json'});
   if(!set || set.id !== setId) return json({error:'El paquete visual ya no es el vigente.'}, 409);
-  const slide = (set.slides || []).find(item => item.id === slideId);
+  let slide = (set.slides || []).find(item => item.id === slideId);
   if(!slide) return json({error:'La diapositiva no existe.'}, 404);
   if(slide.status === 'ready' && slide.url) return json({ok:true, reused:true, imageSet:publicImageSet(recomputeImageSet(set))});
   if(slide.status === 'processing' && Date.parse(slide.updatedAt || '') >= Date.now() - PROCESSING_TIMEOUT_MS){
     return json({error:'La imagen ya se está generando.', imageSet:publicImageSet(recomputeImageSet(set))}, 409);
   }
   const now = new Date().toISOString();
+  const requestId = crypto.randomUUID();
   slide.status = 'processing'; slide.progress = 10; slide.stage = 'Solicitud enviada a Grok';
   slide.startedAt ||= now; slide.submittedAt = now; slide.updatedAt = now; slide.attempts = Number(slide.attempts || 0) + 1;
-  delete slide.error; delete slide.retryable; delete slide.textFreeVerified;
+  slide.requestId = requestId; slide.source = 'xai'; slide.manual = false;
+  delete slide.error; delete slide.retryable; delete slide.textFreeVerified; delete slide.failedAt;
   recomputeImageSet(set, now);
   await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
   try{
     const generated = await generateImage(context.env, slide.prompt);
+    ({set, slide} = await activeGeneration(context.env, client, setId, slideId, requestId));
     const receivedAt = new Date().toISOString();
     slide.progress = 72; slide.stage = 'Imagen recibida · verificando que no contiene texto'; slide.updatedAt = receivedAt;
     recomputeImageSet(set, receivedAt);
     await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
     const validation = await validateTextFree(context.env, generated);
     if(!validation.passed) throw textDetectedError(validation);
+    ({set, slide} = await activeGeneration(context.env, client, setId, slideId, requestId));
     const verifiedAt = new Date().toISOString();
     slide.progress = 90; slide.stage = 'Imagen verificada · guardando el fondo'; slide.updatedAt = verifiedAt;
     recomputeImageSet(set, verifiedAt);
@@ -172,22 +254,32 @@ async function generate(context, payload){
       httpMetadata:{contentType:generated.contentType, cacheControl:'private, max-age=3600'},
       customMetadata:{client, setId:set.id, slideId:slide.id, provider:'xai', model:set.model, safetyContract:set.safetyContract, textFreeVerified:'true'}
     });
+    ({set, slide} = await activeGeneration(context.env, client, setId, slideId, requestId));
     const completedAt = new Date().toISOString();
     slide.status = 'ready'; slide.url = `/presentaciones/${client}/images/${filename}`;
     slide.objectKey = key; slide.generatedAt = completedAt; slide.completedAt = completedAt; slide.updatedAt = completedAt;
     slide.progress = 100; slide.stage = 'Completada';
-    slide.textFreeVerified = true; slide.textValidation = validation; slide.retryable = false;
+    slide.textFreeVerified = true; slide.textValidation = validation; slide.retryable = false; slide.source = 'xai'; slide.manual = false;
+    delete slide.requestId;
     if(generated.revisedPrompt) slide.revisedPrompt = generated.revisedPrompt;
     recomputeImageSet(set, completedAt);
     await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
     return json({ok:true, imageSet:publicImageSet(set)}, 201);
   }catch(error){
+    if(error?.code === 'generation_superseded') return json({error:error.message, imageSet:publicImageSet(error.imageSet)}, 409);
+    const latest = await context.env.PRESENTATION_IDEAS.get(`image-set:${client}`, {type:'json'});
+    const latestSlide = (latest?.slides || []).find(item => item.id === slideId);
+    if(!latest || latest.id !== setId || !latestSlide || latestSlide.requestId !== requestId || latestSlide.manual === true){
+      return json({error:'La imagen de Grok ya no es la vigente para esta diapositiva.', imageSet:publicImageSet(latest ? recomputeImageSet(latest) : null)}, 409);
+    }
+    set = latest; slide = latestSlide;
     const failedAt = new Date().toISOString();
     slide.status = 'failed'; slide.progress = 100; slide.stage = 'Error'; slide.error = String(error?.message || 'No se pudo generar la imagen.').slice(0, 220);
     slide.errorCode = String(error?.code || 'generation_failed').slice(0, 80);
     slide.retryable = slide.errorCode === 'visible_text_detected' && slide.attempts < MAX_TEXT_RETRIES;
     if(error?.validation) slide.textValidation = error.validation;
     slide.failedAt = failedAt; slide.updatedAt = failedAt;
+    delete slide.requestId;
     recomputeImageSet(set, failedAt);
     await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
     console.error(JSON.stringify({message:'grok image generation failed', client, setId:set.id, slideId:slide.id, error:slide.error}));
@@ -208,7 +300,15 @@ export async function onRequest(context){
   }
   if(context.request.method !== 'POST') return json({error:'Método no permitido.'}, 405);
   if(!sameOrigin(context.request)) return json({error:'Origen no permitido.'}, 403);
-  if(Number(context.request.headers.get('content-length') || 0) > MAX_BODY_BYTES) return json({error:'Petición demasiado grande.'}, 413);
+  const contentType = context.request.headers.get('content-type') || '';
+  const contentLength = Number(context.request.headers.get('content-length') || 0);
+  if(contentType.toLowerCase().startsWith('multipart/form-data')){
+    if(contentLength > MAX_MULTIPART_BYTES) return json({error:'La imagen supera el límite de 10 MB.'}, 413);
+    let form; try{ form = await context.request.formData(); }catch(_){ return json({error:'No se pudo leer la imagen.'}, 400); }
+    if(form.get('action') !== 'upload') return json({error:'Acción no admitida.'}, 400);
+    return upload(context, form);
+  }
+  if(contentLength > MAX_BODY_BYTES) return json({error:'Petición demasiado grande.'}, 413);
   let payload; try{ payload = await context.request.json(); }catch(_){ return json({error:'JSON no válido.'}, 400); }
   if(payload?.action === 'prepare') return prepare(context, payload);
   if(payload?.action === 'generate') return generate(context, payload);

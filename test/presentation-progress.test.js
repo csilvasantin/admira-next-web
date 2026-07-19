@@ -78,9 +78,10 @@ test('the production API accepts phase progress and the real NotebookLM submissi
 });
 
 test('generator and editor expose progress bars, timelines and interruption recovery',async()=>{
-  const [generator,editor]=await Promise.all([
+  const [generator,editor,middleware]=await Promise.all([
     readFile(new URL('../assets/presentation-generator.js',import.meta.url),'utf8'),
-    readFile(new URL('../assets/presentation-ideas-editor.js',import.meta.url),'utf8')
+    readFile(new URL('../assets/presentation-ideas-editor.js',import.meta.url),'utf8'),
+    readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8')
   ]);
   for(const source of [generator,editor]){
     assert.match(source,/progress-track/);
@@ -95,5 +96,12 @@ test('generator and editor expose progress bars, timelines and interruption reco
   assert.match(generator,/Presentación lista:/);
   assert.match(generator,/La presentación sigue lista sin los fondos pendientes/);
   assert.match(generator,/imageMessage/);
+  assert.match(generator,/data-image-slide/);
+  assert.match(generator,/addEventListener\('dragover'/);
+  assert.match(generator,/addEventListener\('drop'/);
+  assert.match(generator,/new FormData\(\)/);
+  assert.match(generator,/todos los idiomas y versiones/);
+  assert.match(generator,/NO contiene texto, números, logos/);
+  assert.match(middleware,/if \(isFormPost && !isGeneratorApi\)/);
   assert.match(editor,/value="backgrounds"/);
 });

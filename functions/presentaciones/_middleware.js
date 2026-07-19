@@ -151,7 +151,7 @@ export async function onRequest(context){
   const contentType = request.headers.get('content-type') || '';
   const isFormPost = request.method === 'POST' && /application\/x-www-form-urlencoded|multipart\/form-data/i.test(contentType);
 
-  if (isFormPost) {
+  if (isFormPost && !isGeneratorApi) {
     let form;
     try { form = await request.formData(); } catch (_) { form = new FormData(); }
     const supplied = cleanIdentity({name:form.get('name'), email:form.get('email'), visitorId:identity?.visitorId});
