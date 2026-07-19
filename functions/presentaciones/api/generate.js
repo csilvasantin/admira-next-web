@@ -119,5 +119,6 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+2;
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

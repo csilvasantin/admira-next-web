@@ -1,9 +1,9 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260718-5';
+  window.__ADMIRA_GENERATOR_VERSION__='20260719-1';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
-  const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='';
+  const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
   website.required=true;website.closest('.field')?.querySelector('label')?.append(' · logo obligatorio');
   const inspirationStep=document.querySelector('.flow span:nth-child(2)'); if(inspirationStep)inspirationStep.innerHTML='<b>02</b> Inspiración';
   const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Inspiración e identidad'; thesisPanel.querySelector('.sub').textContent='La web oficial aporta la identidad y el logo. Si indicas otra inspiración, solo sustituye la dirección de arte.';
@@ -21,6 +21,9 @@
   form.insertBefore(languagePanel,status); form.insertBefore(outputPanel,status);
   const style=document.createElement('style');style.textContent='.language-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.language{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:16px;background:#08111e;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0}.language:has(input:checked){border-color:var(--green);background:rgba(61,240,138,.07)}.language input{width:auto;margin:0;accent-color:var(--green)}.language b{font:800 11px/1 var(--mono);color:var(--green)}.language span{font:700 14px/1.25 var(--sans)}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:14px;background:#08111e;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0}.output:has(input:checked){border-color:var(--green);background:rgba(61,240,138,.07)}.output input{width:auto;margin:0;accent-color:var(--green)}.output b{font:800 10px/1 var(--mono);color:var(--green)}.output span{font:700 14px/1.25 var(--sans)}.output.all{border-style:dashed}.created-matrix{margin:22px 0 0;display:grid;gap:12px}.created-language{border-top:1px solid var(--line);padding-top:12px}.created-language h3{margin:0 0 8px;font:800 10px/1 var(--mono);letter-spacing:.1em;color:var(--mut);text-transform:uppercase}.created-tasks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.created-task{display:grid;gap:7px;background:#08111e;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:700 10px/1.25 var(--mono)}.created-task small{color:#72a7ff;line-height:1.35}.created-task.queued small{color:#f5a623}.created-task.ready small,.created-task.published small,.created-task.complete small{color:var(--green)}.created-task.failed small,.created-task.skipped small{color:var(--red)}@media(max-width:680px){.language-grid,.output-grid,.created-tasks{grid-template-columns:1fr}}';document.head.appendChild(style);
   const createdMatrix=document.createElement('div');createdMatrix.className='created-matrix';createdMatrix.id='createdMatrix';document.querySelector('.result-links').before(createdMatrix);
+  const imageAction=document.createElement('button');imageAction.className='btn';imageAction.type='button';imageAction.id='createImages';imageAction.hidden=true;imageAction.textContent='Crear imágenes con Grok';document.querySelector('.result-links').appendChild(imageAction);
+  const imageWorkspace=document.createElement('section');imageWorkspace.className='image-workspace';imageWorkspace.id='imageWorkspace';imageWorkspace.hidden=true;createdMatrix.after(imageWorkspace);
+  const imageStyle=document.createElement('style');imageStyle.textContent='.image-workspace{margin:20px 0;border-top:1px solid var(--line);padding-top:18px}.image-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:13px}.image-head h3{margin:0;font-size:16px}.image-head p{margin:5px 0 0;color:var(--mut);font-size:12px}.image-progress{color:var(--green);font:800 10px/1.4 var(--mono);white-space:nowrap}.image-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.image-card{overflow:hidden;border:1px solid var(--line);border-radius:11px;background:#08111e}.image-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.image-card .placeholder{display:grid;place-items:center;aspect-ratio:16/9;color:var(--mut);background:linear-gradient(135deg,#0b1726,#08111e);font:800 10px/1 var(--mono)}.image-card span{display:flex;gap:8px;padding:9px 10px;color:var(--mut);font:700 10px/1.35 var(--mono)}.image-card b{color:var(--green)}.image-card.failed{border-color:rgba(255,107,107,.55)}.image-note{margin:12px 0 0;color:var(--mut);font-size:11px}@media(max-width:680px){.image-grid{grid-template-columns:1fr}.image-head{display:block}.image-progress{display:block;margin-top:8px}}';document.head.appendChild(imageStyle);
   const outputBoxes=[...outputPanel.querySelectorAll('input[name="output"]')],allOutputs=document.getElementById('allOutputs');
   allOutputs.addEventListener('change',()=>outputBoxes.forEach(box=>{box.checked=allOutputs.checked}));
   outputBoxes.forEach(box=>box.addEventListener('change',()=>{allOutputs.checked=outputBoxes.every(item=>item.checked)}));
@@ -78,6 +81,40 @@
     const languageNames={es:'Castellano',ca:'Català',en:'English'},date=value=>{const parsed=new Date(value||'');return Number.isFinite(parsed.getTime())?parsed.toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'}):''},state=task=>{if(['ready','published','complete'].includes(task.status))return `Finalizado${date(task.completedAt||task.updatedAt)?` · ${date(task.completedAt||task.updatedAt)}`:''}`;if(['failed','skipped'].includes(task.status))return `Error: ${task.error||(task.status==='skipped'?'entregable omitido':'el proveedor no devolvió el archivo')}`;if(task.status==='queued'){const requested=date(task.requestedAt||task.updatedAt||generation.createdAt);return requested?`Preparado para enviar desde ${requested}`:'Preparado para enviar a NotebookLM'}const since=date(task.startedAt||task.updatedAt||generation.createdAt),stage=task.stage?` · ${task.stage}`:'';return since?`En proceso${stage} · desde ${since}`:`En proceso${stage}`};
     createdMatrix.innerHTML=(generation.languages||[]).map(language=>{const items=tasks.filter(task=>task.language===language).map(task=>`<div class="created-task ${html(task.status)}"><span>${html(task.label)}</span><small>${html(state(task))}</small></div>`).join('');return `<section class="created-language"><h3>${html(language.toUpperCase())} · ${html(languageNames[language]||language)}</h3><div class="created-tasks">${items}</div></section>`}).join('');
   }
+  function renderImageSet(set,slideCount=0){
+    currentImageSet=set||null;const html=value=>String(value==null?'':value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const total=set?.total||slideCount;if(!total){imageWorkspace.hidden=true;imageAction.hidden=true;return}
+    imageAction.hidden=false;imageAction.textContent=set?.status==='complete'?'Regenerar imágenes con Grok':set?'Continuar imágenes con Grok':`Crear ${total} imágenes con Grok`;
+    const slides=set?.slides||[];imageWorkspace.hidden=false;
+    const state=set?.status==='complete'?'Completado':set?.status==='partial'?'Revisión necesaria':set?.status==='processing'?'Generando':'Preparado';
+    const cards=slides.length?slides.map(slide=>{const ready=slide.status==='ready'&&slide.url,failed=slide.status==='failed';return `<article class="image-card${failed?' failed':''}">${ready?`<a href="${html(slide.url)}" target="_blank" rel="noopener"><img src="${html(slide.url)}" alt="${html(slide.title)}"></a>`:`<div class="placeholder">${failed?'REINTENTAR':slide.status==='processing'?'GENERANDO':'PENDIENTE'}</div>`}<span><b>${String(slide.index).padStart(2,'0')}</b>${html(slide.title)}${failed?` · ${html(slide.error||'Error')}`:''}</span></article>`}).join(''):`<div class="image-card"><div class="placeholder">${total} IMÁGENES</div><span>Una imagen temática por diapositiva</span></div>`;
+    imageWorkspace.innerHTML=`<div class="image-head"><div><h3>Imágenes de las diapositivas</h3><p>Grok genera escenas originales 16:9 a partir del tema, sin logos, personajes, artistas ni campañas copiadas.</p></div><span class="image-progress">${state} · ${set?.completed||0}/${total}</span></div><div class="image-grid">${cards}</div><p class="image-note">Revisión humana obligatoria antes de incorporar las imágenes a una presentación comercial.</p>`;
+  }
+  async function imageApi(payload){
+    const response=await fetch('/presentaciones/api/images',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload)}),body=await response.json().catch(()=>({}));
+    if(!response.ok){const error=new Error(body.error||`HTTP ${response.status}`);error.data=body;throw error}return body;
+  }
+  async function loadImages(client){
+    const response=await fetch(`/presentaciones/api/images?client=${encodeURIComponent(client)}`,{headers:{accept:'application/json'},cache:'no-store'}),body=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);renderImageSet(body.imageSet,body.slideCount);return body;
+  }
+  imageAction.addEventListener('click',async()=>{
+    if(!currentClient)return;
+    const force=currentImageSet?.status==='complete';
+    if(force&&!window.confirm(`Ya existen ${currentImageSet.total} imágenes. ¿Quieres crear un paquete nuevo y conservar el anterior en el archivo?`))return;
+    imageAction.disabled=true;
+    try{
+      message('Preparando una imagen temática por diapositiva…');
+      const prepared=await imageApi({action:'prepare',client:currentClient,force}),set=prepared.imageSet;renderImageSet(set);
+      const pending=(set.slides||[]).filter(slide=>slide.status!=='ready');
+      for(let index=0;index<pending.length;index+=1){
+        const slide=pending[index];message(`Grok está creando la imagen ${slide.index} de ${set.total}: ${slide.title}`);
+        try{const generated=await imageApi({action:'generate',client:currentClient,setId:set.id,slideId:slide.id});renderImageSet(generated.imageSet)}
+        catch(error){if(error.data?.imageSet)renderImageSet(error.data.imageSet);else throw error}
+      }
+      const failed=currentImageSet?.failed||0;message(failed?`Paquete visual creado con ${failed} imagen${failed===1?'':'es'} pendiente${failed===1?'':'s'} de reintento.`:`Paquete visual completo: ${currentImageSet?.completed||0} imágenes listas.`,Boolean(failed));
+    }catch(error){message(error.message,true)}finally{imageAction.disabled=false}
+  });
   form.addEventListener('submit',async event=>{
     event.preventDefault(); event.stopImmediatePropagation(); submit.disabled=true; result.classList.remove('show'); message('Analizando el problema y construyendo la presentación…');
     try{
@@ -86,7 +123,7 @@
       const data=Object.fromEntries(new FormData(form).entries()); data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;
       const body=await createPresentation(data); if(!body){message('No se ha modificado la presentación existente.');return}
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
-      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation); result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); message(`Orden creada: ${body.displayName}`);
+      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); message(`Orden creada: ${body.displayName}`);loadImages(body.slug).catch(error=>message(error.message,true));
     }catch(error){message(error.message,true)}finally{submit.disabled=false}
   },true);
   setInterval(async()=>{

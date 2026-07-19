@@ -108,9 +108,10 @@ export async function onRequest(context){
   const isIdeasEditor = !isGallery && second === 'ideas';
   const isIdeasApi = !isGallery && second === 'api' && third === 'ideas';
   const isGenerationApi = !isGallery && second === 'api' && third === 'generation';
+  const isSlideImages = !isGallery && second === 'images';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
-  const isGeneratorApi = first === 'api' && ['generate','inspiration'].includes(second);
+  const isGeneratorApi = first === 'api' && ['generate','inspiration','images'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
@@ -145,7 +146,7 @@ export async function onRequest(context){
     validToken(signKey, cookieSlug, cookies[cookieName]),
     readIdentity(request, signKey)
   ]);
-  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isGeneratorPage || isGeneratorApi || isClientsApi);
+  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isSlideImages || isGeneratorPage || isGeneratorApi || isClientsApi);
   const authorized = masterValid || (editorAllowed && editorValid) || (!isInternalArea && clientValid);
   const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : 'client';
   const contentType = request.headers.get('content-type') || '';
