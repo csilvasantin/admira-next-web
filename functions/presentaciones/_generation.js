@@ -14,15 +14,17 @@ export function taskKey(language, output){ return `${language}:${output}`; }
 
 export function updateTaskStatus(task, status, now = new Date().toISOString()){
   task.status = status;
-  if (status === 'queued') task.requestedAt ||= now;
+  if (status === 'queued') { task.requestedAt ||= now; task.progress = 0; }
   else if (!task.startedAt && status !== 'skipped') task.startedAt = now;
-  if (status === 'processing') task.submittedAt ||= now;
+  if (status === 'processing') task.progress = Math.max(5, Number(task.progress || 0));
   if (COMPLETE_STATUSES.has(status)) {
+    task.progress = 100;
     task.completedAt ||= now;
     delete task.failedAt;
     delete task.error;
     delete task.stage;
   } else if (['failed','skipped'].includes(status)) {
+    task.progress = 100;
     task.failedAt ||= now;
     delete task.completedAt;
     delete task.stage;
@@ -64,7 +66,7 @@ export function buildGeneration({client, displayName, outputs, languages, source
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],
         status:output === 'website' ? 'ready' : 'queued',
-        url:taskUrl(client, language, output), attempts:0, postProcess:postProcess(output),
+        progress:output === 'website' ? 100 : 0, url:taskUrl(client, language, output), attempts:0, postProcess:postProcess(output),
         provider:NOTEBOOKLM_OUTPUTS.has(output)?'notebooklm':'admiranext', requestedAt:now,
         startedAt:output === 'website' ? now : undefined, completedAt:output === 'website' ? now : undefined, updatedAt:now
       };
@@ -82,9 +84,11 @@ export function normalizeGeneration(job){
     for (const task of Object.values(job.tasks)) {
       if (['video','pdf','powerpoint'].includes(task?.output) && !task.postProcess) task.postProcess = postProcess(task.output);
       if (!task?.requestedAt) task.requestedAt = job.createdAt || task.updatedAt || new Date().toISOString();
+      if (!Number.isFinite(Number(task?.progress))) task.progress = COMPLETE_STATUSES.has(task?.status) || ['failed','skipped'].includes(task?.status) ? 100 : task?.status === 'processing' ? 5 : 0;
+      task.progress = Math.max(0, Math.min(100, Math.round(Number(task.progress))));
+      if(task?.status === 'processing') task.progress = Math.max(5, task.progress);
       if (!task?.provider) task.provider = NOTEBOOKLM_OUTPUTS.has(task?.output)?'notebooklm':'admiranext';
       if (!task?.startedAt && !['queued','skipped'].includes(task?.status)) task.startedAt = task.submittedAt || task.updatedAt || job.createdAt;
-      if (task?.status === 'processing' && !task.submittedAt) task.submittedAt = task.startedAt;
       if (COMPLETE_STATUSES.has(task?.status) && !task.completedAt) task.completedAt = task.updatedAt || task.startedAt;
       if (['failed','skipped'].includes(task?.status) && !task.failedAt) task.failedAt = task.updatedAt || task.startedAt || job.createdAt;
     }
@@ -100,7 +104,7 @@ export function normalizeGeneration(job){
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language] || language.toUpperCase(), output,
         label:old.label || OUTPUT_LABELS[output] || output, status:VALID_STATUSES.has(old.status) ? old.status : 'queued',
-        url:old.url || taskUrl(job.client, language, output), error:old.error, attempts:0,
+        progress:Number(old.progress || 0), url:old.url || taskUrl(job.client, language, output), error:old.error, attempts:0,
         postProcess:postProcess(output),
         provider:NOTEBOOKLM_OUTPUTS.has(output)?'notebooklm':'admiranext',
         requestedAt:old.requestedAt || job.createdAt || old.updatedAt || job.updatedAt,
@@ -132,13 +136,17 @@ export function recomputeGeneration(job){
     const dates = variants.map(task => Date.parse(task.startedAt || task.submittedAt || '')).filter(Number.isFinite);
     const requests = variants.map(task => Date.parse(task.requestedAt || '')).filter(Number.isFinite);
     const updates = variants.map(task => Date.parse(task.updatedAt || '')).filter(Number.isFinite);
+    const submissions = variants.map(task => Date.parse(task.submittedAt || '')).filter(Number.isFinite);
+    const progress = variants.length ? Math.round(variants.reduce((sum, task) => sum + Math.max(0, Math.min(100, Number(task.progress || 0))), 0) / variants.length) : 0;
     artifacts[output] = {
       label:OUTPUT_LABELS[output] || output, status, url:available?.url || null,
       language:available?.language || null, variants:variants.map(task => task.id),
+      progress,
       ready:variants.filter(task => ['ready','published','complete'].includes(task.status)).length,
       total:variants.length, requestedAt:requests.length ? new Date(Math.min(...requests)).toISOString() : job.createdAt || null,
       startedAt:dates.length ? new Date(Math.min(...dates)).toISOString() : null,
-      completedAt:available?.completedAt || null, failedAt:failed?.failedAt || null,
+      submittedAt:submissions.length ? new Date(Math.min(...submissions)).toISOString() : null,
+      completedAt:allTerminal && updates.length ? new Date(Math.max(...updates)).toISOString() : available?.completedAt || null, failedAt:failed?.failedAt || null,
       error:failed?.error || null,
       stage:processingTask?.stage || null,
       updatedAt:updates.length ? new Date(Math.max(...updates)).toISOString() : now
@@ -147,9 +155,12 @@ export function recomputeGeneration(job){
   const statuses = tasks.map(task => task.status);
   if (statuses.length && statuses.every(status => ['ready','published','complete','skipped'].includes(status))) job.status = 'complete';
   else if (statuses.some(status => status === 'processing')) job.status = 'processing';
-  else if (statuses.length && statuses.every(status => ['failed','skipped'].includes(status))) job.status = 'failed';
+  else if (statuses.length && statuses.every(status => ['ready','published','complete','failed','skipped'].includes(status)) && statuses.some(status => ['failed','skipped'].includes(status))) job.status = 'failed';
   else job.status = 'queued';
   job.artifacts = artifacts;
+  job.progress = tasks.length ? Math.round(tasks.reduce((sum, task) => sum + Math.max(0, Math.min(100, Number(task.progress || 0))), 0) / tasks.length) : 0;
+  const activity=tasks.map(task=>Date.parse(task.updatedAt || '')).filter(Number.isFinite);
+  job.lastActivityAt=activity.length?new Date(Math.max(...activity)).toISOString():job.updatedAt || job.createdAt;
   job.updatedAt = now;
   return job;
 }

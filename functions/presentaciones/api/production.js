@@ -31,6 +31,8 @@ function cleanClient(value){
 function cleanWorker(value){return String(value||'notebooklm-local').replace(/[^a-z0-9_.-]/gi,'').slice(0,80)||'notebooklm-local';}
 function cleanError(value){return typeof value==='string'?value.trim().slice(0,500):'';}
 function cleanStage(value){return typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,160):'';}
+function cleanProgress(value){const number=Number(value);return Number.isFinite(number)?Math.max(0,Math.min(100,Math.round(number))):null;}
+function cleanTimestamp(value){if(typeof value!=='string'||!Number.isFinite(Date.parse(value)))return null;return new Date(value).toISOString();}
 function safeJob(job){
   if(!job)return null;
   const safe=publicGeneration(job);
@@ -135,7 +137,7 @@ async function updateJob(context,payload){
     const requested=new Set(Array.isArray(payload.tasks)?payload.tasks:[]);
     const candidates=notebookTasks(job,['queued']).filter(task=>!requested.size||requested.has(task.id));
     if(!candidates.length)return json({error:'No hay tareas preparadas para reclamar.'},409);
-    for(const task of candidates){updateTaskStatus(task,'processing',now);task.worker=cleanWorker(payload.worker);task.attempts=Number(task.attempts||0)+1;}
+    for(const task of candidates){updateTaskStatus(task,'processing',now);task.progress=5;task.stage='Encargo reclamado por el productor';task.worker=cleanWorker(payload.worker);task.attempts=Number(task.attempts||0)+1;}
     job.providerJob={...(job.providerJob||{}),worker:cleanWorker(payload.worker),claimedAt:now};
   }else if(payload.action==='update'){
     for(const [taskId,change] of Object.entries(payload.tasks||{})){
@@ -144,6 +146,9 @@ async function updateJob(context,payload){
       if(typeof change.url==='string'&&change.url.length<=1000)task.url=change.url;
       const error=cleanError(change.error);if(error)task.error=error;
       const stage=cleanStage(change.stage);if(stage&&task.status==='processing')task.stage=stage;
+      const progress=cleanProgress(change.progress);if(progress!==null)task.progress=progress;
+      const submittedAt=cleanTimestamp(change.submittedAt);if(submittedAt)task.submittedAt ||= submittedAt;
+      task.updatedAt=now;
     }
     if(payload.providerJob&&typeof payload.providerJob==='object')job.providerJob={...(job.providerJob||{}),...payload.providerJob,updatedAt:now};
   }else return json({error:'Acción no admitida.'},400);

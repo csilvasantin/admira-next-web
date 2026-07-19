@@ -9,6 +9,7 @@ function json(body, status = 200){
 
 function cleanUrl(value){ return typeof value === 'string' && value.length <= 1000 ? value : null; }
 function cleanError(value){ return typeof value === 'string' && value.length <= 500 ? value : null; }
+function cleanProgress(value){ const number=Number(value); return Number.isFinite(number) ? Math.max(0,Math.min(100,Math.round(number))) : null; }
 
 export async function onRequest(context){
   if (!context.env.PRESENTATION_IDEAS) return json({error:'Almacenamiento no configurado.'},503);
@@ -63,6 +64,7 @@ export async function onRequest(context){
       if (VALID_STATUSES.has(update.status)) updateTaskStatus(task,update.status,now);
       const nextUrl = cleanUrl(update.url); if (nextUrl !== null) task.url = nextUrl;
       const nextError = cleanError(update.error); if (nextError !== null) task.error = nextError;
+      const nextProgress = cleanProgress(update.progress); if (nextProgress !== null) task.progress = nextProgress;
       task.updatedAt = now;
     }
   }
@@ -75,6 +77,7 @@ export async function onRequest(context){
         if (VALID_STATUSES.has(update.status)) updateTaskStatus(task,update.status,now);
         const nextUrl = cleanUrl(update.url); if (nextUrl !== null) task.url = nextUrl;
         const nextError = cleanError(update.error); if (nextError !== null) task.error = nextError;
+        const nextProgress = cleanProgress(update.progress); if (nextProgress !== null) task.progress = nextProgress;
         task.updatedAt = now;
       }
     }

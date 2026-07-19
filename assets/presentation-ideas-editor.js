@@ -24,7 +24,7 @@
   outputPanel.className = 'panel output-panel';
   outputPanel.innerHTML = '<div class="panel-h"><div><h2>¿Qué queremos obtener?</h2><p class="sub">Por defecto se crean la presentación/website y el documento de trabajo. Activa otros formatos solo cuando esta presentación los necesite.</p></div></div><div class="output-grid"><label class="output"><input type="checkbox" name="output" value="website"><b>01</b><span>Website</span></label><label class="output"><input type="checkbox" name="output" value="audio"><b>02</b><span>Audio</span></label><label class="output"><input type="checkbox" name="output" value="video"><b>03</b><span>Vídeo</span></label><label class="output"><input type="checkbox" name="output" value="pdf"><b>04</b><span>PDF</span></label><label class="output"><input type="checkbox" name="output" value="powerpoint"><b>05</b><span>PowerPoint</span></label><label class="output"><input type="checkbox" name="output" value="documents"><b>06</b><span>Documento de trabajo</span></label><label class="output"><input type="checkbox" name="output" value="infographic"><b>07</b><span>Infografía</span></label><label class="output all"><input type="checkbox" id="allOutputs"><b>08</b><span>Todo</span></label></div>';
   const outputStyle = document.createElement('style');
-  outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}.generation-panel{margin-top:18px}.generation-panel[hidden]{display:none}.generation-badge{border:1px solid var(--ok);border-radius:999px;padding:8px 11px;color:var(--ok);font:800 10px/1 var(--mono);letter-spacing:.09em}.generation-languages{display:grid;gap:14px}.generation-language{border-top:1px solid var(--line);padding-top:13px}.generation-language:first-child{border-top:0;padding-top:0}.generation-language h3{margin:0 0 9px;font:800 11px/1 var(--mono);letter-spacing:.09em;color:var(--muted);text-transform:uppercase}.generation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.generation-item{display:grid;grid-template-columns:1fr minmax(110px,auto);align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#091427;font:700 12px/1.3 var(--sans)}.generation-item small{color:var(--muted);font:800 9px/1.35 var(--mono);letter-spacing:.04em;text-align:right;max-width:230px}.generation-item.ready small,.generation-item.published small,.generation-item.complete small{color:var(--ok)}.generation-item.processing small{color:#72a7ff}.generation-item.queued small{color:#f5a623}.generation-item.failed small,.generation-item.skipped small{color:#ff7b8a}.task-actions{grid-column:1/-1;display:flex;gap:7px}.task-action{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px 9px;font:800 9px/1 var(--mono);cursor:pointer}.task-action:hover{border-color:var(--ok);color:var(--ok)}@media(max-width:720px){.output-grid,.generation-grid{grid-template-columns:1fr}.generation-item{grid-template-columns:1fr}.generation-item small{text-align:left;max-width:none}}';
+  outputStyle.textContent = '.output-panel{margin-top:28px}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;padding:16px;background:#091427;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0;transition:.15s}.output:has(input:checked){border-color:var(--ok);background:rgba(82,229,154,.08)}.output input{width:auto;margin:0;accent-color:var(--ok)}.output b{font:800 10px/1 var(--mono);color:var(--ok)}.output span{font:750 14px/1.25 var(--sans)}.output.all{border-style:dashed}.generation-panel{margin-top:18px}.generation-panel[hidden]{display:none}.generation-badge{border:1px solid var(--ok);border-radius:999px;padding:8px 11px;color:var(--ok);font:800 10px/1 var(--mono);letter-spacing:.09em}.provider-monitor{margin:4px 0 18px;border:1px solid var(--line);border-radius:13px;padding:14px;background:#091427}.provider-monitor.stalled{border-color:#ffbf70}.monitor-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.monitor-state{color:var(--ok);font:800 10px/1.35 var(--mono);text-align:right}.provider-monitor.stalled .monitor-state{color:#ffbf70}.progress-track{height:10px;margin:11px 0 9px;overflow:hidden;border:1px solid var(--line);border-radius:999px;background:#050b13}.progress-fill{display:block;height:100%;background:linear-gradient(90deg,#4a86ff,var(--ok));transition:width .35s}.progress-meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font:700 9px/1.45 var(--mono)}.progress-meta strong{color:var(--ink)}.generation-languages{display:grid;gap:14px}.generation-language{border-top:1px solid var(--line);padding-top:13px}.generation-language:first-child{border-top:0;padding-top:0}.generation-language h3{margin:0 0 9px;font:800 11px/1 var(--mono);letter-spacing:.09em;color:var(--muted);text-transform:uppercase}.generation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.generation-item{display:grid;grid-template-columns:1fr minmax(110px,auto);align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#091427;font:700 12px/1.3 var(--sans)}.generation-item small{color:var(--muted);font:800 9px/1.35 var(--mono);letter-spacing:.04em;text-align:right;max-width:230px}.generation-item.ready small,.generation-item.published small,.generation-item.complete small{color:var(--ok)}.generation-item.processing small{color:#72a7ff}.generation-item.queued small{color:#f5a623}.generation-item.failed small,.generation-item.skipped small{color:#ff7b8a}.task-meter{grid-column:1/-1;height:4px;overflow:hidden;border-radius:99px;background:#050b13}.task-meter i{display:block;height:100%;background:var(--ok)}.task-actions{grid-column:1/-1;display:flex;gap:7px}.task-action{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px 9px;font:800 9px/1 var(--mono);cursor:pointer}.task-action:hover{border-color:var(--ok);color:var(--ok)}@media(max-width:720px){.output-grid,.generation-grid{grid-template-columns:1fr}.generation-item{grid-template-columns:1fr}.generation-item small{text-align:left;max-width:none}.monitor-head{align-items:flex-start}.progress-meta{display:grid;gap:4px}}';
   document.head.appendChild(outputStyle);
   const languageStyle = document.createElement('style');
   languageStyle.textContent = '.editor-language-panel{margin-bottom:18px}.editor-language-tabs{display:flex;gap:9px;flex-wrap:wrap}.language-tab{border:1px solid var(--line);background:#091427;color:var(--muted);border-radius:999px;padding:11px 15px;font:800 11px/1 var(--mono);cursor:pointer}.language-tab.active{border-color:var(--ok);background:rgba(82,229,154,.1);color:var(--ok)}';
@@ -33,7 +33,7 @@
   const generationPanel = document.createElement('section');
   generationPanel.className = 'panel generation-panel';
   generationPanel.hidden = true;
-  generationPanel.innerHTML = '<div class="panel-h"><div><h2>Estado de producción</h2><p class="sub" id="generationSummary">Consultando el estado…</p></div><span class="generation-badge" id="generationBadge">CARGANDO</span></div><div class="generation-grid" id="generationArtifacts"></div>';
+  generationPanel.innerHTML = '<div class="panel-h"><div><h2>Estado de producción</h2><p class="sub" id="generationSummary">Consultando el estado…</p></div><span class="generation-badge" id="generationBadge">CARGANDO</span></div><div id="generationProgress"></div><div class="generation-grid" id="generationArtifacts"></div>';
   outputPanel.after(generationPanel);
   document.querySelector('.savebar .btn.primary').textContent = 'Generar presentación';
   const outputBoxes = [...outputPanel.querySelectorAll('input[name="output"]')];
@@ -122,32 +122,44 @@
   }
   function lifecycleDate(value){
     const date=new Date(value||'');
-    return Number.isFinite(date.getTime())?date.toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'}):'';
+    return Number.isFinite(date.getTime())?date.toLocaleString('es-ES',{dateStyle:'short',timeStyle:'medium'}):'';
+  }
+  function taskProgress(task){if(['ready','published','complete','failed','skipped'].includes(task?.status))return 100;return Math.max(0,Math.min(100,Math.round(Number(task?.progress||0))))}
+  function elapsed(start,end){const parse=value=>typeof value==='number'?value:Date.parse(value||''),from=parse(start),to=parse(end);if(!Number.isFinite(from)||!Number.isFinite(to)||to<from)return '—';const seconds=Math.floor((to-from)/1000),minutes=Math.floor(seconds/60),hours=Math.floor(minutes/60);return hours?`${hours} h ${minutes%60} min`:minutes?`${minutes} min ${seconds%60} s`:`${seconds} s`}
+  function renderProgress(tasks){
+    const notebook=tasks.filter(task=>task.provider==='notebooklm');if(!notebook.length){$('generationProgress').innerHTML='';return}
+    const progress=Math.round(notebook.reduce((sum,task)=>sum+taskProgress(task),0)/notebook.length),requested=notebook.map(task=>Date.parse(task.requestedAt||'')).filter(Number.isFinite),submitted=notebook.map(task=>Date.parse(task.submittedAt||'')).filter(Number.isFinite),activity=notebook.map(task=>Date.parse(task.updatedAt||'')).filter(Number.isFinite);
+    const terminal=notebook.every(task=>['ready','published','complete','failed','skipped'].includes(task.status)),failed=notebook.some(task=>['failed','skipped'].includes(task.status)),start=submitted.length?Math.min(...submitted):null,last=activity.length?Math.max(...activity):null,end=terminal&&last?last:null,stalled=!terminal&&start&&last&&Date.now()-last>10*60*1000;
+    const preparing=notebook.some(task=>task.startedAt),state=terminal?(failed?'Finalizado con incidencias':'Finalizado'):stalled?'Sin actividad durante más de 10 min':submitted.length?'En proceso · supervisión activa':preparing?'Preparando · todavía no enviado':'En cola · todavía no enviado';
+    $('generationProgress').innerHTML=`<div class="provider-monitor${stalled?' stalled':''}"><div class="monitor-head"><b>NotebookLM</b><span class="monitor-state">${state} · ${progress}%</span></div><div class="progress-track"><i class="progress-fill" style="width:${progress}%"></i></div><div class="progress-meta"><span>Creado <strong>${lifecycleDate(requested.length?Math.min(...requested):'')||'—'}</strong></span><span>Enviado <strong>${lifecycleDate(start)||'—'}</strong></span><span>Última actividad <strong>${lifecycleDate(last)||'—'}</strong></span><span>Duración <strong>${elapsed(start,end||Date.now())}</strong></span><span>Finalizado <strong>${lifecycleDate(end)||'—'}</strong></span></div></div>`;
   }
   function lifecycleState(item){
     const status=item?.status||'queued';
-    if(['ready','published','complete'].includes(status)) return `Finalizado${lifecycleDate(item.completedAt||item.updatedAt)?` · ${lifecycleDate(item.completedAt||item.updatedAt)}`:''}`;
-    if(['failed','skipped'].includes(status)) return `Error: ${item.error||(status==='skipped'?'entregable omitido':'el proveedor no devolvió el archivo')}`;
+    const sent=lifecycleDate(item.submittedAt),last=lifecycleDate(item.updatedAt);
+    if(['ready','published','complete'].includes(status)) return `${sent?`Enviado ${sent} · `:''}Finalizado ${lifecycleDate(item.completedAt||item.updatedAt)||'—'}`;
+    if(['failed','skipped'].includes(status)) return `${sent?`Enviado ${sent} · `:''}Error ${lifecycleDate(item.failedAt||item.updatedAt)||'—'}: ${item.error||(status==='skipped'?'entregable omitido':'el proveedor no devolvió el archivo')}`;
     if(status==='queued'){
       const since=lifecycleDate(item.requestedAt||item.updatedAt||generation?.createdAt);
-      return since?`Preparado para enviar desde ${since}`:'Preparado para enviar a NotebookLM';
+      return since?`En cola desde ${since} · todavía no enviado`:'Preparado para enviar a NotebookLM';
     }
-    const since=lifecycleDate(item.startedAt||item.updatedAt||generation?.createdAt);
-    return since?`En proceso desde ${since}`:'En proceso';
+    const stage=item.stage?`${item.stage} · `:'';
+    return `${stage}${sent?`enviado ${sent}`:`preparando desde ${lifecycleDate(item.startedAt)||'—'}`} · última actividad ${last||'—'}`;
   }
   function renderGeneration(){
     if (!generation) { generationPanel.hidden = true; return; }
     generationPanel.hidden = false;
     const badgeStates = {queued:'PREPARADO',processing:'EN PROCESO',ready:'FINALIZADO',published:'FINALIZADO',complete:'FINALIZADO',failed:'ERROR',skipped:'ERROR'};
-    $('generationBadge').textContent = badgeStates[generation.status] || 'PREPARADO';
+    const tasks = Object.values(generation.tasks || {}),notebookTasks=tasks.filter(task=>task.provider==='notebooklm');
+    const monitoredStatus=notebookTasks.length?(notebookTasks.some(task=>task.status==='processing')?'processing':notebookTasks.every(task=>['ready','published','complete'].includes(task.status))?'complete':notebookTasks.every(task=>['ready','published','complete','failed','skipped'].includes(task.status))?'failed':'queued'):generation.status;
+    $('generationBadge').textContent = badgeStates[monitoredStatus] || 'PREPARADO';
     const date = generation.createdAt ? new Date(generation.createdAt).toLocaleString('es-ES') : '';
     $('generationSummary').textContent = `Solicitud ${date} · el website se publica al instante y los archivos se incorporan cuando termina la producción.`;
-    const tasks = Object.values(generation.tasks || {});
+    renderProgress(tasks);
     if (!tasks.length) {
       $('generationArtifacts').innerHTML = Object.values(generation.artifacts || {}).map(item => {
         const status=item.status||'queued'; const name=esc(item.label||'Entregable');
         const content=item.url?`<a href="${esc(item.url)}" target="_blank" rel="noopener">${name}</a>`:`<span>${name}</span>`;
-        return `<div class="generation-item ${esc(status)}">${content}<small>${esc(lifecycleState(item))}</small></div>`;
+        const progress=taskProgress(item);return `<div class="generation-item ${esc(status)}">${content}<small>${progress}% · ${esc(lifecycleState(item))}</small><div class="task-meter"><i style="width:${progress}%"></i></div></div>`;
       }).join('');
       return;
     }
@@ -159,7 +171,7 @@
         const content=task.url?`<a href="${esc(task.url)}" target="_blank" rel="noopener">${name}</a>`:`<span>${name}</span>`;
         const retry=['failed','skipped'].includes(status)?`<button class="task-action" data-task-action="retry" data-task="${esc(task.id)}">Reintentar</button>`:'';
         const publish=['ready','complete'].includes(status)&&task.url?`<button class="task-action" data-task-action="publish" data-task="${esc(task.id)}">Publicar</button>`:'';
-        return `<div class="generation-item ${esc(status)}">${content}<small>${state}</small>${retry||publish?`<div class="task-actions">${retry}${publish}</div>`:''}</div>`;
+        const progress=taskProgress(task);return `<div class="generation-item ${esc(status)}">${content}<small>${progress}% · ${state}</small><div class="task-meter"><i style="width:${progress}%"></i></div>${retry||publish?`<div class="task-actions">${retry}${publish}</div>`:''}</div>`;
       }).join('');
       return `<section class="generation-language"><h3>${esc(language.toUpperCase())} · ${esc(LANGUAGE_NAMES[language]||language)}</h3><div class="generation-grid">${items}</div></section>`;
     }).join('');

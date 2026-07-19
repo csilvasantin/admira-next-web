@@ -86,7 +86,8 @@ export async function buildImageSet({client, presentation, ideas, model = 'grok-
     const slide = {
       id:`slide-${number}-${sourceId}`, index:index + 1, role:source.role,
       title:clean(source.title, 180) || `Diapositiva ${index + 1}`,
-      message:clean(source.message, 900), detail:clean(source.detail, 1400), status:'queued', updatedAt:now
+      message:clean(source.message, 900), detail:clean(source.detail, 1400), status:'queued',
+      progress:0, requestedAt:now, updatedAt:now
     };
     slide.prompt = buildImagePrompt({slide, presentation, ideas});
     return slide;
@@ -96,27 +97,46 @@ export async function buildImageSet({client, presentation, ideas, model = 'grok-
     theme:presentation?.theme || null, inspiration:presentation?.inspiration || null
   }));
   return recomputeImageSet({
-    schemaVersion:1, id, client, displayName:clean(presentation?.displayName || ideas?.displayName, 100),
+    schemaVersion:2, id, client, displayName:clean(presentation?.displayName || ideas?.displayName, 100),
     provider:'xai', model, aspectRatio:'16:9', resolution:'1k', sourceHash,
     safetyContract:'original-background-no-text-v2', textFreeValidationRequired:true, humanReviewRequired:true,
     sourceUpdatedAt:ideas?.updatedAt || presentation?.updatedAt || now,
-    slides, status:'queued', createdAt:now, updatedAt:now
+    slides, status:'queued', progress:0, processed:0, requestedAt:now, createdAt:now, updatedAt:now
   }, now);
 }
 
-export function recomputeImageSet(set, now = new Date().toISOString()){
+export function recomputeImageSet(set, now){
   const slides = Array.isArray(set?.slides) ? set.slides : [];
   const ready = slides.filter(slide => slide.status === 'ready').length;
   const failed = slides.filter(slide => slide.status === 'failed').length;
   const processing = slides.some(slide => slide.status === 'processing');
   const pending = slides.filter(slide => ['queued','processing'].includes(slide.status)).length;
+  for(const slide of slides){
+    if(!Number.isFinite(Number(slide.progress))) slide.progress = ['ready','failed'].includes(slide.status) ? 100 : slide.status === 'processing' ? 10 : 0;
+    slide.progress = Math.max(0, Math.min(100, Math.round(Number(slide.progress))));
+    slide.requestedAt ||= set.requestedAt || set.createdAt || slide.updatedAt;
+    if(slide.status !== 'queued') slide.startedAt ||= slide.submittedAt || slide.requestedAt || slide.updatedAt;
+    if(slide.status === 'ready') { slide.progress = 100; slide.completedAt ||= slide.generatedAt || slide.updatedAt; }
+    if(slide.status === 'failed') { slide.progress = 100; slide.failedAt ||= slide.updatedAt; }
+  }
   set.completed = ready;
   set.failed = failed;
+  set.processed = ready + failed;
   set.total = slides.length;
+  set.progress = slides.length ? Math.round(slides.reduce((sum, slide) => sum + slide.progress, 0) / slides.length) : 0;
   set.status = ready === slides.length && slides.length ? 'complete' : processing ? 'processing' : pending ? 'queued' : failed ? 'partial' : 'queued';
-  if(set.status === 'complete') set.completedAt ||= now;
+  const starts=slides.map(slide=>Date.parse(slide.startedAt || '')).filter(Number.isFinite);
+  const updates=slides.map(slide=>Date.parse(slide.updatedAt || '')).filter(Number.isFinite);
+  if(starts.length) set.startedAt ||= new Date(Math.min(...starts)).toISOString();
+  if(updates.length) set.lastActivityAt = new Date(Math.max(...updates)).toISOString();
+  const active=slides.find(slide=>slide.status==='processing');
+  set.stage=active?.stage || null;
+  if(['complete','partial'].includes(set.status)) set.finishedAt ||= now || set.lastActivityAt || new Date().toISOString();
+  else delete set.finishedAt;
+  if(set.status === 'complete') set.completedAt ||= now || set.lastActivityAt || new Date().toISOString();
   else delete set.completedAt;
-  set.updatedAt = now;
+  if(now) set.updatedAt = now;
+  else set.updatedAt ||= set.lastActivityAt || set.createdAt || new Date().toISOString();
   return set;
 }
 
@@ -127,13 +147,19 @@ export function publicImageSet(set){
     provider:set.provider, model:set.model, aspectRatio:set.aspectRatio, resolution:set.resolution,
     sourceHash:set.sourceHash, safetyContract:set.safetyContract,
     textFreeValidationRequired:Boolean(set.textFreeValidationRequired), humanReviewRequired:Boolean(set.humanReviewRequired),
-    sourceUpdatedAt:set.sourceUpdatedAt, status:set.status, completed:Number(set.completed || 0),
-    failed:Number(set.failed || 0), total:Number(set.total || 0), createdAt:set.createdAt,
-    completedAt:set.completedAt || null, updatedAt:set.updatedAt,
+    sourceUpdatedAt:set.sourceUpdatedAt, status:set.status, progress:Number(set.progress || 0),
+    completed:Number(set.completed || 0), failed:Number(set.failed || 0), processed:Number(set.processed || 0),
+    total:Number(set.total || 0), stage:set.stage || null, requestedAt:set.requestedAt || set.createdAt,
+    startedAt:set.startedAt || null, lastActivityAt:set.lastActivityAt || set.updatedAt,
+    completedAt:set.completedAt || null, finishedAt:set.finishedAt || set.completedAt || null, updatedAt:set.updatedAt,
     slides:(set.slides || []).map(slide => ({
       id:slide.id, index:slide.index, role:slide.role, title:slide.title, status:slide.status,
       url:slide.url || null, error:slide.error || null, retryable:Boolean(slide.retryable),
-      textFreeVerified:Boolean(slide.textFreeVerified), generatedAt:slide.generatedAt || null, updatedAt:slide.updatedAt
+      progress:Number(slide.progress || 0), stage:slide.stage || null, attempts:Number(slide.attempts || 0),
+      textFreeVerified:Boolean(slide.textFreeVerified), requestedAt:slide.requestedAt || null,
+      submittedAt:slide.submittedAt || null, startedAt:slide.startedAt || null,
+      generatedAt:slide.generatedAt || null, completedAt:slide.completedAt || null,
+      failedAt:slide.failedAt || null, updatedAt:slide.updatedAt
     }))
   };
 }

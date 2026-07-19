@@ -147,8 +147,8 @@ async function generateSlideDeck(page,language,style){
   await fillByLabel(page,'Describe la presentación que quieres crear',`Create a polished ${name}-language executive presenter deck for a decision-making meeting. Build a clear narrative: business tension → why now → connected-experience vision → Create / Activate / Understand / Measure → four-week pilot → success metrics → decisive call to action. Use concise headlines, one idea per slide, minimal body copy, meaningful diagrams and evidence-led visuals. Apply this visual design contract consistently:\n${style}\nDo not mention Gemini Notebook or NotebookLM. Do not invent client facts, metrics or claims that are absent from the sources.`);
   await clickButton(page,'Generar');
 }
-async function setStage(job,tasks,stage){
-  const changes={};for(const task of tasks)changes[task.id]={status:'processing',stage};
+async function setStage(job,tasks,stage,progress,options={}){
+  const changes={};for(const task of tasks)changes[task.id]={status:'processing',stage,progress,...(options.submitted?{submittedAt:new Date().toISOString()}:{})};
   if(Object.keys(changes).length)await api('POST','',{action:'update',client:job.client,id:job.id,tasks:changes});
 }
 async function markFailed(job,tasks,error){
@@ -169,19 +169,21 @@ async function processNext(browser){
     const claimIds=eligible.filter(id=>id.startsWith(`${language}:`));
     const claimed=await api('POST','',{action:'claim',client:summary.client,id:summary.id,tasks:claimIds,worker:WORKER});
     job=claimed.job;tasks=Object.values(job.tasks).filter(task=>claimIds.includes(task.id));
-    await setStage(job,tasks,'Analizando la referencia y construyendo la guía visual');
+    await setStage(job,tasks,'Analizando la referencia y construyendo la guía visual',10);
     const visual=await generateVisualBrief({browser,presentation,job,runtime:RUNTIME}),style=visual.brief;
     await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{visualBriefProvider:visual.provider,visualBriefSource:visual.sourceUrl,visualBriefGeneratedAt:visual.generatedAt,visualBriefFallback:Boolean(visual.error)}});
-    await setStage(job,tasks,'Preparando las fuentes en NotebookLM');
+    await setStage(job,tasks,'Preparando las fuentes en NotebookLM',22);
     const session=await page.createCDPSession();await session.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:DOWNLOADS,eventsEnabled:true});
     const notebookUrl=await newNotebook(page,job);
     await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{url:notebookUrl,account:ACCOUNT,submittedAt:new Date().toISOString()}});
+    await setStage(job,tasks,'Notebook creado · preparando cada encargo',32);
     const deckTasks=tasks.filter(task=>['pdf','powerpoint'].includes(task.output));
     for(const task of tasks.filter(task=>!['pdf','powerpoint'].includes(task.output))){
-      await setStage(job,[task],task.output==='audio'?'Generando el resumen de audio':task.output==='video'?'Generando el vídeo con la nueva guía visual':'Generando la infografía con la nueva guía visual');
+      await setStage(job,[task],task.output==='audio'?'Preparando el resumen de audio':task.output==='video'?'Preparando el vídeo con la nueva guía visual':'Preparando la infografía con la nueva guía visual',38);
       if(task.output==='audio')await generateAudio(page,task.language);else if(task.output==='video')await generateVideo(page,task.language,style);else if(task.output==='infographic')await generateInfographic(page,task.language,style);await sleep(700);
+      await setStage(job,[task],'Solicitud enviada a NotebookLM · esperando resultado',50,{submitted:true});
     }
-    if(deckTasks.length){await setStage(job,deckTasks,'Generando el nuevo deck con la guía visual');await generateSlideDeck(page,language,style);await sleep(700);}
+    if(deckTasks.length){await setStage(job,deckTasks,'Preparando el nuevo deck con la guía visual',38);await generateSlideDeck(page,language,style);await sleep(700);await setStage(job,deckTasks,'Solicitud enviada a NotebookLM · esperando resultado',50,{submitted:true});}
     // La descarga se completa en una segunda fase del mismo proceso. Se mantiene
     // el navegador vivo y se observa Studio sin consultar APIs privadas de Google.
     await waitAndPublish(page,job,tasks,clientLogo);
@@ -191,9 +193,15 @@ async function processNext(browser){
 async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
   const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',pdf:'tablet',powerpoint:'tablet',infographic:'stacked_bar_chart'};
-  await setStage(job,tasks,'NotebookLM está procesando los entregables');
+  const waitingStarted=Date.now();let lastHeartbeat=0;
+  await setStage(job,tasks,'NotebookLM está procesando los entregables',55);
   while(pending.size&&Date.now()<deadline){
     await sleep(20000);
+    if(Date.now()-lastHeartbeat>=60000){
+      const estimated=Math.min(82,55+Math.floor((Date.now()-waitingStarted)/120000)*2);
+      await setStage(job,[...pending.values()],'NotebookLM sigue procesando · supervisión activa',estimated);
+      lastHeartbeat=Date.now();
+    }
     const text=await page.evaluate(()=>document.body.innerText||'');
     for(const [output,task] of [...pending]){
       const generating=output==='audio'?'Generando resumen de audio':output==='video'?'Generando resumen del vídeo':output==='infographic'?'Generando infografía':'Generando presentación';
@@ -214,8 +222,9 @@ async function waitAndPublish(page,job,tasks,clientLogo){
       let file='';for(let i=0;i<60&&!file;i+=1){await sleep(1000);const files=await fs.readdir(DOWNLOADS).catch(()=>[]);file=files.find(name=>!before.has(name)&&!name.endsWith('.crdownload')&&(!expected||name.toLowerCase().endsWith(expected)))||'';}
       if(file){
         const downloaded=path.join(DOWNLOADS,file);
-        await setStage(job,[task],'Descargando, verificando la marca y publicando');
+        await setStage(job,[task],'Descargando el resultado',86);
         const forceDeckLogo=process.env.NOTEBOOKLM_DECK_LOGO_MODE==='overlay';
+        await setStage(job,[task],'Verificando la marca y preparando la publicación',92);
         const publishable=output==='video'?await cleanVideoEnding(downloaded,clientLogo):output==='infographic'?await cleanInfographicBranding(downloaded,clientLogo):output==='pdf'&&forceDeckLogo?await brandPdf(downloaded,clientLogo):output==='powerpoint'&&forceDeckLogo?await brandPowerPoint(downloaded,clientLogo):downloaded;
         await upload(job,task,publishable);pending.delete(output);
       }

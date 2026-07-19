@@ -28,6 +28,21 @@ async function getInputs(env, client){
   ]);
   return {presentation, ideas, imageSet:imageSet ? recomputeImageSet(imageSet) : null};
 }
+function recoverStalled(set, now = new Date().toISOString()){
+  if(!set) return false;
+  const expiredBefore = Date.parse(now) - PROCESSING_TIMEOUT_MS;
+  let recovered = false;
+  for(const slide of set.slides || []){
+    if(slide.status === 'processing' && Date.parse(slide.updatedAt || '') < expiredBefore){
+      slide.status = 'failed'; slide.progress = 100; slide.stage = 'Interrumpida';
+      slide.error = 'Grok no ha informado de actividad durante 10 minutos. Puedes reintentarla.';
+      slide.errorCode = 'processing_stalled'; slide.retryable = true;
+      slide.failedAt = now; slide.updatedAt = now; recovered = true;
+    }
+  }
+  if(recovered) recomputeImageSet(set, now);
+  return recovered;
+}
 function decodeBase64(value){
   if(typeof value !== 'string' || !value || value.length > MAX_BASE64_CHARS) throw new Error('La imagen recibida supera el tamaño permitido.');
   const raw = atob(value);
@@ -109,16 +124,8 @@ async function prepare(context, payload){
     model:context.env.XAI_IMAGE_MODEL || 'grok-imagine-image'
   });
   if(inputs.imageSet && inputs.imageSet.sourceHash === candidate.sourceHash && payload.force !== true){
-    let recovered = false;
-    const expiredBefore = Date.now() - PROCESSING_TIMEOUT_MS;
-    for(const slide of inputs.imageSet.slides || []){
-      if(slide.status === 'processing' && Date.parse(slide.updatedAt || '') < expiredBefore){
-        slide.status = 'failed'; slide.error = 'La generación anterior se interrumpió; puedes reintentarla.';
-        slide.updatedAt = new Date().toISOString(); recovered = true;
-      }
-    }
+    const recovered = recoverStalled(inputs.imageSet);
     if(recovered){
-      recomputeImageSet(inputs.imageSet);
       await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(inputs.imageSet));
     }
     return json({ok:true, reused:true, imageSet:publicImageSet(inputs.imageSet)});
@@ -141,14 +148,23 @@ async function generate(context, payload){
     return json({error:'La imagen ya se está generando.', imageSet:publicImageSet(recomputeImageSet(set))}, 409);
   }
   const now = new Date().toISOString();
-  slide.status = 'processing'; slide.updatedAt = now; slide.attempts = Number(slide.attempts || 0) + 1;
+  slide.status = 'processing'; slide.progress = 10; slide.stage = 'Solicitud enviada a Grok';
+  slide.startedAt ||= now; slide.submittedAt = now; slide.updatedAt = now; slide.attempts = Number(slide.attempts || 0) + 1;
   delete slide.error; delete slide.retryable; delete slide.textFreeVerified;
   recomputeImageSet(set, now);
   await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
   try{
     const generated = await generateImage(context.env, slide.prompt);
+    const receivedAt = new Date().toISOString();
+    slide.progress = 72; slide.stage = 'Imagen recibida · verificando que no contiene texto'; slide.updatedAt = receivedAt;
+    recomputeImageSet(set, receivedAt);
+    await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
     const validation = await validateTextFree(context.env, generated);
     if(!validation.passed) throw textDetectedError(validation);
+    const verifiedAt = new Date().toISOString();
+    slide.progress = 90; slide.stage = 'Imagen verificada · guardando el fondo'; slide.updatedAt = verifiedAt;
+    recomputeImageSet(set, verifiedAt);
+    await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(set));
     const suffix = set.id.replace(/-/g, '').slice(0, 10);
     const filename = `${slide.id}-${suffix}.${generated.extension}`;
     const key = `presentations/${client}/grok-images/${filename}`;
@@ -158,7 +174,8 @@ async function generate(context, payload){
     });
     const completedAt = new Date().toISOString();
     slide.status = 'ready'; slide.url = `/presentaciones/${client}/images/${filename}`;
-    slide.objectKey = key; slide.generatedAt = completedAt; slide.updatedAt = completedAt;
+    slide.objectKey = key; slide.generatedAt = completedAt; slide.completedAt = completedAt; slide.updatedAt = completedAt;
+    slide.progress = 100; slide.stage = 'Completada';
     slide.textFreeVerified = true; slide.textValidation = validation; slide.retryable = false;
     if(generated.revisedPrompt) slide.revisedPrompt = generated.revisedPrompt;
     recomputeImageSet(set, completedAt);
@@ -166,7 +183,7 @@ async function generate(context, payload){
     return json({ok:true, imageSet:publicImageSet(set)}, 201);
   }catch(error){
     const failedAt = new Date().toISOString();
-    slide.status = 'failed'; slide.error = String(error?.message || 'No se pudo generar la imagen.').slice(0, 220);
+    slide.status = 'failed'; slide.progress = 100; slide.stage = 'Error'; slide.error = String(error?.message || 'No se pudo generar la imagen.').slice(0, 220);
     slide.errorCode = String(error?.code || 'generation_failed').slice(0, 80);
     slide.retryable = slide.errorCode === 'visible_text_detected' && slide.attempts < MAX_TEXT_RETRIES;
     if(error?.validation) slide.textValidation = error.validation;
@@ -185,6 +202,7 @@ export async function onRequest(context){
     if(!client) return json({error:'Presentación no válida.'}, 400);
     const inputs = await getInputs(context.env, client);
     if(!inputs.presentation || !inputs.ideas) return json({error:'Presentación no encontrada.'}, 404);
+    if(recoverStalled(inputs.imageSet)) await context.env.PRESENTATION_IDEAS.put(`image-set:${client}`, JSON.stringify(inputs.imageSet));
     const planned = await buildImageSet({client, presentation:inputs.presentation, ideas:inputs.ideas, model:context.env.XAI_IMAGE_MODEL || 'grok-imagine-image'});
     return json({ok:true, slideCount:planned.total, current:inputs.imageSet?.sourceHash === planned.sourceHash, imageSet:publicImageSet(inputs.imageSet)});
   }

@@ -24,6 +24,8 @@ test('creates exactly one image slot per narrative slide', async () => {
   assert.equal(set.total, 5);
   assert.deepEqual(set.slides.map(slide => slide.role), ['cover','objective','content','content','closing']);
   assert.equal(set.slides.every(slide => slide.status === 'queued'), true);
+  assert.equal(set.progress,0);
+  assert.equal(set.slides.every(slide => slide.progress === 0 && slide.requestedAt),true);
 });
 
 test('the prompt removes URLs and client brands and carries the IP-safe contract', () => {
@@ -89,6 +91,8 @@ test('the endpoint prepares, generates and stores one bounded image without expo
     assert.equal(generatedResponse.status, 201);
     const generated = await generatedResponse.json();
     assert.equal(generated.imageSet.slides[0].status, 'ready');
+    assert.equal(generated.imageSet.slides[0].progress,100);
+    assert.equal(generated.imageSet.progress,20);
     assert.equal(generated.imageSet.slides[0].textFreeVerified, true);
     assert.match(generated.imageSet.slides[0].url, /^\/presentaciones\/test-client\/images\/slide-/);
     assert.equal(puts.length, 1);
@@ -129,4 +133,25 @@ test('a generated image containing text is discarded and never written to R2', a
     assert.equal(generated.imageSet.slides[0].textFreeVerified,false);
     assert.equal(puts.length,0);
   }finally{globalThis.fetch=originalFetch}
+});
+
+test('a Grok request without activity for ten minutes becomes resumable',async()=>{
+  const values=new Map([
+    ['presentation:test-client',JSON.stringify({...presentation,displayName:'Test Client'})],
+    ['ideas:test-client',JSON.stringify({...ideas,displayName:'Test Client'})]
+  ]);
+  const env={PRESENTATION_IDEAS:{
+    async get(key,options){const value=values.get(key);return options?.type==='json'&&value?JSON.parse(value):value||null},
+    async put(key,value){values.set(key,value)}
+  }};
+  const preparedResponse=await handleImages({request:new Request('https://admiranext.test/presentaciones/api/images',{method:'POST',headers:{origin:'https://admiranext.test','content-type':'application/json'},body:JSON.stringify({action:'prepare',client:'test-client'})}),env});
+  const prepared=await preparedResponse.json(),stored=JSON.parse(values.get('image-set:test-client'));
+  stored.slides[0].status='processing';stored.slides[0].progress=10;stored.slides[0].updatedAt='2026-07-19T00:00:00.000Z';
+  values.set('image-set:test-client',JSON.stringify(stored));
+  const response=await handleImages({request:new Request('https://admiranext.test/presentaciones/api/images?client=test-client'),env}),body=await response.json();
+  assert.equal(response.status,200);
+  assert.equal(body.imageSet.id,prepared.imageSet.id);
+  assert.equal(body.imageSet.slides[0].status,'failed');
+  assert.equal(body.imageSet.slides[0].retryable,true);
+  assert.match(body.imageSet.slides[0].error,/10 minutos/);
 });
