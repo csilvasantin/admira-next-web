@@ -23,6 +23,8 @@ test('the text editor stays hidden until Ctrl+E and exposes undo and redo histor
   assert.match(source,/function remember\(\)/);
   assert.match(source,/function restore\(index\)/);
   assert.match(source,/history=history\.slice\(0,historyIndex\+1\)/);
+  assert.match(source,/Good, Better and Best/);
+  assert.match(source,/<span>Good<\/span><span>Better<\/span><strong>Best<\/strong>/);
 });
 
 function kv(values){

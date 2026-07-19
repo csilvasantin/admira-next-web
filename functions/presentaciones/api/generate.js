@@ -5,6 +5,7 @@ import { DEFAULT_PRESENTATION_PASSWORD, ensureHttpsUrl } from '../_defaults.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
+const LANGUAGE_NAMES = {ca:'Catalan',en:'English'};
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), { status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'} });
@@ -46,12 +47,66 @@ function buildIdeas(input, slug, languages){
   };
 }
 
+function translatableCopy(ideas){
+  return [
+    ideas.hero.eyebrow, ideas.hero.title, ideas.hero.summary, ideas.objective,
+    ...ideas.skeleton.flatMap(item=>[item.title,item.message,item.detail]),
+    ideas.closing.title, ideas.closing.action, ideas.labels.objective, ideas.labels.next
+  ];
+}
+
+function localizedCopy(ideas, values){
+  let at=0; const next=()=>String(values[at++]??'');
+  const localized={
+    hero:{eyebrow:next(),title:next(),summary:next()},objective:next(),
+    skeleton:ideas.skeleton.map(item=>({...item,title:next(),message:next(),detail:next()})),
+    closing:{title:next(),action:next()},labels:{objective:next(),next:next()}
+  };
+  if(at!==values.length) throw new Error('La traducción devolvió un número de textos inesperado.');
+  return localized;
+}
+
+export async function generateTranslations(env, ideas, languages){
+  const targets=[...new Set(languages.filter(language=>language!=='es'&&LANGUAGE_NAMES[language]))];
+  if(!targets.length)return {};
+  if(!env.XAI_API_KEY)throw new Error('La traducción automática no está configurada.');
+  const source=translatableCopy(ideas),languageProperties=Object.fromEntries(targets.map(language=>[language,{type:'array',items:{type:'string'}}]));
+  const provider=await fetch('https://api.x.ai/v1/responses',{
+    method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.XAI_API_KEY}`},
+    body:JSON.stringify({
+      model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,
+      input:[
+        {role:'system',content:[{type:'input_text',text:'Translate this complete executive presentation faithfully and naturally. Preserve AdmiraNeXT, product names, client names, numbers, punctuation, line breaks and factual meaning. Return one array per requested language in exactly the same order and with exactly the same number of strings as the source. Do not add explanations.'}]},
+        {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:'Spanish',targetLanguages:targets.map(language=>LANGUAGE_NAMES[language]),texts:source})}]}
+      ],
+      text:{format:{type:'json_schema',name:'presentation_languages',strict:true,schema:{
+        type:'object',additionalProperties:false,properties:{translations:{type:'object',additionalProperties:false,properties:languageProperties,required:targets}},required:['translations']
+      }}}
+    })
+  });
+  if(!provider.ok)throw new Error(provider.status===429?'xAI ha alcanzado temporalmente el límite de traducción.':'No se pudieron generar todos los idiomas.');
+  if(Number(provider.headers.get('content-length')||0)>MAX_BYTES)throw new Error('La traducción recibida es demasiado grande.');
+  const payload=await provider.json(),outputText=payload?.output?.find(item=>item?.type==='message')?.content?.find(item=>item?.type==='output_text')?.text;
+  let parsed;try{parsed=JSON.parse(outputText||'')}catch(_){throw new Error('La traducción no devolvió un resultado válido.')}
+  const translations={};
+  for(const language of targets){
+    const values=parsed?.translations?.[language];
+    if(!Array.isArray(values)||values.length!==source.length)throw new Error(`La versión ${language.toUpperCase()} quedó incompleta y la presentación no se ha guardado.`);
+    translations[language]=localizedCopy(ideas,values);
+  }
+  return translations;
+}
+
 function buildSource(data){
   const blocks=data.skeleton.filter(item=>item.enabled!==false).map((item,index)=>
     `${index+1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`
   ).join('\n\n');
   const inspiration=data.inspiration?`\nDIRECCIÓN VISUAL INSPIRADORA\n- Referencia: ${data.inspiration.url}\n- Perfil: ${data.inspiration.profile}; modo ${data.inspiration.mode}; tipografía ${data.inspiration.fontStyle}; geometría ${data.inspiration.radiusStyle}; densidad ${data.inspiration.density}; composición ${data.inspiration.layout}.\n- Paleta extraída: ${(data.inspiration.palette||[]).join(', ')}.\n- Interpretar estos rasgos en clave ADmiraNeXT × ${data.displayName}; no copiar código, textos, logotipos ni elementos propietarios de la web inspiradora.\n`:'';
   const brand=data.brand?`\nIDENTIDAD OFICIAL DEL CLIENTE\n- Fuente oficial: ${data.brand.website}\n- El logo oficial de ${data.displayName} es obligatorio y debe aparecer de forma consistente en toda la presentación, cada diapositiva y cada pieza visual.\n- Mantener proporciones, colores y área de respeto; no redibujar, reinterpretar ni sustituir el logo por texto.\n`:'';
+  const translated=(data.languages||[]).filter(language=>language!=='es'&&data.translations?.[language]).map(language=>{
+    const content=data.translations[language],localizedBlocks=(content.skeleton||[]).filter(item=>item.enabled!==false).map((item,index)=>`${index+1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`).join('\n\n');
+    return `\n\nVERSIÓN ${language.toUpperCase()}\nTitular: ${content.hero?.title||''}\nEntradilla: ${content.hero?.summary||''}\nObjetivo: ${content.objective||''}\n\n${localizedBlocks}\n\nCIERRE\n${content.closing?.title||''}\nSiguiente acción: ${content.closing?.action||''}`;
+  }).join('');
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n`+
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n${blocks}\n\n`+
     `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}${brand}\n`+
@@ -60,7 +115,7 @@ function buildSource(data){
     `- No mostrar referencias gráficas al proveedor de producción; las marcas visibles son AdmiraNeXT y el logo oficial de ${data.displayName}.\n`+
     `- En vídeo, eliminar únicamente la tarjeta final del proveedor y prolongar el último fotograma limpio durante ese tramo.\n`+
     `- Mantener la misma dirección visual inspiradora en website, PDF, PowerPoint, documentos e infografía.\n`+
-    `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.`;
+    `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.${translated}`;
 }
 
 export async function onRequestPut(context){
@@ -103,6 +158,8 @@ export async function onRequestPut(context){
   }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
   input.inspiration=inspiration;
   const ideas=buildIdeas(input,slug,languages);
+  try{ideas.translations=await generateTranslations(context.env,ideas,languages)}
+  catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
     schemaVersion:3,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,
