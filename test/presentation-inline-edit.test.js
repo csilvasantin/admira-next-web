@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {onRequest as handleInlineEdit} from '../functions/presentaciones/[client]/api/inline-edit.js';
 import {onRequest as readImages} from '../functions/presentaciones/[client]/api/images.js';
 import {onRequestGet as renderPresentation} from '../functions/presentaciones/[client]/presentacion.js';
@@ -11,6 +12,18 @@ const ideas={
   skeleton:[{id:'problema',title:'El problema',message:'Mensaje original',detail:'Detalle',enabled:true}],
   closing:{title:'Cierre',action:'Siguiente acción'},labels:{objective:'El objetivo',next:'Siguiente paso'}
 };
+
+test('the text editor stays hidden until Ctrl+E and exposes undo and redo history',async()=>{
+  const source=await readFile(new URL('../assets/presentation-inline-editor.js',import.meta.url),'utf8');
+  assert.match(source,/toolbar\.hidden=true/);
+  assert.match(source,/Ctrl\+E editar textos/);
+  assert.match(source,/event\.ctrlKey.*event\.key\.toLowerCase\(\)==='e'/);
+  assert.match(source,/class="undo"/);
+  assert.match(source,/class="redo"/);
+  assert.match(source,/function remember\(\)/);
+  assert.match(source,/function restore\(index\)/);
+  assert.match(source,/history=history\.slice\(0,historyIndex\+1\)/);
+});
 
 function kv(values){
   return {
