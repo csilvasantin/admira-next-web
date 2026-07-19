@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260719-4';
+  window.__ADMIRA_GENERATOR_VERSION__='20260719-5';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -18,7 +18,7 @@
   const languagePanel=document.createElement('section'); languagePanel.className='panel language-panel';
   languagePanel.innerHTML='<h2>4. Idiomas</h2><p class="sub">Selecciona las versiones del site. Después podrás editar cada idioma por separado.</p><div class="language-grid"><label class="language"><input type="checkbox" name="language" value="es" checked><b>ES</b><span>Castellano</span></label><label class="language"><input type="checkbox" name="language" value="ca" checked><b>CA</b><span>Català</span></label><label class="language"><input type="checkbox" name="language" value="en" checked><b>EN</b><span>English</span></label></div>';
   const outputPanel=document.createElement('section'); outputPanel.className='panel output-panel';
-  outputPanel.innerHTML='<h2>5. ¿Qué queremos obtener?</h2><p class="sub">Por defecto se crean la presentación/website y el documento de trabajo. Activa otros formatos solo cuando los necesites.</p><div class="output-grid"><label class="output"><input type="checkbox" name="output" value="website" checked><b>01</b><span>Website</span></label><label class="output"><input type="checkbox" name="output" value="audio"><b>02</b><span>Audio</span></label><label class="output"><input type="checkbox" name="output" value="video"><b>03</b><span>Vídeo</span></label><label class="output"><input type="checkbox" name="output" value="pdf"><b>04</b><span>PDF</span></label><label class="output"><input type="checkbox" name="output" value="powerpoint"><b>05</b><span>PowerPoint</span></label><label class="output"><input type="checkbox" name="output" value="documents" checked><b>06</b><span>Documento de trabajo</span></label><label class="output"><input type="checkbox" name="output" value="infographic"><b>07</b><span>Infografía</span></label><label class="output all"><input type="checkbox" id="allOutputs"><b>08</b><span>Todo</span></label></div>';
+  outputPanel.innerHTML='<h2>5. ¿Qué queremos obtener?</h2><p class="sub">Por defecto se crean la presentación/website y el documento de trabajo. Si activas Imágenes de fondo, Grok preparará antes un fondo sin texto por diapositiva, compartido por todos los idiomas.</p><div class="output-grid"><label class="output"><input type="checkbox" name="output" value="website" checked><b>01</b><span>Website</span></label><label class="output"><input type="checkbox" name="output" value="audio"><b>02</b><span>Audio</span></label><label class="output"><input type="checkbox" name="output" value="video"><b>03</b><span>Vídeo</span></label><label class="output"><input type="checkbox" name="output" value="pdf"><b>04</b><span>PDF</span></label><label class="output"><input type="checkbox" name="output" value="powerpoint"><b>05</b><span>PowerPoint</span></label><label class="output"><input type="checkbox" name="output" value="documents" checked><b>06</b><span>Documento de trabajo</span></label><label class="output"><input type="checkbox" name="output" value="infographic"><b>07</b><span>Infografía</span></label><label class="output"><input type="checkbox" name="output" value="backgrounds"><b>08</b><span>Imágenes de fondo</span></label><label class="output all"><input type="checkbox" id="allOutputs"><b>09</b><span>Todo</span></label></div>';
   form.insertBefore(languagePanel,status); form.insertBefore(outputPanel,status);
   const style=document.createElement('style');style.textContent='.language-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.language{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:16px;background:#08111e;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0}.language:has(input:checked){border-color:var(--green);background:rgba(61,240,138,.07)}.language input{width:auto;margin:0;accent-color:var(--green)}.language b{font:800 11px/1 var(--mono);color:var(--green)}.language span{font:700 14px/1.25 var(--sans)}.output-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.output{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:14px;background:#08111e;color:var(--ink);cursor:pointer;text-transform:none;letter-spacing:0;margin:0}.output:has(input:checked){border-color:var(--green);background:rgba(61,240,138,.07)}.output input{width:auto;margin:0;accent-color:var(--green)}.output b{font:800 10px/1 var(--mono);color:var(--green)}.output span{font:700 14px/1.25 var(--sans)}.output.all{border-style:dashed}.created-matrix{margin:22px 0 0;display:grid;gap:12px}.created-language{border-top:1px solid var(--line);padding-top:12px}.created-language h3{margin:0 0 8px;font:800 10px/1 var(--mono);letter-spacing:.1em;color:var(--mut);text-transform:uppercase}.created-tasks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.created-task{display:grid;gap:7px;background:#08111e;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:700 10px/1.25 var(--mono)}.created-task small{color:#72a7ff;line-height:1.35}.created-task.queued small{color:#f5a623}.created-task.ready small,.created-task.published small,.created-task.complete small{color:var(--green)}.created-task.failed small,.created-task.skipped small{color:var(--red)}@media(max-width:680px){.language-grid,.output-grid,.created-tasks{grid-template-columns:1fr}}';document.head.appendChild(style);
   const createdMatrix=document.createElement('div');createdMatrix.className='created-matrix';createdMatrix.id='createdMatrix';document.querySelector('.result-links').before(createdMatrix);
@@ -130,10 +130,8 @@
     const response=await fetch(`/presentaciones/api/images?client=${encodeURIComponent(client)}`,{headers:{accept:'application/json'},cache:'no-store'}),body=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);renderImageSet(body.imageSet,body.slideCount);return body;
   }
-  imageAction.addEventListener('click',async()=>{
+  async function runImageGeneration(force=false){
     if(!currentClient)return;
-    const force=currentImageSet?.status==='complete';
-    if(force&&!window.confirm(`Ya existen ${currentImageSet.total} imágenes. ¿Quieres crear un paquete nuevo y conservar el anterior en el archivo?`))return;
     imageAction.disabled=true;
     try{
       message('Preparando una imagen temática por diapositiva…');
@@ -148,7 +146,12 @@
         }
       }
       const failed=currentImageSet?.failed||0;message(failed?`Paquete visual creado con ${failed} imagen${failed===1?'':'es'} pendiente${failed===1?'':'s'} de reintento.`:`Paquete visual completo: ${currentImageSet?.completed||0} imágenes listas.`,Boolean(failed));
-    }catch(error){message(error.message,true)}finally{imageAction.disabled=false}
+    }finally{imageAction.disabled=false}
+  }
+  imageAction.addEventListener('click',()=>{
+    const force=currentImageSet?.status==='complete';
+    if(force&&!window.confirm(`Ya existen ${currentImageSet.total} imágenes. ¿Quieres crear un paquete nuevo y conservar el anterior en el archivo?`))return;
+    runImageGeneration(force).catch(error=>message(error.message,true));
   });
   imageWorkspace.addEventListener('click',event=>{if(event.target.closest('[data-resume-images]'))imageAction.click()});
   form.addEventListener('submit',async event=>{
@@ -160,7 +163,7 @@
       const data=Object.fromEntries(new FormData(form).entries()); if(!data.password)data.password=await passwordPromise;data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;
       const body=await createPresentation(data); if(!body){message('No se ha modificado la presentación existente.');return}
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
-      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); message(`Orden creada: ${body.displayName}`);loadImages(body.slug).catch(error=>message(error.message,true));
+      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck');openDeck.href=body.deckUrl;openDeck.hidden=!body.outputs.includes('website'); currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); message(`Orden creada: ${body.displayName}`);if(body.outputs.includes('backgrounds'))runImageGeneration(false).catch(error=>message(error.message,true));else loadImages(body.slug).catch(error=>message(error.message,true));
     }catch(error){message(error.message,true)}finally{submit.disabled=false}
   },true);
   setInterval(async()=>{

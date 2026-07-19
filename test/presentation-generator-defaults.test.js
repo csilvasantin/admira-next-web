@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DEFAULT_PRESENTATION_PASSWORD, ensureHttpsUrl} from '../functions/presentaciones/_defaults.js';
-import {DEFAULT_OUTPUTS} from '../functions/presentaciones/_generation.js';
+import {DEFAULT_OUTPUTS, OUTPUTS} from '../functions/presentaciones/_generation.js';
 
 test('generator URLs are upgraded to HTTPS when the scheme is absent or insecure',()=>{
   assert.equal(ensureHttpsUrl('ejemplo.com/inspiracion'),'https://ejemplo.com/inspiracion');
@@ -13,6 +13,7 @@ test('generator URLs are upgraded to HTTPS when the scheme is absent or insecure
 
 test('default production is website plus working document',()=>{
   assert.deepEqual(DEFAULT_OUTPUTS,['website','documents']);
+  assert.ok(OUTPUTS.includes('backgrounds'));
 });
 
 test('the endearing fallback password and clipboard explanation stay aligned',async()=>{
@@ -23,7 +24,9 @@ test('the endearing fallback password and clipboard explanation stay aligned',as
   assert.match(script,/débil, pero entrañable/);
   assert.match(script,/value="website" checked/);
   assert.match(script,/value="documents" checked/);
-  for(const output of ['audio','video','pdf','powerpoint','infographic']){
+  assert.match(script,/value="backgrounds"/);
+  assert.match(script,/Imágenes de fondo/);
+  for(const output of ['audio','video','pdf','powerpoint','infographic','backgrounds']){
     assert.doesNotMatch(script,new RegExp(`value="${output}" checked`));
   }
 });

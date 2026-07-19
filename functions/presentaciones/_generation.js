@@ -1,10 +1,11 @@
-export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic'];
+export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic','backgrounds'];
 export const DEFAULT_OUTPUTS = ['website','documents'];
 export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
+export const AUXILIARY_OUTPUTS = new Set(['backgrounds']);
 export const LANGUAGES = ['es','ca','en'];
 export const OUTPUT_LABELS = {
   website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
-  documents:'Documento de trabajo', infographic:'Infografía'
+  documents:'Documento de trabajo', infographic:'Infografía', backgrounds:'Imágenes de fondo'
 };
 export const LANGUAGE_LABELS = { es:'Castellano', ca:'Català', en:'English' };
 export const VALID_STATUSES = new Set(['queued','processing','ready','published','complete','failed','skipped']);
@@ -60,8 +61,9 @@ function taskUrl(client, language, output){
 export function buildGeneration({client, displayName, outputs, languages, sourceText = ''}){
   const now = new Date().toISOString();
   const tasks = {};
+  const productionOutputs = outputs.filter(output => !AUXILIARY_OUTPUTS.has(output));
   for (const language of languages) {
-    for (const output of outputs) {
+    for (const output of productionOutputs) {
       const key = taskKey(language, output);
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],
@@ -73,7 +75,7 @@ export function buildGeneration({client, displayName, outputs, languages, source
     }
   }
   return recomputeGeneration({
-    schemaVersion:2, id:crypto.randomUUID(), client, displayName, requested:outputs, languages, tasks,
+    schemaVersion:2, id:crypto.randomUUID(), client, displayName, requested:productionOutputs, languages, tasks,
     artifacts:{}, sourceText, provider:'notebooklm', createdAt:now, updatedAt:now
   });
 }

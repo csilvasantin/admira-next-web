@@ -40,6 +40,13 @@ test('normalization does not invent a third-party submission time',()=>{
   assert.equal(task.progress,5);
 });
 
+test('background images are recorded as an auxiliary Grok order, not duplicated per language',()=>{
+  const job=buildGeneration({client:'demo',displayName:'Demo',outputs:['website','audio','backgrounds'],languages:['es','ca']});
+  assert.deepEqual(job.requested,['website','audio']);
+  assert.equal(Object.values(job.tasks).some(task=>task.output==='backgrounds'),false);
+  assert.deepEqual(Object.keys(job.tasks).sort(),['ca:audio','ca:website','es:audio','es:website']);
+});
+
 test('Grok aggregates slide phases into observable package progress',async()=>{
   const presentation={displayName:'Demo',updatedAt:t0,theme:{}};
   const ideas={displayName:'Demo',updatedAt:t0,hero:{title:'Demo',summary:'Resumen'},objective:'Decidir',skeleton:[],closing:{title:'Cierre',action:'Acción'}};
@@ -83,4 +90,7 @@ test('generator and editor expose progress bars, timelines and interruption reco
   }
   assert.match(generator,/data-resume-images/);
   assert.match(generator,/Continuar imágenes con Grok/);
+  assert.match(generator,/body\.outputs\.includes\('backgrounds'\).*runImageGeneration\(false\)/s);
+  assert.match(generator,/Imágenes de fondo/);
+  assert.match(editor,/value="backgrounds"/);
 });
