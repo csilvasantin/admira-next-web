@@ -3,6 +3,7 @@ import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
 import { DEFAULT_PRESENTATION_PASSWORD, ensureHttpsUrl } from '../_defaults.js';
 import {captureVersion} from '../_versions.js';
+import {normalizeSequence} from '../_deck-library.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -163,7 +164,7 @@ export async function onRequestPut(context){
   catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
-    schemaVersion:3,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,
+    schemaVersion:4,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,sequence:normalizeSequence({before:raw.beforeDeck,after:raw.afterDeck}),
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
@@ -176,5 +177,5 @@ export async function onRequestPut(context){
   ]);
   await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null});
   const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

@@ -1,4 +1,5 @@
 .claude/
 .wrangler/
 .runtime/
+.codex-work/
 tools/notebooklm-local/node_modules/

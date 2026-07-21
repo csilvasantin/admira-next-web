@@ -109,10 +109,12 @@ export async function onRequest(context){
   const isVersionsApi = !isGallery && second === 'api' && third === 'versions';
   const isVersionsPage = !isGallery && second === 'versiones';
   const isSlideImages = !isGallery && second === 'images';
+  const isDeckAssets = !isGallery && second === 'deck';
+  const isBrandAssets = !isGallery && second === 'brand';
   const isPresentationMode = !isGallery && second === 'presentacion';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
-  const isGeneratorApi = first === 'api' && ['generate','inspiration','images'].includes(second);
+  const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
@@ -147,7 +149,7 @@ export async function onRequest(context){
     validToken(signKey, cookieSlug, cookies[cookieName]),
     readIdentity(request, signKey)
   ]);
-  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
+  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
   const authorized = masterValid || (editorAllowed && editorValid) || (!isInternalArea && clientValid);
   const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : 'client';
   const contentType = request.headers.get('content-type') || '';
