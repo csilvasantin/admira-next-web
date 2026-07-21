@@ -79,7 +79,7 @@ async function injectTelemetry(response, inlineEditor = false){
   const type = response.headers.get('content-type') || '';
   if (!response.ok || !type.includes('text/html')) return response;
   const text = await response.text();
-  const editor = inlineEditor ? '<script>window.__ADMIRA_CAN_EDIT__=true</script><script src="/assets/presentation-inline-editor.js?v=20260719-4"></script>' : '';
+  const editor = inlineEditor ? '<script>window.__ADMIRA_CAN_EDIT__=true</script><script src="/assets/presentation-inline-editor.js?v=20260721-5"></script>' : '';
   const telemetry = text.includes('presentation-telemetry.js') ? '' : '<script src="/assets/presentation-telemetry.js?v=20260717-1"></script>';
   const html = text.replace(/<\/body>/i, `${editor}${telemetry}</body>`);
   const headers = new Headers(response.headers); headers.delete('content-length'); headers.set('cache-control', 'no-store');
