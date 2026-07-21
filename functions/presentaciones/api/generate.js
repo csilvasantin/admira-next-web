@@ -7,7 +7,7 @@ import {normalizeSequence} from '../_deck-library.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
-const LANGUAGE_NAMES = {ca:'Catalan',en:'English'};
+const LANGUAGE_NAMES = {es:'Spanish',ca:'Catalan',en:'English'};
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), { status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'} });
@@ -69,7 +69,8 @@ function localizedCopy(ideas, values){
 }
 
 export async function generateTranslations(env, ideas, languages){
-  const targets=[...new Set(languages.filter(language=>language!=='es'&&LANGUAGE_NAMES[language]))];
+  const requested=[...new Set(languages.filter(language=>LANGUAGE_NAMES[language]))];
+  const targets=requested.some(language=>language!=='es')?requested:[];
   if(!targets.length)return {};
   if(!env.XAI_API_KEY)throw new Error('La traducción automática no está configurada.');
   const source=translatableCopy(ideas),languageProperties=Object.fromEntries(targets.map(language=>[language,{type:'array',items:{type:'string'}}]));
@@ -78,8 +79,8 @@ export async function generateTranslations(env, ideas, languages){
     body:JSON.stringify({
       model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,
       input:[
-        {role:'system',content:[{type:'input_text',text:'Translate this complete executive presentation faithfully and naturally. Preserve AdmiraNeXT, product names, client names, numbers, punctuation, line breaks and factual meaning. Return one array per requested language in exactly the same order and with exactly the same number of strings as the source. Do not add explanations.'}]},
-        {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:'Spanish',targetLanguages:targets.map(language=>LANGUAGE_NAMES[language]),texts:source})}]}
+        {role:'system',content:[{type:'input_text',text:'Localize this complete executive presentation faithfully and naturally. The source is mainly Spanish but may contain ordinary phrases in English or other languages: translate every such phrase into each requested target language. Preserve only registered product names, client names, numbers, punctuation, line breaks and factual meaning; do not preserve a sentence merely because it is written in English. When Spanish is a target, keep text already written naturally in Spanish and translate foreign-language phrases into Spanish. Return one array per requested language in exactly the same order and with exactly the same number of non-empty strings as the source. Do not add explanations.'}]},
+        {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:'Mixed, mainly Spanish',targetLanguages:targets.map(language=>LANGUAGE_NAMES[language]),texts:source})}]}
       ],
       text:{format:{type:'json_schema',name:'presentation_languages',strict:true,schema:{
         type:'object',additionalProperties:false,properties:{translations:{type:'object',additionalProperties:false,properties:languageProperties,required:targets}},required:['translations']
@@ -93,7 +94,7 @@ export async function generateTranslations(env, ideas, languages){
   const translations={};
   for(const language of targets){
     const values=parsed?.translations?.[language];
-    if(!Array.isArray(values)||values.length!==source.length)throw new Error(`La versión ${language.toUpperCase()} quedó incompleta y la presentación no se ha guardado.`);
+    if(!Array.isArray(values)||values.length!==source.length||values.some(value=>!String(value||'').trim()))throw new Error(`La versión ${language.toUpperCase()} quedó incompleta y la presentación no se ha guardado.`);
     translations[language]=localizedCopy(ideas,values);
   }
   return translations;
@@ -160,7 +161,11 @@ export async function onRequestPut(context){
   }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
   input.inspiration=inspiration;
   const ideas=buildIdeas(input,slug,languages);
-  try{ideas.translations=await generateTranslations(context.env,ideas,languages)}
+  try{
+    const localized=await generateTranslations(context.env,ideas,languages),spanish=localized.es;
+    if(spanish){ideas.hero=spanish.hero;ideas.objective=spanish.objective;ideas.skeleton=spanish.skeleton;ideas.closing=spanish.closing;ideas.labels=spanish.labels;delete localized.es}
+    ideas.translations=localized;
+  }
   catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={

@@ -74,7 +74,7 @@ async function translateEdits(env, sourceLanguage, targetLanguages, edits){
     body:JSON.stringify({
       model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,
       input:[
-        {role:'system',content:[{type:'input_text',text:'Translate presentation copy faithfully and naturally. Preserve product names, brand names, numbers, punctuation, line breaks and factual meaning. Return each target-language array in exactly the same order and with exactly the same number of strings as the input. Do not add explanations.'}]},
+        {role:'system',content:[{type:'input_text',text:'Localize presentation copy faithfully and naturally. The edited text may mix languages: translate every ordinary-language phrase into each requested target language. Preserve only registered product names, brand names, numbers, punctuation, line breaks and factual meaning; do not preserve a sentence merely because it is written in English. Return each target-language array in exactly the same order and with exactly the same number of non-empty strings as the input. Do not add explanations.'}]},
         {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:LANGUAGE_NAMES[sourceLanguage],targetLanguages:targetLanguages.map(language=>LANGUAGE_NAMES[language]),edits:edits.map(edit=>({field:edit.field,text:edit.value}))})}]}
       ],
       text:{format:{type:'json_schema',name:'presentation_translations',strict:true,schema:{
@@ -89,7 +89,7 @@ async function translateEdits(env, sourceLanguage, targetLanguages, edits){
   const outputText=payload?.output?.find(item=>item?.type==='message')?.content?.find(item=>item?.type==='output_text')?.text;
   let parsed; try{parsed=JSON.parse(outputText||'');}catch(_){throw new Error('La traducción no devolvió un resultado válido.');}
   for(const language of targetLanguages){
-    if(!Array.isArray(parsed?.translations?.[language])||parsed.translations[language].length!==edits.length) throw new Error(`La versión ${language.toUpperCase()} quedó incompleta y no se ha guardado.`);
+    if(!Array.isArray(parsed?.translations?.[language])||parsed.translations[language].length!==edits.length||parsed.translations[language].some(value=>!String(value||'').trim())) throw new Error(`La versión ${language.toUpperCase()} quedó incompleta y no se ha guardado.`);
   }
   return parsed.translations;
 }

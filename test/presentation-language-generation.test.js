@@ -13,12 +13,14 @@ test('new presentations generate complete and distinct Catalan and English versi
   globalThis.fetch=async(_url,options)=>{
     const request=JSON.parse(options.body),input=JSON.parse(request.input[1].content[0].text),count=input.texts.length;
     return new Response(JSON.stringify({output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({translations:{
+      es:Array.from({length:count},(_,index)=>`ES ${index+1}`),
       ca:Array.from({length:count},(_,index)=>`CA ${index+1}`),
       en:Array.from({length:count},(_,index)=>`EN ${index+1}`)
     }})}]}]}),{headers:{'content-type':'application/json'}});
   };
   try{
     const translated=await generateTranslations({XAI_API_KEY:'test-key'},ideas,['es','ca','en']);
+    assert.equal(translated.es.hero.title,'ES 2');
     assert.equal(translated.ca.hero.title,'CA 2');
     assert.equal(translated.en.hero.title,'EN 2');
     assert.equal(translated.ca.skeleton[0].message,'CA 6');
