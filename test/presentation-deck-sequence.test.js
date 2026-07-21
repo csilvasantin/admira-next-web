@@ -18,7 +18,7 @@ test('deck library exposes a curated corporate opening and optional XaaS close',
 
 test('generator and presentation route expose the before-proposal-after sequence',async()=>{
   const [generator,presentation,middleware]=await Promise.all([
-    readFile(new URL('../assets/presentation-generator.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-generator-20260721-8.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/[client]/presentacion.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8')
   ]);
