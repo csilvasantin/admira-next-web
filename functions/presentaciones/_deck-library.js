@@ -6,6 +6,29 @@ const titles={
   ca:['Admira','Qui som','Un equip de més de 140 persones','Presència en 60 països','Tot el customer journey','Un lloc per pensar','El bosc · Think Tank','El laboratori · Innovació','Admira X','Admira U','Què fem','Connectem coses','Hard Rock Cafe Karaoke','Espais que es transformen','Experiències immersives','Interacció física i digital','Experiències al mòbil','Xtanco 2.0','Xtanco 2.0 · L’experiència','Robòtica social','Com ho fem','Una plataforma per governar-ho tot','Visió en temps real','Retail connectat · Mango','Operació global','Retail connectat · Desigual','Un punt de servei connectat','Innovació','Històries que connecten','Retail que entén el context','Producte intel·ligent','Mobiliari intel·ligent amb IA','Experiències de nova generació','Avatar digital','Assistents virtuals','Estudi de creació','Interfícies conversacionals','Avatars a l’espai físic','Models','Persones digitals','Humans i avatars','De SaaS a XaaS'],
   en:['Admira','Who we are','A team of more than 140 people','Presence in 60 countries','The entire customer journey','A place to think','The forest · Think Tank','The lab · Innovation','Admira X','Admira U','What we do','Connecting things','Hard Rock Cafe Karaoke','Spaces that transform','Immersive experiences','Physical and digital interaction','Mobile experiences','Xtanco 2.0','Xtanco 2.0 · The experience','Social robotics','How we do it','One platform to govern it all','Real-time vision','Connected retail · Mango','Global operations','Connected retail · Desigual','A connected service point','Innovation','Stories that connect','Retail that understands context','Intelligent product','AI-powered smart furniture','Next-generation experiences','Digital avatar','Virtual assistants','Creation studio','Conversational interfaces','Avatars in physical space','Models','Digital people','Humans and avatars','From SaaS to XaaS']
 };
+const details={
+  es:{
+    2:'Una empresa de transformación digital con más de 150.000 puntos conectados.',
+    5:'Presencia en todo el customer journey.',
+    11:'Experiencias conectadas a internet, desde circuitos publicitarios hasta redes empresariales de decenas de miles de puntos.',
+    21:'A través de nuestra plataforma agéntica de Internet of Things.',
+    28:'La capacidad de responder a las necesidades presentes y futuras de los clientes.'
+  },
+  ca:{
+    2:'Una empresa de transformació digital amb més de 150.000 punts connectats.',
+    5:'Presència en tot el customer journey.',
+    11:'Experiències connectades a internet, des de circuits publicitaris fins a xarxes empresarials de desenes de milers de punts.',
+    21:"A través de la nostra plataforma agèntica d'Internet of Things.",
+    28:'La capacitat de respondre a les necessitats presents i futures dels clients.'
+  },
+  en:{
+    2:'A digital transformation company with more than 150,000 connected points.',
+    5:'Present throughout the customer journey.',
+    11:'Internet-connected experiences, from advertising networks to enterprise networks with tens of thousands of points.',
+    21:'Through our agentic Internet of Things platform.',
+    28:'The ability to respond to present and future customer needs.'
+  }
+};
 const fullSlides=Array.from({length:42},(_,index)=>index+1),shortSlides=[1,2,3,4,5,7,8,9,10,11,21];
 const bestPhases=[{to:10,file:'team'},{to:20,file:'experience'},{to:27,file:'platform'},{to:33,file:'world'},{to:42,file:'avatar'}];
 
@@ -26,7 +49,7 @@ export function getDeckPack(value,client='',options={}){
   const pack=packs[cleanId(value)];if(!pack)return null;
   const safe=safeClient(client),length=lengthOption(options.length,pack.defaultLength),quality=qualityOption(options.quality,pack.defaultQuality),numbers=length==='short'?pack.shortSlides:pack.fullSlides;
   return {...pack,length,quality,slides:numbers.map((number,index)=>({
-    index:index+1,sourceSlide:number,objectId:slideIds[number-1],collection:'admira-2026',titles:{es:titles.es[number-1],ca:titles.ca[number-1],en:titles.en[number-1]},
+    index:index+1,sourceSlide:number,objectId:slideIds[number-1],collection:'admira-2026',titles:{es:titles.es[number-1],ca:titles.ca[number-1],en:titles.en[number-1]},details:{es:details.es[number]||'',ca:details.ca[number]||'',en:details.en[number]||''},
     urls:{es:assetUrl(safe,slideFile(number,'es')),ca:assetUrl(safe,slideFile(number,'ca')),en:assetUrl(safe,slideFile(number,'en'))},bestUrl:assetUrl(safe,bestFile(number))
   }))};
 }
