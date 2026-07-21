@@ -21,14 +21,14 @@ test('deck library exposes a curated corporate opening and optional XaaS close',
   assert.equal(isDeckAsset('admira-2026','en-slide-42.webp'),true);assert.equal(isDeckAsset('admira-2026','best-avatar.webp'),true);assert.equal(isDeckAsset('admira-2026','secret.pdf'),false);
 });
 
-test('generator and presentation route expose the before-proposal-after sequence',async()=>{
+test('generator and presentation route expose the four narrative segments',async()=>{
   const [generator,presentation,middleware]=await Promise.all([
-    readFile(new URL('../assets/presentation-generator-20260721-10.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-generator-20260721-11.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/[client]/presentacion.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8')
   ]);
-  assert.match(generator,/Secuencia de la presentación/);assert.match(generator,/beforeDeck/);assert.match(generator,/beforeLength/);assert.match(generator,/beforeQuality/);assert.match(generator,/Completa · 42/);assert.match(generator,/Good · Look & feel Admira/);assert.match(generator,/Better · Dirección Codex/);assert.match(generator,/Best · Web o película elegida/);assert.match(generator,/afterDeck/);assert.match(generator,/defaultBefore/);
-  assert.match(presentation,/beforeSlides/);assert.match(presentation,/afterSlides/);assert.match(presentation,/data-segment="proposal"/);assert.match(presentation,/data-deck-image/);assert.match(presentation,/data-src-good-es/);assert.match(presentation,/data-src-better-es/);assert.match(presentation,/data-src-best-es/);assert.match(presentation,/__ADMIRA_APPLY_QUALITY__/);assert.match(presentation,/sequenceNav/);
+  assert.match(generator,/Arquitectura de la presentación/);assert.match(generator,/Quiénes somos/);assert.match(generator,/Qué hacemos/);assert.match(generator,/Cómo lo hacemos/);assert.match(generator,/Qué proponemos/);assert.match(generator,/beforeDeck/);assert.match(generator,/beforeLength/);assert.match(generator,/beforeQuality/);assert.match(generator,/Completa · 42/);assert.match(generator,/Good · Look & feel Admira/);assert.match(generator,/Better · Dirección Codex/);assert.match(generator,/Best · Web o película elegida/);assert.match(generator,/afterDeck/);assert.match(generator,/defaultBefore/);
+  assert.match(presentation,/beforeSlides/);assert.match(presentation,/afterSlides/);assert.match(presentation,/data-section="proposal"/);assert.match(presentation,/data-section-target/);assert.match(presentation,/sectionLabels/);assert.match(presentation,/data-deck-image/);assert.match(presentation,/data-src-good-es/);assert.match(presentation,/data-src-better-es/);assert.match(presentation,/data-src-best-es/);assert.match(presentation,/__ADMIRA_APPLY_QUALITY__/);assert.match(presentation,/sequenceNav/);
   assert.match(middleware,/isDeckAssets/);assert.match(middleware,/isBrandAssets/);
 });
 
@@ -38,7 +38,8 @@ test('a client presentation renders the curated decks around the dynamic proposa
   const imageSet={slides:[{status:'ready',textFreeVerified:true,url:'/presentaciones/demo/images/site-inspired.jpg'}]};
   const response=await renderPresentation({params:{client:'demo'},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas,'image-set:demo':imageSet})},next(){throw new Error('unexpected next')}}),html=await response.text();
   assert.equal((html.match(/data-segment="before"/g)||[]).length,42);assert.equal((html.match(/data-segment="after"/g)||[]).length,3);
-  assert.match(html,/data-segment="proposal"/);assert.match(html,/data-src-better-es="\/presentaciones\/demo\/deck\/admira-2026\/best-team\.webp"/);assert.match(html,/data-src-best-es="\/presentaciones\/demo\/images\/site-inspired\.jpg"/);assert.match(html,/data-title-ca="Qui som"/);assert.match(html,/data-src-good-en=/);
+  assert.equal((html.match(/data-section="who"/g)||[]).length,10);assert.equal((html.match(/data-section="what"/g)||[]).length,10);assert.equal((html.match(/data-section="how"/g)||[]).length,22);assert.equal((html.match(/data-section-target=/g)||[]).length,4);
+  assert.match(html,/data-section="proposal"/);assert.match(html,/data-label-ca="Què fem"/);assert.match(html,/data-label-en="What we propose"/);assert.match(html,/data-src-better-es="\/presentaciones\/demo\/deck\/admira-2026\/best-team\.webp"/);assert.match(html,/data-src-best-es="\/presentaciones\/demo\/images\/site-inspired\.jpg"/);assert.match(html,/data-title-ca="Qui som"/);assert.match(html,/data-src-good-en=/);
 });
 
 test('private deck assets only serve catalogued WebP files',async()=>{
