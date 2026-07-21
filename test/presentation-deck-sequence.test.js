@@ -34,13 +34,13 @@ test('generator and presentation route expose the four narrative segments',async
 });
 
 test('a client presentation renders the curated decks around the dynamic proposal',async()=>{
-  const config={displayName:'Demo',outputs:['website'],languages:['es','ca','en'],theme:{},sequence:{before:'admira-2026-corporate',beforeLength:'full',beforeQuality:'best',after:'admira-2026-vision-xaas'}};
+  const config={displayName:'Demo',outputs:['website'],languages:['es','ca','en'],brand:{logoUrl:'/presentaciones/demo/brand/logo'},theme:{},sequence:{before:'admira-2026-corporate',beforeLength:'full',beforeQuality:'best',after:'admira-2026-vision-xaas'}};
   const ideas={hero:{title:'Propuesta',summary:'Resumen'},objective:'Objetivo',skeleton:[],closing:{title:'Cierre',action:'Acción'},labels:{objective:'Objetivo',next:'Siguiente'}};
   const imageSet={slides:[{status:'ready',textFreeVerified:true,url:'/presentaciones/demo/images/site-inspired.jpg'}]};
   const response=await renderPresentation({params:{client:'demo'},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas,'image-set:demo':imageSet})},next(){throw new Error('unexpected next')}}),html=await response.text();
   assert.equal((html.match(/data-segment="before"/g)||[]).length,42);assert.equal((html.match(/data-segment="after"/g)||[]).length,3);
   assert.equal((html.match(/data-section="who"/g)||[]).length,10);assert.equal((html.match(/data-section="what"/g)||[]).length,10);assert.equal((html.match(/data-section="how"/g)||[]).length,22);assert.equal((html.match(/data-section-target=/g)||[]).length,4);
-  assert.match(html,/data-section="proposal"/);assert.match(html,/data-label-ca="Què fem"/);assert.match(html,/data-label-en="What we propose"/);assert.match(html,/data-deck-progress-label data-title-es="Quiénes somos" data-title-ca="Qui som"/);assert.match(html,/data-deck-detail data-title-es="Una empresa de transformación digital/);assert.match(html,/data-alt-ca="Admira"/);assert.match(html,/data-src-better-es="\/presentaciones\/demo\/deck\/admira-2026\/best-team\.webp"/);assert.match(html,/data-src-best-es="\/presentaciones\/demo\/images\/site-inspired\.jpg"/);assert.match(html,/data-title-ca="Qui som"/);assert.match(html,/data-src-good-en=/);
+  assert.match(html,/data-section="proposal"/);assert.match(html,/data-label-ca="Què fem"/);assert.match(html,/data-label-en="What we propose"/);assert.match(html,/data-deck-progress-label data-title-es="Quiénes somos" data-title-ca="Qui som"/);assert.match(html,/data-deck-detail data-title-es="Una empresa de transformación digital/);assert.match(html,/class="brand-identity"/);assert.match(html,/class="brand-mark"/);assert.match(html,/class="brand-name">Demo/);assert.match(html,/drop-shadow/);assert.match(html,/data-alt-ca="Admira"/);assert.match(html,/data-src-better-es="\/presentaciones\/demo\/deck\/admira-2026\/best-team\.webp"/);assert.match(html,/data-src-best-es="\/presentaciones\/demo\/images\/site-inspired\.jpg"/);assert.match(html,/data-title-ca="Qui som"/);assert.match(html,/data-src-good-en=/);
 });
 
 test('private deck assets only serve catalogued WebP files',async()=>{
