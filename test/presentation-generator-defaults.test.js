@@ -19,7 +19,7 @@ test('default production is website plus working document',()=>{
 test('the endearing fallback password and clipboard explanation stay aligned',async()=>{
   assert.equal(DEFAULT_PRESENTATION_PASSWORD,'AdmiraNeXT;)');
   assert.ok(DEFAULT_PRESENTATION_PASSWORD.length>=10);
-  const script=await readFile(new URL('../assets/presentation-generator-20260721-9.js',import.meta.url),'utf8');
+  const script=await readFile(new URL('../assets/presentation-generator-20260721-10.js',import.meta.url),'utf8');
   assert.match(script,/navigator\.clipboard\?\.readText/);
   assert.match(script,/débil, pero entrañable/);
   assert.match(script,/value="website" checked/);

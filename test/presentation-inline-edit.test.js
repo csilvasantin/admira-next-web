@@ -26,6 +26,10 @@ test('the text editor stays hidden until Ctrl+E and exposes undo and redo histor
   assert.match(source,/Good, Better and Best/);
   assert.match(source,/dataset\.deckQuality/);
   assert.match(source,/activeQuality/);
+  assert.match(source,/Look & feel de la presentación Admira/);
+  assert.match(source,/Dirección editorial definida por Codex/);
+  assert.match(source,/Adaptación a la web o película elegida/);
+  assert.match(source,/__ADMIRA_APPLY_QUALITY__/);
 });
 
 function kv(values){

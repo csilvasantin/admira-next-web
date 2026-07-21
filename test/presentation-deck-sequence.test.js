@@ -23,21 +23,22 @@ test('deck library exposes a curated corporate opening and optional XaaS close',
 
 test('generator and presentation route expose the before-proposal-after sequence',async()=>{
   const [generator,presentation,middleware]=await Promise.all([
-    readFile(new URL('../assets/presentation-generator-20260721-9.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-generator-20260721-10.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/[client]/presentacion.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8')
   ]);
-  assert.match(generator,/Secuencia de la presentación/);assert.match(generator,/beforeDeck/);assert.match(generator,/beforeLength/);assert.match(generator,/beforeQuality/);assert.match(generator,/Completa · 42/);assert.match(generator,/Best · Cinematográfica IA/);assert.match(generator,/afterDeck/);assert.match(generator,/defaultBefore/);
-  assert.match(presentation,/beforeSlides/);assert.match(presentation,/afterSlides/);assert.match(presentation,/data-segment="proposal"/);assert.match(presentation,/data-deck-image/);assert.match(presentation,/data-deck-copy-title/);assert.match(presentation,/sequenceNav/);
+  assert.match(generator,/Secuencia de la presentación/);assert.match(generator,/beforeDeck/);assert.match(generator,/beforeLength/);assert.match(generator,/beforeQuality/);assert.match(generator,/Completa · 42/);assert.match(generator,/Good · Look & feel Admira/);assert.match(generator,/Better · Dirección Codex/);assert.match(generator,/Best · Web o película elegida/);assert.match(generator,/afterDeck/);assert.match(generator,/defaultBefore/);
+  assert.match(presentation,/beforeSlides/);assert.match(presentation,/afterSlides/);assert.match(presentation,/data-segment="proposal"/);assert.match(presentation,/data-deck-image/);assert.match(presentation,/data-src-good-es/);assert.match(presentation,/data-src-better-es/);assert.match(presentation,/data-src-best-es/);assert.match(presentation,/__ADMIRA_APPLY_QUALITY__/);assert.match(presentation,/sequenceNav/);
   assert.match(middleware,/isDeckAssets/);assert.match(middleware,/isBrandAssets/);
 });
 
 test('a client presentation renders the curated decks around the dynamic proposal',async()=>{
   const config={displayName:'Demo',outputs:['website'],languages:['es','ca','en'],theme:{},sequence:{before:'admira-2026-corporate',beforeLength:'full',beforeQuality:'best',after:'admira-2026-vision-xaas'}};
   const ideas={hero:{title:'Propuesta',summary:'Resumen'},objective:'Objetivo',skeleton:[],closing:{title:'Cierre',action:'Acción'},labels:{objective:'Objetivo',next:'Siguiente'}};
-  const response=await renderPresentation({params:{client:'demo'},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas})},next(){throw new Error('unexpected next')}}),html=await response.text();
+  const imageSet={slides:[{status:'ready',textFreeVerified:true,url:'/presentaciones/demo/images/site-inspired.jpg'}]};
+  const response=await renderPresentation({params:{client:'demo'},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas,'image-set:demo':imageSet})},next(){throw new Error('unexpected next')}}),html=await response.text();
   assert.equal((html.match(/data-segment="before"/g)||[]).length,42);assert.equal((html.match(/data-segment="after"/g)||[]).length,3);
-  assert.match(html,/data-segment="proposal"/);assert.match(html,/\/presentaciones\/demo\/deck\/admira-2026\/best-team\.webp/);assert.match(html,/data-title-ca="Qui som"/);assert.match(html,/data-src-en=/);
+  assert.match(html,/data-segment="proposal"/);assert.match(html,/data-src-better-es="\/presentaciones\/demo\/deck\/admira-2026\/best-team\.webp"/);assert.match(html,/data-src-best-es="\/presentaciones\/demo\/images\/site-inspired\.jpg"/);assert.match(html,/data-title-ca="Qui som"/);assert.match(html,/data-src-good-en=/);
 });
 
 test('private deck assets only serve catalogued WebP files',async()=>{

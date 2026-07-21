@@ -79,7 +79,7 @@ test('the production API accepts phase progress and the real NotebookLM submissi
 
 test('generator and editor expose progress bars, timelines and interruption recovery',async()=>{
   const [generator,editor,middleware]=await Promise.all([
-    readFile(new URL('../assets/presentation-generator-20260721-9.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-generator-20260721-10.js',import.meta.url),'utf8'),
     readFile(new URL('../assets/presentation-ideas-editor.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8')
   ]);
