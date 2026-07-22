@@ -7,8 +7,8 @@ import {getDeckPack} from '../_deck-library.js';
 
 function withPresenterMode(html,notes){
   return html
-    .replace('</head>','<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260722-1"></head>')
-    .replace('</body>',`<script>window.__ADMIRA_PRESENTER_NOTES__=${safeJson(String(notes||''))}</script><script src="/assets/presentation-presenter-mode.js?v=20260722-1"></script></body>`);
+    .replace('</head>','<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260722-2"></head>')
+    .replace('</body>',`<script>window.__ADMIRA_PRESENTER_NOTES__=${safeJson(String(notes||''))}</script><script src="/assets/presentation-presenter-mode.js?v=20260722-2"></script></body>`);
 }
 
 const sectionLabels={
