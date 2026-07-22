@@ -23,14 +23,16 @@ test('deck library exposes a curated corporate opening and optional XaaS close',
 });
 
 test('generator and presentation route expose the four narrative segments',async()=>{
-  const [generator,presentation,middleware]=await Promise.all([
+  const [generator,presentation,middleware,gallery]=await Promise.all([
     readFile(new URL('../assets/presentation-generator-20260721-11.js',import.meta.url),'utf8'),
     readFile(new URL('../functions/presentaciones/[client]/presentacion.js',import.meta.url),'utf8'),
-    readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8')
+    readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8'),
+    readFile(new URL('../presentaciones/index.html',import.meta.url),'utf8')
   ]);
   assert.match(generator,/Arquitectura de la presentación/);assert.match(generator,/Quiénes somos/);assert.match(generator,/Qué hacemos/);assert.match(generator,/Cómo lo hacemos/);assert.match(generator,/Qué proponemos/);assert.match(generator,/beforeDeck/);assert.match(generator,/beforeLength/);assert.match(generator,/beforeQuality/);assert.match(generator,/Completa · 42/);assert.match(generator,/Good · Look & feel Admira/);assert.match(generator,/Better · Dirección Codex/);assert.match(generator,/Best · Web o película elegida/);assert.match(generator,/afterDeck/);assert.match(generator,/defaultBefore/);
   assert.match(presentation,/beforeSlides/);assert.match(presentation,/afterSlides/);assert.match(presentation,/data-section="proposal"/);assert.match(presentation,/data-section-target/);assert.match(presentation,/sectionLabels/);assert.match(presentation,/uiLabels/);assert.match(presentation,/data-deck-image/);assert.match(presentation,/data-deck-progress-label/);assert.match(presentation,/data-deck-detail/);assert.match(presentation,/data-alt-ca/);assert.match(presentation,/data-src-good-es/);assert.match(presentation,/data-src-better-es/);assert.match(presentation,/data-src-best-es/);assert.match(presentation,/responsiveGoodCss/);assert.match(presentation,/\.deck-good img\{[^}]*object-fit:cover[^}]*opacity:\.72/);assert.match(presentation,/\.deck-good:before\{[^}]*rgba\(232,239,216,\.2\)/);assert.match(presentation,/@media\(max-aspect-ratio:4\/5\)/);assert.match(presentation,/__ADMIRA_APPLY_QUALITY__/);assert.match(presentation,/sequenceNav/);
   assert.match(middleware,/isDeckAssets/);assert.match(middleware,/isBrandAssets/);
+  assert.match(gallery,/class="card control" href="\/presentaciones\/control\/"/);assert.match(gallery,/class="card generator" href="\/presentaciones\/generador\/"/);assert.match(gallery,/Presentador de presentaciones/);assert.match(gallery,/Abrir presentador/);
 });
 
 test('a client presentation renders the curated decks around the dynamic proposal',async()=>{
