@@ -70,6 +70,9 @@
     '<section class="presenter-prompt" aria-labelledby="presenterPromptTitle"><div class="presenter-prompt-head"><strong id="presenterPromptTitle">Notas del orador</strong><div><button type="button" id="presenterPromptSmaller" aria-label="Reducir texto">A−</button><button type="button" id="presenterPromptLarger" aria-label="Aumentar texto">A+</button></div></div>' +
     '<div id="presenterNotes" class="presenter-notes" tabindex="0"></div><div class="presenter-prompt-actions"><button type="button" id="presenterPromptToggle">▶ Teleprompter</button><label>Velocidad <input id="presenterPromptSpeed" type="range" min="1" max="3" step="1" aria-label="Velocidad del teleprompter"></label></div></section>' +
     '<div class="presenter-next"><span>Siguiente</span><strong id="presenterNextTitle">Fin de la presentación</strong></div>' +
+    '<section id="presenterCaptions" class="presenter-prompt" aria-labelledby="presenterCaptionsTitle"><div class="presenter-prompt-head"><div><span>Solo control privado</span><strong id="presenterCaptionsTitle">Subtítulos en vivo</strong></div><span id="presenterCaptionsStatus" role="status" aria-live="polite">Comprobando compatibilidad…</span></div>' +
+    '<div class="presenter-controls compact"><label>Idioma de entrada <select id="presenterCaptionsLanguage" aria-label="Idioma de reconocimiento"><option value="es-ES">Español (España)</option><option value="en-US">English (US)</option><option value="ca-ES">Català</option><option value="fr-FR">Français</option><option value="de-DE">Deutsch</option><option value="it-IT">Italiano</option><option value="pt-PT">Português</option></select></label><button type="button" id="presenterCaptionsStart">Iniciar subtítulos</button><button type="button" id="presenterCaptionsStop" disabled>Detener subtítulos</button></div>' +
+    '<div id="presenterCaptionsPreview" aria-live="off"><p><strong>Final:</strong> <span id="presenterCaptionsFinal">—</span></p><p><strong>Provisional:</strong> <span id="presenterCaptionsInterim">—</span></p></div><p>El texto es efímero: no se guarda ni sale del canal local.</p></section>' +
     '<section id="presenterLaunchAssistant" class="presenter-launch-assistant" data-launch-state="warning" aria-live="polite" aria-labelledby="presenterLaunchTitle"><div class="presenter-launch-assistant-head"><div><span>Preparación de sala</span><strong id="presenterLaunchTitle">Lanzamiento seguro en sala</strong></div><span id="presenterLaunchState" class="presenter-launch-state">Revisión necesaria</span></div>' +
     '<ul id="presenterLaunchChecklist" class="presenter-launch-checklist"><li>Salida de audiencia: pendiente de verificación.</li><li>Screen Details y Pantalla completa se comprobarán al lanzar.</li><li>No molestar: revisión manual obligatoria.</li></ul>' +
     '<div class="presenter-launch-actions"><button type="button" id="presenterAudienceLaunch" aria-describedby="presenterLaunchFallback">Presentar en audiencia</button></div>' +
@@ -98,6 +101,21 @@
   var launchChecklist = document.getElementById('presenterLaunchChecklist');
   var launchFallback = document.getElementById('presenterLaunchFallback');
   var launchState = document.getElementById('presenterLaunchState');
+  var captionsStart = document.getElementById('presenterCaptionsStart');
+  var captionsStop = document.getElementById('presenterCaptionsStop');
+  var captionsLanguage = document.getElementById('presenterCaptionsLanguage');
+  var captionsStatus = document.getElementById('presenterCaptionsStatus');
+  var captionsPreview = document.getElementById('presenterCaptionsPreview');
+  var captionsFinal = document.getElementById('presenterCaptionsFinal');
+  var captionsInterim = document.getElementById('presenterCaptionsInterim');
+  var SpeechRecognitionConstructor = !remoteMode && (window.SpeechRecognition || window.webkitSpeechRecognition);
+  var captionRecognition = null;
+  var captionActive = false;
+  var captionRestartTimer = 0;
+  var captionSession = 0;
+  var captionRevision = 0;
+  var captionFinalText = '';
+  var captionInterimText = '';
 
   durationInput.value = String(durationMinutes);
   speedInput.value = String(promptSpeed);
@@ -107,7 +125,9 @@
     document.documentElement.classList.add('presenter-audience-mode');
     document.documentElement.setAttribute('data-presenter-surface', 'audience');
     var audiencePrivacyStyle = document.createElement('style');
-    audiencePrivacyStyle.textContent = '.presenter-audience-mode.presenter-cursor-hidden,.presenter-audience-mode.presenter-cursor-hidden *{cursor:none!important}';
+    audiencePrivacyStyle.textContent = '.presenter-audience-mode.presenter-cursor-hidden,.presenter-audience-mode.presenter-cursor-hidden *{cursor:none!important}' +
+      '#admiraAudienceCaptions{position:fixed;z-index:2147483646;left:8vw;right:8vw;bottom:5vh;padding:.7em 1em;border-radius:.45em;background:rgba(0,0,0,.82);color:#fff;font:600 clamp(1.2rem,2.8vw,2.6rem)/1.25 system-ui,sans-serif;text-align:center;text-wrap:balance;pointer-events:none;text-shadow:0 2px 3px #000}' +
+      '#admiraAudienceCaptions[hidden]{display:none!important}#admiraAudienceCaptionsInterim{opacity:.68;font-weight:500}';
     document.head.appendChild(audiencePrivacyStyle);
     var privateSelector = '[data-speaker-notes],#admiraPresenterPanel,#admiraPresenterLaunch,[data-presenter-private],.inline-editor,.quality-levels,script[src*="presentation-inline-editor"]';
     var privacyReady = typeof window.__ADMIRA_PRESENTER_NOTES__ === 'undefined' && window.__ADMIRA_CAN_EDIT__ !== true && !document.querySelector(privateSelector);
@@ -115,6 +135,21 @@
     var audienceSequence = 0;
     var audienceIndex = nearestSlide();
     var cursorTimer = 0;
+    var audienceReceivedMessageIds = [];
+    var captionOverlay = document.createElement('div');
+    var captionFinal = document.createElement('span');
+    var captionInterim = document.createElement('span');
+    captionOverlay.id = 'admiraAudienceCaptions';
+    captionOverlay.hidden = true;
+    captionOverlay.setAttribute('role', 'status');
+    captionOverlay.setAttribute('aria-live', 'polite');
+    captionOverlay.setAttribute('aria-atomic', 'true');
+    captionOverlay.setAttribute('aria-label', 'Subtítulos en vivo');
+    captionFinal.id = 'admiraAudienceCaptionsFinal';
+    captionInterim.id = 'admiraAudienceCaptionsInterim';
+    captionOverlay.appendChild(captionFinal);
+    captionOverlay.appendChild(captionInterim);
+    if (privacyReady) document.body.appendChild(captionOverlay);
 
     function hideAudienceCursorSoon() {
       document.documentElement.classList.remove('presenter-cursor-hidden');
@@ -136,7 +171,17 @@
 
     function audienceReceive(payload) {
       if (!payload || payload.source === 'audience') return;
+      if (payload.messageId && audienceReceivedMessageIds.indexOf(payload.messageId) >= 0) return;
+      if (payload.messageId) {
+        audienceReceivedMessageIds.push(payload.messageId);
+        if (audienceReceivedMessageIds.length > 100) audienceReceivedMessageIds.shift();
+      }
       if (payload.type === 'command' || payload.type === 'state') audienceGo(payload.index);
+      if (payload.type === 'captions' && privacyReady) {
+        captionFinal.textContent = String(payload.final || '');
+        captionInterim.textContent = payload.interim ? (payload.final ? ' ' : '') + String(payload.interim) : '';
+        captionOverlay.hidden = !payload.active || !(payload.final || payload.interim);
+      }
     }
 
     if (!privacyReady) {
@@ -182,6 +227,146 @@
         promptSpeed: promptSpeed
       }));
     } catch (_) {}
+  }
+
+  function trimCaptionText(value) {
+    value = String(value || '').replace(/\s+/g, ' ').trim();
+    return value.length > 420 ? value.slice(value.length - 420).replace(/^\S*\s+/, '') : value;
+  }
+
+  function setCaptionControls(message) {
+    captionsStart.disabled = captionActive || !SpeechRecognitionConstructor || !channel || remoteMode;
+    captionsStop.disabled = !captionActive;
+    captionsLanguage.disabled = captionActive;
+    captionsStatus.textContent = message;
+  }
+
+  function sendCaptionState() {
+    captionRevision += 1;
+    broadcast({
+      type: 'captions',
+      active: captionActive,
+      language: captionsLanguage.value,
+      final: captionFinalText,
+      interim: captionInterimText,
+      messageId: 'captions:' + captionSession + ':' + captionRevision
+    }, true);
+  }
+
+  function renderCaptionPreview() {
+    captionsFinal.textContent = captionFinalText || '—';
+    captionsInterim.textContent = captionInterimText || (captionActive ? 'Escuchando…' : '—');
+    captionsPreview.dataset.captionActive = String(captionActive);
+  }
+
+  function createCaptionRecognition() {
+    var recognition = new SpeechRecognitionConstructor();
+    recognition.lang = captionsLanguage.value;
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.addEventListener('start', function () {
+      if (captionActive) setCaptionControls('Escuchando · texto local efímero');
+    });
+    recognition.addEventListener('result', function (event) {
+      if (!captionActive) return;
+      var newFinal = '';
+      var interim = '';
+      for (var index = event.resultIndex; index < event.results.length; index += 1) {
+        var result = event.results[index];
+        var transcript = result && result[0] ? String(result[0].transcript || '').trim() : '';
+        if (!transcript) continue;
+        if (result.isFinal) newFinal += (newFinal ? ' ' : '') + transcript;
+        else interim += (interim ? ' ' : '') + transcript;
+      }
+      if (newFinal) captionFinalText = trimCaptionText(captionFinalText + ' ' + newFinal);
+      captionInterimText = trimCaptionText(interim);
+      renderCaptionPreview();
+      sendCaptionState();
+    });
+    recognition.addEventListener('error', function (event) {
+      var fatal = ['not-allowed', 'service-not-allowed', 'audio-capture', 'network'].indexOf(event.error) >= 0;
+      if (!fatal) {
+        setCaptionControls('Reconocimiento interrumpido (' + event.error + '); reintentando…');
+        return;
+      }
+      captionActive = false;
+      captionInterimText = '';
+      clearTimeout(captionRestartTimer);
+      setCaptionControls(event.error === 'not-allowed'
+        ? 'Permiso de micrófono denegado. Autorízalo en el navegador y vuelve a iniciar.'
+        : 'Reconocimiento no disponible (' + event.error + '). Usa el navegador compatible o subtítulos del sistema.');
+      renderCaptionPreview();
+      sendCaptionState();
+    });
+    recognition.addEventListener('end', function () {
+      if (!captionActive) return;
+      clearTimeout(captionRestartTimer);
+      captionRestartTimer = setTimeout(function () {
+        if (!captionActive) return;
+        try { captionRecognition.start(); }
+        catch (_) {
+          captionActive = false;
+          setCaptionControls('No se pudo reanudar el reconocimiento. Pulsa Iniciar para reintentarlo.');
+          sendCaptionState();
+        }
+      }, 250);
+    });
+    return recognition;
+  }
+
+  function startLiveCaptions() {
+    if (captionActive) return;
+    if (!SpeechRecognitionConstructor) {
+      setCaptionControls('Este navegador no ofrece Web Speech Recognition. Usa Chrome/Edge o los subtítulos del sistema.');
+      return;
+    }
+    if (!channel) {
+      setCaptionControls('Subtítulos desactivados: falta el canal local efímero y no se guardarán transcripciones como fallback.');
+      return;
+    }
+    captionSession += 1;
+    captionRevision = 0;
+    captionFinalText = '';
+    captionInterimText = '';
+    captionActive = true;
+    captionRecognition = createCaptionRecognition();
+    setCaptionControls('Solicitando acceso al micrófono…');
+    renderCaptionPreview();
+    sendCaptionState();
+    try { captionRecognition.start(); }
+    catch (_) {
+      captionActive = false;
+      setCaptionControls('No se pudo iniciar el reconocimiento. Revisa el permiso del micrófono.');
+      sendCaptionState();
+    }
+  }
+
+  function stopLiveCaptions(silent) {
+    if (!captionActive && !captionRecognition) return;
+    captionActive = false;
+    captionFinalText = '';
+    captionInterimText = '';
+    clearTimeout(captionRestartTimer);
+    if (captionRecognition) {
+      try { captionRecognition.abort(); } catch (_) {}
+      captionRecognition = null;
+    }
+    renderCaptionPreview();
+    setCaptionControls(silent ? 'Subtítulos detenidos.' : 'Subtítulos detenidos y texto efímero eliminado.');
+    sendCaptionState();
+  }
+
+  function initializeCaptionControls() {
+    var documentLanguage = String(document.documentElement.lang || navigator.language || 'es-ES').toLowerCase();
+    var matchingOption = Array.prototype.find.call(captionsLanguage.options, function (option) {
+      return option.value.toLowerCase() === documentLanguage || option.value.toLowerCase().split('-')[0] === documentLanguage.split('-')[0];
+    });
+    if (matchingOption) captionsLanguage.value = matchingOption.value;
+    if (remoteMode) setCaptionControls('Inicia los subtítulos desde el control privado principal.');
+    else if (!SpeechRecognitionConstructor) setCaptionControls('No disponible en este navegador. Usa Chrome/Edge o los subtítulos del sistema.');
+    else if (!channel) setCaptionControls('No disponible sin BroadcastChannel: no se persistirá texto como fallback.');
+    else setCaptionControls('Listo · requiere gesto explícito y permiso de micrófono.');
   }
 
   function deckFingerprint() {
@@ -557,11 +742,13 @@
     broadcast({type: 'command', command: name, index: nextIndex});
   }
 
-  function broadcast(payload) {
+  function broadcast(payload, transient) {
     payload.source = remoteMode ? 'remote' : 'stage';
     payload.messageId = payload.messageId || payload.source + ':' + Date.now() + ':' + (++messageSequence);
     if (channel) channel.postMessage(payload);
-    try { localStorage.setItem(channelName, JSON.stringify(Object.assign({nonce: Date.now()}, payload))); } catch (_) {}
+    if (!transient) {
+      try { localStorage.setItem(channelName, JSON.stringify(Object.assign({nonce: Date.now()}, payload))); } catch (_) {}
+    }
   }
 
   function receive(payload) {
@@ -574,6 +761,7 @@
     if (payload.type === 'audience-ready' && !remoteMode) {
       audienceConnected = true;
       audiencePrivacyVerified = Boolean(payload.privacyReady);
+      if (captionActive) sendCaptionState();
       refreshLaunchAssistant();
       render();
       return;
@@ -643,6 +831,8 @@
   document.getElementById('presenterPromptLarger').addEventListener('click', function () { promptSize = clamp(promptSize + 2, 17, 46); notes.style.fontSize = promptSize + 'px'; savePreferences(); });
   document.getElementById('presenterResume').addEventListener('click', resumeSession);
   document.getElementById('presenterDiscard').addEventListener('click', resetSession);
+  captionsStart.addEventListener('click', startLiveCaptions);
+  captionsStop.addEventListener('click', function () { stopLiveCaptions(false); });
   fullscreenButton.addEventListener('click', function () {
     if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
     else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {});
@@ -703,7 +893,7 @@
   addEventListener('storage', function (event) { if (event.key === channelName && event.newValue) { try { receive(JSON.parse(event.newValue)); } catch (_) {} } });
   document.addEventListener('admira:language', function () { notes.dataset.slide = ''; render(); });
   if (channel) channel.addEventListener('message', function (event) { receive(event.data); });
-  addEventListener('pagehide', function () { persistSession(true); if (channel) channel.close(); stopPrompt(true); }, {once: true});
+  addEventListener('pagehide', function () { persistSession(true); stopLiveCaptions(true); if (channel) channel.close(); stopPrompt(true); }, {once: true});
   setInterval(function () {
     if (running && !document.hidden) render();
     if (remoteMode && lastStageSignalAt && Date.now() - lastStageSignalAt > 4000) {
@@ -714,6 +904,7 @@
   }, 500);
 
   if (!navigator.onLine) setConnection('● Sin conexión · modo seguro', 'is-offline');
+  initializeCaptionControls();
   refreshLaunchAssistant();
   refreshOfflineCache();
 

@@ -61,6 +61,27 @@ test('presenter mode includes rehearsal, teleprompter, pace and same-origin remo
   assert.doesNotMatch(source,/WebSocket|EventSource/);
 });
 
+test('live captions stay ephemeral, explicit and idempotent on the local audience channel',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  assert.doesNotThrow(()=>new Function(source));
+  assert.match(source,/window\.SpeechRecognition \|\| window\.webkitSpeechRecognition/);
+  assert.match(source,/id="presenterCaptionsStart"[^>]*>Iniciar subtítulos/);
+  assert.match(source,/id="presenterCaptionsStop"[^>]*disabled[^>]*>Detener subtítulos/);
+  assert.match(source,/id="presenterCaptionsLanguage"/);
+  assert.match(source,/interimResults = true/);
+  assert.match(source,/result\.isFinal/);
+  assert.match(source,/id = 'admiraAudienceCaptions'/);
+  assert.match(source,/setAttribute\('aria-live', 'polite'\)/);
+  assert.match(source,/payload\.type === 'captions'/);
+  assert.match(source,/audienceReceivedMessageIds\.indexOf\(payload\.messageId\) >= 0/);
+  assert.match(source,/messageId: 'captions:' \+ captionSession \+ ':' \+ captionRevision/);
+  assert.match(source,/broadcast\(\{[\s\S]{0,400}?type: 'captions'[\s\S]{0,500}?\}, true\)/);
+  assert.match(source,/if \(!transient\) \{[\s\S]{0,220}?localStorage\.setItem/);
+  assert.match(source,/no se persistirá texto como fallback|no se guardarán transcripciones como fallback/);
+  assert.doesNotMatch(source,/\bfetch\s*\(/);
+  assert.doesNotMatch(source,/WebSocket|EventSource/);
+});
+
 test('safe launch assistant requires an explicit user gesture and has accessible stateful controls',async()=>{
   const [source,styles]=await Promise.all([
     readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
