@@ -20,8 +20,8 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-1/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-2/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-2/);
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);
   assert.doesNotMatch(html,/Recordar el contexto <\/script><script>alert/);
@@ -70,14 +70,22 @@ test('live captions stay ephemeral, explicit and idempotent on the local audienc
   assert.match(source,/id="presenterCaptionsLanguage"/);
   assert.match(source,/interimResults = true/);
   assert.match(source,/result\.isFinal/);
-  assert.match(source,/id = 'admiraAudienceCaptions'/);
-  assert.match(source,/setAttribute\('aria-live', 'polite'\)/);
+  assert.match(source,/window\.AdmiraPresenterCaptions/);
+  assert.match(source,/id="presenterCaptionsTargetLanguage"/);
+  assert.match(source,/id="presenterCaptionsGlossary"/);
+  assert.match(source,/audienceCaptions\.show\(payload\.originalText\)/);
+  assert.match(source,/audienceCaptions\.setLanguages\(payload\.sourceLanguage/);
+  assert.match(source,/audienceCaptions\.setGlossary\(payload\.glossary/);
   assert.match(source,/payload\.type === 'captions'/);
   assert.match(source,/audienceReceivedMessageIds\.indexOf\(payload\.messageId\) >= 0/);
   assert.match(source,/messageId: 'captions:' \+ captionSession \+ ':' \+ captionRevision/);
+  assert.match(source,/targetLanguage: captionsTargetLanguage\.value/);
+  assert.match(source,/glossary: glossary/);
+  assert.match(source,/originalText: trimCaptionText/);
   assert.match(source,/broadcast\(\{[\s\S]{0,400}?type: 'captions'[\s\S]{0,500}?\}, true\)/);
   assert.match(source,/if \(!transient\) \{[\s\S]{0,220}?localStorage\.setItem/);
   assert.match(source,/no se persistirá texto como fallback|no se guardarán transcripciones como fallback/);
+  assert.doesNotMatch(source,/localStorage\.setItem\([^\n]*(?:caption|glossary|transcript)/i);
   assert.doesNotMatch(source,/\bfetch\s*\(/);
   assert.doesNotMatch(source,/WebSocket|EventSource/);
 });

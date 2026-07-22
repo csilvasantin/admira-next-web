@@ -59,6 +59,23 @@ el permiso o el navegador bloquea la ventana, el panel mantiene un aviso explíc
 y permite completar manualmente la colocación. Notificaciones, otras ventanas y
 No molestar siempre requieren comprobación humana antes de compartir.
 
+### Subtítulos y traducción local
+
+El mismo panel privado ofrece subtítulos en vivo mediante Web Speech Recognition.
+El presentador elige el idioma de entrada, el idioma de salida y puede editar un
+glosario con una equivalencia por línea (`término = sustitución`). Micrófono,
+selector y glosario nunca aparecen en la salida de audiencia.
+
+La audiencia recibe el texto original por `BroadcastChannel` y lo muestra de
+inmediato. `AdmiraPresenterCaptions` intenta después traducirlo con la Translator
+API del propio navegador; al terminar sustituye el original y aplica el glosario.
+Si Web Speech o Translator no están disponibles, la interfaz lo indica y conserva
+el original sin fingir una traducción. Las revisiones obsoletas se descartan.
+
+Transcripción y glosario viven solo en memoria: no se envían por red, no se guardan
+en `localStorage`/`sessionStorage` y se eliminan al detener o cerrar la sesión. La
+única comunicación es el canal efímero y local entre el control y la audiencia.
+
 Regresión automatizada:
 
 ```sh

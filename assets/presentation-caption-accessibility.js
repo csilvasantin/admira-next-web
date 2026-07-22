@@ -135,7 +135,11 @@
       mount();
       if (layer && caption && status) {
         caption.textContent = result.text;
-        status.textContent = result.translated ? targetLanguage.toUpperCase() : 'Original · ' + sourceLanguage.toUpperCase();
+        if (result.translated) status.textContent = 'Traducción local · ' + targetLanguage.toUpperCase();
+        else if (result.reason === 'translation-pending') status.textContent = 'Original · ' + sourceLanguage.toUpperCase() + ' · traduciendo';
+        else if (result.reason === 'unsupported') status.textContent = 'Traducción local no disponible · original ' + sourceLanguage.toUpperCase();
+        else if (result.reason === 'translation-error' || result.reason === 'empty-translation') status.textContent = 'Falló la traducción local · original ' + sourceLanguage.toUpperCase();
+        else status.textContent = 'Original · ' + sourceLanguage.toUpperCase();
         layer.hidden = !result.text;
         layer.setAttribute('data-caption-state', result.status);
         layer.setAttribute('lang', result.translated ? targetLanguage : sourceLanguage);

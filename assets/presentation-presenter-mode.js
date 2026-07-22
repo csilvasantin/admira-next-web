@@ -71,8 +71,9 @@
     '<div id="presenterNotes" class="presenter-notes" tabindex="0"></div><div class="presenter-prompt-actions"><button type="button" id="presenterPromptToggle">▶ Teleprompter</button><label>Velocidad <input id="presenterPromptSpeed" type="range" min="1" max="3" step="1" aria-label="Velocidad del teleprompter"></label></div></section>' +
     '<div class="presenter-next"><span>Siguiente</span><strong id="presenterNextTitle">Fin de la presentación</strong></div>' +
     '<section id="presenterCaptions" class="presenter-prompt" aria-labelledby="presenterCaptionsTitle"><div class="presenter-prompt-head"><div><span>Solo control privado</span><strong id="presenterCaptionsTitle">Subtítulos en vivo</strong></div><span id="presenterCaptionsStatus" role="status" aria-live="polite">Comprobando compatibilidad…</span></div>' +
-    '<div class="presenter-controls compact"><label>Idioma de entrada <select id="presenterCaptionsLanguage" aria-label="Idioma de reconocimiento"><option value="es-ES">Español (España)</option><option value="en-US">English (US)</option><option value="ca-ES">Català</option><option value="fr-FR">Français</option><option value="de-DE">Deutsch</option><option value="it-IT">Italiano</option><option value="pt-PT">Português</option></select></label><button type="button" id="presenterCaptionsStart">Iniciar subtítulos</button><button type="button" id="presenterCaptionsStop" disabled>Detener subtítulos</button></div>' +
-    '<div id="presenterCaptionsPreview" aria-live="off"><p><strong>Final:</strong> <span id="presenterCaptionsFinal">—</span></p><p><strong>Provisional:</strong> <span id="presenterCaptionsInterim">—</span></p></div><p>El texto es efímero: no se guarda ni sale del canal local.</p></section>' +
+    '<div class="presenter-controls compact presenter-caption-languages"><label>Idioma de entrada <select id="presenterCaptionsLanguage" aria-label="Idioma de reconocimiento"><option value="es-ES">Español (España)</option><option value="en-US">English (US)</option><option value="ca-ES">Català</option><option value="fr-FR">Français</option><option value="de-DE">Deutsch</option><option value="it-IT">Italiano</option><option value="pt-PT">Português</option></select></label><label>Traducción para audiencia <select id="presenterCaptionsTargetLanguage" aria-label="Idioma de traducción para la audiencia"><option value="en">English</option><option value="es">Español</option><option value="ca">Català</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option></select></label><button type="button" id="presenterCaptionsStart">Iniciar subtítulos</button><button type="button" id="presenterCaptionsStop" disabled>Detener subtítulos</button></div>' +
+    '<label class="presenter-caption-glossary" for="presenterCaptionsGlossary"><span>Glosario efímero <small id="presenterCaptionsGlossaryStatus">vacío · solo memoria</small></span><textarea id="presenterCaptionsGlossary" rows="3" spellcheck="false" placeholder="Admira Next = Admira Next&#10;Smart Room = Sala Inteligente"></textarea></label>' +
+    '<div id="presenterCaptionsPreview" aria-live="off"><p><strong>Final:</strong> <span id="presenterCaptionsFinal">—</span></p><p><strong>Provisional:</strong> <span id="presenterCaptionsInterim">—</span></p></div><p>El original aparece de inmediato; la traducción local lo sustituye cuando termina. Texto y glosario son efímeros: no se guardan ni salen del canal local.</p></section>' +
     '<section id="presenterLaunchAssistant" class="presenter-launch-assistant" data-launch-state="warning" aria-live="polite" aria-labelledby="presenterLaunchTitle"><div class="presenter-launch-assistant-head"><div><span>Preparación de sala</span><strong id="presenterLaunchTitle">Lanzamiento seguro en sala</strong></div><span id="presenterLaunchState" class="presenter-launch-state">Revisión necesaria</span></div>' +
     '<ul id="presenterLaunchChecklist" class="presenter-launch-checklist"><li>Salida de audiencia: pendiente de verificación.</li><li>Screen Details y Pantalla completa se comprobarán al lanzar.</li><li>No molestar: revisión manual obligatoria.</li></ul>' +
     '<div class="presenter-launch-actions"><button type="button" id="presenterAudienceLaunch" aria-describedby="presenterLaunchFallback">Presentar en audiencia</button></div>' +
@@ -104,6 +105,9 @@
   var captionsStart = document.getElementById('presenterCaptionsStart');
   var captionsStop = document.getElementById('presenterCaptionsStop');
   var captionsLanguage = document.getElementById('presenterCaptionsLanguage');
+  var captionsTargetLanguage = document.getElementById('presenterCaptionsTargetLanguage');
+  var captionsGlossary = document.getElementById('presenterCaptionsGlossary');
+  var captionsGlossaryStatus = document.getElementById('presenterCaptionsGlossaryStatus');
   var captionsStatus = document.getElementById('presenterCaptionsStatus');
   var captionsPreview = document.getElementById('presenterCaptionsPreview');
   var captionsFinal = document.getElementById('presenterCaptionsFinal');
@@ -116,6 +120,10 @@
   var captionRevision = 0;
   var captionFinalText = '';
   var captionInterimText = '';
+  var CaptionContract = window.AdmiraPresenterCaptions || null;
+  var captionAccessibility = CaptionContract && typeof CaptionContract.create === 'function'
+    ? CaptionContract.create({sourceLanguage: 'es', targetLanguage: captionsTargetLanguage.value})
+    : null;
 
   durationInput.value = String(durationMinutes);
   speedInput.value = String(promptSpeed);
@@ -125,9 +133,7 @@
     document.documentElement.classList.add('presenter-audience-mode');
     document.documentElement.setAttribute('data-presenter-surface', 'audience');
     var audiencePrivacyStyle = document.createElement('style');
-    audiencePrivacyStyle.textContent = '.presenter-audience-mode.presenter-cursor-hidden,.presenter-audience-mode.presenter-cursor-hidden *{cursor:none!important}' +
-      '#admiraAudienceCaptions{position:fixed;z-index:2147483646;left:8vw;right:8vw;bottom:5vh;padding:.7em 1em;border-radius:.45em;background:rgba(0,0,0,.82);color:#fff;font:600 clamp(1.2rem,2.8vw,2.6rem)/1.25 system-ui,sans-serif;text-align:center;text-wrap:balance;pointer-events:none;text-shadow:0 2px 3px #000}' +
-      '#admiraAudienceCaptions[hidden]{display:none!important}#admiraAudienceCaptionsInterim{opacity:.68;font-weight:500}';
+    audiencePrivacyStyle.textContent = '.presenter-audience-mode.presenter-cursor-hidden,.presenter-audience-mode.presenter-cursor-hidden *{cursor:none!important}';
     document.head.appendChild(audiencePrivacyStyle);
     var privateSelector = '[data-speaker-notes],#admiraPresenterPanel,#admiraPresenterLaunch,[data-presenter-private],.inline-editor,.quality-levels,script[src*="presentation-inline-editor"]';
     var privacyReady = typeof window.__ADMIRA_PRESENTER_NOTES__ === 'undefined' && window.__ADMIRA_CAN_EDIT__ !== true && !document.querySelector(privateSelector);
@@ -136,20 +142,11 @@
     var audienceIndex = nearestSlide();
     var cursorTimer = 0;
     var audienceReceivedMessageIds = [];
-    var captionOverlay = document.createElement('div');
-    var captionFinal = document.createElement('span');
-    var captionInterim = document.createElement('span');
-    captionOverlay.id = 'admiraAudienceCaptions';
-    captionOverlay.hidden = true;
-    captionOverlay.setAttribute('role', 'status');
-    captionOverlay.setAttribute('aria-live', 'polite');
-    captionOverlay.setAttribute('aria-atomic', 'true');
-    captionOverlay.setAttribute('aria-label', 'Subtítulos en vivo');
-    captionFinal.id = 'admiraAudienceCaptionsFinal';
-    captionInterim.id = 'admiraAudienceCaptionsInterim';
-    captionOverlay.appendChild(captionFinal);
-    captionOverlay.appendChild(captionInterim);
-    if (privacyReady) document.body.appendChild(captionOverlay);
+    var AudienceCaptionContract = window.AdmiraPresenterCaptions || null;
+    var audienceCaptions = privacyReady && AudienceCaptionContract && typeof AudienceCaptionContract.create === 'function'
+      ? AudienceCaptionContract.create({document: document, sourceLanguage: 'es', targetLanguage: 'es', label: 'Subtítulos en vivo para la audiencia'})
+      : null;
+    if (audienceCaptions) audienceCaptions.mount(document.body);
 
     function hideAudienceCursorSoon() {
       document.documentElement.classList.remove('presenter-cursor-hidden');
@@ -178,9 +175,16 @@
       }
       if (payload.type === 'command' || payload.type === 'state') audienceGo(payload.index);
       if (payload.type === 'captions' && privacyReady) {
-        captionFinal.textContent = String(payload.final || '');
-        captionInterim.textContent = payload.interim ? (payload.final ? ' ' : '') + String(payload.interim) : '';
-        captionOverlay.hidden = !payload.active || !(payload.final || payload.interim);
+        if (!audienceCaptions) return;
+        audienceCaptions.setLanguages(payload.sourceLanguage || 'es', payload.targetLanguage || payload.sourceLanguage || 'es');
+        audienceCaptions.setGlossary(payload.glossary && typeof payload.glossary === 'object' ? payload.glossary : {});
+        if (!payload.active || !payload.originalText) {
+          audienceCaptions.hide();
+          return;
+        }
+        // `show` pinta siempre el original de forma síncrona y solo lo sustituye
+        // si la Translator API local termina. Las respuestas antiguas se descartan.
+        audienceCaptions.show(payload.originalText);
       }
     }
 
@@ -203,7 +207,7 @@
     if (audienceChannel) audienceChannel.addEventListener('message', function (event) { audienceReceive(event.data); });
     addEventListener('pointermove', hideAudienceCursorSoon, {passive: true});
     addEventListener('focus', hideAudienceCursorSoon);
-    addEventListener('pagehide', function () { clearTimeout(cursorTimer); if (audienceChannel) audienceChannel.close(); }, {once: true});
+    addEventListener('pagehide', function () { clearTimeout(cursorTimer); if (audienceCaptions) audienceCaptions.destroy(); if (audienceChannel) audienceChannel.close(); }, {once: true});
     hideAudienceCursorSoon();
     audienceSend({type: 'audience-ready', privacyReady: privacyReady, index: audienceIndex});
   }
@@ -234,6 +238,39 @@
     return value.length > 420 ? value.slice(value.length - 420).replace(/^\S*\s+/, '') : value;
   }
 
+  function captionSourceLanguage() {
+    return String(captionsLanguage.value || 'es').toLowerCase().split('-')[0];
+  }
+
+  function parseCaptionGlossary() {
+    var entries = {};
+    String(captionsGlossary.value || '').split(/\r?\n/).slice(0, 24).forEach(function (line) {
+      var separator = line.indexOf('=');
+      if (separator < 1) return;
+      var term = line.slice(0, separator).replace(/\s+/g, ' ').trim();
+      var replacement = line.slice(separator + 1).replace(/\s+/g, ' ').trim();
+      if (term && replacement && term.length <= 120 && replacement.length <= 240) entries[term] = replacement;
+    });
+    return entries;
+  }
+
+  function syncCaptionAccessibility() {
+    var glossary = parseCaptionGlossary();
+    var count = Object.keys(glossary).length;
+    captionsGlossaryStatus.textContent = count ? count + (count === 1 ? ' término' : ' términos') + ' · solo memoria' : 'vacío · solo memoria';
+    if (captionAccessibility) {
+      captionAccessibility.setLanguages(captionSourceLanguage(), captionsTargetLanguage.value);
+      captionAccessibility.setGlossary(glossary);
+    }
+    return glossary;
+  }
+
+  function captionTranslationSummary() {
+    if (!CaptionContract || !captionAccessibility) return 'original inmediato · traducción local no disponible';
+    var capabilities = typeof CaptionContract.capabilities === 'function' ? CaptionContract.capabilities() : {};
+    return capabilities.browserTranslation ? 'original inmediato · traducción local progresiva' : 'original inmediato · traducción local no disponible';
+  }
+
   function setCaptionControls(message) {
     captionsStart.disabled = captionActive || !SpeechRecognitionConstructor || !channel || remoteMode;
     captionsStop.disabled = !captionActive;
@@ -242,13 +279,15 @@
   }
 
   function sendCaptionState() {
+    var glossary = syncCaptionAccessibility();
     captionRevision += 1;
     broadcast({
       type: 'captions',
       active: captionActive,
-      language: captionsLanguage.value,
-      final: captionFinalText,
-      interim: captionInterimText,
+      sourceLanguage: captionSourceLanguage(),
+      targetLanguage: captionsTargetLanguage.value,
+      glossary: glossary,
+      originalText: trimCaptionText(captionFinalText + ' ' + captionInterimText),
       messageId: 'captions:' + captionSession + ':' + captionRevision
     }, true);
   }
@@ -266,7 +305,7 @@
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     recognition.addEventListener('start', function () {
-      if (captionActive) setCaptionControls('Escuchando · texto local efímero');
+      if (captionActive) setCaptionControls('Escuchando · ' + captionTranslationSummary());
     });
     recognition.addEventListener('result', function (event) {
       if (!captionActive) return;
@@ -363,10 +402,11 @@
       return option.value.toLowerCase() === documentLanguage || option.value.toLowerCase().split('-')[0] === documentLanguage.split('-')[0];
     });
     if (matchingOption) captionsLanguage.value = matchingOption.value;
+    syncCaptionAccessibility();
     if (remoteMode) setCaptionControls('Inicia los subtítulos desde el control privado principal.');
     else if (!SpeechRecognitionConstructor) setCaptionControls('No disponible en este navegador. Usa Chrome/Edge o los subtítulos del sistema.');
     else if (!channel) setCaptionControls('No disponible sin BroadcastChannel: no se persistirá texto como fallback.');
-    else setCaptionControls('Listo · requiere gesto explícito y permiso de micrófono.');
+    else setCaptionControls('Listo · ' + captionTranslationSummary() + ' · requiere permiso de micrófono.');
   }
 
   function deckFingerprint() {
@@ -598,7 +638,7 @@
   }
 
   function offlineUrls() {
-    var urls = [location.href, '/assets/presentation-presenter-mode.js?v=20260723-1', '/assets/presentation-presenter-mode.css?v=20260723-1'];
+    var urls = [location.href, '/assets/presentation-presenter-mode.js?v=20260723-2', '/assets/presentation-presenter-mode.css?v=20260723-2', '/assets/presentation-caption-accessibility.js?v=20260723-2', '/assets/presentation-caption-accessibility.css?v=20260723-2'];
     document.querySelectorAll('img[src],video[src],audio[src],source[src],link[rel="stylesheet"][href]').forEach(function (node) {
       var value = node.src || node.href;
       try { var parsed = new URL(value, location.href); if (parsed.origin === location.origin) urls.push(parsed.href); } catch (_) {}
@@ -833,6 +873,9 @@
   document.getElementById('presenterDiscard').addEventListener('click', resetSession);
   captionsStart.addEventListener('click', startLiveCaptions);
   captionsStop.addEventListener('click', function () { stopLiveCaptions(false); });
+  captionsLanguage.addEventListener('change', syncCaptionAccessibility);
+  captionsTargetLanguage.addEventListener('change', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
+  captionsGlossary.addEventListener('input', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
   fullscreenButton.addEventListener('click', function () {
     if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
     else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {});
@@ -893,7 +936,7 @@
   addEventListener('storage', function (event) { if (event.key === channelName && event.newValue) { try { receive(JSON.parse(event.newValue)); } catch (_) {} } });
   document.addEventListener('admira:language', function () { notes.dataset.slide = ''; render(); });
   if (channel) channel.addEventListener('message', function (event) { receive(event.data); });
-  addEventListener('pagehide', function () { persistSession(true); stopLiveCaptions(true); if (channel) channel.close(); stopPrompt(true); }, {once: true});
+  addEventListener('pagehide', function () { persistSession(true); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); if (channel) channel.close(); stopPrompt(true); }, {once: true});
   setInterval(function () {
     if (running && !document.hidden) render();
     if (remoteMode && lastStageSignalAt && Date.now() - lastStageSignalAt > 4000) {

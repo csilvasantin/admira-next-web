@@ -38,9 +38,7 @@
   letter-spacing: .08em;
   text-transform: uppercase;
 }
-.presenter-caption-layer[data-caption-state="translating"] .presenter-caption-status::after {
-  content: " · traduciendo en el dispositivo";
-}
+.presenter-caption-layer[data-caption-state="translating"] .presenter-caption-status { opacity: .86; }
 .presenter-caption-layer[data-caption-contrast="high"] {
   --caption-bg: #000;
   --caption-ink: #fff;

@@ -86,6 +86,19 @@ test('show renders the original immediately and replaces it only after translati
   assert.equal(document.body.children[0].attributes.lang,'en');
 });
 
+test('show labels the original honestly when local translation is unavailable',async()=>{
+  const document=fakeDocument();
+  const contract=await loadContract({document});
+  const captions=contract.create({document,sourceLanguage:'es',targetLanguage:'en'});
+  const result=await captions.show('Texto sin traducir');
+  const layer=document.body.children[0];
+  assert.equal(result.translated,false);
+  assert.equal(result.reason,'unsupported');
+  assert.equal(layer.children[0].textContent,'Texto sin traducir');
+  assert.match(layer.children[1].textContent,/Traducción local no disponible · original ES/);
+  assert.equal(layer.attributes.lang,'es');
+});
+
 test('caption assets are injected before the main presenter script for stage and audience output',async()=>{
   for(const suffix of ['', '?audience=1']){
     const response=await renderPresentation({
@@ -93,8 +106,8 @@ test('caption assets are injected before the main presenter script for stage and
       env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas})},next(){throw new Error('unexpected next')}
     });
     const html=await response.text();
-    assert.match(html,/presentation-caption-accessibility\.css\?v=20260723-1/);
-    assert.match(html,/presentation-caption-accessibility\.js\?v=20260723-1/);
+    assert.match(html,/presentation-caption-accessibility\.css\?v=20260723-2/);
+    assert.match(html,/presentation-caption-accessibility\.js\?v=20260723-2/);
     assert.ok(html.indexOf('presentation-caption-accessibility.js')<html.indexOf('presentation-presenter-mode.js'));
   }
 });
