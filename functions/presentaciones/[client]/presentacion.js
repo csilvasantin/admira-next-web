@@ -5,10 +5,31 @@ function option(value,allowed,fallback){ return allowed.includes(value)?value:fa
 function fontStack(style){ return style==='serif'?'Georgia,"Times New Roman",serif':style==='mono'?'ui-monospace,"SF Mono",Menlo,monospace':style==='rounded'?'"Arial Rounded MT Bold",Nunito,-apple-system,sans-serif':'Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif'; }
 import {getDeckPack} from '../_deck-library.js';
 
-function withPresenterMode(html,notes){
-  return html
-    .replace('</head>','<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260722-2"></head>')
-    .replace('</body>',`<script>window.__ADMIRA_PRESENTER_NOTES__=${safeJson(String(notes||''))}</script><script src="/assets/presentation-presenter-mode.js?v=20260722-2"></script></body>`);
+function visibleBlock(value={}){
+  return {id:value.id||'',title:value.title||'',message:value.message||'',detail:value.detail||'',enabled:value.enabled!==false};
+}
+function visibleLocale(value={},fallback={}){
+  return {
+    hero:{eyebrow:value.hero?.eyebrow||fallback.hero?.eyebrow||'',title:value.hero?.title||fallback.hero?.title||'',summary:value.hero?.summary||fallback.hero?.summary||''},
+    objective:value.objective||fallback.objective||'',
+    skeleton:(value.skeleton||fallback.skeleton||[]).filter(item=>item.enabled!==false).map(visibleBlock),
+    closing:{title:value.closing?.title||fallback.closing?.title||'',action:value.closing?.action||fallback.closing?.action||''},
+    labels:{objective:value.labels?.objective||fallback.labels?.objective||'',next:value.labels?.next||fallback.labels?.next||''}
+  };
+}
+function visibleIdeas(value={}){
+  const base=visibleLocale(value),translations={};
+  for(const [language,translation] of Object.entries(value.translations||{})) translations[language]=visibleLocale(translation,base);
+  return {...base,translations};
+}
+
+function withPresenterMode(html,notes,audienceMode=false){
+  const publicHtml=audienceMode?html.replace(/\sdata-speaker-notes=(?:"[^"]*"|'[^']*')/gi,''):html;
+  const marked=audienceMode?publicHtml.replace('<html','<html class="presenter-audience-mode" data-presenter-surface="audience"'):publicHtml;
+  const presenterData=audienceMode?'':`<script>window.__ADMIRA_PRESENTER_NOTES__=${safeJson(String(notes||''))}</script>`;
+  return marked
+    .replace('</head>','<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260723-1"></head>')
+    .replace('</body>',`${presenterData}<script src="/assets/presentation-presenter-mode.js?v=20260723-1"></script></body>`);
 }
 
 const sectionLabels={
@@ -35,6 +56,7 @@ function deckSlides(packId,client,position,options={}){
 
 export async function onRequestGet(context){
   const client=String(context.params.client||'').toLowerCase();
+  const audienceMode=new URL(context.request?.url||`https://admiranext.local/presentaciones/${client}/presentacion`).searchParams.get('audience')==='1';
   const [config,ideas,imageSet]=await Promise.all([
     context.env.PRESENTATION_IDEAS?.get(`presentation:${client}`,{type:'json'}),
     context.env.PRESENTATION_IDEAS?.get(`ideas:${client}`,{type:'json'}),
@@ -45,10 +67,11 @@ export async function onRequestGet(context){
     const asset=await context.env.ASSETS.fetch(source);
     if(asset.ok){
       const marker='<script src="/presentaciones/LaCaixa/content-data?v=20260716-1"></script>';
+      const presentationIdeas=audienceMode?visibleIdeas(ideas):ideas;
       const html=(await asset.text())
         .replace(marker,'')
-        .replace('ideas=window.__ADMIRA_PRESENTATION_CONTENT__||null;',`ideas=${safeJson(ideas)};`);
-      return new Response(withPresenterMode(html,ideas.notes),{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store, must-revalidate','x-robots-tag':'noindex, nofollow'}});
+        .replace('ideas=window.__ADMIRA_PRESENTATION_CONTENT__||null;',`ideas=${safeJson(presentationIdeas)};`);
+      return new Response(withPresenterMode(html,ideas.notes,audienceMode),{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store, must-revalidate','x-robots-tag':'noindex, nofollow'}});
     }
   }
   if(!config||!ideas) return context.next();
@@ -59,14 +82,14 @@ export async function onRequestGet(context){
   const background=color(config.theme?.background,mode==='dark'?'#07101b':'#f4f6f8'),surface=color(config.theme?.surface,mode==='dark'?'#111827':'#ffffff'),text=color(config.theme?.text,mode==='dark'?'#f8fbff':'#142238');
   const radius=Math.max(0,Math.min(32,Number(config.theme?.radius)||10)),shape=config.theme?.radiusStyle==='rounded'?'50%':`${Math.max(2,radius)}px`,density=option(config.theme?.density,['compact','balanced','airy'],'balanced');
   const slidePad=density==='airy'?'11vh 9vw':density==='compact'?'7vh 6vw':'9vh 7vw';
-  const name=esc(config.displayName); const logo=config.brand?.logoUrl===`/presentaciones/${client}/brand/logo`?esc(config.brand.logoUrl):''; const baseBlocks=(ideas.skeleton||[]).filter(item=>item.enabled!==false);
+  const name=esc(config.displayName); const logo=config.brand?.logoUrl===`/presentaciones/${client}/brand/logo`?esc(config.brand.logoUrl):''; const baseBlocks=(ideas.skeleton||[]).filter(item=>item.enabled!==false).map(visibleBlock);
   const languages=(Array.isArray(config.languages)&&config.languages.length?config.languages:ideas.languages)||['es'];
   const defaultLabels={es:{objective:'El objetivo',next:'Siguiente paso'},ca:{objective:"L'objectiu",next:'Següent pas'},en:{objective:'The objective',next:'Next step'}};
-  const locales={es:{hero:ideas.hero||{},objective:ideas.objective||'',skeleton:baseBlocks,closing:ideas.closing||{},labels:ideas.labels||defaultLabels.es}};
+  const locales={es:visibleLocale({...ideas,skeleton:baseBlocks},{labels:defaultLabels.es})};
   for(const language of languages){
     if(language==='es') continue;
     const translated=ideas.translations?.[language]||locales.es;
-    locales[language]={...translated,skeleton:(translated.skeleton||baseBlocks).filter(item=>item.enabled!==false),labels:translated.labels||defaultLabels[language]||defaultLabels.es};
+    locales[language]=visibleLocale(translated,{...locales.es,labels:defaultLabels[language]||defaultLabels.es});
   }
   const imageSlides=Array.isArray(imageSet?.slides)?imageSet.slides:[];
   const adaptedImages=imageSlides.filter(slide=>slide?.status==='ready'&&slide?.textFreeVerified===true&&new RegExp(`^/presentaciones/${client}/images/[a-z0-9._-]+$`,'i').test(String(slide?.url||''))).map(slide=>slide.url);
@@ -96,5 +119,5 @@ export async function onRequestGet(context){
   const responsiveDetailCss=`.deck-detail{display:none}.deck-good .deck-detail{display:block;max-width:720px;margin:24px 0 0;color:rgba(23,33,38,.68);font-size:clamp(17px,2vw,27px);font-weight:620;line-height:1.32}@media(max-aspect-ratio:4/5){.deck-good .deck-detail{max-width:82vw;font-size:clamp(16px,4.4vw,25px)}}`;
   const brandIdentityCss=`.brand-identity{display:flex;align-items:center;gap:8px;margin:0 5px 0 1px;padding-right:7px;border-right:1px solid color-mix(in srgb,var(--ink) 14%,transparent)}.brand-mark{display:grid;place-items:center;width:44px;height:34px;flex:none;overflow:hidden;border:1px solid rgba(10,18,28,.22);border-radius:11px;background:linear-gradient(145deg,#fff 0%,#f4f6f8 58%,#dfe4e9 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.9),0 2px 9px rgba(0,0,0,.18)}.brand-mark img{display:block;width:auto;height:24px;max-width:34px;object-fit:contain;background:transparent!important;filter:drop-shadow(0 0 1.2px rgba(255,255,255,.98)) drop-shadow(0 0 1.4px rgba(8,13,20,.92))}.brand-name{max-width:88px;overflow:hidden;text-overflow:ellipsis;color:color-mix(in srgb,var(--ink) 82%,transparent);font:800 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}@media(max-width:760px){.brand-name{display:none}.brand-identity{gap:0;padding-right:4px}.brand-mark{width:40px}}`;
   html=html.replace('</head>',`<style>${responsiveGoodCss}${responsiveDetailCss}${brandIdentityCss}</style></head>`);
-  return new Response(withPresenterMode(html,ideas.notes),{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
+  return new Response(withPresenterMode(html,ideas.notes,audienceMode),{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
 }

@@ -6,10 +6,15 @@
 
   var query = new URLSearchParams(location.search);
   var remoteMode = query.get('remote') === '1';
+  var audienceMode = query.get('audience') === '1';
+  var channelName = 'admira-presenter:' + location.pathname;
+  if (audienceMode) {
+    startAudienceMode();
+    return;
+  }
   var storageKey = 'admira.presenter.preferences.v1';
   var sessionSchema = 2;
   var sessionStorageKey = 'admira.presenter.session.v' + sessionSchema + ':' + location.pathname + (remoteMode ? ':remote' : ':stage');
-  var channelName = 'admira-presenter:' + location.pathname;
   var startedAt = 0;
   var carriedSeconds = 0;
   var running = false;
@@ -30,6 +35,11 @@
   var cacheReady = false;
   var messageSequence = 0;
   var receivedMessageIds = [];
+  var audienceConnected = false;
+  var audiencePrivacyVerified = false;
+  var audienceWindow = null;
+  var launchScreenStatus = 'Screen Details: pendiente de comprobar tras el gesto.';
+  var launchFullscreenStatus = 'Pantalla completa: pendiente de solicitar.';
 
   var launch = document.createElement('button');
   launch.type = 'button';
@@ -37,6 +47,7 @@
   launch.className = 'presenter-launch';
   launch.setAttribute('aria-controls', 'admiraPresenterPanel');
   launch.setAttribute('aria-expanded', 'false');
+  launch.setAttribute('data-presenter-private', '');
   launch.textContent = 'Ensayar';
   document.body.appendChild(launch);
 
@@ -45,6 +56,7 @@
   panel.className = 'presenter-panel';
   panel.hidden = true;
   panel.setAttribute('aria-label', 'Modo presentador inteligente');
+  panel.setAttribute('data-presenter-private', '');
   panel.innerHTML =
     '<header class="presenter-head"><div><span>Ensayo inteligente</span><strong id="presenterSlideLabel">Diapositiva</strong></div>' +
     '<button type="button" id="presenterClose" aria-label="Cerrar modo presentador">×</button></header>' +
@@ -58,6 +70,10 @@
     '<section class="presenter-prompt" aria-labelledby="presenterPromptTitle"><div class="presenter-prompt-head"><strong id="presenterPromptTitle">Notas del orador</strong><div><button type="button" id="presenterPromptSmaller" aria-label="Reducir texto">A−</button><button type="button" id="presenterPromptLarger" aria-label="Aumentar texto">A+</button></div></div>' +
     '<div id="presenterNotes" class="presenter-notes" tabindex="0"></div><div class="presenter-prompt-actions"><button type="button" id="presenterPromptToggle">▶ Teleprompter</button><label>Velocidad <input id="presenterPromptSpeed" type="range" min="1" max="3" step="1" aria-label="Velocidad del teleprompter"></label></div></section>' +
     '<div class="presenter-next"><span>Siguiente</span><strong id="presenterNextTitle">Fin de la presentación</strong></div>' +
+    '<section id="presenterLaunchAssistant" class="presenter-launch-assistant" data-launch-state="warning" aria-live="polite" aria-labelledby="presenterLaunchTitle"><div class="presenter-launch-assistant-head"><div><span>Preparación de sala</span><strong id="presenterLaunchTitle">Lanzamiento seguro en sala</strong></div><span id="presenterLaunchState" class="presenter-launch-state">Revisión necesaria</span></div>' +
+    '<ul id="presenterLaunchChecklist" class="presenter-launch-checklist"><li>Salida de audiencia: pendiente de verificación.</li><li>Screen Details y Pantalla completa se comprobarán al lanzar.</li><li>No molestar: revisión manual obligatoria.</li></ul>' +
+    '<div class="presenter-launch-actions"><button type="button" id="presenterAudienceLaunch" aria-describedby="presenterLaunchFallback">Presentar en audiencia</button></div>' +
+    '<p id="presenterLaunchFallback" class="presenter-launch-fallback">La Web no puede garantizar otras ventanas ni activar No molestar. Revisa manualmente el escritorio antes de compartir.</p></section>' +
     '<div class="presenter-remote"><button type="button" id="presenterRemoteOpen">Abrir control remoto ↗</button><span id="presenterRemoteState">Mismo navegador · canal privado local</span></div>';
   document.body.appendChild(panel);
 
@@ -78,10 +94,74 @@
   var recoveryPanel = document.getElementById('presenterRecovery');
   var recoverySummary = document.getElementById('presenterRecoverySummary');
   var fullscreenButton = document.getElementById('presenterFullscreen');
+  var launchAssistant = document.getElementById('presenterLaunchAssistant');
+  var launchChecklist = document.getElementById('presenterLaunchChecklist');
+  var launchFallback = document.getElementById('presenterLaunchFallback');
+  var launchState = document.getElementById('presenterLaunchState');
 
   durationInput.value = String(durationMinutes);
   speedInput.value = String(promptSpeed);
   notes.style.fontSize = promptSize + 'px';
+
+  function startAudienceMode() {
+    document.documentElement.classList.add('presenter-audience-mode');
+    document.documentElement.setAttribute('data-presenter-surface', 'audience');
+    var audiencePrivacyStyle = document.createElement('style');
+    audiencePrivacyStyle.textContent = '.presenter-audience-mode.presenter-cursor-hidden,.presenter-audience-mode.presenter-cursor-hidden *{cursor:none!important}';
+    document.head.appendChild(audiencePrivacyStyle);
+    var privateSelector = '[data-speaker-notes],#admiraPresenterPanel,#admiraPresenterLaunch,[data-presenter-private],.inline-editor,.quality-levels,script[src*="presentation-inline-editor"]';
+    var privacyReady = typeof window.__ADMIRA_PRESENTER_NOTES__ === 'undefined' && window.__ADMIRA_CAN_EDIT__ !== true && !document.querySelector(privateSelector);
+    var audienceChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(channelName) : null;
+    var audienceSequence = 0;
+    var audienceIndex = nearestSlide();
+    var cursorTimer = 0;
+
+    function hideAudienceCursorSoon() {
+      document.documentElement.classList.remove('presenter-cursor-hidden');
+      clearTimeout(cursorTimer);
+      cursorTimer = setTimeout(function () { document.documentElement.classList.add('presenter-cursor-hidden'); }, 1400);
+    }
+
+    function audienceSend(payload) {
+      payload.source = 'audience';
+      payload.messageId = 'audience:' + Date.now() + ':' + (++audienceSequence);
+      if (audienceChannel) audienceChannel.postMessage(payload);
+      try { localStorage.setItem(channelName, JSON.stringify(Object.assign({nonce: Date.now()}, payload))); } catch (_) {}
+    }
+
+    function audienceGo(index) {
+      audienceIndex = clamp(Number(index) || 0, 0, slides.length - 1);
+      slides[audienceIndex].scrollIntoView({behavior: 'auto'});
+    }
+
+    function audienceReceive(payload) {
+      if (!payload || payload.source === 'audience') return;
+      if (payload.type === 'command' || payload.type === 'state') audienceGo(payload.index);
+    }
+
+    if (!privacyReady) {
+      var warning = document.createElement('main');
+      var title = document.createElement('h1');
+      var detail = document.createElement('p');
+      title.textContent = 'Salida de audiencia bloqueada';
+      detail.textContent = 'Esta respuesta contiene datos o controles privados. Vuelve al control del presentador y reintenta; no compartas esta ventana.';
+      warning.appendChild(title);
+      warning.appendChild(detail);
+      document.body.replaceChildren(warning);
+    }
+
+    addEventListener('storage', function (event) {
+      if (event.key === channelName && event.newValue) {
+        try { audienceReceive(JSON.parse(event.newValue)); } catch (_) {}
+      }
+    });
+    if (audienceChannel) audienceChannel.addEventListener('message', function (event) { audienceReceive(event.data); });
+    addEventListener('pointermove', hideAudienceCursorSoon, {passive: true});
+    addEventListener('focus', hideAudienceCursorSoon);
+    addEventListener('pagehide', function () { clearTimeout(cursorTimer); if (audienceChannel) audienceChannel.close(); }, {once: true});
+    hideAudienceCursorSoon();
+    audienceSend({type: 'audience-ready', privacyReady: privacyReady, index: audienceIndex});
+  }
 
   function readPreferences() {
     try {
@@ -233,8 +313,107 @@
     connectionState.className = className;
   }
 
+  function setLaunchChecklist(items) {
+    launchChecklist.replaceChildren();
+    items.forEach(function (item) {
+      var row = document.createElement('li');
+      row.textContent = item;
+      row.dataset.checkStatus = /^BLOQUEADO/.test(item) ? 'blocked' : (/verificada|detectó una pantalla separada|Pantalla completa solicitada/.test(item) ? 'ready' : 'warning');
+      launchChecklist.appendChild(row);
+    });
+  }
+
+  function setLaunchState(state, fallback) {
+    launchAssistant.dataset.launchState = ['ready', 'warning', 'blocked'].indexOf(state) >= 0 ? state : 'warning';
+    launchState.textContent = state === 'ready' ? 'Listo' : (state === 'blocked' ? 'Bloqueado' : 'Revisión necesaria');
+    launchFallback.textContent = fallback;
+  }
+
+  function refreshLaunchAssistant() {
+    var privacyStatus = !audienceConnected
+      ? 'Salida dedicada: pendiente; aún no se ha verificado que la audiencia no reciba notas.'
+      : (audiencePrivacyVerified
+        ? 'Salida dedicada verificada: la audiencia no recibió notas ni controles privados.'
+        : 'BLOQUEADO: la salida de audiencia detectó datos o controles privados. No la compartas.');
+    setLaunchChecklist([
+      privacyStatus,
+      launchScreenStatus,
+      launchFullscreenStatus,
+      'No molestar: la Web no puede activarlo ni comprobar otras ventanas; revísalo manualmente.'
+    ]);
+    if (audienceConnected && !audiencePrivacyVerified) {
+      setLaunchState('blocked', 'No compartas la salida bloqueada. Cierra esa ventana y reintenta cuando la respuesta de audiencia ya no incluya datos privados.');
+    } else if (audienceConnected) {
+      setLaunchState('warning', 'Notas y controles privados separados. Aún debes comprobar manualmente notificaciones, otras ventanas y No molestar.');
+    } else {
+      setLaunchState('warning', 'La comprobación previa no promete privacidad todavía. Lanza la salida y espera la confirmación antes de compartir.');
+    }
+  }
+
+  function requestAudienceFullscreen(targetWindow, targetScreen) {
+    function requestNow() {
+      try {
+        var target = targetWindow.document.documentElement;
+        if (!target || !target.requestFullscreen) {
+          launchFullscreenStatus = 'Pantalla completa no disponible; actívala manualmente en la ventana de audiencia.';
+          refreshLaunchAssistant();
+          return;
+        }
+        var request = targetScreen ? target.requestFullscreen({screen: targetScreen}) : target.requestFullscreen();
+        Promise.resolve(request).then(function () {
+          launchFullscreenStatus = targetScreen
+            ? 'Pantalla completa solicitada en la pantalla de audiencia seleccionada.'
+            : 'Pantalla completa solicitada en la pantalla principal.';
+          refreshLaunchAssistant();
+        }).catch(function () {
+          launchFullscreenStatus = 'El navegador rechazó Pantalla completa automática; actívala manualmente en la audiencia.';
+          refreshLaunchAssistant();
+        });
+      } catch (_) {
+        launchFullscreenStatus = 'No se pudo activar Pantalla completa automáticamente; continúa manualmente en la audiencia.';
+        refreshLaunchAssistant();
+      }
+    }
+
+    try {
+      if (targetWindow.document.readyState === 'complete') requestNow();
+      else targetWindow.addEventListener('load', requestNow, {once: true});
+    } catch (_) {
+      launchFullscreenStatus = 'La ventana de audiencia exige activar Pantalla completa manualmente.';
+      refreshLaunchAssistant();
+    }
+  }
+
+  function configureAudienceDisplay(targetWindow) {
+    if (typeof window.getScreenDetails !== 'function') {
+      launchScreenStatus = 'Screen Details no disponible; el navegador no permite asignar una pantalla. Mueve la audiencia manualmente.';
+      refreshLaunchAssistant();
+      requestAudienceFullscreen(targetWindow, null);
+      return;
+    }
+    launchScreenStatus = 'Screen Details: solicitando permiso para elegir una pantalla de audiencia…';
+    refreshLaunchAssistant();
+    window.getScreenDetails().then(function (details) {
+      var screens = Array.prototype.slice.call(details.screens || []);
+      var targetScreen = screens.find(function (screen) { return screen !== details.currentScreen; }) || null;
+      if (!targetScreen) {
+        launchScreenStatus = 'Screen Details no encontró una segunda pantalla; se usará la pantalla principal con selección manual.';
+        refreshLaunchAssistant();
+        requestAudienceFullscreen(targetWindow, null);
+        return;
+      }
+      launchScreenStatus = 'Screen Details detectó una pantalla separada; se solicitará allí la salida de audiencia.';
+      refreshLaunchAssistant();
+      requestAudienceFullscreen(targetWindow, targetScreen);
+    }).catch(function () {
+      launchScreenStatus = 'Permiso de Screen Details denegado o no disponible; elige la pantalla manualmente.';
+      refreshLaunchAssistant();
+      requestAudienceFullscreen(targetWindow, null);
+    });
+  }
+
   function offlineUrls() {
-    var urls = [location.href, '/assets/presentation-presenter-mode.js?v=20260722-2', '/assets/presentation-presenter-mode.css?v=20260722-2'];
+    var urls = [location.href, '/assets/presentation-presenter-mode.js?v=20260723-1', '/assets/presentation-presenter-mode.css?v=20260723-1'];
     document.querySelectorAll('img[src],video[src],audio[src],source[src],link[rel="stylesheet"][href]').forEach(function (node) {
       var value = node.src || node.href;
       try { var parsed = new URL(value, location.href); if (parsed.origin === location.origin) urls.push(parsed.href); } catch (_) {}
@@ -392,6 +571,13 @@
       receivedMessageIds.push(payload.messageId);
       if (receivedMessageIds.length > 100) receivedMessageIds.shift();
     }
+    if (payload.type === 'audience-ready' && !remoteMode) {
+      audienceConnected = true;
+      audiencePrivacyVerified = Boolean(payload.privacyReady);
+      refreshLaunchAssistant();
+      render();
+      return;
+    }
     if (payload.type === 'ready' && !remoteMode) { render(); return; }
     if (payload.type === 'command' && !remoteMode) {
       var requestedIndex = Number(payload.index);
@@ -465,6 +651,31 @@
     var url = new URL(location.href); url.searchParams.set('presenter', '1'); url.searchParams.set('remote', '1');
     window.open(url, 'admira-presenter-remote', 'popup=yes,width=460,height=820');
   });
+  document.getElementById('presenterAudienceLaunch').addEventListener('click', function () {
+    var url = new URL(location.href);
+    url.searchParams.delete('remote');
+    url.searchParams.set('audience', '1');
+    audienceConnected = false;
+    audiencePrivacyVerified = false;
+    launchScreenStatus = 'Screen Details: esperando respuesta del navegador.';
+    launchFullscreenStatus = 'Pantalla completa: esperando que cargue la salida de audiencia.';
+    audienceWindow = window.open(url, 'admira-presenter-audience', 'popup=yes');
+    if (!audienceWindow) {
+      launchScreenStatus = 'Ventana de audiencia bloqueada por el navegador.';
+      launchFullscreenStatus = 'Pantalla completa no solicitada porque no se abrió la audiencia.';
+      setLaunchState('blocked', 'Permite ventanas emergentes y pulsa de nuevo. No compartas la ventana de control.');
+      setLaunchChecklist([
+        'BLOQUEADO: no existe una salida de audiencia separada.',
+        launchScreenStatus,
+        launchFullscreenStatus,
+        'No molestar: actívalo manualmente antes de compartir.'
+      ]);
+      return;
+    }
+    document.documentElement.classList.add('presenter-launch-confirmed');
+    refreshLaunchAssistant();
+    configureAudienceDisplay(audienceWindow);
+  });
   addEventListener('keydown', function (event) {
     if (event.defaultPrevented || event.target?.closest?.('input,textarea,select,button,[contenteditable="true"]')) return;
     if (event.key.toLowerCase() === 'p') { event.preventDefault(); panel.hidden ? openPanel() : closePanel(); }
@@ -503,6 +714,7 @@
   }, 500);
 
   if (!navigator.onLine) setConnection('● Sin conexión · modo seguro', 'is-offline');
+  refreshLaunchAssistant();
   refreshOfflineCache();
 
   if (remoteMode || query.get('presenter') === '1') openPanel();

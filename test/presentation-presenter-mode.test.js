@@ -7,8 +7,8 @@ function kv(values){return{async get(key,options){const value=values[key];return
 
 const config={displayName:'Demo',outputs:['website'],languages:['es'],theme:{},sequence:{}};
 const ideas={
-  hero:{title:'Propuesta',summary:'Resumen'},objective:'Objetivo',
-  skeleton:[{id:'uno',title:'Idea',message:'Mensaje',detail:'Detalle',enabled:true}],
+  hero:{title:'Propuesta',summary:'Resumen',speakerNotes:'Nota privada de portada'},objective:'Objetivo',
+  skeleton:[{id:'uno',title:'Idea',message:'Mensaje',detail:'Detalle',enabled:true,notes:'Nota privada de bloque'}],
   closing:{title:'Cierre',action:'Acción'},labels:{objective:'Objetivo',next:'Siguiente'},
   notes:'Recordar el contexto </script><script>alert(1)</script>'
 };
@@ -20,11 +20,26 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=20260722-2/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260722-2/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-1/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-1/);
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);
   assert.doesNotMatch(html,/Recordar el contexto <\/script><script>alert/);
+});
+
+test('audience output is structurally separated and never serializes private presenter notes',async()=>{
+  const response=await renderPresentation({
+    params:{client:'demo'},request:new Request('https://admiranext.test/presentaciones/demo/presentacion?audience=1'),
+    env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas})},
+    next(){throw new Error('unexpected next')}
+  });
+  const html=await response.text();
+  assert.equal(response.status,200);
+  assert.match(html,/presentation-presenter-mode\.js\?v=/);
+  assert.doesNotMatch(html,/__ADMIRA_PRESENTER_NOTES__/);
+  assert.doesNotMatch(html,/Recordar el contexto/);
+  assert.doesNotMatch(html,/Nota privada de portada|Nota privada de bloque/);
+  assert.doesNotMatch(html,/Notas del orador|presenterNotes|admiraPresenterPanel/);
 });
 
 test('presenter mode includes rehearsal, teleprompter, pace and same-origin remote controls',async()=>{
@@ -44,6 +59,59 @@ test('presenter mode includes rehearsal, teleprompter, pace and same-origin remo
   assert.match(source,/prefers-reduced-motion/);
   assert.doesNotMatch(source,/\bfetch\s*\(/);
   assert.doesNotMatch(source,/WebSocket|EventSource/);
+});
+
+test('safe launch assistant requires an explicit user gesture and has accessible stateful controls',async()=>{
+  const [source,styles]=await Promise.all([
+    readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-mode.css',import.meta.url),'utf8')
+  ]);
+  // Integration contract with task A: launching the audience window must stay inside this click handler.
+  assert.match(source,/id="presenterLaunchAssistant"/);
+  assert.match(source,/class="presenter-launch-assistant"/);
+  assert.match(source,/data-launch-state="(?:ready|warning|blocked)"/);
+  assert.match(source,/id="presenterLaunchChecklist"/);
+  assert.match(source,/id="presenterAudienceLaunch"[^>]*>[^<]*(?:Presentar|audiencia|lanzar)/i);
+  assert.match(source,/presenterAudienceLaunch[\s\S]{0,6000}?addEventListener\('click'/);
+  assert.match(source,/aria-live="polite"/);
+  assert.match(source,/aria-describedby="presenterLaunchFallback"/);
+  assert.match(styles,/\.presenter-launch-assistant\[data-launch-state="ready"\]/);
+  assert.match(styles,/\.presenter-launch-assistant\[data-launch-state="warning"\]/);
+  assert.match(styles,/\.presenter-launch-assistant\[data-launch-state="blocked"\]/);
+  assert.match(styles,/\.presenter-launch-actions button:focus-visible/);
+  assert.match(styles,/\.presenter-launch-actions button:disabled/);
+});
+
+test('safe launch explains Screen Details, Fullscreen and do-not-disturb fallbacks',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  assert.match(source,/getScreenDetails/);
+  assert.match(source,/requestFullscreen/);
+  assert.match(source,/Screen Details/i);
+  assert.match(source,/Pantalla completa/i);
+  assert.match(source,/No molestar/i);
+  assert.match(source,/id="presenterLaunchFallback"/);
+  assert.match(source,/(?:manual|manualmente|contin(?:uar|\u00faa)|misma ventana|pantalla principal)/i);
+  assert.match(source,/catch\s*\([^)]*\)\s*\{|\.catch\s*\(/);
+});
+
+test('audience mode cannot render presenter controls, notes or private-marked content',async()=>{
+  const [source,styles]=await Promise.all([
+    readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-mode.css',import.meta.url),'utf8')
+  ]);
+  // Integration contract with task A: the audience query is handled before constructing the private panel.
+  assert.match(source,/query\.get\('audience'\) === '1'/);
+  assert.match(source,/presenter-audience-mode/);
+  assert.match(source,/if\s*\([^)]*audienceMode[^)]*\)\s*\{[\s\S]{0,800}?return;/);
+  assert.match(styles,/\.presenter-audience-mode \.presenter-panel[\s\S]*\.presenter-audience-mode \.presenter-notes[\s\S]*\.presenter-audience-mode \.inline-editor[\s\S]*\.presenter-audience-mode \.quality-levels[\s\S]*\.presenter-audience-mode \[data-presenter-private\]\{display:none!important\}/);
+  assert.match(source,/presenter-cursor-hidden/);
+  assert.match(source,/addEventListener\('pointermove', hideAudienceCursorSoon/);
+});
+
+test('middleware never injects editor controls into the audience response',async()=>{
+  const middleware=await readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8');
+  assert.match(middleware,/isAudienceOutput = isPresentationMode && url\.searchParams\.get\('audience'\) === '1'/);
+  assert.match(middleware,/isPresentationMode && !isAudienceOutput && \(masterValid \|\| editorValid\)/);
 });
 
 test('presenter preferences persist only non-sensitive timing and reading settings',async()=>{

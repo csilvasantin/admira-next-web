@@ -44,3 +44,23 @@ The site is static. The public entry point lets visitors choose:
 ```sh
 python3 -m http.server 4827
 ```
+
+## Lanzamiento seguro del presentador
+
+La ruta privada `/presentaciones/<cliente>/presentacion` incluye un asistente de
+preparación de sala. Desde el panel de ensayo, **Presentar en audiencia** abre una
+salida separada con `?audience=1`: esa respuesta no serializa notas del orador ni
+inyecta controles de edición, oculta el cursor tras una breve inactividad y solo
+recibe navegación por el canal local del mismo origen.
+
+Si el navegador admite Screen Details, el asistente intenta seleccionar una
+segunda pantalla y solicitar pantalla completa. Si no está disponible, se deniega
+el permiso o el navegador bloquea la ventana, el panel mantiene un aviso explícito
+y permite completar manualmente la colocación. Notificaciones, otras ventanas y
+No molestar siempre requieren comprobación humana antes de compartir.
+
+Regresión automatizada:
+
+```sh
+node --test test/*.test.js
+```
