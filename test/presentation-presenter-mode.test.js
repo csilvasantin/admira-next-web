@@ -20,8 +20,8 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=1/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260722-1/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260722-1/);
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);
   assert.doesNotMatch(html,/Recordar el contexto <\/script><script>alert/);
