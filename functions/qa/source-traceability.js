@@ -1,4 +1,5 @@
 import {createCompatibilityLab} from '../presentaciones/_compatibility-lab.js';
+import {createRoomDeviceLab} from '../presentaciones/_room-device-lab.js';
 
 const contract={
   schemaVersion:1,
@@ -21,6 +22,10 @@ const compatibilityLab=createCompatibilityLab({
   features:['css-layout','interactive-controls','custom-fonts','video'],
   now:'2026-07-24T00:00:00.000Z'
 });
+const roomDeviceLab=createRoomDeviceLab({
+  features:['css-layout','interactive-controls','custom-fonts','video'],
+  now:'2026-07-24T00:00:00.000Z'
+});
 
 function safeJson(value){
   return JSON.stringify(value).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
@@ -31,8 +36,9 @@ function page(audienceMode){
   const coverNotes=audienceMode?'':' data-speaker-notes="Confirmar fuentes antes de presentar."';
   const objectiveNotes=audienceMode?'':' data-speaker-notes="Validar aislamiento de audiencia."';
   const privateRuntime=audienceMode?'':`
-  <script>window.__ADMIRA_PRESENTER_NOTES__="Fixture de QA sin datos reales.";window.__ADMIRA_SOURCE_TRACEABILITY__=${safeJson(contract)};window.__ADMIRA_COMPATIBILITY_LAB__=${safeJson(compatibilityLab)}</script>
-  <script src="/assets/presentation-source-traceability.js?v=20260724-1"></script>`;
+  <script>window.__ADMIRA_PRESENTER_NOTES__="Fixture de QA sin datos reales.";window.__ADMIRA_SOURCE_TRACEABILITY__=${safeJson(contract)};window.__ADMIRA_COMPATIBILITY_LAB__=${safeJson(compatibilityLab)};window.__ADMIRA_ROOM_DEVICE_LAB__=${safeJson(roomDeviceLab)}</script>
+  <script src="/assets/presentation-source-traceability.js?v=20260724-1"></script>
+  <script src="/assets/presentation-room-device-lab.js?v=20260724-1"></script>`;
   return `<!doctype html>
 <html lang="es" class="${audienceMode?'presenter-audience-mode':''}" data-presenter-surface="${surface}">
 <head>

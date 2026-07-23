@@ -14,7 +14,9 @@ test('fixture visual usa el runtime real y expone contrato solo al presentador',
   assert.match(html,/data-presenter-surface="presenter"/);
   assert.match(html,/__ADMIRA_SOURCE_TRACEABILITY__/);
   assert.match(html,/__ADMIRA_COMPATIBILITY_LAB__/);
+  assert.match(html,/__ADMIRA_ROOM_DEVICE_LAB__/);
   assert.match(html,/presentation-source-traceability\.js/);
+  assert.match(html,/presentation-room-device-lab\.js/);
   assert.match(html,/presentation-presenter-mode\.js/);
   assert.match(html,/claim-cover/);
   assert.doesNotMatch(html,/presenter-audience-mode/);
@@ -27,5 +29,5 @@ test('fixture visual de audiencia elimina contrato, runtime privado y notas',asy
   assert.match(html,/presenter-audience-mode/);
   assert.match(html,/data-presenter-surface="audience"/);
   assert.match(html,/presentation-presenter-mode\.js/);
-  assert.doesNotMatch(html,/__ADMIRA_SOURCE_TRACEABILITY__|__ADMIRA_COMPATIBILITY_LAB__|presentation-source-traceability\.js|proposal:qa|claim-cover|data-speaker-notes|Confirmar fuentes|Validar aislamiento/);
+  assert.doesNotMatch(html,/__ADMIRA_SOURCE_TRACEABILITY__|__ADMIRA_COMPATIBILITY_LAB__|__ADMIRA_ROOM_DEVICE_LAB__|presentation-source-traceability\.js|presentation-room-device-lab\.js|mobile:codecs|proposal:qa|claim-cover|data-speaker-notes|Confirmar fuentes|Validar aislamiento/);
 });
