@@ -7,7 +7,7 @@ export async function onRequest({request,params,env}){
   if(request.method!=='PUT')return json({error:'Método no permitido.'},405);
   const origin=request.headers.get('origin'),url=new URL(request.url);if(!origin||origin!==url.origin)return json({error:'Origen no permitido.'},403);
   let raw;try{raw=await request.json()}catch(_){return json({error:'JSON no válido.'},400)}
-  let site=normalizePresite({...raw,slug:existing.slug},existing),label='bloques editados';
+  let site=normalizePresite({...raw,slug:existing.slug},existing),label='storyboard editado';
   if(raw.action==='simulate-publish'){
     site={...existing,status:'review-ready',publication:{mode:'simulation',published:false,simulatedAt:new Date().toISOString()},updatedAt:new Date().toISOString()};
     label='publicación simulada';

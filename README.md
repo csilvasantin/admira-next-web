@@ -39,27 +39,33 @@ The site is static. The public entry point lets visitors choose:
 - `404.html`
 - `old/*.html` classic corporate web
 - `/presentaciones/` workspace privado de presentaciones.
-- `/presites/` workspace privado para crear, editar y validar homes iniciales.
+- `/presites/` workspace privado para crear intros previas a una presentación,
+  un site o una app.
 
 ## Generador de Presites
 
 Presites comparte dominio, acceso interno, almacenamiento KV y lenguaje
-cuadrático con el Generador de Presentaciones, pero conserva un modelo de datos
-aislado mediante claves `presite:*`.
+cuadrático con el Generador de Presentaciones, pero su producto es una secuencia
+audiovisual autónoma. Recupera el espíritu de las intros arcade, VHS y
+synthwave de los 80/90 con geometría, tipografía y sonido sintético originales;
+no incluye personajes, canciones ni material protegido de terceros.
 
-- `/presites/generador/`: brief, objetivo, audiencia e idioma, tres direcciones
-  Good/Better/Best y preview responsive desktop/tablet/móvil.
-- `/presites/<slug>/`: edición por seis bloques, histórico de hasta 20 versiones,
-  restauración y simulación segura de publicación.
-- `/presites/<slug>/preview`: render responsive sin JavaScript ni dependencias
-  remotas, con CSP restrictiva.
-- `/presites/<slug>/export`: descarga de un HTML autónomo. La exportación no
-  publica, no toca DNS ni reemplaza ninguna home real.
+- `/presites/generador/`: brief, referencias culturales, idioma, duración,
+  estilo, destino y tres direcciones Good/Better/Best, con preview full-screen.
+- `/presites/<slug>/`: storyboard editable de cinco beats, ritmo global,
+  histórico de hasta 20 versiones, restauración y revisión segura.
+- `/presites/<slug>/preview`: reproducción aislada. **Skip intro** está visible
+  desde el primer fotograma; `Esc` salta, `Enter` entra, pausa y sonido son
+  opcionales y `prefers-reduced-motion` muestra una portada estática.
+- `/presites/<slug>/export`: HTML autónomo con transición hacia una ruta interna
+  o URL HTTPS validada. La exportación no publica, no toca DNS ni reemplaza el
+  destino.
 
-El MVP genera una narrativa determinista. `functions/presites/_presite.js`
-centraliza el modelo y el render para que un proveedor IA futuro pueda proponer
-el contenido sin cambiar rutas, persistencia, editor, versiones ni exportación.
-El workspace es `noindex` y no se incluye en `sitemap.xml` deliberadamente.
+`functions/presites/_presite.js` centraliza el modelo v2, la normalización y el
+runtime para que una futura pieza de vídeo generada con IA pueda sustituir o
+acompañar la animación procedimental sin cambiar rutas, persistencia, editor,
+versiones ni salida segura. El sonido parte apagado y solo se crea tras una
+interacción. El workspace es `noindex` y no se incluye en `sitemap.xml`.
 
 ## Local preview
 
