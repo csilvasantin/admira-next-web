@@ -31,3 +31,10 @@ test('fixture visual de audiencia elimina contrato, runtime privado y notas',asy
   assert.match(html,/presentation-presenter-mode\.js/);
   assert.doesNotMatch(html,/__ADMIRA_SOURCE_TRACEABILITY__|__ADMIRA_COMPATIBILITY_LAB__|__ADMIRA_ROOM_DEVICE_LAB__|presentation-source-traceability\.js|presentation-room-device-lab\.js|mobile:codecs|proposal:qa|claim-cover|data-speaker-notes|Confirmar fuentes|Validar aislamiento/);
 });
+
+test('fixture visual puede abrir el panel real solo en presentador',async()=>{
+  const presenter=await (await render('?open=1')).text();
+  const audience=await (await render('?audience=1&open=1')).text();
+  assert.match(presenter,/admiraPresenterLaunch.*\?\.click\(\)/);
+  assert.doesNotMatch(audience,/admiraPresenterLaunch.*\?\.click\(\)/);
+});

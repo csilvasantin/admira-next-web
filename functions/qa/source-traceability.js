@@ -31,7 +31,7 @@ function safeJson(value){
   return JSON.stringify(value).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
 }
 
-function page(audienceMode){
+function page(audienceMode,autoOpen=false){
   const surface=audienceMode?'audience':'presenter';
   const coverNotes=audienceMode?'':' data-speaker-notes="Confirmar fuentes antes de presentar."';
   const objectiveNotes=audienceMode?'':' data-speaker-notes="Validar aislamiento de audiencia."';
@@ -63,14 +63,17 @@ function page(audienceMode){
   <section id="cover" class="slide" data-block-id="cover"${coverNotes}><div class="inner"><span class="eyebrow">AdmiraNeXT · QA reproducible</span><h1>Trazabilidad de fuentes</h1><p>El modo presentador comprueba dos afirmaciones verificables; la salida de audiencia no recibe el contrato privado.</p></div></section>
   <section id="objective" class="slide" data-block-id="objective"${objectiveNotes}><div class="inner"><span class="eyebrow">Objetivo</span><h2>Presentar con evidencia</h2><p>Esta página ejercita el mismo runtime que las presentaciones generadas.</p></div></section>
   ${privateRuntime}
-  <script src="/assets/presentation-presenter-mode.js?v=20260724-1"></script>
+  <script src="/assets/presentation-presenter-mode.js?v=20260724-3"></script>
+  ${!audienceMode&&autoOpen?'<script>document.getElementById("admiraPresenterLaunch")?.click()</script>':''}
 </body>
 </html>`;
 }
 
 export function onRequestGet(context){
-  const audienceMode=new URL(context.request.url).searchParams.get('audience')==='1';
-  return new Response(page(audienceMode),{headers:{
+  const url=new URL(context.request.url);
+  const audienceMode=url.searchParams.get('audience')==='1';
+  const autoOpen=url.searchParams.get('open')==='1';
+  return new Response(page(audienceMode,autoOpen),{headers:{
     'content-type':'text/html; charset=utf-8',
     'cache-control':'no-store, must-revalidate',
     'x-robots-tag':'noindex, nofollow'
