@@ -40,6 +40,12 @@
   var audienceWindow = null;
   var launchScreenStatus = 'Screen Details: pendiente de comprobar tras el gesto.';
   var launchFullscreenStatus = 'Pantalla completa: pendiente de solicitar.';
+  var paceCoachApi = window.AdmiraPresentationPaceCoach || null;
+  var paceSamples = [];
+  var slideEnteredAt = 0;
+  var stableCoachAdvice = null;
+  var programmaticNavigationTarget = -1;
+  var programmaticNavigationUntil = 0;
 
   var launch = document.createElement('button');
   launch.type = 'button';
@@ -65,6 +71,10 @@
     '<div class="presenter-timing"><div><span>Tiempo</span><strong id="presenterClock" aria-live="off">00:00</strong></div>' +
     '<div><span>Ritmo</span><strong id="presenterPace" class="on-time" aria-live="polite">En ritmo</strong></div></div>' +
     '<div class="presenter-progress" aria-hidden="true"><i id="presenterProgress"></i></div>' +
+    '<section id="presenterPaceCoach" class="presenter-pace-coach" data-coach-state="learning" data-presenter-private aria-labelledby="presenterCoachTitle"><div class="presenter-pace-coach-head"><div><span>Escaleta privada</span><strong id="presenterCoachTitle">Coach de ritmo en vivo</strong></div><span id="presenterCoachBadge">Calibrando</span></div>' +
+    '<dl class="presenter-coach-metrics"><div><dt>Escaleta restante</dt><dd id="presenterCoachPlan">--:--</dd></div><div><dt>Tiempo disponible</dt><dd id="presenterCoachAvailable">--:--</dd></div><div><dt>Cierre estimado</dt><dd id="presenterCoachFinish">—</dd></div></dl>' +
+    '<div id="presenterCoachAdvice" class="presenter-coach-advice" role="status" aria-live="polite" aria-atomic="true"><strong id="presenterCoachLabel">Calibrando ritmo</strong><span id="presenterCoachDetail">Avanza dos diapositivas para obtener una predicción fiable.</span></div>' +
+    '<button type="button" id="presenterCoachSkip" class="presenter-coach-skip" hidden>Saltar diapositiva sugerida</button></section>' +
     '<div class="presenter-controls" aria-label="Controles de navegación"><button type="button" data-presenter-command="prev">← Anterior</button><button type="button" data-presenter-command="next">Siguiente →</button></div>' +
     '<div class="presenter-controls compact"><button type="button" id="presenterTimerToggle">Iniciar tiempo</button><button type="button" id="presenterTimerReset">Reiniciar</button><button type="button" id="presenterFullscreen" aria-pressed="false">Pantalla completa</button><label>Duración <input id="presenterDuration" type="number" min="5" max="180" step="1" inputmode="numeric" aria-label="Duración prevista en minutos"> min</label></div>' +
     '<section class="presenter-prompt" aria-labelledby="presenterPromptTitle"><div class="presenter-prompt-head"><strong id="presenterPromptTitle">Notas del orador</strong><div><button type="button" id="presenterPromptSmaller" aria-label="Reducir texto">A−</button><button type="button" id="presenterPromptLarger" aria-label="Aumentar texto">A+</button></div></div>' +
@@ -124,6 +134,14 @@
   var captionAccessibility = CaptionContract && typeof CaptionContract.create === 'function'
     ? CaptionContract.create({sourceLanguage: 'es', targetLanguage: captionsTargetLanguage.value})
     : null;
+  var paceCoach = document.getElementById('presenterPaceCoach');
+  var coachBadge = document.getElementById('presenterCoachBadge');
+  var coachPlan = document.getElementById('presenterCoachPlan');
+  var coachAvailable = document.getElementById('presenterCoachAvailable');
+  var coachFinish = document.getElementById('presenterCoachFinish');
+  var coachLabel = document.getElementById('presenterCoachLabel');
+  var coachDetail = document.getElementById('presenterCoachDetail');
+  var coachSkip = document.getElementById('presenterCoachSkip');
 
   durationInput.value = String(durationMinutes);
   speedInput.value = String(promptSpeed);
@@ -507,6 +525,7 @@
     running = Boolean(saved.running);
     if (running && Number(saved.savedAt)) carriedSeconds += Math.max(0, (Date.now() - Number(saved.savedAt)) / 1000);
     startedAt = running ? Date.now() : 0;
+    resetPaceCoach(carriedSeconds);
     goLocal(currentIndex, true);
     notes.scrollTop = Math.max(0, Number(saved.notesScrollTop) || 0);
     restoreMedia(saved.media);
@@ -525,6 +544,7 @@
     startedAt = 0;
     carriedSeconds = 0;
     currentIndex = nearestSlide();
+    resetPaceCoach(0);
     stopPrompt();
     Array.prototype.forEach.call(document.querySelectorAll('video,audio'), function (media) {
       try { media.pause(); media.currentTime = 0; } catch (_) {}
@@ -638,7 +658,7 @@
   }
 
   function offlineUrls() {
-    var urls = [location.href, '/assets/presentation-presenter-mode.js?v=20260723-2', '/assets/presentation-presenter-mode.css?v=20260723-2', '/assets/presentation-caption-accessibility.js?v=20260723-2', '/assets/presentation-caption-accessibility.css?v=20260723-2'];
+    var urls = [location.href, '/assets/presentation-pace-coach.js?v=20260723-1', '/assets/presentation-presenter-mode.js?v=20260723-2', '/assets/presentation-presenter-mode.css?v=20260723-2', '/assets/presentation-caption-accessibility.js?v=20260723-2', '/assets/presentation-caption-accessibility.css?v=20260723-2'];
     document.querySelectorAll('img[src],video[src],audio[src],source[src],link[rel="stylesheet"][href]').forEach(function (node) {
       var value = node.src || node.href;
       try { var parsed = new URL(value, location.href); if (parsed.origin === location.origin) urls.push(parsed.href); } catch (_) {}
@@ -711,6 +731,104 @@
     return parts.join('\n\n') || 'Sin notas específicas. Resume la idea principal y conecta con la siguiente diapositiva.';
   }
 
+  function coachRole(slide, index) {
+    if (index === 0 || slide.classList.contains('cover')) return 'opening';
+    if (index === slides.length - 1 || slide.querySelector('.close')) return 'closing';
+    if (slide.classList.contains('deck-slide')) return 'context';
+    return 'content';
+  }
+
+  function coachRunOfShow() {
+    if (!paceCoachApi) return [];
+    return paceCoachApi.createRunOfShow(slides.map(function (slide, index) {
+      var role = coachRole(slide, index);
+      var explicitOptional = slide.getAttribute('data-presenter-optional');
+      return {
+        title: slideTitle(slide),
+        role: role,
+        seconds: Number(slide.getAttribute('data-presenter-seconds')) || 0,
+        weight: role === 'content' ? 1.15 : (role === 'context' ? 0.85 : 0.7),
+        optional: explicitOptional === 'true' || (explicitOptional !== 'false' && role === 'context')
+      };
+    }), durationMinutes * 60);
+  }
+
+  function coachAssessment(seconds) {
+    if (!paceCoachApi) return null;
+    var runOfShow = coachRunOfShow();
+    var samples = paceSamples.map(function (sample) {
+      return {
+        actualSeconds: sample.actualSeconds,
+        plannedSeconds: runOfShow[sample.index] ? runOfShow[sample.index].plannedSeconds : 0
+      };
+    });
+    return paceCoachApi.assess({
+      runOfShow: runOfShow,
+      totalSeconds: durationMinutes * 60,
+      elapsedSeconds: seconds,
+      currentEnteredAt: slideEnteredAt,
+      index: currentIndex,
+      samples: samples
+    });
+  }
+
+  function renderPaceCoach(seconds) {
+    var assessment = coachAssessment(seconds);
+    if (!assessment) {
+      paceCoach.hidden = true;
+      return;
+    }
+    paceCoach.hidden = false;
+    var nextAdvice = {
+      mode: assessment.mode,
+      label: assessment.label,
+      detail: assessment.detail,
+      skipIndex: assessment.skipIndex,
+      skipTitle: assessment.skipTitle
+    };
+    stableCoachAdvice = paceCoachApi.stabilizeAdvice(nextAdvice, stableCoachAdvice, Date.now(), 8000);
+    paceCoach.dataset.coachState = stableCoachAdvice.mode;
+    coachBadge.textContent = stableCoachAdvice.mode === 'learning' ? 'Calibrando' : (stableCoachAdvice.mode === 'on-time' ? 'En ritmo' : 'Recomendación');
+    coachPlan.textContent = paceCoachApi.formatTime(assessment.plannedRemaining);
+    coachAvailable.textContent = paceCoachApi.formatTime(assessment.availableRemaining);
+    coachFinish.textContent = assessment.predictedFinish === null ? 'Calibrando' : paceCoachApi.formatTime(assessment.predictedFinish);
+    var shouldAnnounce = coachLabel.dataset.mode !== stableCoachAdvice.mode;
+    if (shouldAnnounce) {
+      coachLabel.dataset.mode = stableCoachAdvice.mode;
+      coachLabel.textContent = stableCoachAdvice.label;
+      coachDetail.textContent = stableCoachAdvice.detail;
+    }
+    var canSkip = stableCoachAdvice.mode === 'skip' && Number.isFinite(stableCoachAdvice.skipIndex) && stableCoachAdvice.skipIndex < slides.length - 1;
+    coachSkip.hidden = !canSkip;
+    coachSkip.dataset.skipIndex = canSkip ? String(stableCoachAdvice.skipIndex) : '';
+    if (canSkip) coachSkip.textContent = 'Saltar «' + stableCoachAdvice.skipTitle + '»';
+  }
+
+  function resetPaceCoach(seconds) {
+    paceSamples = [];
+    slideEnteredAt = Math.max(0, Number(seconds) || 0);
+    stableCoachAdvice = null;
+    if (coachLabel) coachLabel.dataset.mode = '';
+  }
+
+  function recordSlideTransition(nextIndex, seconds, timerWasRunning) {
+    nextIndex = clamp(nextIndex, 0, slides.length - 1);
+    seconds = Math.max(0, Number(seconds) || 0);
+    if (nextIndex === currentIndex) return;
+    if (timerWasRunning && nextIndex === currentIndex + 1) {
+      var actualSeconds = Math.max(0, seconds - slideEnteredAt);
+      if (actualSeconds >= 1) {
+        paceSamples.push({index: currentIndex, actualSeconds: actualSeconds});
+        if (paceSamples.length > 10) paceSamples.shift();
+      }
+    } else if (nextIndex < currentIndex || Math.abs(nextIndex - currentIndex) > 1) {
+      paceSamples = [];
+      stableCoachAdvice = null;
+    }
+    slideEnteredAt = seconds;
+    currentIndex = nextIndex;
+  }
+
   function elapsedSeconds() {
     return carriedSeconds + (running && startedAt ? (Date.now() - startedAt) / 1000 : 0);
   }
@@ -739,6 +857,7 @@
     clock.textContent = formatTime(seconds);
     pace.textContent = paceInfo.label;
     pace.className = paceInfo.className;
+    renderPaceCoach(seconds);
     progress.style.width = ((currentIndex + 1) / slides.length * 100).toFixed(2) + '%';
     slideLabel.textContent = 'Diapositiva ' + (currentIndex + 1) + ' de ' + slides.length + ' · ' + slideTitle(slides[currentIndex]);
     nextTitle.textContent = currentIndex + 1 < slides.length ? slideTitle(slides[currentIndex + 1]) : 'Fin de la presentación';
@@ -771,7 +890,9 @@
   }
 
   function goLocal(index, immediate) {
-    currentIndex = clamp(index, 0, slides.length - 1);
+    recordSlideTransition(index, elapsedSeconds(), running);
+    programmaticNavigationTarget = currentIndex;
+    programmaticNavigationUntil = Date.now() + 1600;
     slides[currentIndex].scrollIntoView({behavior: immediate || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
     render();
   }
@@ -813,7 +934,7 @@
     }
     if (payload.type === 'state' && remoteMode) {
       lastStageSignalAt = Date.now();
-      currentIndex = clamp(Number(payload.index) || 0, 0, slides.length - 1);
+      recordSlideTransition(Number(payload.index) || 0, Math.max(0, Number(payload.elapsed) || 0), Boolean(payload.running));
       carriedSeconds = Math.max(0, Number(payload.elapsed) || 0);
       running = Boolean(payload.running);
       startedAt = running ? Date.now() : 0;
@@ -863,7 +984,7 @@
     render();
     persistSession(true);
   });
-  document.getElementById('presenterTimerReset').addEventListener('click', function () { running = false; startedAt = 0; carriedSeconds = 0; render(); persistSession(true); });
+  document.getElementById('presenterTimerReset').addEventListener('click', function () { running = false; startedAt = 0; carriedSeconds = 0; resetPaceCoach(0); render(); persistSession(true); });
   durationInput.addEventListener('change', function () { durationMinutes = clamp(Number(durationInput.value) || 15, 5, 180); durationInput.value = String(durationMinutes); savePreferences(); render(); });
   promptToggle.addEventListener('click', function () { promptPlaying ? stopPrompt() : startPrompt(); });
   speedInput.addEventListener('input', function () { promptSpeed = clamp(Number(speedInput.value) || 1, 1, 3); savePreferences(); });
@@ -876,6 +997,13 @@
   captionsLanguage.addEventListener('change', syncCaptionAccessibility);
   captionsTargetLanguage.addEventListener('change', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
   captionsGlossary.addEventListener('input', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
+  coachSkip.addEventListener('click', function () {
+    var skipIndex = Number(coachSkip.dataset.skipIndex);
+    if (!Number.isFinite(skipIndex) || skipIndex < currentIndex || skipIndex >= slides.length - 1) return;
+    var landingIndex = skipIndex + 1;
+    if (remoteMode) broadcast({type: 'command', command: 'skip', index: landingIndex});
+    else goLocal(landingIndex);
+  });
   fullscreenButton.addEventListener('click', function () {
     if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
     else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {});
@@ -913,7 +1041,20 @@
     if (event.defaultPrevented || event.target?.closest?.('input,textarea,select,button,[contenteditable="true"]')) return;
     if (event.key.toLowerCase() === 'p') { event.preventDefault(); panel.hidden ? openPanel() : closePanel(); }
   });
-  addEventListener('scroll', function () { var index = nearestSlide(); if (index !== currentIndex) { currentIndex = index; render(); } }, {passive: true});
+  addEventListener('scroll', function () {
+    var index = nearestSlide();
+    if (programmaticNavigationTarget >= 0) {
+      if (index === programmaticNavigationTarget) {
+        programmaticNavigationTarget = -1;
+        programmaticNavigationUntil = 0;
+        return;
+      }
+      if (Date.now() < programmaticNavigationUntil) return;
+      programmaticNavigationTarget = -1;
+      programmaticNavigationUntil = 0;
+    }
+    if (index !== currentIndex) { recordSlideTransition(index, elapsedSeconds(), running); render(); }
+  }, {passive: true});
   addEventListener('online', function () {
     setConnection('↻ Reconectando…', 'is-reconnecting');
     refreshOfflineCache().then(function () {

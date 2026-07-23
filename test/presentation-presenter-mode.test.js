@@ -21,6 +21,7 @@ test('generated presentations load the intelligent presenter mode without exposi
   });
   const html=await response.text();
   assert.match(html,/presentation-presenter-mode\.css\?v=20260723-2/);
+  assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
   assert.match(html,/presentation-presenter-mode\.js\?v=20260723-2/);
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);

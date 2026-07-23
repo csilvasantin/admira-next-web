@@ -29,7 +29,7 @@ function withPresenterMode(html,notes,audienceMode=false){
   const presenterData=audienceMode?'':`<script>window.__ADMIRA_PRESENTER_NOTES__=${safeJson(String(notes||''))}</script>`;
   return marked
     .replace('</head>','<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260723-2"><link rel="stylesheet" href="/assets/presentation-caption-accessibility.css?v=20260723-2"></head>')
-    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-presenter-mode.js?v=20260723-2"></script></body>`);
+    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-pace-coach.js?v=20260723-1"></script><script src="/assets/presentation-presenter-mode.js?v=20260723-2"></script></body>`);
 }
 
 const sectionLabels={
