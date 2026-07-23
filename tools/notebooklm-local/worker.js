@@ -8,6 +8,7 @@ import ffmpegPath from 'ffmpeg-static';
 import sharp from 'sharp';
 import {brandPdf,brandPowerPoint} from './brand-deck.js';
 import {generateVisualBrief} from './visual-brief.js';
+import {buildNotebookSourceBundle,sanitizeInfographicBranding,sanitizePowerPointBranding,verifiedWatermark} from './fidelity-bridge.js';
 
 const HERE=path.dirname(new URL(import.meta.url).pathname);
 const ROOT=path.resolve(HERE,'../..');
@@ -59,34 +60,23 @@ async function downloadClientLogo(client){
   const bytes=Buffer.from(await response.arrayBuffer()),dir=path.join(RUNTIME,'brands');await fs.mkdir(dir,{recursive:true});
   const output=path.join(dir,`${client}.png`);await sharp(bytes,{density:240}).trim().resize({width:1200,height:500,fit:'inside',withoutEnlargement:true}).png().toFile(output);return output;
 }
-async function cleanVideoEnding(file,clientLogo){
+async function cleanVideoEnding(file){
   const duration=Number(execFileSync('mdls',['-raw','-name','kMDItemDurationSeconds',file],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim());
   if(!ffmpegPath||!Number.isFinite(duration)||duration<=4)throw new Error('No se pudo preparar el cierre limpio del vídeo.');
+  const sample=path.join(path.dirname(file),`${path.basename(file,'.mp4')}.ending-sample.png`);
+  execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','error','-ss',Math.max(0,duration-.2).toFixed(3),'-i',file,'-frames:v','1',sample],{stdio:'ignore'});
+  const verification=verifiedWatermark(await fs.readFile(sample),process.env.NOTEBOOKLM_VIDEO_ENDING_HASHES||process.env.NOTEBOOKLM_WATERMARK_HASHES||'');
+  await fs.unlink(sample).catch(()=>{});
+  if(!verification.verified)return {file,report:{changed:false,mode:'verified-freeze-last-clean-frame',fingerprint:verification.fingerprint,reason:'watermark-not-allowlisted',durationPreserved:true,overlaysAdded:false}};
   const cut=(duration-3).toFixed(3),total=duration.toFixed(3);
   const output=path.join(path.dirname(file),`${path.basename(file,'.mp4')}.admiranext.mp4`);
-  const badge=path.join(RUNTIME,'admiranext-video-badge.png');
-  const clientBadge=path.join(RUNTIME,`${path.basename(file,'.mp4')}.client-logo.png`);
-  execFileSync('sips',['-s','format','png',path.join(ROOT,'presentaciones/LaCaixa/assets/admiranext-video-badge.svg'),'--out',badge],{stdio:'ignore'});
-  execFileSync('sips',['-Z','180',badge],{stdio:'ignore'});
-  await fs.writeFile(clientBadge,await clientLogoBadge(clientLogo,210,62));
-  const filter=`[0:v][1:v]overlay=W-w-18:H-h-18:format=auto[admira];[admira][2:v]overlay=18:18:format=auto,trim=start=0:end=${cut},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=3,trim=duration=${total},format=yuv420p[v];[0:a]atrim=start=0:end=${total},asetpts=PTS-STARTPTS[a]`;
-  execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','warning','-i',file,'-loop','1','-i',badge,'-loop','1','-i',clientBadge,'-filter_complex',filter,'-map','[v]','-map','[a]','-c:v','libx264','-preset','medium','-crf','21','-profile:v','high','-r','24','-c:a','aac','-b:a','80k','-movflags','+faststart','-metadata','comment=NotebookLM branding removed · AdmiraNeXT and client identity applied · duration preserved','-shortest',output],{stdio:'ignore'});
-  return output;
+  const filter=`[0:v]trim=start=0:end=${cut},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=3,trim=duration=${total},format=yuv420p[v];[0:a]atrim=start=0:end=${total},asetpts=PTS-STARTPTS[a]`;
+  execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','warning','-i',file,'-filter_complex',filter,'-map','[v]','-map','[a]','-c:v','libx264','-preset','medium','-crf','21','-profile:v','high','-r','24','-c:a','aac','-b:a','80k','-movflags','+faststart','-metadata','comment=NotebookLM ending removed · original visual style and duration preserved',output],{stdio:'ignore'});
+  return {file:output,report:{changed:true,mode:'verified-freeze-last-clean-frame',fingerprint:verification.fingerprint,durationPreserved:true,overlaysAdded:false}};
 }
-async function cleanInfographicBranding(file,clientLogo){
-  const metadata=await sharp(file).metadata(),width=Number(metadata.width),height=Number(metadata.height);
-  if(!width||!height)throw new Error('No se pudo leer la infografía descargada.');
-  const coverWidth=Math.ceil(width*.09),coverHeight=Math.ceil(height*.035),top=height-coverHeight;
-  const sampleLeft=Math.max(0,width-(coverWidth*2)-24);
-  // Gemini Notebook sitúa su firma en la última franja derecha. Clonamos una
-  // franja de fondo inmediatamente anterior para conservar papel, grano y luz.
-  const background=await sharp(file).extract({left:sampleLeft,top,width:coverWidth,height:coverHeight}).png().toBuffer();
-  const footerHeight=Math.max(96,Math.ceil(height*.085)),logo=await clientLogoBadge(clientLogo,Math.ceil(width*.14),Math.ceil(footerHeight*.62)),logoMeta=await sharp(logo).metadata();
-  const pixel=await sharp(file).extract({left:0,top:height-1,width:1,height:1}).ensureAlpha().raw().toBuffer(),footerColor={r:pixel[0],g:pixel[1],b:pixel[2],alpha:(pixel[3]??255)/255};
-  const output=path.join(path.dirname(file),`${path.basename(file,'.png')}.admiranext.png`);
-  const cleaned=await sharp(file).composite([{input:background,left:width-coverWidth,top}]).png().toBuffer();
-  await sharp(cleaned).extend({bottom:footerHeight,background:footerColor}).composite([{input:logo,left:Math.max(18,width-Number(logoMeta.width)-Math.ceil(width*.018)),top:height+Math.max(0,Math.floor((footerHeight-Number(logoMeta.height))/2))}]).png().toFile(output);
-  return output;
+async function cleanInfographicBranding(file){
+  const watermarkHashes=process.env.NOTEBOOKLM_INFOGRAPHIC_WATERMARK_HASHES||process.env.NOTEBOOKLM_WATERMARK_HASHES||'';
+  return sanitizeInfographicBranding(file,{watermarkHashes});
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function button(page,name,{exact=true,timeout=30000}={}){
@@ -111,12 +101,12 @@ async function ensureNotebookAccount(page){
   const accountVisible=await page.evaluate(email=>[...document.querySelectorAll('[aria-label]')].some(el=>(el.getAttribute('aria-label')||'').includes(email)),ACCOUNT);
   if(!accountVisible)throw new Error(`NotebookLM no está autenticado como ${ACCOUNT}. Ejecuta pnpm setup.`);
 }
-async function newNotebook(page,job){
+async function newNotebook(page,job,sourceBundle){
   await ensureNotebookAccount(page);
   const continueExists=await page.evaluate(()=>[...document.querySelectorAll('button')].some(el=>(el.innerText||'').trim()==='Adelante'));
   if(continueExists)await clickButton(page,'Adelante');
   await clickButton(page,'Crear cuaderno');await page.waitForFunction(()=>location.pathname.includes('/notebook/'),{timeout:30000});await sleep(1500);
-  await clickButton(page,'Texto copiado');await fillByLabel(page,'Texto pegado',job.sourceText);await clickButton(page,'Insertar');
+  await clickButton(page,'Texto copiado');await fillByLabel(page,'Texto pegado',sourceBundle.text);await clickButton(page,'Insertar');
   await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(el=>(el.innerText||'').includes('ADMIRANEXT')), {timeout:60000});
   return page.url();
 }
@@ -174,10 +164,11 @@ async function processNext(browser){
     job=claimed.job;tasks=Object.values(job.tasks).filter(task=>claimIds.includes(task.id));
     await setStage(job,tasks,'Analizando la referencia y construyendo la guía visual',10);
     const visual=await generateVisualBrief({browser,presentation,job,runtime:RUNTIME}),style=visual.brief;
-    await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{visualBriefProvider:visual.provider,visualBriefSource:visual.sourceUrl,visualBriefGeneratedAt:visual.generatedAt,visualBriefFallback:Boolean(visual.error)}});
+    const sourceBundle=buildNotebookSourceBundle({job,presentation,visualBrief:style});
+    await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{visualBriefProvider:visual.provider,visualBriefSource:visual.sourceUrl,visualBriefGeneratedAt:visual.generatedAt,visualBriefFallback:Boolean(visual.error),sourceManifest:sourceBundle.manifest}});
     await setStage(job,tasks,'Preparando las fuentes en NotebookLM',22);
     const session=await page.createCDPSession();await session.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:DOWNLOADS,eventsEnabled:true});
-    const notebookUrl=await newNotebook(page,job);
+    const notebookUrl=await newNotebook(page,job,sourceBundle);
     await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{url:notebookUrl,account:ACCOUNT,submittedAt:new Date().toISOString()}});
     await setStage(job,tasks,'Notebook creado · preparando cada encargo',32);
     const deckTasks=tasks.filter(task=>['pdf','powerpoint'].includes(task.output));
@@ -196,7 +187,7 @@ async function processNext(browser){
 async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
   const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',pdf:'tablet',powerpoint:'tablet',infographic:'stacked_bar_chart'};
-  const waitingStarted=Date.now();let lastHeartbeat=0;
+  const waitingStarted=Date.now(),artifactFidelityReports={};let lastHeartbeat=0;
   await setStage(job,tasks,'NotebookLM está procesando los entregables',55);
   while(pending.size&&Date.now()<deadline){
     await sleep(20000);
@@ -228,7 +219,27 @@ async function waitAndPublish(page,job,tasks,clientLogo){
         await setStage(job,[task],'Descargando el resultado',86);
         const forceDeckLogo=process.env.NOTEBOOKLM_DECK_LOGO_MODE==='overlay';
         await setStage(job,[task],'Verificando la marca y preparando la publicación',92);
-        const publishable=output==='video'?await cleanVideoEnding(downloaded,clientLogo):output==='infographic'?await cleanInfographicBranding(downloaded,clientLogo):output==='pdf'&&forceDeckLogo?await brandPdf(downloaded,clientLogo):output==='powerpoint'&&forceDeckLogo?await brandPowerPoint(downloaded,clientLogo):downloaded;
+        let publishable=downloaded,fidelityReport={changed:false,mode:'original'};
+        if(output==='video'){
+          const sanitized=await cleanVideoEnding(downloaded);
+          publishable=sanitized.file;fidelityReport=sanitized.report;
+        }else if(output==='infographic'){
+          const sanitized=await cleanInfographicBranding(downloaded);
+          publishable=sanitized.file;fidelityReport=sanitized.report;
+        }else if(output==='powerpoint'){
+          const watermarkHashes=String(process.env.NOTEBOOKLM_WATERMARK_HASHES||'').split(',').map(value=>value.trim());
+          const sanitized=await sanitizePowerPointBranding(downloaded,{watermarkHashes});
+          publishable=sanitized.file;fidelityReport=sanitized.report;
+          if(forceDeckLogo){
+            publishable=await brandPowerPoint(publishable,clientLogo);
+            fidelityReport={...fidelityReport,legacyLogoOverlay:true};
+          }
+        }else if(output==='pdf'&&forceDeckLogo){
+          publishable=await brandPdf(downloaded,clientLogo);
+          fidelityReport={changed:true,mode:'legacy-logo-overlay'};
+        }
+        artifactFidelityReports[task.id]=fidelityReport;
+        await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{artifactFidelity:artifactFidelityReports}});
         await upload(job,task,publishable);pending.delete(output);
       }
     }

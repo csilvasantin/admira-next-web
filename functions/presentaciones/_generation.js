@@ -47,9 +47,13 @@ function postProcess(output){
       defaultEndingSeconds:3
     };
   if (['pdf','powerpoint'].includes(output)) return {
-      providerCleanup:'brand-overlay',
-      clientLogoEverySlide:true,
-      preserveVisualStyle:true
+      providerCleanup:'fidelity-bridge',
+      identifiedElementsOnly:true,
+      preserveVisualStyle:true,
+      preserveTheme:true,
+      preserveMasters:true,
+      preserveFonts:true,
+      preserveComposition:true
     };
   return undefined;
 }

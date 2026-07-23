@@ -16,16 +16,30 @@ llavero desde una sesión remota. El servicio
 solo recibe guiones de la cola interna autenticada y publica los archivos en el R2
 privado de la presentación.
 
-Antes de publicar, conserva la duración del vídeo, elimina su tarjeta final, cubre
-la firma del proveedor con la identidad AdmiraNeXT y limpia la firma de la
-infografía. Los idiomas se producen por separado (`es`, `ca`, `en`) y el estilo
-visual se deriva de la referencia y el tema guardados en cada presentación.
+Antes de publicar, el puente de fidelidad conserva la duración del vídeo y
+reemplaza únicamente la tarjeta final por el último fotograma limpio, sin añadir
+overlays. En infografía clona el fondo adyacente sobre la firma sin ampliar el
+lienzo. En PowerPoint elimina exclusivamente shapes identificados como
+NotebookLM/Gemini (o imágenes cuyo SHA-256 esté en una allowlist) y verifica que
+tema, masters, layouts, tipografías y partes no objetivo permanecen idénticos.
+Los idiomas se producen por separado (`es`, `ca`, `en`) y el estilo visual se
+deriva de la referencia y el tema guardados en cada presentación.
 
 Antes de abrir NotebookLM, captura dos pantallas de la web inspiradora y crea una
 guía visual con el modelo local `gemma4:31b` de Ollama. La guía se guarda por
 generación y se reutiliza en vídeo, deck e infografía. Si Ollama no está disponible,
 el trabajo continúa con una guía determinista. Los decks se descargan como PDF y
-PPTX; la guía visual exige el logo oficial en todas las diapositivas. Para decks heredados que no lo incorporen puede forzarse una segunda capa con `NOTEBOOKLM_DECK_LOGO_MODE=overlay`.
+PPTX. El texto que entra en NotebookLM incluye un manifiesto de fuentes, el hash
+de la narrativa y un contrato explícito de fidelidad. El overlay de logo queda
+solo como compatibilidad heredada opt-in con
+`NOTEBOOKLM_DECK_LOGO_MODE=overlay`; no es el comportamiento predeterminado.
+`NOTEBOOKLM_WATERMARK_HASHES` admite una lista separada por comas de SHA-256 para
+marcas gráficas verificadas que no contengan texto identificable.
+La limpieza de vídeo e infografía es conservadora: solo actúa cuando el SHA-256
+de la tarjeta final o de la esquina coincide con
+`NOTEBOOKLM_VIDEO_ENDING_HASHES` o
+`NOTEBOOKLM_INFOGRAPHIC_WATERMARK_HASHES`. Sin coincidencia, el archivo se
+publica byte a byte sin modificar y el informe registra el fingerprint observado.
 
 Variables opcionales: `VISUAL_BRIEF_MODEL`, `VISUAL_BRIEF_OLLAMA_URL` y
 `VISUAL_BRIEF_MODE=off` para desactivar temporalmente el análisis visual.

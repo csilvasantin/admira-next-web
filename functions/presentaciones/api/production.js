@@ -131,7 +131,7 @@ async function updateJob(context,payload){
     job.requested=[...new Set([...(job.requested||[]),...outputs])];job.languages=[...new Set([...(job.languages||[]),...languages])];
     for(const language of languages)for(const output of outputs){
       const id=taskKey(language,output),existing=job.tasks?.[id];if(existing&&!payload.force)continue;
-      job.tasks[id]={id,language,languageLabel:LANGUAGE_LABELS[language],output,label:OUTPUT_LABELS[output],status:'queued',url:null,attempts:Number(existing?.attempts||0),provider:'notebooklm',requestedAt:now,updatedAt:now,...(['pdf','powerpoint'].includes(output)?{postProcess:{providerCleanup:'brand-overlay',clientLogoEverySlide:true,preserveVisualStyle:true}}:{})};
+      job.tasks[id]={id,language,languageLabel:LANGUAGE_LABELS[language],output,label:OUTPUT_LABELS[output],status:'queued',url:null,attempts:Number(existing?.attempts||0),provider:'notebooklm',requestedAt:now,updatedAt:now,...(['pdf','powerpoint'].includes(output)?{postProcess:{providerCleanup:'fidelity-bridge',identifiedElementsOnly:true,preserveVisualStyle:true,preserveTheme:true,preserveMasters:true,preserveFonts:true,preserveComposition:true}}:{})};
     }
   }else if(payload.action==='claim'){
     const requested=new Set(Array.isArray(payload.tasks)?payload.tasks:[]);
