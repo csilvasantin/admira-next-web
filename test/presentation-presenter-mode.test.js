@@ -20,8 +20,9 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-1/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-3/);
+  assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-3/);
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);
   assert.doesNotMatch(html,/Recordar el contexto <\/script><script>alert/);
@@ -61,6 +62,35 @@ test('presenter mode includes rehearsal, teleprompter, pace and same-origin remo
   assert.doesNotMatch(source,/WebSocket|EventSource/);
 });
 
+test('live captions stay ephemeral, explicit and idempotent on the local audience channel',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  assert.doesNotThrow(()=>new Function(source));
+  assert.match(source,/window\.SpeechRecognition \|\| window\.webkitSpeechRecognition/);
+  assert.match(source,/id="presenterCaptionsStart"[^>]*>Iniciar subtítulos/);
+  assert.match(source,/id="presenterCaptionsStop"[^>]*disabled[^>]*>Detener subtítulos/);
+  assert.match(source,/id="presenterCaptionsLanguage"/);
+  assert.match(source,/interimResults = true/);
+  assert.match(source,/result\.isFinal/);
+  assert.match(source,/window\.AdmiraPresenterCaptions/);
+  assert.match(source,/id="presenterCaptionsTargetLanguage"/);
+  assert.match(source,/id="presenterCaptionsGlossary"/);
+  assert.match(source,/audienceCaptions\.show\(payload\.originalText\)/);
+  assert.match(source,/audienceCaptions\.setLanguages\(payload\.sourceLanguage/);
+  assert.match(source,/audienceCaptions\.setGlossary\(payload\.glossary/);
+  assert.match(source,/payload\.type === 'captions'/);
+  assert.match(source,/audienceReceivedMessageIds\.indexOf\(payload\.messageId\) >= 0/);
+  assert.match(source,/messageId: 'captions:' \+ captionSession \+ ':' \+ captionRevision/);
+  assert.match(source,/targetLanguage: captionsTargetLanguage\.value/);
+  assert.match(source,/glossary: glossary/);
+  assert.match(source,/originalText: trimCaptionText/);
+  assert.match(source,/broadcast\(\{[\s\S]{0,400}?type: 'captions'[\s\S]{0,500}?\}, true\)/);
+  assert.match(source,/if \(!transient\) \{[\s\S]{0,220}?localStorage\.setItem/);
+  assert.match(source,/no se persistirá texto como fallback|no se guardarán transcripciones como fallback/);
+  assert.doesNotMatch(source,/localStorage\.setItem\([^\n]*(?:caption|glossary|transcript)/i);
+  assert.doesNotMatch(source,/\bfetch\s*\(/);
+  assert.doesNotMatch(source,/WebSocket|EventSource/);
+});
+
 test('safe launch assistant requires an explicit user gesture and has accessible stateful controls',async()=>{
   const [source,styles]=await Promise.all([
     readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
@@ -92,6 +122,51 @@ test('safe launch explains Screen Details, Fullscreen and do-not-disturb fallbac
   assert.match(source,/id="presenterLaunchFallback"/);
   assert.match(source,/(?:manual|manualmente|contin(?:uar|\u00faa)|misma ventana|pantalla principal)/i);
   assert.match(source,/catch\s*\([^)]*\)\s*\{|\.catch\s*\(/);
+});
+
+test('room calibration exposes a private, persistent and bounded presenter contract',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  const id=name=>new RegExp(`id\\s*=\\s*["']${name}["']`);
+  for(const name of [
+    'presenterRoomCalibration','presenterCalibrationToggle','presenterCalibrationPattern',
+    'presenterCalibrationSafeMargin','presenterCalibrationContrast','presenterCalibrationGamma',
+    'presenterCalibrationScale','presenterCalibrationStatus'
+  ]) assert.match(source,id(name));
+  assert.match(source,/admira\.presenter\.calibration\.v1/);
+  assert.match(source,/presenter-calibration-active/);
+  for(const property of ['--presenter-calibration-safe','--presenter-calibration-contrast','--presenter-calibration-gamma','--presenter-calibration-scale']){
+    assert.match(source,new RegExp(property));
+  }
+  for(const field of ['safeMargin','contrast','gamma','scale']) assert.match(source,new RegExp(`${field}\\s*:`));
+  assert.match(source,/presenterRoomCalibration[\s\S]{0,5000}?data-presenter-private/);
+  assert.match(source,/aria-live\s*=\s*["']polite["']/);
+  assert.ok(source.indexOf('if (audienceMode)')<source.indexOf("admira.presenter.calibration.v1"));
+  assert.match(source,/calibrationPattern\.style\.setProperty\(property, calibrationProperties\[property\]\)/);
+  for(const property of ['--presenter-calibration-bar-height','--presenter-calibration-grid-size','--presenter-calibration-border-alpha','--presenter-calibration-text-alpha','--presenter-calibration-gamma-alpha']){
+    assert.match(source,new RegExp(property));
+  }
+  const calibrationLogic=source.slice(source.indexOf('function calibrationScreenSignature'),source.indexOf('function trimCaptionText'));
+  assert.doesNotMatch(calibrationLogic,/\bbroadcast\s*\(|BroadcastChannel|notes|caption|glossary|transcript/i);
+  assert.doesNotMatch(source,/\bfetch\s*\(/);
+  assert.doesNotMatch(source,/WebSocket|EventSource/);
+});
+
+test('room calibration renders a responsive technical pattern without filtering slide content',async()=>{
+  const styles=await readFile(new URL('../assets/presentation-presenter-mode.css',import.meta.url),'utf8');
+  const calibrationStyles=styles.slice(styles.indexOf('#presenterRoomCalibration'));
+  assert.match(calibrationStyles,/#presenterCalibrationPattern\s*\{/);
+  assert.match(calibrationStyles,/html\.presenter-calibration-active\s+#presenterCalibrationPattern\s*\{[^}]*display:block/);
+  assert.match(calibrationStyles,/repeating-linear-gradient/);
+  assert.match(calibrationStyles,/linear-gradient\(90deg,#fff[\s\S]{0,300}?#ff0[\s\S]{0,300}?#0ff/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::before\s*\{[^}]*inset:var\(--presenter-calibration-safe\)/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::after\s*\{[^}]*Aa Bb 0123456789/);
+  assert.match(calibrationStyles,/@media\(max-width:720px\)[\s\S]*\.presenter-calibration-controls\{grid-template-columns:1fr\}/);
+  assert.match(calibrationStyles,/@media\(prefers-reduced-motion:reduce\)[\s\S]*#presenterCalibrationPattern[\s\S]*animation:none!important/);
+  assert.match(calibrationStyles,/\.presenter-audience-mode #presenterRoomCalibration[\s\S]*display:none!important/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern\{background-size:[^}]*--presenter-calibration-bar-height[^}]*--presenter-calibration-grid-size/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::before\{border-color:rgba\(255,255,255,var\(--presenter-calibration-border-alpha,.6\)\)\}/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::after\{background:rgba\(0,0,0,var\(--presenter-calibration-gamma-alpha,.62\)\);color:rgba\(255,255,255,var\(--presenter-calibration-text-alpha,.7\)\)\}/);
+  assert.doesNotMatch(calibrationStyles,/presenter-calibration-active[^{}]*body\s*>\s*\.slide[^{}]*\{[^}]*\b(?:display\s*:\s*none|filter\s*:)/);
 });
 
 test('audience mode cannot render presenter controls, notes or private-marked content',async()=>{
@@ -182,7 +257,7 @@ test('stage pause resumes the exact audience slide and is idempotent with a safe
   assert.match(audiencePause,/if \(audienceStagePaused === paused\)[\s\S]{0,120}?return/);
   assert.match(audiencePause,/audiencePauseSnapshot = \{index: audienceIndex, media: captureMedia\(\)\}/);
   assert.match(audiencePause,/audienceGo\(audiencePauseSnapshot\.index\)[\s\S]{0,160}?restoreMedia\(audiencePauseSnapshot\.media\)/);
-  assert.match(source,/function broadcast\(payload\)[\s\S]*?if \(channel\) channel\.postMessage\(payload\)[\s\S]*?localStorage\.setItem\(channelName/);
+  assert.match(source,/function broadcast\(payload(?:, transient)?\)[\s\S]*?if \(channel\) channel\.postMessage\(payload\)[\s\S]*?localStorage\.setItem\(channelName/);
   assert.match(source,/function audienceSend\(payload\)[\s\S]*?if \(audienceChannel\) audienceChannel\.postMessage\(payload\)[\s\S]*?localStorage\.setItem\(channelName/);
   assert.match(source,/audienceWindow\.postMessage\(payload, location\.origin\)/);
   assert.doesNotMatch(source,/audienceWindow\.postMessage\([^,\n]+,\s*['"]\*['"]/);
