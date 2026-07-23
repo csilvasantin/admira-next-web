@@ -13,6 +13,7 @@
     return;
   }
   var storageKey = 'admira.presenter.preferences.v1';
+  var calibrationStorageKey = 'admira.presenter.calibration.v1';
   var sessionSchema = 2;
   var sessionStorageKey = 'admira.presenter.session.v' + sessionSchema + ':' + location.pathname + (remoteMode ? ':remote' : ':stage');
   var startedAt = 0;
@@ -84,12 +85,25 @@
     '<div class="presenter-controls compact presenter-caption-languages"><label>Idioma de entrada <select id="presenterCaptionsLanguage" aria-label="Idioma de reconocimiento"><option value="es-ES">Español (España)</option><option value="en-US">English (US)</option><option value="ca-ES">Català</option><option value="fr-FR">Français</option><option value="de-DE">Deutsch</option><option value="it-IT">Italiano</option><option value="pt-PT">Português</option></select></label><label>Traducción para audiencia <select id="presenterCaptionsTargetLanguage" aria-label="Idioma de traducción para la audiencia"><option value="en">English</option><option value="es">Español</option><option value="ca">Català</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option></select></label><button type="button" id="presenterCaptionsStart">Iniciar subtítulos</button><button type="button" id="presenterCaptionsStop" disabled>Detener subtítulos</button></div>' +
     '<label class="presenter-caption-glossary" for="presenterCaptionsGlossary"><span>Glosario efímero <small id="presenterCaptionsGlossaryStatus">vacío · solo memoria</small></span><textarea id="presenterCaptionsGlossary" rows="3" spellcheck="false" placeholder="Admira Next = Admira Next&#10;Smart Room = Sala Inteligente"></textarea></label>' +
     '<div id="presenterCaptionsPreview" aria-live="off"><p><strong>Final:</strong> <span id="presenterCaptionsFinal">—</span></p><p><strong>Provisional:</strong> <span id="presenterCaptionsInterim">—</span></p></div><p>El original aparece de inmediato; la traducción local lo sustituye cuando termina. Texto y glosario son efímeros: no se guardan ni salen del canal local.</p></section>' +
+    '<section id="presenterRoomCalibration" class="presenter-room-calibration" data-presenter-private aria-labelledby="presenterCalibrationTitle"><div class="presenter-room-calibration-head"><div><span>Preparación de sala</span><strong id="presenterCalibrationTitle">Calibración visual de sala</strong></div><span id="presenterCalibrationStatus" role="status" aria-live="polite">Comprobando esta pantalla…</span></div>' +
+    '<p>Ajusta el patrón en la pantalla que vas a usar. El perfil se guarda únicamente para su resolución y densidad actuales.</p><div class="presenter-calibration-actions"><button type="button" id="presenterCalibrationToggle" aria-controls="presenterCalibrationPattern" aria-expanded="false" aria-pressed="false">Abrir patrón</button></div>' +
+    '<div class="presenter-calibration-controls"><label>Margen seguro <input id="presenterCalibrationSafeMargin" type="range" min="0" max="15" step="1" value="5"><output id="presenterCalibrationSafeMarginValue">5%</output></label><label>Contraste <input id="presenterCalibrationContrast" type="range" min="70" max="140" step="1" value="100"><output id="presenterCalibrationContrastValue">100%</output></label><label>Gamma <input id="presenterCalibrationGamma" type="range" min="0.6" max="1.4" step="0.05" value="1"><output id="presenterCalibrationGammaValue">1.00</output></label><label>Escala <input id="presenterCalibrationScale" type="range" min="80" max="120" step="1" value="100"><output id="presenterCalibrationScaleValue">100%</output></label></div>' +
+    '<div class="presenter-calibration-actions"><button type="button" id="presenterCalibrationSave">Guardar perfil de pantalla</button><button type="button" id="presenterCalibrationReset">Restablecer esta pantalla</button></div></section>' +
     '<section id="presenterLaunchAssistant" class="presenter-launch-assistant" data-launch-state="warning" aria-live="polite" aria-labelledby="presenterLaunchTitle"><div class="presenter-launch-assistant-head"><div><span>Preparación de sala</span><strong id="presenterLaunchTitle">Lanzamiento seguro en sala</strong></div><span id="presenterLaunchState" class="presenter-launch-state">Revisión necesaria</span></div>' +
     '<ul id="presenterLaunchChecklist" class="presenter-launch-checklist"><li>Salida de audiencia: pendiente de verificación.</li><li>Screen Details y Pantalla completa se comprobarán al lanzar.</li><li>No molestar: revisión manual obligatoria.</li></ul>' +
     '<div class="presenter-launch-actions"><button type="button" id="presenterAudienceLaunch" aria-describedby="presenterLaunchFallback">Presentar en audiencia</button></div>' +
     '<p id="presenterLaunchFallback" class="presenter-launch-fallback">La Web no puede garantizar otras ventanas ni activar No molestar. Revisa manualmente el escritorio antes de compartir.</p></section>' +
     '<div class="presenter-remote"><button type="button" id="presenterRemoteOpen">Abrir control remoto ↗</button><span id="presenterRemoteState">Mismo navegador · canal privado local</span></div>';
   document.body.appendChild(panel);
+
+  var calibrationPattern = document.createElement('div');
+  calibrationPattern.id = 'presenterCalibrationPattern';
+  calibrationPattern.className = 'presenter-calibration-pattern';
+  calibrationPattern.hidden = true;
+  calibrationPattern.setAttribute('aria-hidden', 'true');
+  calibrationPattern.setAttribute('data-presenter-private', '');
+  calibrationPattern.innerHTML = '<div class="presenter-calibration-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="presenter-calibration-target" aria-hidden="true"><i></i><i></i></div><div class="presenter-calibration-ramp" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="presenter-calibration-label">Patrón de sala · ajusta desde el control privado</span>';
+  document.body.appendChild(calibrationPattern);
 
   var closeButton = document.getElementById('presenterClose');
   var clock = document.getElementById('presenterClock');
@@ -112,6 +126,15 @@
   var launchChecklist = document.getElementById('presenterLaunchChecklist');
   var launchFallback = document.getElementById('presenterLaunchFallback');
   var launchState = document.getElementById('presenterLaunchState');
+  var calibrationToggle = document.getElementById('presenterCalibrationToggle');
+  var calibrationSafeMargin = document.getElementById('presenterCalibrationSafeMargin');
+  var calibrationContrast = document.getElementById('presenterCalibrationContrast');
+  var calibrationGamma = document.getElementById('presenterCalibrationGamma');
+  var calibrationScale = document.getElementById('presenterCalibrationScale');
+  var calibrationStatus = document.getElementById('presenterCalibrationStatus');
+  var calibrationProfileSaved = false;
+  var calibrationProfileDirty = false;
+  var calibrationDefaults = {safeMargin: 5, contrast: 100, gamma: 1, scale: 100};
   var captionsStart = document.getElementById('presenterCaptionsStart');
   var captionsStop = document.getElementById('presenterCaptionsStop');
   var captionsLanguage = document.getElementById('presenterCaptionsLanguage');
@@ -249,6 +272,144 @@
         promptSpeed: promptSpeed
       }));
     } catch (_) {}
+  }
+
+  function calibrationScreenSignature() {
+    var width = typeof screen !== 'undefined' ? Math.max(0, Math.round(Number(screen.width) || 0)) : 0;
+    var height = typeof screen !== 'undefined' ? Math.max(0, Math.round(Number(screen.height) || 0)) : 0;
+    var density = Math.max(0.1, Number(window.devicePixelRatio) || 1);
+    return width + 'x' + height + '@' + Number(density.toFixed(2));
+  }
+
+  function readCalibrationProfiles() {
+    try {
+      var profiles = JSON.parse(localStorage.getItem(calibrationStorageKey) || '{}');
+      return profiles && typeof profiles === 'object' && !Array.isArray(profiles) ? profiles : {};
+    } catch (_) { return {}; }
+  }
+
+  function calibrationNumber(value, fallback, min, max) {
+    var number = Number(value);
+    return Number.isFinite(number) ? clamp(number, min, max) : fallback;
+  }
+
+  function normalizeCalibrationProfile(value) {
+    value = value && typeof value === 'object' ? value : {};
+    return {
+      safeMargin: calibrationNumber(value.safeMargin, calibrationDefaults.safeMargin, 0, 15),
+      contrast: calibrationNumber(value.contrast, calibrationDefaults.contrast, 70, 140),
+      gamma: calibrationNumber(value.gamma, calibrationDefaults.gamma, 0.6, 1.4),
+      scale: calibrationNumber(value.scale, calibrationDefaults.scale, 80, 120)
+    };
+  }
+
+  function calibrationInputProfile() {
+    return normalizeCalibrationProfile({
+      safeMargin: calibrationSafeMargin.value,
+      contrast: calibrationContrast.value,
+      gamma: calibrationGamma.value,
+      scale: calibrationScale.value
+    });
+  }
+
+  function applyCalibrationProfile(profile, status) {
+    profile = normalizeCalibrationProfile(profile);
+    calibrationSafeMargin.value = String(profile.safeMargin);
+    calibrationContrast.value = String(profile.contrast);
+    calibrationGamma.value = String(profile.gamma);
+    calibrationScale.value = String(profile.scale);
+    document.getElementById('presenterCalibrationSafeMarginValue').textContent = profile.safeMargin + '%';
+    document.getElementById('presenterCalibrationContrastValue').textContent = profile.contrast + '%';
+    document.getElementById('presenterCalibrationGammaValue').textContent = Number(profile.gamma).toFixed(2);
+    document.getElementById('presenterCalibrationScaleValue').textContent = profile.scale + '%';
+    document.documentElement.style.setProperty('--presenter-calibration-safe', profile.safeMargin + '%');
+    document.documentElement.style.setProperty('--presenter-calibration-contrast', profile.contrast + '%');
+    document.documentElement.style.setProperty('--presenter-calibration-gamma', String(profile.gamma));
+    document.documentElement.style.setProperty('--presenter-calibration-scale', String(profile.scale / 100));
+    calibrationStatus.textContent = status;
+  }
+
+  function calibrationChecklistStatus() {
+    var signature = calibrationScreenSignature();
+    if (calibrationProfileDirty) return 'Calibración visual: hay una vista previa sin guardar para ' + signature + '.';
+    if (calibrationProfileSaved) return 'Calibración visual verificada: perfil restaurado para ' + signature + '.';
+    return 'Calibración visual: pendiente de guardar un perfil para ' + signature + '.';
+  }
+
+  function restoreCalibrationProfile() {
+    var signature = calibrationScreenSignature();
+    var stored = readCalibrationProfiles()[signature];
+    calibrationProfileSaved = Boolean(stored && typeof stored === 'object');
+    calibrationProfileDirty = false;
+    applyCalibrationProfile(
+      calibrationProfileSaved ? stored : calibrationDefaults,
+      calibrationProfileSaved ? 'Perfil restaurado · ' + signature : 'Sin perfil guardado · ' + signature
+    );
+  }
+
+  function previewCalibrationProfile() {
+    calibrationProfileDirty = true;
+    calibrationProfileSaved = false;
+    applyCalibrationProfile(calibrationInputProfile(), 'Vista previa sin guardar · ' + calibrationScreenSignature());
+    refreshLaunchAssistant();
+  }
+
+  function saveCalibrationProfile() {
+    var signature = calibrationScreenSignature();
+    var profiles = readCalibrationProfiles();
+    profiles[signature] = calibrationInputProfile();
+    try {
+      localStorage.setItem(calibrationStorageKey, JSON.stringify(profiles));
+      calibrationProfileSaved = true;
+      calibrationProfileDirty = false;
+      applyCalibrationProfile(profiles[signature], 'Perfil guardado · ' + signature);
+    } catch (_) {
+      calibrationProfileSaved = false;
+      calibrationProfileDirty = true;
+      calibrationStatus.textContent = 'No se pudo guardar; la vista previa sigue activa.';
+    }
+    refreshLaunchAssistant();
+  }
+
+  function resetCalibrationProfile() {
+    var signature = calibrationScreenSignature();
+    var profiles = readCalibrationProfiles();
+    delete profiles[signature];
+    var storageReset = true;
+    try {
+      if (Object.keys(profiles).length) localStorage.setItem(calibrationStorageKey, JSON.stringify(profiles));
+      else localStorage.removeItem(calibrationStorageKey);
+    } catch (_) { storageReset = false; }
+    calibrationProfileSaved = false;
+    calibrationProfileDirty = !storageReset;
+    applyCalibrationProfile(
+      calibrationDefaults,
+      storageReset ? 'Valores seguros restaurados · ' + signature : 'Valores seguros en vista previa; no se pudo borrar el perfil guardado.'
+    );
+    refreshLaunchAssistant();
+  }
+
+  function openCalibrationPattern() {
+    calibrationPattern.hidden = false;
+    calibrationPattern.setAttribute('aria-hidden', 'false');
+    calibrationToggle.setAttribute('aria-expanded', 'true');
+    calibrationToggle.setAttribute('aria-pressed', 'true');
+    calibrationToggle.textContent = 'Cerrar patrón';
+    document.documentElement.classList.add('presenter-calibration-active');
+  }
+
+  function closeCalibrationPattern() {
+    document.documentElement.classList.remove('presenter-calibration-active');
+    calibrationPattern.hidden = true;
+    calibrationPattern.setAttribute('aria-hidden', 'true');
+    calibrationToggle.setAttribute('aria-expanded', 'false');
+    calibrationToggle.setAttribute('aria-pressed', 'false');
+    calibrationToggle.textContent = 'Abrir patrón';
+  }
+
+  function toggleCalibrationPattern() {
+    if (document.documentElement.classList.contains('presenter-calibration-active')) closeCalibrationPattern();
+    else openCalibrationPattern();
   }
 
   function trimCaptionText(value) {
@@ -584,6 +745,7 @@
       privacyStatus,
       launchScreenStatus,
       launchFullscreenStatus,
+      calibrationChecklistStatus(),
       'No molestar: la Web no puede activarlo ni comprobar otras ventanas; revísalo manualmente.'
     ]);
     if (audienceConnected && !audiencePrivacyVerified) {
@@ -884,6 +1046,7 @@
     panel.hidden = true;
     launch.setAttribute('aria-expanded', 'false');
     document.documentElement.classList.remove('presenter-active');
+    closeCalibrationPattern();
     stopPrompt();
     persistSession(true);
     launch.focus({preventScroll: true});
@@ -972,7 +1135,12 @@
   launch.addEventListener('click', function () { panel.hidden ? openPanel() : closePanel(); });
   closeButton.addEventListener('click', closePanel);
   panel.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closePanel(); }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      if (document.documentElement.classList.contains('presenter-calibration-active')) closeCalibrationPattern();
+      else closePanel();
+    }
     else event.stopPropagation();
   });
   panel.querySelectorAll('[data-presenter-command]').forEach(function (button) {
@@ -997,6 +1165,12 @@
   captionsLanguage.addEventListener('change', syncCaptionAccessibility);
   captionsTargetLanguage.addEventListener('change', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
   captionsGlossary.addEventListener('input', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
+  calibrationToggle.addEventListener('click', toggleCalibrationPattern);
+  [calibrationSafeMargin, calibrationContrast, calibrationGamma, calibrationScale].forEach(function (input) {
+    input.addEventListener('input', previewCalibrationProfile);
+  });
+  document.getElementById('presenterCalibrationSave').addEventListener('click', saveCalibrationProfile);
+  document.getElementById('presenterCalibrationReset').addEventListener('click', resetCalibrationProfile);
   coachSkip.addEventListener('click', function () {
     var skipIndex = Number(coachSkip.dataset.skipIndex);
     if (!Number.isFinite(skipIndex) || skipIndex < currentIndex || skipIndex >= slides.length - 1) return;
@@ -1077,7 +1251,7 @@
   addEventListener('storage', function (event) { if (event.key === channelName && event.newValue) { try { receive(JSON.parse(event.newValue)); } catch (_) {} } });
   document.addEventListener('admira:language', function () { notes.dataset.slide = ''; render(); });
   if (channel) channel.addEventListener('message', function (event) { receive(event.data); });
-  addEventListener('pagehide', function () { persistSession(true); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); if (channel) channel.close(); stopPrompt(true); }, {once: true});
+  addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); if (channel) channel.close(); stopPrompt(true); }, {once: true});
   setInterval(function () {
     if (running && !document.hidden) render();
     if (remoteMode && lastStageSignalAt && Date.now() - lastStageSignalAt > 4000) {
@@ -1089,6 +1263,7 @@
 
   if (!navigator.onLine) setConnection('● Sin conexión · modo seguro', 'is-offline');
   initializeCaptionControls();
+  restoreCalibrationProfile();
   refreshLaunchAssistant();
   refreshOfflineCache();
 
