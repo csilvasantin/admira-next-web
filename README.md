@@ -96,6 +96,22 @@ Transcripción y glosario viven solo en memoria: no se envían por red, no se gu
 en `localStorage`/`sessionStorage` y se eliminan al detener o cerrar la sesión. La
 única comunicación es el canal efímero y local entre el control y la audiencia.
 
+### Guardián de pantalla compartida
+
+El panel privado incorpora un guardián de salida con un espejo seguro de
+`?audience=1`, heartbeat de la ventana pública y avisos cuando la salida se
+cierra, deja de responder o una pista de audio/vídeo queda silenciada o termina.
+El espejo y los mensajes operativos no transportan notas, texto de diapositivas,
+identidad del cliente ni credenciales.
+
+La captura se inicia únicamente desde un gesto explícito. Primero se abre y
+verifica la ventana de audiencia; en una segunda acción el navegador muestra su
+selector nativo mediante `getDisplayMedia`. El usuario debe elegir esa ventana:
+la Web solo puede informar de la superficie declarada por el navegador y no
+puede comprobar otras ventanas, notificaciones ni garantizar por sí sola qué ve
+el público. Si la API no está disponible o el permiso se cancela, el panel lo
+declara y mantiene el procedimiento manual sin afirmar una verificación.
+
 Regresión automatizada:
 
 ```sh

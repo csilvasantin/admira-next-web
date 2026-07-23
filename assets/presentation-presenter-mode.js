@@ -39,6 +39,14 @@
   var audienceConnected = false;
   var audiencePrivacyVerified = false;
   var audienceWindow = null;
+  var audienceOutputLaunched = false;
+  var audienceLaunchedAt = 0;
+  var lastAudienceSignalAt = 0;
+  var lastMirrorSignalAt = 0;
+  var audienceMediaHealth = {muted: false, ended: false, kind: ''};
+  var presentationShareGuardian = null;
+  var shareGuardianSnapshot = null;
+  var shareGuardianBusy = false;
   var stagePaused = false;
   var stagePauseSnapshot = null;
   var launchScreenStatus = 'Screen Details: pendiente de comprobar tras el gesto.';
@@ -93,8 +101,14 @@
     '<div class="presenter-calibration-actions"><button type="button" id="presenterCalibrationSave">Guardar perfil de pantalla</button><button type="button" id="presenterCalibrationReset">Restablecer esta pantalla</button></div></section>' +
     '<section id="presenterLaunchAssistant" class="presenter-launch-assistant" data-launch-state="warning" aria-live="polite" aria-labelledby="presenterLaunchTitle"><div class="presenter-launch-assistant-head"><div><span>Preparación de sala</span><strong id="presenterLaunchTitle">Lanzamiento seguro en sala</strong></div><span id="presenterLaunchState" class="presenter-launch-state">Revisión necesaria</span></div>' +
     '<ul id="presenterLaunchChecklist" class="presenter-launch-checklist"><li>Salida de audiencia: pendiente de verificación.</li><li>Screen Details y Pantalla completa se comprobarán al lanzar.</li><li>No molestar: revisión manual obligatoria.</li></ul>' +
-    '<div class="presenter-launch-actions"><button type="button" id="presenterAudienceLaunch" aria-describedby="presenterLaunchFallback">Presentar en audiencia</button></div>' +
+    '<div class="presenter-launch-actions"><button type="button" id="presenterAudienceLaunch" aria-describedby="presenterLaunchFallback">Abrir salida de audiencia</button></div>' +
     '<p id="presenterLaunchFallback" class="presenter-launch-fallback">La Web no puede garantizar otras ventanas ni activar No molestar. Revisa manualmente el escritorio antes de compartir.</p></section>' +
+    '<section id="presenterShareGuardian" class="presenter-share-guardian" data-guardian-state="warning" data-presenter-private aria-labelledby="presenterShareGuardianTitle"><div class="presenter-share-guardian-head"><div><span>Solo control privado</span><strong id="presenterShareGuardianTitle">Guardián de salida</strong></div><span id="presenterShareGuardianState" role="status" aria-live="polite">Sin verificar</span></div>' +
+    '<dl class="presenter-share-guardian-metrics"><div><dt>Superficie</dt><dd id="presenterShareSurface">No seleccionada</dd></div><div><dt>Señal</dt><dd id="presenterShareSignal">Sin captura</dd></div><div><dt>Heartbeat</dt><dd id="presenterAudienceHeartbeat">Esperando audiencia</dd></div></dl>' +
+    '<div class="presenter-audience-mirror"><div><strong>Espejo privado de audiencia</strong><span id="presenterMirrorState">Iniciando comprobación segura…</span></div><iframe id="presenterAudienceMirror" title="Espejo privado de la salida de audiencia, sin notas del presentador" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" tabindex="-1"></iframe></div>' +
+    '<button type="button" id="presenterShareGuardianAction" class="presenter-share-guardian-action" aria-describedby="presenterShareGuardianFallback">Seleccionar y compartir salida</button>' +
+    '<ul id="presenterShareAlerts" class="presenter-share-alerts" role="alert" aria-live="assertive" aria-atomic="true"></ul>' +
+    '<p id="presenterShareGuardianFallback" class="presenter-share-guardian-fallback">Si el guardián de captura no está disponible, se abrirá una salida separada y tendrás que verificar y compartir esa ventana manualmente.</p></section>' +
     '<div class="presenter-remote"><button type="button" id="presenterRemoteOpen">Abrir control remoto ↗</button><span id="presenterRemoteState">Mismo navegador · canal privado local</span></div>';
   document.body.appendChild(panel);
 
@@ -129,6 +143,16 @@
   var launchChecklist = document.getElementById('presenterLaunchChecklist');
   var launchFallback = document.getElementById('presenterLaunchFallback');
   var launchState = document.getElementById('presenterLaunchState');
+  var shareGuardianPanel = document.getElementById('presenterShareGuardian');
+  var shareGuardianState = document.getElementById('presenterShareGuardianState');
+  var shareGuardianAction = document.getElementById('presenterShareGuardianAction');
+  var shareGuardianFallback = document.getElementById('presenterShareGuardianFallback');
+  var shareSurface = document.getElementById('presenterShareSurface');
+  var shareSignal = document.getElementById('presenterShareSignal');
+  var audienceHeartbeat = document.getElementById('presenterAudienceHeartbeat');
+  var audienceMirror = document.getElementById('presenterAudienceMirror');
+  var mirrorState = document.getElementById('presenterMirrorState');
+  var shareAlerts = document.getElementById('presenterShareAlerts');
   var calibrationToggle = document.getElementById('presenterCalibrationToggle');
   var calibrationSafeMargin = document.getElementById('presenterCalibrationSafeMargin');
   var calibrationContrast = document.getElementById('presenterCalibrationContrast');
@@ -184,9 +208,11 @@
     var audienceChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(channelName) : null;
     var audienceSequence = 0;
     var audienceIndex = nearestSlide();
+    var audienceEmbedded = window.self !== window.top || query.get('mirror') === '1';
     var audienceStagePaused = false;
     var audiencePauseSnapshot = null;
     var cursorTimer = 0;
+    var heartbeatTimer = 0;
     var audienceWaiting = document.createElement('div');
     var audienceWaitingBrand = document.createElement('strong');
     var audienceWaitingTitle = document.createElement('span');
@@ -208,7 +234,12 @@
     var audienceCaptions = privacyReady && AudienceCaptionContract && typeof AudienceCaptionContract.create === 'function'
       ? AudienceCaptionContract.create({document: document, sourceLanguage: 'es', targetLanguage: 'es', label: 'Subtítulos en vivo para la audiencia'})
       : null;
+    var ShareGuardianContract = window.AdmiraPresentationShareGuardian || null;
+    var audienceShareGuardian = ShareGuardianContract && typeof ShareGuardianContract.create === 'function'
+      ? ShareGuardianContract.create({role: 'audience', channelName: channelName})
+      : null;
     if (audienceCaptions) audienceCaptions.mount(document.body);
+    if (audienceShareGuardian && typeof audienceShareGuardian.start === 'function') audienceShareGuardian.start();
 
     function hideAudienceCursorSoon() {
       document.documentElement.classList.remove('presenter-cursor-hidden');
@@ -221,6 +252,10 @@
       payload.messageId = 'audience:' + Date.now() + ':' + (++audienceSequence);
       if (audienceChannel) audienceChannel.postMessage(payload);
       try { localStorage.setItem(channelName, JSON.stringify(Object.assign({nonce: Date.now()}, payload))); } catch (_) {}
+      try {
+        if (!audienceEmbedded && window.opener && !window.opener.closed) window.opener.postMessage(payload, location.origin);
+        if (audienceEmbedded && window.parent !== window) window.parent.postMessage(payload, location.origin);
+      } catch (_) {}
     }
 
     function audienceGo(index) {
@@ -249,6 +284,29 @@
           media.currentTime = saved.time;
           if (!saved.paused) media.play().catch(function () {}); else media.pause();
         } catch (_) {}
+      });
+    }
+
+    function audienceTrackHealth() {
+      var slide = slides[audienceIndex];
+      var media = slide && slide.querySelector('video,audio');
+      if (!media) return {muted: false, ended: false, kind: ''};
+      return {
+        muted: Boolean(media.muted && !media.paused && !media.ended),
+        ended: Boolean(media.ended),
+        kind: media.tagName.toLowerCase()
+      };
+    }
+
+    function sendAudienceHeartbeat(type) {
+      var media = audienceTrackHealth();
+      audienceSend({
+        type: type || 'audience-heartbeat',
+        privacyReady: privacyReady,
+        embedded: audienceEmbedded,
+        visible: !document.hidden,
+        index: audienceIndex,
+        media: media
       });
     }
 
@@ -323,9 +381,19 @@
     });
     addEventListener('pointermove', hideAudienceCursorSoon, {passive: true});
     addEventListener('focus', hideAudienceCursorSoon);
-    addEventListener('pagehide', function () { clearTimeout(cursorTimer); if (audienceCaptions) audienceCaptions.destroy(); if (audienceChannel) audienceChannel.close(); }, {once: true});
+    addEventListener('pagehide', function () {
+      clearTimeout(cursorTimer);
+      clearInterval(heartbeatTimer);
+      if (audienceChannel) audienceChannel.close();
+      if (audienceCaptions) audienceCaptions.destroy();
+      if (audienceShareGuardian) {
+        if (typeof audienceShareGuardian.destroy === 'function') audienceShareGuardian.destroy();
+        else if (typeof audienceShareGuardian.stop === 'function') audienceShareGuardian.stop();
+      }
+    }, {once: true});
     hideAudienceCursorSoon();
-    audienceSend({type: 'audience-ready', privacyReady: privacyReady, index: audienceIndex});
+    sendAudienceHeartbeat('audience-ready');
+    heartbeatTimer = setInterval(function () { sendAudienceHeartbeat('audience-heartbeat'); }, 1500);
   }
 
   function readPreferences() {
@@ -846,6 +914,188 @@
     }
   }
 
+  function audienceOutputUrl(mirror) {
+    var url = new URL(location.href);
+    url.searchParams.delete('remote');
+    url.searchParams.delete('presenter');
+    url.searchParams.set('audience', '1');
+    if (mirror) url.searchParams.set('mirror', '1');
+    else url.searchParams.delete('mirror');
+    return url;
+  }
+
+  function launchAudienceOutput() {
+    audienceConnected = false;
+    audiencePrivacyVerified = false;
+    audienceOutputLaunched = true;
+    audienceLaunchedAt = Date.now();
+    lastAudienceSignalAt = 0;
+    launchScreenStatus = 'Screen Details: esperando respuesta del navegador.';
+    launchFullscreenStatus = 'Pantalla completa: esperando que cargue la salida de audiencia.';
+    audienceWindow = window.open(audienceOutputUrl(false), 'admira-presenter-audience', 'popup=yes');
+    if (!audienceWindow) {
+      launchScreenStatus = 'Ventana de audiencia bloqueada por el navegador.';
+      launchFullscreenStatus = 'Pantalla completa no solicitada porque no se abrió la audiencia.';
+      setLaunchState('blocked', 'Permite ventanas emergentes y pulsa de nuevo. No compartas la ventana de control.');
+      setLaunchChecklist([
+        'BLOQUEADO: no existe una salida de audiencia separada.',
+        launchScreenStatus,
+        launchFullscreenStatus,
+        'No molestar: actívalo manualmente antes de compartir.'
+      ]);
+      renderShareGuardian();
+      return null;
+    }
+    document.documentElement.classList.add('presenter-launch-confirmed');
+    refreshLaunchAssistant();
+    configureAudienceDisplay(audienceWindow);
+    renderShareGuardian();
+    return audienceWindow;
+  }
+
+  function shareGuardianCapture() {
+    var snapshot = shareGuardianSnapshot || {};
+    return snapshot.capture && typeof snapshot.capture === 'object' ? snapshot.capture : {};
+  }
+
+  function shareGuardianAudience() {
+    var snapshot = shareGuardianSnapshot || {};
+    return snapshot.audience && typeof snapshot.audience === 'object' ? snapshot.audience : {};
+  }
+
+  function secondsAgo(timestamp) {
+    if (!timestamp) return '';
+    return Math.max(0, Math.floor((Date.now() - Number(timestamp)) / 1000)) + ' s';
+  }
+
+  function guardianSurfaceLabel(capture) {
+    var surface = String(capture.displaySurface || '').toLowerCase();
+    if (surface === 'window') return 'Ventana seleccionada (declarada por navegador)';
+    if (surface === 'browser') return 'Pestaña seleccionada';
+    if (surface === 'monitor') return 'Pantalla completa seleccionada';
+    return capture.phase === 'live' ? 'Superficie sin identificar' : 'No seleccionada';
+  }
+
+  function guardianSignalLabel(capture) {
+    var trackState = String(capture.trackState || '').toLowerCase();
+    if (trackState === 'ended' || capture.phase === 'ended') return 'Pista finalizada';
+    if (trackState === 'muted') return 'Pista silenciada';
+    if (trackState === 'live' || capture.phase === 'live') return 'Señal activa';
+    if (capture.phase === 'requesting') return 'Esperando selección…';
+    if (capture.permission === 'denied' || capture.permission === 'denied-or-dismissed') return 'Permiso denegado o selección cancelada';
+    if (capture.support === false || capture.phase === 'unsupported') return 'Captura no compatible';
+    return 'Sin captura';
+  }
+
+  function renderShareGuardian() {
+    if (!shareGuardianPanel) return;
+    var capture = shareGuardianCapture();
+    var guardianAudience = shareGuardianAudience();
+    var alerts = [];
+    var outputClosed = Boolean(audienceOutputLaunched && audienceWindow && audienceWindow.closed);
+    var outputStale = Boolean(audienceOutputLaunched && !outputClosed && Date.now() - (lastAudienceSignalAt || audienceLaunchedAt) > 6000);
+    var mirrorStale = Boolean(lastMirrorSignalAt && Date.now() - lastMirrorSignalAt > 6000);
+    var captureMuted = capture.trackState === 'muted' || audienceMediaHealth.muted;
+    var captureEnded = capture.trackState === 'ended' || capture.phase === 'ended' || audienceMediaHealth.ended;
+
+    shareSurface.textContent = guardianSurfaceLabel(capture);
+    shareSignal.textContent = guardianSignalLabel(capture);
+    audienceHeartbeat.textContent = lastAudienceSignalAt
+      ? 'Audiencia hace ' + secondsAgo(lastAudienceSignalAt)
+      : (audienceOutputLaunched ? 'Esperando señal real' : 'Salida no abierta');
+    mirrorState.textContent = lastMirrorSignalAt
+      ? 'Privacidad confirmada · señal hace ' + secondsAgo(lastMirrorSignalAt)
+      : 'Iniciando comprobación segura…';
+
+    if (!presentationShareGuardian) alerts.push('Guardián de captura no disponible: verifica y comparte manualmente solo la ventana de audiencia.');
+    if (capture.displaySurface === 'monitor') alerts.push('Se comparte una pantalla completa: confirma que no contiene notas ni otras ventanas privadas.');
+    if (captureMuted) alerts.push('La pista de salida está silenciada.');
+    if (captureEnded) alerts.push('La pista de salida ha finalizado.');
+    if (outputClosed) alerts.push('La ventana de audiencia se ha cerrado.');
+    else if (outputStale || guardianAudience.status === 'stale') alerts.push('La salida de audiencia está desactualizada o no responde.');
+    if (audienceConnected && !audiencePrivacyVerified) alerts.push('La salida real detectó controles o datos privados: no la compartas.');
+    if (mirrorStale) alerts.push('El espejo privado ha dejado de responder.');
+
+    shareAlerts.replaceChildren();
+    alerts.forEach(function (message) {
+      var item = document.createElement('li');
+      item.textContent = message;
+      shareAlerts.appendChild(item);
+    });
+    shareAlerts.hidden = alerts.length === 0;
+
+    var captureReady = capture.phase === 'live' && capture.trackState !== 'muted' && capture.trackState !== 'ended';
+    var outputReady = audienceConnected && audiencePrivacyVerified && !outputStale && !outputClosed;
+    var state = alerts.length ? 'blocked' : (captureReady && outputReady ? 'ready' : 'warning');
+    shareGuardianPanel.dataset.guardianState = state;
+    shareGuardianState.textContent = state === 'ready' ? 'Protección activa' : (state === 'blocked' ? 'Atención' : 'Pendiente');
+    shareGuardianAction.disabled = shareGuardianBusy;
+    shareGuardianAction.textContent = shareGuardianBusy
+      ? 'Esperando selección…'
+      : (!audienceOutputLaunched || outputClosed ? 'Abrir salida de audiencia primero' : 'Seleccionar y compartir salida');
+    shareGuardianFallback.textContent = presentationShareGuardian
+      ? 'El navegador pedirá una superficie. Elige únicamente la ventana de audiencia; el guardián no toma capturas automáticas.'
+      : 'Guardián no disponible: se abrirá una salida separada, pero debes verificar y compartir esa ventana manualmente.';
+  }
+
+  function initializeShareGuardian() {
+    var contract = window.AdmiraPresentationShareGuardian || null;
+    if (!contract || typeof contract.create !== 'function') {
+      presentationShareGuardian = null;
+      renderShareGuardian();
+      return;
+    }
+    try {
+      presentationShareGuardian = contract.create({
+        role: 'presenter',
+        channelName: channelName,
+        onChange: function (snapshot) {
+          shareGuardianSnapshot = snapshot && typeof snapshot === 'object' ? snapshot : null;
+          renderShareGuardian();
+        }
+      });
+      if (presentationShareGuardian && typeof presentationShareGuardian.start === 'function') presentationShareGuardian.start();
+      if (presentationShareGuardian && typeof presentationShareGuardian.getState === 'function') shareGuardianSnapshot = presentationShareGuardian.getState();
+    } catch (_) {
+      presentationShareGuardian = null;
+      shareGuardianSnapshot = null;
+    }
+    renderShareGuardian();
+  }
+
+  function requestGuardianShare(event) {
+    if (!audienceOutputLaunched || !audienceWindow || audienceWindow.closed) {
+      launchAudienceOutput();
+      shareGuardianFallback.textContent = 'La salida ya está abierta. Comprueba que cargó y pulsa de nuevo para seleccionar únicamente esa ventana.';
+      renderShareGuardian();
+      return;
+    }
+    if (!presentationShareGuardian || typeof presentationShareGuardian.requestShareFromGesture !== 'function') {
+      renderShareGuardian();
+      return;
+    }
+    shareGuardianBusy = true;
+    renderShareGuardian();
+    var request;
+    try { request = presentationShareGuardian.requestShareFromGesture(event); }
+    catch (_) { request = Promise.reject(new Error('share request failed')); }
+    Promise.resolve(request).then(function (result) {
+      if (result && result.state && typeof result.state === 'object') shareGuardianSnapshot = result.state;
+    }).catch(function () {
+      if (presentationShareGuardian && typeof presentationShareGuardian.getState === 'function') {
+        shareGuardianSnapshot = presentationShareGuardian.getState();
+      }
+    }).finally(function () {
+      shareGuardianBusy = false;
+      renderShareGuardian();
+    });
+  }
+
+  function mountAudienceMirror() {
+    if (!audienceMirror) return;
+    audienceMirror.src = audienceOutputUrl(true).href;
+  }
+
   function requestAudienceFullscreen(targetWindow, targetScreen) {
     function requestNow() {
       try {
@@ -909,7 +1159,7 @@
   }
 
   function offlineUrls() {
-    var urls = [location.href, '/assets/presentation-pace-coach.js?v=20260723-1', '/assets/presentation-presenter-mode.js?v=20260723-2', '/assets/presentation-presenter-mode.css?v=20260723-2', '/assets/presentation-caption-accessibility.js?v=20260723-2', '/assets/presentation-caption-accessibility.css?v=20260723-2'];
+    var urls = [location.href, '/assets/presentation-share-guardian.js?v=20260723-1', '/assets/presentation-pace-coach.js?v=20260723-1', '/assets/presentation-presenter-mode.js?v=20260723-4', '/assets/presentation-presenter-mode.css?v=20260723-4', '/assets/presentation-caption-accessibility.js?v=20260723-2', '/assets/presentation-caption-accessibility.css?v=20260723-2'];
     document.querySelectorAll('img[src],video[src],audio[src],source[src],link[rel="stylesheet"][href]').forEach(function (node) {
       var value = node.src || node.href;
       try { var parsed = new URL(value, location.href); if (parsed.origin === location.origin) urls.push(parsed.href); } catch (_) {}
@@ -1196,13 +1446,26 @@
       receivedMessageIds.push(payload.messageId);
       if (receivedMessageIds.length > 100) receivedMessageIds.shift();
     }
-    if (payload.type === 'audience-ready' && !remoteMode) {
-      audienceConnected = true;
-      audiencePrivacyVerified = Boolean(payload.privacyReady);
-      if (captionActive) sendCaptionState();
-      refreshLaunchAssistant();
-      render();
-      if (stagePaused) broadcast({type: 'stage-pause', paused: stagePaused, index: currentIndex});
+    if ((payload.type === 'audience-ready' || payload.type === 'audience-heartbeat') && !remoteMode) {
+      if (payload.embedded) {
+        lastMirrorSignalAt = Date.now();
+      } else {
+        lastAudienceSignalAt = Date.now();
+        audienceConnected = true;
+        audiencePrivacyVerified = Boolean(payload.privacyReady);
+        audienceMediaHealth = payload.media && typeof payload.media === 'object'
+          ? {
+              muted: Boolean(payload.media.muted),
+              ended: Boolean(payload.media.ended),
+              kind: payload.media.kind === 'audio' || payload.media.kind === 'video' ? payload.media.kind : ''
+            }
+          : {muted: false, ended: false, kind: ''};
+        if (captionActive && payload.type === 'audience-ready') sendCaptionState();
+        refreshLaunchAssistant();
+      }
+      renderShareGuardian();
+      if (payload.type === 'audience-ready') render();
+      if (payload.type === 'audience-ready' && stagePaused) broadcast({type: 'stage-pause', paused: stagePaused, index: currentIndex});
       return;
     }
     if (payload.type === 'ready' && !remoteMode) { render(); return; }
@@ -1311,31 +1574,8 @@
     var url = new URL(location.href); url.searchParams.set('presenter', '1'); url.searchParams.set('remote', '1');
     window.open(url, 'admira-presenter-remote', 'popup=yes,width=460,height=820');
   });
-  document.getElementById('presenterAudienceLaunch').addEventListener('click', function () {
-    var url = new URL(location.href);
-    url.searchParams.delete('remote');
-    url.searchParams.set('audience', '1');
-    audienceConnected = false;
-    audiencePrivacyVerified = false;
-    launchScreenStatus = 'Screen Details: esperando respuesta del navegador.';
-    launchFullscreenStatus = 'Pantalla completa: esperando que cargue la salida de audiencia.';
-    audienceWindow = window.open(url, 'admira-presenter-audience', 'popup=yes');
-    if (!audienceWindow) {
-      launchScreenStatus = 'Ventana de audiencia bloqueada por el navegador.';
-      launchFullscreenStatus = 'Pantalla completa no solicitada porque no se abrió la audiencia.';
-      setLaunchState('blocked', 'Permite ventanas emergentes y pulsa de nuevo. No compartas la ventana de control.');
-      setLaunchChecklist([
-        'BLOQUEADO: no existe una salida de audiencia separada.',
-        launchScreenStatus,
-        launchFullscreenStatus,
-        'No molestar: actívalo manualmente antes de compartir.'
-      ]);
-      return;
-    }
-    document.documentElement.classList.add('presenter-launch-confirmed');
-    refreshLaunchAssistant();
-    configureAudienceDisplay(audienceWindow);
-  });
+  document.getElementById('presenterAudienceLaunch').addEventListener('click', launchAudienceOutput);
+  shareGuardianAction.addEventListener('click', requestGuardianShare);
   addEventListener('keydown', function (event) {
     if (event.defaultPrevented || event.target?.closest?.('input,textarea,select,button,[contenteditable="true"]')) return;
     if (event.key.toLowerCase() === 'p') { event.preventDefault(); panel.hidden ? openPanel() : closePanel(); }
@@ -1375,11 +1615,18 @@
     ['play', 'pause', 'seeked', 'volumechange', 'ratechange'].forEach(function (name) { media.addEventListener(name, function () { persistSession(true); }); });
   });
   addEventListener('storage', function (event) { if (event.key === channelName && event.newValue) { try { receive(JSON.parse(event.newValue)); } catch (_) {} } });
+  addEventListener('message', function (event) {
+    if (event.origin !== location.origin) return;
+    var fromAudienceWindow = audienceWindow && event.source === audienceWindow;
+    var fromMirror = audienceMirror && event.source === audienceMirror.contentWindow;
+    if (fromAudienceWindow || fromMirror) receive(event.data);
+  });
   document.addEventListener('admira:language', function () { notes.dataset.slide = ''; render(); });
   if (channel) channel.addEventListener('message', function (event) { receive(event.data); });
-  addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); if (channel) channel.close(); stopPrompt(true); }, {once: true});
+  addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); if (presentationShareGuardian) { if (typeof presentationShareGuardian.destroy === 'function') presentationShareGuardian.destroy(); else if (typeof presentationShareGuardian.stop === 'function') presentationShareGuardian.stop(); } if (channel) channel.close(); stopPrompt(true); }, {once: true});
   setInterval(function () {
     if (running && !document.hidden) render();
+    if (!remoteMode) renderShareGuardian();
     if (remoteMode && lastStageSignalAt && Date.now() - lastStageSignalAt > 4000) {
       remoteState.textContent = 'Reconectando con la presentación…';
       setConnection('↻ Reconectando control…', 'is-reconnecting');
@@ -1389,6 +1636,8 @@
 
   if (!navigator.onLine) setConnection('● Sin conexión · modo seguro', 'is-offline');
   initializeCaptionControls();
+  initializeShareGuardian();
+  mountAudienceMirror();
   restoreCalibrationProfile();
   refreshLaunchAssistant();
   refreshOfflineCache();

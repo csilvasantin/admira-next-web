@@ -20,9 +20,11 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-3/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-4/);
   assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-3/);
+  assert.match(html,/presentation-share-guardian\.js\?v=20260723-1/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-4/);
+  assert.ok(html.indexOf('presentation-share-guardian.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);
   assert.doesNotMatch(html,/Recordar el contexto <\/script><script>alert/);
@@ -41,6 +43,7 @@ test('audience output is structurally separated and never serializes private pre
   assert.doesNotMatch(html,/Recordar el contexto/);
   assert.doesNotMatch(html,/Nota privada de portada|Nota privada de bloque/);
   assert.doesNotMatch(html,/Notas del orador|presenterNotes|admiraPresenterPanel/);
+  assert.doesNotMatch(html,/presenterShareGuardian|Guardián de salida|Espejo privado/);
 });
 
 test('presenter mode includes rehearsal, teleprompter, pace and same-origin remote controls',async()=>{
@@ -263,4 +266,55 @@ test('stage pause resumes the exact audience slide and is idempotent with a safe
   assert.doesNotMatch(source,/audienceWindow\.postMessage\([^,\n]+,\s*['"]\*['"]/);
   assert.match(source,/addEventListener\('message', function \(event\) \{[\s\S]{0,180}?event\.origin !== location\.origin[\s\S]{0,180}?audienceReceive\(event\.data\)/);
   assert.match(source,/pagehide[\s\S]{0,180}?if \(audienceChannel\) audienceChannel\.close\(\)/);
+});
+
+test('private share guardian integrates through the explicit gesture contract with an honest fallback',async()=>{
+  const [source,styles]=await Promise.all([
+    readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-mode.css',import.meta.url),'utf8')
+  ]);
+  for(const id of [
+    'presenterShareGuardian','presenterShareGuardianAction','presenterShareSurface',
+    'presenterShareSignal','presenterAudienceHeartbeat','presenterShareAlerts'
+  ]) assert.match(source,new RegExp(`id="${id}"`));
+  assert.match(source,/data-guardian-state="warning"[^>]*data-presenter-private/);
+  assert.match(source,/Seleccionar y compartir salida/);
+  assert.match(source,/AdmiraPresentationShareGuardian/);
+  assert.match(source,/contract\.create\(\{[\s\S]{0,220}?role: 'presenter'[\s\S]{0,220}?channelName: channelName[\s\S]{0,220}?onChange:/);
+  assert.match(source,/requestGuardianShare\(event\)[\s\S]{0,900}?requestShareFromGesture\(event\)/);
+  assert.match(source,/shareGuardianAction\.addEventListener\('click', requestGuardianShare\)/);
+  const shareRequest=source.match(/function requestGuardianShare\([^)]*\)\s*\{[\s\S]*?\n  \}/)?.[0]||'';
+  assert.ok(shareRequest.indexOf('launchAudienceOutput()')<shareRequest.indexOf('return;'));
+  assert.ok(shareRequest.indexOf('requestShareFromGesture(event)')>shareRequest.indexOf('return;'));
+  assert.match(shareRequest,/result && result\.state/);
+  assert.doesNotMatch(shareRequest,/phase:[^,\n]*cancelled/);
+  assert.match(source,/Guardián no disponible:[^']*manualmente/);
+  assert.match(source,/declarada por navegador/);
+  assert.doesNotMatch(source,/Ventana verificada|Pestaña verificada/);
+  assert.doesNotMatch(source,/\bgetDisplayMedia\s*\(/);
+  assert.match(styles,/\.presenter-share-guardian\[data-guardian-state="ready"\]/);
+  assert.match(styles,/\.presenter-share-guardian\[data-guardian-state="blocked"\]/);
+  assert.match(styles,/\.presenter-share-guardian-action:focus-visible/);
+});
+
+test('private audience mirror and heartbeat expose only allowlisted operational health',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  assert.match(source,/id="presenterAudienceMirror"[^>]*sandbox="allow-scripts allow-same-origin"[^>]*referrerpolicy="no-referrer"/);
+  assert.match(source,/url\.searchParams\.set\('audience', '1'\)/);
+  assert.match(source,/url\.searchParams\.set\('mirror', '1'\)/);
+  assert.match(source,/audienceMirror\.src = audienceOutputUrl\(true\)\.href/);
+  assert.match(source,/ShareGuardianContract\.create\(\{role: 'audience', channelName: channelName\}\)/);
+  assert.match(source,/type \|\| 'audience-heartbeat'/);
+  assert.match(source,/embedded: audienceEmbedded/);
+  assert.match(source,/visible: !document\.hidden/);
+  assert.match(source,/media: media/);
+  const heartbeat=source.match(/function sendAudienceHeartbeat\([^)]*\)\s*\{[\s\S]*?\n    \}/)?.[0]||'';
+  assert.doesNotMatch(heartbeat,/notes|speaker|innerHTML|textContent|src|href|url|capture|screenshot/i);
+  assert.match(source,/setInterval\(function \(\) \{ sendAudienceHeartbeat\('audience-heartbeat'\); \}, 1500\)/);
+  assert.match(source,/La pista de salida está silenciada/);
+  assert.match(source,/La pista de salida ha finalizado/);
+  assert.match(source,/La ventana de audiencia se ha cerrado/);
+  assert.match(source,/La salida de audiencia está desactualizada/);
+  assert.match(source,/event\.source === audienceMirror\.contentWindow/);
+  assert.doesNotMatch(source,/toDataURL|drawImage|ImageCapture|takePhoto|getDisplayMedia\s*\(/);
 });
