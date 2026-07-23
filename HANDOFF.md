@@ -1,6 +1,6 @@
 # HANDOFF — Trilogía AdmiraNeXT
 
-Actualizado: 2026-06-19
+Actualizado: 2026-07-23
 Matriz: `admira-next-web` → https://www.admiranext.com
 HANDOFF público: https://www.admiranext.com/HANDOFF.md · GitHub: https://github.com/csilvasantin/admira-next-web/blob/main/HANDOFF.md
 
@@ -29,6 +29,9 @@ Cada pata tiene una sección `/mcp/` con la misma convención: `index.html` (hub
 ## Navegación (en estrella, ya implementada)
 
 - Matriz → derivadas: comando `/intranet` en admiranext.com con accesos `/shop` y `/live` (catálogo en `assets/app.js`, `INTRANET_CATALOG`, gateado tras la intranet).
+- Herramientas hermanas en la matriz: `/presentaciones` abre el Generador de
+  Presentaciones y `/presites` abre el nuevo Generador de Presites. Ambos viven
+  en `admiranext.com`, usan acceso interno y comparten lenguaje cuadrático.
 - admira.shop → matriz: enlace `← AdmiraNeXT` en el footer (index + venta/alquiler/catálogo/contacto).
 - admira.live → matriz: badge `🏠 AdmiraNeXT` en la barra superior.
 - Regla: admira.shop ↔ admira.live NO se enlazan entre sí (las dos derivadas son independientes).
@@ -65,6 +68,10 @@ Cuentas Claude por máquina (18 jun): Mac Mini = `csilva@admira.com`; resto del 
 - Workers Windows (4: Runner/OCR/Bot/Sitges) tienen `ssh.enabled:false`; el sondeo de cuenta es Python/macOS, no corre en Windows. Hoy aparecen en el monitor marcados "sin sondeo · requiere agente". El sondeo real necesita un agente nativo Windows (PowerShell o heartbeat reverso a `/api/council/heartbeat`) — paso de infra pendiente, no de frontend.
 - HTTPS no forzado en admira.live y admira.store (sí en admiranext.com y admira.shop).
 - `admira-bots` repo: descripción ya corregida a admira.shop.
+- Presites v1 usa generación narrativa determinista y publicación simulada. La
+  integración con un proveedor IA y la publicación en un dominio externo quedan
+  fuera del MVP; nunca deben activarse sin revisión, destino y autorización
+  explícitos.
 
 ## Siguiente foco recomendado
 

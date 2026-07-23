@@ -38,6 +38,28 @@ The site is static. The public entry point lets visitors choose:
 - `classic.html`
 - `404.html`
 - `old/*.html` classic corporate web
+- `/presentaciones/` workspace privado de presentaciones.
+- `/presites/` workspace privado para crear, editar y validar homes iniciales.
+
+## Generador de Presites
+
+Presites comparte dominio, acceso interno, almacenamiento KV y lenguaje
+cuadrático con el Generador de Presentaciones, pero conserva un modelo de datos
+aislado mediante claves `presite:*`.
+
+- `/presites/generador/`: brief, objetivo, audiencia e idioma, tres direcciones
+  Good/Better/Best y preview responsive desktop/tablet/móvil.
+- `/presites/<slug>/`: edición por seis bloques, histórico de hasta 20 versiones,
+  restauración y simulación segura de publicación.
+- `/presites/<slug>/preview`: render responsive sin JavaScript ni dependencias
+  remotas, con CSP restrictiva.
+- `/presites/<slug>/export`: descarga de un HTML autónomo. La exportación no
+  publica, no toca DNS ni reemplaza ninguna home real.
+
+El MVP genera una narrativa determinista. `functions/presites/_presite.js`
+centraliza el modelo y el render para que un proveedor IA futuro pueda proponer
+el contenido sin cambiar rutas, persistencia, editor, versiones ni exportación.
+El workspace es `noindex` y no se incluye en `sitemap.xml` deliberadamente.
 
 ## Local preview
 
@@ -161,4 +183,12 @@ node --check assets/presentation-speaker-handoff.js
 node --test test/presentation-production-backchannel.test.js test/presentation-speaker-handoff.test.js test/presentation-speaker-handoff-integration.test.js test/presentation-presenter-mode.test.js
 node --test test/*.test.js
 git diff --check
+```
+
+Para Presites:
+
+```sh
+node --check assets/presites-generator.js
+node --check assets/presites-studio.js
+node --test test/presites.test.js
 ```
