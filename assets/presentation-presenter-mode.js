@@ -314,6 +314,18 @@
 
   function applyCalibrationProfile(profile, status) {
     profile = normalizeCalibrationProfile(profile);
+    var scale = profile.scale / 100;
+    var calibrationProperties = {
+      '--presenter-calibration-safe': profile.safeMargin + '%',
+      '--presenter-calibration-contrast': profile.contrast + '%',
+      '--presenter-calibration-gamma': String(profile.gamma),
+      '--presenter-calibration-scale': String(scale),
+      '--presenter-calibration-bar-height': Number(14 * scale).toFixed(2) + '%',
+      '--presenter-calibration-grid-size': Number(100 / scale).toFixed(2) + '%',
+      '--presenter-calibration-border-alpha': String(clamp((profile.contrast - 40) / 100, 0, 1)),
+      '--presenter-calibration-text-alpha': String(clamp((profile.contrast - 30) / 100, 0, 1)),
+      '--presenter-calibration-gamma-alpha': String(clamp(0.54 + (0.08 * profile.gamma), 0, 1))
+    };
     calibrationSafeMargin.value = String(profile.safeMargin);
     calibrationContrast.value = String(profile.contrast);
     calibrationGamma.value = String(profile.gamma);
@@ -322,10 +334,12 @@
     document.getElementById('presenterCalibrationContrastValue').textContent = profile.contrast + '%';
     document.getElementById('presenterCalibrationGammaValue').textContent = Number(profile.gamma).toFixed(2);
     document.getElementById('presenterCalibrationScaleValue').textContent = profile.scale + '%';
-    document.documentElement.style.setProperty('--presenter-calibration-safe', profile.safeMargin + '%');
-    document.documentElement.style.setProperty('--presenter-calibration-contrast', profile.contrast + '%');
-    document.documentElement.style.setProperty('--presenter-calibration-gamma', String(profile.gamma));
-    document.documentElement.style.setProperty('--presenter-calibration-scale', String(profile.scale / 100));
+    Object.keys(calibrationProperties).forEach(function (property) {
+      document.documentElement.style.setProperty(property, calibrationProperties[property]);
+      // Mirror the resolved values on the pattern so its stylesheet fallbacks
+      // cannot shadow the live preview in the custom-property cascade.
+      calibrationPattern.style.setProperty(property, calibrationProperties[property]);
+    });
     calibrationStatus.textContent = status;
   }
 

@@ -140,6 +140,13 @@ test('room calibration exposes a private, persistent and bounded presenter contr
   for(const field of ['safeMargin','contrast','gamma','scale']) assert.match(source,new RegExp(`${field}\\s*:`));
   assert.match(source,/presenterRoomCalibration[\s\S]{0,5000}?data-presenter-private/);
   assert.match(source,/aria-live\s*=\s*["']polite["']/);
+  assert.ok(source.indexOf('if (audienceMode)')<source.indexOf("admira.presenter.calibration.v1"));
+  assert.match(source,/calibrationPattern\.style\.setProperty\(property, calibrationProperties\[property\]\)/);
+  for(const property of ['--presenter-calibration-bar-height','--presenter-calibration-grid-size','--presenter-calibration-border-alpha','--presenter-calibration-text-alpha','--presenter-calibration-gamma-alpha']){
+    assert.match(source,new RegExp(property));
+  }
+  const calibrationLogic=source.slice(source.indexOf('function calibrationScreenSignature'),source.indexOf('function trimCaptionText'));
+  assert.doesNotMatch(calibrationLogic,/\bbroadcast\s*\(|BroadcastChannel|notes|caption|glossary|transcript/i);
   assert.doesNotMatch(source,/\bfetch\s*\(/);
   assert.doesNotMatch(source,/WebSocket|EventSource/);
 });
@@ -156,6 +163,9 @@ test('room calibration renders a responsive technical pattern without filtering 
   assert.match(calibrationStyles,/@media\(max-width:720px\)[\s\S]*\.presenter-calibration-controls\{grid-template-columns:1fr\}/);
   assert.match(calibrationStyles,/@media\(prefers-reduced-motion:reduce\)[\s\S]*#presenterCalibrationPattern[\s\S]*animation:none!important/);
   assert.match(calibrationStyles,/\.presenter-audience-mode #presenterRoomCalibration[\s\S]*display:none!important/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern\{background-size:[^}]*--presenter-calibration-bar-height[^}]*--presenter-calibration-grid-size/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::before\{border-color:rgba\(255,255,255,var\(--presenter-calibration-border-alpha,.6\)\)\}/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::after\{background:rgba\(0,0,0,var\(--presenter-calibration-gamma-alpha,.62\)\);color:rgba\(255,255,255,var\(--presenter-calibration-text-alpha,.7\)\)\}/);
   assert.doesNotMatch(calibrationStyles,/presenter-calibration-active[^{}]*body\s*>\s*\.slide[^{}]*\{[^}]*\b(?:display\s*:\s*none|filter\s*:)/);
 });
 
