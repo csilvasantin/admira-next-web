@@ -71,6 +71,7 @@ test('runtime hace Skip visible, soporta teclado, pausa, mute, reduced motion y 
   assert.match(html, /id="toggleSound"/);
   assert.match(html, /event\.key==='Escape'/);
   assert.match(html, /event\.key==='Enter'/);
+  assert.match(html, /!event\.target\.closest\('button,a,input,select,textarea'\)/);
   assert.match(html, /prefers-reduced-motion: reduce/);
   assert.match(html, /<noscript>/);
   assert.match(html, /location\.assign\(config\.destination\)/);
