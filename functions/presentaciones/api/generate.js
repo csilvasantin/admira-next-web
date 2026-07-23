@@ -9,6 +9,7 @@ import {presiteKey} from '../../presites/_presite.js';
 import {normalizeSlideMedia} from '../_slide-media.js';
 import {normalizeSourceTraceability} from '../_source-traceability.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
+import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -231,8 +232,9 @@ export async function onRequestPut(context){
     ],
     requestedOutputs:outputs,features:compatibilityFeatures
   });
+  const roomDeviceLab=createRoomDeviceLab({features:compatibilityFeatures});
   const presentation={
-    schemaVersion:9,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,presite,sequence,
+    schemaVersion:10,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
@@ -246,5 +248,5 @@ export async function onRequestPut(context){
   await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null});
   const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

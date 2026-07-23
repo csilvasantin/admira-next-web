@@ -188,6 +188,10 @@
   var SourceTraceability = window.AdmiraSourceTraceability || null;
   var sourceTraceability = window.__ADMIRA_SOURCE_TRACEABILITY__ || null;
   var compatibilityLab = window.__ADMIRA_COMPATIBILITY_LAB__ || null;
+  var RoomDeviceLab = window.AdmiraRoomDeviceLab || null;
+  var roomDeviceLab = window.__ADMIRA_ROOM_DEVICE_LAB__ || null;
+  var localRoomProbe = RoomDeviceLab && typeof RoomDeviceLab.probe === 'function'
+    ? RoomDeviceLab.probe({window:window,document:document,navigator:navigator}) : null;
   var shareGuardianPanel = document.getElementById('presenterShareGuardian');
   var shareGuardianState = document.getElementById('presenterShareGuardianState');
   var shareGuardianAction = document.getElementById('presenterShareGuardianAction');
@@ -978,6 +982,13 @@
       Number(summary.unavailable || 0) + ' no disponibles. Revisa fallbacks antes de presentar.';
   }
 
+  function roomDeviceChecklistStatus() {
+    if (!RoomDeviceLab || typeof RoomDeviceLab.checklistStatus !== 'function') {
+      return 'Ensayo pendiente: no se pudo analizar este dispositivo y no se afirma que la sala esté probada.';
+    }
+    return RoomDeviceLab.checklistStatus(roomDeviceLab, localRoomProbe);
+  }
+
   function refreshLaunchAssistant() {
     var privacyStatus = !audienceConnected
       ? 'Salida dedicada: pendiente; aún no se ha verificado que la audiencia no reciba notas.'
@@ -988,6 +999,7 @@
       privacyStatus,
       traceabilityChecklistStatus(),
       compatibilityChecklistStatus(),
+      roomDeviceChecklistStatus(),
       launchScreenStatus,
       launchFullscreenStatus,
       calibrationChecklistStatus(),

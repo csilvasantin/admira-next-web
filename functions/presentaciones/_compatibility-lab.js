@@ -33,7 +33,7 @@ function publicHost(value){
   }
   return true;
 }
-function httpsUrl(value){
+export function publicEvidenceUrl(value){
   try{
     const url=new URL(String(value||''));
     return url.protocol==='https:'&&!url.username&&!url.password&&!url.search&&publicHost(url.hostname)?url.href:'';
@@ -122,7 +122,7 @@ export function applyCompatibilityReport(current,report,now=new Date().toISOStri
   }else if(report?.kind==='execution'){
     const status=EXECUTION_STATUSES.has(report.status)?report.status:'';
     const adapter=id(report.adapter),adapterVersion=text(report.adapterVersion,60);
-    const artifactSha256=text(report.artifactSha256,64),evidenceUrl=httpsUrl(report.evidenceUrl);
+    const artifactSha256=text(report.artifactSha256,64),evidenceUrl=publicEvidenceUrl(report.evidenceUrl);
     const environment=text(report.environment,160),executedAt=iso(report.executedAt);
     if(!status||!adapter||!adapterVersion||!SHA256.test(artifactSha256)||!evidenceUrl||!environment||!executedAt){
       throw new Error('Compatibilidad: una ejecución real requiere status, adaptador/version, SHA-256, evidenceUrl HTTPS, environment y executedAt.');

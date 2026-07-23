@@ -179,6 +179,52 @@ archivos ni capturas embebidas. El preflight privado resume cuántas comprobacio
 fueron ejecutadas, estructurales o no disponibles. La salida de audiencia no
 recibe el laboratorio.
 
+### Ensayo con dispositivos y salas
+
+`roomDeviceLab` crea automáticamente una matriz de 16 celdas: codecs, autoplay,
+rendimiento y legibilidad para móvil, portátil, proyector y videowall. Cada celda
+declara uno de cuatro niveles:
+
+- `measured`: medición aportada por un runner con evidencia pública, SHA-256,
+  versión, entorno y fechas.
+- `capability`: capacidad detectada mediante API del navegador o perfil; no
+  afirma que el contenido se haya reproducido correctamente.
+- `inferred`: riesgo derivado de las características del deck; no afirma que se
+  haya usado el dispositivo.
+- `unavailable`: no existe runner o perfil de sala y se conserva un fallback
+  accionable.
+
+La lectura y actualización viven en el endpoint privado
+`/presentaciones/<cliente>/api/room-device-lab`. Un informe real usa, por
+ejemplo:
+
+```json
+{
+  "kind": "measurement",
+  "device": "laptop",
+  "area": "performance",
+  "status": "passed_with_differences",
+  "adapter": "playwright-room",
+  "adapterVersion": "2.1",
+  "environment": "Portátil de referencia · Chromium estable",
+  "artifactSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "evidenceUrl": "https://evidence.example/rooms/laptop.json",
+  "executedAt": "2026-07-23T21:58:00.000Z",
+  "metrics": {
+    "startupMs": 420,
+    "fpsP50": 58,
+    "droppedFrameRate": 0.02
+  }
+}
+```
+
+Las métricas usan allowlist y límites; logs, user-agent, rutas, archivos y
+campos privados se descartan. La evidencia rechaza HTTP, credenciales, query
+strings y hosts locales, privados o reservados. El probe privado del presentador
+solo calcula buckets de codecs, memoria, núcleos, viewport y densidad en memoria;
+no usa red ni almacenamiento. La salida `?audience=1` no recibe matriz, probe ni
+evidencias.
+
 ### Calibración visual de sala
 
 El panel privado del presentador incluye un patrón técnico para ajustar margen

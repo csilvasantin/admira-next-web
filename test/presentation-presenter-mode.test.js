@@ -24,7 +24,7 @@ test('generated presentations load the intelligent presenter mode without exposi
   assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
   assert.match(html,/presentation-share-guardian\.js\?v=20260723-1/);
   assert.match(html,/presentation-production-backchannel\.js\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260724-2/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260724-3/);
   assert.ok(html.indexOf('presentation-share-guardian.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.ok(html.indexOf('presentation-production-backchannel.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);

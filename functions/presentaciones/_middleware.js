@@ -106,6 +106,7 @@ export async function onRequest(context){
   const isIdeasApi = !isGallery && second === 'api' && third === 'ideas';
   const isGenerationApi = !isGallery && second === 'api' && third === 'generation';
   const isCompatibilityApi = !isGallery && second === 'api' && third === 'compatibility';
+  const isRoomDeviceLabApi = !isGallery && second === 'api' && third === 'room-device-lab';
   const isInlineEditApi = !isGallery && second === 'api' && third === 'inline-edit';
   const isVersionsApi = !isGallery && second === 'api' && third === 'versions';
   const isVersionsPage = !isGallery && second === 'versiones';
@@ -120,7 +121,7 @@ export async function onRequest(context){
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
   const isRemoteApi = !isGallery && second === 'api' && third === 'remote';
-  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isCompatibilityApi || isInlineEditApi || isVersionsApi || isVersionsPage || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;
+  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;
 
   // El productor local se autentica con un Bearer token propio. No debe atravesar
   // el formulario/cookie de las áreas humanas antes de llegar a su endpoint.
@@ -143,7 +144,7 @@ export async function onRequest(context){
   if (!isGallery && env.PRESENTATION_IDEAS && !isGeneratorApi && !isGeneratorPage && !isControlArea) generated = await env.PRESENTATION_IDEAS.get(`presentation:${seg}`, {type:'json'});
   const dynamicVerifier = generated?.passwordVerifier || '';
   const clientTitle = generated?.displayName || names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1);
-  const title = isGallery ? 'Presentaciones' : (isGeneratorPage || isGeneratorApi || isClientsApi ? 'Generador de presentaciones' : (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi ? `${clientTitle} · Ideas` : clientTitle));
+  const title = isGallery ? 'Presentaciones' : (isGeneratorPage || isGeneratorApi || isClientsApi ? 'Generador de presentaciones' : (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi ? `${clientTitle} · Ideas` : clientTitle));
 
   if (!signKey || (!expected && !dynamicVerifier && !master)) return htmlResponse(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'), 503);
 
@@ -154,7 +155,7 @@ export async function onRequest(context){
     validToken(signKey, cookieSlug, cookies[cookieName]),
     readIdentity(request, signKey)
   ]);
-  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
+  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
   const authorized = masterValid || (editorAllowed && editorValid) || (!isInternalArea && clientValid);
   const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : 'client';
   const contentType = request.headers.get('content-type') || '';
