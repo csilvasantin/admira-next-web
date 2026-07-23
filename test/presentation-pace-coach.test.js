@@ -82,6 +82,15 @@ test('la histéresis conserva el consejo durante el cooldown y permite el cambio
   assert.equal(coach.stabilizeAdvice(next,prior,9001,8000).mode,'summarize');
 });
 
+test('la histéresis refresca el contenido sin reiniciar el cooldown del mismo consejo',async()=>{
+  const coach=await loadCoach();
+  const prior={mode:'summarize',label:'Resume',detail:'Recorta 01:20',changedAt:1000};
+  const refreshed={mode:'summarize',label:'Resume',detail:'Recorta 01:35'};
+  const result=coach.stabilizeAdvice(refreshed,prior,5000,8000);
+  assert.equal(result.detail,'Recorta 01:35');
+  assert.equal(result.changedAt,1000);
+});
+
 test('la integración mantiene el coach privado, no lo difunde y protege el muestreo del scroll suave',async()=>{
   const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
   assert.match(source,/id="presenterPaceCoach"[^>]*data-presenter-private/);
@@ -93,4 +102,25 @@ test('la integración mantiene el coach privado, no lo difunde y protege el mues
   assert.match(source,/shouldAnnounce = coachLabel\.dataset\.mode !== stableCoachAdvice\.mode/);
   assert.doesNotMatch(source,/shouldAnnounce[^;]*15000/);
   assert.match(source,/resetPaceCoach\(0\)/);
+});
+
+test('recuperar o reiniciar una sesión recalibra sin persistir muestras ni consejos privados',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  const storedSession=source.match(/localStorage\.setItem\(sessionStorageKey,[\s\S]*?\}\)\);/)?.[0]||'';
+  assert.match(source,/function resumeSession\(\)[\s\S]*resetPaceCoach\(carriedSeconds\)[\s\S]*goLocal\(currentIndex, true\)/);
+  assert.match(source,/function resetSession\(\)[\s\S]*resetPaceCoach\(0\)/);
+  assert.match(source,/presenterTimerReset[\s\S]*resetPaceCoach\(0\)/);
+  assert.doesNotMatch(storedSession,/paceSamples|slideEnteredAt|coach|advice/i);
+});
+
+test('el consejo y el salto son operables por teclado sin secuestrar controles enfocados',async()=>{
+  const [source,styles]=await Promise.all([
+    readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-mode.css',import.meta.url),'utf8')
+  ]);
+  assert.match(source,/<button[^>]*type="button"[^>]*id="presenterCoachSkip"[^>]*hidden/);
+  assert.match(source,/coachSkip\.addEventListener\('click'/);
+  assert.match(source,/event\.target\?\.closest\?\.\('input,textarea,select,button,\[contenteditable="true"\]'\)/);
+  assert.match(styles,/\.presenter-coach-skip:hover,\.presenter-coach-skip:focus-visible/);
+  assert.match(styles,/@media\(prefers-reduced-motion:reduce\)/);
 });
