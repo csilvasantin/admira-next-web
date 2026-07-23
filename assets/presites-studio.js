@@ -4,7 +4,7 @@
   if(!site||!form)return;
   const endpoint=`/presites/${encodeURIComponent(site.slug)}/api/site`;
   const message=(text,type='')=>{status.className='ps-status '+type;status.textContent=text};
-  function blocks(){return [...form.querySelectorAll('.ps-block')].map(node=>Object.fromEntries(new FormData(node.querySelector('.ps-block-fields')).entries()))}
+  function blocks(){return [...form.querySelectorAll('.ps-block')].map(node=>Object.fromEntries([...node.querySelectorAll('.ps-block-fields input,.ps-block-fields textarea')].map(control=>[control.name,control.value])))}
   async function save(action){
     message(action?'Preparando simulación segura…':'Guardando nueva versión…');
     const payload=action?{action}:{blocks:blocks()};

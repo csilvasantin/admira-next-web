@@ -95,6 +95,8 @@ test('workspace integra preview responsive, edición, versiones, export y navega
   assert.match(studio,/Bloques de la home/);
   assert.match(client,/simulate-publish/);
   assert.match(client,/api\/versions/);
+  assert.match(client,/querySelectorAll\('\.ps-block-fields input,\.ps-block-fields textarea'\)/);
+  assert.doesNotMatch(client,/new FormData\(node\.querySelector\('\.ps-block-fields'\)\)/);
   assert.match(studio,/export/);
   assert.match(styles,/@media\(max-width:600px\)/);
   assert.ok(app.includes("cmd: '/presites'"));
