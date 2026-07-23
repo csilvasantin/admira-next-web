@@ -20,6 +20,8 @@ function safeJson(value){
 
 function page(audienceMode){
   const surface=audienceMode?'audience':'presenter';
+  const coverNotes=audienceMode?'':' data-speaker-notes="Confirmar fuentes antes de presentar."';
+  const objectiveNotes=audienceMode?'':' data-speaker-notes="Validar aislamiento de audiencia."';
   const privateRuntime=audienceMode?'':`
   <script>window.__ADMIRA_PRESENTER_NOTES__="Fixture de QA sin datos reales.";window.__ADMIRA_SOURCE_TRACEABILITY__=${safeJson(contract)}</script>
   <script src="/assets/presentation-source-traceability.js?v=20260724-1"></script>`;
@@ -44,8 +46,8 @@ function page(audienceMode){
 </head>
 <body>
   <div class="qa-surface">QA · ${audienceMode?'AUDIENCIA SEGURA':'PRESENTADOR PRIVADO'}</div>
-  <section id="cover" class="slide" data-block-id="cover" data-speaker-notes="${audienceMode?'':'Confirmar fuentes antes de presentar.'}"><div class="inner"><span class="eyebrow">AdmiraNeXT · QA reproducible</span><h1>Trazabilidad de fuentes</h1><p>El modo presentador comprueba dos afirmaciones verificables; la salida de audiencia no recibe el contrato privado.</p></div></section>
-  <section id="objective" class="slide" data-block-id="objective" data-speaker-notes="${audienceMode?'':'Validar aislamiento de audiencia.'}"><div class="inner"><span class="eyebrow">Objetivo</span><h2>Presentar con evidencia</h2><p>Esta página ejercita el mismo runtime que las presentaciones generadas.</p></div></section>
+  <section id="cover" class="slide" data-block-id="cover"${coverNotes}><div class="inner"><span class="eyebrow">AdmiraNeXT · QA reproducible</span><h1>Trazabilidad de fuentes</h1><p>El modo presentador comprueba dos afirmaciones verificables; la salida de audiencia no recibe el contrato privado.</p></div></section>
+  <section id="objective" class="slide" data-block-id="objective"${objectiveNotes}><div class="inner"><span class="eyebrow">Objetivo</span><h2>Presentar con evidencia</h2><p>Esta página ejercita el mismo runtime que las presentaciones generadas.</p></div></section>
   ${privateRuntime}
   <script src="/assets/presentation-presenter-mode.js?v=20260724-1"></script>
 </body>

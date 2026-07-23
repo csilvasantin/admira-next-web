@@ -26,5 +26,5 @@ test('fixture visual de audiencia elimina contrato, runtime privado y notas',asy
   assert.match(html,/presenter-audience-mode/);
   assert.match(html,/data-presenter-surface="audience"/);
   assert.match(html,/presentation-presenter-mode\.js/);
-  assert.doesNotMatch(html,/__ADMIRA_SOURCE_TRACEABILITY__|presentation-source-traceability\.js|claim-cover|Confirmar fuentes|Validar aislamiento/);
+  assert.doesNotMatch(html,/__ADMIRA_SOURCE_TRACEABILITY__|presentation-source-traceability\.js|claim-cover|data-speaker-notes|Confirmar fuentes|Validar aislamiento/);
 });
