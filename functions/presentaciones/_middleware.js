@@ -118,11 +118,15 @@ export async function onRequest(context){
   const isProductionApi = first === 'api' && second === 'production';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
+  const isRemoteApi = !isGallery && second === 'api' && third === 'remote';
   const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isInlineEditApi || isVersionsApi || isVersionsPage || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;
 
   // El productor local se autentica con un Bearer token propio. No debe atravesar
   // el formulario/cookie de las áreas humanas antes de llegar a su endpoint.
   if (isProductionApi) return next();
+  // La creación de sesión atraviesa la puerta humana normal. El emparejamiento
+  // y el polling posterior usan secretos efímeros verificados por sus endpoints.
+  if (isRemoteApi && parts.length > 4) return next();
 
   const cookieName = `pres_${isGallery ? 'admin' : seg}`;
   const cookieSlug = isGallery ? '_admin' : seg;

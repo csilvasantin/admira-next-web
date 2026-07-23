@@ -72,6 +72,13 @@
   var stableCoachAdvice = null;
   var programmaticNavigationTarget = -1;
   var programmaticNavigationUntil = 0;
+  var remoteSession = null;
+  var remoteCommandPollTimer = 0;
+  var remoteCommandPollBusy = false;
+  var remoteStatePushTimer = 0;
+  var remoteStatePushBusy = false;
+  var remoteStatePushQueued = false;
+  var remotePairingUrl = '';
 
   var launch = document.createElement('button');
   launch.type = 'button';
@@ -134,7 +141,11 @@
     '<div class="presenter-backchannel-mode"><button type="button" id="presenterBackchannelMode" aria-pressed="false" aria-describedby="presenterBackchannelModeHelp">Activar modo operador</button><small id="presenterBackchannelModeHelp">Presentador: recibe y acusa cues. Operador: los redacta y envía.</small></div>' +
     '<form id="presenterBackchannelComposer" class="presenter-backchannel-composer" aria-label="Enviar cue de producción" hidden><label>Prioridad <select id="presenterBackchannelPriority"><option value="normal">Normal</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></label><label>Caducidad <span><input id="presenterBackchannelTtl" type="number" min="5" max="300" step="5" value="30" inputmode="numeric" aria-describedby="presenterBackchannelTtlHelp"> s</span></label><label class="presenter-backchannel-message">Cue <textarea id="presenterBackchannelText" rows="2" maxlength="240" placeholder="Ej.: quedan 2 minutos para preguntas" required></textarea></label><button type="submit" id="presenterBackchannelSend">Enviar cue</button></form>' +
     '<small id="presenterBackchannelTtlHelp" class="presenter-backchannel-help">Los cues duran entre 5 y 300 segundos y no se guardan desde esta interfaz.</small><p id="presenterBackchannelFeedback" class="presenter-backchannel-feedback" role="status" aria-live="polite">Esperando el motor local de producción.</p><ul id="presenterBackchannelCues" class="presenter-backchannel-cues" aria-label="Cues de producción activos" aria-live="polite" aria-relevant="additions text"></ul></section>' +
-    '<div class="presenter-remote"><button type="button" id="presenterRemoteOpen">Abrir control remoto ↗</button><span id="presenterRemoteState">Mismo navegador · canal privado local</span></div>';
+    '<section class="presenter-remote" data-remote-state="idle" data-presenter-private aria-labelledby="presenterRemoteTitle"><div class="presenter-remote-head"><div><span>Control privado</span><strong id="presenterRemoteTitle">Mando móvil entre dispositivos</strong></div><span id="presenterRemoteState" role="status" aria-live="polite">Sin sesión activa</span></div>' +
+    '<p>La sesión es efímera. El móvil recibe solo número de diapositiva, tiempo y ritmo; nunca notas, teleprompter ni contenido.</p>' +
+    '<div class="presenter-remote-actions"><button type="button" id="presenterRemoteCreate">Crear enlace de 4 horas</button><button type="button" id="presenterRemoteOpen">Fallback en este navegador</button></div>' +
+    '<div id="presenterRemotePairing" class="presenter-remote-pairing" hidden><label>Enlace de emparejamiento <input id="presenterRemoteLink" type="text" readonly spellcheck="false" autocomplete="off"></label><label>Código de un uso <input id="presenterRemoteCode" type="text" readonly spellcheck="false" autocomplete="off"></label><div><button type="button" id="presenterRemoteCopy">Copiar enlace</button><button type="button" id="presenterRemoteLaunch">Abrir mando</button><button type="button" id="presenterRemoteRevoke">Revocar</button></div><small id="presenterRemoteExpiry"></small></div>' +
+    '<small class="presenter-remote-fallback">El fallback solo controla otra pestaña del mismo navegador; no conecta un teléfono.</small></section>';
   document.body.appendChild(panel);
 
   var calibrationPattern = document.createElement('div');
@@ -158,6 +169,12 @@
   var promptToggle = document.getElementById('presenterPromptToggle');
   var speedInput = document.getElementById('presenterPromptSpeed');
   var remoteState = document.getElementById('presenterRemoteState');
+  var remotePanel = panel.querySelector('.presenter-remote');
+  var remoteCreate = document.getElementById('presenterRemoteCreate');
+  var remotePairing = document.getElementById('presenterRemotePairing');
+  var remoteLink = document.getElementById('presenterRemoteLink');
+  var remoteCode = document.getElementById('presenterRemoteCode');
+  var remoteExpiry = document.getElementById('presenterRemoteExpiry');
   var connectionState = document.getElementById('presenterConnection');
   var cacheState = document.getElementById('presenterCacheState');
   var recoveryPanel = document.getElementById('presenterRecovery');
@@ -385,12 +402,12 @@
         audienceReceivedMessageIds.push(payload.messageId);
         if (audienceReceivedMessageIds.length > 100) audienceReceivedMessageIds.shift();
       }
-      if (payload.type === 'stage-pause') {
+      if (payload.type === 'stage-pause' && payload.source === 'stage') {
         setAudienceStagePaused(Boolean(payload.paused), payload.index);
         return;
       }
-      if (!audienceStagePaused && (payload.type === 'command' || payload.type === 'state')) audienceGo(payload.index);
-      if (payload.type === 'captions' && privacyReady) {
+      if (!audienceStagePaused && payload.source === 'stage' && (payload.type === 'command' || payload.type === 'state')) audienceGo(payload.index);
+      if (payload.type === 'captions' && payload.source === 'stage' && privacyReady) {
         if (!audienceCaptions) return;
         audienceCaptions.setLanguages(payload.sourceLanguage || 'es', payload.targetLanguage || payload.sourceLanguage || 'es');
         audienceCaptions.setGlossary(payload.glossary && typeof payload.glossary === 'object' ? payload.glossary : {});
@@ -2018,6 +2035,217 @@
     return carriedSeconds + (running && startedAt ? (Date.now() - startedAt) / 1000 : 0);
   }
 
+  function remoteApiBase() {
+    var match = location.pathname.match(/^\/presentaciones\/([^/]+)\//);
+    return match ? '/presentaciones/' + match[1] + '/api/remote' : '';
+  }
+
+  function remoteClientSlug() {
+    var match = location.pathname.match(/^\/presentaciones\/([^/]+)\//);
+    if (!match) return '';
+    try { return decodeURIComponent(match[1]); } catch (_) { return ''; }
+  }
+
+  async function remoteRequest(path, options) {
+    var response = await fetch(path, Object.assign({credentials: 'same-origin'}, options || {}));
+    var body = null;
+    if (response.status !== 204) {
+      try { body = await response.json(); } catch (_) {}
+    }
+    if (!response.ok) {
+      var error = new Error(body && body.error || 'remote_request_failed');
+      error.code = body && body.error || 'remote_request_failed';
+      error.status = response.status;
+      throw error;
+    }
+    return body;
+  }
+
+  function setRemoteStatus(state, label) {
+    remotePanel.dataset.remoteState = state;
+    remoteState.textContent = label;
+  }
+
+  function stopRemoteSession(reason) {
+    clearTimeout(remoteCommandPollTimer);
+    clearTimeout(remoteStatePushTimer);
+    remoteCommandPollTimer = 0;
+    remoteStatePushTimer = 0;
+    remoteCommandPollBusy = false;
+    remoteStatePushBusy = false;
+    remoteStatePushQueued = false;
+    remoteSession = null;
+    remotePairingUrl = '';
+    remotePairing.hidden = true;
+    remoteLink.value = '';
+    remoteCode.value = '';
+    remoteCreate.disabled = false;
+    setRemoteStatus(reason === 'revoked' ? 'revoked' : 'idle', reason === 'revoked' ? 'Sesión revocada' : 'Sin sesión activa');
+  }
+
+  function remotePairingLink(session) {
+    var url = new URL('/assets/presentation-presenter-remote.html', location.origin);
+    var fragment = new URLSearchParams({
+      client: remoteClientSlug(),
+      session: session.sessionId,
+      pair: session.pairingSecret
+    });
+    url.hash = fragment.toString();
+    return url.href;
+  }
+
+  function handleRemoteFailure(error) {
+    if (error && (error.status === 410 || error.code === 'expired' || error.code === 'revoked')) {
+      stopRemoteSession('revoked');
+      return true;
+    }
+    if (error && error.status === 401) {
+      stopRemoteSession('');
+      setRemoteStatus('error', 'Sesión no autorizada');
+      return true;
+    }
+    return false;
+  }
+
+  async function createRemoteSession() {
+    var base = remoteApiBase();
+    if (!base || remoteSession) return;
+    remoteCreate.disabled = true;
+    setRemoteStatus('connecting', 'Creando sesión efímera…');
+    try {
+      var data = await remoteRequest(base + '/sessions', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify({ttlSeconds: 14400})
+      });
+      if (!data || !data.sessionId || !data.pairingSecret || !data.stageToken) throw new Error('invalid_session_contract');
+      remoteSession = {
+        sessionId: String(data.sessionId),
+        stageToken: String(data.stageToken),
+        expiresAt: String(data.expiresAt || ''),
+        pollAfterMs: clamp(Number(data.pollAfterMs) || 750, 500, 5000),
+        stateSeq: 0,
+        ackCommandSeq: 0,
+        failureCount: 0
+      };
+      remotePairingUrl = remotePairingLink({
+        sessionId: remoteSession.sessionId,
+        pairingSecret: String(data.pairingSecret)
+      });
+      remoteLink.value = remotePairingUrl;
+      remoteCode.value = remoteClientSlug() + ':' + remoteSession.sessionId + ':' + String(data.pairingSecret);
+      remoteExpiry.textContent = remoteSession.expiresAt ? 'Caduca: ' + new Date(remoteSession.expiresAt).toLocaleString() : 'Caduca al cerrar o revocar la sesión.';
+      remotePairing.hidden = false;
+      setRemoteStatus('pairing', 'Esperando emparejamiento');
+      scheduleRemoteStatePush(true);
+      scheduleRemoteCommandPoll(0);
+    } catch (error) {
+      remoteCreate.disabled = false;
+      setRemoteStatus('error', error && error.status === 503 ? 'Servicio remoto no disponible' : 'No se pudo crear la sesión');
+    }
+  }
+
+  function scheduleRemoteStatePush(immediate) {
+    if (!remoteSession || remoteMode) return;
+    remoteStatePushQueued = true;
+    if (remoteStatePushBusy || remoteStatePushTimer) return;
+    remoteStatePushTimer = setTimeout(pushRemoteState, immediate ? 0 : 120);
+  }
+
+  async function pushRemoteState() {
+    remoteStatePushTimer = 0;
+    if (!remoteSession || remoteStatePushBusy || !remoteStatePushQueued) return;
+    remoteStatePushQueued = false;
+    remoteStatePushBusy = true;
+    var session = remoteSession;
+    var seconds = elapsedSeconds();
+    var paceInfo = paceState(seconds);
+    var seq = ++session.stateSeq;
+    try {
+      await remoteRequest(remoteApiBase() + '/sessions/' + encodeURIComponent(session.sessionId) + '/state', {
+        method: 'PUT',
+        headers: {
+          'authorization': 'Bearer ' + session.stageToken,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          seq: seq,
+          index: currentIndex,
+          count: slides.length,
+          elapsed: seconds,
+          running: running,
+          paceLabel: !running && seconds === 0 ? 'ready' : paceInfo.className,
+          ackCommandSeq: session.ackCommandSeq
+        })
+      });
+      session.failureCount = 0;
+      if (remotePanel.dataset.remoteState !== 'paired') setRemoteStatus('connected', 'Sesión activa · esperando móvil');
+    } catch (error) {
+      if (!handleRemoteFailure(error) && remoteSession === session) {
+        session.failureCount += 1;
+        setRemoteStatus('connecting', 'Reconectando sesión remota…');
+        remoteStatePushQueued = true;
+      }
+    } finally {
+      remoteStatePushBusy = false;
+      if (remoteStatePushQueued && remoteSession === session) {
+        remoteStatePushTimer = setTimeout(pushRemoteState, Math.min(8000, session.pollAfterMs * Math.pow(2, Math.min(session.failureCount, 3))));
+      }
+    }
+  }
+
+  function scheduleRemoteCommandPoll(delay) {
+    clearTimeout(remoteCommandPollTimer);
+    if (!remoteSession || remoteMode) return;
+    remoteCommandPollTimer = setTimeout(pollRemoteCommands, Math.max(0, Number(delay) || 0));
+  }
+
+  async function pollRemoteCommands() {
+    remoteCommandPollTimer = 0;
+    if (!remoteSession || remoteCommandPollBusy) return;
+    remoteCommandPollBusy = true;
+    var session = remoteSession;
+    try {
+      var data = await remoteRequest(remoteApiBase() + '/sessions/' + encodeURIComponent(session.sessionId) + '/commands?after=' + session.ackCommandSeq, {
+        headers: {'authorization': 'Bearer ' + session.stageToken}
+      });
+      var commands = data && Array.isArray(data.commands) ? data.commands.slice().sort(function (a, b) { return Number(a.seq) - Number(b.seq); }) : [];
+      commands.forEach(function (item) {
+        var seq = Number(item && item.seq);
+        if (!Number.isSafeInteger(seq) || seq <= session.ackCommandSeq) return;
+        applyRemoteCommand(item.command, item.index);
+        session.ackCommandSeq = seq;
+      });
+      if (commands.length) {
+        remoteCode.value = '';
+        setRemoteStatus('paired', 'Móvil conectado');
+        scheduleRemoteStatePush(true);
+      }
+      session.failureCount = 0;
+    } catch (error) {
+      if (!handleRemoteFailure(error) && remoteSession === session) {
+        session.failureCount += 1;
+        setRemoteStatus('connecting', 'Reconectando mando móvil…');
+      }
+    } finally {
+      remoteCommandPollBusy = false;
+      if (remoteSession === session) {
+        scheduleRemoteCommandPoll(Math.min(8000, session.pollAfterMs * Math.pow(2, Math.min(session.failureCount, 3))));
+      }
+    }
+  }
+
+  function revokeRemoteSession() {
+    if (!remoteSession) return Promise.resolve();
+    var session = remoteSession;
+    stopRemoteSession('revoked');
+    return remoteRequest(remoteApiBase() + '/sessions/' + encodeURIComponent(session.sessionId), {
+      method: 'DELETE',
+      headers: {'authorization': 'Bearer ' + session.stageToken},
+      keepalive: true
+    }).catch(function () {});
+  }
+
   function formatTime(seconds) {
     seconds = Math.max(0, Math.floor(seconds));
     var minutes = Math.floor(seconds / 60);
@@ -2052,7 +2280,8 @@
       notes.scrollTop = 0;
     }
     timerToggle.textContent = running ? 'Pausar tiempo' : (seconds ? 'Continuar tiempo' : 'Iniciar tiempo');
-    broadcast({type: 'state', index: currentIndex, elapsed: seconds, running: running});
+    broadcast({type: 'state', index: currentIndex, slideCount: slides.length, elapsed: seconds, running: running, pace: paceInfo.label});
+    scheduleRemoteStatePush(false);
     persistSession(false);
   }
 
@@ -2113,6 +2342,34 @@
     broadcast({type: 'command', command: name, index: nextIndex});
   }
 
+  function applyRemoteCommand(remoteCommand, requestedIndex) {
+    if (remoteCommand === 'timer-toggle') {
+      if (running) { carriedSeconds = elapsedSeconds(); running = false; startedAt = 0; }
+      else { running = true; startedAt = Date.now(); }
+      render();
+      persistSession(true);
+      return true;
+    }
+    if (remoteCommand === 'timer-reset') {
+      running = false;
+      startedAt = 0;
+      carriedSeconds = 0;
+      resetPaceCoach(0);
+      render();
+      persistSession(true);
+      return true;
+    }
+    if (remoteCommand !== 'next' && remoteCommand !== 'prev' && remoteCommand !== 'skip') return false;
+    var nextIndex = remoteCommand === 'next'
+      ? currentIndex + 1
+      : remoteCommand === 'prev'
+        ? currentIndex - 1
+        : Number(requestedIndex);
+    if (!Number.isFinite(nextIndex)) return false;
+    goLocal(nextIndex);
+    return true;
+  }
+
   function broadcast(payload, transient) {
     payload.source = remoteMode ? 'remote' : 'stage';
     payload.messageId = payload.messageId || payload.source + ':' + Date.now() + ':' + (++messageSequence);
@@ -2152,7 +2409,7 @@
       if (payload.type === 'audience-ready' && stagePaused) broadcast({type: 'stage-pause', paused: stagePaused, index: currentIndex});
       return;
     }
-    if (payload.type === 'ready' && !remoteMode) { render(); return; }
+    if (payload.type === 'ready' && payload.source === 'remote' && !remoteMode) { render(); return; }
     if (payload.type === 'stage-pause') {
       if (remoteMode) {
         stagePaused = Boolean(payload.paused);
@@ -2162,9 +2419,8 @@
       } else if (payload.source === 'remote') setStagePaused(Boolean(payload.paused));
       return;
     }
-    if (payload.type === 'command' && !remoteMode) {
-      var requestedIndex = Number(payload.index);
-      goLocal(Number.isFinite(requestedIndex) ? requestedIndex : (payload.command === 'next' ? currentIndex + 1 : currentIndex - 1));
+    if (payload.type === 'command' && payload.source === 'remote' && !remoteMode) {
+      applyRemoteCommand(payload.command, payload.index);
     }
     if (payload.type === 'state' && remoteMode) {
       lastStageSignalAt = Date.now();
@@ -2299,9 +2555,28 @@
     else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {});
   });
   document.getElementById('presenterRemoteOpen').addEventListener('click', function () {
-    var url = new URL(location.href); url.searchParams.set('presenter', '1'); url.searchParams.set('remote', '1');
+    var url = new URL('/assets/presentation-presenter-remote.html', location.origin);
+    url.searchParams.set('deck', location.pathname);
     window.open(url, 'admira-presenter-remote', 'popup=yes,width=460,height=820');
   });
+  remoteCreate.addEventListener('click', createRemoteSession);
+  document.getElementById('presenterRemoteCopy').addEventListener('click', function () {
+    if (!remotePairingUrl) return;
+    var copied = navigator.clipboard && navigator.clipboard.writeText
+      ? navigator.clipboard.writeText(remotePairingUrl)
+      : Promise.reject(new Error('clipboard_unavailable'));
+    copied.then(function () {
+      setRemoteStatus(remotePanel.dataset.remoteState, 'Enlace copiado · esperando móvil');
+    }).catch(function () {
+      remoteLink.focus();
+      remoteLink.select();
+      setRemoteStatus(remotePanel.dataset.remoteState, 'Selecciona y copia el enlace');
+    });
+  });
+  document.getElementById('presenterRemoteLaunch').addEventListener('click', function () {
+    if (remotePairingUrl) window.open(remotePairingUrl, '_blank', 'noopener');
+  });
+  document.getElementById('presenterRemoteRevoke').addEventListener('click', revokeRemoteSession);
   document.getElementById('presenterAudienceLaunch').addEventListener('click', launchAudienceOutput);
   shareGuardianAction.addEventListener('click', requestGuardianShare);
   addEventListener('keydown', function (event) {
@@ -2351,6 +2626,7 @@
   });
   document.addEventListener('admira:language', function () { notes.dataset.slide = ''; render(); });
   if (channel) channel.addEventListener('message', function (event) { receive(event.data); });
+  addEventListener('pagehide', function () { if (remoteSession) revokeRemoteSession(); }, {once: true});
   addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); destroySpeakerHandoff(); if (speakerHandoffTimer) clearInterval(speakerHandoffTimer); destroyProductionBackchannel(); if (productionBackchannelTimer) clearInterval(productionBackchannelTimer); if (presentationShareGuardian) { if (typeof presentationShareGuardian.destroy === 'function') presentationShareGuardian.destroy(); else if (typeof presentationShareGuardian.stop === 'function') presentationShareGuardian.stop(); } if (channel) channel.close(); stopPrompt(true); }, {once: true});
   setInterval(function () {
     if (running && !document.hidden) render();

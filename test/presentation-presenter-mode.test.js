@@ -59,13 +59,61 @@ test('presenter mode includes rehearsal, teleprompter, pace and same-origin remo
   assert.match(source,/Acelera/);
   assert.match(source,/Vas por delante/);
   assert.match(source,/BroadcastChannel/);
-  assert.match(source,/payload\.type === 'ready' && !remoteMode[\s\S]*render\(\)/);
+  assert.match(source,/payload\.type === 'ready' && payload\.source === 'remote' && !remoteMode[\s\S]*render\(\)/);
   assert.match(source,/data-presenter-command="prev"/);
   assert.match(source,/data-presenter-command="next"/);
   assert.match(source,/aria-live="polite"/);
   assert.match(source,/prefers-reduced-motion/);
-  assert.doesNotMatch(source,/\bfetch\s*\(/);
   assert.doesNotMatch(source,/WebSocket|EventSource/);
+});
+
+test('mobile remote pairs cross-device with ephemeral tokens, polling and a degraded local fallback',async()=>{
+  const [source,remoteHtml,remoteSource,remoteStyles]=await Promise.all([
+    readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-remote.html',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-remote.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-remote.css',import.meta.url),'utf8')
+  ]);
+  assert.doesNotThrow(()=>new Function(remoteSource));
+  assert.match(source,/new URL\('\/assets\/presentation-presenter-remote\.html', location\.origin\)/);
+  assert.match(source,/payload\.type === 'command' && payload\.source === 'remote'/);
+  assert.match(source,/\/api\/remote/);
+  assert.match(source,/body: JSON\.stringify\(\{ttlSeconds: 14400\}\)/);
+  assert.match(source,/\/commands\?after=' \+ session\.ackCommandSeq/);
+  assert.match(source,/method: 'PUT'/);
+  assert.match(source,/method: 'DELETE'/);
+  assert.match(source,/ackCommandSeq: session\.ackCommandSeq/);
+  assert.match(source,/paceLabel: !running && seconds === 0 \? 'ready' : paceInfo\.className/);
+  assert.match(source,/fragment = new URLSearchParams\(\{[\s\S]*pair: session\.pairingSecret/);
+  assert.doesNotMatch(source,/fragment = new URLSearchParams\(\{[\s\S]{0,300}?stageToken/);
+  assert.match(remoteHtml,/Mando móvil/);
+  assert.match(remoteHtml,/Introducir código de un uso/);
+  assert.match(remoteHtml,/presentation-presenter-remote\.js/);
+  assert.match(remoteHtml,/presentation-presenter-remote\.css/);
+  assert.doesNotMatch(remoteHtml,/speaker-notes|presenterNotes|__ADMIRA_PRESENTER_NOTES__|data-speaker-notes/i);
+  assert.match(remoteSource,/\/pair'/);
+  assert.match(remoteSource,/\/state'/);
+  assert.match(remoteSource,/\/commands'/);
+  assert.match(remoteSource,/history\.replaceState\(null, '', location\.pathname \+ location\.search\)/);
+  assert.match(remoteSource,/remoteToken: String\(data\.remoteToken\)/);
+  assert.doesNotMatch(remoteSource,/(?:localStorage|sessionStorage)\.setItem\([^\n]*remoteToken/i);
+  assert.match(remoteSource,/\['prev', 'next', 'skip', 'timer-toggle', 'timer-reset'\]/);
+  assert.match(remoteSource,/pendingCommands = pendingCommands\.filter/);
+  assert.match(remoteSource,/Fallback local · mismo navegador/);
+  assert.match(remoteSource,/source: 'remote'/);
+  assert.match(remoteSource,/setEnabled\(false\)/);
+  assert.doesNotMatch(remoteSource,/WebSocket|EventSource|innerHTML/i);
+  assert.doesNotMatch(remoteSource,/speakerNotes|__ADMIRA_PRESENTER_NOTES__|data-speaker-notes/);
+  assert.doesNotMatch(remoteSource,/stageToken/);
+  assert.match(remoteStyles,/touch-action:manipulation/);
+});
+
+test('audience accepts navigation, pause and captions only from the stage source',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  const audience=source.slice(source.indexOf('function startAudienceMode'),source.indexOf('function readPreferences'));
+  assert.match(audience,/payload\.type === 'stage-pause' && payload\.source === 'stage'/);
+  assert.match(audience,/payload\.source === 'stage' && \(payload\.type === 'command' \|\| payload\.type === 'state'\)/);
+  assert.match(audience,/payload\.type === 'captions' && payload\.source === 'stage'/);
 });
 
 test('private production backchannel integrates operator cues, presenter acknowledgements and bounded expiry',async()=>{
@@ -129,7 +177,8 @@ test('live captions stay ephemeral, explicit and idempotent on the local audienc
   assert.match(source,/if \(!transient\) \{[\s\S]{0,220}?localStorage\.setItem/);
   assert.match(source,/no se persistirá texto como fallback|no se guardarán transcripciones como fallback/);
   assert.doesNotMatch(source,/localStorage\.setItem\([^\n]*(?:caption|glossary|transcript)/i);
-  assert.doesNotMatch(source,/\bfetch\s*\(/);
+  const captionsLogic=source.slice(source.indexOf('function trimCaptionText'),source.indexOf('function deckFingerprint'));
+  assert.doesNotMatch(captionsLogic,/\bfetch\s*\(/);
   assert.doesNotMatch(source,/WebSocket|EventSource/);
 });
 
@@ -189,7 +238,6 @@ test('room calibration exposes a private, persistent and bounded presenter contr
   }
   const calibrationLogic=source.slice(source.indexOf('function calibrationScreenSignature'),source.indexOf('function trimCaptionText'));
   assert.doesNotMatch(calibrationLogic,/\bbroadcast\s*\(|BroadcastChannel|notes|caption|glossary|transcript/i);
-  assert.doesNotMatch(source,/\bfetch\s*\(/);
   assert.doesNotMatch(source,/WebSocket|EventSource/);
 });
 
@@ -266,7 +314,7 @@ test('presenter provides idempotent offline reconnect and a restricted cache fal
   assert.match(source,/Reconectando con la presentación/);
   assert.match(source,/receivedMessageIds\.indexOf\(payload\.messageId\) >= 0/);
   assert.match(source,/payload\.messageId = payload\.messageId \|\| payload\.source/);
-  assert.match(source,/goLocal\(Number\.isFinite\(requestedIndex\) \? requestedIndex/);
+  assert.match(source,/function applyRemoteCommand\([\s\S]*if \(!Number\.isFinite\(nextIndex\)\) return false;[\s\S]*goLocal\(nextIndex\)/);
   assert.match(worker,/url\.pathname\.includes\('\/api\/'\)/);
   assert.match(worker,/request\.mode === 'navigate' && isPresentationPath\(url\.pathname\)/);
   assert.match(worker,/fetchAndStore\(request\)\.catch\(\(\) => caches\.match\(request\)/);

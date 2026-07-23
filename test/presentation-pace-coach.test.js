@@ -95,7 +95,7 @@ test('la integración mantiene el coach privado, no lo difunde y protege el mues
   const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
   assert.match(source,/id="presenterPaceCoach"[^>]*data-presenter-private/);
   assert.match(source,/id="presenterCoachAdvice"[^>]*role="status"[^>]*aria-live="polite"/);
-  assert.match(source,/broadcast\(\{type: 'state', index: currentIndex, elapsed: seconds, running: running\}\)/);
+  assert.match(source,/broadcast\(\{type: 'state', index: currentIndex, slideCount: slides\.length, elapsed: seconds, running: running, pace: paceInfo\.label\}\)/);
   assert.doesNotMatch(source,/broadcast\([^)]*(?:coach|advice|prediction)/i);
   assert.match(source,/programmaticNavigationTarget = currentIndex/);
   assert.match(source,/Date\.now\(\) < programmaticNavigationUntil\) return/);

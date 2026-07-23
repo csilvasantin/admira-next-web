@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <title>Mando móvil · Admira</title>
+  <link rel="stylesheet" href="/assets/presentation-presenter-remote.css">
+</head>
+<body>
+  <main aria-labelledby="remoteTitle">
+    <header>
+      <span>ADMIRA · CONTROL PRIVADO</span>
+      <h1 id="remoteTitle">Mando móvil</h1>
+      <p id="remoteConnection" class="is-waiting" role="status" aria-live="polite">Preparando emparejamiento…</p>
+    </header>
+
+    <form id="remotePairing" class="remote-pairing" aria-labelledby="remotePairingTitle" hidden>
+      <strong id="remotePairingTitle">Introducir código de un uso</strong>
+      <label>Código completo <input id="remoteSecret" type="password" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="cliente:sesión:código"></label>
+      <button type="submit">Emparejar</button>
+    </form>
+
+    <section id="remoteControls" hidden>
+      <section class="remote-status" aria-label="Estado de la presentación">
+        <div><span>Diapositiva</span><strong id="remoteSlide">— / —</strong></div>
+        <div><span>Tiempo</span><strong id="remoteClock">00:00</strong></div>
+        <div><span>Ritmo</span><strong id="remotePace">Esperando</strong></div>
+      </section>
+
+      <section class="remote-navigation" aria-label="Navegación">
+        <button type="button" data-command="prev">←<span>Anterior</span></button>
+        <button type="button" data-command="next"><span>Siguiente</span>→</button>
+      </section>
+
+      <section class="remote-actions" aria-label="Controles de sesión">
+        <button type="button" id="remoteTimer">Iniciar tiempo</button>
+        <button type="button" id="remoteTimerReset">Reiniciar tiempo</button>
+      </section>
+    </section>
+
+    <p id="remotePrivacy" class="remote-privacy">Este mando no carga diapositivas, notas ni teleprompter. La sesión usa un código de un solo uso y después conserva el token únicamente en memoria.</p>
+  </main>
+  <script src="/assets/presentation-presenter-remote.js" defer></script>
+</body>
+</html>
