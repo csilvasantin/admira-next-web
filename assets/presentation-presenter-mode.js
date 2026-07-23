@@ -47,6 +47,11 @@
   var presentationShareGuardian = null;
   var shareGuardianSnapshot = null;
   var shareGuardianBusy = false;
+  var productionBackchannel = null;
+  var productionBackchannelUnsubscribe = null;
+  var productionBackchannelSnapshot = null;
+  var productionBackchannelRole = 'presenter';
+  var productionBackchannelTimer = 0;
   var stagePaused = false;
   var stagePauseSnapshot = null;
   var launchScreenStatus = 'Screen Details: pendiente de comprobar tras el gesto.';
@@ -109,6 +114,10 @@
     '<button type="button" id="presenterShareGuardianAction" class="presenter-share-guardian-action" aria-describedby="presenterShareGuardianFallback">Seleccionar y compartir salida</button>' +
     '<ul id="presenterShareAlerts" class="presenter-share-alerts" role="alert" aria-live="assertive" aria-atomic="true"></ul>' +
     '<p id="presenterShareGuardianFallback" class="presenter-share-guardian-fallback">Si el guardián de captura no está disponible, se abrirá una salida separada y tendrás que verificar y compartir esa ventana manualmente.</p></section>' +
+    '<section id="presenterProductionBackchannel" class="presenter-production-backchannel" data-backchannel-state="unavailable" data-presenter-private aria-labelledby="presenterBackchannelTitle"><div class="presenter-production-backchannel-head"><div><span>Solo control privado</span><strong id="presenterBackchannelTitle">Backchannel de producción</strong></div><span id="presenterBackchannelState" role="status" aria-live="polite">Cargando motor…</span></div>' +
+    '<div class="presenter-backchannel-mode"><button type="button" id="presenterBackchannelMode" aria-pressed="false" aria-describedby="presenterBackchannelModeHelp">Activar modo operador</button><small id="presenterBackchannelModeHelp">Presentador: recibe y acusa cues. Operador: los redacta y envía.</small></div>' +
+    '<form id="presenterBackchannelComposer" class="presenter-backchannel-composer" aria-label="Enviar cue de producción" hidden><label>Prioridad <select id="presenterBackchannelPriority"><option value="normal">Normal</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></label><label>Caducidad <span><input id="presenterBackchannelTtl" type="number" min="5" max="300" step="5" value="30" inputmode="numeric" aria-describedby="presenterBackchannelTtlHelp"> s</span></label><label class="presenter-backchannel-message">Cue <textarea id="presenterBackchannelText" rows="2" maxlength="240" placeholder="Ej.: quedan 2 minutos para preguntas" required></textarea></label><button type="submit" id="presenterBackchannelSend">Enviar cue</button></form>' +
+    '<small id="presenterBackchannelTtlHelp" class="presenter-backchannel-help">Los cues duran entre 5 y 300 segundos y no se guardan desde esta interfaz.</small><p id="presenterBackchannelFeedback" class="presenter-backchannel-feedback" role="status" aria-live="polite">Esperando el motor local de producción.</p><ul id="presenterBackchannelCues" class="presenter-backchannel-cues" aria-label="Cues de producción activos" aria-live="polite" aria-relevant="additions text"></ul></section>' +
     '<div class="presenter-remote"><button type="button" id="presenterRemoteOpen">Abrir control remoto ↗</button><span id="presenterRemoteState">Mismo navegador · canal privado local</span></div>';
   document.body.appendChild(panel);
 
@@ -153,6 +162,16 @@
   var audienceMirror = document.getElementById('presenterAudienceMirror');
   var mirrorState = document.getElementById('presenterMirrorState');
   var shareAlerts = document.getElementById('presenterShareAlerts');
+  var productionBackchannelPanel = document.getElementById('presenterProductionBackchannel');
+  var productionBackchannelState = document.getElementById('presenterBackchannelState');
+  var productionBackchannelMode = document.getElementById('presenterBackchannelMode');
+  var productionBackchannelComposer = document.getElementById('presenterBackchannelComposer');
+  var productionBackchannelPriority = document.getElementById('presenterBackchannelPriority');
+  var productionBackchannelTtl = document.getElementById('presenterBackchannelTtl');
+  var productionBackchannelText = document.getElementById('presenterBackchannelText');
+  var productionBackchannelSend = document.getElementById('presenterBackchannelSend');
+  var productionBackchannelFeedback = document.getElementById('presenterBackchannelFeedback');
+  var productionBackchannelCues = document.getElementById('presenterBackchannelCues');
   var calibrationToggle = document.getElementById('presenterCalibrationToggle');
   var calibrationSafeMargin = document.getElementById('presenterCalibrationSafeMargin');
   var calibrationContrast = document.getElementById('presenterCalibrationContrast');
@@ -1091,6 +1110,238 @@
     });
   }
 
+  function productionCueList(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object') return [];
+    if (Array.isArray(snapshot.cues)) return snapshot.cues;
+    if (Array.isArray(snapshot.activeCues)) return snapshot.activeCues;
+    if (Array.isArray(snapshot.messages)) return snapshot.messages;
+    return [];
+  }
+
+  function productionCuePriority(cue) {
+    var priority = String(cue && cue.priority || 'normal').toLowerCase();
+    return ['normal', 'high', 'urgent'].indexOf(priority) >= 0 ? priority : 'normal';
+  }
+
+  function productionCueStatus(cue, now) {
+    var status = String(cue && cue.status || '').toLowerCase();
+    var expiresAt = Number(cue && (cue.expiresAt || cue.expires_at)) || 0;
+    if (status === 'acknowledged' || status === 'ack' || cue.acknowledgedAt || cue.acknowledged_at) return 'acknowledged';
+    if (status === 'expired' || (expiresAt && expiresAt <= now)) return 'expired';
+    if (status === 'dismissed') return 'dismissed';
+    return 'active';
+  }
+
+  function productionCueStatusLabel(cue, now) {
+    var status = productionCueStatus(cue, now);
+    if (status === 'acknowledged') return 'Acusado';
+    if (status === 'expired') return 'Caducado';
+    if (status === 'dismissed') return 'Retirado';
+    var expiresAt = Number(cue && (cue.expiresAt || cue.expires_at)) || 0;
+    if (!expiresAt) return 'Activo';
+    return 'Caduca en ' + Math.max(0, Math.ceil((expiresAt - now) / 1000)) + ' s';
+  }
+
+  function productionCuePriorityLabel(priority) {
+    if (priority === 'urgent') return 'Urgente';
+    if (priority === 'high') return 'Alta';
+    return 'Normal';
+  }
+
+  function renderProductionBackchannel(nextSnapshot) {
+    if (!productionBackchannelPanel) return;
+    if (nextSnapshot && typeof nextSnapshot === 'object') productionBackchannelSnapshot = nextSnapshot;
+    else if (productionBackchannel && typeof productionBackchannel.snapshot === 'function') {
+      try { productionBackchannelSnapshot = productionBackchannel.snapshot(); } catch (_) {}
+    }
+
+    var available = Boolean(productionBackchannel);
+    var snapshot = productionBackchannelSnapshot && typeof productionBackchannelSnapshot === 'object'
+      ? productionBackchannelSnapshot
+      : {};
+    var transportStatus = String(snapshot.status || snapshot.transport || '').toLowerCase();
+    var degraded = Boolean(transportStatus && transportStatus !== 'broadcast-channel');
+    var roleIsOperator = productionBackchannelRole === 'operator';
+
+    productionBackchannelPanel.dataset.backchannelState = !available ? 'unavailable' : (degraded ? 'degraded' : (roleIsOperator ? 'operator' : 'ready'));
+    productionBackchannelMode.disabled = !available;
+    productionBackchannelMode.setAttribute('aria-pressed', String(roleIsOperator));
+    productionBackchannelMode.textContent = roleIsOperator ? 'Volver a modo presentador' : 'Activar modo operador';
+    productionBackchannelComposer.hidden = !roleIsOperator;
+    productionBackchannelSend.disabled = !available || degraded || !roleIsOperator;
+    productionBackchannelState.textContent = !available
+      ? 'Motor no disponible'
+      : (degraded ? 'Canal seguro limitado' : (roleIsOperator ? 'Modo operador' : 'Modo presentador'));
+
+    if (!available) {
+      productionBackchannelFeedback.textContent = 'El motor de backchannel no cargó. La presentación continúa sin cues de producción.';
+    } else if (degraded) {
+      productionBackchannelFeedback.textContent = 'BroadcastChannel no está disponible. Para proteger el texto, los cues no salen de esta ventana y el envío queda desactivado.';
+    } else if (!productionBackchannelFeedback.dataset.userMessage) {
+      productionBackchannelFeedback.textContent = roleIsOperator
+        ? 'Redacta cues breves; prioridad y caducidad viajarán por el canal local.'
+        : 'Los cues activos aparecen aquí. Acúsalos cuando los hayas leído.';
+    }
+
+    var now = Date.now();
+    var cues = productionCueList(snapshot).slice(-12).reverse();
+    productionBackchannelCues.replaceChildren();
+    if (!cues.length) {
+      var empty = document.createElement('li');
+      empty.className = 'presenter-backchannel-empty';
+      empty.textContent = available ? 'No hay cues de producción.' : 'Sin motor de cues.';
+      productionBackchannelCues.appendChild(empty);
+      return;
+    }
+
+    cues.forEach(function (cue, index) {
+      var item = document.createElement('li');
+      var priority = productionCuePriority(cue);
+      var status = productionCueStatus(cue, now);
+      var cueId = String(cue && (cue.id || cue.cueId || cue.messageId) || '');
+      var text = String(cue && (cue.text || cue.message || cue.cue) || '').trim().slice(0, 240);
+      item.dataset.priority = priority;
+      item.dataset.cueStatus = status;
+
+      var header = document.createElement('div');
+      var priorityBadge = document.createElement('strong');
+      var statusBadge = document.createElement('span');
+      priorityBadge.textContent = productionCuePriorityLabel(priority);
+      statusBadge.textContent = productionCueStatusLabel(cue, now);
+      header.appendChild(priorityBadge);
+      header.appendChild(statusBadge);
+
+      var message = document.createElement('p');
+      message.textContent = text || 'Cue sin texto';
+      item.appendChild(header);
+      item.appendChild(message);
+
+      if (!roleIsOperator && status === 'active' && cueId) {
+        var acknowledgeButton = document.createElement('button');
+        acknowledgeButton.type = 'button';
+        acknowledgeButton.textContent = 'Acusar lectura';
+        acknowledgeButton.setAttribute('aria-label', 'Acusar lectura del cue ' + (index + 1) + ': ' + (text || 'sin texto'));
+        acknowledgeButton.addEventListener('click', function () { acknowledgeProductionCue(cueId, acknowledgeButton); });
+        item.appendChild(acknowledgeButton);
+      }
+      productionBackchannelCues.appendChild(item);
+    });
+  }
+
+  function setProductionBackchannelFeedback(message) {
+    productionBackchannelFeedback.dataset.userMessage = 'true';
+    productionBackchannelFeedback.textContent = message;
+    setTimeout(function () {
+      delete productionBackchannelFeedback.dataset.userMessage;
+      renderProductionBackchannel();
+    }, 3500);
+  }
+
+  function destroyProductionBackchannel() {
+    if (typeof productionBackchannelUnsubscribe === 'function') {
+      try { productionBackchannelUnsubscribe(); } catch (_) {}
+    }
+    productionBackchannelUnsubscribe = null;
+    if (productionBackchannel) {
+      try {
+        if (typeof productionBackchannel.destroy === 'function') productionBackchannel.destroy();
+        else if (typeof productionBackchannel.stop === 'function') productionBackchannel.stop();
+      } catch (_) {}
+    }
+    productionBackchannel = null;
+    productionBackchannelSnapshot = null;
+  }
+
+  function productionBackchannelChannelName() {
+    var path = String(location.pathname || 'presentation');
+    var hash = 2166136261;
+    for (var index = 0; index < path.length; index += 1) {
+      hash ^= path.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    var safePath = path.replace(/[^A-Za-z0-9._:-]+/g, '-').replace(/^[-:.]+|[-:.]+$/g, '').slice(-42) || 'presentation';
+    return 'presenter.' + safePath + '.' + (hash >>> 0).toString(36);
+  }
+
+  function initializeProductionBackchannel(role) {
+    destroyProductionBackchannel();
+    productionBackchannelRole = role === 'operator' ? 'operator' : 'presenter';
+    var contract = window.AdmiraProductionBackchannel || null;
+    if (!contract || typeof contract.create !== 'function') {
+      renderProductionBackchannel();
+      return;
+    }
+    try {
+      productionBackchannel = contract.create({
+        role: productionBackchannelRole,
+        channelName: productionBackchannelChannelName(),
+        onChange: renderProductionBackchannel
+      });
+      if (productionBackchannel && typeof productionBackchannel.onChange === 'function') {
+        productionBackchannelUnsubscribe = productionBackchannel.onChange(renderProductionBackchannel);
+      }
+      if (productionBackchannel && typeof productionBackchannel.start === 'function') productionBackchannel.start();
+      if (productionBackchannel && typeof productionBackchannel.snapshot === 'function') {
+        productionBackchannelSnapshot = productionBackchannel.snapshot();
+      }
+    } catch (_) {
+      destroyProductionBackchannel();
+    }
+    renderProductionBackchannel();
+  }
+
+  function switchProductionBackchannelRole() {
+    initializeProductionBackchannel(productionBackchannelRole === 'operator' ? 'presenter' : 'operator');
+    setProductionBackchannelFeedback(productionBackchannelRole === 'operator'
+      ? 'Modo operador activo. Ya puedes enviar cues.'
+      : 'Modo presentador activo. Los cues requieren acuse de lectura.');
+  }
+
+  function sendProductionCue(event) {
+    event.preventDefault();
+    if (!productionBackchannel || productionBackchannelRole !== 'operator' || typeof productionBackchannel.sendCue !== 'function') {
+      setProductionBackchannelFeedback('No se pudo enviar: activa el modo operador y comprueba el motor local.');
+      return;
+    }
+    var text = String(productionBackchannelText.value || '').trim().replace(/\s+/g, ' ').slice(0, 240);
+    var ttlSeconds = clamp(Number(productionBackchannelTtl.value) || 30, 5, 300);
+    var priority = productionCuePriority({priority: productionBackchannelPriority.value});
+    productionBackchannelTtl.value = String(ttlSeconds);
+    if (!text) {
+      setProductionBackchannelFeedback('Escribe un cue antes de enviarlo.');
+      productionBackchannelText.focus();
+      return;
+    }
+    productionBackchannelSend.disabled = true;
+    var result;
+    try { result = productionBackchannel.sendCue({text: text, priority: priority, ttlMs: ttlSeconds * 1000}); }
+    catch (_) { result = Promise.reject(new Error('send failed')); }
+    Promise.resolve(result).then(function (nextSnapshot) {
+      productionBackchannelText.value = '';
+      setProductionBackchannelFeedback('Cue enviado · ' + productionCuePriorityLabel(priority) + ' · ' + ttlSeconds + ' s.');
+      renderProductionBackchannel();
+    }).catch(function () {
+      setProductionBackchannelFeedback('El cue no se pudo enviar. Comprueba el canal local e inténtalo de nuevo.');
+    }).finally(function () {
+      productionBackchannelSend.disabled = false;
+    });
+  }
+
+  function acknowledgeProductionCue(cueId, button) {
+    if (!productionBackchannel || typeof productionBackchannel.acknowledge !== 'function') return;
+    button.disabled = true;
+    var result;
+    try { result = productionBackchannel.acknowledge(cueId); }
+    catch (_) { result = Promise.reject(new Error('acknowledge failed')); }
+    Promise.resolve(result).then(function (nextSnapshot) {
+      setProductionBackchannelFeedback('Lectura acusada al operador.');
+      renderProductionBackchannel();
+    }).catch(function () {
+      button.disabled = false;
+      setProductionBackchannelFeedback('No se pudo enviar el acuse. Comprueba el canal local.');
+    });
+  }
+
   function mountAudienceMirror() {
     if (!audienceMirror) return;
     audienceMirror.src = audienceOutputUrl(true).href;
@@ -1553,6 +1804,8 @@
   captionsLanguage.addEventListener('change', syncCaptionAccessibility);
   captionsTargetLanguage.addEventListener('change', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
   captionsGlossary.addEventListener('input', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
+  productionBackchannelMode.addEventListener('click', switchProductionBackchannelRole);
+  productionBackchannelComposer.addEventListener('submit', sendProductionCue);
   calibrationToggle.addEventListener('click', toggleCalibrationPattern);
   [calibrationSafeMargin, calibrationContrast, calibrationGamma, calibrationScale].forEach(function (input) {
     input.addEventListener('input', previewCalibrationProfile);
@@ -1623,7 +1876,7 @@
   });
   document.addEventListener('admira:language', function () { notes.dataset.slide = ''; render(); });
   if (channel) channel.addEventListener('message', function (event) { receive(event.data); });
-  addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); if (presentationShareGuardian) { if (typeof presentationShareGuardian.destroy === 'function') presentationShareGuardian.destroy(); else if (typeof presentationShareGuardian.stop === 'function') presentationShareGuardian.stop(); } if (channel) channel.close(); stopPrompt(true); }, {once: true});
+  addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); destroyProductionBackchannel(); if (productionBackchannelTimer) clearInterval(productionBackchannelTimer); if (presentationShareGuardian) { if (typeof presentationShareGuardian.destroy === 'function') presentationShareGuardian.destroy(); else if (typeof presentationShareGuardian.stop === 'function') presentationShareGuardian.stop(); } if (channel) channel.close(); stopPrompt(true); }, {once: true});
   setInterval(function () {
     if (running && !document.hidden) render();
     if (!remoteMode) renderShareGuardian();
@@ -1636,6 +1889,8 @@
 
   if (!navigator.onLine) setConnection('● Sin conexión · modo seguro', 'is-offline');
   initializeCaptionControls();
+  initializeProductionBackchannel('presenter');
+  productionBackchannelTimer = setInterval(function () { renderProductionBackchannel(); }, 1000);
   initializeShareGuardian();
   mountAudienceMirror();
   restoreCalibrationProfile();

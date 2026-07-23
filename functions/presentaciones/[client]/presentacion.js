@@ -27,9 +27,10 @@ function withPresenterMode(html,notes,audienceMode=false){
   const publicHtml=audienceMode?html.replace(/\sdata-speaker-notes=(?:"[^"]*"|'[^']*')/gi,''):html;
   const marked=audienceMode?publicHtml.replace('<html','<html class="presenter-audience-mode" data-presenter-surface="audience"'):publicHtml;
   const presenterData=audienceMode?'':`<script>window.__ADMIRA_PRESENTER_NOTES__=${safeJson(String(notes||''))}</script>`;
+  const productionBackchannelScript=audienceMode?'':'<script src="/assets/presentation-production-backchannel.js?v=20260723-1"></script>';
   return marked
-    .replace('</head>','<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260723-4"><link rel="stylesheet" href="/assets/presentation-caption-accessibility.css?v=20260723-2"></head>')
-    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-pace-coach.js?v=20260723-1"></script><script src="/assets/presentation-share-guardian.js?v=20260723-1"></script><script src="/assets/presentation-presenter-mode.js?v=20260723-4"></script></body>`);
+    .replace('</head>','<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260723-5"><link rel="stylesheet" href="/assets/presentation-caption-accessibility.css?v=20260723-2"></head>')
+    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-pace-coach.js?v=20260723-1"></script><script src="/assets/presentation-share-guardian.js?v=20260723-1"></script>${productionBackchannelScript}<script src="/assets/presentation-presenter-mode.js?v=20260723-5"></script></body>`);
 }
 
 const sectionLabels={

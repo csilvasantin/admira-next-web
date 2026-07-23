@@ -112,8 +112,33 @@ puede comprobar otras ventanas, notificaciones ni garantizar por sí sola qué v
 el público. Si la API no está disponible o el permiso se cancela, el panel lo
 declara y mantiene el procedimiento manual sin afirmar una verificación.
 
+### Backchannel privado de producción
+
+Dos superficies privadas de la misma presentación pueden coordinar al operador y
+al ponente sin usar un servidor. En una de ellas, **Activar modo operador** muestra
+el compositor; la otra permanece en modo presentador. Cada cue tiene prioridad
+normal, alta o urgente, una caducidad entre 5 y 300 segundos y un acuse explícito
+de lectura. Para evitar confundir sesiones, el canal se deriva de la ruta exacta
+de la presentación.
+
+El texto viaja únicamente por `BroadcastChannel` entre pestañas del mismo origen
+y se conserva en memoria hasta el acuse, la caducidad o el cierre de la página.
+No se envía por red ni se escribe en `localStorage` o `sessionStorage`. La salida
+`?audience=1` no carga el motor, no construye el panel y no recibe cues. La
+interfaz inserta los mensajes con `textContent` y el motor valida roles, campos,
+tamaños, prioridades e identificadores antes de aceptar un sobre.
+
+Si `BroadcastChannel` no existe o falla, el panel declara **Canal seguro
+limitado** y desactiva el envío. El fallback solo intercambia señales de control
+opacas mediante memoria, `postMessage` de mismo origen y escrituras efímeras de
+almacenamiento; nunca degrada la privacidad enviando el texto por esos canales.
+La presentación y la salida pública continúan funcionando sin backchannel.
+
 Regresión automatizada:
 
 ```sh
+node --check assets/presentation-production-backchannel.js
+node --test test/presentation-production-backchannel.test.js test/presentation-presenter-mode.test.js
 node --test test/*.test.js
+git diff --check
 ```

@@ -20,11 +20,13 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-4/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-5/);
   assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
   assert.match(html,/presentation-share-guardian\.js\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-4/);
+  assert.match(html,/presentation-production-backchannel\.js\?v=20260723-1/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-5/);
   assert.ok(html.indexOf('presentation-share-guardian.js')<html.indexOf('presentation-presenter-mode.js'));
+  assert.ok(html.indexOf('presentation-production-backchannel.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);
   assert.doesNotMatch(html,/Recordar el contexto <\/script><script>alert/);
@@ -44,6 +46,7 @@ test('audience output is structurally separated and never serializes private pre
   assert.doesNotMatch(html,/Nota privada de portada|Nota privada de bloque/);
   assert.doesNotMatch(html,/Notas del orador|presenterNotes|admiraPresenterPanel/);
   assert.doesNotMatch(html,/presenterShareGuardian|Guardián de salida|Espejo privado/);
+  assert.doesNotMatch(html,/presentation-production-backchannel|presenterProductionBackchannel|Backchannel de producción/);
 });
 
 test('presenter mode includes rehearsal, teleprompter, pace and same-origin remote controls',async()=>{
@@ -63,6 +66,42 @@ test('presenter mode includes rehearsal, teleprompter, pace and same-origin remo
   assert.match(source,/prefers-reduced-motion/);
   assert.doesNotMatch(source,/\bfetch\s*\(/);
   assert.doesNotMatch(source,/WebSocket|EventSource/);
+});
+
+test('private production backchannel integrates operator cues, presenter acknowledgements and bounded expiry',async()=>{
+  const [source,styles]=await Promise.all([
+    readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8'),
+    readFile(new URL('../assets/presentation-presenter-mode.css',import.meta.url),'utf8')
+  ]);
+  for(const id of [
+    'presenterProductionBackchannel','presenterBackchannelMode','presenterBackchannelComposer',
+    'presenterBackchannelPriority','presenterBackchannelTtl','presenterBackchannelText',
+    'presenterBackchannelSend','presenterBackchannelCues'
+  ]) assert.match(source,new RegExp(`id="${id}"`));
+  assert.match(source,/id="presenterProductionBackchannel"[^>]*data-presenter-private/);
+  assert.match(source,/window\.AdmiraProductionBackchannel/);
+  assert.match(source,/contract\.create\(\{[\s\S]{0,260}?role: productionBackchannelRole[\s\S]{0,260}?channelName: productionBackchannelChannelName\(\)/);
+  assert.match(source,/function productionBackchannelChannelName\(\)[\s\S]{0,500}?replace\(\/\[\^A-Za-z0-9\._:-\]\+\/g, '-'\)[\s\S]{0,300}?slice\(-42\)/);
+  assert.match(source,/productionBackchannel\.onChange\(renderProductionBackchannel\)/);
+  assert.match(source,/productionBackchannel\.snapshot\(\)/);
+  assert.match(source,/productionBackchannel\.sendCue\(\{text: text, priority: priority, ttlMs: ttlSeconds \* 1000\}\)/);
+  assert.match(source,/productionBackchannel\.acknowledge\(cueId\)/);
+  assert.match(source,/clamp\(Number\(productionBackchannelTtl\.value\) \|\| 30, 5, 300\)/);
+  assert.match(source,/maxlength="240"/);
+  assert.match(source,/Acusar lectura/);
+  assert.match(source,/Caduca en/);
+  assert.match(source,/Motor no disponible|motor de backchannel no cargó/i);
+  assert.match(source,/transportStatus !== 'broadcast-channel'/);
+  assert.match(source,/BroadcastChannel no está disponible[\s\S]{0,180}?envío queda desactivado/);
+  assert.match(source,/productionBackchannelComposer\.hidden = !roleIsOperator/);
+  assert.match(source,/initializeProductionBackchannel\('presenter'\)/);
+  const integration=source.slice(source.indexOf('function productionCueList'),source.indexOf('function mountAudienceMirror'));
+  assert.match(integration,/textContent = text \|\| 'Cue sin texto'/);
+  assert.doesNotMatch(integration,/innerHTML|localStorage|sessionStorage|\bfetch\s*\(|WebSocket|EventSource/);
+  assert.match(styles,/\.presenter-production-backchannel\[data-backchannel-state="operator"\]/);
+  assert.match(styles,/\.presenter-production-backchannel\[data-backchannel-state="(?:degraded|unavailable)"\]/);
+  assert.match(styles,/\.presenter-backchannel-cues li\[data-priority="urgent"\]/);
+  assert.match(styles,/\.presenter-backchannel-mode button:focus-visible/);
 });
 
 test('live captions stay ephemeral, explicit and idempotent on the local audience channel',async()=>{
