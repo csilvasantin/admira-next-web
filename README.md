@@ -134,6 +134,51 @@ pendientes de revisión. El asistente privado muestra ese aviso antes de
 presentar. El contrato y su script de revisión no se serializan en
 `?audience=1`.
 
+### Laboratorio de compatibilidad
+
+Cada presentación nueva conserva `compatibilityLab` con una matriz por deck para
+PowerPoint, Keynote, Google Slides, PDF y web. Los resultados nunca confunden
+una inferencia con una prueba:
+
+- `structural`: análisis determinista de layout, fuentes, controles y multimedia;
+  declara expresamente que la aplicación destino no se ejecutó.
+- `unavailable`: el entregable o runner no está disponible e incluye un fallback
+  accionable.
+- `executed`: solo se admite desde un adaptador que aporte estado, versión,
+  entorno, fecha real, SHA-256 del artefacto y una URL HTTPS de evidencia sin
+  credenciales ni query string.
+
+El endpoint privado `GET /presentaciones/<cliente>/api/compatibility` devuelve el
+informe. Un `PUT` same-origin incorpora una ejecución o indisponibilidad:
+
+```json
+{
+  "kind": "execution",
+  "deckId": "proposal:demo",
+  "target": "powerpoint",
+  "status": "passed_with_differences",
+  "adapter": "powerpoint-win",
+  "adapterVersion": "1.4.0",
+  "artifactSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evidenceUrl": "https://evidence.example/compat/powerpoint.json",
+  "environment": "PowerPoint 2026 · Windows 11",
+  "executedAt": "2026-07-24T09:58:00.000Z",
+  "differences": [
+    {
+      "severity": "warning",
+      "area": "fonts",
+      "detail": "Se utilizó una fuente fallback.",
+      "fallback": "Embeber la fuente aprobada antes de distribuir."
+    }
+  ]
+}
+```
+
+El informe solo guarda metadatos acotados y enlaces a evidencia; no acepta logs,
+archivos ni capturas embebidas. El preflight privado resume cuántas comprobaciones
+fueron ejecutadas, estructurales o no disponibles. La salida de audiencia no
+recibe el laboratorio.
+
 ### Calibración visual de sala
 
 El panel privado del presentador incluye un patrón técnico para ajustar margen

@@ -187,6 +187,7 @@
   var launchState = document.getElementById('presenterLaunchState');
   var SourceTraceability = window.AdmiraSourceTraceability || null;
   var sourceTraceability = window.__ADMIRA_SOURCE_TRACEABILITY__ || null;
+  var compatibilityLab = window.__ADMIRA_COMPATIBILITY_LAB__ || null;
   var shareGuardianPanel = document.getElementById('presenterShareGuardian');
   var shareGuardianState = document.getElementById('presenterShareGuardianState');
   var shareGuardianAction = document.getElementById('presenterShareGuardianAction');
@@ -964,6 +965,19 @@
     return SourceTraceability.checklistStatus(sourceTraceability);
   }
 
+  function compatibilityChecklistStatus() {
+    var summary = compatibilityLab && compatibilityLab.summary;
+    if (!summary || !Number.isFinite(Number(summary.total)) || Number(summary.total) < 1) {
+      return 'Compatibilidad pendiente: esta presentación no tiene matriz de PowerPoint, Keynote, Google Slides, PDF y web.';
+    }
+    if (Number(summary.executed) === Number(summary.total) && Number(summary.failed) === 0) {
+      return 'Compatibilidad ejecutada: ' + summary.executed + ' comprobaciones con evidencia de adaptador y ningún fallo.';
+    }
+    return 'Compatibilidad parcial: ' + Number(summary.executed || 0) + ' ejecutadas, ' +
+      Number(summary.structural || 0) + ' analizadas estructuralmente y ' +
+      Number(summary.unavailable || 0) + ' no disponibles. Revisa fallbacks antes de presentar.';
+  }
+
   function refreshLaunchAssistant() {
     var privacyStatus = !audienceConnected
       ? 'Salida dedicada: pendiente; aún no se ha verificado que la audiencia no reciba notas.'
@@ -973,6 +987,7 @@
     setLaunchChecklist([
       privacyStatus,
       traceabilityChecklistStatus(),
+      compatibilityChecklistStatus(),
       launchScreenStatus,
       launchFullscreenStatus,
       calibrationChecklistStatus(),
