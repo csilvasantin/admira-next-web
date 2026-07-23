@@ -155,3 +155,37 @@ test('presenter provides idempotent offline reconnect and a restricted cache fal
   assert.match(worker,/fetchAndStore\(request\)\.catch\(\(\) => caches\.match\(request\)/);
   assert.match(worker,/results\.every\(result => result\.status === 'fulfilled'\)/);
 });
+
+test('stage pause exposes a private accessible control and an emergency keyboard shortcut',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  assert.match(source,/id="presenterStagePause"/);
+  assert.match(source,/id="presenterStagePause"[^>]*aria-pressed="false"/);
+  assert.match(source,/id="presenterStagePause"[^>]*aria-keyshortcuts="B"/);
+  assert.match(source,/id="presenterStagePause"[^>]*data-presenter-private/);
+  assert.match(source,/event\.target\?\.closest\?\.\('input,textarea,select,button,\[contenteditable="true"\]'\)/);
+  assert.match(source,/event\.key\.toLowerCase\(\) === 'b'[\s\S]{0,240}?setStagePaused\(/);
+});
+
+test('stage pause sends an allowlisted audience signal without presenter notes or private state',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  const stagePause=source.match(/function setStagePaused\([^)]*\)\s*\{[\s\S]*?\n  \}/)?.[0]||'';
+  const stagePauseSignal=stagePause.match(/broadcast\(\{[^\n]*type: 'stage-pause'[^\n]*\}\)/)?.[0]||'';
+  assert.match(stagePauseSignal,/broadcast\(\{type: 'stage-pause', paused: stagePaused, index: currentIndex\}\)/);
+  assert.doesNotMatch(stagePauseSignal,/notes|speaker|generalNotes|innerHTML|textContent|client|token/i);
+  assert.match(source,/payload\.type === 'stage-pause'[\s\S]{0,240}?setAudienceStagePaused\(Boolean\(payload\.paused\), payload\.index\)/);
+  assert.match(source,/data-presenter-surface', 'audience'[\s\S]*?presenter-stage-waiting/);
+});
+
+test('stage pause resumes the exact audience slide and is idempotent with a safe transport fallback',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  const audiencePause=source.match(/function setAudienceStagePaused\([^)]*\)\s*\{[\s\S]*?\n    \}/)?.[0]||'';
+  assert.match(audiencePause,/if \(audienceStagePaused === paused\)[\s\S]{0,120}?return/);
+  assert.match(audiencePause,/audiencePauseSnapshot = \{index: audienceIndex, media: captureMedia\(\)\}/);
+  assert.match(audiencePause,/audienceGo\(audiencePauseSnapshot\.index\)[\s\S]{0,160}?restoreMedia\(audiencePauseSnapshot\.media\)/);
+  assert.match(source,/function broadcast\(payload\)[\s\S]*?if \(channel\) channel\.postMessage\(payload\)[\s\S]*?localStorage\.setItem\(channelName/);
+  assert.match(source,/function audienceSend\(payload\)[\s\S]*?if \(audienceChannel\) audienceChannel\.postMessage\(payload\)[\s\S]*?localStorage\.setItem\(channelName/);
+  assert.match(source,/audienceWindow\.postMessage\(payload, location\.origin\)/);
+  assert.doesNotMatch(source,/audienceWindow\.postMessage\([^,\n]+,\s*['"]\*['"]/);
+  assert.match(source,/addEventListener\('message', function \(event\) \{[\s\S]{0,180}?event\.origin !== location\.origin[\s\S]{0,180}?audienceReceive\(event\.data\)/);
+  assert.match(source,/pagehide[\s\S]{0,180}?if \(audienceChannel\) audienceChannel\.close\(\)/);
+});

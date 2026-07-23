@@ -38,6 +38,8 @@
   var audienceConnected = false;
   var audiencePrivacyVerified = false;
   var audienceWindow = null;
+  var stagePaused = false;
+  var stagePauseSnapshot = null;
   var launchScreenStatus = 'Screen Details: pendiente de comprobar tras el gesto.';
   var launchFullscreenStatus = 'Pantalla completa: pendiente de solicitar.';
 
@@ -66,7 +68,7 @@
     '<div><span>Ritmo</span><strong id="presenterPace" class="on-time" aria-live="polite">En ritmo</strong></div></div>' +
     '<div class="presenter-progress" aria-hidden="true"><i id="presenterProgress"></i></div>' +
     '<div class="presenter-controls" aria-label="Controles de navegación"><button type="button" data-presenter-command="prev">← Anterior</button><button type="button" data-presenter-command="next">Siguiente →</button></div>' +
-    '<div class="presenter-controls compact"><button type="button" id="presenterTimerToggle">Iniciar tiempo</button><button type="button" id="presenterTimerReset">Reiniciar</button><button type="button" id="presenterFullscreen" aria-pressed="false">Pantalla completa</button><label>Duración <input id="presenterDuration" type="number" min="5" max="180" step="1" inputmode="numeric" aria-label="Duración prevista en minutos"> min</label></div>' +
+    '<div class="presenter-controls compact"><button type="button" id="presenterTimerToggle">Iniciar tiempo</button><button type="button" id="presenterTimerReset">Reiniciar</button><button type="button" id="presenterStagePause" class="presenter-stage-pause" aria-pressed="false" aria-keyshortcuts="B" data-presenter-private>Pausa escénica · B</button><button type="button" id="presenterFullscreen" aria-pressed="false">Pantalla completa</button><label>Duración <input id="presenterDuration" type="number" min="5" max="180" step="1" inputmode="numeric" aria-label="Duración prevista en minutos"> min</label></div>' +
     '<section class="presenter-prompt" aria-labelledby="presenterPromptTitle"><div class="presenter-prompt-head"><strong id="presenterPromptTitle">Notas del orador</strong><div><button type="button" id="presenterPromptSmaller" aria-label="Reducir texto">A−</button><button type="button" id="presenterPromptLarger" aria-label="Aumentar texto">A+</button></div></div>' +
     '<div id="presenterNotes" class="presenter-notes" tabindex="0"></div><div class="presenter-prompt-actions"><button type="button" id="presenterPromptToggle">▶ Teleprompter</button><label>Velocidad <input id="presenterPromptSpeed" type="range" min="1" max="3" step="1" aria-label="Velocidad del teleprompter"></label></div></section>' +
     '<div class="presenter-next"><span>Siguiente</span><strong id="presenterNextTitle">Fin de la presentación</strong></div>' +
@@ -93,6 +95,7 @@
   var cacheState = document.getElementById('presenterCacheState');
   var recoveryPanel = document.getElementById('presenterRecovery');
   var recoverySummary = document.getElementById('presenterRecoverySummary');
+  var stagePauseButton = document.getElementById('presenterStagePause');
   var fullscreenButton = document.getElementById('presenterFullscreen');
   var launchAssistant = document.getElementById('presenterLaunchAssistant');
   var launchChecklist = document.getElementById('presenterLaunchChecklist');
@@ -114,7 +117,25 @@
     var audienceChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(channelName) : null;
     var audienceSequence = 0;
     var audienceIndex = nearestSlide();
+    var audienceStagePaused = false;
+    var audiencePauseSnapshot = null;
     var cursorTimer = 0;
+    var audienceWaiting = document.createElement('div');
+    var audienceWaitingBrand = document.createElement('strong');
+    var audienceWaitingTitle = document.createElement('span');
+    var audienceWaitingDetail = document.createElement('small');
+
+    audienceWaiting.className = 'presenter-stage-waiting';
+    audienceWaiting.hidden = true;
+    audienceWaiting.setAttribute('role', 'status');
+    audienceWaiting.setAttribute('aria-live', 'polite');
+    audienceWaitingBrand.textContent = 'ADMIRA';
+    audienceWaitingTitle.textContent = 'Volvemos enseguida';
+    audienceWaitingDetail.textContent = 'La presentación continuará en unos instantes.';
+    audienceWaiting.appendChild(audienceWaitingBrand);
+    audienceWaiting.appendChild(audienceWaitingTitle);
+    audienceWaiting.appendChild(audienceWaitingDetail);
+    document.body.appendChild(audienceWaiting);
 
     function hideAudienceCursorSoon() {
       document.documentElement.classList.remove('presenter-cursor-hidden');
@@ -134,9 +155,59 @@
       slides[audienceIndex].scrollIntoView({behavior: 'auto'});
     }
 
+    function captureMedia() {
+      return Array.prototype.slice.call(document.querySelectorAll('video,audio')).map(function (media, index) {
+        return {index: index, time: Number.isFinite(media.currentTime) ? media.currentTime : 0, paused: media.paused};
+      });
+    }
+
+    function pauseMedia(items) {
+      items.forEach(function (saved) {
+        var media = document.querySelectorAll('video,audio')[saved.index];
+        if (media) try { media.pause(); media.currentTime = saved.time; } catch (_) {}
+      });
+    }
+
+    function restoreMedia(items) {
+      items.forEach(function (saved) {
+        var media = document.querySelectorAll('video,audio')[saved.index];
+        if (!media) return;
+        try {
+          media.currentTime = saved.time;
+          if (!saved.paused) media.play().catch(function () {}); else media.pause();
+        } catch (_) {}
+      });
+    }
+
+    function setAudienceStagePaused(paused, index) {
+      paused = Boolean(paused);
+      if (audienceStagePaused === paused) return;
+      if (paused) {
+        if (Number.isFinite(Number(index))) audienceGo(Number(index));
+        audiencePauseSnapshot = {index: audienceIndex, media: captureMedia()};
+        pauseMedia(audiencePauseSnapshot.media);
+        audienceStagePaused = true;
+        audienceWaiting.hidden = false;
+        document.documentElement.classList.add('presenter-stage-paused');
+        return;
+      }
+      audienceStagePaused = false;
+      audienceWaiting.hidden = true;
+      document.documentElement.classList.remove('presenter-stage-paused');
+      if (audiencePauseSnapshot) {
+        audienceGo(audiencePauseSnapshot.index);
+        restoreMedia(audiencePauseSnapshot.media);
+      }
+      audiencePauseSnapshot = null;
+    }
+
     function audienceReceive(payload) {
       if (!payload || payload.source === 'audience') return;
-      if (payload.type === 'command' || payload.type === 'state') audienceGo(payload.index);
+      if (payload.type === 'stage-pause') {
+        setAudienceStagePaused(Boolean(payload.paused), payload.index);
+        return;
+      }
+      if (!audienceStagePaused && (payload.type === 'command' || payload.type === 'state')) audienceGo(payload.index);
     }
 
     if (!privacyReady) {
@@ -156,6 +227,10 @@
       }
     });
     if (audienceChannel) audienceChannel.addEventListener('message', function (event) { audienceReceive(event.data); });
+    addEventListener('message', function (event) {
+      if (event.origin !== location.origin || event.source !== window.opener) return;
+      audienceReceive(event.data);
+    });
     addEventListener('pointermove', hideAudienceCursorSoon, {passive: true});
     addEventListener('focus', hideAudienceCursorSoon);
     addEventListener('pagehide', function () { clearTimeout(cursorTimer); if (audienceChannel) audienceChannel.close(); }, {once: true});
@@ -527,6 +602,30 @@
     persistSession(false);
   }
 
+  function setStagePaused(paused) {
+    paused = Boolean(paused);
+    if (stagePaused === paused) return;
+    if (paused) {
+      stagePauseSnapshot = {index: currentIndex, running: running, elapsed: elapsedSeconds()};
+      stagePaused = true;
+    } else {
+      stagePaused = false;
+      if (stagePauseSnapshot) {
+        currentIndex = clamp(Number(stagePauseSnapshot.index) || 0, 0, slides.length - 1);
+        carriedSeconds = Math.max(0, Number(stagePauseSnapshot.elapsed) || 0);
+        running = Boolean(stagePauseSnapshot.running);
+        startedAt = running ? Date.now() : 0;
+        goLocal(currentIndex, true);
+      }
+      stagePauseSnapshot = null;
+    }
+    stagePauseButton.setAttribute('aria-pressed', String(stagePaused));
+    stagePauseButton.textContent = stagePaused ? 'Reanudar presentación · B' : 'Pausa escénica · B';
+    panel.classList.toggle('presenter-stage-pause-active', stagePaused);
+    broadcast({type: 'stage-pause', paused: stagePaused, index: currentIndex});
+    persistSession(true);
+  }
+
   function openPanel() {
     panel.hidden = false;
     launch.setAttribute('aria-expanded', 'true');
@@ -562,6 +661,7 @@
     payload.messageId = payload.messageId || payload.source + ':' + Date.now() + ':' + (++messageSequence);
     if (channel) channel.postMessage(payload);
     try { localStorage.setItem(channelName, JSON.stringify(Object.assign({nonce: Date.now()}, payload))); } catch (_) {}
+    try { if (audienceWindow && !audienceWindow.closed) audienceWindow.postMessage(payload, location.origin); } catch (_) {}
   }
 
   function receive(payload) {
@@ -576,9 +676,19 @@
       audiencePrivacyVerified = Boolean(payload.privacyReady);
       refreshLaunchAssistant();
       render();
+      if (stagePaused) broadcast({type: 'stage-pause', paused: stagePaused, index: currentIndex});
       return;
     }
     if (payload.type === 'ready' && !remoteMode) { render(); return; }
+    if (payload.type === 'stage-pause') {
+      if (remoteMode) {
+        stagePaused = Boolean(payload.paused);
+        stagePauseButton.setAttribute('aria-pressed', String(stagePaused));
+        stagePauseButton.textContent = stagePaused ? 'Reanudar presentación · B' : 'Pausa escénica · B';
+        panel.classList.toggle('presenter-stage-pause-active', stagePaused);
+      } else if (payload.source === 'remote') setStagePaused(Boolean(payload.paused));
+      return;
+    }
     if (payload.type === 'command' && !remoteMode) {
       var requestedIndex = Number(payload.index);
       goLocal(Number.isFinite(requestedIndex) ? requestedIndex : (payload.command === 'next' ? currentIndex + 1 : currentIndex - 1));
@@ -635,6 +745,7 @@
     render();
     persistSession(true);
   });
+  stagePauseButton.addEventListener('click', function () { setStagePaused(!stagePaused); });
   document.getElementById('presenterTimerReset').addEventListener('click', function () { running = false; startedAt = 0; carriedSeconds = 0; render(); persistSession(true); });
   durationInput.addEventListener('change', function () { durationMinutes = clamp(Number(durationInput.value) || 15, 5, 180); durationInput.value = String(durationMinutes); savePreferences(); render(); });
   promptToggle.addEventListener('click', function () { promptPlaying ? stopPrompt() : startPrompt(); });
@@ -679,6 +790,7 @@
   addEventListener('keydown', function (event) {
     if (event.defaultPrevented || event.target?.closest?.('input,textarea,select,button,[contenteditable="true"]')) return;
     if (event.key.toLowerCase() === 'p') { event.preventDefault(); panel.hidden ? openPanel() : closePanel(); }
+    else if (event.key.toLowerCase() === 'b') { event.preventDefault(); setStagePaused(!stagePaused); }
   });
   addEventListener('scroll', function () { var index = nearestSlide(); if (index !== currentIndex) { currentIndex = index; render(); } }, {passive: true});
   addEventListener('online', function () {
