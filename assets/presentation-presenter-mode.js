@@ -52,6 +52,16 @@
   var productionBackchannelSnapshot = null;
   var productionBackchannelRole = 'presenter';
   var productionBackchannelTimer = 0;
+  var speakerHandoff = null;
+  var speakerHandoffUnsubscribe = null;
+  var speakerHandoffSnapshot = null;
+  var speakerHandoffTimer = 0;
+  var speakerHandoffActiveId = '';
+  var speakerHandoffContexts = Object.create(null);
+  var speakerHandoffSequence = 0;
+  var speakerHandoffTransientPhase = '';
+  var speakerHandoffTransientUntil = 0;
+  var speakerHandoffQueueSignature = '';
   var stagePaused = false;
   var stagePauseSnapshot = null;
   var launchScreenStatus = 'Screen Details: pendiente de comprobar tras el gesto.';
@@ -114,6 +124,12 @@
     '<button type="button" id="presenterShareGuardianAction" class="presenter-share-guardian-action" aria-describedby="presenterShareGuardianFallback">Seleccionar y compartir salida</button>' +
     '<ul id="presenterShareAlerts" class="presenter-share-alerts" role="alert" aria-live="assertive" aria-atomic="true"></ul>' +
     '<p id="presenterShareGuardianFallback" class="presenter-share-guardian-fallback">Si el guardián de captura no está disponible, se abrirá una salida separada y tendrás que verificar y compartir esa ventana manualmente.</p></section>' +
+    '<section id="presenterSpeakerHandoff" class="presenter-speaker-handoff" data-handoff-state="degraded" data-presenter-private aria-labelledby="presenterHandoffTitle"><div class="presenter-speaker-handoff-head"><div><span>Solo control privado</span><strong id="presenterHandoffTitle">Relevo entre ponentes</strong></div><span id="presenterHandoffState" role="status" aria-live="polite">Motor no disponible</span></div>' +
+    '<div class="presenter-speaker-active"><span>Ponente activo</span><strong id="presenterHandoffActive" tabindex="-1">Sin asignar</strong><output id="presenterHandoffCountdown" aria-live="off">Listo</output></div>' +
+    '<ol id="presenterHandoffQueue" class="presenter-speaker-queue" aria-label="Cola editable de ponentes"></ol>' +
+    '<form id="presenterHandoffAdd" class="presenter-speaker-add" aria-label="Añadir ponente a la cola"><label for="presenterHandoffName">Nombre del ponente</label><div><input id="presenterHandoffName" name="speakerName" type="text" maxlength="80" autocomplete="off" placeholder="Nombre"><button type="submit">Añadir</button></div></form>' +
+    '<div class="presenter-speaker-actions" aria-label="Controles de relevo"><button type="button" id="presenterHandoffRequest" aria-describedby="presenterHandoffFeedback">Solicitar relevo</button><button type="button" id="presenterHandoffAccept" aria-describedby="presenterHandoffFeedback">Aceptar relevo</button><button type="button" id="presenterHandoffCancel" aria-describedby="presenterHandoffFeedback">Cancelar</button></div>' +
+    '<p id="presenterHandoffFeedback" class="presenter-speaker-feedback" role="status" aria-live="polite" aria-atomic="true">La cola y las posiciones de lectura solo existen en este control privado.</p></section>' +
     '<section id="presenterProductionBackchannel" class="presenter-production-backchannel" data-backchannel-state="unavailable" data-presenter-private aria-labelledby="presenterBackchannelTitle"><div class="presenter-production-backchannel-head"><div><span>Solo control privado</span><strong id="presenterBackchannelTitle">Backchannel de producción</strong></div><span id="presenterBackchannelState" role="status" aria-live="polite">Cargando motor…</span></div>' +
     '<div class="presenter-backchannel-mode"><button type="button" id="presenterBackchannelMode" aria-pressed="false" aria-describedby="presenterBackchannelModeHelp">Activar modo operador</button><small id="presenterBackchannelModeHelp">Presentador: recibe y acusa cues. Operador: los redacta y envía.</small></div>' +
     '<form id="presenterBackchannelComposer" class="presenter-backchannel-composer" aria-label="Enviar cue de producción" hidden><label>Prioridad <select id="presenterBackchannelPriority"><option value="normal">Normal</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></label><label>Caducidad <span><input id="presenterBackchannelTtl" type="number" min="5" max="300" step="5" value="30" inputmode="numeric" aria-describedby="presenterBackchannelTtlHelp"> s</span></label><label class="presenter-backchannel-message">Cue <textarea id="presenterBackchannelText" rows="2" maxlength="240" placeholder="Ej.: quedan 2 minutos para preguntas" required></textarea></label><button type="submit" id="presenterBackchannelSend">Enviar cue</button></form>' +
@@ -162,6 +178,17 @@
   var audienceMirror = document.getElementById('presenterAudienceMirror');
   var mirrorState = document.getElementById('presenterMirrorState');
   var shareAlerts = document.getElementById('presenterShareAlerts');
+  var speakerHandoffPanel = document.getElementById('presenterSpeakerHandoff');
+  var speakerHandoffState = document.getElementById('presenterHandoffState');
+  var speakerHandoffActive = document.getElementById('presenterHandoffActive');
+  var speakerHandoffCountdown = document.getElementById('presenterHandoffCountdown');
+  var speakerHandoffQueue = document.getElementById('presenterHandoffQueue');
+  var speakerHandoffAdd = document.getElementById('presenterHandoffAdd');
+  var speakerHandoffName = document.getElementById('presenterHandoffName');
+  var speakerHandoffRequest = document.getElementById('presenterHandoffRequest');
+  var speakerHandoffAccept = document.getElementById('presenterHandoffAccept');
+  var speakerHandoffCancel = document.getElementById('presenterHandoffCancel');
+  var speakerHandoffFeedback = document.getElementById('presenterHandoffFeedback');
   var productionBackchannelPanel = document.getElementById('presenterProductionBackchannel');
   var productionBackchannelState = document.getElementById('presenterBackchannelState');
   var productionBackchannelMode = document.getElementById('presenterBackchannelMode');
@@ -1110,6 +1137,412 @@
     });
   }
 
+  function speakerHandoffPresentationId(path) {
+    return String(path || 'presentation')
+      .replace(/[^A-Za-z0-9._:-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || 'presentation';
+  }
+
+  function speakerContextReference(context) {
+    context = context && typeof context === 'object' ? context : {};
+    return JSON.stringify({
+      version: 1,
+      notesScrollTop: clamp(Math.round(Number(context.notesScrollTop) || 0), 0, 10000000),
+      promptPlaying: Boolean(context.promptPlaying)
+    });
+  }
+
+  function parseSpeakerContextReference(value) {
+    if (typeof value !== 'string' || !value || value.length > 1000) return null;
+    try {
+      var parsed = JSON.parse(value);
+      if (!parsed || typeof parsed !== 'object' || parsed.version !== 1) return null;
+      return {
+        notesScrollTop: clamp(Math.round(Number(parsed.notesScrollTop) || 0), 0, 10000000),
+        promptPlaying: Boolean(parsed.promptPlaying)
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function shouldRestoreSpeakerContext(snapshot, speaker) {
+    snapshot = snapshot && typeof snapshot === 'object' ? snapshot : {};
+    var restored = snapshot.persistence && snapshot.persistence.status === 'restored';
+    var usefulState = speaker && speaker.state && (
+      Number(speaker.state.slideIndex) > 0 ||
+      Boolean(speaker.state.notes) ||
+      Boolean(speaker.state.reference)
+    );
+    return Boolean(restored || usefulState);
+  }
+
+  function speakerHandoffSpeakers(snapshot) {
+    snapshot = snapshot && typeof snapshot === 'object' ? snapshot : {};
+    var catalog = (Array.isArray(snapshot.speakers) ? snapshot.speakers : []).map(function (speaker, index) {
+      if (typeof speaker === 'string') return {id: speaker, name: speaker};
+      speaker = speaker && typeof speaker === 'object' ? speaker : {};
+      return {
+        id: String(speaker.id || speaker.speakerId || speaker.key || ('speaker-' + (index + 1))),
+        name: String(speaker.name || speaker.label || speaker.displayName || ('Ponente ' + (index + 1))).trim().slice(0, 80),
+        state: speaker.state && typeof speaker.state === 'object' ? speaker.state : null
+      };
+    });
+    var byId = Object.create(null);
+    catalog.forEach(function (speaker) { byId[speaker.id] = speaker; });
+    var orderedIds = [];
+    var controllerId = String(snapshot.controllerId || snapshot.activeSpeakerId || snapshot.activeId || '');
+    if (controllerId) orderedIds.push(controllerId);
+    (Array.isArray(snapshot.queue) ? snapshot.queue : []).forEach(function (speaker) {
+      var id = String(typeof speaker === 'string' ? speaker : (speaker && (speaker.id || speaker.speakerId)) || '');
+      if (id && orderedIds.indexOf(id) < 0) orderedIds.push(id);
+    });
+    if (!orderedIds.length) catalog.forEach(function (speaker) { orderedIds.push(speaker.id); });
+    return orderedIds.map(function (id, index) {
+      return byId[id] || {id: id, name: 'Ponente ' + (index + 1), state: null};
+    });
+  }
+
+  function speakerHandoffActiveSpeaker(snapshot, speakers) {
+    snapshot = snapshot && typeof snapshot === 'object' ? snapshot : {};
+    var active = snapshot.activeSpeaker && typeof snapshot.activeSpeaker === 'object' ? snapshot.activeSpeaker : null;
+    var activeId = String(snapshot.controllerId || snapshot.activeSpeakerId || snapshot.activeId || (active && (active.id || active.speakerId)) || '');
+    return speakers.find(function (speaker) { return speaker.id === activeId; }) || active || null;
+  }
+
+  function speakerHandoffPhase(snapshot) {
+    if (!speakerHandoff) return 'degraded';
+    if (snapshot && snapshot.handoff && snapshot.handoff.status === 'countdown') return 'countdown';
+    if (speakerHandoffTransientPhase && Date.now() < speakerHandoffTransientUntil) return speakerHandoffTransientPhase;
+    var phase = String(snapshot && (snapshot.state || snapshot.status || snapshot.phase) || 'ready').toLowerCase();
+    if (phase === 'pending' || phase === 'requested' || phase === 'requesting') return 'countdown';
+    if (phase === 'accepted' || phase === 'complete' || phase === 'completed') return 'transferred';
+    if (phase === 'canceled') return 'cancelled';
+    return ['ready', 'countdown', 'transferred', 'cancelled', 'degraded'].indexOf(phase) >= 0 ? phase : 'ready';
+  }
+
+  function speakerHandoffRemainingMs(snapshot) {
+    var handoff = snapshot && snapshot.handoff && typeof snapshot.handoff === 'object' ? snapshot.handoff : {};
+    var explicit = Number(handoff.remainingMs ?? (snapshot && (snapshot.remainingMs ?? snapshot.countdownMs)));
+    if (Number.isFinite(explicit)) return Math.max(0, explicit);
+    var deadline = Number(handoff.executeAt || handoff.deadline || handoff.deadlineAt || handoff.expiresAt || (snapshot && (snapshot.deadline || snapshot.deadlineAt || snapshot.expiresAt)));
+    return deadline ? Math.max(0, deadline - Date.now()) : 0;
+  }
+
+  function speakerHandoffReadSnapshot() {
+    if (!speakerHandoff) return {};
+    try {
+      if (typeof speakerHandoff.snapshot === 'function') return speakerHandoff.snapshot() || {};
+      if (typeof speakerHandoff.getState === 'function') return speakerHandoff.getState() || {};
+      if (speakerHandoff.state && typeof speakerHandoff.state === 'object') return speakerHandoff.state;
+    } catch (_) {}
+    return speakerHandoffSnapshot || {};
+  }
+
+  function captureSpeakerContext(speakerId) {
+    if (!speakerId) return;
+    var context = {
+      index: currentIndex,
+      notes: String(notes.textContent || ''),
+      notesScrollTop: Math.max(0, Number(notes.scrollTop) || 0),
+      promptPlaying: Boolean(promptPlaying)
+    };
+    speakerHandoffContexts[speakerId] = context;
+    var updateState = speakerHandoffMethod(['updateSpeakerState']);
+    if (updateState) {
+      try {
+        updateState(speakerId, {
+          slideIndex: context.index,
+          notes: context.notes,
+          reference: speakerContextReference(context)
+        });
+      } catch (_) {}
+    }
+  }
+
+  function restoreSpeakerContext(speakerId) {
+    var saved = speakerId && speakerHandoffContexts[speakerId];
+    if (!saved) {
+      var speaker = speakerHandoffSpeakers(speakerHandoffReadSnapshot()).find(function (item) { return item.id === speakerId; });
+      if (speaker && speaker.state) {
+        var reference = parseSpeakerContextReference(speaker.state.reference);
+        saved = {
+          index: speaker.state.slideIndex,
+          notes: speaker.state.notes,
+          notesScrollTop: reference && reference.notesScrollTop,
+          promptPlaying: reference && reference.promptPlaying
+        };
+      }
+    }
+    if (!saved) return;
+    stopPrompt();
+    goLocal(clamp(Number(saved.index) || 0, 0, slides.length - 1), true);
+    requestAnimationFrame(function () {
+      if (typeof saved.notes === 'string') notes.textContent = saved.notes;
+      notes.scrollTop = Math.max(0, Number(saved.notesScrollTop) || 0);
+      if (saved.promptPlaying) startPrompt();
+      persistSession(true);
+    });
+  }
+
+  function switchSpeakerContext(nextSpeakerId, snapshot) {
+    nextSpeakerId = String(nextSpeakerId || '');
+    if (!nextSpeakerId || nextSpeakerId === speakerHandoffActiveId) return;
+    var previousSpeakerId = speakerHandoffActiveId;
+    speakerHandoffActiveId = nextSpeakerId;
+    if (previousSpeakerId) captureSpeakerContext(previousSpeakerId);
+    if (previousSpeakerId) {
+      var snapshot = speakerHandoffReadSnapshot();
+      var queue = Array.isArray(snapshot.queue) ? snapshot.queue.map(String) : [];
+      var enqueue = speakerHandoffMethod(['enqueue']);
+      if (enqueue && previousSpeakerId !== 'presenter-control' && queue.indexOf(previousSpeakerId) < 0) {
+        try { enqueue(previousSpeakerId); } catch (_) {}
+      }
+      restoreSpeakerContext(nextSpeakerId);
+      requestAnimationFrame(function () { speakerHandoffActive.focus({preventScroll: true}); });
+    } else {
+      snapshot = snapshot && typeof snapshot === 'object' ? snapshot : {};
+      var active = speakerHandoffSpeakers(snapshot).find(function (speaker) { return speaker.id === nextSpeakerId; });
+      if (shouldRestoreSpeakerContext(snapshot, active)) restoreSpeakerContext(nextSpeakerId);
+    }
+  }
+
+  function speakerHandoffMethod(names) {
+    if (!speakerHandoff) return null;
+    for (var index = 0; index < names.length; index += 1) {
+      if (typeof speakerHandoff[names[index]] === 'function') return speakerHandoff[names[index]].bind(speakerHandoff);
+    }
+    return null;
+  }
+
+  function runSpeakerHandoffAction(names, args, pendingMessage, failedMessage) {
+    var action = speakerHandoffMethod(names);
+    if (!action) {
+      speakerHandoffFeedback.textContent = 'Esta acción no está disponible en el motor de relevo cargado.';
+      renderSpeakerHandoff();
+      return Promise.resolve(null);
+    }
+    speakerHandoffFeedback.textContent = pendingMessage;
+    var result;
+    try { result = action.apply(null, Array.isArray(args) ? args : [args]); }
+    catch (_) { result = Promise.reject(new Error('speaker handoff action failed')); }
+    return Promise.resolve(result).then(function () {
+      speakerHandoffSnapshot = speakerHandoffReadSnapshot();
+      renderSpeakerHandoff(speakerHandoffSnapshot);
+      return speakerHandoffSnapshot;
+    }).catch(function () {
+      speakerHandoffFeedback.textContent = failedMessage;
+      renderSpeakerHandoff();
+      return null;
+    });
+  }
+
+  function queueSpeakerHandoff(name) {
+    name = String(name || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!name) {
+      speakerHandoffFeedback.textContent = 'Escribe un nombre antes de añadirlo.';
+      speakerHandoffName.focus();
+      return;
+    }
+    var speaker = {id: 'speaker-' + Date.now().toString(36) + '-' + (++speakerHandoffSequence), name: name, role: 'speaker'};
+    runSpeakerHandoffAction(['addSpeaker', 'add'], [speaker], 'Añadiendo a ' + name + '…', 'No se pudo añadir el ponente.').then(function (result) {
+      if (!result) return;
+      var enqueue = speakerHandoffMethod(['enqueue']);
+      try { if (enqueue) enqueue(speaker.id); } catch (_) {}
+      speakerHandoffName.value = '';
+      speakerHandoffFeedback.textContent = name + ' se añadió a la cola privada.';
+      speakerHandoffName.focus();
+    });
+  }
+
+  function moveSpeakerHandoff(speakerId, offset, button) {
+    var snapshot = speakerHandoffReadSnapshot();
+    var queueIds = (Array.isArray(snapshot.queue) ? snapshot.queue : []).map(String);
+    var fromIndex = queueIds.indexOf(speakerId);
+    var toIndex = clamp(fromIndex + offset, 0, queueIds.length - 1);
+    if (fromIndex < 0 || fromIndex === toIndex) return;
+    queueIds.splice(fromIndex, 1);
+    queueIds.splice(toIndex, 0, speakerId);
+    var remove = speakerHandoffMethod(['removeFromQueue', 'dequeue']);
+    var enqueue = speakerHandoffMethod(['enqueue']);
+    if (!remove || !enqueue) {
+      speakerHandoffFeedback.textContent = 'El motor cargado no permite reordenar la cola.';
+      return;
+    }
+    speakerHandoffFeedback.textContent = 'Reordenando la cola privada…';
+    try {
+      (Array.isArray(snapshot.queue) ? snapshot.queue : []).forEach(function (id) { remove(String(id)); });
+      queueIds.forEach(function (id) { enqueue(id); });
+      renderSpeakerHandoff();
+      var next = Array.prototype.find.call(speakerHandoffQueue.querySelectorAll('[data-speaker-id]'), function (item) {
+        return item.dataset.speakerId === speakerId;
+      });
+      var nextButton = next && next.querySelector('button[data-queue-action="' + (offset < 0 ? 'up' : 'down') + '"]');
+      if (nextButton) nextButton.focus();
+      else if (button) button.focus();
+    } catch (_) {
+      speakerHandoffFeedback.textContent = 'No se pudo reordenar la cola.';
+    }
+  }
+
+  function removeSpeakerHandoff(speakerId) {
+    var speakers = speakerHandoffSpeakers(speakerHandoffReadSnapshot());
+    var removed = speakers.find(function (speaker) { return speaker.id === speakerId; });
+    runSpeakerHandoffAction(['removeFromQueue', 'dequeue'], [speakerId], 'Quitando ponente…', 'No se pudo quitar el ponente.').then(function () {
+      if (removed) speakerHandoffFeedback.textContent = removed.name + ' se quitó de la cola privada.';
+      speakerHandoffName.focus();
+    });
+  }
+
+  function renderSpeakerHandoff(nextSnapshot) {
+    if (!speakerHandoffPanel) return;
+    if (nextSnapshot && typeof nextSnapshot === 'object') speakerHandoffSnapshot = nextSnapshot;
+    else speakerHandoffSnapshot = speakerHandoffReadSnapshot();
+    var snapshot = speakerHandoffSnapshot && typeof speakerHandoffSnapshot === 'object' ? speakerHandoffSnapshot : {};
+    var speakers = speakerHandoffSpeakers(snapshot);
+    var active = speakerHandoffActiveSpeaker(snapshot, speakers);
+    var phase = speakerHandoffPhase(snapshot);
+    var remainingMs = speakerHandoffRemainingMs(snapshot);
+    var pendingId = String((snapshot.handoff && snapshot.handoff.toSpeakerId) || snapshot.pendingSpeakerId || snapshot.requestedSpeakerId || snapshot.targetSpeakerId || '');
+    var pending = speakers.find(function (speaker) { return speaker.id === pendingId; }) || null;
+
+    speakerHandoffPanel.dataset.handoffState = phase;
+    speakerHandoffState.textContent = phase === 'countdown' ? 'Relevo solicitado'
+      : phase === 'transferred' ? 'Relevo completado'
+        : phase === 'cancelled' ? 'Relevo cancelado'
+          : phase === 'degraded' ? 'Motor no disponible'
+            : 'Listo';
+    speakerHandoffActive.textContent = active && (active.name || active.label || active.displayName) || 'Sin asignar';
+    speakerHandoffCountdown.textContent = phase === 'countdown'
+      ? (pending ? pending.name + ' · ' : '') + Math.ceil(remainingMs / 1000) + ' s'
+      : (phase === 'transferred' ? 'Contexto restaurado' : (phase === 'cancelled' ? 'Sin cambios' : 'Listo'));
+    speakerHandoffCountdown.setAttribute('aria-live', phase === 'countdown' && remainingMs <= 5000 ? 'assertive' : 'off');
+    speakerHandoffRequest.disabled = !speakerHandoff || phase === 'countdown' || speakers.length < 2;
+    speakerHandoffAccept.disabled = !speakerHandoff || phase !== 'countdown';
+    speakerHandoffCancel.disabled = !speakerHandoff || phase !== 'countdown';
+    speakerHandoffName.disabled = !speakerHandoff;
+    speakerHandoffAdd.querySelector('button').disabled = !speakerHandoff;
+
+    var nextQueueSignature = [phase, active && (active.id || active.speakerId) || '', Boolean(speakerHandoff)].concat(speakers.map(function (speaker) {
+      return speaker.id + ':' + speaker.name;
+    })).join('|');
+    if (nextQueueSignature !== speakerHandoffQueueSignature) {
+      speakerHandoffQueueSignature = nextQueueSignature;
+      speakerHandoffQueue.replaceChildren();
+      if (!speakers.length) {
+        var empty = document.createElement('li');
+        empty.className = 'presenter-speaker-empty';
+        empty.textContent = speakerHandoff ? 'Añade al menos dos ponentes.' : 'La presentación continúa sin relevo asistido.';
+        speakerHandoffQueue.appendChild(empty);
+      }
+      speakers.forEach(function (speaker, index) {
+        var item = document.createElement('li');
+        var name = document.createElement('span');
+        var controls = document.createElement('div');
+        var isActiveSpeaker = Boolean(active && String(active.id || active.speakerId) === speaker.id);
+        item.dataset.speakerId = speaker.id;
+        item.dataset.active = String(isActiveSpeaker);
+        name.textContent = (index + 1) + '. ' + speaker.name;
+        controls.setAttribute('aria-label', 'Editar posición de ' + speaker.name);
+        [
+          {action: 'up', label: 'Subir', offset: -1, disabled: isActiveSpeaker || index <= 1},
+          {action: 'down', label: 'Bajar', offset: 1, disabled: isActiveSpeaker || index === speakers.length - 1},
+          {action: 'remove', label: 'Quitar', disabled: isActiveSpeaker}
+        ].forEach(function (control) {
+          var button = document.createElement('button');
+          button.type = 'button';
+          button.dataset.queueAction = control.action;
+          button.textContent = control.label;
+          button.disabled = !speakerHandoff || control.disabled || phase === 'countdown';
+          button.setAttribute('aria-label', control.label + ' a ' + speaker.name);
+          button.addEventListener('click', function () {
+            if (control.action === 'remove') removeSpeakerHandoff(speaker.id);
+            else moveSpeakerHandoff(speaker.id, control.offset, button);
+          });
+          controls.appendChild(button);
+        });
+        item.appendChild(name);
+        item.appendChild(controls);
+        speakerHandoffQueue.appendChild(item);
+      });
+    }
+
+    var activeId = String(active && (active.id || active.speakerId) || '');
+    switchSpeakerContext(activeId, snapshot);
+    if (!speakerHandoff) {
+      speakerHandoffFeedback.textContent = 'El motor privado no cargó. Navegación, notas y audiencia siguen funcionando sin datos de relevo.';
+    } else if (!speakerHandoffFeedback.dataset.userMessage) {
+      speakerHandoffFeedback.textContent = phase === 'countdown'
+        ? 'Confirma el relevo antes de que termine la cuenta atrás o cancélalo sin cambiar de contexto.'
+        : 'Cada ponente recupera su última diapositiva y posición de notas al volver.';
+    }
+  }
+
+  function handleSpeakerHandoffChange(snapshot, event) {
+    var eventType = String(event && (event.type || event.eventType) || '').toLowerCase();
+    if (eventType === 'handoff-completed') {
+      speakerHandoffTransientPhase = 'transferred';
+      speakerHandoffTransientUntil = Date.now() + 4000;
+    } else if (eventType === 'handoff-cancelled' || eventType === 'handoff-canceled') {
+      speakerHandoffTransientPhase = 'cancelled';
+      speakerHandoffTransientUntil = Date.now() + 4000;
+    } else if (eventType === 'handoff-requested') {
+      speakerHandoffTransientPhase = '';
+      speakerHandoffTransientUntil = 0;
+    }
+    renderSpeakerHandoff(snapshot);
+  }
+
+  function initializeSpeakerHandoff() {
+    var contract = window.AdmiraSpeakerHandoff || null;
+    if (!contract || typeof contract.create !== 'function') {
+      renderSpeakerHandoff();
+      return;
+    }
+    try {
+      speakerHandoff = contract.create({
+        presentationId: speakerHandoffPresentationId(location.pathname),
+        speakers: [
+          {id: 'presenter-control', name: 'Control de presentador', role: 'moderator'},
+          {id: 'speaker-1', name: 'Ponente 1', role: 'speaker'},
+          {id: 'speaker-2', name: 'Ponente 2', role: 'speaker'}
+        ],
+        actorId: 'presenter-control',
+        initialControllerId: 'speaker-1',
+        initialQueue: ['speaker-2'],
+        defaultCountdownMs: 10000
+      });
+      if (speakerHandoff && typeof speakerHandoff.onChange === 'function') {
+        speakerHandoffUnsubscribe = speakerHandoff.onChange(handleSpeakerHandoffChange);
+      } else if (speakerHandoff && typeof speakerHandoff.subscribe === 'function') {
+        speakerHandoffUnsubscribe = speakerHandoff.subscribe(handleSpeakerHandoffChange);
+      }
+      if (speakerHandoff && typeof speakerHandoff.start === 'function') speakerHandoff.start();
+      speakerHandoffSnapshot = speakerHandoffReadSnapshot();
+    } catch (_) {
+      speakerHandoff = null;
+      speakerHandoffSnapshot = null;
+    }
+    renderSpeakerHandoff();
+  }
+
+  function destroySpeakerHandoff() {
+    if (typeof speakerHandoffUnsubscribe === 'function') {
+      try { speakerHandoffUnsubscribe(); } catch (_) {}
+    }
+    speakerHandoffUnsubscribe = null;
+    if (speakerHandoff) {
+      try {
+        if (typeof speakerHandoff.destroy === 'function') speakerHandoff.destroy();
+        else if (typeof speakerHandoff.stop === 'function') speakerHandoff.stop();
+      } catch (_) {}
+    }
+    speakerHandoff = null;
+    speakerHandoffSnapshot = null;
+    speakerHandoffContexts = Object.create(null);
+  }
+
   function productionCueList(snapshot) {
     if (!snapshot || typeof snapshot !== 'object') return [];
     if (Array.isArray(snapshot.cues)) return snapshot.cues;
@@ -1804,6 +2237,48 @@
   captionsLanguage.addEventListener('change', syncCaptionAccessibility);
   captionsTargetLanguage.addEventListener('change', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
   captionsGlossary.addEventListener('input', function () { syncCaptionAccessibility(); if (captionActive) sendCaptionState(); });
+  speakerHandoffAdd.addEventListener('submit', function (event) {
+    event.preventDefault();
+    queueSpeakerHandoff(speakerHandoffName.value);
+  });
+  speakerHandoffRequest.addEventListener('click', function () {
+    var snapshot = speakerHandoffReadSnapshot();
+    var speakers = speakerHandoffSpeakers(snapshot);
+    var active = speakerHandoffActiveSpeaker(snapshot, speakers);
+    var activeIndex = speakers.findIndex(function (speaker) { return active && speaker.id === String(active.id || active.speakerId); });
+    var target = speakers[activeIndex + 1] || speakers.find(function (speaker) { return !active || speaker.id !== String(active.id || active.speakerId); });
+    if (!target) {
+      speakerHandoffFeedback.textContent = 'Añade otro ponente antes de solicitar el relevo.';
+      speakerHandoffName.focus();
+      return;
+    }
+    runSpeakerHandoffAction(
+      ['requestHandoff', 'requestTransfer', 'request'],
+      [target.id, {countdownMs: 10000}],
+      'Solicitando relevo a ' + target.name + '…',
+      'No se pudo solicitar el relevo.'
+    );
+  });
+  speakerHandoffAccept.addEventListener('click', function () {
+    var snapshot = speakerHandoffReadSnapshot();
+    var handoffId = snapshot.handoff && snapshot.handoff.id;
+    runSpeakerHandoffAction(
+      ['acceptHandoff', 'acceptTransfer', 'accept'],
+      [handoffId],
+      'Aceptando relevo…',
+      'No se pudo aceptar el relevo.'
+    );
+  });
+  speakerHandoffCancel.addEventListener('click', function () {
+    var snapshot = speakerHandoffReadSnapshot();
+    var handoffId = snapshot.handoff && snapshot.handoff.id;
+    runSpeakerHandoffAction(
+      ['cancelHandoff', 'cancelTransfer', 'cancel'],
+      [handoffId],
+      'Cancelando relevo…',
+      'No se pudo cancelar el relevo.'
+    );
+  });
   productionBackchannelMode.addEventListener('click', switchProductionBackchannelRole);
   productionBackchannelComposer.addEventListener('submit', sendProductionCue);
   calibrationToggle.addEventListener('click', toggleCalibrationPattern);
@@ -1876,7 +2351,7 @@
   });
   document.addEventListener('admira:language', function () { notes.dataset.slide = ''; render(); });
   if (channel) channel.addEventListener('message', function (event) { receive(event.data); });
-  addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); destroyProductionBackchannel(); if (productionBackchannelTimer) clearInterval(productionBackchannelTimer); if (presentationShareGuardian) { if (typeof presentationShareGuardian.destroy === 'function') presentationShareGuardian.destroy(); else if (typeof presentationShareGuardian.stop === 'function') presentationShareGuardian.stop(); } if (channel) channel.close(); stopPrompt(true); }, {once: true});
+  addEventListener('pagehide', function () { persistSession(true); closeCalibrationPattern(); stopLiveCaptions(true); if (captionAccessibility) captionAccessibility.destroy(); destroySpeakerHandoff(); if (speakerHandoffTimer) clearInterval(speakerHandoffTimer); destroyProductionBackchannel(); if (productionBackchannelTimer) clearInterval(productionBackchannelTimer); if (presentationShareGuardian) { if (typeof presentationShareGuardian.destroy === 'function') presentationShareGuardian.destroy(); else if (typeof presentationShareGuardian.stop === 'function') presentationShareGuardian.stop(); } if (channel) channel.close(); stopPrompt(true); }, {once: true});
   setInterval(function () {
     if (running && !document.hidden) render();
     if (!remoteMode) renderShareGuardian();
@@ -1889,6 +2364,8 @@
 
   if (!navigator.onLine) setConnection('● Sin conexión · modo seguro', 'is-offline');
   initializeCaptionControls();
+  initializeSpeakerHandoff();
+  speakerHandoffTimer = setInterval(function () { renderSpeakerHandoff(); }, 250);
   initializeProductionBackchannel('presenter');
   productionBackchannelTimer = setInterval(function () { renderProductionBackchannel(); }, 1000);
   initializeShareGuardian();

@@ -134,11 +134,31 @@ opacas mediante memoria, `postMessage` de mismo origen y escrituras efímeras de
 almacenamiento; nunca degrada la privacidad enviando el texto por esos canales.
 La presentación y la salida pública continúan funcionando sin backchannel.
 
+### Relevo seguro entre ponentes
+
+El control privado permite ordenar una cola de ponentes y transferir el control
+mediante una solicitud explícita, una cuenta atrás de 10 segundos y acciones para
+aceptar o cancelar. Al completar el relevo, el ponente entrante recupera su última
+diapositiva, sus notas, la posición de lectura y el estado del teleprompter; el
+ponente saliente vuelve a la cola para poder retomar después.
+
+El estado de cada ponente se guarda únicamente en `localStorage`, aislado por la
+ruta canónica de la presentación, con un máximo de 96 KiB y una caducidad de ocho
+horas. La salida `?audience=1` no carga el motor de relevo ni recibe cola, nombres,
+notas, referencias privadas o propietario del control. Los snapshots públicos del
+motor usan una allowlist y nunca incluyen notas ni referencias de recuperación.
+
+Si el almacenamiento no está disponible o el estado guardado es inválido, el
+presentador continúa con una sesión nueva. Los nombres se insertan con
+`textContent`, los cambios de cola preservan el foco de teclado y todos los
+controles declaran estado y mensajes mediante regiones accesibles.
+
 Regresión automatizada:
 
 ```sh
 node --check assets/presentation-production-backchannel.js
-node --test test/presentation-production-backchannel.test.js test/presentation-presenter-mode.test.js
+node --check assets/presentation-speaker-handoff.js
+node --test test/presentation-production-backchannel.test.js test/presentation-speaker-handoff.test.js test/presentation-speaker-handoff-integration.test.js test/presentation-presenter-mode.test.js
 node --test test/*.test.js
 git diff --check
 ```
