@@ -1860,7 +1860,7 @@
   }
 
   function offlineUrls() {
-    var urls = [location.href, '/assets/presentation-share-guardian.js?v=20260723-1', '/assets/presentation-pace-coach.js?v=20260723-1', '/assets/presentation-presenter-mode.js?v=20260723-4', '/assets/presentation-presenter-mode.css?v=20260723-4', '/assets/presentation-caption-accessibility.js?v=20260723-2', '/assets/presentation-caption-accessibility.css?v=20260723-2'];
+    var urls = [location.href, '/assets/presentation-share-guardian.js?v=20260723-1', '/assets/presentation-pace-coach.js?v=20260723-1', '/assets/presentation-presenter-mode.js?v=20260723-4', '/assets/presentation-presenter-mode.css?v=20260723-4', '/assets/presentation-caption-accessibility.js?v=20260723-2', '/assets/presentation-caption-accessibility.css?v=20260723-2', '/assets/presentation-visual-auditor.js?v=20260723-1', '/assets/presentation-visual-auditor.css?v=20260723-1'];
     document.querySelectorAll('img[src],video[src],audio[src],source[src],link[rel="stylesheet"][href]').forEach(function (node) {
       var value = node.src || node.href;
       try { var parsed = new URL(value, location.href); if (parsed.origin === location.origin) urls.push(parsed.href); } catch (_) {}
@@ -2336,6 +2336,34 @@
     render();
   }
 
+  function initializeVisualAuditor() {
+    if (remoteMode || audienceMode || document.getElementById('presenterVisualAuditor')) return;
+    var stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = '/assets/presentation-visual-auditor.css?v=20260723-1';
+    document.head.appendChild(stylesheet);
+    function mount() {
+      var auditor = window.AdmiraPresentationVisualAuditor;
+      if (!auditor || typeof auditor.mount !== 'function') return;
+      auditor.mount({
+        container: panel,
+        onNavigate: function (index) {
+          currentIndex = clamp(Number(index) || 0, 0, slides.length - 1);
+          goLocal(currentIndex, true);
+        }
+      });
+    }
+    if (window.AdmiraPresentationVisualAuditor) {
+      mount();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = '/assets/presentation-visual-auditor.js?v=20260723-1';
+    script.async = true;
+    script.addEventListener('load', mount, {once: true});
+    document.head.appendChild(script);
+  }
+
   function command(name) {
     var nextIndex = name === 'next' ? currentIndex + 1 : name === 'prev' ? currentIndex - 1 : currentIndex;
     if (!remoteMode) goLocal(nextIndex);
@@ -2645,6 +2673,7 @@
   initializeProductionBackchannel('presenter');
   productionBackchannelTimer = setInterval(function () { renderProductionBackchannel(); }, 1000);
   initializeShareGuardian();
+  initializeVisualAuditor();
   mountAudienceMirror();
   restoreCalibrationProfile();
   refreshLaunchAssistant();
