@@ -44,6 +44,27 @@ test('el modelo Presite v2 normaliza destino, experiencia y storyboard de cinco 
   assert.match(site.storyboard[1].title, /PUMA/);
 });
 
+test('las fichas v1 se abren como intro v2 sin perder su brief ni su identidad', () => {
+  const legacy = {
+    displayName: 'Archivo Arcade',
+    slug: 'archivo-arcade',
+    brief: 'Una home v1 que ahora debe ser una secuencia de entrada.',
+    objective: 'Revelar una presentación después de la intro.',
+    audience: 'Dirección creativa',
+    language: 'es',
+    quality: 'better',
+    cta: 'Continuar',
+    blocks: [{id: 'hero', title: 'La antigua portada'}]
+  };
+  const migrated = normalizePresite(legacy, legacy);
+  assert.equal(migrated.schemaVersion, 2);
+  assert.equal(migrated.displayName, legacy.displayName);
+  assert.equal(migrated.brief, legacy.brief);
+  assert.equal(migrated.destination.url, '/presentaciones/');
+  assert.equal(migrated.storyboard.length, 5);
+  assert.equal(migrated.storyboard[1].title, legacy.displayName);
+});
+
 test('solo admite rutas internas y destinos HTTPS', () => {
   assert.equal(safeDestination('/presentaciones/nike/?mode=best'), '/presentaciones/nike/?mode=best');
   assert.equal(safeDestination('https://example.com/demo'), 'https://example.com/demo');
