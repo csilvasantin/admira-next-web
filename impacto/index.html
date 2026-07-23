@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f0e8">
+  <meta name="description" content="Narrativa de Impacto de ADmiraNeXT: historias humanas que muestran cómo la señalización digital útil mejora momentos cotidianos.">
+  <meta name="admiranext-version" content="v.26.07.23.r1">
+  <title>Narrativa de Impacto · ADmiraNeXT</title>
+  <link rel="icon" type="image/png" href="/favicon-96x96.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#stories" data-i18n="skip">Saltar a las historias</a>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Volver a ADmiraNeXT">
+      <span class="brand-mark" aria-hidden="true">AN</span>
+      <span>ADmiraNeXT</span>
+    </a>
+    <div class="top-actions">
+      <span class="campaign-tag" data-i18n="campaignTag">CAMPAÑA · NARRATIVA DE IMPACTO</span>
+      <button class="lang-button" id="lang-toggle" type="button" aria-label="Cambiar idioma">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="heroEyebrow">LA TECNOLOGÍA, CONTADA DESDE LAS PERSONAS</p>
+        <h1 data-i18n-html="heroTitle">Una pantalla no cambia el mundo.<br><em>Un mensaje a tiempo, sí.</em></h1>
+        <p class="hero-lede" data-i18n="heroLede">La señalización digital cobra sentido cuando reduce una duda, acompaña una decisión o devuelve tiempo a alguien. Estas son historias sobre esos pequeños momentos.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#stories" data-i18n="heroCta">Entrar en las historias</a>
+          <a class="button ghost" href="#framework" data-i18n="heroSecondary">Ver cómo medimos el impacto</a>
+        </div>
+      </div>
+      <div class="hero-signal" aria-hidden="true">
+        <div class="signal-orbit orbit-one"></div>
+        <div class="signal-orbit orbit-two"></div>
+        <div class="signal-screen">
+          <span class="signal-time">08:42</span>
+          <span class="signal-message" data-i18n-html="signalMessage">Tu camino<br>empieza aquí.</span>
+          <span class="signal-line"></span>
+        </div>
+        <span class="signal-person person-a"></span>
+        <span class="signal-person person-b"></span>
+        <span class="signal-person person-c"></span>
+      </div>
+      <div class="hero-foot">
+        <span data-i18n="heroFootOne">3 historias</span>
+        <span data-i18n="heroFootTwo">1 principio: ser útil</span>
+        <span>Barcelona · 2026</span>
+      </div>
+    </section>
+
+    <section class="stories-section" id="stories" aria-labelledby="stories-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow" data-i18n="storiesEyebrow">TRES MOMENTOS · TRES VIDAS</p>
+          <h2 id="stories-title" data-i18n="storiesTitle">El impacto ocurre en presente.</h2>
+        </div>
+        <p data-i18n="storiesIntro">Elige una historia. No empieza con una tecnología, sino con una persona que necesita algo sencillo.</p>
+      </div>
+
+      <div class="story-tabs" role="tablist" aria-label="Historias de impacto">
+        <button class="story-tab active" type="button" role="tab" aria-selected="true" aria-controls="story-stage" data-story="care">
+          <span>01</span>
+          <strong data-i18n="tabCare">Cuidar</strong>
+          <small data-i18n="tabCarePlace">Centro de salud</small>
+        </button>
+        <button class="story-tab" type="button" role="tab" aria-selected="false" aria-controls="story-stage" data-story="retail">
+          <span>02</span>
+          <strong data-i18n="tabRetail">Elegir</strong>
+          <small data-i18n="tabRetailPlace">Comercio local</small>
+        </button>
+        <button class="story-tab" type="button" role="tab" aria-selected="false" aria-controls="story-stage" data-story="city">
+          <span>03</span>
+          <strong data-i18n="tabCity">Llegar</strong>
+          <small data-i18n="tabCityPlace">Movilidad urbana</small>
+        </button>
+      </div>
+
+      <article class="story-stage" id="story-stage" role="tabpanel" aria-live="polite">
+        <div class="story-visual scene-care" id="story-visual" aria-hidden="true">
+          <div class="scene-light"></div>
+          <div class="scene-floor"></div>
+          <div class="digital-screen">
+            <span class="screen-label" id="visual-label">TURNO C12</span>
+            <strong id="visual-message">SALA 3 →</strong>
+            <span class="screen-progress"><i></i></span>
+          </div>
+          <div class="human human-main">
+            <span class="human-head"></span>
+            <span class="human-body"></span>
+            <span class="human-shadow"></span>
+          </div>
+          <div class="human human-side">
+            <span class="human-head"></span>
+            <span class="human-body"></span>
+            <span class="human-shadow"></span>
+          </div>
+          <div class="help-path"><span></span><span></span><span></span></div>
+          <div class="scene-caption">
+            <span id="scene-time">09:17</span>
+            <span id="scene-place">CENTRO DE SALUD · BARCELONA</span>
+          </div>
+        </div>
+
+        <div class="story-copy">
+          <p class="story-kicker" id="story-kicker">01 · MARTA</p>
+          <h3 id="story-title">El turno que ya no pesa.</h3>
+          <p class="story-lede" id="story-lede">Marta no teme la consulta. Teme no oír su nombre, levantarse tarde o preguntar por tercera vez dónde debe esperar.</p>
+          <blockquote id="story-quote">“Cuando sé qué va a pasar, vuelvo a sentir que controlo mi tiempo.”</blockquote>
+
+          <div class="story-arc">
+            <div>
+              <span data-i18n="arcBefore">ANTES</span>
+              <p id="arc-before">Incertidumbre, preguntas repetidas y una espera que parece más larga.</p>
+            </div>
+            <div>
+              <span data-i18n="arcMoment">EL MOMENTO ADMIRA</span>
+              <p id="arc-moment">Una pantalla confirma turno, sala y tiempo aproximado con tipografía clara y audio opcional.</p>
+            </div>
+            <div>
+              <span data-i18n="arcAfter">DESPUÉS</span>
+              <p id="arc-after">Marta se orienta sola. El equipo sanitario puede cuidar en vez de redirigir.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="principle-band">
+      <p data-i18n="principleSmall">NUESTRO PRINCIPIO CREATIVO</p>
+      <blockquote data-i18n-html="principleQuote">No mostramos pantallas.<br><em>Mostramos lo que una persona puede hacer gracias a ellas.</em></blockquote>
+    </section>
+
+    <section class="framework-section" id="framework" aria-labelledby="framework-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow" data-i18n="frameworkEyebrow">DEL RELATO A LA EVIDENCIA</p>
+          <h2 id="framework-title" data-i18n="frameworkTitle">Impacto que se siente. Valor que se demuestra.</h2>
+        </div>
+        <p data-i18n="frameworkIntro">Cada historia conecta una necesidad humana con una señal útil y con un resultado observable. Sin vigilancia, sin ruido, sin métricas vacías.</p>
+      </div>
+
+      <div class="impact-path">
+        <article>
+          <span class="path-number">01</span>
+          <p class="path-label" data-i18n="pathHumanLabel">SEÑAL HUMANA</p>
+          <h3 data-i18n="pathHumanTitle">¿Qué necesita la persona?</h3>
+          <p data-i18n="pathHumanCopy">Orientarse, decidir, esperar con calma, descubrir o pedir ayuda.</p>
+          <small data-i18n="pathHumanMetric">Escuchamos dudas, fricciones y tareas reales.</small>
+        </article>
+        <article>
+          <span class="path-number">02</span>
+          <p class="path-label" data-i18n="pathContextLabel">CONTEXTO</p>
+          <h3 data-i18n="pathContextTitle">¿Qué mensaje ayuda ahora?</h3>
+          <p data-i18n="pathContextCopy">Contenido relevante por lugar, momento, disponibilidad y objetivo.</p>
+          <small data-i18n="pathContextMetric">Orquestación IoT sin identificar a la persona.</small>
+        </article>
+        <article>
+          <span class="path-number">03</span>
+          <p class="path-label" data-i18n="pathActionLabel">ACCIÓN</p>
+          <h3 data-i18n="pathActionTitle">¿Qué resulta más fácil?</h3>
+          <p data-i18n="pathActionCopy">Encontrar el camino, completar una tarea o tomar una decisión informada.</p>
+          <small data-i18n="pathActionMetric">Medimos tiempo a la acción y finalización.</small>
+        </article>
+        <article>
+          <span class="path-number">04</span>
+          <p class="path-label" data-i18n="pathValueLabel">VALOR</p>
+          <h3 data-i18n="pathValueTitle">¿Qué mejora para el negocio?</h3>
+          <p data-i18n="pathValueCopy">Menos fricción operativa, atención más útil y experiencias consistentes.</p>
+          <small data-i18n="pathValueMetric">Proof-of-play y objetivos acordados desde el piloto.</small>
+        </article>
+      </div>
+    </section>
+
+    <section class="audience-section" aria-labelledby="audience-title">
+      <div class="audience-card">
+        <div class="audience-toggle" role="group" aria-label="Seleccionar audiencia">
+          <button class="active" type="button" data-audience="client" data-i18n="audienceClient">Soy cliente</button>
+          <button type="button" data-audience="partner" data-i18n="audiencePartner">Soy partner</button>
+        </div>
+        <p class="eyebrow" data-i18n="audienceEyebrow">CONSTRUYAMOS LA PRÓXIMA HISTORIA</p>
+        <h2 id="audience-title" data-i18n="audienceTitle">Empieza con un momento que hoy no funciona.</h2>
+        <p id="audience-copy">Cuéntanos dónde se pierde tiempo, claridad o confianza. Diseñaremos un piloto pequeño, medible y conectado a tu operación real.</p>
+        <a class="button primary dark" id="audience-cta" href="mailto:info@admira.com?subject=Narrativa%20de%20Impacto%20%C2%B7%20Piloto" data-i18n="audienceCtaClient">Diseñar un piloto juntos</a>
+      </div>
+      <aside class="campaign-kit">
+        <p class="eyebrow" data-i18n="kitEyebrow">KIT DE CAMPAÑA</p>
+        <h3 data-i18n="kitTitle">Una historia, muchas puertas de entrada.</h3>
+        <ul>
+          <li><span>30″</span><p><strong data-i18n="kitFilm">Pieza principal</strong><small data-i18n="kitFilmCopy">Una persona, una fricción, un cambio.</small></p></li>
+          <li><span>3×15″</span><p><strong data-i18n="kitSocial">Capítulos sociales</strong><small data-i18n="kitSocialCopy">Cuidar · Elegir · Llegar.</small></p></li>
+          <li><span>LIVE</span><p><strong data-i18n="kitDemo">Demo conectada</strong><small data-i18n="kitDemoCopy">El sistema real dentro de la presentación.</small></p></li>
+          <li><span>CASE</span><p><strong data-i18n="kitCase">Historia de cliente</strong><small data-i18n="kitCaseCopy">Resultado verificado después del piloto.</small></p></li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand footer-brand" href="/"><span class="brand-mark" aria-hidden="true">AN</span><span>ADmiraNeXT</span></a>
+    <p data-i18n="footerLine">Donde las cosas se conectan a Internet con Inteligencia Artificial — y las personas siguen siendo lo primero.</p>
+    <span>Barcelona · info@admira.com</span>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>

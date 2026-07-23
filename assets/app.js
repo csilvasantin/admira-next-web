@@ -20,6 +20,7 @@
     '/intranet': 'intranet',
     '/plataforma': 'plataforma',
     '/creditos': 'creditos',
+    '/impacto': 'impacto',
   };
   const ROUTE_TITLES = {
     '': 'ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
@@ -40,6 +41,7 @@
     'intranet': 'Intranet | ADmiraNeXT',
     'plataforma': 'Plataforma | ADmiraNeXT',
     'creditos': 'Generador de créditos | ADmiraNeXT',
+    'impacto': 'Narrativa de Impacto | ADmiraNeXT',
   };
 
   function updateUrl(command) {
@@ -115,6 +117,10 @@
     '/creditos': {
       desc: 'Crear créditos finales para una presentación',
       fn: cmdCreditos
+    },
+    '/impacto': {
+      desc: 'Historias sobre el impacto humano de la señalización digital',
+      fn: cmdImpacto
     },
     '/testimonials': {
       desc: 'Lo que la gente dice de mí',
@@ -203,6 +209,7 @@
     '/robots':       'Initial robot catalog',
     '/identidad':    'Visual identity manual',
     '/creditos':     'Create end credits for a presentation',
+    '/impacto':      'Stories about the human impact of digital signage',
     '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
     '/work':         'Featured projects and case studies',
@@ -242,6 +249,7 @@
     '/robots': 'cmd.robots',
     '/identidad': 'cmd.identidad',
     '/creditos': 'cmd.creditos',
+    '/impacto': 'cmd.impacto',
     '/location': 'cmd.location', '/privacy': 'cmd.privacy',
     '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
     '/glass': 'cmd.glass', '/themes': 'cmd.themes',
@@ -296,6 +304,9 @@
     '/catálogo': '/robots',
     '/credits': '/creditos',
     '/creditos-finales': '/creditos',
+    '/impact': '/impacto',
+    '/historias': '/impacto',
+    '/impact-stories': '/impacto',
     '/identity': '/identidad',
     '/branding': '/identidad',
     '/brand': '/identidad',
@@ -1570,6 +1581,18 @@
     ];
   }
 
+  function cmdImpacto() {
+    const isEnglish = window.currentLang === 'en';
+    setTimeout(() => { window.location.href = '/impacto/'; }, 450);
+    return [
+      { text: isEnglish ? '  IMPACT NARRATIVES' : '  NARRATIVA DE IMPACTO', cls: 'heading' },
+      { text: isEnglish
+        ? '  Human stories about useful digital signage.'
+        : '  Historias humanas sobre señalización digital útil.', cls: 'accent' },
+      { text: '  → /impacto/', cls: 'green' },
+    ];
+  }
+
   // /filosofia — ABRE la página de filosofía del equipo (10 Mandamientos + Máximas).
   // No es contenido inline: navega a /filosofia (o filosofia.html en file://).
   function cmdFilosofia() {
@@ -1933,6 +1956,7 @@
       { cmd: '/admiralive',   labelEs: 'admira.live — el Consejo',                 labelEn: 'admira.live — the Council',                 url: 'https://www.admira.live',      color: 'purple' },
       { cmd: '/presentaciones', labelEs: 'Generador de presentaciones',               labelEn: 'Presentation generator',                      url: 'https://www.admiranext.com/presentaciones/generador', color: 'accent' },
       { cmd: '/creditos',      labelEs: 'Generador de créditos finales',              labelEn: 'End credits generator',                        url: 'https://www.admiranext.com/creditos/', color: 'green' },
+      { cmd: '/impacto',       labelEs: 'Narrativa de Impacto — historias humanas',    labelEn: 'Impact Narratives — human stories',            url: 'https://www.admiranext.com/impacto/', color: 'blue' },
       { cmd: '/presites',      labelEs: 'Generador de Presites — homes iniciales',  labelEn: 'Presite generator — opening homepages',      url: 'https://www.admiranext.com/presites/', color: 'cyan' },
       { cmd: '/yokup',        labelEs: 'Yokup — intervenciones técnicas',          labelEn: 'Yokup — technical interventions',           url: 'https://www.yokup.com',        color: 'green' },
       { cmd: '/xpace',        displayCmd: '/xpaceos', labelEs: 'XpaceOS — sistema operativo espacial', labelEn: 'XpaceOS — space operating system', url: 'https://www.xpaceos.com', color: 'cyan' },
