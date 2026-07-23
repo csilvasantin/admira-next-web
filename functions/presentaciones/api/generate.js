@@ -7,6 +7,7 @@ import {normalizeSequence} from '../_deck-library.js';
 import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
 import {normalizeSlideMedia} from '../_slide-media.js';
+import {normalizeSourceTraceability} from '../_source-traceability.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -73,6 +74,10 @@ function buildIdeas(input, slug, languages){
     notes:`Fuente inicial generada para ${name}. Validar identidad, datos, problema y lenguaje antes de compartir. Web oficial y fuente de marca: ${input.website}. Inspiración visual: ${input.inspiration?.url || input.website}. Logo oficial obligatorio: ${input.brand?.logoUrl || 'no localizado'}.`,
     updatedAt:new Date().toISOString()
   };
+}
+
+function sourceSlideKeys(ideas){
+  return ['cover','objective',...(ideas.skeleton||[]).filter(item=>item.enabled!==false).map((item,index)=>slugify(item.id||`idea-${index+1}`)),'closing'];
 }
 
 function translatableCopy(ideas){
@@ -196,6 +201,12 @@ export async function onRequestPut(context){
   input.inspiration=inspiration;
   const ideas=buildIdeas(input,slug,languages);
   ideas.terminology=terminology;
+  let sourceTraceability;
+  try{
+    sourceTraceability=normalizeSourceTraceability(raw.sourceTraceability,sourceSlideKeys(ideas),{
+      website:input.website,websiteLabel:`Web oficial de ${displayName}`
+    });
+  }catch(error){return json({error:error.message||'La trazabilidad de fuentes no es válida.'},400)}
   try{
     const localized=await generateTranslations(context.env,ideas,languages,terminology),spanish=localized.es;
     if(spanish){ideas.hero=spanish.hero;ideas.objective=spanish.objective;ideas.skeleton=spanish.skeleton;ideas.closing=spanish.closing;ideas.labels=spanish.labels;delete localized.es}
@@ -204,7 +215,7 @@ export async function onRequestPut(context){
   catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
-    schemaVersion:7,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,presite,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
+    schemaVersion:8,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,presite,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()

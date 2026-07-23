@@ -185,6 +185,8 @@
   var launchChecklist = document.getElementById('presenterLaunchChecklist');
   var launchFallback = document.getElementById('presenterLaunchFallback');
   var launchState = document.getElementById('presenterLaunchState');
+  var SourceTraceability = window.AdmiraSourceTraceability || null;
+  var sourceTraceability = window.__ADMIRA_SOURCE_TRACEABILITY__ || null;
   var shareGuardianPanel = document.getElementById('presenterShareGuardian');
   var shareGuardianState = document.getElementById('presenterShareGuardianState');
   var shareGuardianAction = document.getElementById('presenterShareGuardianAction');
@@ -955,6 +957,13 @@
     launchFallback.textContent = fallback;
   }
 
+  function traceabilityChecklistStatus() {
+    if (!SourceTraceability || typeof SourceTraceability.checklistStatus !== 'function' || !sourceTraceability) {
+      return 'Trazabilidad pendiente: esta presentación no tiene un registro de fuentes revisado. Compruébalo antes de presentar.';
+    }
+    return SourceTraceability.checklistStatus(sourceTraceability);
+  }
+
   function refreshLaunchAssistant() {
     var privacyStatus = !audienceConnected
       ? 'Salida dedicada: pendiente; aún no se ha verificado que la audiencia no reciba notas.'
@@ -963,6 +972,7 @@
         : 'BLOQUEADO: la salida de audiencia detectó datos o controles privados. No la compartas.');
     setLaunchChecklist([
       privacyStatus,
+      traceabilityChecklistStatus(),
       launchScreenStatus,
       launchFullscreenStatus,
       calibrationChecklistStatus(),

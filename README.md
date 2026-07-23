@@ -87,6 +87,53 @@ el permiso o el navegador bloquea la ventana, el panel mantiene un aviso explíc
 y permite completar manualmente la colocación. Notificaciones, otras ventanas y
 No molestar siempre requieren comprobación humana antes de compartir.
 
+### Trazabilidad de fuentes por diapositiva
+
+El `PUT /presentaciones/api/generate` acepta opcionalmente
+`sourceTraceability` con este contrato versionado:
+
+```json
+{
+  "sources": [
+    {
+      "id": "annual-report",
+      "type": "web",
+      "label": "Annual report",
+      "url": "https://example.com/report",
+      "locator": "Section 4"
+    },
+    {
+      "id": "notebook-brief",
+      "type": "notebooklm",
+      "label": "Notebook de trabajo",
+      "fingerprint": "notebooklm_0123456789abcdef",
+      "locator": "Answer 7 · source chip 2"
+    }
+  ],
+  "claims": [
+    {
+      "id": "growth-claim",
+      "slideKey": "vision",
+      "contentPath": "skeleton.vision.message",
+      "sourceIds": ["annual-report", "notebook-brief"]
+    }
+  ],
+  "reviewedSlides": ["cover", "objective", "vision", "closing"]
+}
+```
+
+Los orígenes admitidos son `web`, `notebooklm` y `document`. Web exige URL
+HTTPS y localizador; NotebookLM y documentos exigen un fingerprint opaco y un
+localizador verificable. El sistema falla cerrado ante identificadores
+duplicados, fuentes desconocidas o rutas de contenido inválidas. Nunca guarda
+el cuerpo del documento, citas textuales, tokens ni respuestas de NotebookLM.
+
+Si no se aporta el contrato, solo se registra la web oficial como posible
+origen: ninguna afirmación se da por respaldada y todas las diapositivas quedan
+pendientes de revisión. El asistente privado muestra ese aviso antes de
+presentar. El contrato y su script de revisión no se serializan en
+`?audience=1`.
+
 ### Calibración visual de sala
 
 El panel privado del presentador incluye un patrón técnico para ajustar margen
