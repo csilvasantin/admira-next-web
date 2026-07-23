@@ -19,6 +19,7 @@
     '/branding': 'identidad',
     '/intranet': 'intranet',
     '/plataforma': 'plataforma',
+    '/creditos': 'creditos',
   };
   const ROUTE_TITLES = {
     '': 'ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
@@ -38,6 +39,7 @@
     'identidad': 'Identidad Visual | ADmiraNeXT',
     'intranet': 'Intranet | ADmiraNeXT',
     'plataforma': 'Plataforma | ADmiraNeXT',
+    'creditos': 'Generador de créditos | ADmiraNeXT',
   };
 
   function updateUrl(command) {
@@ -109,6 +111,10 @@
     '/identidad': {
       desc: 'Manual de identidad visual',
       fn: cmdIdentidad
+    },
+    '/creditos': {
+      desc: 'Crear créditos finales para una presentación',
+      fn: cmdCreditos
     },
     '/testimonials': {
       desc: 'Lo que la gente dice de mí',
@@ -196,6 +202,7 @@
     '/classic':      'Open the classic web',
     '/robots':       'Initial robot catalog',
     '/identidad':    'Visual identity manual',
+    '/creditos':     'Create end credits for a presentation',
     '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
     '/work':         'Featured projects and case studies',
@@ -234,6 +241,7 @@
     '/classic': 'cmd.classic',
     '/robots': 'cmd.robots',
     '/identidad': 'cmd.identidad',
+    '/creditos': 'cmd.creditos',
     '/location': 'cmd.location', '/privacy': 'cmd.privacy',
     '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
     '/glass': 'cmd.glass', '/themes': 'cmd.themes',
@@ -286,6 +294,8 @@
     '/robótica': '/robots',
     '/catalogo': '/robots',
     '/catálogo': '/robots',
+    '/credits': '/creditos',
+    '/creditos-finales': '/creditos',
     '/identity': '/identidad',
     '/branding': '/identidad',
     '/brand': '/identidad',
@@ -1551,6 +1561,15 @@
     ];
   }
 
+  function cmdCreditos() {
+    setTimeout(() => { window.location.href = '/creditos/'; }, 450);
+    return [
+      { text: '  GENERADOR DE CRÉDITOS', cls: 'heading' },
+      { text: '  Créditos finales animados para presentaciones.', cls: 'accent' },
+      { text: '  → /creditos/', cls: 'green' },
+    ];
+  }
+
   // /filosofia — ABRE la página de filosofía del equipo (10 Mandamientos + Máximas).
   // No es contenido inline: navega a /filosofia (o filosofia.html en file://).
   function cmdFilosofia() {
@@ -1913,6 +1932,7 @@
     { groupEs: '🚀  Desarrollo · AdmiraNeXT', groupEn: '🚀  Development · AdmiraNeXT', items: [
       { cmd: '/admiralive',   labelEs: 'admira.live — el Consejo',                 labelEn: 'admira.live — the Council',                 url: 'https://www.admira.live',      color: 'purple' },
       { cmd: '/presentaciones', labelEs: 'Generador de presentaciones',               labelEn: 'Presentation generator',                      url: 'https://www.admiranext.com/presentaciones/generador', color: 'accent' },
+      { cmd: '/creditos',      labelEs: 'Generador de créditos finales',              labelEn: 'End credits generator',                        url: 'https://www.admiranext.com/creditos/', color: 'green' },
       { cmd: '/presites',      labelEs: 'Generador de Presites — homes iniciales',  labelEn: 'Presite generator — opening homepages',      url: 'https://www.admiranext.com/presites/', color: 'cyan' },
       { cmd: '/yokup',        labelEs: 'Yokup — intervenciones técnicas',          labelEn: 'Yokup — technical interventions',           url: 'https://www.yokup.com',        color: 'green' },
       { cmd: '/xpace',        displayCmd: '/xpaceos', labelEs: 'XpaceOS — sistema operativo espacial', labelEn: 'XpaceOS — space operating system', url: 'https://www.xpaceos.com', color: 'cyan' },

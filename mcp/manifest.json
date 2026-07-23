@@ -2,7 +2,7 @@
   "name": "admiranext-matriz",
   "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
   "description": "Hub MCP de la matriz de la trilogía AdmiraNeXT. Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
-  "version": "v.26.06.19.r1",
+  "version": "v.26.07.23.r1",
   "type": "static-site",
   "site": "https://www.admiranext.com",
   "hub": "https://www.admiranext.com/mcp/",
@@ -17,6 +17,7 @@
     { "path": "/classic.html", "desc": "Web corporativa clásica." },
     { "path": "/businessplan/", "desc": "Plan de negocio." },
     { "path": "/help/", "desc": "Ayuda." },
+    { "path": "/creditos/", "desc": "Generador de créditos finales animados para presentaciones; exporta vídeo WebM y HTML autónomo." },
     { "path": "/intranet", "desc": "Comando de terminal: zona privada con acceso al ecosistema y al generador mediante /presentaciones." }
   ],
 

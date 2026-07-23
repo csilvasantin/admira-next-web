@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050807">
+  <meta name="description" content="Generador de créditos finales para presentaciones de ADmiraNeXT. Crea, previsualiza y exporta créditos animados.">
+  <meta name="admiranext-version" content="v.26.07.23.r1">
+  <title>Generador de créditos · ADmiraNeXT</title>
+  <link rel="icon" type="image/png" href="/favicon-96x96.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#editor">Saltar al editor</a>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Volver a ADmiraNeXT">
+      <span class="brand-mark" aria-hidden="true">A<span>N</span></span>
+      <span>ADmiraNeXT</span>
+    </a>
+    <div class="topbar-meta">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span>Herramienta local · tus datos no salen del navegador</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">PRESENTATION TOOL / 01</p>
+      <h1 id="page-title">Que el final también<br><em>cuente la historia.</em></h1>
+      <p class="intro-copy">Construye créditos finales con ritmo cinematográfico, pruébalos al instante y llévatelos como vídeo o como pieza web autónoma.</p>
+    </section>
+
+    <section class="workspace" id="editor">
+      <form class="editor-panel" id="credits-form">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">CONTENIDO</p>
+            <h2>Créditos</h2>
+          </div>
+          <button class="text-button" type="button" id="load-example">Cargar ejemplo</button>
+        </div>
+
+        <label class="field">
+          <span>Título del proyecto</span>
+          <input id="project-title" name="projectTitle" type="text" maxlength="80" value="El futuro ya está aquí" autocomplete="off">
+        </label>
+
+        <label class="field">
+          <span>Firma / subtítulo</span>
+          <input id="project-kicker" name="projectKicker" type="text" maxlength="100" value="UNA PRESENTACIÓN DE ADMIRANEXT" autocomplete="off">
+        </label>
+
+        <label class="field field-grow">
+          <span>Equipo y participantes</span>
+          <textarea id="credits-input" name="credits" rows="14" spellcheck="true">[IDEA Y DIRECCIÓN]
+Concepto | Carlos Silva
+Dirección creativa | Equipo AdmiraNeXT
+
+[DISEÑO Y TECNOLOGÍA]
+Experiencia | Physical AI
+Plataforma | Admira
+Producción | Equipo de Silicio
+
+[CON LA COLABORACIÓN DE]
+Clientes, partners y todas las personas
+que hacen posible el siguiente paso</textarea>
+          <small><strong>[SECCIÓN]</strong> crea un título · <strong>Rol | Nombre</strong> crea dos columnas · una línea sola queda centrada.</small>
+        </label>
+
+        <label class="field">
+          <span>Mensaje final</span>
+          <input id="final-message" name="finalMessage" type="text" maxlength="90" value="GRACIAS" autocomplete="off">
+        </label>
+
+        <div class="control-grid">
+          <label class="field">
+            <span>Formato</span>
+            <select id="format" name="format">
+              <option value="wide">16:9 · Presentación</option>
+              <option value="vertical">9:16 · Vertical</option>
+              <option value="square">1:1 · Cuadrado</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Estilo</span>
+            <select id="theme" name="theme">
+              <option value="signal">Signal green</option>
+              <option value="electric">Electric cyan</option>
+              <option value="warm">Warm cinema</option>
+              <option value="mono">Black & white</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field range-field">
+          <span>Duración <output id="duration-output" for="duration">18 s</output></span>
+          <input id="duration" name="duration" type="range" min="8" max="45" step="1" value="18">
+        </label>
+      </form>
+
+      <section class="preview-panel" aria-labelledby="preview-title">
+        <div class="panel-heading preview-heading">
+          <div>
+            <p class="eyebrow">PREVIEW / LIVE</p>
+            <h2 id="preview-title">Resultado</h2>
+          </div>
+          <span class="timecode" id="timecode">00:00 / 00:18</span>
+        </div>
+
+        <div class="stage-wrap" id="stage-wrap">
+          <canvas id="credits-canvas" width="1920" height="1080" aria-label="Previsualización de los créditos animados"></canvas>
+          <button class="stage-play" id="stage-play" type="button" aria-label="Reproducir créditos">
+            <span aria-hidden="true">▶</span>
+          </button>
+          <div class="export-progress" id="export-progress" hidden>
+            <span id="export-progress-label">Renderizando vídeo…</span>
+            <span class="progress-track"><span id="export-progress-bar"></span></span>
+          </div>
+        </div>
+
+        <div class="transport" aria-label="Controles de reproducción">
+          <button class="icon-button" id="restart" type="button" aria-label="Volver al inicio">↺</button>
+          <button class="primary-button" id="play-pause" type="button"><span aria-hidden="true">▶</span> Reproducir</button>
+          <button class="icon-button" id="fullscreen" type="button" aria-label="Ver a pantalla completa">⛶</button>
+        </div>
+
+        <div class="export-block">
+          <div>
+            <p class="eyebrow">EXPORTAR</p>
+            <p class="export-note">El vídeo se genera en tu equipo a 1080p. Mantén esta pestaña visible durante el render.</p>
+          </div>
+          <div class="export-actions">
+            <button class="secondary-button" id="export-html" type="button">HTML autónomo</button>
+            <button class="accent-button" id="export-video" type="button">Vídeo WebM</button>
+          </div>
+        </div>
+
+        <p class="live-status" id="live-status" role="status" aria-live="polite">Listo para crear.</p>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <span>ADmiraNeXT · Barcelona</span>
+    <span>Hecho para presentaciones que merecen un buen final.</span>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>

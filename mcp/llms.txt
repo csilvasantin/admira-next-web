@@ -9,7 +9,7 @@
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.26.06.19.r1
+Versión: v.26.07.23.r1
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es
@@ -23,6 +23,7 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 - Web clásica: https://www.admiranext.com/classic.html
 - Plan de negocio: https://www.admiranext.com/businessplan/
 - Ayuda: https://www.admiranext.com/help/
+- Generador de créditos: https://www.admiranext.com/creditos/ — editor y preview de créditos finales animados; exporta vídeo WebM a 1080p y HTML autónomo. Funciona localmente en el navegador.
 - Intranet: comando `/intranet` (en la terminal de la home) con acceso al ecosistema; `/presentaciones` abre el generador de presentaciones.
 
 ## Documentación
