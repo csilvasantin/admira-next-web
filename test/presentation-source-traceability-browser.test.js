@@ -35,6 +35,6 @@ test('fixture visual de audiencia elimina contrato, runtime privado y notas',asy
 test('fixture visual puede abrir el panel real solo en presentador',async()=>{
   const presenter=await (await render('?open=1')).text();
   const audience=await (await render('?audience=1&open=1')).text();
-  assert.match(presenter,/admiraPresenterLaunch.*\?\.click\(\)/);
-  assert.doesNotMatch(audience,/admiraPresenterLaunch.*\?\.click\(\)/);
+  assert.match(presenter,/admiraPresenterLaunch.*\?\.click\(\).*presenterLaunchAssistant.*scrollIntoView/);
+  assert.doesNotMatch(audience,/admiraPresenterLaunch.*\?\.click\(\).*presenterLaunchAssistant/);
 });

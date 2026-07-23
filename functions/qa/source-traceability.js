@@ -64,7 +64,7 @@ function page(audienceMode,autoOpen=false){
   <section id="objective" class="slide" data-block-id="objective"${objectiveNotes}><div class="inner"><span class="eyebrow">Objetivo</span><h2>Presentar con evidencia</h2><p>Esta página ejercita el mismo runtime que las presentaciones generadas.</p></div></section>
   ${privateRuntime}
   <script src="/assets/presentation-presenter-mode.js?v=20260724-3"></script>
-  ${!audienceMode&&autoOpen?'<script>document.getElementById("admiraPresenterLaunch")?.click()</script>':''}
+  ${!audienceMode&&autoOpen?'<script>document.getElementById("admiraPresenterLaunch")?.click();setTimeout(()=>document.getElementById("presenterLaunchAssistant")?.scrollIntoView({block:"start"}),120)</script>':''}
 </body>
 </html>`;
 }
