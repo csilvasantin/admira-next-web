@@ -20,9 +20,9 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-2/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260723-3/);
   assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-2/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260723-3/);
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
   assert.match(html,/Recordar el contexto \\u003c\/script>/);
   assert.doesNotMatch(html,/Recordar el contexto <\/script><script>alert/);
@@ -122,6 +122,41 @@ test('safe launch explains Screen Details, Fullscreen and do-not-disturb fallbac
   assert.match(source,/id="presenterLaunchFallback"/);
   assert.match(source,/(?:manual|manualmente|contin(?:uar|\u00faa)|misma ventana|pantalla principal)/i);
   assert.match(source,/catch\s*\([^)]*\)\s*\{|\.catch\s*\(/);
+});
+
+test('room calibration exposes a private, persistent and bounded presenter contract',async()=>{
+  const source=await readFile(new URL('../assets/presentation-presenter-mode.js',import.meta.url),'utf8');
+  const id=name=>new RegExp(`id\\s*=\\s*["']${name}["']`);
+  for(const name of [
+    'presenterRoomCalibration','presenterCalibrationToggle','presenterCalibrationPattern',
+    'presenterCalibrationSafeMargin','presenterCalibrationContrast','presenterCalibrationGamma',
+    'presenterCalibrationScale','presenterCalibrationStatus'
+  ]) assert.match(source,id(name));
+  assert.match(source,/admira\.presenter\.calibration\.v1/);
+  assert.match(source,/presenter-calibration-active/);
+  for(const property of ['--presenter-calibration-safe','--presenter-calibration-contrast','--presenter-calibration-gamma','--presenter-calibration-scale']){
+    assert.match(source,new RegExp(property));
+  }
+  for(const field of ['safeMargin','contrast','gamma','scale']) assert.match(source,new RegExp(`${field}\\s*:`));
+  assert.match(source,/presenterRoomCalibration[\s\S]{0,5000}?data-presenter-private/);
+  assert.match(source,/aria-live\s*=\s*["']polite["']/);
+  assert.doesNotMatch(source,/\bfetch\s*\(/);
+  assert.doesNotMatch(source,/WebSocket|EventSource/);
+});
+
+test('room calibration renders a responsive technical pattern without filtering slide content',async()=>{
+  const styles=await readFile(new URL('../assets/presentation-presenter-mode.css',import.meta.url),'utf8');
+  const calibrationStyles=styles.slice(styles.indexOf('#presenterRoomCalibration'));
+  assert.match(calibrationStyles,/#presenterCalibrationPattern\s*\{/);
+  assert.match(calibrationStyles,/html\.presenter-calibration-active\s+#presenterCalibrationPattern\s*\{[^}]*display:block/);
+  assert.match(calibrationStyles,/repeating-linear-gradient/);
+  assert.match(calibrationStyles,/linear-gradient\(90deg,#fff[\s\S]{0,300}?#ff0[\s\S]{0,300}?#0ff/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::before\s*\{[^}]*inset:var\(--presenter-calibration-safe\)/);
+  assert.match(calibrationStyles,/#presenterCalibrationPattern::after\s*\{[^}]*Aa Bb 0123456789/);
+  assert.match(calibrationStyles,/@media\(max-width:720px\)[\s\S]*\.presenter-calibration-controls\{grid-template-columns:1fr\}/);
+  assert.match(calibrationStyles,/@media\(prefers-reduced-motion:reduce\)[\s\S]*#presenterCalibrationPattern[\s\S]*animation:none!important/);
+  assert.match(calibrationStyles,/\.presenter-audience-mode #presenterRoomCalibration[\s\S]*display:none!important/);
+  assert.doesNotMatch(calibrationStyles,/presenter-calibration-active[^{}]*body\s*>\s*\.slide[^{}]*\{[^}]*\b(?:display\s*:\s*none|filter\s*:)/);
 });
 
 test('audience mode cannot render presenter controls, notes or private-marked content',async()=>{
