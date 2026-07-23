@@ -10,6 +10,7 @@ import {presiteKey} from '../../presites/_presite.js';
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
 const LANGUAGE_NAMES = {es:'Spanish',ca:'Catalan',en:'English'};
+const MAX_TERMS = 30;
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), { status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'} });
@@ -19,6 +20,28 @@ function slugify(value){
   return text(value,80).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,63);
 }
 function color(value, fallback){ return /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value).toLowerCase() : fallback; }
+export function normalizeTerminology(value){
+  const rows=Array.isArray(value)?value:String(value||'').split(/\r?\n/);
+  const output=[],seen=new Set();
+  for(const row of rows){
+    const parts=Array.isArray(row)?row:(row&&typeof row==='object'?[row.es,row.ca,row.en]:String(row||'').split(/\s*[|\t]\s*/));
+    const values=parts.slice(0,3).map(item=>text(item,120));
+    if(values.every(item=>!item))continue;
+    if(values.length!==3||values.some(item=>!item))throw new Error('Cada término debe incluir ES | CA | EN.');
+    const key=values.map(item=>item.toLocaleLowerCase('es')).join('|');
+    if(seen.has(key))continue;seen.add(key);output.push({es:values[0],ca:values[1],en:values[2]});
+    if(output.length>MAX_TERMS)throw new Error(`La revisión terminológica admite hasta ${MAX_TERMS} términos.`);
+  }
+  return output;
+}
+function hasTerm(value,term){return String(value||'').normalize('NFC').includes(String(term||'').normalize('NFC'))}
+function validateTerminology(source,translated,language,terminology){
+  for(let index=0;index<source.length;index+=1){
+    for(const entry of terminology){
+      if(Object.values(entry).some(term=>hasTerm(source[index],term))&&!hasTerm(translated[index],entry[language]))throw new Error(`La versión ${language.toUpperCase()} no respeta el término aprobado “${entry[language]}”.`);
+    }
+  }
+}
 async function hmac(key, message){
   const cryptoKey=await crypto.subtle.importKey('raw',enc.encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const bytes=new Uint8Array(await crypto.subtle.sign('HMAC',cryptoKey,enc.encode(message)));
@@ -70,7 +93,7 @@ function localizedCopy(ideas, values){
   return localized;
 }
 
-export async function generateTranslations(env, ideas, languages){
+export async function generateTranslations(env, ideas, languages, terminology=[]){
   const requested=[...new Set(languages.filter(language=>LANGUAGE_NAMES[language]))];
   const targets=requested.some(language=>language!=='es')?requested:[];
   if(!targets.length)return {};
@@ -81,8 +104,8 @@ export async function generateTranslations(env, ideas, languages){
     body:JSON.stringify({
       model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,
       input:[
-        {role:'system',content:[{type:'input_text',text:'Localize this complete executive presentation faithfully and naturally. The source is mainly Spanish but may contain ordinary phrases in English or other languages: translate every such phrase into each requested target language. Preserve only registered product names, client names, numbers, punctuation, line breaks and factual meaning; do not preserve a sentence merely because it is written in English. When Spanish is a target, keep text already written naturally in Spanish and translate foreign-language phrases into Spanish. Return one array per requested language in exactly the same order and with exactly the same number of non-empty strings as the source. Do not add explanations.'}]},
-        {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:'Mixed, mainly Spanish',targetLanguages:targets.map(language=>LANGUAGE_NAMES[language]),texts:source})}]}
+        {role:'system',content:[{type:'input_text',text:'Localize this complete executive presentation faithfully and naturally. The source is mainly Spanish but may contain ordinary phrases in English or other languages: translate every such phrase into each requested target language. Apply the supplied client terminology exactly in every target language. Preserve only registered product names, client names, numbers, punctuation, line breaks and factual meaning; do not preserve a sentence merely because it is written in English. When Spanish is a target, keep text already written naturally in Spanish and translate foreign-language phrases into Spanish. Return one array per requested language in exactly the same order and with exactly the same number of non-empty strings as the source. Do not add explanations.'}]},
+        {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:'Mixed, mainly Spanish',targetLanguages:targets.map(language=>LANGUAGE_NAMES[language]),terminology,texts:source})}]}
       ],
       text:{format:{type:'json_schema',name:'presentation_languages',strict:true,schema:{
         type:'object',additionalProperties:false,properties:{translations:{type:'object',additionalProperties:false,properties:languageProperties,required:targets}},required:['translations']
@@ -97,6 +120,7 @@ export async function generateTranslations(env, ideas, languages){
   for(const language of targets){
     const values=parsed?.translations?.[language];
     if(!Array.isArray(values)||values.length!==source.length||values.some(value=>!String(value||'').trim()))throw new Error(`La versión ${language.toUpperCase()} quedó incompleta y la presentación no se ha guardado.`);
+    validateTerminology(source,values,language,terminology);
     translations[language]=localizedCopy(ideas,values);
   }
   return translations;
@@ -112,9 +136,10 @@ function buildSource(data){
     const content=data.translations[language],localizedBlocks=(content.skeleton||[]).filter(item=>item.enabled!==false).map((item,index)=>`${index+1}. ${item.title}\nIdea principal: ${item.message}\nDesarrollo: ${item.detail}`).join('\n\n');
     return `\n\nVERSIÓN ${language.toUpperCase()}\nTitular: ${content.hero?.title||''}\nEntradilla: ${content.hero?.summary||''}\nObjetivo: ${content.objective||''}\n\n${localizedBlocks}\n\nCIERRE\n${content.closing?.title||''}\nSiguiente acción: ${content.closing?.action||''}`;
   }).join('');
+  const terminology=(data.terminology||[]).length?`\nTERMINOLOGÍA APROBADA DEL CLIENTE\n${data.terminology.map(item=>`- ES: ${item.es} · CA: ${item.ca} · EN: ${item.en}`).join('\n')}\n`:'';
   return `ADMIRANEXT × ${data.displayName}\nGUION MAESTRO DE PRESENTACIÓN\n\n`+
     `Titular: ${data.hero.title}\nEntradilla: ${data.hero.summary}\nObjetivo: ${data.objective}\n\n${blocks}\n\n`+
-    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}${brand}\n`+
+    `CIERRE\n${data.closing.title}\nSiguiente acción: ${data.closing.action}\n${inspiration}${brand}${terminology}\n`+
     `CRITERIOS DE PRODUCCIÓN\n- La identidad editorial y visual es AdmiraNeXT × ${data.displayName}; ambas marcas deben convivir.\n`+
     `- Crear una versión completa por cada idioma solicitado: ${(data.languages||[]).join(', ').toUpperCase()}.\n`+
     `- No mostrar referencias gráficas al proveedor de producción; las marcas visibles son AdmiraNeXT y el logo oficial de ${data.displayName}.\n`+
@@ -144,6 +169,7 @@ export async function onRequestPut(context){
   const requestedLanguages=Array.isArray(raw.languages)?raw.languages.map(value=>String(value).toLowerCase()):['es'];
   const languages=[...new Set(requestedLanguages.filter(value=>LANGUAGES.includes(value)))];
   if (!languages.length) return json({error:'Selecciona al menos un idioma.'},400);
+  let terminology;try{terminology=normalizeTerminology(raw.terminology)}catch(error){return json({error:error.message},400)}
   const supplied=text(raw.password,100);
   if (supplied && supplied.length<10) return json({error:'La contraseña debe tener al menos 10 caracteres.'},400);
   const password=supplied || (existing ? '' : DEFAULT_PRESENTATION_PASSWORD);
@@ -167,15 +193,16 @@ export async function onRequestPut(context){
   }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
   input.inspiration=inspiration;
   const ideas=buildIdeas(input,slug,languages);
+  ideas.terminology=terminology;
   try{
-    const localized=await generateTranslations(context.env,ideas,languages),spanish=localized.es;
+    const localized=await generateTranslations(context.env,ideas,languages,terminology),spanish=localized.es;
     if(spanish){ideas.hero=spanish.hero;ideas.objective=spanish.objective;ideas.skeleton=spanish.skeleton;ideas.closing=spanish.closing;ideas.labels=spanish.labels;delete localized.es}
     ideas.translations=localized;
   }
   catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
-    schemaVersion:6,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,presite,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
+    schemaVersion:6,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,presite,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()

@@ -59,6 +59,23 @@ test('inline edits update the visible language and synchronize every other langu
   }finally{globalThis.fetch=originalFetch}
 });
 
+test('inline edits fail closed when a mixed-source client term is altered by translation',async()=>{
+  const terminology=[{es:'Pixeria',ca:'Pixeria',en:'Pixeria'}];
+  const values=new Map([
+    ['presentation:cliente-demo',JSON.stringify({...presentation,terminology})],
+    ['ideas:cliente-demo',JSON.stringify({...ideas,terminology})]
+  ]);
+  const before=values.get('ideas:cliente-demo'),originalFetch=globalThis.fetch;
+  globalThis.fetch=async()=>new Response(JSON.stringify({output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({translations:{es:['Pixeria'],en:['Pixèria']}})}]}]}));
+  try{
+    const request=new Request('https://admiranext.test/presentaciones/cliente-demo/api/inline-edit',{method:'PUT',headers:{origin:'https://admiranext.test','content-type':'application/json'},body:JSON.stringify({language:'ca',revision:ideas.updatedAt,edits:[{field:'hero.title',value:'Pixeria'}]})});
+    const response=await handleInlineEdit({request,env:{XAI_API_KEY:'test-key',PRESENTATION_IDEAS:kv(values)},params:{client:'cliente-demo'}});
+    assert.equal(response.status,502);
+    assert.match((await response.json()).error,/no respeta el término aprobado/);
+    assert.equal(values.get('ideas:cliente-demo'),before);
+  }finally{globalThis.fetch=originalFetch}
+});
+
 test('the website renders only verified images as slide backgrounds and marks every copy field editable',async()=>{
   const slides=['cover','objective','content','closing'].map((role,index)=>({index:index+1,role,status:'ready',textFreeVerified:true,url:`/presentaciones/cliente-demo/images/slide-${index+1}.jpg`}));
   const values=new Map([

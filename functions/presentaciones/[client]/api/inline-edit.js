@@ -17,6 +17,18 @@ function response(body, status = 200){
   }});
 }
 function clean(value, max){ return String(value == null ? '' : value).replace(/\r\n?/g,'\n').trim().slice(0, max); }
+function hasApprovedTerm(value,term){ return String(value||'').normalize('NFC').includes(String(term||'').normalize('NFC')); }
+function validateTranslatedTerms(edits,translated,targetLanguages,terminology){
+  for(const targetLanguage of targetLanguages){
+    edits.forEach((edit,index)=>{
+      for(const entry of terminology){
+        if(['es','ca','en'].some(language=>hasApprovedTerm(edit.value,entry?.[language]))&&!hasApprovedTerm(translated[targetLanguage][index],entry?.[targetLanguage])){
+          throw new Error(`La versión ${targetLanguage.toUpperCase()} no respeta el término aprobado “${entry?.[targetLanguage]}”.`);
+        }
+      }
+    });
+  }
+}
 function validClient(value){ const client=String(value||'').toLowerCase(); return /^[a-z0-9][a-z0-9-]{1,62}$/.test(client)?client:''; }
 function clone(value){ return JSON.parse(JSON.stringify(value)); }
 function baseContent(ideas){
@@ -65,7 +77,7 @@ function publicLocales(ideas, languages){
   }
   return output;
 }
-async function translateEdits(env, sourceLanguage, targetLanguages, edits){
+async function translateEdits(env, sourceLanguage, targetLanguages, edits, terminology=[]){
   if(!targetLanguages.length) return {};
   if(!env.XAI_API_KEY) throw new Error('La traducción automática no está configurada.');
   const languageProperties=Object.fromEntries(targetLanguages.map(language=>[language,{type:'array',items:{type:'string'}}]));
@@ -74,8 +86,8 @@ async function translateEdits(env, sourceLanguage, targetLanguages, edits){
     body:JSON.stringify({
       model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,
       input:[
-        {role:'system',content:[{type:'input_text',text:'Localize presentation copy faithfully and naturally. The edited text may mix languages: translate every ordinary-language phrase into each requested target language. Preserve only registered product names, brand names, numbers, punctuation, line breaks and factual meaning; do not preserve a sentence merely because it is written in English. Return each target-language array in exactly the same order and with exactly the same number of non-empty strings as the input. Do not add explanations.'}]},
-        {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:LANGUAGE_NAMES[sourceLanguage],targetLanguages:targetLanguages.map(language=>LANGUAGE_NAMES[language]),edits:edits.map(edit=>({field:edit.field,text:edit.value}))})}]}
+        {role:'system',content:[{type:'input_text',text:'Localize presentation copy faithfully and naturally. The edited text may mix languages: translate every ordinary-language phrase into each requested target language. Apply the supplied client terminology exactly in every target language. Preserve only registered product names, brand names, numbers, punctuation, line breaks and factual meaning; do not preserve a sentence merely because it is written in English. Return each target-language array in exactly the same order and with exactly the same number of non-empty strings as the input. Do not add explanations.'}]},
+        {role:'user',content:[{type:'input_text',text:JSON.stringify({sourceLanguage:LANGUAGE_NAMES[sourceLanguage],targetLanguages:targetLanguages.map(language=>LANGUAGE_NAMES[language]),terminology,edits:edits.map(edit=>({field:edit.field,text:edit.value}))})}]}
       ],
       text:{format:{type:'json_schema',name:'presentation_translations',strict:true,schema:{
         type:'object',additionalProperties:false,properties:{translations:{type:'object',additionalProperties:false,properties:languageProperties,required:targetLanguages}},required:['translations']
@@ -115,7 +127,11 @@ export async function onRequest(context){
   if(!languages.includes(language)) return response({error:'Este idioma no forma parte de la presentación.'},400);
   const targetLanguages=languages.filter(item=>item!==language);
   let translated;
-  try{translated=await translateEdits(context.env,language,targetLanguages,edits);}
+  const terminology=presentation.terminology||ideas.terminology||[];
+  try{
+    translated=await translateEdits(context.env,language,targetLanguages,edits,terminology);
+    validateTranslatedTerms(edits,translated,targetLanguages,terminology);
+  }
   catch(error){
     console.error(JSON.stringify({message:'inline translation failed',client,language,error:String(error?.message||error)}));
     return response({error:error.message||'No se pudieron sincronizar los idiomas.'},502);
