@@ -1,3 +1,5 @@
+import {createCompatibilityLab} from '../presentaciones/_compatibility-lab.js';
+
 const contract={
   schemaVersion:1,
   sources:[
@@ -13,6 +15,12 @@ const contract={
   reviewedSlides:['cover','objective'],
   audit:{ready:true,totalClaims:2,verifiableClaims:2,unsupportedClaimIds:[],unreviewedSlideKeys:[],orphanSourceIds:[]}
 };
+const compatibilityLab=createCompatibilityLab({
+  decks:[{id:'proposal:qa',label:'QA reproducible'}],
+  requestedOutputs:['website','powerpoint','pdf'],
+  features:['css-layout','interactive-controls','custom-fonts','video'],
+  now:'2026-07-24T00:00:00.000Z'
+});
 
 function safeJson(value){
   return JSON.stringify(value).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
@@ -23,7 +31,7 @@ function page(audienceMode){
   const coverNotes=audienceMode?'':' data-speaker-notes="Confirmar fuentes antes de presentar."';
   const objectiveNotes=audienceMode?'':' data-speaker-notes="Validar aislamiento de audiencia."';
   const privateRuntime=audienceMode?'':`
-  <script>window.__ADMIRA_PRESENTER_NOTES__="Fixture de QA sin datos reales.";window.__ADMIRA_SOURCE_TRACEABILITY__=${safeJson(contract)}</script>
+  <script>window.__ADMIRA_PRESENTER_NOTES__="Fixture de QA sin datos reales.";window.__ADMIRA_SOURCE_TRACEABILITY__=${safeJson(contract)};window.__ADMIRA_COMPATIBILITY_LAB__=${safeJson(compatibilityLab)}</script>
   <script src="/assets/presentation-source-traceability.js?v=20260724-1"></script>`;
   return `<!doctype html>
 <html lang="es" class="${audienceMode?'presenter-audience-mode':''}" data-presenter-surface="${surface}">
