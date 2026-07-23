@@ -6,6 +6,7 @@ import {captureVersion} from '../_versions.js';
 import {normalizeSequence} from '../_deck-library.js';
 import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
+import {normalizeSlideMedia} from '../_slide-media.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -170,6 +171,7 @@ export async function onRequestPut(context){
   const languages=[...new Set(requestedLanguages.filter(value=>LANGUAGES.includes(value)))];
   if (!languages.length) return json({error:'Selecciona al menos un idioma.'},400);
   let terminology;try{terminology=normalizeTerminology(raw.terminology)}catch(error){return json({error:error.message},400)}
+  let slideMedia;try{slideMedia=normalizeSlideMedia(raw.slideMedia,slug)}catch(error){return json({error:error.message},400)}
   const supplied=text(raw.password,100);
   if (supplied && supplied.length<10) return json({error:'La contraseña debe tener al menos 10 caracteres.'},400);
   const password=supplied || (existing ? '' : DEFAULT_PRESENTATION_PASSWORD);
@@ -202,7 +204,7 @@ export async function onRequestPut(context){
   catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
-    schemaVersion:6,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,presite,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
+    schemaVersion:7,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,presite,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
