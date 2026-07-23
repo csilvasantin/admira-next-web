@@ -4,6 +4,8 @@ import { persistBrandLogo } from '../_brand.js';
 import { DEFAULT_PRESENTATION_PASSWORD, ensureHttpsUrl } from '../_defaults.js';
 import {captureVersion} from '../_versions.js';
 import {normalizeSequence} from '../_deck-library.js';
+import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
+import {presiteKey} from '../../presites/_presite.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -132,6 +134,10 @@ export async function onRequestPut(context){
   if (['api','generador','index','assets'].includes(slug)) return json({error:'Ese identificador está reservado.'},400);
   const existing=await context.env.PRESENTATION_IDEAS.get(`presentation:${slug}`,{type:'json'});
   if (existing && raw.overwrite!==true) return json({error:'Ya existe una presentación con ese identificador.',exists:true,slug},409);
+  let presite=null;
+  try{presite=presiteOpeningInput(raw,existing?.presite)}
+  catch(error){return json({error:error.message},400)}
+  if(presite&&!await context.env.PRESENTATION_IDEAS.get(presiteKey(presite.slug),{type:'json'}))return json({error:'El Presite seleccionado no existe.',presite:presite.slug},422);
   const requested=Array.isArray(raw.outputs)?raw.outputs.map(value=>String(value).toLowerCase()):DEFAULT_OUTPUTS;
   const outputs=[...new Set(requested.filter(value=>OUTPUTS.includes(value)))];
   if (!outputs.length) return json({error:'Selecciona al menos un entregable.'},400);
@@ -169,7 +175,7 @@ export async function onRequestPut(context){
   catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const presentation={
-    schemaVersion:5,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
+    schemaVersion:6,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,presite,sequence:normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck}),
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
@@ -182,5 +188,6 @@ export async function onRequestPut(context){
   ]);
   await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null});
   const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  const publicPresite=publicPresiteOpening(presentation.presite,slug);
+  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

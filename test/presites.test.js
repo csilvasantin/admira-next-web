@@ -92,8 +92,16 @@ test('runtime hace Skip visible, soporta teclado, pausa, mute, reduced motion y 
   assert.match(html, /id="toggleSound"/);
   assert.match(html, /event\.key==='Escape'/);
   assert.match(html, /event\.key==='Enter'/);
+  assert.match(html, /skip\.addEventListener\('click',go\)/);
+  assert.match(html, /enter\.addEventListener\('click',go\)/);
   assert.match(html, /!event\.target\.closest\('button,a,input,select,textarea'\)/);
   assert.match(html, /prefers-reduced-motion: reduce/);
+  assert.match(html, /if\(reduced\)\{location\.assign\(config\.destination\);return\}/);
+  assert.match(html, /addEventListener\('transitionend',onTransitionEnd\)/);
+  assert.match(html, /transition\.target===root/);
+  assert.match(html, /\['opacity','transform'\]\.includes\(transition\.propertyName\)/);
+  assert.match(html, /exitTimer=setTimeout\(finish,550\)/);
+  assert.match(html, /if\(leaving\)return;leaving=true/);
   assert.match(html, /<noscript>/);
   assert.match(html, /location\.assign\(config\.destination\)/);
   assert.match(html, /AudioContext/);
