@@ -21,9 +21,9 @@
   }
   function el(tag, cls, text){ const node=document.createElement(tag); if(cls)node.className=cls; if(text!=null)node.textContent=text; return node; }
   function applyOutputs(data){
-    const all=['website','audio','video','pdf','powerpoint','documents','infographic'];
+    const all=['website','audio','video','pdf','powerpoint','documents','infographic','credits','postcredits'];
     const selected=new Set(Array.isArray(data.outputs)&&data.outputs.length?data.outputs:all);
-    const map={site:'website',audio:'audio','vídeo':'video',video:'video',pdf:'pdf',powerpoint:'powerpoint','documentos de trabajo':'documents',infografía:'infographic',infografia:'infographic'};
+    const map={site:'website',audio:'audio','vídeo':'video',video:'video',pdf:'pdf',powerpoint:'powerpoint','documentos de trabajo':'documents',infografía:'infographic',infografia:'infographic','créditos':'credits',creditos:'credits','postcréditos':'postcredits',postcreditos:'postcredits'};
     document.querySelectorAll('section.sec').forEach(section=>{
       const output=section.dataset.output;
       const title=section.querySelector('.sec-h h2')?.textContent.trim().toLowerCase();

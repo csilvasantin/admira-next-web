@@ -1,11 +1,12 @@
-export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic','backgrounds'];
+export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic','backgrounds','credits','postcredits'];
 export const DEFAULT_OUTPUTS = ['website','documents'];
 export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
 export const AUXILIARY_OUTPUTS = new Set(['backgrounds']);
 export const LANGUAGES = ['es','ca','en'];
 export const OUTPUT_LABELS = {
   website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
-  documents:'Documento de trabajo', infographic:'Infografía', backgrounds:'Imágenes de fondo'
+  documents:'Documento de trabajo', infographic:'Infografía', backgrounds:'Imágenes de fondo',
+  credits:'Créditos', postcredits:'Postcréditos'
 };
 export const LANGUAGE_LABELS = { es:'Castellano', ca:'Català', en:'English' };
 export const VALID_STATUSES = new Set(['queued','processing','ready','published','complete','failed','skipped']);
@@ -58,8 +59,17 @@ function postProcess(output){
   return undefined;
 }
 
-function taskUrl(client, language, output){
-  return output === 'website' ? `/presentaciones/${client}/presentacion?lang=${language}` : null;
+function taskUrl(client, displayName, language, output){
+  if (output === 'website') return `/presentaciones/${client}/presentacion?lang=${language}`;
+  if (!['credits','postcredits'].includes(output)) return null;
+  const params = new URLSearchParams({
+    mode:output,
+    project:displayName,
+    client,
+    lang:language,
+    source:'presentation-generator'
+  });
+  return `/creditos/?${params}`;
 }
 
 export function buildGeneration({client, displayName, outputs, languages, sourceText = ''}){
@@ -71,10 +81,11 @@ export function buildGeneration({client, displayName, outputs, languages, source
       const key = taskKey(language, output);
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],
-        status:output === 'website' ? 'ready' : 'queued',
-        progress:output === 'website' ? 100 : 0, url:taskUrl(client, language, output), attempts:0, postProcess:postProcess(output),
+        status:['website','credits','postcredits'].includes(output) ? 'ready' : 'queued',
+        progress:['website','credits','postcredits'].includes(output) ? 100 : 0, url:taskUrl(client, displayName, language, output), attempts:0, postProcess:postProcess(output),
         provider:NOTEBOOKLM_OUTPUTS.has(output)?'notebooklm':'admiranext', requestedAt:now,
-        startedAt:output === 'website' ? now : undefined, completedAt:output === 'website' ? now : undefined, updatedAt:now
+        startedAt:['website','credits','postcredits'].includes(output) ? now : undefined,
+        completedAt:['website','credits','postcredits'].includes(output) ? now : undefined, updatedAt:now
       };
     }
   }
@@ -110,7 +121,7 @@ export function normalizeGeneration(job){
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language] || language.toUpperCase(), output,
         label:old.label || OUTPUT_LABELS[output] || output, status:VALID_STATUSES.has(old.status) ? old.status : 'queued',
-        progress:Number(old.progress || 0), url:old.url || taskUrl(job.client, language, output), error:old.error, attempts:0,
+        progress:Number(old.progress || 0), url:old.url || taskUrl(job.client, job.displayName || job.client, language, output), error:old.error, attempts:0,
         postProcess:postProcess(output),
         provider:NOTEBOOKLM_OUTPUTS.has(output)?'notebooklm':'admiranext',
         requestedAt:old.requestedAt || job.createdAt || old.updatedAt || job.updatedAt,

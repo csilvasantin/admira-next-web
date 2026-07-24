@@ -14,6 +14,8 @@ test('generator URLs are upgraded to HTTPS when the scheme is absent or insecure
 test('default production is website plus working document',()=>{
   assert.deepEqual(DEFAULT_OUTPUTS,['website','documents']);
   assert.ok(OUTPUTS.includes('backgrounds'));
+  assert.ok(OUTPUTS.includes('credits'));
+  assert.ok(OUTPUTS.includes('postcredits'));
 });
 
 test('the endearing fallback password and clipboard explanation stay aligned',async()=>{
@@ -25,8 +27,11 @@ test('the endearing fallback password and clipboard explanation stay aligned',as
   assert.match(script,/value="website" checked/);
   assert.match(script,/value="documents" checked/);
   assert.match(script,/value="backgrounds"/);
+  assert.match(script,/value="credits"/);
+  assert.match(script,/value="postcredits"/);
   assert.match(script,/Imágenes de fondo/);
-  for(const output of ['audio','video','pdf','powerpoint','infographic','backgrounds']){
+  assert.match(script,/Postcréditos/);
+  for(const output of ['audio','video','pdf','powerpoint','infographic','backgrounds','credits','postcredits']){
     assert.doesNotMatch(script,new RegExp(`value="${output}" checked`));
   }
 });

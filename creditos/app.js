@@ -35,6 +35,7 @@
   const transcript = document.getElementById('credits-transcript');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const defaults = rawData();
+  const presentationContext = launchContext();
 
   const state = {
     playing: false,
@@ -59,6 +60,37 @@
       theme: fields.theme.value,
       duration: Number(fields.duration.value)
     };
+  }
+
+  function launchContext() {
+    const search = String(window.location && window.location.search || '').replace(/^\?/, '');
+    const readParam = (name) => {
+      const pair = search.split('&').map((part) => part.split('=')).find(([key]) => {
+        try { return decodeURIComponent(key || '') === name; } catch (_) { return false; }
+      });
+      if (!pair) return '';
+      try { return decodeURIComponent((pair.slice(1).join('=') || '').replace(/\+/g, ' ')); } catch (_) { return ''; }
+    };
+    if (readParam('source') !== 'presentation-generator') return null;
+    const mode = readParam('mode') === 'postcredits' ? 'postcredits' : 'credits';
+    const requestedLanguage = readParam('lang');
+    const language = ['es', 'ca', 'en'].includes(requestedLanguage) ? requestedLanguage : 'es';
+    const project = String(readParam('project')).trim().slice(0, 120) || 'Presentación AdmiraNeXT';
+    return { mode, language, project };
+  }
+
+  function applyPresentationContext() {
+    if (!presentationContext) return;
+    const languageNames = { es: 'CASTELLANO', ca: 'CATALÀ', en: 'ENGLISH' };
+    const isPostcredits = presentationContext.mode === 'postcredits';
+    fields.projectTitle.value = presentationContext.project;
+    fields.projectKicker.value = `${isPostcredits ? 'POSTCRÉDITOS' : 'CRÉDITOS'} · ${languageNames[presentationContext.language]}`;
+    fields.credits.value = isPostcredits
+      ? `[DESPUÉS DE LA PRESENTACIÓN]\nCliente | ${presentationContext.project}\nSiguiente paso | Abrir la conversación\nProducción | AdmiraNeXT`
+      : `[PRESENTACIÓN]\nCliente | ${presentationContext.project}\nCreada por | AdmiraNeXT\nIdioma | ${languageNames[presentationContext.language]}`;
+    fields.finalMessage.value = isPostcredits ? 'CONTINUARÁ…' : 'GRACIAS';
+    document.title = `${isPostcredits ? 'Postcréditos' : 'Créditos'} · ${presentationContext.project} · ADmiraNeXT`;
+    storageMessage(`${isPostcredits ? 'Postcréditos' : 'Créditos'} precargados desde el generador de presentaciones.`, false);
   }
 
   function readData() {
@@ -414,7 +446,8 @@
       const type = recorder.mimeType || chunks[0].type || 'video/webm';
       const blob = new Blob(chunks, { type });
       if (!blob.size) throw new Error('El vídeo generado está vacío.');
-      downloadBlob(blob, `${slugify(data.projectTitle)}-creditos.${extensionForMime(type)}`);
+      const suffix = presentationContext?.mode === 'postcredits' ? 'postcreditos' : 'creditos';
+      downloadBlob(blob, `${slugify(data.projectTitle)}-${suffix}.${extensionForMime(type)}`);
       liveStatus.textContent = 'Vídeo exportado correctamente.';
     } catch (error) {
       liveStatus.textContent = error && error.name === 'AbortError'
@@ -441,17 +474,19 @@
     const payload = JSON.stringify(kernel.normalizeData(data)).replace(/</g, '\\u003c');
     const factory = window.AdmiraCreditsKernelFactory.toString();
     const title = data.projectTitle.replace(/[<>&"']/g, '');
+    const kindLabel = presentationContext?.mode === 'postcredits' ? 'Postcréditos' : 'Créditos';
     return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="dark"><title>${title} · Créditos</title>
+<meta name="color-scheme" content="dark"><title>${title} · ${kindLabel}</title>
 <style>*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:#000;overflow:hidden}body{display:grid;place-items:center}canvas{width:100%;height:100%;object-fit:contain}.sr{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}</style></head>
-<body><canvas aria-label="Créditos animados"></canvas><section class="sr" aria-label="Transcripción de créditos"></section>
+<body><canvas aria-label="${kindLabel} animados"></canvas><section class="sr" aria-label="Transcripción de ${kindLabel.toLowerCase()}"></section>
 <script>(function(){'use strict';const K=(${factory})();const DATA=${payload};const canvas=document.querySelector('canvas');const ctx=canvas.getContext('2d',{alpha:false});const format=K.FORMATS[DATA.format];canvas.width=format.width;canvas.height=format.height;const transcript=document.querySelector('section');const parsed=K.parseCredits(DATA.credits);transcript.textContent=[DATA.projectTitle].concat(parsed.rows.filter(r=>r.type!=='space').map(r=>r.type==='pair'?r.role+': '+r.name:r.text),DATA.finalMessage).join('. ');const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;if(reduced){K.renderAt(ctx,DATA,Math.min(.9,DATA.duration*.06));return}const start=performance.now();function tick(now){K.renderAt(ctx,DATA,((now-start)/1000)%DATA.duration);requestAnimationFrame(tick)}requestAnimationFrame(tick)})();<\/script></body></html>`;
   }
 
   function exportHtml() {
     const data = readData();
-    downloadBlob(new Blob([htmlDocument(data)], { type: 'text/html;charset=utf-8' }), `${slugify(data.projectTitle)}-creditos.html`);
+    const suffix = presentationContext?.mode === 'postcredits' ? 'postcreditos' : 'creditos';
+    downloadBlob(new Blob([htmlDocument(data)], { type: 'text/html;charset=utf-8' }), `${slugify(data.projectTitle)}-${suffix}.html`);
     liveStatus.textContent = 'HTML autónomo exportado con el mismo motor de la previsualización.';
   }
 
@@ -529,5 +564,6 @@ what comes next`;
   });
 
   loadSaved();
+  applyPresentationContext();
   refresh({ save: false });
 })();
