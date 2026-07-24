@@ -116,7 +116,7 @@ export async function onRequest(context){
   const isPresentationMode = !isGallery && second === 'presentacion';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
-  const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks'].includes(second);
+  const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
