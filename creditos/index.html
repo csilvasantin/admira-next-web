@@ -38,8 +38,12 @@
             <p class="eyebrow">CONTENIDO</p>
             <h2>Créditos</h2>
           </div>
-          <button class="text-button" type="button" id="load-example">Cargar ejemplo</button>
+          <div class="heading-actions">
+            <button class="text-button" type="button" id="load-example">Cargar ejemplo</button>
+            <button class="text-button" type="button" id="clear-data">Borrar datos</button>
+          </div>
         </div>
+        <p class="storage-status" id="storage-status">Tus cambios se guardan solo en este navegador.</p>
 
         <label class="field">
           <span>Título del proyecto</span>
@@ -96,8 +100,16 @@ que hacen posible el siguiente paso</textarea>
 
         <label class="field range-field">
           <span>Duración <output id="duration-output" for="duration">18 s</output></span>
-          <input id="duration" name="duration" type="range" min="8" max="45" step="1" value="18">
+          <input id="duration" name="duration" type="range" min="8" max="90" step="1" value="18">
         </label>
+
+        <section class="diagnostics" aria-labelledby="diagnostics-title">
+          <div class="diagnostics-heading">
+            <h3 id="diagnostics-title">Legibilidad</h3>
+            <button class="text-button" id="adjust-duration" type="button" hidden>Ajustar duración</button>
+          </div>
+          <ul id="diagnostics-list"></ul>
+        </section>
       </form>
 
       <section class="preview-panel" aria-labelledby="preview-title">
@@ -110,13 +122,14 @@ que hacen posible el siguiente paso</textarea>
         </div>
 
         <div class="stage-wrap" id="stage-wrap">
-          <canvas id="credits-canvas" width="1920" height="1080" aria-label="Previsualización de los créditos animados"></canvas>
+          <canvas id="credits-canvas" width="1920" height="1080" aria-label="Previsualización de los créditos animados" aria-describedby="credits-transcript"></canvas>
           <button class="stage-play" id="stage-play" type="button" aria-label="Reproducir créditos">
             <span aria-hidden="true">▶</span>
           </button>
-          <div class="export-progress" id="export-progress" hidden>
+          <div class="export-progress" id="export-progress" role="status" aria-live="polite" hidden>
             <span id="export-progress-label">Renderizando vídeo…</span>
-            <span class="progress-track"><span id="export-progress-bar"></span></span>
+            <span class="progress-track"><span id="export-progress-bar" role="progressbar" aria-label="Progreso de exportación" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></span></span>
+            <button class="text-button export-cancel" id="export-cancel" type="button" hidden>Cancelar</button>
           </div>
         </div>
 
@@ -138,6 +151,10 @@ que hacen posible el siguiente paso</textarea>
         </div>
 
         <p class="live-status" id="live-status" role="status" aria-live="polite">Listo para crear.</p>
+        <details class="transcript-block">
+          <summary>Transcripción textual</summary>
+          <div id="credits-transcript"></div>
+        </details>
       </section>
     </section>
   </main>
@@ -147,6 +164,7 @@ que hacen posible el siguiente paso</textarea>
     <span>Hecho para presentaciones que merecen un buen final.</span>
   </footer>
 
+  <script src="./kernel.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

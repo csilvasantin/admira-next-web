@@ -238,6 +238,13 @@ h1 em {
   letter-spacing: -0.04em;
 }
 
+.heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem 0.9rem;
+}
+
 .text-button {
   padding: 0.35rem 0;
   color: var(--muted);
@@ -249,6 +256,16 @@ h1 em {
 
 .text-button:hover {
   color: var(--accent);
+}
+
+.storage-status {
+  margin: -0.2rem 0 0;
+  color: var(--muted);
+  font: 0.64rem/1.5 var(--mono);
+}
+
+.storage-status[data-state="error"] {
+  color: var(--danger);
 }
 
 .field {
@@ -329,6 +346,50 @@ input[type="range"] {
   height: 4px;
   margin: 0.65rem 0;
   accent-color: var(--accent);
+}
+
+.diagnostics {
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.diagnostics-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.diagnostics h3 {
+  margin: 0;
+  font: 700 0.7rem/1.4 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.diagnostics ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diagnostics li {
+  color: var(--muted);
+  font: 0.64rem/1.45 var(--mono);
+}
+
+.diagnostics li::before {
+  content: "△";
+  margin-right: 0.45rem;
+  color: var(--danger);
+}
+
+.diagnostics li[data-level="ok"]::before {
+  content: "✓";
+  color: var(--accent);
 }
 
 .preview-heading {
@@ -489,6 +550,39 @@ button:disabled {
   font: 0.68rem/1.5 var(--mono);
 }
 
+.transcript-block {
+  margin-top: 0.45rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font: 0.68rem/1.55 var(--mono);
+}
+
+.transcript-block summary {
+  padding: 0.8rem 0 0.35rem;
+  cursor: pointer;
+}
+
+#credits-transcript {
+  max-height: 220px;
+  overflow: auto;
+  padding: 0.45rem 0.8rem;
+  border-left: 1px solid var(--line);
+}
+
+#credits-transcript h3,
+#credits-transcript h4,
+#credits-transcript p {
+  margin: 0 0 0.45rem;
+  color: inherit;
+  font: inherit;
+}
+
+#credits-transcript h3,
+#credits-transcript h4 {
+  color: var(--text);
+  font-weight: 800;
+}
+
 .export-progress {
   position: absolute;
   inset: auto 1.5rem 1.5rem;
@@ -513,6 +607,12 @@ button:disabled {
   height: 100%;
   background: var(--accent);
   box-shadow: 0 0 12px var(--accent);
+}
+
+.export-cancel {
+  float: right;
+  margin-top: 0.65rem;
+  color: var(--text);
 }
 
 .stage-wrap:fullscreen {
@@ -597,6 +697,47 @@ footer {
 
   .export-actions > button {
     flex: 1;
+  }
+
+  .panel-heading {
+    flex-wrap: wrap;
+  }
+
+  .heading-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .transport {
+    gap: 0.45rem;
+  }
+
+  .primary-button {
+    min-width: 0;
+    flex: 1;
+  }
+}
+
+@media (max-width: 390px) {
+  main {
+    width: calc(100% - 1rem);
+  }
+
+  .editor-panel,
+  .preview-panel {
+    padding: 0.8rem;
+  }
+
+  .stage-wrap {
+    min-height: 180px;
+  }
+
+  .export-block {
+    padding: 1rem;
+  }
+
+  .export-progress {
+    inset: auto 0.65rem 0.65rem;
   }
 }
 
