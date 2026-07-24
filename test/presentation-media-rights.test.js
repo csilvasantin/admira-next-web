@@ -97,6 +97,45 @@ test('valid permission preserves the audit record while missing, denied and expi
   for(const entry of [missing,denied,expired]) assert.equal(entry.effectiveSrc,'');
 });
 
+test('Carlos acceptance is final and overrides missing, denied, expired or malformed rights metadata',()=>{
+  const approvedCases=[
+    {permission:'pending',acceptedByCarlos:true,approvalNote:'OK de Carlos'},
+    {...validRights,permission:'denied',acceptedByCarlos:true,acceptedAt:'2026-07-24'},
+    {...validRights,expiresAt:'2020-01-01T00:00:00Z',acceptedByCarlos:true},
+    {expiresAt:'fecha sin normalizar',acceptedByCarlos:true}
+  ];
+  const normalized=normalizeSlideMedia(approvedCases.map((rights,index)=>media({
+    slide:index===0?'cover':`approved-${index}`,
+    src:`/presentaciones/demo/media/aprobado-${index}.mp4`,
+    rights
+  })),'demo');
+
+  for(const [index,entry] of normalized.entries()){
+    assert.equal(entry.usable,true);
+    assert.equal(entry.rightsStatus,'carlos-approved');
+    assert.equal(entry.replacementUsed,false);
+    assert.equal(entry.effectiveSrc,`/presentaciones/demo/media/aprobado-${index}.mp4`);
+    assert.equal(entry.rights.acceptedByCarlos,true);
+  }
+  assert.equal(normalized[0].rights.approvalNote,'OK de Carlos');
+  assert.equal(normalized[1].rights.acceptedAt,'2026-07-24');
+  assert.equal(normalized[3].rights.expiresAt,'fecha sin normalizar');
+});
+
+test('Carlos-approved original takes precedence over an otherwise valid replacement',()=>{
+  const [entry]=normalizeSlideMedia([media({
+    src:'/presentaciones/demo/media/original-aprobado.mp4',
+    rights:{permission:'denied',acceptedByCarlos:true,approvalNote:'Aceptado expresamente'},
+    replacement:{
+      src:'/presentaciones/demo/media/sustitucion.mp4',
+      rights:validRights
+    }
+  })],'demo');
+  assert.equal(entry.rightsStatus,'carlos-approved');
+  assert.equal(entry.replacementUsed,false);
+  assert.equal(entry.effectiveSrc,'/presentaciones/demo/media/original-aprobado.mp4');
+});
+
 test('unusable media renders only the safe fallback and never exposes its source',async()=>{
   const blocked=media({
     src:'/presentaciones/demo/media/caducado.mp4',
@@ -149,6 +188,19 @@ test('attribution and provenance stay private while audience receives only the p
   assert.match(presenter.html,/© Example Studios/);
   assert.doesNotMatch(audience.html,/__ADMIRA_MEDIA_RIGHTS__/);
   assert.doesNotMatch(audience.html,/Licencia comercial 2026|© Example Studios|assets\.example/);
+  assert.match(audience.html,/\/presentaciones\/demo\/media\/apertura\.mp4/);
+});
+
+test('Carlos acceptance stays in the private audit and is not exposed to the audience',async()=>{
+  const entry=media({
+    rights:{permission:'denied',acceptedByCarlos:true,acceptedAt:'2026-07-24',approvalNote:'Carlos confirma OK'}
+  });
+  const presenter=await render([entry]);
+  const audience=await render([entry],true);
+  assert.match(presenter.html,/"acceptedByCarlos":true/);
+  assert.match(presenter.html,/Carlos confirma OK/);
+  assert.match(presenter.html,/data-media-rights-status="carlos-approved"/);
+  assert.doesNotMatch(audience.html,/acceptedByCarlos|Carlos confirma OK/);
   assert.match(audience.html,/\/presentaciones\/demo\/media\/apertura\.mp4/);
 });
 

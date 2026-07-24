@@ -47,17 +47,28 @@ function normalizeRights(value, label, {legacy = false} = {}){
       holder: '',
       attribution: '',
       expiresAt: '',
+      acceptedByCarlos: false,
+      acceptedAt: '',
+      approvalNote: '',
       status: 'legacy-review',
       usable: true
     };
   }
   const rights = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  const acceptedByCarlos = rights.acceptedByCarlos === true;
   const source = text(rights.source, 300);
   const permission = text(rights.permission, 30).toLowerCase();
   const license = text(rights.license, 120);
   const holder = text(rights.holder, 160);
   const attribution = text(rights.attribution, 240);
-  const expiresAt = normalizeExpiry(rights.expiresAt, label);
+  let expiresAt = '';
+  try { expiresAt = normalizeExpiry(rights.expiresAt, label); }
+  catch (error) {
+    if (!acceptedByCarlos) throw error;
+    expiresAt = text(rights.expiresAt, 40);
+  }
+  const acceptedAt = text(rights.acceptedAt, 40);
+  const approvalNote = text(rights.approvalNote, 240);
   const complete = Boolean(source && license && (permission === 'public-domain' || holder));
   const permitted = RIGHTS_PERMISSIONS.has(permission) && !['pending', 'denied'].includes(permission);
   const expired = Boolean(expiresAt && Date.parse(expiresAt) <= Date.now());
@@ -68,8 +79,11 @@ function normalizeRights(value, label, {legacy = false} = {}){
     holder,
     attribution,
     expiresAt,
-    status: expired ? 'expired' : !complete ? 'missing-details' : permitted ? 'usable' : permission === 'denied' ? 'denied' : 'pending',
-    usable: complete && permitted && !expired
+    acceptedByCarlos,
+    acceptedAt,
+    approvalNote,
+    status: acceptedByCarlos ? 'carlos-approved' : expired ? 'expired' : !complete ? 'missing-details' : permitted ? 'usable' : permission === 'denied' ? 'denied' : 'pending',
+    usable: acceptedByCarlos || (complete && permitted && !expired)
   };
 }
 

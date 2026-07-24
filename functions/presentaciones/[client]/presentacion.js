@@ -54,7 +54,7 @@ function withPresenterMode(html,notes,audienceMode=false,sourceTraceability=null
   const translationReviewScript=audienceMode?'':'<script src="/assets/presentation-translation-review.js?v=20260723-1"></script>';
   return marked
     .replace('</head>',`<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260723-5"><link rel="stylesheet" href="/assets/presentation-caption-accessibility.css?v=20260723-2"><link rel="stylesheet" href="/assets/presentation-slide-media.css?v=20260723-1">${translationReviewStyle}</head>`)
-    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-pace-coach.js?v=20260723-1"></script><script src="/assets/presentation-share-guardian.js?v=20260723-1"></script>${speakerHandoffScript}${productionBackchannelScript}${sourceTraceabilityScript}${roomDeviceLabScript}<script src="/assets/presentation-presenter-mode.js?v=20260724-3"></script><script src="/assets/presentation-slide-media.js?v=20260723-1"></script>${translationReviewScript}</body>`);
+    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-pace-coach.js?v=20260723-1"></script><script src="/assets/presentation-share-guardian.js?v=20260723-1"></script>${speakerHandoffScript}${productionBackchannelScript}${sourceTraceabilityScript}${roomDeviceLabScript}<script src="/assets/presentation-presenter-mode.js?v=20260724-3"></script><script src="/assets/presentation-slide-media.js?v=20260724-carlos-approval"></script>${translationReviewScript}</body>`);
 }
 
 const sectionLabels={
@@ -137,7 +137,10 @@ export async function onRequestGet(context){
       license:effectiveRights?.license||'',
       holder:effectiveRights?.holder||'',
       attribution:effectiveRights?.attribution||'',
-      expiresAt:effectiveRights?.expiresAt||''
+      expiresAt:effectiveRights?.expiresAt||'',
+      acceptedByCarlos:effectiveRights?.acceptedByCarlos===true,
+      acceptedAt:effectiveRights?.acceptedAt||'',
+      approvalNote:effectiveRights?.approvalNote||''
     };
   });
   const adaptedImages=imageSlides.filter(slide=>slide?.status==='ready'&&slide?.textFreeVerified===true&&new RegExp(`^/presentaciones/${client}/images/[a-z0-9._-]+$`,'i').test(String(slide?.url||''))).map(slide=>slide.url);

@@ -127,11 +127,12 @@
     var rights = records.reduce(function (summary, record) {
       var status = record.root.dataset.mediaRightsStatus || 'legacy-review';
       if (status === 'replacement') summary.replaced += 1;
+      else if (status === 'carlos-approved') summary.approved += 1;
       else if (['expired', 'denied', 'pending', 'missing-details'].indexOf(status) >= 0) summary.blocked += 1;
       else if (status === 'legacy-review') summary.review += 1;
       return summary;
-    }, {blocked: 0, replaced: 0, review: 0});
-    diagnostics.textContent = 'Multimedia · ' + ready + '/' + records.length + ' lista · ' + failed + ' fallback · derechos: ' + rights.blocked + ' bloqueados, ' + rights.replaced + ' sustituidos, ' + rights.review + ' por revisar · ' + Math.round(bytes / 1024) + ' KB medidos';
+    }, {approved: 0, blocked: 0, replaced: 0, review: 0});
+    diagnostics.textContent = 'Multimedia · ' + ready + '/' + records.length + ' lista · ' + failed + ' fallback · derechos: ' + rights.approved + ' aceptados por Carlos, ' + rights.blocked + ' bloqueados, ' + rights.replaced + ' sustituidos, ' + rights.review + ' por revisar · ' + Math.round(bytes / 1024) + ' KB medidos';
   }
 
   var diagnostics = null;
@@ -153,7 +154,8 @@
         var row = document.createElement('p');
         var owner = item.holder || 'titular pendiente';
         var expiry = item.expiresAt ? ' · caduca ' + item.expiresAt.slice(0, 10) : '';
-        row.textContent = item.slide + ' · ' + item.status + ' · ' + (item.license || item.permission || 'sin licencia') + ' · ' + owner + expiry;
+        var approval = item.acceptedByCarlos ? ' · aceptación final de Carlos' + (item.acceptedAt ? ' (' + item.acceptedAt.slice(0, 10) + ')' : '') : '';
+        row.textContent = item.slide + ' · ' + item.status + approval + ' · ' + (item.license || item.permission || 'sin licencia') + ' · ' + owner + expiry;
         rightsPanel.appendChild(row);
       });
       document.body.appendChild(rightsPanel);
