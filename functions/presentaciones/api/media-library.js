@@ -30,6 +30,25 @@ function sameOrigin(request){
   return Boolean(origin)&&origin===new URL(request.url).origin;
 }
 
+function utf8Bytes(value){
+  let total=0;
+  for(const char of String(value)){
+    const point=char.codePointAt(0);
+    total+=point<=0x7f?1:point<=0x7ff?2:point<=0xffff?3:4;
+  }
+  return total;
+}
+
+function formPayloadWithinLimit(form, maximum){
+  let total=0;
+  for(const [name,value] of form.entries()){
+    total+=utf8Bytes(name)+512;
+    total+=typeof value==='string'?utf8Bytes(value):Number(value?.size||0);
+    if(total>maximum)return false;
+  }
+  return true;
+}
+
 function mediaType(bytes){
   if(bytes[0]===0x89&&bytes[1]===0x50&&bytes[2]===0x4e&&bytes[3]===0x47)return {kind:'image',extension:'png',contentType:'image/png'};
   if(bytes[0]===0xff&&bytes[1]===0xd8)return {kind:'image',extension:'jpg',contentType:'image/jpeg'};
@@ -106,9 +125,14 @@ export async function onRequestGet(context){
 export async function onRequestPost(context){
   if(!sameOrigin(context.request))return json({error:'Origen no permitido.'},403);
   if(!context.env.PRESENTATION_IDEAS||!context.env.PRESENTATION_MEDIA)return json({error:'La biblioteca multimedia no está configurada.'},503);
-  if(Number(context.request.headers.get('Content-Length')||0)>MAX_MULTIPART_BYTES)return json({error:'El archivo supera el límite de 40 MB.'},413);
+  if(Number(context.request.headers.get('Content-Length')||0)>MAX_MULTIPART_BYTES)return json({error:'La subida completa supera el límite de 40 MB.'},413);
   let form;
-  try{form=await context.request.formData()}catch(_){return json({error:'Formulario de subida no válido.'},400)}
+  try{form=await context.request.formData()}catch(_){
+    return /multipart\/form-data/i.test(context.request.headers.get('content-type')||'')
+      ? json({error:'La subida no es válida o supera el límite permitido.'},413)
+      : json({error:'Formulario de subida no válido.'},400);
+  }
+  if(!formPayloadWithinLimit(form,LIMITS.video))return json({error:'La subida completa supera el límite de 40 MB.'},413);
   const client=cleanClient(form.get('client'));
   if(!client)return json({error:'Presentación no válida.'},400);
   if(form.get('acceptedByCarlos')!=='true')return json({error:'Carlos debe aceptar expresamente el recurso antes de incorporarlo.'},422);
@@ -126,7 +150,8 @@ export async function onRequestPost(context){
     return json({error:`El ${type.kind==='image'?'archivo de imagen':type.kind==='audio'?'audio':'vídeo'} supera el límite de ${mb} MB.`},413);
   }
   const id=crypto.randomUUID().replace(/-/g,'').slice(0,16);
-  const filename=`library-es-${id}.${type.extension}`;
+  const fileId=`${String(Date.now()).slice(-13)}${String(crypto.getRandomValues(new Uint32Array(1))[0]%1000).padStart(3,'0')}`;
+  const filename=`library-es-${fileId}.${type.extension}`;
   const url=`/presentaciones/${client}/media/${filename}`;
   const objectKey=`presentations/${client}/es/${filename}`;
   const now=new Date().toISOString();
