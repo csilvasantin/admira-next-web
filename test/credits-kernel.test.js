@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 
 const source=await readFile(new URL('../creditos/kernel.js',import.meta.url),'utf8');
+const indexSource=await readFile(new URL('../creditos/index.html',import.meta.url),'utf8');
 const context=vm.createContext({});
 vm.runInContext(source,context);
 const kernel=context.AdmiraCreditsKernel;
@@ -67,4 +68,13 @@ test('the serializable factory recreates the exact parser and analysis semantics
   const input={projectTitle:'Shared engine',credits:'[TEAM]\nRole | Name\nA wrapped final line',format:'vertical',theme:'mono',duration:8};
   assert.equal(JSON.stringify(recreated.parseCredits(input.credits)),JSON.stringify(kernel.parseCredits(input.credits)));
   assert.equal(JSON.stringify(recreated.analyze(input)),JSON.stringify(kernel.analyze(input)));
+});
+
+test('HTML versions every coupled asset with the exact release identifier',()=>{
+  const version=indexSource.match(/name="admiranext-version" content="v\.([^"]+)"/)?.[1];
+  assert.ok(version,'the release meta must be present');
+  const assets=[...indexSource.matchAll(/(?:href|src)="\.\/(styles\.css|kernel\.js|app\.js)\?v=([^"]+)"/g)];
+  assert.deepEqual(assets.map(match=>match[1]),['styles.css','kernel.js','app.js']);
+  assert.ok(assets.every(match=>match[2]===version),'CSS and both scripts must use the same release cache key');
+  assert.equal((indexSource.match(/\.\/(?:styles\.css|kernel\.js|app\.js)(?=["])/g)||[]).length,0,'no unversioned coupled asset may remain');
 });
