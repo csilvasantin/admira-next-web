@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {onRequestGet as renderPresentation} from '../functions/presentaciones/[client]/presentacion.js';
 import {normalizeSlideMedia} from '../functions/presentaciones/_slide-media.js';
+import {captureVersion,restoreVersion} from '../functions/presentaciones/_versions.js';
 
 function kv(values){
   return {
@@ -177,4 +178,26 @@ test('licensed images render through the same rights gate and have complete runt
   assert.match(runtime,/media\.tagName\s*===\s*['"]IMG['"]\s*\?\s*['"]load['"]/);
   assert.match(runtime,/addEventListener\(['"]error['"]/);
   assert.match(runtime,/media\.complete\s*&&\s*media\.naturalWidth/);
+});
+
+test('rights metadata survives presentation version capture and restore',async()=>{
+  const values=new Map(Object.entries({
+    'presentation:demo':JSON.stringify({displayName:'Demo',slideMedia:[media()]}),
+    'ideas:demo':JSON.stringify(ideas)
+  }));
+  const store={
+    async get(key, options){
+      const value=values.get(key);
+      return options?.type==='json' && value ? JSON.parse(value) : value || null;
+    },
+    async put(key, value){ values.set(key,value); }
+  };
+  const env={PRESENTATION_IDEAS:store};
+  const version=await captureVersion(env,'demo','derechos verificados');
+  const changed={displayName:'Demo',slideMedia:[media({rights:{...validRights,permission:'denied'}})]};
+  await store.put('presentation:demo',JSON.stringify(changed));
+  await restoreVersion(env,'demo',version.id);
+
+  const restored=await store.get('presentation:demo',{type:'json'});
+  assert.deepEqual(restored.slideMedia[0].rights,validRights);
 });
