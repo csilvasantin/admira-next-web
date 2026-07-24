@@ -45,24 +45,28 @@
     if (record.prepared) {
       if (priority === 'current' && record.media.preload !== record.requestedPreload) {
         record.media.preload = record.requestedPreload;
-        try { record.media.load(); } catch (_) {}
+        if (typeof record.media.load === 'function') {
+          try { record.media.load(); } catch (_) {}
+        }
       }
       return;
     }
     record.prepared = true;
     record.requestedAt = performance.now();
-    record.media.preload = priority === 'current' ? record.requestedPreload : (record.requestedPreload === 'none' ? 'none' : 'metadata');
+    if ('preload' in record.media) record.media.preload = priority === 'current' ? record.requestedPreload : (record.requestedPreload === 'none' ? 'none' : 'metadata');
     if (!record.media.getAttribute('src') && record.media.dataset.src) record.media.src = record.media.dataset.src;
     record.root.dataset.mediaState = 'loading';
-    emit(record, 'preload', {priority: priority, preload: record.media.preload});
-    try { record.media.load(); } catch (_) {}
+    emit(record, 'preload', {priority: priority, preload: record.media.preload || 'lazy'});
+    if (typeof record.media.load === 'function') {
+      try { record.media.load(); } catch (_) {}
+    }
     record.stallTimer = setTimeout(function () {
       if (!record.ready) showFallback(record, 'timeout');
     }, 8000);
   }
 
   function pause(record) {
-    if (record.media) {
+    if (record.media && typeof record.media.pause === 'function') {
       try { record.media.pause(); } catch (_) {}
       record.control && (record.control.textContent = 'Reproducir');
     }
@@ -81,7 +85,7 @@
       emit(record, 'play', {source: source || 'activation'});
       return;
     }
-    if (!record.media) return;
+    if (!record.media || typeof record.media.play !== 'function') return;
     prepare(record, 'current');
     var promise;
     try { promise = record.media.play(); }
@@ -120,7 +124,14 @@
       var last = record.metrics[record.metrics.length - 1] || {};
       return sum + Number(last.transferBytes || 0);
     }, 0);
-    diagnostics.textContent = 'Multimedia · ' + ready + '/' + records.length + ' lista · ' + failed + ' fallback · ' + Math.round(bytes / 1024) + ' KB medidos';
+    var rights = records.reduce(function (summary, record) {
+      var status = record.root.dataset.mediaRightsStatus || 'legacy-review';
+      if (status === 'replacement') summary.replaced += 1;
+      else if (['expired', 'denied', 'pending', 'missing-details'].indexOf(status) >= 0) summary.blocked += 1;
+      else if (status === 'legacy-review') summary.review += 1;
+      return summary;
+    }, {blocked: 0, replaced: 0, review: 0});
+    diagnostics.textContent = 'Multimedia · ' + ready + '/' + records.length + ' lista · ' + failed + ' fallback · derechos: ' + rights.blocked + ' bloqueados, ' + rights.replaced + ' sustituidos, ' + rights.review + ' por revisar · ' + Math.round(bytes / 1024) + ' KB medidos';
   }
 
   var diagnostics = null;
@@ -130,12 +141,29 @@
     diagnostics.setAttribute('data-presenter-private', '');
     diagnostics.setAttribute('aria-live', 'polite');
     document.body.appendChild(diagnostics);
+    var rightsInventory = Array.isArray(window.__ADMIRA_MEDIA_RIGHTS__) ? window.__ADMIRA_MEDIA_RIGHTS__ : [];
+    if (rightsInventory.length) {
+      var rightsPanel = document.createElement('details');
+      rightsPanel.className = 'slide-media-rights';
+      rightsPanel.setAttribute('data-presenter-private', '');
+      var rightsSummary = document.createElement('summary');
+      rightsSummary.textContent = 'Derechos multimedia · ' + rightsInventory.length;
+      rightsPanel.appendChild(rightsSummary);
+      rightsInventory.forEach(function (item) {
+        var row = document.createElement('p');
+        var owner = item.holder || 'titular pendiente';
+        var expiry = item.expiresAt ? ' · caduca ' + item.expiresAt.slice(0, 10) : '';
+        row.textContent = item.slide + ' · ' + item.status + ' · ' + (item.license || item.permission || 'sin licencia') + ' · ' + owner + expiry;
+        rightsPanel.appendChild(row);
+      });
+      document.body.appendChild(rightsPanel);
+    }
   }
 
   slides.forEach(function (slide, index) {
     var root = slide.querySelector('[data-slide-media-root]');
     if (!root) return;
-    var media = root.querySelector('video,audio');
+    var media = root.querySelector('[data-slide-media-element]');
     var animation = root.matches('[data-slide-media-animation]') ? root : root.querySelector('[data-slide-media-animation]');
     var fallback = root.querySelector('[data-slide-media-fallback]');
     var control = root.querySelector('[data-slide-media-control]');
@@ -157,19 +185,24 @@
       stallTimer: 0
     };
     if (media) {
-      media.preload = 'none';
-      media.addEventListener('loadedmetadata', function () {
+      if ('preload' in media) media.preload = 'none';
+      var markReady = function () {
         record.ready = true;
         clearTimeout(record.stallTimer);
         root.dataset.mediaState = 'ready';
         emit(record, 'ready', Object.assign({duration: Number.isFinite(media.duration) ? Number(media.duration.toFixed(2)) : 0}, resourceMetrics(record)));
-      }, {once: true});
-      media.addEventListener('canplay', function () { emit(record, 'canplay', resourceMetrics(record)); }, {once: true});
+      };
+      media.addEventListener(media.tagName === 'IMG' ? 'load' : 'loadedmetadata', markReady, {once: true});
+      if (media.tagName !== 'IMG') media.addEventListener('canplay', function () { emit(record, 'canplay', resourceMetrics(record)); }, {once: true});
       media.addEventListener('error', function () { clearTimeout(record.stallTimer); showFallback(record, 'media-error'); }, {once: true});
-      media.addEventListener('ended', function () {
-        control && (control.textContent = 'Reproducir');
-        emit(record, 'ended');
-      });
+      if (media.tagName !== 'IMG') {
+        media.addEventListener('ended', function () {
+          control && (control.textContent = 'Reproducir');
+          emit(record, 'ended');
+        });
+      } else if (media.complete && media.naturalWidth) {
+        markReady();
+      }
     }
     if (control && media) {
       control.addEventListener('click', function () {

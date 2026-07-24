@@ -234,7 +234,7 @@ export async function onRequestPut(context){
   });
   const roomDeviceLab=createRoomDeviceLab({features:compatibilityFeatures});
   const presentation={
-    schemaVersion:10,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,
+    schemaVersion:11,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
