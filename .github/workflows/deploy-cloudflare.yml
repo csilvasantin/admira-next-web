@@ -4,7 +4,7 @@
 # www.admiranext.com), NO GitHub Pages — así /status nunca sirve caché vieja.
 #
 # Requiere el secret CLOUDFLARE_API_TOKEN (Settings → Secrets and variables →
-# Actions). Sin él, el job avisa y termina en verde sin desplegar — no rompe CI.
+# Actions). Sin él, el job falla: verde significa despliegue real y verificado.
 name: Deploy to Cloudflare Pages
 
 on:
@@ -25,24 +25,41 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Comprobar CLOUDFLARE_API_TOKEN
-        id: tok
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "has=1" >> "$GITHUB_OUTPUT"
-          else
-            echo "has=0" >> "$GITHUB_OUTPUT"
-            echo "::warning::CLOUDFLARE_API_TOKEN no está configurado en los secrets del repo — deploy a Cloudflare Pages OMITIDO. Añádelo una vez y todos los merges se publicarán solos."
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN no está configurado: no se puede afirmar que hubo deploy."
+            exit 1
           fi
 
       - name: Deploy a Cloudflare Pages
-        if: steps.tok.outputs.has == '1'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           TMP="$(mktemp -d)"
           git archive HEAD | tar -x -C "$TMP"
+          printf '%s\n' "$GITHUB_SHA" > "$TMP/deploy-sha.txt"
           npx --yes wrangler@latest pages deploy "$TMP" --project-name admiranext --branch main
-          echo "✓ https://www.admiranext.com/status (Cloudflare Pages) · mirror https://admiranext.pages.dev"
+
+      - name: Verificar commit exacto en producción
+        run: |
+          for URL in \
+            "https://admiranext.pages.dev/deploy-sha.txt" \
+            "https://www.admiranext.com/deploy-sha.txt"
+          do
+            VERIFIED=0
+            for ATTEMPT in $(seq 1 18); do
+              if curl -fsSL --max-time 20 "${URL}?sha=${GITHUB_SHA}" | grep -Fxq "$GITHUB_SHA"; then
+                VERIFIED=1
+                break
+              fi
+              sleep 5
+            done
+            if [ "$VERIFIED" != "1" ]; then
+              echo "::error::Producción no sirve el commit ${GITHUB_SHA} en ${URL}"
+              exit 1
+            fi
+          done
+          echo "✓ ${GITHUB_SHA} verificado en www.admiranext.com y admiranext.pages.dev"
