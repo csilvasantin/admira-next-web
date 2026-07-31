@@ -1,0 +1,16 @@
+.tg-media {
+  display: block;
+  margin: 10px 0;
+  color: inherit;
+}
+
+.tg-media img {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  margin: 0;
+  object-fit: contain;
+  background: #090915;
+  border: 1px solid #5a5a8a;
+  border-radius: 7px;
+}

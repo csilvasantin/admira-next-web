@@ -5,7 +5,20 @@
   const esc=s=>String(s==null?"":s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
   const clock=ts=>new Date((+ts||0)*1000).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
   let first=true,busy=false;
-  function messageHtml(m){const mine=m.direction==="out",media=m.media_type?`<img loading="lazy" src="${API}/api/media?id=${m.id}" alt="Imagen de Telegram">`:"";return `<article class="tg-msg ${mine?"out":"in"}"><header><b>${esc(m.from_name||"AgoraMatrix")}</b><time>${clock(m.date)}</time></header>${media}<p>${esc(m.text||"").replace(/\n/g,"<br>")}</p></article>`;}
+  function captureUrl(text){
+    const hit=String(text||"").match(/https:\/\/[^\s<>"']+\/media\/fleet\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp)(?:\?[^\s<>"']*)?/i);
+    if(!hit)return "";
+    try{
+      const u=new URL(hit[0]),hosts=["yokup-rtc.csilvasantin.workers.dev","api.yokup.com","www.yokup.com","yokup.com"];
+      return u.protocol==="https:"&&hosts.includes(u.hostname)&&u.pathname.startsWith("/media/fleet/")?u.href:"";
+    }catch(e){return "";}
+  }
+  function messageHtml(m){
+    const mine=m.direction==="out";
+    const mediaUrl=m.media_type?`${API}/api/media?id=${encodeURIComponent(m.id)}`:captureUrl(m.text);
+    const media=mediaUrl?`<a class="tg-media" href="${esc(mediaUrl)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(mediaUrl)}" alt="Captura de la misión en YOKUP"></a>`:"";
+    return `<article class="tg-msg ${mine?"out":"in"}"><header><b>${esc(m.from_name||"AgoraMatrix")}</b><time>${clock(m.date)}</time></header>${media}<p>${esc(m.text||"").replace(/\n/g,"<br>")}</p></article>`;
+  }
   async function loadFeed(){if(busy)return;busy=true;try{const r=await fetch(`${API}/api/messages?tail=24`,{cache:"no-store"});if(!r.ok)throw new Error();const d=await r.json();feed.innerHTML=(d.messages||[]).map(messageHtml).join("")||'<p class="tg-loading">Todavía no hay mensajes.</p>';status.textContent="en línea · "+(d.messages||[]).length+" mensajes recientes";if(first){feed.scrollTop=feed.scrollHeight;first=false;}}catch(e){status.textContent="sin conexión · reintentando";}finally{busy=false;}}
   const file=document.getElementById("missionImage"),fileName=document.getElementById("fileName");
   file.addEventListener("change",()=>{fileName.textContent=file.files[0]?file.files[0].name:"opcional · máx. 5 MB";});
