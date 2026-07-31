@@ -8,7 +8,8 @@
   <link rel="canonical" href="https://www.admiranext.com/telegram/">
   <link rel="icon" href="../favicon.ico">
   <link rel="preload" href="../assets/fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="telegram.css?v=260731-1">
+  <link rel="stylesheet" href="telegram.css?v=260731-2">
+  <link rel="stylesheet" href="telegram-live.css?v=260731-1">
 </head>
 <body>
   <div class="wallpaper" aria-hidden="true"></div>
@@ -33,8 +34,25 @@
       </div>
     </section>
 
+    <section class="section webtg" id="agoramatrix">
+      <div class="section-head"><span>01</span><div><p>TELEGRAM WEB · EN VIVO</p><h2>Grupo AgoraMatrix</h2></div></div>
+      <p class="lead small">Lee la conversación operativa y crea una misión sin salir de esta página. El mensaje aparece en Telegram, entra en la bandeja del agente y se sincroniza con YOKUP.</p>
+      <div class="tg-shell">
+        <div class="tg-top"><div><b>AgoraMatrix</b><small id="tgStatus">conectando…</small></div><a href="https://www.admira.live/telegram" target="_blank" rel="noopener">abrir completo ↗</a></div>
+        <div class="tg-feed" id="tgFeed" aria-live="polite"><p class="tg-loading">Cargando conversación…</p></div>
+        <form class="tg-compose" id="missionForm">
+          <div class="tg-fields">
+            <label>DESTINO<select id="missionTarget" aria-label="Destino de la misión"><option value="auto|macbookair16plata">⚡ Automático · Air16</option><option value="Oraculo|macbookair16plata">OráculoAir16 · Codex</option><option value="Morfeo|macbookair16plata">MorfeoAir16 · Claude</option><option value="auto|">⚡ Automático · toda la flota</option></select></label>
+            <label>IMAGEN<input id="missionImage" type="file" accept="image/png,image/jpeg,image/webp"><span id="fileName">opcional · máx. 5 MB</span></label>
+          </div>
+          <label class="tg-prompt">MISIÓN<textarea id="missionText" maxlength="4000" rows="4" required placeholder="Describe el resultado que quieres obtener…"></textarea></label>
+          <div class="tg-sendrow"><span id="missionFeedback">Texto e imagen viajarán juntos.</span><button type="submit" id="missionSend">ENVIAR MISIÓN ↗</button></div>
+        </form>
+      </div>
+    </section>
+
     <section class="section" id="que-puedes-hacer">
-      <div class="section-head"><span>01</span><div><p>CAPACIDADES</p><h2>Qué puedes hacer</h2></div></div>
+      <div class="section-head"><span>02</span><div><p>CAPACIDADES</p><h2>Qué puedes hacer</h2></div></div>
       <div class="cards">
         <article><span class="icon">/01</span><h3>Encargar una misión</h3><p>Escribe el objetivo en lenguaje natural. El encargo queda registrado y visible desde el primer segundo.</p></article>
         <article><span class="icon">/02</span><h3>Elegir agente o equipo</h3><p>Dirige el trabajo a una identidad exacta, a un ordenador o deja que AgoraMatrix elija según disponibilidad y carga.</p></article>
@@ -46,7 +64,7 @@
     </section>
 
     <section class="section" id="como-funciona">
-      <div class="section-head"><span>02</span><div><p>FLUJO REAL</p><h2>Cómo funciona</h2></div></div>
+      <div class="section-head"><span>03</span><div><p>FLUJO REAL</p><h2>Cómo funciona</h2></div></div>
       <ol class="timeline">
         <li><b>1</b><div><small>TÚ ESCRIBES</small><h3>Mensaje + archivos</h3><p>La orden puede nombrar un agente, un ordenador o simplemente describir el trabajo.</p></div><code>/OraculoAir16 dibuja un narval en ASCII</code></li>
         <li><b>2</b><div><small>AGORAMATRIX DECIDE</small><h3>Identidad, presencia y carga</h3><p>Comprueba quién está operativo, respeta la pareja Claude/Codex y evita entregar dos veces la misma misión.</p></div><code>route → Oraculo · MacBookAir16plata</code></li>
@@ -57,7 +75,7 @@
     </section>
 
     <section class="section commands">
-      <div class="section-head"><span>03</span><div><p>FORMAS DE ENCARGAR</p><h2>Habla como quieras</h2></div></div>
+      <div class="section-head"><span>04</span><div><p>FORMAS DE ENCARGAR</p><h2>Habla como quieras</h2></div></div>
       <div class="command-grid">
         <div><small>AGENTE EXACTO</small><code>/OraculoAir16 revisa esta captura</code><p>Va a Codex en el Air16 si está operativo.</p></div>
         <div><small>OTRO RUNTIME</small><code>/MorfeoAir16 compara estos datos</code><p>Va a Claude en el mismo ordenador.</p></div>
@@ -68,7 +86,7 @@
     </section>
 
     <section class="section states">
-      <div class="section-head"><span>04</span><div><p>TRAZABILIDAD</p><h2>Estados que verás</h2></div></div>
+      <div class="section-head"><span>05</span><div><p>TRAZABILIDAD</p><h2>Estados que verás</h2></div></div>
       <div class="state-row"><i class="pending"></i><b>Pendiente</b><span>La misión existe y espera ser tomada.</span></div>
       <div class="state-row"><i class="course"></i><b>En curso</b><span>Un agente real la ha reclamado y está trabajando.</span></div>
       <div class="state-row"><i class="late"></i><b>No concluida</b><span>Ha superado 30 minutos sin cierre válido. Se avisa una sola vez.</span></div>
@@ -77,11 +95,12 @@
     </section>
 
     <section class="section split">
-      <div><div class="section-head"><span>05</span><div><p>TELEGRAM + YOKUP</p><h2>Dos vistas, una verdad</h2></div></div><p class="lead small">Telegram es la conversación y YOKUP es la memoria operativa. Puedes trabajar solo desde Telegram y abrir YOKUP cuando necesites planificación, auditoría o comparación.</p></div>
+      <div><div class="section-head"><span>06</span><div><p>TELEGRAM + YOKUP</p><h2>Dos vistas, una verdad</h2></div></div><p class="lead small">Telegram es la conversación y YOKUP es la memoria operativa. Puedes trabajar solo desde Telegram y abrir YOKUP cuando necesites planificación, auditoría o comparación.</p></div>
       <div class="compare"><p><b>Telegram</b><span>Encargo inmediato</span><span>Alertas y progreso</span><span>Capturas y resultado</span><span>Conversación natural</span></p><p><b>YOKUP</b><span>Plan a·b·c</span><span>Estado de toda la flota</span><span>Histórico e informes</span><span>Tiempos y responsables</span></p></div>
     </section>
 
     <footer><p><span class="cursor">_</span> La misión empieza donde ya estás.</p><a href="https://www.admira.live/telegram" target="_blank" rel="noopener">ABRIR TELEGRAM EN VIVO ↗</a><small>AdmiraNeXT · AgoraMatrix · Barcelona</small></footer>
   </main>
+  <script src="telegram.js?v=260731-1"></script>
 </body>
 </html>
