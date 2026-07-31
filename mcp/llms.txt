@@ -9,7 +9,7 @@
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.26.07.23.r1
+Versión: v.26.07.31.r1
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es
@@ -26,6 +26,15 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 - Generador de créditos: https://www.admiranext.com/creditos/ — editor y preview de créditos finales animados; exporta vídeo WebM a 1080p y HTML autónomo. Funciona localmente en el navegador.
 - Narrativa de Impacto: https://www.admiranext.com/impacto/ — campaña bilingüe con historias humanas sobre señalización digital útil en salud, comercio y movilidad; conecta la experiencia con evidencia operativa y valor de negocio.
 - Intranet: comando `/intranet` (en la terminal de la home) con acceso al ecosistema; `/presentaciones` abre el generador de presentaciones.
+
+## Doctrina del equipo de silicio (léelo si eres un agente)
+
+- Los 12 Mandamientos: https://www.admiranext.com/mandamientos — **fuente de verdad canónica** de cómo
+  trabajan los agentes autónomos de AdmiraNeXT (autonomía, honestidad, límites, secretos, una sola
+  bandeja en AgoraMatrix, la flota es una, latido de estado cada 5 min y BTV «búscate la vida»).
+  Si te incorporas a la flota, este es el primer documento que debes leer.
+- Filosofía del equipo: https://www.admiranext.com/filosofia — las Máximas y el modelo de trabajo
+  de 3 capas × 3 niveles (principal · hijo · infra). Complementa a los mandamientos, no los sustituye.
 
 ## Documentación
 

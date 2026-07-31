@@ -122,6 +122,10 @@
       desc: 'Historias sobre el impacto humano de la señalización digital',
       fn: cmdImpacto
     },
+    '/mandamientos': {
+      desc: 'Los 12 Mandamientos del equipo de silicio',
+      fn: cmdMandamientos
+    },
     '/testimonials': {
       desc: 'Lo que la gente dice de mí',
       fn: cmdTestimonials
@@ -210,6 +214,7 @@
     '/identidad':    'Visual identity manual',
     '/creditos':     'Create end credits for a presentation',
     '/impacto':      'Stories about the human impact of digital signage',
+    '/mandamientos': 'The 12 Commandments of the silicon team',
     '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
     '/work':         'Featured projects and case studies',
@@ -274,7 +279,11 @@
     '/quien': '/about',
     '/quienes': '/about',
     // /filosofia y /filosofía NO son alias: son comandos que ABREN la página
-    // /filosofia (los 10 Mandamientos + Máximas del equipo). Ver cmdFilosofia().
+    // /filosofia (Máximas + 3 capas × 3 niveles). Ver cmdFilosofia().
+    '/mandamiento': '/mandamientos',
+    '/mandamientos12': '/mandamientos',
+    '/doctrina': '/mandamientos',
+    '/commandments': '/mandamientos',
     '/trabajo': '/work',
     '/trabajos': '/work',
     '/proyectos': '/work',
@@ -1593,17 +1602,36 @@
     ];
   }
 
-  // /filosofia — ABRE la página de filosofía del equipo (10 Mandamientos + Máximas).
+  // /filosofia — ABRE la página de filosofía del equipo (Máximas + 3 capas × 3 niveles).
   // No es contenido inline: navega a /filosofia (o filosofia.html en file://).
+  // Los mandamientos canónicos NO viven aquí: viven en /mandamientos (ver cmdMandamientos).
   function cmdFilosofia() {
     const target = (window.location.protocol === 'file:') ? 'filosofia.html' : '/filosofia';
     setTimeout(() => { window.location.href = target; }, 450);
     return [
       { text: 'Filosofía del equipo · AdmiraNeXT', cls: 'heading' },
       { text: '' },
-      { text: '  Los 10 Mandamientos y las Máximas del equipo.', cls: 'accent' },
+      { text: '  Las Máximas y el modelo de 3 capas × 3 niveles.', cls: 'accent' },
+      { text: '  Los Mandamientos canónicos están en /mandamientos.', cls: 'dim' },
       { text: '' },
       { text: '  → /filosofia', cls: 'green' },
+    ];
+  }
+
+  // /mandamientos — ABRE la doctrina operativa canónica del equipo de silicio.
+  // Fuente de verdad: la Cúpula; esta página es su cara pública. Navega a /mandamientos.
+  function cmdMandamientos() {
+    const isEnglish = window.currentLang === 'en';
+    const target = (window.location.protocol === 'file:') ? 'mandamientos.html' : '/mandamientos';
+    setTimeout(() => { window.location.href = target; }, 450);
+    return [
+      { text: isEnglish ? 'The 12 Commandments · AdmiraNeXT' : 'Los 12 Mandamientos · AdmiraNeXT', cls: 'heading' },
+      { text: '' },
+      { text: isEnglish
+        ? '  Operating doctrine of the silicon team: how our autonomous agents work.'
+        : '  La doctrina operativa del equipo de silicio: cómo trabajan los agentes.', cls: 'accent' },
+      { text: '' },
+      { text: '  → /mandamientos', cls: 'green' },
     ];
   }
 
