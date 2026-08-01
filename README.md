@@ -41,6 +41,9 @@ The site is static. The public entry point lets visitors choose:
 - `/presentaciones/` workspace privado de presentaciones.
 - `/presites/` workspace privado para crear intros previas a una presentación,
   un site o una app.
+- `/tiktok/` estudio autónomo para crear un guion, storyboard, preview y vídeo
+  vertical exportable de 15 segundos. Está preparado como primera pieza del
+  ecosistema del Generador de Presentaciones.
 
 ## Generador de Presites
 

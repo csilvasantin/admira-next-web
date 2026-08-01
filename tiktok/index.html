@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Crea un TikTok vertical de 15 segundos con guion, storyboard, preview y vídeo exportable.">
+  <meta name="theme-color" content="#05090d">
+  <meta name="admiranext-version" content="v.26.08.01.r1">
+  <link rel="canonical" href="https://www.admiranext.com/tiktok/">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-1">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.admiranext.com/tiktok/">
+  <meta property="og:title" content="TikTok 15s · ADmiraNeXT">
+  <meta property="og:description" content="De una idea a un TikTok vertical, listo para revisar y exportar.">
+  <meta property="og:image" content="https://www.admiranext.com/tiktok/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TikTok 15s · ADmiraNeXT">
+  <meta name="twitter:description" content="De una idea a un TikTok vertical, listo para revisar y exportar.">
+  <meta name="twitter:image" content="https://www.admiranext.com/tiktok/og.png">
+  <title>TikTok 15s · ADmiraNeXT</title>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Saltar al generador</a>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Volver a ADmiraNeXT">
+      <i aria-hidden="true"></i>
+      <span>ADmiraNeXT · TikTok</span>
+      <small>15 second studio</small>
+    </a>
+    <nav class="top-actions" aria-label="Herramientas ADmiraNeXT">
+      <a href="/presentaciones/generador/">Presentaciones</a>
+      <span class="status"><b></b> Autónomo</span>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="kicker">Generador · Vídeo vertical</p>
+        <h1>De una idea a un TikTok en <em>15 segundos.</em></h1>
+        <p class="lead">Escribe qué quieres contar. El estudio compone el guion, reparte el tiempo, anima la pieza y prepara los archivos de producción sin salir de esta página.</p>
+      </div>
+      <aside class="hero-aside">
+        <span>FLUJO AUTÓNOMO</span>
+        <ol>
+          <li><b>01</b> Idea</li>
+          <li><b>02</b> Guion</li>
+          <li><b>03</b> Storyboard</li>
+          <li><b>04</b> Vídeo</li>
+        </ol>
+      </aside>
+    </section>
+
+    <section class="workspace" id="workspace" aria-label="Estudio TikTok de 15 segundos">
+      <form class="editor panel" id="generatorForm">
+        <div class="panel-heading">
+          <div>
+            <span class="section-code">INPUT / 01</span>
+            <h2>Brief mínimo</h2>
+          </div>
+          <button class="text-button" id="loadExample" type="button">Cargar ejemplo</button>
+        </div>
+
+        <label class="field full">
+          <span>Tarea o problema</span>
+          <textarea id="task" name="task" rows="3" required>Encontrar las acciones importantes dentro de un PDF largo</textarea>
+        </label>
+
+        <label class="field full">
+          <span>Solución en uno o dos pasos</span>
+          <textarea id="solution" name="solution" rows="3" required>Súbelo a NotebookLM y pregunta: ¿cuáles son las tres acciones?</textarea>
+        </label>
+
+        <label class="field full">
+          <span>Resultado demostrable</span>
+          <input id="result" name="result" required value="Un documento largo convertido en un plan claro">
+        </label>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>Presentador</span>
+            <select id="presenter" name="presenter">
+              <option value="fusion">Pix Fusion · recomendado</option>
+              <option value="pix">Pix · directo</option>
+              <option value="chispa">Chispa · energético</option>
+              <option value="nexo">Nexo · experto</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Tono</span>
+            <select id="tone" name="tone">
+              <option value="energetic">Energético y cercano</option>
+              <option value="expert">Experto y didáctico</option>
+              <option value="playful">Ingenioso</option>
+              <option value="minimal">Minimalista premium</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Público</span>
+            <input id="audience" name="audience" value="Personas que quieren ahorrar tiempo">
+          </label>
+          <label class="field">
+            <span>Llamada a la acción</span>
+            <input id="cta" name="cta" value="Guárdalo y pruébalo hoy">
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="button secondary" id="variationButton" type="button">Otra dirección</button>
+          <button class="button primary" type="submit">Generar TikTok</button>
+        </div>
+        <p class="privacy-note">Tus textos se procesan en este dispositivo. No se envían a un servicio externo.</p>
+      </form>
+
+      <section class="preview panel" aria-labelledby="previewTitle">
+        <div class="panel-heading preview-heading">
+          <div>
+            <span class="section-code">PREVIEW / 9:16</span>
+            <h2 id="previewTitle">Pieza generada</h2>
+          </div>
+          <div class="preview-tools">
+            <button class="icon-button" id="toggleSound" type="button" aria-pressed="false" title="Escuchar el guion">VOZ</button>
+            <button class="icon-button" id="restartPreview" type="button" title="Reiniciar la animación">↻</button>
+          </div>
+        </div>
+
+        <div class="stage-shell">
+          <div class="phone-stage" id="phoneStage" aria-label="Previsualización animada del TikTok">
+            <div class="safe safe-top">ZONA SEGURA</div>
+            <div class="video-grid" aria-hidden="true"></div>
+            <div class="signal signal-a" aria-hidden="true"></div>
+            <div class="signal signal-b" aria-hidden="true"></div>
+            <div class="scene-copy">
+              <span class="scene-label" id="sceneLabel">ATAJO DETECTADO</span>
+              <strong id="sceneHeadline">Tu PDF no debería esconderte el siguiente paso.</strong>
+              <p id="sceneBody">Súbelo a NotebookLM y haz una sola pregunta.</p>
+            </div>
+            <div class="pix" id="pix" aria-hidden="true">
+              <div class="pix-antenna"></div>
+              <div class="pix-head"><i></i><i></i></div>
+              <div class="pix-body"><b>PIX</b><span></span></div>
+            </div>
+            <div class="proof-chip" id="proofChip">PROBADO · 15S</div>
+            <div class="safe safe-bottom">@ADmiraNeXT</div>
+            <div class="video-progress"><span id="videoProgress"></span></div>
+          </div>
+          <div class="timecode"><span id="timecode">00:00.0</span><b> / 00:15.0</b></div>
+        </div>
+
+        <div class="transport">
+          <button class="button secondary" id="playPause" type="button">Pausar</button>
+          <button class="button primary" id="exportVideo" type="button">Exportar vídeo 9:16</button>
+        </div>
+        <p class="export-status" id="exportStatus" role="status"></p>
+      </section>
+    </section>
+
+    <section class="production panel" aria-labelledby="productionTitle">
+      <div class="panel-heading production-heading">
+        <div>
+          <span class="section-code">OUTPUT / 02</span>
+          <h2 id="productionTitle">Paquete de producción</h2>
+        </div>
+        <div class="production-actions">
+          <button class="text-button" id="copyScript" type="button">Copiar guion</button>
+          <button class="text-button" id="downloadPlan" type="button">Descargar JSON</button>
+        </div>
+      </div>
+
+      <div class="metrics" aria-label="Métricas del guion">
+        <div><span>Duración</span><strong>15s</strong></div>
+        <div><span>Palabras</span><strong id="wordCount">0</strong></div>
+        <div><span>Ritmo</span><strong id="paceStatus">Óptimo</strong></div>
+        <div><span>Formato</span><strong>1080 × 1920</strong></div>
+      </div>
+
+      <div class="production-grid">
+        <article class="script-card">
+          <span class="section-code">LOCUCIÓN</span>
+          <blockquote id="scriptText"></blockquote>
+        </article>
+        <div class="storyboard" id="storyboard" aria-label="Storyboard de tres escenas"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>ADmiraNeXT · TikTok 15s</span>
+    <span>Primera pieza del ecosistema de presentaciones</span>
+  </footer>
+
+  <script src="/assets/tiktok-core.js?v=20260801-1"></script>
+  <script src="/tiktok/app.js?v=20260801-1"></script>
+</body>
+</html>

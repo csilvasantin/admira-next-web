@@ -21,6 +21,7 @@
     '/plataforma': 'plataforma',
     '/creditos': 'creditos',
     '/impacto': 'impacto',
+    '/tiktok': 'tiktok',
   };
   const ROUTE_TITLES = {
     '': 'ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
@@ -42,6 +43,7 @@
     'plataforma': 'Plataforma | ADmiraNeXT',
     'creditos': 'Generador de créditos | ADmiraNeXT',
     'impacto': 'Narrativa de Impacto | ADmiraNeXT',
+    'tiktok': 'TikTok 15s | ADmiraNeXT',
   };
 
   function updateUrl(command) {
@@ -121,6 +123,10 @@
     '/impacto': {
       desc: 'Historias sobre el impacto humano de la señalización digital',
       fn: cmdImpacto
+    },
+    '/tiktok': {
+      desc: 'Crear un TikTok vertical de 15 segundos',
+      fn: cmdTikTok
     },
     '/mandamientos': {
       desc: 'Los 12 Mandamientos del equipo de silicio',
@@ -214,6 +220,7 @@
     '/identidad':    'Visual identity manual',
     '/creditos':     'Create end credits for a presentation',
     '/impacto':      'Stories about the human impact of digital signage',
+    '/tiktok':       'Create a 15-second vertical TikTok',
     '/mandamientos': 'The 12 Commandments of the silicon team',
     '/company':      'ADmiraNeXT — about us',
     '/about':        'Who is ADmiraNeXT?',
@@ -255,6 +262,7 @@
     '/identidad': 'cmd.identidad',
     '/creditos': 'cmd.creditos',
     '/impacto': 'cmd.impacto',
+    '/tiktok': 'cmd.tiktok',
     '/location': 'cmd.location', '/privacy': 'cmd.privacy',
     '/dark': 'cmd.dark', '/light': 'cmd.light', '/retro': 'cmd.retro',
     '/glass': 'cmd.glass', '/themes': 'cmd.themes',
@@ -1599,6 +1607,18 @@
         ? '  Human stories about useful digital signage.'
         : '  Historias humanas sobre señalización digital útil.', cls: 'accent' },
       { text: '  → /impacto/', cls: 'green' },
+    ];
+  }
+
+  function cmdTikTok() {
+    const isEnglish = window.currentLang === 'en';
+    setTimeout(() => { window.location.href = '/tiktok/'; }, 450);
+    return [
+      { text: isEnglish ? '  TIKTOK 15S STUDIO' : '  ESTUDIO TIKTOK 15S', cls: 'heading' },
+      { text: isEnglish
+        ? '  Idea, script, storyboard and exportable vertical video.'
+        : '  Idea, guion, storyboard y vídeo vertical exportable.', cls: 'accent' },
+      { text: '  → /tiktok/', cls: 'green' },
     ];
   }
 
