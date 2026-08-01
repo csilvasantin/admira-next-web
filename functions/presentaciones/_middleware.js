@@ -56,12 +56,12 @@ function shell(title, body){
 }
 
 function identityFields(values = {}){
-  return `<label for="name">Nombre y apellidos</label><input id="name" name="name" value="${esc(values.name)}" required minlength="2" maxlength="100" autocomplete="name"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" value="${esc(values.email)}" required maxlength="180" autocomplete="email">`;
+  return `<label for="name">Nombre y apellidos</label><input id="name" name="name" value="${esc(values.name)}" required minlength="2" maxlength="100" autocomplete="name"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" value="${esc(values.email)}" required maxlength="180" autocomplete="username" autocapitalize="none" spellcheck="false">`;
 }
 
 function loginPage(title, action, error = '', values = {}){
   const recovery = `${action}${action.includes('?') ? '&' : '?'}recuperar=1`;
-  return shell(title, `<form class="box" method="POST" action="${esc(action)}"><div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div><h1>${esc(title)}</h1><p class="sub">Contenido privado. Identifícate e introduce la contraseña facilitada por nuestro equipo.</p>${identityFields(values)}<label for="password">Contraseña</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Entrar</button><a class="secondary" href="${esc(recovery)}">¿Has olvidado la contraseña?</a><div class="notice">Por seguridad, registramos identidad, fecha, presentación, IP y acciones sobre los materiales.</div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com</div></form>`);
+  return shell(title, `<form class="box" method="POST" action="${esc(action)}" autocomplete="on"><div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div><h1>${esc(title)}</h1><p class="sub">Contenido privado. Identifícate e introduce la contraseña facilitada por nuestro equipo.</p>${identityFields(values)}<label for="password">Contraseña</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Entrar</button><a class="secondary" href="${esc(recovery)}">¿Has olvidado la contraseña?</a><div class="notice">Puedes usar una contraseña guardada en Google Password Manager o en el gestor de tu navegador.</div><div class="notice">Por seguridad, registramos identidad, fecha, presentación, IP y acciones sobre los materiales.</div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com</div></form>`);
 }
 
 function recoveryPage(title, action, state = '', values = {}){

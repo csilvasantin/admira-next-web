@@ -10,6 +10,13 @@ test('el acceso ofrece una recuperación de contraseña visible', () => {
   assert.match(source, /name="intent" value="recover"/);
 });
 
+test('el acceso es reconocible por Google Password Manager', () => {
+  assert.match(source, /<form class="box"[^>]*autocomplete="on"/);
+  assert.match(source, /name="email"[^>]*autocomplete="username"/);
+  assert.match(source, /name="password"[^>]*autocomplete="current-password"/);
+  assert.match(source, /Google Password Manager/);
+});
+
 test('la recuperación no revela la contraseña ni enumera usuarios', () => {
   assert.match(source, /nunca mostraremos ni enviaremos la contraseña actual/);
   assert.match(source, /La respuesta es siempre la misma/);
