@@ -7,6 +7,7 @@
 import {cleanIdentity, identityCookie, makeIdentityToken, readCookies, readIdentity, writeAccessEvent} from './_access.js';
 
 const MAXAGE = 60 * 60 * 24 * 30;
+const TRUSTED_GENERATOR_EMAILS = new Set(['csilva@admira.com', 'csilvasantin@gmail.com']);
 const enc = new TextEncoder();
 
 function b64url(buf){
@@ -175,6 +176,13 @@ export async function onRequest(context){
   const generic = env.PRES_GENERIC;
   const cleanPath = `${url.pathname}${url.search}`;
   const recoveryRequested = url.searchParams.get('recuperar') === '1';
+  const accessEmail = String(request.headers.get('Cf-Access-Authenticated-User-Email') || '').trim().toLowerCase();
+  const accessAssertion = request.headers.get('Cf-Access-Jwt-Assertion') || '';
+  const trustedGeneratorIdentity = request.method === 'GET'
+    && isGeneratorPage
+    && url.hostname.toLowerCase() === 'www.admiranext.com'
+    && Boolean(accessAssertion)
+    && TRUSTED_GENERATOR_EMAILS.has(accessEmail);
 
   let generated = null;
   if (!isGallery && env.PRESENTATION_IDEAS && !isGeneratorApi && !isGeneratorPage && !isControlArea) generated = await env.PRESENTATION_IDEAS.get(`presentation:${seg}`, {type:'json'});
@@ -185,15 +193,34 @@ export async function onRequest(context){
   if (!signKey || (!expected && !dynamicVerifier && !master && !generic)) return htmlResponse(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'), 503);
 
   const cookies = readCookies(request);
-  const [masterValid, editorValid, clientValid, identity] = await Promise.all([
+  const [masterValid, editorValid, ownerValid, clientValid, identity] = await Promise.all([
     validToken(signKey, '_master', cookies.pres_master),
     editor ? validToken(signKey, '_editor', cookies.pres_editor) : false,
+    validToken(signKey, '_owner', cookies.pres_owner),
     validToken(signKey, cookieSlug, cookies[cookieName]),
     readIdentity(request, signKey)
   ]);
+  if (trustedGeneratorIdentity && !ownerValid) {
+    const ownerIdentity = cleanIdentity({
+      name:accessEmail === 'csilva@admira.com' ? 'Carlos Silva' : 'Carlos Silva Santín',
+      email:accessEmail,
+      visitorId:identity?.visitorId
+    });
+    const exp = Math.floor(Date.now() / 1000) + MAXAGE;
+    const [ownerToken, identityToken] = await Promise.all([
+      makeToken(signKey, '_owner', exp),
+      makeIdentityToken(signKey, ownerIdentity, MAXAGE)
+    ]);
+    const headers = new Headers({Location:cleanPath, 'cache-control':'no-store'});
+    headers.append('Set-Cookie', `pres_owner=${ownerToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
+    headers.append('Set-Cookie', identityCookie(identityToken, MAXAGE));
+    context.waitUntil(writeAccessEvent(env, request, {type:'trusted_owner_login', client:'generador', presentation:title, identity:ownerIdentity, access:'owner', path:url.pathname}));
+    return new Response(null, {status:303, headers});
+  }
   const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
-  const authorized = masterValid || (editorAllowed && editorValid) || (!isInternalArea && clientValid);
-  const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : 'client';
+  const ownerAllowed = isGeneratorPage || isGeneratorApi || isClientsApi;
+  const authorized = masterValid || (editorAllowed && editorValid) || (ownerAllowed && ownerValid) || (!isInternalArea && clientValid);
+  const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : ownerValid ? 'owner' : 'client';
   const contentType = request.headers.get('content-type') || '';
   const isFormPost = request.method === 'POST' && /application\/x-www-form-urlencoded|multipart\/form-data/i.test(contentType);
 
