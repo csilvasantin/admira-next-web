@@ -45,7 +45,9 @@ const formStyles = `
   label{display:block;font:700 11px/1 ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:14px 0 8px}
   input{width:100%;background:#0a1220;color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:13px 14px;font-size:16px;outline:none;transition:border-color .15s,box-shadow .15s}input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(61,240,138,.16)}
   button{width:100%;margin-top:18px;appearance:none;border:0;border-radius:11px;padding:13px;cursor:pointer;background:var(--brand);color:#052013;font:800 14px/1 -apple-system,system-ui,sans-serif;letter-spacing:.01em}button:hover{filter:brightness(1.08)}
-  .notice{margin-top:15px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;color:#9db0cc;font:600 11px/1.45 ui-monospace,monospace}.err{margin-top:14px;color:#ff6b6b;font:600 13px/1.4 ui-monospace,monospace;text-align:center}.foot{margin-top:20px;text-align:center;font:600 11px/1 ui-monospace,monospace;letter-spacing:.04em;color:var(--dim)}
+  .secondary{display:block;margin-top:14px;color:#a8bad4;text-align:center;font:700 12px/1.4 ui-monospace,monospace;text-underline-offset:3px}.secondary:hover{color:var(--brand)}
+  .back{display:inline-block;margin-bottom:18px;color:#a8bad4;font:700 12px/1 ui-monospace,monospace;text-decoration:none}.back:hover{color:var(--brand)}
+  .notice{margin-top:15px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;color:#9db0cc;font:600 11px/1.45 ui-monospace,monospace}.ok{margin-top:14px;padding:12px;border:1px solid rgba(61,240,138,.35);border-radius:10px;color:var(--brand);font:600 13px/1.5 ui-monospace,monospace}.err{margin-top:14px;color:#ff6b6b;font:600 13px/1.4 ui-monospace,monospace;text-align:center}.foot{margin-top:20px;text-align:center;font:600 11px/1 ui-monospace,monospace;letter-spacing:.04em;color:var(--dim)}
 `;
 
 function shell(title, body){
@@ -57,7 +59,37 @@ function identityFields(values = {}){
 }
 
 function loginPage(title, action, error = '', values = {}){
-  return shell(title, `<form class="box" method="POST" action="${esc(action)}"><div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div><h1>${esc(title)}</h1><p class="sub">Contenido privado. Identifícate e introduce la contraseña facilitada por nuestro equipo.</p>${identityFields(values)}<label for="password">Contraseña</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Entrar</button><div class="notice">Por seguridad, registramos identidad, fecha, presentación, IP y acciones sobre los materiales.</div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com</div></form>`);
+  const recovery = `${action}${action.includes('?') ? '&' : '?'}recuperar=1`;
+  return shell(title, `<form class="box" method="POST" action="${esc(action)}"><div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div><h1>${esc(title)}</h1><p class="sub">Contenido privado. Identifícate e introduce la contraseña facilitada por nuestro equipo.</p>${identityFields(values)}<label for="password">Contraseña</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Entrar</button><a class="secondary" href="${esc(recovery)}">¿Has olvidado la contraseña?</a><div class="notice">Por seguridad, registramos identidad, fecha, presentación, IP y acciones sobre los materiales.</div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com</div></form>`);
+}
+
+function recoveryPage(title, action, state = '', values = {}){
+  const login = new URL(action, 'https://admiranext.com'); login.searchParams.delete('recuperar');
+  const message = state === 'sent' ? '<div class="ok" role="status">Solicitud recibida. Si los datos corresponden a un acceso autorizado, el equipo de Admira te enviará nuevas instrucciones. Revisa también la carpeta de correo no deseado.</div>' : '';
+  const error = state === 'invalid' ? '<div class="err">Indica un nombre y un correo válidos.</div>' : '';
+  return shell(`Recuperar acceso · ${title}`, `<form class="box" method="POST" action="${esc(action)}"><input type="hidden" name="intent" value="recover"><a class="back" href="${esc(login.pathname + login.search)}">← Volver al acceso</a><div class="eyebrow">ADmiraNeXT · Recuperación segura</div><h1>Recuperar contraseña</h1><p class="sub">Solicita nuevas instrucciones de acceso para ${esc(title)}. Por seguridad nunca mostraremos ni enviaremos la contraseña actual.</p>${identityFields(values)}<button type="submit">Solicitar recuperación</button>${message}${error}<div class="notice">La solicitud queda registrada para que el equipo valide tu identidad. La respuesta es siempre la misma para no revelar qué correos están autorizados.</div><div class="foot">admiranext.com</div></form>`);
+}
+
+async function requestRecovery(env, request, details){
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const bucket = Math.floor(Date.now() / (10 * 60 * 1000));
+  const rateKey = `access:recovery-rate:${ip}:${bucket}`;
+  if (env.PRESENTATION_IDEAS && await env.PRESENTATION_IDEAS.get(rateKey)) return false;
+  if (env.PRESENTATION_IDEAS) await env.PRESENTATION_IDEAS.put(rateKey, '1', {expirationTtl:600});
+  const payload = new FormData();
+  payload.set('name', details.identity.name);
+  payload.set('email', details.identity.email);
+  payload.set('_subject', `Recuperación de acceso · ${details.presentation}`);
+  payload.set('Presentación', details.presentation);
+  payload.set('Ruta', details.path);
+  payload.set('Fecha', new Date().toISOString());
+  payload.set('IP', ip);
+  payload.set('_template', 'table');
+  payload.set('_captcha', 'false');
+  try {
+    const response = await fetch('https://formsubmit.co/ajax/info@admira.com', {method:'POST', body:payload, headers:{Accept:'application/json'}});
+    return response.ok;
+  } catch (_) { return false; }
 }
 
 function identifyPage(title, action, error = '', values = {}){
@@ -139,6 +171,7 @@ export async function onRequest(context){
   const master = env.PRES_ADMIN;
   const editor = env.PRES_EDITOR;
   const cleanPath = `${url.pathname}${url.search}`;
+  const recoveryRequested = url.searchParams.get('recuperar') === '1';
 
   let generated = null;
   if (!isGallery && env.PRESENTATION_IDEAS && !isGeneratorApi && !isGeneratorPage && !isControlArea) generated = await env.PRESENTATION_IDEAS.get(`presentation:${seg}`, {type:'json'});
@@ -161,10 +194,21 @@ export async function onRequest(context){
   const contentType = request.headers.get('content-type') || '';
   const isFormPost = request.method === 'POST' && /application\/x-www-form-urlencoded|multipart\/form-data/i.test(contentType);
 
+  if (request.method === 'GET' && recoveryRequested && !authorized) return htmlResponse(recoveryPage(title, cleanPath));
+
   if (isFormPost && !isGeneratorApi) {
     let form;
     try { form = await request.formData(); } catch (_) { form = new FormData(); }
     const supplied = cleanIdentity({name:form.get('name'), email:form.get('email'), visitorId:identity?.visitorId});
+    if (form.get('intent') === 'recover') {
+      const values = {name:form.get('name'), email:form.get('email')};
+      if (!supplied) return htmlResponse(recoveryPage(title, cleanPath, 'invalid', values));
+      context.waitUntil(Promise.all([
+        requestRecovery(env, request, {identity:supplied, presentation:title, path:url.pathname}),
+        writeAccessEvent(env, request, {type:'password_recovery_requested', client:seg || '_gallery', presentation:title, identity:supplied, access:'recovery', path:url.pathname})
+      ]));
+      return htmlResponse(recoveryPage(title, cleanPath, 'sent', values), 200);
+    }
     if (form.get('intent') === 'identify') {
       if (!authorized) return htmlResponse(loginPage(title, cleanPath, 'La sesión ha caducado. Vuelve a introducir la contraseña.', supplied || {}));
       if (!supplied) return htmlResponse(identifyPage(title, cleanPath, 'Indica un nombre y un correo válidos.', {name:form.get('name'), email:form.get('email')}));
