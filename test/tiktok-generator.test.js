@@ -41,10 +41,30 @@ test('limpia y acota el contenido aportado por el usuario', () => {
   assert.equal(core.fileSlug('Acción útil: PDF'), 'accion-util-pdf');
 });
 
+test('convierte una idea de anuncio en un brief listo para el estudio', () => {
+  const brief = core.buildBriefFromAd({
+    idea: 'Llenar las horas valle del gimnasio',
+    detail: 'Semana de prueba y entrenamientos guiados de 30 minutos',
+    brand: 'Nexo Fitness',
+    objective: 'leads',
+    audience: 'Personas del barrio con poco tiempo'
+  });
+
+  assert.equal(brief.task, 'Llenar las horas valle del gimnasio');
+  assert.equal(brief.solution, 'Semana de prueba y entrenamientos guiados de 30 minutos');
+  assert.equal(brief.result, 'Más personas interesadas solicitando información');
+  assert.equal(brief.cta, 'Pide información hoy');
+  assert.equal(brief.presenter, 'fusion');
+});
+
 test('la ruta pública carga los recursos del estudio', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'tiktok', 'index.html'), 'utf8');
   const middleware = fs.readFileSync(path.join(__dirname, '..', 'functions', 'presentaciones', '_middleware.js'), 'utf8');
   assert.match(html, /id="generatorForm"/);
+  assert.match(html, /id="adIdeaForm"/);
+  assert.match(html, /Ideas de anuncios/);
+  assert.match(html, /Crear anuncio/);
+  assert.match(html, /id="newAdIdea"/);
   assert.match(html, /\/assets\/tiktok-core\.js/);
   assert.match(html, /\/tiktok\/app\.js/);
   assert.match(html, /Exportar vídeo 9:16/);

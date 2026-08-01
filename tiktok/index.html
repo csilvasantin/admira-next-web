@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Crea un TikTok vertical de 15 segundos con guion, storyboard, preview y vídeo exportable.">
   <meta name="theme-color" content="#05090d">
-  <meta name="admiranext-version" content="v.26.08.01.r3">
+  <meta name="admiranext-version" content="v.26.08.01.r4">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-3">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-4">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok 15s · ADmiraNeXT">
@@ -40,8 +40,8 @@
     <section class="hero">
       <div>
         <p class="kicker">Generador · Vídeo vertical</p>
-        <h1>De una idea a un TikTok en <em>15 segundos.</em></h1>
-        <p class="lead">Escribe qué quieres contar. El estudio compone el guion, reparte el tiempo, anima la pieza y prepara los archivos de producción sin salir de esta página.</p>
+        <h1>De una idea a un <em>anuncio en 15 segundos.</em></h1>
+        <p class="lead">Apunta la idea como en Objetivos. El estudio la convierte en brief, guion, storyboard y vídeo vertical listo para publicar en Pixeria.</p>
       </div>
       <aside class="hero-aside">
         <span>FLUJO AUTÓNOMO</span>
@@ -54,12 +54,69 @@
       </aside>
     </section>
 
+    <section class="campaign-ideas" aria-labelledby="campaignIdeasTitle">
+      <div class="ideas-heading">
+        <div>
+          <span class="section-code">IDEA / 01</span>
+          <h2 id="campaignIdeasTitle">💡 Ideas de anuncios</h2>
+        </div>
+        <span class="idea-count" id="adIdeaCount">0 anuncios</span>
+      </div>
+
+      <form class="ad-composer panel" id="adIdeaForm" autocomplete="off">
+        <div class="ad-composer-head">
+          <label class="ad-title-field">
+            <span class="visually-hidden">Idea del anuncio</span>
+            <input id="adIdea" name="idea" maxlength="200" placeholder="La idea del anuncio, en una frase…" required>
+          </label>
+          <button class="idea-generator" id="newAdIdea" type="button" title="Crear un borrador editable de ejemplo">✨ Idea nueva</button>
+        </div>
+        <label class="ad-detail-field">
+          <span class="visually-hidden">Detalle del anuncio</span>
+          <textarea id="adDetail" name="detail" maxlength="1400" rows="5" placeholder="Detalle (opcional): la oferta, el porqué, la prueba, qué debe verse…"></textarea>
+        </label>
+        <div class="ad-meta-row">
+          <label>
+            <span class="visually-hidden">Marca o negocio</span>
+            <input id="adBrand" name="brand" maxlength="90" placeholder="Marca o negocio">
+          </label>
+          <label>
+            <span class="visually-hidden">Objetivo</span>
+            <select id="adObjective" name="objective">
+              <option value="leads">— conseguir contactos —</option>
+              <option value="visits">atraer visitas</option>
+              <option value="sales">vender una oferta</option>
+              <option value="launch">lanzar algo nuevo</option>
+              <option value="awareness">dar a conocer la marca</option>
+            </select>
+          </label>
+          <label class="ad-audience-field">
+            <span class="visually-hidden">Público</span>
+            <input id="adAudience" name="audience" maxlength="110" placeholder="¿Para quién es?">
+          </label>
+          <label>
+            <span class="visually-hidden">Fecha prevista</span>
+            <input id="adDate" name="date" type="date" title="Fecha prevista del anuncio">
+          </label>
+          <button class="button primary create-ad" type="submit">Crear anuncio</button>
+        </div>
+        <p class="composer-status" id="adIdeaStatus" role="status">Crear el anuncio prepara el guion. Grok solo se inicia cuando tú lo confirmas después.</p>
+      </form>
+
+      <div class="ad-library" id="adLibrary" hidden>
+        <div class="ad-library-head">
+          <span>ANUNCIOS RECIENTES · GUARDADOS EN ESTE DISPOSITIVO</span>
+        </div>
+        <div class="ad-list" id="adIdeaList"></div>
+      </div>
+    </section>
+
     <section class="workspace" id="workspace" aria-label="Estudio TikTok de 15 segundos">
       <form class="editor panel" id="generatorForm">
         <div class="panel-heading">
           <div>
-            <span class="section-code">INPUT / 01</span>
-            <h2>Brief mínimo</h2>
+            <span class="section-code">TALLER / 02</span>
+            <h2>Ajustar brief</h2>
           </div>
           <button class="text-button" id="loadExample" type="button">Cargar ejemplo</button>
         </div>
@@ -118,7 +175,7 @@
       <section class="preview panel" aria-labelledby="previewTitle">
         <div class="panel-heading preview-heading">
           <div>
-            <span class="section-code">PREVIEW / 9:16</span>
+            <span class="section-code">PREVIEW / 03 · 9:16</span>
             <h2 id="previewTitle">Pieza generada</h2>
           </div>
           <div class="preview-tools">
@@ -219,7 +276,7 @@
     <section class="production panel" aria-labelledby="productionTitle">
       <div class="panel-heading production-heading">
         <div>
-          <span class="section-code">OUTPUT / 02</span>
+          <span class="section-code">OUTPUT / 04</span>
           <h2 id="productionTitle">Paquete de producción</h2>
         </div>
         <div class="production-actions">
@@ -250,7 +307,7 @@
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260801-3"></script>
-  <script src="/tiktok/app.js?v=20260801-3"></script>
+  <script src="/assets/tiktok-core.js?v=20260801-4"></script>
+  <script src="/tiktok/app.js?v=20260801-4"></script>
 </body>
 </html>

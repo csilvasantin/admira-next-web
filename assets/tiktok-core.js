@@ -89,6 +89,33 @@
     return { label: 'Revisar', level: 'too-fast', words };
   }
 
+  function buildBriefFromAd(input) {
+    const data = input || {};
+    const idea = clean(data.idea, 180) || 'Presentar una oferta útil de forma clara';
+    const brand = clean(data.brand, 90) || 'la marca';
+    const detail = clean(data.detail, 220);
+    const audience = clean(data.audience, 110) || 'Personas que pueden beneficiarse de la oferta';
+    const objective = ['leads', 'visits', 'sales', 'launch', 'awareness'].includes(data.objective) ? data.objective : 'leads';
+    const outcomes = {
+      leads: { result: 'Más personas interesadas solicitando información', cta: 'Pide información hoy' },
+      visits: { result: `Más visitas a ${brand}`, cta: 'Ven a conocernos hoy' },
+      sales: { result: 'Una oferta clara que invita a actuar', cta: 'Aprovecha la oferta hoy' },
+      launch: { result: 'Un lanzamiento fácil de entender y recordar', cta: 'Descúbrelo antes que nadie' },
+      awareness: { result: `${brand} en la mente del público adecuado`, cta: 'Conoce la historia completa' }
+    };
+    const outcome = outcomes[objective];
+
+    return {
+      task: idea,
+      solution: detail || `Muestra cómo ${brand} convierte esta idea en una experiencia sencilla y creíble`,
+      result: outcome.result,
+      presenter: 'fusion',
+      tone: objective === 'awareness' ? 'minimal' : 'energetic',
+      audience,
+      cta: outcome.cta
+    };
+  }
+
   function buildPlan(input, variation) {
     const data = input || {};
     const variant = Math.abs(Number(variation) || 0) % 3;
@@ -180,5 +207,5 @@
       .replace(/^-|-$/g, '') || 'tiktok-15s';
   }
 
-  return { PRESENTER, buildPlan, clean, countWords, paceFor, sceneAt, fileSlug };
+  return { PRESENTER, buildBriefFromAd, buildPlan, clean, countWords, paceFor, sceneAt, fileSlug };
 });

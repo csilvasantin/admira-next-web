@@ -6,6 +6,12 @@
 
   const $ = (selector) => document.querySelector(selector);
   const form = $('#generatorForm');
+  const adIdeaForm = $('#adIdeaForm');
+  const adIdeaStatus = $('#adIdeaStatus');
+  const adIdeaCount = $('#adIdeaCount');
+  const adLibrary = $('#adLibrary');
+  const adIdeaList = $('#adIdeaList');
+  const adDate = $('#adDate');
   const stage = $('#phoneStage');
   const sceneCopy = $('.scene-copy');
   const sceneLabel = $('#sceneLabel');
@@ -46,6 +52,7 @@
   const retryPixeria = $('#retryPixeria');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const STORAGE_KEY = 'admiranext:tiktok15:brief:v1';
+  const AD_IDEAS_KEY = 'admiranext:tiktok15:ad-ideas:v1';
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
 
   let variation = 0;
@@ -59,6 +66,8 @@
   let grokPolling = false;
   let grokVideoUrl = '';
   let grokRequestId = '';
+  let adIdeas = [];
+  let adExampleIndex = 0;
 
   const example = {
     task: 'Encontrar las acciones importantes dentro de un PDF largo',
@@ -68,6 +77,38 @@
     tone: 'energetic',
     audience: 'Personas que quieren ahorrar tiempo',
     cta: 'Guárdalo y pruébalo hoy'
+  };
+
+  const adExamples = [
+    {
+      idea: 'Llenar las horas valle del gimnasio con una semana de prueba',
+      detail: 'Entrenamientos guiados de 30 minutos, sin permanencia y con plazas limitadas. Mostrar energía real, cercanía y progreso desde el primer día.',
+      brand: 'Tu gimnasio',
+      objective: 'leads',
+      audience: 'Personas del barrio con poco tiempo'
+    },
+    {
+      idea: 'Convertir el menú del día en el plan favorito de la oficina',
+      detail: 'Enseñar ingredientes frescos, servicio rápido y un precio cerrado. La comida debe verse real, abundante y recién preparada.',
+      brand: 'Tu restaurante',
+      objective: 'visits',
+      audience: 'Profesionales que comen cerca del trabajo'
+    },
+    {
+      idea: 'Presentar una nueva colección como una mejora visible del día a día',
+      detail: 'Abrir con una situación reconocible, mostrar el producto en uso y cerrar con el beneficio principal sin promesas exageradas.',
+      brand: 'Tu marca',
+      objective: 'launch',
+      audience: 'Personas que valoran diseño y utilidad'
+    }
+  ];
+
+  const objectiveLabels = {
+    leads: 'Contactos',
+    visits: 'Visitas',
+    sales: 'Ventas',
+    launch: 'Lanzamiento',
+    awareness: 'Marca'
   };
 
   function readForm() {
@@ -91,6 +132,116 @@
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
       if (saved && typeof saved === 'object') writeForm(saved);
     } catch (_) { /* Ignore malformed local data. */ }
+  }
+
+  function todayValue() {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function loadAdIdeas() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(AD_IDEAS_KEY) || '[]');
+      adIdeas = Array.isArray(saved) ? saved.filter((item) => item && typeof item.idea === 'string').slice(0, 24) : [];
+    } catch (_) { adIdeas = []; }
+  }
+
+  function saveAdIdeas() {
+    try { localStorage.setItem(AD_IDEAS_KEY, JSON.stringify(adIdeas)); } catch (_) { /* Device-local persistence is optional. */ }
+  }
+
+  function formatAdDate(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return 'Sin fecha';
+    const [year, month, day] = value.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
+  function openAdIdea(ad, grokMode) {
+    writeForm(core.buildBriefFromAd(ad));
+    variation = 0;
+    generate();
+    if (grokMode) {
+      const grokInput = modeInputs.find((input) => input.value === 'grok');
+      if (grokInput) grokInput.checked = true;
+      setProductionMode('grok');
+      adIdeaStatus.textContent = 'Dirección preparada. Revisa el prompt y pulsa “Generar con Grok” cuando quieras iniciar el vídeo.';
+    } else {
+      const motionInput = modeInputs.find((input) => input.value === 'motion');
+      if (motionInput) motionInput.checked = true;
+      setProductionMode('motion');
+      adIdeaStatus.textContent = 'Anuncio abierto en el taller para ajustar el brief y revisar el guion.';
+    }
+    adIdeaStatus.classList.add('is-success');
+    $('#workspace').scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  function createAdCard(ad) {
+    const article = document.createElement('article');
+    article.className = 'ad-card';
+    const meta = document.createElement('div');
+    meta.className = 'ad-card-meta';
+    const brand = document.createElement('span');
+    brand.textContent = core.clean(ad.brand, 28) || 'SIN MARCA';
+    const date = document.createElement('span');
+    date.textContent = formatAdDate(ad.date);
+    meta.append(brand, date);
+    const title = document.createElement('h3');
+    title.textContent = ad.idea;
+    const description = document.createElement('p');
+    description.textContent = `${objectiveLabels[ad.objective] || 'Anuncio'} · ${core.clean(ad.audience, 80) || 'Público por definir'}`;
+    const actions = document.createElement('div');
+    actions.className = 'ad-card-actions';
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.textContent = 'Abrir guion';
+    open.addEventListener('click', () => openAdIdea(ad, false));
+    const grok = document.createElement('button');
+    grok.type = 'button';
+    grok.textContent = 'Preparar Grok';
+    grok.addEventListener('click', () => openAdIdea(ad, true));
+    actions.append(open, grok);
+    article.append(meta, title, description, actions);
+    return article;
+  }
+
+  function renderAdIdeas() {
+    adIdeaCount.textContent = `${adIdeas.length} ${adIdeas.length === 1 ? 'anuncio' : 'anuncios'}`;
+    adLibrary.hidden = adIdeas.length === 0;
+    adIdeaList.replaceChildren(...adIdeas.slice(0, 3).map(createAdCard));
+  }
+
+  function draftAdExample() {
+    const sample = adExamples[adExampleIndex % adExamples.length];
+    adExampleIndex += 1;
+    Object.entries(sample).forEach(([key, value]) => {
+      const field = adIdeaForm.elements.namedItem(key);
+      if (field) field.value = value;
+    });
+    if (!adDate.value) adDate.value = todayValue();
+    adIdeaStatus.textContent = 'Borrador creado. Edítalo con tus datos y pulsa “Crear anuncio”.';
+    adIdeaStatus.classList.add('is-success');
+    $('#adIdea').focus();
+  }
+
+  function createAdIdea(event) {
+    event.preventDefault();
+    const raw = Object.fromEntries(new FormData(adIdeaForm).entries());
+    const ad = {
+      id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `ad-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      idea: core.clean(raw.idea, 200),
+      detail: core.clean(raw.detail, 1400),
+      brand: core.clean(raw.brand, 90),
+      objective: raw.objective,
+      audience: core.clean(raw.audience, 110),
+      date: raw.date
+    };
+    adIdeas = [ad, ...adIdeas].slice(0, 24);
+    saveAdIdeas();
+    renderAdIdeas();
+    openAdIdea(ad, false);
+    adIdeaStatus.textContent = 'Anuncio creado: ya tienes brief, guion y storyboard. Puedes ajustarlos o preparar el vídeo con Grok.';
   }
 
   function formatTime(seconds) {
@@ -691,6 +842,12 @@
     }
   }
 
+  adIdeaForm.addEventListener('submit', createAdIdea);
+  adIdeaForm.addEventListener('input', () => {
+    adIdeaStatus.classList.remove('is-success');
+    adIdeaStatus.textContent = 'Crear el anuncio prepara el guion. Grok solo se inicia cuando tú lo confirmas después.';
+  });
+  $('#newAdIdea').addEventListener('click', draftAdExample);
   form.addEventListener('submit', (event) => { event.preventDefault(); variation = 0; generate(); });
   form.addEventListener('input', saveDraft);
   $('#variationButton').addEventListener('click', () => { variation = (variation + 1) % 3; generate(); });
@@ -716,6 +873,9 @@
     if ('speechSynthesis' in window) speechSynthesis.cancel();
   });
 
+  adDate.value = todayValue();
+  loadAdIdeas();
+  renderAdIdeas();
   loadDraft();
   generate();
   setProductionMode(selectedProductionMode());
