@@ -14,5 +14,11 @@
       "binding": "PRESENTATION_MEDIA",
       "bucket_name": "admiranext-presentations"
     }
+  ],
+  "services": [
+    {
+      "binding": "PIXERIA_STOCK",
+      "service": "pixer-eleven"
+    }
   ]
 }

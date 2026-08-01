@@ -1,9 +1,14 @@
 const MAX_BODY_BYTES = 12 * 1024;
 const MAX_PROVIDER_BYTES = 96 * 1024;
+const MAX_PIXERIA_BYTES = 48 * 1024;
 const MAX_PROMPT_CHARS = 3200;
 const REQUEST_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9_-]{15,127}$/;
 const CLIENT_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PIXERIA_ID_RE = /^(?:\d{10,16}-[a-z0-9]{4,16}|auto-[a-f0-9]{20})$/i;
 const ALLOWED_RESOLUTIONS = new Set(['480p', '720p', '1080p']);
+const PIXERIA_PUBLISH_URL = 'https://api.admira.store/stock/publish';
+const PIXERIA_PENDING_MS = 10 * 60 * 1000;
+const PIXERIA_STATE_TTL = 30 * 24 * 60 * 60;
 
 function json(payload, status = 200, extraHeaders = {}){
   return Response.json(payload, {
@@ -159,10 +164,99 @@ function safeVideoUrl(value){
   }catch(_){ return ''; }
 }
 
-async function videoStatus(context){
-  if(!context.env.XAI_API_KEY) return json({error:'La conexión con Grok todavía no está configurada.'}, 503);
-  const requestId = String(new URL(context.request.url).searchParams.get('id') || '').trim();
-  if(!REQUEST_ID_RE.test(requestId)) return json({error:'Identificador de vídeo no válido.'}, 400);
+function safePixeriaUrl(value, id){
+  try{
+    const url = new URL(String(value || ''));
+    const expectedPath = `/stock/asset/${id}`;
+    return url.protocol === 'https:' && url.hostname === 'api.admira.store' && url.pathname === expectedPath ? url.toString() : '';
+  }catch(_){ return ''; }
+}
+
+function publicPixeriaState(record){
+  if(record?.status === 'published' && PIXERIA_ID_RE.test(record.id || '')){
+    const assetUrl = safePixeriaUrl(record.assetUrl, record.id);
+    if(assetUrl) return {
+      status:'published',
+      id:record.id,
+      assetUrl,
+      stockUrl:`https://www.pixeria.com/stock.html?highlight=${encodeURIComponent(record.id)}`
+    };
+  }
+  if(record?.status === 'uploading') return {status:'uploading'};
+  if(record?.status === 'failed') return {status:'failed', error:'El vídeo está listo, pero Pixeria no pudo copiarlo automáticamente.'};
+  return {status:'pending'};
+}
+
+async function savePixeriaState(context, key, state, ttl = PIXERIA_STATE_TTL){
+  try{ await context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(state), {expirationTtl:ttl}); }
+  catch(error){
+    console.error(JSON.stringify({message:'pixeria video state write failed', requestId:state.requestId, status:state.status, error:String(error?.message || error)}));
+  }
+}
+
+async function ensurePixeriaPublication(context, requestId, video, model, force = false){
+  if(!context.env.PRESENTATION_IDEAS || !context.env.PIXERIA_STOCK || !context.env.PIXERIA_INGEST_TOKEN){
+    return {status:'failed', error:'La conexión interna con Pixeria no está configurada.'};
+  }
+  const key = `tiktok:grok-video:pixeria:${requestId}`;
+  let previous = null;
+  try{ previous = await context.env.PRESENTATION_IDEAS.get(key, {type:'json'}); }
+  catch(error){
+    console.error(JSON.stringify({message:'pixeria video state read failed', requestId, error:String(error?.message || error)}));
+    return {status:'failed', error:'Pixeria no pudo comprobar si el vídeo ya estaba publicado.'};
+  }
+  if(previous?.status === 'published') return publicPixeriaState(previous);
+  if(previous?.status === 'uploading' && Date.now() - Number(previous.startedAt || 0) < PIXERIA_PENDING_MS) return {status:'uploading'};
+  if(previous?.status === 'failed' && !force) return publicPixeriaState(previous);
+
+  const uploading = {status:'uploading', requestId, startedAt:Date.now()};
+  await savePixeriaState(context, key, uploading, 60 * 60);
+  const payload = {
+    type:'video',
+    motor:'grok-imagine-video',
+    prompt:'',
+    title:'TikTok 15s · ADmiraNeXT',
+    comment:'Publicado automáticamente desde admiranext.com/tiktok.',
+    tags:['admiranext','tiktok','vertical'],
+    quality:'best',
+    costEst:`xAI · ${String(model || 'Grok Imagine Video').slice(0, 56)}`,
+    mime:'video/mp4',
+    sourceUrl:video.url,
+    externalId:`admiranext:grok-video:${requestId}`
+  };
+  let response;
+  let provider;
+  try{
+    response = await context.env.PIXERIA_STOCK.fetch(new Request(PIXERIA_PUBLISH_URL, {
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        accept:'application/json',
+        'x-admiranext-ingest':context.env.PIXERIA_INGEST_TOKEN
+      },
+      body:JSON.stringify(payload)
+    }));
+    provider = await readJsonLimited(response, MAX_PIXERIA_BYTES);
+  }catch(error){
+    console.error(JSON.stringify({message:'pixeria video publish failed', requestId, error:String(error?.message || error)}));
+    const failed = {status:'failed', requestId, failedAt:Date.now()};
+    await savePixeriaState(context, key, failed, 60 * 60);
+    return publicPixeriaState(failed);
+  }
+  const id = String(provider?.id || '').trim();
+  const assetUrl = safePixeriaUrl(provider?.url, id);
+  if(!response.ok || !provider?.ok || !PIXERIA_ID_RE.test(id) || !assetUrl){
+    console.error(JSON.stringify({message:'pixeria video publish rejected', requestId, status:response.status, validId:PIXERIA_ID_RE.test(id), validUrl:Boolean(assetUrl)}));
+    const failed = {status:'failed', requestId, failedAt:Date.now()};
+    await savePixeriaState(context, key, failed, 60 * 60);
+    return publicPixeriaState(failed);
+  }
+  const published = {status:'published', requestId, id, assetUrl, publishedAt:Date.now()};
+  await savePixeriaState(context, key, published);
+  return publicPixeriaState(published);
+}
+
+async function fetchVideoProvider(context, requestId){
   const response = await fetch(`https://api.x.ai/v1/videos/${encodeURIComponent(requestId)}`, {
     headers:{'authorization':`Bearer ${context.env.XAI_API_KEY}`, 'accept':'application/json'}
   });
@@ -170,9 +264,18 @@ async function videoStatus(context){
   try{ provider = await readJsonLimited(response); }
   catch(error){
     console.error(JSON.stringify({message:'invalid grok video status response', requestId, error:String(error?.message || error), status:response.status}));
-    return json({error:'Grok devolvió un estado no válido.'}, 502);
+    return {error:json({error:'Grok devolvió un estado no válido.'}, 502)};
   }
-  if(!response.ok) return json({error:providerMessage(response.status)}, response.status === 429 ? 429 : 502);
+  if(!response.ok) return {error:json({error:providerMessage(response.status)}, response.status === 429 ? 429 : 502)};
+  return {provider};
+}
+
+async function videoStatusById(context, requestId, forcePixeria = false){
+  if(!context.env.XAI_API_KEY) return json({error:'La conexión con Grok todavía no está configurada.'}, 503);
+  if(!REQUEST_ID_RE.test(requestId)) return json({error:'Identificador de vídeo no válido.'}, 400);
+  const fetched = await fetchVideoProvider(context, requestId);
+  if(fetched.error) return fetched.error;
+  const provider = fetched.provider;
   const status = ['pending','done','failed','expired'].includes(provider?.status) ? provider.status : 'pending';
   const result = {
     ok:true,
@@ -189,13 +292,30 @@ async function videoStatus(context){
       duration:Math.max(1, Math.min(15, Number(provider?.video?.duration || 15))),
       respectsModeration:provider?.video?.respect_moderation !== false
     };
+    result.pixeria = await ensurePixeriaPublication(context, requestId, result.video, result.model, forcePixeria);
   }
   if(status === 'failed' || status === 'expired') result.error = status === 'expired' ? 'La solicitud de Grok ha caducado.' : 'Grok no pudo completar este vídeo.';
   return json(result);
 }
 
+async function videoStatus(context){
+  const requestId = String(new URL(context.request.url).searchParams.get('id') || '').trim();
+  return videoStatusById(context, requestId);
+}
+
+async function retryPixeria(context){
+  if(!sameOrigin(context.request)) return json({error:'Origen no permitido.'}, 403);
+  const contentType = (context.request.headers.get('content-type') || '').toLowerCase();
+  if(!contentType.startsWith('application/json')) return json({error:'Usa JSON para reintentar el envío.'}, 415);
+  const parsed = await readRequestJson(context.request);
+  if(parsed.error) return parsed.error;
+  const requestId = String(parsed.payload?.requestId || '').trim();
+  return videoStatusById(context, requestId, true);
+}
+
 export async function onRequest(context){
   if(context.request.method === 'POST') return createVideo(context);
   if(context.request.method === 'GET') return videoStatus(context);
-  return json({error:'Método no permitido.'}, 405, {'allow':'GET, POST'});
+  if(context.request.method === 'PUT') return retryPixeria(context);
+  return json({error:'Método no permitido.'}, 405, {'allow':'GET, POST, PUT'});
 }

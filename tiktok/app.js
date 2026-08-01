@@ -39,6 +39,11 @@
   const openGrokVideo = $('#openGrokVideo');
   const copyGrokUrl = $('#copyGrokUrl');
   const grokAccess = $('#grokAccess');
+  const pixeriaBridge = $('#pixeriaBridge');
+  const pixeriaLabel = $('#pixeriaLabel');
+  const pixeriaDetail = $('#pixeriaDetail');
+  const openPixeriaAsset = $('#openPixeriaAsset');
+  const retryPixeria = $('#retryPixeria');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const STORAGE_KEY = 'admiranext:tiktok15:brief:v1';
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
@@ -53,6 +58,7 @@
   let grokPollTimer = 0;
   let grokPolling = false;
   let grokVideoUrl = '';
+  let grokRequestId = '';
 
   const example = {
     task: 'Encontrar las acciones importantes dentro de un PDF largo',
@@ -274,6 +280,29 @@
     try{ localStorage.removeItem(GROK_JOB_KEY); }catch(_){ /* Best effort. */ }
   }
 
+  function setPixeriaState(status, payload = {}) {
+    pixeriaBridge.dataset.status = status;
+    openPixeriaAsset.hidden = true;
+    retryPixeria.hidden = true;
+    if(status === 'uploading'){
+      pixeriaLabel.textContent = 'Pixeria · copiando el MP4';
+      pixeriaDetail.textContent = 'El enlace interno está transfiriendo el vídeo al Stock de Pixeria.';
+    }else if(status === 'published'){
+      pixeriaLabel.textContent = 'Pixeria · publicado en Stock';
+      pixeriaDetail.textContent = `Asset ${payload.id || ''} disponible para reutilizar y distribuir.`;
+      openPixeriaAsset.href = payload.stockUrl || 'https://www.pixeria.com/stock.html';
+      openPixeriaAsset.hidden = false;
+    }else if(status === 'failed'){
+      pixeriaLabel.textContent = 'Pixeria · envío pendiente';
+      pixeriaDetail.textContent = payload.error || 'El vídeo está a salvo, pero Pixeria no pudo copiarlo todavía.';
+      retryPixeria.hidden = false;
+    }else{
+      pixeriaBridge.dataset.status = 'ready';
+      pixeriaLabel.textContent = 'Pixeria · envío automático activado';
+      pixeriaDetail.textContent = 'Al terminar, el MP4 se copiará al Stock de Pixeria sin pasar por tu navegador.';
+    }
+  }
+
   async function readApiResponse(response) {
     const type = response.headers.get('content-type') || '';
     if(!type.includes('application/json')){
@@ -292,17 +321,35 @@
     setGrokJob('No se pudo iniciar', 0, String(error?.message || 'No se pudo conectar con Grok.'));
   }
 
-  function finishGrokVideo(payload) {
-    grokVideoUrl = payload.video.url;
-    grokVideo.src = grokVideoUrl;
+  function showGrokVideo(payload) {
+    const durableUrl = payload.pixeria?.assetUrl || payload.video.url;
+    grokVideoUrl = durableUrl;
+    if(grokVideo.src !== durableUrl) grokVideo.src = durableUrl;
     openGrokVideo.href = grokVideoUrl;
     grokResultActions.hidden = false;
     stage.hidden = true;
     grokVideo.hidden = false;
+  }
+
+  function finishGrokVideo(payload) {
+    grokRequestId = payload.requestId || grokRequestId;
+    showGrokVideo(payload);
+    const publication = payload.pixeria || {status:'failed', error:'Pixeria no devolvió el estado de la publicación.'};
+    setPixeriaState(publication.status, publication);
+    if(publication.status === 'uploading' || publication.status === 'pending'){
+      generateGrokButton.disabled = true;
+      setGrokJob('Copiando a Pixeria', 96, 'Grok ya terminó. Estamos guardando el MP4 en el Stock de Pixeria…');
+      scheduleGrokPoll(grokRequestId, 5000);
+      return;
+    }
     generateGrokButton.disabled = false;
     grokAccess.hidden = true;
-    setGrokJob('Vídeo completado', 100, 'Grok ha terminado la secuencia. Revisa el resultado antes de publicarlo.');
-    clearGrokJob();
+    if(publication.status === 'published'){
+      setGrokJob('Vídeo publicado', 100, 'Grok ha terminado y Pixeria ya tiene una copia permanente en su Stock.');
+      clearGrokJob();
+    }else{
+      setGrokJob('Vídeo listo · Pixeria pendiente', 100, 'Puedes revisar el MP4 y reintentar su envío a Pixeria sin volver a generar el vídeo.');
+    }
   }
 
   function scheduleGrokPoll(requestId, delay = 5000) {
@@ -349,6 +396,8 @@
     grokResultActions.hidden = true;
     grokAccess.hidden = true;
     grokVideoUrl = '';
+    grokRequestId = '';
+    setPixeriaState('ready');
     grokVideo.removeAttribute('src');
     grokVideo.load();
     grokVideo.hidden = true;
@@ -363,10 +412,32 @@
         body:JSON.stringify({prompt, resolution:grokResolution.value, clientRequestId})
       });
       const payload = await readApiResponse(response);
+      grokRequestId = payload.requestId;
       saveGrokJob({requestId:payload.requestId, startedAt:Date.now(), prompt, resolution:grokResolution.value});
       setGrokJob('Solicitud aceptada', 8, 'Grok ha recibido el encargo. Esperando los primeros fotogramas…');
       scheduleGrokPoll(payload.requestId, 2500);
     }catch(error){ showGrokError(error); }
+  }
+
+  async function retryPixeriaPublication() {
+    if(!grokRequestId) return;
+    retryPixeria.disabled = true;
+    setPixeriaState('uploading');
+    setGrokJob('Reintentando Pixeria', 96, 'Volvemos a copiar el MP4 ya generado; no se consumirán nuevos créditos de vídeo.');
+    try{
+      const response = await fetch('/presentaciones/api/grok-video', {
+        method:'PUT',
+        credentials:'same-origin',
+        headers:{'content-type':'application/json', accept:'application/json'},
+        body:JSON.stringify({requestId:grokRequestId})
+      });
+      const payload = await readApiResponse(response);
+      if(payload.status === 'done' && payload.video?.url) finishGrokVideo(payload);
+      else scheduleGrokPoll(grokRequestId, 5000);
+    }catch(error){
+      setPixeriaState('failed', {error:String(error?.message || 'Pixeria no respondió.')});
+      setGrokJob('Vídeo listo · Pixeria pendiente', 100, 'El MP4 permanece disponible. Puedes volver a intentarlo más tarde.');
+    }finally{ retryPixeria.disabled = false; }
   }
 
   function roundedRect(ctx, x, y, width, height, radius) {
@@ -636,6 +707,7 @@
   exportVideo.addEventListener('click', exportClip);
   modeInputs.forEach((input) => input.addEventListener('change', () => setProductionMode(selectedProductionMode())));
   generateGrokButton.addEventListener('click', () => { void startGrokVideo(); });
+  retryPixeria.addEventListener('click', () => { void retryPixeriaPublication(); });
   copyGrokUrl.addEventListener('click', () => copyText(grokVideoUrl, copyGrokUrl, 'Copiar URL'));
   reduceMotion.addEventListener('change', restart);
   window.addEventListener('beforeunload', () => {
@@ -649,6 +721,7 @@
   setProductionMode(selectedProductionMode());
   const pendingGrokJob = loadGrokJob();
   if(pendingGrokJob){
+    grokRequestId = pendingGrokJob.requestId;
     const grokMode = modeInputs.find((input) => input.value === 'grok');
     if(grokMode) grokMode.checked = true;
     if(typeof pendingGrokJob.prompt === 'string') grokPrompt.value = pendingGrokJob.prompt;

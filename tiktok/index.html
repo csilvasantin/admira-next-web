@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Crea un TikTok vertical de 15 segundos con guion, storyboard, preview y vídeo exportable.">
   <meta name="theme-color" content="#05090d">
-  <meta name="admiranext-version" content="v.26.08.01.r2">
+  <meta name="admiranext-version" content="v.26.08.01.r3">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-2">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-3">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok 15s · ADmiraNeXT">
@@ -197,11 +197,20 @@
             <div class="grok-progress"><span id="grokProgress"></span></div>
             <p id="grokJobDetail">La generación puede tardar varios minutos. Puedes dejar esta pestaña abierta.</p>
           </div>
+          <div class="pixeria-bridge" id="pixeriaBridge" data-status="ready">
+            <span class="pixeria-mark" aria-hidden="true">PX</span>
+            <div class="pixeria-copy">
+              <strong id="pixeriaLabel">Pixeria · envío automático activado</strong>
+              <p id="pixeriaDetail">Al terminar, el MP4 se copiará al Stock de Pixeria sin pasar por tu navegador.</p>
+            </div>
+            <a class="button secondary pixeria-action" id="openPixeriaAsset" href="#" target="_blank" rel="noopener noreferrer" hidden>Ver en Pixeria</a>
+            <button class="button secondary pixeria-action" id="retryPixeria" type="button" hidden>Reintentar envío</button>
+          </div>
           <div class="grok-result-actions" id="grokResultActions" hidden>
             <a class="button primary" id="openGrokVideo" href="#" target="_blank" rel="noopener noreferrer">Abrir MP4</a>
             <button class="button secondary" id="copyGrokUrl" type="button">Copiar URL</button>
           </div>
-          <p class="grok-note">Grok se inicia solo al pulsar el botón y puede generar coste en xAI. La clave permanece en el servidor. Se requiere acceso autorizado al Generador de Presentaciones.</p>
+          <p class="grok-note">Grok se inicia solo al pulsar el botón y puede generar coste en xAI. Cuando termina, el vídeo se publica automáticamente en el Stock de Pixeria. Las claves permanecen en el servidor y se requiere acceso autorizado.</p>
           <a class="grok-access" id="grokAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para usar Grok ↗</a>
         </section>
       </section>
@@ -241,7 +250,7 @@
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260801-2"></script>
-  <script src="/tiktok/app.js?v=20260801-2"></script>
+  <script src="/assets/tiktok-core.js?v=20260801-3"></script>
+  <script src="/tiktok/app.js?v=20260801-3"></script>
 </body>
 </html>

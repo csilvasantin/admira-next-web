@@ -50,5 +50,7 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /Exportar vídeo 9:16/);
   assert.match(html, /Grok · vídeo puro/);
   assert.match(html, /id="generateGrokVideo"/);
+  assert.match(html, /Pixeria · envío automático activado/);
+  assert.match(html, /id="retryPixeria"/);
   assert.match(middleware, /'grok-video'/);
 });
