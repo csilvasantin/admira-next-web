@@ -77,6 +77,14 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /id="generateGrokVideo"/);
   assert.match(html, /Pixeria · envío automático activado/);
   assert.match(html, /id="retryPixeria"/);
+  assert.match(html, /id="preRollEnabled"/);
+  assert.match(html, /id="postRollEnabled"/);
+  assert.match(html, /id="referenceVideo"/);
+  assert.match(html, /id="analyzeReference"/);
+  assert.match(html, /id="composeGrokPackage"/);
+  assert.match(html, /5 \+ 15 \+ 5/);
   assert.match(middleware, /'grok-video'/);
   assert.match(middleware, /'ad-idea'/);
+  assert.match(middleware, /'video-reference'/);
+  assert.match(middleware, /'video-package'/);
 });

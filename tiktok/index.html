@@ -3,23 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Crea un TikTok vertical de 15 segundos con guion, storyboard, preview y vídeo exportable.">
+  <meta name="description" content="Crea un anuncio vertical de 25 segundos con preroll, vídeo principal, postroll y publicación automática en Pixeria.">
   <meta name="theme-color" content="#05090d">
-  <meta name="admiranext-version" content="v.26.08.01.r6">
+  <meta name="admiranext-version" content="v.26.08.01.r7">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-6">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-7">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
-  <meta property="og:title" content="TikTok 15s · ADmiraNeXT">
-  <meta property="og:description" content="De una idea a un TikTok vertical, listo para revisar y exportar.">
+  <meta property="og:title" content="TikTok Ads 25s · ADmiraNeXT">
+  <meta property="og:description" content="Preroll 5s, anuncio 15s y postroll 5s, listo para publicar en Pixeria.">
   <meta property="og:image" content="https://www.admiranext.com/tiktok/og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="TikTok 15s · ADmiraNeXT">
-  <meta name="twitter:description" content="De una idea a un TikTok vertical, listo para revisar y exportar.">
+  <meta name="twitter:title" content="TikTok Ads 25s · ADmiraNeXT">
+  <meta name="twitter:description" content="Preroll 5s, anuncio 15s y postroll 5s, listo para publicar en Pixeria.">
   <meta name="twitter:image" content="https://www.admiranext.com/tiktok/og.png">
-  <title>TikTok 15s · ADmiraNeXT</title>
+  <title>TikTok Ads 25s · ADmiraNeXT</title>
 </head>
 <body>
   <a class="skip-link" href="#workspace">Saltar al generador</a>
@@ -28,7 +28,7 @@
     <a class="brand" href="/" aria-label="Volver a ADmiraNeXT">
       <i aria-hidden="true"></i>
       <span>ADmiraNeXT · TikTok</span>
-      <small>15 second studio</small>
+      <small>25 second ad studio</small>
     </a>
     <nav class="top-actions" aria-label="Herramientas ADmiraNeXT">
       <a href="/presentaciones/generador/">Presentaciones</a>
@@ -40,8 +40,8 @@
     <section class="hero">
       <div>
         <p class="kicker">Generador · Vídeo vertical</p>
-        <h1>De una idea a un <em>anuncio en 15 segundos.</em></h1>
-        <p class="lead">Apunta la idea como en Objetivos. El estudio la convierte en brief, guion, storyboard y vídeo vertical listo para publicar en Pixeria.</p>
+        <h1>De una idea a un <em>anuncio completo en 25 segundos.</em></h1>
+        <p class="lead">Apunta la idea como en Objetivos. El estudio crea 15 segundos de vídeo y los entrega con 5 segundos de entrada, 5 de salida y publicación automática en Pixeria.</p>
       </div>
       <aside class="hero-aside">
         <span>FLUJO AUTÓNOMO</span>
@@ -112,7 +112,7 @@
       </div>
     </section>
 
-    <section class="workspace" id="workspace" aria-label="Estudio TikTok de 15 segundos">
+    <section class="workspace" id="workspace" aria-label="Estudio de anuncios TikTok de 25 segundos">
       <form class="editor panel" id="generatorForm">
         <div class="panel-heading">
           <div>
@@ -217,7 +217,7 @@
             <div class="safe safe-bottom">@ADmiraNeXT</div>
             <div class="video-progress"><span id="videoProgress"></span></div>
           </div>
-          <video class="grok-video" id="grokVideo" controls playsinline preload="metadata" hidden aria-label="Vídeo puro generado con Grok"></video>
+          <video class="grok-video" id="grokVideo" controls playsinline preload="metadata" crossorigin="anonymous" hidden aria-label="Vídeo puro generado con Grok"></video>
           <div class="timecode"><span id="timecode">00:00.0</span><b> / 00:15.0</b></div>
         </div>
 
@@ -235,6 +235,47 @@
             </div>
             <span class="grok-spec">15S · 9:16</span>
           </div>
+          <section class="package-config" aria-labelledby="packageConfigTitle">
+            <div class="package-title-row">
+              <div>
+                <span class="section-code">MONTAJE FINAL / 25S</span>
+                <h4 id="packageConfigTitle">Cortinillas y referencia</h4>
+              </div>
+              <span class="package-total">5 + 15 + 5</span>
+            </div>
+            <div class="package-timeline" aria-label="Estructura del vídeo final">
+              <span class="is-roll"><b>PREROLL</b><small>00–05s</small></span>
+              <span class="is-main"><b>ANUNCIO GROK</b><small>05–20s</small></span>
+              <span class="is-roll"><b>POSTROLL</b><small>20–25s</small></span>
+            </div>
+            <div class="roll-fields">
+              <label class="roll-card">
+                <span><input id="preRollEnabled" type="checkbox" checked> Preroll · 5 segundos</span>
+                <input id="preRollTitle" maxlength="90" value="ADmiraNeXT presenta" aria-label="Texto del preroll">
+              </label>
+              <label class="roll-card">
+                <span><input id="postRollEnabled" type="checkbox" checked> Postroll · 5 segundos</span>
+                <input id="postRollCta" maxlength="90" value="Descúbrelo hoy" aria-label="Texto del postroll">
+              </label>
+            </div>
+            <div class="reference-card">
+              <div class="reference-copy">
+                <strong>Vídeo de referencia</strong>
+                <p>Extraemos cuatro fotogramas en tu navegador y Grok los convierte en una guía de cámara, ritmo, luz y color. No copiamos personas, logos ni marcas.</p>
+              </div>
+              <label class="reference-picker">
+                <span>Elegir vídeo</span>
+                <input id="referenceVideo" type="file" accept="video/mp4,video/webm,video/quicktime">
+              </label>
+              <video id="referencePreview" muted playsinline preload="metadata" hidden aria-label="Previsualización del vídeo de referencia"></video>
+              <div class="reference-actions">
+                <button class="button secondary" id="analyzeReference" type="button" disabled>Analizar referencia</button>
+                <button class="text-button" id="clearReference" type="button" hidden>Quitar</button>
+              </div>
+              <p class="reference-status" id="referenceStatus" role="status">Opcional · MP4, WebM o MOV · máximo 60 segundos y 200 MB.</p>
+              <div class="reference-profile" id="referenceProfile" hidden></div>
+            </div>
+          </section>
           <label class="field full">
             <span>Dirección visual para Grok</span>
             <textarea id="grokPrompt" rows="7" maxlength="3200"></textarea>
@@ -268,6 +309,19 @@
             <a class="button primary" id="openGrokVideo" href="#" target="_blank" rel="noopener noreferrer">Abrir MP4</a>
             <button class="button secondary" id="copyGrokUrl" type="button">Copiar URL</button>
           </div>
+          <section class="package-output" id="packageOutput" hidden aria-labelledby="packageOutputTitle">
+            <div>
+              <span class="section-code">MASTER FINAL / PIXERIA</span>
+              <h4 id="packageOutputTitle">Montar anuncio de 25 segundos</h4>
+              <p id="packageStatus">El vídeo principal está listo. Añadiremos las dos cortinillas y publicaremos el resultado final en Pixeria.</p>
+            </div>
+            <div class="package-actions">
+              <button class="button primary" id="composeGrokPackage" type="button">Montar y publicar 25s</button>
+              <a class="button secondary" id="openPackageAsset" href="#" target="_blank" rel="noopener noreferrer" hidden>Ver final en Pixeria</a>
+              <a class="button secondary" id="downloadGrokPackage" href="#" download hidden>Descargar final</a>
+            </div>
+            <div class="package-progress" id="packageProgress" hidden><span></span></div>
+          </section>
           <p class="grok-note">Grok se inicia solo al pulsar el botón y puede generar coste en xAI. Cuando termina, el vídeo se publica automáticamente en el Stock de Pixeria. Las claves permanecen en el servidor y se requiere acceso autorizado.</p>
           <a class="grok-access" id="grokAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para usar Grok ↗</a>
         </section>
@@ -304,11 +358,11 @@
   </main>
 
   <footer>
-    <span>ADmiraNeXT · TikTok 15s</span>
+    <span>ADmiraNeXT · TikTok Ads 25s</span>
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260801-6"></script>
-  <script src="/tiktok/app.js?v=20260801-6"></script>
+  <script src="/assets/tiktok-core.js?v=20260801-7"></script>
+  <script src="/tiktok/app.js?v=20260801-7"></script>
 </body>
 </html>

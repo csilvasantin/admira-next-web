@@ -52,10 +52,27 @@
   const pixeriaDetail = $('#pixeriaDetail');
   const openPixeriaAsset = $('#openPixeriaAsset');
   const retryPixeria = $('#retryPixeria');
+  const preRollEnabled = $('#preRollEnabled');
+  const preRollTitle = $('#preRollTitle');
+  const postRollEnabled = $('#postRollEnabled');
+  const postRollCta = $('#postRollCta');
+  const referenceVideo = $('#referenceVideo');
+  const referencePreview = $('#referencePreview');
+  const analyzeReference = $('#analyzeReference');
+  const clearReference = $('#clearReference');
+  const referenceStatus = $('#referenceStatus');
+  const referenceProfileView = $('#referenceProfile');
+  const packageOutput = $('#packageOutput');
+  const packageStatus = $('#packageStatus');
+  const packageProgress = $('#packageProgress');
+  const composeGrokPackage = $('#composeGrokPackage');
+  const openPackageAsset = $('#openPackageAsset');
+  const downloadGrokPackage = $('#downloadGrokPackage');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const STORAGE_KEY = 'admiranext:tiktok15:brief:v1';
   const AD_IDEAS_KEY = 'admiranext:tiktok15:ad-ideas:v1';
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
+  const REFERENCE_PROFILE_KEY = 'admiranext:tiktok:reference-profile:v1';
 
   let variation = 0;
   let plan = null;
@@ -68,6 +85,10 @@
   let grokPolling = false;
   let grokVideoUrl = '';
   let grokRequestId = '';
+  let referenceObjectUrl = '';
+  let referenceProfile = null;
+  let packageBlobUrl = '';
+  let packageId = '';
   let adIdeas = [];
 
   const example = {
@@ -322,6 +343,39 @@
     return article;
   }
 
+  function syncGrokPrompt() {
+    if(!plan) return;
+    const style = referenceProfile?.promptFragment ? `\n\n${referenceProfile.promptFragment}` : '';
+    grokPrompt.value = core.clean(`${plan.grokPrompt}${style}`, 3200);
+  }
+
+  function renderReferenceProfile() {
+    if(!referenceProfile){
+      referenceProfileView.hidden = true;
+      referenceProfileView.textContent = '';
+      return;
+    }
+    referenceProfileView.textContent = `Dirección aplicada · ${referenceProfile.summary} Cámara: ${referenceProfile.camera} Ritmo: ${referenceProfile.rhythm}`;
+    referenceProfileView.hidden = false;
+    clearReference.hidden = false;
+  }
+
+  function saveReferenceProfile() {
+    try{
+      if(referenceProfile) localStorage.setItem(REFERENCE_PROFILE_KEY, JSON.stringify(referenceProfile));
+      else localStorage.removeItem(REFERENCE_PROFILE_KEY);
+    }catch(_){ /* Optional device-local persistence. */ }
+  }
+
+  function loadReferenceProfile() {
+    try{
+      const saved = JSON.parse(localStorage.getItem(REFERENCE_PROFILE_KEY) || 'null');
+      if(saved && typeof saved.promptFragment === 'string' && typeof saved.summary === 'string') referenceProfile = saved;
+    }catch(_){ referenceProfile = null; }
+    renderReferenceProfile();
+    if(referenceProfile) setReferenceMessage('Guía visual recuperada de este dispositivo y aplicada al prompt.', 'success');
+  }
+
   function renderPlan(nextPlan) {
     plan = nextPlan;
     document.body.dataset.presenter = plan.presenter.key;
@@ -331,7 +385,7 @@
     paceStatus.style.color = plan.pace.level === 'too-fast' ? '#ff7a30' : '';
     storyboard.replaceChildren(...plan.scenes.map(createStoryCard));
     proofChip.textContent = plan.presenter.name.toUpperCase() + ' · 15S';
-    grokPrompt.value = plan.grokPrompt;
+    syncGrokPrompt();
     saveDraft();
     restart();
   }
@@ -482,6 +536,113 @@
     return payload;
   }
 
+  function setReferenceMessage(message, state = '') {
+    referenceStatus.textContent = message;
+    referenceStatus.classList.toggle('is-error', state === 'error');
+    referenceStatus.classList.toggle('is-success', state === 'success');
+  }
+
+  function waitForMedia(element, eventName) {
+    return new Promise((resolve, reject) => {
+      const done = () => { cleanup(); resolve(); };
+      const failed = () => { cleanup(); reject(new Error('No pudimos leer el vídeo de referencia.')); };
+      const cleanup = () => {
+        element.removeEventListener(eventName, done);
+        element.removeEventListener('error', failed);
+      };
+      element.addEventListener(eventName, done, {once:true});
+      element.addEventListener('error', failed, {once:true});
+    });
+  }
+
+  async function selectReferenceVideo() {
+    const file = referenceVideo.files?.[0];
+    if(!file) return;
+    const allowed = ['video/mp4', 'video/webm', 'video/quicktime'];
+    if(!allowed.includes(file.type) || file.size > 200 * 1024 * 1024){
+      referenceVideo.value = '';
+      setReferenceMessage('Usa un MP4, WebM o MOV de hasta 200 MB.', 'error');
+      return;
+    }
+    if(referenceObjectUrl) URL.revokeObjectURL(referenceObjectUrl);
+    referenceObjectUrl = URL.createObjectURL(file);
+    referencePreview.src = referenceObjectUrl;
+    referencePreview.hidden = false;
+    analyzeReference.disabled = true;
+    clearReference.hidden = false;
+    setReferenceMessage('Leyendo duración y formato…');
+    try{
+      if(referencePreview.readyState < 1) await waitForMedia(referencePreview, 'loadedmetadata');
+      if(!Number.isFinite(referencePreview.duration) || referencePreview.duration <= 0 || referencePreview.duration > 60){
+        throw new Error('La referencia debe durar entre 1 y 60 segundos.');
+      }
+      analyzeReference.disabled = false;
+      setReferenceMessage(`Referencia lista · ${referencePreview.duration.toFixed(1)}s. Analízala para aplicar su lenguaje visual.`);
+    }catch(error){
+      analyzeReference.disabled = true;
+      setReferenceMessage(error.message || 'No pudimos leer el vídeo de referencia.', 'error');
+    }
+  }
+
+  async function captureReferenceFrames() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 360;
+    canvas.height = 640;
+    const ctx = canvas.getContext('2d', {alpha:false});
+    const duration = referencePreview.duration;
+    const frames = [];
+    for(const fraction of [0.08, 0.35, 0.65, 0.92]){
+      referencePreview.currentTime = Math.max(0, Math.min(duration - 0.05, duration * fraction));
+      await waitForMedia(referencePreview, 'seeked');
+      const scale = Math.max(canvas.width / referencePreview.videoWidth, canvas.height / referencePreview.videoHeight);
+      const width = referencePreview.videoWidth * scale;
+      const height = referencePreview.videoHeight * scale;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(referencePreview, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+      frames.push(canvas.toDataURL('image/jpeg', 0.72));
+    }
+    return frames;
+  }
+
+  async function analyzeReferenceVideo() {
+    if(!referencePreview.src || analyzeReference.disabled) return;
+    analyzeReference.disabled = true;
+    setReferenceMessage('Extrayendo cuatro momentos del vídeo en este dispositivo…');
+    try{
+      const frames = await captureReferenceFrames();
+      setReferenceMessage('Grok está leyendo cámara, ritmo, luz y paleta…');
+      const response = await fetch('/presentaciones/api/video-reference', {
+        method:'POST', credentials:'same-origin',
+        headers:{'content-type':'application/json', accept:'application/json'},
+        body:JSON.stringify({frames})
+      });
+      const payload = await readApiResponse(response);
+      referenceProfile = payload.profile;
+      saveReferenceProfile();
+      renderReferenceProfile();
+      syncGrokPrompt();
+      setReferenceMessage('Referencia analizada y aplicada a la dirección visual de Grok.', 'success');
+    }catch(error){ setReferenceMessage(error.message || 'No pudimos analizar la referencia.', 'error'); }
+    finally{ analyzeReference.disabled = false; }
+  }
+
+  function clearReferenceVideo() {
+    referenceVideo.value = '';
+    referencePreview.removeAttribute('src');
+    referencePreview.load();
+    referencePreview.hidden = true;
+    if(referenceObjectUrl) URL.revokeObjectURL(referenceObjectUrl);
+    referenceObjectUrl = '';
+    referenceProfile = null;
+    saveReferenceProfile();
+    renderReferenceProfile();
+    syncGrokPrompt();
+    analyzeReference.disabled = true;
+    clearReference.hidden = true;
+    setReferenceMessage('Opcional · MP4, WebM o MOV · máximo 60 segundos y 200 MB.');
+  }
+
   function showGrokError(error) {
     const auth = Boolean(error?.auth);
     generateGrokButton.disabled = false;
@@ -514,6 +675,9 @@
     grokAccess.hidden = true;
     if(publication.status === 'published'){
       setGrokJob('Vídeo publicado', 100, 'Grok ha terminado y Pixeria ya tiene una copia permanente en su Stock.');
+      packageOutput.hidden = false;
+      composeGrokPackage.disabled = false;
+      packageStatus.textContent = 'El máster principal está listo. Añadiremos preroll y postroll y publicaremos la pieza final en Pixeria.';
       clearGrokJob();
     }else{
       setGrokJob('Vídeo listo · Pixeria pendiente', 100, 'Puedes revisar el MP4 y reintentar su envío a Pixeria sin volver a generar el vídeo.');
@@ -565,6 +729,11 @@
     grokAccess.hidden = true;
     grokVideoUrl = '';
     grokRequestId = '';
+    packageOutput.hidden = true;
+    packageOutput.classList.remove('is-published');
+    openPackageAsset.hidden = true;
+    downloadGrokPackage.hidden = true;
+    packageId = '';
     setPixeriaState('ready');
     grokVideo.removeAttribute('src');
     grokVideo.load();
@@ -780,6 +949,209 @@
     return types.find((type) => MediaRecorder.isTypeSupported(type)) || '';
   }
 
+  function drawVideoCover(ctx, video) {
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const sourceWidth = video.videoWidth || 1080;
+    const sourceHeight = video.videoHeight || 1920;
+    const scale = Math.max(width / sourceWidth, height / sourceHeight);
+    const drawWidth = sourceWidth * scale;
+    const drawHeight = sourceHeight * scale;
+    ctx.fillStyle = '#020508';
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(video, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+  }
+
+  function drawRollFrame(ctx, kind, seconds, text) {
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const outgoing = kind === 'post';
+    const accent = outgoing ? '#bd86ff' : '#65e9f4';
+    const secondary = outgoing ? '#65e9f4' : '#ff7a30';
+    const local = Math.max(0, Math.min(1, seconds / 5));
+    const pulse = 0.5 + Math.sin(seconds * 3.2) * 0.5;
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#081722');
+    gradient.addColorStop(0.58, '#05090d');
+    gradient.addColorStop(1, outgoing ? '#170c22' : '#102029');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    ctx.save();
+    ctx.globalAlpha = 0.1 + pulse * 0.08;
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    const offset = (seconds * 46) % 90;
+    for(let y = -90 + offset; y < height + 90; y += 90){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
+    for(let x = 0; x < width; x += 90){ ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
+    ctx.restore();
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(seconds * (outgoing ? -0.08 : 0.08));
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 5;
+    ctx.strokeRect(-360 - local * 30, -360 - local * 30, 720 + local * 60, 720 + local * 60);
+    ctx.restore();
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = secondary;
+    ctx.font = '900 24px ui-monospace, monospace';
+    ctx.fillText(outgoing ? 'POSTROLL · 05S' : 'PREROLL · 05S', width / 2, 330);
+    ctx.fillStyle = '#eef8fa';
+    ctx.font = '900 78px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    const lines = wrapLines(ctx, text, width - 180, 4);
+    const firstY = height / 2 - ((lines.length - 1) * 48);
+    lines.forEach((line, index) => ctx.fillText(line, width / 2, firstY + index * 94));
+    ctx.fillStyle = accent;
+    ctx.font = '900 23px ui-monospace, monospace';
+    ctx.fillText(outgoing ? '@ADmiraNeXT · PIXERIA' : 'ADmiraNeXT · CREATIVE STUDIO', width / 2, height - 260);
+    ctx.fillStyle = 'rgba(255,255,255,0.14)';
+    ctx.fillRect(74, height - 165, width - 148, 5);
+    ctx.fillStyle = accent;
+    ctx.fillRect(74, height - 165, (width - 148) * local, 5);
+  }
+
+  async function retryPackagePublication() {
+    if(!packageId) return;
+    composeGrokPackage.disabled = true;
+    packageStatus.textContent = 'Reintentando la publicación del master final en Pixeria…';
+    try{
+      const response = await fetch('/presentaciones/api/video-package', {
+        method:'PUT', credentials:'same-origin',
+        headers:{'content-type':'application/json', accept:'application/json'},
+        body:JSON.stringify({id:packageId})
+      });
+      const payload = await readApiResponse(response);
+      if(payload.pixeria?.status !== 'published') throw new Error(payload.pixeria?.error || 'Pixeria todavía no ha podido guardar el master.');
+      finishPackagePublication(payload);
+    }catch(error){
+      packageStatus.textContent = error.message || 'Pixeria no respondió. Puedes volver a intentarlo.';
+      composeGrokPackage.textContent = 'Reintentar Pixeria';
+      composeGrokPackage.disabled = false;
+    }
+  }
+
+  function finishPackagePublication(payload) {
+    packageId = payload.id || packageId;
+    packageOutput.classList.add('is-published');
+    packageStatus.textContent = `Master final de ${payload.duration || 25} segundos publicado en Pixeria${payload.pixeria?.id ? ` · ${payload.pixeria.id}` : ''}.`;
+    openPackageAsset.href = payload.pixeria?.stockUrl || 'https://www.pixeria.com/stock.html';
+    openPackageAsset.hidden = false;
+    composeGrokPackage.textContent = 'Publicado en Pixeria';
+    composeGrokPackage.disabled = true;
+    packageProgress.hidden = false;
+    packageProgress.firstElementChild.style.width = '100%';
+  }
+
+  async function composeAndPublishGrokPackage() {
+    if(packageId && composeGrokPackage.textContent.includes('Reintentar')) return retryPackagePublication();
+    if(!grokVideoUrl || !window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){
+      packageStatus.textContent = 'Este navegador no puede montar el vídeo final. Prueba con Chrome, Edge o Safari actualizado.';
+      return;
+    }
+    composeGrokPackage.disabled = true;
+    openPackageAsset.hidden = true;
+    packageProgress.hidden = false;
+    packageProgress.firstElementChild.style.width = '0%';
+    packageStatus.textContent = 'Preparando el master vertical…';
+    const before = preRollEnabled.checked ? 5 : 0;
+    const after = postRollEnabled.checked ? 5 : 0;
+    const totalDuration = before + 15 + after;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d', {alpha:false});
+    const stream = canvas.captureStream(30);
+    let capturedVideoStream = null;
+    let recorder = null;
+    try{
+      if(grokVideo.readyState < 2) await waitForMedia(grokVideo, 'loadeddata');
+      grokVideo.currentTime = 0;
+      await grokVideo.play();
+      grokVideo.pause();
+      if(typeof grokVideo.captureStream === 'function'){
+        capturedVideoStream = grokVideo.captureStream();
+        capturedVideoStream.getAudioTracks().forEach(track => stream.addTrack(track));
+      }
+      const mimeType = supportedMime();
+      recorder = new MediaRecorder(stream, mimeType ? {mimeType, videoBitsPerSecond:6500000} : {videoBitsPerSecond:6500000});
+      const chunks = [];
+      recorder.ondataavailable = event => { if(event.data?.size) chunks.push(event.data); };
+      const completed = new Promise((resolve, reject) => {
+        recorder.onstop = resolve;
+        recorder.onerror = () => reject(recorder.error || new Error('No se pudo codificar el master final.'));
+      });
+      const started = performance.now();
+      let mainStarted = false;
+      let active = true;
+      function render(now){
+        if(!active) return;
+        const elapsed = Math.min(totalDuration, (now - started) / 1000);
+        if(elapsed < before){
+          drawRollFrame(ctx, 'pre', elapsed, core.clean(preRollTitle.value, 90) || 'ADmiraNeXT presenta');
+        }else if(elapsed < before + 15){
+          if(!mainStarted){
+            mainStarted = true;
+            grokVideo.currentTime = 0;
+            void grokVideo.play().catch(() => {});
+          }
+          drawVideoCover(ctx, grokVideo);
+        }else{
+          if(!grokVideo.paused) grokVideo.pause();
+          drawRollFrame(ctx, 'post', elapsed - before - 15, core.clean(postRollCta.value, 90) || plan.brief.cta || 'Descúbrelo hoy');
+        }
+        const percent = Math.round((elapsed / totalDuration) * 90);
+        packageProgress.firstElementChild.style.width = `${percent}%`;
+        packageStatus.textContent = `Montando ${totalDuration}s · ${percent}%`;
+        if(elapsed >= totalDuration){
+          active = false;
+          window.setTimeout(() => recorder.stop(), 180);
+        }else requestAnimationFrame(render);
+      }
+      recorder.start(1000);
+      requestAnimationFrame(render);
+      await completed;
+      const finalType = recorder.mimeType || mimeType || 'video/webm';
+      const extension = finalType.includes('mp4') ? 'mp4' : 'webm';
+      const blob = new Blob(chunks, {type:finalType});
+      if(blob.size < 1024) throw new Error('El master final quedó vacío. Vuelve a intentarlo.');
+      if(packageBlobUrl) URL.revokeObjectURL(packageBlobUrl);
+      packageBlobUrl = URL.createObjectURL(blob);
+      downloadGrokPackage.href = packageBlobUrl;
+      downloadGrokPackage.download = `${core.fileSlug(plan.brief.task)}-${totalDuration}s.${extension}`;
+      downloadGrokPackage.hidden = false;
+      packageStatus.textContent = 'Montaje terminado. Subiendo el master final y publicándolo en Pixeria…';
+      packageProgress.firstElementChild.style.width = '94%';
+      const clientRequestId = crypto.randomUUID();
+      const response = await fetch('/presentaciones/api/video-package', {
+        method:'POST', credentials:'same-origin',
+        headers:{
+          'content-type':finalType,
+          accept:'application/json',
+          'x-client-request-id':clientRequestId,
+          'x-package-title':encodeURIComponent(`${plan.brief.task} · ${totalDuration}s`)
+        },
+        body:blob
+      });
+      const payload = await readApiResponse(response);
+      packageId = payload.id || '';
+      if(payload.pixeria?.status === 'published') finishPackagePublication(payload);
+      else{
+        packageStatus.textContent = payload.pixeria?.error || 'El master está guardado en ADmiraNeXT, pero Pixeria todavía no lo ha incorporado.';
+        composeGrokPackage.textContent = 'Reintentar Pixeria';
+        composeGrokPackage.disabled = false;
+      }
+    }catch(error){
+      packageStatus.textContent = error.message || 'No se pudo montar el master final.';
+      composeGrokPackage.textContent = 'Volver a montar 25s';
+      composeGrokPackage.disabled = false;
+    }finally{
+      if(!grokVideo.paused) grokVideo.pause();
+      stream.getTracks().forEach(track => track.stop());
+      capturedVideoStream?.getTracks().forEach(track => track.stop());
+    }
+  }
+
   async function exportClip() {
     if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
       exportStatus.textContent = 'Este navegador no puede codificar vídeo. El plan JSON y el guion siguen disponibles.';
@@ -882,18 +1254,25 @@
   modeInputs.forEach((input) => input.addEventListener('change', () => setProductionMode(selectedProductionMode())));
   generateGrokButton.addEventListener('click', () => { void startGrokVideo(); });
   retryPixeria.addEventListener('click', () => { void retryPixeriaPublication(); });
+  referenceVideo.addEventListener('change', () => { void selectReferenceVideo(); });
+  analyzeReference.addEventListener('click', () => { void analyzeReferenceVideo(); });
+  clearReference.addEventListener('click', clearReferenceVideo);
+  composeGrokPackage.addEventListener('click', () => { void composeAndPublishGrokPackage(); });
   copyGrokUrl.addEventListener('click', () => copyText(grokVideoUrl, copyGrokUrl, 'Copiar URL'));
   reduceMotion.addEventListener('change', restart);
   window.addEventListener('beforeunload', () => {
     cancelAnimationFrame(animationFrame);
     window.clearTimeout(grokPollTimer);
     if ('speechSynthesis' in window) speechSynthesis.cancel();
+    if(referenceObjectUrl) URL.revokeObjectURL(referenceObjectUrl);
+    if(packageBlobUrl) URL.revokeObjectURL(packageBlobUrl);
   });
 
   adDate.value = todayValue();
   loadAdIdeas();
   renderAdIdeas();
   loadDraft();
+  loadReferenceProfile();
   generate();
   setProductionMode(selectedProductionMode());
   const pendingGrokJob = loadGrokJob();
