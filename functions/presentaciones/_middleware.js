@@ -170,6 +170,9 @@ export async function onRequest(context){
   const expected = env[secretName];
   const master = env.PRES_ADMIN;
   const editor = env.PRES_EDITOR;
+  // Acceso común para las presentaciones públicas. Nunca concede privilegios de
+  // edición, generación o control: esas zonas siguen exigiendo master/editor.
+  const generic = env.PRES_GENERIC;
   const cleanPath = `${url.pathname}${url.search}`;
   const recoveryRequested = url.searchParams.get('recuperar') === '1';
 
@@ -179,7 +182,7 @@ export async function onRequest(context){
   const clientTitle = generated?.displayName || names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1);
   const title = isGallery ? 'Presentaciones' : (isGeneratorPage || isGeneratorApi || isClientsApi ? 'Generador de presentaciones' : (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi ? `${clientTitle} · Ideas` : clientTitle));
 
-  if (!signKey || (!expected && !dynamicVerifier && !master)) return htmlResponse(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'), 503);
+  if (!signKey || (!expected && !dynamicVerifier && !master && !generic)) return htmlResponse(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'), 503);
 
   const cookies = readCookies(request);
   const [masterValid, editorValid, clientValid, identity] = await Promise.all([
@@ -224,6 +227,7 @@ export async function onRequest(context){
     let targetName = '', targetSlug = '', granted = '';
     if (master && ctEq(password, master)) { targetName = 'pres_master'; targetSlug = '_master'; granted = 'master'; }
     else if (editorAllowed && editor && ctEq(password, editor)) { targetName = 'pres_editor'; targetSlug = '_editor'; granted = 'editor'; }
+    else if (!isInternalArea && generic && ctEq(password, generic)) { targetName = cookieName; targetSlug = cookieSlug; granted = 'client'; }
     else if (!isInternalArea && expected && ctEq(password, expected)) { targetName = cookieName; targetSlug = cookieSlug; granted = 'client'; }
     else if (!isInternalArea && dynamicVerifier && ctEq(await hmac(signKey, `password:${seg}:${password}`), dynamicVerifier)) { targetName = cookieName; targetSlug = cookieSlug; granted = 'client'; }
 
