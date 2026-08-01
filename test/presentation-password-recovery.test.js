@@ -11,10 +11,18 @@ test('el acceso ofrece una recuperación de contraseña visible', () => {
 });
 
 test('el acceso es reconocible por Google Password Manager', () => {
-  assert.match(source, /<form class="box"[^>]*autocomplete="on"/);
+  assert.match(source, /<form[^>]*autocomplete="on"/);
   assert.match(source, /name="email"[^>]*autocomplete="username"/);
   assert.match(source, /name="password"[^>]*autocomplete="current-password"/);
   assert.match(source, /Google Password Manager/);
+});
+
+test('el generador muestra el selector oficial de cuentas de Google', () => {
+  assert.match(source, /accounts\.google\.com\/gsi\/client/);
+  assert.match(source, /class="g_id_signin"/);
+  assert.match(source, /data-text="continue_with"/);
+  assert.match(source, /oauth2\.googleapis\.com\/tokeninfo/);
+  assert.match(source, /payload\.aud !== GOOGLE_CLIENT_ID/);
 });
 
 test('la recuperación no revela la contraseña ni enumera usuarios', () => {
