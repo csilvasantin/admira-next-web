@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Crea un TikTok vertical de 15 segundos con guion, storyboard, preview y vídeo exportable.">
   <meta name="theme-color" content="#05090d">
-  <meta name="admiranext-version" content="v.26.08.01.r4">
+  <meta name="admiranext-version" content="v.26.08.01.r5">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-4">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-5">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok 15s · ADmiraNeXT">
@@ -67,9 +67,9 @@
         <div class="ad-composer-head">
           <label class="ad-title-field">
             <span class="visually-hidden">Idea del anuncio</span>
-            <input id="adIdea" name="idea" maxlength="200" placeholder="La idea del anuncio, en una frase…" required>
+            <input id="adIdea" name="idea" maxlength="200" placeholder="Escribe algo mínimo, por ejemplo: anuncio de pizzería…" required>
           </label>
-          <button class="idea-generator" id="newAdIdea" type="button" title="Crear un borrador editable de ejemplo">✨ Idea nueva</button>
+          <button class="idea-generator" id="developAdIdea" type="button" title="Desarrollar el titular con el director creativo">✨ Desarrollar idea</button>
         </div>
         <label class="ad-detail-field">
           <span class="visually-hidden">Detalle del anuncio</span>
@@ -100,7 +100,8 @@
           </label>
           <button class="button primary create-ad" type="submit">Crear anuncio</button>
         </div>
-        <p class="composer-status" id="adIdeaStatus" role="status">Crear el anuncio prepara el guion. Grok solo se inicia cuando tú lo confirmas después.</p>
+        <p class="composer-status" id="adIdeaStatus" role="status">Escribe un titular corto y pulsa “Desarrollar idea”; completaremos el anuncio antes de crear el guion.</p>
+        <a class="composer-access" id="adIdeaAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para desarrollar ideas ↗</a>
       </form>
 
       <div class="ad-library" id="adLibrary" hidden>
@@ -307,7 +308,7 @@
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260801-4"></script>
-  <script src="/tiktok/app.js?v=20260801-4"></script>
+  <script src="/assets/tiktok-core.js?v=20260801-5"></script>
+  <script src="/tiktok/app.js?v=20260801-5"></script>
 </body>
 </html>

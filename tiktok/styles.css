@@ -263,6 +263,12 @@ main {
   background: rgba(189, 134, 255, 0.12);
 }
 
+.idea-generator:disabled {
+  opacity: 0.66;
+  cursor: wait;
+  border-color: var(--line);
+}
+
 .ad-detail-field { display: block; }
 .ad-detail-field textarea {
   min-height: 132px;
@@ -292,6 +298,15 @@ main {
 }
 
 .composer-status.is-success { color: var(--green); }
+.composer-status.is-error { color: var(--orange); }
+
+.composer-access {
+  display: inline-block;
+  margin-top: 0.55rem;
+  color: var(--purple);
+  font: 800 0.62rem var(--mono);
+  text-underline-offset: 3px;
+}
 
 .ad-library {
   margin-top: 0.75rem;

@@ -64,7 +64,8 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /id="adIdeaForm"/);
   assert.match(html, /Ideas de anuncios/);
   assert.match(html, /Crear anuncio/);
-  assert.match(html, /id="newAdIdea"/);
+  assert.match(html, /id="developAdIdea"/);
+  assert.match(html, /Desarrollar idea/);
   assert.match(html, /\/assets\/tiktok-core\.js/);
   assert.match(html, /\/tiktok\/app\.js/);
   assert.match(html, /Exportar vídeo 9:16/);
@@ -73,4 +74,5 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /Pixeria · envío automático activado/);
   assert.match(html, /id="retryPixeria"/);
   assert.match(middleware, /'grok-video'/);
+  assert.match(middleware, /'ad-idea'/);
 });

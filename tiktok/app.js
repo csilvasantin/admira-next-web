@@ -12,6 +12,8 @@
   const adLibrary = $('#adLibrary');
   const adIdeaList = $('#adIdeaList');
   const adDate = $('#adDate');
+  const developAdButton = $('#developAdIdea');
+  const adIdeaAccess = $('#adIdeaAccess');
   const stage = $('#phoneStage');
   const sceneCopy = $('.scene-copy');
   const sceneLabel = $('#sceneLabel');
@@ -67,7 +69,6 @@
   let grokVideoUrl = '';
   let grokRequestId = '';
   let adIdeas = [];
-  let adExampleIndex = 0;
 
   const example = {
     task: 'Encontrar las acciones importantes dentro de un PDF largo',
@@ -78,30 +79,6 @@
     audience: 'Personas que quieren ahorrar tiempo',
     cta: 'Guárdalo y pruébalo hoy'
   };
-
-  const adExamples = [
-    {
-      idea: 'Llenar las horas valle del gimnasio con una semana de prueba',
-      detail: 'Entrenamientos guiados de 30 minutos, sin permanencia y con plazas limitadas. Mostrar energía real, cercanía y progreso desde el primer día.',
-      brand: 'Tu gimnasio',
-      objective: 'leads',
-      audience: 'Personas del barrio con poco tiempo'
-    },
-    {
-      idea: 'Convertir el menú del día en el plan favorito de la oficina',
-      detail: 'Enseñar ingredientes frescos, servicio rápido y un precio cerrado. La comida debe verse real, abundante y recién preparada.',
-      brand: 'Tu restaurante',
-      objective: 'visits',
-      audience: 'Profesionales que comen cerca del trabajo'
-    },
-    {
-      idea: 'Presentar una nueva colección como una mejora visible del día a día',
-      detail: 'Abrir con una situación reconocible, mostrar el producto en uso y cerrar con el beneficio principal sin promesas exageradas.',
-      brand: 'Tu marca',
-      objective: 'launch',
-      audience: 'Personas que valoran diseño y utilidad'
-    }
-  ];
 
   const objectiveLabels = {
     leads: 'Contactos',
@@ -211,17 +188,57 @@
     adIdeaList.replaceChildren(...adIdeas.slice(0, 3).map(createAdCard));
   }
 
-  function draftAdExample() {
-    const sample = adExamples[adExampleIndex % adExamples.length];
-    adExampleIndex += 1;
-    Object.entries(sample).forEach(([key, value]) => {
-      const field = adIdeaForm.elements.namedItem(key);
-      if (field) field.value = value;
-    });
-    if (!adDate.value) adDate.value = todayValue();
-    adIdeaStatus.textContent = 'Borrador creado. Edítalo con tus datos y pulsa “Crear anuncio”.';
-    adIdeaStatus.classList.add('is-success');
-    $('#adIdea').focus();
+  function setAdIdeaMessage(message, state = '') {
+    adIdeaStatus.textContent = message;
+    adIdeaStatus.classList.toggle('is-success', state === 'success');
+    adIdeaStatus.classList.toggle('is-error', state === 'error');
+  }
+
+  async function developAdIdea() {
+    const headline = core.clean($('#adIdea').value, 200);
+    if (headline.length < 4) {
+      setAdIdeaMessage('Escribe un titular mínimo, por ejemplo: “anuncio de pizzería”.', 'error');
+      $('#adIdea').focus();
+      return;
+    }
+    developAdButton.disabled = true;
+    developAdButton.textContent = 'Desarrollando…';
+    adIdeaAccess.hidden = true;
+    setAdIdeaMessage('El director creativo está convirtiendo el titular en una campaña completa…');
+    try {
+      const response = await fetch('/presentaciones/api/ad-idea', {
+        method:'POST',
+        credentials:'same-origin',
+        headers:{'content-type':'application/json', accept:'application/json'},
+        body:JSON.stringify({headline})
+      });
+      const type = response.headers.get('content-type') || '';
+      if(!type.includes('application/json')){
+        const error = new Error('Inicia sesión en el Generador de Presentaciones para desarrollar ideas.');
+        error.auth = response.status === 401 || response.status === 403;
+        throw error;
+      }
+      const payload = await response.json();
+      if(!response.ok){
+        const error = new Error(payload?.error || 'No se pudo desarrollar la idea.');
+        error.auth = response.status === 401 || response.status === 403;
+        throw error;
+      }
+      if(!payload?.ad || typeof payload.ad !== 'object') throw new Error('La idea desarrollada quedó incompleta.');
+      Object.entries(payload.ad).forEach(([key, value]) => {
+        const field = adIdeaForm.elements.namedItem(key);
+        if(field && typeof value === 'string') field.value = value;
+      });
+      if(!adDate.value) adDate.value = todayValue();
+      setAdIdeaMessage('Idea desarrollada. Revisa el enfoque y pulsa “Crear anuncio” para obtener el guion y el storyboard.', 'success');
+      $('#adDetail').focus();
+    } catch(error) {
+      adIdeaAccess.hidden = !error?.auth;
+      setAdIdeaMessage(String(error?.message || 'No se pudo desarrollar la idea.'), 'error');
+    } finally {
+      developAdButton.disabled = false;
+      developAdButton.textContent = '✨ Desarrollar idea';
+    }
   }
 
   function createAdIdea(event) {
@@ -844,10 +861,10 @@
 
   adIdeaForm.addEventListener('submit', createAdIdea);
   adIdeaForm.addEventListener('input', () => {
-    adIdeaStatus.classList.remove('is-success');
-    adIdeaStatus.textContent = 'Crear el anuncio prepara el guion. Grok solo se inicia cuando tú lo confirmas después.';
+    adIdeaAccess.hidden = true;
+    setAdIdeaMessage('Escribe un titular corto y pulsa “Desarrollar idea”; completaremos el anuncio antes de crear el guion.');
   });
-  $('#newAdIdea').addEventListener('click', draftAdExample);
+  developAdButton.addEventListener('click', () => { void developAdIdea(); });
   form.addEventListener('submit', (event) => { event.preventDefault(); variation = 0; generate(); });
   form.addEventListener('input', saveDraft);
   $('#variationButton').addEventListener('click', () => { variation = (variation + 1) % 3; generate(); });
