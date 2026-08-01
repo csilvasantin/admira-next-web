@@ -17,12 +17,13 @@ test('el acceso es reconocible por Google Password Manager', () => {
   assert.match(source, /Google Password Manager/);
 });
 
-test('el generador muestra el selector oficial de cuentas de Google', () => {
+test('las presentaciones muestran el selector oficial de cuentas de Google', () => {
   assert.match(source, /accounts\.google\.com\/gsi\/client/);
   assert.match(source, /class="g_id_signin"/);
   assert.match(source, /data-text="continue_with"/);
   assert.match(source, /oauth2\.googleapis\.com\/tokeninfo/);
   assert.match(source, /payload\.aud !== GOOGLE_CLIENT_ID/);
+  assert.match(source, /googleCookieName = ownerAllowed \? 'pres_owner' : cookieName/);
 });
 
 test('la recuperación no revela la contraseña ni enumera usuarios', () => {
