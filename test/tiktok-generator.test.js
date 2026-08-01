@@ -80,6 +80,10 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /id="preRollEnabled"/);
   assert.match(html, /id="postRollEnabled"/);
   assert.match(html, /id="referenceVideo"/);
+  assert.match(html, /name="referenceMode" value="none" checked/);
+  assert.match(html, /id="referenceUrl"/);
+  assert.match(html, /YouTube o Pixeria/);
+  assert.match(html, /Sin referencia/);
   assert.match(html, /id="analyzeReference"/);
   assert.match(html, /id="composeGrokPackage"/);
   assert.match(html, /5 \+ 15 \+ 5/);

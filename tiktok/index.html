@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Crea un anuncio vertical de 25 segundos con preroll, vídeo principal, postroll y publicación automática en Pixeria.">
   <meta name="theme-color" content="#05090d">
-  <meta name="admiranext-version" content="v.26.08.01.r7">
+  <meta name="admiranext-version" content="v.26.08.01.r8">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-7">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-8">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok Ads 25s · ADmiraNeXT">
@@ -260,19 +260,35 @@
             </div>
             <div class="reference-card">
               <div class="reference-copy">
-                <strong>Vídeo de referencia</strong>
-                <p>Extraemos cuatro fotogramas en tu navegador y Grok los convierte en una guía de cámara, ritmo, luz y color. No copiamos personas, logos ni marcas.</p>
+                <strong>Vídeo de referencia · opcional</strong>
+                <p>Puede estar en tu equipo, YouTube o Pixeria. Si no eliges ninguno, Grok trabajará únicamente con el brief.</p>
               </div>
-              <label class="reference-picker">
-                <span>Elegir vídeo</span>
-                <input id="referenceVideo" type="file" accept="video/mp4,video/webm,video/quicktime">
-              </label>
+              <fieldset class="reference-modes">
+                <legend>Origen de la referencia</legend>
+                <label><input type="radio" name="referenceMode" value="none" checked><span>Sin referencia</span></label>
+                <label><input type="radio" name="referenceMode" value="local"><span>Archivo local</span></label>
+                <label><input type="radio" name="referenceMode" value="url"><span>YouTube o Pixeria</span></label>
+              </fieldset>
+              <div class="reference-local" id="referenceLocal" hidden>
+                <label class="reference-picker">
+                  <span>Elegir vídeo local</span>
+                  <input id="referenceVideo" type="file" accept="video/mp4,video/webm,video/quicktime">
+                </label>
+              </div>
+              <div class="reference-url-row" id="referenceUrlRow" hidden>
+                <label>
+                  <span class="visually-hidden">URL de YouTube o Pixeria</span>
+                  <input id="referenceUrl" type="url" inputmode="url" maxlength="800" placeholder="https://youtube.com/watch?v=… o enlace de Pixeria">
+                </label>
+                <button class="button secondary" id="loadReferenceUrl" type="button">Usar URL</button>
+              </div>
               <video id="referencePreview" muted playsinline preload="metadata" hidden aria-label="Previsualización del vídeo de referencia"></video>
+              <a class="reference-source-link" id="referenceSourceLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir referencia ↗</a>
               <div class="reference-actions">
                 <button class="button secondary" id="analyzeReference" type="button" disabled>Analizar referencia</button>
                 <button class="text-button" id="clearReference" type="button" hidden>Quitar</button>
               </div>
-              <p class="reference-status" id="referenceStatus" role="status">Opcional · MP4, WebM o MOV · máximo 60 segundos y 200 MB.</p>
+              <p class="reference-status" id="referenceStatus" role="status">Sin referencia · el anuncio se generará solo a partir del brief.</p>
               <div class="reference-profile" id="referenceProfile" hidden></div>
             </div>
           </section>
@@ -362,7 +378,7 @@
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260801-7"></script>
-  <script src="/tiktok/app.js?v=20260801-7"></script>
+  <script src="/assets/tiktok-core.js?v=20260801-8"></script>
+  <script src="/tiktok/app.js?v=20260801-8"></script>
 </body>
 </html>

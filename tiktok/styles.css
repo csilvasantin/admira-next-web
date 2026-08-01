@@ -604,12 +604,28 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); box-shado
 .roll-card input[type="checkbox"] { width: 16px; height: 16px; padding: 0; accent-color: var(--purple); }
 .roll-card > input { padding: 0.62rem; font-size: 0.75rem; }
 .reference-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.7rem; align-items: center; margin-top: 0.7rem; padding-top: 0.8rem; border-top: 1px solid var(--line); }
+.reference-copy,
+.reference-modes,
+.reference-local,
+.reference-url-row { grid-column: 1 / -1; }
 .reference-copy strong { font: 800 0.64rem var(--mono); }
 .reference-copy p,
 .reference-status,
 .package-output p { margin: 0.35rem 0 0; color: var(--muted); font: 0.57rem/1.5 var(--mono); }
 .reference-picker { position: relative; overflow: hidden; min-width: 120px; padding: 0.72rem 0.8rem; border: 1px solid var(--purple); color: var(--purple); text-align: center; font: 800 0.58rem var(--mono); cursor: pointer; }
 .reference-picker input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.reference-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; margin: 0; padding: 0; border: 0; }
+.reference-modes legend { width: 100%; margin-bottom: 0.48rem; color: var(--muted); font: 800 0.52rem var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+.reference-modes label { position: relative; cursor: pointer; }
+.reference-modes input { position: absolute; opacity: 0; pointer-events: none; }
+.reference-modes span { display: grid; min-height: 42px; place-items: center; padding: 0.55rem; border: 1px solid var(--line); color: var(--muted); background: #040b11; font: 800 0.54rem var(--mono); text-align: center; text-transform: uppercase; }
+.reference-modes input:checked + span { color: #061018; border-color: var(--purple); background: var(--purple); }
+.reference-modes input:focus-visible + span { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.reference-local { display: flex; }
+.reference-url-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.55rem; }
+.reference-url-row label { min-width: 0; }
+.reference-url-row input { min-height: 43px; font-size: 0.7rem; }
+.reference-source-link { color: var(--purple); font: 800 0.57rem var(--mono); text-underline-offset: 3px; }
 #referencePreview { width: 84px; aspect-ratio: 9 / 16; object-fit: cover; border: 1px solid var(--line); border-radius: 7px; background: #020508; }
 .reference-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.55rem; }
 .reference-actions .button { min-height: 37px; }
@@ -745,6 +761,8 @@ footer {
   .button { width: 100%; }
   .roll-fields, .package-output { grid-template-columns: 1fr; }
   .reference-card { grid-template-columns: 1fr; }
+  .reference-modes, .reference-url-row { grid-template-columns: 1fr; }
+  .reference-copy, .reference-modes, .reference-local, .reference-url-row { grid-column: auto; }
   .reference-status, .reference-profile { grid-column: auto; }
   .reference-actions { justify-content: flex-start; }
   .package-actions { justify-content: stretch; }

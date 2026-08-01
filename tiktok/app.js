@@ -57,7 +57,13 @@
   const postRollEnabled = $('#postRollEnabled');
   const postRollCta = $('#postRollCta');
   const referenceVideo = $('#referenceVideo');
+  const referenceModeInputs = Array.from(document.querySelectorAll('input[name="referenceMode"]'));
+  const referenceLocal = $('#referenceLocal');
+  const referenceUrlRow = $('#referenceUrlRow');
+  const referenceUrl = $('#referenceUrl');
+  const loadReferenceUrl = $('#loadReferenceUrl');
   const referencePreview = $('#referencePreview');
+  const referenceSourceLink = $('#referenceSourceLink');
   const analyzeReference = $('#analyzeReference');
   const clearReference = $('#clearReference');
   const referenceStatus = $('#referenceStatus');
@@ -87,6 +93,7 @@
   let grokRequestId = '';
   let referenceObjectUrl = '';
   let referenceProfile = null;
+  let referenceSource = null;
   let packageBlobUrl = '';
   let packageId = '';
   let adIdeas = [];
@@ -362,16 +369,37 @@
 
   function saveReferenceProfile() {
     try{
-      if(referenceProfile) localStorage.setItem(REFERENCE_PROFILE_KEY, JSON.stringify(referenceProfile));
+      if(referenceProfile) localStorage.setItem(REFERENCE_PROFILE_KEY, JSON.stringify({profile:referenceProfile, source:referenceSource}));
       else localStorage.removeItem(REFERENCE_PROFILE_KEY);
     }catch(_){ /* Optional device-local persistence. */ }
+  }
+
+  function selectedReferenceMode() {
+    return referenceModeInputs.find(input => input.checked)?.value || 'none';
+  }
+
+  function renderReferenceMode(mode) {
+    referenceLocal.hidden = mode !== 'local';
+    referenceUrlRow.hidden = mode !== 'url';
   }
 
   function loadReferenceProfile() {
     try{
       const saved = JSON.parse(localStorage.getItem(REFERENCE_PROFILE_KEY) || 'null');
-      if(saved && typeof saved.promptFragment === 'string' && typeof saved.summary === 'string') referenceProfile = saved;
-    }catch(_){ referenceProfile = null; }
+      if(saved?.profile && typeof saved.profile.promptFragment === 'string' && typeof saved.profile.summary === 'string'){
+        referenceProfile = saved.profile;
+        referenceSource = saved.source && typeof saved.source.mode === 'string' ? saved.source : null;
+      }
+    }catch(_){ referenceProfile = null; referenceSource = null; }
+    const restoredMode = referenceSource?.mode === 'local' ? 'local' : (referenceSource ? 'url' : 'none');
+    const restoredInput = referenceModeInputs.find(input => input.value === restoredMode);
+    if(restoredInput) restoredInput.checked = true;
+    renderReferenceMode(restoredMode);
+    if(referenceSource?.url){
+      referenceUrl.value = referenceSource.url;
+      referenceSourceLink.href = referenceSource.url;
+      referenceSourceLink.hidden = false;
+    }
     renderReferenceProfile();
     if(referenceProfile) setReferenceMessage('Guía visual recuperada de este dispositivo y aplicada al prompt.', 'success');
   }
@@ -555,6 +583,68 @@
     });
   }
 
+  function resetReferenceMedia() {
+    referenceVideo.value = '';
+    referencePreview.removeAttribute('src');
+    referencePreview.load();
+    referencePreview.hidden = true;
+    if(referenceObjectUrl) URL.revokeObjectURL(referenceObjectUrl);
+    referenceObjectUrl = '';
+    referenceSourceLink.hidden = true;
+    referenceSourceLink.removeAttribute('href');
+    analyzeReference.disabled = true;
+  }
+
+  function youtubeVideoId(value) {
+    try{
+      const url = new URL(value);
+      if(url.protocol !== 'https:' || url.username || url.password) return '';
+      const host = url.hostname.toLowerCase();
+      let id = '';
+      if(host === 'youtu.be') id = url.pathname.split('/').filter(Boolean)[0] || '';
+      else if(host === 'youtube.com' || host.endsWith('.youtube.com')){
+        if(url.pathname === '/watch') id = url.searchParams.get('v') || '';
+        else id = url.pathname.match(/^\/(?:embed|shorts|live)\/([A-Za-z0-9_-]{11})(?:\/|$)/)?.[1] || '';
+      }
+      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : '';
+    }catch(_){ return ''; }
+  }
+
+  function pixeriaReference(value) {
+    try{
+      const url = new URL(value);
+      if(url.protocol !== 'https:' || url.username || url.password) return null;
+      const host = url.hostname.toLowerCase();
+      let id = '';
+      if(host === 'api.admira.store') id = url.pathname.match(/^\/stock\/asset\/([^/]+)$/)?.[1] || '';
+      else if(host === 'pixeria.com' || host === 'www.pixeria.com') id = url.searchParams.get('highlight') || '';
+      if(!/^(?:\d{10,16}-[a-z0-9]{4,16}|auto-[a-f0-9]{20})$/i.test(id)) return null;
+      return {id, assetUrl:`https://api.admira.store/stock/asset/${encodeURIComponent(id)}`};
+    }catch(_){ return null; }
+  }
+
+  async function prepareVideoReference(sourceUrl, source, shouldReset = true) {
+    if(shouldReset) resetReferenceMedia();
+    referenceSource = source;
+    referencePreview.src = sourceUrl;
+    referencePreview.hidden = false;
+    referenceSourceLink.href = source.url || sourceUrl;
+    referenceSourceLink.hidden = false;
+    clearReference.hidden = false;
+    setReferenceMessage('Leyendo duración y formato…');
+    try{
+      if(referencePreview.readyState < 1) await waitForMedia(referencePreview, 'loadedmetadata');
+      if(!Number.isFinite(referencePreview.duration) || referencePreview.duration <= 0 || referencePreview.duration > 30 * 60){
+        throw new Error('La referencia debe durar menos de 30 minutos.');
+      }
+      analyzeReference.disabled = false;
+      setReferenceMessage(`${source.label} lista · ${referencePreview.duration.toFixed(1)}s. Analízala para aplicar su lenguaje visual.`);
+    }catch(error){
+      analyzeReference.disabled = true;
+      setReferenceMessage(error.message || 'No pudimos leer el vídeo de referencia.', 'error');
+    }
+  }
+
   async function selectReferenceVideo() {
     const file = referenceVideo.files?.[0];
     if(!file) return;
@@ -564,24 +654,37 @@
       setReferenceMessage('Usa un MP4, WebM o MOV de hasta 200 MB.', 'error');
       return;
     }
-    if(referenceObjectUrl) URL.revokeObjectURL(referenceObjectUrl);
+    resetReferenceMedia();
     referenceObjectUrl = URL.createObjectURL(file);
-    referencePreview.src = referenceObjectUrl;
-    referencePreview.hidden = false;
-    analyzeReference.disabled = true;
-    clearReference.hidden = false;
-    setReferenceMessage('Leyendo duración y formato…');
-    try{
-      if(referencePreview.readyState < 1) await waitForMedia(referencePreview, 'loadedmetadata');
-      if(!Number.isFinite(referencePreview.duration) || referencePreview.duration <= 0 || referencePreview.duration > 60){
-        throw new Error('La referencia debe durar entre 1 y 60 segundos.');
-      }
+    await prepareVideoReference(referenceObjectUrl, {mode:'local', label:'Archivo local', name:core.clean(file.name, 120)}, false);
+  }
+
+  async function loadReferenceFromUrl() {
+    const value = core.clean(referenceUrl.value, 800);
+    const youtubeId = youtubeVideoId(value);
+    const pixeria = pixeriaReference(value);
+    referenceProfile = null;
+    saveReferenceProfile();
+    renderReferenceProfile();
+    syncGrokPrompt();
+    if(youtubeId){
+      resetReferenceMedia();
+      referenceSource = {mode:'youtube', label:'YouTube', url:value, videoId:youtubeId};
+      referenceSourceLink.href = value;
+      referenceSourceLink.hidden = false;
+      clearReference.hidden = false;
       analyzeReference.disabled = false;
-      setReferenceMessage(`Referencia lista · ${referencePreview.duration.toFixed(1)}s. Analízala para aplicar su lenguaje visual.`);
-    }catch(error){
-      analyzeReference.disabled = true;
-      setReferenceMessage(error.message || 'No pudimos leer el vídeo de referencia.', 'error');
+      setReferenceMessage('URL de YouTube lista. Analízala para convertir sus fotogramas representativos en dirección visual.');
+      return;
     }
+    if(pixeria){
+      await prepareVideoReference(pixeria.assetUrl, {mode:'pixeria', label:'Vídeo de Pixeria', url:value, id:pixeria.id, assetUrl:pixeria.assetUrl});
+      return;
+    }
+    resetReferenceMedia();
+    referenceSource = null;
+    clearReference.hidden = false;
+    setReferenceMessage('Usa una URL válida de YouTube o un enlace de asset/Stock de Pixeria.', 'error');
   }
 
   async function captureReferenceFrames() {
@@ -606,16 +709,18 @@
   }
 
   async function analyzeReferenceVideo() {
-    if(!referencePreview.src || analyzeReference.disabled) return;
+    if(!referenceSource || analyzeReference.disabled) return;
     analyzeReference.disabled = true;
-    setReferenceMessage('Extrayendo cuatro momentos del vídeo en este dispositivo…');
+    setReferenceMessage(referenceSource.mode === 'youtube' ? 'Recuperando fotogramas representativos de YouTube…' : 'Extrayendo cuatro momentos del vídeo en este dispositivo…');
     try{
-      const frames = await captureReferenceFrames();
+      const requestBody = referenceSource.mode === 'youtube'
+        ? {sourceUrl:referenceSource.url}
+        : {frames:await captureReferenceFrames()};
       setReferenceMessage('Grok está leyendo cámara, ritmo, luz y paleta…');
       const response = await fetch('/presentaciones/api/video-reference', {
         method:'POST', credentials:'same-origin',
         headers:{'content-type':'application/json', accept:'application/json'},
-        body:JSON.stringify({frames})
+        body:JSON.stringify(requestBody)
       });
       const payload = await readApiResponse(response);
       referenceProfile = payload.profile;
@@ -627,20 +732,30 @@
     finally{ analyzeReference.disabled = false; }
   }
 
-  function clearReferenceVideo() {
-    referenceVideo.value = '';
-    referencePreview.removeAttribute('src');
-    referencePreview.load();
-    referencePreview.hidden = true;
-    if(referenceObjectUrl) URL.revokeObjectURL(referenceObjectUrl);
-    referenceObjectUrl = '';
+  function clearReferenceVideo(resetMode = true) {
+    resetReferenceMedia();
+    referenceUrl.value = '';
+    referenceSource = null;
     referenceProfile = null;
     saveReferenceProfile();
     renderReferenceProfile();
     syncGrokPrompt();
-    analyzeReference.disabled = true;
     clearReference.hidden = true;
-    setReferenceMessage('Opcional · MP4, WebM o MOV · máximo 60 segundos y 200 MB.');
+    if(resetMode){
+      const none = referenceModeInputs.find(input => input.value === 'none');
+      if(none) none.checked = true;
+      renderReferenceMode('none');
+      setReferenceMessage('Sin referencia · el anuncio se generará solo a partir del brief.');
+    }
+  }
+
+  function changeReferenceMode() {
+    const mode = selectedReferenceMode();
+    clearReferenceVideo(false);
+    renderReferenceMode(mode);
+    if(mode === 'none') setReferenceMessage('Sin referencia · el anuncio se generará solo a partir del brief.');
+    else if(mode === 'local') setReferenceMessage('Selecciona un MP4, WebM o MOV local de hasta 200 MB. El archivo no se subirá: solo enviaremos cuatro fotogramas al analizarlo.');
+    else setReferenceMessage('Pega una URL de YouTube o un enlace del Stock de Pixeria.');
   }
 
   function showGrokError(error) {
@@ -1255,8 +1370,13 @@
   generateGrokButton.addEventListener('click', () => { void startGrokVideo(); });
   retryPixeria.addEventListener('click', () => { void retryPixeriaPublication(); });
   referenceVideo.addEventListener('change', () => { void selectReferenceVideo(); });
+  referenceModeInputs.forEach(input => input.addEventListener('change', changeReferenceMode));
+  loadReferenceUrl.addEventListener('click', () => { void loadReferenceFromUrl(); });
+  referenceUrl.addEventListener('keydown', event => {
+    if(event.key === 'Enter'){ event.preventDefault(); void loadReferenceFromUrl(); }
+  });
   analyzeReference.addEventListener('click', () => { void analyzeReferenceVideo(); });
-  clearReference.addEventListener('click', clearReferenceVideo);
+  clearReference.addEventListener('click', () => clearReferenceVideo(true));
   composeGrokPackage.addEventListener('click', () => { void composeAndPublishGrokPackage(); });
   copyGrokUrl.addEventListener('click', () => copyText(grokVideoUrl, copyGrokUrl, 'Copiar URL'));
   reduceMotion.addEventListener('change', restart);
