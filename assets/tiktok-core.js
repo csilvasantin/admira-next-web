@@ -99,7 +99,7 @@
     const outcomes = {
       leads: { result: 'Más personas interesadas solicitando información', cta: 'Pide información hoy' },
       visits: { result: `Más visitas a ${brand}`, cta: 'Ven a conocernos hoy' },
-      sales: { result: 'Una oferta clara que invita a actuar', cta: 'Aprovecha la oferta hoy' },
+      sales: { result: 'Una propuesta clara que facilita la decisión', cta: 'Descúbrelo hoy' },
       launch: { result: 'Un lanzamiento fácil de entender y recordar', cta: 'Descúbrelo antes que nadie' },
       awareness: { result: `${brand} en la mente del público adecuado`, cta: 'Conoce la historia completa' }
     };

@@ -55,6 +55,10 @@ test('convierte una idea de anuncio en un brief listo para el estudio', () => {
   assert.equal(brief.result, 'Más personas interesadas solicitando información');
   assert.equal(brief.cta, 'Pide información hoy');
   assert.equal(brief.presenter, 'fusion');
+
+  const salesBrief = core.buildBriefFromAd({idea:'Anunciar una pizzería', objective:'sales'});
+  assert.equal(salesBrief.result, 'Una propuesta clara que facilita la decisión');
+  assert.equal(salesBrief.cta, 'Descúbrelo hoy');
 });
 
 test('la ruta pública carga los recursos del estudio', () => {
