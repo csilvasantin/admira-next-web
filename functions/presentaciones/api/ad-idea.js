@@ -147,7 +147,7 @@ export async function onRequest(context){
   const ip = context.request.headers.get('CF-Connecting-IP') || 'unknown';
   const rateKey = `tiktok:ad-idea:rate:${ip}:${Math.floor(Date.now() / 10000)}`;
   if(await context.env.PRESENTATION_IDEAS.get(rateKey)) return json({error:'Espera unos segundos antes de desarrollar otra idea.'}, 429);
-  await context.env.PRESENTATION_IDEAS.put(rateKey, '1', {expirationTtl:20});
+  await context.env.PRESENTATION_IDEAS.put(rateKey, '1', {expirationTtl:60});
 
   try{
     const result = await developAd(context, headline);

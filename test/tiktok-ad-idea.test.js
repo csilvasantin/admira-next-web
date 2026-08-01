@@ -50,7 +50,7 @@ test('desarrolla un titular mínimo en un anuncio estructurado sin exponer la cl
   assert.match(upstream.body.input[1].content[0].text, /anuncio de pizzería/);
   assert.equal(JSON.stringify(payload).includes(env.XAI_API_KEY), false);
   assert.equal(usage.puts.length, 1);
-  assert.equal(usage.puts[0].options.expirationTtl, 20);
+  assert.equal(usage.puts[0].options.expirationTtl, 60);
 });
 
 test('protege origen, configuración, tamaño y frecuencia del desarrollador creativo', async () => {
