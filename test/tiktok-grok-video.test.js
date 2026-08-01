@@ -3,14 +3,16 @@ const assert = require('node:assert/strict');
 
 function kv(initial = {}){
   const values = new Map(Object.entries(initial));
+  const puts = [];
   return {
     values,
+    puts,
     async get(key, options){
       const value = values.get(key);
       if(value == null) return null;
       return options?.type === 'json' ? JSON.parse(value) : value;
     },
-    async put(key, value){ values.set(key, value); }
+    async put(key, value, options){ puts.push({key, value, options}); values.set(key, value); }
   };
 }
 
@@ -38,7 +40,8 @@ test('crea un vídeo Grok 15s 9:16 sin exponer la clave', async (t) => {
     return Response.json({request_id:'41eb9a5f-cbd4-9f21-8d59-79005f1e61b7'});
   };
   t.after(() => { global.fetch = originalFetch; });
-  const env = {XAI_API_KEY:'secret-not-for-output', XAI_VIDEO_MODEL:'grok-imagine-video-1.5', PRESENTATION_IDEAS:kv()};
+  const ideas = kv();
+  const env = {XAI_API_KEY:'secret-not-for-output', XAI_VIDEO_MODEL:'grok-imagine-video-1.5', PRESENTATION_IDEAS:ideas};
   const response = await onRequest({
     request:request('POST', {
       prompt:'Create a polished vertical sequence showing a compact robot turning a long document into one clear action. No text or logos.',
@@ -62,6 +65,8 @@ test('crea un vídeo Grok 15s 9:16 sin exponer la clave', async (t) => {
   });
   assert.equal(JSON.stringify(payload).includes(env.XAI_API_KEY), false);
   assert.equal(JSON.stringify(payload).includes(upstream.body.prompt), false);
+  const rateWrite = ideas.puts.find(({key}) => key.startsWith('tiktok:grok-video:rate:'));
+  assert.equal(rateWrite.options.expirationTtl, 60);
 });
 
 test('al terminar publica una sola vez en Pixeria y devuelve ambos enlaces seguros', async (t) => {

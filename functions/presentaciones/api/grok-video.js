@@ -131,8 +131,8 @@ async function createVideo(context){
     const ipHash = await digest(ip);
     const rateKey = `tiktok:grok-video:rate:${ipHash.slice(0, 24)}`;
     const limited = await context.env.PRESENTATION_IDEAS.get(rateKey);
-    if(limited) return json({error:'Espera unos segundos antes de iniciar otro vídeo de Grok.'}, 429, {'retry-after':'30'});
-    await context.env.PRESENTATION_IDEAS.put(rateKey, '1', {expirationTtl:30});
+    if(limited) return json({error:'Espera un minuto antes de iniciar otro vídeo de Grok.'}, 429, {'retry-after':'60'});
+    await context.env.PRESENTATION_IDEAS.put(rateKey, '1', {expirationTtl:60});
   }
 
   const model = context.env.XAI_VIDEO_MODEL || 'grok-imagine-video-1.5';
@@ -246,7 +246,16 @@ async function ensurePixeriaPublication(context, requestId, video, model, force 
   const id = String(provider?.id || '').trim();
   const assetUrl = safePixeriaUrl(provider?.url, id);
   if(!response.ok || !provider?.ok || !PIXERIA_ID_RE.test(id) || !assetUrl){
-    console.error(JSON.stringify({message:'pixeria video publish rejected', requestId, status:response.status, validId:PIXERIA_ID_RE.test(id), validUrl:Boolean(assetUrl)}));
+    console.error(JSON.stringify({
+      message:'pixeria video publish rejected',
+      requestId,
+      status:response.status,
+      providerError:String(provider?.error || '').slice(0, 80),
+      providerDetail:String(provider?.detail || '').slice(0, 160),
+      providerStatus:Number(provider?.status || 0),
+      validId:PIXERIA_ID_RE.test(id),
+      validUrl:Boolean(assetUrl)
+    }));
     const failed = {status:'failed', requestId, failedAt:Date.now()};
     await savePixeriaState(context, key, failed, 60 * 60);
     return publicPixeriaState(failed);
