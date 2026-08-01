@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Crea un TikTok vertical de 15 segundos con guion, storyboard, preview y vídeo exportable.">
   <meta name="theme-color" content="#05090d">
-  <meta name="admiranext-version" content="v.26.08.01.r1">
+  <meta name="admiranext-version" content="v.26.08.01.r2">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-1">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-2">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok 15s · ADmiraNeXT">
@@ -112,7 +112,7 @@
           <button class="button secondary" id="variationButton" type="button">Otra dirección</button>
           <button class="button primary" type="submit">Generar TikTok</button>
         </div>
-        <p class="privacy-note">Tus textos se procesan en este dispositivo. No se envían a un servicio externo.</p>
+        <p class="privacy-note">El modo ADmira procesa el brief en este dispositivo. Solo el modo Grok envía la dirección visual a xAI cuando pulsas expresamente “Generar con Grok”.</p>
       </form>
 
       <section class="preview panel" aria-labelledby="previewTitle">
@@ -126,6 +126,18 @@
             <button class="icon-button" id="restartPreview" type="button" title="Reiniciar la animación">↻</button>
           </div>
         </div>
+
+        <fieldset class="mode-selector">
+          <legend>Motor de vídeo</legend>
+          <label>
+            <input type="radio" name="productionMode" value="motion" checked>
+            <span><b>ADmira Motion</b><small>Animación, subtítulos y base sonora · sin coste externo</small></span>
+          </label>
+          <label>
+            <input type="radio" name="productionMode" value="grok">
+            <span><b>Grok · vídeo puro</b><small>Secuencia cinematográfica original · generación xAI</small></span>
+          </label>
+        </fieldset>
 
         <div class="stage-shell">
           <div class="phone-stage" id="phoneStage" aria-label="Previsualización animada del TikTok">
@@ -147,14 +159,51 @@
             <div class="safe safe-bottom">@ADmiraNeXT</div>
             <div class="video-progress"><span id="videoProgress"></span></div>
           </div>
+          <video class="grok-video" id="grokVideo" controls playsinline preload="metadata" hidden aria-label="Vídeo puro generado con Grok"></video>
           <div class="timecode"><span id="timecode">00:00.0</span><b> / 00:15.0</b></div>
         </div>
 
-        <div class="transport">
+        <div class="transport motion-transport" id="motionTransport">
           <button class="button secondary" id="playPause" type="button">Pausar</button>
           <button class="button primary" id="exportVideo" type="button">Exportar vídeo 9:16</button>
         </div>
         <p class="export-status" id="exportStatus" role="status"></p>
+
+        <section class="grok-studio" id="grokStudio" hidden aria-labelledby="grokStudioTitle">
+          <div class="grok-heading">
+            <div>
+              <span class="section-code">XAI / GROK IMAGINE VIDEO 1.5</span>
+              <h3 id="grokStudioTitle">Generar vídeo puro</h3>
+            </div>
+            <span class="grok-spec">15S · 9:16</span>
+          </div>
+          <label class="field full">
+            <span>Dirección visual para Grok</span>
+            <textarea id="grokPrompt" rows="7" maxlength="3200"></textarea>
+          </label>
+          <div class="grok-controls">
+            <label class="field">
+              <span>Resolución</span>
+              <select id="grokResolution">
+                <option value="720p" selected>720p · recomendado</option>
+                <option value="1080p">1080p · máxima calidad</option>
+                <option value="480p">480p · prueba rápida</option>
+              </select>
+            </label>
+            <button class="button grok-button" id="generateGrokVideo" type="button">Generar con Grok</button>
+          </div>
+          <div class="grok-job" id="grokJob" hidden>
+            <div class="grok-job-head"><strong id="grokJobLabel">Preparando solicitud…</strong><span id="grokJobPercent">0%</span></div>
+            <div class="grok-progress"><span id="grokProgress"></span></div>
+            <p id="grokJobDetail">La generación puede tardar varios minutos. Puedes dejar esta pestaña abierta.</p>
+          </div>
+          <div class="grok-result-actions" id="grokResultActions" hidden>
+            <a class="button primary" id="openGrokVideo" href="#" target="_blank" rel="noopener noreferrer">Abrir MP4</a>
+            <button class="button secondary" id="copyGrokUrl" type="button">Copiar URL</button>
+          </div>
+          <p class="grok-note">Grok se inicia solo al pulsar el botón y puede generar coste en xAI. La clave permanece en el servidor. Se requiere acceso autorizado al Generador de Presentaciones.</p>
+          <a class="grok-access" id="grokAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para usar Grok ↗</a>
+        </section>
       </section>
     </section>
 
@@ -192,7 +241,7 @@
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260801-1"></script>
-  <script src="/tiktok/app.js?v=20260801-1"></script>
+  <script src="/assets/tiktok-core.js?v=20260801-2"></script>
+  <script src="/tiktok/app.js?v=20260801-2"></script>
 </body>
 </html>

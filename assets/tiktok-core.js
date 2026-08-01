@@ -138,6 +138,17 @@
       }
     ];
 
+    const grokPrompt = clean([
+      'Create one original, cinematic vertical social video in a 9:16 aspect ratio, exactly 15 seconds long.',
+      `The visual story begins with the problem: ${task}.`,
+      `It then reveals the solution through clear physical action: ${solution}.`,
+      `Finish with the visible result: ${result}.`,
+      `The intended audience is ${audience}.`,
+      `Use ${presenter.name} as a friendly compact geometric robot guide, expressive through motion and staging rather than dialogue or typography.`,
+      'Make it one coherent continuous sequence with confident camera movement, premium futuristic production design, strong depth, and a precise dark technical palette with cyan light and one warm orange accent.',
+      'PURE VIDEO CONTRACT: no visible text, no captions, no subtitles, no letters, no numbers, no logos, no watermarks, no social-network interface, and no trademarked products. Do not imitate a named artist, film, studio, campaign, character, or existing artwork. Avoid identifiable real people. Keep the action legible without words and suitable for commercial human review.'
+    ].join(' '), 3000);
+
     return {
       version: 'admiranext-tiktok-plan-v1',
       generatedAt: new Date().toISOString(),
@@ -150,6 +161,7 @@
       pace,
       scenes,
       productionPrompt: `Vídeo vertical 9:16 de 15 segundos para ${audience}. Presentador ${presenter.name}. Tono ${tone}. ${presenter.character} Tres escenas exactas: problema de 0 a 3 segundos; demostración de 3 a 11; resultado y llamada a la acción de 11 a 15. Estética ADmiraNeXT: fondo oscuro cuadrático, señal cian, tipografía monoespaciada, alto contraste, subtítulos grandes, zonas seguras y movimiento preciso. Sin logos ajenos inventados, sin afirmaciones no verificadas.`,
+      grokPrompt,
       voiceDirection: 'Voz cercana, clara y energética. Entre 145 y 165 palabras por minuto. Pausa breve tras el gancho y antes del resultado.'
     };
   }

@@ -21,6 +21,9 @@ test('genera un plan vertical de tres escenas y quince segundos', () => {
   assert.equal(plan.scenes.length, 3);
   assert.deepEqual(plan.scenes.map(({ from, to }) => [from, to]), [[0, 3], [3, 11], [11, 15]]);
   assert.match(plan.script, /Menos clics\. Más hecho\./);
+  assert.match(plan.grokPrompt, /PURE VIDEO CONTRACT/);
+  assert.match(plan.grokPrompt, /9:16/);
+  assert.ok(plan.grokPrompt.length <= 3000);
   assert.ok(plan.pace.words > 0);
 });
 
@@ -40,8 +43,12 @@ test('limpia y acota el contenido aportado por el usuario', () => {
 
 test('la ruta pública carga los recursos del estudio', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'tiktok', 'index.html'), 'utf8');
+  const middleware = fs.readFileSync(path.join(__dirname, '..', 'functions', 'presentaciones', '_middleware.js'), 'utf8');
   assert.match(html, /id="generatorForm"/);
   assert.match(html, /\/assets\/tiktok-core\.js/);
   assert.match(html, /\/tiktok\/app\.js/);
   assert.match(html, /Exportar vídeo 9:16/);
+  assert.match(html, /Grok · vídeo puro/);
+  assert.match(html, /id="generateGrokVideo"/);
+  assert.match(middleware, /'grok-video'/);
 });
