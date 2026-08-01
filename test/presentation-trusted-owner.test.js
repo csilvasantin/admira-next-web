@@ -69,7 +69,7 @@ test('la sesión de propietario no abre el área de control', async () => {
   assert.equal(response.status, 401);
 });
 
-test('Google abre una presentación existente sin conceder permisos internos', async t => {
+test('las dos cuentas Google propietarias acceden a presentaciones y áreas internas', async t => {
   t.mock.method(globalThis, 'fetch', async () => Response.json({
     aud:'861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com',
     email:'csilva@admira.com',
@@ -85,8 +85,7 @@ test('Google abre una presentación existente sin conceder permisos internos', a
   }));
 
   assert.equal(response.status, 303);
-  assert.ok(response.headers.getSetCookie().some(value => value.startsWith('pres_demo=')));
-  assert.ok(response.headers.getSetCookie().every(value => !value.startsWith('pres_owner=')));
+  assert.ok(response.headers.getSetCookie().some(value => value.startsWith('pres_master=')));
 
   const presentation = await onRequest(context('https://www.admiranext.com/presentaciones/demo/', {
     headers:{Cookie:cookieHeader(response), Accept:'text/html'}
@@ -96,5 +95,5 @@ test('Google abre una presentación existente sin conceder permisos internos', a
   const control = await onRequest(context('https://www.admiranext.com/presentaciones/control/', {
     headers:{Cookie:cookieHeader(response), Accept:'text/html'}
   }));
-  assert.equal(control.status, 401);
+  assert.equal(control.status, 200);
 });

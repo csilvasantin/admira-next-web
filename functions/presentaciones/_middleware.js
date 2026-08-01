@@ -64,8 +64,7 @@ function identityFields(values = {}){
 
 function loginPage(title, action, error = '', values = {}){
   const recovery = `${action}${action.includes('?') ? '&' : '?'}recuperar=1`;
-  const googleAllowed = title !== 'Control de presentaciones' && !title.endsWith(' · Ideas');
-  const google = googleAllowed ? `<div class="or">O ELIGE TU CUENTA</div><form id="google-access" method="POST" action="${esc(action)}"><input type="hidden" name="intent" value="google"><input id="google-credential" type="hidden" name="credential"><div id="g_id_onload" data-client_id="${GOOGLE_CLIENT_ID}" data-callback="admiraGoogleAccess" data-auto_prompt="false"></div><div class="google-picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-logo_alignment="left" data-width="320"></div></div></form><script>function admiraGoogleAccess(response){var input=document.getElementById('google-credential');if(!input||!response||!response.credential)return;input.value=response.credential;document.getElementById('google-access').submit()}</script><script src="https://accounts.google.com/gsi/client" async defer></script>` : '';
+  const google = `<div class="or">O ELIGE TU CUENTA</div><form id="google-access" method="POST" action="${esc(action)}"><input type="hidden" name="intent" value="google"><input id="google-credential" type="hidden" name="credential"><div id="g_id_onload" data-client_id="${GOOGLE_CLIENT_ID}" data-callback="admiraGoogleAccess" data-auto_prompt="false"></div><div class="google-picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-logo_alignment="left" data-width="320"></div></div></form><script>function admiraGoogleAccess(response){var input=document.getElementById('google-credential');if(!input||!response||!response.credential)return;input.value=response.credential;document.getElementById('google-access').submit()}</script><script src="https://accounts.google.com/gsi/client" async defer></script>`;
   return shell(title, `<div class="box"><form method="POST" action="${esc(action)}" autocomplete="on"><div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div><h1>${esc(title)}</h1><p class="sub">Contenido privado. Identifícate e introduce la contraseña facilitada por nuestro equipo.</p>${identityFields(values)}<label for="password">Contraseña</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Entrar</button><a class="secondary" href="${esc(recovery)}">¿Has olvidado la contraseña?</a></form>${google}<div class="notice">Puedes usar una contraseña guardada en Google Password Manager o en el gestor de tu navegador.</div><div class="notice">Por seguridad, registramos identidad, fecha, presentación, IP y acciones sobre los materiales.</div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com</div></div>`);
 }
 
@@ -259,24 +258,20 @@ export async function onRequest(context){
       return htmlResponse(recoveryPage(title, cleanPath, 'sent', values), 200);
     }
     if (form.get('intent') === 'google') {
-      const googleAllowed = ownerAllowed || !isInternalArea;
-      const googleIdentity = googleAllowed ? await verifyGoogleCredential(String(form.get('credential') || '')) : null;
+      const googleIdentity = await verifyGoogleCredential(String(form.get('credential') || ''));
       if (!googleIdentity) {
         context.waitUntil(writeAccessEvent(env, request, {type:'google_login_failed', client:seg || '_gallery', presentation:title, access:'denied', path:url.pathname}));
         return htmlResponse(loginPage(title, cleanPath, 'La cuenta de Google no está autorizada.'));
       }
       const exp = Math.floor(Date.now() / 1000) + MAXAGE;
-      const googleCookieName = ownerAllowed ? 'pres_owner' : cookieName;
-      const googleCookieSlug = ownerAllowed ? '_owner' : cookieSlug;
-      const googleAccess = ownerAllowed ? 'owner' : 'client';
       const [accessToken, identityToken] = await Promise.all([
-        makeToken(signKey, googleCookieSlug, exp),
+        makeToken(signKey, '_master', exp),
         makeIdentityToken(signKey, googleIdentity, MAXAGE)
       ]);
       const headers = new Headers({Location:cleanPath, 'cache-control':'no-store'});
-      headers.append('Set-Cookie', `${googleCookieName}=${accessToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
+      headers.append('Set-Cookie', `pres_master=${accessToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
       headers.append('Set-Cookie', identityCookie(identityToken, MAXAGE));
-      context.waitUntil(writeAccessEvent(env, request, {type:ownerAllowed ? 'google_owner_login' : 'google_client_login', client:seg || '_gallery', presentation:title, identity:googleIdentity, access:googleAccess, path:url.pathname}));
+      context.waitUntil(writeAccessEvent(env, request, {type:'google_master_login', client:seg || '_gallery', presentation:title, identity:googleIdentity, access:'master', path:url.pathname}));
       return new Response(null, {status:303, headers});
     }
     if (form.get('intent') === 'identify') {

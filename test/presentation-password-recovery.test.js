@@ -23,7 +23,8 @@ test('las presentaciones muestran el selector oficial de cuentas de Google', () 
   assert.match(source, /data-text="continue_with"/);
   assert.match(source, /oauth2\.googleapis\.com\/tokeninfo/);
   assert.match(source, /payload\.aud !== GOOGLE_CLIENT_ID/);
-  assert.match(source, /googleCookieName = ownerAllowed \? 'pres_owner' : cookieName/);
+  assert.match(source, /pres_master=\$\{accessToken\}/);
+  assert.match(source, /makeToken\(signKey, '_master', exp\)/);
 });
 
 test('la recuperación no revela la contraseña ni enumera usuarios', () => {
