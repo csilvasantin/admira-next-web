@@ -82,13 +82,20 @@ export async function onRequestGet({ request, env }) {
     .map((d) => {
       const meta = (d.deployment_trigger && d.deployment_trigger.metadata) || {};
       const stage = d.latest_stage || {};
+      // Del mensaje del commit interesa el ASUNTO: la primera línea. El cuerpo
+      // son párrafos enteros y Cloudflare además le pega su propio aviso de
+      // recorte, así que una lista con el mensaje completo no se puede leer.
+      const completo = (meta.commit_message || '').replace(/\[commit_message truncated\]\s*$/i, '').trim();
+      const asunto = completo.split('\n')[0].trim();
+
       return {
         id: d.short_id,
         url: d.url,                       // el snapshot navegable
         fecha: diaMadrid(d.created_on),
         hora: horaMadrid(d.created_on),
         creado: d.created_on,
-        mensaje: meta.commit_message || '',
+        mensaje: asunto.length > 110 ? asunto.slice(0, 108).trimEnd() + '…' : asunto,
+        mensajeLargo: completo,           // para el tooltip
         commit: (meta.commit_hash || '').slice(0, 7),
         ok: stage.name === 'deploy' && stage.status === 'success',
       };
