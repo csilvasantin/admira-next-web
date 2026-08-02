@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Crea un anuncio vertical de 25 segundos con preroll, vídeo principal, postroll y publicación automática en Pixeria.">
   <meta name="theme-color" content="#05090d">
-  <meta name="admiranext-version" content="v.26.08.01.r8">
+  <meta name="admiranext-version" content="v.26.08.02.r9">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260801-8">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260802-9">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok Ads 25s · ADmiraNeXT">
@@ -67,9 +67,13 @@
         <div class="ad-composer-head">
           <label class="ad-title-field">
             <span class="visually-hidden">Idea del anuncio</span>
-            <input id="adIdea" name="idea" maxlength="200" placeholder="Escribe algo mínimo, por ejemplo: anuncio de pizzería…" required>
+            <input id="adIdea" name="idea" maxlength="200" placeholder="Opcional: escribe un titular, por ejemplo: anuncio de pizzería…" aria-describedby="adIdeaModes adIdeaStatus">
           </label>
-          <button class="idea-generator" id="developAdIdea" type="button" title="Desarrollar el titular con el director creativo">✨ Desarrollar idea</button>
+          <button class="idea-generator" id="developAdIdea" type="button" title="Crear una idea completa desde cero">✨ Crear idea</button>
+        </div>
+        <div class="idea-mode-explainer" id="adIdeaModes">
+          <span><b>Sin titular</b> → Crear idea completa</span>
+          <span><b>Con titular</b> → Desarrollar idea</span>
         </div>
         <label class="ad-detail-field">
           <span class="visually-hidden">Detalle del anuncio</span>
@@ -100,7 +104,7 @@
           </label>
           <button class="button primary create-ad" type="submit">Crear anuncio</button>
         </div>
-        <p class="composer-status" id="adIdeaStatus" role="status">Escribe un titular corto y pulsa “Desarrollar idea”; completaremos el anuncio antes de crear el guion.</p>
+        <p class="composer-status" id="adIdeaStatus" role="status">Pulsa “Crear idea” para generar todo desde cero, o escribe un titular para desarrollarlo.</p>
         <a class="composer-access" id="adIdeaAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para desarrollar ideas ↗</a>
       </form>
 
@@ -378,7 +382,7 @@
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260801-8"></script>
-  <script src="/tiktok/app.js?v=20260801-8"></script>
+  <script src="/assets/tiktok-core.js?v=20260802-9"></script>
+  <script src="/tiktok/app.js?v=20260802-9"></script>
 </body>
 </html>

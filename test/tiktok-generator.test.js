@@ -69,6 +69,9 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /Ideas de anuncios/);
   assert.match(html, /Crear anuncio/);
   assert.match(html, /id="developAdIdea"/);
+  assert.match(html, /✨ Crear idea/);
+  assert.match(html, /Sin titular<\/b> → Crear idea completa/);
+  assert.match(html, /Con titular<\/b> → Desarrollar idea/);
   assert.match(html, /Desarrollar idea/);
   assert.match(html, /\/assets\/tiktok-core\.js/);
   assert.match(html, /\/tiktok\/app\.js/);

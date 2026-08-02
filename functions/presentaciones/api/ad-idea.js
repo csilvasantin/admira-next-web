@@ -58,9 +58,9 @@ async function readJsonLimited(source, maxBytes){
 
 function providerMessage(status){
   if(status === 401 || status === 403) return 'La conexión creativa con Grok no está autorizada.';
-  if(status === 429) return 'El desarrollador creativo está ocupado. Vuelve a intentarlo en unos segundos.';
-  if(status >= 500) return 'El desarrollador creativo no está disponible temporalmente.';
-  return 'No se pudo desarrollar esta idea.';
+  if(status === 429) return 'El director creativo está ocupado. Vuelve a intentarlo en unos segundos.';
+  if(status >= 500) return 'El director creativo no está disponible temporalmente.';
+  return 'No se pudo crear la idea publicitaria.';
 }
 
 function outputText(payload){
@@ -84,6 +84,10 @@ function normalizeAd(candidate){
 }
 
 async function developAd(context, headline){
+  const mode = headline ? 'develop' : 'create';
+  const assignment = mode === 'create'
+    ? 'No hay titular. Inventa desde cero una idea de anuncio completa, concreta y visualmente potente. Elige una categoría de negocio reconocible, un problema o deseo humano, una propuesta honesta, un público y un objetivo. Crea también un nombre de trabajo claramente ficticio o una etiqueta neutral de categoría; nunca uses una marca real. Evita ideas vagas como “mejorar tu vida”.'
+    : 'Hay un titular aportado. Consérvalo como intención central y desarróllalo en una campaña completa. Puedes mejorar su redacción, pero no cambies de categoría, problema ni promesa principal.';
   const response = await fetch('https://api.x.ai/v1/responses', {
     method:'POST',
     headers:{'content-type':'application/json', authorization:`Bearer ${context.env.XAI_API_KEY}`},
@@ -93,11 +97,11 @@ async function developAd(context, headline){
       input:[
         {
           role:'system',
-          content:[{type:'input_text', text:'Actúa como director creativo publicitario senior en español. Convierte un titular mínimo en una sola idea concreta para un anuncio vertical de 15 segundos. No hagas preguntas. Desarrolla un concepto útil y específico, pero no inventes descuentos, precios, premios, ingredientes, ubicaciones, garantías, testimonios ni cualidades verificables que el usuario no haya aportado. Si faltan datos, plantea una dirección visual honesta sin convertir supuestos en afirmaciones. La idea debe ser un titular de campaña mejorado. El detalle debe explicar en 2 o 3 frases el gancho, qué veremos, la propuesta y el cierre. Debe sonar como un brief terminado: no menciones palabras del proceso interno como genérico, editable, supuesto, datos ausentes o faltan datos. La marca debe usar el nombre aportado o una etiqueta neutral de la categoría; nunca inventes una marca real. Elige exactamente un objetivo entre leads, visits, sales, launch y awareness. Devuelve solo el objeto solicitado.'}]
+          content:[{type:'input_text', text:`Actúa como director creativo publicitario senior en español. Crea una sola idea concreta para un anuncio vertical de 15 segundos. No hagas preguntas. ${assignment} No inventes descuentos, precios, premios, ingredientes, ubicaciones, garantías, testimonios ni cualidades verificables. Si faltan datos, plantea una dirección visual honesta sin convertir supuestos en afirmaciones. La idea debe ser un titular de campaña terminado y específico. El detalle debe explicar en 2 o 3 frases el gancho, qué veremos, la propuesta y el cierre. No menciones el proceso interno ni palabras como genérico, editable, supuesto, datos ausentes o faltan datos. Elige exactamente un objetivo entre leads, visits, sales, launch y awareness. Devuelve solo el objeto solicitado.`}]
         },
         {
           role:'user',
-          content:[{type:'input_text', text:JSON.stringify({headline, format:'vídeo vertical de 15 segundos', language:'es'})}]
+          content:[{type:'input_text', text:JSON.stringify({mode:mode === 'create' ? 'create_from_scratch' : 'develop_headline', headline:headline || null, format:'vídeo vertical de 15 segundos', language:'es'})}]
         }
       ],
       text:{format:{type:'json_schema', name:'developed_ad_idea', strict:true, schema:{
@@ -128,7 +132,7 @@ async function developAd(context, headline){
   catch(_){ return {error:json({error:'El desarrollador creativo no devolvió una idea estructurada.'}, 502)}; }
   const ad = normalizeAd(parsed);
   if(!ad) return {error:json({error:'La idea recibida quedó incompleta. Vuelve a intentarlo.'}, 502)};
-  return {ad};
+  return {ad, mode};
 }
 
 export async function onRequest(context){
@@ -140,9 +144,8 @@ export async function onRequest(context){
 
   let body;
   try{ body = await readJsonLimited(context.request, MAX_REQUEST_BYTES); }
-  catch(error){ return json({error:error.message === 'body_too_large' ? 'El titular es demasiado grande.' : 'JSON no válido.'}, error.message === 'body_too_large' ? 413 : 400); }
+  catch(error){ return json({error:error.message === 'body_too_large' ? 'La solicitud creativa es demasiado grande.' : 'JSON no válido.'}, error.message === 'body_too_large' ? 413 : 400); }
   const headline = clean(body?.headline, 200);
-  if(headline.length < 4) return json({error:'Escribe un titular mínimo, por ejemplo: “anuncio de pizzería”.'}, 400);
 
   const ip = context.request.headers.get('CF-Connecting-IP') || 'unknown';
   const rateKey = `tiktok:ad-idea:rate:${ip}:${Math.floor(Date.now() / 10000)}`;
@@ -152,7 +155,7 @@ export async function onRequest(context){
   try{
     const result = await developAd(context, headline);
     if(result.error) return result.error;
-    return json({ad:result.ad});
+    return json({mode:result.mode, ad:result.ad});
   }catch(error){
     console.error(JSON.stringify({message:'ad idea development failed', error:String(error?.message || error)}));
     return json({error:'No se pudo conectar con el desarrollador creativo.'}, 502);

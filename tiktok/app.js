@@ -12,6 +12,7 @@
   const adLibrary = $('#adLibrary');
   const adIdeaList = $('#adIdeaList');
   const adDate = $('#adDate');
+  const adIdeaInput = $('#adIdea');
   const developAdButton = $('#developAdIdea');
   const adIdeaAccess = $('#adIdeaAccess');
   const stage = $('#phoneStage');
@@ -222,17 +223,27 @@
     adIdeaStatus.classList.toggle('is-error', state === 'error');
   }
 
-  async function developAdIdea() {
-    const headline = core.clean($('#adIdea').value, 200);
-    if (headline.length < 4) {
-      setAdIdeaMessage('Escribe un titular mínimo, por ejemplo: “anuncio de pizzería”.', 'error');
-      $('#adIdea').focus();
-      return;
+  function syncAdIdeaAgentMode(updateMessage = false) {
+    const hasHeadline = core.clean(adIdeaInput.value, 200).length > 0;
+    developAdButton.textContent = hasHeadline ? '✨ Desarrollar idea' : '✨ Crear idea';
+    developAdButton.title = hasHeadline ? 'Desarrollar el titular con el director creativo' : 'Crear una idea completa desde cero';
+    if(updateMessage){
+      setAdIdeaMessage(hasHeadline
+        ? 'Pulsa “Desarrollar idea” y completaremos el anuncio respetando este titular.'
+        : 'Pulsa “Crear idea” para que el director creativo genere el anuncio completo desde cero.');
     }
+    return hasHeadline;
+  }
+
+  async function developAdIdea() {
+    const headline = core.clean(adIdeaInput.value, 200);
+    const hasHeadline = headline.length > 0;
     developAdButton.disabled = true;
-    developAdButton.textContent = 'Desarrollando…';
+    developAdButton.textContent = hasHeadline ? 'Desarrollando…' : 'Creando…';
     adIdeaAccess.hidden = true;
-    setAdIdeaMessage('El director creativo está convirtiendo el titular en una campaña completa…');
+    setAdIdeaMessage(hasHeadline
+      ? 'El director creativo está convirtiendo el titular en una campaña completa…'
+      : 'El director creativo está inventando una campaña completa desde cero…');
     try {
       const response = await fetch('/presentaciones/api/ad-idea', {
         method:'POST',
@@ -258,20 +269,28 @@
         if(field && typeof value === 'string') field.value = value;
       });
       if(!adDate.value) adDate.value = todayValue();
-      setAdIdeaMessage('Idea desarrollada. Revisa el enfoque y pulsa “Crear anuncio” para obtener el guion y el storyboard.', 'success');
+      const createdFromScratch = payload.mode === 'create' || !hasHeadline;
+      setAdIdeaMessage(createdFromScratch
+        ? 'Idea creada desde cero. Revisa el concepto y pulsa “Crear anuncio” para obtener el guion y el storyboard.'
+        : 'Idea desarrollada. Revisa el enfoque y pulsa “Crear anuncio” para obtener el guion y el storyboard.', 'success');
       $('#adDetail').focus();
     } catch(error) {
       adIdeaAccess.hidden = !error?.auth;
       setAdIdeaMessage(String(error?.message || 'No se pudo desarrollar la idea.'), 'error');
     } finally {
       developAdButton.disabled = false;
-      developAdButton.textContent = '✨ Desarrollar idea';
+      syncAdIdeaAgentMode(false);
     }
   }
 
   function createAdIdea(event) {
     event.preventDefault();
     const raw = Object.fromEntries(new FormData(adIdeaForm).entries());
+    if(!core.clean(raw.idea, 200)){
+      setAdIdeaMessage('Primero pulsa “Crear idea”, o escribe un titular y pulsa “Desarrollar idea”.', 'error');
+      developAdButton.focus();
+      return;
+    }
     const ad = {
       id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `ad-${Date.now()}`,
       createdAt: new Date().toISOString(),
@@ -1347,9 +1366,9 @@
   }
 
   adIdeaForm.addEventListener('submit', createAdIdea);
-  adIdeaForm.addEventListener('input', () => {
+  adIdeaForm.addEventListener('input', (event) => {
     adIdeaAccess.hidden = true;
-    setAdIdeaMessage('Escribe un titular corto y pulsa “Desarrollar idea”; completaremos el anuncio antes de crear el guion.');
+    if(event.target === adIdeaInput) syncAdIdeaAgentMode(true);
   });
   developAdButton.addEventListener('click', () => { void developAdIdea(); });
   form.addEventListener('submit', (event) => { event.preventDefault(); variation = 0; generate(); });
@@ -1389,6 +1408,7 @@
   });
 
   adDate.value = todayValue();
+  syncAdIdeaAgentMode(false);
   loadAdIdeas();
   renderAdIdeas();
   loadDraft();
