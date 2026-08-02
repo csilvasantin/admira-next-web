@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.02.08.2026.r10">
+<meta name="admiranext-version" content="v.02.08.2026.r13">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -303,6 +303,33 @@
           código: en el pie, y en <code>&lt;meta name="admiranext-version"&gt;</code>.</p>
       </div>
     </article>
+    <article class="art">
+      <div class="num">08</div>
+      <div>
+        <h2>Siempre la última versión — y su autor</h2>
+        <p>Antes de tocar, desplegar, informar o dar por bueno un sitio, el agente <b>comprueba
+          qué versión está viva</b> y <b>quién la publicó</b>. No se improvisa el sello ni se
+          asume que el checkout local es producción.</p>
+        <div class="formula">Fuente canónica → <a href="/webmaster" style="color:inherit">admiranext.com/webmaster</a></div>
+        <p>En el Webmaster hay siempre: la versión en producción de cada solución, el listado
+          de versiones anteriores, los puntos de retorno y cómo se publica o se vuelve atrás.
+          La norma 07 dice <b>cómo se escribe</b> el sello; esta dice <b>dónde se mira</b> y
+          <b>quién lo dejó</b>.</p>
+        <div class="tbl">
+          <table aria-label="Qué hay que asegurar sobre la versión">
+            <thead><tr><th>Qué</th><th>Dónde</th><th>Para qué</th></tr></thead>
+            <tbody>
+              <tr><td>Última versión viva</td><td><a href="/webmaster">/webmaster</a> · sello en pie/meta</td><td>No trabajar sobre un fantasma</td></tr>
+              <tr><td>Historial / retornos</td><td>Tags en /webmaster</td><td>Poder deshacer</td></tr>
+              <tr><td>Autor del cambio</td><td>Tag/commit · agente en anuncio · pie del release</td><td>Saber a quién preguntar y auditar</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:14px">Al publicar, el autor se deja visible: mensaje de deploy, anuncio
+          en el canal común (quién · qué sello · URL) y, si hay tag, mensaje del tag. Un release
+          sin autor es un release incompleto — igual que uno sin punto de retorno.</p>
+      </div>
+    </article>
   </main>
 
   <footer>
@@ -312,8 +339,9 @@
       <code style="font-family:var(--mono)">yk-agent-identity.js</code><br>
       Ver también <a href="/mandamientos">los Mandamientos</a> ·
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
+      <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.02.08.2026.r10</span>
+      <span style="opacity:.8">v.02.08.2026.r13</span>
     </div>
   </footer>
 </div>
