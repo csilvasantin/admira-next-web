@@ -2023,6 +2023,7 @@
     { groupEs: '⚙️  Operaciones', groupEn: '⚙️  Operations', items: [
       { cmd: '/equipo',     labelEs: 'Control del equipo',                      labelEn: 'Team control',                            url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/teamwork.html', color: 'green' },
       { cmd: '/control',    labelEs: 'Máquinas',                                labelEn: 'Machines',                                url: 'https://csilvasantin.github.io/03.-ControlCodexClaude/control.html',  color: 'blue' },
+      { cmd: '/webmaster',  labelEs: 'Webmaster — versiones y puntos de retorno', labelEn: 'Webmaster — versions & restore points',  url: 'https://www.admiranext.com/webmaster', color: 'accent' },
     ]},
   ];
 

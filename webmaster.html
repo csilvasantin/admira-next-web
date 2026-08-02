@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
+<meta name="description" content="Qué versión está viva en cada solución de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="admiranext-version" content="v.02.08.2026.r12">
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root{
+    --bg:#080b14; --panel:rgba(18,24,40,.72);
+    --ink:#e8ecf6; --dim:#8792ab; --line:rgba(124,232,216,.16);
+    --neon:#7ce8d8; --neon2:#5ef2a0; --accent:#e8a87c; --warn:#ff8f7a;
+    --dot-r:#ff5f57; --dot-y:#febc2e; --dot-g:#28c840;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden}
+  #rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.16;pointer-events:none}
+  .glow{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:.45}
+  .glow.a{width:44vw;height:44vw;top:-14vw;left:-10vw;background:radial-gradient(circle,rgba(124,232,216,.26),transparent 70%)}
+  .glow.b{width:38vw;height:38vw;bottom:-12vw;right:-8vw;background:radial-gradient(circle,rgba(232,168,124,.20),transparent 70%)}
+  .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 20px}
+
+  header{padding:60px 0 34px;text-align:center}
+  .term{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;margin-bottom:26px;
+    border:1px solid var(--line);border-radius:9px;background:var(--panel);
+    font-family:var(--mono);font-size:12px;color:var(--dim);backdrop-filter:blur(8px);
+    max-width:100%;flex-wrap:wrap;justify-content:center}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .term .sep{opacity:.35;margin:0 4px}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--neon);margin:0 0 16px}
+  h1{font-size:clamp(2.4rem,7.5vw,4.6rem);line-height:.96;margin:0 0 18px;font-weight:800;letter-spacing:-.03em}
+  h1 .n{font-family:var(--mono);font-weight:700;
+    background:linear-gradient(135deg,var(--neon),var(--neon2) 55%,var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{max-width:700px;margin:0 auto;color:var(--dim);font-size:1.05rem}
+  .lede b{color:var(--ink);font-weight:600}
+  .rule{height:1px;margin:38px 0 0;opacity:.7;
+    background:linear-gradient(90deg,transparent,var(--line) 20%,var(--neon) 50%,var(--line) 80%,transparent)}
+
+  h2.sec{font-family:var(--mono);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--neon);margin:44px 0 14px;font-weight:700}
+
+  /* aviso */
+  .alert{border:1px solid rgba(255,143,122,.5);background:rgba(255,143,122,.07);
+    border-radius:12px;padding:18px 20px;margin:18px 0}
+  .alert h3{margin:0 0 8px;font-size:1rem;color:var(--warn)}
+  .alert p{margin:0 0 8px;color:var(--dim);font-size:.94rem}
+  .alert p:last-child{margin:0}
+  .alert b{color:var(--ink)}
+
+  /* tablas: scrollan dentro de su caja, nunca en la página */
+  .tbl{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  table{width:100%;border-collapse:collapse;font:12.5px/1.45 var(--mono);min-width:620px}
+  th{text-align:left;color:var(--dim);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+    border-bottom:1px solid var(--line);padding:11px 12px;white-space:nowrap}
+  td{padding:11px 12px;border-bottom:1px solid rgba(124,232,216,.08);color:var(--dim);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td.sol{color:var(--ink);font-weight:700;white-space:nowrap}
+  td.ver{color:var(--neon2);font-weight:700;white-space:nowrap}
+  td.no{color:var(--warn)}
+  a{color:var(--neon);text-decoration:none;border-bottom:1px solid transparent}
+  a:hover{border-bottom-color:var(--neon)}
+  code{font-family:var(--mono);font-size:.9em;color:var(--ink);
+    background:rgba(124,232,216,.08);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+  /* fichas de retorno */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px}
+  .card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px}
+  .card h3{margin:0 0 4px;font-size:1.02rem}
+  .card .url{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-bottom:12px;word-break:break-all}
+  .card dl{margin:0;font-size:12.5px;font-family:var(--mono)}
+  .card dt{color:var(--dim);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;margin-top:11px}
+  .card dd{margin:3px 0 0;color:var(--ink);word-break:break-word}
+  .card dd.tags{color:var(--neon);line-height:1.9}
+  .card dd.tags span{display:inline-block;background:rgba(124,232,216,.08);border:1px solid var(--line);
+    border-radius:5px;padding:1px 6px;margin:0 4px 4px 0}
+
+  footer{padding:48px 0 70px;text-align:center;color:var(--dim);font-size:.88rem}
+  footer .meta{font-family:var(--mono);font-size:12px;opacity:.72;margin-top:12px}
+
+  @media (max-width:640px){
+    header{padding:40px 0 24px}
+    .cards{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){ #rain{display:none} }
+</style>
+</head>
+<body>
+<canvas id="rain" aria-hidden="true"></canvas>
+<div class="glow a" aria-hidden="true"></div>
+<div class="glow b" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header>
+    <div class="term">
+      <span class="dot" style="background:var(--dot-r)"></span>
+      <span class="dot" style="background:var(--dot-y)"></span>
+      <span class="dot" style="background:var(--dot-g)"></span>
+      <span class="sep">│</span>
+      <span>webmaster@admiranext — versiones y retornos</span>
+    </div>
+    <p class="eyebrow">Intranet · operaciones</p>
+    <h1><span class="n">Webmaster</span></h1>
+    <p class="lede">Qué versión está viva en cada solución de Admira y AdmiraNeXT, <b>cómo se
+      publica</b> y <b>cómo se vuelve atrás</b>. Un sitio sin punto de retorno documentado no es un
+      sitio publicado: es un sitio del que no se puede salir.</p>
+    <div class="rule"></div>
+  </header>
+
+  <main>
+    <h2 class="sec">Lo que está vivo ahora mismo</h2>
+    <div class="tbl">
+      <table aria-label="Versión viva de cada solución">
+        <thead><tr><th>Solución</th><th>En producción</th><th>Repositorio</th><th>Se publica con</th></tr></thead>
+        <tbody>
+          <tr><td class="sol"><a href="https://www.admiranext.com">admiranext.com</a></td><td class="ver">v.02.08.2026.r12</td><td>admira-next-web</td><td>./deploy.sh → Pages <code>admiranext</code></td></tr>
+          <tr><td class="sol"><a href="https://yokup.com">yokup.com</a></td><td class="ver">v.02.08.2026.r14</td><td>tool · <code>yokup-site/</code></td><td>cd yokup-site &amp;&amp; wrangler pages deploy .</td></tr>
+          <tr><td class="sol"><a href="https://www.pixeria.com">pixeria.com</a></td><td class="ver">v.26.07.12.r3</td><td>pixeria</td><td>./deploy.sh → Pages <code>pixeria</code></td></tr>
+          <tr><td class="sol"><a href="https://www.xpaceos.com">xpaceos.com</a></td><td class="ver">v.2026.08.02.r4</td><td>xpaceos</td><td>git push (GitHub Pages)</td></tr>
+          <tr><td class="sol"><a href="https://www.admira.live">admira.live</a></td><td class="ver">v.2026.07.12.r1</td><td>32.-ConsejoAdmiraNextGame</td><td>./deploy.sh → Pages <code>admira-live</code></td></tr>
+          <tr><td class="sol"><a href="https://www.admira.studio">admira.studio</a></td><td class="ver">v.26.07.12.r3</td><td>admira-studio</td><td>git push (GitHub Pages)</td></tr>
+          <tr><td class="sol"><a href="https://admira.store">admira.store</a></td><td class="ver">v.2026.06.05.r4</td><td>admira-store</td><td>./deploy.sh</td></tr>
+          <tr><td class="sol"><a href="https://admira.tv">admira.tv</a></td><td class="no">sin sello en portada</td><td>admira-tv</td><td>./deploy.sh → Pages + wrangler.toml</td></tr>
+          <tr><td class="sol"><a href="https://www.clearchannel.tv">clearchannel.tv</a></td><td class="no">sin sello en portada</td><td>clearchannel-tv</td><td>./deploy.sh → Pages <code>clearchannel-tv</code></td></tr>
+          <tr><td class="sol"><a href="https://www.admira.app">admira.app</a></td><td class="no">sin sello en portada</td><td>admira-app</td><td>—</td></tr>
+          <tr><td class="sol"><a href="https://digitalavatar.ai">digitalavatar.ai</a></td><td class="no">sin sello en portada</td><td>digitalavatar.ai</td><td>—</td></tr>
+          <tr><td class="sol"><a href="https://www.ainimation.studio">ainimation.studio</a></td><td class="no">sin sello en portada</td><td>ainimation</td><td>git push (GitHub Pages)</td></tr>
+          <tr><td class="sol">pixer-eleven (worker)</td><td class="ver">PixerWorker-v.2026.06.19.r2</td><td>pixer-worker</td><td>wrangler deploy</td></tr>
+          <tr><td class="sol">yokup-rtc (worker)</td><td class="ver">ver <code>/worker/beats</code></td><td>tool · <code>yokup-rtc/</code></td><td>wrangler deploy (commit ANTES)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--dim);font-size:.86rem;margin:0">Sellos leídos de la portada de cada sitio
+      el <b>2 de agosto de 2026</b>. Donde pone «sin sello» el sitio funciona, pero no declara
+      versión en su HTML: no se puede saber qué está sirviendo sin mirar el repositorio.</p>
+
+    <h2 class="sec">Cañones cargados — leer antes de desplegar</h2>
+
+    <div class="alert">
+      <h3>El <code>deploy.sh</code> de admira-studio publica en pixeria.com</h3>
+      <p>admira-studio es el gemelo de pixeria y se clonó con su <code>deploy.sh</code> dentro. Ese
+        script dice literalmente <b>«Publica pixeria.com en CLOUDFLARE PAGES (proyecto pixeria)»</b>
+        y sigue apuntando a <code>--project-name pixeria</code>.</p>
+      <p>Quien entre en admira-studio y ejecute <code>./deploy.sh</code> creyendo que publica su
+        gemelo, <b>publica el contenido de admira-studio encima de pixeria.com</b>, que es
+        producción de Admira.</p>
+      <p><b>admira.studio se publica con <code>git push</code></b> — lo sirve GitHub Pages
+        (comprobado por cabecera <code>server: GitHub.com</code>), no Cloudflare. No ejecutes ese
+        deploy.sh.</p>
+    </div>
+
+    <div class="alert">
+      <h3>Los <code>pages deploy</code> REEMPLAZAN el sitio entero</h3>
+      <p>No suben lo que cambió: suben lo que hay en la carpeta y borran el resto. Si el repositorio
+        no es espejo fiel de producción, <b>lo que solo esté en producción desaparece</b>.</p>
+      <p>Ya ha pasado dos veces en Yokup: un redeploy borró <code>/ideas</code> en julio, y
+        <code>/normativa</code> llevaba en antena sin estar versionada hasta el 2 de agosto. Antes
+        de desplegar, cotejar producción contra el repositorio.</p>
+    </div>
+
+    <div class="alert">
+      <h3>En yokup-rtc: commit ANTES de desplegar</h3>
+      <p>El worker se desplegó más de una vez con código que no estaba en el repositorio. El
+        siguiente que despliega desde el repositorio <b>borra esas rutas sin enterarse</b>.</p>
+      <p>Y el rollback de un worker no se hace con git: <code>wrangler rollback &lt;version&gt;</code>.
+        Descargar el contenido de una versión vieja por API no funciona — solo devuelve metadatos.</p>
+    </div>
+
+    <h2 class="sec">Puntos de retorno por solución</h2>
+    <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Etiquetas reales de cada repositorio,
+      de la más reciente a la más antigua. Para volver a una:
+      <code>git checkout &lt;etiqueta&gt;</code> y publicar con el comando de la tabla de arriba.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>admiranext.com</h3>
+        <div class="url">admira-next-web</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>rollback-presentations-20260718-before-grok-mood-backgrounds</span><span>…-before-zara-documents</span><span>…-before-separated-controls</span><span>…-before-language-inventory</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>yokup.com</h3>
+        <div class="url">tool · yokup-site/</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>rollback-flt1017-95e21e7</span><span>yokup-v.22.07.2026.r4</span><span>yokup-v.22.07.2026.r2</span><span>rollback-misiones-20260721</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; cd yokup-site &amp;&amp; wrangler pages deploy .</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>pixeria.com</h3>
+        <div class="url">pixeria</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>Pixeria-v.2026.07.14.r1</span><span>retorno/pre-cuadratica-20260711</span><span>retorno-pre-pr5-20260710</span><span>retorno-pre-pr4-20260710</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>xpaceos.com</h3>
+        <div class="url">xpaceos</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>rollback/pre-morfeo-seo-20260722</span><span>retorno/pre-suite4-20260719</span><span>ux-paneles-llenan-letterbox</span><span>ux-submenus-legibles-opciones</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; git push (GitHub Pages)</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>admira.live</h3>
+        <div class="url">32.-ConsejoAdmiraNextGame</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>retorno/pre-informes-20260801</span><span>rollback-control-pre-dos-botones</span><span>backup-control-20260722-0814</span><span>backup-navegadores-20260722-0759</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>admira.tv</h3>
+        <div class="url">admira-tv</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>v.14.07.2026.r46</span><span>v.14.07.2026.r45</span><span>v.14.07.2026.r44</span><span>v.14.07.2026.r43</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>clearchannel.tv</h3>
+        <div class="url">clearchannel-tv</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>cc-v.13.07.2026.r7</span><span>cc-v.13.07.2026.r6</span><span>cc-v.13.07.2026.r5</span><span>cc-v.13.07.2026.r4</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh · el push NO publica</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>admira.studio</h3>
+        <div class="url">admira-studio</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>AdmiraStudio-v.2026.06.05.r2</span><span>AdmiraStudio-v.2026.06.05.r1</span><span>AdmiraStudio-v.2026.05.19.r14</span><span>Admira-v.2026.05.02.r69</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; git push — <b>nunca ./deploy.sh</b></dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>admira.store</h3>
+        <div class="url">admira-store</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>AdmiraStore-prod-20260617-0008</span><span>AdmiraStore-prod-20260617-0006</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>pixer-eleven (worker)</h3>
+        <div class="url">pixer-worker</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>PixerWorker-v.2026.06.19.r2</span><span>PixerWorker-v.2026.06.19.r1</span><span>PixerWorker-v.2026.06.09.r1</span><span>PixerWorker-v.2026.06.05.r1</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>wrangler rollback &lt;version&gt; · el repo está desfasado de producción: NO desplegar a ciegas</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>digitalavatar.ai</h3>
+        <div class="url">digitalavatar.ai</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>v2.1-evolucion</span><span>v2-3d</span><span>v1-2d</span><span>DigitalAvatar-v.2026.06.04.r6</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt;</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>AdmiraXperience · DigitalTwin</h3>
+        <div class="url">01.-AdmiraXperience-Game</div>
+        <dl>
+          <dt>Puntos de retorno</dt>
+          <dd class="tags"><span>DigitalTwin-v.2026.06.23.r1</span><span>DigitalTwin-v.2026.06.19.r4</span><span>DigitalTwin-v.2026.06.19.r3</span><span>DigitalTwin-v.2026.06.19.r2</span></dd>
+          <dt>Volver atrás</dt>
+          <dd>git checkout &lt;tag&gt; &amp;&amp; git push (GitHub Pages)</dd>
+        </dl>
+      </div>
+    </div>
+
+    <h2 class="sec">Cómo se deja un punto de retorno</h2>
+    <div class="tbl">
+      <table aria-label="Convención de etiquetas">
+        <thead><tr><th>Cuándo</th><th>Etiqueta</th><th>Ejemplo real</th></tr></thead>
+        <tbody>
+          <tr><td>Al publicar una versión</td><td>&lt;Proyecto&gt;-v.DD.MM.AAAA.rN</td><td>Pixeria-v.2026.07.14.r1</td></tr>
+          <tr><td>Antes de un cambio gordo</td><td>rollback-&lt;qué&gt;-AAAAMMDD</td><td>rollback-misiones-20260721</td></tr>
+          <tr><td>Antes de tocar algo ajeno</td><td>retorno/pre-&lt;qué&gt;-AAAAMMDD</td><td>retorno/pre-informes-20260801</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--dim);font-size:.9rem">Tres nombres para lo mismo porque cada equipo trajo
+      el suyo. Lo importante no es cuál se use, sino que <b>exista antes de tocar</b>: la etiqueta
+      hay que crearla cuando todo todavía funciona, no cuando ya se ha roto.</p>
+  </main>
+
+  <footer>
+    <div>Registro de versiones del ecosistema · <b>AdmiraNeXT</b></div>
+    <div class="meta">
+      Datos verificados el 2 de agosto de 2026 · se actualiza al publicar<br>
+      <a href="/mandamientos">Mandamientos</a> · <a href="/normativa">Normativa</a><br>
+      <span style="opacity:.8">v.02.08.2026.r12</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* Lluvia Matrix: mismo guiño que en Mandamientos y Normativa. */
+(function(){
+  var c = document.getElementById('rain');
+  if (!c || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var ctx = c.getContext('2d'), cols = 0, drops = [], size = 15, raf = null;
+  var GLYPHS = 'アカサタナハマヤラワイキシチニヒミリヰウクスツヌフムユルエケセテネヘメレヱオコソトノホモヨロヲ0123456789ADMIRANEXT'.split('');
+  function resize(){
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    cols = Math.floor(c.width / size);
+    drops = new Array(cols).fill(0).map(function(){ return Math.floor(Math.random() * -60); });
+  }
+  function frame(){
+    ctx.fillStyle = 'rgba(8,11,20,.085)';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.font = size + 'px ui-monospace, monospace';
+    for (var i = 0; i < cols; i++){
+      var ch = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      var y = drops[i] * size;
+      ctx.fillStyle = Math.random() > 0.986 ? '#dffff4' : '#4fd6bd';
+      ctx.fillText(ch, i * size, y);
+      if (y > c.height && Math.random() > 0.977) drops[i] = 0;
+      drops[i]++;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function start(){ if (!raf) frame(); }
+  function stop(){ if (raf){ cancelAnimationFrame(raf); raf = null; } }
+  resize();
+  window.addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : start(); });
+  start();
+})();
+</script>
+</body>
+</html>
