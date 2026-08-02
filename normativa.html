@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.0208.r10">
+<meta name="admiranext-version" content="v.02.08.2026.r10">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -279,8 +279,9 @@
       <div>
         <h2>Una sola forma de decir la versión</h2>
         <p>Toda declaración de versión —web, worker, informe, mensaje— se escribe igual:
-          <b>v punto, día y mes, punto, r y el número de release de ese día</b>.</p>
-        <div class="formula">v.DDMM.rN → v.0208.r10</div>
+          <b>v, día, mes, año, y r con el número de release de ese día</b>. Todo separado por
+          puntos.</p>
+        <div class="formula">v.DD.MM.AAAA.rN → v.02.08.2026.r10</div>
         <p>Lo que se numera no es el producto, es <b>el día</b>: la fecha dice cuándo se publicó y
           la r cuántas veces se publicó ya esa jornada. Un <code class="bad">v10.0</code> no dice
           ninguna de las dos cosas, y dos sellos con formato distinto no se pueden comparar de un
@@ -289,10 +290,11 @@
           <table aria-label="Formatos de versión">
             <thead><tr><th>Así no</th><th>Por qué no</th><th>Así sí</th></tr></thead>
             <tbody>
-              <tr><td>v10.0</td><td>No dice ni cuándo ni cuántas</td><td>v.0208.r10</td></tr>
-              <tr><td>v.2026.07.13.r1</td><td>Año y orden distintos al resto</td><td>v.1307.r1</td></tr>
-              <tr><td>v.17.07.2026.r3</td><td>Mismo dato, otro orden</td><td>v.1707.r3</td></tr>
-              <tr><td>v26.07.07.12</td><td>Sin puntos ni release</td><td>v.0707.r12</td></tr>
+              <tr><td>v10.0</td><td>No dice ni cuándo ni cuántas</td><td>v.02.08.2026.r10</td></tr>
+              <tr><td>v.0208.r10</td><td>Sin año no sirve al año que viene</td><td>v.02.08.2026.r10</td></tr>
+              <tr><td>v.2026.07.13.r1</td><td>El año va al final, no delante</td><td>v.13.07.2026.r1</td></tr>
+              <tr><td>v26.07.07.12</td><td>Sin puntos y sin release</td><td>v.07.07.2026.r12</td></tr>
+              <tr><td>v.26.07.24.prehome</td><td>La r no es un apodo</td><td>v.24.07.2026.r1</td></tr>
             </tbody>
           </table>
         </div>
@@ -311,7 +313,7 @@
       Ver también <a href="/mandamientos">los Mandamientos</a> ·
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.0208.r10</span>
+      <span style="opacity:.8">v.02.08.2026.r10</span>
     </div>
   </footer>
 </div>
