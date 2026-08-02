@@ -12,6 +12,8 @@
  * Sin fecha devuelve HOY (Madrid). d=all devuelve los últimos 100 sin filtrar.
  */
 
+import { sesion } from '../_webmaster-gate.js';
+
 // Lista blanca: solo proyectos del ecosistema. Un parámetro no puede pedir otra cosa.
 const PROYECTOS = new Set([
   'admiranext', 'yokup', 'admira-tv', 'pixeria', 'admira-live',
@@ -43,6 +45,12 @@ export async function onRequestGet({ request, env }) {
       'cache-control': 'public, max-age=60',
     },
   });
+
+  // Misma verja que la página: de nada sirve proteger /webmaster si el historial
+  // de despliegues se puede pedir por su cuenta.
+  if (!(await sesion(request, env))) {
+    return json({ ok: false, error: 'acceso restringido' }, 401);
+  }
 
   if (!PROYECTOS.has(proyecto)) {
     return json({ ok: false, error: 'proyecto no reconocido' }, 400);
