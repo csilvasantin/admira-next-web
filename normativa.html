@@ -80,11 +80,13 @@
   }
   .art:hover{border-color:rgba(124,232,216,.42);box-shadow:0 0 0 1px rgba(124,232,216,.10),0 16px 44px -18px rgba(124,232,216,.32)}
   .art:hover::before{opacity:1}
+  /* El degradado se recorta al texto. OJO al orden: el atajo `background` resetea
+     background-clip, así que va ANTES del clip o se pinta la caja entera. */
   .num{
     font-family:var(--mono);font-size:2.9rem;font-weight:700;line-height:1;
-    color:transparent;-webkit-background-clip:text;background-clip:text;
     background:linear-gradient(135deg,var(--neon),var(--accent));
-    text-align:right;font-variant-numeric:tabular-nums;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    align-self:start;text-align:right;font-variant-numeric:tabular-nums;
   }
   .art h2{margin:2px 0 10px;font-size:1.24rem;letter-spacing:-.01em}
   .art p{margin:0 0 12px;color:var(--dim);font-size:.99rem}
