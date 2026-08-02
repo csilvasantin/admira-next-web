@@ -1199,6 +1199,8 @@
     const stream = canvas.captureStream(30);
     let capturedVideoStream = null;
     let recorder = null;
+    let packageAudioContext = null;
+    let packageAudioClock = null;
     try{
       if(grokVideo.readyState < 2) await waitForMedia(grokVideo, 'loadeddata');
       grokVideo.currentTime = 0;
@@ -1206,7 +1208,29 @@
       grokVideo.pause();
       if(typeof grokVideo.captureStream === 'function'){
         capturedVideoStream = grokVideo.captureStream();
-        capturedVideoStream.getAudioTracks().forEach(track => stream.addTrack(track));
+        const capturedAudioTracks = capturedVideoStream.getAudioTracks();
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if(AudioCtor){
+          // MediaRecorder can discard canvas frames produced before the first
+          // audio timestamp and truncate again when the source video's audio
+          // ends. A silent, continuous Web Audio clock keeps the muxer's
+          // timeline alive for preroll + main video + postroll.
+          packageAudioContext = new AudioCtor();
+          await packageAudioContext.resume();
+          const destination = packageAudioContext.createMediaStreamDestination();
+          packageAudioClock = packageAudioContext.createOscillator();
+          const silentGain = packageAudioContext.createGain();
+          silentGain.gain.value = 0;
+          packageAudioClock.connect(silentGain).connect(destination);
+          packageAudioClock.start();
+          if(capturedAudioTracks.length){
+            const sourceStream = new MediaStream(capturedAudioTracks);
+            packageAudioContext.createMediaStreamSource(sourceStream).connect(destination);
+          }
+          destination.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+        }else{
+          capturedAudioTracks.forEach(track => stream.addTrack(track));
+        }
       }
       const mimeType = supportedMime();
       recorder = new MediaRecorder(stream, mimeType ? {mimeType, videoBitsPerSecond:6500000} : {videoBitsPerSecond:6500000});
@@ -1284,6 +1308,8 @@
       if(!grokVideo.paused) grokVideo.pause();
       stream.getTracks().forEach(track => track.stop());
       capturedVideoStream?.getTracks().forEach(track => track.stop());
+      if(packageAudioClock){ try{ packageAudioClock.stop(); }catch(_){ /* Already stopped. */ } }
+      if(packageAudioContext){ try{ await packageAudioContext.close(); }catch(_){ /* Best effort. */ } }
     }
   }
 

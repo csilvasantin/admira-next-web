@@ -137,3 +137,12 @@ test('sirve el master únicamente mediante su ruta opaca', async () => {
   });
   assert.equal(missing.status, 404);
 });
+
+test('el compositor mantiene un reloj de audio durante preroll, anuncio y postroll', async () => {
+  const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../tiktok/app.js'), 'utf8');
+  assert.match(source, /packageAudioContext\.createMediaStreamDestination\(\)/);
+  assert.match(source, /packageAudioClock\.connect\(silentGain\)\.connect\(destination\)/);
+  assert.match(source, /silentGain\.gain\.value = 0/);
+  assert.match(source, /packageAudioContext\.createMediaStreamSource\(sourceStream\)\.connect\(destination\)/);
+  assert.match(source, /await packageAudioContext\.close\(\)/);
+});
