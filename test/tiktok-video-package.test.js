@@ -67,11 +67,14 @@ test('guarda el master 25s en streaming y lo publica en Pixeria', async () => {
   const response = await onRequest({
     request,
     env:{
-      PRESENTATION_IDEAS:store, PRESENTATION_MEDIA:media,
-      PIXERIA_STOCK:{fetch:async request => {
+      PRESENTATION_IDEAS:store, PRESENTATION_MEDIA:media, PIXERIA_INGEST_TOKEN:'test-ingest-token',
+    },
+    data:{
+      pixeriaFetch:async request => {
+        assert.equal(request.headers.get('x-admiranext-ingest'), 'test-ingest-token');
         publishBody = await request.json();
         return Response.json({ok:true, id:'1754074100000-final', url:'https://api.admira.store/stock/asset/1754074100000-final'});
-      }}
+      }
     }
   });
   const payload = await response.json();
@@ -81,6 +84,8 @@ test('guarda el master 25s en streaming y lo publica en Pixeria', async () => {
   assert.equal(payload.pixeria.status, 'published');
   assert.equal(publishBody.type, 'video');
   assert.equal(publishBody.motor, 'ADmiraNeXT TikTok Composer');
+  assert.match(publishBody.externalId, /^admiranext:tiktok-package:pkg-[a-f0-9]{20}$/);
+  assert.equal(publishBody.mime, 'video/webm');
   assert.match(publishBody.sourceUrl, /^https:\/\/www\.admiranext\.com\/tiktok\/media\/pkg-[a-f0-9]{20}\/[a-f0-9]{64}$/);
   assert.equal(media.objects.size, 1);
 });

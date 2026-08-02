@@ -63,7 +63,7 @@ async function readJsonLimited(source, maxBytes){
 }
 
 async function publishToPixeria(context, state){
-  if(!context.env.PIXERIA_STOCK) return {...state, pixeria:{status:'failed', error:'Pixeria no está conectado.'}};
+  if(!context.env.PIXERIA_INGEST_TOKEN) return {...state, pixeria:{status:'failed', error:'Pixeria no está conectado.'}};
   const body = {
     type:'video',
     motor:'ADmiraNeXT TikTok Composer',
@@ -71,19 +71,35 @@ async function publishToPixeria(context, state){
     title:state.title || 'Anuncio vertical · 25 segundos',
     comment:'Master final compuesto: preroll 5s + anuncio Grok 15s + postroll 5s.',
     sourceUrl:state.sourceUrl,
+    mime:state.contentType,
+    externalId:`admiranext:tiktok-package:${state.id}`,
     tags:['tiktok', 'anuncio', '25s'],
     quality:'best'
   };
   let response;
-  try{
-    response = await context.env.PIXERIA_STOCK.fetch(new Request(PIXERIA_PUBLISH_URL, {
-      method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body)
-    }));
-  }catch(_){ return {...state, pixeria:{status:'failed', error:'Pixeria no respondió durante la publicación.'}}; }
   let payload = {};
-  try{ payload = await readJsonLimited(response, MAX_PIXERIA_BYTES); }catch(_){ /* Invalid Pixeria response handled below. */ }
+  try{
+    const publishFetch = context.data?.pixeriaFetch || fetch;
+    response = await publishFetch(new Request(PIXERIA_PUBLISH_URL, {
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        accept:'application/json',
+        'x-admiranext-ingest':context.env.PIXERIA_INGEST_TOKEN
+      },
+      body:JSON.stringify(body)
+    }));
+    payload = await readJsonLimited(response, MAX_PIXERIA_BYTES);
+  }catch(error){
+    console.error('video-package:pixeria-fetch', JSON.stringify({id:state.id, message:String(error?.message || error).slice(0, 300)}));
+    return {...state, pixeria:{status:'failed', error:'Pixeria no respondió durante la publicación.'}};
+  }
   if(!response.ok || !payload?.ok || !payload?.id || !payload?.url){
-    return {...state, pixeria:{status:'failed', error:'Pixeria no pudo guardar el master final.'}};
+    console.error('video-package:pixeria-rejected', JSON.stringify({
+      id:state.id, status:response.status, providerError:String(payload?.error || '').slice(0, 100),
+      providerDetail:String(payload?.detail || '').slice(0, 180), providerStatus:Number(payload?.status || 0)
+    }));
+    return {...state, pixeria:{status:'failed', error:`Pixeria rechazó el master${payload?.error ? ` (${clean(payload.error, 80)})` : ''}.`}};
   }
   return {...state, pixeria:{
     status:'published', id:String(payload.id), assetUrl:String(payload.url),
