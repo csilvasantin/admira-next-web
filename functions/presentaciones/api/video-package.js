@@ -118,23 +118,26 @@ async function createPackage(context){
 
   const token = existing?.token || crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
   const key = `tiktok/packages/${id}-${token}.${extension}`;
-  let streamed = 0;
-  const bounded = new TransformStream({
-    transform(chunk, controller){
-      streamed += chunk.byteLength;
-      if(streamed > MAX_VIDEO_BYTES) throw new Error('video_too_large');
-      controller.enqueue(chunk);
-    }
-  });
+  let stored = null;
   try{
-    await env.PRESENTATION_MEDIA.put(key, request.body.pipeThrough(bounded), {
+    // El cuerpo nativo de Request conserva la longitud declarada por el navegador.
+    // No debe pasar por TransformStream: al hacerlo se pierde esa longitud conocida
+    // y R2 rechaza vídeos reales con un 502 aunque estén muy por debajo del límite.
+    // Cloudflare ya limita el request completo y, después del put, contrastamos el
+    // tamaño que R2 almacenó para detectar una transferencia incompleta.
+    stored = await env.PRESENTATION_MEDIA.put(key, request.body, {
       httpMetadata:{contentType, cacheControl:'public, max-age=31536000, immutable'},
       customMetadata:{kind:'tiktok-package', duration:'25', id}
     });
   }catch(error){
-    return json({error:String(error?.message || error).includes('video_too_large') ? 'El montaje supera el límite de 120 MB.' : 'No pudimos guardar el montaje final.'}, String(error?.message || error).includes('video_too_large') ? 413 : 502);
+    console.error('video-package:r2-put', JSON.stringify({id, declared, contentType, message:String(error?.message || error).slice(0, 300)}));
+    return json({error:'No pudimos guardar el montaje final en el almacenamiento.', code:'package_storage_failed'}, 502);
   }
-  if(streamed !== declared) return json({error:'La transferencia del montaje quedó incompleta.'}, 400);
+  const streamed = Number(stored?.size);
+  if(!Number.isFinite(streamed) || streamed !== declared){
+    await env.PRESENTATION_MEDIA.delete(key).catch(() => {});
+    return json({error:'La transferencia del montaje quedó incompleta.', code:'package_size_mismatch'}, 400);
+  }
 
   let title = 'Anuncio vertical · 25 segundos';
   try{ title = clean(decodeURIComponent(request.headers.get('x-package-title') || ''), 180) || title; }catch(_){ /* Default title. */ }

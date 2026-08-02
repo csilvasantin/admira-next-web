@@ -21,7 +21,9 @@ function r2(){
     async put(key, body, options){
       const bytes = new Uint8Array(await new Response(body).arrayBuffer());
       objects.set(key, {bytes, options});
+      return {size:bytes.byteLength};
     },
+    async delete(key){ objects.delete(key); },
     async get(key){
       const value = objects.get(key);
       if(!value) return null;
@@ -48,15 +50,22 @@ test('guarda el master 25s en streaming y lo publica en Pixeria', async () => {
   const media = r2();
   let publishBody;
   const bytes = new Uint8Array(2048).fill(7);
-  const response = await onRequest({
-    request:new Request('https://www.admiranext.com/presentaciones/api/video-package', {
+  const request = new Request('https://www.admiranext.com/presentaciones/api/video-package', {
       method:'POST',
       headers:{
         origin:'https://www.admiranext.com', 'content-type':'video/webm', 'content-length':String(bytes.byteLength),
         'x-client-request-id':'e8a65412-4fd3-4b58-9b66-f4bc15cb6d71', 'x-package-title':encodeURIComponent('Anuncio de pizzería · 25s')
       },
       body:bytes
-    }),
+    });
+  const nativeRequestBody = request.body;
+  const originalPut = media.put.bind(media);
+  media.put = async (key, body, options) => {
+    assert.equal(body, nativeRequestBody, 'R2 debe recibir el body nativo con longitud conocida, no un TransformStream');
+    return originalPut(key, body, options);
+  };
+  const response = await onRequest({
+    request,
     env:{
       PRESENTATION_IDEAS:store, PRESENTATION_MEDIA:media,
       PIXERIA_STOCK:{fetch:async request => {
@@ -74,6 +83,33 @@ test('guarda el master 25s en streaming y lo publica en Pixeria', async () => {
   assert.equal(publishBody.motor, 'ADmiraNeXT TikTok Composer');
   assert.match(publishBody.sourceUrl, /^https:\/\/www\.admiranext\.com\/tiktok\/media\/pkg-[a-f0-9]{20}\/[a-f0-9]{64}$/);
   assert.equal(media.objects.size, 1);
+});
+
+test('elimina un master cuya longitud almacenada no coincide con la declarada', async () => {
+  const {onRequest} = await import('../functions/presentaciones/api/video-package.js');
+  const store = kv();
+  const media = r2();
+  const originalPut = media.put.bind(media);
+  media.put = async (key, body, options) => {
+    const stored = await originalPut(key, body, options);
+    return {...stored, size:stored.size - 1};
+  };
+  const bytes = new Uint8Array(2048).fill(3);
+  const response = await onRequest({
+    request:new Request('https://www.admiranext.com/presentaciones/api/video-package', {
+      method:'POST',
+      headers:{
+        'content-type':'video/webm', 'content-length':String(bytes.byteLength),
+        'x-client-request-id':'e8a65412-4fd3-4b58-9b66-f4bc15cb6d73'
+      },
+      body:bytes
+    }),
+    env:{PRESENTATION_IDEAS:store, PRESENTATION_MEDIA:media}
+  });
+  const payload = await response.json();
+  assert.equal(response.status, 400);
+  assert.equal(payload.code, 'package_size_mismatch');
+  assert.equal(media.objects.size, 0);
 });
 
 test('sirve el master únicamente mediante su ruta opaca', async () => {

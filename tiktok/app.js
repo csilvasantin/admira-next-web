@@ -572,14 +572,15 @@
     }
   }
 
-  async function readApiResponse(response) {
+  async function readApiResponse(response, fallback = 'No se pudo completar la solicitud de Grok.') {
     const type = response.headers.get('content-type') || '';
     if(!type.includes('application/json')){
       if(response.status === 401 || response.status === 403) throw Object.assign(new Error('Inicia sesión en el Generador de Presentaciones para usar Grok.'), {auth:true});
-      throw new Error('El servicio de Grok no devolvió una respuesta válida.');
+      throw Object.assign(new Error(fallback), {status:response.status});
     }
     const payload = await response.json();
-    if(!response.ok) throw Object.assign(new Error(payload?.error || 'No se pudo completar la solicitud de Grok.'), {status:response.status, auth:response.status === 401 || response.status === 403});
+    const detail = payload?.error || payload?.message || payload?.errors?.[0]?.message || fallback;
+    if(!response.ok) throw Object.assign(new Error(detail), {status:response.status, auth:response.status === 401 || response.status === 403});
     return payload;
   }
 
@@ -1155,7 +1156,7 @@
         headers:{'content-type':'application/json', accept:'application/json'},
         body:JSON.stringify({id:packageId})
       });
-      const payload = await readApiResponse(response);
+      const payload = await readApiResponse(response, 'No se pudo reintentar la publicación del máster final en Pixeria.');
       if(payload.pixeria?.status !== 'published') throw new Error(payload.pixeria?.error || 'Pixeria todavía no ha podido guardar el master.');
       finishPackagePublication(payload);
     }catch(error){
@@ -1267,7 +1268,7 @@
         },
         body:blob
       });
-      const payload = await readApiResponse(response);
+      const payload = await readApiResponse(response, 'No se pudo guardar el máster final de 25 segundos.');
       packageId = payload.id || '';
       if(payload.pixeria?.status === 'published') finishPackagePublication(payload);
       else{
