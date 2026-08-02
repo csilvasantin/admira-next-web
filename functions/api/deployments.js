@@ -51,21 +51,33 @@ export async function onRequestGet({ request, env }) {
     return json({ ok: false, error: 'sin credenciales en el edge' }, 503);
   }
 
-  const api = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}`
-            + `/pages/projects/${proyecto}/deployments?per_page=100`;
+  // per_page tiene un techo de 25 (más devuelve 400, código 8000024), y un día
+  // movido pasa de 25 despliegues de sobra. Se pagina hasta 4 páginas.
+  const base = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}`
+             + `/pages/projects/${proyecto}/deployments?per_page=25`;
+  const crudos = [];
+  for (let page = 1; page <= 4; page++) {
+    let r;
+    try {
+      r = await fetch(`${base}&page=${page}`, {
+        headers: { Authorization: `Bearer ${env.CF_API_TOKEN}` },
+      });
+    } catch (e) {
+      return json({ ok: false, error: 'no se pudo consultar Cloudflare' }, 502);
+    }
+    if (!r.ok) return json({ ok: false, error: `Cloudflare respondió ${r.status}` }, 502);
 
-  let r;
-  try {
-    r = await fetch(api, { headers: { Authorization: `Bearer ${env.CF_API_TOKEN}` } });
-  } catch (e) {
-    return json({ ok: false, error: 'no se pudo consultar Cloudflare' }, 502);
+    const data = await r.json();
+    if (!data.success) return json({ ok: false, error: 'Cloudflare rechazó la consulta' }, 502);
+
+    const lote = data.result || [];
+    crudos.push(...lote);
+    if (lote.length < 25) break;                       // no hay más
+    // Si ya hemos bajado por debajo del día pedido, seguir sería gastar por gastar.
+    if (dia !== 'all' && diaMadrid(lote[lote.length - 1].created_on) < dia) break;
   }
-  if (!r.ok) return json({ ok: false, error: `Cloudflare respondió ${r.status}` }, 502);
 
-  const data = await r.json();
-  if (!data.success) return json({ ok: false, error: 'Cloudflare rechazó la consulta' }, 502);
-
-  const todos = (data.result || [])
+  const todos = crudos
     .filter((d) => d.environment === 'production')
     .map((d) => {
       const meta = (d.deployment_trigger && d.deployment_trigger.metadata) || {};
