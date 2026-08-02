@@ -145,4 +145,6 @@ test('el compositor mantiene un reloj de audio durante preroll, anuncio y postro
   assert.match(source, /silentGain\.gain\.value = 0/);
   assert.match(source, /packageAudioContext\.createMediaStreamSource\(sourceStream\)\.connect\(destination\)/);
   assert.match(source, /await packageAudioContext\.close\(\)/);
+  assert.match(source, /Seed the canvas before captureStream\(\)/);
+  assert.ok(source.indexOf("drawRollFrame(ctx, 'pre', 0") < source.indexOf('const stream = canvas.captureStream(30)'), 'el primer fotograma debe existir antes de capturar el canvas');
 });

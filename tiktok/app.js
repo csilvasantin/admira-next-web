@@ -1196,6 +1196,15 @@
     canvas.width = 1080;
     canvas.height = 1920;
     const ctx = canvas.getContext('2d', {alpha:false});
+    // Seed the canvas before captureStream(). Chrome can otherwise anchor the
+    // first encoded video timestamp when the 15s source begins playing and
+    // silently drop the whole preroll interval.
+    if(before){
+      drawRollFrame(ctx, 'pre', 0, core.clean(preRollTitle.value, 90) || 'ADmiraNeXT presenta');
+    }else{
+      ctx.fillStyle = '#020508';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
     const stream = canvas.captureStream(30);
     let capturedVideoStream = null;
     let recorder = null;
