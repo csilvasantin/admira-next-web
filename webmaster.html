@@ -71,6 +71,41 @@
   code{font-family:var(--mono);font-size:.9em;color:var(--ink);
     background:rgba(124,232,216,.08);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 
+  /* solución pulsable + panel de snapshots */
+  .solbtn{font:inherit;color:var(--ink);background:none;border:0;padding:0;cursor:pointer;
+    border-bottom:1px dashed var(--neon);font-weight:700}
+  .solbtn:hover,.solbtn[aria-expanded="true"]{color:var(--neon)}
+  .ext{font-size:11px;opacity:.65;border:0!important}
+  .snap{border:1px solid rgba(124,232,216,.4);border-radius:12px;background:var(--panel);
+    padding:18px 20px;margin:0 0 16px}
+  .snap-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .snap h3{margin:0;font-size:1.05rem}
+  .snap-head p{margin:4px 0 0;color:var(--dim);font-size:.86rem;max-width:640px}
+  .snap-close{background:none;border:1px solid var(--line);border-radius:8px;color:var(--dim);
+    font-size:18px;line-height:1;padding:4px 10px;cursor:pointer}
+  .snap-close:hover{color:var(--ink);border-color:var(--neon)}
+  .snap-days{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 4px}
+  .snap-days button{font:700 11px/1 var(--mono);padding:6px 10px;border-radius:7px;cursor:pointer;
+    border:1px solid var(--line);background:rgba(18,24,40,.9);color:var(--dim)}
+  .snap-days button[aria-pressed="true"]{color:#08121a;background:var(--neon);border-color:var(--neon)}
+  .snap-list{margin-top:10px}
+  .snap-row{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:10px 0;border-top:1px solid rgba(124,232,216,.1)}
+  .snap-row:first-child{border-top:0}
+  .snap-h{font:700 12.5px/1 var(--mono);color:var(--neon2)}
+  .snap-m{font-size:.9rem;color:var(--ink);overflow-wrap:anywhere}
+  .snap-m .cm{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:6px}
+  .snap-live{display:inline-block;font:700 9px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:#08121a;background:var(--neon2);border-radius:999px;padding:3px 7px;margin-left:8px;vertical-align:1px}
+  .snap-open{font:700 11px/1 var(--mono);padding:7px 12px;border-radius:8px;white-space:nowrap;
+    border:1px solid var(--line);color:var(--neon);text-decoration:none}
+  .snap-open:hover{border-color:var(--neon)}
+  .snap-msg{color:var(--dim);font-size:.9rem;padding:10px 0}
+  @media (max-width:640px){
+    .snap-row{grid-template-columns:52px minmax(0,1fr);row-gap:8px}
+    .snap-open{grid-column:2;justify-self:start}
+  }
+
   /* fichas de retorno */
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px}
   .card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px}
@@ -121,16 +156,16 @@
       <table aria-label="Versión viva de cada solución">
         <thead><tr><th>Solución</th><th>En producción</th><th>Repositorio</th><th>Se publica con</th></tr></thead>
         <tbody>
-          <tr><td class="sol"><a href="https://www.admiranext.com">admiranext.com</a></td><td class="ver">v.02.08.2026.r12</td><td>admira-next-web</td><td>./deploy.sh → Pages <code>admiranext</code></td></tr>
-          <tr><td class="sol"><a href="https://yokup.com">yokup.com</a></td><td class="ver">v.02.08.2026.r14</td><td>tool · <code>yokup-site/</code></td><td>cd yokup-site &amp;&amp; wrangler pages deploy .</td></tr>
-          <tr><td class="sol"><a href="https://www.pixeria.com">pixeria.com</a></td><td class="ver">v.26.07.12.r3</td><td>pixeria</td><td>./deploy.sh → Pages <code>pixeria</code></td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="admiranext" data-n="admiranext.com">admiranext.com</button> <a href="https://www.admiranext.com" title="Abrir admiranext.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.02.08.2026.r12</td><td>admira-next-web</td><td>./deploy.sh → Pages <code>admiranext</code></td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="yokup" data-n="yokup.com">yokup.com</button> <a href="https://yokup.com" title="Abrir yokup.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.02.08.2026.r14</td><td>tool · <code>yokup-site/</code></td><td>cd yokup-site &amp;&amp; wrangler pages deploy .</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="pixeria" data-n="pixeria.com">pixeria.com</button> <a href="https://www.pixeria.com" title="Abrir pixeria.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.26.07.12.r3</td><td>pixeria</td><td>./deploy.sh → Pages <code>pixeria</code></td></tr>
           <tr><td class="sol"><a href="https://www.xpaceos.com">xpaceos.com</a></td><td class="ver">v.2026.08.02.r4</td><td>xpaceos</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol"><a href="https://www.admira.live">admira.live</a></td><td class="ver">v.2026.07.12.r1</td><td>32.-ConsejoAdmiraNextGame</td><td>./deploy.sh → Pages <code>admira-live</code></td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-live" data-n="admira.live">admira.live</button> <a href="https://www.admira.live" title="Abrir admira.live" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.07.12.r1</td><td>32.-ConsejoAdmiraNextGame</td><td>./deploy.sh → Pages <code>admira-live</code></td></tr>
           <tr><td class="sol"><a href="https://www.admira.studio">admira.studio</a></td><td class="ver">v.26.07.12.r3</td><td>admira-studio</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol"><a href="https://admira.store">admira.store</a></td><td class="ver">v.2026.06.05.r4</td><td>admira-store</td><td>./deploy.sh</td></tr>
-          <tr><td class="sol"><a href="https://admira.tv">admira.tv</a></td><td class="no">sin sello en portada</td><td>admira-tv</td><td>./deploy.sh → Pages + wrangler.toml</td></tr>
-          <tr><td class="sol"><a href="https://www.clearchannel.tv">clearchannel.tv</a></td><td class="no">sin sello en portada</td><td>clearchannel-tv</td><td>./deploy.sh → Pages <code>clearchannel-tv</code></td></tr>
-          <tr><td class="sol"><a href="https://www.admira.app">admira.app</a></td><td class="no">sin sello en portada</td><td>admira-app</td><td>—</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-store" data-n="admira.store">admira.store</button> <a href="https://admira.store" title="Abrir admira.store" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.06.05.r4</td><td>admira-store</td><td>./deploy.sh</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-tv" data-n="admira.tv">admira.tv</button> <a href="https://admira.tv" title="Abrir admira.tv" class="ext" target="_blank" rel="noopener">↗</a></td><td class="no">sin sello en portada</td><td>admira-tv</td><td>./deploy.sh → Pages + wrangler.toml</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="clearchannel-tv" data-n="clearchannel.tv">clearchannel.tv</button> <a href="https://www.clearchannel.tv" title="Abrir clearchannel.tv" class="ext" target="_blank" rel="noopener">↗</a></td><td class="no">sin sello en portada</td><td>clearchannel-tv</td><td>./deploy.sh → Pages <code>clearchannel-tv</code></td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="clearchannel-tv" data-n="admira.app">admira.app</button> <a href="https://www.admira.app" title="Abrir admira.app" class="ext" target="_blank" rel="noopener">↗</a></td><td class="no">sin sello en portada</td><td>admira-app</td><td>—</td></tr>
           <tr><td class="sol"><a href="https://digitalavatar.ai">digitalavatar.ai</a></td><td class="no">sin sello en portada</td><td>digitalavatar.ai</td><td>—</td></tr>
           <tr><td class="sol"><a href="https://www.ainimation.studio">ainimation.studio</a></td><td class="no">sin sello en portada</td><td>ainimation</td><td>git push (GitHub Pages)</td></tr>
           <tr><td class="sol">pixer-eleven (worker)</td><td class="ver">PixerWorker-v.2026.06.19.r2</td><td>pixer-worker</td><td>wrangler deploy</td></tr>
@@ -138,9 +173,23 @@
         </tbody>
       </table>
     </div>
-    <p style="color:var(--dim);font-size:.86rem;margin:0">Sellos leídos de la portada de cada sitio
-      el <b>2 de agosto de 2026</b>. Donde pone «sin sello» el sitio funciona, pero no declara
-      versión en su HTML: no se puede saber qué está sirviendo sin mirar el repositorio.</p>
+    <div id="snapPanel" class="snap" hidden aria-live="polite">
+      <div class="snap-head">
+        <div>
+          <h3 id="snapTitle">—</h3>
+          <p id="snapSub">Cada despliegue queda para siempre en su propia dirección: al abrirlo ves la web tal y como estaba.</p>
+        </div>
+        <button type="button" class="snap-close" id="snapClose" aria-label="Cerrar historial">×</button>
+      </div>
+      <div id="snapDays" class="snap-days"></div>
+      <div id="snapList" class="snap-list"></div>
+    </div>
+
+    <p style="color:var(--dim);font-size:.86rem;margin:0">Pulsa el nombre de una solución para
+      ver <b>sus despliegues</b> y abrir cualquiera. Los sellos se leyeron de la portada de cada
+      sitio el <b>2 de agosto de 2026</b>; donde pone «sin sello» el sitio funciona, pero no declara
+      versión en su HTML. Las que no se pueden pulsar están en GitHub Pages, que no guarda una
+      dirección por despliegue: ahí el punto de retorno es la etiqueta de git.</p>
 
     <h2 class="sec">Cañones cargados — leer antes de desplegar</h2>
 
@@ -155,6 +204,15 @@
       <p><b>admira.studio se publica con <code>git push</code></b> — lo sirve GitHub Pages
         (comprobado por cabecera <code>server: GitHub.com</code>), no Cloudflare. No ejecutes ese
         deploy.sh.</p>
+    </div>
+
+    <div class="alert">
+      <h3>clearchannel.tv y admira.app son el MISMO proyecto</h3>
+      <p>Los dos dominios cuelgan del proyecto de Pages <code>clearchannel-tv</code>, así que
+        <b>publicar uno publica el otro</b>. El proyecto <code>admira-app</code> existe, pero sin
+        dominio propio: solo responde en su <code>.pages.dev</code>.</p>
+      <p>Por eso, en el historial de aquí arriba, admira.app y clearchannel.tv enseñan la misma
+        lista de despliegues. No es un error de la página: es que son el mismo sitio.</p>
     </div>
 
     <div class="alert">
@@ -338,6 +396,104 @@
     </div>
   </footer>
 </div>
+
+<script>
+/* ──────────────────────────────────────────────────────────────────────────
+   Historial navegable de despliegues.
+
+   Cada despliegue de Cloudflare Pages queda accesible PARA SIEMPRE en su propia
+   dirección: abrirla es ver la web tal y como estaba en ese momento. No es una
+   captura ni una nota: es el sitio. Por eso «abrir» lleva ahí y no a un detalle.
+
+   Los datos los sirve /api/deployments, que consulta Cloudflare desde el edge
+   (el token nunca llega al navegador).
+   ────────────────────────────────────────────────────────────────────────── */
+(function(){
+  var panel = document.getElementById('snapPanel');
+  var elTitle = document.getElementById('snapTitle');
+  var elDays  = document.getElementById('snapDays');
+  var elList  = document.getElementById('snapList');
+  if (!panel) return;
+
+  var actual = null;   // proyecto abierto
+  var nombre = '';     // nombre bonito de la solución
+
+  function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+
+  function hoyMadrid(){
+    return new Intl.DateTimeFormat('sv-SE', { timeZone:'Europe/Madrid',
+      year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
+  }
+  function diaCorto(d){
+    var p = d.split('-');
+    return p[2] + '/' + p[1];
+  }
+
+  function pintar(data){
+    var hoy = hoyMadrid();
+
+    // días con despliegues: hoy primero, luego hacia atrás
+    elDays.innerHTML = '';
+    (data.dias || []).slice(0, 14).forEach(function(d){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = (d === hoy ? 'HOY · ' : '') + diaCorto(d);
+      b.setAttribute('aria-pressed', String(d === data.dia));
+      b.addEventListener('click', function(){ cargar(actual, nombre, d); });
+      elDays.appendChild(b);
+    });
+
+    if (!data.despliegues.length){
+      elList.innerHTML = '<p class="snap-msg">Ningún despliegue ese día.</p>';
+      return;
+    }
+
+    // el primero de la lista es el más reciente; si el día es hoy, es el que está en antena
+    var html = data.despliegues.map(function(d, i){
+      var vivo = (i === 0 && data.dia === hoy)
+        ? '<span class="snap-live">en antena</span>' : '';
+      return '<div class="snap-row">'
+        +   '<div class="snap-h">' + esc(d.hora) + '</div>'
+        +   '<div class="snap-m">' + esc(d.mensaje || '(sin mensaje)')
+        +     (d.commit ? '<span class="cm">' + esc(d.commit) + '</span>' : '') + vivo + '</div>'
+        +   '<a class="snap-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir ↗</a>'
+        + '</div>';
+    }).join('');
+    elList.innerHTML = html;
+  }
+
+  function cargar(proyecto, nom, dia){
+    actual = proyecto; nombre = nom;
+    panel.hidden = false;
+    elTitle.textContent = nom + ' · snapshots';
+    elList.innerHTML = '<p class="snap-msg">Cargando…</p>';
+    var url = '/api/deployments?p=' + encodeURIComponent(proyecto)
+            + (dia ? '&d=' + encodeURIComponent(dia) : '');
+    fetch(url).then(function(r){ return r.json(); }).then(function(data){
+      if (!data.ok) throw new Error(data.error || 'sin datos');
+      pintar(data);
+    }).catch(function(e){
+      // Honestidad: si no hay datos se dice, no se deja una lista vacía que parezca «no hubo cambios».
+      elList.innerHTML = '<p class="snap-msg">No se pudo leer el historial: ' + esc(e.message) + '</p>';
+      elDays.innerHTML = '';
+    });
+    panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  document.querySelectorAll('.solbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.solbtn').forEach(function(o){ o.setAttribute('aria-expanded','false'); });
+      b.setAttribute('aria-expanded','true');
+      cargar(b.dataset.p, b.dataset.n, null);
+    });
+  });
+  document.getElementById('snapClose').addEventListener('click', function(){
+    panel.hidden = true;
+    document.querySelectorAll('.solbtn').forEach(function(o){ o.setAttribute('aria-expanded','false'); });
+  });
+})();
+</script>
 
 <script>
 /* Lluvia Matrix: mismo guiño que en Mandamientos y Normativa. */
