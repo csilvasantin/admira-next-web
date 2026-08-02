@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
+<meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico">
+<meta property="og:title" content="Normativa · AdmiraNeXT">
+<meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
+<style>
+  :root{
+    --bg:#080b14; --bg2:#0d1220; --panel:rgba(18,24,40,.72);
+    --ink:#e8ecf6; --dim:#8792ab; --line:rgba(124,232,216,.16);
+    --neon:#7ce8d8; --neon2:#5ef2a0; --accent:#e8a87c; --warn:#ff8f7a;
+    --dot-r:#ff5f57; --dot-y:#febc2e; --dot-g:#28c840;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased; line-height:1.6; overflow-x:hidden;
+  }
+  #rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.20;pointer-events:none}
+  .glow{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:.5}
+  .glow.a{width:44vw;height:44vw;top:-14vw;left:-10vw;background:radial-gradient(circle,rgba(124,232,216,.28),transparent 70%)}
+  .glow.b{width:38vw;height:38vw;bottom:-12vw;right:-8vw;background:radial-gradient(circle,rgba(232,168,124,.22),transparent 70%)}
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ── cabecera tipo terminal ── */
+  header{padding:64px 0 40px;text-align:center}
+  .term{
+    display:inline-flex;align-items:center;gap:8px;padding:7px 14px;margin-bottom:28px;
+    border:1px solid var(--line);border-radius:9px;background:var(--panel);
+    font-family:var(--mono);font-size:12px;color:var(--dim);backdrop-filter:blur(8px);
+    max-width:100%;flex-wrap:wrap;justify-content:center;
+  }
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .term .sep{opacity:.35;margin:0 4px}
+  .eyebrow{
+    font-family:var(--mono);font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--neon);margin:0 0 18px;
+  }
+  h1{font-size:clamp(2.6rem,8.5vw,5.4rem);line-height:.94;margin:0 0 20px;font-weight:800;letter-spacing:-.03em}
+  h1 .n{
+    font-family:var(--mono);font-weight:700;
+    background:linear-gradient(135deg,var(--neon),var(--neon2) 55%,var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .lede{max-width:660px;margin:0 auto;color:var(--dim);font-size:1.06rem}
+  .lede b{color:var(--ink);font-weight:600}
+  .rule{height:1px;margin:44px 0 0;opacity:.7;
+    background:linear-gradient(90deg,transparent,var(--line) 20%,var(--neon) 50%,var(--line) 80%,transparent)}
+
+  /* ── los dos mandatos de cabecera ── */
+  .commands{display:grid;gap:12px;max-width:820px;margin:34px auto 0}
+  .command{
+    border:1px solid rgba(232,168,124,.5);background:rgba(232,168,124,.06);
+    border-radius:12px;padding:18px 20px;text-align:left;
+    font:800 clamp(15px,2.4vw,20px)/1.4 var(--mono);color:var(--accent);
+  }
+  .command .rn{color:var(--neon);margin-right:10px}
+
+  /* ── reglas ── */
+  main{padding:8px 0 40px}
+  .art{
+    position:relative;display:grid;grid-template-columns:88px minmax(0,1fr);gap:22px;
+    padding:26px 24px;margin:14px 0;border:1px solid var(--line);border-radius:14px;
+    background:var(--panel);backdrop-filter:blur(10px);
+    opacity:0;transform:translateY(22px);
+    transition:opacity .6s ease,transform .6s ease,border-color .3s ease,box-shadow .3s ease;
+  }
+  .art.in{opacity:1;transform:none}
+  .art::before{
+    content:"";position:absolute;left:0;top:14px;bottom:14px;width:2px;border-radius:2px;
+    background:linear-gradient(180deg,var(--neon),transparent);opacity:.45;transition:opacity .3s;
+  }
+  .art:hover{border-color:rgba(124,232,216,.42);box-shadow:0 0 0 1px rgba(124,232,216,.10),0 16px 44px -18px rgba(124,232,216,.32)}
+  .art:hover::before{opacity:1}
+  .num{
+    font-family:var(--mono);font-size:2.9rem;font-weight:700;line-height:1;
+    color:transparent;-webkit-background-clip:text;background-clip:text;
+    background:linear-gradient(135deg,var(--neon),var(--accent));
+    text-align:right;font-variant-numeric:tabular-nums;
+  }
+  .art h2{margin:2px 0 10px;font-size:1.24rem;letter-spacing:-.01em}
+  .art p{margin:0 0 12px;color:var(--dim);font-size:.99rem}
+  .art p:last-child{margin-bottom:0}
+  .art b{color:var(--ink);font-weight:600}
+  .art b.bad{color:var(--warn)}
+  .art code{font-family:var(--mono);font-size:.88em;color:var(--ink);
+    background:rgba(124,232,216,.08);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+  .formula{
+    font:800 clamp(15px,2.6vw,26px)/1.4 var(--mono);color:var(--neon2);
+    padding:15px 17px;background:rgba(94,242,160,.06);border-left:3px solid var(--neon2);
+    border-radius:0 8px 8px 0;margin:16px 0;overflow-x:auto;
+  }
+  /* tablas: nunca desbordan la página — scrollan dentro de su caja */
+  .tbl{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font:12.5px/1.45 var(--mono);min-width:420px}
+  th{text-align:left;color:var(--dim);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+    border-bottom:1px solid var(--line);padding:10px 12px;white-space:nowrap}
+  td{padding:11px 12px;border-bottom:1px solid rgba(124,232,216,.08);color:var(--dim)}
+  tr:last-child td{border-bottom:0}
+  td:last-child{color:var(--neon);font-weight:700}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 0}
+  .chips code{padding:6px 10px;border-radius:7px;border:1px solid var(--line);
+    background:rgba(18,24,40,.9);font:700 11.5px/1 var(--mono);color:var(--neon)}
+
+  /* ── pie ── */
+  footer{padding:52px 0 72px;text-align:center;color:var(--dim);font-size:.9rem}
+  footer .meta{font-family:var(--mono);font-size:12px;opacity:.72;margin-top:12px}
+  footer a{color:var(--neon);text-decoration:none;border-bottom:1px solid transparent}
+  footer a:hover{border-bottom-color:var(--neon)}
+
+  @media (max-width:640px){
+    .art{grid-template-columns:52px minmax(0,1fr);gap:14px;padding:20px 16px}
+    .num{font-size:1.9rem}
+    header{padding:44px 0 28px}
+    .command{padding:15px 16px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .art{opacity:1;transform:none;transition:none}
+    #rain{display:none}
+  }
+</style>
+</head>
+<body>
+<canvas id="rain" aria-hidden="true"></canvas>
+<div class="glow a" aria-hidden="true"></div>
+<div class="glow b" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header>
+    <div class="term">
+      <span class="dot" style="background:var(--dot-r)"></span>
+      <span class="dot" style="background:var(--dot-y)"></span>
+      <span class="dot" style="background:var(--dot-g)"></span>
+      <span class="sep">│</span>
+      <span>equipo-de-silicio@admiranext — contrato operativo</span>
+    </div>
+    <p class="eyebrow">Contrato operativo vivo</p>
+    <h1><span class="n">Normativa</span></h1>
+    <p class="lede">Los <b><a href="/mandamientos" style="color:inherit;border-bottom:1px solid var(--line)">Mandamientos</a></b>
+      fijan la doctrina: qué hacen los agentes solos y dónde paran. Esta página fija <b>cómo se ejecuta</b>:
+      cómo se llaman, cómo se les asigna una máquina y cómo se nombra el trabajo del día.
+      Una única regla <b>visible, comprobable y compartida por todas las pantallas</b>.</p>
+
+    <div class="commands">
+      <div class="command"><span class="rn">I</span>Ningún agente existe sin el apellido de su máquina.</div>
+      <div class="command"><span class="rn">II</span>Todo trabajo comparte una única secuencia diaria.</div>
+    </div>
+    <div class="rule"></div>
+  </header>
+
+  <main id="lista">
+    <article class="art">
+      <div class="num">01</div>
+      <div>
+        <h2>Identidad = persona + equipo físico</h2>
+        <p>El nombre de la persona sigue siendo la familia operativa; el sufijo identifica el silicio
+          concreto que la ejecuta. Sin él, la misma persona corriendo en cuatro máquinas es indistinguible.</p>
+        <div class="formula">Neo + MacBook Pro 16 = NeoMBP16</div>
+        <div class="tbl">
+          <table aria-label="Ejemplos de identidad normativa">
+            <thead><tr><th>Persona</th><th>Equipo</th><th>Nombre visible</th></tr></thead>
+            <tbody>
+              <tr><td>Neo</td><td>MacBook Pro 16</td><td>NeoMBP16</td></tr>
+              <tr><td>Neo</td><td>Mac Mini</td><td>NeoMini</td></tr>
+              <tr><td>Morfeo</td><td>MacBook Air 16</td><td>MorfeoMBA16</td></tr>
+              <tr><td>Oráculo</td><td>MacBook Air 16</td><td>OraculoMBA16</td></tr>
+              <tr><td>Trinity</td><td>MacBook Pro 16</td><td>TrinityMBP16</td></tr>
+              <tr><td>SubNeo</td><td>MacBook Pro 16</td><td>SubNeoMBP16</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <article class="art">
+      <div class="num">02</div>
+      <div>
+        <h2>Diccionario único de sufijos</h2>
+        <p>El modelo del equipo va primero y evita ambigüedades. Un simple <code>16</code> ya no puede
+          significar Pro o Air.</p>
+        <div class="chips">
+          <code>Mac Mini → Mini</code><code>MacBook Pro 14 → MBP14</code><code>MacBook Pro 16 → MBP16</code>
+          <code>MacBook Air 16 → MBA16</code><code>Air Azul → MBAAzul</code><code>Air Rosa → MBARosa</code>
+          <code>Air Crema → MBACrema</code><code>Air Plata → MBAPlata</code><code>Asus → Zenbook</code>
+          <code>DGX Spark → DGX</code><code>ThinkStation → PGX</code>
+        </div>
+      </div>
+    </article>
+
+    <article class="art">
+      <div class="num">03</div>
+      <div>
+        <h2>Los nombres antiguos se leen; no se propagan</h2>
+        <p><code>Neo16</code>, <code>MorfeoAir16</code>, <code>MorfeoPlata16</code> y
+          <code>Agente Smith Azul</code> siguen resolviendo a su familia y máquina. Al volver a mostrarse
+          salen como <b>NeoMBP16</b>, <b>MorfeoMBA16</b> y <b>SmithMBAAzul</b>.</p>
+        <p>Los prefijos de jerarquía se conservan: <b>SubNeoMBP16</b> e <b>InfraTrinityMBA16</b>.</p>
+      </div>
+    </article>
+
+    <article class="art">
+      <div class="num">04</div>
+      <div>
+        <h2>Sin máquina no hay identidad completa</h2>
+        <p><b>Agente y máquina se guardan como una pareja atómica.</b> Una misión nunca puede entrar en
+          curso ni aparecer asignada con agente pero sin equipo. Si un dato antiguo permite recuperar el
+          equipo desde el apellido, se repara; si no existe evidencia suficiente, se retira la asignación
+          parcial.</p>
+        <p>Por tanto no se publica <b class="bad">Morfeo</b> ni <b class="bad">NeoSINMAQ</b> como
+          responsable de una misión: se publica, por ejemplo, <b>MorfeoMBA16 · MacBook Air 16</b>. Los
+          nombres antiguos se aceptan únicamente como entrada para normalizarlos.</p>
+      </div>
+    </article>
+
+    <article class="art">
+      <div class="num">05</div>
+      <div>
+        <h2>Una referencia para todo el trabajo</h2>
+        <p>Objetivos, ventanas, misiones y tareas usan el mismo contador del día. Las letras iniciales
+          desaparecen del rótulo humano: el tipo ya lo explica la pantalla y no debe ocupar la referencia.</p>
+        <div class="formula">NNNN.DD/MM.HH:MM → 0026.02/08.13:00</div>
+        <div class="tbl">
+          <table aria-label="Nomenclatura común del trabajo">
+            <thead><tr><th>Parte</th><th>Significado</th><th>Norma</th></tr></thead>
+            <tbody>
+              <tr><td>NNNN</td><td>Turno común del día</td><td>0000…9999</td></tr>
+              <tr><td>DD/MM</td><td>Día y mes en Madrid</td><td>02/08</td></tr>
+              <tr><td>HH:MM</td><td>Hora de alta en Madrid</td><td>13:00</td></tr>
+              <tr><td>Cambio de día</td><td>Reinicio de la secuencia</td><td>vuelve a 0000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:14px">Los IDs técnicos como <code>FLT-…</code>, <code>DEC-…</code> o los
+          códigos <code>a/b/c</code> se conservan por dentro para enlaces e integraciones, pero nunca
+          sustituyen la referencia visible.</p>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <div>Contrato operativo del equipo de silicio de <b>AdmiraNeXT</b>.</div>
+    <div class="meta">
+      La normativa crece aquí, numerada y verificable · fuente única de identidad:
+      <code style="font-family:var(--mono)">yk-agent-identity.js</code><br>
+      Ver también <a href="/mandamientos">los Mandamientos</a> ·
+      <a href="/filosofia">las Máximas y el detalle operativo</a> ·
+      espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* Lluvia Matrix: mismo guiño que en los Mandamientos, para que las dos páginas
+   de doctrina se lean como una sola casa. Se apaga sola si molesta. */
+(function(){
+  var c = document.getElementById('rain');
+  if (!c || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var ctx = c.getContext('2d'), cols = 0, drops = [], size = 15, raf = null;
+  var GLYPHS = 'アカサタナハマヤラワイキシチニヒミリヰウクスツヌフムユルエケセテネヘメレヱオコソトノホモヨロヲ0123456789ADMIRANEXT'.split('');
+
+  function resize(){
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    cols = Math.floor(c.width / size);
+    drops = new Array(cols).fill(0).map(function(){ return Math.floor(Math.random() * -60); });
+  }
+  function frame(){
+    ctx.fillStyle = 'rgba(8,11,20,.085)';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.font = size + 'px ui-monospace, monospace';
+    for (var i = 0; i < cols; i++){
+      var ch = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      var y = drops[i] * size;
+      ctx.fillStyle = Math.random() > 0.986 ? '#dffff4' : '#4fd6bd';
+      ctx.fillText(ch, i * size, y);
+      if (y > c.height && Math.random() > 0.977) drops[i] = 0;
+      drops[i]++;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function start(){ if (!raf) frame(); }
+  function stop(){ if (raf){ cancelAnimationFrame(raf); raf = null; } }
+
+  resize();
+  window.addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : start(); });
+  start();
+})();
+
+/* Aparición escalonada de las reglas */
+(function(){
+  var items = document.querySelectorAll('.art');
+  if (!('IntersectionObserver' in window)){
+    items.forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      var el = e.target;
+      var d = Number(el.dataset.i || 0) % 4;
+      setTimeout(function(){ el.classList.add('in'); }, d * 90);
+      io.unobserve(el);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  items.forEach(function(el, i){ el.dataset.i = i; io.observe(el); });
+})();
+</script>
+</body>
+</html>
