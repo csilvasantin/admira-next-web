@@ -107,6 +107,14 @@
     .snap-open{grid-column:2;justify-self:start}
   }
 
+  /* pantallazo de la portada en cada ficha */
+  .shot{display:block;margin:-4px -4px 14px;border-radius:9px;overflow:hidden;
+    border:1px solid var(--line);background:#05080e;line-height:0;
+    transition:border-color .25s,transform .25s}
+  .shot img{width:100%;height:auto;display:block;aspect-ratio:16/10;object-fit:cover;
+    object-position:top center}
+  .shot:hover{border-color:var(--neon);transform:translateY(-2px)}
+
   /* fichas de retorno */
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px}
   .card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px}
@@ -234,12 +242,20 @@
     </div>
 
     <h2 class="sec">Puntos de retorno por solución</h2>
+    <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Cada ficha abre con la
+      <b>portada tal y como se ve ahora</b>: la tabla dice qué versión hay publicada, la imagen
+      dice si esa versión se ve bien. Un despliegue que rompe la portada no cambia el sello.
+      Capturas del 3 de agosto de 2026 (<code>scripts/webmaster-shots.sh</code> las rehace).</p>
+    <p style="color:var(--warn);font-size:.9rem;margin:0 0 4px">⚠️ La de digitalavatar.ai no está
+      mal hecha: el sitio <b>se queda cargando</b>. El contador llega a «Cargando avatar… 133 %»
+      —por encima del 100— y no pasa de ahí ni con WebGL por software y 25 s de margen.</p>
     <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Etiquetas reales de cada repositorio,
       de la más reciente a la más antigua. Para volver a una:
       <code>git checkout &lt;etiqueta&gt;</code> y publicar con el comando de la tabla de arriba.</p>
 
     <div class="cards">
       <div class="card">
+        <a class="shot" href="https://www.admiranext.com" target="_blank" rel="noopener" title="Abrir admiranext.com"><img src="/webmaster-shots/admiranext.jpg" alt="Portada de admiranext.com" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>admiranext.com</h3>
         <div class="url">admira-next-web</div>
         <dl>
@@ -251,6 +267,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://yokup.com" target="_blank" rel="noopener" title="Abrir yokup.com"><img src="/webmaster-shots/yokup.jpg" alt="Portada de yokup.com" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>yokup.com</h3>
         <div class="url">tool · yokup-site/</div>
         <dl>
@@ -262,6 +279,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://www.pixeria.com" target="_blank" rel="noopener" title="Abrir pixeria.com"><img src="/webmaster-shots/pixeria.jpg" alt="Portada de pixeria.com" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>pixeria.com</h3>
         <div class="url">pixeria</div>
         <dl>
@@ -273,6 +291,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://www.xpaceos.com" target="_blank" rel="noopener" title="Abrir xpaceos.com"><img src="/webmaster-shots/xpaceos.jpg" alt="Portada de xpaceos.com" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>xpaceos.com</h3>
         <div class="url">xpaceos</div>
         <dl>
@@ -284,6 +303,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://www.admira.live" target="_blank" rel="noopener" title="Abrir admira.live"><img src="/webmaster-shots/admira-live.jpg" alt="Portada de admira.live" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>admira.live</h3>
         <div class="url">32.-ConsejoAdmiraNextGame</div>
         <dl>
@@ -295,6 +315,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://admira.tv" target="_blank" rel="noopener" title="Abrir admira.tv"><img src="/webmaster-shots/admira-tv.jpg" alt="Portada de admira.tv" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>admira.tv</h3>
         <div class="url">admira-tv</div>
         <dl>
@@ -306,6 +327,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://www.clearchannel.tv" target="_blank" rel="noopener" title="Abrir clearchannel.tv"><img src="/webmaster-shots/clearchannel-tv.jpg" alt="Portada de clearchannel.tv" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>clearchannel.tv</h3>
         <div class="url">clearchannel-tv</div>
         <dl>
@@ -317,6 +339,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://www.admira.studio" target="_blank" rel="noopener" title="Abrir admira.studio"><img src="/webmaster-shots/admira-studio.jpg" alt="Portada de admira.studio" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>admira.studio</h3>
         <div class="url">admira-studio</div>
         <dl>
@@ -328,6 +351,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://admira.store" target="_blank" rel="noopener" title="Abrir admira.store"><img src="/webmaster-shots/admira-store.jpg" alt="Portada de admira.store" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>admira.store</h3>
         <div class="url">admira-store</div>
         <dl>
@@ -350,6 +374,7 @@
       </div>
 
       <div class="card">
+        <a class="shot" href="https://digitalavatar.ai" target="_blank" rel="noopener" title="Abrir digitalavatar.ai"><img src="/webmaster-shots/digitalavatar.jpg" alt="Portada de digitalavatar.ai" loading="lazy" decoding="async" width="640" height="400"></a>
         <h3>digitalavatar.ai</h3>
         <div class="url">digitalavatar.ai</div>
         <dl>
