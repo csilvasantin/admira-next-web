@@ -73,7 +73,10 @@ async function publishToPixeria(context, state){
     sourceUrl:state.sourceUrl,
     mime:state.contentType,
     externalId:`admiranext:tiktok-package:${state.id}`,
-    tags:['tiktok', 'anuncio', '25s'],
+    // 'vertical' NO es decorativa: es la llave de emisión. El canal de admira.tv
+    // segmenta por etiquetas (?tag=tiktok,vertical) y así el MUPI vertical del
+    // Xtanco emite estas piezas en 9:16 nativo en vez de recortar un horizontal.
+    tags:['tiktok', 'vertical', 'anuncio', '25s'],
     quality:'best'
   };
   let response;
