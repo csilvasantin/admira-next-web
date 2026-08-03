@@ -6,7 +6,7 @@
 <title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
 <meta name="description" content="Qué versión está viva en cada proyecto de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.03.08.2026.r15.17:25">
+<meta name="admiranext-version" content="v.03.08.2026.r16.17:32">
 <link rel="icon" href="/favicon.ico">
 <style>
   :root{
@@ -77,6 +77,14 @@
   tr:last-child td{border-bottom:0}
   td.sol{color:var(--ink);font-weight:700;white-space:nowrap}
   td.ver{color:var(--neon2);font-weight:700;white-space:nowrap}
+  td.responsable{min-width:150px}
+  .responsable-input{width:100%;min-width:132px;border:1px solid transparent;border-radius:7px;
+    background:rgba(124,232,216,.035);color:var(--ink);padding:6px 8px;font:600 11.5px/1.25 var(--mono)}
+  .responsable-input:hover{border-color:var(--line)}
+  .responsable-input:focus{border-color:var(--neon);outline:0;background:rgba(124,232,216,.08)}
+  .responsable-input[disabled]{opacity:.65;cursor:wait}
+  .responsable-state{display:block;min-height:13px;margin:3px 0 0 8px;color:var(--dim);font-size:9px}
+  .responsable-state.ok{color:var(--neon2)} .responsable-state.error{color:var(--warn)}
   td.no{color:var(--warn)}
   a{color:var(--neon);text-decoration:none;border-bottom:1px solid transparent}
   a:hover{border-bottom-color:var(--neon)}
@@ -228,12 +236,13 @@
       <table aria-label="Versión viva de cada proyecto y subproyecto">
         <thead><tr>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="proyecto" aria-pressed="false">Proyectos <span id="proyectosCuenta" class="th-count">—</span><span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="responsable" aria-pressed="false">Responsable <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="releases" aria-pressed="false">En producción <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="norma" aria-pressed="false">Norma <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="repo" aria-pressed="false">Repositorio <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="publica" aria-pressed="false">Se publica con <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
         </tr></thead>
-        <tbody id="tablaProyectos"><tr><td colspan="5" style="padding:18px 12px">Leyendo el sello de cada portada…</td></tr></tbody>
+        <tbody id="tablaProyectos"><tr><td colspan="6" style="padding:18px 12px">Leyendo el sello de cada portada…</td></tr></tbody>
       </table>
     </div>
     <div id="snapPanel" class="snap" hidden aria-live="polite">
@@ -540,6 +549,7 @@
       var diferencia = 0;
       if (ordenActual.clave === 'proyecto' && ordenActual.modo === 'alfabetico') diferencia = compararTexto(a.nombre, b.nombre);
       else if (ordenActual.clave === 'proyecto') diferencia = (a.ordenAlta || 0) - (b.ordenAlta || 0);
+      else if (ordenActual.clave === 'responsable') diferencia = compararTexto(a.responsable, b.responsable);
       else if (ordenActual.clave === 'releases') diferencia = Number(a.releaseCount || 0) - Number(b.releaseCount || 0);
       else if (ordenActual.clave === 'norma') diferencia = compararTexto(a.control && a.control.estado, b.control && b.control.estado);
       else if (ordenActual.clave === 'repo') diferencia = compararTexto(a.repoTxt, b.repoTxt);
@@ -626,6 +636,7 @@
     var clase = p._depth ? ' class="subproyecto depth-' + p._depth + '"' : '';
     return '<tr' + clase + ' data-project="' + esc(p.clave) + '" data-parent="' + esc(p.parentKey || '') + '">'
       + '<td class="sol">' + nombreSolucion(p) + '</td>'
+      + '<td class="responsable"><input class="responsable-input" data-responsable="' + esc(p.clave) + '" value="' + esc(p.responsable || 'NeoMacMini') + '" maxlength="80" aria-label="Responsable de ' + esc(p.nombre) + '"><small class="responsable-state" aria-live="polite"></small></td>'
       + '<td class="ver">' + ver + '</td>'
       + '<td><span class="norma ' + esc(c.estado || 'pendiente') + '" title="' + esc(c.texto || '') + '">'
       +   esc(ETIQUETA[c.estado] || c.estado || '—') + '</span></td>'
@@ -633,6 +644,51 @@
       + '<td>' + esc(p.publica) + '</td>'
       + '</tr>';
   }
+
+  function proyectoPorClave(clave){
+    return proyectosVivos.find(function(p){ return p.clave === clave; });
+  }
+
+  function guardarResponsable(input){
+    var p = proyectoPorClave(input.dataset.responsable);
+    if (!p || input.disabled) return;
+    var anterior = p.responsable || 'NeoMacMini';
+    var responsable = input.value.trim().replace(/\s+/g, ' ') || 'NeoMacMini';
+    responsable = responsable.slice(0, 80);
+    input.value = responsable;
+    if (responsable === anterior) return;
+    p.responsable = responsable;
+    var estado = input.parentNode.querySelector('.responsable-state');
+    input.disabled = true;
+    estado.className = 'responsable-state'; estado.textContent = 'guardando…';
+    fetch('/api/proyectos', {
+      method:'PATCH',
+      headers:{ 'content-type':'application/json' },
+      body:JSON.stringify({ clave:p.clave, responsable:responsable })
+    }).then(function(r){ return r.json().then(function(d){ if (!r.ok || !d.ok) throw new Error(d.error || 'no se pudo guardar'); return d; }); })
+      .then(function(d){
+        p.responsable = d.responsable;
+        input.value = d.responsable;
+        estado.className = 'responsable-state ok'; estado.textContent = 'guardado';
+      })
+      .catch(function(e){
+        p.responsable = anterior; input.value = anterior;
+        estado.className = 'responsable-state error'; estado.textContent = e.message;
+      })
+      .then(function(){ input.disabled = false; });
+  }
+
+  tabla.addEventListener('focusin', function(e){
+    if (e.target.matches('.responsable-input')) e.target.dataset.original = e.target.value;
+  });
+  tabla.addEventListener('focusout', function(e){
+    if (e.target.matches('.responsable-input')) guardarResponsable(e.target);
+  });
+  tabla.addEventListener('keydown', function(e){
+    if (!e.target.matches('.responsable-input')) return;
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); e.target.value = e.target.dataset.original || 'NeoMacMini'; e.target.blur(); }
+  });
 
   function conectarArbol(){
     var rows = Array.prototype.slice.call(tabla.querySelectorAll('tr[data-project]'));
@@ -733,7 +789,7 @@
       pintarIncumplimientos(d);
     })
     .catch(function(e){
-      tabla.innerHTML = '<tr><td colspan="5" style="padding:18px 12px;color:var(--warn)">'
+      tabla.innerHTML = '<tr><td colspan="6" style="padding:18px 12px;color:var(--warn)">'
         + 'No se pudo leer el censo: ' + esc(e.message) + '</td></tr>';
       incum.innerHTML = '<p class="snap-msg" style="color:var(--warn)">Sin censo no hay control.</p>';
     })

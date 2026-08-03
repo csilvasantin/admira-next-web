@@ -43,6 +43,16 @@ export const PROYECTOS = [
     tipo: 'sitio', shot: '/webmaster-shots/admiranext.jpg',
   },
   {
+    clave: 'admiranext-webmaster', nombre: 'AdmiraNeXT Webmaster',
+    url: 'https://www.admiranext.com/webmaster',
+    estadoUrl: 'https://www.admiranext.com',
+    parentKey: 'admiranext',
+    repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · webmaster',
+    pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
+    tipo: 'sitio', shot: null,
+    nota: 'Subproyecto interno de AdmiraNeXT: inventario, releases, responsables y puntos de retorno. Requiere sesión Google autorizada.',
+  },
+  {
     clave: 'generador-presupuestos', nombre: 'Generador de Presupuestos',
     url: 'https://www.admiranext.com/presupuestos/',
     estadoUrl: 'https://www.admiranext.com',

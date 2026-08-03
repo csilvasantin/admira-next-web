@@ -44,6 +44,29 @@ const CANONICO = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}$/;
 // El formato anterior —el mismo pero sin hora— se sigue reconociendo para poder
 // decir qué le falta, en vez de tratarlo como si estuviera escrito de cualquier manera.
 const SIN_HORA = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+$/;
+export const RESPONSABLE_POR_DEFECTO = 'NeoMacMini';
+const RESPONSABLE_KEY = 'webmaster:responsable:';
+
+const json = (o, s = 200) => new Response(JSON.stringify(o), {
+  status: s,
+  headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+});
+
+export function normalizarResponsable(valor) {
+  const limpio = String(valor || '').trim().replace(/\s+/g, ' ');
+  return limpio ? limpio.slice(0, 80) : RESPONSABLE_POR_DEFECTO;
+}
+
+async function leerResponsables(env) {
+  if (!env.PRESENTATION_IDEAS) return {};
+  const pares = await Promise.all(PROYECTOS.map(async (p) => {
+    try {
+      const guardado = await env.PRESENTATION_IDEAS.get(`${RESPONSABLE_KEY}${p.clave}`, { type:'json' });
+      return [p.clave, guardado && guardado.responsable];
+    } catch (_) { return [p.clave, null]; }
+  }));
+  return Object.fromEntries(pares);
+}
 
 function cabecerasGh(env) {
   const h = { 'User-Agent': 'admiranext-webmaster', Accept: 'application/vnd.github+json' };
@@ -285,11 +308,6 @@ const base = (p, ordenAlta) => ({
 });
 
 export async function onRequestGet({ request, env }) {
-  const json = (o, s = 200) => new Response(JSON.stringify(o), {
-    status: s,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, max-age=120' },
-  });
-
   if (!(await sesion(request, env))) return json({ ok: false, error: 'acceso restringido' }, 401);
 
   const parte = new URL(request.url).searchParams.get('parte') || 'vivo';
@@ -302,7 +320,7 @@ export async function onRequestGet({ request, env }) {
     return json({ ok: true, parte, generado: new Date().toISOString(), proyectos });
   }
 
-  const [proyectos, yokupTotal] = await Promise.all([
+  const [proyectos, yokupTotal, responsables] = await Promise.all([
     Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
       const v = await selloVivo(p);
       const c = await veredicto(p, v, env);
@@ -315,7 +333,10 @@ export async function onRequestGet({ request, env }) {
       };
     })),
     totalYokup(),
+    leerResponsables(env),
   ]);
+
+  proyectos.forEach((p) => { p.responsable = normalizarResponsable(responsables[p.clave]); });
 
   const cuenta = (e) => proyectos.filter((p) => p.control.estado === e).length;
   const claves = new Set(proyectos.map((p) => p.clave));
@@ -336,4 +357,27 @@ export async function onRequestGet({ request, env }) {
     },
     proyectos,
   });
+}
+
+export async function onRequestPatch({ request, env }) {
+  const email = await sesion(request, env);
+  if (!email) return json({ ok:false, error:'acceso restringido' }, 401);
+  if (!env.PRESENTATION_IDEAS) return json({ ok:false, error:'almacenamiento no configurado' }, 503);
+
+  const origen = request.headers.get('Origin');
+  if (origen && origen !== new URL(request.url).origin) return json({ ok:false, error:'origen no permitido' }, 403);
+
+  let body;
+  try { body = await request.json(); } catch (_) { return json({ ok:false, error:'JSON no válido' }, 400); }
+  const clave = String(body && body.clave || '').trim();
+  if (!PROYECTOS.some((p) => p.clave === clave)) return json({ ok:false, error:'proyecto no encontrado' }, 404);
+  if (typeof body.responsable !== 'string') return json({ ok:false, error:'responsable no válido' }, 422);
+
+  const responsable = normalizarResponsable(body && body.responsable);
+  await env.PRESENTATION_IDEAS.put(`${RESPONSABLE_KEY}${clave}`, JSON.stringify({
+    responsable,
+    updatedAt: new Date().toISOString(),
+    updatedBy: email,
+  }));
+  return json({ ok:true, clave, responsable });
 }
