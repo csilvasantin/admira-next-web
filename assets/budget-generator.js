@@ -1,6 +1,6 @@
 (function(root){
   "use strict";
-  var STORAGE_KEY="admiranext.budget-generator.v1",VERSION="v.26.08.03.r2";
+  var STORAGE_KEY="admiranext.budget-generator.v1",VERSION="v.26.08.03.r3";
   function number(value){var n=Number(value);return Number.isFinite(n)?n:0}
   function clamp(value,min,max){return Math.min(max,Math.max(min,number(value)))}
   function round(value){var n=number(value);return Math.round((n+Math.sign(n)*1e-10)*100)/100}
@@ -33,16 +33,23 @@
     return item;
   }
   function bindItemControl(node,item,field,onUpdate){
-    node.addEventListener("input",function(){onUpdate(item,field,node.value,false)});
-    node.addEventListener("change",function(){onUpdate(item,field,node.value,true)});
+    node.addEventListener("input",function(){onUpdate(item,field,node.value,false,node)});
+    node.addEventListener("change",function(){onUpdate(item,field,node.value,true,node)});
     return node;
+  }
+  function syncDependentControls(row,item,field,lineAmount){
+    if(!row)return;
+    var price=row.querySelector('[data-field="price"]'),margin=row.querySelector('[data-field="margin"]'),output=row.querySelector("output.money");
+    if((field==="cost"||field==="margin")&&price)price.value=String(item.price);
+    if(field==="price"&&margin)margin.value=String(item.margin);
+    if(output){output.value=String(lineAmount);output.textContent=String(lineAmount)}
   }
   function newDocument(sequence){var today=isoDate();return{id:id(),number:"PRE-"+today.replace(/-/g,"")+"-"+String(sequence||1).padStart(2,"0"),date:today,validUntil:addDays(today,30),owner:"",client:"",taxId:"",contact:"",email:"",opportunity:"",discount:0,vat:21,currency:"EUR",notes:"Pago: 50 % a la aceptación y 50 % a la entrega.",items:[normalizeItem({description:"Servicios profesionales",quantity:1,unit:"proyecto",cost:0,margin:30})],versions:[],createdAt:Date.now(),updatedAt:Date.now()}}
   function emptyStore(){return{activeId:"",documents:[],trash:[]}}
   function sanitizeStore(value){var store=value&&typeof value==="object"?value:emptyStore();return{activeId:String(store.activeId||""),documents:Array.isArray(store.documents)?store.documents:[],trash:Array.isArray(store.trash)?store.trash:[]}}
 
   root.BudgetGenerator={_test:{number:number,round:round,normalizeItem:normalizeItem,calculate:calculate,csvCell:csvCell,csvFor:csvFor,
-    applyItemValue:applyItemValue,bindItemControl:bindItemControl,newDocument:newDocument,version:VERSION}};
+    applyItemValue:applyItemValue,bindItemControl:bindItemControl,syncDependentControls:syncDependentControls,newDocument:newDocument,version:VERSION}};
   if(!root.document)return;
 
   var document=root.document,store=loadStore(),active=null,saveTimer=null,toastTimer=null;
@@ -63,9 +70,12 @@
   function fillForm(){fields.forEach(function(name){var node=$(name);if(node)node.value=active[name]==null?"":active[name]});renderItems();renderAll()}
   function readField(event){var name=event.target.name;if(!name||fields.indexOf(name)<0)return;active[name]=["discount","vat"].indexOf(name)>=0?number(event.target.value):event.target.value;scheduleSave();renderPreview()}
   function addItem(raw){active.items.push(normalizeItem(raw||{description:"",quantity:1,unit:"ud.",cost:0,margin:30}));renderItems();renderAll();scheduleSave();setTimeout(function(){var all=document.querySelectorAll(".item-row .description");if(all.length)all[all.length-1].focus()},0)}
-  function updateItem(item,field,value,rerender){
+  function updateItem(item,field,value,rerender,sourceNode){
     applyItemValue(item,field,value);
-    scheduleSave();if(rerender!==false)renderItems();renderPreview();
+    scheduleSave();
+    if(rerender!==false)renderItems();
+    else syncDependentControls(sourceNode&&sourceNode.closest&&sourceNode.closest(".item-row"),item,field,money(item.quantity*item.price,active.currency));
+    renderPreview();
   }
   function make(tag,cls,text){var node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=String(text);return node}
   function control(item,field,type,extra){var node=make(type==="select"?"select":"input",field==="description"?"description":"");node.dataset.field=field;if(type==="select"){

@@ -9,23 +9,35 @@ vm.runInContext(source,context);
 const B=context.BudgetGenerator._test;
 
 class FakeInput{
-  constructor(value=""){this.value=value;this.listeners={};}
+  constructor(value=""){this.value=value;this.listeners={};this.row=null;}
   addEventListener(type,listener){(this.listeners[type]||=[]).push(listener);}
   dispatch(type){for(const listener of this.listeners[type]||[])listener({type,target:this});}
+  closest(selector){return selector===".item-row"?this.row:null;}
+}
+class FakeRow{
+  constructor(controls,output){this.controls=controls;this.output=output;Object.values(controls).forEach(control=>{control.row=this;});}
+  querySelector(selector){
+    const field=selector.match(/data-field="([^"]+)"/)?.[1];
+    return field?this.controls[field]:selector==="output.money"?this.output:null;
+  }
 }
 
 test("quantity, cost y margin actualizan estado y preview durante el evento input sin perder sus valores",()=>{
   const item=B.normalizeItem({description:"Producción",quantity:1,unit:"proyecto",cost:0,margin:0,price:0});
   let preview=B.calculate({discount:0,vat:21,items:[item]}),renders=0;
-  const update=(target,field,value,rerender)=>{
+  const output={value:"0,00 €",textContent:"0,00 €"};
+  const quantity=new FakeInput("2"),cost=new FakeInput("1000"),margin=new FakeInput("30"),price=new FakeInput("0");
+  const row=new FakeRow({quantity,cost,margin,price},output);
+  const update=(target,field,value,rerender,sourceNode)=>{
     B.applyItemValue(target,field,value);
     preview=B.calculate({discount:0,vat:21,items:[target]});
     if(rerender)renders++;
+    else B.syncDependentControls(sourceNode.closest(".item-row"),target,field,preview.subtotal.toFixed(2));
   };
-  const quantity=new FakeInput("2"),cost=new FakeInput("1000"),margin=new FakeInput("30");
   B.bindItemControl(quantity,item,"quantity",update);
   B.bindItemControl(cost,item,"cost",update);
   B.bindItemControl(margin,item,"margin",update);
+  B.bindItemControl(price,item,"price",update);
 
   quantity.dispatch("input");cost.dispatch("input");margin.dispatch("input");
 
@@ -35,7 +47,15 @@ test("quantity, cost y margin actualizan estado y preview durante el evento inpu
   assert.equal(preview.vat,546);
   assert.equal(preview.total,3146);
   assert.equal(preview.profit,600);
+  assert.equal(price.value,"1300","el precio derivado se ve antes del blur");
+  assert.equal(output.textContent,"2600.00","el importe de fila se ve antes del blur");
   assert.equal(renders,0,"input live no reconstruye la fila ni roba el foco");
+
+  price.value="1500";price.dispatch("input");
+  assert.equal(margin.value,"50","editar precio sincroniza el margen visible");
+  assert.equal(output.textContent,"3000.00","editar precio sincroniza el importe visible");
+  assert.equal(preview.total,3630);
+  assert.equal(renders,0);
 
   margin.dispatch("change");
   assert.equal(renders,1,"change conserva la reconciliación final de la fila");
