@@ -125,3 +125,16 @@ test("INTRANET_CATALOG publica el comando canónico del Generador de Presupuesto
   assert.match(catalog, /\{ cmd: '\/presupuestos', labelEs: 'Generador de Presupuestos',\s+labelEn: 'Budget generator',\s+url: 'https:\/\/www\.admiranext\.com\/presupuestos\/', color: 'accent' \}/);
   assert.equal((catalog.match(/cmd: '\/presupuestos'/g) || []).length, 1, "el comando no debe duplicarse");
 });
+
+test("versión visible, contrato JS y cache-busters comparten el mismo sello r2", () => {
+  const productVersion = B.version;
+  const assetVersion = productVersion.replace(/^v\./, "");
+  const visibleVersion = html.match(/<footer class="app-footer"><span>(v\.[^<]+)<\/span>/)?.[1];
+  const scriptVersion = html.match(/budget-generator\.js\?v=([^"']+)/)?.[1];
+  const styleVersion = html.match(/budget-generator\.css\?v=([^"']+)/)?.[1];
+  assert.equal(productVersion, "v.26.08.03.r2");
+  assert.equal(visibleVersion, productVersion);
+  assert.equal(scriptVersion, assetVersion);
+  assert.equal(styleVersion, assetVersion);
+  assert.doesNotMatch(html + source, /26\.08\.03\.r1/);
+});

@@ -1,6 +1,6 @@
 (function(root){
   "use strict";
-  var STORAGE_KEY="admiranext.budget-generator.v1",VERSION="v.26.08.03.r1";
+  var STORAGE_KEY="admiranext.budget-generator.v1",VERSION="v.26.08.03.r2";
   function number(value){var n=Number(value);return Number.isFinite(n)?n:0}
   function clamp(value,min,max){return Math.min(max,Math.max(min,number(value)))}
   function round(value){var n=number(value);return Math.round((n+Math.sign(n)*1e-10)*100)/100}
