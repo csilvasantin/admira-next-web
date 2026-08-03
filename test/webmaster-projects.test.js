@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 import { PROYECTOS } from "../functions/_proyectos.js";
-import { cantidadReleases, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
+import { cantidadReleases, equipoDelResponsable, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
 
 const apiSource = fs.readFileSync(new URL("../functions/api/proyectos.js", import.meta.url), "utf8");
 const webmasterSource = fs.readFileSync(new URL("../webmaster.html", import.meta.url), "utf8");
@@ -74,6 +74,8 @@ test("Webmaster es subproyecto y los responsables se editan con persistencia", (
   assert.equal(normalizarResponsable(""), "NeoMacMini");
   assert.equal(normalizarResponsable("  InfraNeoMini   MacMini  "), "InfraNeoMini MacMini");
   assert.equal(normalizarResponsable("x".repeat(100)).length, 80);
+  assert.equal(equipoDelResponsable("MorfeoMBP14"), "MacBookProNegro14");
+  assert.equal(equipoDelResponsable("NeoMini"), "Mac Mini");
   assert.match(apiSource, /export async function onRequestPatch/);
   assert.match(apiSource, /PRESENTATION_IDEAS\.put\(`\$\{RESPONSABLE_KEY\}\$\{clave\}`/);
   assert.match(apiSource, /proyecto no encontrado/);
@@ -120,12 +122,12 @@ test("PATCH guarda una asignación autenticada en KV", async () => {
         assert.equal(url, "https://api.yokup.com/projects");
         if (!options.method) return new Response(JSON.stringify({
           ok:true,
-          projects:[{ id:"webmaster-admiranext", name:"Webmaster AdmiraNeXT", web:"https://www.admiranext.com/webmaster" }],
+          projects:[{ id:"webmaster-admiranext", name:"Webmaster AdmiraNeXT", web:"https://www.admiranext.com/webmaster", machines:["admira-macmini"], agents:["NeoMacMini"] }],
         }), { status:200, headers:{"content-type":"application/json"} });
         yokupWrite = JSON.parse(options.body);
         return new Response(JSON.stringify({
           ok:true,
-          project:{ id:"webmaster-admiranext", owner:yokupWrite.primary_responsible, primary_responsible:yokupWrite.primary_responsible },
+          project:{ id:"webmaster-admiranext", owner:yokupWrite.primary_responsible, primary_responsible:yokupWrite.primary_responsible, machines:yokupWrite.machines, agents:yokupWrite.agents },
         }), { status:200, headers:{"content-type":"application/json"} });
       },
     },
@@ -138,6 +140,8 @@ test("PATCH guarda una asignación autenticada en KV", async () => {
     id:"webmaster-admiranext",
     owner:"InfraNeoMini",
     primary_responsible:"InfraNeoMini",
+    agents:["NeoMacMini", "InfraNeoMini"],
+    machines:["admira-macmini"],
     by:"AdmiraNeXT Webmaster",
   });
   assert.deepEqual(await response.json(), {

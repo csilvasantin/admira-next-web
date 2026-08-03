@@ -47,6 +47,13 @@ const SIN_HORA = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+$/;
 export const RESPONSABLE_POR_DEFECTO = 'NeoMacMini';
 const RESPONSABLE_KEY = 'webmaster:responsable:';
 const YOKUP_API = 'https://api.yokup.com';
+const EQUIPOS_POR_APELLIDO = [
+  ['mbaazul', 'MacBookAirAzul'], ['mbarosa', 'MacBookAirRosa'],
+  ['mbacrema', 'MacBookAirCrema'], ['mbaplata', 'MacBookAirPlata'],
+  ['mba16', 'MacBookAir16plata'], ['mbp14', 'MacBookProNegro14'],
+  ['mbp16', 'MacBook Pro 16'], ['zenbook', 'ASUS Zenbook'],
+  ['mini', 'Mac Mini'], ['dgx', 'DGX Spark'], ['pgx', 'ThinkStation PGX'],
+];
 
 const json = (o, s = 200) => new Response(JSON.stringify(o), {
   status: s,
@@ -56,6 +63,18 @@ const json = (o, s = 200) => new Response(JSON.stringify(o), {
 export function normalizarResponsable(valor) {
   const limpio = String(valor || '').trim().replace(/\s+/g, ' ');
   return limpio ? limpio.slice(0, 80) : RESPONSABLE_POR_DEFECTO;
+}
+
+export function equipoDelResponsable(valor) {
+  const clave = String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const entrada = EQUIPOS_POR_APELLIDO.find(([apellido]) => clave.endsWith(apellido));
+  return entrada ? entrada[1] : '';
+}
+
+function claveEquipo(valor) {
+  return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '').replace(/^admira/, '');
 }
 
 function slugProyecto(valor) {
@@ -107,6 +126,13 @@ export async function sincronizarResponsableYokup(proyecto, responsable, fetchYo
     throw Object.assign(new Error('el proyecto no tiene ficha canónica en Yokup'), { status:409 });
   }
 
+  // El responsable de Webmaster no es una etiqueta editorial: define la unión
+  // permanente proyecto → agente → equipo. Se preservan las asignaciones que ya
+  // existían y se añade la principal; el pulso sólo decidirá si está conectada.
+  const equipo = equipoDelResponsable(responsable);
+  const agentes = [...new Set([...(Array.isArray(destino.agents) ? destino.agents : []), responsable])];
+  const equipos = [...new Set(Array.isArray(destino.machines) ? destino.machines : [])];
+  if (equipo && !equipos.some((actual) => claveEquipo(actual) === claveEquipo(equipo))) equipos.push(equipo);
   let guardado;
   try {
     guardado = await fetchYokup(`${YOKUP_API}/projects`, {
@@ -116,6 +142,8 @@ export async function sincronizarResponsableYokup(proyecto, responsable, fetchYo
         id:destino.id,
         owner:responsable,
         primary_responsible:responsable,
+        agents:agentes,
+        machines:equipos,
         by:'AdmiraNeXT Webmaster',
       }),
     });
@@ -124,7 +152,10 @@ export async function sincronizarResponsableYokup(proyecto, responsable, fetchYo
   }
   const resultado = await guardado.json().catch(() => ({}));
   const confirmado = resultado && resultado.project
-    && (resultado.project.primary_responsible || resultado.project.owner) === responsable;
+    && (resultado.project.primary_responsible || resultado.project.owner) === responsable
+    && Array.isArray(resultado.project.agents) && resultado.project.agents.includes(responsable)
+    && (!equipo || (Array.isArray(resultado.project.machines)
+      && resultado.project.machines.some((actual) => claveEquipo(actual) === claveEquipo(equipo))));
   if (!guardado.ok || !resultado.ok || !confirmado) {
     throw Object.assign(new Error(resultado.error || 'Yokup no confirmó el responsable'), { status:502 });
   }
