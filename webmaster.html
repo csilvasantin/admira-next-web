@@ -6,7 +6,7 @@
 <title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
 <meta name="description" content="Qué versión está viva en cada proyecto de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.03.08.2026.r16.17:32">
+<meta name="admiranext-version" content="v.03.08.2026.r17.17:53">
 <link rel="icon" href="/favicon.ico">
 <style>
   :root{
@@ -669,7 +669,7 @@
       .then(function(d){
         p.responsable = d.responsable;
         input.value = d.responsable;
-        estado.className = 'responsable-state ok'; estado.textContent = 'guardado';
+        estado.className = 'responsable-state ok'; estado.textContent = d.yokupSynced ? 'guardado · Yokup' : 'guardado';
       })
       .catch(function(e){
         p.responsable = anterior; input.value = anterior;

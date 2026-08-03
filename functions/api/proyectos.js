@@ -46,6 +46,7 @@ const CANONICO = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}$/;
 const SIN_HORA = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+$/;
 export const RESPONSABLE_POR_DEFECTO = 'NeoMacMini';
 const RESPONSABLE_KEY = 'webmaster:responsable:';
+const YOKUP_API = 'https://api.yokup.com';
 
 const json = (o, s = 200) => new Response(JSON.stringify(o), {
   status: s,
@@ -55,6 +56,79 @@ const json = (o, s = 200) => new Response(JSON.stringify(o), {
 export function normalizarResponsable(valor) {
   const limpio = String(valor || '').trim().replace(/\s+/g, ' ');
   return limpio ? limpio.slice(0, 80) : RESPONSABLE_POR_DEFECTO;
+}
+
+function slugProyecto(valor) {
+  return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function claveWeb(valor) {
+  const raw = String(valor || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    return `${url.hostname.toLowerCase().replace(/^www\./, '')}${url.pathname.replace(/\/+$/, '') || ''}`;
+  } catch (_) { return ''; }
+}
+
+export function resolverProyectoYokup(proyecto, proyectosYokup) {
+  const filas = Array.isArray(proyectosYokup) ? proyectosYokup : [];
+  const ids = new Set([
+    proyecto && proyecto.yokupId,
+    proyecto && proyecto.clave,
+    slugProyecto(proyecto && proyecto.nombre),
+  ].map(slugProyecto).filter(Boolean));
+  const porId = filas.find((fila) => ids.has(slugProyecto(fila && fila.id)));
+  if (porId) return porId;
+
+  const web = claveWeb(proyecto && proyecto.url);
+  if (web) {
+    const porWeb = filas.find((fila) => claveWeb(fila && fila.web) === web);
+    if (porWeb) return porWeb;
+  }
+  const nombre = slugProyecto(proyecto && proyecto.nombre);
+  return filas.find((fila) => slugProyecto(fila && fila.name) === nombre) || null;
+}
+
+export async function sincronizarResponsableYokup(proyecto, responsable, fetchYokup = fetch) {
+  let listado;
+  try {
+    listado = await fetchYokup(`${YOKUP_API}/projects`, { cache:'no-store' });
+  } catch (_) {
+    throw Object.assign(new Error('Yokup no responde; no se ha guardado'), { status:502 });
+  }
+  if (!listado || !listado.ok) {
+    throw Object.assign(new Error('Yokup no responde; no se ha guardado'), { status:502 });
+  }
+  const censo = await listado.json().catch(() => ({}));
+  const destino = resolverProyectoYokup(proyecto, censo.projects);
+  if (!destino) {
+    throw Object.assign(new Error('el proyecto no tiene ficha canónica en Yokup'), { status:409 });
+  }
+
+  let guardado;
+  try {
+    guardado = await fetchYokup(`${YOKUP_API}/projects`, {
+      method:'POST',
+      headers:{ 'content-type':'application/json', 'x-admira-source':'webmaster' },
+      body:JSON.stringify({
+        id:destino.id,
+        owner:responsable,
+        primary_responsible:responsable,
+        by:'AdmiraNeXT Webmaster',
+      }),
+    });
+  } catch (_) {
+    throw Object.assign(new Error('Yokup no pudo guardar el responsable'), { status:502 });
+  }
+  const resultado = await guardado.json().catch(() => ({}));
+  const confirmado = resultado && resultado.project
+    && (resultado.project.primary_responsible || resultado.project.owner) === responsable;
+  if (!guardado.ok || !resultado.ok || !confirmado) {
+    throw Object.assign(new Error(resultado.error || 'Yokup no confirmó el responsable'), { status:502 });
+  }
+  return { id:destino.id, name:destino.name || destino.id };
 }
 
 async function leerResponsables(env) {
@@ -370,14 +444,22 @@ export async function onRequestPatch({ request, env }) {
   let body;
   try { body = await request.json(); } catch (_) { return json({ ok:false, error:'JSON no válido' }, 400); }
   const clave = String(body && body.clave || '').trim();
-  if (!PROYECTOS.some((p) => p.clave === clave)) return json({ ok:false, error:'proyecto no encontrado' }, 404);
+  const proyecto = PROYECTOS.find((p) => p.clave === clave);
+  if (!proyecto) return json({ ok:false, error:'proyecto no encontrado' }, 404);
   if (typeof body.responsable !== 'string') return json({ ok:false, error:'responsable no válido' }, 422);
 
   const responsable = normalizarResponsable(body && body.responsable);
+  let yokupProject;
+  try {
+    const fetchYokup = env && typeof env.YOKUP_FETCH === 'function' ? env.YOKUP_FETCH : fetch;
+    yokupProject = await sincronizarResponsableYokup(proyecto, responsable, fetchYokup);
+  } catch (error) {
+    return json({ ok:false, error:error && error.message || 'Yokup no pudo guardar el responsable' }, error && error.status || 502);
+  }
   await env.PRESENTATION_IDEAS.put(`${RESPONSABLE_KEY}${clave}`, JSON.stringify({
     responsable,
     updatedAt: new Date().toISOString(),
     updatedBy: email,
   }));
-  return json({ ok:true, clave, responsable });
+  return json({ ok:true, clave, responsable, yokupSynced:true, yokupProject });
 }

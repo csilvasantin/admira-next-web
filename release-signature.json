@@ -1,6 +1,6 @@
 {
-  "version": "v.03.08.2026.r16.17:32",
-  "deployer": "InfraOraculoMini",
+  "version": "v.03.08.2026.r17.17:53",
+  "deployer": "OraculoMini",
   "machine": "admira-macmini",
-  "signature": "InfraOraculoMini · admira-macmini"
+  "signature": "OraculoMini · admira-macmini"
 }
