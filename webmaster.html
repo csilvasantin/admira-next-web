@@ -6,7 +6,7 @@
 <title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
 <meta name="description" content="Qué versión está viva en cada solución de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.03.08.2026.r2">
+<meta name="admiranext-version" content="v.03.08.2026.r3.11:21">
 <link rel="icon" href="/favicon.ico">
 <style>
   :root{
@@ -142,7 +142,7 @@
     padding:4px 8px;border-radius:999px;white-space:nowrap;border:1px solid transparent;cursor:help}
   .norma.ok{color:var(--neon2);border-color:rgba(94,242,160,.4);background:rgba(94,242,160,.08)}
   .norma.sin-versionar{color:var(--warn);border-color:rgba(255,143,122,.5);background:rgba(255,143,122,.09)}
-  .norma.formato{color:var(--accent);border-color:rgba(232,168,124,.5);background:rgba(232,168,124,.09)}
+  .norma.formato,.norma.sin-hora{color:var(--accent);border-color:rgba(232,168,124,.5);background:rgba(232,168,124,.09)}
   .norma.sin-sello,.norma.sin-url{color:var(--warn);border-color:rgba(255,143,122,.5);background:rgba(255,143,122,.09)}
   .norma.worker,.norma.pendiente{color:var(--dim);border-color:var(--line);background:rgba(124,232,216,.05)}
   td.ver small{display:block;font-size:9.5px;font-weight:400;color:var(--dim);margin-top:3px;letter-spacing:.04em}
@@ -236,7 +236,8 @@
     <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Cada mejora, cambio o corrección que
       llega a producción <b>tiene que salir con versión nueva</b>: misma fecha y la r siguiente de
       ese día (<a href="/normativa#n09">norma 09</a>), escrita como manda la
-      <a href="/normativa#n07">norma 07</a> — <code>v.DD.MM.AAAA.rN</code>. Una norma que nadie
+      <a href="/normativa#n07">norma 07</a> — <code>v.DD.MM.AAAA.rN.HH:MM</code>, con la hora a
+      la que salió. Una norma que nadie
       comprueba es una sugerencia, así que aquí se comprueba sola, solución por solución:</p>
     <div id="incumple" class="incumple"><p class="snap-msg">Comprobando…</p></div>
 
@@ -297,12 +298,17 @@
       <table aria-label="Convención de etiquetas">
         <thead><tr><th>Cuándo</th><th>Etiqueta</th><th>Ejemplo real</th></tr></thead>
         <tbody>
-          <tr><td>Al publicar una versión</td><td>&lt;Proyecto&gt;-v.DD.MM.AAAA.rN</td><td>Pixeria-v.2026.07.14.r1</td></tr>
+          <tr><td>Al publicar una versión</td><td>&lt;Proyecto&gt;-v.DD.MM.AAAA.rN.HHMM</td><td>Pixeria-v.14.07.2026.r1.1832</td></tr>
           <tr><td>Antes de un cambio gordo</td><td>rollback-&lt;qué&gt;-AAAAMMDD</td><td>rollback-misiones-20260721</td></tr>
           <tr><td>Antes de tocar algo ajeno</td><td>retorno/pre-&lt;qué&gt;-AAAAMMDD</td><td>retorno/pre-informes-20260801</td></tr>
         </tbody>
       </table>
     </div>
+    <p style="color:var(--accent);font-size:.9rem;margin-top:14px">⚠️ En la etiqueta la hora va
+      <b>sin los dos puntos</b> (<code>.1832</code>, no <code>.18:32</code>): git no admite
+      <code>:</code> en el nombre de una referencia y rechaza el tag. El sello de la web sí los
+      lleva —<code>v.14.07.2026.r1.18:32</code>—; es el único sitio donde los dos formatos se
+      separan, y es por una limitación de git, no por gusto.</p>
     <p style="color:var(--dim);font-size:.9rem">Tres nombres para lo mismo porque cada equipo trajo
       el suyo. Lo importante no es cuál se use, sino que <b>exista antes de tocar</b>: la etiqueta
       hay que crearla cuando todo todavía funciona, no cuando ya se ha roto.</p>
@@ -313,7 +319,7 @@
     <div class="meta">
       Datos verificados el 2 de agosto de 2026 · se actualiza al publicar<br>
       <a href="/mandamientos">Mandamientos</a> · <a href="/normativa">Normativa</a><br>
-      <span style="opacity:.8">v.03.08.2026.r2</span>
+      <span style="opacity:.8">v.03.08.2026.r3.11:21</span>
     </div>
   </footer>
 </div>
@@ -475,7 +481,8 @@
 
   var ETIQUETA = {
     'ok':'al día', 'sin-versionar':'sin versionar', 'formato':'formato',
-    'sin-sello':'sin sello', 'sin-url':'sin declarar', 'worker':'worker', 'pendiente':'—'
+    'sin-sello':'sin sello', 'sin-url':'sin declarar', 'sin-hora':'sin hora',
+    'worker':'worker', 'pendiente':'—'
   };
 
   function nombreSolucion(p){
@@ -510,6 +517,7 @@
     resumen.innerHTML =
         chip('ok',  r.ok || 0,           'al día')
       + chip('mal', r.sinVersionar || 0, 'con cambios sin versionar')
+      + chip('ojo', r.sinHora || 0,      'sin la hora en el sello')
       + chip('ojo', r.formato || 0,      'con el sello mal escrito')
       + chip('mal', r.sinSello || 0,     'sin declarar versión')
       + chip('',    r.workers || 0,      'workers, sin portada que sellar');

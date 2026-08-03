@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.03.08.2026.r2">
+<meta name="admiranext-version" content="v.03.08.2026.r3.11:21">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -279,22 +279,30 @@
       <div>
         <h2>Una sola forma de decir la versión</h2>
         <p>Toda declaración de versión —web, worker, informe, mensaje— se escribe igual:
-          <b>v, día, mes, año, y r con el número de release de ese día</b>. Todo separado por
-          puntos.</p>
-        <div class="formula">v.DD.MM.AAAA.rN → v.02.08.2026.r10</div>
-        <p>Lo que se numera no es el producto, es <b>el día</b>: la fecha dice cuándo se publicó y
-          la r cuántas veces se publicó ya esa jornada. Un <code class="bad">v10.0</code> no dice
-          ninguna de las dos cosas, y dos sellos con formato distinto no se pueden comparar de un
-          vistazo — que es justo para lo que existe el sello.</p>
+          <b>v, día, mes, año, r con el número de release de ese día, y la hora a la que
+          salió</b>. Todo separado por puntos, y la hora en 24 h.</p>
+        <div class="formula">v.DD.MM.AAAA.rN.HH:MM → v.03.08.2026.r3.11:18</div>
+        <p>Lo que se numera no es el producto, es <b>el día</b>: la fecha dice cuándo se publicó,
+          la r cuántas veces se publicó ya esa jornada y la hora <b>en qué momento exacto</b>. Un
+          <code class="bad">v10.0</code> no dice ninguna de las tres cosas, y dos sellos con
+          formato distinto no se pueden comparar de un vistazo — que es justo para lo que existe
+          el sello.</p>
+        <p>La hora es la novedad, y no es adorno. La r ordena los releases del día, pero no dice
+          <b>cuándo</b>: con toda la flota publicando a la vez, saber que algo salió a las 11:18 y
+          no a las 09:40 es lo que permite cruzar un sello con una incidencia, con un mensaje del
+          canal o con el despliegue de otra máquina. Un sello sin hora obliga a ir a buscar el
+          commit para saber a qué hora se rompió algo.</p>
         <div class="tbl">
           <table aria-label="Formatos de versión">
             <thead><tr><th>Así no</th><th>Por qué no</th><th>Así sí</th></tr></thead>
             <tbody>
-              <tr><td>v10.0</td><td>No dice ni cuándo ni cuántas</td><td>v.02.08.2026.r10</td></tr>
-              <tr><td>v.0208.r10</td><td>Sin año no sirve al año que viene</td><td>v.02.08.2026.r10</td></tr>
-              <tr><td>v.2026.07.13.r1</td><td>El año va al final, no delante</td><td>v.13.07.2026.r1</td></tr>
-              <tr><td>v26.07.07.12</td><td>Sin puntos y sin release</td><td>v.07.07.2026.r12</td></tr>
-              <tr><td>v.26.07.24.prehome</td><td>La r no es un apodo</td><td>v.24.07.2026.r1</td></tr>
+              <tr><td>v10.0</td><td>No dice ni cuándo, ni cuántas, ni a qué hora</td><td>v.02.08.2026.r10.17:04</td></tr>
+              <tr><td>v.0208.r10</td><td>Sin año no sirve al año que viene</td><td>v.02.08.2026.r10.17:04</td></tr>
+              <tr><td>v.2026.07.13.r1</td><td>El año va al final, no delante</td><td>v.13.07.2026.r1.08:30</td></tr>
+              <tr><td>v26.07.07.12</td><td>Sin puntos y sin release</td><td>v.07.07.2026.r12.20:45</td></tr>
+              <tr><td>v.26.07.24.prehome</td><td>La r no es un apodo</td><td>v.24.07.2026.r1.09:12</td></tr>
+              <tr><td>v.03.08.2026.r3</td><td>Le falta la hora de publicación</td><td>v.03.08.2026.r3.11:18</td></tr>
+              <tr><td>v.03.08.2026.r3.11:18h</td><td>La hora va limpia, en 24 h</td><td>v.03.08.2026.r3.11:18</td></tr>
             </tbody>
           </table>
         </div>
@@ -346,10 +354,10 @@
           <table aria-label="Cuándo sube la versión">
             <thead><tr><th>Qué ha pasado</th><th>Qué sale</th><th>Ejemplo</th></tr></thead>
             <tbody>
-              <tr><td>Primera publicación del día</td><td>Fecha de hoy, r1</td><td>v.03.08.2026.r1</td></tr>
-              <tr><td>Otra publicación el mismo día</td><td>Misma fecha, r siguiente</td><td>v.03.08.2026.r2</td></tr>
-              <tr><td>Una corrección de una línea</td><td>También sube la r</td><td>v.03.08.2026.r3</td></tr>
-              <tr><td>Hoy no se ha tocado</td><td>Conserva su fecha</td><td>v.24.07.2026.r3</td></tr>
+              <tr><td>Primera publicación del día</td><td>Fecha de hoy, r1, hora</td><td>v.03.08.2026.r1.09:05</td></tr>
+              <tr><td>Otra publicación el mismo día</td><td>Misma fecha, r siguiente, su hora</td><td>v.03.08.2026.r2.10:41</td></tr>
+              <tr><td>Una corrección de una línea</td><td>También sube la r</td><td>v.03.08.2026.r3.11:18</td></tr>
+              <tr><td>Hoy no se ha tocado</td><td>Conserva su fecha y su hora</td><td>v.24.07.2026.r3.16:22</td></tr>
             </tbody>
           </table>
         </div>
@@ -374,7 +382,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.03.08.2026.r2</span>
+      <span style="opacity:.8">v.03.08.2026.r3.11:21</span>
     </div>
   </footer>
 </div>

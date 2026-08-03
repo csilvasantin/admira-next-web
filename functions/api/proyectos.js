@@ -10,9 +10,9 @@
  *    servía la r7 del día 3.
  *
  * 2. CONTROLAR que se cumple. La norma 07 dice cómo se escribe el sello
- *    (v.DD.MM.AAAA.rN) y la 09 que cada cambio publicado sube la r. Una norma que
- *    nadie comprueba es una sugerencia: aquí se comprueba solución por solución y
- *    se dice quién la incumple.
+ *    (v.DD.MM.AAAA.rN.HH:MM, con la hora de publicación) y la 09 que cada cambio
+ *    publicado sube la r. Una norma que nadie comprueba es una sugerencia: aquí
+ *    se comprueba solución por solución y se dice quién la incumple.
  *
  * De dónde sale el sello, en este orden:
  *   1. <meta name="admiranext-version">     — lo llevan 8 de los sitios
@@ -30,10 +30,16 @@ import { PROYECTOS } from '../_proyectos.js';
 const GH = 'https://api.github.com';
 // Cualquier sello con pinta de tal, sea del formato que sea: primero hay que
 // encontrarlo para poder decir que está mal escrito.
-const SELLO = /v\.?\d{2,4}[.-]\d{2}[.-]\d{2,4}(?:\.r\d+)?/i;
+const SELLO = /v\.?\d{2,4}[.-]\d{2}[.-]\d{2,4}(?:\.r\d+)?(?:\.\d{2}:\d{2})?/i;
 const SELLO_G = new RegExp(SELLO.source, 'gi');
-// El canónico de la norma 07, y solo ese.
-const CANONICO = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+$/;
+// El canónico de la norma 07: fecha, release y HORA de publicación.
+// Dos releases del mismo día ya se distinguían por la r, pero la r no dice
+// CUÁNDO: con varias máquinas publicando a la vez, saber que algo salió a las
+// 11:18 y no a las 09:40 es lo que permite cruzar un sello con un incidente.
+const CANONICO = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}$/;
+// El formato anterior —el mismo pero sin hora— se sigue reconociendo para poder
+// decir qué le falta, en vez de tratarlo como si estuviera escrito de cualquier manera.
+const SIN_HORA = /^v\.\d{2}\.\d{2}\.\d{4}\.r\d+$/;
 
 function cabecerasGh(env) {
   const h = { 'User-Agent': 'admiranext-webmaster', Accept: 'application/vnd.github+json' };
@@ -176,13 +182,24 @@ async function veredicto(p, v, env) {
       texto: `${sinVersionar}${sinVersionar === 30 ? '+' : ''} cambio${sinVersionar === 1 ? '' : 's'} en el repositorio después del sello publicado. Norma 09: cada cambio que llega a producción sube la r.`,
     };
   }
-  if (!formatoOk) {
+  // Le falta solo la hora: está bien escrito, pero con el formato de antes. Se
+  // dice aparte porque no es lo mismo tener el sello mal que tenerlo incompleto.
+  if (!formatoOk && SIN_HORA.test(v.sello)) {
     return {
-      estado: 'formato', formatoOk: false,
-      texto: `El sello no sigue la norma 07: se escribe v.DD.MM.AAAA.rN${fecha ? ` — aquí sería v.${String(fecha.getUTCDate()).padStart(2, '0')}.${String(fecha.getUTCMonth() + 1).padStart(2, '0')}.${fecha.getUTCFullYear()}.rN` : ''}.`,
+      estado: 'sin-hora', formatoOk: false,
+      texto: `Le falta la hora de publicación. Norma 07: v.DD.MM.AAAA.rN.HH:MM — aquí sería ${v.sello}.HH:MM.`,
     };
   }
-  return { estado: 'ok', formatoOk: true, sinVersionar: 0, texto: 'Sello canónico y sin cambios posteriores sin publicar.' };
+  if (!formatoOk) {
+    const d = fecha
+      ? `v.${String(fecha.getUTCDate()).padStart(2, '0')}.${String(fecha.getUTCMonth() + 1).padStart(2, '0')}.${fecha.getUTCFullYear()}.rN.HH:MM`
+      : '';
+    return {
+      estado: 'formato', formatoOk: false,
+      texto: `El sello no sigue la norma 07: se escribe v.DD.MM.AAAA.rN.HH:MM${d ? ` — aquí sería ${d}` : ''}.`,
+    };
+  }
+  return { estado: 'ok', formatoOk: true, sinVersionar: 0, texto: 'Sello canónico —con fecha, release y hora— y sin cambios posteriores sin publicar.' };
 }
 
 /** Las etiquetas reales del repositorio — los puntos de retorno declarados. */
@@ -246,6 +263,7 @@ export async function onRequestGet({ request, env }) {
       ok: cuenta('ok'),
       sinVersionar: cuenta('sin-versionar'),
       formato: cuenta('formato'),
+      sinHora: cuenta('sin-hora'),
       sinSello: cuenta('sin-sello') + cuenta('sin-url'),
       workers: cuenta('worker'),
     },
