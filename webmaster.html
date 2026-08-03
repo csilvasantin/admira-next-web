@@ -115,6 +115,23 @@
     object-position:top center}
   .shot:hover{border-color:var(--neon);transform:translateY(-2px)}
 
+  .snap-tabs{display:flex;gap:6px;margin:16px 0 4px;flex-wrap:wrap}
+  .snap-tabs button{font:700 11px/1 var(--mono);padding:8px 13px;border-radius:8px;cursor:pointer;
+    border:1px solid var(--line);background:rgba(18,24,40,.9);color:var(--dim)}
+  .snap-tabs button[aria-selected="true"]{color:#08121a;background:var(--neon);border-color:var(--neon)}
+  .snap-aviso{margin:12px 0 0;padding:11px 13px;border-radius:9px;font-size:.88rem;color:var(--dim);
+    border:1px solid rgba(232,168,124,.4);background:rgba(232,168,124,.06)}
+  .snap-row{display:grid;grid-template-columns:118px minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:10px 0;border-top:1px solid rgba(124,232,216,.1)}
+  .snap-when{font:700 11.5px/1.35 var(--mono);color:var(--neon2)}
+  .snap-who{display:block;color:var(--dim);font-weight:400;font-size:10.5px;margin-top:3px}
+  .snap-copy{font:700 11px/1 var(--mono);padding:7px 12px;border-radius:8px;white-space:nowrap;cursor:pointer;
+    border:1px solid var(--line);color:var(--neon);background:none}
+  .snap-copy:hover{border-color:var(--neon)}
+  .snap-cmd{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:4px;word-break:break-all}
+  @media (max-width:640px){ .snap-row{grid-template-columns:96px minmax(0,1fr);row-gap:8px}
+    .snap-open,.snap-copy{grid-column:2;justify-self:start} }
+
   /* fichas de retorno */
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px}
   .card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px}
@@ -168,17 +185,17 @@
           <tr><td class="sol"><button type="button" class="solbtn" data-p="admiranext" data-n="admiranext.com">admiranext.com</button> <a href="https://www.admiranext.com" title="Abrir admiranext.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.02.08.2026.r13</td><td>admira-next-web</td><td>./deploy.sh → Pages <code>admiranext</code></td></tr>
           <tr><td class="sol"><button type="button" class="solbtn" data-p="yokup" data-n="yokup.com">yokup.com</button> <a href="https://yokup.com" title="Abrir yokup.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.02.08.2026.r14</td><td>tool · <code>yokup-site/</code></td><td>cd yokup-site &amp;&amp; wrangler pages deploy .</td></tr>
           <tr><td class="sol"><button type="button" class="solbtn" data-p="pixeria" data-n="pixeria.com">pixeria.com</button> <a href="https://www.pixeria.com" title="Abrir pixeria.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.26.07.12.r3</td><td>pixeria</td><td>./deploy.sh → Pages <code>pixeria</code></td></tr>
-          <tr><td class="sol"><a href="https://www.xpaceos.com">xpaceos.com</a></td><td class="ver">v.2026.08.02.r4</td><td>xpaceos</td><td>git push (GitHub Pages)</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="xpaceos" data-n="xpaceos.com">xpaceos.com</button> <a class="ext" href="https://www.xpaceos.com" title="Abrir xpaceos.com" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.08.02.r4</td><td>xpaceos</td><td>git push (GitHub Pages)</td></tr>
           <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-live" data-n="admira.live">admira.live</button> <a href="https://www.admira.live" title="Abrir admira.live" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.07.12.r1</td><td>32.-ConsejoAdmiraNextGame</td><td>./deploy.sh → Pages <code>admira-live</code></td></tr>
-          <tr><td class="sol"><a href="https://www.admira.studio">admira.studio</a></td><td class="ver">v.26.07.12.r3</td><td>admira-studio</td><td>git push (GitHub Pages)</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-studio" data-n="admira.studio">admira.studio</button> <a class="ext" href="https://www.admira.studio" title="Abrir admira.studio" target="_blank" rel="noopener">↗</a></td><td class="ver">v.26.07.12.r3</td><td>admira-studio</td><td>git push (GitHub Pages)</td></tr>
           <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-store" data-n="admira.store">admira.store</button> <a href="https://admira.store" title="Abrir admira.store" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.06.05.r4</td><td>admira-store</td><td>./deploy.sh</td></tr>
           <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-tv" data-n="admira.tv">admira.tv</button> <a href="https://admira.tv" title="Abrir admira.tv" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>admira-tv</td><td>./deploy.sh → Pages + wrangler.toml</td></tr>
           <tr><td class="sol"><button type="button" class="solbtn" data-p="clearchannel-tv" data-n="clearchannel.tv">clearchannel.tv</button> <a href="https://www.clearchannel.tv" title="Abrir clearchannel.tv" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>clearchannel-tv</td><td>./deploy.sh → Pages <code>clearchannel-tv</code></td></tr>
           <tr><td class="sol"><button type="button" class="solbtn" data-p="clearchannel-tv" data-n="admira.app">admira.app</button> <a href="https://www.admira.app" title="Abrir admira.app" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>admira-app</td><td>—</td></tr>
-          <tr><td class="sol"><a href="https://digitalavatar.ai">digitalavatar.ai</a></td><td class="ver">v.03.08.2026.r1</td><td>digitalavatar.ai</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol"><a href="https://www.ainimation.studio">ainimation.studio</a></td><td class="ver">v.03.08.2026.r1</td><td>ainimation</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol">pixer-eleven (worker)</td><td class="ver">PixerWorker-v.2026.06.19.r2</td><td>pixer-worker</td><td>wrangler deploy</td></tr>
-          <tr><td class="sol">yokup-rtc (worker)</td><td class="ver">ver <code>/worker/beats</code></td><td>tool · <code>yokup-rtc/</code></td><td>wrangler deploy (commit ANTES)</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="digitalavatar" data-n="digitalavatar.ai">digitalavatar.ai</button> <a class="ext" href="https://digitalavatar.ai" title="Abrir digitalavatar.ai" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>digitalavatar.ai</td><td>git push (GitHub Pages)</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="ainimation" data-n="ainimation.studio">ainimation.studio</button> <a class="ext" href="https://www.ainimation.studio" title="Abrir ainimation.studio" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>ainimation</td><td>git push (GitHub Pages)</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="pixer-worker" data-n="pixer-eleven (worker)">pixer-eleven (worker)</button></td><td class="ver">PixerWorker-v.2026.06.19.r2</td><td>pixer-worker</td><td>wrangler deploy</td></tr>
+          <tr><td class="sol"><button type="button" class="solbtn" data-p="yokup" data-n="yokup-rtc (worker)">yokup-rtc (worker)</button></td><td class="ver">ver <code>/worker/beats</code></td><td>tool · <code>yokup-rtc/</code></td><td>wrangler deploy (commit ANTES)</td></tr>
         </tbody>
       </table>
     </div>
@@ -186,18 +203,24 @@
       <div class="snap-head">
         <div>
           <h3 id="snapTitle">—</h3>
-          <p id="snapSub">Cada despliegue queda para siempre en su propia dirección: al abrirlo ves la web tal y como estaba.</p>
+          <p id="snapSub">Todo lo que ha cambiado y todas las formas de volver atrás.</p>
         </div>
         <button type="button" class="snap-close" id="snapClose" aria-label="Cerrar historial">×</button>
       </div>
-      <div id="snapDays" class="snap-days"></div>
+      <div class="snap-tabs" role="tablist">
+        <button type="button" data-tab="commits" role="tab" aria-selected="true">Cambios</button>
+        <button type="button" data-tab="tags"    role="tab" aria-selected="false">Puntos de retorno</button>
+        <button type="button" data-tab="deploys" role="tab" aria-selected="false">Snapshots</button>
+      </div>
+      <div id="snapAviso" class="snap-aviso" hidden></div>
       <div id="snapList" class="snap-list"></div>
     </div>
 
-    <p style="color:var(--dim);font-size:.86rem;margin:0">Pulsa el nombre de una solución para
-      ver <b>sus despliegues</b> y abrir cualquiera. Los sellos se leyeron de la portada de cada
-      sitio el <b>3 de agosto de 2026</b>. Ya no queda ninguno sin declarar versión. Las que no se pueden pulsar están en GitHub Pages, que no guarda una
-      dirección por despliegue: ahí el punto de retorno es la etiqueta de git.</p>
+    <p style="color:var(--dim);font-size:.86rem;margin:0">Pulsa el nombre de una solución para ver
+      <b>todo lo que ha cambiado</b> y cómo volver a cualquier punto: los cambios (siempre),
+      los puntos de retorno con su comando, y los snapshots que se pueden abrir. Los sellos se leyeron de la portada de cada
+      sitio el <b>3 de agosto de 2026</b>. Ya no queda ninguno sin declarar versión. Las de GitHub Pages no tienen snapshot que abrir —no guarda una dirección por despliegue—
+      pero sí cambios y puntos de retorno, como todas.</p>
 
     <h2 class="sec">Cañones cargados — leer antes de desplegar</h2>
 
@@ -424,87 +447,114 @@
 
 <script>
 /* ──────────────────────────────────────────────────────────────────────────
-   Historial navegable de despliegues.
+   Historial completo por proyecto: qué cambió y cómo se vuelve atrás.
 
-   Cada despliegue de Cloudflare Pages queda accesible PARA SIEMPRE en su propia
-   dirección: abrirla es ver la web tal y como estaba en ese momento. No es una
-   captura ni una nota: es el sitio. Por eso «abrir» lleva ahí y no a un detalle.
+   Tres caras del mismo asunto, y ninguna sobra:
+     Cambios           — los commits. Existen SIEMPRE, esté el sitio en Cloudflare
+                         o en GitHub Pages. Es el registro de qué se tocó y quién.
+     Puntos de retorno — las etiquetas puestas a propósito, con el comando exacto
+                         de vuelta. Copiar y pegar, sin recordar la sintaxis.
+     Snapshots         — solo Cloudflare Pages: cada despliegue conserva su
+                         dirección, así que la marcha atrás se puede MIRAR antes
+                         de ejecutarla. Es la única de las tres que se ve.
 
-   Los datos los sirve /api/deployments, que consulta Cloudflare desde el edge
-   (el token nunca llega al navegador).
+   Los datos vienen de /api/historial, que cruza GitHub y Cloudflare en el edge.
    ────────────────────────────────────────────────────────────────────────── */
 (function(){
   var panel = document.getElementById('snapPanel');
-  var elTitle = document.getElementById('snapTitle');
-  var elDays  = document.getElementById('snapDays');
-  var elList  = document.getElementById('snapList');
   if (!panel) return;
-
-  var actual = null;   // proyecto abierto
-  var nombre = '';     // nombre bonito de la solución
+  var elTitle = document.getElementById('snapTitle');
+  var elSub   = document.getElementById('snapSub');
+  var elAviso = document.getElementById('snapAviso');
+  var elList  = document.getElementById('snapList');
+  var tabs    = panel.querySelectorAll('.snap-tabs button');
+  var datos = null, vista = 'commits';
 
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){
     return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
 
-  function hoyMadrid(){
-    return new Intl.DateTimeFormat('sv-SE', { timeZone:'Europe/Madrid',
-      year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
+  function filaCommit(c){
+    return '<div class="snap-row">'
+      + '<div class="snap-when">' + esc(c.fecha) + '<span class="snap-who">' + esc(c.autor) + '</span></div>'
+      + '<div class="snap-m"' + (c.cuerpo ? ' title="' + esc(c.cuerpo) + '"' : '') + '>'
+      +   esc(c.mensaje) + '<span class="cm">' + esc(c.sha) + '</span></div>'
+      + '<a class="snap-open" href="' + esc(c.url) + '" target="_blank" rel="noopener">Ver ↗</a>'
+      + '</div>';
   }
-  function diaCorto(d){
-    var p = d.split('-');
-    return p[2] + '/' + p[1];
+  function filaTag(t){
+    return '<div class="snap-row">'
+      + '<div class="snap-when">' + esc(t.fecha || '—') + '<span class="snap-who">' + esc(t.sha) + '</span></div>'
+      + '<div class="snap-m">' + esc(t.nombre)
+      +   '<div class="snap-cmd">' + esc(t.volver) + '</div></div>'
+      + '<button type="button" class="snap-copy" data-cmd="' + esc(t.volver) + '">Copiar</button>'
+      + '</div>';
+  }
+  function filaDeploy(d, i){
+    var hoy = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    var vivo = (i === 0 && d.dia === hoy) ? '<span class="snap-live">en antena</span>' : '';
+    return '<div class="snap-row">'
+      + '<div class="snap-when">' + esc(d.fecha) + '</div>'
+      + '<div class="snap-m">' + esc(d.mensaje || '(sin mensaje)')
+      +   (d.commit ? '<span class="cm">' + esc(d.commit) + '</span>' : '') + vivo + '</div>'
+      + '<a class="snap-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir ↗</a>'
+      + '</div>';
   }
 
-  function pintar(data){
-    var hoy = hoyMadrid();
-
-    // días con despliegues: hoy primero, luego hacia atrás
-    elDays.innerHTML = '';
-    (data.dias || []).slice(0, 14).forEach(function(d){
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = (d === hoy ? 'HOY · ' : '') + diaCorto(d);
-      b.setAttribute('aria-pressed', String(d === data.dia));
-      b.addEventListener('click', function(){ cargar(actual, nombre, d); });
-      elDays.appendChild(b);
-    });
-
-    if (!data.despliegues.length){
-      elList.innerHTML = '<p class="snap-msg">Ningún despliegue ese día.</p>';
+  function pintar(){
+    if (!datos) return;
+    var lista = datos[vista] || [];
+    if (!lista.length){
+      // Decir POR QUÉ está vacío: una lista vacía sin explicación se lee como
+      // «no ha pasado nada», y casi nunca es eso.
+      var motivo = vista === 'deploys'
+        ? (datos.aviso || 'Este proyecto no publica en Cloudflare Pages, así que no hay snapshots.')
+        : (vista === 'tags' ? 'Este repositorio no tiene ninguna etiqueta: no hay puntos de retorno declarados.'
+                            : 'Sin cambios registrados.');
+      elList.innerHTML = '<p class="snap-msg">' + esc(motivo) + '</p>';
       return;
     }
-
-    // el primero de la lista es el más reciente; si el día es hoy, es el que está en antena
-    var html = data.despliegues.map(function(d, i){
-      var vivo = (i === 0 && data.dia === hoy)
-        ? '<span class="snap-live">en antena</span>' : '';
-      var tip = (d.mensajeLargo && d.mensajeLargo !== d.mensaje) ? d.mensajeLargo : '';
-      return '<div class="snap-row">'
-        +   '<div class="snap-h">' + esc(d.hora) + '</div>'
-        +   '<div class="snap-m"' + (tip ? ' title="' + esc(tip) + '"' : '') + '>'
-        +     esc(d.mensaje || '(sin mensaje)')
-        +     (d.commit ? '<span class="cm">' + esc(d.commit) + '</span>' : '') + vivo + '</div>'
-        +   '<a class="snap-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir ↗</a>'
-        + '</div>';
+    elList.innerHTML = lista.map(function(x, i){
+      return vista === 'commits' ? filaCommit(x) : vista === 'tags' ? filaTag(x) : filaDeploy(x, i);
     }).join('');
-    elList.innerHTML = html;
+    elList.querySelectorAll('.snap-copy').forEach(function(b){
+      b.addEventListener('click', function(){
+        navigator.clipboard.writeText(b.dataset.cmd).then(function(){
+          var t = b.textContent; b.textContent = 'Copiado';
+          setTimeout(function(){ b.textContent = t; }, 1400);
+        });
+      });
+    });
   }
 
-  function cargar(proyecto, nom, dia){
-    actual = proyecto; nombre = nom;
+  function marcarTab(){
+    tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.tab === vista)); });
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){ vista = t.dataset.tab; marcarTab(); pintar(); });
+  });
+
+  function cargar(clave, nombre){
     panel.hidden = false;
-    elTitle.textContent = nom + ' · snapshots';
+    elTitle.textContent = nombre + ' · historial';
+    elSub.textContent = 'Cargando…';
+    elAviso.hidden = true;
     elList.innerHTML = '<p class="snap-msg">Cargando…</p>';
-    var url = '/api/deployments?p=' + encodeURIComponent(proyecto)
-            + (dia ? '&d=' + encodeURIComponent(dia) : '');
-    fetch(url).then(function(r){ return r.json(); }).then(function(data){
-      if (!data.ok) throw new Error(data.error || 'sin datos');
-      pintar(data);
-    }).catch(function(e){
-      // Honestidad: si no hay datos se dice, no se deja una lista vacía que parezca «no hubo cambios».
-      elList.innerHTML = '<p class="snap-msg">No se pudo leer el historial: ' + esc(e.message) + '</p>';
-      elDays.innerHTML = '';
-    });
+    datos = null; vista = 'commits'; marcarTab();
+
+    fetch('/api/historial?p=' + encodeURIComponent(clave))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) throw new Error(d.error || 'sin datos');
+        datos = d;
+        elSub.textContent = d.repo + ' · ' + d.total.commits + ' cambios · '
+                          + d.total.tags + ' puntos de retorno · ' + d.total.deploys + ' snapshots';
+        if (d.aviso){ elAviso.textContent = d.aviso; elAviso.hidden = false; }
+        pintar();
+      })
+      .catch(function(e){
+        elSub.textContent = '';
+        elList.innerHTML = '<p class="snap-msg">No se pudo leer el historial: ' + esc(e.message) + '</p>';
+      });
     panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
 
@@ -512,7 +562,7 @@
     b.addEventListener('click', function(){
       document.querySelectorAll('.solbtn').forEach(function(o){ o.setAttribute('aria-expanded','false'); });
       b.setAttribute('aria-expanded','true');
-      cargar(b.dataset.p, b.dataset.n, null);
+      cargar(b.dataset.p, b.dataset.n);
     });
   });
   document.getElementById('snapClose').addEventListener('click', function(){
