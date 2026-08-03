@@ -41,6 +41,32 @@ jobs:
           TMP="$(mktemp -d)"
           git archive HEAD | tar -x -C "$TMP"
           printf '%s\n' "$GITHUB_SHA" > "$TMP/deploy-sha.txt"
+
+          # La firma se GENERA aquí, igual que en deploy.sh, en vez de venir de
+          # un version.json versionado. Ese fichero era un retrato fijo: seguía
+          # declarando la r8 de NeoMBARosa mientras producción servía la r17 y
+          # la r18, porque `git archive` lo copia tal cual. Y como este flujo
+          # se dispara en CADA push, pisaba la firma buena del despliegue manual
+          # unos segundos después de publicarla. Lo que sí está versionado es
+          # release-signature.json —quién firma y qué sello—, y el commit exacto
+          # lo pone GITHUB_SHA, que es justo lo que no puede saber un fichero
+          # guardado en el propio commit.
+          release="$(sed -n 's/.*admiranext-version.*content="[^"]*\(v\.[^"]*\)".*/\1/p' index.html | head -1)"
+          declared="$(jq -r '.version // empty' release-signature.json)"
+          if [ -z "$release" ] || [ "$declared" != "$release" ]; then
+            echo "::error::release-signature.json declara «$declared» y la portada «$release»: la firma no corresponde a lo que se publica."
+            exit 1
+          fi
+          jq -n \
+            --arg version "$release" \
+            --arg deployedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg deployer "$(jq -r '.deployer // .agent' release-signature.json)" \
+            --arg machine "$(jq -r '.machine' release-signature.json)" \
+            --arg signature "$(jq -r '.signature' release-signature.json)" \
+            --arg git "$GITHUB_SHA" \
+            '{version:$version,deployedAt:$deployedAt,deployer:$deployer,machine:$machine,signature:$signature,git:$git,gitShort:($git[0:7]),gitFull:$git,dirty:false}' \
+            > "$TMP/version.json"
+
           npx --yes wrangler@latest pages deploy "$TMP" --project-name admiranext --branch main
 
       - name: Verificar commit exacto en producción
@@ -63,3 +89,17 @@ jobs:
             fi
           done
           echo "✓ ${GITHUB_SHA} verificado en www.admiranext.com y admiranext.pages.dev"
+
+      - name: Verificar que la firma publicada es la de este commit
+        run: |
+          # El sha suelto no basta: lo que lee el Webmaster para dar por buena
+          # una release es version.json. Si vuelve a servirse una firma de otro
+          # despliegue, aquí se ve —y no en la tabla, tres horas después.
+          FIRMA="$(curl -fsSL --max-time 20 "https://www.admiranext.com/version.json?sha=${GITHUB_SHA}")"
+          SERVIDO="$(printf '%s' "$FIRMA" | jq -r '.gitFull // .git // empty')"
+          if [ "$SERVIDO" != "$GITHUB_SHA" ]; then
+            echo "::error::version.json en producción firma ${SERVIDO}, no ${GITHUB_SHA}."
+            printf '%s\n' "$FIRMA"
+            exit 1
+          fi
+          echo "✓ firma publicada: $(printf '%s' "$FIRMA" | jq -r '.version + " · " + .signature')"
