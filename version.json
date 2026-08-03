@@ -1,11 +1,11 @@
 {
-  "version": "v.03.08.2026.r7.12:57",
-  "deployedAt": "2026-08-03T10:57:00Z",
-  "deployer": "OraculoMBAPlata",
-  "machine": "MacBookAirPlata",
-  "signature": "OraculoMBAPlata · MacBookAirPlata",
-  "git": "bcfb3bb99c1b5c8558be7ff8e0a8af91a86078e1",
-  "gitShort": "bcfb3bb",
-  "gitFull": "bcfb3bb99c1b5c8558be7ff8e0a8af91a86078e1",
+  "version": "v.03.08.2026.r8.13:53",
+  "deployedAt": "2026-08-03T11:57:57Z",
+  "deployer": "NeoMBARosa",
+  "machine": "MacBookAirRosa",
+  "signature": "NeoMBARosa · MacBookAirRosa",
+  "git": "62dddaf348ad3b71157b72737a6c26512bef80b2",
+  "gitShort": "62dddaf",
+  "gitFull": "62dddaf348ad3b71157b72737a6c26512bef80b2",
   "dirty": false
 }
