@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07131f">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Generador de Presupuestos · AdmiraNeXT</title>
+  <link rel="stylesheet" href="../assets/budget-generator.css?v=26.08.03.r1">
+</head>
+<body>
+  <a class="skip" href="#editor">Saltar al editor</a>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">A</span><div><b>AdmiraNeXT</b><span>Generador de Presupuestos</span></div></div>
+    <div class="top-actions" role="toolbar" aria-label="Acciones del presupuesto">
+      <button class="button subtle" id="newBudget" type="button">Nuevo</button>
+      <button class="button subtle" id="duplicateBudget" type="button">Duplicar</button>
+      <button class="button subtle" id="saveVersion" type="button">Guardar versión</button>
+      <button class="button subtle" id="exportCsv" type="button">Exportar CSV</button>
+      <button class="button primary" id="printBudget" type="button">Imprimir / PDF</button>
+    </div>
+  </header>
+
+  <main class="workspace" id="editor">
+    <aside class="library" aria-label="Borradores y versiones">
+      <div class="library-head"><div><span class="eyebrow">Archivo local</span><h2>Borradores</h2></div><span class="storage-state" id="storageState" role="status">Listo</span></div>
+      <div class="document-list" id="documentList"></div>
+      <details class="versions" open>
+        <summary>Versiones guardadas <span id="versionCount">0</span></summary>
+        <div id="versionList" class="version-list"></div>
+      </details>
+      <details class="trash">
+        <summary>Papelera <span id="trashCount">0</span></summary>
+        <div id="trashList" class="trash-list"></div>
+      </details>
+      <p class="local-note">Los datos permanecen únicamente en este navegador. Borrar mueve el presupuesto a la papelera.</p>
+    </aside>
+
+    <section class="composer" aria-label="Editor del presupuesto">
+      <form id="budgetForm" novalidate>
+        <section class="panel identity-panel">
+          <div class="panel-heading"><div><span class="eyebrow">Datos comerciales</span><h1 id="editorTitle">Presupuesto</h1></div><button class="danger-link" id="deleteBudget" type="button">Mover a papelera</button></div>
+          <div class="field-grid four">
+            <label><span>N.º presupuesto</span><input id="number" name="number" autocomplete="off"></label>
+            <label><span>Fecha</span><input id="date" name="date" type="date"></label>
+            <label><span>Válido hasta</span><input id="validUntil" name="validUntil" type="date"></label>
+            <label><span>Responsable</span><input id="owner" name="owner" autocomplete="name"></label>
+          </div>
+          <div class="field-grid two">
+            <label><span>Cliente / empresa</span><input id="client" name="client" required autocomplete="organization" placeholder="Nombre del cliente"></label>
+            <label><span>Oportunidad</span><input id="opportunity" name="opportunity" placeholder="Proyecto, campaña o referencia"></label>
+          </div>
+          <div class="field-grid three">
+            <label><span>NIF / CIF</span><input id="taxId" name="taxId"></label>
+            <label><span>Contacto</span><input id="contact" name="contact" autocomplete="name"></label>
+            <label><span>Email</span><input id="email" name="email" type="email" autocomplete="email"></label>
+          </div>
+        </section>
+
+        <section class="panel lines-panel">
+          <div class="panel-heading"><div><span class="eyebrow">Alcance económico</span><h2>Partidas</h2></div><button class="button compact" id="addItem" type="button">+ Añadir partida</button></div>
+          <div class="line-head" aria-hidden="true"><span>Descripción</span><span>Cantidad</span><span>Unidad</span><span>Coste</span><span>Margen</span><span>Precio</span><span>Importe</span><span></span></div>
+          <div id="itemList" class="item-list" aria-live="polite"></div>
+          <p class="formula-note">Precio = coste × (1 + margen). Si editas el precio, el margen se recalcula. Importes sin IVA.</p>
+        </section>
+
+        <section class="panel conditions-panel">
+          <div class="field-grid three compact-fields">
+            <label><span>Descuento general (%)</span><input id="discount" name="discount" type="number" min="0" max="100" step="0.01"></label>
+            <label><span>IVA (%)</span><input id="vat" name="vat" type="number" min="0" max="100" step="0.01"></label>
+            <label><span>Divisa</span><select id="currency" name="currency"><option value="EUR">EUR · €</option><option value="USD">USD · $</option><option value="GBP">GBP · £</option></select></label>
+          </div>
+          <label class="wide-field"><span>Condiciones y notas</span><textarea id="notes" name="notes" rows="4" placeholder="Forma de pago, plazos, exclusiones y validez comercial"></textarea></label>
+        </section>
+      </form>
+    </section>
+
+    <aside class="preview-wrap" aria-label="Vista previa imprimible">
+      <article class="quote" id="printArea">
+        <header class="quote-head">
+          <div class="quote-brand"><span>ADMIRA</span><b>NeXT</b></div>
+          <div class="quote-number"><small>Presupuesto</small><strong id="viewNumber">—</strong><span id="viewDate">—</span></div>
+        </header>
+        <section class="quote-intro">
+          <div><small>Preparado para</small><h2 id="viewClient">Cliente por definir</h2><p id="viewContact">—</p></div>
+          <div class="opportunity"><small>Oportunidad</small><p id="viewOpportunity">—</p><small>Válido hasta</small><p id="viewValidUntil">—</p></div>
+        </section>
+        <table class="quote-table">
+          <thead><tr><th>Descripción</th><th>Cant.</th><th>Unidad</th><th>Precio</th><th>Importe</th></tr></thead>
+          <tbody id="viewItems"></tbody>
+        </table>
+        <section class="quote-bottom">
+          <div class="quote-notes"><small>Condiciones</small><p id="viewNotes">Sin condiciones adicionales.</p></div>
+          <dl class="totals">
+            <div><dt>Subtotal</dt><dd id="viewSubtotal">0,00 €</dd></div>
+            <div id="discountRow"><dt>Descuento</dt><dd id="viewDiscount">0,00 €</dd></div>
+            <div><dt>Base imponible</dt><dd id="viewBase">0,00 €</dd></div>
+            <div><dt id="vatLabel">IVA</dt><dd id="viewVat">0,00 €</dd></div>
+            <div class="grand"><dt>Total</dt><dd id="viewTotal">0,00 €</dd></div>
+          </dl>
+        </section>
+        <section class="profit" aria-label="Rentabilidad interna">
+          <span>Coste estimado <b id="viewCost">0,00 €</b></span><span>Beneficio <b id="viewProfit">0,00 €</b></span><span>Margen real <b id="viewMargin">0,0 %</b></span>
+        </section>
+        <footer class="quote-footer"><span>Admira Digital Networks, S.L.</span><span>Documento generado con AdmiraNeXT</span></footer>
+      </article>
+    </aside>
+  </main>
+
+  <footer class="app-footer"><span>v.26.08.03.r1</span><span>SubOraculoMini · admira-macmini</span></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="../assets/budget-generator.js?v=26.08.03.r1"></script>
+</body>
+</html>

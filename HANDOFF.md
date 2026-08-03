@@ -1,6 +1,6 @@
 # HANDOFF — Trilogía AdmiraNeXT
 
-Actualizado: 2026-07-23
+Actualizado: 2026-08-03
 Matriz: `admira-next-web` → https://www.admiranext.com
 HANDOFF público: https://www.admiranext.com/HANDOFF.md · GitHub: https://github.com/csilvasantin/admira-next-web/blob/main/HANDOFF.md
 
@@ -32,6 +32,12 @@ Cada pata tiene una sección `/mcp/` con la misma convención: `index.html` (hub
 - Herramientas hermanas en la matriz: `/presentaciones` abre el Generador de
   Presentaciones y `/presites` abre el nuevo Generador de Presites. Ambos viven
   en `admiranext.com`, usan acceso interno y comparten lenguaje cuadrático.
+- `/presupuestos/` abre el Generador de Presupuestos (`v.26.08.03.r1`): captura
+  datos del cliente y partidas, permite revisar el resumen económico y exporta
+  CSV o PDF. El tratamiento y la generación de archivos son locales en el
+  navegador; no envía clientes, conceptos ni importes a servicios externos.
+  Recurso Yokup: `generador-presupuestos`. Responsable:
+  `OraculoMini · admira-macmini`.
 - admira.shop → matriz: enlace `← AdmiraNeXT` en el footer (index + venta/alquiler/catálogo/contacto).
 - admira.live → matriz: badge `🏠 AdmiraNeXT` en la barra superior.
 - Regla: admira.shop ↔ admira.live NO se enlazan entre sí (las dos derivadas son independientes).

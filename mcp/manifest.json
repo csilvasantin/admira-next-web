@@ -18,6 +18,7 @@
     { "path": "/businessplan/", "desc": "Plan de negocio." },
     { "path": "/help/", "desc": "Ayuda." },
     { "path": "/creditos/", "desc": "Generador de créditos finales animados para presentaciones; exporta vídeo WebM y HTML autónomo." },
+    { "path": "/presupuestos/", "type": "local-tool", "yokup_id": "generador-presupuestos", "version": "v.26.08.03.r1", "owner": "OraculoMini · admira-macmini", "privacy": "Los datos de cliente, partidas e importes se procesan localmente en el navegador y no se envían a servicios externos.", "flow": ["datos del cliente", "partidas", "revisión de totales", "exportación"], "exports": ["CSV", "PDF"], "desc": "Generador local de presupuestos comerciales con revisión previa y exportación CSV o PDF." },
     { "path": "/impacto/", "desc": "Campaña bilingüe de narrativas humanas sobre el impacto de la señalización digital en salud, comercio y movilidad." },
     { "path": "/intranet", "desc": "Comando de terminal: zona privada con acceso al ecosistema y al generador mediante /presentaciones." },
     { "path": "/mandamientos", "audience": "agents", "desc": "Los 14 Mandamientos de AdmiraNeXT: doctrina operativa canónica del equipo de silicio. Primer documento que debe leer un agente que se incorpora a la flota." },

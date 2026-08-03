@@ -24,6 +24,7 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 - Plan de negocio: https://www.admiranext.com/businessplan/
 - Ayuda: https://www.admiranext.com/help/
 - Generador de créditos: https://www.admiranext.com/creditos/ — editor y preview de créditos finales animados; exporta vídeo WebM a 1080p y HTML autónomo. Funciona localmente en el navegador.
+- Generador de presupuestos: https://www.admiranext.com/presupuestos/ — recoge datos de cliente y partidas, permite revisar el resumen económico y exporta CSV o PDF. El procesamiento y las exportaciones son locales en el navegador; no envía esos datos a servicios externos. Recurso Yokup: `generador-presupuestos`; responsable: `OraculoMini · admira-macmini`.
 - Narrativa de Impacto: https://www.admiranext.com/impacto/ — campaña bilingüe con historias humanas sobre señalización digital útil en salud, comercio y movilidad; conecta la experiencia con evidencia operativa y valor de negocio.
 - Intranet: comando `/intranet` (en la terminal de la home) con acceso al ecosistema; `/presentaciones` abre el generador de presentaciones.
 

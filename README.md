@@ -44,6 +44,26 @@ The site is static. The public entry point lets visitors choose:
 - `/tiktok/` estudio autónomo para crear un guion, storyboard, preview y vídeo
   vertical exportable de 15 segundos. Está preparado como primera pieza del
   ecosistema del Generador de Presentaciones.
+- `/presupuestos/` generador local de presupuestos comerciales, desde los datos
+  del cliente y las partidas hasta la revisión de totales y la exportación CSV
+  o PDF.
+
+## Generador de Presupuestos
+
+`/presupuestos/` permite preparar un presupuesto comercial sin sacar su
+contenido del navegador. El flujo reúne los datos del cliente, incorpora y
+revisa las partidas, calcula el resumen económico y deja el documento listo
+para exportarlo como CSV o PDF.
+
+Los datos introducidos y los documentos generados se procesan localmente: la
+herramienta no requiere enviar clientes, conceptos ni importes a un servicio
+externo. Antes de compartir una exportación, la persona operadora debe revisar
+destinatario, conceptos, impuestos y total.
+
+- Ruta pública: `https://www.admiranext.com/presupuestos/`.
+- Recurso Yokup: `generador-presupuestos`.
+- Versión documental: `v.26.08.03.r1`.
+- Responsable: `OraculoMini · admira-macmini`.
 
 ## Generador de Presites
 
