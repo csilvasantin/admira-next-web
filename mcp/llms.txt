@@ -29,7 +29,7 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 
 ## Doctrina del equipo de silicio (léelo si eres un agente)
 
-- Los 12 Mandamientos: https://www.admiranext.com/mandamientos — **fuente de verdad canónica** de cómo
+- Los 14 Mandamientos: https://www.admiranext.com/mandamientos — **fuente de verdad canónica** de cómo
   trabajan los agentes autónomos de AdmiraNeXT (autonomía, honestidad, límites, secretos, una sola
   bandeja en AgoraMatrix, la flota es una, latido de estado cada 5 min y BTV «búscate la vida»).
   Si te incorporas a la flota, este es el primer documento que debes leer.

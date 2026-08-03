@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.03.08.2026.r4.12:02">
+<meta name="admiranext-version" content="v.03.08.2026.r5.12:11">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -392,6 +392,29 @@
           versión ninguna. No hace falta que nadie audite a mano — hace falta mirarlo.</p>
       </div>
     </article>
+    <article class="art" id="n10">
+      <div class="num">10</div>
+      <div>
+        <h2>OnIdle horario: tres acciones cuando el equipo está desatendido</h2>
+        <p>Cuando el equipo esté desatendido, cada agente puede abrir una ventana de decisión
+          <b>una vez por hora como máximo</b>. La ventana presenta <b>exactamente tres misiones</b>
+          y la acción <b>«Volver atrás»</b>. La primera misión es la recomendada.</p>
+        <div class="formula">Equipo desatendido → 1 ventana/hora · 3 misiones + Volver atrás</div>
+        <p>Si el reloj expira sin respuesta, se inicia la recomendada y las otras dos misiones
+          continúan en la cola persistente. Toda acción automática debe ser reversible, conservar
+          evidencia y no implicar borrado, gasto, permisos nuevos ni otra actuación irreversible.</p>
+        <div class="tbl">
+          <table aria-label="Regla operativa de OnIdle">
+            <thead><tr><th>Condición</th><th>Regla</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>Equipo atendido</td><td>No hace falta abrir OnIdle</td><td>Se sigue la conversación activa</td></tr>
+              <tr><td>Equipo desatendido</td><td>Máximo una ventana por hora</td><td>3 misiones + Volver atrás</td></tr>
+              <tr><td>Sin respuesta</td><td>Expira el reloj</td><td>Arranca la recomendada; las otras dos quedan en cola</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
   </main>
 
   <footer>
@@ -403,7 +426,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.03.08.2026.r4.12:02</span>
+      <span style="opacity:.8">v.03.08.2026.r5.12:11</span>
     </div>
   </footer>
 </div>

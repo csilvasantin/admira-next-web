@@ -129,7 +129,7 @@
       fn: cmdTikTok
     },
     '/mandamientos': {
-      desc: 'Los 12 Mandamientos del equipo de silicio',
+      desc: 'Los 14 Mandamientos del equipo de silicio',
       fn: cmdMandamientos
     },
     '/testimonials': {
@@ -1645,7 +1645,7 @@
     const target = (window.location.protocol === 'file:') ? 'mandamientos.html' : '/mandamientos';
     setTimeout(() => { window.location.href = target; }, 450);
     return [
-      { text: isEnglish ? 'The 12 Commandments · AdmiraNeXT' : 'Los 12 Mandamientos · AdmiraNeXT', cls: 'heading' },
+      { text: isEnglish ? 'The 14 Commandments · AdmiraNeXT' : 'Los 14 Mandamientos · AdmiraNeXT', cls: 'heading' },
       { text: '' },
       { text: isEnglish
         ? '  Operating doctrine of the silicon team: how our autonomous agents work.'
