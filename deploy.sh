@@ -18,6 +18,13 @@ export CLOUDFLARE_API_TOKEN="$(bash ~/Claude/admira-vault/vault-get.sh CLOUDFLAR
 TMP="$(mktemp -d)"; git archive main | tar -x -C "$TMP"
 release="$(git show main:index.html | sed -n 's/.*admiranext-version.*content="[^"]*\(v\.[^"]*\)".*/\1/p' | head -1)"
 [[ -n "$release" ]] || { echo "✗ No se encontró el sello canónico en index.html" >&2; exit 1; }
+declared_version="$(jq -r '.version // empty' release-signature.json)"
+declared_agent="$(jq -r '.deployer // .agent // empty' release-signature.json)"
+declared_machine="$(jq -r '.machine // empty' release-signature.json)"
+declared_signature="$(jq -r '.signature // empty' release-signature.json)"
+[[ "$declared_version" == "$release" ]] || { echo "✗ release-signature.json no coincide con el sello $release" >&2; exit 1; }
+[[ "$declared_agent" == "$ADMIRA_RELEASE_AGENT" && "$declared_machine" == "$ADMIRA_RELEASE_MACHINE" ]] || { echo "✗ La declaración de responsable no coincide con este agente/equipo" >&2; exit 1; }
+[[ "$declared_signature" == "$ADMIRA_RELEASE_AGENT · $ADMIRA_RELEASE_MACHINE" ]] || { echo "✗ Firma inválida en release-signature.json" >&2; exit 1; }
 git_full="$(git rev-parse main)"
 jq -n \
   --arg version "$release" \
