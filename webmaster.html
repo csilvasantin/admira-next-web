@@ -61,6 +61,10 @@
   table{width:100%;border-collapse:collapse;font:12.5px/1.45 var(--mono);min-width:620px}
   th{text-align:left;color:var(--dim);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
     border-bottom:1px solid var(--line);padding:11px 12px;white-space:nowrap}
+  .th-count{display:inline-flex;margin-left:6px;padding:3px 7px;border:1px solid var(--line);border-radius:999px;
+    color:var(--ink);letter-spacing:.05em;background:rgba(124,232,216,.05)}
+  .th-count.ok{color:var(--neon2);border-color:rgba(94,242,160,.4);background:rgba(94,242,160,.08)}
+  .th-count.mismatch{color:var(--warn);border-color:rgba(255,143,122,.5);background:rgba(255,143,122,.09)}
   td{padding:11px 12px;border-bottom:1px solid rgba(124,232,216,.08);color:var(--dim);vertical-align:top}
   tr:last-child td{border-bottom:0}
   td.sol{color:var(--ink);font-weight:700;white-space:nowrap}
@@ -75,6 +79,16 @@
   .solbtn{font:inherit;color:var(--ink);background:none;border:0;padding:0;cursor:pointer;
     border-bottom:1px dashed var(--neon);font-weight:700}
   .solbtn:hover,.solbtn[aria-expanded="true"]{color:var(--neon)}
+  .tree-name{display:inline-flex;align-items:center;gap:6px}
+  .tree-toggle{width:18px;height:18px;padding:0;border:1px solid var(--line);border-radius:5px;background:none;
+    color:var(--neon);font:700 11px/1 var(--mono);cursor:pointer}
+  .tree-toggle:hover,.tree-toggle:focus-visible{border-color:var(--neon);outline:0}
+  .tree-space{display:inline-block;width:18px}
+  tr.subproyecto td{background:rgba(124,232,216,.025)}
+  tr.subproyecto td.sol{padding-left:34px;position:relative}
+  tr.subproyecto td.sol::before{content:"↳";position:absolute;left:15px;color:var(--dim);font-weight:400}
+  tr.subproyecto .solbtn{font-weight:600;color:var(--dim)}
+  tr.subproyecto .solbtn:hover{color:var(--neon)}
   .ext{font-size:11px;opacity:.65;border:0!important}
   .snap{border:1px solid rgba(124,232,216,.4);border-radius:12px;background:var(--panel);
     padding:18px 20px;margin:0 0 16px}
@@ -193,7 +207,7 @@
     </div>
     <p class="eyebrow">Intranet · operaciones</p>
     <h1><span class="n">Webmaster</span></h1>
-    <p class="lede">Qué versión está viva en cada solución de Admira y AdmiraNeXT, <b>cómo se
+    <p class="lede">Qué versión está viva en cada proyecto de Admira y AdmiraNeXT, <b>cómo se
       publica</b> y <b>cómo se vuelve atrás</b>. Un sitio sin punto de retorno documentado no es un
       sitio publicado: es un sitio del que no se puede salir.</p>
     <div class="rule"></div>
@@ -203,8 +217,8 @@
     <h2 class="sec">Lo que está vivo ahora mismo</h2>
     <div id="resumen" class="resumen" hidden></div>
     <div class="tbl">
-      <table aria-label="Versión viva de cada solución">
-        <thead><tr><th>Solución</th><th>En producción</th><th>Norma</th><th>Repositorio</th><th>Se publica con</th></tr></thead>
+      <table aria-label="Versión viva de cada proyecto y subproyecto">
+        <thead><tr><th>Proyectos <span id="proyectosCuenta" class="th-count">—</span></th><th>En producción</th><th>Norma</th><th>Repositorio</th><th>Se publica con</th></tr></thead>
         <tbody id="tablaProyectos"><tr><td colspan="5" style="padding:18px 12px">Leyendo el sello de cada portada…</td></tr></tbody>
       </table>
     </div>
@@ -474,6 +488,7 @@
   var resumen = document.getElementById('resumen');
   var incum   = document.getElementById('incumple');
   var fichas  = document.getElementById('fichas');
+  var cuentaProyectos = document.getElementById('proyectosCuenta');
   if (!tabla) return;
 
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){
@@ -489,8 +504,32 @@
     var abrir = p.url
       ? ' <a href="' + esc(p.url) + '" title="Abrir ' + esc(p.nombre) + '" class="ext" target="_blank" rel="noopener">↗</a>'
       : '';
-    return '<button type="button" class="solbtn" data-p="' + esc(p.clave) + '" data-n="' + esc(p.nombre) + '">'
-         + esc(p.nombre) + '</button>' + abrir;
+    var arbol = p._children
+      ? '<button type="button" class="tree-toggle" data-tree="' + esc(p.clave) + '" aria-expanded="true" aria-label="Plegar subproyectos de ' + esc(p.nombre) + '">▾</button>'
+      : (p._depth ? '' : '<span class="tree-space" aria-hidden="true"></span>');
+    return '<span class="tree-name">' + arbol
+         + '<button type="button" class="solbtn" data-p="' + esc(p.clave) + '" data-n="' + esc(p.nombre) + '">'
+         + esc(p.nombre) + '</button>' + abrir + '</span>';
+  }
+
+  function ordenarJerarquia(lista){
+    var todos = {}, hijos = {}, vistos = {};
+    lista.forEach(function(p){ todos[p.clave] = p; });
+    lista.forEach(function(p){
+      var padre = p.parentKey && todos[p.parentKey] ? p.parentKey : '';
+      (hijos[padre] || (hijos[padre] = [])).push(p);
+    });
+    var salida = [];
+    function visitar(p, depth){
+      if (!p || vistos[p.clave]) return;
+      vistos[p.clave] = true;
+      var cop = Object.assign({}, p, { _depth:depth, _children:(hijos[p.clave] || []).length });
+      salida.push(cop);
+      (hijos[p.clave] || []).forEach(function(child){ visitar(child, depth + 1); });
+    }
+    (hijos[''] || []).forEach(function(p){ visitar(p, 0); });
+    lista.forEach(function(p){ visitar(p, 0); });
+    return salida;
   }
 
   function fila(p){
@@ -498,7 +537,8 @@
     var ver = p.version
       ? esc(p.version) + (p.publicadaPor ? '<small>' + esc(p.publicadaPor) + '</small>' : '')
       : '<span style="color:var(--warn)">' + (p.tipo === 'worker' ? 'sin portada' : 'sin sello') + '</span>';
-    return '<tr>'
+    var clase = p._depth ? ' class="subproyecto depth-' + p._depth + '"' : '';
+    return '<tr' + clase + ' data-project="' + esc(p.clave) + '" data-parent="' + esc(p.parentKey || '') + '">'
       + '<td class="sol">' + nombreSolucion(p) + '</td>'
       + '<td class="ver">' + ver + '</td>'
       + '<td><span class="norma ' + esc(c.estado || 'pendiente') + '" title="' + esc(c.texto || '') + '">'
@@ -506,6 +546,40 @@
       + '<td>' + esc(p.repoTxt) + (p.privado ? ' <span style="opacity:.6">· privado</span>' : '') + '</td>'
       + '<td>' + esc(p.publica) + '</td>'
       + '</tr>';
+  }
+
+  function conectarArbol(){
+    var rows = Array.prototype.slice.call(tabla.querySelectorAll('tr[data-project]'));
+    function rama(clave, abierta){
+      rows.filter(function(row){ return row.dataset.parent === clave; }).forEach(function(row){
+        row.hidden = !abierta;
+        var childToggle = row.querySelector('.tree-toggle');
+        rama(row.dataset.project, abierta && (!childToggle || childToggle.getAttribute('aria-expanded') === 'true'));
+      });
+    }
+    tabla.querySelectorAll('.tree-toggle').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var abierta = btn.getAttribute('aria-expanded') !== 'true';
+        btn.setAttribute('aria-expanded', abierta ? 'true' : 'false');
+        btn.textContent = abierta ? '▾' : '▸';
+        btn.setAttribute('aria-label', (abierta ? 'Plegar' : 'Desplegar') + ' subproyectos');
+        rama(btn.dataset.tree, abierta);
+      });
+    });
+  }
+
+  function pintarCuenta(d){
+    if (!cuentaProyectos) return;
+    var locales = Number(d.totalProyectos || 0);
+    var sub = Number(d.totalSubproyectos || 0);
+    var yokup = d.yokupTotal == null ? null : Number(d.yokupTotal);
+    if (yokup != null && !Number.isFinite(yokup)) yokup = null;
+    cuentaProyectos.textContent = locales + (yokup == null ? '' : '/' + yokup + ' Yokup')
+      + (sub ? ' · ' + sub + (sub === 1 ? ' subproyecto' : ' subproyectos') : '');
+    cuentaProyectos.classList.toggle('ok', d.coincideYokup === true);
+    cuentaProyectos.classList.toggle('mismatch', d.coincideYokup === false);
+    cuentaProyectos.title = yokup == null ? 'Yokup no respondió: se muestra el censo local.'
+      : (d.coincideYokup ? 'Los proyectos raíz coinciden con el censo de Yokup.' : 'El total no coincide con Yokup: revisa ambos censos.');
   }
 
   function chip(clase, n, txt){
@@ -530,7 +604,7 @@
       return p.control && p.control.estado !== 'ok' && p.control.estado !== 'worker';
     });
     if (!malas.length){
-      incum.innerHTML = '<p class="snap-msg" style="color:var(--neon2)">Todas las soluciones cumplen: '
+      incum.innerHTML = '<p class="snap-msg" style="color:var(--neon2)">Todos los proyectos y subproyectos cumplen: '
         + 'sello canónico, firma verificable y ningún cambio publicado sin subir la r.</p>';
       return;
     }
@@ -566,7 +640,9 @@
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (!d.ok) throw new Error(d.error || 'sin datos');
-      tabla.innerHTML = d.proyectos.map(fila).join('');
+      tabla.innerHTML = ordenarJerarquia(d.proyectos).map(fila).join('');
+      conectarArbol();
+      pintarCuenta(d);
       pintarResumen(d);
       pintarIncumplimientos(d);
     })

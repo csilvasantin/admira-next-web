@@ -260,8 +260,20 @@ async function retornosVivos(p, env) {
   }
 }
 
+/** El total vivo del censo canónico de Yokup, para poder contrastar carteras. */
+async function totalYokup() {
+  const r = await traer('https://api.yokup.com/projects');
+  if (!r) return null;
+  try {
+    const d = await r.json();
+    return Array.isArray(d && d.projects) ? d.projects.length : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 const base = (p) => ({
-  clave: p.clave, nombre: p.nombre, url: p.url, tipo: p.tipo,
+  clave: p.clave, nombre: p.nombre, url: p.url, tipo: p.tipo, parentKey: p.parentKey || '',
   repo: p.repo, repoTxt: p.repoTxt || p.repo.split('/')[1], privado: !!p.privado,
   pages: p.pages, publica: p.publica, shot: p.shot || null, nota: p.nota || '',
 });
@@ -284,20 +296,28 @@ export async function onRequestGet({ request, env }) {
     return json({ ok: true, parte, generado: new Date().toISOString(), proyectos });
   }
 
-  const proyectos = await Promise.all(PROYECTOS.map(async (p) => {
-    const v = await selloVivo(p);
-    const c = await veredicto(p, v, env);
-    return {
-      ...base(p),
-      version: v.sello, versionFuente: v.fuente,
-      publicadaPor: v.quien || '', versionCommit: v.commit || '',
-      control: c,
-    };
-  }));
+  const [proyectos, yokupTotal] = await Promise.all([
+    Promise.all(PROYECTOS.map(async (p) => {
+      const v = await selloVivo(p);
+      const c = await veredicto(p, v, env);
+      return {
+        ...base(p),
+        version: v.sello, versionFuente: v.fuente,
+        publicadaPor: v.quien || '', versionCommit: v.commit || '',
+        control: c,
+      };
+    })),
+    totalYokup(),
+  ]);
 
   const cuenta = (e) => proyectos.filter((p) => p.control.estado === e).length;
+  const claves = new Set(proyectos.map((p) => p.clave));
+  const totalSubproyectos = proyectos.filter((p) => p.parentKey && claves.has(p.parentKey)).length;
+  const totalProyectos = proyectos.length - totalSubproyectos;
   return json({
     ok: true, parte, generado: new Date().toISOString(), total: proyectos.length,
+    totalProyectos, totalSubproyectos, yokupTotal,
+    coincideYokup: yokupTotal == null ? null : totalProyectos === yokupTotal,
     resumen: {
       ok: cuenta('ok'),
       sinVersionar: cuenta('sin-versionar'),

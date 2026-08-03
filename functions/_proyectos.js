@@ -24,6 +24,7 @@
  *   url       portada pública; null si no tiene web que mirar (workers)
  *   estadoUrl portada cuyo sello/firma gobierna el despliegue; por defecto url
  *             (útil para subsoluciones que comparten release con su sitio padre)
+ *   parentKey clave del proyecto padre; vacío/null significa proyecto raíz
  *   repo      owner/repo en GitHub
  *   privado   true si el repositorio no es público (hace falta GITHUB_TOKEN)
  *   repoTxt   cómo se enseña el repositorio en la tabla (p.ej. subcarpeta)
@@ -45,6 +46,7 @@ export const PROYECTOS = [
     clave: 'generador-presupuestos', nombre: 'Generador de Presupuestos',
     url: 'https://www.admiranext.com/presupuestos/',
     estadoUrl: 'https://www.admiranext.com',
+    parentKey: 'admiranext',
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · presupuestos/',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
     tipo: 'sitio', shot: null,
@@ -143,6 +145,7 @@ export const PROYECTOS = [
   {
     // Antes compartía clave con el sitio yokup y enseñaba el historial de la web.
     clave: 'yokup-rtc', nombre: 'yokup-rtc (worker)', url: null,
+    parentKey: 'yokup',
     repo: 'csilvasantin/tool', repoTxt: 'tool · yokup-rtc/',
     pages: null, publica: 'cd yokup-rtc && wrangler deploy',
     tipo: 'worker', shot: null,
