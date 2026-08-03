@@ -70,11 +70,22 @@ function fechaDelSello(sello) {
   return new Date(Date.UTC(anio, mes - 1, dia));
 }
 
+/**
+ * Salta la caché del edge sin renunciar del todo a ella.
+ *
+ * Sin esto el control acusa en falso: Cloudflare sirve la portada cacheada, así
+ * que recién publicado se lee el sello ANTERIOR y la solución aparece «con
+ * cambios sin versionar» cuando acaba de versionar. Pasó en el estreno, con
+ * admiranext.com: producción servía ya la r1 y la lectura seguía viendo la r12.
+ * El sufijo cambia cada minuto: dentro del mismo minuto sí se reaprovecha.
+ */
+const fresco = (url) => url + (url.includes('?') ? '&' : '?') + 'wm=' + Math.floor(Date.now() / 60000);
+
 /** Lee de la portada qué versión está publicada de verdad. */
 async function selloVivo(p) {
   if (!p.url) return { sello: null, fuente: 'sin-web' };
 
-  const r = await traer(p.url, { headers: { 'User-Agent': 'Mozilla/5.0 (admiranext-webmaster)' } });
+  const r = await traer(fresco(p.url), { headers: { 'User-Agent': 'Mozilla/5.0 (admiranext-webmaster)' } });
   if (!r) return { sello: null, fuente: 'error' };
 
   const html = (await r.text()).slice(0, 400000);
@@ -87,7 +98,7 @@ async function selloVivo(p) {
     if (contenido.trim()) return { sello: contenido.trim(), fuente: 'meta' };
   }
 
-  const vj = await traer(`${p.url.replace(/\/$/, '')}/version.json`);
+  const vj = await traer(fresco(`${p.url.replace(/\/$/, '')}/version.json`));
   if (vj) {
     try {
       const d = await vj.json();          // un SPA devuelve su HTML aquí: revienta y seguimos
