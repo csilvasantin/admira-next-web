@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.03.08.2026.r5.12:11">
+<meta name="admiranext-version" content="v.03.08.2026.r6.12:53">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -335,28 +335,40 @@
     <article class="art" id="n08">
       <div class="num">08</div>
       <div>
-        <h2>Siempre la última versión — y su autor</h2>
+        <h2>Todo cambio se firma por su responsable y su equipo</h2>
         <p>Antes de tocar, desplegar, informar o dar por bueno un sitio, el agente <b>comprueba
-          qué versión está viva</b> y <b>quién la publicó</b>. No se improvisa el sello ni se
-          asume que el checkout local es producción.</p>
+          qué versión está viva</b> y <b>quién hizo el cambio</b>. Toda publicación lleva la firma
+          del responsable real y del equipo físico desde el que se cerró: no la cuenta corporativa,
+          el bot, el modelo ni un nombre genérico.</p>
+        <div class="formula">signature = AgenteConEquipo · EquipoFisico → OraculoMBAPlata · MacBookAirPlata</div>
         <div class="formula">Fuente canónica → <a href="/webmaster" style="color:inherit">admiranext.com/webmaster</a></div>
         <p>En el Webmaster hay siempre: la versión en producción de cada solución, el listado
           de versiones anteriores, los puntos de retorno y cómo se publica o se vuelve atrás.
           La norma 07 dice <b>cómo se escribe</b> el sello; esta dice <b>dónde se mira</b> y
-          <b>quién lo dejó</b>.</p>
+          <b>quién lo dejó</b>. La firma no se confía a un mensaje: se publica como dato verificable.</p>
         <div class="tbl">
           <table aria-label="Qué hay que asegurar sobre la versión">
             <thead><tr><th>Qué</th><th>Dónde</th><th>Para qué</th></tr></thead>
             <tbody>
               <tr><td>Última versión viva</td><td><a href="/webmaster">/webmaster</a> · sello en pie/meta</td><td>No trabajar sobre un fantasma</td></tr>
               <tr><td>Historial / retornos</td><td>Tags en /webmaster</td><td>Poder deshacer</td></tr>
-              <tr><td>Autor del cambio</td><td>Tag/commit · agente en anuncio · pie del release</td><td>Saber a quién preguntar y auditar</td></tr>
+              <tr><td>Responsable del cambio</td><td><code>/version.json</code> · <code>signature</code></td><td>Saber a quién preguntar y auditar</td></tr>
+              <tr><td>Equipo físico</td><td><code>machine</code> y dentro de <code>signature</code></td><td>Separar ejecuciones de una misma persona</td></tr>
+              <tr><td>Evidencia</td><td><code>gitShort</code> · <code>deployedAt</code> · <code>dirty:false</code></td><td>Vincular firma, código y publicación</td></tr>
             </tbody>
           </table>
         </div>
-        <p style="margin-top:14px">Al publicar, el autor se deja visible: mensaje de deploy, anuncio
-          en el canal común (quién · qué sello · URL) y, si hay tag, mensaje del tag. Un release
-          sin autor es un release incompleto — igual que uno sin punto de retorno.</p>
+        <p style="margin-top:14px"><b><code>version.json</code> es obligatorio</b> en toda solución
+          publicada y su <code>version</code> debe coincidir exactamente con el sello de portada.
+          Debe contener como mínimo <code>version</code>, <code>deployer</code> o <code>agent</code>,
+          <code>machine</code>, <code>signature</code>, <code>gitShort</code>, <code>deployedAt</code> y
+          <code>dirty:false</code>. La firma se forma exactamente como
+          <code>AgenteConEquipo · EquipoFisico</code>. No se firma por otro, no se hereda la firma
+          anterior y no se publica desde un árbol sucio.</p>
+        <p>El <a href="/webmaster">Webmaster</a> compara ambos sellos y comprueba automáticamente la
+          firma. Si falta un campo, no coincide la versión, la firma no corresponde a agente y
+          máquina, falta el commit o el árbol no está limpio, la release aparece como
+          <b class="bad">SIN FIRMA</b>. Un release sin firma verificable no está al día.</p>
       </div>
     </article>
     <article class="art" id="n09">
@@ -426,7 +438,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.03.08.2026.r5.12:11</span>
+      <span style="opacity:.8">v.03.08.2026.r6.12:53</span>
     </div>
   </footer>
 </div>

@@ -14,10 +14,14 @@
  *    publicado sube la r. Una norma que nadie comprueba es una sugerencia: aquí
  *    se comprueba solución por solución y se dice quién la incumple.
  *
- * De dónde sale el sello, en este orden:
- *   1. <meta name="admiranext-version">     — lo llevan 8 de los sitios
- *   2. /version.json                         — yokup añade además quién publicó
+ * De dónde sale el sello y su firma:
+ *   1. <meta name="admiranext-version">     — versión visible de la portada
+ *   2. /version.json                         — firma obligatoria del responsable
  *   3. un v.… suelto en el HTML              — último recurso, el del pie
+ *
+ * Aunque exista meta se lee SIEMPRE version.json: la versión sin firma ya no
+ * cumple. Los dos sellos deben coincidir y la firma debe ser exactamente
+ * «AgenteConEquipo · EquipoFisico», con commit y worktree limpio.
  *
  * Se sirve en dos partes para no dispararle al edge más peticiones externas de
  * las que puede hacer en una sola invocación:
@@ -88,7 +92,7 @@ function fechaDelSello(sello) {
 const fresco = (url) => url + (url.includes('?') ? '&' : '?') + 'wm=' + Math.floor(Date.now() / 60000);
 
 /** Lee de la portada qué versión está publicada de verdad. */
-async function selloVivo(p) {
+export async function selloVivo(p) {
   if (!p.url) return { sello: null, fuente: 'sin-web' };
 
   const r = await traer(fresco(p.url), { headers: { 'User-Agent': 'Mozilla/5.0 (admiranext-webmaster)' } });
@@ -96,26 +100,49 @@ async function selloVivo(p) {
 
   const html = (await r.text()).slice(0, 400000);
 
+  let sello = null, fuente = 'sin-sello';
   const meta = html.match(/<meta[^>]+name=["']admiranext-version["'][^>]*>/i);
   if (meta) {
     const contenido = (meta[0].match(/content=["']([^"']*)["']/i) || [])[1] || '';
     const m = contenido.match(SELLO);
-    if (m) return { sello: m[0], fuente: 'meta' };
-    if (contenido.trim()) return { sello: contenido.trim(), fuente: 'meta' };
+    if (m) { sello = m[0]; fuente = 'meta'; }
+    else if (contenido.trim()) { sello = contenido.trim(); fuente = 'meta'; }
   }
 
+  let firma = { quien: '', machine: '', commit: '', version: '', valida: false, error: '' };
   const vj = await traer(fresco(`${p.url.replace(/\/$/, '')}/version.json`));
   if (vj) {
     try {
       const d = await vj.json();          // un SPA devuelve su HTML aquí: revienta y seguimos
       if (d && d.version) {
-        return {
-          sello: String(d.version), fuente: 'version.json',
-          quien: d.signature || d.deployer || '', commit: d.gitShort || d.git || '',
+        const versionFirmada = String(d.version);
+        const responsable = String(d.deployer || d.agent || '');
+        const machine = String(d.machine || '');
+        const signature = String(d.signature || '');
+        const commit = String(d.gitShort || d.git || '');
+        const esperada = responsable && machine ? `${responsable} · ${machine}` : '';
+        if (!sello) { sello = versionFirmada; fuente = 'version.json'; }
+        firma = {
+          quien: signature,
+          machine,
+          commit,
+          version: versionFirmada,
+          valida: !!(signature && esperada && signature === esperada && commit
+            && d.dirty === false && versionFirmada === sello),
+          error: !signature ? 'Falta signature.'
+            : !responsable ? 'Falta deployer/agent.'
+            : !machine ? 'Falta machine.'
+            : signature !== esperada ? `La firma debe ser «${esperada}».`
+            : !commit ? 'Falta gitShort/git.'
+            : d.dirty !== false ? 'El release no declara dirty:false.'
+            : versionFirmada !== sello ? `version.json firma ${versionFirmada}, pero la portada declara ${sello}.`
+            : '',
         };
       }
     } catch (_) { /* no era JSON */ }
   }
+
+  if (sello) return { sello, fuente, ...firma };
 
   // Rebuscar en el HTML es el último recurso y el que más se equivoca: en
   // admira.store convivían el sello bueno del pie y un «v26.04.05» suelto de un
@@ -126,7 +153,7 @@ async function selloVivo(p) {
     const mejor = sueltos.find((s) => CANONICO.test(s))
       || sueltos.filter((s) => /\.r\d+$/i.test(s)).pop()
       || sueltos[sueltos.length - 1];
-    return { sello: mejor, fuente: 'html' };
+    return { sello: mejor, fuente: 'html', ...firma };
   }
 
   return { sello: null, fuente: 'sin-sello' };
@@ -140,7 +167,7 @@ async function selloVivo(p) {
  * un commit posterior al sello puede no ser de esta. Por eso se dice cuántos
  * cambios hay y desde cuándo, y lo juzga quien mira.
  */
-async function veredicto(p, v, env) {
+export async function veredicto(p, v, env) {
   if (!p.url && p.tipo === 'worker') {
     return { estado: 'worker', texto: 'Worker: la versión viva se consulta con wrangler, no hay portada que sellar.' };
   }
@@ -199,7 +226,13 @@ async function veredicto(p, v, env) {
       texto: `El sello no sigue la norma 07: se escribe v.DD.MM.AAAA.rN.HH:MM${d ? ` — aquí sería ${d}` : ''}.`,
     };
   }
-  return { estado: 'ok', formatoOk: true, sinVersionar: 0, texto: 'Sello canónico —con fecha, release y hora— y sin cambios posteriores sin publicar.' };
+  if (!v.valida) {
+    return {
+      estado: 'sin-firma', formatoOk: true, sinVersionar: 0,
+      texto: `Release sin firma verificable. Norma 08: version.json debe identificar responsable, equipo y commit${v.error ? ` — ${v.error}` : '.'}`,
+    };
+  }
+  return { estado: 'ok', formatoOk: true, sinVersionar: 0, texto: 'Sello canónico, firmado por responsable y equipo, y sin cambios posteriores sin publicar.' };
 }
 
 /** Las etiquetas reales del repositorio — los puntos de retorno declarados. */
@@ -264,6 +297,7 @@ export async function onRequestGet({ request, env }) {
       sinVersionar: cuenta('sin-versionar'),
       formato: cuenta('formato'),
       sinHora: cuenta('sin-hora'),
+      sinFirma: cuenta('sin-firma'),
       sinSello: cuenta('sin-sello') + cuenta('sin-url'),
       workers: cuenta('worker'),
     },
