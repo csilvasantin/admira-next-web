@@ -95,7 +95,13 @@ const fresco = (url) => url + (url.includes('?') ? '&' : '?') + 'wm=' + Math.flo
 export async function selloVivo(p) {
   if (!p.url) return { sello: null, fuente: 'sin-web' };
 
-  const r = await traer(fresco(p.url), { headers: { 'User-Agent': 'Mozilla/5.0 (admiranext-webmaster)' } });
+  // Una subsolución puede tener su propia URL de entrada y, aun así, compartir
+  // exactamente el mismo artefacto y release que su sitio padre. `estadoUrl`
+  // separa esas dos responsabilidades: la tabla abre `url`, pero verifica el
+  // sello y version.json del despliegue que realmente la publica.
+  const estadoUrl = p.estadoUrl || p.url;
+
+  const r = await traer(fresco(estadoUrl), { headers: { 'User-Agent': 'Mozilla/5.0 (admiranext-webmaster)' } });
   if (!r) return { sello: null, fuente: 'error' };
 
   const html = (await r.text()).slice(0, 400000);
@@ -110,7 +116,7 @@ export async function selloVivo(p) {
   }
 
   let firma = { quien: '', machine: '', commit: '', version: '', valida: false, error: '' };
-  const vj = await traer(fresco(`${p.url.replace(/\/$/, '')}/version.json`));
+  const vj = await traer(fresco(`${estadoUrl.replace(/\/$/, '')}/version.json`));
   if (vj) {
     try {
       const d = await vj.json();          // un SPA devuelve su HTML aquí: revienta y seguimos

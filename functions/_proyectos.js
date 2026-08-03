@@ -22,6 +22,8 @@
  *   clave     identificador estable — lo usan /api/historial y /api/proyectos
  *   nombre    cómo se llama de cara a la gente
  *   url       portada pública; null si no tiene web que mirar (workers)
+ *   estadoUrl portada cuyo sello/firma gobierna el despliegue; por defecto url
+ *             (útil para subsoluciones que comparten release con su sitio padre)
  *   repo      owner/repo en GitHub
  *   privado   true si el repositorio no es público (hace falta GITHUB_TOKEN)
  *   repoTxt   cómo se enseña el repositorio en la tabla (p.ej. subcarpeta)
@@ -38,6 +40,15 @@ export const PROYECTOS = [
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
     tipo: 'sitio', shot: '/webmaster-shots/admiranext.jpg',
+  },
+  {
+    clave: 'generador-presupuestos', nombre: 'Generador de Presupuestos',
+    url: 'https://www.admiranext.com/presupuestos/',
+    estadoUrl: 'https://www.admiranext.com',
+    repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · presupuestos/',
+    pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
+    tipo: 'sitio', shot: null,
+    nota: 'Subsolución de AdmiraNeXT: abre /presupuestos/ y comparte despliegue, sello y firma con admiranext.com.',
   },
   {
     clave: 'yokup', nombre: 'yokup.com', url: 'https://yokup.com',
