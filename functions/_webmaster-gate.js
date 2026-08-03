@@ -1,5 +1,5 @@
 /*
- * Verja de /webmaster — igual criterio que la de Yokup: solo entra quien se
+ * Perímetro de seguridad de /webmaster — igual criterio que la de Yokup: solo entra quien se
  * identifica con Google y está en la lista.
  *
  * A diferencia del auth-gate.js del front (que es un bloqueo BLANDO: oculta la

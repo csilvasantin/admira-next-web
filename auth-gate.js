@@ -2,7 +2,7 @@
  * NO editar aquí: refrescar desde origin/main de ese repo (git show origin/main:auth-gate.js).
  * La lista de usuarios NO está duplicada: se lee en caliente del worker admira-whitelist. */
 /*
- * auth-gate.js — verja de acceso (soft gate) para admira.live
+ * auth-gate.js — perímetro de seguridad (blando) para admira.live
  *
  * Prehome / login pixel-art (estética Indiana Jones / Fate of Atlantis, VGA).
  * Login con Google (Google Identity Services). Solo entran los emails de WHITELIST.

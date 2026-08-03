@@ -46,7 +46,7 @@ export async function onRequestGet({ request, env }) {
     },
   });
 
-  // Misma verja que la página: de nada sirve proteger /webmaster si el historial
+  // Mismo perímetro de seguridad que la página: de nada sirve proteger /webmaster si el historial
   // de despliegues se puede pedir por su cuenta.
   if (!(await sesion(request, env))) {
     return json({ ok: false, error: 'acceso restringido' }, 401);

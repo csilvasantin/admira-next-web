@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.02.08.2026.r13">
+<meta name="admiranext-version" content="v.03.08.2026.r1">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -161,7 +161,7 @@
   </header>
 
   <main id="lista">
-    <article class="art">
+    <article class="art" id="n01">
       <div class="num">01</div>
       <div>
         <h2>Identidad = persona + equipo físico</h2>
@@ -184,7 +184,7 @@
       </div>
     </article>
 
-    <article class="art">
+    <article class="art" id="n02">
       <div class="num">02</div>
       <div>
         <h2>Diccionario único de sufijos</h2>
@@ -199,7 +199,7 @@
       </div>
     </article>
 
-    <article class="art">
+    <article class="art" id="n03">
       <div class="num">03</div>
       <div>
         <h2>Los nombres antiguos se leen; no se propagan</h2>
@@ -210,7 +210,7 @@
       </div>
     </article>
 
-    <article class="art">
+    <article class="art" id="n04">
       <div class="num">04</div>
       <div>
         <h2>Sin máquina no hay identidad completa</h2>
@@ -224,7 +224,7 @@
       </div>
     </article>
 
-    <article class="art">
+    <article class="art" id="n05">
       <div class="num">05</div>
       <div>
         <h2>Una referencia para todo el trabajo</h2>
@@ -247,7 +247,7 @@
           sustituyen la referencia visible.</p>
       </div>
     </article>
-    <article class="art">
+    <article class="art" id="n06">
       <div class="num">06</div>
       <div>
         <h2>La doctrina que crece se renumera y se anuncia</h2>
@@ -274,7 +274,7 @@
           para <b>los que ya estaban trabajando</b>: esos no vuelven a arrancar.</p>
       </div>
     </article>
-    <article class="art">
+    <article class="art" id="n07">
       <div class="num">07</div>
       <div>
         <h2>Una sola forma de decir la versión</h2>
@@ -303,7 +303,7 @@
           código: en el pie, y en <code>&lt;meta name="admiranext-version"&gt;</code>.</p>
       </div>
     </article>
-    <article class="art">
+    <article class="art" id="n08">
       <div class="num">08</div>
       <div>
         <h2>Siempre la última versión — y su autor</h2>
@@ -330,6 +330,39 @@
           sin autor es un release incompleto — igual que uno sin punto de retorno.</p>
       </div>
     </article>
+    <article class="art" id="n09">
+      <div class="num">09</div>
+      <div>
+        <h2>Cada cambio publicado, una versión nueva</h2>
+        <p>Toda mejora, todo cambio y toda corrección que <b>llega a producción</b> sale con versión
+          nueva. No hay cambio demasiado pequeño: si el visitante lo ve, el sello sube.</p>
+        <div class="formula">Mismo día → sube la r · Día nuevo → nueva fecha y vuelta a r1</div>
+        <p>Lo que se numera es cada publicación, no cada jornada de trabajo. Yokup, que es el gestor
+          de tareas del equipo de silicio, puede publicar siete veces en un día: eso son
+          <code>r1</code> … <code>r7</code>, no una r7 que aparece al final. Dos cambios distintos
+          bajo el mismo sello son indistinguibles, y entonces el sello ya no sirve para lo único que
+          existe: saber <b>exactamente</b> qué hay en antena.</p>
+        <div class="tbl">
+          <table aria-label="Cuándo sube la versión">
+            <thead><tr><th>Qué ha pasado</th><th>Qué sale</th><th>Ejemplo</th></tr></thead>
+            <tbody>
+              <tr><td>Primera publicación del día</td><td>Fecha de hoy, r1</td><td>v.03.08.2026.r1</td></tr>
+              <tr><td>Otra publicación el mismo día</td><td>Misma fecha, r siguiente</td><td>v.03.08.2026.r2</td></tr>
+              <tr><td>Una corrección de una línea</td><td>También sube la r</td><td>v.03.08.2026.r3</td></tr>
+              <tr><td>Hoy no se ha tocado</td><td>Conserva su fecha</td><td>v.24.07.2026.r3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:14px">El sello se escribe como manda la <a href="#n07">norma 07</a> y va
+          donde se lee sin abrir el código: en el pie y en
+          <code>&lt;meta name="admiranext-version"&gt;</code>. Publicar sin subirlo deja producción
+          diciendo que es una versión que ya no es.</p>
+        <p><b>Esto se comprueba solo.</b> El <a href="/webmaster">Webmaster</a> lee el sello de la
+          portada de cada solución y lo cruza con los cambios de su repositorio: marca la que
+          publicó cambios sin subir la r, la que escribe el sello fuera de norma y la que no declara
+          versión ninguna. No hace falta que nadie audite a mano — hace falta mirarlo.</p>
+      </div>
+    </article>
   </main>
 
   <footer>
@@ -341,7 +374,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.02.08.2026.r13</span>
+      <span style="opacity:.8">v.03.08.2026.r1</span>
     </div>
   </footer>
 </div>

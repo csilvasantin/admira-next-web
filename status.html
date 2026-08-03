@@ -9,15 +9,15 @@
   <meta name="admiranext-status-version" content="admiranext-status v.13.07.2026.r1 (capas sub/infra bajo demanda en AVANZADO)">
   <meta name="admiranext-status-build" content="admiranvidia-real-triad-1">
 
-  <!-- VERJA DE ACCESO (auth-gate de admira.live, misma whitelist de usuarios).
+  <!-- PERÍMETRO DE SEGURIDAD (auth-gate de admira.live, misma whitelist de usuarios).
        Detrás de un FLAG mientras Carlos no autorice el origen www.admiranext.com
        en la consola de Google (Authorized JavaScript origins del OAuth client):
-       verja ACTIVA por defecto (r7, orden de Carlos): solo usuarios de la lista
+       perímetro de seguridad ACTIVO por defecto (r7, orden de Carlos): solo usuarios de la lista
        de admira.live. ?gate=off es un escape SOLO para esa carga (no persiste),
        por si el login se rompe; ?gate=on redundante. -->
   <script>
   (function(){
-    var GATE_DEFAULT = 'on';    // verja activa (r7) — la autoridad real sigue siendo server-side
+    var GATE_DEFAULT = 'on';    // perímetro activo (r7) — la autoridad real sigue siendo server-side
     var on = GATE_DEFAULT;
     try{
       localStorage.removeItem('admiranext-status-gate'); // limpia bypass persistidos de la era ?gate

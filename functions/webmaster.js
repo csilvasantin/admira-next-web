@@ -1,5 +1,5 @@
 /*
- * /webmaster — la página solo se sirve a quien ha pasado la verja.
+ * /webmaster — la página solo se sirve a quien ha pasado el perímetro de seguridad.
  *
  * Al capturar la ruta exacta con una Function, el HTML estático NO llega a salir
  * del edge sin sesión: no es un bloqueo de interfaz, es que no se envía.

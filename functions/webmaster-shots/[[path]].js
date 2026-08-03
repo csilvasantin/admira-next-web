@@ -1,5 +1,5 @@
 /*
- * Las miniaturas de /webmaster, tras la misma verja que la página.
+ * Las miniaturas de /webmaster, tras el mismo perímetro de seguridad que la página.
  *
  * Son portadas de sitios públicos, así que no revelan nada que no se vea
  * visitándolos. Pero enumerables desde fuera sí dicen algo que la página se

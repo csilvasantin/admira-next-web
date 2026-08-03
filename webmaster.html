@@ -6,7 +6,7 @@
 <title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
 <meta name="description" content="Qué versión está viva en cada solución de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.02.08.2026.r13">
+<meta name="admiranext-version" content="v.03.08.2026.r1">
 <link rel="icon" href="/favicon.ico">
 <style>
   :root{
@@ -132,6 +132,29 @@
   @media (max-width:640px){ .snap-row{grid-template-columns:96px minmax(0,1fr);row-gap:8px}
     .snap-open,.snap-copy{grid-column:2;justify-self:start} }
 
+  /* control de la norma de versionado */
+  .resumen{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+  .chip{display:inline-flex;align-items:center;gap:7px;font:700 11px/1 var(--mono);
+    padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--dim)}
+  .chip b{font-size:13px;color:var(--ink)}
+  .chip.ok b{color:var(--neon2)} .chip.mal b{color:var(--warn)} .chip.ojo b{color:var(--accent)}
+  .norma{display:inline-block;font:700 9.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    padding:4px 8px;border-radius:999px;white-space:nowrap;border:1px solid transparent;cursor:help}
+  .norma.ok{color:var(--neon2);border-color:rgba(94,242,160,.4);background:rgba(94,242,160,.08)}
+  .norma.sin-versionar{color:var(--warn);border-color:rgba(255,143,122,.5);background:rgba(255,143,122,.09)}
+  .norma.formato{color:var(--accent);border-color:rgba(232,168,124,.5);background:rgba(232,168,124,.09)}
+  .norma.sin-sello,.norma.sin-url{color:var(--warn);border-color:rgba(255,143,122,.5);background:rgba(255,143,122,.09)}
+  .norma.worker,.norma.pendiente{color:var(--dim);border-color:var(--line);background:rgba(124,232,216,.05)}
+  td.ver small{display:block;font-size:9.5px;font-weight:400;color:var(--dim);margin-top:3px;letter-spacing:.04em}
+  .incumple{margin-top:14px}
+  .incumple .fila{display:grid;grid-template-columns:180px minmax(0,1fr);gap:12px;padding:11px 0;
+    border-top:1px solid rgba(124,232,216,.1);font-size:.9rem}
+  .incumple .fila:first-child{border-top:0}
+  .incumple .q{font:700 12px/1.4 var(--mono);color:var(--ink)}
+  .incumple .q small{display:block;font-weight:400;color:var(--dim);font-size:10.5px;margin-top:3px}
+  .incumple .d{color:var(--dim)}
+  @media (max-width:640px){ .incumple .fila{grid-template-columns:1fr;row-gap:4px} }
+
   /* fichas de retorno */
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:16px}
   .card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px}
@@ -178,25 +201,11 @@
 
   <main>
     <h2 class="sec">Lo que está vivo ahora mismo</h2>
+    <div id="resumen" class="resumen" hidden></div>
     <div class="tbl">
       <table aria-label="Versión viva de cada solución">
-        <thead><tr><th>Solución</th><th>En producción</th><th>Repositorio</th><th>Se publica con</th></tr></thead>
-        <tbody>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="admiranext" data-n="admiranext.com">admiranext.com</button> <a href="https://www.admiranext.com" title="Abrir admiranext.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.02.08.2026.r13</td><td>admira-next-web</td><td>./deploy.sh → Pages <code>admiranext</code></td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="yokup" data-n="yokup.com">yokup.com</button> <a href="https://yokup.com" title="Abrir yokup.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.02.08.2026.r14</td><td>tool · <code>yokup-site/</code></td><td>cd yokup-site &amp;&amp; wrangler pages deploy .</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="pixeria" data-n="pixeria.com">pixeria.com</button> <a href="https://www.pixeria.com" title="Abrir pixeria.com" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.26.07.12.r3</td><td>pixeria</td><td>./deploy.sh → Pages <code>pixeria</code></td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="xpaceos" data-n="xpaceos.com">xpaceos.com</button> <a class="ext" href="https://www.xpaceos.com" title="Abrir xpaceos.com" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.08.02.r4</td><td>xpaceos</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-live" data-n="admira.live">admira.live</button> <a href="https://www.admira.live" title="Abrir admira.live" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.07.12.r1</td><td>32.-ConsejoAdmiraNextGame</td><td>./deploy.sh → Pages <code>admira-live</code></td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-studio" data-n="admira.studio">admira.studio</button> <a class="ext" href="https://www.admira.studio" title="Abrir admira.studio" target="_blank" rel="noopener">↗</a></td><td class="ver">v.26.07.12.r3</td><td>admira-studio</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-store" data-n="admira.store">admira.store</button> <a href="https://admira.store" title="Abrir admira.store" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.2026.06.05.r4</td><td>admira-store</td><td>./deploy.sh</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="admira-tv" data-n="admira.tv">admira.tv</button> <a href="https://admira.tv" title="Abrir admira.tv" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>admira-tv</td><td>./deploy.sh → Pages + wrangler.toml</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="clearchannel-tv" data-n="clearchannel.tv">clearchannel.tv</button> <a href="https://www.clearchannel.tv" title="Abrir clearchannel.tv" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>clearchannel-tv</td><td>./deploy.sh → Pages <code>clearchannel-tv</code></td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="clearchannel-tv" data-n="admira.app">admira.app</button> <a href="https://www.admira.app" title="Abrir admira.app" class="ext" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>admira-app</td><td>—</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="digitalavatar" data-n="digitalavatar.ai">digitalavatar.ai</button> <a class="ext" href="https://digitalavatar.ai" title="Abrir digitalavatar.ai" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>digitalavatar.ai</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="ainimation" data-n="ainimation.studio">ainimation.studio</button> <a class="ext" href="https://www.ainimation.studio" title="Abrir ainimation.studio" target="_blank" rel="noopener">↗</a></td><td class="ver">v.03.08.2026.r1</td><td>ainimation</td><td>git push (GitHub Pages)</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="pixer-worker" data-n="pixer-eleven (worker)">pixer-eleven (worker)</button></td><td class="ver">PixerWorker-v.2026.06.19.r2</td><td>pixer-worker</td><td>wrangler deploy</td></tr>
-          <tr><td class="sol"><button type="button" class="solbtn" data-p="yokup" data-n="yokup-rtc (worker)">yokup-rtc (worker)</button></td><td class="ver">ver <code>/worker/beats</code></td><td>tool · <code>yokup-rtc/</code></td><td>wrangler deploy (commit ANTES)</td></tr>
-        </tbody>
+        <thead><tr><th>Solución</th><th>En producción</th><th>Norma</th><th>Repositorio</th><th>Se publica con</th></tr></thead>
+        <tbody id="tablaProyectos"><tr><td colspan="5" style="padding:18px 12px">Leyendo el sello de cada portada…</td></tr></tbody>
       </table>
     </div>
     <div id="snapPanel" class="snap" hidden aria-live="polite">
@@ -218,9 +227,18 @@
 
     <p style="color:var(--dim);font-size:.86rem;margin:0">Pulsa el nombre de una solución para ver
       <b>todo lo que ha cambiado</b> y cómo volver a cualquier punto: los cambios (siempre),
-      los puntos de retorno con su comando, y los snapshots que se pueden abrir. Los sellos se leyeron de la portada de cada
-      sitio el <b>3 de agosto de 2026</b>. Ya no queda ninguno sin declarar versión. Las de GitHub Pages no tienen snapshot que abrir —no guarda una dirección por despliegue—
-      pero sí cambios y puntos de retorno, como todas.</p>
+      los puntos de retorno con su comando, y los snapshots que se pueden abrir. Ningún sello de
+      esta página está escrito a mano: <b>se lee de la portada de cada sitio</b> cada vez que abres
+      esto. Las de GitHub Pages no tienen snapshot que abrir —no guarda una dirección por
+      despliegue— pero sí cambios y puntos de retorno, como todas.</p>
+
+    <h2 class="sec">Control de la norma de versionado</h2>
+    <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Cada mejora, cambio o corrección que
+      llega a producción <b>tiene que salir con versión nueva</b>: misma fecha y la r siguiente de
+      ese día (<a href="/normativa#n09">norma 09</a>), escrita como manda la
+      <a href="/normativa#n07">norma 07</a> — <code>v.DD.MM.AAAA.rN</code>. Una norma que nadie
+      comprueba es una sugerencia, así que aquí se comprueba sola, solución por solución:</p>
+    <div id="incumple" class="incumple"><p class="snap-msg">Comprobando…</p></div>
 
     <h2 class="sec">Cañones cargados — leer antes de desplegar</h2>
 
@@ -268,156 +286,11 @@
       <b>portada tal y como se ve ahora</b>: la tabla dice qué versión hay publicada, la imagen
       dice si esa versión se ve bien. Un despliegue que rompe la portada no cambia el sello.
       Capturas del 3 de agosto de 2026 (<code>scripts/webmaster-shots.sh</code> las rehace).</p>
-    <p style="color:var(--warn);font-size:.9rem;margin:0 0 4px">⚠️ La de digitalavatar.ai no está
-      mal hecha: el sitio <b>se queda cargando</b>. El contador llega a «Cargando avatar… 133 %»
-      —por encima del 100— y no pasa de ahí ni con WebGL por software y 25 s de margen.</p>
     <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Etiquetas reales de cada repositorio,
       de la más reciente a la más antigua. Para volver a una:
       <code>git checkout &lt;etiqueta&gt;</code> y publicar con el comando de la tabla de arriba.</p>
 
-    <div class="cards">
-      <div class="card">
-        <a class="shot" href="https://www.admiranext.com" target="_blank" rel="noopener" title="Abrir admiranext.com"><img src="/webmaster-shots/admiranext.jpg" alt="Portada de admiranext.com" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>admiranext.com</h3>
-        <div class="url">admira-next-web</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>rollback-presentations-20260718-before-grok-mood-backgrounds</span><span>…-before-zara-documents</span><span>…-before-separated-controls</span><span>…-before-language-inventory</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://yokup.com" target="_blank" rel="noopener" title="Abrir yokup.com"><img src="/webmaster-shots/yokup.jpg" alt="Portada de yokup.com" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>yokup.com</h3>
-        <div class="url">tool · yokup-site/</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>rollback-flt1017-95e21e7</span><span>yokup-v.22.07.2026.r4</span><span>yokup-v.22.07.2026.r2</span><span>rollback-misiones-20260721</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; cd yokup-site &amp;&amp; wrangler pages deploy .</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://www.pixeria.com" target="_blank" rel="noopener" title="Abrir pixeria.com"><img src="/webmaster-shots/pixeria.jpg" alt="Portada de pixeria.com" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>pixeria.com</h3>
-        <div class="url">pixeria</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>Pixeria-v.2026.07.14.r1</span><span>retorno/pre-cuadratica-20260711</span><span>retorno-pre-pr5-20260710</span><span>retorno-pre-pr4-20260710</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://www.xpaceos.com" target="_blank" rel="noopener" title="Abrir xpaceos.com"><img src="/webmaster-shots/xpaceos.jpg" alt="Portada de xpaceos.com" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>xpaceos.com</h3>
-        <div class="url">xpaceos</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>rollback/pre-morfeo-seo-20260722</span><span>retorno/pre-suite4-20260719</span><span>ux-paneles-llenan-letterbox</span><span>ux-submenus-legibles-opciones</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; git push (GitHub Pages)</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://www.admira.live" target="_blank" rel="noopener" title="Abrir admira.live"><img src="/webmaster-shots/admira-live.jpg" alt="Portada de admira.live" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>admira.live</h3>
-        <div class="url">32.-ConsejoAdmiraNextGame</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>retorno/pre-informes-20260801</span><span>rollback-control-pre-dos-botones</span><span>backup-control-20260722-0814</span><span>backup-navegadores-20260722-0759</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://admira.tv" target="_blank" rel="noopener" title="Abrir admira.tv"><img src="/webmaster-shots/admira-tv.jpg" alt="Portada de admira.tv" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>admira.tv</h3>
-        <div class="url">admira-tv</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>v.14.07.2026.r46</span><span>v.14.07.2026.r45</span><span>v.14.07.2026.r44</span><span>v.14.07.2026.r43</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://www.clearchannel.tv" target="_blank" rel="noopener" title="Abrir clearchannel.tv"><img src="/webmaster-shots/clearchannel-tv.jpg" alt="Portada de clearchannel.tv" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>clearchannel.tv</h3>
-        <div class="url">clearchannel-tv</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>cc-v.13.07.2026.r7</span><span>cc-v.13.07.2026.r6</span><span>cc-v.13.07.2026.r5</span><span>cc-v.13.07.2026.r4</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh · el push NO publica</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://www.admira.studio" target="_blank" rel="noopener" title="Abrir admira.studio"><img src="/webmaster-shots/admira-studio.jpg" alt="Portada de admira.studio" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>admira.studio</h3>
-        <div class="url">admira-studio</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>AdmiraStudio-v.2026.06.05.r2</span><span>AdmiraStudio-v.2026.06.05.r1</span><span>AdmiraStudio-v.2026.05.19.r14</span><span>Admira-v.2026.05.02.r69</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; git push — <b>nunca ./deploy.sh</b></dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://admira.store" target="_blank" rel="noopener" title="Abrir admira.store"><img src="/webmaster-shots/admira-store.jpg" alt="Portada de admira.store" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>admira.store</h3>
-        <div class="url">admira-store</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>AdmiraStore-prod-20260617-0008</span><span>AdmiraStore-prod-20260617-0006</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; ./deploy.sh</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <h3>pixer-eleven (worker)</h3>
-        <div class="url">pixer-worker</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>PixerWorker-v.2026.06.19.r2</span><span>PixerWorker-v.2026.06.19.r1</span><span>PixerWorker-v.2026.06.09.r1</span><span>PixerWorker-v.2026.06.05.r1</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>wrangler rollback &lt;version&gt; · el repo está desfasado de producción: NO desplegar a ciegas</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <a class="shot" href="https://digitalavatar.ai" target="_blank" rel="noopener" title="Abrir digitalavatar.ai"><img src="/webmaster-shots/digitalavatar.jpg" alt="Portada de digitalavatar.ai" loading="lazy" decoding="async" width="640" height="400"></a>
-        <h3>digitalavatar.ai</h3>
-        <div class="url">digitalavatar.ai</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>v2.1-evolucion</span><span>v2-3d</span><span>v1-2d</span><span>DigitalAvatar-v.2026.06.04.r6</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt;</dd>
-        </dl>
-      </div>
-
-      <div class="card">
-        <h3>AdmiraXperience · DigitalTwin</h3>
-        <div class="url">01.-AdmiraXperience-Game</div>
-        <dl>
-          <dt>Puntos de retorno</dt>
-          <dd class="tags"><span>DigitalTwin-v.2026.06.23.r1</span><span>DigitalTwin-v.2026.06.19.r4</span><span>DigitalTwin-v.2026.06.19.r3</span><span>DigitalTwin-v.2026.06.19.r2</span></dd>
-          <dt>Volver atrás</dt>
-          <dd>git checkout &lt;tag&gt; &amp;&amp; git push (GitHub Pages)</dd>
-        </dl>
-      </div>
-    </div>
+    <div class="cards" id="fichas"><p class="snap-msg">Leyendo las etiquetas de cada repositorio…</p></div>
 
     <h2 class="sec">Cómo se deja un punto de retorno</h2>
     <div class="tbl">
@@ -440,7 +313,7 @@
     <div class="meta">
       Datos verificados el 2 de agosto de 2026 · se actualiza al publicar<br>
       <a href="/mandamientos">Mandamientos</a> · <a href="/normativa">Normativa</a><br>
-      <span style="opacity:.8">v.02.08.2026.r13</span>
+      <span style="opacity:.8">v.03.08.2026.r1</span>
     </div>
   </footer>
 </div>
@@ -558,17 +431,151 @@
     panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
 
-  document.querySelectorAll('.solbtn').forEach(function(b){
-    b.addEventListener('click', function(){
-      document.querySelectorAll('.solbtn').forEach(function(o){ o.setAttribute('aria-expanded','false'); });
-      b.setAttribute('aria-expanded','true');
-      cargar(b.dataset.p, b.dataset.n);
-    });
+  // Las filas las pinta el censo DESPUÉS de esto, así que el clic se escucha en
+  // el documento: enganchar botón a botón solo habría funcionado con la tabla
+  // escrita a mano que ya no existe.
+  document.addEventListener('click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('.solbtn') : null;
+    if (!b) return;
+    document.querySelectorAll('.solbtn').forEach(function(o){ o.setAttribute('aria-expanded','false'); });
+    b.setAttribute('aria-expanded','true');
+    cargar(b.dataset.p, b.dataset.n);
   });
   document.getElementById('snapClose').addEventListener('click', function(){
     panel.hidden = true;
     document.querySelectorAll('.solbtn').forEach(function(o){ o.setAttribute('aria-expanded','false'); });
   });
+})();
+</script>
+
+<script>
+/* ──────────────────────────────────────────────────────────────────────────
+   El censo manda: la tabla, las fichas y el control de la norma se pintan de
+   /api/proyectos. Aquí no hay ni un nombre de solución ni una versión escritos.
+
+   Antes sí los había, y por eso esta página envejecía sola: los sellos eran los
+   que alguien copió el día que miró, y las etiquetas de las fichas se quedaron
+   en julio mientras el repositorio seguía etiquetando. Un registro de versiones
+   que hay que actualizar a mano es un registro que va a mentir; la única versión
+   fiable es la que se acaba de leer de la portada.
+
+   Se pide en dos tandas porque cada una hace sus propias llamadas externas desde
+   el edge: primero lo que está vivo (que es lo que se viene a ver), y luego los
+   puntos de retorno.
+   ────────────────────────────────────────────────────────────────────────── */
+(function(){
+  var tabla   = document.getElementById('tablaProyectos');
+  var resumen = document.getElementById('resumen');
+  var incum   = document.getElementById('incumple');
+  var fichas  = document.getElementById('fichas');
+  if (!tabla) return;
+
+  function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+
+  var ETIQUETA = {
+    'ok':'al día', 'sin-versionar':'sin versionar', 'formato':'formato',
+    'sin-sello':'sin sello', 'sin-url':'sin declarar', 'worker':'worker', 'pendiente':'—'
+  };
+
+  function nombreSolucion(p){
+    var abrir = p.url
+      ? ' <a href="' + esc(p.url) + '" title="Abrir ' + esc(p.nombre) + '" class="ext" target="_blank" rel="noopener">↗</a>'
+      : '';
+    return '<button type="button" class="solbtn" data-p="' + esc(p.clave) + '" data-n="' + esc(p.nombre) + '">'
+         + esc(p.nombre) + '</button>' + abrir;
+  }
+
+  function fila(p){
+    var c = p.control || {};
+    var ver = p.version
+      ? esc(p.version) + (p.publicadaPor ? '<small>' + esc(p.publicadaPor) + '</small>' : '')
+      : '<span style="color:var(--warn)">' + (p.tipo === 'worker' ? 'sin portada' : 'sin sello') + '</span>';
+    return '<tr>'
+      + '<td class="sol">' + nombreSolucion(p) + '</td>'
+      + '<td class="ver">' + ver + '</td>'
+      + '<td><span class="norma ' + esc(c.estado || 'pendiente') + '" title="' + esc(c.texto || '') + '">'
+      +   esc(ETIQUETA[c.estado] || c.estado || '—') + '</span></td>'
+      + '<td>' + esc(p.repoTxt) + (p.privado ? ' <span style="opacity:.6">· privado</span>' : '') + '</td>'
+      + '<td>' + esc(p.publica) + '</td>'
+      + '</tr>';
+  }
+
+  function chip(clase, n, txt){
+    return '<span class="chip ' + clase + '"><b>' + n + '</b> ' + txt + '</span>';
+  }
+
+  function pintarResumen(d){
+    var r = d.resumen || {};
+    resumen.innerHTML =
+        chip('ok',  r.ok || 0,           'al día')
+      + chip('mal', r.sinVersionar || 0, 'con cambios sin versionar')
+      + chip('ojo', r.formato || 0,      'con el sello mal escrito')
+      + chip('mal', r.sinSello || 0,     'sin declarar versión')
+      + chip('',    r.workers || 0,      'workers, sin portada que sellar');
+    resumen.hidden = false;
+  }
+
+  function pintarIncumplimientos(d){
+    var malas = (d.proyectos || []).filter(function(p){
+      return p.control && p.control.estado !== 'ok' && p.control.estado !== 'worker';
+    });
+    if (!malas.length){
+      incum.innerHTML = '<p class="snap-msg" style="color:var(--neon2)">Todas las soluciones cumplen: '
+        + 'sello canónico y ningún cambio publicado sin subir la r.</p>';
+      return;
+    }
+    incum.innerHTML = malas.map(function(p){
+      return '<div class="fila">'
+        + '<div class="q">' + esc(p.nombre)
+        +   '<small>' + (p.version ? esc(p.version) : 'sin sello') + '</small></div>'
+        + '<div class="d">' + esc(p.control.texto) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function ficha(p){
+    var shot = p.shot && p.url
+      ? '<a class="shot" href="' + esc(p.url) + '" target="_blank" rel="noopener" title="Abrir ' + esc(p.nombre) + '">'
+        + '<img src="' + esc(p.shot) + '" alt="Portada de ' + esc(p.nombre) + '" loading="lazy" decoding="async" width="640" height="400"></a>'
+      : '';
+    var tags = (p.tags && p.tags.length)
+      ? p.tags.slice(0, 4).map(function(t){ return '<span>' + esc(t) + '</span>'; }).join('')
+      : '<span style="color:var(--warn);background:none;border:0;padding:0">'
+        + esc(p.tagsNota || 'Sin ninguna etiqueta: no hay punto de retorno declarado.') + '</span>';
+    return '<div class="card">' + shot
+      + '<h3>' + esc(p.nombre) + '</h3>'
+      + '<div class="url">' + esc(p.repoTxt) + '</div>'
+      + '<dl>'
+      +   '<dt>Puntos de retorno</dt><dd class="tags">' + tags + '</dd>'
+      +   '<dt>Volver atrás</dt><dd>' + esc(p.volver) + '</dd>'
+      +   (p.nota ? '<dt>Ojo</dt><dd style="color:var(--accent)">' + esc(p.nota) + '</dd>' : '')
+      + '</dl></div>';
+  }
+
+  fetch('/api/proyectos')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok) throw new Error(d.error || 'sin datos');
+      tabla.innerHTML = d.proyectos.map(fila).join('');
+      pintarResumen(d);
+      pintarIncumplimientos(d);
+    })
+    .catch(function(e){
+      tabla.innerHTML = '<tr><td colspan="5" style="padding:18px 12px;color:var(--warn)">'
+        + 'No se pudo leer el censo: ' + esc(e.message) + '</td></tr>';
+      incum.innerHTML = '<p class="snap-msg" style="color:var(--warn)">Sin censo no hay control.</p>';
+    })
+    .then(function(){ return fetch('/api/proyectos?parte=retornos'); })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok) throw new Error(d.error || 'sin datos');
+      fichas.innerHTML = d.proyectos.map(ficha).join('');
+    })
+    .catch(function(e){
+      fichas.innerHTML = '<p class="snap-msg" style="color:var(--warn)">No se pudieron leer los puntos de retorno: '
+        + esc(e.message) + '</p>';
+    });
 })();
 </script>
 

@@ -14,30 +14,18 @@
  *                dirección permanente, que es la única marcha atrás que se puede
  *                MIRAR antes de ejecutarla.
  *
- * Los repos son públicos, así que GitHub no pide credenciales. La llamada la hace
- * el edge y se cachea 5 min: /webmaster está tras verja y lo miran dos personas,
- * así que el límite de 60 peticiones/hora por IP sobra.
+ * Qué proyectos existen ya no se decide aquí: sale del censo de _proyectos.js,
+ * que es el mismo que pinta la tabla y las fichas. Cuando esta lista era propia,
+ * se desincronizó de la tabla —admiraxperience tenía historial sin fila desde la
+ * que abrirlo, y el worker yokup-rtc enseñaba el historial del sitio yokup.
+ *
+ * Los repos públicos no piden credenciales; los tres workers de la flota son
+ * privados y necesitan GITHUB_TOKEN en el entorno de Pages. La llamada la hace el
+ * edge y se cachea 5 min: /webmaster está tras el perímetro de seguridad y lo
+ * miran dos personas, así que el límite de 60 peticiones/hora por IP sobra.
  */
 import { sesion } from '../_webmaster-gate.js';
-
-// clave → dónde vive el código y dónde se publica
-const PROYECTOS = {
-  admiranext:        { repo: 'csilvasantin/admira-next-web',            pages: 'admiranext',      publica: './deploy.sh' },
-  yokup:             { repo: 'csilvasantin/tool',                       pages: 'yokup',           publica: 'cd yokup-site && wrangler pages deploy .' },
-  pixeria:           { repo: 'csilvasantin/pixeria',                    pages: 'pixeria',         publica: './deploy.sh' },
-  'admira-live':     { repo: 'csilvasantin/32.-ConsejoAdmiraNextGame',  pages: 'admira-live',     publica: './deploy.sh' },
-  'admira-tv':       { repo: 'csilvasantin/admira-tv',                  pages: 'admira-tv',       publica: './deploy.sh' },
-  'clearchannel-tv': { repo: 'csilvasantin/clearchannel-tv',            pages: 'clearchannel-tv', publica: './deploy.sh' },
-  'admira-store':    { repo: 'csilvasantin/admira-store',               pages: 'admira-store',    publica: './deploy.sh' },
-  // GitHub Pages: sin dirección por despliegue. El punto de retorno es la etiqueta.
-  xpaceos:           { repo: 'csilvasantin/xpaceos',                    pages: null, publica: 'git push (GitHub Pages)' },
-  'admira-studio':   { repo: 'csilvasantin/admira-studio',              pages: null, publica: 'git push (GitHub Pages)' },
-  ainimation:        { repo: 'csilvasantin/ainimation',                 pages: null, publica: 'git push (GitHub Pages)' },
-  digitalavatar:     { repo: 'csilvasantin/digitalavatar.ai',           pages: null, publica: 'git push (GitHub Pages)' },
-  // Workers: el rollback no es de git, es `wrangler rollback <version>`.
-  'pixer-worker':    { repo: 'csilvasantin/pixer-worker',               pages: null, publica: 'wrangler deploy', worker: true },
-  admiraxperience:   { repo: 'csilvasantin/01.-AdmiraXperience-Game',   pages: null, publica: 'git push (GitHub Pages)' },
-};
+import { porClave } from '../_proyectos.js';
 
 const GH = 'https://api.github.com';
 const UA = { 'User-Agent': 'admiranext-webmaster', Accept: 'application/vnd.github+json' };
@@ -56,8 +44,11 @@ function asunto(msg) {
   return s.length > 120 ? s.slice(0, 118).trimEnd() + '…' : s;
 }
 
-async function gh(ruta) {
-  const r = await fetch(`${GH}${ruta}`, { headers: UA, cf: { cacheTtl: 300, cacheEverything: true } });
+async function gh(ruta, env) {
+  const cab = { ...UA };
+  // Sin token, un repositorio privado responde igual que uno inexistente.
+  if (env && env.GITHUB_TOKEN) cab.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
+  const r = await fetch(`${GH}${ruta}`, { headers: cab, cf: { cacheTtl: 300, cacheEverything: true } });
   if (!r.ok) return null;
   return r.json();
 }
@@ -72,13 +63,13 @@ export async function onRequestGet({ request, env }) {
   });
 
   if (!(await sesion(request, env))) return json({ ok: false, error: 'acceso restringido' }, 401);
-  const P = PROYECTOS[clave];
+  const P = porClave(clave);
   if (!P) return json({ ok: false, error: 'proyecto no reconocido' }, 400);
 
   // ── commits y etiquetas (siempre) ─────────────────────────────────────────
   const [commitsRaw, tagsRaw] = await Promise.all([
-    gh(`/repos/${P.repo}/commits?per_page=40`),
-    gh(`/repos/${P.repo}/tags?per_page=30`),
+    gh(`/repos/${P.repo}/commits?per_page=40`, env),
+    gh(`/repos/${P.repo}/tags?per_page=30`, env),
   ]);
 
   const commits = (commitsRaw || []).map((c) => ({
@@ -125,9 +116,15 @@ export async function onRequestGet({ request, env }) {
         });
     }
   } else if (!P.pages) {
-    aviso = P.worker
+    aviso = P.tipo === 'worker'
       ? 'Es un worker: no hay web que mirar. La marcha atrás es «wrangler rollback <version>», y descargar una versión vieja por API no funciona (solo devuelve metadatos).'
       : 'Está en GitHub Pages, que no guarda una dirección por despliegue: no hay snapshot que abrir. El punto de retorno es la etiqueta.';
+  }
+
+  // Un repositorio privado sin token responde igual que uno que no existe: hay
+  // que decirlo, o la ficha se lee como «este proyecto no tiene historial».
+  if (P.privado && !env.GITHUB_TOKEN && !commits.length) {
+    aviso = 'Repositorio privado: sin GITHUB_TOKEN en el entorno de Pages, GitHub responde lo mismo que si no existiera. No es que no tenga historial: es que no se puede leer.';
   }
 
   return json({
