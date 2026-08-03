@@ -25,11 +25,24 @@
     rows.push([], ["Subtotal",calc.subtotal],["Descuento %",calc.discountRate],["Descuento",calc.discount],["Base imponible",calc.base],["IVA %",calc.vatRate],["IVA",calc.vat],["Total",calc.total],["Coste",calc.costs],["Beneficio",calc.profit],["Margen real %",calc.realMargin]);
     return "\ufeff"+rows.map(function(row){return row.map(csvCell).join(";")}).join("\r\n");
   }
+  function applyItemValue(item,field,value){
+    if(field==="description"||field==="unit")item[field]=value;
+    else item[field]=Math.max(field==="margin"?-100:0,number(value));
+    if(field==="cost"||field==="margin")item.price=round(item.cost*(1+item.margin/100));
+    if(field==="price")item.margin=item.cost?round((item.price/item.cost-1)*100):0;
+    return item;
+  }
+  function bindItemControl(node,item,field,onUpdate){
+    node.addEventListener("input",function(){onUpdate(item,field,node.value,false)});
+    node.addEventListener("change",function(){onUpdate(item,field,node.value,true)});
+    return node;
+  }
   function newDocument(sequence){var today=isoDate();return{id:id(),number:"PRE-"+today.replace(/-/g,"")+"-"+String(sequence||1).padStart(2,"0"),date:today,validUntil:addDays(today,30),owner:"",client:"",taxId:"",contact:"",email:"",opportunity:"",discount:0,vat:21,currency:"EUR",notes:"Pago: 50 % a la aceptación y 50 % a la entrega.",items:[normalizeItem({description:"Servicios profesionales",quantity:1,unit:"proyecto",cost:0,margin:30})],versions:[],createdAt:Date.now(),updatedAt:Date.now()}}
   function emptyStore(){return{activeId:"",documents:[],trash:[]}}
   function sanitizeStore(value){var store=value&&typeof value==="object"?value:emptyStore();return{activeId:String(store.activeId||""),documents:Array.isArray(store.documents)?store.documents:[],trash:Array.isArray(store.trash)?store.trash:[]}}
 
-  root.BudgetGenerator={_test:{number:number,round:round,normalizeItem:normalizeItem,calculate:calculate,csvCell:csvCell,csvFor:csvFor,newDocument:newDocument,version:VERSION}};
+  root.BudgetGenerator={_test:{number:number,round:round,normalizeItem:normalizeItem,calculate:calculate,csvCell:csvCell,csvFor:csvFor,
+    applyItemValue:applyItemValue,bindItemControl:bindItemControl,newDocument:newDocument,version:VERSION}};
   if(!root.document)return;
 
   var document=root.document,store=loadStore(),active=null,saveTimer=null,toastTimer=null;
@@ -51,17 +64,14 @@
   function readField(event){var name=event.target.name;if(!name||fields.indexOf(name)<0)return;active[name]=["discount","vat"].indexOf(name)>=0?number(event.target.value):event.target.value;scheduleSave();renderPreview()}
   function addItem(raw){active.items.push(normalizeItem(raw||{description:"",quantity:1,unit:"ud.",cost:0,margin:30}));renderItems();renderAll();scheduleSave();setTimeout(function(){var all=document.querySelectorAll(".item-row .description");if(all.length)all[all.length-1].focus()},0)}
   function updateItem(item,field,value,rerender){
-    if(field==="description"||field==="unit")item[field]=value;
-    else item[field]=Math.max(field==="margin"?-100:0,number(value));
-    if(field==="cost"||field==="margin")item.price=round(item.cost*(1+item.margin/100));
-    if(field==="price")item.margin=item.cost?round((item.price/item.cost-1)*100):0;
+    applyItemValue(item,field,value);
     scheduleSave();if(rerender!==false)renderItems();renderPreview();
   }
   function make(tag,cls,text){var node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=String(text);return node}
   function control(item,field,type,extra){var node=make(type==="select"?"select":"input",field==="description"?"description":"");node.dataset.field=field;if(type==="select"){
       ["ud.","hora","día","mes","proyecto","campaña","licencia"].forEach(function(value){var option=make("option","",value);option.value=value;node.appendChild(option)});node.value=item[field];
     }else{node.type=type||"text";node.value=item[field];if(type==="number"){node.step=extra||"0.01";node.min=field==="margin"?"-100":"0"}node.setAttribute("aria-label",field+" de "+(item.description||"partida"))}
-    node.addEventListener("change",function(){updateItem(item,field,node.value)});if(type!=="select")node.addEventListener("input",function(){if(field==="description")updateItem(item,field,node.value,false)});return node}
+    return bindItemControl(node,item,field,updateItem)}
   function renderItems(){var list=$("itemList");list.replaceChildren();if(!active.items.length){list.appendChild(make("p","empty-state","No hay partidas. Añade una para empezar."));return}
     active.items.forEach(function(item,index){var row=make("div","item-row");row.dataset.id=item.id;row.append(control(item,"description","text"),control(item,"quantity","number","0.01"),control(item,"unit","select"),control(item,"cost","number"),control(item,"margin","number"),control(item,"price","number"));
       row.appendChild(make("output","money",money(item.quantity*item.price,active.currency)));var remove=make("button","remove-item","×");remove.type="button";remove.setAttribute("aria-label","Eliminar partida "+(index+1));remove.addEventListener("click",function(){active.items=active.items.filter(function(candidate){return candidate.id!==item.id});renderItems();renderAll();scheduleSave()});row.appendChild(remove);list.appendChild(row)})}
