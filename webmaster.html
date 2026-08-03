@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
-<meta name="description" content="Qué versión está viva en cada solución de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
+<meta name="description" content="Qué versión está viva en cada proyecto de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.03.08.2026.r7.12:57">
+<meta name="admiranext-version" content="v.03.08.2026.r15.17:25">
 <link rel="icon" href="/favicon.ico">
 <style>
   :root{
@@ -61,6 +61,14 @@
   table{width:100%;border-collapse:collapse;font:12.5px/1.45 var(--mono);min-width:620px}
   th{text-align:left;color:var(--dim);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
     border-bottom:1px solid var(--line);padding:11px 12px;white-space:nowrap}
+  .sort-btn{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;color:inherit;
+    font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;text-align:left}
+  .sort-btn:hover,.sort-btn:focus-visible{color:var(--neon);outline:0}
+  .sort-btn[aria-pressed="true"]{color:var(--ink)}
+  .sort-indicator{display:inline-grid;place-items:center;min-width:18px;height:18px;border:1px solid var(--line);
+    border-radius:5px;color:var(--dim);font-size:10px;letter-spacing:0;background:rgba(124,232,216,.04)}
+  .sort-btn[aria-pressed="true"] .sort-indicator{color:var(--neon);border-color:rgba(124,232,216,.48);
+    background:rgba(124,232,216,.09)}
   .th-count{display:inline-flex;margin-left:6px;padding:3px 7px;border:1px solid var(--line);border-radius:999px;
     color:var(--ink);letter-spacing:.05em;background:rgba(124,232,216,.05)}
   .th-count.ok{color:var(--neon2);border-color:rgba(94,242,160,.4);background:rgba(94,242,160,.08)}
@@ -218,7 +226,13 @@
     <div id="resumen" class="resumen" hidden></div>
     <div class="tbl">
       <table aria-label="Versión viva de cada proyecto y subproyecto">
-        <thead><tr><th>Proyectos <span id="proyectosCuenta" class="th-count">—</span></th><th>En producción</th><th>Norma</th><th>Repositorio</th><th>Se publica con</th></tr></thead>
+        <thead><tr>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="proyecto" aria-pressed="false">Proyectos <span id="proyectosCuenta" class="th-count">—</span><span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="releases" aria-pressed="false">En producción <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="norma" aria-pressed="false">Norma <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="repo" aria-pressed="false">Repositorio <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="publica" aria-pressed="false">Se publica con <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+        </tr></thead>
         <tbody id="tablaProyectos"><tr><td colspan="5" style="padding:18px 12px">Leyendo el sello de cada portada…</td></tr></tbody>
       </table>
     </div>
@@ -239,7 +253,7 @@
       <div id="snapList" class="snap-list"></div>
     </div>
 
-    <p style="color:var(--dim);font-size:.86rem;margin:0">Pulsa el nombre de una solución para ver
+    <p style="color:var(--dim);font-size:.86rem;margin:0">Pulsa el nombre de un proyecto para ver
       <b>todo lo que ha cambiado</b> y cómo volver a cualquier punto: los cambios (siempre),
       los puntos de retorno con su comando, y los snapshots que se pueden abrir. Ningún sello de
       esta página está escrito a mano: <b>se lee de la portada de cada sitio</b> cada vez que abres
@@ -489,6 +503,9 @@
   var incum   = document.getElementById('incumple');
   var fichas  = document.getElementById('fichas');
   var cuentaProyectos = document.getElementById('proyectosCuenta');
+  var botonesOrden = Array.prototype.slice.call(document.querySelectorAll('.sort-btn[data-sort]'));
+  var proyectosVivos = [];
+  var ordenActual = null;
   if (!tabla) return;
 
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){
@@ -512,13 +529,33 @@
          + esc(p.nombre) + '</button>' + abrir + '</span>';
   }
 
-  function ordenarJerarquia(lista){
+  function textoOrden(v){ return String(v == null ? '' : v).toLocaleLowerCase('es'); }
+
+  function compararTexto(a, b){ return textoOrden(a).localeCompare(textoOrden(b), 'es', { numeric:true }); }
+
+  function comparadorActual(){
+    if (!ordenActual) return function(a, b){ return (a.ordenAlta || 0) - (b.ordenAlta || 0); };
+    var signo = ordenActual.direccion === 'desc' ? -1 : 1;
+    return function(a, b){
+      var diferencia = 0;
+      if (ordenActual.clave === 'proyecto' && ordenActual.modo === 'alfabetico') diferencia = compararTexto(a.nombre, b.nombre);
+      else if (ordenActual.clave === 'proyecto') diferencia = (a.ordenAlta || 0) - (b.ordenAlta || 0);
+      else if (ordenActual.clave === 'releases') diferencia = Number(a.releaseCount || 0) - Number(b.releaseCount || 0);
+      else if (ordenActual.clave === 'norma') diferencia = compararTexto(a.control && a.control.estado, b.control && b.control.estado);
+      else if (ordenActual.clave === 'repo') diferencia = compararTexto(a.repoTxt, b.repoTxt);
+      else if (ordenActual.clave === 'publica') diferencia = compararTexto(a.publica, b.publica);
+      return (diferencia || ((a.ordenAlta || 0) - (b.ordenAlta || 0))) * signo;
+    };
+  }
+
+  function ordenarJerarquia(lista, comparar){
     var todos = {}, hijos = {}, vistos = {};
     lista.forEach(function(p){ todos[p.clave] = p; });
     lista.forEach(function(p){
       var padre = p.parentKey && todos[p.parentKey] ? p.parentKey : '';
       (hijos[padre] || (hijos[padre] = [])).push(p);
     });
+    Object.keys(hijos).forEach(function(clave){ hijos[clave].sort(comparar); });
     var salida = [];
     function visitar(p, depth){
       if (!p || vistos[p.clave]) return;
@@ -531,6 +568,55 @@
     lista.forEach(function(p){ visitar(p, 0); });
     return salida;
   }
+
+  function descripcionOrden(){
+    if (!ordenActual) return '';
+    if (ordenActual.clave === 'proyecto') return ordenActual.modo === 'alfabetico'
+      ? 'Orden alfabético A–Z. Pulsa para ordenar por antigüedad.'
+      : 'Orden por antigüedad. Pulsa para ordenar alfabéticamente.';
+    if (ordenActual.clave === 'releases') return ordenActual.direccion === 'desc'
+      ? 'Más releases primero. Pulsa para mostrar menos releases primero.'
+      : 'Menos releases primero. Pulsa para mostrar más releases primero.';
+    return ordenActual.direccion === 'asc'
+      ? 'Orden ascendente. Pulsa para invertirlo.' : 'Orden descendente. Pulsa para invertirlo.';
+  }
+
+  function actualizarCabeceras(){
+    botonesOrden.forEach(function(btn){
+      var activa = !!ordenActual && btn.dataset.sort === ordenActual.clave;
+      var th = btn.closest('th');
+      var indicador = btn.querySelector('.sort-indicator');
+      btn.setAttribute('aria-pressed', activa ? 'true' : 'false');
+      th.setAttribute('aria-sort', activa ? (ordenActual.direccion === 'desc' ? 'descending' : 'ascending') : 'none');
+      indicador.textContent = activa
+        ? (ordenActual.clave === 'proyecto' && ordenActual.modo === 'antiguedad' ? '◷' : (ordenActual.direccion === 'desc' ? '↓' : '↑'))
+        : '↕';
+      btn.title = activa ? descripcionOrden() : 'Pulsa para ordenar por esta columna.';
+    });
+  }
+
+  function pintarTabla(){
+    tabla.innerHTML = ordenarJerarquia(proyectosVivos, comparadorActual()).map(fila).join('');
+    conectarArbol();
+    actualizarCabeceras();
+  }
+
+  botonesOrden.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var clave = btn.dataset.sort;
+      if (clave === 'proyecto') {
+        var eraAlfabetico = ordenActual && ordenActual.clave === clave && ordenActual.modo === 'alfabetico';
+        ordenActual = { clave:clave, modo:eraAlfabetico ? 'antiguedad' : 'alfabetico', direccion:'asc' };
+      } else if (clave === 'releases') {
+        var eraReleases = ordenActual && ordenActual.clave === clave;
+        ordenActual = { clave:clave, direccion:eraReleases && ordenActual.direccion === 'desc' ? 'asc' : 'desc' };
+      } else {
+        var eraMisma = ordenActual && ordenActual.clave === clave;
+        ordenActual = { clave:clave, direccion:eraMisma && ordenActual.direccion === 'asc' ? 'desc' : 'asc' };
+      }
+      pintarTabla();
+    });
+  });
 
   function fila(p){
     var c = p.control || {};
@@ -640,8 +726,8 @@
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (!d.ok) throw new Error(d.error || 'sin datos');
-      tabla.innerHTML = ordenarJerarquia(d.proyectos).map(fila).join('');
-      conectarArbol();
+      proyectosVivos = d.proyectos || [];
+      pintarTabla();
       pintarCuenta(d);
       pintarResumen(d);
       pintarIncumplimientos(d);

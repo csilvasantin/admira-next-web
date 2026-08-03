@@ -272,8 +272,14 @@ async function totalYokup() {
   }
 }
 
-const base = (p) => ({
+export const cantidadReleases = (sello) => {
+  const m = String(sello || '').match(/\.r(\d+)/i);
+  return m ? Number(m[1]) : 0;
+};
+
+const base = (p, ordenAlta) => ({
   clave: p.clave, nombre: p.nombre, url: p.url, tipo: p.tipo, parentKey: p.parentKey || '',
+  ordenAlta,
   repo: p.repo, repoTxt: p.repoTxt || p.repo.split('/')[1], privado: !!p.privado,
   pages: p.pages, publica: p.publica, shot: p.shot || null, nota: p.nota || '',
 });
@@ -289,20 +295,21 @@ export async function onRequestGet({ request, env }) {
   const parte = new URL(request.url).searchParams.get('parte') || 'vivo';
 
   if (parte === 'retornos') {
-    const proyectos = await Promise.all(PROYECTOS.map(async (p) => {
+    const proyectos = await Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
       const r = await retornosVivos(p, env);
-      return { ...base(p), tags: r.tags, tagsNota: r.nota || '', volver: `git checkout <etiqueta> && ${p.publica}` };
+      return { ...base(p, ordenAlta), tags: r.tags, tagsNota: r.nota || '', volver: `git checkout <etiqueta> && ${p.publica}` };
     }));
     return json({ ok: true, parte, generado: new Date().toISOString(), proyectos });
   }
 
   const [proyectos, yokupTotal] = await Promise.all([
-    Promise.all(PROYECTOS.map(async (p) => {
+    Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
       const v = await selloVivo(p);
       const c = await veredicto(p, v, env);
       return {
-        ...base(p),
+        ...base(p, ordenAlta),
         version: v.sello, versionFuente: v.fuente,
+        releaseCount: cantidadReleases(v.sello),
         publicadaPor: v.quien || '', versionCommit: v.commit || '',
         control: c,
       };
