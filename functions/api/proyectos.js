@@ -151,6 +151,22 @@ function cabecerasGh(env) {
   return h;
 }
 
+/**
+ * No preguntar dos veces lo mismo dentro de la misma petición.
+ *
+ * Con las veinte subsoluciones de admira.tv el censo pasó de 21 filas a 41, y
+ * todas ellas comparten portada (`estadoUrl`) y repositorio con su padre: sin
+ * esto, una sola carga de la tabla pedía la misma portada veintiuna veces y la
+ * misma lista de commits otras tantas. Se memoriza la PROMESA, así que las
+ * llamadas en paralelo se enganchan a la que ya está en vuelo en vez de abrir
+ * otra. El mapa dura lo que la petición: nada se queda cacheado entre cargas.
+ */
+const memo = (cache, clave, calcular) => {
+  if (!cache) return calcular();
+  if (!cache.has(clave)) cache.set(clave, calcular());
+  return cache.get(clave);
+};
+
 async function traer(url, opciones = {}) {
   try {
     const r = await fetch(url, { redirect: 'follow', cf: { cacheTtl: 300, cacheEverything: true }, ...opciones });
@@ -189,7 +205,7 @@ function fechaDelSello(sello) {
 const fresco = (url) => url + (url.includes('?') ? '&' : '?') + 'wm=' + Math.floor(Date.now() / 60000);
 
 /** Lee de la portada qué versión está publicada de verdad. */
-export async function selloVivo(p) {
+export async function selloVivo(p, cache) {
   if (!p.url) return { sello: null, fuente: 'sin-web' };
 
   // Una subsolución puede tener su propia URL de entrada y, aun así, compartir
@@ -198,6 +214,11 @@ export async function selloVivo(p) {
   // sello y version.json del despliegue que realmente la publica.
   const estadoUrl = p.estadoUrl || p.url;
 
+  // Misma portada, misma respuesta: se lee una vez por petición.
+  return memo(cache, `sello:${estadoUrl}`, () => leerSello(estadoUrl));
+}
+
+async function leerSello(estadoUrl) {
   const r = await traer(fresco(estadoUrl), { headers: { 'User-Agent': 'Mozilla/5.0 (admiranext-webmaster)' } });
   if (!r) return { sello: null, fuente: 'error' };
 
@@ -270,7 +291,7 @@ export async function selloVivo(p) {
  * un commit posterior al sello puede no ser de esta. Por eso se dice cuántos
  * cambios hay y desde cuándo, y lo juzga quien mira.
  */
-export async function veredicto(p, v, env) {
+export async function veredicto(p, v, env, cache) {
   if (!p.url && p.tipo === 'worker') {
     return { estado: 'worker', texto: 'Worker: la versión viva se consulta con wrangler, no hay portada que sellar.' };
   }
@@ -296,13 +317,16 @@ export async function veredicto(p, v, env) {
   let sinVersionar = 0, ultimoCambio = '';
   if (fecha) {
     const desde = new Date(fecha.getTime() + 24 * 3600 * 1000).toISOString();  // desde el día siguiente
-    const r = await traer(`${GH}/repos/${p.repo}/commits?per_page=30&since=${desde}`, { headers: cabecerasGh(env) });
-    if (r) {
-      try {
-        const d = await r.json();
-        sinVersionar = Array.isArray(d) ? d.length : 0;
-        if (sinVersionar) ultimoCambio = d[0]?.commit?.author?.date || '';
-      } catch (_) { /* ilegible */ }
+    // Mismo repositorio y mismo sello ⇒ misma lista de commits: las veinte
+    // subsoluciones de admira.tv se resuelven con una sola llamada a GitHub.
+    const d = await memo(cache, `commits:${p.repo}:${desde}`, async () => {
+      const r = await traer(`${GH}/repos/${p.repo}/commits?per_page=30&since=${desde}`, { headers: cabecerasGh(env) });
+      if (!r) return null;
+      try { return await r.json(); } catch (_) { return null; }   // ilegible
+    });
+    if (Array.isArray(d)) {
+      sinVersionar = d.length;
+      if (sinVersionar) ultimoCambio = d[0]?.commit?.author?.date || '';
     }
   }
 
@@ -339,9 +363,19 @@ export async function veredicto(p, v, env) {
 }
 
 /** Las etiquetas reales del repositorio — los puntos de retorno declarados. */
-async function retornosVivos(p, env) {
-  const r = await traer(`${GH}/repos/${p.repo}/tags?per_page=6`, { headers: cabecerasGh(env) });
-  if (!r) {
+async function retornosVivos(p, env, cache) {
+  // Las etiquetas son del repositorio, no de la fila: un repositorio que
+  // sostiene varias soluciones (admira-tv y sus veinte, admira-next-web y las
+  // suyas) se pregunta una sola vez. Se memoriza lo ya LEÍDO, no la respuesta:
+  // el cuerpo de un Response se consume una sola vez, y compartir el objeto
+  // dejaría a la segunda fila sin etiquetas.
+  const leido = await memo(cache, `tags:${p.repo}`, async () => {
+    const r = await traer(`${GH}/repos/${p.repo}/tags?per_page=6`, { headers: cabecerasGh(env) });
+    if (!r) return { fallo: 'sin-respuesta' };
+    try { return { tags: await r.json() }; } catch (_) { return { fallo: 'ilegible' }; }
+  });
+
+  if (leido.fallo === 'sin-respuesta') {
     return {
       tags: [],
       nota: p.privado && !env.GITHUB_TOKEN
@@ -349,12 +383,8 @@ async function retornosVivos(p, env) {
         : 'No se pudieron leer las etiquetas del repositorio.',
     };
   }
-  try {
-    const d = await r.json();
-    return { tags: (d || []).map((t) => t.name) };
-  } catch (_) {
-    return { tags: [], nota: 'Respuesta ilegible de GitHub.' };
-  }
+  if (leido.fallo) return { tags: [], nota: 'Respuesta ilegible de GitHub.' };
+  return { tags: (leido.tags || []).map((t) => t.name) };
 }
 
 /** El total vivo del censo canónico de Yokup, para poder contrastar carteras. */
@@ -386,9 +416,13 @@ export async function onRequestGet({ request, env }) {
 
   const parte = new URL(request.url).searchParams.get('parte') || 'vivo';
 
+  // Vive y muere con esta petición: evita repetir portadas, commits y etiquetas
+  // que varias filas comparten, sin cachear nada de una carga para la siguiente.
+  const cache = new Map();
+
   if (parte === 'retornos') {
     const proyectos = await Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
-      const r = await retornosVivos(p, env);
+      const r = await retornosVivos(p, env, cache);
       return { ...base(p, ordenAlta), tags: r.tags, tagsNota: r.nota || '', volver: `git checkout <etiqueta> && ${p.publica}` };
     }));
     return json({ ok: true, parte, generado: new Date().toISOString(), proyectos });
@@ -396,8 +430,8 @@ export async function onRequestGet({ request, env }) {
 
   const [proyectos, yokupTotal, responsables] = await Promise.all([
     Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
-      const v = await selloVivo(p);
-      const c = await veredicto(p, v, env);
+      const v = await selloVivo(p, cache);
+      const c = await veredicto(p, v, env, cache);
       return {
         ...base(p, ordenAlta),
         version: v.sello, versionFuente: v.fuente,

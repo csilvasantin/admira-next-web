@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 import { PROYECTOS } from "../functions/_proyectos.js";
-import { cantidadReleases, normalizarResponsable, onRequestPatch, resolverProyectoYokup, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
+import { cantidadReleases, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
 
 const apiSource = fs.readFileSync(new URL("../functions/api/proyectos.js", import.meta.url), "utf8");
 const webmasterSource = fs.readFileSync(new URL("../webmaster.html", import.meta.url), "utf8");
@@ -24,12 +24,17 @@ test("Webmaster distingue proyectos raíz, subproyectos y el total canónico de 
   const rootKeys = new Set(PROYECTOS.map((project) => project.clave));
   const subprojects = PROYECTOS.filter((project) => project.parentKey && rootKeys.has(project.parentKey));
   assert.equal(PROYECTOS.length - subprojects.length, 17);
-  assert.equal(subprojects.length, 3);
-  assert.deepEqual(subprojects.map((project) => [project.clave, project.parentKey]), [
-    ["admiranext-webmaster", "admiranext"],
-    ["generador-presupuestos", "admiranext"],
-    ["yokup-rtc", "yokup"],
-  ]);
+  assert.equal(subprojects.length, 23);
+  assert.deepEqual(
+    subprojects
+      .filter((project) => project.parentKey !== "admira-tv")
+      .map((project) => [project.clave, project.parentKey]),
+    [
+      ["admiranext-webmaster", "admiranext"],
+      ["generador-presupuestos", "admiranext"],
+      ["yokup-rtc", "yokup"],
+    ],
+  );
 
   assert.match(apiSource, /https:\/\/api\.yokup\.com\/projects/);
   assert.match(apiSource, /totalProyectos, totalSubproyectos, yokupTotal/);
@@ -182,4 +187,65 @@ test("la subsolución abre su URL propia y verifica el release compartido de Adm
   assert.match(apiSource, /const estadoUrl = p\.estadoUrl \|\| p\.url/);
   assert.match(apiSource, /traer\(fresco\(estadoUrl\)/);
   assert.match(apiSource, /estadoUrl\.replace\(\/\\\/\$\/, ''\).*\/version\.json/);
+});
+
+// Las veinte que la portada de admira.tv explica, en el mismo orden en que las
+// enumera (`apps/public-catalog.json` del repositorio admira-tv). Si la home
+// añade o quita una, esta lista es la que dice que el censo se quedó viejo.
+const SUBSOLUCIONES_ADMIRA_TV = [
+  "dashboard", "digitalsignage", "contentcatalogue", "support", "pushnotifications",
+  "virtualassistant", "adcelerate", "gamification", "iotmanager", "videoanalytics",
+  "radioanalytics", "socialwifi", "queuemanager", "roombooking", "audiobranding",
+  "olfactorymarketing", "virtualreality", "augmentedreality", "xpaceos", "yarig",
+];
+
+test("admira.tv da de alta sus veinte subsoluciones, con dirección propia y release compartido", () => {
+  const hijas = PROYECTOS.filter((project) => project.parentKey === "admira-tv");
+  assert.deepEqual(hijas.map((p) => p.clave), SUBSOLUCIONES_ADMIRA_TV.map((s) => `admira-tv-${s}`));
+  assert.deepEqual(hijas.map((p) => p.url), SUBSOLUCIONES_ADMIRA_TV.map((s) => `https://admira.tv/${s}/`));
+
+  const padre = PROYECTOS.find((project) => project.clave === "admira-tv");
+  for (const hija of hijas) {
+    // Abre su propia dirección, pero el sello y la firma se leen donde de
+    // verdad se publica: no tienen despliegue propio que verificar.
+    assert.equal(hija.estadoUrl, "https://admira.tv");
+    assert.notEqual(hija.estadoUrl, hija.url);
+    assert.equal(hija.repo, padre.repo);
+    assert.equal(hija.pages, padre.pages);
+    assert.equal(hija.publica, padre.publica);
+    assert.equal(hija.tipo, "sitio");
+    assert.match(hija.repoTxt, /^admira-tv · [a-z]+\/$/);
+    assert.match(hija.nota, /^Subsolución de admira\.tv: /);
+  }
+
+  // Claves únicas: sin esto, /api/historial y el guardado de responsables
+  // (que van por clave) se pisarían entre filas.
+  assert.equal(new Set(PROYECTOS.map((p) => p.clave)).size, PROYECTOS.length);
+});
+
+test("una portada compartida por varias filas se lee una sola vez por petición", async () => {
+  const original = globalThis.fetch;
+  const pedidas = [];
+  globalThis.fetch = async (url) => {
+    pedidas.push(String(url).replace(/[?&]wm=\d+/, ""));
+    return new Response(
+      '<meta name="admiranext-version" content="v.03.08.2026.r2.15:51">',
+      { status: 200, headers: { "content-type": "text/html" } },
+    );
+  };
+  try {
+    const cache = new Map();
+    const hijas = PROYECTOS.filter((p) => p.parentKey === "admira-tv");
+    const sellos = await Promise.all(hijas.map((p) => selloVivo(p, cache)));
+
+    // Veinte filas, una sola lectura de portada y una sola de version.json.
+    assert.deepEqual([...new Set(pedidas)].sort(), [
+      "https://admira.tv",
+      "https://admira.tv/version.json",
+    ]);
+    assert.equal(pedidas.length, 2);
+    for (const sello of sellos) assert.equal(sello.sello, "v.03.08.2026.r2.15:51");
+  } finally {
+    globalThis.fetch = original;
+  }
 });

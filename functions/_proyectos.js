@@ -105,6 +105,48 @@ export const PROYECTOS = [
     pages: 'admira-tv', publica: './deploy.sh → Pages + wrangler.toml',
     tipo: 'sitio', shot: '/webmaster-shots/admira-tv.jpg',
   },
+
+  // ── Las 20 subsoluciones de admira.tv ────────────────────────────────────
+  // Son las mismas veinte que la portada de admira.tv explica y enumera
+  // (`apps/public-catalog.json`), cada una con su propia dirección pública.
+  // No se publican por separado: viven en el mismo repositorio y salen a
+  // producción en el mismo despliegue que su sitio padre, así que comparten
+  // sello, firma y punto de retorno. De ahí `estadoUrl: https://admira.tv`
+  // —la tabla abre la subsolución, pero verifica la versión donde de verdad
+  // se publica— y de ahí que `publica` repita el comando del padre: es el
+  // único que las pone en el aire.
+  ...[
+    ['dashboard',           'Dashboard',              'Reúne rendimiento, contenidos y resultados para entender la actividad de un vistazo.'],
+    ['digitalsignage',      'Señalización',           'Planifica y publica contenidos en pantallas, desde una ubicación hasta una red completa.'],
+    ['contentcatalogue',    'Catálogo de contenidos', 'Organiza creatividades y campañas para encontrar, reutilizar y distribuir cada pieza con rapidez.'],
+    ['support',             'Soporte',                'Centraliza ayuda, seguimiento y resolución para mantener cada experiencia disponible.'],
+    ['pushnotifications',   'Notificaciones',         'Activa avisos relevantes para equipos y audiencias en el momento adecuado.'],
+    ['virtualassistant',    'Asistente virtual',      'Responde preguntas, orienta al visitante y acompaña tareas mediante conversación natural.'],
+    ['adcelerate',          'ADcelerate',             'Conecta segmentación, inventario y activación publicitaria para aprovechar mejor cada pantalla.'],
+    ['gamification',        'Gamificación',           'Convierte interacciones en retos y recompensas que aumentan participación y recuerdo.'],
+    ['iotmanager',          'IoT Manager',            'Conecta pantallas, players y sensores para coordinar el espacio como un sistema único.'],
+    ['videoanalytics',      'Analítica de vídeo',     'Mide atención y comportamiento de forma agregada para mejorar contenidos y espacios.'],
+    ['radioanalytics',      'Analítica de radio',     'Estima afluencia mediante señales anónimas para comprender patrones de visita.'],
+    ['socialwifi',          'Social WiFi',            'Ofrece conectividad de invitados y convierte cada acceso consentido en una relación útil.'],
+    ['queuemanager',        'Gestión de colas',       'Ordena turnos y tiempos de espera para hacer la atención más fluida y previsible.'],
+    ['roombooking',         'Reserva de salas',       'Permite descubrir y reservar espacios disponibles sin fricción ni dobles asignaciones.'],
+    ['audiobranding',       'Audiobranding',          'Diseña una identidad sonora coherente para acompañar cada momento de la experiencia.'],
+    ['olfactorymarketing',  'Marketing olfativo',     'Integra el aroma como canal de marca para crear ambientes reconocibles y memorables.'],
+    ['virtualreality',      'Realidad virtual',       'Crea experiencias inmersivas para explorar productos, historias y espacios imposibles.'],
+    ['augmentedreality',    'Realidad aumentada',     'Superpone información e interacción digital sobre productos y entornos físicos.'],
+    ['xpaceos',             'XpaceOS · Gemelo digital', 'Representa el espacio como un gemelo digital para coordinar contenido, contexto y operación. No confundir con el sitio xpaceos.com, que es otro proyecto con su propio repositorio y despliegue.'],
+    ['yarig',               'Yarig.ai · Team Building', 'Convierte la colaboración del equipo en una experiencia compartida impulsada por IA.'],
+  ].map(([slug, nombre, quePasa]) => ({
+    clave: `admira-tv-${slug}`, nombre,
+    url: `https://admira.tv/${slug}/`,
+    estadoUrl: 'https://admira.tv',
+    parentKey: 'admira-tv',
+    repo: 'csilvasantin/admira-tv', repoTxt: `admira-tv · ${slug}/`,
+    pages: 'admira-tv', publica: './deploy.sh → Pages + wrangler.toml',
+    tipo: 'sitio', shot: null,
+    nota: `Subsolución de admira.tv: ${quePasa} Abre /${slug}/ y comparte despliegue, sello y firma con admira.tv.`,
+  })),
+
   {
     clave: 'clearchannel-tv', nombre: 'clearchannel.tv', url: 'https://www.clearchannel.tv',
     repo: 'csilvasantin/clearchannel-tv', repoTxt: 'clearchannel-tv',
