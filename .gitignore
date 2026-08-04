@@ -8,3 +8,6 @@ tools/notebooklm-local/node_modules/
 # a partir de release-signature.json + el commit real. Versionarla la congelaba:
 # producción llegó a servir la firma de la r8 con la portada en la r18.
 version.json
+
+# dependencias locales de tests
+/node_modules/
