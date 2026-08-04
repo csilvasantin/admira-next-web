@@ -789,3 +789,21 @@ footer {
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+
+/* ── Motor gratuito: Meta AI asistido (Carlos, 4-ago-2026) ──────────────────
+   Se distingue del bloque de Grok sin competir con el: Grok es el boton
+   principal de pago, este es la via gratuita. */
+.meta-studio{margin-top:14px;padding:14px 15px;border:1px solid var(--line,#243049);
+  border-radius:14px;background:rgba(255,255,255,.02)}
+.meta-head{display:flex;align-items:flex-start;gap:12px}
+.meta-mark{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;
+  background:rgba(89,150,255,.12);border:1px solid rgba(89,150,255,.28);color:#7aa7ff;
+  font:700 17px/1 ui-monospace,monospace}
+.meta-head strong{display:block;font-size:14px}
+.meta-head p{margin:3px 0 0;font-size:12.5px;opacity:.72;line-height:1.45}
+.meta-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.meta-file{position:relative;overflow:hidden;cursor:pointer}
+.meta-file input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.meta-note{margin:10px 0 0;font-size:12.5px;opacity:.8;min-height:1.2em}
+@media(max-width:520px){.meta-actions .button{width:100%}}

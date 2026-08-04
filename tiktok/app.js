@@ -48,6 +48,9 @@
   const openGrokVideo = $('#openGrokVideo');
   const copyGrokUrl = $('#copyGrokUrl');
   const grokAccess = $('#grokAccess');
+  const prepareMeta = $('#prepareMeta');
+  const metaVideo = $('#metaVideo');
+  const metaStatus = $('#metaStatus');
   const pixeriaBridge = $('#pixeriaBridge');
   const pixeriaLabel = $('#pixeriaLabel');
   const pixeriaDetail = $('#pixeriaDetail');
@@ -795,6 +798,47 @@
     grokVideo.hidden = false;
   }
 
+  /* ── Motor gratuito: Meta AI asistido ──────────────────────────────────────
+     Meta AI (Vibes / Movie Gen) hace hasta 16 s en 1080p con audio y es gratis,
+     pero no expone API de video. Asi que el estudio hace su parte —el prompt— y
+     el usuario trae el MP4. A partir de ahi NO hay camino especial: se usa el
+     mismo grokVideoUrl, el mismo montaje de 25 s y la misma publicacion en
+     Pixeria, para que solo exista una tuberia que mantener.
+     El blob: local ademas es same-origin, asi que no ensucia el canvas del
+     montaje como podria hacerlo una URL remota. */
+  const META_URL = 'https://www.meta.ai/';
+
+  async function prepararMeta(){
+    const prompt = (grokPrompt.value || '').trim();
+    if(!prompt){
+      metaStatus.textContent = 'Escribe antes el prompt: es lo que se copia.';
+      return;
+    }
+    let copiado = false;
+    try{ await navigator.clipboard.writeText(prompt); copiado = true; }catch(_){ copiado = false; }
+    metaStatus.textContent = copiado
+      ? 'Prompt copiado. Pegalo en Meta AI, genera el video y traelo con el boton de al lado.'
+      : 'No he podido copiar solo: selecciona el prompt de arriba y copialo a mano.';
+    window.open(META_URL, '_blank', 'noopener');
+  }
+
+  function traerVideoMeta(file){
+    if(!file) return;
+    if(!/^video\//.test(file.type || '')){
+      metaStatus.textContent = 'Ese fichero no es un video.';
+      return;
+    }
+    if(grokVideoUrl.startsWith('blob:')) URL.revokeObjectURL(grokVideoUrl);
+    grokVideoUrl = URL.createObjectURL(file);
+    grokVideo.src = grokVideoUrl;
+    openGrokVideo.href = grokVideoUrl;
+    grokResultActions.hidden = false;
+    stage.hidden = true;
+    grokVideo.hidden = false;
+    const mb = (file.size / (1024 * 1024)).toFixed(1);
+    metaStatus.textContent = 'Video de Meta AI cargado (' + mb + ' MB). Ya puedes montar los 25 s y publicar en Pixeria.';
+  }
+
   function finishGrokVideo(payload) {
     grokRequestId = payload.requestId || grokRequestId;
     showGrokVideo(payload);
@@ -1434,6 +1478,8 @@
   clearReference.addEventListener('click', () => clearReferenceVideo(true));
   composeGrokPackage.addEventListener('click', () => { void composeAndPublishGrokPackage(); });
   copyGrokUrl.addEventListener('click', () => copyText(grokVideoUrl, copyGrokUrl, 'Copiar URL'));
+  prepareMeta.addEventListener('click', prepararMeta);
+  metaVideo.addEventListener('change', (e) => traerVideoMeta(e.target.files && e.target.files[0]));
   reduceMotion.addEventListener('change', restart);
   window.addEventListener('beforeunload', () => {
     cancelAnimationFrame(animationFrame);

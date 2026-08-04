@@ -311,6 +311,28 @@
             </label>
             <button class="button grok-button" id="generateGrokVideo" type="button">Generar con Grok</button>
           </div>
+          <!-- MOTOR GRATUITO (Carlos, 4-ago-2026). Grok cobra en xAI; Meta AI
+               genera hasta 16 s en 1080p con audio y es gratis, pero NO tiene API
+               publica de video: se hace asistido. El estudio deja el prompt listo y
+               abre meta.ai; el MP4 vuelve por aqui y sigue el MISMO camino que el de
+               Grok — montaje de 25 s y publicacion automatica en Pixeria. -->
+          <div class="meta-studio" id="metaStudio">
+            <div class="meta-head">
+              <span class="meta-mark" aria-hidden="true">∞</span>
+              <div>
+                <strong>Meta AI · gratis</strong>
+                <p id="metaDetail">Copia el prompt, generalo en Meta AI y trae aqui el MP4. El montaje y la publicacion en Pixeria son los mismos.</p>
+              </div>
+            </div>
+            <div class="meta-actions">
+              <button class="button secondary" id="prepareMeta" type="button">Copiar prompt y abrir Meta AI</button>
+              <label class="button secondary meta-file">
+                <span>Traer el MP4 de Meta AI</span>
+                <input id="metaVideo" type="file" accept="video/mp4,video/webm,video/quicktime">
+              </label>
+            </div>
+            <p class="meta-note" id="metaStatus" role="status" aria-live="polite"></p>
+          </div>
           <div class="grok-job" id="grokJob" hidden>
             <div class="grok-job-head"><strong id="grokJobLabel">Preparando solicitud…</strong><span id="grokJobPercent">0%</span></div>
             <div class="grok-progress"><span id="grokProgress"></span></div>
@@ -342,7 +364,7 @@
             </div>
             <div class="package-progress" id="packageProgress" hidden><span></span></div>
           </section>
-          <p class="grok-note">Grok se inicia solo al pulsar el botón y puede generar coste en xAI. Cuando termina, el vídeo se publica automáticamente en el Stock de Pixeria. Las claves permanecen en el servidor y se requiere acceso autorizado.</p>
+          <p class="grok-note">Meta AI es gratuito y no consume xAI, pero el vídeo lo traes tú: no hay API pública. Grok se inicia solo al pulsar el botón y puede generar coste en xAI. Cuando termina, el vídeo se publica automáticamente en el Stock de Pixeria. Las claves permanecen en el servidor y se requiere acceso autorizado.</p>
           <a class="grok-access" id="grokAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para usar Grok ↗</a>
         </section>
       </section>
