@@ -95,8 +95,19 @@ jobs:
           # El sha suelto no basta: lo que lee el Webmaster para dar por buena
           # una release es version.json. Si vuelve a servirse una firma de otro
           # despliegue, aquí se ve —y no en la tabla, tres horas después.
-          FIRMA="$(curl -fsSL --max-time 20 "https://www.admiranext.com/version.json?sha=${GITHUB_SHA}")"
-          SERVIDO="$(printf '%s' "$FIRMA" | jq -r '.gitFull // .git // empty')"
+          #
+          # Reintenta, como el paso de arriba. Sin bucle, esta comprobación daba
+          # rojo en despliegues BUENOS: deploy-sha.txt ya servía el commit nuevo y
+          # version.json todavía devolvía el del despliegue anterior unos segundos
+          # (pasó con la r7 del 4 de agosto, 02bba54). Un rojo sobre producción
+          # correcta miente igual que un verde sobre producción rota.
+          # (NeoMBP16 · MacBook Pro 16.)
+          for ATTEMPT in $(seq 1 18); do
+            FIRMA="$(curl -fsSL --max-time 20 "https://www.admiranext.com/version.json?sha=${GITHUB_SHA}&intento=${ATTEMPT}" || true)"
+            SERVIDO="$(printf '%s' "$FIRMA" | jq -r '.gitFull // .git // empty' 2>/dev/null || true)"
+            [ "$SERVIDO" = "$GITHUB_SHA" ] && break
+            sleep 5
+          done
           if [ "$SERVIDO" != "$GITHUB_SHA" ]; then
             echo "::error::version.json en producción firma ${SERVIDO}, no ${GITHUB_SHA}."
             printf '%s\n' "$FIRMA"
