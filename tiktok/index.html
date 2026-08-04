@@ -9,7 +9,7 @@
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260804-14">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260804-15">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok Ads 25s · ADmiraNeXT">
@@ -102,7 +102,7 @@
             <span class="visually-hidden">Fecha prevista</span>
             <input id="adDate" name="date" type="date" title="Fecha prevista del anuncio">
           </label>
-          <button class="button primary create-ad" type="submit">Crear anuncio</button>
+          <button class="button primary create-ad" type="submit">Storyboard</button>
         </div>
         <p class="composer-status" id="adIdeaStatus" role="status">Pulsa “Crear idea” para generar todo desde cero, o escribe un titular para desarrollarlo.</p>
         <a class="composer-access" id="adIdeaAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para desarrollar ideas ↗</a>
@@ -293,6 +293,14 @@
                 <button class="text-button" id="clearReference" type="button" hidden>Quitar</button>
               </div>
               <p class="reference-status" id="referenceStatus" role="status">Sin referencia · el anuncio se generará solo a partir del brief.</p>
+              <!-- Los 5 momentos del anuncio de REFERENCIA. Ya se extraian para
+                   mandarselos a analizar, pero se tiraban sin enseñarlos: es el
+                   material mas util que hay para decidir el propio anuncio
+                   (Carlos, 4-ago-2026). -->
+              <figure class="reference-frames" id="referenceFrames" hidden>
+                <figcaption id="referenceFramesCaption">Los 5 momentos del anuncio de referencia</figcaption>
+                <div class="reference-strip" id="referenceStrip"></div>
+              </figure>
               <div class="reference-profile" id="referenceProfile" hidden></div>
             </div>
           </section>
@@ -405,6 +413,6 @@
   </footer>
 
   <script src="/assets/tiktok-core.js?v=20260802-9"></script>
-  <script src="/tiktok/app.js?v=20260804-14"></script>
+  <script src="/tiktok/app.js?v=20260804-15"></script>
 </body>
 </html>

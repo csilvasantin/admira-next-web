@@ -27,6 +27,9 @@
   const exportVideo = $('#exportVideo');
   const exportStatus = $('#exportStatus');
   const storyboard = $('#storyboard');
+  const referenceFrames = $('#referenceFrames');
+  const referenceStrip = $('#referenceStrip');
+  const referenceFramesCaption = $('#referenceFramesCaption');
   const scriptText = $('#scriptText');
   const wordCount = $('#wordCount');
   const paceStatus = $('#paceStatus');
@@ -274,8 +277,8 @@
       if(!adDate.value) adDate.value = todayValue();
       const createdFromScratch = payload.mode === 'create' || !hasHeadline;
       setAdIdeaMessage(createdFromScratch
-        ? 'Idea creada desde cero. Revisa el concepto y pulsa “Crear anuncio” para obtener el guion y el storyboard.'
-        : 'Idea desarrollada. Revisa el enfoque y pulsa “Crear anuncio” para obtener el guion y el storyboard.', 'success');
+        ? 'Idea creada desde cero. Revisa el concepto y pulsa “Storyboard” para obtener el guion y las escenas.'
+        : 'Idea desarrollada. Revisa el enfoque y pulsa “Storyboard” para obtener el guion y las escenas.', 'success');
       $('#adDetail').focus();
     } catch(error) {
       adIdeaAccess.hidden = !error?.auth;
@@ -746,6 +749,7 @@
   }
 
   function resetReferenceMedia() {
+    pintarMomentos(null);
     referenceVideo.value = '';
     referencePreview.removeAttribute('src');
     referencePreview.load();
@@ -800,7 +804,16 @@
         throw new Error('La referencia debe durar menos de 30 minutos.');
       }
       analyzeReference.disabled = false;
-      setReferenceMessage(`${source.label} lista · ${referencePreview.duration.toFixed(1)}s. Analízala para aplicar su lenguaje visual.`);
+      setReferenceMessage(`${source.label} lista · ${referencePreview.duration.toFixed(1)}s. Sacando sus 5 momentos…`);
+      // Se enseñan YA, sin esperar a «Analizar»: ver como esta contado el
+      // anuncio que te gusta es util por si solo, aunque no lo analices.
+      try{
+        pintarMomentos(await captureReferenceFrames());
+        setReferenceMessage(`${source.label} lista · ${referencePreview.duration.toFixed(1)}s. Ahí tienes sus 5 momentos; analízala para aplicar su lenguaje visual.`);
+      }catch(_){
+        pintarMomentos(null);
+        setReferenceMessage(`${source.label} lista · ${referencePreview.duration.toFixed(1)}s. Analízala para aplicar su lenguaje visual.`);
+      }
     }catch(error){
       analyzeReference.disabled = true;
       setReferenceMessage(error.message || 'No pudimos leer el vídeo de referencia.', 'error');
@@ -856,7 +869,10 @@
     const ctx = canvas.getContext('2d', {alpha:false});
     const duration = referencePreview.duration;
     const frames = [];
-    for(const fraction of [0.08, 0.35, 0.65, 0.92]){
+    // CINCO momentos, no cuatro: entrada, desarrollo, giro, remate y cierre.
+    // Es lo que pidio Carlos y ademas cuadra con como esta contado un anuncio.
+    ultimosMomentos = [];
+    for(const fraction of MOMENTOS){
       referencePreview.currentTime = Math.max(0, Math.min(duration - 0.05, duration * fraction));
       await waitForMedia(referencePreview, 'seeked');
       const scale = Math.max(canvas.width / referencePreview.videoWidth, canvas.height / referencePreview.videoHeight);
@@ -866,18 +882,49 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(referencePreview, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
       frames.push(canvas.toDataURL('image/jpeg', 0.72));
+      ultimosMomentos.push(referencePreview.currentTime);
     }
     return frames;
+  }
+
+  /* ── Los 5 momentos de la referencia, A LA VISTA (Carlos, 4-ago-2026) ───────
+     Estos fotogramas ya se sacaban para mandarselos a analizar y se tiraban sin
+     enseñarlos. Son el material mas util que hay antes de decidir nada: como
+     abre el anuncio que te gusta, donde gira y como remata. Ahora se ven. */
+  function pintarMomentos(frames) {
+    if(!frames || !frames.length){
+      referenceFrames.hidden = true;
+      referenceStrip.replaceChildren();
+      return;
+    }
+    referenceStrip.replaceChildren(...frames.map((src, i) => {
+      const fig = document.createElement('figure');
+      fig.className = 'reference-shot';
+      const img = document.createElement('img');
+      img.src = src;
+      img.loading = 'lazy';
+      const seg = ultimosMomentos[i];
+      const marca = Number.isFinite(seg) ? seg.toFixed(1) + 's' : `Momento ${i + 1}`;
+      img.alt = `Momento ${i + 1} del anuncio de referencia, en el segundo ${marca}`;
+      const pie = document.createElement('figcaption');
+      pie.textContent = marca;
+      fig.append(img, pie);
+      return fig;
+    }));
+    referenceFramesCaption.textContent = `Los ${frames.length} momentos del anuncio de referencia`;
+    referenceFrames.hidden = false;
   }
 
   async function analyzeReferenceVideo() {
     if(!referenceSource || analyzeReference.disabled) return;
     analyzeReference.disabled = true;
-    setReferenceMessage(referenceSource.mode === 'youtube' ? 'Recuperando fotogramas representativos de YouTube…' : 'Extrayendo cuatro momentos del vídeo en este dispositivo…');
+    setReferenceMessage(referenceSource.mode === 'youtube' ? 'Recuperando fotogramas representativos de YouTube…' : 'Leyendo los 5 momentos en este dispositivo…');
     try{
+      // Si ya se sacaron al cargar, no se vuelve a barrer el video entero.
+      const yaSacados = referenceStrip.querySelectorAll('img');
       const requestBody = referenceSource.mode === 'youtube'
         ? {sourceUrl:referenceSource.url}
-        : {frames:await captureReferenceFrames()};
+        : {frames: yaSacados.length ? Array.from(yaSacados, (i) => i.src) : await captureReferenceFrames()};
       setReferenceMessage('Grok está leyendo cámara, ritmo, luz y paleta…');
       const response = await fetch('/presentaciones/api/video-reference', {
         method:'POST', credentials:'same-origin',
@@ -946,6 +993,9 @@
      El blob: local ademas es same-origin, asi que no ensucia el canvas del
      montaje como podria hacerlo una URL remota. */
   const META_URL = 'https://www.meta.ai/';
+  // Entrada, desarrollo, giro, remate y cierre.
+  const MOMENTOS = [0.06, 0.28, 0.5, 0.72, 0.94];
+  let ultimosMomentos = [];
 
   // Vibes genera vertical y corto, que es justo lo que pide el montaje; pero el
   // prompt de arriba esta escrito para Grok, donde el formato va aparte (el
