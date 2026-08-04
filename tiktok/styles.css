@@ -857,3 +857,8 @@ footer {
     padding-bottom:4px;-webkit-overflow-scrolling:touch}
   .reference-shot{scroll-snap-align:start}
 }
+
+
+/* Pie del storyboard: exportar la hoja de aprobación (decisión 0323). */
+.storyboard-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.storyboard-note{margin:0;font-size:12px;line-height:1.4;opacity:.72;flex:1;min-width:180px}

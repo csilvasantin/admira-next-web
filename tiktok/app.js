@@ -27,6 +27,8 @@
   const exportVideo = $('#exportVideo');
   const exportStatus = $('#exportStatus');
   const storyboard = $('#storyboard');
+  const exportStoryboard = $('#exportStoryboard');
+  const storyboardNote = $('#storyboardNote');
   const referenceFrames = $('#referenceFrames');
   const referenceStrip = $('#referenceStrip');
   const referenceFramesCaption = $('#referenceFramesCaption');
@@ -489,6 +491,124 @@
     return { fila, aviso };
   }
 
+  /* ── Hoja de storyboard para APROBAR con el cliente (decision 0323) ────────
+     El paso caro es producir el video. Esta hoja existe para que el cliente
+     diga que si ANTES: las escenas con su imagen, su tramo de tiempo y lo que
+     cuenta cada una, mas el guion completo, en un solo PNG que se manda por
+     donde sea.
+
+     Se exporta lo que HAY EN PANTALLA, no una version paralela: si has
+     sustituido una escena por una imagen de Meta AI, va esa —y con su marca de
+     idea, para que el cliente sepa que ese plano aun no es el definitivo.
+
+     Se dibuja a canvas y se descarga: sin librerias, sin servidor y sin que
+     salga nada del navegador. */
+  const HOJA = {w:1240, h:1754, margen:64};
+
+  function textoEnCaja(ctx, texto, x, y, ancho, alto, salto) {
+    const palabras = String(texto || '').split(/\s+/).filter(Boolean);
+    let linea = '', cy = y;
+    for(const palabra of palabras){
+      const prueba = linea ? linea + ' ' + palabra : palabra;
+      if(ctx.measureText(prueba).width > ancho && linea){
+        ctx.fillText(linea, x, cy); cy += salto; linea = palabra;
+        if(cy > y + alto) return cy;
+      }else{ linea = prueba; }
+    }
+    if(linea) { ctx.fillText(linea, x, cy); cy += salto; }
+    return cy;
+  }
+
+  async function exportarStoryboard() {
+    if(!plan) return;
+    exportStoryboard.disabled = true;
+    storyboardNote.textContent = 'Componiendo la hoja…';
+    try{
+      const canvas = document.createElement('canvas');
+      canvas.width = HOJA.w; canvas.height = HOJA.h;
+      const ctx = canvas.getContext('2d', {alpha:false});
+      const m = HOJA.margen;
+
+      ctx.fillStyle = '#080d14'; ctx.fillRect(0, 0, HOJA.w, HOJA.h);
+
+      // Cabecera
+      ctx.fillStyle = '#7aa7ff';
+      ctx.font = '600 20px ui-monospace, monospace';
+      ctx.fillText('STORYBOARD · ADMIRANEXT', m, m + 22);
+      ctx.fillStyle = '#eef3fb';
+      ctx.font = '700 40px -apple-system, Segoe UI, Roboto, sans-serif';
+      textoEnCaja(ctx, plan.brief?.task || 'Anuncio', m, m + 78, HOJA.w - m * 2, 96, 46);
+      ctx.fillStyle = '#8fa2bd';
+      ctx.font = '400 19px -apple-system, Segoe UI, Roboto, sans-serif';
+      ctx.fillText(`${plan.scenes.length} escenas · ${plan.duration}s · vertical 9:16`, m, m + 176);
+      ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(m, m + 200); ctx.lineTo(HOJA.w - m, m + 200); ctx.stroke();
+
+      // Escenas: se toma la imagen tal y como se ve en la tarjeta
+      const tarjetas = Array.from(storyboard.querySelectorAll('.story-card'));
+      const hueco = 26;
+      const ancho = Math.floor((HOJA.w - m * 2 - hueco * (plan.scenes.length - 1)) / plan.scenes.length);
+      const alto = Math.round(ancho * 16 / 9);
+      const top = m + 236;
+
+      for(let i = 0; i < plan.scenes.length; i++){
+        const escena = plan.scenes[i];
+        const x = m + i * (ancho + hueco);
+        const img = tarjetas[i]?.querySelector('.story-shot');
+        ctx.fillStyle = '#05090d';
+        ctx.fillRect(x, top, ancho, alto);
+        if(img && img.complete && img.naturalWidth){
+          try{ ctx.drawImage(img, x, top, ancho, alto); }catch(_){ /* imagen no dibujable */ }
+        }
+        if(tarjetas[i]?.classList.contains('story-ia')){
+          ctx.fillStyle = 'rgba(6,12,22,.85)';
+          ctx.fillRect(x + 8, top + 8, 150, 26);
+          ctx.fillStyle = '#9dbcff';
+          ctx.font = '700 13px ui-monospace, monospace';
+          ctx.fillText('IDEA · META AI', x + 16, top + 26);
+        }
+        let cy = top + alto + 34;
+        ctx.fillStyle = '#7aa7ff';
+        ctx.font = '700 15px ui-monospace, monospace';
+        ctx.fillText(`0${i + 1} · ${escena.from}–${escena.to}s`, x, cy);
+        cy += 30;
+        ctx.fillStyle = '#eef3fb';
+        ctx.font = '700 22px -apple-system, Segoe UI, Roboto, sans-serif';
+        cy = textoEnCaja(ctx, escena.headline, x, cy, ancho, 90, 28) + 8;
+        ctx.fillStyle = '#9fb1c9';
+        ctx.font = '400 17px -apple-system, Segoe UI, Roboto, sans-serif';
+        cy = textoEnCaja(ctx, escena.body, x, cy, ancho, 110, 24) + 8;
+        ctx.fillStyle = '#6f8299';
+        ctx.font = '400 15px ui-monospace, monospace';
+        textoEnCaja(ctx, escena.direction, x, cy, ancho, 90, 21);
+      }
+
+      // Guion completo al pie
+      const pie = top + alto + 330;
+      ctx.strokeStyle = 'rgba(255,255,255,.12)';
+      ctx.beginPath(); ctx.moveTo(m, pie); ctx.lineTo(HOJA.w - m, pie); ctx.stroke();
+      ctx.fillStyle = '#7aa7ff';
+      ctx.font = '600 15px ui-monospace, monospace';
+      ctx.fillText('LOCUCIÓN', m, pie + 32);
+      ctx.fillStyle = '#c8d5e6';
+      ctx.font = '400 20px -apple-system, Segoe UI, Roboto, sans-serif';
+      textoEnCaja(ctx, plan.script, m, pie + 68, HOJA.w - m * 2, HOJA.h - pie - 140, 30);
+
+      ctx.fillStyle = '#5d6f88';
+      ctx.font = '400 14px ui-monospace, monospace';
+      ctx.fillText('admiranext.com · propuesta para aprobación, aún no producida', m, HOJA.h - m + 14);
+
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      if(!blob) throw new Error('no-blob');
+      downloadBlob(blob, `${core.fileSlug(plan.brief.task)}-storyboard.png`);
+      storyboardNote.textContent = 'Hoja descargada. Ya puedes enseñarla antes de producir.';
+    }catch(_){
+      storyboardNote.textContent = 'No se pudo componer la hoja. Vuelve a intentarlo.';
+    }finally{
+      exportStoryboard.disabled = false;
+    }
+  }
+
   function createStoryCard(scene, index, planData) {
     const article = document.createElement('article');
     article.className = 'story-card';
@@ -576,6 +696,7 @@
     paceStatus.textContent = plan.pace.label;
     paceStatus.style.color = plan.pace.level === 'too-fast' ? '#ff7a30' : '';
     storyboard.replaceChildren(...plan.scenes.map((scene, i) => createStoryCard(scene, i, plan)));
+    exportStoryboard.disabled = false;
     proofChip.textContent = plan.presenter.name.toUpperCase() + ' · 15S';
     syncGrokPrompt();
     saveDraft();
@@ -1675,6 +1796,7 @@
   clearReference.addEventListener('click', () => clearReferenceVideo(true));
   composeGrokPackage.addEventListener('click', () => { void composeAndPublishGrokPackage(); });
   copyGrokUrl.addEventListener('click', () => copyText(grokVideoUrl, copyGrokUrl, 'Copiar URL'));
+  exportStoryboard.addEventListener('click', exportarStoryboard);
   prepareMeta.addEventListener('click', prepararMeta);
   metaVideo.addEventListener('change', (e) => traerVideoMeta(e.target.files && e.target.files[0]));
   reduceMotion.addEventListener('change', restart);

@@ -9,7 +9,7 @@
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260804-15">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260804-16">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok Ads 25s · ADmiraNeXT">
@@ -402,7 +402,14 @@
           <span class="section-code">LOCUCIÓN</span>
           <blockquote id="scriptText"></blockquote>
         </article>
-        <div class="storyboard" id="storyboard" aria-label="Storyboard de tres escenas"></div>
+        <div class="storyboard-shell">
+          <div class="storyboard" id="storyboard" aria-label="Storyboard de tres escenas"></div>
+          <!-- Hoja para APROBAR con el cliente antes de producir (decision 0323). -->
+          <div class="storyboard-foot">
+            <button class="button secondary" id="exportStoryboard" type="button" disabled>Exportar storyboard</button>
+            <p class="storyboard-note" id="storyboardNote" role="status" aria-live="polite">Una hoja con las escenas y el guion, para enseñarla antes de producir.</p>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -413,6 +420,6 @@
   </footer>
 
   <script src="/assets/tiktok-core.js?v=20260802-9"></script>
-  <script src="/tiktok/app.js?v=20260804-15"></script>
+  <script src="/tiktok/app.js?v=20260804-16"></script>
 </body>
 </html>
