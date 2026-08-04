@@ -2,34 +2,109 @@
   "name": "admiranext-matriz",
   "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
   "description": "Hub MCP de la matriz de la trilogía AdmiraNeXT. Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
-  "version": "v.26.07.31.r1",
+  "version": "v.04.08.2026.r9.20:36",
   "type": "static-site",
   "site": "https://www.admiranext.com",
   "hub": "https://www.admiranext.com/mcp/",
   "llms_txt": "https://www.admiranext.com/mcp/llms.txt",
   "repo": "https://github.com/csilvasantin/admira-next-web",
-  "contact": { "telegram_group": "AdmiraXP", "signature": "Admira IA" },
-
+  "contact": {
+    "telegram_group": "AdmiraXP",
+    "signature": "Admira IA"
+  },
   "model": "Robots-as-a-Service (RaaS) + IoT con IA",
-
   "pages": [
-    { "path": "/", "desc": "Home: tres entradas (contacto, web clásica, terminal interactiva)." },
-    { "path": "/classic.html", "desc": "Web corporativa clásica." },
-    { "path": "/businessplan/", "desc": "Plan de negocio." },
-    { "path": "/help/", "desc": "Ayuda." },
-    { "path": "/creditos/", "desc": "Generador de créditos finales animados para presentaciones; exporta vídeo WebM y HTML autónomo." },
-    { "path": "/presupuestos/", "type": "local-tool", "yokup_id": "generador-presupuestos", "version": "v.26.08.03.r1", "owner": "OraculoMini · admira-macmini", "privacy": "Los datos de cliente, partidas e importes se procesan localmente en el navegador y no se envían a servicios externos.", "flow": ["datos del cliente", "partidas", "revisión de totales", "exportación"], "exports": ["CSV", "PDF"], "desc": "Generador local de presupuestos comerciales con revisión previa y exportación CSV o PDF." },
-    { "path": "/impacto/", "desc": "Campaña bilingüe de narrativas humanas sobre el impacto de la señalización digital en salud, comercio y movilidad." },
-    { "path": "/intranet", "desc": "Comando de terminal: zona privada con acceso al ecosistema y al generador mediante /presentaciones." },
-    { "path": "/mandamientos", "audience": "agents", "desc": "Los 14 Mandamientos de AdmiraNeXT: doctrina operativa canónica del equipo de silicio. Primer documento que debe leer un agente que se incorpora a la flota." },
-    { "path": "/filosofia", "audience": "agents", "desc": "Filosofía del equipo: las Máximas y el modelo de 3 capas x 3 niveles (principal, hijo, infra). Complementa a /mandamientos, no lo sustituye." }
+    {
+      "path": "/",
+      "desc": "Home: tres entradas (contacto, web clásica, terminal interactiva)."
+    },
+    {
+      "path": "/classic.html",
+      "desc": "Web corporativa clásica."
+    },
+    {
+      "path": "/businessplan/",
+      "desc": "Plan de negocio."
+    },
+    {
+      "path": "/help/",
+      "desc": "Ayuda."
+    },
+    {
+      "path": "/presentaciones/",
+      "type": "private-tool",
+      "auth": "acceso interno · sin credenciales responde 401",
+      "yokup_id": "generador-de-presentaciones",
+      "flow": [
+        "cliente y problema",
+        "inspiración",
+        "esqueleto editable",
+        "site navegable",
+        "entregables"
+      ],
+      "outputs": [
+        "site",
+        "documento",
+        "creditos",
+        "postcreditos"
+      ],
+      "languages": [
+        "es",
+        "ca",
+        "en"
+      ],
+      "related": [
+        "/creditos/",
+        "/presites/"
+      ],
+      "desc": "Generador de Presentaciones: la herramienta principal del ecosistema. Crea el portal privado del cliente con su clave, el esqueleto editable del relato y un site navegable; cambiar las ideas regenera la historia. Modo presentador con salida de audiencia aislada y trazabilidad de fuentes por diapositiva."
+    },
+    {
+      "path": "/creditos/",
+      "desc": "Generador de créditos finales animados para presentaciones; exporta vídeo WebM y HTML autónomo. Es una salida nativa del Generador de Presentaciones y también se usa suelto."
+    },
+    {
+      "path": "/presupuestos/",
+      "type": "local-tool",
+      "yokup_id": "generador-presupuestos",
+      "version": "v.26.08.03.r1",
+      "owner": "OraculoMini · admira-macmini",
+      "privacy": "Los datos de cliente, partidas e importes se procesan localmente en el navegador y no se envían a servicios externos.",
+      "flow": [
+        "datos del cliente",
+        "partidas",
+        "revisión de totales",
+        "exportación"
+      ],
+      "exports": [
+        "CSV",
+        "PDF"
+      ],
+      "desc": "Generador local de presupuestos comerciales con revisión previa y exportación CSV o PDF."
+    },
+    {
+      "path": "/impacto/",
+      "desc": "Campaña bilingüe de narrativas humanas sobre el impacto de la señalización digital en salud, comercio y movilidad."
+    },
+    {
+      "path": "/intranet",
+      "desc": "Comando de terminal: zona privada con acceso al ecosistema y al generador mediante /presentaciones."
+    },
+    {
+      "path": "/mandamientos",
+      "audience": "agents",
+      "desc": "Los 14 Mandamientos de AdmiraNeXT: doctrina operativa canónica del equipo de silicio. Primer documento que debe leer un agente que se incorpora a la flota."
+    },
+    {
+      "path": "/filosofia",
+      "audience": "agents",
+      "desc": "Filosofía del equipo: las Máximas y el modelo de 3 capas x 3 niveles (principal, hijo, infra). Complementa a /mandamientos, no lo sustituye."
+    }
   ],
-
   "docs": {
     "handoff": "https://www.admiranext.com/HANDOFF.md",
     "readme": "https://www.admiranext.com/README.md"
   },
-
   "federation": {
     "note": "Misma convención /mcp/ en cada pata de la trilogía (viceversa).",
     "tienda": "https://admira.shop/mcp/",
