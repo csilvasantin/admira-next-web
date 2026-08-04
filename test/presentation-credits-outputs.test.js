@@ -54,8 +54,14 @@ test('generator, editor, portal and credits app expose both new deliverables',as
   assert.match(credits,/POSTCRÉDITOS/);
   assert.match(credits,/CONTINUARÁ…/);
   assert.match(credits,/postcreditos/);
-  assert.match(index,/v\.26\.07\.24\.r2/);
-  assert.match(index,/app\.js\?v=26\.07\.24\.r2/);
+  // El sello se lee del propio HTML, no se fija a mano: cuando la regla 07 cambió
+  // el formato (v.DD.MM.AAAA.rN.HH:MM) esta línea seguía exigiendo el de julio y
+  // dejó el test en rojo sin que nada del generador estuviera mal. Lo que hay que
+  // garantizar es el ACOPLAMIENTO —que app.js se cache-bustee con la release viva—,
+  // y eso no caduca. (NeoMBP16, 4 de agosto de 2026.)
+  const release=index.match(/name="admiranext-version" content="v\.([^"]+)"/)?.[1];
+  assert.ok(release,'la página de créditos declara su release');
+  assert.ok(index.includes(`app.js?v=${release}`),'app.js se versiona con la release viva');
 });
 
 test('generated client portal publishes only the selected credits tools',async()=>{
