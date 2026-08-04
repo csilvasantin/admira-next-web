@@ -176,6 +176,7 @@ export const PROYECTOS = [
     repo: 'csilvasantin/ainimation', repoTxt: 'ainimation',
     pages: null, publica: 'git push (GitHub Pages)',
     tipo: 'sitio', shot: '/webmaster-shots/ainimation.jpg',
+    nota: 'Director creativo IA (cast·stage·score). GitHub Pages en www.ainimation.studio. Alta/foco SmithMacMini 2026-08-04: sello canónico + version.json + tags AInimation-v.04.08.2026.r1 (viva) y AInimation-v.03.08.2026.r1 (retorno). Repo local: ~/Documents/Admirito/ainimation.',
   },
   {
     clave: 'admiraxperience', nombre: 'AdmiraXperience · DigitalTwin', url: null,
