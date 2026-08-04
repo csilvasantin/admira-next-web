@@ -9,7 +9,7 @@
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
   <link rel="icon" href="/favicon.ico">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="/tiktok/styles.css?v=20260804-16">
+  <link rel="stylesheet" href="/tiktok/styles.css?v=20260804-17">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.admiranext.com/tiktok/">
   <meta property="og:title" content="TikTok Ads 25s · ADmiraNeXT">
@@ -221,6 +221,13 @@
             <div class="safe safe-bottom">@ADmiraNeXT</div>
             <div class="video-progress"><span id="videoProgress"></span></div>
           </div>
+          <!-- Storyboard del video de Grok. Ocupa la columna de la izquierda —la
+               de ADmira Motion— mientras el video se va a la derecha, en vez de
+               dejar medio escenario vacio (Carlos, 4-ago-2026). -->
+          <figure class="grok-board" id="grokBoard" hidden>
+            <figcaption id="grokBoardCaption">Storyboard del vídeo generado</figcaption>
+            <div class="grok-board-strip" id="grokBoardStrip"></div>
+          </figure>
           <video class="grok-video" id="grokVideo" controls playsinline preload="metadata" crossorigin="anonymous" hidden aria-label="Vídeo puro generado con Grok"></video>
           <div class="timecode"><span id="timecode">00:00.0</span><b> / 00:15.0</b></div>
         </div>
@@ -420,6 +427,6 @@
   </footer>
 
   <script src="/assets/tiktok-core.js?v=20260802-9"></script>
-  <script src="/tiktok/app.js?v=20260804-16"></script>
+  <script src="/tiktok/app.js?v=20260804-17"></script>
 </body>
 </html>

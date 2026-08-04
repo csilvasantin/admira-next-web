@@ -486,6 +486,33 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); box-shado
 .mode-selector input:checked + span { border-color: var(--cyan); background: rgba(101, 233, 244, 0.09); box-shadow: inset 3px 0 0 var(--cyan); }
 .mode-selector input:focus-visible + span { outline: 2px solid var(--cyan); outline-offset: 3px; }
 .stage-shell { display: grid; justify-items: center; }
+/* ── Escenario en Grok: storyboard a la izquierda, video a la DERECHA ────────
+   Antes el video se quedaba centrado y media columna en blanco. Ahora esa
+   mitad la ocupa el storyboard del propio video (Carlos, 4-ago-2026).
+   Solo aplica con el motor Grok; en Motion el escenario sigue centrado. */
+body[data-production-mode="grok"] .stage-shell{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:20px; align-items:start; justify-items:stretch}
+body[data-production-mode="grok"] .grok-video{grid-column:2;justify-self:end}
+body[data-production-mode="grok"] .grok-board{grid-column:1;grid-row:1}
+body[data-production-mode="grok"] .timecode{grid-column:1 / -1}
+.grok-board{margin:0;padding:0;align-self:start}
+.grok-board figcaption{margin:0 0 9px;font:600 11px ui-monospace,monospace;
+  letter-spacing:.05em;opacity:.7;text-transform:uppercase}
+.grok-board-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.grok-board-shot{margin:0;position:relative}
+.grok-board-shot img{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;
+  border-radius:9px;background:#05090d;border:1px solid rgba(255,255,255,.08)}
+.grok-board-shot figcaption{position:absolute;left:5px;bottom:5px;margin:0;padding:2px 5px;
+  border-radius:5px;background:rgba(5,9,13,.8);font:600 9px/1.1 ui-monospace,monospace;
+  opacity:.95;text-transform:none;letter-spacing:.02em}
+.grok-board-note{margin:9px 0 0;font-size:11.5px;line-height:1.4;opacity:.72}
+@media(max-width:860px){
+  body[data-production-mode="grok"] .stage-shell{grid-template-columns:minmax(0,1fr)}
+  body[data-production-mode="grok"] .grok-video,
+  body[data-production-mode="grok"] .grok-board{grid-column:1;justify-self:stretch}
+  body[data-production-mode="grok"] .grok-board{grid-row:auto}
+}
 
 .phone-stage {
   --scene-accent: var(--cyan);

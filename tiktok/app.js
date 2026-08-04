@@ -27,6 +27,9 @@
   const exportVideo = $('#exportVideo');
   const exportStatus = $('#exportStatus');
   const storyboard = $('#storyboard');
+  const grokBoard = $('#grokBoard');
+  const grokBoardStrip = $('#grokBoardStrip');
+  const grokBoardCaption = $('#grokBoardCaption');
   const exportStoryboard = $('#exportStoryboard');
   const storyboardNote = $('#storyboardNote');
   const referenceFrames = $('#referenceFrames');
@@ -1103,6 +1106,7 @@
     grokResultActions.hidden = false;
     stage.hidden = true;
     grokVideo.hidden = false;
+    pintarStoryboardGrok();
   }
 
   /* ── Motor gratuito: Meta AI asistido ──────────────────────────────────────
@@ -1155,6 +1159,63 @@
     grokVideo.hidden = false;
     const mb = (file.size / (1024 * 1024)).toFixed(1);
     metaStatus.textContent = 'Video de Meta AI cargado (' + mb + ' MB). Ya puedes montar los 25 s y publicar en Pixeria.';
+    pintarStoryboardGrok();
+  }
+
+  /* ── Storyboard DEL VIDEO GENERADO (Carlos, 4-ago-2026) ────────────────────
+     El escenario dejaba media columna en blanco con el video centrado. Esa
+     mitad —la de ADmira Motion— pasa a enseñar el storyboard del propio video
+     de Grok: sus momentos, sacados del MP4 que se acaba de generar. Es el
+     storyboard de verdad, no una maqueta: son fotogramas del anuncio.
+
+     Se sacan del <video> con un canvas. Si la fuente es remota y no manda
+     CORS, el canvas queda "sucio" y toDataURL revienta: se dice y se deja el
+     video, en vez de fingir que no ha pasado nada. Con el MP4 de Meta AI, que
+     es un blob local, siempre funciona. */
+  async function pintarStoryboardGrok() {
+    if(!grokVideoUrl){ grokBoard.hidden = true; grokBoardStrip.replaceChildren(); return; }
+    try{
+      if(grokVideo.readyState < 1) await waitForMedia(grokVideo, 'loadedmetadata');
+      const dur = grokVideo.duration;
+      if(!Number.isFinite(dur) || dur <= 0) throw new Error('sin duración');
+      const canvas = document.createElement('canvas');
+      canvas.width = 216; canvas.height = 384;
+      const ctx = canvas.getContext('2d', {alpha:false});
+      const tomas = [];
+      const eraMudo = grokVideo.muted;
+      grokVideo.muted = true;
+      for(const f of [0.1, 0.5, 0.88]){
+        grokVideo.currentTime = Math.max(0, Math.min(dur - 0.05, dur * f));
+        await waitForMedia(grokVideo, 'seeked');
+        const escala = Math.max(canvas.width / grokVideo.videoWidth, canvas.height / grokVideo.videoHeight);
+        const w = grokVideo.videoWidth * escala, h = grokVideo.videoHeight * escala;
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(grokVideo, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+        tomas.push({src: canvas.toDataURL('image/jpeg', 0.78), t: grokVideo.currentTime});
+      }
+      grokVideo.muted = eraMudo;
+      grokVideo.currentTime = 0;
+      grokBoardStrip.replaceChildren(...tomas.map((toma, i) => {
+        const fig = document.createElement('figure');
+        fig.className = 'grok-board-shot';
+        const img = document.createElement('img');
+        img.src = toma.src; img.loading = 'lazy';
+        img.alt = `Escena ${i + 1} del vídeo generado, en el segundo ${toma.t.toFixed(1)}`;
+        const pie = document.createElement('figcaption');
+        pie.textContent = toma.t.toFixed(1) + 's';
+        fig.append(img, pie);
+        return fig;
+      }));
+      grokBoardCaption.textContent = `Storyboard del vídeo generado · ${tomas.length} escenas`;
+      grokBoard.hidden = false;
+    }catch(_){
+      grokBoardStrip.replaceChildren();
+      const aviso = document.createElement('p');
+      aviso.className = 'grok-board-note';
+      aviso.textContent = 'No se pudo sacar el storyboard de este vídeo: la fuente no permite leer sus fotogramas desde el navegador.';
+      grokBoardStrip.appendChild(aviso);
+      grokBoard.hidden = false;
+    }
   }
 
   function finishGrokVideo(payload) {
@@ -1225,6 +1286,7 @@
     grokResultActions.hidden = true;
     grokAccess.hidden = true;
     grokVideoUrl = '';
+    if(typeof grokBoard !== 'undefined' && grokBoard){ grokBoard.hidden = true; grokBoardStrip.replaceChildren(); }
     grokRequestId = '';
     packageOutput.hidden = true;
     packageOutput.classList.remove('is-published');
