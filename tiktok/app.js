@@ -808,14 +808,22 @@
      montaje como podria hacerlo una URL remota. */
   const META_URL = 'https://www.meta.ai/';
 
+  // Vibes genera vertical y corto, que es justo lo que pide el montaje; pero el
+  // prompt de arriba esta escrito para Grok, donde el formato va aparte (el
+  // selector de resolucion). Al pasarlo a Meta AI se le adjunta el formato que
+  // el propio estudio exige —9:16 y 15 s, el hueco entre las dos cortinillas—
+  // para que lo que vuelva encaje sin retocar. No se toca el prompt original.
+  const META_FORMATO = 'Formato: vídeo vertical 9:16, 15 segundos, sin texto sobreimpreso.';
+
   async function prepararMeta(){
     const prompt = (grokPrompt.value || '').trim();
     if(!prompt){
       metaStatus.textContent = 'Escribe antes el prompt: es lo que se copia.';
       return;
     }
+    const paraMeta = prompt + '\n\n' + META_FORMATO;
     let copiado = false;
-    try{ await navigator.clipboard.writeText(prompt); copiado = true; }catch(_){ copiado = false; }
+    try{ await navigator.clipboard.writeText(paraMeta); copiado = true; }catch(_){ copiado = false; }
     metaStatus.textContent = copiado
       ? 'Prompt copiado. Pegalo en Meta AI, genera el video y traelo con el boton de al lado.'
       : 'No he podido copiar solo: selecciona el prompt de arriba y copialo a mano.';
