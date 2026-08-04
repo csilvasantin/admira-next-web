@@ -418,16 +418,40 @@ async function retornosVivos(p, env, cache) {
   return { tags: (leido.tags || []).map((t) => t.name) };
 }
 
-/** El total vivo del censo canónico de Yokup, para poder contrastar carteras. */
-async function totalYokup() {
+/** El censo vivo de Yokup: cuántos proyectos hay y QUIÉNES pueden responder de
+ *  ellos. La lista de agentes sale de la propia Yokup (responsable, owner y
+ *  agentes asignados), así que cualquier nombre que ofrezca el desplegable es
+ *  uno que Yokup ya reconoce — aquí no se inventa ningún rótulo. */
+async function censoYokup() {
+  const vacio = { total: null, agentes: [] };
   const r = await traer('https://api.yokup.com/projects');
-  if (!r) return null;
+  if (!r) return vacio;
   try {
     const d = await r.json();
-    return Array.isArray(d && d.projects) ? d.projects.length : null;
+    if (!Array.isArray(d && d.projects)) return vacio;
+    const agentes = new Set();
+    d.projects.forEach((p) => {
+      [p.primary_responsible, p.owner, ...(Array.isArray(p.agents) ? p.agents : [])]
+        .forEach((a) => { const v = String(a || '').trim(); if (v) agentes.add(v); });
+    });
+    return { total: d.projects.length, agentes: [...agentes] };
   } catch (_) {
-    return null;
+    return vacio;
   }
+}
+
+/** Quién puede ser responsable: SOLO agentes del equipo AdmiraNeXT, es decir
+ *  los que llevan un apellido de equipo reconocido (NeoMacMini, MorfeoMBACrema…).
+ *  Los responsables ya asignados entran siempre aunque Yokup no los liste, para
+ *  que ninguna fila enseñe un desplegable sin su propio valor dentro. */
+export function censoAgentes(agentesYokup, responsablesEnUso) {
+  const censo = new Set([RESPONSABLE_POR_DEFECTO]);
+  (agentesYokup || []).forEach((a) => {
+    const v = normalizarResponsable(a);
+    if (equipoDelResponsable(v)) censo.add(v);
+  });
+  (responsablesEnUso || []).forEach((a) => { const v = String(a || '').trim(); if (v) censo.add(v); });
+  return [...censo].sort((a, b) => a.localeCompare(b, 'es'));
 }
 
 export const cantidadReleases = (sello) => {
@@ -459,7 +483,7 @@ export async function onRequestGet({ request, env }) {
     return json({ ok: true, parte, generado: new Date().toISOString(), proyectos });
   }
 
-  const [proyectos, yokupTotal, responsables] = await Promise.all([
+  const [proyectos, yokup, responsables] = await Promise.all([
     Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
       const v = await selloVivo(p, cache);
       const c = await veredicto(p, v, env, cache);
@@ -471,11 +495,13 @@ export async function onRequestGet({ request, env }) {
         control: c,
       };
     })),
-    totalYokup(),
+    censoYokup(),
     leerResponsables(env),
   ]);
 
   proyectos.forEach((p) => { p.responsable = normalizarResponsable(responsables[p.clave]); });
+  const yokupTotal = yokup.total;
+  const censo = censoAgentes(yokup.agentes, proyectos.map((p) => p.responsable));
 
   const cuenta = (e) => proyectos.filter((p) => p.control.estado === e).length;
   const claves = new Set(proyectos.map((p) => p.clave));
@@ -483,7 +509,7 @@ export async function onRequestGet({ request, env }) {
   const totalProyectos = proyectos.length - totalSubproyectos;
   return json({
     ok: true, parte, generado: new Date().toISOString(), total: proyectos.length,
-    totalProyectos, totalSubproyectos, yokupTotal,
+    totalProyectos, totalSubproyectos, yokupTotal, censo,
     coincideYokup: yokupTotal == null ? null : totalProyectos === yokupTotal,
     resumen: {
       ok: cuenta('ok'),

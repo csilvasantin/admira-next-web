@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 import { PROYECTOS } from "../functions/_proyectos.js";
-import { cantidadReleases, equipoDelResponsable, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
+import { cantidadReleases, censoAgentes, equipoDelResponsable, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
 
 const apiSource = fs.readFileSync(new URL("../functions/api/proyectos.js", import.meta.url), "utf8");
 const webmasterSource = fs.readFileSync(new URL("../webmaster.html", import.meta.url), "utf8");
@@ -39,7 +39,7 @@ test("Webmaster distingue proyectos raíz, subproyectos y el total canónico de 
   assert.match(apiSource, /https:\/\/api\.yokup\.com\/projects/);
   assert.match(apiSource, /totalProyectos, totalSubproyectos, yokupTotal/);
   assert.match(apiSource, /coincideYokup:/);
-  assert.match(webmasterSource, /data-sort="proyecto"[^>]*>Proyectos <span id="proyectosCuenta"/);
+  assert.match(webmasterSource, /data-sort="proyecto"[^>]*>Proyecto <span id="proyectosCuenta"/);
   assert.match(webmasterSource, /function ordenarJerarquia\(lista, comparar\)/);
   assert.match(webmasterSource, /class="tree-toggle"/);
   assert.match(webmasterSource, /conectarArbol\(\)/);
@@ -252,4 +252,37 @@ test("una portada compartida por varias filas se lee una sola vez por petición"
   } finally {
     globalThis.fetch = original;
   }
+});
+
+test("la columna se llama Proyecto y la de releases, Producción", () => {
+  assert.match(webmasterSource, /data-sort="proyecto"[^>]*>Proyecto <span id="proyectosCuenta"/);
+  assert.match(webmasterSource, /data-sort="releases"[^>]*>Producción <span/);
+  assert.doesNotMatch(webmasterSource, />En producción </);
+});
+
+test("el responsable se elige de un censo cerrado, no se escribe a mano", () => {
+  assert.match(webmasterSource, /<select class="responsable-input"/);
+  assert.doesNotMatch(webmasterSource, /<input class="responsable-input"/);
+  assert.match(webmasterSource, /function opcionesResponsable\(actual\)/);
+  assert.match(webmasterSource, /censoResponsables = Array\.isArray\(d\.censo\)/);
+  // Elegir en el desplegable guarda al instante, sin esperar a perder el foco.
+  assert.match(webmasterSource, /addEventListener\('change'[\s\S]{0,140}guardarResponsable\(e\.target\)/);
+  // Un valor que el servidor normalice y no esté en la lista no vacía la casilla.
+  assert.match(webmasterSource, /function fijarResponsable\(sel, valor\)/);
+  assert.match(apiSource, /censo,/);
+});
+
+test("el censo de responsables solo admite agentes con equipo del diccionario", () => {
+  const censo = censoAgentes(
+    ["MorfeoMBACrema", "TrinityMBP14", "Fulanito", "  OraculoMacMini  ", ""],
+    ["SmithMBAAzul"],
+  );
+  assert.ok(censo.includes("MorfeoMBACrema"));
+  assert.ok(censo.includes("TrinityMBP14"));
+  assert.ok(censo.includes("OraculoMacMini"), "los nombres llegan con espacios y hay que limpiarlos");
+  assert.ok(!censo.includes("Fulanito"), "sin apellido de equipo no es un agente de la flota");
+  assert.ok(censo.includes("SmithMBAAzul"), "un responsable ya asignado nunca puede faltar de su propia lista");
+  assert.ok(censo.includes(RESPONSABLE_POR_DEFECTO));
+  assert.deepEqual(censo, [...censo].sort((a, b) => a.localeCompare(b, "es")));
+  assert.equal(new Set(censo).size, censo.length, "sin repetidos");
 });

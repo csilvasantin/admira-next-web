@@ -77,9 +77,14 @@
   tr:last-child td{border-bottom:0}
   td.sol{color:var(--ink);font-weight:700;white-space:nowrap}
   td.ver{color:var(--neon2);font-weight:700;white-space:nowrap}
-  td.responsable{min-width:150px}
-  .responsable-input{width:100%;min-width:132px;border:1px solid transparent;border-radius:7px;
-    background:rgba(124,232,216,.035);color:var(--ink);padding:6px 8px;font:600 11.5px/1.25 var(--mono)}
+  td.responsable{min-width:176px}
+  /* Cabe el nombre canónico más largo (OraculoMBAPlata) sin comerse la flecha. */
+  .responsable-input{width:100%;min-width:158px;border:1px solid transparent;border-radius:7px;
+    background:rgba(124,232,216,.035);color:var(--ink);padding:6px 22px 6px 8px;font:600 11.5px/1.25 var(--mono);
+    -webkit-appearance:none;appearance:none;cursor:pointer;
+    background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+    background-size:5px 5px,5px 5px;background-position:calc(100% - 12px) 52%,calc(100% - 7px) 52%;background-repeat:no-repeat}
+  .responsable-input option{background:var(--bg);color:var(--ink)}
   .responsable-input:hover{border-color:var(--line)}
   .responsable-input:focus{border-color:var(--neon);outline:0;background:rgba(124,232,216,.08)}
   .responsable-input[disabled]{opacity:.65;cursor:wait}
@@ -235,9 +240,9 @@
     <div class="tbl">
       <table aria-label="Versión viva de cada proyecto y subproyecto">
         <thead><tr>
-          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="proyecto" aria-pressed="false">Proyectos <span id="proyectosCuenta" class="th-count">—</span><span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="proyecto" aria-pressed="false">Proyecto <span id="proyectosCuenta" class="th-count">—</span><span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="responsable" aria-pressed="false">Responsable <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="releases" aria-pressed="false">En producción <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th aria-sort="none"><button type="button" class="sort-btn" data-sort="releases" aria-pressed="false">Producción <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="norma" aria-pressed="false">Norma <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="repo" aria-pressed="false">Repositorio <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="publica" aria-pressed="false">Se publica con <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
@@ -514,6 +519,18 @@
   var cuentaProyectos = document.getElementById('proyectosCuenta');
   var botonesOrden = Array.prototype.slice.call(document.querySelectorAll('.sort-btn[data-sort]'));
   var proyectosVivos = [];
+  /* Quién puede ser responsable: lo dicta el censo que devuelve /api/proyectos
+     (agentes que Yokup ya reconoce). Aquí no se escribe a mano un nombre: la
+     casilla es un desplegable cerrado, así nadie asigna un agente inexistente. */
+  var censoResponsables = [];
+  function opcionesResponsable(actual){
+    var valor = actual || 'NeoMacMini';
+    var lista = censoResponsables.slice();
+    if (lista.indexOf(valor) === -1) lista.unshift(valor);
+    return lista.map(function(a){
+      return '<option value="' + esc(a) + '"' + (a === valor ? ' selected' : '') + '>' + esc(a) + '</option>';
+    }).join('');
+  }
   var ordenActual = null;
   if (!tabla) return;
 
@@ -636,7 +653,7 @@
     var clase = p._depth ? ' class="subproyecto depth-' + p._depth + '"' : '';
     return '<tr' + clase + ' data-project="' + esc(p.clave) + '" data-parent="' + esc(p.parentKey || '') + '">'
       + '<td class="sol">' + nombreSolucion(p) + '</td>'
-      + '<td class="responsable"><input class="responsable-input" data-responsable="' + esc(p.clave) + '" value="' + esc(p.responsable || 'NeoMacMini') + '" maxlength="80" aria-label="Responsable de ' + esc(p.nombre) + '"><small class="responsable-state" aria-live="polite"></small></td>'
+      + '<td class="responsable"><select class="responsable-input" data-responsable="' + esc(p.clave) + '" aria-label="Responsable de ' + esc(p.nombre) + '">' + opcionesResponsable(p.responsable) + '</select><small class="responsable-state" aria-live="polite"></small></td>'
       + '<td class="ver">' + ver + '</td>'
       + '<td><span class="norma ' + esc(c.estado || 'pendiente') + '" title="' + esc(c.texto || '') + '">'
       +   esc(ETIQUETA[c.estado] || c.estado || '—') + '</span></td>'
@@ -647,6 +664,16 @@
 
   function proyectoPorClave(clave){
     return proyectosVivos.find(function(p){ return p.clave === clave; });
+  }
+
+  /* Un <select> se queda en blanco si le asignas un valor que no está entre sus
+     opciones. Si el servidor devuelve un nombre normalizado que aún no figura,
+     se añade antes de seleccionarlo: la casilla nunca se queda vacía. */
+  function fijarResponsable(sel, valor){
+    if (!valor) return;
+    var existe = Array.prototype.some.call(sel.options, function(o){ return o.value === valor; });
+    if (!existe) sel.insertBefore(new Option(valor, valor), sel.firstChild);
+    sel.value = valor;
   }
 
   function guardarResponsable(input){
@@ -668,11 +695,11 @@
     }).then(function(r){ return r.json().then(function(d){ if (!r.ok || !d.ok) throw new Error(d.error || 'no se pudo guardar'); return d; }); })
       .then(function(d){
         p.responsable = d.responsable;
-        input.value = d.responsable;
+        fijarResponsable(input, d.responsable);
         estado.className = 'responsable-state ok'; estado.textContent = d.yokupSynced ? 'guardado · Yokup' : 'guardado';
       })
       .catch(function(e){
-        p.responsable = anterior; input.value = anterior;
+        p.responsable = anterior; fijarResponsable(input, anterior);
         estado.className = 'responsable-state error'; estado.textContent = e.message;
       })
       .then(function(){ input.disabled = false; });
@@ -682,6 +709,11 @@
     if (e.target.matches('.responsable-input')) e.target.dataset.original = e.target.value;
   });
   tabla.addEventListener('focusout', function(e){
+    if (e.target.matches('.responsable-input')) guardarResponsable(e.target);
+  });
+  /* Un desplegable se decide al elegir, no al salir de la casilla: sin esto el
+     cambio no viajaría a Yokup hasta que el foco se fuera a otro sitio. */
+  tabla.addEventListener('change', function(e){
     if (e.target.matches('.responsable-input')) guardarResponsable(e.target);
   });
   tabla.addEventListener('keydown', function(e){
@@ -783,6 +815,7 @@
     .then(function(d){
       if (!d.ok) throw new Error(d.error || 'sin datos');
       proyectosVivos = d.proyectos || [];
+      censoResponsables = Array.isArray(d.censo) ? d.censo : [];
       pintarTabla();
       pintarCuenta(d);
       pintarResumen(d);
