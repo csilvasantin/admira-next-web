@@ -353,9 +353,36 @@
     if (plan) setScene(plan.scenes[0], true);
   }
 
-  function createStoryCard(scene, index) {
+  /* ── Storyboard CON IMAGEN (Carlos, 4-ago-2026) ────────────────────────────
+     Eran tres tarjetas de texto. Ahora cada una lleva el fotograma REAL de su
+     escena: no es una ilustracion aproximada de "como quedaria", es el mismo
+     pintor —drawFrame— que exporta el video, congelado a mitad de escena. Lo
+     que ves en el storyboard es literalmente lo que se va a exportar.
+     Se pinta a mitad de escena (0.5) porque al principio la entrada aun esta
+     animandose y el rotulo no ha terminado de aparecer.
+     Gratis, sin terceros y sin esperar: se dibuja en el mismo navegador. */
+  function storyFrame(planData, scene) {
+    try{
+      const canvas = document.createElement('canvas');
+      canvas.width = 216; canvas.height = 384;          // 9:16, el mismo encuadre
+      const ctx = canvas.getContext('2d', {alpha:false});
+      drawFrame(ctx, planData, scene.from + (scene.to - scene.from) * 0.5);
+      const img = document.createElement('img');
+      img.className = 'story-shot';
+      img.src = canvas.toDataURL('image/jpeg', 0.82);
+      img.alt = 'Fotograma de la escena: ' + scene.headline;
+      img.loading = 'lazy';
+      return img;
+    }catch(_){
+      return null;   // si el pintor falla, la tarjeta sigue siendo util en texto
+    }
+  }
+
+  function createStoryCard(scene, index, planData) {
     const article = document.createElement('article');
     article.className = 'story-card';
+    const shot = planData ? storyFrame(planData, scene) : null;
+    if(shot) article.appendChild(shot);
     const header = document.createElement('header');
     const number = document.createElement('span');
     number.textContent = `0${index + 1}`;
@@ -433,7 +460,7 @@
     wordCount.textContent = String(plan.pace.words);
     paceStatus.textContent = plan.pace.label;
     paceStatus.style.color = plan.pace.level === 'too-fast' ? '#ff7a30' : '';
-    storyboard.replaceChildren(...plan.scenes.map(createStoryCard));
+    storyboard.replaceChildren(...plan.scenes.map((scene, i) => createStoryCard(scene, i, plan)));
     proofChip.textContent = plan.presenter.name.toUpperCase() + ' · 15S';
     syncGrokPrompt();
     saveDraft();
