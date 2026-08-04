@@ -816,3 +816,23 @@ footer {
   .story-card .story-shot{transition:transform .18s}
   .story-card:hover .story-shot{transform:scale(1.015)}
 }
+
+
+/* ── Imagen de escena con Meta AI (FLT-1189) ────────────────────────────────
+   El distintivo NO es decoracion: una imagen generada no es lo que se va a
+   exportar, y el storyboard tiene que seguir diciendo la verdad. */
+.story-card{position:relative}
+.story-card.story-ia .story-shot{border-color:rgba(122,167,255,.5)}
+.story-card.story-ia::before{content:"IDEA · META AI";position:absolute;top:9px;left:9px;z-index:2;
+  padding:3px 7px;border-radius:6px;background:rgba(6,12,22,.82);border:1px solid rgba(122,167,255,.45);
+  color:#9dbcff;font:700 9px/1.1 ui-monospace,monospace;letter-spacing:.06em}
+.story-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.story-act{appearance:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+  border:1px solid var(--line,#243049);border-radius:8px;background:rgba(255,255,255,.03);
+  color:inherit;padding:5px 9px;font:600 10.5px ui-monospace,monospace;letter-spacing:.02em;
+  transition:border-color .15s,color .15s}
+.story-act:hover{border-color:rgba(122,167,255,.5);color:#9dbcff}
+.story-act:focus-visible{outline:2px solid #7aa7ff;outline-offset:2px}
+.story-file{position:relative;overflow:hidden}
+.story-file input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.story-note{margin:7px 0 0;font-size:11.5px;line-height:1.4;opacity:.75;min-height:1.1em}

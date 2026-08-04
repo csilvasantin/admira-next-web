@@ -378,6 +378,114 @@
     }
   }
 
+  /* ── Imagen de escena con Meta AI (Carlos, 4-ago-2026 · FLT-1189) ──────────
+     El fotograma real sigue siendo el que manda: es lo que se va a exportar.
+     Pero para presentar una idea antes de producirla a veces quieres una
+     imagen mas evocadora, y Meta AI la hace gratis. Como no hay API de imagen,
+     va asistido igual que el video: el estudio escribe el prompt del PLANO
+     —no del anuncio entero— y la imagen vuelve por un selector.
+
+     El prompt se construye con lo que ya sabe la escena: su titular, lo que
+     cuenta y la direccion de plano, mas el formato que el storyboard necesita.
+     Nada inventado: si el guion no lo dice, no se escribe.
+
+     Y se marca. Una imagen generada NO es lo que se va a exportar, asi que
+     lleva distintivo y se puede volver al fotograma real de un clic — si no,
+     el storyboard dejaria de decir la verdad, que era su gracia. */
+  function promptDeEscena(planData, scene, index) {
+    const partes = [
+      `Fotograma ${index + 1} de un anuncio vertical.`,
+      scene.headline ? `Idea del plano: ${scene.headline}` : '',
+      scene.body ? `Cuenta: ${scene.body}` : '',
+      scene.direction ? `Direccion: ${scene.direction}` : '',
+      planData?.brief?.task ? `Contexto: ${planData.brief.task}` : '',
+      'Formato: imagen vertical 9:16, fotograma fijo, sin texto sobreimpreso.'
+    ];
+    return partes.filter(Boolean).join('\n');
+  }
+
+  function accionesDeEscena(planData, scene, index, article, shot) {
+    const fila = document.createElement('div');
+    fila.className = 'story-actions';
+
+    const aviso = document.createElement('p');
+    aviso.className = 'story-note';
+    aviso.setAttribute('role', 'status');
+    aviso.setAttribute('aria-live', 'polite');
+
+    const pedir = document.createElement('button');
+    pedir.type = 'button';
+    pedir.className = 'story-act';
+    pedir.textContent = 'Prompt → Meta AI';
+    pedir.setAttribute('aria-label', `Copiar el prompt de imagen de la escena ${index + 1} y abrir Meta AI`);
+    pedir.addEventListener('click', async () => {
+      const texto = promptDeEscena(planData, scene, index);
+      let copiado = false;
+      try{ await navigator.clipboard.writeText(texto); copiado = true; }catch(_){ copiado = false; }
+      aviso.textContent = copiado
+        ? 'Prompt del plano copiado. Generalo en Meta AI y traelo con «Traer imagen».'
+        : 'No he podido copiar solo. Abre Meta AI y describe el plano a mano.';
+      window.open(META_URL, '_blank', 'noopener');
+    });
+
+    const etiqueta = document.createElement('label');
+    etiqueta.className = 'story-act story-file';
+    const rotulo = document.createElement('span');
+    rotulo.textContent = 'Traer imagen';
+    const entrada = document.createElement('input');
+    entrada.type = 'file';
+    entrada.accept = 'image/png,image/jpeg,image/webp';
+    entrada.setAttribute('aria-label', `Traer la imagen de Meta AI para la escena ${index + 1}`);
+    etiqueta.append(rotulo, entrada);
+
+    const volver = document.createElement('button');
+    volver.type = 'button';
+    volver.className = 'story-act story-revert';
+    volver.textContent = 'Volver al fotograma';
+    volver.hidden = true;
+    volver.setAttribute('aria-label', `Devolver la escena ${index + 1} al fotograma real del anuncio`);
+
+    const origen = shot ? shot.src : '';
+    let generada = '';
+
+    function marcar(esGenerada) {
+      article.classList.toggle('story-ia', esGenerada);
+      volver.hidden = !esGenerada;
+    }
+
+    entrada.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      if(!/^image\//.test(file.type || '')){
+        aviso.textContent = 'Ese fichero no es una imagen.';
+        return;
+      }
+      if(!shot){
+        aviso.textContent = 'Esta escena no tiene hueco de imagen.';
+        return;
+      }
+      if(generada) URL.revokeObjectURL(generada);
+      generada = URL.createObjectURL(file);
+      shot.src = generada;
+      shot.alt = `Imagen generada con Meta AI para la escena ${index + 1}: ${scene.headline}`;
+      marcar(true);
+      aviso.textContent = 'Imagen de Meta AI puesta. Ojo: es una idea, no el fotograma que se exportara.';
+      entrada.value = '';
+    });
+
+    volver.addEventListener('click', () => {
+      if(!shot) return;
+      if(generada){ URL.revokeObjectURL(generada); generada = ''; }
+      shot.src = origen;
+      shot.alt = 'Fotograma de la escena: ' + scene.headline;
+      marcar(false);
+      aviso.textContent = 'De vuelta al fotograma real del anuncio.';
+    });
+
+    fila.append(pedir, etiqueta, volver);
+    return { fila, aviso };
+  }
+
   function createStoryCard(scene, index, planData) {
     const article = document.createElement('article');
     article.className = 'story-card';
@@ -396,6 +504,10 @@
     const footer = document.createElement('footer');
     footer.textContent = scene.direction;
     article.append(header, title, body, footer);
+    if(shot){
+      const {fila, aviso} = accionesDeEscena(planData, scene, index, article, shot);
+      article.append(fila, aviso);
+    }
     return article;
   }
 
