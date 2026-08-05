@@ -155,9 +155,11 @@ test("la ficha canónica de Yokup se resuelve sin inventar proyectos", () => {
   const censo = [
     { id:"yokup", name:"Yokup", web:"www.yokup.com" },
     { id:"webmaster-admiranext", name:"Webmaster AdmiraNeXT", web:"https://www.admiranext.com/webmaster" },
+    { id:"xpaceos", name:"XpaceOS", web:"https://www.xpaceos.com" },
   ];
   assert.equal(resolverProyectoYokup(PROYECTOS.find((p) => p.clave === "yokup"), censo).id, "yokup");
   assert.equal(resolverProyectoYokup(PROYECTOS.find((p) => p.clave === "admiranext-webmaster"), censo).id, "webmaster-admiranext");
+  assert.equal(resolverProyectoYokup(PROYECTOS.find((p) => p.clave === "admira-store"), censo).id, "xpaceos");
   assert.equal(resolverProyectoYokup({ clave:"sin-ficha", nombre:"Sin ficha", url:"https://sin-ficha.example" }, censo), null);
 });
 

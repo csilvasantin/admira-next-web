@@ -95,9 +95,11 @@ export const PROYECTOS = [
   },
   {
     clave: 'admira-store', nombre: 'admira.store', url: 'https://admira.store',
+    yokupId: 'xpaceos',
     repo: 'csilvasantin/admira-store', repoTxt: 'admira-store',
     pages: 'admira-store', publica: './deploy.sh',
     tipo: 'sitio', shot: '/webmaster-shots/admira-store.jpg',
+    nota: 'Espejo de xpaceos.com con identidad visual propia; comparte su ficha canónica XpaceOS y su responsable en Yokup.',
   },
   {
     clave: 'admira-tv', nombre: 'admira.tv', url: 'https://admira.tv',
