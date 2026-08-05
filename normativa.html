@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.04.08.2026.r3.18:15">
+<meta name="admiranext-version" content="v.05.08.2026.r1.09:50">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -437,6 +437,34 @@
         </div>
       </div>
     </article>
+    <article class="art" id="n11">
+      <div class="num">11</div>
+      <div>
+        <h2>Modo rápido siempre puesto</h2>
+        <p>Todo agente de la flota trabaja con el <b>modo rápido activado por defecto</b>. No es un
+          atajo ni una rebaja: el modo rápido de Claude Code sigue ejecutando <b>Claude Opus</b> y
+          sólo acelera la salida — <b>no baja a un modelo menor</b>. Dejarlo apagado hace esperar a
+          todo el mundo sin ganar nada a cambio.</p>
+        <div class="formula">Sesión nueva → modo rápido ON · el mismo Opus, la salida antes</div>
+        <p>Es un <b>interruptor de sesión</b>, no una clave de configuración: se pone con
+          <code>/fast</code> dentro de Claude Code y no queda guardado en
+          <code>settings.json</code> ni existe bandera de línea de comandos que lo fije. Por eso
+          vive aquí: es una norma que cada agente comprueba <b>al arrancar</b>, no algo que se
+          herede solo. Disponible en Opus 5 y Opus 4.8.</p>
+        <div class="tbl">
+          <table aria-label="Regla operativa del modo rápido">
+            <thead><tr><th>Situación</th><th>Regla</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>Sesión nueva</td><td>Modo rápido activado</td><td>El mismo Opus, respuesta antes</td></tr>
+              <tr><td>Lo encuentras apagado</td><td>Se pone con <code>/fast</code></td><td>Sin cambio de modelo ni de calidad</td></tr>
+              <tr><td>El equipo no lo admite</td><td>Se dice, no se simula</td><td>Queda constancia en el Diario de Silicio</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Guardado también en la Cúpula como <code>MODO_RAPIDO</code>, para que cualquier agente lo
+          lea al arrancar sin depender de esta página. Decisión de Carlos, 05-08-2026.</p>
+      </div>
+    </article>
   </main>
 
   <footer>
@@ -448,7 +476,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.04.08.2026.r3.18:15</span>
+      <span style="opacity:.8">v.05.08.2026.r1.09:50</span>
     </div>
   </footer>
 </div>
