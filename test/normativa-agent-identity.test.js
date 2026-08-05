@@ -15,3 +15,12 @@ test("la normativa exige cada día el apellido físico completo del agente", asy
   );
   assert.match(identityRule, /Oraculo \+ Mac Mini = OraculoMacMini/);
 });
+
+test("la normativa arranca Codex, Claude y los CLIs a máxima velocidad", async () => {
+  const html = await readFile(new URL("../normativa.html", import.meta.url), "utf8");
+  const speedRule = html.match(/<article class="art" id="n11">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(speedRule, /Máxima velocidad por defecto/);
+  assert.match(speedRule, /Codex, Claude y todos los CLIs arrancan por defecto a la máxima velocidad disponible/);
+  assert.match(speedRule, /mayor consumo/);
+});

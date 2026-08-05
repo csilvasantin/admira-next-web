@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.05.08.2026.r1.09:50">
+<meta name="admiranext-version" content="v.05.08.2026.r2.09:52">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -440,29 +440,29 @@
     <article class="art" id="n11">
       <div class="num">11</div>
       <div>
-        <h2>Modo rápido siempre puesto</h2>
-        <p>Todo agente de la flota trabaja con el <b>modo rápido activado por defecto</b>. No es un
-          atajo ni una rebaja: el modo rápido de Claude Code sigue ejecutando <b>Claude Opus</b> y
-          sólo acelera la salida — <b>no baja a un modelo menor</b>. Dejarlo apagado hace esperar a
-          todo el mundo sin ganar nada a cambio.</p>
-        <div class="formula">Sesión nueva → modo rápido ON · el mismo Opus, la salida antes</div>
-        <p>Es un <b>interruptor de sesión</b>, no una clave de configuración: se pone con
-          <code>/fast</code> dentro de Claude Code y no queda guardado en
-          <code>settings.json</code> ni existe bandera de línea de comandos que lo fije. Por eso
-          vive aquí: es una norma que cada agente comprueba <b>al arrancar</b>, no algo que se
-          herede solo. Disponible en Opus 5 y Opus 4.8.</p>
+        <h2>Máxima velocidad por defecto</h2>
+        <p><b>Codex, Claude y todos los CLIs arrancan por defecto a la máxima velocidad disponible.</b>
+          El mayor consumo es un coste consciente para priorizar tiempo, capacidad de ejecución y
+          productividad del equipo de silicio.</p>
+        <div class="formula">Arranque → máxima velocidad disponible · menor latencia · mayor consumo aceptado</div>
+        <p>En Claude Code se activa <code>/fast</code> cuando está disponible: sigue ejecutando el
+          mismo modelo y acelera la salida, sin rebajar la calidad. Como es un interruptor de sesión,
+          cada agente lo comprueba <b>al arrancar</b>. En Codex y en los demás CLIs se selecciona el
+          control o perfil de velocidad más alto que ofrezca realmente esa superficie.</p>
         <div class="tbl">
-          <table aria-label="Regla operativa del modo rápido">
-            <thead><tr><th>Situación</th><th>Regla</th><th>Resultado</th></tr></thead>
+          <table aria-label="Regla de máxima velocidad por defecto">
+            <thead><tr><th>Superficie</th><th>Arranque normativo</th><th>Resultado</th></tr></thead>
             <tbody>
-              <tr><td>Sesión nueva</td><td>Modo rápido activado</td><td>El mismo Opus, respuesta antes</td></tr>
-              <tr><td>Lo encuentras apagado</td><td>Se pone con <code>/fast</code></td><td>Sin cambio de modelo ni de calidad</td></tr>
-              <tr><td>El equipo no lo admite</td><td>Se dice, no se simula</td><td>Queda constancia en el Diario de Silicio</td></tr>
+              <tr><td>Codex</td><td>Máxima velocidad disponible</td><td>Menor latencia con el perfil elegido</td></tr>
+              <tr><td>Claude Code</td><td><code>/fast</code> cuando esté disponible</td><td>El mismo modelo, respuesta antes</td></tr>
+              <tr><td>CLIs y agentes autónomos</td><td>Perfil más rápido disponible</td><td>Nunca lento por defecto</td></tr>
             </tbody>
           </table>
         </div>
-        <p>Guardado también en la Cúpula como <code>MODO_RAPIDO</code>, para que cualquier agente lo
-          lea al arrancar sin depender de esta página. Decisión de Carlos, 05-08-2026.</p>
+        <p>La velocidad solo se reduce por una instrucción expresa de Carlos o por una limitación
+          técnica, térmica o de cuota. Si el modo máximo no existe o no está disponible, el agente
+          lo declara: no inventa una aceleración ni trabaja más lento en silencio. La Cúpula conserva
+          esta directriz para que se lea en cada arranque. Decisión de Carlos, 05-08-2026.</p>
       </div>
     </article>
   </main>
@@ -476,7 +476,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.05.08.2026.r1.09:50</span>
+      <span style="opacity:.8">v.05.08.2026.r2.09:52</span>
     </div>
   </footer>
 </div>
