@@ -466,6 +466,51 @@
       </div>
     </article>
 
+    <article class="art" id="n12">
+      <div class="num">12</div>
+      <div>
+      <h2>El proyecto acompaña al agente responsable</h2>
+      <p>En <code>/misiones</code>, toda misión con proyecto asignado muestra su nombre <b>debajo del agente</b>.
+        Es un rótulo informativo, no un control: no se convierte en enlace, selector, campo ni botón.</p>
+      <p>La responsabilidad sale del censo de proyectos: manda <code>primary_responsible</code> y,
+        si falta, se usa <code>owner</code>. La comparación se hace exclusivamente con
+        <code>ykAgentIdentity.same(assignee, responsable)</code>, por familia de persona y
+        aceptando los alias históricos; por ejemplo, <b>Oraculo y OraculoMacMini son la misma familia</b>.</p>
+      <table aria-label="Color del proyecto bajo el agente">
+          <thead><tr><th>Situación</th><th>Rótulo</th><th>Color</th></tr></thead>
+          <tbody>
+            <tr><td>Agente y responsable son de la misma familia</td><td>Nombre del proyecto bajo el agente</td><td>Verde</td></tr>
+            <tr><td>La misión tiene proyecto, pero el agente no es su responsable</td><td>Nombre del proyecto bajo el agente</td><td>Amarillo</td></tr>
+            <tr><td>La misión no tiene proyecto asignado</td><td>No se muestra ningún rótulo</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="art" id="n13">
+      <div class="num">13</div>
+      <div>
+      <h2>Siempre la última versión — y su autor</h2>
+      <p>Antes de tocar, desplegar, informar o dar por bueno un sitio, el agente <b>comprueba qué
+        versión está viva</b> y <b>quién la publicó</b>. No se improvisa el sello ni se asume que
+        el checkout local es producción.</p>
+      <div class="formula">Fuente canónica → <a href="https://www.admiranext.com/webmaster">admiranext.com/webmaster</a></div>
+      <p>En el Webmaster hay siempre: la versión en producción de cada solución, el listado de
+        versiones anteriores, los puntos de retorno y cómo se publica o se vuelve atrás.</p>
+      <table aria-label="Qué hay que asegurar sobre la versión">
+          <thead><tr><th>Qué</th><th>Dónde</th><th>Para qué</th></tr></thead>
+          <tbody>
+            <tr><td>Última versión viva</td><td>webmaster · sello en pie/meta</td><td>No trabajar sobre un fantasma</td></tr>
+            <tr><td>Historial / retornos</td><td>Tags en webmaster</td><td>Poder deshacer</td></tr>
+            <tr><td>Autor del cambio</td><td>Tag/commit · agente en anuncio · pie del release</td><td>Saber a quién preguntar y auditar</td></tr>
+          </tbody>
+        </table>
+      <p>Al publicar, el autor se deja visible: mensaje de deploy, anuncio en el canal común
+        (quién · qué sello · URL) y, si hay tag, mensaje del tag. Un release sin autor es un
+        release incompleto — igual que uno sin punto de retorno.</p>
+      </div>
+    </article>
+
     <article class="art" id="n14">
       <div class="num">14</div>
       <div>
