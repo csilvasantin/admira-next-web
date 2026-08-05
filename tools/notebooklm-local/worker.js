@@ -8,7 +8,7 @@ import ffmpegPath from 'ffmpeg-static';
 import sharp from 'sharp';
 import {brandPdf,brandPowerPoint} from './brand-deck.js';
 import {generateVisualBrief} from './visual-brief.js';
-import {buildNotebookSourceBundle,sanitizeInfographicBranding,sanitizePowerPointBranding,verifiedWatermark} from './fidelity-bridge.js';
+import {buildNotebookSourceBundle,sanitizeInfographicBranding,sanitizePdfBranding,sanitizePowerPointBranding,verifiedWatermark} from './fidelity-bridge.js';
 
 const HERE=path.dirname(new URL(import.meta.url).pathname);
 const ROOT=path.resolve(HERE,'../..');
@@ -187,7 +187,7 @@ async function processNext(browser){
 async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
   const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',pdf:'tablet',powerpoint:'tablet',infographic:'stacked_bar_chart'};
-  const waitingStarted=Date.now(),artifactFidelityReports={};let lastHeartbeat=0;
+  const waitingStarted=Date.now(),artifactFidelityReports={};let lastHeartbeat=0,cleanedDeckForPdf='';
   await setStage(job,tasks,'NotebookLM está procesando los entregables',55);
   while(pending.size&&Date.now()<deadline){
     await sleep(20000);
@@ -197,7 +197,9 @@ async function waitAndPublish(page,job,tasks,clientLogo){
       lastHeartbeat=Date.now();
     }
     const text=await page.evaluate(()=>document.body.innerText||'');
-    for(const [output,task] of [...pending]){
+    const ordered=[...pending].sort(([left],[right])=>(left==='powerpoint'?0:left==='pdf'?1:2)-(right==='powerpoint'?0:right==='pdf'?1:2));
+    for(const [output,task] of ordered){
+      if(output==='pdf'&&pending.has('powerpoint')&&!cleanedDeckForPdf)continue;
       const generating=output==='audio'?'Generando resumen de audio':output==='video'?'Generando resumen del vídeo':output==='infographic'?'Generando infografía':'Generando presentación';
       if(text.includes(generating))continue;
       const before=new Set(await fs.readdir(DOWNLOADS).catch(()=>[]));
@@ -228,15 +230,19 @@ async function waitAndPublish(page,job,tasks,clientLogo){
           publishable=sanitized.file;fidelityReport=sanitized.report;
         }else if(output==='powerpoint'){
           const watermarkHashes=String(process.env.NOTEBOOKLM_WATERMARK_HASHES||'').split(',').map(value=>value.trim());
-          const sanitized=await sanitizePowerPointBranding(downloaded,{watermarkHashes});
-          publishable=sanitized.file;fidelityReport=sanitized.report;
+          const sanitized=await sanitizePowerPointBranding(downloaded,{watermarkHashes,trustedProvider:'notebooklm',rasterizedProviderCorner:true});
+          publishable=sanitized.file;cleanedDeckForPdf=sanitized.file;fidelityReport=sanitized.report;
           if(forceDeckLogo){
             publishable=await brandPowerPoint(publishable,clientLogo);
             fidelityReport={...fidelityReport,legacyLogoOverlay:true};
           }
-        }else if(output==='pdf'&&forceDeckLogo){
-          publishable=await brandPdf(downloaded,clientLogo);
-          fidelityReport={changed:true,mode:'legacy-logo-overlay'};
+        }else if(output==='pdf'){
+          const sanitized=await sanitizePdfBranding(downloaded,{trustedProvider:'notebooklm',rasterizedProviderCorner:true,rasterDeckFile:cleanedDeckForPdf});
+          publishable=sanitized.file;fidelityReport=sanitized.report;
+          if(forceDeckLogo){
+            publishable=await brandPdf(publishable,clientLogo);
+            fidelityReport={...fidelityReport,legacyLogoOverlay:true};
+          }
         }
         artifactFidelityReports[task.id]=fidelityReport;
         await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{artifactFidelity:artifactFidelityReports}});
