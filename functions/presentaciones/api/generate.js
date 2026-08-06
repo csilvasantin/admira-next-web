@@ -8,6 +8,7 @@ import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
 import {normalizeSlideMedia} from '../_slide-media.js';
 import {normalizeSourceTraceability} from '../_source-traceability.js';
+import {generateNarrative,mergeNarrative} from '../_skeleton.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 
@@ -72,7 +73,7 @@ function buildIdeas(input, slug, languages){
       idea('piloto','El primer piloto',`Empezar pequeño, medir de verdad y escalar lo que funciona.`,`Un espacio, dos recorridos prioritarios, cuatro semanas de aprendizaje y un cuadro compartido de métricas.`)
     ],
     closing:{title:`Elijamos el primer espacio de ${name}.`,action:'Definir problema, ubicación, responsables, señales disponibles y tres métricas de éxito.'},
-    labels:{objective:'El objetivo',next:'Siguiente paso'},
+    labels:{objective:'El objetivo',next:'Siguiente paso'}, narrativeSource:'template',
     notes:`Fuente inicial generada para ${name}. Validar identidad, datos, problema y lenguaje antes de compartir. Web oficial y fuente de marca: ${input.website}. Inspiración visual: ${input.inspiration?.url || input.website}. Logo oficial obligatorio: ${input.brand?.logoUrl || 'no localizado'}.`,
     updatedAt:new Date().toISOString()
   };
@@ -201,7 +202,7 @@ export async function onRequestPut(context){
     input.brand=await persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis});
   }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
   input.inspiration=inspiration;
-  const ideas=buildIdeas(input,slug,languages);
+  const ideas=mergeNarrative(buildIdeas(input,slug,languages),await generateNarrative(context.env,input),input);
   ideas.terminology=terminology;
   let sourceTraceability;
   try{
