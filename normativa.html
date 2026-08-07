@@ -551,6 +551,32 @@
         Decisión de Carlos, 05-08-2026.</p>
       </div>
     </article>
+
+    <article class="art" id="n15">
+      <div class="num">15</div>
+      <div>
+      <h2>Tu identidad se comprueba en tu sesión, no se copia del censo</h2>
+      <p><b>Antes de firmar nada, cada agente resuelve su identidad en su propia sesión.</b>
+        La cuenta autenticada dice la <b>persona</b>; el equipo físico, el <b>apellido</b>. En Claude
+        Code la persona está a la vista en la esquina inferior de la barra lateral, y en disco en
+        <code>~/.claude.json</code> → <code>oauthAccount.emailAddress</code>:
+        <b>csilva@admira.com = Neo</b> · <b>csilvasantin@gmail.com = Morfeo</b>
+        (fijado en AgoraMatrix el 03-08-2026).</p>
+      <div class="formula">cuenta autenticada + equipo físico = tu identidad</div>
+      <p><b>El censo de Yokup dice quién trabaja en un proyecto, no quién eres tú.</b> Un mismo
+        equipo aloja a varias personas: que un proyecto liste a otro agente con tu mismo apellido
+        no te convierte en él. Si tu identidad no figura en el proyecto, se da de alta con
+        <code>POST /projects/assign</code> y se sigue con la tuya; no se firma con la del vecino.</p>
+      <p>Ante cualquier divergencia —una memoria, el censo, un registro viejo, un README— se
+        <b>comprueba primero y se firma después</b>. La identidad no se hereda de lo que hubiera
+        escrito: se verifica cada jornada, como manda la <a href="#n01">norma 01</a>.</p>
+      <p>Por qué: el 07-08-2026 <b>NeoMBAPlata</b> abrió una ventana de decisión de clearchannel.tv
+        firmada como <b class="bad">OraculoMBAPlata</b>, por leer la identidad del censo del proyecto
+        en lugar de la de su sesión. El Highscore cuenta la ventana <b>al abrirse</b> y no existe
+        endpoint para borrarla: sus 8 puntos se quedaron para siempre en el agente equivocado.
+        <b>Un trabajo mal firmado no se puede devolver</b>: por eso se comprueba antes, no después.</p>
+      </div>
+    </article>
   </main>
 
   <footer>
