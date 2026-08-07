@@ -24,7 +24,10 @@
   a{color:inherit;text-decoration:none}
   button{font:inherit}
   button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
-  .app-shell{position:relative;z-index:1;min-height:100vh;padding-left:var(--rail);padding-top:var(--topbar)}
+  /* El armazón ya no es de esta página: la barra de la cuadrícula es fija y de 46px,
+   y los raíles son cajones que se superponen, no columnas que empujen el contenido.
+   Reservar --rail a la izquierda dejaba una franja muerta donde ya no hay nada. */
+  .app-shell{position:relative;z-index:1;min-height:100vh;padding-left:0;padding-top:var(--yk-bar-h,46px)}
   .topbar{position:fixed;z-index:20;inset:0 0 auto var(--rail);height:var(--topbar);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,3vw,36px);border-bottom:1px solid var(--line);background:rgba(5,9,13,.9);backdrop-filter:blur(18px)}
   .brand-lockup,.top-actions,.mode-switch{display:flex;align-items:center}
   .brand-lockup{gap:12px;font:800 12px/1 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--ink)}
@@ -93,43 +96,12 @@
   @media (max-width:480px){.brand-lockup span{display:none}.mode-switch button{font-size:9px;padding:0 7px}.top-actions{gap:6px}}
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 </style>
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.07.08.2026">
 </head>
-<body>
-  <aside class="side-rail" aria-label="Navegación principal">
-    <a class="rail-mark" href="/" aria-label="ADmiraNeXT, inicio">A</a>
-    <nav class="rail-nav">
-      <a href="/" aria-label="Inicio">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></svg>
-      </a>
-      <a href="/presentaciones/" aria-current="page" aria-label="Presentaciones">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="16" height="18"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-      </a>
-      <a href="/presentaciones/control/" aria-label="Control de accesos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-4 2.4-6 5.5-6s4.9 2 5.5 6M16 8h5M18.5 5.5v5"/></svg>
-      </a>
-    </nav>
-    <span class="rail-foot">ADmiraNeXT · 2026</span>
-  </aside>
-
-  <header class="topbar">
-    <a class="brand-lockup" href="/presentaciones/">
-      <span class="status-dot" aria-hidden="true"></span>
-      <span>Presentaciones</span>
-      <small>Workspace activo</small>
-    </a>
-    <div class="top-actions" aria-label="Modos de trabajo">
-      <div class="mode-switch">
-        <button id="ykAdvancedToggle" type="button" aria-controls="ykAdvancedPanel" aria-expanded="false">Avanzado</button>
-        <button id="ykExpertToggle" type="button" aria-controls="ykExpertPanel" aria-expanded="false">Experto</button>
-      </div>
-      <button class="icon-button" id="ykOptionsToggle" type="button" aria-controls="ykOptionsPanel" aria-expanded="false" aria-label="Abrir opciones" title="Opciones">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>
-      </button>
-    </div>
-  </header>
+<body data-yk-title="PRESENTACIONES" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-zone="app">
 
   <div class="progressive-panels" aria-live="polite">
-    <section class="progressive-panel" id="ykOptionsPanel" aria-labelledby="ykOptionsToggle" hidden>
+    <section class="progressive-panel" id="ykOptionsPanel" data-yk-slot="left">
       <p class="panel-kicker">Nivel 01 · Opciones</p>
       <h2>Vista del repositorio</h2>
       <p>Personaliza la lectura de la galería sin alterar las presentaciones publicadas.</p>
@@ -138,7 +110,7 @@
         <span class="panel-action">Orden <output>Reciente</output></span>
       </div>
     </section>
-    <section class="progressive-panel" id="ykAdvancedPanel" aria-labelledby="ykAdvancedToggle" hidden>
+    <section class="progressive-panel" id="ykAdvancedPanel" data-yk-slot="right">
       <p class="panel-kicker">Nivel 02 · Avanzado</p>
       <h2>Control editorial</h2>
       <p>Accede a generación, versiones e idiomas para configurar cada propuesta.</p>
@@ -147,7 +119,7 @@
         <a class="panel-action" href="/presentaciones/control/">Accesos <output>→</output></a>
       </div>
     </section>
-    <section class="progressive-panel" id="ykExpertPanel" aria-labelledby="ykExpertToggle" hidden>
+    <section class="progressive-panel" id="ykExpertPanel" data-yk-slot="bottom">
       <p class="panel-kicker">Nivel 03 · Experto</p>
       <h2>Operación del sistema</h2>
       <p>Supervisa la publicación y abre las herramientas internas de la plataforma.</p>
@@ -225,5 +197,6 @@
   (async()=>{try{const r=await fetch('/presentaciones/api/clients',{headers:{accept:'application/json'},cache:'no-store'});if(!r.ok)return;const data=await r.json();const grid=document.getElementById('presentationGrid');const dateLabel=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?'Generada':new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(date)};(data.clients||[]).forEach(client=>{const a=document.createElement('a');a.className='card';a.style.setProperty('--accent',client.theme?.accent||'#3df08a');a.href='/presentaciones/'+encodeURIComponent(client.slug)+'/';a.dataset.createdAt=client.createdAt||client.updatedAt||'';const problem=client.problem||'Presentación generada desde un problema concreto.';a.innerHTML='<span class="badge"></span><h2></h2><p class="sub"></p><div class="meta"><span class="date"></span><span>Castellano</span><span>Editable</span></div><span class="go">Abrir presentación <span class="ar">→</span></span>';a.querySelector('.badge').textContent=client.displayName;a.querySelector('h2').textContent='Ecosistema Admira × '+client.displayName;a.querySelector('.sub').textContent=problem;a.querySelector('.date').textContent=dateLabel(a.dataset.createdAt);grid.appendChild(a)});[...grid.querySelectorAll('.card[data-created-at]')].sort((a,b)=>Date.parse(b.dataset.createdAt||'')-Date.parse(a.dataset.createdAt||'')).forEach(card=>grid.appendChild(card));document.getElementById('presentationCount').textContent=grid.querySelectorAll('.card').length}catch(_){}})();
   </script>
   <script src="/assets/presentations-quadratic-ui.js" defer></script>
+  <script src="/assets/admira-frame.js?v=v.07.08.2026" defer></script>
 </body>
 </html>
