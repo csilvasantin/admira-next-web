@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.05.08.2026.r3.10:05">
+<meta name="admiranext-version" content="v.07.08.2026.r4.10:53">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -423,16 +423,24 @@
       <h2>OnIdle horario: tres acciones cuando el equipo está desatendido</h2>
       <p>Cuando el equipo esté desatendido, cada agente puede abrir una ventana de decisión
         <b>una cada 60 minutos como máximo</b>. El reloj se pone a cero en cada ventana y corre
-        una hora entera: no se reinicia al dar las en punto. La ventana presenta <b>exactamente tres misiones</b>
-        y la acción <b>«Volver atrás»</b>. La primera misión es la recomendada.</p>
-      <div class="formula">Automático → 1 cada 60 min · A mano → 6 · 3 misiones + Volver atrás</div>
+        una hora entera: no se reinicia al dar las en punto. La ventana presenta <b>exactamente tres misiones</b>,
+        la acción <b>«Volver atrás»</b> y la opción <b>«Custom»</b>, en ese orden. La primera misión
+        es la recomendada. El API las exige las cinco: con cuatro responde
+        <code>La decisión inicial requiere 3 mejoras, «Volver atrás» como cuarta opción y «Custom» como quinta</code>.</p>
+      <div class="formula">Automático → 1 cada 60 min · A mano → 6 · 3 misiones + Volver atrás + Custom · reloj 5 min</div>
       <p>El cupo se ensancha cuando la lanza una <b>persona</b> desde la pantalla: hasta
         <b>6 por hora</b>, una cada diez minutos. No es más confianza en el agente, es que hay
         alguien mirando, y entonces la cadencia la marca esa persona. Por eso lanzar a mano
         <b>exige sesión</b>: sin humano identificado no hay cupo ampliado.</p>
-      <p>El reloj de <b>cada ventana</b> es cosa aparte y es <b>corto</b>: 5 minutos por defecto,
-        10 como techo. Una vez lanzada hay que decidir rápido — la espera larga es la de
+      <p>El reloj de <b>cada ventana</b> es cosa aparte y es <b>corto</b>: <b>5 minutos, siempre</b>.
+        No 3, no 10, no 20. Una vez lanzada hay que decidir rápido — la espera larga es la de
         <i>entre</i> ventanas, no la de dentro.</p>
+      <p>Cinco es el número porque los otros ya fallaron, y de las dos maneras. Con
+        <b class="bad">3 minutos</b> la ventana vence mientras el agente termina de escribir el
+        mensaje que la anuncia: Carlos abría el panel y ya no había reloj que mirar. Con
+        <b class="bad">10 o 20</b> el agente se queda esperando y la jornada se para, que es
+        justo lo contrario de para lo que existe la ventana. Cinco da tiempo a leer tres
+        misiones y elegir, y no más. <i>(Carlos, 7 de agosto de 2026.)</i></p>
       <p>Si el reloj expira sin respuesta, se inicia la recomendada y las otras dos misiones
         continúan en la cola persistente. Toda acción automática debe ser reversible, conservar
         evidencia y no implicar borrado, gasto, permisos nuevos ni otra actuación irreversible.</p>
@@ -554,7 +562,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.05.08.2026.r3.10:05</span>
+      <span style="opacity:.8">v.07.08.2026.r4.10:53</span>
     </div>
   </footer>
 </div>
