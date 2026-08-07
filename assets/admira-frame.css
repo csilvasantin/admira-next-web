@@ -625,3 +625,14 @@ html, body{ overflow-x: hidden; max-width: 100% }
   .yk-bar .yk-meta{ display: flex; gap: 6px; margin-left: auto }
   .yk-bar .yk-meta .yk-ico{ min-width: 34px; padding: 0 8px }
 }
+
+/* Navegación de sección dentro de la barra. Se separa de la marca con una línea
+   fina para que se lea como «dónde estoy» y no como parte del logotipo. */
+.yk-bar .yk-barnav{ display:flex; align-items:center; gap:6px; margin-left:12px; padding-left:12px; border-left:1px solid var(--yk-line) }
+.yk-bar .yk-barnav a{ text-decoration:none }
+.yk-bar .yk-barnav a[aria-current="page"]{ color: var(--yk-brand); border-color: var(--yk-brand) }
+/* En pantallas estrechas el texto sobra, pero el acceso NO: se queda el icono. */
+@media (max-width: 720px){
+  .yk-bar .yk-barnav{ margin-left:8px; padding-left:8px }
+  .yk-bar .yk-barnav a .yk-lbl{ display:none }
+}

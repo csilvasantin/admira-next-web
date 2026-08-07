@@ -69,7 +69,23 @@
   var meta = el('div', 'yk-meta');
   meta.appendChild(btnAbajo);
   meta.appendChild(btnDer);
-  bar.appendChild(btnIzq); bar.appendChild(marca); bar.appendChild(pagina); bar.appendChild(meta);
+
+  // Enlaces de sección declarados por la página: se suben a la barra tal cual, y el
+  // que apunta a la página actual se marca en vez de repetirse como destino.
+  var nav = el('nav', 'yk-barnav');
+  nav.setAttribute('aria-label', 'Secciones');
+  var aquí = location.pathname.replace(/\/+$/, '/');
+  doc.querySelectorAll('[data-yk-slot="nav"] a').forEach(function (a) {
+    var destino = (a.getAttribute('href') || '').replace(/\/+$/, '/');
+    a.classList.add('yk-ico');
+    if (destino && destino === aquí) a.setAttribute('aria-current', 'page');
+    nav.appendChild(a);
+  });
+  doc.querySelectorAll('[data-yk-slot="nav"]').forEach(function (n) { n.remove(); });
+
+  bar.appendChild(btnIzq); bar.appendChild(marca); bar.appendChild(pagina);
+  if (nav.children.length) bar.appendChild(nav);
+  bar.appendChild(meta);
 
   // ── Raíles y franja inferior ───────────────────────────────────────────────
   function rail(lado, nombre) {
