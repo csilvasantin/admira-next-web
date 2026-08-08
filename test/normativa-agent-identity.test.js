@@ -43,3 +43,16 @@ test("la normativa obliga a introducirse antes de trabajar", async () => {
   assert.match(introRule, /Telegram/);
   assert.match(introRule, /Obliga a TODOS los miembros de AdmiraNeXT/);
 });
+
+test('la normativa manda CLI para el agente que trabaja solo', async () => {
+  const html = await readFile(new URL('../normativa.html', import.meta.url), 'utf8');
+  const rule = html.match(/<article class="art" id="n20">[\s\S]*?<\/article>/)?.[0] ?? '';
+
+  // Carlos, 08-08-2026: «Grok está siempre en modo CLI... dejaría las desktop
+  // apps para aquello que una carbono y silicio, como Claude Code o Codex, y el
+  // resto CLIs». El corolario es lo que más se olvida: a un agente CLI no se le
+  // busca en la lista de procesos, porque no tiene por qué estar ahí.
+  assert.match(rule, /Grok va siempre en CLI/);
+  assert.match(rule, /Claude Code/);
+  assert.match(rule, /no necesita un buzon escuchando siempre/);
+});
