@@ -8,7 +8,7 @@ import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
 import {normalizeSlideMedia} from '../_slide-media.js';
 import {normalizeSourceTraceability} from '../_source-traceability.js';
-import {generateNarrative,mergeNarrative} from '../_skeleton.js';
+import {generateNarrative,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC} from '../_skeleton.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 
@@ -202,7 +202,10 @@ export async function onRequestPut(context){
     input.brand=await persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis});
   }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
   input.inspiration=inspiration;
-  const ideas=mergeNarrative(buildIdeas(input,slug,languages),await generateNarrative(context.env,input),input);
+  // El motivo del respaldo se queda AQUÍ, en una variable del operador: nunca dentro
+  // de `ideas`, que se persiste en KV y lo leen las rutas del portal del cliente.
+  const narrativeResult=await generateNarrative(context.env,input);
+  const ideas=mergeNarrative(buildIdeas(input,slug,languages),narrativeResult,input);
   ideas.terminology=terminology;
   let sourceTraceability;
   try{
@@ -248,6 +251,11 @@ export async function onRequestPut(context){
   ]);
   await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null});
   const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
+  // Quién escribió el guion viaja en la respuesta. Si se cayó al molde, el operador
+  // tiene que enterarse ANTES de mandarle el enlace a un cliente: ese texto es el
+  // mismo para todos y solo cambia el nombre.
+  const narrativeSource=ideas.narrativeSource==='xai'?'xai':'template';
+  const narrativeFallback=narrativeSource==='xai'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

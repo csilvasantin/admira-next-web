@@ -109,9 +109,25 @@ function parseNarrative(payload){
   return {hero, objective, skeleton, closing};
 }
 
-// Devuelve la redacción específica del cliente, o null para que el llamante use el molde.
+// Por qué se cayó al molde, en palabras que el operador entiende sin abrir la consola.
+// Caer al molde no es un detalle técnico: es la diferencia entre mandar una propuesta
+// escrita para ESE cliente y mandarle el mismo texto que a los demás con su nombre puesto.
+export const FALLBACK_GENERIC = 'la redacción con IA no estuvo disponible';
+export const FALLBACK_REASONS = {
+  'sin-clave':'el generador no tiene configurada la clave de xAI',
+  'plazo':`xAI no respondió a tiempo (${Math.round(TIMEOUT_MS / 1000)} s)`,
+  'red':'no se pudo llegar a xAI',
+  'rechazo':'xAI rechazó la petición',
+  'demasiado-grande':'la respuesta de xAI era demasiado grande',
+  'ilegible':'xAI devolvió algo que no era JSON',
+  'formato':'el texto de xAI no encajaba con los ocho pasos del guion'
+};
+
+// Devuelve {narrative, reason}. `narrative` null = usa el molde, y `reason` dice por qué.
+// Antes devolvía null a seco y el motivo se perdía: la presentación salía igual de
+// «lista» y nadie sabía que el guion era el genérico.
 export async function generateNarrative(env, input){
-  if (!env?.XAI_API_KEY) return null;
+  if (!env?.XAI_API_KEY) return {narrative:null, reason:'sin-clave'};
   let response;
   try{
     response = await fetch('https://api.x.ai/v1/responses', {
@@ -120,16 +136,31 @@ export async function generateNarrative(env, input){
       body:JSON.stringify(requestBody(env, skeletonBrief(input))),
       signal:AbortSignal.timeout(TIMEOUT_MS)
     });
-  }catch(_){ return null; }
-  if (!response.ok) return null;
-  if (Number(response.headers.get('content-length') || 0) > MAX_OUTPUT_BYTES) return null;
-  let payload; try{ payload = await response.json(); }catch(_){ return null; }
-  return parseNarrative(payload);
+  }catch(error){
+    // Un timeout y un fallo de DNS o TLS no son lo mismo, y decirle al operador
+    // «no respondió a tiempo» cuando la petición ni salió le manda a esperar en vez
+    // de a mirar la configuración.
+    const expiro = error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+    return {narrative:null, reason: expiro ? 'plazo' : 'red'};
+  }
+  if (!response.ok) return {narrative:null, reason:'rechazo'};
+  if (Number(response.headers.get('content-length') || 0) > MAX_OUTPUT_BYTES) return {narrative:null, reason:'demasiado-grande'};
+  let payload; try{ payload = await response.json(); }catch(_){ return {narrative:null, reason:'ilegible'}; }
+  const narrative = parseNarrative(payload);
+  return narrative ? {narrative, reason:''} : {narrative:null, reason:'formato'};
 }
 
 // Lo que el operador ha escrito en el formulario manda siempre sobre lo redactado.
-export function mergeNarrative(base, narrative, input){
-  if (!narrative) return base;
+// Acepta tanto la narración a secas como el {narrative, reason} de generateNarrative,
+// para no romper a quien ya llamaba a esto con el objeto pelado.
+// OJO: el MOTIVO del respaldo NO se guarda aquí. `ideas` se persiste en KV y lo
+// sirven en crudo las rutas del portal del CLIENTE (content-data.js, content.js,
+// api/ideas), que se abren con la contraseña de cliente: meter ahí un
+// «xAI rechazó la petición» es enseñarle al prospecto nuestros trapos sucios.
+// El motivo se queda en la respuesta al operador, que es quien decide si comparte.
+export function mergeNarrative(base, result, input){
+  const narrative = result && Object.prototype.hasOwnProperty.call(result, 'narrative') ? result.narrative : result;
+  if (!narrative) return {...base, narrativeSource:'template'};
   const merged = {...base};
   merged.hero = {
     eyebrow:base.hero.eyebrow,
