@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.08.08.2026.r16.14:41">
+<meta name="admiranext-version" content="v.08.08.2026.r17.15:17">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -858,6 +858,50 @@
           decir qué costó y qué produjo. <i>(Carlos, 8 de agosto de 2026.)</i></p>
       </div>
     </article>
+
+    <article class="art" id="n23">
+      <div class="num">23</div>
+      <div>
+        <h2>Cositas: delegar es obligatorio y el cierre declara el contexto gastado</h2>
+        <p>Tres cosas que van juntas porque hablan de lo mismo: cómo se reparte el trabajo dentro
+          de un agente y cómo se demuestra que se ha repartido.</p>
+        <p><b>1. «Cositas» es el nombre de casa.</b> Cuando hablamos de las tres formas de trabajo
+          a la vez &mdash;tarea, misión y objetivo&mdash; las llamamos <b>cositas</b>. No cambia
+          nada de la <a href="#n21">regla 21</a>: la taxonomía por tamaño sigue igual y cada cosita
+          sigue siendo una tarea, una misión o un objetivo. Es sólo el término coloquial
+          compartido, para no repetir los tres nombres cada vez.</p>
+        <div class="formula">tarea &middot; misión &middot; objetivo &rarr; <b>cositas</b></div>
+        <p><b>2. La delegación es OBLIGATORIA, no recomendable.</b> Carlos, hoy:
+          <i>«la delegación es obligatoria y como veo no siempre se hace»</i>. La Cúpula ya manda
+          <b>tres capas</b> &mdash;el agente principal decide la estrategia, el hijo ejecuta el
+          trabajo pesado, la infra reporta&mdash; y aun así se incumple. Ejemplo real de hoy, sin
+          adornos: <b>Morfeo leyó un worker de más de 7.000 líneas dentro de su propio contexto</b>
+          en vez de mandar a un subagente a localizar lo que necesitaba. El agente principal
+          <b>no gasta su contexto en lo que puede delegar</b>.</p>
+        <div class="tbl">
+          <table aria-label="Qué se delega y qué se queda el principal">
+            <thead><tr><th>Se delega SIEMPRE a un subagente</th><th>Se queda SIEMPRE el principal</th></tr></thead>
+            <tbody>
+              <tr><td>Leer ficheros grandes</td><td>La estrategia: qué se hace y en qué orden</td></tr>
+              <tr><td>Barridos por el repo o por la flota</td><td>Las decisiones y sus consecuencias</td></tr>
+              <tr><td>Búsquedas (dónde está esto, quién lo usa)</td><td>Hablar con Carlos</td></tr>
+              <tr><td>Verificaciones repetitivas</td><td>Revisar la entrega antes de darla por buena</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><b>3. El cierre declara también el CONTEXTO consumido</b>, junto al tiempo y a los puntos
+          de las reglas <a href="#n21">21</a> y <a href="#n22">22</a>: cuánto ha consumido el
+          <b>agente principal</b> y cuánto han consumido <b>sus subagentes</b>.</p>
+        <div class="formula">Contexto consumido: principal 38% &middot; subagentes 3 (112k tokens).</div>
+        <p>Importa por dos razones. La primera: <b>es lo que hace verificable la delegación</b>. Sin
+          la cifra, &laquo;delego&raquo; es una intención; con la cifra se ve <b>quién delega y
+          quién no</b>, porque un principal que se lo come todo lo lleva escrito en su propio
+          número. La segunda: <b>un principal con el contexto lleno empieza a releer lo que ya
+          sabía</b>, y ahí es exactamente donde se cometen los errores tontos.</p>
+        <p>Delegar no es descargar trabajo en otro: es <b>proteger la cabeza del que decide</b>.
+          <i>(Carlos, 8 de agosto de 2026.)</i></p>
+      </div>
+    </article>
   </main>
 
   <footer>
@@ -869,7 +913,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.08.08.2026.r16.14:41</span>
+      <span style="opacity:.8">v.08.08.2026.r17.15:17</span>
     </div>
   </footer>
 </div>
