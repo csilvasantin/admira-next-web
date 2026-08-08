@@ -11,6 +11,19 @@
  */
 (function () {
   "use strict";
+
+  // UNA sola instancia por pestaña, pase lo que pase.
+  //
+  // `panel` es una variable de closure: si el script se evalúa dos veces -dos
+  // <script> con distinto ?build=, una reinyección, una pestaña abierta desde
+  // antes del último cachebuster- se montan DOS paneles que no se conocen. El
+  // 8-ago-2026 Carlos vio justo eso: uno tomó su referencia con la r6 y decía
+  // "versión nueva", el otro la tomó ya con la r7 y decía "versión vigente".
+  // Dos avisos contradictorios a la vez, y ningún botón podía resolver al otro
+  // porque cada instancia sólo conoce el suyo. Por eso "Comprobar" parecía no
+  // hacer nada: funcionaba, pero sobre el panel equivocado.
+  if (window.AdmiraVersionWatch) return;
+
   var SRC = (document.currentScript && document.currentScript.src) || "";
   var referencia = null, referenciaTomada = false;
   var huellaRef = null, panel = null, accion = null, comprobando = false;
@@ -69,6 +82,23 @@
 
   function aseguraPanel() {
     if (panel) return;
+    // La guardia global no basta contra una instancia ANTIGUA: la versión previa
+    // del verificador no la lleva, así que si se carga después seguiría creando
+    // su panel. Se adopta el que ya exista en el DOM en vez de apilar otro: dos
+    // tarjetas contradictorias es peor que una tarjeta de una versión vieja.
+    var previo = document.querySelector(".admira-version");
+    if (previo) {
+      panel = previo;
+      accion = previo.querySelector(".admira-version__action");
+      if (accion && !accion.avBound) {
+        accion.avBound = true;
+        accion.addEventListener("click", function () {
+          if (panel.getAttribute("data-state") === "stale") location.reload();
+          else ronda(true);
+        });
+      }
+      return;
+    }
     var css = document.createElement("style");
     css.textContent =
       ".admira-version{--av-accent:#74e6d0;position:fixed;right:14px;bottom:14px;z-index:2147483000;" +
@@ -109,9 +139,10 @@
     top.appendChild(nodo("span", "admira-version__eyebrow"));
     accion = nodo("button", "admira-version__action", "Comprobar");
     accion.type = "button";
+    accion.avBound = true;
     accion.addEventListener("click", function () {
       if (panel.getAttribute("data-state") === "stale") location.reload();
-      else ronda();
+      else ronda(true);
     });
     top.appendChild(accion);
     panel.appendChild(top);
@@ -221,7 +252,7 @@
     pinta("current", referencia, null, "La pestaña ejecuta la release vigente según el manifiesto de publicación.");
   }
 
-  function ronda() {
+  function ronda(manual) {
     if (comprobando) return;
     comprobando = true;
     if (accion) { accion.disabled = true; accion.textContent = "Comprobando…"; }
@@ -229,10 +260,18 @@
       .then(function (resultados) { procesa(resultados[0], resultados[1]); })
       .finally(function () {
         comprobando = false;
-        if (accion) {
-          accion.disabled = false;
-          accion.textContent = panel.getAttribute("data-state") === "stale" ? "Recargar" : "Comprobar";
-        }
+        if (!accion) return;
+        accion.disabled = false;
+        var estado = panel.getAttribute("data-state");
+        if (estado === "stale") { accion.textContent = "Recargar"; return; }
+        // Un botón que se pulsa y deja todo igual parece averiado, aunque haya
+        // hecho su trabajo: la respuesta correcta a "¿estoy al día?" suele ser
+        // "sí", y eso también hay que DECIRLO. Sólo en la pulsación manual —el
+        // sondeo automático cada 2 min no debe parpadear solo.
+        accion.textContent = manual ? "Al día ✓" : "Comprobar";
+        if (manual) setTimeout(function () {
+          if (!comprobando && panel.getAttribute("data-state") !== "stale") accion.textContent = "Comprobar";
+        }, 1800);
       });
   }
 
