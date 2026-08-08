@@ -16,11 +16,30 @@ test("la normativa exige cada día el apellido físico completo del agente", asy
   assert.match(identityRule, /Oraculo \+ Mac Mini = OraculoMacMini/);
 });
 
-test("la normativa arranca Codex, Claude y los CLIs a máxima velocidad", async () => {
+// La regla 11 se reescribió («Máxima velocidad por defecto» → «Modo rápido siempre
+// puesto») y este test se quedó con el texto viejo: llevaba fallando desde
+// entonces, y encima exigía «mayor consumo», que es justo lo contrario de lo que
+// la regla dice hoy. Un test que contradice a la doctrina que vigila no protege
+// nada. Vigila ahora lo que de verdad importa de esa norma: que el modo rápido va
+// por defecto y que NO rebaja el modelo.
+test("la normativa deja el modo rápido puesto por defecto, sin bajar de modelo", async () => {
   const html = await readFile(new URL("../normativa.html", import.meta.url), "utf8");
   const speedRule = html.match(/<article class="art" id="n11">[\s\S]*?<\/article>/)?.[0] ?? "";
 
-  assert.match(speedRule, /Máxima velocidad por defecto/);
-  assert.match(speedRule, /Codex, Claude y todos los CLIs arrancan por defecto a la máxima velocidad disponible/);
-  assert.match(speedRule, /mayor consumo/);
+  assert.match(speedRule, /Modo rápido siempre puesto/);
+  assert.match(speedRule, /modo rápido activado por defecto/);
+  assert.match(speedRule, /no baja a un modelo menor/);
+});
+
+test("la normativa obliga a introducirse antes de trabajar", async () => {
+  const html = await readFile(new URL("../normativa.html", import.meta.url), "utf8");
+  const introRule = html.match(/<article class="art" id="n18">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  // Los cinco pasos son uno solo: si se cae uno, el agente no se ha introducido.
+  assert.match(introRule, /PRIMERA función de todo agente de silicio/);
+  assert.match(introRule, /proyecto principal/);
+  assert.match(introRule, /tarea «login»/);
+  assert.match(introRule, /highscore/);
+  assert.match(introRule, /Telegram/);
+  assert.match(introRule, /Obliga a TODOS los miembros de AdmiraNeXT/);
 });
