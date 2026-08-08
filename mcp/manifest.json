@@ -99,6 +99,11 @@
       "path": "/filosofia",
       "audience": "agents",
       "desc": "Filosofía del equipo: las Máximas y el modelo de 3 capas x 3 niveles (principal, hijo, infra). Complementa a /mandamientos, no lo sustituye."
+    },
+    {
+      "path": "/normativa",
+      "audience": "agents",
+      "desc": "Contrato operativo numerado. Todos los proyectos pertenecen al Xpacio de AdmiraNeXT o al de Yokup.com: mismo origen y creador, Carlos; importancia equivalente; Neo responde por AdmiraNeXT y Morfeo por Yokup.com, ambos dirigidos por Carlos."
     }
   ],
   "docs": {
