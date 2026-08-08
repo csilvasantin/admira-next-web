@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
+import {join} from 'node:path';
 
 const source = await readFile(new URL('../assets/admira-version-watch.js', import.meta.url), 'utf8');
+const root = new URL('../', import.meta.url);
 
 class Element {
   constructor(tag) {
@@ -104,4 +106,25 @@ test('declara honestamente la ausencia de versión y orienta la próxima publica
   assert.match(visible, /Versión no declarada/i);
   assert.match(visible, /Registra una versión de producto/i);
   assert.doesNotMatch(visible, /v\.\d{2}\.\d{2}\.\d{4}\.r\d+/);
+});
+
+test('todas las páginas que cargan el verificador fijan la huella de su contenido', async () => {
+  const files = [];
+  async function walk(dir) {
+    for (const entry of await readdir(dir, {withFileTypes: true})) {
+      if (entry.name.startsWith('.') || ['node_modules', 'old', 'backups'].includes(entry.name)) continue;
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) await walk(full);
+      else if (entry.name.endsWith('.html')) files.push(full);
+    }
+  }
+  await walk(root.pathname);
+  const references = [];
+  for (const file of files) {
+    const html = await readFile(file, 'utf8');
+    references.push(...html.matchAll(/\/assets\/admira-version-watch\.js([^"']*)/g));
+  }
+  assert.ok(references.length >= 12, 'la guardia debe cubrir todas las superficies que montan el verificador');
+  assert.ok(references.every((match) => match[1] === '?build=7653460'),
+    'un verificador cacheado ocultaría el nuevo contexto de release hasta cuatro horas');
 });
