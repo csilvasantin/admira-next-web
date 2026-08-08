@@ -32,8 +32,23 @@
       version: v || null,
       deployedAt: texto(d && d.deployedAt) || null,
       git: texto(d && (d.gitShort || d.git || d.gitFull)) || null,
+      firma: firmaDe(d),
       declared: Boolean(v)
     };
+  }
+
+  // Una versión sin responsable visible es una versión descontrolada: dice QUÉ
+  // corre pero no QUIÉN lo puso ahí, que es lo primero que hace falta saber
+  // cuando algo sale mal. El dato ya viajaba en version.json desde el 3-ago
+  // -deployer + machine, y signature ya compuesta-; sólo faltaba pintarlo.
+  // Los sellos antiguos no lo traen, así que se dice y no se inventa.
+  function firmaDe(d) {
+    if (!d) return null;
+    var s = texto(d.signature);
+    if (s) return s;
+    var quien = texto(d.deployer), donde = texto(d.machine);
+    if (quien && donde) return quien + " · " + donde;
+    return quien || donde || null;
   }
 
   function fechaHumana(valor) {
@@ -78,6 +93,8 @@
       "letter-spacing:.08em;text-transform:uppercase}" +
       ".admira-version__number{display:block;overflow-wrap:anywhere;color:#fff;font:760 13px/1.25 ui-monospace,SFMono-Regular,Menlo,monospace}" +
       ".admira-version__date{display:block;margin-top:4px;color:#b6c2ca;font-size:10px}" +
+      ".admira-version__by{display:block;margin-top:3px;overflow-wrap:anywhere;color:var(--av-accent);" +
+      "font:700 10px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace}" +
       ".admira-version__guidance{margin:9px 2px 0;color:#c9d3d9;font-size:11px}" +
       ".admira-version__tech{margin-top:8px;color:#8fa0ac;font:500 10px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace}" +
       ".admira-version__tech summary{cursor:pointer;color:#9eacb6}.admira-version__tech p{margin:5px 0 0;overflow-wrap:anywhere}" +
@@ -112,6 +129,8 @@
     b.appendChild(nodo("span", "admira-version__label", etiqueta));
     b.appendChild(nodo("strong", "admira-version__number", datos.version || "versión no declarada"));
     b.appendChild(nodo("span", "admira-version__date", fechaHumana(datos.deployedAt)));
+    b.appendChild(nodo("span", "admira-version__by",
+      datos.firma ? "por " + datos.firma : "responsable no declarado"));
     return b;
   }
 
@@ -134,8 +153,10 @@
     orientacion.textContent = nota || "";
     orientacion.hidden = !nota;
     var hashes = [];
-    hashes.push("esta pestaña: " + (actual.git || "trazabilidad técnica no declarada"));
-    if (estado === "stale") hashes.push("disponible: " + (disponible.git || "trazabilidad técnica no declarada"));
+    hashes.push("esta pestaña: " + (actual.git || "trazabilidad técnica no declarada") +
+      " · firma: " + (actual.firma || "sin firmar"));
+    if (estado === "stale") hashes.push("disponible: " + (disponible.git || "trazabilidad técnica no declarada") +
+      " · firma: " + (disponible.firma || "sin firmar"));
     panel.children[3].children[1].textContent = hashes.join(" · ");
   }
 

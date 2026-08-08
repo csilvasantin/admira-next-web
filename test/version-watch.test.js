@@ -125,6 +125,21 @@ test('todas las páginas que cargan el verificador fijan la huella de su conteni
     references.push(...html.matchAll(/\/assets\/admira-version-watch\.js([^"']*)/g));
   }
   assert.ok(references.length >= 12, 'la guardia debe cubrir todas las superficies que montan el verificador');
-  assert.ok(references.every((match) => match[1] === '?build=7653460'),
+  assert.ok(references.every((match) => match[1] === '?build=8081326'),
     'un verificador cacheado ocultaría el nuevo contexto de release hasta cuatro horas');
+});
+
+test('el verificador dice quién publicó la versión, no sólo cuál es', async () => {
+  const js = await readFile(new URL('../assets/admira-version-watch.js', import.meta.url), 'utf8');
+
+  // Carlos, 08-08-2026: «solo le falta decir quién ha sido el responsable de la
+  // nueva versión». La firma ya viajaba en version.json desde el 3-ago; la
+  // tarjeta la ignoraba. Una versión sin responsable a la vista dice QUÉ corre
+  // pero no QUIÉN lo puso ahí, que es lo primero que se pregunta cuando algo
+  // sale mal — lo que no está controlado, está descontrolado.
+  assert.match(js, /signature/, 'debe leer la firma del manifiesto');
+  assert.match(js, /d\.deployer/, 'debe reconstruirla desde deployer + machine si no viene compuesta');
+  assert.match(js, /admira-version__by/, 'la firma necesita su propio hueco en la tarjeta');
+  assert.match(js, /responsable no declarado/, 'un sello antiguo sin firma se dice, no se inventa');
+  assert.match(js, /firma: /, 'la trazabilidad técnica también la lleva');
 });
