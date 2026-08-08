@@ -26,7 +26,7 @@
 
   var SRC = (document.currentScript && document.currentScript.src) || "";
   var referencia = null, referenciaTomada = false;
-  var huellaRef = null, panel = null, accion = null, comprobando = false;
+  var huellaRef = null, panel = null, accion = null, comprobando = false, confirmando = false;
 
   function texto(valor) {
     return valor === undefined || valor === null ? "" : String(valor).trim();
@@ -268,10 +268,19 @@
         // hecho su trabajo: la respuesta correcta a "¿estoy al día?" suele ser
         // "sí", y eso también hay que DECIRLO. Sólo en la pulsación manual —el
         // sondeo automático cada 2 min no debe parpadear solo.
-        accion.textContent = manual ? "Al día ✓" : "Comprobar";
-        if (manual) setTimeout(function () {
-          if (!comprobando && panel.getAttribute("data-state") !== "stale") accion.textContent = "Comprobar";
-        }, 1800);
+        // El sondeo automático corre cada 2 min y al volver a la pestaña: sin
+        // esta marca borraba el "Al día ✓" a los pocos milisegundos de pulsar, y
+        // el botón volvía a parecer mudo justo en el caso que se quería arreglar.
+        if (manual) {
+          confirmando = true;
+          accion.textContent = "Al día ✓";
+          setTimeout(function () {
+            confirmando = false;
+            if (!comprobando && panel.getAttribute("data-state") !== "stale") accion.textContent = "Comprobar";
+          }, 1800);
+        } else if (!confirmando) {
+          accion.textContent = "Comprobar";
+        }
       });
   }
 
