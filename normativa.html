@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.07.08.2026.r4.10:53">
+<meta name="admiranext-version" content="v.08.08.2026.r1.12:26">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -636,6 +636,40 @@
         Añadido el tipo, la primera formación completa fue la de Wozniak (CTO) y Walt Disney (CCO).</p>
       </div>
     </article>
+
+    <article class="art" id="n17">
+      <div class="num">17</div>
+      <div>
+      <h2>Cada cierre declara sus puntos y el total verificado</h2>
+      <p>Al cerrar una <b>misión, un objetivo o una tarea</b>, el informe de cierre dice siempre
+        <b>cuántos puntos ha ganado ese cierre</b> y el <b>total relevante de cada agente</b> que
+        los recibe. No basta con «terminado»: el resultado y su efecto en el Highscore quedan
+        juntos, visibles y comprobables.</p>
+      <div class="formula">cierre + puntos ganados + total del agente + fuente y hora = informe completo</div>
+      <p>Los números se leen <b>después del cierre</b> en el Highscore o en su API vigente. El
+        informe conserva la fuente y la hora de la comprobación; no calcula a memoria, no
+        reutiliza el total de otra jornada y no suma dos veces un reintento o una transición
+        que no puntúa.</p>
+      <div class="tbl">
+        <table aria-label="Contenido obligatorio del informe de cierre">
+          <thead><tr><th>Situación</th><th>Qué se informa</th><th>Qué queda prohibido</th></tr></thead>
+          <tbody>
+            <tr><td>Identidad verificada</td><td><b>+N puntos</b> por el cierre · <b>AgenteEquipo: total T</b> · fuente y hora</td><td>Omitir el total o atribuirlo a otro perfil</td></tr>
+            <tr><td>Varios agentes verificados</td><td>Ganancia y total de cada agente afectado</td><td>Fundirlos en un total anónimo</td></tr>
+            <tr><td>Identidad discrepante</td><td><b>0 puntos atribuidos · pendiente de verificación</b></td><td>Usar el censo para renombrar o puntuar</td></tr>
+            <tr><td>Highscore no disponible</td><td>Ganancia no confirmada · total pendiente · evidencia del fallo</td><td>Inventar, estimar o copiar un total antiguo</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>La identidad sigue la <a href="#n15">norma 15</a>: manda la declaración explícita del
+        usuario que inicia la conversación. Si discrepa de presencia o de un registro canónico,
+        <b>no se atribuyen puntos ni se sobrescribe esa declaración</b>; primero se confirma con
+        una captura actual y se lee la identidad visible en la esquina inferior izquierda.
+        Hasta entonces el cierre puede quedar ejecutado, pero la puntuación queda pendiente.</p>
+      <p>Formato mínimo: <code>Cierre: +N puntos · AgenteEquipo: T puntos hoy · Highscore/API HH:MM</code>.
+        Decisión de Carlos, 08-08-2026.</p>
+      </div>
+    </article>
   </main>
 
   <footer>
@@ -647,7 +681,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.07.08.2026.r4.10:53</span>
+      <span style="opacity:.8">v.08.08.2026.r1.12:26</span>
     </div>
   </footer>
 </div>
