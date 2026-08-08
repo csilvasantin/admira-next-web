@@ -18,6 +18,23 @@ echo "→ GitHub (push de código, backup)…"
 echo "→ Rama…"
 source ~/Claude/admira-vault/guarda-rama.sh
 
+# NADA CON UN MERGE SIN RESOLVER SALE A PRODUCCIÓN. El 8-ago-2026, entre r9 y
+# r13, /normativa sirvió los marcadores de git a quien la abriera —dos veces, y
+# la segunda anidados— porque LOS DOS LADOS DEL CONFLICTO ERAN IDÉNTICOS: no
+# rompía nada, no cambiaba el texto y ningún test de contenido lo notaba. El
+# guardia vive AQUÍ y no sólo en test/, porque quien publica no siempre corre
+# los tests, y esto no es una opinión sobre el código: es basura visible en la
+# web. Ver test/sin-marcadores-de-merge.test.js.
+echo "→ Merges sin resolver…"
+if conflictos="$(grep -rnE '^(<{7}|>{7}|={7}$)' \
+      --include='*.html' --include='*.js' --include='*.css' --include='*.json' \
+      --exclude-dir=node_modules --exclude-dir=test --exclude-dir=.git . 2>/dev/null)"; then
+  echo "✗ No se publica con un merge sin resolver:" >&2
+  printf '%s\n' "$conflictos" | head -20 >&2
+  exit 1
+fi
+echo "  ✓ ninguna página lleva marcadores de conflicto"
+
 git push origin main 2>&1 | tail -1 || echo "  (nada que pushear)"
 echo "→ Cloudflare Pages (ORIGEN de producción)…"
 export CLOUDFLARE_API_TOKEN="$(bash ~/Claude/admira-vault/vault-get.sh CLOUDFLARE_API_TOKEN)"
