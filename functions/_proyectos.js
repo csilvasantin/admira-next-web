@@ -199,7 +199,7 @@ export const PROYECTOS = [
   },
   {
     // Antes compartía clave con el sitio yokup y enseñaba el historial de la web.
-    clave: 'yokup-rtc', nombre: 'yokup-rtc (worker)', url: null,
+    clave: 'yokup-rtc', nombre: 'yokup-rtc (worker)', url: 'https://api.yokup.com',
     parentKey: 'yokup',
     repo: 'csilvasantin/tool', repoTxt: 'tool · yokup-rtc/',
     pages: null, publica: 'cd yokup-rtc && wrangler deploy',

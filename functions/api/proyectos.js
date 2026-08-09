@@ -345,8 +345,15 @@ export async function veredicto(p, v, env, cache) {
   const fecha = fechaDelSello(v.sello);
 
   // ¿Se ha tocado el repositorio después de publicar ese sello?
+  //
+  // A un WORKER no se le pregunta esto (Morfeo, 2026-08-09). Un worker que publica su
+  // sello en /version.json ya se puede verificar por la firma, que es lo que importa;
+  // pero su repositorio sostiene además otras soluciones —`tool` lleva el sitio yokup
+  // y este worker— así que cualquier commit del vecino lo dejaría en rojo para siempre
+  // y el aviso dejaría de significar nada. Se juzga por la firma; la marcha atrás de un
+  // worker tampoco es de git, es `wrangler rollback`.
   let sinVersionar = 0, ultimoCambio = '';
-  if (fecha) {
+  if (fecha && p.tipo !== 'worker') {
     const desde = new Date(fecha.getTime() + 24 * 3600 * 1000).toISOString();  // desde el día siguiente
     // Mismo repositorio y mismo sello ⇒ misma lista de commits: las veinte
     // subsoluciones de admira.tv se resuelven con una sola llamada a GitHub.
