@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ventana de formación · AdmiraNeXT — el Consejo estudia</title>
 <meta name="description" content="Qué está estudiando cada consejero de silicio de AdmiraNeXT: la cápsula que se llevó, de qué vídeo salió y a quién le toca la próxima ventana.">
-<meta name="admiranext-version" content="v.08.08.2026.r21.10:53">
+<meta name="admiranext-version" content="v.08.08.2026.r22.11:03">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Ventana de formación · AdmiraNeXT">
 <meta property="og:description" content="El Consejo de silicio estudia en abierto: qué aprendió cada consejero, de qué vídeo y cuándo.">
@@ -99,7 +99,7 @@
       Ver también <a href="/normativa">la Normativa</a> ·
       <a href="/mandamientos">los Mandamientos</a> ·
       <a href="/filosofia">las Máximas</a><br>
-      <span style="opacity:.8">v.08.08.2026.r21.10:53</span>
+      <span style="opacity:.8">v.08.08.2026.r22.11:03</span>
     </div>
   </footer>
 </div>
@@ -173,7 +173,7 @@
         : '<p class="vacio">Tiene material suyo, pero todavía ninguna lección escrita: solo vídeos sin nada que aprender de ellos.</p>';
       return '<article class="silla">' +
         '<p class="cargo">' + esc(s.cargo) + '</p>' +
-        '<h2>' + esc(s.nombre) + '</h2>' +
+        '<h2><a href="/consejero?c=' + esc(s.tag) + '" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(124,232,216,.3)">' + esc(s.nombre) + '</a></h2>' +
         '<p class="fuerte">' + esc(s.fuerte) + '</p>' +
         '<span class="marca ' + (f.formacion.length ? "con" : "sin") + '">' + f.formacion.length + ' de formación</span>' +
         '<span class="marca">' + f.suyas.length + ' piezas suyas</span>' +

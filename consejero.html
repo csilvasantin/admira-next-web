@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ficha del consejero · AdmiraNeXT — cabeza, tronco y piernas</title>
+<meta name="description" content="El equilibrio de un consejero de AdmiraNeXT medido en su propio cuerpo: la cabeza es tecnología, el tronco creatividad y las piernas negocio. Hay que cumplir los tres.">
+<meta name="admiranext-version" content="v.08.08.2026.r22.11:03">
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root{
+    --bg:#080b14; --panel:rgba(18,24,40,.72); --ink:#e8ecf6; --dim:#8792ab;
+    --line:rgba(124,232,216,.16); --neon:#7ce8d8; --neon2:#5ef2a0; --accent:#e8a87c; --warn:#ff8f7a;
+    --tec:#7ce8d8; --cre:#c58cf5; --neg:#e8a87c;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .glow{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:.4}
+  .glow.a{width:40vw;height:40vw;top:-12vw;left:-10vw;background:radial-gradient(circle,rgba(124,232,216,.24),transparent 70%)}
+  .glow.b{width:36vw;height:36vw;bottom:-12vw;right:-8vw;background:radial-gradient(circle,rgba(197,140,245,.18),transparent 70%)}
+  .wrap{position:relative;z-index:1;max-width:1020px;margin:0 auto;padding:0 20px}
+  .volver{display:inline-block;margin:26px 0 0;font:600 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    color:var(--dim);text-decoration:none;border-bottom:1px solid transparent}
+  .volver:hover{color:var(--neon);border-bottom-color:var(--neon)}
+  header{padding:22px 0 8px}
+  .cargo{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--neon);margin:0 0 6px}
+  h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1;margin:0 0 10px;font-weight:800;letter-spacing:-.03em}
+  .fuerte{color:var(--dim);max-width:640px;margin:0}
+  .cuerpo{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:26px;align-items:start;margin:28px 0 0}
+  .figura{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:16px}
+  .figura svg{display:block;width:100%;height:auto}
+  .veredicto{border-radius:12px;padding:14px 16px;margin:14px 0 0;font:600 13.5px/1.45 var(--mono)}
+  .veredicto.ok{border:1px solid rgba(94,242,160,.4);background:rgba(94,242,160,.07);color:var(--neon2)}
+  .veredicto.no{border:1px solid rgba(255,143,122,.4);background:rgba(255,143,122,.07);color:var(--warn)}
+  .zonas{display:grid;gap:12px}
+  .zona{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+  .zona::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c)}
+  .zona h2{margin:0 0 2px;font-size:1.02rem}
+  .zona .parte{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--c);margin:0 0 8px}
+  .barra{height:7px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;margin:10px 0 8px}
+  .barra i{display:block;height:100%;background:var(--c);border-radius:4px}
+  .cuenta{font:700 12px/1 var(--mono);color:var(--dim)}
+  .cuenta b{color:var(--ink)}
+  .piezas{margin:10px 0 0;padding:0;list-style:none}
+  .piezas li{font-size:.88rem;color:var(--dim);padding:5px 0;border-top:1px solid rgba(124,232,216,.08)}
+  .piezas li b{color:var(--ink);font-weight:600}
+  .falta{color:var(--warn);font-size:.9rem;font-style:italic;margin:8px 0 0}
+  .nota{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:18px 20px;margin:26px 0 0;color:var(--dim);font-size:.93rem}
+  .nota b{color:var(--ink)}
+  .otros{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+  .otros a{font:600 11.5px/1 var(--mono);letter-spacing:.06em;text-decoration:none;color:var(--dim);
+    border:1px solid var(--line);border-radius:999px;padding:8px 12px}
+  .otros a:hover,.otros a[aria-current]{color:var(--neon);border-color:rgba(124,232,216,.45)}
+  footer{padding:40px 0 70px;text-align:center;color:var(--dim);font-size:.9rem}
+  footer a{color:var(--neon);text-decoration:none}
+  .meta{font-family:var(--mono);font-size:12px;opacity:.72;margin-top:10px}
+  @media (max-width:720px){.cuerpo{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="glow a" aria-hidden="true"></div>
+<div class="glow b" aria-hidden="true"></div>
+
+<div class="wrap">
+  <a class="volver" href="/academia">← La ventana de formación</a>
+  <header>
+    <p class="cargo" id="cargo">…</p>
+    <h1 id="nombre">Cargando</h1>
+    <p class="fuerte" id="fuerte"></p>
+  </header>
+
+  <div class="cuerpo">
+    <div>
+      <div class="figura" id="figura"></div>
+      <div class="veredicto no" id="veredicto">Leyendo el Stock…</div>
+    </div>
+    <div class="zonas" id="zonas"></div>
+  </div>
+
+  <div class="nota">
+    <p><b>Por qué el cuerpo.</b> Un consejero no vale por lo mucho que sabe de lo suyo, sino por
+      sostenerse entero: la <b>cabeza</b> es tecnología, el <b>tronco</b> creatividad y las
+      <b>piernas</b> negocio. Con una zona vacía no hay consejo, hay sesgo — y se ve de un vistazo,
+      que para eso es una figura y no tres números.</p>
+    <p><b>Vale igual para el carbono.</b> La medida no depende de que el consejero sea de silicio:
+      las tres zonas son las mismas para las personas del equipo, y sólo cambia de dónde sale su
+      material. Los de silicio se llenan con lo que estudian en las ventanas de formación; los de
+      carbono, con lo que aportan y firman.</p>
+    <p id="pendiente"></p>
+  </div>
+
+  <div class="otros" id="otros"></div>
+
+  <footer>
+    <div>Ficha del consejero · <b>AdmiraNeXT</b></div>
+    <div class="meta">
+      <a href="/academia">Ventana de formación</a> · <a href="/normativa">Normativa</a><br>
+      <span style="opacity:.8">v.08.08.2026.r22.11:03</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STOCK = "https://pub-bf043a4daa3b43b7a0b769617729d074.r2.dev/stock/index.json";
+
+  var SILLAS = [
+    {id:"ceo", cargo:"CEO", nombre:"Steve Jobs",     tag:"stevejobs",     fuerte:"Producto: no sumar funciones, decidir qué se queda fuera para que lo que salga lleve nuestro nombre con orgullo."},
+    {id:"cto", cargo:"CTO", nombre:"Steve Wozniak",  tag:"stevewozniak",  fuerte:"La tecnología como cimiento: que lo que se construya sea sólido, real y sostenible en el tiempo."},
+    {id:"coo", cargo:"COO", nombre:"Tim Cook",       tag:"timcook",       fuerte:"La operación: que la máquina gire —cadena, flota, entregas y SLA— y lo prometido se cumpla."},
+    {id:"cfo", cargo:"CFO", nombre:"Warren Buffett", tag:"warrenbuffett", fuerte:"El negocio y el coste a largo plazo: qué renta, qué cuesta y qué aguanta."},
+    {id:"cco", cargo:"CCO", nombre:"Walt Disney",    tag:"waltdisney",    fuerte:"La creatividad y la marca: magia y experiencias que se recuerdan toda la vida."},
+    {id:"cdo", cargo:"CDO", nombre:"Dieter Rams",    tag:"dieterrams",    fuerte:"El diseño: menos, pero mejor; quitar hasta que sólo quede lo esencial, y hacerlo bello."},
+    {id:"cxo", cargo:"CXO", nombre:"Howard Schultz", tag:"howardschultz", fuerte:"La experiencia y el espacio vivido: cómo se siente estar dentro del producto."},
+    {id:"cso", cargo:"CSO", nombre:"George Lucas",   tag:"georgelucas",   fuerte:"El relato: la historia que explica la idea y la hace contagiosa dentro y fuera de la casa."}
+  ];
+
+  // Las tres zonas del cuerpo. El vocabulario sale del Stock REAL, no de una
+  // taxonomía inventada: son las etiquetas que de verdad llevan las piezas.
+  var ZONAS = [
+    {id:"tec", parte:"Cabeza", titulo:"Tecnología", color:"var(--tec)",
+     que:"Cómo está hecho por dentro y si aguanta.",
+     tags:["tecnología","tecnologia","ia","inteligencia artificial","software","ingeniería","ingenieria","privacidad","apple","woz","hardware","código","codigo"]},
+    {id:"cre", parte:"Tronco", titulo:"Creatividad", color:"var(--cre)",
+     que:"Lo que hace que algo se recuerde y se cuente.",
+     tags:["creatividad","diseño","diseno","cine","storytelling","disney","inspiración","inspiracion","música","musica","arte","marca","parques temáticos","parques tematicos","star wars","principios","educación","educacion"]},
+    {id:"neg", parte:"Piernas", titulo:"Negocio", color:"var(--neg)",
+     que:"Lo que sostiene la casa: qué renta y qué cuesta.",
+     tags:["negocio","finanzas","inversión","inversion","marketing","liderazgo","emprendimiento","ventas","operación","operacion","estrategia"]}
+  ];
+
+  function esc(v){ return String(v==null?"":v).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function tags(p){ return (p&&p.tags||[]).map(function(t){ return String(t).trim().toLowerCase().replace(/^#/,""); }); }
+
+  function elegida(){
+    var q = new URLSearchParams(location.search).get("c") || "cdo";
+    q = q.toLowerCase();
+    return SILLAS.filter(function(s){ return s.id===q || s.tag===q; })[0] || SILLAS[5];
+  }
+
+  // La figura. Una silueta, no un retrato: estos consejeros llevan el nombre de
+  // personas reales y no se les pone la cara sin permiso. Además una silueta se
+  // llena, y un retrato no.
+  function figura(pcts){
+    var bandas = [
+      {y:6,  h:78,  c:"var(--tec)", p:pcts.tec},   // cabeza y cuello
+      {y:84, h:112, c:"var(--cre)", p:pcts.cre},   // tronco y brazos
+      {y:196,h:150, c:"var(--neg)", p:pcts.neg}    // piernas
+    ];
+    var relleno = bandas.map(function(b){
+      var alto = Math.max(0, Math.min(1, b.p)) * b.h;
+      return '<rect x="0" y="' + (b.y + b.h - alto) + '" width="200" height="' + alto + '" fill="' + b.c + '" opacity=".82" clip-path="url(#silueta)"/>';
+    }).join("");
+    return '' +
+    '<svg viewBox="0 0 200 356" role="img" aria-label="Silueta dividida en cabeza, tronco y piernas">' +
+      '<defs><clipPath id="silueta">' +
+        '<path d="M100 8c-14 0-24 11-24 25s10 26 24 26 24-12 24-26S114 8 100 8z' +
+        'M100 66c-20 0-33 8-38 22l-16 46c-3 9 2 16 9 18s14-2 17-11l8-24v39c0 8 1 15 3 22' +
+        'l-9 100c-2 12 5 20 15 20 9 0 15-6 16-16l8-72 8 72c1 10 7 16 16 16 10 0 17-8 15-20' +
+        'l-9-100c2-7 3-14 3-22v-39l8 24c3 9 10 13 17 11s12-9 9-18l-16-46c-5-14-18-22-38-22z"/>' +
+      '</clipPath></defs>' +
+      '<g clip-path="url(#silueta)"><rect x="0" y="0" width="200" height="356" fill="rgba(255,255,255,.05)"/></g>' +
+      relleno +
+      '<g stroke="rgba(124,232,216,.28)" stroke-dasharray="3 4">' +
+        '<line x1="6" y1="84" x2="194" y2="84"/><line x1="6" y1="196" x2="194" y2="196"/>' +
+      '</g>' +
+      '<g font-family="ui-monospace,monospace" font-size="9" fill="#8792ab" letter-spacing="1.4">' +
+        '<text x="6" y="24">CABEZA</text><text x="6" y="100">TRONCO</text><text x="6" y="212">PIERNAS</text>' +
+      '</g>' +
+    '</svg>';
+  }
+
+  function pinta(items){
+    var s = elegida();
+    document.title = s.nombre + " · Ficha del consejero · AdmiraNeXT";
+    document.getElementById("cargo").textContent = s.cargo + " · consejero de silicio";
+    document.getElementById("nombre").textContent = s.nombre;
+    document.getElementById("fuerte").textContent = s.fuerte;
+
+    var suyas = items.filter(function(p){ return tags(p).indexOf(s.tag) >= 0; });
+    var porZona = {}, maximo = 1;
+    ZONAS.forEach(function(z){
+      porZona[z.id] = suyas.filter(function(p){
+        return tags(p).some(function(t){ return z.tags.indexOf(t) >= 0; });
+      });
+      maximo = Math.max(maximo, porZona[z.id].length);
+    });
+
+    var pcts = {};
+    ZONAS.forEach(function(z){ pcts[z.id] = porZona[z.id].length / maximo; });
+    document.getElementById("figura").innerHTML = figura(pcts);
+
+    var vacias = ZONAS.filter(function(z){ return porZona[z.id].length === 0; });
+    var v = document.getElementById("veredicto");
+    if (!vacias.length) {
+      v.className = "veredicto ok";
+      v.textContent = "Se sostiene: las tres zonas tienen material.";
+    } else {
+      v.className = "veredicto no";
+      v.textContent = vacias.length === 3
+        ? "Sin material en ninguna zona: no hay de qué opinar todavía."
+        : "Le falta " + vacias.map(function(z){ return z.titulo.toLowerCase(); }).join(" y ") +
+          ": " + (vacias.length === 1 ? "una zona vacía y el consejo cojea." : "dos zonas vacías, esto no se tiene en pie.");
+    }
+
+    document.getElementById("zonas").innerHTML = ZONAS.map(function(z){
+      var lista = porZona[z.id];
+      var cuerpo = lista.length
+        ? '<ul class="piezas">' + lista.slice(0,4).map(function(p){
+            return '<li><b>' + esc(p.title || "Sin título") + '</b></li>'; }).join("") +
+          (lista.length > 4 ? '<li>y ' + (lista.length - 4) + ' más</li>' : '') + '</ul>'
+        : '<p class="falta">Nada aquí. Esta zona es la que hay que llenar en la próxima ventana.</p>';
+      return '<section class="zona" style="--c:' + z.color + '">' +
+        '<p class="parte">' + esc(z.parte) + '</p>' +
+        '<h2>' + esc(z.titulo) + '</h2>' +
+        '<p class="fuerte" style="font-size:.9rem;margin:0">' + esc(z.que) + '</p>' +
+        '<div class="barra"><i style="width:' + Math.round(pcts[z.id]*100) + '%"></i></div>' +
+        '<p class="cuenta"><b>' + lista.length + '</b> pieza' + (lista.length===1?"":"s") + ' de ' + suyas.length + '</p>' +
+        cuerpo +
+      '</section>';
+    }).join("");
+
+    document.getElementById("otros").innerHTML = SILLAS.map(function(o){
+      return '<a href="/consejero?c=' + o.id + '"' + (o.id===s.id?' aria-current="page"':'') + '>' + esc(o.nombre) + '</a>';
+    }).join("");
+
+    document.getElementById("pendiente").innerHTML =
+      '<b>Lo que esta ficha todavía no hace.</b> Clasifica por las etiquetas que ya trae el Stock, ' +
+      'así que una pieza sin etiquetar no suma en ninguna zona aunque valga. Y los consejeros de ' +
+      'carbono aún no están dados de alta: las tres zonas están listas, falta enchufarles su fuente.';
+  }
+
+  fetch(STOCK, {cache:"no-store"}).then(function(r){
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(d){ pinta(Array.isArray(d) ? d : (d && d.items) || []); })
+    .catch(function(e){
+      document.getElementById("veredicto").textContent =
+        "No se pudo leer el Stock (" + e.message + "). Mejor decirlo que pintar un equilibrio inventado.";
+    });
+})();
+</script>
+</body>
+</html>
