@@ -24,7 +24,7 @@ test("una discrepancia de identidad no puede producir atribución de puntos", ()
 test("la normativa queda numerada de 01 a 23 sin huecos", () => {
   const numbers = [...html.matchAll(/<article class="art" id="n(\d+)">\s*<div class="num">(\d+)<\/div>/g)]
     .map((match) => [match[1], match[2]]);
-  assert.deepEqual(numbers, Array.from({ length: 24 }, (_, index) => {
+  assert.deepEqual(numbers, Array.from({ length: 25 }, (_, index) => {
     const value = String(index + 1).padStart(2, "0");
     return [value, value];
   }));

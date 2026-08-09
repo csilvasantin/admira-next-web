@@ -73,6 +73,22 @@
     }).format(fecha);
   }
 
+  // Cuánto hace, en palabras. Una fecha absoluta obliga a hacer la resta mental;
+  // «hace 4 min» se entiende sin pensar, que es de lo que va este aviso.
+  function haceCuanto(valor) {
+    if (!valor) return "";
+    var t = new Date(valor).getTime();
+    if (isNaN(t)) return "";
+    var s = Math.max(0, Math.round((Date.now() - t) / 1000));
+    if (s < 60) return "hace " + s + " s";
+    var m = Math.round(s / 60);
+    if (m < 60) return "hace " + m + " min";
+    var h = Math.floor(m / 60), r = m % 60;
+    if (h < 24) return "hace " + h + " h" + (r ? " " + r + " min" : "");
+    var d = Math.round(h / 24);
+    return "hace " + d + (d === 1 ? " día" : " días");
+  }
+
   function nodo(tag, clase, contenido) {
     var n = document.createElement(tag);
     if (clase) n.className = clase;
@@ -168,9 +184,16 @@
   function pinta(estado, actual, disponible, nota) {
     aseguraPanel();
     panel.setAttribute("data-state", estado);
+    // EL TITULAR ES LA VERSIÓN (Carlos, 2026-08-09): «en lugar de versión nueva pon
+    // la versión, que se sobreentiende que es nueva». Decir «versión nueva» gastaba
+    // el sitio más visible del aviso en la única palabra que ya se deducía del icono
+    // y del botón, y dejaba fuera el dato que de verdad se mira: cuál.
+    var sello = estado === "stale"
+      ? ((disponible && disponible.version) || "")
+      : ((actual && actual.version) || "");
     var titulos = {
-      current: "Versión vigente",
-      stale: "⟳ Versión nueva · recargar",
+      current: sello ? sello + " · al día" : "Versión vigente",
+      stale: sello ? "⟳ " + sello + " · recargar" : "⟳ Publicación nueva · recargar",
       undeclared: "Versión no declarada",
       unavailable: "Verificación no disponible"
     };
@@ -236,8 +259,18 @@
     if (cambioVersion || cambioHuella) {
       var nueva = manifest.kind === "ok" ? manifest.data : datosManifest(null);
       if (cambioHuella && !cambioVersion && nueva.version === referencia.version) nueva.version = null;
+      // Más información, y la que se necesita para decidir si recargar AHORA: quién
+      // publicó, hace cuánto, y qué versión tiene esta pestaña. Antes solo decía que
+      // había código más reciente, que es justo lo que ya sabías por el aviso.
+      var quien = nueva.firma ? "por " + nueva.firma : "sin firma declarada";
+      var cuando = haceCuanto(nueva.deployedAt);
+      var tuya = referencia.version
+        ? "Esta pestaña ejecuta " + referencia.version +
+          (haceCuanto(referencia.deployedAt) ? ", de " + haceCuanto(referencia.deployedAt) : "") + "."
+        : "Esta pestaña no declara qué versión ejecuta.";
       var mensaje = nueva.version
-        ? "Hay código más reciente disponible; recarga cuando hayas guardado el trabajo en curso."
+        ? "Publicada " + (cuando ? cuando + " " : "") + quien + ". " + tuya +
+          " Recarga cuando hayas guardado el trabajo en curso."
         : "Se detectó una publicación sin una nueva versión declarada. Registra la próxima publicación antes de atribuirle un release.";
       pinta("stale", referencia, nueva, mensaje);
       return;

@@ -80,7 +80,8 @@ test('muestra la versión vigente, fecha humana y hash desde el manifiesto', asy
   const {context, body} = fixture([manifest]);
   await context.window.AdmiraVersionWatch.ready;
   const visible = textTree(body);
-  assert.match(visible, /Versión vigente/i);
+  // El titular es LA VERSIÓN, no la palabra «vigente» (Carlos, 2026-08-09).
+  assert.match(visible, /v\.08\.08\.2026\.r1\.12:26 · al día/);
   assert.match(visible, /v\.08\.08\.2026\.r1\.12:26/);
   assert.match(visible, /publicada 8 ago 2026, 12:26/i);
   assert.match(visible, /2d6226b/);
@@ -93,7 +94,12 @@ test('distingue la release de esta pestaña de una nueva release disponible', as
   await context.window.AdmiraVersionWatch.ready;
   await context.window.AdmiraVersionWatch.check();
   const visible = textTree(body);
-  assert.match(visible, /Versión nueva · recargar/i);
+  // «Versión nueva» se sobreentiende: el titular dice CUÁL es la que hay que tomar.
+  assert.match(visible, /⟳ v\.08\.08\.2026\.r2\.13:40 · recargar/);
+  assert.doesNotMatch(visible, /Versión nueva/i);
+  // Y da la información con la que se decide recargar ahora o luego.
+  assert.match(visible, /Esta pestaña ejecuta v\.08\.08\.2026\.r1\.12:26/);
+  assert.match(visible, /hace \d+ (s|min|h|día)/);
   assert.match(visible, /En esta pestaña.*v\.08\.08\.2026\.r1\.12:26/i);
   assert.match(visible, /Disponible.*v\.08\.08\.2026\.r2\.13:40/i);
   assert.match(visible, /2d6226b.*abcdef1/);
