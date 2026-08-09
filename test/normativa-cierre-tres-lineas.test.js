@@ -22,6 +22,16 @@ test("la regla 22 fija las tres líneas de cierre, en orden", () => {
     "las tres líneas deben aparecer en el orden tiempo → puntos → total");
 });
 
+test("el ranking va pegado a los puntos, con su definición de agente activo", () => {
+  assert.match(regla, /Ranking: 2 de 4/, "el ejemplo enseña el ranking en la línea de los puntos");
+  assert.match(regla, /Ranking: x de n/, "la forma queda escrita");
+  assert.match(regla, /puesto que ocupa ese agente/);
+  // Lo que de verdad hay que fijar es qué cuenta como «activo»: sin eso cada agente
+  // se inventa su propia n y dos rankings del mismo día dejan de ser comparables.
+  assert.match(regla, /que haya puntuado hoy/);
+  assert.match(regla, /Ni los que están encendidos sin producir/);
+});
+
 test("el tiempo se mide y los puntos se leen: ni se estiman ni se recuerdan", () => {
   assert.match(regla, /tiempo se mide<\/b>, no se estima/);
   assert.match(regla, /puntos se leen<\/b> de yokup\.com\/highscore/);
