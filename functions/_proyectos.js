@@ -91,10 +91,10 @@ export const PROYECTOS = [
     url: 'https://www.admira.live/13rue/',
     estadoUrl: 'https://www.admira.live',
     parentKey: 'admira-live',
-    repo: 'csilvasantin/admira-live', repoTxt: 'admira-live · 13rue/',
-    pages: 'admira-live', publica: 'wrangler pages deploy . --project-name admira-live',
+    repo: 'csilvasantin/32.-ConsejoAdmiraNextGame', repoTxt: '32.-ConsejoAdmiraNextGame · 13rue/',
+    pages: 'admira-live', publica: './deploy.sh → Pages admira-live (repo COMPLETO, ver nota)',
     tipo: 'sitio', shot: null,
-    nota: 'El vecindario de 13 Rue del Percebe traducido a doce agentes de IA, cada uno con su system prompt, su léxico y su vocabulario vetado. Se levanta en admira.live y su nombre definitivo será ieu.ai (también escrito eui.ai: son EL MISMO proyecto, no dos copias con dos URLs — cuando se registre se elige uno y el otro redirige). Ojo al alcance: ieu.ai nace para el Universo entero, no para Admira; Admira es quien lo construye, no su dueño temático.',
+    nota: 'El vecindario de 13 Rue del Percebe traducido a doce agentes de IA, cada uno con su system prompt, su léxico y su vocabulario vetado. Se levanta en admira.live y su nombre definitivo será ieu.ai (también escrito eui.ai: son EL MISMO proyecto, no dos copias con dos URLs — cuando se registre se elige uno y el otro redirige). Ojo al alcance: ieu.ai nace para el Universo entero, no para Admira; Admira es quien lo construye, no su dueño temático. AVISO DE DESPLIEGUE, aprendido rompiéndolo el 9-ago-2026: admira.live se publica ENTERO desde 32.-ConsejoAdmiraNextGame. Existe además un repo csilvasantin/admira-live que solo tiene la portada y unas pocas páginas; desplegar desde ÉL sustituye el sitio completo y borra /control, /diario, /usuarios y /agora, que pasan a devolver la portada con 200 (un 404 disfrazado que no salta a la vista). Publicar siempre desde el repo completo.',
   },
   {
     clave: 'incubadora-bus', nombre: 'Incubadora · bus de estado',
