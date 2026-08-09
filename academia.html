@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ventana de formación · AdmiraNeXT — el Consejo estudia</title>
+<meta name="description" content="Qué está estudiando cada consejero de silicio de AdmiraNeXT: la cápsula que se llevó, de qué vídeo salió y a quién le toca la próxima ventana.">
+<meta name="admiranext-version" content="v.08.08.2026.r20.10:51">
+<link rel="icon" href="/favicon.ico">
+<meta property="og:title" content="Ventana de formación · AdmiraNeXT">
+<meta property="og:description" content="El Consejo de silicio estudia en abierto: qué aprendió cada consejero, de qué vídeo y cuándo.">
+<style>
+  :root{
+    --bg:#080b14; --panel:rgba(18,24,40,.72); --ink:#e8ecf6; --dim:#8792ab;
+    --line:rgba(124,232,216,.16); --neon:#7ce8d8; --neon2:#5ef2a0; --accent:#e8a87c; --warn:#ff8f7a;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .glow{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:.45}
+  .glow.a{width:44vw;height:44vw;top:-14vw;left:-10vw;background:radial-gradient(circle,rgba(124,232,216,.26),transparent 70%)}
+  .glow.b{width:38vw;height:38vw;bottom:-12vw;right:-8vw;background:radial-gradient(circle,rgba(232,168,124,.20),transparent 70%)}
+  .wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:0 20px}
+  header{padding:60px 0 30px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--neon);margin:0 0 16px}
+  h1{font-size:clamp(2.2rem,7vw,4rem);line-height:1;margin:0 0 18px;font-weight:800;letter-spacing:-.03em}
+  h1 .n{font-family:var(--mono);background:linear-gradient(135deg,var(--neon),var(--neon2) 55%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{max-width:680px;margin:0 auto;color:var(--dim);font-size:1.04rem}
+  .lede b{color:var(--ink);font-weight:600}
+  .barra{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:26px 0 0}
+  .dato{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 14px;font:600 12.5px/1.2 var(--mono);color:var(--dim)}
+  .dato b{color:var(--neon);font-weight:700}
+  main{padding:26px 0 40px}
+  .turno{border:1px solid rgba(232,168,124,.45);background:rgba(232,168,124,.07);border-radius:14px;padding:18px 20px;margin:0 0 22px;
+    font:600 clamp(14px,2.2vw,17px)/1.45 var(--mono);color:var(--accent)}
+  .turno b{color:var(--ink)}
+  .rejilla{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .silla{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:18px 18px 16px;position:relative;overflow:hidden}
+  .silla::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:2px;border-radius:2px;background:linear-gradient(180deg,var(--neon),transparent);opacity:.5}
+  .silla h2{margin:0 0 2px;font-size:1.06rem;letter-spacing:-.01em}
+  .cargo{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--neon);margin:0 0 8px}
+  .fuerte{color:var(--dim);font-size:.9rem;margin:0 0 12px}
+  .marca{display:inline-block;font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;
+    padding:5px 9px;border-radius:6px;border:1px solid var(--line);color:var(--dim);margin:0 6px 10px 0}
+  .marca.con{color:var(--neon2);border-color:rgba(94,242,160,.35)}
+  .marca.sin{color:var(--warn);border-color:rgba(255,143,122,.35)}
+  .leccion{border-left:2px solid var(--neon2);background:rgba(94,242,160,.05);border-radius:0 8px 8px 0;
+    padding:11px 13px;margin:8px 0 0;font-size:.92rem;color:var(--ink)}
+  .fuente{display:block;margin-top:9px;font:11.5px/1.4 var(--mono);color:var(--dim);text-decoration:none;word-break:break-word}
+  .fuente:hover{color:var(--neon)}
+  .vacio{color:var(--dim);font-size:.9rem;font-style:italic;margin:6px 0 0}
+  .nota{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:18px 20px;margin:26px 0 0;color:var(--dim);font-size:.93rem}
+  .nota b{color:var(--ink)}
+  .nota code{font-family:var(--mono);font-size:.86em;color:var(--ink);background:rgba(124,232,216,.08);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  footer{padding:44px 0 70px;text-align:center;color:var(--dim);font-size:.9rem}
+  footer a{color:var(--neon);text-decoration:none;border-bottom:1px solid transparent}
+  footer a:hover{border-bottom-color:var(--neon)}
+  .meta{font-family:var(--mono);font-size:12px;opacity:.72;margin-top:10px}
+  @media (max-width:640px){header{padding:40px 0 22px}.rejilla{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="glow a" aria-hidden="true"></div>
+<div class="glow b" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">admira.academy · en abierto</p>
+    <h1>La ventana de <span class="n">formación</span></h1>
+    <p class="lede">El Consejo de AdmiraNeXT son ocho consejeros de silicio, y cada uno tiene lo suyo.
+      Cada ventana de formación coge a uno, le busca un vídeo corto de su especialidad y le saca
+      <b>una lección</b> — no un resumen. Esa lección entra sola en su cabeza la próxima vez que opina.
+      Esta página enseña <b>lo que han estudiado de verdad</b>, leído en vivo del Stock.</p>
+    <div class="barra" id="barra"></div>
+  </header>
+
+  <main>
+    <div class="turno" id="turno">Leyendo el Stock…</div>
+    <div class="rejilla" id="rejilla"></div>
+
+    <div class="nota">
+      <p><b>Cómo se hace, sin misterio.</b> Se busca el vídeo con la herramienta de búsqueda de xAI
+        —de los más vistos y <b>cinco minutos como máximo</b>, criterio de Carlos—, y luego
+        <b>no se le cree</b>: la duración y la existencia se comprueban con <code>yt-dlp</code> antes de
+        aceptar nada. La lección se guarda con la etiqueta del consejero, y a partir de ahí el Consejo
+        la usa sin que nadie la copie a mano.</p>
+      <p><b>A quién le toca.</b> Al azar entre los que menos formación llevan. Al azar del todo, el que
+        peor está puede pasarse días sin que le toque justo por ir el último; así nadie se queda atrás
+        y sigue sin haber turno previsible.</p>
+      <p id="pendiente"></p>
+    </div>
+  </main>
+
+  <footer>
+    <div>Formación del equipo de silicio de <b>AdmiraNeXT</b> · una ventana, un consejero, una lección.</div>
+    <div class="meta">
+      Ver también <a href="/normativa">la Normativa</a> ·
+      <a href="/mandamientos">los Mandamientos</a> ·
+      <a href="/filosofia">las Máximas</a><br>
+      <span style="opacity:.8">v.08.08.2026.r20.10:51</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // El índice del Stock es público y sirve CORS abierto, así que la página lee el dato
+  // REAL en vivo. Si un día deja de responder se dice, no se pinta un consejo inventado.
+  var STOCK = "https://pub-bf043a4daa3b43b7a0b769617729d074.r2.dev/stock/index.json";
+  var SILLAS = [
+    {cargo:"CEO", nombre:"Steve Jobs",     tag:"stevejobs",     fuerte:"Producto: no sumar funciones, decidir qué se queda fuera."},
+    {cargo:"CTO", nombre:"Steve Wozniak",  tag:"stevewozniak",  fuerte:"Tecnología como cimiento: sólida, real y sostenible."},
+    {cargo:"COO", nombre:"Tim Cook",       tag:"timcook",       fuerte:"Operación: que la máquina gire y lo prometido se cumpla."},
+    {cargo:"CFO", nombre:"Warren Buffett", tag:"warrenbuffett", fuerte:"Negocio a largo plazo: qué renta, qué cuesta y qué aguanta."},
+    {cargo:"CCO", nombre:"Walt Disney",    tag:"waltdisney",    fuerte:"Creatividad y marca: experiencias que se recuerdan."},
+    {cargo:"CDO", nombre:"Dieter Rams",    tag:"dieterrams",    fuerte:"Diseño: menos, pero mejor. Quitar hasta lo esencial."},
+    {cargo:"CXO", nombre:"Howard Schultz", tag:"howardschultz", fuerte:"Experiencia y espacio vivido: cómo se siente estar dentro."},
+    {cargo:"CSO", nombre:"George Lucas",   tag:"georgelucas",   fuerte:"Relato: la historia que hace contagiosa una idea."}
+  ];
+
+  function esc(v){ return String(v==null?"":v).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function tags(p){ return (p && p.tags || []).map(function(t){
+    return String(t).trim().toLowerCase().replace(/^#/,""); }); }
+
+  // El comentario de muchas piezas viejas es literalmente la etiqueta («#dieterrams»).
+  // Eso no es una lección: es el mecanismo. Se descarta igual que hace el worker.
+  function leccionDe(p, tag){
+    var c = String(p && p.comment || "").trim();
+    if (!c) return "";
+    var limpio = c.toLowerCase().replace(/[^a-z0-9]/g,"");
+    if (limpio === tag || limpio === "formacion"+tag || limpio === tag+"formacion") return "";
+    return c;
+  }
+
+  function pinta(items){
+    var barra = document.getElementById("barra"), rejilla = document.getElementById("rejilla");
+    var conLeccion = 0, total = 0, minimo = Infinity, pendientes = [];
+
+    var filas = SILLAS.map(function(s){
+      var suyas = items.filter(function(p){ return tags(p).indexOf(s.tag) >= 0; });
+      var formacion = suyas.filter(function(p){ return tags(p).indexOf("formacion") >= 0; });
+      var conLec = suyas.map(function(p){ return {p:p, l:leccionDe(p, s.tag)}; })
+                        .filter(function(x){ return x.l; });
+      total += suyas.length; conLeccion += conLec.length;
+      if (formacion.length < minimo) minimo = formacion.length;
+      return {s:s, suyas:suyas, formacion:formacion, conLec:conLec};
+    });
+
+    filas.forEach(function(f){ if (f.formacion.length === minimo) pendientes.push(f.s.nombre); });
+
+    barra.innerHTML =
+      '<span class="dato">Consejeros <b>' + SILLAS.length + '</b></span>' +
+      '<span class="dato">Piezas suyas en el Stock <b>' + total + '</b></span>' +
+      '<span class="dato">Con lección aprovechable <b>' + conLeccion + '</b></span>';
+
+    document.getElementById("turno").innerHTML = pendientes.length === 1
+      ? 'Próxima ventana → <b>' + esc(pendientes[0]) + '</b>, que es quien menos formación lleva.'
+      : 'Próxima ventana → al azar entre <b>' + esc(pendientes.join(", ")) + '</b>: van empatados a ' + minimo + '.';
+
+    rejilla.innerHTML = filas.map(function(f){
+      var s = f.s;
+      var ultima = f.conLec.length ? f.conLec[f.conLec.length - 1] : null;
+      var cuerpo = ultima
+        ? '<div class="leccion">' + esc(ultima.l) + '</div>' +
+          '<span class="fuente">De: ' + esc(ultima.p.title || "vídeo sin título") + '</span>'
+        : '<p class="vacio">Tiene material suyo, pero todavía ninguna lección escrita: solo vídeos sin nada que aprender de ellos.</p>';
+      return '<article class="silla">' +
+        '<p class="cargo">' + esc(s.cargo) + '</p>' +
+        '<h2>' + esc(s.nombre) + '</h2>' +
+        '<p class="fuerte">' + esc(s.fuerte) + '</p>' +
+        '<span class="marca ' + (f.formacion.length ? "con" : "sin") + '">' + f.formacion.length + ' de formación</span>' +
+        '<span class="marca">' + f.suyas.length + ' piezas suyas</span>' +
+        cuerpo +
+      '</article>';
+    }).join("");
+
+    document.getElementById("pendiente").innerHTML =
+      '<b>Lo que todavía no está.</b> Las ventanas se lanzan a mano desde una máquina de la flota; ' +
+      'faltan los cuartos de hora automáticos. Y de las primeras cápsulas quedan algunas con lección ' +
+      'y sin la etiqueta de su consejero, así que existen y no forman a nadie: aparecen aquí como ' +
+      '«sin lección» hasta que se enlacen.';
+  }
+
+  fetch(STOCK, {cache:"no-store"}).then(function(r){
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(d){
+    pinta(Array.isArray(d) ? d : (d && d.items) || []);
+  }).catch(function(e){
+    document.getElementById("turno").textContent =
+      "No se pudo leer el Stock (" + e.message + "). Mejor decirlo que enseñar un consejo inventado.";
+  });
+})();
+</script>
+</body>
+</html>
