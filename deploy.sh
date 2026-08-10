@@ -35,11 +35,19 @@ if conflictos="$(grep -rnE '^(<{7}|>{7}|={7}$)' \
 fi
 echo "  ✓ ninguna página lleva marcadores de conflicto"
 
-git push origin main 2>&1 | tail -1 || echo "  (nada que pushear)"
+# SE PUBLICA LO QUE EL GUARDA VALIDÓ, NO LA RAMA LOCAL (Morfeo, 2026-08-10).
+# guarda-rama.sh compara HEAD con origin/main y aborta si difieren; acto seguido
+# este script empaquetaba `main`, la rama LOCAL, que es otra cosa. En el MacMini
+# la local iba nueve días por detrás (85e7465 frente a bd29e1d), así que el
+# guarda imprimía «✓ publicando origin/main (bd29e1d)» y a continuación subía a
+# producción el árbol del 7 de agosto. Validar una cosa y publicar otra es peor
+# que no validar: da por seguro justo lo que falla. Y desde un worktree en HEAD
+# separado —como trabajan los agentes para no pisarse— pasaba siempre.
+git push origin HEAD:main 2>&1 | tail -1 || echo "  (nada que pushear)"
 echo "→ Cloudflare Pages (ORIGEN de producción)…"
 export CLOUDFLARE_API_TOKEN="$(bash ~/Claude/admira-vault/vault-get.sh CLOUDFLARE_API_TOKEN)"
-TMP="$(mktemp -d)"; git archive main | tar -x -C "$TMP"
-release="$(git show main:index.html | sed -n 's/.*admiranext-version.*content="[^"]*\(v\.[^"]*\)".*/\1/p' | head -1)"
+TMP="$(mktemp -d)"; git archive HEAD | tar -x -C "$TMP"
+release="$(git show HEAD:index.html | sed -n 's/.*admiranext-version.*content="[^"]*\(v\.[^"]*\)".*/\1/p' | head -1)"
 [[ -n "$release" ]] || { echo "✗ No se encontró el sello canónico en index.html" >&2; exit 1; }
 declared_version="$(jq -r '.version // empty' release-signature.json)"
 declared_agent="$(jq -r '.deployer // .agent // empty' release-signature.json)"
@@ -48,7 +56,7 @@ declared_signature="$(jq -r '.signature // empty' release-signature.json)"
 [[ "$declared_version" == "$release" ]] || { echo "✗ release-signature.json no coincide con el sello $release" >&2; exit 1; }
 [[ "$declared_agent" == "$ADMIRA_RELEASE_AGENT" && "$declared_machine" == "$ADMIRA_RELEASE_MACHINE" ]] || { echo "✗ La declaración de responsable no coincide con este agente/equipo" >&2; exit 1; }
 [[ "$declared_signature" == "$ADMIRA_RELEASE_AGENT · $ADMIRA_RELEASE_MACHINE" ]] || { echo "✗ Firma inválida en release-signature.json" >&2; exit 1; }
-git_full="$(git rev-parse main)"
+git_full="$(git rev-parse HEAD)"
 jq -n \
   --arg version "$release" \
   --arg deployedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
