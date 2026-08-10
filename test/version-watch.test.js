@@ -131,7 +131,7 @@ test('todas las páginas que cargan el verificador fijan la huella de su conteni
     references.push(...html.matchAll(/\/assets\/admira-version-watch\.js([^"']*)/g));
   }
   assert.ok(references.length >= 12, 'la guardia debe cubrir todas las superficies que montan el verificador');
-  assert.ok(references.every((match) => match[1] === '?build=9081436'),
+  assert.ok(references.every((match) => match[1] === '?build=10080804'),
     'un verificador cacheado ocultaría el nuevo contexto de release hasta cuatro horas');
 });
 
