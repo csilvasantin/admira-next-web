@@ -117,18 +117,7 @@
     }
     var css = document.createElement("style");
     css.textContent =
-      // EL AVISO NO SE COME EL CLIC DE LA PÁGINA (Carlos, 2026-08-10 · encargo #1334 c).
-      // Este panel es `position:fixed` abajo a la derecha, con el z-index más alto que
-      // hay y `width:min(360px,100vw-28px)` —o sea, casi todo el ancho en una pantalla
-      // estrecha—, así que se plantaba encima del botón «Generar presentación» de
-      // /presentaciones/generador y se tragaba la pulsación: el botón se veía, se podía
-      // apuntar, y no pasaba nada. No había ni un `pointer-events` en todo el fichero.
-      // El rectángulo del panel deja pasar los eventos y sólo sus PROPIOS controles los
-      // recogen: así el aviso sigue siendo usable (recargar, desplegar la trazabilidad)
-      // sin robarle ni un clic a lo que tapa. Se hace en el contenedor y no moviéndolo de
-      // sitio a propósito: cualquier página puede tener un control justo debajo, y la
-      // siguiente esquina que se elija volvería a tapar algo distinto.
-      ".admira-version{--av-accent:#74e6d0;position:fixed;right:14px;bottom:14px;z-index:2147483000;pointer-events:none;" +
+      ".admira-version{--av-accent:#74e6d0;position:fixed;right:14px;bottom:14px;z-index:2147483000;" +
       "width:min(360px,calc(100vw - 28px));box-sizing:border-box;padding:12px;border:1px solid rgba(116,230,208,.32);" +
       "border-radius:12px;background:rgba(8,17,27,.96);color:#eef7f5;box-shadow:0 12px 34px rgba(0,0,0,.42);" +
       "font:500 12px/1.35 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;backdrop-filter:blur(14px);" +
@@ -167,10 +156,6 @@
       ".admira-version__guidance{margin:9px 2px 0;color:#c9d3d9;font-size:11px}" +
       ".admira-version__tech{margin-top:8px;color:#8fa0ac;font:500 10px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace}" +
       ".admira-version__tech summary{cursor:pointer;color:#9eacb6}.admira-version__tech p{margin:5px 0 0;overflow-wrap:anywhere}" +
-      // Lo único que vuelve a recoger eventos: el botón de acción, el desplegable de
-      // trazabilidad y cualquier enlace. Todo lo demás del panel es texto, y el texto no
-      // necesita el clic — necesita no quitárselo a nadie.
-      ".admira-version__action,.admira-version__tech summary,.admira-version a{pointer-events:auto}" +
       "@media(max-width:430px){.admira-version[data-state=stale] .admira-version__grid{grid-template-columns:1fr}}" +
       "@media(prefers-reduced-motion:reduce){.admira-version *{scroll-behavior:auto!important}}";
     document.head.appendChild(css);

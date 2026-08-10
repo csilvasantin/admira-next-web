@@ -1,5 +1,9 @@
 // El aviso de versión no le roba el clic a la página (Carlos, 2026-08-10 · #1334 c).
 //
+// El arreglo es de bd29e1d, que se publicó sin prueba. Esto es la prueba que le faltaba:
+// mañana alguien limpia el CSS, se lleva el pointer-events por delante, y el síntoma
+// vuelve a ser el peor posible — un botón que se ve, se apunta y no hace nada.
+//
 // El panel es position:fixed abajo a la derecha, con el z-index más alto que hay y
 // width:min(360px,100vw-28px) — casi todo el ancho en una pantalla estrecha. Se plantaba
 // encima del botón «Generar presentación» y se tragaba la pulsación: el botón se veía, se
@@ -65,7 +69,7 @@ test('el panel tapa de verdad el botón, y aun así el clic llega al botón', ()
 });
 
 test('los controles del propio panel siguen siendo pulsables', () => {
-  for (const control of ['.admira-version__action', '.admira-version__tech summary', '.admira-version a'])
+  for (const control of ['.admira-version button', '.admira-version a', '.admira-version summary'])
     assert.equal(recibeElClic(['.admira-version', control]), control, control + ' debe recoger su clic');
 });
 
