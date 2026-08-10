@@ -120,7 +120,19 @@
       ".admira-version{--av-accent:#74e6d0;position:fixed;right:14px;bottom:14px;z-index:2147483000;" +
       "width:min(360px,calc(100vw - 28px));box-sizing:border-box;padding:12px;border:1px solid rgba(116,230,208,.32);" +
       "border-radius:12px;background:rgba(8,17,27,.96);color:#eef7f5;box-shadow:0 12px 34px rgba(0,0,0,.42);" +
-      "font:500 12px/1.35 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;backdrop-filter:blur(14px)}" +
+      "font:500 12px/1.35 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;backdrop-filter:blur(14px);" +
+      // EL SELLO NO SE COME LOS CLICS DE LA PÁGINA (Morfeo, 2026-08-10). Es un
+      // panel fijo abajo a la derecha con z-index 2147483000: 360 px de ancho por
+      // ~170 de alto que tapan esa esquina entera. En el generador de
+      // presentaciones ahí vive «Generar presentación», y el botón dejaba de
+      // responder — `elementFromPoint` sobre su centro devolvía
+      // `admira-version__release`, no el botón. No es exclusivo del generador:
+      // cualquier página de la casa que ponga un control en esa esquina se
+      // queda muda, y el síntoma es el peor posible, un clic que no hace nada.
+      // El panel es INFORMATIVO, así que deja pasar el puntero; sólo sus propios
+      // controles lo recuperan.
+      "pointer-events:none}" +
+      ".admira-version button,.admira-version a,.admira-version summary{pointer-events:auto}" +
       ".admira-version[data-state=stale]{--av-accent:#ffb454;border-color:rgba(255,180,84,.52)}" +
       ".admira-version[data-state=undeclared]{--av-accent:#d7b7ff;border-color:rgba(215,183,255,.42)}" +
       ".admira-version[data-state=unavailable]{--av-accent:#aab5c1;border-color:rgba(170,181,193,.34)}" +
