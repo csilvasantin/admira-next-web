@@ -53,6 +53,8 @@ async function gh(ruta, env) {
   return r.json();
 }
 
+import { quienPublica, etiquetaResponsable } from '../quien-publica.js';
+
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const clave = url.searchParams.get('p') || '';
@@ -72,15 +74,26 @@ export async function onRequestGet({ request, env }) {
     gh(`/repos/${P.repo}/tags?per_page=30`, env),
   ]);
 
-  const commits = (commitsRaw || []).map((c) => ({
+  const commits = (commitsRaw || []).map((c) => {
+    const mensaje = asunto(c.commit?.message);
+    const cuerpo = String(c.commit?.message || '').split('\n').slice(1).join('\n').trim();
+    // QUIÉN publicó, no con qué cuenta se hizo el commit. Ver functions/quien-publica.js:
+    // `author.name` es el git config de la máquina y en la flota casi nunca es el agente.
+    const quien = quienPublica({ autorGit: c.commit?.author?.name || '', asunto: mensaje, cuerpo });
+    return {
     sha: (c.sha || '').slice(0, 7),
     fecha: madrid(c.commit?.author?.date),
     dia: dia(c.commit?.author?.date),
     autor: c.commit?.author?.name || '',
-    mensaje: asunto(c.commit?.message),
-    cuerpo: String(c.commit?.message || '').split('\n').slice(1).join('\n').trim().slice(0, 900),
+    responsable: etiquetaResponsable(quien),
+    responsableAgente: quien.agente,
+    responsableMaquina: quien.maquina,
+    responsableFiable: quien.fiable,
+    mensaje,
+    cuerpo: cuerpo.slice(0, 900),
     url: c.html_url,
-  }));
+  };
+  });
 
   // Las etiquetas no traen fecha: se cruza con el commit al que apuntan.
   const porSha = new Map((commitsRaw || []).map((c) => [c.sha, c.commit?.author?.date]));

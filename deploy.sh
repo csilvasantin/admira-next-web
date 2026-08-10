@@ -25,6 +25,12 @@ source ~/Claude/admira-vault/guarda-rama.sh
 # guardia vive AQUÍ y no sólo en test/, porque quien publica no siempre corre
 # los tests, y esto no es una opinión sobre el código: es basura visible en la
 # web. Ver test/sin-marcadores-de-merge.test.js.
+# TOPE DE CUATRO PUBLICACIONES POR HORA (Carlos, 2026-08-10). Ver
+# ritmo-publicacion.mjs: nace de la noche en que Yokup se publicó cinco veces de
+# madrugada sin que nadie lo pidiera. La regla es de flota, no de un proyecto.
+echo "→ Ritmo de publicación…"
+node ritmo-publicacion.mjs --proyecto admiranext.com || exit 1
+
 echo "→ Merges sin resolver…"
 if conflictos="$(grep -rnE '^(<{7}|>{7}|={7}$)' \
       --include='*.html' --include='*.js' --include='*.css' --include='*.json' \

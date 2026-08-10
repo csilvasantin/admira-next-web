@@ -159,7 +159,8 @@
   .snap-row{display:grid;grid-template-columns:118px minmax(0,1fr) auto;gap:12px;align-items:center;
     padding:10px 0;border-top:1px solid rgba(124,232,216,.1)}
   .snap-when{font:700 11.5px/1.35 var(--mono);color:var(--neon2)}
-  .snap-who{display:block;color:var(--dim);font-weight:400;font-size:10.5px;margin-top:3px}
+  .snap-who-dudoso{opacity:.55;font-style:italic}
+    .snap-who{display:block;color:var(--dim);font-weight:400;font-size:10.5px;margin-top:3px}
   .snap-copy{font:700 11px/1 var(--mono);padding:7px 12px;border-radius:8px;white-space:nowrap;cursor:pointer;
     border:1px solid var(--line);color:var(--neon);background:none}
   .snap-copy:hover{border-color:var(--neon)}
@@ -396,7 +397,12 @@
 
   function filaCommit(c){
     return '<div class="snap-row">'
-      + '<div class="snap-when">' + esc(c.fecha) + '<span class="snap-who">' + esc(c.autor) + '</span></div>'
+      + '<div class="snap-when">' + esc(c.fecha)
+      // QUIÉN lo publicó. Antes salía el `git config user.name` de la máquina,
+      // que en la flota casi nunca es el agente: la madrugada del 10-ago-2026
+      // el historial le atribuía a Carlos, dormido, cambios de los agentes.
+      + '<span class="snap-who' + (c.responsableFiable === false ? ' snap-who-dudoso' : '') + '">'
+      + esc(c.responsable || c.autor) + '</span></div>'
       + '<div class="snap-m"' + (c.cuerpo ? ' title="' + esc(c.cuerpo) + '"' : '') + '>'
       +   esc(c.mensaje) + '<span class="cm">' + esc(c.sha) + '</span></div>'
       + '<a class="snap-open" href="' + esc(c.url) + '" target="_blank" rel="noopener">Ver ↗</a>'
