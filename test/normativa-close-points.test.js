@@ -21,11 +21,24 @@ test("una discrepancia de identidad no puede producir atribución de puntos", ()
   assert.doesNotMatch(rule, /el censo manda/);
 });
 
-test("la normativa queda numerada de 01 a 23 sin huecos", () => {
+test("la normativa queda numerada de 01 a 26 sin huecos", () => {
   const numbers = [...html.matchAll(/<article class="art" id="n(\d+)">\s*<div class="num">(\d+)<\/div>/g)]
     .map((match) => [match[1], match[2]]);
-  assert.deepEqual(numbers, Array.from({ length: 25 }, (_, index) => {
+  assert.deepEqual(numbers, Array.from({ length: 26 }, (_, index) => {
     const value = String(index + 1).padStart(2, "0");
     return [value, value];
   }));
+});
+
+// La regla 26 nace de un fallo concreto: el 10-ago-2026 el proyecto principal
+// estaba bien declarado en Yokup y el Highscore anunciaba otro, porque el latido
+// de presencia —que es la señal más fresca— conservaba el valor del día anterior.
+// El test guarda lo que hace que la regla sirva: que exija LAS DOS superficies.
+test("la regla 26 exige declarar el proyecto principal en todas las superficies", () => {
+  const rule = html.split('id="n26"')[1].split("</article>")[0];
+  assert.match(rule, /proyecto principal/i);
+  assert.match(rule, /foco\.sh/);
+  assert.match(rule, /latido de presencia/);
+  assert.match(rule, /señal más fresca/i);
+  assert.match(rule, /tarea del día/i);
 });
