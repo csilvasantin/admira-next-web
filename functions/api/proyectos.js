@@ -225,6 +225,42 @@ function fechaDelSello(sello) {
 }
 
 /**
+ * Demuestra que deployedAt puede gobernar el corte de commits. Además de ser
+ * ISO UTC y no futuro, debe corresponder a la fecha/hora del sello vista desde
+ * Madrid (el sello público usa la hora local). Se toleran diez minutos porque
+ * el comando de Pages puede terminar unos minutos después de acuñar el sello.
+ */
+function evidenciaDespliegue(sello, valor) {
+  const raw = String(valor || '');
+  if (!raw) return { ok: false, instant: NaN, error: 'Falta deployedAt.' };
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(raw)) {
+    return { ok: false, instant: NaN, error: 'deployedAt no es una fecha ISO UTC válida.' };
+  }
+  const instant = Date.parse(raw);
+  if (!Number.isFinite(instant)) return { ok: false, instant: NaN, error: 'deployedAt no es una fecha válida.' };
+  const normalizada = raw.includes('.') ? raw : raw.replace(/Z$/, '.000Z');
+  if (new Date(instant).toISOString() !== normalizada) {
+    return { ok: false, instant: NaN, error: 'deployedAt contiene una fecha u hora imposible.' };
+  }
+  if (instant > Date.now() + 10 * 60 * 1000) {
+    return { ok: false, instant: NaN, error: 'deployedAt está en el futuro.' };
+  }
+
+  const stamp = String(sello || '').match(/^v\.(\d{2})\.(\d{2})\.(\d{4})\.r\d+\.(\d{2}):(\d{2})$/);
+  if (!stamp) return { ok: false, instant: NaN, error: 'El sello no permite contrastar deployedAt.' };
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date(instant)).filter((p) => p.type !== 'literal').map((p) => [p.type, p.value]));
+  const declared = Date.UTC(+stamp[3], +stamp[2] - 1, +stamp[1], +stamp[4], +stamp[5]);
+  const observed = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute);
+  if (Math.abs(observed - declared) > 10 * 60 * 1000) {
+    return { ok: false, instant: NaN, error: 'deployedAt no corresponde a la fecha y hora del sello.' };
+  }
+  return { ok: true, instant, error: '' };
+}
+
+/**
  * Salta la caché del edge sin renunciar del todo a ella.
  *
  * Sin esto el control acusa en falso: Cloudflare sirve la portada cacheada, así
@@ -264,7 +300,7 @@ async function leerSello(estadoUrl) {
     else if (contenido.trim()) { sello = contenido.trim(); fuente = 'meta'; }
   }
 
-  let firma = { quien: '', machine: '', commit: '', version: '', valida: false, error: '' };
+  let firma = { quien: '', machine: '', commit: '', deployedAt: '', version: '', valida: false, error: '' };
   const vj = await traer(fresco(`${estadoUrl.replace(/\/$/, '')}/version.json`));
   if (vj) {
     try {
@@ -275,15 +311,18 @@ async function leerSello(estadoUrl) {
         const machine = String(d.machine || '');
         const signature = String(d.signature || '');
         const commit = String(d.gitShort || d.git || '');
+        const deployedAt = String(d.deployedAt || '');
+        const despliegue = evidenciaDespliegue(versionFirmada, deployedAt);
         const esperada = responsable && machine ? `${responsable} · ${machine}` : '';
         if (!sello) { sello = versionFirmada; fuente = 'version.json'; }
         firma = {
           quien: signature,
           machine,
           commit,
+          deployedAt: despliegue.ok ? deployedAt : '',
           version: versionFirmada,
           valida: !!(signature && esperada && signature === esperada && commit
-            && d.dirty === false && versionFirmada === sello),
+            && d.dirty === false && versionFirmada === sello && despliegue.ok),
           error: !signature ? 'Falta signature.'
             : !responsable ? 'Falta deployer/agent.'
             : !machine ? 'Falta machine.'
@@ -291,6 +330,7 @@ async function leerSello(estadoUrl) {
             : !commit ? 'Falta gitShort/git.'
             : d.dirty !== false ? 'El release no declara dirty:false.'
             : versionFirmada !== sello ? `version.json firma ${versionFirmada}, pero la portada declara ${sello}.`
+            : !despliegue.ok ? despliegue.error
             : '',
         };
       }
@@ -343,6 +383,9 @@ export async function veredicto(p, v, env, cache) {
 
   const formatoOk = CANONICO.test(v.sello);
   const fecha = fechaDelSello(v.sello);
+  const despliegue = evidenciaDespliegue(v.sello, v.deployedAt);
+  const instantePublicado = despliegue.ok ? despliegue.instant : NaN;
+  const firmaValida = !!v.valida && despliegue.ok;
 
   // ¿Se ha tocado el repositorio después de publicar ese sello?
   //
@@ -354,7 +397,13 @@ export async function veredicto(p, v, env, cache) {
   // worker tampoco es de git, es `wrangler rollback`.
   let sinVersionar = 0, ultimoCambio = '';
   if (fecha && p.tipo !== 'worker') {
-    const desde = new Date(fecha.getTime() + 24 * 3600 * 1000).toISOString();  // desde el día siguiente
+    // version.json conoce el instante real del deploy. Usarlo evita el agujero
+    // de la comparación antigua, que empezaba el día siguiente y no veía un
+    // commit hecho a las 22:00 después de publicar a las 19:00. Los sitios
+    // históricos sin deployedAt mantienen el fallback conservador anterior.
+    const desde = Number.isFinite(instantePublicado)
+      ? new Date(instantePublicado + 1000).toISOString()
+      : new Date(fecha.getTime() + 24 * 3600 * 1000).toISOString();
     // Mismo repositorio y mismo sello ⇒ misma lista de commits: las veinte
     // subsoluciones de admira.tv se resuelven con una sola llamada a GitHub.
     const d = await memo(cache, `commits:${p.repo}:${desde}`, async () => {
@@ -391,10 +440,10 @@ export async function veredicto(p, v, env, cache) {
       texto: `El sello no sigue la norma 07: se escribe v.DD.MM.AAAA.rN.HH:MM${d ? ` — aquí sería ${d}` : ''}.`,
     };
   }
-  if (!v.valida) {
+  if (!firmaValida) {
     return {
       estado: 'sin-firma', formatoOk: true, sinVersionar: 0,
-      texto: `Release sin firma verificable. Norma 08: version.json debe identificar responsable, equipo y commit${v.error ? ` — ${v.error}` : '.'}`,
+      texto: `Release sin firma verificable. Norma 08: version.json debe identificar responsable, equipo, commit e instante de despliegue${v.error || despliegue.error ? ` — ${v.error || despliegue.error}` : '.'}`,
     };
   }
   return { estado: 'ok', formatoOk: true, sinVersionar: 0, texto: 'Sello canónico, firmado por responsable y equipo, y sin cambios posteriores sin publicar.' };

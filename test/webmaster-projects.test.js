@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 import { PROYECTOS } from "../functions/_proyectos.js";
-import { cantidadReleases, censoAgentes, equipoDelResponsable, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
+import { cantidadReleases, censoAgentes, equipoDelResponsable, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, veredicto, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
 
 const apiSource = fs.readFileSync(new URL("../functions/api/proyectos.js", import.meta.url), "utf8");
 const webmasterSource = fs.readFileSync(new URL("../webmaster.html", import.meta.url), "utf8");
@@ -251,6 +251,113 @@ test("una portada compartida por varias filas se lee una sola vez por petición"
     ]);
     assert.equal(pedidas.length, 2);
     for (const sello of sellos) assert.equal(sello.sello, "v.03.08.2026.r2.15:51");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("Webmaster da de alta los cambios posteriores a la hora exacta del despliegue", async () => {
+  const original = globalThis.fetch;
+  let since = "";
+  globalThis.fetch = async (url) => {
+    const parsed = new URL(url);
+    since = parsed.searchParams.get("since") || "";
+    return new Response(JSON.stringify([{
+      sha: "despues-del-release",
+      commit: { author: { date: "2026-08-11T20:05:00Z" } },
+    }]), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const control = await veredicto(
+      { url: "https://admira.tv", repo: "csilvasantin/admira-tv" },
+      {
+        sello: "v.11.08.2026.r5.21:03",
+        deployedAt: "2026-08-11T19:03:24Z",
+        valida: true,
+      },
+      {},
+      new Map(),
+    );
+    assert.equal(since, "2026-08-11T19:03:25.000Z");
+    assert.equal(control.estado, "sin-versionar");
+    assert.equal(control.sinVersionar, 1);
+    assert.equal(control.ultimoCambio, "2026-08-11T20:05:00Z");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("un deployedAt futuro no puede ocultar cambios ni producir un al día falso", async () => {
+  const original = globalThis.fetch;
+  let since = "";
+  globalThis.fetch = async (url) => {
+    const parsed = new URL(url);
+    since = parsed.searchParams.get("since") || "";
+    return new Response("[]", { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const control = await veredicto(
+      { url: "https://admira.tv", repo: "csilvasantin/admira-tv" },
+      {
+        sello: "v.11.08.2026.r5.21:03",
+        deployedAt: "2999-01-01T00:00:00Z",
+        valida: true,
+      },
+      {},
+      new Map(),
+    );
+    assert.equal(since, "2026-08-12T00:00:00.000Z", "una evidencia inválida nunca gobierna el corte");
+    assert.equal(control.estado, "sin-firma");
+    assert.match(control.texto, /deployedAt está en el futuro/);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("selloVivo invalida una firma cuyo deployedAt no corresponde al sello", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url) => String(url).includes("version.json")
+    ? new Response(JSON.stringify({
+      version: "v.11.08.2026.r5.21:03",
+      deployedAt: "2026-08-11T17:00:00Z",
+      deployer: "TrinityMBP14",
+      machine: "MacBookProNegro14",
+      signature: "TrinityMBP14 · MacBookProNegro14",
+      git: "486f2681ba3c03d61ca60cb91e800951a522c1e3",
+      dirty: false,
+    }), { status: 200, headers: { "content-type": "application/json" } })
+    : new Response('<meta name="admiranext-version" content="v.11.08.2026.r5.21:03">', {
+      status: 200, headers: { "content-type": "text/html" },
+    });
+  try {
+    const vivo = await selloVivo({ url: "https://admira.tv" }, new Map());
+    assert.equal(vivo.valida, false);
+    assert.equal(vivo.deployedAt, "");
+    assert.match(vivo.error, /no corresponde a la fecha y hora del sello/);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("una fecha de calendario imposible no se normaliza como evidencia válida", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url) => String(url).includes("version.json")
+    ? new Response(JSON.stringify({
+      version: "v.02.03.2026.r1.20:03",
+      deployedAt: "2026-02-30T19:03:24Z",
+      deployer: "TrinityMBP14",
+      machine: "MacBookProNegro14",
+      signature: "TrinityMBP14 · MacBookProNegro14",
+      git: "486f2681ba3c03d61ca60cb91e800951a522c1e3",
+      dirty: false,
+    }), { status: 200, headers: { "content-type": "application/json" } })
+    : new Response('<meta name="admiranext-version" content="v.02.03.2026.r1.20:03">', {
+      status: 200, headers: { "content-type": "text/html" },
+    });
+  try {
+    const vivo = await selloVivo({ url: "https://admira.tv" }, new Map());
+    assert.equal(vivo.valida, false);
+    assert.match(vivo.error, /fecha u hora imposible/);
   } finally {
     globalThis.fetch = original;
   }
