@@ -126,6 +126,8 @@ export const PROYECTOS = [
     repo: 'csilvasantin/admira-tv', repoTxt: 'admira-tv',
     pages: 'admira-tv', publica: './deploy.sh → Pages + wrangler.toml',
     tipo: 'sitio', shot: '/webmaster-shots/admira-tv.jpg',
+    volver: 'git checkout admiratv-rollback-pre-canal-responsive-20260811-2103 && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh cf',
+    nota: 'Retorno anterior al canal responsive: tag admiratv-rollback-pre-canal-responsive-20260811-2103 · Pages 8da257a6-0ea2-4018-8aaf-d2d75f68a435.',
   },
 
   // ── Las 20 subsoluciones de admira.tv ────────────────────────────────────

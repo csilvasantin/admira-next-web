@@ -382,6 +382,16 @@ test("Webmaster publica un retorno ejecutable para pixer-eleven", () => {
   assert.match(webmasterSource, /<dt>Volver atrás<\/dt><dd>' \+ esc\(p\.volver\)/);
 });
 
+test("Webmaster conserva el retorno exacto anterior al canal responsive", () => {
+  const admiraTv = PROYECTOS.find((p) => p.clave === "admira-tv");
+  assert.ok(admiraTv);
+  assert.equal(
+    admiraTv.volver,
+    "git checkout admiratv-rollback-pre-canal-responsive-20260811-2103 && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh cf",
+  );
+  assert.match(admiraTv.nota, /8da257a6-0ea2-4018-8aaf-d2d75f68a435/);
+});
+
 test("la API autenticada entrega a la UI el retorno exacto de pixer-eleven", async () => {
   const key = "test-webmaster-key";
   const payload = Buffer.from(JSON.stringify({
