@@ -214,8 +214,9 @@ export const PROYECTOS = [
     clave: 'pixer-worker', nombre: 'pixer-eleven (worker)', url: null,
     repo: 'csilvasantin/pixer-worker', repoTxt: 'pixer-worker',
     pages: null, publica: 'wrangler deploy',
+    volver: 'npx wrangler rollback a83c7730-a9ba-4403-8ffc-818ec7b37934 --name pixer-eleven --yes',
     tipo: 'worker', shot: null,
-    nota: 'El repositorio está desfasado de producción: no desplegar a ciegas.',
+    nota: 'Producción sincronizada con Git. Retorno previo al silencio de éxitos del mando: deployment a83c7730-a9ba-4403-8ffc-818ec7b37934 y tag PixerWorker-rollback-pre-mando-silencioso-20260811-2048.',
   },
   {
     // Antes compartía clave con el sitio yokup y enseñaba el historial de la web.

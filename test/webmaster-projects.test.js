@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 import { PROYECTOS } from "../functions/_proyectos.js";
-import { cantidadReleases, censoAgentes, equipoDelResponsable, normalizarResponsable, onRequestPatch, resolverProyectoYokup, selloVivo, veredicto, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
+import { cantidadReleases, censoAgentes, equipoDelResponsable, normalizarResponsable, onRequestGet, onRequestPatch, resolverProyectoYokup, selloVivo, veredicto, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
 
 const apiSource = fs.readFileSync(new URL("../functions/api/proyectos.js", import.meta.url), "utf8");
 const webmasterSource = fs.readFileSync(new URL("../webmaster.html", import.meta.url), "utf8");
@@ -24,7 +24,7 @@ test("Webmaster distingue proyectos raíz, subproyectos y el total canónico de 
   const rootKeys = new Set(PROYECTOS.map((project) => project.clave));
   const subprojects = PROYECTOS.filter((project) => project.parentKey && rootKeys.has(project.parentKey));
   assert.equal(PROYECTOS.length - subprojects.length, 17);
-  assert.equal(subprojects.length, 23);
+  assert.equal(subprojects.length, 25);
   assert.deepEqual(
     subprojects
       .filter((project) => project.parentKey !== "admira-tv")
@@ -32,6 +32,8 @@ test("Webmaster distingue proyectos raíz, subproyectos y el total canónico de 
     [
       ["admiranext-webmaster", "admiranext"],
       ["generador-presupuestos", "admiranext"],
+      ["la-incubadora", "admira-live"],
+      ["incubadora-bus", "la-incubadora"],
       ["yokup-rtc", "yokup"],
     ],
   );
@@ -367,6 +369,53 @@ test("la columna se llama Proyecto y la de releases, Producción", () => {
   assert.match(webmasterSource, /data-sort="proyecto"[^>]*>Proyecto <span id="proyectosCuenta"/);
   assert.match(webmasterSource, /data-sort="releases"[^>]*>Producción <span/);
   assert.doesNotMatch(webmasterSource, />En producción </);
+});
+
+test("Webmaster publica un retorno ejecutable para pixer-eleven", () => {
+  const pixer = PROYECTOS.find((p) => p.clave === "pixer-worker");
+  assert.ok(pixer);
+  assert.equal(
+    pixer.volver,
+    "npx wrangler rollback a83c7730-a9ba-4403-8ffc-818ec7b37934 --name pixer-eleven --yes",
+  );
+  assert.match(pixer.nota, /PixerWorker-rollback-pre-mando-silencioso-20260811-2048/);
+  assert.match(webmasterSource, /<dt>Volver atrás<\/dt><dd>' \+ esc\(p\.volver\)/);
+});
+
+test("la API autenticada entrega a la UI el retorno exacto de pixer-eleven", async () => {
+  const key = "test-webmaster-key";
+  const payload = Buffer.from(JSON.stringify({
+    email: "csilvasantin@gmail.com",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  })).toString("base64url");
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const signature = Buffer.from(await crypto.subtle.sign(
+    "HMAC", cryptoKey, new TextEncoder().encode(`wm:${payload}`),
+  )).toString("base64url");
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response("[]", {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+  try {
+    const response = await onRequestGet({
+      request: new Request("https://www.admiranext.com/api/proyectos?parte=retornos", {
+        headers: { cookie: `wm_session=${payload}.${signature}` },
+      }),
+      env: { WEBMASTER_SIGNING_KEY: key },
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    const pixer = body.proyectos.find((p) => p.clave === "pixer-worker");
+    assert.equal(
+      pixer.volver,
+      "npx wrangler rollback a83c7730-a9ba-4403-8ffc-818ec7b37934 --name pixer-eleven --yes",
+    );
+  } finally {
+    globalThis.fetch = original;
+  }
 });
 
 test("el responsable se elige de un censo cerrado, no se escribe a mano", () => {

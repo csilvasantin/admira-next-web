@@ -519,7 +519,7 @@ const base = (p, ordenAlta) => ({
   clave: p.clave, nombre: p.nombre, url: p.url, tipo: p.tipo, parentKey: p.parentKey || '',
   ordenAlta,
   repo: p.repo, repoTxt: p.repoTxt || p.repo.split('/')[1], privado: !!p.privado,
-  pages: p.pages, publica: p.publica, shot: p.shot || null, nota: p.nota || '',
+  pages: p.pages, publica: p.publica, volver: p.volver || '', shot: p.shot || null, nota: p.nota || '',
 });
 
 export async function onRequestGet({ request, env }) {
@@ -534,7 +534,7 @@ export async function onRequestGet({ request, env }) {
   if (parte === 'retornos') {
     const proyectos = await Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
       const r = await retornosVivos(p, env, cache);
-      return { ...base(p, ordenAlta), tags: r.tags, tagsNota: r.nota || '', volver: `git checkout <etiqueta> && ${p.publica}` };
+      return { ...base(p, ordenAlta), tags: r.tags, tagsNota: r.nota || '', volver: p.volver || `git checkout <etiqueta> && ${p.publica}` };
     }));
     return json({ ok: true, parte, generado: new Date().toISOString(), proyectos });
   }
