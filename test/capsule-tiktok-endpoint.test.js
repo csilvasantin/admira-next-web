@@ -31,14 +31,18 @@ function peticion(cuerpo, {secreto = SECRETO, metodo = 'POST'} = {}) {
   });
 }
 
-// El motor se invoca EN PROCESO (una Function no puede hacer fetch a su propio
-// host: el borde devuelve 502). El doble se pone sobre fetch igualmente porque
-// grok-video sí sale a la red de xAI; lo que se comprueba aquí es el contrato.
-function conMotor(respuesta) {
+// El motor se invoca EN PROCESO: una Function no puede hacer fetch a su propio
+// host (el borde devuelve 502). Así que el doble NO se pone donde antes —no hay
+// llamada de red a grok-video que interceptar—, sino un salto más adentro: en la
+// salida a xAI, que es la única red que queda de verdad. Lo que se comprueba es
+// que el brief de 15 s llega hasta el final de la cadena.
+const ENV = {PIXERIA_INGEST_TOKEN: SECRETO, XAI_API_KEY: 'clave-de-mentira'};
+
+function conMotor({requestId = 'req-1234567890abcdef', status = 200} = {}) {
   const llamadas = [];
   globalThis.fetch = async (url, init) => {
     llamadas.push({url: String(url), body: init && init.body ? JSON.parse(init.body) : null});
-    return new Response(JSON.stringify(respuesta.cuerpo), {status: respuesta.status || 200,
+    return new Response(JSON.stringify({request_id: requestId}), {status,
       headers: {'content-type': 'application/json'}});
   };
   return llamadas;
@@ -54,30 +58,38 @@ test('sin configurar, lo dice en vez de fallar raro', async () => {
   assert.equal(res.status, 503);
 });
 
-test('solo POST', async () => {
-  const res = await onRequest({request: peticion(CAPSULA, {metodo: 'GET'}), env: {PIXERIA_INGEST_TOKEN: SECRETO}});
-  assert.equal(res.status, 405);
+test('POST encarga y GET pregunta: lo demás no', async () => {
+  for (const metodo of ['PUT', 'DELETE']) {
+    const res = await onRequest({request: peticion(CAPSULA, {metodo}), env: ENV});
+    assert.equal(res.status, 405, `${metodo} no tiene nada que hacer aquí`);
+  }
+  // GET SÍ vale: es por donde se sonda el estado, y sondear es lo que dispara la
+  // publicación en Pixeria. Sin id no se puede preguntar por nada, y eso es un
+  // 400 (petición mal hecha), no un 405 (método prohibido).
+  const sinId = await onRequest({request: peticion(CAPSULA, {metodo: 'GET'}), env: ENV});
+  assert.equal(sinId.status, 400);
 });
 
 test('una cápsula con texto llega al motor con su brief de 15 s', async () => {
-  const llamadas = conMotor({cuerpo: {requestId: 'req-1234567890abcdef'}});
-  const res = await onRequest({request: peticion(CAPSULA), env: {PIXERIA_INGEST_TOKEN: SECRETO}});
+  const llamadas = conMotor();
+  const res = await onRequest({request: peticion(CAPSULA), env: ENV});
   const d = await res.json();
   assert.equal(res.status, 200);
   assert.equal(d.generado, true);
   assert.equal(d.requestId, 'req-1234567890abcdef');
   assert.equal(d.tema, 'tech');
-  assert.equal(llamadas.length, 1, 'se llama al motor UNA vez');
-  assert.match(llamadas[0].url, /\/presentaciones\/api\/grok-video$/);
+  assert.equal(llamadas.length, 1, 'se encarga el vídeo UNA vez');
+  // La única red que queda es la de xAI: el motor ya no se llama por HTTP.
+  assert.match(llamadas[0].url, /^https:\/\/api\.x\.ai\//);
   assert.match(llamadas[0].body.prompt, /15 segundos/);
-  assert.match(llamadas[0].body.prompt, /9:16/);
+  assert.equal(llamadas[0].body.duration, 15);
+  assert.equal(llamadas[0].body.aspect_ratio, '9:16', 'vertical nativo, no recortado');
   assert.ok(d.estado.includes('grok-video?id='), 'se dice dónde sondear el estado');
 });
 
 test('una cápsula sin texto NO es un error: se contesta 200 y no se llama al motor', async () => {
-  const llamadas = conMotor({cuerpo: {requestId: 'no-deberia-usarse'}});
-  const res = await onRequest({request: peticion({title: 'Vacía', tags: ['tech'], comment: ''}),
-                               env: {PIXERIA_INGEST_TOKEN: SECRETO}});
+  const llamadas = conMotor();
+  const res = await onRequest({request: peticion({title: 'Vacía', tags: ['tech'], comment: ''}), env: ENV});
   const d = await res.json();
   assert.equal(res.status, 200, 'un 4xx haría que quien llama lo reintentara en bucle');
   assert.equal(d.generado, false);
@@ -86,7 +98,9 @@ test('una cápsula sin texto NO es un error: se contesta 200 y no se llama al mo
 });
 
 test('si el motor falla se dice, y con 502 para que se pueda reintentar', async () => {
-  conMotor({status: 500, cuerpo: {error: 'Grok caído'}});
-  const res = await onRequest({request: peticion(CAPSULA), env: {PIXERIA_INGEST_TOKEN: SECRETO}});
+  // Con la clave puesta: así el 502 sale de que xAI se cayó, que es lo que se
+  // quiere probar, y no de que faltara configuración.
+  conMotor({status: 500});
+  const res = await onRequest({request: peticion(CAPSULA), env: ENV});
   assert.equal(res.status, 502);
 });
