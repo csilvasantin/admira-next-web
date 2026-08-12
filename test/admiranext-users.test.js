@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, buscarUsuarioIdentidad, respuestaLogin, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
+import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, buscarUsuarioIdentidad, respuestaLogin, respuestaContinuacion, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
 import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
 import fs from 'node:fs';
 
@@ -69,6 +69,14 @@ test('el POST de Google exige desafío de login same-origin ligado a cookie',asy
   const own=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`__Host-an_login_nonce=${nonce}`}});
   assert.equal(loginCsrfValido(own,'',nonce),true);
   assert.match(await response.text(),new RegExp(`data-nonce="${nonce}"`));
+});
+
+test('la continuación activa la cookie Strict antes de abrir el destino seguro',async()=>{
+  const response=respuestaContinuacion('/usuarios');
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('refresh'),'0;url=/usuarios');
+  assert.match(await response.text(),/http-equiv="refresh" content="0;url=\/usuarios"/);
+  assert.equal(respuestaContinuacion('https://evil.example').headers.get('refresh'),'0;url=/webmaster');
 });
 
 async function googleToken(claims={}) {

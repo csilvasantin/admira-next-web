@@ -273,3 +273,11 @@ export function respuestaHtml(cuerpo, status = 401) {
     'content-security-policy':"default-src 'none'; script-src https://accounts.google.com/gsi/client; frame-src https://accounts.google.com/gsi/; style-src 'unsafe-inline'; img-src data: https://*.googleusercontent.com; connect-src https://accounts.google.com/gsi/; form-action 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'"
   }});
 }
+
+export function respuestaContinuacion(returnTo = '/webmaster') {
+  const destination = returnToSeguro(returnTo);
+  return new Response(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${esc(destination)}"><title>Entrando · AdmiraNeXT</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080b14;color:#e8ecf6;font:600 14px ui-monospace,monospace}</style></head><body>Sesión verificada. Entrando…</body></html>`, {
+    status:200,
+    headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','referrer-policy':'no-referrer','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'",'refresh':`0;url=${destination}`}
+  });
+}

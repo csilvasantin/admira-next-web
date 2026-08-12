@@ -5,7 +5,7 @@
  * del edge sin sesión: no es un bloqueo de interfaz, es que no se envía.
  * (/webmaster.html redirige a /webmaster, así que no hay puerta trasera.)
  */
-import { sesionCompleta, verificarGoogle, buscarUsuarioIdentidad, auditar, cookieDeSesion, cookiesBorradas, loginCsrfValido, respuestaLogin, returnToSeguro } from './_webmaster-gate.js';
+import { sesionCompleta, verificarGoogle, buscarUsuarioIdentidad, auditar, cookieDeSesion, cookiesBorradas, loginCsrfValido, respuestaLogin, respuestaContinuacion } from './_webmaster-gate.js';
 
 export async function onRequest(context) {
   const { request, env, next } = context;
@@ -38,10 +38,10 @@ export async function onRequest(context) {
     await env.AUTH_DB.prepare('UPDATE admiranext_users SET google_sub=COALESCE(google_sub,?),last_login_at=?,last_login_ip=?,last_login_ua=?,updated_at=? WHERE email=? AND (google_sub IS NULL OR google_sub=?)')
       .bind(identity.sub, now, request.headers.get('CF-Connecting-IP') || '', String(request.headers.get('User-Agent') || '').slice(0,300), now, user.email, identity.sub).run();
     await auditar(env, identity.email, user.email, 'login_success', user.role);
-    const headers = new Headers({ Location: returnToSeguro(returnTo), 'cache-control': 'no-store' });
-    headers.append('Set-Cookie', await cookieDeSesion(env, user));
-    cookiesBorradas().slice(1).forEach((cookie) => headers.append('Set-Cookie', cookie));
-    return new Response(null, { status: 303, headers });
+    const response = respuestaContinuacion(returnTo);
+    response.headers.append('Set-Cookie', await cookieDeSesion(env, user));
+    cookiesBorradas().slice(1).forEach((cookie) => response.headers.append('Set-Cookie', cookie));
+    return response;
   }
 
   const current = await sesionCompleta(request, env);
