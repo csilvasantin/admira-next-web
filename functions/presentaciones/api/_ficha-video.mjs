@@ -16,7 +16,11 @@
 // comentario de 50 KB que va a acabar cortado igual.
 const MAX_TITULO = 200;
 const MAX_COMENTARIO = 1200;
-const MAX_ETIQUETAS = 10;
+// CUATRO, que es lo que el Stock guarda de verdad (recorta el resto sin avisar).
+// Recortar aquí no quita nada: hace que la pérdida la decidamos nosotros —por
+// orden de importancia— en vez de que se caiga lo último que toque. La primera
+// vez que pasó se perdió el tema de la pieza, que es de donde salen sus hashtags.
+const MAX_ETIQUETAS = 4;
 
 // 'tiktok' NO es decorativa: es la marca por la que el Stock manda la pieza a la
 // categoría «tiktoks». Si se pierde, el vídeo cae donde Gemini decida y deja de
@@ -48,8 +52,10 @@ export function saneaFicha(bruto) {
   const title = texto(bruto?.title, MAX_TITULO) || FICHA_POR_DEFECTO.title;
   const comment = texto(bruto?.comment, MAX_COMENTARIO) || FICHA_POR_DEFECTO.comment;
   const propias = (Array.isArray(bruto?.tags) ? bruto.tags : []).map(etiqueta).filter(Boolean);
-  // Las base van SIEMPRE y van primero: que quien encarga no pueda dejar la
-  // pieza fuera de su categoría por olvidarse una etiqueta.
+  // Las base van SIEMPRE y van primero: que quien encarga no pueda dejar la pieza
+  // fuera de su categoría por olvidarse una etiqueta. Detrás, las suyas EN SU
+  // ORDEN — con solo un hueco libre, ese orden es el que decide qué sobrevive,
+  // así que quien encarga pone primero la que más le importa.
   const tags = [...new Set([...ETIQUETAS_BASE, ...propias])].slice(0, MAX_ETIQUETAS);
   return { title, comment, tags };
 }

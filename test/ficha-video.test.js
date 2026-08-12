@@ -10,11 +10,12 @@ test('la ficha del encargo llega tal cual', () => {
   const f = mod.saneaFicha({
     title: 'La privacidad es una decisión de producto',
     comment: 'Los líderes de tecnología deben respaldar leyes de protección de datos.',
-    tags: ['capsula', '15s', 'tech']
+    tags: ['tech', 'capsula', '15s']
   });
   assert.equal(f.title, 'La privacidad es una decisión de producto');
   assert.match(f.comment, /protección de datos/);
   assert.ok(f.tags.includes('tech'));
+  assert.equal(f.tags[0], 'admiranext', 'las de casa primero, siempre');
 });
 
 test('las etiquetas de casa van SIEMPRE, aunque el encargo se las olvide', () => {
@@ -41,6 +42,15 @@ test('las etiquetas se normalizan y no se repiten', () => {
   assert.ok(f.tags.includes('tech'));
   assert.ok(!f.tags.some(t => t !== t.toLowerCase() || /\s/.test(t)), 'sin mayúsculas ni espacios');
   assert.ok(!f.tags.includes(''), 'las que se quedan en nada no entran');
+});
+
+test('con un solo hueco libre sobrevive la primera etiqueta propia', () => {
+  // El Stock guarda CUATRO y tres se van en las de casa. La que quede la decide
+  // el orden en que las manda quien encarga, no el azar del recorte.
+  const f = mod.saneaFicha({title: 'X', tags: ['tech', 'capsula', '15s']});
+  assert.equal(f.tags.length, 4);
+  assert.ok(f.tags.includes('tech'), 'el tema es lo que da los hashtags: no puede caerse');
+  assert.ok(!f.tags.includes('15s'));
 });
 
 test('un título kilométrico se recorta antes de salir por la red', () => {

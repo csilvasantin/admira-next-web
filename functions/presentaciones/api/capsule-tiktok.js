@@ -91,7 +91,11 @@ export async function onRequest(context) {
     // La ficha con la que la pieza llegará al Stock. Sin esto el motor publicaba
     // con un título fijo y las cápsulas acababan todas llamándose igual: da lo
     // mismo elegir bien la idea si luego en el catálogo no se sabe cuál es cuál.
-    ficha: { title: brief.titulo, comment: brief.idea, tags: brief.tags }
+    // El TEMA va primero de las propias: el Stock solo guarda cuatro etiquetas y
+    // tres se van en las de casa, así que solo sobrevive una. Que sea el tema —de
+    // ahí salen los hashtags con los que la pieza sale a YouTube— y no 'capsula',
+    // que es procedencia y no cambia nada de lo que se hace con el vídeo.
+    ficha: { title: brief.titulo, comment: brief.idea, tags: [brief.tema, 'capsula', '15s'] }
   });
   const peticionMotor = new Request(new URL('/presentaciones/api/grok-video', request.url), {
     method: 'POST',

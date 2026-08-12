@@ -101,7 +101,7 @@ test('la cápsula deja su ficha para que la pieza no se llame como todas', async
   assert.equal(ficha.title, CAPSULA.title, 'el título de la cápsula, no «TikTok 15s»');
   assert.match(ficha.comment, /protección de datos/i, 'la idea elegida va de comentario');
   assert.notEqual(ficha.comment, 'Publicado automáticamente desde admiranext.com/tiktok.');
-  assert.ok(ficha.tags.includes('tech'), 'el tema viaja hasta el catálogo');
+  assert.ok(ficha.tags.includes('tech'), 'el tema viaja hasta el catálogo aunque solo quepa una');
   assert.ok(ficha.tags.includes('tiktok'), 'y la marca que decide la categoría');
 });
 
