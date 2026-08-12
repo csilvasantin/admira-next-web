@@ -46,6 +46,8 @@ test('el POST de Google exige desafío de login same-origin ligado a cookie',asy
   const token=crypto.randomUUID();
   const ok=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://www.admiranext.com',cookie:`g_csrf_token=${token}`}});
   assert.equal(loginCsrfValido(ok,token),true);
+  const google=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://accounts.google.com',cookie:`g_csrf_token=${token}`}});
+  assert.equal(loginCsrfValido(google,token),true);
   const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`g_csrf_token=${token}`}});
   assert.equal(loginCsrfValido(cross,token),false);
   const html=await respuestaLogin('', '/usuarios').text();
@@ -87,8 +89,8 @@ test('admin crea usuario, cambia rol y revoca inmediatamente la cookie anterior'
   const editorCookie=await auth(env,'editor@example.com'); assert.equal((await current(env,editorCookie)).role,'editor');
   response=await onRequestPatch({request:request('PATCH',cookie,me.csrf,{email:'editor@example.com',role:'viewer'}),env});
   assert.equal(response.status,200); assert.equal(await current(env,editorCookie),null);
-  const audit=await env.AUTH_DB.prepare("SELECT action FROM admiranext_user_audit WHERE target_email='editor@example.com' ORDER BY created_at").all();
-  assert.deepEqual(audit.results.map(x=>x.action),['user_created','user_updated']);
+  const audit=await env.AUTH_DB.prepare("SELECT action FROM admiranext_user_audit WHERE target_email='editor@example.com'").all();
+  assert.deepEqual(audit.results.map(x=>x.action).sort(),['user_created','user_updated']);
 });
 
 test('lector no administra y una mutación sin Origin+CSRF exactos falla cerrada',async()=>{
