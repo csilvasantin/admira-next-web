@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, buscarUsuarioIdentidad, respuestaLogin, respuestaContinuacion, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
+import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, buscarUsuarioIdentidad, crearDesafioLogin, consumirDesafioLogin, respuestaLogin, respuestaContinuacion, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
+import { onRequest as webmasterRequest } from '../functions/webmaster.js';
+import { onRequest as usuariosPageRequest } from '../functions/usuarios.js';
 import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
 import { onRequestGet as getProjects, onRequestPatch as patchProject } from '../functions/api/proyectos.js';
 import { onRequestGet as getHistory } from '../functions/api/historial.js';
@@ -74,26 +76,74 @@ test('cookie tiene audiencia propia, SameSite Strict y CSRF ligado a sesión',as
 });
 
 test('el POST de Google exige desafío de login same-origin ligado a cookie',async()=>{
+  const env=await setup();
   const token=crypto.randomUUID();
-  const ok=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://www.admiranext.com',cookie:`g_csrf_token=${token}`}});
-  assert.equal(loginCsrfValido(ok,token),true);
-  const google=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://accounts.google.com',cookie:`g_csrf_token=${token}`}});
-  assert.equal(loginCsrfValido(google,token),true);
-  const omitted=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{cookie:`g_csrf_token=${token}`}});
-  assert.equal(loginCsrfValido(omitted,token),true);
-  const opaque=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`g_csrf_token=${token}`}});
-  assert.equal(loginCsrfValido(opaque,token),true);
-  const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`g_csrf_token=${token}`}});
-  assert.equal(loginCsrfValido(cross,token),false);
-  const html=await respuestaLogin('', '/usuarios').text();
+  const nonce=crypto.randomUUID();
+  const own=`__Host-an_login_nonce=${nonce}`;
+  const ok=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://www.admiranext.com',cookie:`g_csrf_token=${token}; ${own}`}});
+  assert.equal(loginCsrfValido(ok,token,nonce),true);
+  const google=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://accounts.google.com',cookie:`g_csrf_token=${token}; ${own}`}});
+  assert.equal(loginCsrfValido(google,token,nonce),true);
+  const omitted=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{cookie:`g_csrf_token=${token}; ${own}`}});
+  assert.equal(loginCsrfValido(omitted,token,nonce),true);
+  const opaque=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`g_csrf_token=${token}; ${own}`}});
+  assert.equal(loginCsrfValido(opaque,token,nonce),true);
+  const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`g_csrf_token=${token}; ${own}`}});
+  assert.equal(loginCsrfValido(cross,token,nonce),false);
+  assert.equal(loginCsrfValido(opaque,token,'otro-nonce-de-longitud-suficiente-123456'),false,'nonce y g_csrf son obligatorios, no alternativas');
+  assert.equal(loginCsrfValido(new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:own}}),'',nonce),false,'el nonce no sustituye double-CSRF');
+  const html=await (await respuestaLogin(env, '', '/usuarios')).text();
   assert.match(html,/data-ux_mode="redirect"/);
-  assert.match(html,/data-login_uri="https:\/\/www\.admiranext\.com\/webmaster\?return_to=%2Fusuarios"/);
+  assert.match(html,/data-login_uri="https:\/\/www\.admiranext\.com\/webmaster"/);
+  assert.doesNotMatch(html,/data-login_uri="[^"]*[?&]|return_to/);
   assert.doesNotMatch(html,/data-callback|credential.*hidden/);
-  const response=respuestaLogin('', '/usuarios'),setCookie=response.headers.get('set-cookie');
-  const nonce=setCookie.match(/__Host-an_login_nonce=([^;]+)/)[1];
-  const own=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`__Host-an_login_nonce=${nonce}`}});
-  assert.equal(loginCsrfValido(own,'',nonce),true);
-  assert.match(await response.text(),new RegExp(`data-nonce="${nonce}"`));
+  const response=await respuestaLogin(env, '', '/usuarios'),setCookie=response.headers.get('set-cookie');
+  const issuedNonce=setCookie.match(/__Host-an_login_nonce=([^;]+)/)[1];
+  assert.match(setCookie,/HttpOnly; Secure; SameSite=None/);
+  assert.match(await response.text(),new RegExp(`data-nonce="${issuedNonce}"`));
+  assert.doesNotMatch(setCookie,/usuarios|webmaster/, 'el destino queda en D1, no en la cookie');
+});
+
+test('el retorno de login vive en D1, expira y se consume una sola vez',async()=>{
+  const env=await setup(),now=Date.now();
+  const ok=await crearDesafioLogin(env,'/usuarios',now);
+  assert.equal(ok.return_to,'/usuarios');
+  assert.equal(await consumirDesafioLogin(env,ok.nonce,now+1),'/usuarios');
+  assert.equal(await consumirDesafioLogin(env,ok.nonce,now+2),null,'replay fail-closed');
+  const expired=await crearDesafioLogin(env,'/webmaster',now);
+  assert.equal(await consumirDesafioLogin(env,expired.nonce,now+10*60*1000+1),null);
+  const unsafe=await crearDesafioLogin(env,'https://evil.example',now);
+  assert.equal(await consumirDesafioLogin(env,unsafe.nonce,now+1),'/webmaster');
+  for (const value of ['//evil.example','/%2F%2Fevil.example','/usuarios?next=https://evil.example','',null]) {
+    const challenge=await crearDesafioLogin(env,value,now);
+    assert.equal(await consumirDesafioLogin(env,challenge.nonce,now+1),'/webmaster');
+  }
+  const concurrent=await crearDesafioLogin(env,'/usuarios',now);
+  const results=await Promise.all([
+    consumirDesafioLogin(env,concurrent.nonce,now+1),
+    consumirDesafioLogin(env,concurrent.nonce,now+1)
+  ]);
+  assert.equal(results.filter((value)=>value==='/usuarios').length,1);
+  assert.equal(results.filter((value)=>value===null).length,1);
+});
+
+test('/webmaster y /usuarios publican exactamente el mismo callback bare',async()=>{
+  const env=await setup();
+  const webmaster=await webmasterRequest({
+    request:new Request('https://www.admiranext.com/webmaster?return_to=%2Fusuarios'),env,
+    next:async()=>new Response('no debe servirse')
+  });
+  const usuarios=await usuariosPageRequest({
+    request:new Request('https://www.admiranext.com/usuarios'),env,
+    next:async()=>new Response('no debe servirse')
+  });
+  assert.equal(webmaster.status,401);
+  assert.equal(usuarios.status,401);
+  for (const response of [webmaster,usuarios]) {
+    const html=await response.text();
+    assert.match(html,/data-login_uri="https:\/\/www\.admiranext\.com\/webmaster"/);
+    assert.doesNotMatch(html,/data-login_uri="[^"]*[?&]/);
+  }
 });
 
 test('la continuación activa la cookie Strict antes de abrir el destino seguro',async()=>{
@@ -120,6 +170,65 @@ test('Google se verifica por firma local, issuer, audiencia y sub sin poner el t
   assert.equal(seen.url.includes(signed.token),false);
   const wrong=await googleToken({aud:'otro-cliente'});
   assert.equal(await verificarGoogle(wrong.token,async()=>Response.json({keys:[wrong.jwk]})),null);
+  for (const claims of [{iss:'https://evil.example'},{exp:1},{iat:Math.floor(Date.now()/1000)+120},{email_verified:false},{sub:''}]) {
+    const bad=await googleToken(claims);
+    assert.equal(await verificarGoogle(bad.token,async()=>Response.json({keys:[bad.jwk]})),null);
+  }
+});
+
+async function callbackRequest(env,email,returnTo,sub) {
+  const login=await respuestaLogin(env,'',returnTo),nonce=login.headers.get('set-cookie').match(/__Host-an_login_nonce=([^;]+)/)[1];
+  const csrf=crypto.randomUUID(),signed=await googleToken({email,sub,nonce,hd:email.endsWith('@admira.com')?'admira.com':undefined});
+  const form=new URLSearchParams({credential:signed.token,g_csrf_token:csrf,return_to:'https://evil.example'});
+  const request=()=>new Request('https://www.admiranext.com/webmaster?return_to=%2Fevil',{method:'POST',headers:{origin:'null','content-type':'application/x-www-form-urlencoded',cookie:`g_csrf_token=${csrf}; __Host-an_login_nonce=${nonce}`},body:form});
+  const previous=globalThis.fetch;globalThis.fetch=async()=>Response.json({keys:[signed.jwk]});
+  try{return {response:await webmasterRequest({request:request(),env,next:async()=>new Response('no')}),request,jwk:signed.jwk};}
+  finally{globalThis.fetch=previous;}
+}
+
+test('Webmaster y Usuarios comparten callback bare y autentican ambas cuentas permitidas',async()=>{
+  const env=await setup();
+  for (const [email,destination,sub] of [['csilva@admira.com','/webmaster','sub-admira'],['csilvasantin@gmail.com','/usuarios','sub-gmail']]) {
+    const {response}=await callbackRequest(env,email,destination,sub);
+    assert.equal(response.status,200);
+    assert.equal(response.headers.get('refresh'),`0;url=${destination}`);
+    assert.match(response.headers.get('set-cookie'),/__Host-an_session=.*HttpOnly; Secure; SameSite=Strict/);
+    const body=await response.text();
+    assert.doesNotMatch(body,/credential|google-subject|csilva@|return_to/i);
+  }
+});
+
+test('el callback ignora return_to de query/form y rechaza replay',async()=>{
+  const env=await setup();
+  const {response,request,jwk}=await callbackRequest(env,'csilva@admira.com','/usuarios','sub-replay');
+  assert.equal(response.headers.get('refresh'),'0;url=/usuarios');
+  const previous=globalThis.fetch;
+  try {
+    // El token ya fue validado una vez; el desafío durable consumido impide reutilizarlo.
+    const original=await request();
+    globalThis.fetch=async()=>Response.json({keys:[jwk]});
+    const replay=await webmasterRequest({request:original,env,next:async()=>new Response('no')});
+    assert.notEqual(replay.status,200);
+  } finally { globalThis.fetch=previous; }
+});
+
+test('la credencial sólo se lee del POST y nunca entra en URL, respuesta o logs',async()=>{
+  const source=fs.readFileSync(new URL('../functions/webmaster.js',import.meta.url),'utf8');
+  assert.match(source,/request\.formData\(\)/);
+  assert.match(source,/form\.get\('credential'\)/);
+  assert.doesNotMatch(source,/searchParams\.get\(['"]credential|console\.[^(]+\([^\n]*credential/);
+  assert.doesNotMatch(source,/form\.get\(['"]return_to|searchParams\.get\(['"]return_to[^\n]*POST/);
+});
+
+test('una cuenta suspendida no recibe sesión aunque Google la verifique',async()=>{
+  const env=await setup();
+  await env.AUTH_DB.prepare("UPDATE admiranext_users SET status='suspended' WHERE email=?").bind('csilvasantin@gmail.com').run();
+  const {response}=await callbackRequest(env,'csilvasantin@gmail.com','/usuarios','sub-suspended');
+  assert.equal(response.status,401);
+  assert.doesNotMatch(response.headers.get('set-cookie') || '',/__Host-an_session=/);
+  assert.match(await response.text(),/no está activo/);
+  const audit=await env.AUTH_DB.prepare("SELECT action,detail FROM admiranext_user_audit WHERE target_email=?").bind('csilvasantin@gmail.com').all();
+  assert.deepEqual(audit.results.map((row)=>({...row})),[{action:'login_denied',detail:'suspended'}]);
 });
 
 test('tras el primer enlace Google reconoce el sub inmutable aunque cambie el correo',async()=>{

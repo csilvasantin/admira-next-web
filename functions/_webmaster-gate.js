@@ -11,6 +11,7 @@ const CLIENT_ID = '861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleuser
 const COOKIE = '__Host-an_session';
 const LEGACY_COOKIE = 'wm_session';
 const LOGIN_COOKIE = '__Host-an_login_nonce';
+const LOGIN_TTL_MS = 10 * 60 * 1000;
 const MAXAGE = 60 * 60 * 24 * 7;
 const ROLES = new Set(['admin', 'editor', 'viewer']);
 const BOOTSTRAP = ['csilva@admira.com', 'csilvasantin@gmail.com'];
@@ -50,7 +51,16 @@ const SCHEMA = [
 `CREATE INDEX IF NOT EXISTS idx_admiranext_user_projects_email
   ON admiranext_user_projects(user_email)`,
 `CREATE INDEX IF NOT EXISTS idx_admiranext_user_audit_created
-  ON admiranext_user_audit(created_at DESC)`
+  ON admiranext_user_audit(created_at DESC)`,
+`CREATE TABLE IF NOT EXISTS admiranext_login_challenges (
+  nonce TEXT PRIMARY KEY,
+  return_to TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL,
+  used_at INTEGER
+)`,
+`CREATE INDEX IF NOT EXISTS idx_admiranext_login_challenges_expiry
+  ON admiranext_login_challenges(expires_at)`
 ];
 
 function b64url(buf) {
@@ -97,7 +107,7 @@ export function loginCsrfValido(request, value, nonce = '') {
   const cookie = cookies(request).g_csrf_token || '';
   const official = cookie.length >= 32 && iguales(cookie, String(value || ''));
   const own = cookies(request)[LOGIN_COOKIE] || '';
-  return official || (own.length >= 32 && iguales(own, String(nonce || '')));
+  return official && own.length >= 32 && iguales(own, String(nonce || ''));
 }
 
 export async function asegurarDirectorio(env) {
@@ -265,9 +275,34 @@ export function returnToSeguro(value) {
   return path === '/usuarios' || path === '/webmaster' ? path : '/webmaster';
 }
 
-export function paginaLogin(error = '', returnTo = '/webmaster', nonce = '') {
+export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {
+  await asegurarDirectorio(env);
+  const nonce = id();
   const destination = returnToSeguro(returnTo);
-  const loginUri = `https://www.admiranext.com/webmaster?return_to=${encodeURIComponent(destination)}`;
+  await env.AUTH_DB.prepare(
+    'INSERT INTO admiranext_login_challenges(nonce,return_to,created_at,expires_at,used_at) VALUES(?,?,?,?,NULL)'
+  ).bind(nonce, destination, now, now + LOGIN_TTL_MS).run();
+  // Limpieza acotada y best-effort: nunca afecta a la emisión del desafío actual.
+  try {
+    await env.AUTH_DB.prepare(
+      'DELETE FROM admiranext_login_challenges WHERE expires_at<? OR (used_at IS NOT NULL AND used_at<?)'
+    ).bind(now - LOGIN_TTL_MS, now - LOGIN_TTL_MS).run();
+  } catch (_) {}
+  return { nonce, return_to:destination, expires_at:now + LOGIN_TTL_MS };
+}
+
+export async function consumirDesafioLogin(env, nonce, now = Date.now()) {
+  await asegurarDirectorio(env);
+  const value = String(nonce || '');
+  if (value.length < 32 || value.length > 128) return null;
+  const row = await env.AUTH_DB.prepare(
+    'UPDATE admiranext_login_challenges SET used_at=? WHERE nonce=? AND used_at IS NULL AND expires_at>=? RETURNING return_to'
+  ).bind(now, value, now).first();
+  return row ? returnToSeguro(row.return_to) : null;
+}
+
+export function paginaLogin(error = '', returnTo = '/webmaster', nonce = '') {
+  const loginUri = 'https://www.admiranext.com/webmaster';
   return `<!doctype html><html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>AdmiraNeXT · Acceso</title>
@@ -277,10 +312,10 @@ export function paginaLogin(error = '', returnTo = '/webmaster', nonce = '') {
 <script src="https://accounts.google.com/gsi/client" async defer></script></body></html>`;
 }
 
-export function respuestaLogin(error = '', returnTo = '/webmaster', status = 401) {
-  const nonce = id();
-  const response = respuestaHtml(paginaLogin(error, returnTo, nonce), status);
-  response.headers.append('Set-Cookie', `${LOGIN_COOKIE}=${nonce}; Path=/; Max-Age=600; HttpOnly; Secure; SameSite=None`);
+export async function respuestaLogin(env, error = '', returnTo = '/webmaster', status = 401) {
+  const challenge = await crearDesafioLogin(env, returnTo);
+  const response = respuestaHtml(paginaLogin(error, challenge.return_to, challenge.nonce), status);
+  response.headers.append('Set-Cookie', `${LOGIN_COOKIE}=${challenge.nonce}; Path=/; Max-Age=600; HttpOnly; Secure; SameSite=None`);
   return response;
 }
 
