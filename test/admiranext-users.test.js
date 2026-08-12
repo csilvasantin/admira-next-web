@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, respuestaLogin, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
+import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, buscarUsuarioIdentidad, respuestaLogin, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
 import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
 
 class Statement {
@@ -43,14 +43,15 @@ test('cookie tiene audiencia propia, SameSite Strict y CSRF ligado a sesión',as
 });
 
 test('el POST de Google exige desafío de login same-origin ligado a cookie',async()=>{
-  const response=respuestaLogin('', '/usuarios');
-  const setCookie=response.headers.get('set-cookie');
-  const token=setCookie.match(/__Host-an_login_csrf=([^;]+)/)[1];
-  const ok=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://www.admiranext.com',cookie:`__Host-an_login_csrf=${token}`}});
+  const token=crypto.randomUUID();
+  const ok=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://www.admiranext.com',cookie:`g_csrf_token=${token}`}});
   assert.equal(loginCsrfValido(ok,token),true);
-  const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`__Host-an_login_csrf=${token}`}});
+  const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`g_csrf_token=${token}`}});
   assert.equal(loginCsrfValido(cross,token),false);
-  assert.match(await response.text(),new RegExp(`name="login_csrf" value="${token}"`));
+  const html=await respuestaLogin('', '/usuarios').text();
+  assert.match(html,/data-ux_mode="redirect"/);
+  assert.match(html,/data-login_uri="https:\/\/www\.admiranext\.com\/webmaster\?return_to=%2Fusuarios"/);
+  assert.doesNotMatch(html,/data-callback|credential.*hidden/);
 });
 
 async function googleToken(claims={}) {
@@ -69,6 +70,14 @@ test('Google se verifica por firma local, issuer, audiencia y sub sin poner el t
   assert.equal(seen.url.includes(signed.token),false);
   const wrong=await googleToken({aud:'otro-cliente'});
   assert.equal(await verificarGoogle(wrong.token,async()=>Response.json({keys:[wrong.jwk]})),null);
+});
+
+test('tras el primer enlace Google reconoce el sub inmutable aunque cambie el correo',async()=>{
+  const env=await setup();
+  await env.AUTH_DB.prepare('UPDATE admiranext_users SET google_sub=? WHERE email=?').bind('google-subject-1','csilva@admira.com').run();
+  const user=await buscarUsuarioIdentidad(env,{sub:'google-subject-1',email:'nuevo-correo@admira.com'});
+  assert.equal(user.email,'csilva@admira.com');
+  assert.equal(await buscarUsuarioIdentidad(env,{sub:'otro-sub',email:'csilva@admira.com'}),null);
 });
 
 test('admin crea usuario, cambia rol y revoca inmediatamente la cookie anterior',async()=>{

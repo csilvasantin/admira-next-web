@@ -10,7 +10,6 @@
 const CLIENT_ID = '861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com';
 const COOKIE = '__Host-an_session';
 const LEGACY_COOKIE = 'wm_session';
-const LOGIN_COOKIE = '__Host-an_login_csrf';
 const MAXAGE = 60 * 60 * 24 * 7;
 const ROLES = new Set(['admin', 'editor', 'viewer']);
 const BOOTSTRAP = ['csilva@admira.com', 'csilvasantin@gmail.com'];
@@ -81,7 +80,7 @@ function id() {
 export function loginCsrfValido(request, value) {
   const origin = request.headers.get('Origin');
   if (origin !== new URL(request.url).origin) return false;
-  const cookie = cookies(request)[LOGIN_COOKIE] || '';
+  const cookie = cookies(request).g_csrf_token || '';
   return cookie.length >= 32 && iguales(cookie, String(value || ''));
 }
 
@@ -100,6 +99,24 @@ export async function asegurarDirectorio(env) {
 export async function buscarUsuario(env, email) {
   await asegurarDirectorio(env);
   return env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(emailValido(email)).first();
+}
+
+/**
+ * Google identifica a una persona con `sub`, que no cambia aunque cambie su
+ * correo. El email sólo sirve para enlazar una cuenta invitada en el primer
+ * acceso; después manda siempre el subject ya verificado.
+ */
+export async function buscarUsuarioIdentidad(env, identity) {
+  await asegurarDirectorio(env);
+  const subject = String(identity && identity.sub || '');
+  const email = emailValido(identity && identity.email);
+  if (!subject || !email) return null;
+  return env.AUTH_DB.prepare(
+    `SELECT * FROM admiranext_users
+     WHERE google_sub=? OR (google_sub IS NULL AND email=?)
+     ORDER BY CASE WHEN google_sub=? THEN 0 ELSE 1 END
+     LIMIT 1`
+  ).bind(subject, email, subject).first();
 }
 
 export async function auditar(env, actor, target, action, detail = '') {
@@ -209,7 +226,7 @@ export function cookiesBorradas() {
   return [
     `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict`,
     `${LEGACY_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
-    `${LOGIN_COOKIE}=; Path=/webmaster; Max-Age=0; HttpOnly; Secure; SameSite=Strict`,
+    `g_csrf_token=; Path=/; Max-Age=0; Secure; SameSite=Lax`,
   ];
 }
 
@@ -221,27 +238,26 @@ export function returnToSeguro(value) {
   return path === '/usuarios' || path === '/webmaster' ? path : '/webmaster';
 }
 
-export function paginaLogin(error = '', returnTo = '/webmaster', loginCsrf = '') {
+export function paginaLogin(error = '', returnTo = '/webmaster') {
+  const destination = returnToSeguro(returnTo);
+  const loginUri = `https://www.admiranext.com/webmaster?return_to=${encodeURIComponent(destination)}`;
   return `<!doctype html><html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>AdmiraNeXT · Acceso</title>
 <style>:root{--bg:#080b14;--panel:rgba(18,24,40,.9);--ink:#e8ecf6;--dim:#8792ab;--line:rgba(124,232,216,.18);--neon:#7ce8d8;--warn:#ff8f7a;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif}.box{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:34px 30px;box-shadow:0 24px 60px #0008}.eyebrow{font:700 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--neon);margin-bottom:18px}h1{font-size:26px;margin:0 0 8px}p{color:var(--dim);font-size:14px;line-height:1.55;margin:0 0 22px}.picker{display:flex;justify-content:center;min-height:44px}.err{margin-top:16px;color:var(--warn);font:600 13px/1.45 var(--mono);text-align:center}.foot{margin-top:22px;text-align:center;font:600 11px/1 var(--mono);color:var(--dim)}</style></head><body>
 <div class="box"><div class="eyebrow">AdmiraNeXT · Identidad</div><h1>Acceso interno</h1><p>Google verifica tu identidad. El directorio de AdmiraNeXT decide tu rol y mantiene la revocación inmediata.</p>
-<form id="f" method="POST" action="/webmaster"><input id="cred" type="hidden" name="credential"><input type="hidden" name="login_csrf" value="${esc(loginCsrf)}"><input type="hidden" name="return_to" value="${esc(returnToSeguro(returnTo))}"><div id="g_id_onload" data-client_id="${CLIENT_ID}" data-callback="entrar" data-auto_prompt="false"></div><div class="picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-width="320"></div></div></form>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com · sesión independiente de admira.live</div></div>
-<script>function entrar(r){var i=document.getElementById('cred');if(!i||!r||!r.credential)return;i.value=r.credential;document.getElementById('f').submit()}</script><script src="https://accounts.google.com/gsi/client" async defer></script></body></html>`;
+<div id="g_id_onload" data-client_id="${CLIENT_ID}" data-login_uri="${esc(loginUri)}" data-ux_mode="redirect" data-auto_prompt="false"></div><div class="picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-width="320" data-ux_mode="redirect"></div></div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com · sesión independiente de admira.live</div></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script></body></html>`;
 }
 
 export function respuestaLogin(error = '', returnTo = '/webmaster', status = 401) {
-  const challenge = id();
-  const response = respuestaHtml(paginaLogin(error, returnTo, challenge), status);
-  response.headers.append('Set-Cookie', `${LOGIN_COOKIE}=${challenge}; Path=/webmaster; Max-Age=600; HttpOnly; Secure; SameSite=Strict`);
-  return response;
+  return respuestaHtml(paginaLogin(error, returnTo), status);
 }
 
 export function respuestaHtml(cuerpo, status = 401) {
   return new Response(cuerpo, { status, headers: {
     'content-type':'text/html; charset=utf-8', 'cache-control':'no-store',
     'x-robots-tag':'noindex, nofollow', 'referrer-policy':'no-referrer',
-    'content-security-policy':"default-src 'none'; script-src 'unsafe-inline' https://accounts.google.com/gsi/client; frame-src https://accounts.google.com/gsi/; style-src 'unsafe-inline'; img-src data: https://*.googleusercontent.com; connect-src https://accounts.google.com/gsi/; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
+    'content-security-policy':"default-src 'none'; script-src https://accounts.google.com/gsi/client; frame-src https://accounts.google.com/gsi/; style-src 'unsafe-inline'; img-src data: https://*.googleusercontent.com; connect-src https://accounts.google.com/gsi/; form-action 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'"
   }});
 }
