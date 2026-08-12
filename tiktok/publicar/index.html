@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Bandeja de publicación: los TikToks generados, con su título, descripción y hashtags listos para subir a YouTube Shorts.">
+<meta name="theme-color" content="#05090d">
+<meta name="robots" content="noindex,nofollow">
+<title>Bandeja de publicación · TikToks · AdmiraNeXT</title>
+<style>
+  :root{--bg:#05090d;--panel:#0c141d;--line:#1b2735;--ink:#e8f0fa;--dim:#7a8ba1;--accent:#3df08a;--warn:#ffb454}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:26px 22px 14px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:22px;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:14px;margin:0}
+  .barra{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--line)}
+  .chip{padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--dim);
+    font:inherit;font-size:13px;cursor:pointer}
+  .chip.on{border-color:var(--accent);color:var(--accent)}
+  .cuenta{margin-left:auto;color:var(--dim);font-size:13px}
+  main{padding:20px 22px 60px;display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+  .pieza{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+  .pieza.publicada{opacity:.5}
+  video{width:100%;aspect-ratio:9/16;max-height:340px;object-fit:cover;background:#000;display:block}
+  .cuerpo{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .campo{display:flex;flex-direction:column;gap:5px}
+  .campo b{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:8px}
+  .campo .largo{margin-left:auto;font-weight:400;text-transform:none;letter-spacing:normal}
+  .campo textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#05090d;color:var(--ink);
+    font:inherit;font-size:13px;padding:9px 10px;resize:vertical}
+  .acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+  .btn{padding:8px 13px;border:1px solid var(--line);border-radius:9px;background:#111c27;color:var(--ink);
+    font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.principal{border-color:var(--accent);background:var(--accent);color:#05090d;font-weight:600}
+  .estado{font-size:12px;color:var(--dim);min-height:16px}
+  .vacio,.cargando{grid-column:1/-1;color:var(--dim);padding:40px 0;text-align:center}
+  .aviso{margin:0 22px 4px;padding:11px 14px;border:1px solid rgba(255,180,84,.4);border-radius:10px;
+    background:rgba(255,180,84,.07);color:var(--warn);font-size:13.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Bandeja de publicación</h1>
+  <p class="sub">Los TikToks generados, con su texto listo para pegar. Se publican a mano — la subida automática viene después.</p>
+</header>
+
+<p class="aviso">Subir a YouTube: pulsa <b>Descargar</b>, abre <a class="btn" style="padding:2px 8px" href="https://www.youtube.com/upload" target="_blank" rel="noopener">youtube.com/upload</a> y pega título y descripción. Al terminar, marca la pieza como publicada para que salga de la bandeja.</p>
+
+<div class="barra">
+  <button type="button" class="chip on" data-filtro="pendientes">Pendientes</button>
+  <button type="button" class="chip" data-filtro="publicadas">Publicadas</button>
+  <button type="button" class="chip" data-filtro="todas">Todas</button>
+  <span class="cuenta" id="cuenta">cargando…</span>
+</div>
+
+<main id="lista"><p class="cargando">Cargando el catálogo…</p></main>
+
+<script type="module">
+import { packShorts } from '/assets/shorts-copy.js';
+
+const STOCK = 'https://api.admira.store/stock/list?limit=300';
+const TAGS  = 'https://api.admira.store/stock/';
+// Marcar como publicada NO necesita infraestructura nueva: se le añade una
+// etiqueta a la pieza, que es donde ya vive todo lo demás. Así el estado
+// sobrevive al navegador y lo ve cualquiera que abra la bandeja, no solo quien
+// la publicó.
+const ETIQUETA_PUBLICADA = 'publicado';
+
+const lista = document.getElementById('lista');
+const cuenta = document.getElementById('cuenta');
+let piezas = [], filtro = 'pendientes';
+
+const esPublicada = (p) => (p.tags || []).some(t => String(t).toLowerCase().trim() === ETIQUETA_PUBLICADA);
+const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function cargar(){
+  try{
+    const r = await fetch(STOCK, {cache:'no-store'});
+    const d = await r.json();
+    piezas = (d.items || []).filter(i => i.category === 'tiktoks' && i.url);
+  }catch(e){
+    lista.innerHTML = '<p class="vacio">No se pudo leer el catálogo. Recarga la página.</p>';
+    return;
+  }
+  pinta();
+}
+
+function pinta(){
+  const visibles = piezas.filter(p =>
+    filtro === 'todas' ? true : filtro === 'publicadas' ? esPublicada(p) : !esPublicada(p));
+  cuenta.textContent = `${visibles.length} de ${piezas.length} TikToks`;
+  if(!visibles.length){
+    lista.innerHTML = `<p class="vacio">${filtro === 'pendientes'
+      ? 'Nada pendiente: todo lo generado está publicado.' : 'Nada por aquí.'}</p>`;
+    return;
+  }
+  lista.innerHTML = visibles.map(tarjeta).join('');
+}
+
+function tarjeta(p){
+  const pack = packShorts(p);
+  // Una pieza sin título no se puede subir: se dice, en vez de ofrecer botones
+  // que llevarían a un formulario a medias.
+  if(!pack) return `<article class="pieza"><div class="cuerpo"><b>${esc(p.id)}</b>
+    <p class="estado">Sin título: no se puede preparar para YouTube.</p></div></article>`;
+  const pub = esPublicada(p);
+  return `<article class="pieza ${pub ? 'publicada' : ''}" data-id="${esc(p.id)}">
+    <video src="${esc(p.url)}" preload="metadata" controls playsinline muted></video>
+    <div class="cuerpo">
+      <label class="campo"><b>Título <span class="largo">${pack.largoTitulo}/100</span></b>
+        <textarea rows="2" data-campo="titulo">${esc(pack.titulo)}</textarea></label>
+      <label class="campo"><b>Descripción</b>
+        <textarea rows="5" data-campo="descripcion">${esc(pack.descripcion)}</textarea></label>
+      <div class="acciones">
+        <a class="btn principal" href="${esc(p.url)}" download>⬇ Descargar</a>
+        <button type="button" class="btn" data-copiar="titulo">📋 Título</button>
+        <button type="button" class="btn" data-copiar="descripcion">📋 Descripción</button>
+        <button type="button" class="btn" data-marcar>${pub ? '↩ Devolver a pendientes' : '✓ Publicada'}</button>
+      </div>
+      <p class="estado" data-estado></p>
+    </div>
+  </article>`;
+}
+
+document.addEventListener('click', async (e) => {
+  const chip = e.target.closest('.chip');
+  if(chip){ filtro = chip.dataset.filtro;
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === chip));
+    pinta(); return; }
+
+  const art = e.target.closest('.pieza');
+  if(!art) return;
+  const decir = (t) => { const s = art.querySelector('[data-estado]'); if(s) s.textContent = t; };
+
+  const copiar = e.target.closest('[data-copiar]');
+  if(copiar){
+    const txt = art.querySelector(`[data-campo="${copiar.dataset.copiar}"]`).value;
+    try{ await navigator.clipboard.writeText(txt); decir('Copiado. Pégalo en YouTube.'); }
+    catch(_){ decir('El navegador no dejó copiar: selecciona el texto a mano.'); }
+    return;
+  }
+
+  const marcar = e.target.closest('[data-marcar]');
+  if(marcar){
+    const id = art.dataset.id;
+    const pieza = piezas.find(p => p.id === id);
+    if(!pieza) return;
+    const eran = (pieza.tags || []).filter(t => String(t).toLowerCase().trim() !== ETIQUETA_PUBLICADA);
+    const nuevas = esPublicada(pieza) ? eran : [...eran, ETIQUETA_PUBLICADA];
+    marcar.disabled = true; decir('Guardando…');
+    try{
+      const r = await fetch(`${TAGS}${encodeURIComponent(id)}/tags`, {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({tags:nuevas, category:'tiktoks'})
+      });
+      const d = await r.json().catch(() => ({}));
+      if(!r.ok || !d.ok) throw new Error(d.error || 'rechazado');
+      // El estado se guarda en el CATÁLOGO, así que se refleja aquí sin recargar.
+      pieza.tags = nuevas;
+      pinta();
+    }catch(err){
+      marcar.disabled = false;
+      decir('No se pudo guardar el estado. Inténtalo otra vez.');
+    }
+  }
+});
+
+cargar();
+</script>
+</body>
+</html>
