@@ -21,10 +21,10 @@ test("una discrepancia de identidad no puede producir atribución de puntos", ()
   assert.doesNotMatch(rule, /el censo manda/);
 });
 
-test("la normativa queda numerada de 01 a 26 sin huecos", () => {
+test("la normativa queda numerada de 01 a 27 sin huecos", () => {
   const numbers = [...html.matchAll(/<article class="art" id="n(\d+)">\s*<div class="num">(\d+)<\/div>/g)]
     .map((match) => [match[1], match[2]]);
-  assert.deepEqual(numbers, Array.from({ length: 26 }, (_, index) => {
+  assert.deepEqual(numbers, Array.from({ length: 27 }, (_, index) => {
     const value = String(index + 1).padStart(2, "0");
     return [value, value];
   }));
@@ -41,4 +41,21 @@ test("la regla 26 exige declarar el proyecto principal en todas las superficies"
   assert.match(rule, /latido de presencia/);
   assert.match(rule, /señal más fresca/i);
   assert.match(rule, /tarea del día/i);
+});
+
+// La regla 27 no repite a la 14, la 17 ni la 22: las ata. Nació el 12-ago-2026
+// porque cumplir media norma se sentía como cumplirla —había trabajo dado de alta
+// sin cifras al cerrar, y cifras de trabajo que nunca se dio de alta—. Lo que el
+// test guarda es justo eso: que siga citando a las tres y que siga diciendo que
+// alcanza a todos, que es lo que la hace exigible.
+test("la regla 27 ata el alta y el cierre en una sola obligación para todos", () => {
+  const rule = html.split('id="n27"')[1].split("</article>")[0];
+  for (const ref of ["14", "17", "22"]) {
+    assert.match(rule, new RegExp("<b>" + ref + "</b>"), `la 27 debe citar a la regla ${ref}`);
+  }
+  assert.match(rule, /indivisible/i);
+  assert.match(rule, /Sin alta no se empieza/);
+  assert.match(rule, /no está cerrado/);
+  assert.match(rule, /TODOS los agentes de AdmiraNeXT, sin excepción/);
+  assert.match(rule, /el tamaño no es un criterio/i);
 });
