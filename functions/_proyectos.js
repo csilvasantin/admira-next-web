@@ -226,8 +226,9 @@ export const PROYECTOS = [
     parentKey: 'yokup',
     repo: 'csilvasantin/tool', repoTxt: 'tool · yokup-rtc/',
     pages: null, publica: 'cd yokup-rtc && wrangler deploy',
+    volver: 'npx wrangler rollback 147ead69-da99-417d-beca-9cbdb25dec5f --name yokup-rtc --yes',
     tipo: 'worker', shot: null,
-    nota: 'Commit ANTES de desplegar: se ha desplegado más de una vez con código que no estaba en el repositorio, y el siguiente despliegue borra esas rutas sin enterarse.',
+    nota: 'Retorno previo al rescate del login: Worker 147ead69-da99-417d-beca-9cbdb25dec5f y tag YokupRTC-rollback-pre-login-handoff-20260811-2142. Commit ANTES de desplegar: se ha desplegado más de una vez con código que no estaba en el repositorio, y el siguiente despliegue borra esas rutas sin enterarse.',
   },
   {
     clave: 'admira-telegram', nombre: 'admira-telegram (worker)', url: null,

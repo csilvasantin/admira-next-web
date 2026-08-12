@@ -392,6 +392,16 @@ test("Webmaster conserva el retorno exacto anterior al canal responsive", () => 
   assert.match(admiraTv.nota, /8da257a6-0ea2-4018-8aaf-d2d75f68a435/);
 });
 
+test("Webmaster publica el retorno anterior al rescate del login de Yokup", () => {
+  const rtc = PROYECTOS.find((p) => p.clave === "yokup-rtc");
+  assert.ok(rtc);
+  assert.equal(
+    rtc.volver,
+    "npx wrangler rollback 147ead69-da99-417d-beca-9cbdb25dec5f --name yokup-rtc --yes",
+  );
+  assert.match(rtc.nota, /YokupRTC-rollback-pre-login-handoff-20260811-2142/);
+});
+
 test("la API autenticada entrega a la UI el retorno exacto de pixer-eleven", async () => {
   const key = "test-webmaster-key";
   const payload = Buffer.from(JSON.stringify({
