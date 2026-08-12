@@ -38,14 +38,26 @@
     return n;
   }
 
+  // Cada lado del marco tiene UN icono en la barra y UN cajón, y los dos dicen su
+  // nombre: el icono declara con aria-controls qué cajón abre y el cajón lleva ese
+  // mismo id. Sin ese par, un lector de pantalla ve tres botones sueltos y tres
+  // regiones huérfanas, y no hay forma de saber que ⋯ abre «AVANZADO».
+  var LADOS = ['left', 'right', 'bottom'];
+  var IDS = {
+    left: {toggle: 'ykOptionsToggle', rail: 'ykOptionsRail'},
+    right: {toggle: 'ykAdvancedToggle', rail: 'ykAdvancedRail'},
+    bottom: {toggle: 'ykExpertToggle', rail: 'ykExpertRail'}
+  };
+
   // ── Barra superior ─────────────────────────────────────────────────────────
   var bar = el('header', 'yk-bar');
   bar.setAttribute('role', 'banner');
 
   var btnIzq = el('button', 'yk-ico', '<span aria-hidden="true">☰</span>');
   btnIzq.type = 'button';
+  btnIzq.id = IDS.left.toggle;
   btnIzq.setAttribute('aria-label', nomIzq);
-  btnIzq.setAttribute('aria-expanded', 'false');
+  btnIzq.setAttribute('aria-controls', IDS.left.rail);
 
   // La marca: un solo camino a la home, y va en la barra, no en un raíl.
   // Un SOLO nodo de texto: .yk-logo es inline-flex con gap:8px, así que partir la
@@ -58,17 +70,21 @@
 
   var btnDer = el('button', 'yk-ico', '<span aria-hidden="true">⋯</span>');
   btnDer.type = 'button';
+  btnDer.id = IDS.right.toggle;
   btnDer.setAttribute('aria-label', nomDer);
-  btnDer.setAttribute('aria-expanded', 'false');
+  btnDer.setAttribute('aria-controls', IDS.right.rail);
 
   var btnAbajo = el('button', 'yk-ico', '<span aria-hidden="true">⌄</span>');
   btnAbajo.type = 'button';
+  btnAbajo.id = IDS.bottom.toggle;
   btnAbajo.setAttribute('aria-label', 'Nivel experto');
-  btnAbajo.setAttribute('aria-expanded', 'false');
+  btnAbajo.setAttribute('aria-controls', IDS.bottom.rail);
 
+  // El canon de la casa fija el orden de la esquina derecha: EXPERTO en el extremo
+  // y AVANZADO a su izquierda. Estaban al revés.
   var meta = el('div', 'yk-meta');
-  meta.appendChild(btnAbajo);
   meta.appendChild(btnDer);
+  meta.appendChild(btnAbajo);
 
   // Enlaces de sección declarados por la página: se suben a la barra tal cual, y el
   // que apunta a la página actual se marca en vez de repetirse como destino.
@@ -90,6 +106,7 @@
   // ── Raíles y franja inferior ───────────────────────────────────────────────
   function rail(lado, nombre) {
     var r = el('aside', 'yk-rail yk-rail-' + lado);
+    r.id = IDS[lado].rail;
     r.setAttribute('aria-label', nombre);
     r.appendChild(el('div', 'yk-rail-navhd', nombre));
     doc.querySelectorAll('[data-yk-slot="' + lado + '"]').forEach(function (n) { r.appendChild(n); });
@@ -103,6 +120,7 @@
   // sección suelta; se abre con .yk-open-bottom igual que los otros dos.
   var hayAbajo = doc.querySelectorAll('[data-yk-slot="bottom"]').length > 0;
   var railAbajo = el('aside', 'yk-rail yk-rail-bottom');
+  railAbajo.id = IDS.bottom.rail;
   railAbajo.setAttribute('aria-label', 'Nivel experto');
   railAbajo.appendChild(el('div', 'yk-rail-navhd', 'NIVEL EXPERTO'));
   var experto = el('div', 'yk-expert');
@@ -116,15 +134,27 @@
   // ── Apertura ───────────────────────────────────────────────────────────────
   // Un raíl abierto cierra el otro: dos cajones a la vez tapan el contenido, que
   // es lo que uno vino a ver.
-  var LADOS = ['left', 'right', 'bottom'];
+  var CAJON = {left: {btn: btnIzq, rail: railIzq}, right: {btn: btnDer, rail: railDer}, bottom: {btn: btnAbajo, rail: hayAbajo ? railAbajo : null}};
   function abrir(lado, abierto) {
     root.classList.toggle('yk-open-' + lado, abierto);
     if (abierto) LADOS.forEach(function (o) { if (o !== lado) root.classList.remove('yk-open-' + o); });
-    btnIzq.setAttribute('aria-expanded', String(root.classList.contains('yk-open-left')));
-    btnDer.setAttribute('aria-expanded', String(root.classList.contains('yk-open-right')));
-    btnAbajo.setAttribute('aria-expanded', String(root.classList.contains('yk-open-bottom')));
+    sincronizar();
+  }
+  // El estado del cajón se dice UNA vez y para los dos: el botón lo anuncia con
+  // aria-expanded y el cajón cerrado se sale del recorrido con inert. Un raíl
+  // plegado vive fuera de pantalla con transform, así que sin inert sus enlaces
+  // siguen recibiendo el tabulador: se navega a ciegas por un cajón invisible.
+  function sincronizar() {
+    LADOS.forEach(function (lado) {
+      var abierto = root.classList.contains('yk-open-' + lado);
+      CAJON[lado].btn.setAttribute('aria-expanded', String(abierto));
+      if (!CAJON[lado].rail) return;
+      CAJON[lado].rail.inert = !abierto;
+      CAJON[lado].rail.setAttribute('aria-hidden', String(!abierto));
+    });
   }
   function cerrarTodo() { LADOS.forEach(function (l) { abrir(l, false); }); }
+  sincronizar();   // plegado por defecto, y dicho: los tres botones nacen en false
   btnIzq.addEventListener('click', function () { abrir('left', !root.classList.contains('yk-open-left')); });
   btnDer.addEventListener('click', function () { abrir('right', !root.classList.contains('yk-open-right')); });
   btnAbajo.addEventListener('click', function () { abrir('bottom', !root.classList.contains('yk-open-bottom')); });

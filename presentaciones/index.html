@@ -75,9 +75,10 @@
   .go{margin-top:auto;display:inline-flex;align-items:center;gap:8px;font:700 13px/1 var(--mono);letter-spacing:.04em;color:var(--accent)}
   .go .ar{transition:transform .15s}
   .card:hover .go .ar{transform:translateX(4px)}
-  .progressive-panels{position:fixed;z-index:30;right:18px;top:calc(var(--topbar) + 14px);width:min(380px,calc(100vw - var(--rail) - 36px));display:grid;gap:8px;pointer-events:none}
-  .progressive-panel{pointer-events:auto;background:rgba(8,16,23,.97);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.55)}
-  .progressive-panel[hidden]{display:none}
+  /* Los paneles son tarjetas DENTRO de su raíl: la posición la pone el marco.
+     Ya no se colocan solos en una esquina fija ni se ocultan con [hidden] —
+     plegar y desplegar es cosa del cajón que los contiene. */
+  .progressive-panel{background:rgba(8,16,23,.97);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
   .panel-kicker{margin:0 0 7px;color:var(--brand);font:800 9px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
   .progressive-panel h2{margin:0 0 8px;font-size:18px;line-height:1.15}
   .progressive-panel p{margin:0;color:var(--ink2);font-size:13px}
@@ -91,16 +92,19 @@
     :root{--rail:0px;--topbar:58px}
     .app-shell{padding-left:0}.side-rail{display:none}.topbar{left:0;padding:0 14px}.brand-lockup small{display:none}
     .mode-switch button{padding:0 9px}.wrap{padding:30px 18px 54px}.hero{grid-template-columns:1fr}.hero-stat{display:none}
-    .grid{grid-template-columns:1fr}.card{min-height:250px}.progressive-panels{right:10px;top:68px;width:calc(100vw - 20px)}
+    .grid{grid-template-columns:1fr}.card{min-height:250px}
   }
   @media (max-width:480px){.brand-lockup span{display:none}.mode-switch button{font-size:9px;padding:0 7px}.top-actions{gap:6px}}
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 </style>
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.07.08.2026">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.12.08.2026">
 </head>
 <body data-yk-title="PRESENTACIONES" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-zone="app">
 
-  <div class="progressive-panels" aria-live="polite">
+  <!-- Los tres niveles del marco cuadrático. No se envuelven en un contenedor
+       propio: admira-frame.js los muda a su raíl por data-yk-slot (izquierda
+       opciones · derecha avanzado · abajo experto) y el envoltorio se quedaba
+       fijo y vacío sobre la página. -->
     <section class="progressive-panel" id="ykOptionsPanel" data-yk-slot="left">
       <p class="panel-kicker">Nivel 01 · Opciones</p>
       <h2>Vista del repositorio</h2>
@@ -128,7 +132,6 @@
         <a class="panel-action" href="/presentaciones/control/">Analítica <output>↗</output></a>
       </div>
     </section>
-  </div>
 
     <nav data-yk-slot="nav" hidden>
     <a href="/presentaciones/" aria-label="Presentaciones" title="Presentaciones">
@@ -206,8 +209,7 @@
   <script>
   (async()=>{try{const r=await fetch('/presentaciones/api/clients',{headers:{accept:'application/json'},cache:'no-store'});if(!r.ok)return;const data=await r.json();const grid=document.getElementById('presentationGrid');const dateLabel=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?'Generada':new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(date)};(data.clients||[]).forEach(client=>{const a=document.createElement('a');a.className='card';a.style.setProperty('--accent',client.theme?.accent||'#3df08a');a.href='/presentaciones/'+encodeURIComponent(client.slug)+'/';a.dataset.createdAt=client.createdAt||client.updatedAt||'';const problem=client.problem||'Presentación generada desde un problema concreto.';a.innerHTML='<span class="badge"></span><h2></h2><p class="sub"></p><div class="meta"><span class="date"></span><span>Castellano</span><span>Editable</span></div><span class="go">Abrir presentación <span class="ar">→</span></span>';a.querySelector('.badge').textContent=client.displayName;a.querySelector('h2').textContent='Ecosistema Admira × '+client.displayName;a.querySelector('.sub').textContent=problem;a.querySelector('.date').textContent=dateLabel(a.dataset.createdAt);grid.appendChild(a)});[...grid.querySelectorAll('.card[data-created-at]')].sort((a,b)=>Date.parse(b.dataset.createdAt||'')-Date.parse(a.dataset.createdAt||'')).forEach(card=>grid.appendChild(card));document.getElementById('presentationCount').textContent=grid.querySelectorAll('.card').length}catch(_){}})();
   </script>
-  <script src="/assets/presentations-quadratic-ui.js" defer></script>
-  <script src="/assets/admira-frame.js?v=v.07.08.2026" defer></script>
+  <script src="/assets/admira-frame.js?v=v.12.08.2026" defer></script>
   <script src="/assets/admira-version-watch.js?build=10080804" defer></script>
 </body>
 </html>
