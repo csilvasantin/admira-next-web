@@ -131,8 +131,8 @@ export const PROYECTOS = [
     repo: 'csilvasantin/admira-tv', repoTxt: 'admira-tv',
     pages: 'admira-tv', publica: './deploy.sh → Pages + wrangler.toml',
     tipo: 'sitio', shot: '/webmaster-shots/admira-tv.jpg',
-    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-tv.git admira-tv-return && cd admira-tv-return && git checkout cd80f4a05702bfc1f6911b97eedad3aeeb8e12d4 && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh cf',
-    nota: 'Retorno exacto anterior a /users y al ACL por subproyecto: commit cd80f4a05702bfc1f6911b97eedad3aeeb8e12d4 · release v.12.08.2026.r10.12:28.',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-tv.git admira-tv-return && cd admira-tv-return && git checkout a5fb8ad176e395b847d7fec4314fca5b1e78310e && ADMIRA_RELEASE_AGENT=MorfeoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh cf',
+    nota: 'Retorno exacto anterior a Xperiencias Payment: commit a5fb8ad176e395b847d7fec4314fca5b1e78310e · release v.12.08.2026.r15.17:42 · deployment Pages 5ddb7f58-08e4-46a5-9ad0-89064b8fadc1.',
   },
 
   // ── Las 20 subsoluciones de admira.tv ────────────────────────────────────
@@ -205,7 +205,8 @@ export const PROYECTOS = [
     repo: 'csilvasantin/ainimation', repoTxt: 'ainimation',
     pages: null, publica: 'git push (GitHub Pages)',
     tipo: 'sitio', shot: '/webmaster-shots/ainimation.jpg',
-    nota: 'Director creativo IA (cast·stage·score). GitHub Pages en www.ainimation.studio. Alta/foco SmithMacMini 2026-08-04: sello canónico + version.json + tags AInimation-v.04.08.2026.r1 (viva) y AInimation-v.03.08.2026.r1 (retorno). Repo local: ~/Documents/Admirito/ainimation.',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/ainimation.git ainimation-return && cd ainimation-return && git checkout AInimation-v.11.08.2026.r4 && git push origin HEAD:main',
+    nota: 'Director creativo IA (cast·stage·score). Release Payment v.12.08.2026.r1.17:50. Retorno exacto anterior: tag AInimation-v.11.08.2026.r4 (commit 16f7dcaf473303a8028d5dd45a6c216c1e3a8504).',
   },
   {
     clave: 'admiraxperience', nombre: 'AdmiraXperience · DigitalTwin', url: null,
@@ -221,9 +222,9 @@ export const PROYECTOS = [
     clave: 'pixer-worker', nombre: 'pixer-eleven (worker)', url: null,
     repo: 'csilvasantin/pixer-worker', repoTxt: 'pixer-worker',
     pages: null, publica: 'wrangler deploy',
-    volver: 'npx wrangler rollback a83c7730-a9ba-4403-8ffc-818ec7b37934 --name pixer-eleven --yes',
+    volver: 'npx wrangler rollback 080863ec-123e-4d0a-b9f8-1f41e73e6753 --name pixer-eleven --yes',
     tipo: 'worker', shot: null,
-    nota: 'Producción sincronizada con Git. Retorno previo al silencio de éxitos del mando: deployment a83c7730-a9ba-4403-8ffc-818ec7b37934 y tag PixerWorker-rollback-pre-mando-silencioso-20260811-2048.',
+    nota: 'Producción sincronizada con Git. Retorno exacto anterior al almacenamiento HTML de Xperiencias Payment: version 080863ec-123e-4d0a-b9f8-1f41e73e6753 (deployment 6b209751-f1e3-4aa2-9f6e-a927f0e9db7c).',
   },
   {
     // Antes compartía clave con el sitio yokup y enseñaba el historial de la web.

@@ -399,9 +399,9 @@ test("Webmaster publica un retorno ejecutable para pixer-eleven", () => {
   assert.ok(pixer);
   assert.equal(
     pixer.volver,
-    "npx wrangler rollback a83c7730-a9ba-4403-8ffc-818ec7b37934 --name pixer-eleven --yes",
+    "npx wrangler rollback 080863ec-123e-4d0a-b9f8-1f41e73e6753 --name pixer-eleven --yes",
   );
-  assert.match(pixer.nota, /PixerWorker-rollback-pre-mando-silencioso-20260811-2048/);
+  assert.match(pixer.nota, /080863ec-123e-4d0a-b9f8-1f41e73e6753/);
   assert.match(webmasterSource, /<dt>Volver atrás<\/dt><dd>' \+ esc\(p\.volver\)/);
 });
 
@@ -410,9 +410,9 @@ test("Webmaster publica el retorno exacto anterior a /users", () => {
   assert.ok(admiraTv);
   assert.equal(
     admiraTv.volver,
-    "cd /tmp && git clone https://github.com/csilvasantin/admira-tv.git admira-tv-return && cd admira-tv-return && git checkout cd80f4a05702bfc1f6911b97eedad3aeeb8e12d4 && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh cf",
+    "cd /tmp && git clone https://github.com/csilvasantin/admira-tv.git admira-tv-return && cd admira-tv-return && git checkout a5fb8ad176e395b847d7fec4314fca5b1e78310e && ADMIRA_RELEASE_AGENT=MorfeoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh cf",
   );
-  assert.match(admiraTv.nota, /cd80f4a05702bfc1f6911b97eedad3aeeb8e12d4/);
+  assert.match(admiraTv.nota, /a5fb8ad176e395b847d7fec4314fca5b1e78310e/);
 });
 
 test("Webmaster publica los retornos anteriores a la autoría principal de Yokup", () => {
@@ -459,7 +459,7 @@ test("la API autenticada entrega a la UI el retorno exacto de pixer-eleven", asy
     const pixer = body.proyectos.find((p) => p.clave === "pixer-worker");
     assert.equal(
       pixer.volver,
-      "npx wrangler rollback a83c7730-a9ba-4403-8ffc-818ec7b37934 --name pixer-eleven --yes",
+      "npx wrangler rollback 080863ec-123e-4d0a-b9f8-1f41e73e6753 --name pixer-eleven --yes",
     );
   } finally {
     globalThis.fetch = original;
