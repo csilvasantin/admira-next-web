@@ -214,7 +214,7 @@
 </style>
 </head>
 <body>
-<a href="/usuarios" style="position:fixed;right:18px;top:18px;z-index:20;border:1px solid #33445d;border-radius:9px;padding:8px 11px;background:#0b1220;color:#bfeee8;text-decoration:none;font:700 12px ui-monospace,monospace">Usuarios</a>
+<div id="identityTools" style="position:fixed;right:18px;top:18px;z-index:20;display:flex;align-items:center;gap:7px;padding:6px;border:1px solid #33445d;border-radius:11px;background:#0b1220;color:#bfeee8;font:700 12px ui-monospace,monospace"><span id="identityLabel">sesión…</span><a id="usersLink" hidden href="/usuarios" style="color:#bfeee8;text-decoration:none;padding:5px">Usuarios</a><button id="logoutButton" type="button" style="border:0;border-left:1px solid #33445d;background:none;color:#ff9ba6;padding:5px 7px;cursor:pointer;font:inherit">Salir</button></div>
 <canvas id="rain" aria-hidden="true"></canvas>
 <div class="glow a" aria-hidden="true"></div>
 <div class="glow b" aria-hidden="true"></div>
@@ -540,7 +540,11 @@
   }
   var ordenActual = null;
   var ADMIRA_CSRF = '';
-  fetch('/api/session',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){if(d&&d.ok)ADMIRA_CSRF=d.csrf||''});
+  var ADMIRA_SESSION_READY = fetch('/api/session',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
+    if(d&&d.ok){ ADMIRA_CSRF=d.csrf||''; document.getElementById('identityLabel').textContent=d.user.email+' · '+d.user.role; document.getElementById('usersLink').hidden=d.user.role!=='admin'; }
+    return d;
+  });
+  document.getElementById('logoutButton').onclick=function(){ ADMIRA_SESSION_READY.then(function(){return fetch('/webmaster/logout',{method:'POST',headers:{'X-Admira-CSRF':ADMIRA_CSRF}})}).then(function(){location.href='/webmaster'}); };
   if (!tabla) return;
 
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){
@@ -697,11 +701,11 @@
     var estado = input.parentNode.querySelector('.responsable-state');
     input.disabled = true;
     estado.className = 'responsable-state'; estado.textContent = 'guardando…';
-    fetch('/api/proyectos', {
+    ADMIRA_SESSION_READY.then(function(){ return fetch('/api/proyectos', {
       method:'PATCH',
       headers:{ 'content-type':'application/json', 'X-Admira-CSRF':ADMIRA_CSRF },
       body:JSON.stringify({ clave:p.clave, responsable:responsable })
-    }).then(function(r){ return r.json().then(function(d){ if (!r.ok || !d.ok) throw new Error(d.error || 'no se pudo guardar'); return d; }); })
+    }); }).then(function(r){ return r.json().then(function(d){ if (!r.ok || !d.ok) throw new Error(d.error || 'no se pudo guardar'); return d; }); })
       .then(function(d){
         p.responsable = d.responsable;
         fijarResponsable(input, d.responsable);
