@@ -90,8 +90,12 @@ test('el POST de Google exige desafío de login same-origin ligado a cookie',asy
   assert.equal(loginCsrfValido(opaque,token,nonce),true);
   const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`g_csrf_token=${token}; ${own}`}});
   assert.equal(loginCsrfValido(cross,token,nonce),false);
-  assert.equal(loginCsrfValido(opaque,token,'otro-nonce-de-longitud-suficiente-123456'),false,'nonce y g_csrf son obligatorios, no alternativas');
-  assert.equal(loginCsrfValido(new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:own}}),'',nonce),false,'el nonce no sustituye double-CSRF');
+  assert.equal(loginCsrfValido(opaque,token,'otro-nonce-de-longitud-suficiente-123456'),false,'el par oficial nunca sustituye la cookie nonce ligada al JWT');
+  assert.equal(loginCsrfValido(new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:own}}),'',nonce),true,'cookie HttpOnly + nonce JWT sostienen el redirect cuando GIS omite g_csrf');
+  const badOfficial=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`g_csrf_token=${token}; ${own}`}});
+  assert.equal(loginCsrfValido(badOfficial,'otro-token-oficial-de-longitud-suficiente-123',nonce),false,'si Google entrega el par oficial también debe coincidir');
+  const duplicated=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`g_csrf_token=otro-token-oficial-de-longitud-suficiente-123; g_csrf_token=${token}; ${own}`}});
+  assert.equal(loginCsrfValido(duplicated,token,nonce),true,'una cookie vieja de otra ruta no pisa el par oficial válido');
   const html=await (await respuestaLogin(env, '', '/usuarios')).text();
   assert.match(html,/data-ux_mode="redirect"/);
   assert.match(html,/data-login_uri="https:\/\/www\.admiranext\.com\/webmaster"/);
@@ -179,8 +183,8 @@ test('Google se verifica por firma local, issuer, audiencia y sub sin poner el t
 async function callbackRequest(env,email,returnTo,sub) {
   const login=await respuestaLogin(env,'',returnTo),nonce=login.headers.get('set-cookie').match(/__Host-an_login_nonce=([^;]+)/)[1];
   const csrf=crypto.randomUUID(),signed=await googleToken({email,sub,nonce,hd:email.endsWith('@admira.com')?'admira.com':undefined});
-  const form=new URLSearchParams({credential:signed.token,g_csrf_token:csrf,return_to:'https://evil.example'});
-  const request=()=>new Request('https://www.admiranext.com/webmaster?return_to=%2Fevil',{method:'POST',headers:{origin:'null','content-type':'application/x-www-form-urlencoded',cookie:`g_csrf_token=${csrf}; __Host-an_login_nonce=${nonce}`},body:form});
+  const form=new URLSearchParams({credential:signed.token,return_to:'https://evil.example'});
+  const request=()=>new Request('https://www.admiranext.com/webmaster?return_to=%2Fevil',{method:'POST',headers:{origin:'null','content-type':'application/x-www-form-urlencoded',cookie:`__Host-an_login_nonce=${nonce}`},body:form});
   const previous=globalThis.fetch;globalThis.fetch=async()=>Response.json({keys:[signed.jwk]});
   try{return {response:await webmasterRequest({request:request(),env,next:async()=>new Response('no')}),request,jwk:signed.jwk};}
   finally{globalThis.fetch=previous;}

@@ -91,6 +91,14 @@ function cookies(request) {
   });
   return out;
 }
+function cookiesConNombre(request, name) {
+  const values = [];
+  (request.headers.get('Cookie') || '').split(/;\s*/).forEach((part) => {
+    const i = part.indexOf('=');
+    if (i > 0 && part.slice(0, i) === name) values.push(part.slice(i + 1));
+  });
+  return values;
+}
 function emailValido(value) {
   const email = String(value || '').trim().toLowerCase();
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
@@ -104,10 +112,18 @@ export function loginCsrfValido(request, value, nonce = '') {
   // GIS vuelve por form_post desde accounts.google.com. La defensa canónica es
   // el double-submit cookie/campo; el allowlist de Origin evita otros POST.
   if (origin && origin !== 'null' && origin !== new URL(request.url).origin && origin !== 'https://accounts.google.com') return false;
-  const cookie = cookies(request).g_csrf_token || '';
-  const official = cookie.length >= 32 && iguales(cookie, String(value || ''));
+  const formToken = String(value || '');
+  const officialCookies = cookiesConNombre(request, 'g_csrf_token').filter((token) => token.length >= 32);
+  // GIS redirect no siempre crea g_csrf_token en el origen (comprobado en IAB
+  // real). Cuando entrega el par cookie/campo se valida completo, incluidas
+  // cookies duplicadas de distinta ruta; un componente aislado no sustituye al
+  // desafío propio. La defensa obligatoria es cookie HttpOnly + nonce firmado
+  // por Google + consumo D1 one-use/TTL.
+  const officialPairPresent = formToken.length >= 32 && officialCookies.length > 0;
+  const officialPairValid = !officialPairPresent || officialCookies.some((token) => iguales(token, formToken));
   const own = cookies(request)[LOGIN_COOKIE] || '';
-  return official && own.length >= 32 && iguales(own, String(nonce || ''));
+  const ownValid = own.length >= 32 && iguales(own, String(nonce || ''));
+  return ownValid && officialPairValid;
 }
 
 export async function asegurarDirectorio(env) {
