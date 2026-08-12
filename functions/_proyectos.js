@@ -86,6 +86,7 @@ export const PROYECTOS = [
     clave: 'admira-live', nombre: 'admira.live', url: 'https://www.admira.live',
     repo: 'csilvasantin/32.-ConsejoAdmiraNextGame', repoTxt: '32.-ConsejoAdmiraNextGame',
     pages: 'admira-live', publica: './deploy.sh → Pages admira-live',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/32.-ConsejoAdmiraNextGame.git admira-live-return && cd admira-live-return && git checkout 86a64e783233c0a1954be40714a9379163c7d39c && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh && cd workers/admira-auth-edge && npx wrangler rollback 496f8b99-0bdd-46b1-8db3-b875d0b37dd5 --yes && cd ../admira-fleet-proxy && npx wrangler rollback 0ee6d212-1594-4f8d-be94-258c363e3c96 --yes',
     tipo: 'sitio', shot: '/webmaster-shots/admira-live.jpg',
   },
   {
