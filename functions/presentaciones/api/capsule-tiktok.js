@@ -37,7 +37,7 @@ function json(payload, status = 200) {
 
 export async function onRequest(context) {
   const { request, env } = context;
-  if (request.method !== 'POST') {
+  if (request.method !== 'POST' && request.method !== 'GET') {
     return json({ error: 'Método no permitido.' }, 405);
   }
   // Puerta de servidor a servidor: la dispara el worker del Stock cuando se
@@ -47,6 +47,26 @@ export async function onRequest(context) {
   if (!secreto) return json({ error: 'La puerta de cápsulas no está configurada.' }, 503);
   if (request.headers.get('x-admiranext-ingest') !== secreto) {
     return json({ error: 'No autorizado.' }, 401);
+  }
+
+  // ESTADO del encargo. El endpoint del motor vive detrás del perímetro humano
+  // (está en isGeneratorApi), así que preguntarle desde fuera devuelve la PÁGINA
+  // DE LOGIN, no el estado — y quien pregunta nunca ve el «done». Se expone por
+  // esta puerta, que ya se autentica con el secreto de ingesta, invocando al motor
+  // EN PROCESO. Así el perímetro no se abre para nadie más.
+  // Preguntar NO es solo consultar: es lo que dispara la publicación en Pixeria
+  // cuando el vídeo está listo. Sin alguien preguntando, Grok genera y el vídeo no
+  // llega a ninguna parte.
+  if (request.method === 'GET') {
+    const id = new URL(request.url).searchParams.get('id') || '';
+    if (!id) return json({ error: 'Falta el id del encargo.' }, 400);
+    const consulta = new Request(new URL(`/presentaciones/api/grok-video?id=${encodeURIComponent(id)}`, request.url),
+      { method: 'GET', headers: { accept: 'application/json' } });
+    try { return await motorGrokVideo({ ...context, request: consulta }); }
+    catch (error) {
+      console.error('capsule-tiktok:estado', JSON.stringify({ id, message: String(error?.message || error).slice(0, 240) }));
+      return json({ ok: false, error: 'No se pudo consultar el estado.' }, 502);
+    }
   }
 
   const declarado = Number(request.headers.get('content-length') || 0);
