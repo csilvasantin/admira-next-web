@@ -50,6 +50,8 @@ test('el POST de Google exige desafío de login same-origin ligado a cookie',asy
   assert.equal(loginCsrfValido(google,token),true);
   const omitted=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{cookie:`g_csrf_token=${token}`}});
   assert.equal(loginCsrfValido(omitted,token),true);
+  const opaque=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`g_csrf_token=${token}`}});
+  assert.equal(loginCsrfValido(opaque,token),true);
   const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`g_csrf_token=${token}`}});
   assert.equal(loginCsrfValido(cross,token),false);
   const html=await respuestaLogin('', '/usuarios').text();
