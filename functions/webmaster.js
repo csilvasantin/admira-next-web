@@ -24,7 +24,12 @@ export async function onRequest(context) {
       return respuestaLogin('Google no pudo verificar esa identidad.', returnTo);
     }
     if (!loginCsrfValido(request, form.get('g_csrf_token'), identity.nonce)) return respuestaLogin('La solicitud de acceso ha caducado. Reinténtalo.', returnTo, 403);
-    const user = await buscarUsuarioIdentidad(env, identity).catch(() => null);
+    let user;
+    try { user = await buscarUsuarioIdentidad(env, identity); }
+    catch (error) {
+      console.error('admiranext_login_lookup_failed', String(error?.message || error).slice(0,200));
+      return respuestaLogin('El directorio no está disponible ahora mismo. Reinténtalo.', returnTo, 503);
+    }
     if (!user || user.status !== 'active') {
       if (env.AUTH_DB) await auditar(env, identity.email, user?.email || identity.email, 'login_denied', user ? 'suspended' : 'not_registered').catch(() => {});
       return respuestaLogin('Tu usuario no está activo en AdmiraNeXT.', returnTo);
