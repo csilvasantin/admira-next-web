@@ -67,7 +67,11 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /id="generatorForm"/);
   assert.match(html, /id="adIdeaForm"/);
   assert.match(html, /Ideas de anuncios/);
-  assert.match(html, /Crear anuncio/);
+  // El botón se llamó «Crear anuncio» hasta 36d8ea4, que lo renombró a «Crear
+  // idea» sin tocar esta línea. La suite lleva ROJA desde entonces —también en
+  // main—, y una suite roja no vale como puerta: si algo más se rompe, nadie se
+  // entera entre el ruido. Se comprueba el rótulo que existe.
+  assert.match(html, /✨ Crear idea/);
   assert.match(html, /id="developAdIdea"/);
   assert.match(html, /✨ Crear idea/);
   assert.match(html, /Sin titular<\/b> → Crear idea completa/);

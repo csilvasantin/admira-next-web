@@ -1,0 +1,94 @@
+/* POST /presentaciones/api/capsule-tiktok
+ * ----------------------------------------------------------------------------
+ * Convierte una CÁPSULA DE CONOCIMIENTO en un TikTok de 15 s que la explica.
+ *
+ * Una cápsula es texto que alguien aprendió y guardó. Hasta hoy nacía y se
+ * quedaba ahí: se lee, no se ve. Esto la pone en pantalla.
+ *
+ * NO reimplementa la generación: arma el brief (_capsule-brief.mjs) y se lo pasa
+ * al motor que ya existe —/presentaciones/api/grok-video, 15 s en 9:16 nativo—,
+ * que además publica solo en el Stock de Pixeria. Si mañana el motor mejora, esta
+ * puerta lo hereda sin tocarse.
+ *
+ * Devuelve el requestId del motor: quien llama sondea el estado con
+ * GET /presentaciones/api/grok-video?id=…, igual que hace el estudio.
+ */
+import { briefDesdeCapsula } from './_capsule-brief.mjs';
+
+const MAX_BODY_BYTES = 8 * 1024;
+const RESOLUCION = '720p';   // suficiente para MUPI vertical y mucho más rápido que 1080p
+
+function json(payload, status = 200) {
+  return Response.json(payload, {
+    status,
+    headers: {
+      'cache-control': 'no-store',
+      'content-type': 'application/json; charset=utf-8',
+      'x-content-type-options': 'nosniff'
+    }
+  });
+}
+
+export async function onRequest(context) {
+  const { request, env } = context;
+  if (request.method !== 'POST') {
+    return json({ error: 'Método no permitido.' }, 405);
+  }
+  // Puerta de servidor a servidor: la dispara el worker del Stock cuando se
+  // publica una cápsula, no un navegador. Se exige el mismo secreto de ingesta
+  // que ya usa la publicación en Pixeria, para no inventar una credencial nueva.
+  const secreto = env.PIXERIA_INGEST_TOKEN;
+  if (!secreto) return json({ error: 'La puerta de cápsulas no está configurada.' }, 503);
+  if (request.headers.get('x-admiranext-ingest') !== secreto) {
+    return json({ error: 'No autorizado.' }, 401);
+  }
+
+  const declarado = Number(request.headers.get('content-length') || 0);
+  if (declarado > MAX_BODY_BYTES) return json({ error: 'Petición demasiado grande.' }, 413);
+
+  let capsula;
+  try { capsula = await request.json(); }
+  catch { return json({ error: 'JSON no válido.' }, 400); }
+
+  const brief = briefDesdeCapsula(capsula);
+  // Que una cápsula no dé para vídeo NO es un error: hay cápsulas de dos líneas.
+  // Se contesta 200 con el motivo para que quien llama no lo reintente en bucle
+  // creyendo que fue un fallo de red.
+  if (!brief) {
+    return json({ ok: true, generado: false, motivo: 'La cápsula no tiene texto suficiente para 15 segundos.' });
+  }
+
+  const motor = new URL('/presentaciones/api/grok-video', request.url);
+  let respuesta, datos = {};
+  try {
+    respuesta = await fetch(motor.toString(), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({
+        prompt: brief.prompt,
+        resolution: RESOLUCION,
+        clientRequestId: crypto.randomUUID()
+      })
+    });
+    datos = await respuesta.json().catch(() => ({}));
+  } catch (error) {
+    console.error('capsule-tiktok:motor', JSON.stringify({ message: String(error?.message || error).slice(0, 300) }));
+    return json({ ok: false, error: 'El motor de vídeo no respondió.' }, 502);
+  }
+
+  if (!respuesta.ok || !datos.requestId) {
+    return json({ ok: false, error: datos.error || 'El motor de vídeo rechazó la petición.' }, 502);
+  }
+
+  return json({
+    ok: true,
+    generado: true,
+    requestId: datos.requestId,
+    tema: brief.tema,
+    titulo: brief.titulo,
+    idea: brief.idea,
+    tags: brief.tags,
+    // Quien llama sondea aquí, igual que el estudio.
+    estado: `/presentaciones/api/grok-video?id=${encodeURIComponent(datos.requestId)}`
+  });
+}

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Créditos • ADmiraNeXT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap');
+        
+        :root {
+            --matrix-green: #00ff41;
+            --accent: #ffd866;
+            --bg: #0a0a0a;
+        }
+        
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg);
+            color: var(--matrix-green);
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #111;
+            border-bottom: 1px solid var(--matrix-green);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        .title {
+            font-family: 'Press Start 2P', system-ui;
+            font-size: 18px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
+        }
+        .controls {
+            background: #111;
+            padding: 20px;
+            border-bottom: 1px solid #222;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            z-index: 10;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        input, select, textarea, button {
+            background: #1a1a1a;
+            border: 1px solid var(--matrix-green);
+            color: var(--matrix-green);
+            padding: 10px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--matrix-green);
+        }
+        button {
+            background: transparent;
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        button:hover {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent);
+        }
+        .preview {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .credits-container {
+            position: absolute;
+            bottom: -100%;
+            width: 100%;
+            text-align: center;
+            transition: bottom 0.4s ease;
+            pointer-events: none;
+        }
+        .credits-container.playing {
+            bottom: 100%;
+            transition: bottom 25s linear;
+        }
+        .credit-line {
+            margin: 18px 0;
+            font-size: 18px;
+            line-height: 1.4;
+            opacity: 0;
+            transition: opacity 1s;
+            text-shadow: 0 0 10px var(--matrix-green);
+        }
+        .credit-line.role {
+            color: var(--accent);
+            font-size: 14px;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+        .credit-line.name {
+            color: white;
+            font-weight: 700;
+        }
+        .credit-line.big {
+            font-size: 28px;
+            color: var(--accent);
+            margin: 40px 0 20px;
+        }
+        .credit-line.thanks {
+            color: #666;
+            font-size: 14px;
+            margin-top: 60px;
+        }
+        .scanlines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                rgba(0, 255, 65, 0.07) 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 5;
+            animation: scan 4s linear infinite;
+        }
+        @keyframes scan {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 400px; }
+        }
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 0 120px rgba(0,0,0,0.9);
+            pointer-events: none;
+            z-index: 6;
+        }
+        .status {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 12px;
+            color: #444;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 12px;
+            border: 1px solid #222;
+        }
+        footer {
+            padding: 10px;
+            text-align: center;
+            font-size: 11px;
+            color: #333;
+            border-top: 1px solid #222;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title">GENERADOR DE CRÉDITOS</div>
+        <div style="font-size:13px; color:#444;">ADmiraNeXT • Final de Presentación • Estilo Cine Matrix</div>
+    </header>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Producción</label>
+            <input type="text" id="production" value="ADmiraNeXT — Robot as a Service" style="width:100%">
+        </div>
+        
+        <div class="control-group">
+            <label>Director / Presentador</label>
+            <input type="text" id="director" value="Carlos Silva" style="width:100%">
+        </div>
+
+        <div class="control-group">
+            <label>Velocidad (segundos)</label>
+            <input type="range" id="speed" min="10" max="60" value="28" style="width:100%">
+            <span id="speedValue" style="font-size:12px; color:#666;">28s</span>
+        </div>
+
+        <div class="control-group">
+            <label>Tema</label>
+            <select id="theme" style="width:100%">
+                <option value="matrix">Matrix (Verde)</option>
+                <option value="retro">Retro CRT</option>
+                <option value="neon">Neón Cyberpunk</option>
+                <option value="dark">Minimal Dark</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Créditos (una por línea: Rol | Nombre)</label>
+            <textarea id="credits" rows="6" style="width:100%; font-size:13px; resize:vertical;">Concepto y Dirección|Carlos Silva
+Diseño Visual y Terminal|subSmith Negro
+Robótica y Physical AI|Equipo Admira
+Plataforma IoT|White Rabbit
+Música de Fondo|Trent Reznor & Atticus Ross (inspiración)
+Agradecimientos Especiales|Flota de Agentes Autónomos
+Gracias por tu atención|¡Hasta la próxima presentación!</textarea>
+        </div>
+
+        <div class="control-group" style="grid-column: span 2;">
+            <button onclick="togglePlayback()" style="padding:14px 30px; font-size:15px; width:100%;">▶ REPRODUCIR CRÉDITOS</button>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+                <button onclick="randomize()" style="flex:1;">🎲 Aleatorio</button>
+                <button onclick="resetForm()" style="flex:1;">⟳ Reset</button>
+                <button onclick="downloadHTML()" style="flex:1; background:#222; color:var(--matrix-green);">↓ Exportar como HTML</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview" id="preview">
+        <div class="credits-container" id="creditsContainer">
+            <!-- Créditos dinámicos se inyectan aquí -->
+        </div>
+        <div class="scanlines"></div>
+        <div class="vignette"></div>
+        <div class="status" id="status">Listo. Pulsa REPRODUCIR.</div>
+    </div>
+
+    <footer>
+        Generador de Créditos de Final de Presentación para admiranext.com • Inspirado en el generador de presentaciones de Carlos Silva • subSmith Negro • 2026
+    </footer>
+
+    <audio id="soundtrack" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let isPlaying = false;
+        let currentTheme = 'matrix';
+        
+        const themes = {
+            matrix: { color: '#00ff41', accent: '#ffd866', bg: '#0a0a0a', font: 'JetBrains Mono' },
+            retro: { color: '#22ff22', accent: '#ffaa00', bg: '#001100', font: 'Press Start 2P' },
+            neon: { color: '#ff00ff', accent: '#00ffff', bg: '#110022', font: 'JetBrains Mono' },
+            dark: { color: '#aaaaaa', accent: '#ffffff', bg: '#050505', font: 'JetBrains Mono' }
+        };
+
+        function updateSpeedValue() {
+            document.getElementById('speedValue').textContent = document.getElementById('speed').value + 's';
+        }
+
+        function parseCredits(text) {
+            return text.trim().split('\n').map(line => {
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length >= 2) {
+                    return { role: parts[0], name: parts.slice(1).join(' | ') };
+                }
+                return { role: '', name: line.trim() };
+            }).filter(c => c.name);
+        }
+
+        function renderCredits() {
+            const container = document.getElementById('creditsContainer');
+            const creditsText = document.getElementById('credits').value;
+            const production = document.getElementById('production').value;
+            const director = document.getElementById('director').value;
+            const creditsData = parseCredits(creditsText);
+            
+            let html = `
+                <div class="credit-line big" style="color:var(--accent)">${production}</div>
+                <div class="credit-line" style="margin-bottom:60px; font-size:22px; color:#888;">Una presentación de</div>
+                <div class="credit-line big">${director}</div>
+                <div style="height:80px"></div>
+            `;
+            creditsData.forEach((credit, index) => {
+                if (credit.role) {
+                    html += `<div class="credit-line role">${credit.role}</div>`;
+                }
+                html += `<div class="credit-line name">${credit.name}</div>`;
+                if (index < creditsData.length - 1) {
+                    html += `<div style="height:30px"></div>`;
+                }
+            });
+            
+            html += `
+                <div class="credit-line thanks" style="margin-top:120px">
+                    Gracias por tu atención<br>
+                    <span style="color:var(--accent); font-size:15px">ADmiraNeXT • Physical AI &amp; Robots as a Service • Barcelona 2026</span>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            container.style.transition = 'none';
+            container.style.bottom = '-100%';
+            void container.offsetWidth; // force reflow
+        }
+
+        function applyTheme(themeName) {
+            currentTheme = themeName;
+            const theme = themes[themeName] || themes.matrix;
+            document.documentElement.style.setProperty('--matrix-green', theme.color);
+            document.documentElement.style.setProperty('--accent', theme.accent);
+            document.getElementById('preview').style.background = theme.bg;
+        }
+
+        function togglePlayback() {
+            const container = document.getElementById('creditsContainer');
+            const btn = document.querySelector('button[onclick="togglePlayback()"]');
+            const audio = document.getElementById('soundtrack');
+            const status = document.getElementById('status');
+            
+            if (isPlaying) {
+                // Stop
+                container.classList.remove('playing');
+                container.style.transition = 'bottom 0.4s ease';
+                container.style.bottom = '-100%';
+                btn.textContent = '▶ REPRODUCIR CRÉDITOS';
+                audio.pause();
+                status.textContent = 'Pausado. Pulsa REPRODUCIR para reiniciar.';
+                isPlaying = false;
+            } else {
+                // Play
+                renderCredits();
+                setTimeout(() => {
+                    const duration = parseInt(document.getElementById('speed').value);
+                    container.style.transition = `bottom ${duration}s linear`;
+                    container.classList.add('playing');
+                    container.style.bottom = '120%';
+                    
+                    btn.textContent = '⏹ DETENER';
+                    status.textContent = 'Reproduciendo... (espera el scroll completo)';
+                    isPlaying = true;
+                    
+                    // Auto music
+                    try { audio.play(); } catch(e){}
+                    
+                    // Reset after animation
+                    setTimeout(() => {
+                        if (isPlaying) {
+                            container.classList.remove('playing');
+                            container.style.bottom = '-100%';
+                            btn.textContent = '▶ REPRODUCIR CRÉDITOS';
+                            audio.pause();
+                            audio.currentTime = 0;
+                            status.textContent = 'Créditos terminados. ¡Impresionante!';
+                            isPlaying = false;
+                        }
+                    }, duration * 1000 + 1000);
+                }, 50);
+            }
+        }
+
+        function randomize() {
+            const names = ["Carlos Silva", "subSmith Negro", "White Rabbit", "Neo", "Morfeo", "Trinity", "Cypher", "Equipo Admira", "Flota Autónoma"];
+            const roles = ["Dirección Creativa", "Diseño Terminal", "Desarrollo Frontend", "Physical AI", "Core IoT", "Matrix Rain Engineer", "Agente de Ejecución", "Agradecimientos", "Presentación"];
+            
+            let text = '';
+            for (let i = 0; i < 8; i++) {
+                text += `${roles[Math.floor(Math.random()*roles.length)]}|${names[Math.floor(Math.random()*names.length)]}\n`;
+            }
+            document.getElementById('credits').value = text.trim();
+            document.getElementById('production').value = "ADmiraNeXT " + ["v26.07", "RaaS 2026", "Physical AI Demo"][Math.floor(Math.random()*3)];
+            document.getElementById('director').value = names[Math.floor(Math.random()*names.length)];
+            renderCredits();
+        }
+
+        function resetForm() {
+            document.getElementById('production').value = "ADmiraNeXT — Robot as a Service";
+            document.getElementById('director').value = "Carlos Silva";
+            document.getElementById('speed').value = 28;
+            document.getElementById('credits').value = `Concepto y Dirección|Carlos Silva
+Diseño Visual y Terminal|subSmith Negro
+Robótica y Physical AI|Equipo Admira
+Plataforma IoT|White Rabbit
+Música de Fondo|Trent Reznor & Atticus Ross (inspiración)
+Agradecimientos Especiales|Flota de Agentes Autónomos
+Gracias por tu atención|¡Hasta la próxima presentación!`;
+            updateSpeedValue();
+            renderCredits();
+            document.getElementById('theme').value = 'matrix';
+            applyTheme('matrix');
+        }
+
+        function downloadHTML() {
+            renderCredits();
+            const container = document.getElementById('creditsContainer').innerHTML;
+            const speed = document.getElementById('speed').value;
+            const production = document.getElementById('production').value;
+            const director = document.getElementById('director').value;
+            
+            const fullHTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>${production} — Créditos</title>
+<style>
+body { margin:0; background:#000; color:#0f0; font-family:'JetBrains Mono',monospace; overflow:hidden; height:100vh; display:flex; align-items:center; justify-content:center; position:relative; }
+.credits { position:absolute; bottom:-100%; width:100%; text-align:center; transition:bottom 0.6s; }
+.credits.playing { bottom:120%; transition: bottom ${speed}s linear !important; }
+.credit-line { margin:25px 0; font-size:18px; line-height:1.6; text-shadow:0 0 15px #0f0; }
+.credit-line.role { color:#ff0; font-size:14px; opacity:0.9; }
+.credit-line.name { color:#fff; font-weight:700; font-size:22px; }
+.big { font-size:32px; color:#ff0; margin:40px 0; }
+.thanks { color:#555; margin-top:100px; font-size:15px; }
+.scan { position:absolute; top:0; left:0; right:0; bottom:0; background:repeating-linear-gradient(to bottom,transparent 0px,rgba(0,255,65,0.08) 1px,transparent 4px); animation:scan 3s linear infinite; pointer-events:none; }
+@keyframes scan { 0%{background-position:0 0} 100%{background-position:0 600px} }
+</style>
+</head>
+<body>
+<div class="credits" id="c">${container}</div>
+<div class="scan"></div>
+<script>
+setTimeout(() => { document.getElementById('c').classList.add('playing'); }, 800);
+</script>
+</body>
+</html>`;
+            
+            const blob = new Blob([fullHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'creditos-admiranext.html';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            const status = document.getElementById('status');
+            status.textContent = '¡HTML descargado! Úsalo en cualquier presentación.';
+            setTimeout(() => status.textContent = 'Listo para la siguiente presentación.', 2500);
+        }
+
+        // Event listeners
+        document.getElementById('speed').addEventListener('input', () => {
+            updateSpeedValue();
+        });
+        
+        document.getElementById('theme').addEventListener('change', (e) => {
+            applyTheme(e.target.value);
+        });
+        
+        // Initial render
+        window.onload = () => {
+            updateSpeedValue();
+            applyTheme('matrix');
+            renderCredits();
+            
+            // Keyboard support
+            document.addEventListener('keydown', function(e) {
+                if (e.key === ' ' && document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") {
+                    e.preventDefault();
+                    togglePlayback();
+                }
+                if (e.key === 'r' && e.metaKey) {
+                    e.preventDefault();
+                    randomize();
+                }
+            });
+            
+            console.log('%cGenerador de Créditos ADmiraNeXT cargado correctamente. Pulsa ESPACIO para reproducir. Firmado: subSmith Negro', 'color:#0f0; font-family:monospace');
+        };
+    </script>
+</body>
+</html>
