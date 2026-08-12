@@ -19,11 +19,11 @@ export async function onRequest(context) {
     let form;
     try { form = await request.formData(); } catch (_) { form = new FormData(); }
     const returnTo = form.get('return_to') || new URL(request.url).searchParams.get('return_to');
-    if (!loginCsrfValido(request, form.get('g_csrf_token'))) return respuestaLogin('La solicitud de acceso ha caducado. Reinténtalo.', returnTo, 403);
     const identity = await verificarGoogle(String(form.get('credential') || ''));
     if (!identity) {
       return respuestaLogin('Google no pudo verificar esa identidad.', returnTo);
     }
+    if (!loginCsrfValido(request, form.get('g_csrf_token'), identity.nonce)) return respuestaLogin('La solicitud de acceso ha caducado. Reinténtalo.', returnTo, 403);
     const user = await buscarUsuarioIdentidad(env, identity).catch(() => null);
     if (!user || user.status !== 'active') {
       if (env.AUTH_DB) await auditar(env, identity.email, user?.email || identity.email, 'login_denied', user ? 'suspended' : 'not_registered').catch(() => {});

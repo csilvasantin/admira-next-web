@@ -10,6 +10,7 @@
 const CLIENT_ID = '861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com';
 const COOKIE = '__Host-an_session';
 const LEGACY_COOKIE = 'wm_session';
+const LOGIN_COOKIE = '__Host-an_login_nonce';
 const MAXAGE = 60 * 60 * 24 * 7;
 const ROLES = new Set(['admin', 'editor', 'viewer']);
 const BOOTSTRAP = ['csilva@admira.com', 'csilvasantin@gmail.com'];
@@ -77,13 +78,15 @@ function id() {
   return crypto.randomUUID ? crypto.randomUUID() : b64url(crypto.getRandomValues(new Uint8Array(24)));
 }
 
-export function loginCsrfValido(request, value) {
+export function loginCsrfValido(request, value, nonce = '') {
   const origin = request.headers.get('Origin');
   // GIS vuelve por form_post desde accounts.google.com. La defensa canónica es
   // el double-submit cookie/campo; el allowlist de Origin evita otros POST.
   if (origin && origin !== 'null' && origin !== new URL(request.url).origin && origin !== 'https://accounts.google.com') return false;
   const cookie = cookies(request).g_csrf_token || '';
-  return cookie.length >= 32 && iguales(cookie, String(value || ''));
+  const official = cookie.length >= 32 && iguales(cookie, String(value || ''));
+  const own = cookies(request)[LOGIN_COOKIE] || '';
+  return official || (own.length >= 32 && iguales(own, String(nonce || '')));
 }
 
 export async function asegurarDirectorio(env) {
@@ -214,7 +217,8 @@ export async function verificarGoogle(credential, fetchImpl = fetch) {
     const current = Number(p.exp) > now && Number(p.iat || now) <= now + 60;
     const issuer = p.iss === 'accounts.google.com' || p.iss === 'https://accounts.google.com';
     const googleAuthoritative = email.endsWith('@gmail.com') || (verified && typeof p.hd === 'string' && !!p.hd);
-    return p.aud === CLIENT_ID && issuer && verified && googleAuthoritative && current ? {email, sub:p.sub} : null;
+    return p.aud === CLIENT_ID && issuer && verified && googleAuthoritative && current
+      ? {email, sub:p.sub, nonce:String(p.nonce || '')} : null;
   } catch (_) { return null; }
 }
 
@@ -228,6 +232,7 @@ export function cookiesBorradas() {
   return [
     `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict`,
     `${LEGACY_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
+    `${LOGIN_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None`,
     `g_csrf_token=; Path=/; Max-Age=0; Secure; SameSite=Lax`,
   ];
 }
@@ -240,7 +245,7 @@ export function returnToSeguro(value) {
   return path === '/usuarios' || path === '/webmaster' ? path : '/webmaster';
 }
 
-export function paginaLogin(error = '', returnTo = '/webmaster') {
+export function paginaLogin(error = '', returnTo = '/webmaster', nonce = '') {
   const destination = returnToSeguro(returnTo);
   const loginUri = `https://www.admiranext.com/webmaster?return_to=${encodeURIComponent(destination)}`;
   return `<!doctype html><html lang="es"><head>
@@ -248,12 +253,15 @@ export function paginaLogin(error = '', returnTo = '/webmaster') {
 <meta name="robots" content="noindex,nofollow"><title>AdmiraNeXT · Acceso</title>
 <style>:root{--bg:#080b14;--panel:rgba(18,24,40,.9);--ink:#e8ecf6;--dim:#8792ab;--line:rgba(124,232,216,.18);--neon:#7ce8d8;--warn:#ff8f7a;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif}.box{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:34px 30px;box-shadow:0 24px 60px #0008}.eyebrow{font:700 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--neon);margin-bottom:18px}h1{font-size:26px;margin:0 0 8px}p{color:var(--dim);font-size:14px;line-height:1.55;margin:0 0 22px}.picker{display:flex;justify-content:center;min-height:44px}.err{margin-top:16px;color:var(--warn);font:600 13px/1.45 var(--mono);text-align:center}.foot{margin-top:22px;text-align:center;font:600 11px/1 var(--mono);color:var(--dim)}</style></head><body>
 <div class="box"><div class="eyebrow">AdmiraNeXT · Identidad</div><h1>Acceso interno</h1><p>Google verifica tu identidad. El directorio de AdmiraNeXT decide tu rol y mantiene la revocación inmediata.</p>
-<div id="g_id_onload" data-client_id="${CLIENT_ID}" data-login_uri="${esc(loginUri)}" data-ux_mode="redirect" data-auto_prompt="false"></div><div class="picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-width="320" data-ux_mode="redirect"></div></div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com · sesión independiente de admira.live</div></div>
+<div id="g_id_onload" data-client_id="${CLIENT_ID}" data-login_uri="${esc(loginUri)}" data-nonce="${esc(nonce)}" data-ux_mode="redirect" data-auto_prompt="false"></div><div class="picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-width="320" data-ux_mode="redirect"></div></div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com · sesión independiente de admira.live</div></div>
 <script src="https://accounts.google.com/gsi/client" async defer></script></body></html>`;
 }
 
 export function respuestaLogin(error = '', returnTo = '/webmaster', status = 401) {
-  return respuestaHtml(paginaLogin(error, returnTo), status);
+  const nonce = id();
+  const response = respuestaHtml(paginaLogin(error, returnTo, nonce), status);
+  response.headers.append('Set-Cookie', `${LOGIN_COOKIE}=${nonce}; Path=/; Max-Age=600; HttpOnly; Secure; SameSite=None`);
+  return response;
 }
 
 export function respuestaHtml(cuerpo, status = 401) {

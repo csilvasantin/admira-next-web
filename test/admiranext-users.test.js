@@ -39,7 +39,7 @@ test('cookie tiene audiencia propia, SameSite Strict y CSRF ligado a sesión',as
   assert.match(await cookieDeSesion(env,await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(me.email).first()),/__Host-an_session=.*SameSite=Strict/);
   assert.equal(csrfValido(request('PATCH',cookie,me.csrf,{}),me),true);
   assert.equal(csrfValido(new Request('https://www.admiranext.com/api/usuarios',{method:'PATCH',headers:{cookie,origin:'https://evil.example','X-Admira-CSRF':me.csrf}}),me),false);
-  assert.equal(cookiesBorradas().length,3);
+  assert.equal(cookiesBorradas().length,4);
 });
 
 test('el POST de Google exige desafío de login same-origin ligado a cookie',async()=>{
@@ -58,12 +58,17 @@ test('el POST de Google exige desafío de login same-origin ligado a cookie',asy
   assert.match(html,/data-ux_mode="redirect"/);
   assert.match(html,/data-login_uri="https:\/\/www\.admiranext\.com\/webmaster\?return_to=%2Fusuarios"/);
   assert.doesNotMatch(html,/data-callback|credential.*hidden/);
+  const response=respuestaLogin('', '/usuarios'),setCookie=response.headers.get('set-cookie');
+  const nonce=setCookie.match(/__Host-an_login_nonce=([^;]+)/)[1];
+  const own=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'null',cookie:`__Host-an_login_nonce=${nonce}`}});
+  assert.equal(loginCsrfValido(own,'',nonce),true);
+  assert.match(await response.text(),new RegExp(`data-nonce="${nonce}"`));
 });
 
 async function googleToken(claims={}) {
   const pair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
   const header=Buffer.from(JSON.stringify({alg:'RS256',kid:'test-key'})).toString('base64url');
-  const now=Math.floor(Date.now()/1000), payload=Buffer.from(JSON.stringify({sub:'google-subject-1',email:'csilva@admira.com',email_verified:true,hd:'admira.com',aud:'861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com',iss:'https://accounts.google.com',iat:now-1,exp:now+300,...claims})).toString('base64url');
+  const now=Math.floor(Date.now()/1000), payload=Buffer.from(JSON.stringify({sub:'google-subject-1',email:'csilva@admira.com',email_verified:true,hd:'admira.com',aud:'861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com',iss:'https://accounts.google.com',iat:now-1,exp:now+300,nonce:'login-nonce',...claims})).toString('base64url');
   const signature=Buffer.from(await crypto.subtle.sign('RSASSA-PKCS1-v1_5',pair.privateKey,new TextEncoder().encode(header+'.'+payload))).toString('base64url');
   const jwk=await crypto.subtle.exportKey('jwk',pair.publicKey); return {token:header+'.'+payload+'.'+signature,jwk:{...jwk,kid:'test-key',alg:'RS256'}};
 }
@@ -71,7 +76,7 @@ async function googleToken(claims={}) {
 test('Google se verifica por firma local, issuer, audiencia y sub sin poner el token en una URL',async()=>{
   const signed=await googleToken(); let seen;
   const identity=await verificarGoogle(signed.token,async(url,options)=>{seen={url,options};return Response.json({keys:[signed.jwk]})});
-  assert.deepEqual(identity,{email:'csilva@admira.com',sub:'google-subject-1'});
+  assert.deepEqual(identity,{email:'csilva@admira.com',sub:'google-subject-1',nonce:'login-nonce'});
   assert.equal(seen.url,'https://www.googleapis.com/oauth2/v3/certs');
   assert.equal(seen.url.includes(signed.token),false);
   const wrong=await googleToken({aud:'otro-cliente'});
