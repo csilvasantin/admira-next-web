@@ -1,3 +1,5 @@
+import { saneaFicha } from './_ficha-video.mjs';
+
 const MAX_BODY_BYTES = 12 * 1024;
 const MAX_PROVIDER_BYTES = 96 * 1024;
 const MAX_PIXERIA_BYTES = 48 * 1024;
@@ -151,6 +153,12 @@ async function createVideo(context){
   const requestId = String(provider?.request_id || '').trim();
   if(!REQUEST_ID_RE.test(requestId)) return json({error:'Grok no devolvió un identificador de vídeo válido.'}, 502);
 
+  // La ficha se guarda ANTES de contestar: quien encarga se pone a sondear en
+  // cuanto tiene el requestId, y el sondeo es lo que dispara la publicación. Si
+  // se guardara después habría una ventana en la que el vídeo se publica con la
+  // ficha genérica justo cuando el encargo sí traía una buena.
+  if(parsed.payload?.ficha) await guardaFicha(context, requestId, saneaFicha(parsed.payload.ficha));
+
   if(context.env.PRESENTATION_IDEAS){
     await context.env.PRESENTATION_IDEAS.put(dedupeKey, JSON.stringify({requestId, model, resolution, createdAt:new Date().toISOString()}), {expirationTtl:60 * 60 * 6});
   }
@@ -187,6 +195,30 @@ function publicPixeriaState(record){
   return {status:'pending'};
 }
 
+// La ficha se guarda al ENCARGAR y se lee al PUBLICAR, que ocurren en dos
+// peticiones distintas (una crea, otra sondea) y puede que hasta en dos centros
+// de datos. Por eso va por KV y bajo el requestId, que es lo único que las dos
+// mitades comparten — el clientRequestId solo lo conoce quien encargó.
+const fichaKey = (requestId) => `tiktok:grok-video:ficha:${requestId}`;
+
+async function guardaFicha(context, requestId, ficha){
+  if(!context.env.PRESENTATION_IDEAS || !ficha) return;
+  try{ await context.env.PRESENTATION_IDEAS.put(fichaKey(requestId), JSON.stringify(ficha), {expirationTtl:PIXERIA_STATE_TTL}); }
+  catch(error){
+    // Sin ficha el vídeo se publica con la genérica. Es peor, pero no se pierde.
+    console.error(JSON.stringify({message:'video ficha write failed', requestId, error:String(error?.message || error)}));
+  }
+}
+
+async function leeFicha(context, requestId){
+  if(!context.env.PRESENTATION_IDEAS) return null;
+  try{ return await context.env.PRESENTATION_IDEAS.get(fichaKey(requestId), {type:'json'}); }
+  catch(error){
+    console.error(JSON.stringify({message:'video ficha read failed', requestId, error:String(error?.message || error)}));
+    return null;
+  }
+}
+
 async function savePixeriaState(context, key, state, ttl = PIXERIA_STATE_TTL){
   try{ await context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(state), {expirationTtl:ttl}); }
   catch(error){
@@ -211,13 +243,17 @@ async function ensurePixeriaPublication(context, requestId, video, model, force 
 
   const uploading = {status:'uploading', requestId, startedAt:Date.now()};
   await savePixeriaState(context, key, uploading, 60 * 60);
+  // La ficha la dejó quien encargó el vídeo. Si no hay (encargos del estudio, o
+  // uno anterior a esto), se publica con la genérica: perder el vídeo sería peor
+  // que publicarlo mal titulado.
+  const ficha = saneaFicha(await leeFicha(context, requestId));
   const payload = {
     type:'video',
     motor:'grok-imagine-video',
     prompt:'',
-    title:'TikTok 15s · ADmiraNeXT',
-    comment:'Publicado automáticamente desde admiranext.com/tiktok.',
-    tags:['admiranext','tiktok','vertical'],
+    title:ficha.title,
+    comment:ficha.comment,
+    tags:ficha.tags,
     quality:'best',
     costEst:`xAI · ${String(model || 'Grok Imagine Video').slice(0, 56)}`,
     mime:'video/mp4',

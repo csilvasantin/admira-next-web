@@ -87,6 +87,24 @@ test('una cápsula con texto llega al motor con su brief de 15 s', async () => {
   assert.ok(d.estado.includes('grok-video?id='), 'se dice dónde sondear el estado');
 });
 
+test('la cápsula deja su ficha para que la pieza no se llame como todas', async () => {
+  conMotor();
+  // KV de mentira: es donde el motor deja la ficha para la mitad que publica.
+  const guardado = {};
+  const PRESENTATION_IDEAS = {
+    get: async () => null,
+    put: async (k, v) => { guardado[k] = JSON.parse(v); }
+  };
+  await onRequest({request: peticion(CAPSULA), env: {...ENV, PRESENTATION_IDEAS}});
+  const ficha = Object.entries(guardado).find(([k]) => k.includes(':ficha:'))?.[1];
+  assert.ok(ficha, 'sin ficha guardada, se publica con el título genérico');
+  assert.equal(ficha.title, CAPSULA.title, 'el título de la cápsula, no «TikTok 15s»');
+  assert.match(ficha.comment, /protección de datos/i, 'la idea elegida va de comentario');
+  assert.notEqual(ficha.comment, 'Publicado automáticamente desde admiranext.com/tiktok.');
+  assert.ok(ficha.tags.includes('tech'), 'el tema viaja hasta el catálogo');
+  assert.ok(ficha.tags.includes('tiktok'), 'y la marca que decide la categoría');
+});
+
 test('una cápsula sin texto NO es un error: se contesta 200 y no se llama al motor', async () => {
   const llamadas = conMotor();
   const res = await onRequest({request: peticion({title: 'Vacía', tags: ['tech'], comment: ''}), env: ENV});

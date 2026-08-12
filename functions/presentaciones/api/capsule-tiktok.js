@@ -87,7 +87,11 @@ export async function onRequest(context) {
   const cuerpo = JSON.stringify({
     prompt: brief.prompt,
     resolution: RESOLUCION,
-    clientRequestId: crypto.randomUUID()
+    clientRequestId: crypto.randomUUID(),
+    // La ficha con la que la pieza llegará al Stock. Sin esto el motor publicaba
+    // con un título fijo y las cápsulas acababan todas llamándose igual: da lo
+    // mismo elegir bien la idea si luego en el catálogo no se sabe cuál es cuál.
+    ficha: { title: brief.titulo, comment: brief.idea, tags: brief.tags }
   });
   const peticionMotor = new Request(new URL('/presentaciones/api/grok-video', request.url), {
     method: 'POST',
