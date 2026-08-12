@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, buscarUsuarioIdentidad, respuestaLogin, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
 import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
+import fs from 'node:fs';
 
 class Statement {
   constructor(stmt){ this.stmt=stmt; this.values=[]; }
@@ -17,6 +18,11 @@ class D1 {
   prepare(sql){ return new Statement(this.db.prepare(sql)); }
 }
 const KEY='users-test-signing-key';
+
+test('el binding AUTH_DB forma parte del despliegue canónico, incluido GitHub Actions',()=>{
+  const config=JSON.parse(fs.readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
+  assert.deepEqual(config.d1_databases,[{binding:'AUTH_DB',database_name:'admiranext-auth',database_id:'1568f825-4dfb-40a9-ac40-c6776ee62b3e'}]);
+});
 async function setup(){ const env={AUTH_DB:new D1(),WEBMASTER_SIGNING_KEY:KEY}; await asegurarDirectorio(env); return env; }
 async function auth(env,email='csilva@admira.com'){
   const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(email).first();
