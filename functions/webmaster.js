@@ -19,18 +19,19 @@ export async function onRequest(context) {
     let form;
     try { form = await request.formData(); } catch (_) { form = new FormData(); }
     if (!loginCsrfValido(request, form.get('login_csrf'))) return respuestaLogin('La solicitud de acceso ha caducado. Reinténtalo.', form.get('return_to'), 403);
-    const email = await verificarGoogle(String(form.get('credential') || ''));
-    if (!email) {
+    const identity = await verificarGoogle(String(form.get('credential') || ''));
+    if (!identity) {
       return respuestaLogin('Google no pudo verificar esa identidad.', form.get('return_to'));
     }
+    const email = identity.email;
     const user = await buscarUsuario(env, email).catch(() => null);
-    if (!user || user.status !== 'active') {
+    if (!user || user.status !== 'active' || (user.google_sub && user.google_sub !== identity.sub)) {
       if (env.AUTH_DB) await auditar(env, email, email, 'login_denied', user ? 'suspended' : 'not_registered').catch(() => {});
       return respuestaLogin('Tu usuario no está activo en AdmiraNeXT.', form.get('return_to'));
     }
     const now = Date.now();
-    await env.AUTH_DB.prepare('UPDATE admiranext_users SET last_login_at=?,last_login_ip=?,last_login_ua=?,updated_at=? WHERE email=?')
-      .bind(now, request.headers.get('CF-Connecting-IP') || '', String(request.headers.get('User-Agent') || '').slice(0,300), now, email).run();
+    await env.AUTH_DB.prepare('UPDATE admiranext_users SET google_sub=COALESCE(google_sub,?),last_login_at=?,last_login_ip=?,last_login_ua=?,updated_at=? WHERE email=?')
+      .bind(identity.sub, now, request.headers.get('CF-Connecting-IP') || '', String(request.headers.get('User-Agent') || '').slice(0,300), now, email).run();
     await auditar(env, email, email, 'login_success', user.role);
     const headers = new Headers({ Location: returnToSeguro(form.get('return_to')), 'cache-control': 'no-store' });
     headers.append('Set-Cookie', await cookieDeSesion(env, user));

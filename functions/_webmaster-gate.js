@@ -20,6 +20,7 @@ const enc = new TextEncoder();
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS admiranext_users (
   email TEXT PRIMARY KEY,
+  google_sub TEXT UNIQUE,
   display_name TEXT NOT NULL DEFAULT '',
   role TEXT NOT NULL CHECK(role IN ('admin','editor','viewer')),
   status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','suspended')),
@@ -169,17 +170,32 @@ export function csrfValido(request, current) {
   return iguales(request.headers.get('X-Admira-CSRF') || '', current.csrf || '');
 }
 
-/** Verifica el credential contra Google; el directorio autoriza después. */
-export async function verificarGoogle(credential) {
+/** Verifica localmente la firma RS256 con las claves públicas rotatorias de Google. */
+export async function verificarGoogle(credential, fetchImpl = fetch) {
   if (!credential || credential.length > 6000) return null;
   try {
-    const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
-    if (!r.ok) return null;
-    const p = await r.json();
+    const parts = credential.split('.');
+    if (parts.length !== 3) return null;
+    const header = JSON.parse(new TextDecoder().decode(unb64url(parts[0])));
+    const p = JSON.parse(new TextDecoder().decode(unb64url(parts[1])));
+    if (header.alg !== 'RS256' || !header.kid || typeof p.sub !== 'string' || !p.sub) return null;
+    const certs = await fetchImpl('https://www.googleapis.com/oauth2/v3/certs', {
+      headers:{Accept:'application/json'}, cf:{cacheTtl:21600,cacheEverything:true}
+    });
+    if (!certs.ok) return null;
+    const jwks = await certs.json();
+    const jwk = Array.isArray(jwks.keys) && jwks.keys.find((key) => key.kid === header.kid && key.kty === 'RSA' && key.alg === 'RS256');
+    if (!jwk) return null;
+    const key = await crypto.subtle.importKey('jwk', jwk, {name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'}, false, ['verify']);
+    const validSignature = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, unb64url(parts[2]), enc.encode(parts[0] + '.' + parts[1]));
+    if (!validSignature) return null;
     const email = emailValido(p.email);
     const verified = p.email_verified === true || p.email_verified === 'true';
-    const current = Number(p.exp) > Math.floor(Date.now() / 1000);
-    return p.aud === CLIENT_ID && verified && current ? email : null;
+    const now = Math.floor(Date.now() / 1000);
+    const current = Number(p.exp) > now && Number(p.iat || now) <= now + 60;
+    const issuer = p.iss === 'accounts.google.com' || p.iss === 'https://accounts.google.com';
+    const googleAuthoritative = email.endsWith('@gmail.com') || (verified && typeof p.hd === 'string' && !!p.hd);
+    return p.aud === CLIENT_ID && issuer && verified && googleAuthoritative && current ? {email, sub:p.sub} : null;
   } catch (_) { return null; }
 }
 

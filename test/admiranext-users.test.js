@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, respuestaLogin, loginCsrfValido } from '../functions/_webmaster-gate.js';
+import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, respuestaLogin, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
 import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
 
 class Statement {
@@ -51,6 +51,24 @@ test('el POST de Google exige desafío de login same-origin ligado a cookie',asy
   const cross=new Request('https://www.admiranext.com/webmaster',{method:'POST',headers:{origin:'https://evil.example',cookie:`__Host-an_login_csrf=${token}`}});
   assert.equal(loginCsrfValido(cross,token),false);
   assert.match(await response.text(),new RegExp(`name="login_csrf" value="${token}"`));
+});
+
+async function googleToken(claims={}) {
+  const pair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
+  const header=Buffer.from(JSON.stringify({alg:'RS256',kid:'test-key'})).toString('base64url');
+  const now=Math.floor(Date.now()/1000), payload=Buffer.from(JSON.stringify({sub:'google-subject-1',email:'csilva@admira.com',email_verified:true,hd:'admira.com',aud:'861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com',iss:'https://accounts.google.com',iat:now-1,exp:now+300,...claims})).toString('base64url');
+  const signature=Buffer.from(await crypto.subtle.sign('RSASSA-PKCS1-v1_5',pair.privateKey,new TextEncoder().encode(header+'.'+payload))).toString('base64url');
+  const jwk=await crypto.subtle.exportKey('jwk',pair.publicKey); return {token:header+'.'+payload+'.'+signature,jwk:{...jwk,kid:'test-key',alg:'RS256'}};
+}
+
+test('Google se verifica por firma local, issuer, audiencia y sub sin poner el token en una URL',async()=>{
+  const signed=await googleToken(); let seen;
+  const identity=await verificarGoogle(signed.token,async(url,options)=>{seen={url,options};return Response.json({keys:[signed.jwk]})});
+  assert.deepEqual(identity,{email:'csilva@admira.com',sub:'google-subject-1'});
+  assert.equal(seen.url,'https://www.googleapis.com/oauth2/v3/certs');
+  assert.equal(seen.url.includes(signed.token),false);
+  const wrong=await googleToken({aud:'otro-cliente'});
+  assert.equal(await verificarGoogle(wrong.token,async()=>Response.json({keys:[wrong.jwk]})),null);
 });
 
 test('admin crea usuario, cambia rol y revoca inmediatamente la cookie anterior',async()=>{
