@@ -405,14 +405,14 @@ test("Webmaster publica un retorno ejecutable para pixer-eleven", () => {
   assert.match(webmasterSource, /<dt>Volver atrás<\/dt><dd>' \+ esc\(p\.volver\)/);
 });
 
-test("Webmaster conserva el retorno exacto anterior al canal responsive", () => {
+test("Webmaster publica el retorno exacto anterior a /users", () => {
   const admiraTv = PROYECTOS.find((p) => p.clave === "admira-tv");
   assert.ok(admiraTv);
   assert.equal(
     admiraTv.volver,
-    "git checkout admiratv-rollback-pre-canal-responsive-20260811-2103 && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh cf",
+    "cd /tmp && git clone https://github.com/csilvasantin/admira-tv.git admira-tv-return && cd admira-tv-return && git checkout cd80f4a05702bfc1f6911b97eedad3aeeb8e12d4 && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh cf",
   );
-  assert.match(admiraTv.nota, /8da257a6-0ea2-4018-8aaf-d2d75f68a435/);
+  assert.match(admiraTv.nota, /cd80f4a05702bfc1f6911b97eedad3aeeb8e12d4/);
 });
 
 test("Webmaster publica los retornos anteriores a la autoría principal de Yokup", () => {
