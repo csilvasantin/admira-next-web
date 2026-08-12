@@ -66,7 +66,9 @@ export const PROYECTOS = [
     clave: 'yokup', nombre: 'yokup.com', url: 'https://yokup.com',
     repo: 'csilvasantin/tool', repoTxt: 'tool · yokup-site/',
     pages: 'yokup', publica: 'cd yokup-site && wrangler pages deploy .',
+    volver: 'git worktree add /tmp/yokup-pages-return dd8139e && npx wrangler pages deploy /tmp/yokup-pages-return/yokup-site --project-name yokup --branch main',
     tipo: 'sitio', shot: '/webmaster-shots/yokup.jpg',
+    nota: 'Retorno anterior a la autoría principal: deployment 498ee810-cb20-4cb8-85c7-bb6b623fe51e · commit dd8139e. El comando crea un worktree inmutable y lo vuelve a publicar.',
   },
   {
     clave: 'pixeria', nombre: 'pixeria.com', url: 'https://www.pixeria.com',
@@ -226,9 +228,9 @@ export const PROYECTOS = [
     parentKey: 'yokup',
     repo: 'csilvasantin/tool', repoTxt: 'tool · yokup-rtc/',
     pages: null, publica: 'cd yokup-rtc && wrangler deploy',
-    volver: 'npx wrangler rollback 147ead69-da99-417d-beca-9cbdb25dec5f --name yokup-rtc --yes',
+    volver: 'npx wrangler rollback e941bb22-c71c-4e1c-a336-0c278a47d4a4 --name yokup-rtc --yes',
     tipo: 'worker', shot: null,
-    nota: 'Retorno previo al rescate del login: Worker 147ead69-da99-417d-beca-9cbdb25dec5f y tag YokupRTC-rollback-pre-login-handoff-20260811-2142. Commit ANTES de desplegar: se ha desplegado más de una vez con código que no estaba en el repositorio, y el siguiente despliegue borra esas rutas sin enterarse.',
+    nota: 'Retorno anterior a la autoría principal y al alta de OpenCode/Nemotron: Worker e941bb22-c71c-4e1c-a336-0c278a47d4a4. Versión viva: v.12.08.2026.r3.10:02, firmada por TrinityMBP14 en MacBookProNegro14.',
   },
   {
     clave: 'admira-telegram', nombre: 'admira-telegram (worker)', url: null,

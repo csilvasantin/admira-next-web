@@ -392,14 +392,19 @@ test("Webmaster conserva el retorno exacto anterior al canal responsive", () => 
   assert.match(admiraTv.nota, /8da257a6-0ea2-4018-8aaf-d2d75f68a435/);
 });
 
-test("Webmaster publica el retorno anterior al rescate del login de Yokup", () => {
+test("Webmaster publica los retornos anteriores a la autoría principal de Yokup", () => {
+  const site = PROYECTOS.find((p) => p.clave === "yokup");
   const rtc = PROYECTOS.find((p) => p.clave === "yokup-rtc");
+  assert.ok(site);
   assert.ok(rtc);
+  assert.match(site.volver, /git worktree add \/tmp\/yokup-pages-return dd8139e/);
+  assert.match(site.volver, /wrangler pages deploy .*yokup-site --project-name yokup --branch main/);
+  assert.match(site.nota, /498ee810-cb20-4cb8-85c7-bb6b623fe51e/);
   assert.equal(
     rtc.volver,
-    "npx wrangler rollback 147ead69-da99-417d-beca-9cbdb25dec5f --name yokup-rtc --yes",
+    "npx wrangler rollback e941bb22-c71c-4e1c-a336-0c278a47d4a4 --name yokup-rtc --yes",
   );
-  assert.match(rtc.nota, /YokupRTC-rollback-pre-login-handoff-20260811-2142/);
+  assert.match(rtc.nota, /autoría principal y al alta de OpenCode\/Nemotron/);
 });
 
 test("la API autenticada entrega a la UI el retorno exacto de pixer-eleven", async () => {
