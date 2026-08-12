@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { cookieDeSesion, cookiesBorradas, sesionCompleta, csrfValido, asegurarDirectorio, buscarUsuarioIdentidad, respuestaLogin, respuestaContinuacion, loginCsrfValido, verificarGoogle } from '../functions/_webmaster-gate.js';
 import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
+import { onRequestGet as getProjects, onRequestPatch as patchProject } from '../functions/api/proyectos.js';
+import { onRequestGet as getHistory } from '../functions/api/historial.js';
+import { catalogoProyectos, proyectoPermitido } from '../functions/_project-access.js';
+import { PROYECTOS } from '../functions/_proyectos.js';
 import fs from 'node:fs';
 
 class Statement {
@@ -16,6 +20,7 @@ class D1 {
   constructor(){ this.db=new DatabaseSync(':memory:'); }
   exec(sql){ this.db.exec(sql); return {count:1}; }
   prepare(sql){ return new Statement(this.db.prepare(sql)); }
+  async batch(statements){ return Promise.all(statements.map((statement)=>statement.run())); }
 }
 const KEY='users-test-signing-key';
 
@@ -23,7 +28,7 @@ test('el binding AUTH_DB forma parte del despliegue canónico, incluido GitHub A
   const config=JSON.parse(fs.readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
   assert.deepEqual(config.d1_databases,[{binding:'AUTH_DB',database_name:'admiranext-auth',database_id:'1568f825-4dfb-40a9-ac40-c6776ee62b3e'}]);
 });
-async function setup(){ const env={AUTH_DB:new D1(),WEBMASTER_SIGNING_KEY:KEY}; await asegurarDirectorio(env); return env; }
+async function setup(){ const env={AUTH_DB:new D1(),WEBMASTER_SIGNING_KEY:KEY,YOKUP_FETCH:async()=>Response.json({ok:true,projects:[]})}; await asegurarDirectorio(env); return env; }
 async function auth(env,email='csilva@admira.com'){
   const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(email).first();
   const raw=await cookieDeSesion(env,user); return raw.split(';')[0];
@@ -37,6 +42,26 @@ test('bootstrap crea exactamente los dos administradores de recuperación',async
     {email:'csilva@admira.com',role:'admin',status:'active'},
     {email:'csilvasantin@gmail.com',role:'admin',status:'active'},
   ]);
+  const access=await env.AUTH_DB.prepare('SELECT user_email,project_key FROM admiranext_user_projects ORDER BY user_email').all();
+  assert.deepEqual(access.results.map((row)=>({...row})),[
+    {user_email:'csilva@admira.com',project_key:'*'},
+    {user_email:'csilvasantin@gmail.com',project_key:'*'},
+  ]);
+});
+
+test('el catálogo une todos los proyectos de Webmaster y Yokup sin duplicados',async()=>{
+  const catalog=await catalogoProyectos({YOKUP_FETCH:async()=>Response.json({ok:true,projects:[
+    {id:'admiranext',name:'AdmiraNeXT',web:'https://www.admiranext.com'},
+    {id:'nuevo-yokup',name:'Nuevo Yokup',web:'https://nuevo.example'},
+  ]})});
+  assert.equal(catalog.complete,true);
+  assert.equal(catalog.projects.length,PROYECTOS.length+1);
+  assert.equal(catalog.projects.filter((p)=>p.key==='admiranext').length,1);
+  assert.equal(catalog.projects.find((p)=>p.key==='admiranext-webmaster').depth,1);
+  assert.equal(catalog.projects.find((p)=>p.key==='nuevo-yokup').source,'yokup');
+  assert.equal(proyectoPermitido(['admiranext'],'admiranext-webmaster'),true);
+  assert.equal(proyectoPermitido(['admiranext'],'yokup'),false);
+  assert.equal(proyectoPermitido(['*'],'yokup'),true);
 });
 
 test('cookie tiene audiencia propia, SameSite Strict y CSRF ligado a sesión',async()=>{
@@ -107,10 +132,10 @@ test('tras el primer enlace Google reconoce el sub inmutable aunque cambie el co
 
 test('admin crea usuario, cambia rol y revoca inmediatamente la cookie anterior',async()=>{
   const env=await setup(),cookie=await auth(env),me=await current(env,cookie);
-  let response=await onRequestPost({request:request('POST',cookie,me.csrf,{email:'editor@example.com',display_name:'Editor',role:'editor'}),env});
+  let response=await onRequestPost({request:request('POST',cookie,me.csrf,{email:'editor@example.com',display_name:'Editor',role:'editor',project_keys:['admiranext']}),env});
   assert.equal(response.status,201);
-  const editorCookie=await auth(env,'editor@example.com'); assert.equal((await current(env,editorCookie)).role,'editor');
-  response=await onRequestPatch({request:request('PATCH',cookie,me.csrf,{email:'editor@example.com',role:'viewer'}),env});
+  const editorCookie=await auth(env,'editor@example.com'); const editor=await current(env,editorCookie);assert.equal(editor.role,'editor');assert.deepEqual(editor.project_keys,['admiranext']);
+  response=await onRequestPatch({request:request('PATCH',cookie,me.csrf,{email:'editor@example.com',role:'viewer',project_keys:['yokup']}),env});
   assert.equal(response.status,200); assert.equal(await current(env,editorCookie),null);
   const audit=await env.AUTH_DB.prepare("SELECT action FROM admiranext_user_audit WHERE target_email='editor@example.com'").all();
   assert.deepEqual(audit.results.map(x=>x.action).sort(),['user_created','user_updated']);
@@ -118,12 +143,41 @@ test('admin crea usuario, cambia rol y revoca inmediatamente la cookie anterior'
 
 test('lector no administra y una mutación sin Origin+CSRF exactos falla cerrada',async()=>{
   const env=await setup(),adminCookie=await auth(env),admin=await current(env,adminCookie);
-  await onRequestPost({request:request('POST',adminCookie,admin.csrf,{email:'reader@example.com',role:'viewer'}),env});
+  await onRequestPost({request:request('POST',adminCookie,admin.csrf,{email:'reader@example.com',role:'viewer',project_keys:['yokup']}),env});
   const viewerCookie=await auth(env,'reader@example.com');
   const denied=await onRequestGet({request:new Request('https://www.admiranext.com/api/usuarios',{headers:{cookie:viewerCookie}}),env});
   assert.equal(denied.status,403);
   const noCsrf=await onRequestPatch({request:request('PATCH',adminCookie,'wrong',{email:'reader@example.com',status:'suspended'}),env});
   assert.equal(noCsrf.status,403);
+});
+
+test('un alta exige proyectos censados y GET devuelve el censo y los permisos',async()=>{
+  const env=await setup(),cookie=await auth(env),me=await current(env,cookie);
+  let response=await onRequestPost({request:request('POST',cookie,me.csrf,{email:'none@example.com',role:'viewer',project_keys:[]}),env});
+  assert.equal(response.status,422);
+  response=await onRequestPost({request:request('POST',cookie,me.csrf,{email:'bad@example.com',role:'viewer',project_keys:['inventado']}),env});
+  assert.equal(response.status,422);
+  response=await onRequestGet({request:request('GET',cookie,me.csrf),env});
+  const body=await response.json();
+  assert.equal(body.ok,true);assert.ok(body.projects.length>=PROYECTOS.length);assert.equal(body.catalog_complete,true);
+  assert.deepEqual(body.users.find((user)=>user.email===me.email).project_keys,['*']);
+});
+
+test('Webmaster sólo entrega y permite modificar los proyectos autorizados',async()=>{
+  const env=await setup(),adminCookie=await auth(env),admin=await current(env,adminCookie);
+  await onRequestPost({request:request('POST',adminCookie,admin.csrf,{email:'scoped@example.com',role:'editor',project_keys:['admiranext']}),env});
+  const cookie=await auth(env,'scoped@example.com'),me=await current(env,cookie),original=globalThis.fetch;
+  globalThis.fetch=async()=>Response.json([]);
+  try{
+    const response=await getProjects({request:new Request('https://www.admiranext.com/api/proyectos?parte=retornos',{headers:{cookie}}),env});
+    const body=await response.json();
+    assert.equal(body.accessRestricted,undefined);
+    assert.deepEqual(body.proyectos.map((p)=>p.clave),['admiranext','admiranext-webmaster','generador-presupuestos']);
+    const denied=await patchProject({request:new Request('https://www.admiranext.com/api/proyectos',{method:'PATCH',headers:{cookie,origin:'https://www.admiranext.com','X-Admira-CSRF':me.csrf,'content-type':'application/json'},body:JSON.stringify({clave:'yokup',responsable:'NeoMacMini'})}),env:{...env,PRESENTATION_IDEAS:{put:async()=>{throw Error('no debe escribir')}}}});
+    assert.equal(denied.status,403);assert.equal((await denied.json()).error,'proyecto no autorizado');
+    const history=await getHistory({request:new Request('https://www.admiranext.com/api/historial?p=yokup',{headers:{cookie}}),env});
+    assert.equal(history.status,403);assert.equal((await history.json()).error,'proyecto no autorizado');
+  }finally{globalThis.fetch=original}
 });
 
 test('nadie puede retirar su propia administración ni dejar cero administradores',async()=>{

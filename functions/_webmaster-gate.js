@@ -39,6 +39,16 @@ const SCHEMA = [
   detail TEXT NOT NULL DEFAULT '',
   created_at INTEGER NOT NULL
 )`,
+`CREATE TABLE IF NOT EXISTS admiranext_user_projects (
+  user_email TEXT NOT NULL,
+  project_key TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  created_by TEXT NOT NULL,
+  PRIMARY KEY(user_email,project_key),
+  FOREIGN KEY(user_email) REFERENCES admiranext_users(email) ON DELETE CASCADE
+)`,
+`CREATE INDEX IF NOT EXISTS idx_admiranext_user_projects_email
+  ON admiranext_user_projects(user_email)`,
 `CREATE INDEX IF NOT EXISTS idx_admiranext_user_audit_created
   ON admiranext_user_audit(created_at DESC)`
 ];
@@ -99,6 +109,10 @@ export async function asegurarDirectorio(env) {
     `INSERT INTO admiranext_users(email,display_name,role,status,session_version,created_at,updated_at)
      VALUES(?,?,'admin','active',1,?,?) ON CONFLICT(email) DO NOTHING`
   ).bind(email, email.split('@')[0], now, now).run()));
+  await Promise.all(BOOTSTRAP.map((email) => env.AUTH_DB.prepare(
+    `INSERT INTO admiranext_user_projects(user_email,project_key,created_at,created_by)
+     VALUES(?,'*',?,'bootstrap') ON CONFLICT(user_email,project_key) DO NOTHING`
+  ).bind(email, now).run()));
   READY.add(env.AUTH_DB);
 }
 
@@ -169,7 +183,11 @@ async function leerToken(request, env) {
   if (legacy ? Number(user.session_version) !== 1 : Number(data.sv) !== Number(user.session_version)) return null;
   const csrf = legacy ? await hmac(clave, `csrf:${token}`) : String(data.csrf || '');
   if (!csrf) return null;
-  return { email, role:user.role, display_name:user.display_name || '', session_version:Number(user.session_version), csrf, sid:String(data.sid || ''), legacy:!!legacy };
+  const permissions = await env.AUTH_DB.prepare(
+    'SELECT project_key FROM admiranext_user_projects WHERE user_email=? ORDER BY project_key'
+  ).bind(email).all();
+  return { email, role:user.role, display_name:user.display_name || '', session_version:Number(user.session_version), csrf, sid:String(data.sid || ''), legacy:!!legacy,
+    project_keys:(permissions.results || []).map((row) => row.project_key) };
 }
 
 export async function sesionCompleta(request, env) {

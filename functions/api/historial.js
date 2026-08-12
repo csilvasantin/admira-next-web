@@ -24,8 +24,9 @@
  * edge y se cachea 5 min: /webmaster está tras el perímetro de seguridad y lo
  * miran dos personas, así que el límite de 60 peticiones/hora por IP sobra.
  */
-import { sesion } from '../_webmaster-gate.js';
+import { sesionCompleta } from '../_webmaster-gate.js';
 import { porClave } from '../_proyectos.js';
+import { proyectoPermitido } from '../_project-access.js';
 
 const GH = 'https://api.github.com';
 const UA = { 'User-Agent': 'admiranext-webmaster', Accept: 'application/vnd.github+json' };
@@ -64,9 +65,11 @@ export async function onRequestGet({ request, env }) {
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, max-age=300' },
   });
 
-  if (!(await sesion(request, env))) return json({ ok: false, error: 'acceso restringido' }, 401);
+  const current = await sesionCompleta(request, env);
+  if (!current) return json({ ok: false, error: 'acceso restringido' }, 401);
   const P = porClave(clave);
   if (!P) return json({ ok: false, error: 'proyecto no reconocido' }, 400);
+  if (!proyectoPermitido(current.project_keys, clave)) return json({ ok:false, error:'proyecto no autorizado' }, 403);
 
   // ── commits y etiquetas (siempre) ─────────────────────────────────────────
   const [commitsRaw, tagsRaw] = await Promise.all([

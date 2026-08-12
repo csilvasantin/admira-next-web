@@ -28,8 +28,9 @@
  *   /api/proyectos            censo + sello vivo + veredicto de la norma
  *   /api/proyectos?parte=retornos   censo + etiquetas reales de cada repositorio
  */
-import { sesion, exigirRol, csrfValido } from '../_webmaster-gate.js';
+import { sesionCompleta, exigirRol, csrfValido } from '../_webmaster-gate.js';
 import { PROYECTOS } from '../_proyectos.js';
+import { proyectoPermitido } from '../_project-access.js';
 
 const GH = 'https://api.github.com';
 // Cualquier sello con pinta de tal, sea del formato que sea: primero hay que
@@ -523,7 +524,9 @@ const base = (p, ordenAlta) => ({
 });
 
 export async function onRequestGet({ request, env }) {
-  if (!(await sesion(request, env))) return json({ ok: false, error: 'acceso restringido' }, 401);
+  const current = await sesionCompleta(request, env);
+  if (!current) return json({ ok: false, error: 'acceso restringido' }, 401);
+  const visibles = PROYECTOS.filter((project) => proyectoPermitido(current.project_keys, project.clave));
 
   const parte = new URL(request.url).searchParams.get('parte') || 'vivo';
 
@@ -532,7 +535,8 @@ export async function onRequestGet({ request, env }) {
   const cache = new Map();
 
   if (parte === 'retornos') {
-    const proyectos = await Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
+    const proyectos = await Promise.all(visibles.map(async (p) => {
+      const ordenAlta = PROYECTOS.indexOf(p);
       const r = await retornosVivos(p, env, cache);
       return { ...base(p, ordenAlta), tags: r.tags, tagsNota: r.nota || '', volver: p.volver || `git checkout <etiqueta> && ${p.publica}` };
     }));
@@ -540,7 +544,8 @@ export async function onRequestGet({ request, env }) {
   }
 
   const [proyectos, yokup, responsables] = await Promise.all([
-    Promise.all(PROYECTOS.map(async (p, ordenAlta) => {
+    Promise.all(visibles.map(async (p) => {
+      const ordenAlta = PROYECTOS.indexOf(p);
       const v = await selloVivo(p, cache);
       const c = await veredicto(p, v, env, cache);
       return {
@@ -564,7 +569,8 @@ export async function onRequestGet({ request, env }) {
   const totalSubproyectos = proyectos.filter((p) => p.parentKey && claves.has(p.parentKey)).length;
   const totalProyectos = proyectos.length - totalSubproyectos;
   return json({
-    ok: true, parte, generado: new Date().toISOString(), total: proyectos.length,
+    ok: true, parte, generado: new Date().toISOString(), total: proyectos.length, totalCatalogo:PROYECTOS.length,
+    accessRestricted:!current.project_keys.includes('*'),
     totalProyectos, totalSubproyectos, yokupTotal, censo,
     coincideYokup: yokupTotal == null ? null : totalProyectos === yokupTotal,
     resumen: {
@@ -592,6 +598,7 @@ export async function onRequestPatch({ request, env }) {
   const clave = String(body && body.clave || '').trim();
   const proyecto = PROYECTOS.find((p) => p.clave === clave);
   if (!proyecto) return json({ ok:false, error:'proyecto no encontrado' }, 404);
+  if (!proyectoPermitido(current.project_keys, clave)) return json({ ok:false, error:'proyecto no autorizado' }, 403);
   if (typeof body.responsable !== 'string') return json({ ok:false, error:'responsable no válido' }, 422);
 
   const responsable = normalizarResponsable(body && body.responsable);

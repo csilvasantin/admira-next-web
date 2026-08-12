@@ -12,7 +12,8 @@
  * Sin fecha devuelve HOY (Madrid). d=all devuelve los últimos 100 sin filtrar.
  */
 
-import { sesion } from '../_webmaster-gate.js';
+import { sesionCompleta } from '../_webmaster-gate.js';
+import { proyectoPermitido } from '../_project-access.js';
 
 // Lista blanca: solo proyectos del ecosistema. Un parámetro no puede pedir otra cosa.
 const PROYECTOS = new Set([
@@ -48,12 +49,16 @@ export async function onRequestGet({ request, env }) {
 
   // Mismo perímetro de seguridad que la página: de nada sirve proteger /webmaster si el historial
   // de despliegues se puede pedir por su cuenta.
-  if (!(await sesion(request, env))) {
+  const current = await sesionCompleta(request, env);
+  if (!current) {
     return json({ ok: false, error: 'acceso restringido' }, 401);
   }
 
   if (!PROYECTOS.has(proyecto)) {
     return json({ ok: false, error: 'proyecto no reconocido' }, 400);
+  }
+  if (!proyectoPermitido(current.project_keys, proyecto)) {
+    return json({ ok:false, error:'proyecto no autorizado' }, 403);
   }
   if (!env.CF_API_TOKEN || !env.CF_ACCOUNT_ID) {
     return json({ ok: false, error: 'sin credenciales en el edge' }, 503);

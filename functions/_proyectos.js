@@ -40,7 +40,7 @@ export const PROYECTOS = [
     clave: 'admiranext', nombre: 'admiranext.com', url: 'https://www.admiranext.com',
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
-    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout 4700513896e282aa05fcf2c87b00f1e11bec5eea && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout d25067db2524801b3313bd07df1d4fb49ba3b3df && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh',
     tipo: 'sitio', shot: '/webmaster-shots/admiranext.jpg',
   },
   {
@@ -50,7 +50,7 @@ export const PROYECTOS = [
     parentKey: 'admiranext',
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · webmaster',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
-    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-webmaster-return && cd admiranext-webmaster-return && git checkout 4700513896e282aa05fcf2c87b00f1e11bec5eea && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-webmaster-return && cd admiranext-webmaster-return && git checkout d25067db2524801b3313bd07df1d4fb49ba3b3df && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh',
     tipo: 'sitio', shot: null,
     nota: 'Subproyecto interno de AdmiraNeXT: inventario, releases, responsables y puntos de retorno. Requiere sesión Google autorizada.',
   },
