@@ -28,7 +28,7 @@
  *   /api/proyectos            censo + sello vivo + veredicto de la norma
  *   /api/proyectos?parte=retornos   censo + etiquetas reales de cada repositorio
  */
-import { sesion } from '../_webmaster-gate.js';
+import { sesion, exigirRol, csrfValido } from '../_webmaster-gate.js';
 import { PROYECTOS } from '../_proyectos.js';
 
 const GH = 'https://api.github.com';
@@ -581,12 +581,11 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPatch({ request, env }) {
-  const email = await sesion(request, env);
-  if (!email) return json({ ok:false, error:'acceso restringido' }, 401);
+  const current = await exigirRol(request, env, ['admin','editor']);
+  if (!current) return json({ ok:false, error:'rol editor requerido' }, 403);
+  if (!csrfValido(request, current)) return json({ ok:false, error:'CSRF inválido' }, 403);
+  const email = current.email;
   if (!env.PRESENTATION_IDEAS) return json({ ok:false, error:'almacenamiento no configurado' }, 503);
-
-  const origen = request.headers.get('Origin');
-  if (origen && origen !== new URL(request.url).origin) return json({ ok:false, error:'origen no permitido' }, 403);
 
   let body;
   try { body = await request.json(); } catch (_) { return json({ ok:false, error:'JSON no válido' }, 400); }

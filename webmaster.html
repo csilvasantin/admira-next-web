@@ -214,6 +214,7 @@
 </style>
 </head>
 <body>
+<a href="/usuarios" style="position:fixed;right:18px;top:18px;z-index:20;border:1px solid #33445d;border-radius:9px;padding:8px 11px;background:#0b1220;color:#bfeee8;text-decoration:none;font:700 12px ui-monospace,monospace">Usuarios</a>
 <canvas id="rain" aria-hidden="true"></canvas>
 <div class="glow a" aria-hidden="true"></div>
 <div class="glow b" aria-hidden="true"></div>
@@ -538,6 +539,8 @@
     }).join('');
   }
   var ordenActual = null;
+  var ADMIRA_CSRF = '';
+  fetch('/api/session',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){if(d&&d.ok)ADMIRA_CSRF=d.csrf||''});
   if (!tabla) return;
 
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){
@@ -696,7 +699,7 @@
     estado.className = 'responsable-state'; estado.textContent = 'guardando…';
     fetch('/api/proyectos', {
       method:'PATCH',
-      headers:{ 'content-type':'application/json' },
+      headers:{ 'content-type':'application/json', 'X-Admira-CSRF':ADMIRA_CSRF },
       body:JSON.stringify({ clave:p.clave, responsable:responsable })
     }).then(function(r){ return r.json().then(function(d){ if (!r.ok || !d.ok) throw new Error(d.error || 'no se pudo guardar'); return d; }); })
       .then(function(d){

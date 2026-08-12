@@ -1,12 +1,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 
 import { PROYECTOS } from "../functions/_proyectos.js";
 import { cantidadReleases, censoAgentes, equipoDelResponsable, normalizarResponsable, onRequestGet, onRequestPatch, resolverProyectoYokup, selloVivo, veredicto, RESPONSABLE_POR_DEFECTO } from "../functions/api/proyectos.js";
 
 const apiSource = fs.readFileSync(new URL("../functions/api/proyectos.js", import.meta.url), "utf8");
 const webmasterSource = fs.readFileSync(new URL("../webmaster.html", import.meta.url), "utf8");
+
+class AuthStatement {
+  constructor(statement) { this.statement = statement; this.values = []; }
+  bind(...values) { this.values = values; return this; }
+  first() { return this.statement.get(...this.values) || null; }
+  all() { return { results: this.statement.all(...this.values) }; }
+  run() { return { success:true, meta:this.statement.run(...this.values) }; }
+}
+class AuthD1 {
+  constructor() { this.db = new DatabaseSync(":memory:"); }
+  exec(sql) { this.db.exec(sql); return { count:1 }; }
+  prepare(sql) { return new AuthStatement(this.db.prepare(sql)); }
+}
+const authDb = () => new AuthD1();
 
 test("el censo publica una única fila operativa para el Generador de Presupuestos", () => {
   const matches = PROYECTOS.filter((project) => project.clave === "generador-presupuestos");
@@ -81,7 +96,8 @@ test("Webmaster es subproyecto y los responsables se editan con persistencia", (
   assert.match(apiSource, /export async function onRequestPatch/);
   assert.match(apiSource, /PRESENTATION_IDEAS\.put\(`\$\{RESPONSABLE_KEY\}\$\{clave\}`/);
   assert.match(apiSource, /proyecto no encontrado/);
-  assert.match(apiSource, /origen no permitido/);
+  assert.match(apiSource, /csrfValido/);
+  assert.match(apiSource, /CSRF inválido/);
   assert.match(webmasterSource, /class="responsable-input"/);
   assert.match(webmasterSource, /method:'PATCH'/);
   assert.match(webmasterSource, /guardarResponsable/);
@@ -99,6 +115,9 @@ test("PATCH guarda una asignación autenticada en KV", async () => {
   const signature = Buffer.from(await crypto.subtle.sign(
     "HMAC", cryptoKey, new TextEncoder().encode(`wm:${payload}`),
   )).toString("base64url");
+  const csrf = Buffer.from(await crypto.subtle.sign(
+    "HMAC", cryptoKey, new TextEncoder().encode(`csrf:${payload}.${signature}`),
+  )).toString("base64url");
   let stored = null;
   let storedKey = null;
   let yokupWrite = null;
@@ -111,6 +130,7 @@ test("PATCH guarda una asignación autenticada en KV", async () => {
     headers: {
       cookie: `wm_session=${payload}.${signature}`,
       origin: "https://www.admiranext.com",
+      "X-Admira-CSRF": csrf,
       "content-type": "application/json",
     },
     body: JSON.stringify({ clave: "admiranext-webmaster", responsable: "InfraNeoMini" }),
@@ -119,6 +139,7 @@ test("PATCH guarda una asignación autenticada en KV", async () => {
     request,
     env: {
       WEBMASTER_SIGNING_KEY: key,
+      AUTH_DB: authDb(),
       PRESENTATION_IDEAS: kv,
       YOKUP_FETCH: async (url, options = {}) => {
         assert.equal(url, "https://api.yokup.com/projects");
@@ -170,14 +191,16 @@ test("PATCH no finge guardado local cuando no existe ficha canónica en Yokup", 
   const payload = Buffer.from(JSON.stringify({ email:"csilvasantin@gmail.com", exp:Math.floor(Date.now()/1000)+3600 })).toString("base64url");
   const cryptoKey = await crypto.subtle.importKey("raw",new TextEncoder().encode(key),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
   const signature = Buffer.from(await crypto.subtle.sign("HMAC",cryptoKey,new TextEncoder().encode(`wm:${payload}`))).toString("base64url");
+  const csrf = Buffer.from(await crypto.subtle.sign("HMAC",cryptoKey,new TextEncoder().encode(`csrf:${payload}.${signature}`))).toString("base64url");
   let writes = 0;
   const response = await onRequestPatch({
     request:new Request("https://www.admiranext.com/api/proyectos",{
-      method:"PATCH",headers:{cookie:`wm_session=${payload}.${signature}`,origin:"https://www.admiranext.com","content-type":"application/json"},
+      method:"PATCH",headers:{cookie:`wm_session=${payload}.${signature}`,origin:"https://www.admiranext.com","X-Admira-CSRF":csrf,"content-type":"application/json"},
       body:JSON.stringify({clave:"yokup",responsable:"OraculoMacMini"}),
     }),
     env:{
       WEBMASTER_SIGNING_KEY:key,
+      AUTH_DB:authDb(),
       PRESENTATION_IDEAS:{async put(){writes+=1;}},
       YOKUP_FETCH:async()=>new Response(JSON.stringify({ok:true,projects:[]}),{status:200,headers:{"content-type":"application/json"}}),
     },
@@ -429,7 +452,7 @@ test("la API autenticada entrega a la UI el retorno exacto de pixer-eleven", asy
       request: new Request("https://www.admiranext.com/api/proyectos?parte=retornos", {
         headers: { cookie: `wm_session=${payload}.${signature}` },
       }),
-      env: { WEBMASTER_SIGNING_KEY: key },
+      env: { WEBMASTER_SIGNING_KEY: key, AUTH_DB:authDb() },
     });
     assert.equal(response.status, 200);
     const body = await response.json();
