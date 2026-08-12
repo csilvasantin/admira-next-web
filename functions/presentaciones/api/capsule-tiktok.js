@@ -14,6 +14,12 @@
  * GET /presentaciones/api/grok-video?id=…, igual que hace el estudio.
  */
 import { briefDesdeCapsula } from './_capsule-brief.mjs';
+// Se INVOCA el motor, no se le llama por red. Una Function haciendo fetch a su
+// propio host es un antipatrón en Cloudflare: el borde devuelve 502 y desde el
+// otro lado parece que el generador está caído. Aquí viven los dos en el mismo
+// bundle, así que se llama a la función y punto — menos latencia y una pieza
+// menos que puede fallar.
+import { onRequest as motorGrokVideo } from './grok-video.js';
 
 const MAX_BODY_BYTES = 8 * 1024;
 const RESOLUCION = '720p';   // suficiente para MUPI vertical y mucho más rápido que 1080p
@@ -58,18 +64,19 @@ export async function onRequest(context) {
     return json({ ok: true, generado: false, motivo: 'La cápsula no tiene texto suficiente para 15 segundos.' });
   }
 
-  const motor = new URL('/presentaciones/api/grok-video', request.url);
+  const cuerpo = JSON.stringify({
+    prompt: brief.prompt,
+    resolution: RESOLUCION,
+    clientRequestId: crypto.randomUUID()
+  });
+  const peticionMotor = new Request(new URL('/presentaciones/api/grok-video', request.url), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json', 'content-length': String(cuerpo.length) },
+    body: cuerpo
+  });
   let respuesta, datos = {};
   try {
-    respuesta = await fetch(motor.toString(), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', accept: 'application/json' },
-      body: JSON.stringify({
-        prompt: brief.prompt,
-        resolution: RESOLUCION,
-        clientRequestId: crypto.randomUUID()
-      })
-    });
+    respuesta = await motorGrokVideo({ ...context, request: peticionMotor });
     datos = await respuesta.json().catch(() => ({}));
   } catch (error) {
     console.error('capsule-tiktok:motor', JSON.stringify({ message: String(error?.message || error).slice(0, 300) }));

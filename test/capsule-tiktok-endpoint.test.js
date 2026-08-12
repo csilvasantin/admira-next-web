@@ -31,10 +31,13 @@ function peticion(cuerpo, {secreto = SECRETO, metodo = 'POST'} = {}) {
   });
 }
 
+// El motor se invoca EN PROCESO (una Function no puede hacer fetch a su propio
+// host: el borde devuelve 502). El doble se pone sobre fetch igualmente porque
+// grok-video sí sale a la red de xAI; lo que se comprueba aquí es el contrato.
 function conMotor(respuesta) {
   const llamadas = [];
   globalThis.fetch = async (url, init) => {
-    llamadas.push({url: String(url), body: JSON.parse(init.body)});
+    llamadas.push({url: String(url), body: init && init.body ? JSON.parse(init.body) : null});
     return new Response(JSON.stringify(respuesta.cuerpo), {status: respuesta.status || 200,
       headers: {'content-type': 'application/json'}});
   };
