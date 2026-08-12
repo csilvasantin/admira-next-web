@@ -81,7 +81,7 @@ export function loginCsrfValido(request, value) {
   const origin = request.headers.get('Origin');
   // GIS vuelve por form_post desde accounts.google.com. La defensa canónica es
   // el double-submit cookie/campo; el allowlist de Origin evita otros POST.
-  if (origin !== new URL(request.url).origin && origin !== 'https://accounts.google.com') return false;
+  if (origin && origin !== new URL(request.url).origin && origin !== 'https://accounts.google.com') return false;
   const cookie = cookies(request).g_csrf_token || '';
   return cookie.length >= 32 && iguales(cookie, String(value || ''));
 }
