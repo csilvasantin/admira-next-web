@@ -116,12 +116,13 @@ export async function buscarUsuarioIdentidad(env, identity) {
   const subject = String(identity && identity.sub || '');
   const email = emailValido(identity && identity.email);
   if (!subject || !email) return null;
+  const linked = await env.AUTH_DB.prepare(
+    'SELECT * FROM admiranext_users WHERE google_sub=? LIMIT 1'
+  ).bind(subject).first();
+  if (linked) return linked;
   return env.AUTH_DB.prepare(
-    `SELECT * FROM admiranext_users
-     WHERE google_sub=? OR (google_sub IS NULL AND email=?)
-     ORDER BY CASE WHEN google_sub=? THEN 0 ELSE 1 END
-     LIMIT 1`
-  ).bind(subject, email, subject).first();
+    'SELECT * FROM admiranext_users WHERE email=? AND google_sub IS NULL LIMIT 1'
+  ).bind(email).first();
 }
 
 export async function auditar(env, actor, target, action, detail = '') {
