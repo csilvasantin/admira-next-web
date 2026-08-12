@@ -17,8 +17,8 @@ const BOOTSTRAP = ['csilva@admira.com', 'csilvasantin@gmail.com'];
 const READY = new WeakSet();
 const enc = new TextEncoder();
 
-const SCHEMA = `
-CREATE TABLE IF NOT EXISTS admiranext_users (
+const SCHEMA = [
+`CREATE TABLE IF NOT EXISTS admiranext_users (
   email TEXT PRIMARY KEY,
   google_sub TEXT UNIQUE,
   display_name TEXT NOT NULL DEFAULT '',
@@ -30,17 +30,18 @@ CREATE TABLE IF NOT EXISTS admiranext_users (
   last_login_at INTEGER,
   last_login_ip TEXT,
   last_login_ua TEXT
-);
-CREATE TABLE IF NOT EXISTS admiranext_user_audit (
+)`,
+`CREATE TABLE IF NOT EXISTS admiranext_user_audit (
   id TEXT PRIMARY KEY,
   actor_email TEXT NOT NULL,
   target_email TEXT NOT NULL,
   action TEXT NOT NULL,
   detail TEXT NOT NULL DEFAULT '',
   created_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_admiranext_user_audit_created
-  ON admiranext_user_audit(created_at DESC);`;
+)`,
+`CREATE INDEX IF NOT EXISTS idx_admiranext_user_audit_created
+  ON admiranext_user_audit(created_at DESC)`
+];
 
 function b64url(buf) {
   return btoa(String.fromCharCode(...new Uint8Array(buf)))
@@ -92,7 +93,7 @@ export function loginCsrfValido(request, value, nonce = '') {
 export async function asegurarDirectorio(env) {
   if (!env.AUTH_DB) throw new Error('AUTH_DB no configurado');
   if (READY.has(env.AUTH_DB)) return;
-  await env.AUTH_DB.exec(SCHEMA);
+  for (const statement of SCHEMA) await env.AUTH_DB.prepare(statement).run();
   const now = Date.now();
   await Promise.all(BOOTSTRAP.map((email) => env.AUTH_DB.prepare(
     `INSERT INTO admiranext_users(email,display_name,role,status,session_version,created_at,updated_at)
