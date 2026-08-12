@@ -169,6 +169,7 @@ export async function onRequest(context){
   const isGeneratorPage = first === 'generador' && parts.length === 1;
   const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library','grok-video','ad-idea','video-reference','video-package'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
+  const isCapsuleApi = first === 'api' && second === 'capsule-tiktok';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
   const isRemoteApi = !isGallery && second === 'api' && third === 'remote';
@@ -177,6 +178,11 @@ export async function onRequest(context){
   // El productor local se autentica con un Bearer token propio. No debe atravesar
   // el formulario/cookie de las áreas humanas antes de llegar a su endpoint.
   if (isProductionApi) return next();
+  // Igual la puerta de cápsulas: la llama el worker del Stock cuando se publica
+  // una cápsula, no un navegador, y verifica el secreto de ingesta ella misma. Sin
+  // esto recibía la página de login en vez de la petición — y en silencio, porque
+  // un 200 con HTML no parece un error desde el otro lado.
+  if (isCapsuleApi) return next();
   // La creación de sesión atraviesa la puerta humana normal. El emparejamiento
   // y el polling posterior usan secretos efímeros verificados por sus endpoints.
   if (isRemoteApi && parts.length > 4) return next();
