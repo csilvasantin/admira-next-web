@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.12.08.2026.r22.16:48">
+<meta name="admiranext-version" content="v.01.09.2026.r23.14:56">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -599,6 +599,24 @@
           </tbody>
         </table>
       </div>
+      <p><b>La máquina puede reasignar ese nombre.</b> Desde el 01-09-2026 (mandamiento 12) la
+        tabla de arriba es el <b>valor por defecto</b>, no la última palabra: un equipo concreto
+        puede tener asignado su propio principal para un runtime y una cuenta, y esa asignación
+        manda. Vive en <code>ai-workspace/configs/agent-identities.json</code>, bloque
+        <code>assignments</code>, y la aplica <code>resolve-persona.py</code>. Sin asignación
+        propia, la máquina usa el valor por defecto.</p>
+      <div class="tbl">
+        <table aria-label="Asignaciones de agente principal por equipo">
+          <thead><tr><th>Equipo</th><th>Runtime</th><th>Cuenta</th><th>Principal</th><th>Antes</th></tr></thead>
+          <tbody>
+            <tr><td>Mac Mini</td><td>Claude</td><td>csilva@admira.com</td><td><b>LinkMacMini</b></td><td>NeoMacMini</td></tr>
+            <tr><td>Mac Mini</td><td>Codex</td><td>csilvasantin@gmail.com</td><td><b>NiobeMacMini</b></td><td>OraculoMacMini</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Los nombres de la columna «Antes» <b>se siguen leyendo</b> en misiones, informes y
+        registros anteriores —no se reescribe el pasado (<a href="#n03">norma 03</a>)—, pero no se
+        propagan: el trabajo y la puntuación nuevos van al nombre vigente.</p>
       <p><b>El mismo equipo aloja a varias personas a la vez</b>: en MacBookAirPlata conviven
         NeoMBAPlata (Claude) y OraculoMBAPlata (Codex). Compartir apellido no os hace el mismo
         agente.</p>
