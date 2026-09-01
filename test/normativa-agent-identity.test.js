@@ -8,12 +8,14 @@ test("la normativa exige cada día el apellido físico completo del agente", asy
 
   assert.ok(identityRule, "la normativa pública debe conservar la regla de identidad n01");
   assert.match(identityRule, /La identidad se resuelve de nuevo cada día/);
-  assert.match(identityRule, /se usa\s+completa en toda salida y superficie visible durante esa jornada/);
+  assert.match(identityRule, /se usa\s+igual en toda salida y superficie visible durante esa jornada/);
+  // El ejemplo canónico del canon nuevo: nombre y equipo separados por un punto medio,
+  // no pegados. Si alguien vuelve a concatenarlos en la norma, esto salta.
   assert.match(
     identityRule,
-    /la identidad es <b>OraculoMacMini<\/b>, nunca\s+<b[^>]*>OraculoMini<\/b>/,
+    /Se escribe <b>Morfeo · Mac Mini<\/b>, no <b class="bad">MorfeoMacMini<\/b>/,
   );
-  assert.match(identityRule, /Oraculo \+ Mac Mini = OraculoMacMini/);
+  assert.match(identityRule, /El equipo físico no forma parte del nombre/);
 });
 
 // La regla 11 se reescribió («Máxima velocidad por defecto» → «Modo rápido siempre
