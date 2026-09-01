@@ -281,6 +281,60 @@ test("una portada compartida por varias filas se lee una sola vez por petición"
   }
 });
 
+test("un sitio tras verja se verifica por su version.json, no por una portada que no puede leer", async () => {
+  // pixeria.com cerró su verja el 1-sep-2026 y desde entonces contesta 401 con el
+  // login a cualquiera sin sesión. El panel se salía en ese 401 y daba «el sitio no
+  // respondió» sobre un release perfectamente firmado (FLT-1484). /version.json es
+  // público justamente para esto.
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const limpia = String(url).replace(/[?&]wm=\d+/, "");
+    if (limpia.endsWith("/version.json")) {
+      return new Response(JSON.stringify({
+        version: "v.01.09.2026.r1.06:39",
+        deployer: "MorfeoMacMini",
+        machine: "MacMini",
+        signature: "MorfeoMacMini · MacMini",
+        gitShort: "4664b14",
+        deployedAt: "2026-09-01T04:43:51Z",
+        dirty: false,
+      }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    // La portada, tras la verja: login con 401 y sin rastro del sello.
+    return new Response("<h1>Acceso con Google</h1>", {
+      status: 401,
+      headers: { "content-type": "text/html" },
+    });
+  };
+  try {
+    const v = await selloVivo({ url: "https://www.pixeria.com" }, new Map());
+    assert.equal(v.sello, "v.01.09.2026.r1.06:39");
+    assert.equal(v.fuente, "version.json");
+    assert.equal(v.quien, "MorfeoMacMini · MacMini");
+    assert.equal(v.valida, true);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("si tras la verja tampoco hay version.json, el veredicto lo dice sin culpar a la portada", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response("<h1>Acceso con Google</h1>", {
+    status: 401,
+    headers: { "content-type": "text/html" },
+  });
+  try {
+    const v = await selloVivo({ url: "https://www.pixeria.com" }, new Map());
+    assert.equal(v.sello, null);
+    assert.equal(v.fuente, "con-verja");
+    const control = await veredicto({ url: "https://www.pixeria.com" }, v, {}, new Map());
+    assert.equal(control.estado, "sin-sello");
+    assert.match(control.texto, /verja/i);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("Webmaster da de alta los cambios posteriores a la hora exacta del despliegue", async () => {
   const original = globalThis.fetch;
   let since = "";

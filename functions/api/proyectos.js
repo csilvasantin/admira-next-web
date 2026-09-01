@@ -288,11 +288,17 @@ export async function selloVivo(p, cache) {
 
 async function leerSello(estadoUrl) {
   const r = await traer(fresco(estadoUrl), { headers: { 'User-Agent': 'Mozilla/5.0 (admiranext-webmaster)' } });
-  if (!r) return { sello: null, fuente: 'error' };
 
-  const html = (await r.text()).slice(0, 400000);
+  // Un sitio detrás de verja (pixeria.com, /xpacios, /backoffice) contesta al
+  // panel con el login: 401 o una redirección, nunca su portada. Hasta el
+  // 1-sep-2026 se salía aquí y el veredicto era «el sitio no respondió» sobre
+  // despliegues perfectamente firmados —el fallo salió al cerrar la verja de
+  // pixeria, que hasta entonces se saltaba con un fetch sin Accept (FLT-1484)—.
+  // No hay portada que leer, pero /version.json sigue siendo público y es la
+  // firma obligatoria (Norma 08): es exactamente para esto para lo que existe.
+  const html = r ? (await r.text()).slice(0, 400000) : '';
 
-  let sello = null, fuente = 'sin-sello';
+  let sello = null, fuente = r ? 'sin-sello' : 'con-verja';
   const meta = html.match(/<meta[^>]+name=["']admiranext-version["'][^>]*>/i);
   if (meta) {
     const contenido = (meta[0].match(/content=["']([^"']*)["']/i) || [])[1] || '';
@@ -352,7 +358,7 @@ async function leerSello(estadoUrl) {
     return { sello: mejor, fuente: 'html', ...firma };
   }
 
-  return { sello: null, fuente: 'sin-sello' };
+  return { sello: null, fuente };
 }
 
 /**
@@ -378,7 +384,9 @@ export async function veredicto(p, v, env, cache) {
       estado: 'sin-sello',
       texto: v.fuente === 'error'
         ? 'El sitio no respondió: no se puede saber qué versión está publicada.'
-        : 'La portada no declara versión. Norma 07: el sello va en el pie y en <meta name="admiranext-version">.',
+        : v.fuente === 'con-verja'
+          ? 'Tras la verja no hay portada que leer, y /version.json no contesta o no declara versión. Norma 08: un sitio privado se verifica por su firma.'
+          : 'La portada no declara versión. Norma 07: el sello va en el pie y en <meta name="admiranext-version">.',
     };
   }
 
