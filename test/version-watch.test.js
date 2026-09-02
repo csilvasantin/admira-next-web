@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile, readdir} from 'node:fs/promises';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const source = await readFile(new URL('../assets/admira-version-watch.js', import.meta.url), 'utf8');
-const root = new URL('../', import.meta.url);
+const root = fileURLToPath(new URL('../', import.meta.url));
 
 class Element {
   constructor(tag) {
@@ -124,7 +125,7 @@ test('todas las páginas que cargan el verificador fijan la huella de su conteni
       else if (entry.name.endsWith('.html')) files.push(full);
     }
   }
-  await walk(root.pathname);
+  await walk(root);
   const references = [];
   for (const file of files) {
     const html = await readFile(file, 'utf8');

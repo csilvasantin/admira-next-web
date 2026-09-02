@@ -13,7 +13,9 @@
   toolbar.innerHTML='<button type="button" class="save primary">Guardar y traducir</button><button type="button" class="undo" aria-label="Deshacer" title="Deshacer (Ctrl/⌘+Z)">↶ Deshacer</button><button type="button" class="redo" aria-label="Rehacer" title="Rehacer (Ctrl+Y / ⌘+Mayús+Z)">↷ Rehacer</button><button type="button" class="cancel">Cancelar</button><span class="state" aria-live="polite">Editando el idioma visible</span>';
   document.body.appendChild(toolbar);
   const save=toolbar.querySelector('.save'),undo=toolbar.querySelector('.undo'),redo=toolbar.querySelector('.redo'),cancel=toolbar.querySelector('.cancel'),status=toolbar.querySelector('.state');
-  const nav=document.querySelector('.nav');if(nav&&!nav.textContent.includes('Ctrl+E'))nav.append(document.createTextNode(' · Ctrl+E editar textos'));
+  const nav=document.querySelector('.nav'),editHints={es:' · Ctrl+E editar textos',ca:' · Ctrl+E editar textos',en:' · Ctrl+E edit text'};
+  const localizeEditorHint=language=>{if(!nav)return;nav.dataset.editorHint=editHints[language]||editHints.es;if(typeof window.__ADMIRA_SYNC_NAV__==='function')window.__ADMIRA_SYNC_NAV__()};
+  localizeEditorHint(state.language);document.addEventListener('admira:language',event=>localizeEditorHint(event.detail?.language));
   const setStatus=(value,error=false)=>{status.textContent=value;status.classList.toggle('error',error)};
   const changed=()=>editable.filter(node=>originals.has(node)&&node.textContent.trim()!==originals.get(node));
   const snapshot=()=>editable.map(node=>node.textContent);

@@ -20,11 +20,13 @@ test('generated presentations load the intelligent presenter mode without exposi
     next(){throw new Error('unexpected next')}
   });
   const html=await response.text();
-  assert.match(html,/presentation-presenter-mode\.css\?v=20260902-1/);
+  assert.match(html,/presentation-presenter-mode\.css\?v=20260902-2/);
   assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
   assert.match(html,/presentation-share-guardian\.js\?v=20260723-1/);
   assert.match(html,/presentation-production-backchannel\.js\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260902-1/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260902-2/);
+  assert.match(html,/presentation-ui-i18n\.js\?v=20260902-3/);
+  assert.match(html,/presentation-floating-labels\.js\?v=20260902-1/);
   assert.ok(html.indexOf('presentation-share-guardian.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.ok(html.indexOf('presentation-production-backchannel.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);

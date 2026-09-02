@@ -39,6 +39,29 @@ test('el botón del cliente entra a pantalla completa y se sale con ESC', async 
   assert.doesNotMatch(portal, /href="presentacion" target/, 'ningún botón del cliente se queda sin pedirlo');
   assert.match(deck, /get\('fullscreen'\)!=='1'\)return/, 'y la presentación tiene que atenderlo');
   assert.match(deck, /once:true/, 'una sola vez: tras salir con ESC no puede volver a entrar sola');
+  assert.match(deck, /data-client-fullscreen/, 'el logo del cliente también debe ser el control de pantalla completa');
+  assert.match(deck, /querySelector\('\[data-client-fullscreen\]'\).*addEventListener\('click',enterFullscreen\)/,
+    'pulsar el logo debe entrar en pantalla completa mediante un gesto real');
+  assert.match(deck, /fullscreenActive:'Full screen active · Esc to exit'/,
+    'en inglés el propio control debe explicar que ESC sale de pantalla completa');
+});
+
+test('las etiquetas flotantes se pueden mover y cerrar sin contaminar el idioma', async () => {
+  const [deck, floating, floatingCss, ui] = await Promise.all([
+    lee('functions/presentaciones/[client]/presentacion.js'),
+    lee('assets/presentation-floating-labels.js'),
+    lee('assets/presentation-floating-labels.css'),
+    lee('assets/presentation-ui-i18n.js')
+  ]);
+  assert.match(deck, /presentation-floating-labels\.js\?v=20260902-1/);
+  assert.match(floating, /\.languages,\.section-nav,\.nav,\.quality-levels,\.presenter-launch/);
+  assert.match(floating, /addEventListener\('pointerdown'/, 'cada etiqueta tiene tirador para moverla');
+  assert.match(floating, /shell\.hidden=true/, 'cada etiqueta tiene un cierre independiente');
+  assert.match(floating, /en:\{move:'Move control',close:'Hide control'\}/, 'tirador y cierre respetan el inglés');
+  assert.match(floatingCss, /\.presentation-floating-close/);
+  assert.match(ui, /'Ensayar':'Rehearse'/);
+  assert.match(ui, /'Pantalla completa':'Full screen'/);
+  assert.match(ui, /'Guardar y traducir':'Save and translate'/);
 });
 
 test('el botón de ensayar no se monta sobre el conmutador de calidad', async () => {
