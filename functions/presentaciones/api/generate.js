@@ -2,6 +2,7 @@ import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration 
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
 import { createPresentationPassword, ensureHttpsUrl } from '../_defaults.js';
+import { normalizeEmbeds } from '../_embeds.js';
 import {captureVersion} from '../_versions.js';
 import {normalizeSequence} from '../_deck-library.js';
 import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
@@ -59,7 +60,7 @@ function buildIdeas(input, slug, languages){
   const problem=input.problem || `Convertir los espacios físicos de ${name} en una experiencia conectada, medible y capaz de mejorar en tiempo real.`;
   const audience=input.audience || 'Dirección de negocio, experiencia, operaciones, marketing e innovación';
   return {
-    schemaVersion:2, client:slug, displayName:name, languages, translations:{}, inspiration:input.inspiration||null, brand:input.brand||null,
+    schemaVersion:2, client:slug, displayName:name, languages, translations:{}, embeds:[], inspiration:input.inspiration||null, brand:input.brand||null,
     hero:{eyebrow:`Presentación privada · ${name}`,title:input.title || `${name}: cada espacio puede aprender.`,summary:input.summary || `Una propuesta para conectar contenido, operación, experiencia y medición alrededor de un problema concreto: ${problem}`},
     objective:input.objective || `Acordar un piloto concreto con ${name}, responsables, alcance y métricas de éxito.`,
     skeleton:[
@@ -183,6 +184,7 @@ export async function onRequestPut(context){
   if (!languages.length) return json({error:'Selecciona al menos un idioma.'},400);
   let terminology;try{terminology=normalizeTerminology(raw.terminology)}catch(error){return json({error:error.message},400)}
   let slideMedia;try{slideMedia=normalizeSlideMedia(raw.slideMedia,slug)}catch(error){return json({error:error.message},400)}
+  const embeds=normalizeEmbeds(raw.embeds);
   const supplied=text(raw.password,100);
   if (supplied && supplied.length<10) return json({error:'La contraseña debe tener al menos 10 caracteres.'},400);
   const password=supplied || (existing ? '' : createPresentationPassword());
@@ -209,6 +211,7 @@ export async function onRequestPut(context){
   // de `ideas`, que se persiste en KV y lo leen las rutas del portal del cliente.
   const narrativeResult=await generateNarrative(context.env,input);
   const ideas=mergeNarrative(buildIdeas(input,slug,languages),narrativeResult,input);
+  ideas.embeds=embeds;   // las webs que se enseñan vivas dentro del deck (ver _embeds.js)
   ideas.terminology=terminology;
   let sourceTraceability;
   try{

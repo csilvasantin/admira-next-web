@@ -1,6 +1,7 @@
 import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../../_generation.js';
 import { normalizeInspiration } from '../../_inspiration.js';
 import {captureVersion} from '../../_versions.js';
+import {normalizeEmbeds} from '../../_embeds.js';
 
 const BUILT_IN = new Set(['lacaixa', 'clearchannel', 'lenovo']);
 const MAX_BYTES = 64 * 1024;
@@ -99,6 +100,8 @@ function normalize(payload, client){
       title: cleanText(payload.closing?.title, 220),
       action: cleanText(payload.closing?.action, 700)
     },
+    // Las webs que se enseñan vivas dentro del deck. Ver _embeds.js.
+    embeds: normalizeEmbeds(payload.embeds),
     labels: {
       objective: cleanText(payload.labels?.objective, 80) || 'El objetivo',
       next: cleanText(payload.labels?.next, 80) || 'Siguiente paso'
