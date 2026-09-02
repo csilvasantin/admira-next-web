@@ -1978,15 +1978,8 @@
   });
 
   // ── Intranet & Launch commands ────────────────────────────────────────────
-  // /intranet abre el gate (mismo CRT). Al acertar 1234, persiste sesión y muestra
-  // el listado. Los launches (/admiraxp etc.) requieren intranet desbloqueada.
-  function isIntranetUnlocked() {
-    try { return sessionStorage.getItem('intranetUnlocked') === '1'; } catch(e) { return false; }
-  }
-  function setIntranetUnlocked(v) {
-    try { sessionStorage.setItem('intranetUnlocked', v ? '1' : '0'); } catch(e) {}
-  }
-
+  // El catálogo y sus accesos son públicos. Las herramientas administrativas
+  // conservan su autenticación propia en las rutas y middleware correspondientes.
   // Catálogo único de proyectos. Categorías ordenadas; cada item: {cmd,label,url,color}.
   const INTRANET_CATALOG = [
     { groupEs: '🤖  Robots & IoT', groupEn: '🤖  Robots & IoT', items: [
@@ -2064,29 +2057,7 @@
     return out;
   }
 
-  registerHidden('/intranet', function() {
-    if (isIntranetUnlocked()) {
-      return renderIntranetListing();
-    }
-    // Mostrar gate; al cerrar, si OK, imprimir listado vía executeCommand
-    if (typeof window.showIntranetGate === 'function') {
-      window.showIntranetGate(function(ok) {
-        if (ok) {
-          setIntranetUnlocked(true);
-          // Re-ejecuta /intranet para imprimir el listado
-          setTimeout(() => executeCommand('/intranet'), 50);
-        }
-      });
-    }
-    return [
-      {
-        text: window.currentLang === 'en'
-          ? '  🔒 Restricted access. Enter credentials in the CRT...'
-          : '  🔒 Acceso restringido. Introduce credenciales en el CRT...',
-        cls: 'accent'
-      },
-    ];
-  });
+  registerHidden('/intranet', renderIntranetListing);
   registerHidden('/plataforma', function() { return HIDDEN_COMMANDS['/intranet'](); });
   // Filosofía del equipo: /filosofia y /filosofía abren la página del manifiesto.
   registerHidden('/filosofia', cmdFilosofia);
@@ -2094,17 +2065,6 @@
 
   function launchEgg(label, url, color) {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
-    if (!isIntranetUnlocked()) {
-      return [
-        { text: `  🔒 ${label}`, cls: 'dim' },
-        {
-          text: window.currentLang === 'en'
-            ? '  Access required. Type /intranet first.'
-            : '  Acceso requerido. Escribe /intranet primero.',
-          cls: 'accent'
-        },
-      ];
-    }
     setTimeout(() => { try { window.open(url, '_blank', 'noopener,noreferrer'); } catch(e){} }, 700);
     return [
       { text: `  ▶ ${label}`, cls: color || 'accent' },
@@ -2411,8 +2371,6 @@
   const wallpaperVideo = document.getElementById('wallpaperVideo');
   function enterIdle() {
     if (document.body.classList.contains('idle')) return;
-    if (document.getElementById('password-screen') &&
-        document.getElementById('password-screen').style.display !== 'none') return;
     document.body.classList.add('idle');
     if (wallpaperVideo) {
       try { const p = wallpaperVideo.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
@@ -2432,10 +2390,6 @@
   });
   // Arranca el primer ciclo en cuanto cargue el documento
   document.addEventListener('DOMContentLoaded', resetVideoIdle);
-  // También cuando el usuario desbloquea el gate
-  if (window.__gateUnlocked && typeof window.__gateUnlocked.then === 'function') {
-    window.__gateUnlocked.then(resetVideoIdle);
-  }
 
   const idleHintKeys = ['idle.1', 'idle.2', 'idle.3', 'idle.4', 'idle.5', 'idle.6'];
 

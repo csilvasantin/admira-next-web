@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="theme-color" content="#0a0703" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNeXT v.02.09.2026.r23.13:54" />
+  <meta name="admiranext-version" content="AdmiraNeXT v.02.09.2026.r24.15:22" />
   <link rel="alternate" type="text/plain" href="/mcp/llms.txt" title="MCP · llms.txt" />
   <link rel="alternate" type="application/json" href="/mcp/manifest.json" title="MCP · manifest" />
   <link rel="manifest" href="site.webmanifest" />
@@ -245,10 +245,6 @@
           'help.tip':         'Tip: Use ↑↓ arrows for history, Tab to autocomplete',
           'help.suffix':      '  …and a few more, if you know where to look.',
           'prompt.placeholder': 'Type a command... try "/help"',
-          'gate.tag': '▶ RESTRICTED ACCESS',
-          'gate.prompt': '> password',
-          'gate.button': 'UNLOCK',
-          'gate.error': '▲ INCORRECT PASSWORD',
           'boot.l1': 'Booting portfolio system...',
           'boot.l2': 'Loading design tokens...',
           'boot.l3': 'Mounting component library... ',
@@ -446,10 +442,6 @@
           'help.tip':         'Consejo: Usa las flechas ↑↓ para el historial, Tab para autocompletar',
           'help.suffix':      '  …y algunos otros, si sabes dónde buscar.',
           'prompt.placeholder': 'Escribe un comando... prueba "/ayuda"',
-          'gate.tag': '▶ ACCESO RESTRINGIDO',
-          'gate.prompt': '> contraseña',
-          'gate.button': 'DESBLOQUEAR',
-          'gate.error': '▲ CONTRASEÑA INCORRECTA',
           'boot.l1': 'Iniciando sistema de portafolio...',
           'boot.l2': 'Cargando tokens de diseño...',
           'boot.l3': 'Montando biblioteca de componentes... ',
@@ -523,111 +515,9 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=26.07.23.1" defer></script>
+  <script src="assets/app.js?v=20260902-public-intranet" defer></script>
 </head>
 <body data-route="">
-<style id="crt-gate-style">
-  #password-screen{font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace}
-  #password-screen .crt{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;padding:34px 40px;background:#0a0703;border:1px solid #5a3a00;box-shadow:0 0 0 2px #1a0e00,0 0 60px rgba(255,176,0,.15) inset,0 0 80px rgba(255,176,0,.08);border-radius:8px;max-width:90vw;overflow:hidden}
-  #password-screen .crt::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0px,rgba(0,0,0,.18) 1px,transparent 1px,transparent 3px)}
-  #password-screen .crt::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
-  #password-screen pre.logo{margin:0;font-family:inherit;font-size:9px;line-height:1.05;letter-spacing:0;color:#ffb000;text-shadow:0 0 4px #ffb000,0 0 12px rgba(255,176,0,.55),0 0 30px rgba(255,176,0,.25);white-space:pre;font-weight:700}
-  #password-screen pre.logo b{display:block;color:#ffb000;animation:crt-flicker 6s infinite}
-  #password-screen .gate-tag{font-size:11px;letter-spacing:.4em;color:#ffb000;text-shadow:0 0 6px rgba(255,176,0,.6);margin:0;text-transform:uppercase}
-  #password-screen .gate-prompt{margin:0;color:#cc8a00;font-size:12px;letter-spacing:.05em}
-  #password-screen .gate-prompt .cursor{display:inline-block;background:#ffb000;width:.6em;height:.9em;vertical-align:-2px;animation:crt-blink 1s steps(2) infinite}
-  #password-screen input{padding:11px 14px;font-size:14px;font-family:inherit;border:1px solid #5a3a00;background:#1a0e00;color:#ffb000;text-align:center;outline:0;width:280px;letter-spacing:.3em;text-shadow:0 0 4px #ffb000;caret-color:#ffb000}
-  #password-screen input:focus{border-color:#ffb000;box-shadow:0 0 0 2px rgba(255,176,0,.25)}
-  #password-screen button{width:100%;padding:11px;background:#ffb000;color:#1a0e00;border:0;cursor:pointer;font-weight:700;font-family:inherit;letter-spacing:.3em;font-size:13px;box-shadow:0 0 12px rgba(255,176,0,.4)}
-  #password-screen button:hover{background:#ffd166}
-  #password-screen #password-error{color:#ff4f4f;margin:0;font-size:11px;letter-spacing:.15em;text-shadow:0 0 6px rgba(255,79,79,.7)}
-  @keyframes crt-flicker{0%,90%,92%,100%{opacity:1}91%{opacity:.85}}
-  @keyframes crt-blink{0%{opacity:1}50%{opacity:0}}
-  @media(max-width:680px){#password-screen pre.logo{font-size:7px}}
-  @media(max-width:480px){#password-screen pre.logo{font-size:5px}#password-screen .crt{padding:22px 18px}#password-screen input{width:88vw;max-width:280px}}
-</style>
-<div id="password-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999999;padding:24px">
-  <div class="crt">
-    <pre class="logo" aria-label="ADMIRA NEXT"><b> █████╗ ██████╗ ███╗   ███╗██╗██████╗  █████╗
-██╔══██╗██╔══██╗████╗ ████║██║██╔══██╗██╔══██╗
-███████║██║  ██║██╔████╔██║██║██████╔╝███████║
-██╔══██║██║  ██║██║╚██╔╝██║██║██╔══██╗██╔══██║
-██║  ██║██████╔╝██║ ╚═╝ ██║██║██║  ██║██║  ██║
-╚═╝  ╚═╝╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝</b><b>           ███╗   ██╗███████╗██╗  ██╗████████╗
-          ████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝
-          ██╔██╗ ██║█████╗   ╚███╔╝    ██║
-          ██║╚██╗██║██╔══╝   ██╔██╗    ██║
-          ██║ ╚████║███████╗██╔╝ ██╗   ██║
-          ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝   </b></pre>
-    <p class="gate-tag" data-i18n="gate.tag"></p>
-    <p class="gate-prompt"><span data-i18n="gate.prompt">&gt; password</span><span class="cursor"></span></p>
-    <input type="password" id="password-input" autocomplete="current-password" autofocus>
-    <button id="password-btn" data-i18n="gate.button"></button>
-    <p id="password-error" style="display:none" data-i18n="gate.error"></p>
-  </div>
-</div>
-<script>
-  // El gate ya NO es la pantalla de inicio: la web pública es libre. El gate
-  // sólo se invoca desde el comando /intranet para entrar en la zona privada.
-  // __gateUnlocked se resuelve ya, para que código antiguo que la espere no bloquee.
-  window.__gateUnlocked = Promise.resolve();
-  (function() {
-    const input = document.getElementById('password-input');
-    const btn = document.getElementById('password-btn');
-    const screen = document.getElementById('password-screen');
-    const error = document.getElementById('password-error');
-    let activeCallback = null;
-
-    function close() {
-      screen.style.display = 'none';
-      document.body.classList.remove('gate-open');
-      document.body.style.overflow = 'auto';
-      input.value = '';
-      error.style.display = 'none';
-      activeCallback = null;
-    }
-
-    function check() {
-      if (input.value === '1234') {
-        const cb = activeCallback;
-        close();
-        if (typeof cb === 'function') cb(true);
-      } else {
-        error.style.display = 'block';
-        input.value = '';
-        input.focus();
-      }
-    }
-
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); check(); }
-      if (e.key === 'Escape') {
-        const cb = activeCallback;
-        close();
-        if (typeof cb === 'function') cb(false);
-      }
-    }, true);
-    btn.addEventListener('click', check);
-
-    // Mientras el gate esté visible, devuelve foco al input si lo perdemos.
-    document.addEventListener('focusin', function(e) {
-      if (screen.style.display === 'none') return;
-      if (e.target !== input) input.focus();
-    });
-
-    // API pública: muestra el gate y llama onResult(true) si OK, false si cancelado.
-    window.showIntranetGate = function(onResult) {
-      activeCallback = (typeof onResult === 'function') ? onResult : null;
-      document.body.classList.add('gate-open');
-      screen.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      input.value = '';
-      error.style.display = 'none';
-      setTimeout(() => input.focus(), 0);
-    };
-    window.hideIntranetGate = close;
-  })();
-</script>
 <div class="wallpaper" id="wallpaper">
   <picture class="wallpaper-blur" id="wallpaper-picture">
     <img src="assets/robots.jpg" alt="" loading="eager" width="1920" height="1080" fetchpriority="high">
