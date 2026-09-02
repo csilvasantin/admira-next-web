@@ -79,9 +79,29 @@ async function cleanInfographicBranding(file){
   return sanitizeInfographicBranding(file,{watermarkHashes});
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+// GEMINI NOTEBOOK PEGA EL NOMBRE DEL ICONO AL TEXTO DEL BOTON (Neo · MBP14, 02-09-2026).
+// Verificado en la UI nueva con la sesion de Carlos: el boton de pegar texto ya no dice
+// «Texto copiado» sino «content_pasteTexto copiado», y hay «delete Eliminar»,
+// «trending_upAnalitica s», «publicDescubrir», «keep_pinGuardar en una nota»… El icono es
+// una ligadura de Material Symbols que el navegador SI mete en innerText. Como este
+// ayudante comparaba por igualdad exacta, TODOS los clics se quedaban esperando 30 s y el
+// trabajo moria. Aqui se compara tambien contra la etiqueta sin esa ligadura —pegada o
+// separada por un espacio, siempre en minusculas y seguida de mayuscula—, y se mantiene la
+// igualdad estricta, que es lo que evita clicar el boton de al lado.
+const ETIQUETA_LIMPIA=[
+  '(function(valor){',
+  "  var v=String(valor||'').replace(/[\\s\\u00a0]+/g,' ').trim();",
+  "  var sinIcono=v.replace(/^[a-z][a-z0-9_]*[ ]?(?=[A-Z\\u00c0-\\u00dc\\u00bf\\u00a1])/,'').trim();",
+  '  return sinIcono&&sinIcono!==v?[v,sinIcono]:[v];',
+  '})'
+].join('\n');
 async function button(page,name,{exact=true,timeout=30000}={}){
-  await page.waitForFunction((label,strict)=>[...document.querySelectorAll('button')].some(el=>{const value=(el.getAttribute('aria-label')||el.innerText||'').trim();return strict?value===label:value.includes(label)}),{timeout},name,exact);
-  return page.evaluateHandle((label,strict)=>[...document.querySelectorAll('button')].find(el=>{const value=(el.getAttribute('aria-label')||el.innerText||'').trim();return strict?value===label:value.includes(label)}),name,exact);
+  const casa=`(function(el,label,strict){
+    var formas=${ETIQUETA_LIMPIA}(el.getAttribute('aria-label')||el.innerText||'');
+    return formas.some(function(v){return strict?v===label:v.indexOf(label)>=0});
+  })`;
+  await page.waitForFunction(new Function('label','strict',`return [...document.querySelectorAll('button')].some(function(el){return ${casa}(el,label,strict)})`),{timeout},name,exact);
+  return page.evaluateHandle(new Function('label','strict',`return [...document.querySelectorAll('button')].find(function(el){return ${casa}(el,label,strict)})`),name,exact);
 }
 async function clickButton(page,name,options){const handle=await button(page,name,options);await handle.click();await handle.dispose();}
 async function fillByLabel(page,label,value){
@@ -90,14 +110,33 @@ async function fillByLabel(page,label,value){
 }
 const LANGUAGE_OPTIONS={es:'español',ca:'català',en:'English'};
 const LANGUAGE_NAMES={es:'Spanish',ca:'Catalan',en:'English'};
+// EL SELECTOR DE IDIOMA YA NO SE LLAMA ASI (Neo · MBP14, 02-09-2026). En NotebookLM el
+// combobox tenia aria-label «Seleccionar idioma»; en Gemini Notebook ese texto no existe en
+// ninguna parte —comprobado en la portada, dentro de un cuaderno y en el dialogo de audio— y
+// el control se identifica por el idioma que muestra AHORA («español», «English»…). Como el
+// waitForFunction esperaba 10 s a algo inexistente, cada entregable moria antes de empezar.
+// Se busca el combobox por su valor visible; si el idioma ya es el pedido, no se toca nada.
 async function selectLanguage(page,language){
   const option=LANGUAGE_OPTIONS[language]||'English';
-  await page.evaluate(()=>{const el=[...document.querySelectorAll('[role="combobox"]')].find(node=>(node.getAttribute('aria-label')||'')==='Seleccionar idioma');el?.click();});
-  await page.waitForFunction(value=>[...document.querySelectorAll('[role="option"]')].some(el=>(el.innerText||'').trim()===value),{timeout:10000},option);
-  await page.evaluate(value=>[...document.querySelectorAll('[role="option"]')].find(el=>(el.innerText||'').trim()===value)?.click(),option);
+  const conocidos=Object.values(LANGUAGE_OPTIONS);
+  const abierto=await page.evaluate((valores,deseado)=>{
+    const combos=[...document.querySelectorAll('[role="combobox"]')];
+    const objetivo=combos.find(node=>{
+      const v=(node.getAttribute('aria-label')||node.innerText||'').trim();
+      return valores.some(idioma=>v.toLowerCase()===idioma.toLowerCase());
+    })||combos[0];
+    if(!objetivo)return 'sin-combobox';
+    const actual=(objetivo.getAttribute('aria-label')||objetivo.innerText||'').trim().toLowerCase();
+    if(actual===deseado.toLowerCase())return 'ya-esta';
+    objetivo.click();return 'abierto';
+  },conocidos,option);
+  if(abierto==='ya-esta')return;
+  if(abierto==='sin-combobox')throw new Error('No encuentro el selector de idioma en Gemini Notebook: la interfaz ha vuelto a cambiar.');
+  await page.waitForFunction(value=>[...document.querySelectorAll('[role="option"]')].some(el=>(el.innerText||'').trim().toLowerCase()===value.toLowerCase()),{timeout:10000},option);
+  await page.evaluate(value=>[...document.querySelectorAll('[role="option"]')].find(el=>(el.innerText||'').trim().toLowerCase()===value.toLowerCase())?.click(),option);
 }
 async function ensureNotebookAccount(page){
-  await page.goto('https://notebooklm.google.com/',{waitUntil:'domcontentloaded'});await sleep(2500);
+  await page.goto('https://notebook.google.com/',{waitUntil:'domcontentloaded'});await sleep(2500);
   const accountVisible=await page.evaluate(email=>[...document.querySelectorAll('[aria-label]')].some(el=>(el.getAttribute('aria-label')||'').includes(email)),ACCOUNT);
   if(!accountVisible)throw new Error(`NotebookLM no está autenticado como ${ACCOUNT}. Ejecuta pnpm setup.`);
 }
@@ -112,7 +151,9 @@ async function newNotebook(page,job,sourceBundle){
 }
 async function generateAudio(page,language){
   const name=LANGUAGE_NAMES[language]||'English';
-  await clickButton(page,'Personalizar resumen de audio');await selectLanguage(page,language);
+  // «Personalizar resumen de audio» ya no existe: en la UI nueva la propia tarjeta
+  // «Resumen de audio» abre el dialogo con idioma, duracion, formato y el campo de enfoque.
+  await clickButton(page,'Resumen de audio');await selectLanguage(page,language);
   await fillByLabel(page,'¿En qué deben centrarse los presentadores de IA en este episodio?',`Create an executive ${name}-language overview for leadership. Focus on the business problem, connected-experience vision, AdmiraNeXT capabilities, proposed pilot and call to action. Do not mention Gemini Notebook or NotebookLM.`);
   await clickButton(page,'Generar');
 }
@@ -249,9 +290,12 @@ async function waitAndPublish(page,job,tasks,clientLogo){
 
 await fs.mkdir(DOWNLOADS,{recursive:true});
 const chrome='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const browser=await puppeteer.launch({headless:false,pipe:true,userDataDir:PROFILE,executablePath:await fs.access(chrome).then(()=>chrome).catch(()=>undefined),args:['--no-first-run','--disable-session-crashed-bubble'],defaultViewport:{width:1500,height:980}});
+const browser=await puppeteer.launch({headless:false,pipe:true,userDataDir:PROFILE,executablePath:await fs.access(chrome).then(()=>chrome).catch(()=>undefined),// La ventana tiene que nacer DONDE ESTA CARLOS (norma 02-09-2026): en macOS se abria
+// en el Space del proceso que la lanzo, que casi nunca es el suyo, y una ventana que no
+// se ve es una ventana que no existe — el login quedaba esperando a nadie.
+  args:['--no-first-run','--disable-session-crashed-bubble','--window-position=60,60','--window-size=1500,980'],defaultViewport:{width:1500,height:980}});
 if(setup){
-  const page=await browser.newPage();await page.goto('https://notebooklm.google.com/');
+  const page=await browser.newPage();await page.goto('https://notebook.google.com/');
   console.log(`Accede como ${ACCOUNT}; la ventana se cerrará sola cuando la sesión quede validada.`);
   let valid=false;while(!valid){await sleep(2000);valid=await page.evaluate(email=>[...document.querySelectorAll('[aria-label]')].some(el=>(el.getAttribute('aria-label')||'').includes(email)),ACCOUNT).catch(()=>false);}
   console.log(`Sesión validada: ${ACCOUNT}`);await browser.close();
