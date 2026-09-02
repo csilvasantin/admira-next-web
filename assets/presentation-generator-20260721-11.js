@@ -1,11 +1,10 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260808-1';
+  window.__ADMIRA_GENERATOR_VERSION__='20260902-1';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
   website.required=true;website.type='text';website.inputMode='url';website.closest('.field')?.querySelector('label')?.append(' · logo obligatorio');
-  const DEFAULT_PRESENTATION_PASSWORD='AdmiraNeXT;)';
   const inspirationStep=document.querySelector('.flow span:nth-child(2)'); if(inspirationStep)inspirationStep.innerHTML='<b>02</b> Inspiración';
   const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Inspiración e identidad'; thesisPanel.querySelector('.sub').textContent='La web oficial aporta la identidad y el logo. Si indicas otra inspiración, solo sustituye la dirección de arte.';
   const inspirationField=document.createElement('div'); inspirationField.className='field full inspiration-field';
@@ -68,14 +67,14 @@
   passwordPanel.querySelector('.sub').textContent='La clave queda aislada para este cliente. Si indicas una contraseña aquí, tendrá prioridad.';
   passwordInput.closest('.field').querySelector('label').textContent='Contraseña del cliente · opcional *';
   passwordInput.placeholder='Vacío = usar el portapapeles';
-  passwordInput.closest('.field').insertAdjacentHTML('beforeend',`<p class="field-help">* Si lo dejas vacío, al generar intentaremos usar el texto actual del portapapeles. Si está vacío, es demasiado corto o el navegador no permite leerlo, usaremos <b>${DEFAULT_PRESENTATION_PASSWORD}</b>: débil, pero entrañable ;p</p>`);
+  passwordInput.closest('.field').insertAdjacentHTML('beforeend',`<p class="field-help">* Si lo dejas vacío, al generar intentaremos usar el texto actual del portapapeles. Si está vacío, es demasiado corto o el navegador no permite leerlo, <b>generaremos una clave única para este cliente</b> y te la enseñaremos aquí al terminar — cópiala antes de cerrar.</p>`);
   function slugify(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,63)}
   function ensureHttps(value){const cleaned=String(value||'').trim();if(!cleaned)return '';if(/^https:\/\//i.test(cleaned))return cleaned;if(/^http:\/\//i.test(cleaned))return `https://${cleaned.slice(7)}`;if(/^[a-z][a-z0-9+.-]*:\/\//i.test(cleaned))return cleaned;return `https://${cleaned.replace(/^\/+/, '')}`}
   function normalizeUrlInput(input){const normalized=ensureHttps(input.value);if(normalized)input.value=normalized;return normalized}
   async function resolvePassword(){
     const explicit=passwordInput.value.trim();if(explicit)return explicit;
     try{const clipboard=String(await navigator.clipboard?.readText?.()||'').replace(/[\r\n]+/g,' ').trim().slice(0,100);if(clipboard.length>=10)return clipboard}catch(_){}
-    return DEFAULT_PRESENTATION_PASSWORD;
+    return ''; // sin clave explícita ni portapapeles: la genera el servidor, única para este cliente
   }
   [website,inspirationUrl].forEach(input=>input.addEventListener('blur',()=>normalizeUrlInput(input)));
   slug.addEventListener('input',()=>{slugTouched=Boolean(slug.value)}); display.addEventListener('input',()=>{if(!slugTouched)slug.value=slugify(display.value)});

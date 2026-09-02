@@ -1,7 +1,7 @@
 import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
 import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
-import { DEFAULT_PRESENTATION_PASSWORD, ensureHttpsUrl } from '../_defaults.js';
+import { createPresentationPassword, ensureHttpsUrl } from '../_defaults.js';
 import {captureVersion} from '../_versions.js';
 import {normalizeSequence} from '../_deck-library.js';
 import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
@@ -182,7 +182,7 @@ export async function onRequestPut(context){
   let slideMedia;try{slideMedia=normalizeSlideMedia(raw.slideMedia,slug)}catch(error){return json({error:error.message},400)}
   const supplied=text(raw.password,100);
   if (supplied && supplied.length<10) return json({error:'La contraseña debe tener al menos 10 caracteres.'},400);
-  const password=supplied || (existing ? '' : DEFAULT_PRESENTATION_PASSWORD);
+  const password=supplied || (existing ? '' : createPresentationPassword());
   const passwordVerifier=password ? await hmac(context.env.PRES_SIGNING_KEY,`password:${slug}:${password}`) : existing.passwordVerifier;
   const input={
     displayName, problem:text(raw.problem,1200), audience:text(raw.audience,500),
