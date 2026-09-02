@@ -82,6 +82,7 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /Desarrollar idea/);
   assert.match(html, /\/assets\/tiktok-core\.js/);
   assert.match(html, /\/tiktok\/app\.js/);
+  assert.match(html, /\/tiktok\/app\.js\?v=20260902-source-url-2/);
   assert.match(html, /Exportar vídeo 9:16/);
   assert.match(html, /id="openTester"/);
   assert.match(html, /pixeria\.com\/tester\/\?source=tiktok/);
