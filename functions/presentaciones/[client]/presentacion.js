@@ -180,7 +180,40 @@ export async function onRequestGet(context){
   document.querySelectorAll('[data-section-target]').forEach(button=>{const target=slides.findIndex(slide=>slide.dataset.section===button.dataset.sectionTarget);button.disabled=target<0;button.addEventListener('click',()=>{if(target>=0)go(target)})});
   function applyImageSet(set){const imageSlides=Array.isArray(set?.slides)?set.slides:[],allowedImageUrl=new RegExp('^/presentaciones/${client}/images/[a-z0-9._-]+$','i'),adapted=[];let imported=0;document.querySelectorAll('[data-image-index]').forEach(slide=>{const image=imageSlides[Number(slide.dataset.imageIndex)],url=String(image?.url||'');if(image?.status!=='ready'||image?.textFreeVerified!==true||!allowedImageUrl.test(url))return;slide.dataset.hasImage='true';slide.style.setProperty('--slide-image',"url('"+url+"')");adapted.push(url);imported+=1});if(adapted.length)document.querySelectorAll('[data-deck-image]').forEach((image,index)=>{const url=adapted[index%adapted.length];for(const language of ['es','ca','en'])image.setAttribute('data-src-best-'+language,url)});applyDeckSource();return imported}
   async function syncImages(){try{const response=await fetch('api/images',{headers:{accept:'application/json'},cache:'no-store'});if(!response.ok)return;const data=await response.json();applyImageSet(data.imageSet);if(data.imageSet?.status==='complete')clearInterval(imageTimer)}catch(_){}}
-  window.__ADMIRA_APPLY_LANGUAGE__=applyLanguage;window.__ADMIRA_APPLY_QUALITY__=applyQuality;addEventListener('keydown',event=>{if(event.target?.isContentEditable||event.target?.closest?.('input,textarea,select,button'))return;if(['ArrowDown','ArrowRight',' '].includes(event.key)){event.preventDefault();go(at+1)}if(['ArrowUp','ArrowLeft'].includes(event.key)){event.preventDefault();go(at-1)}if(event.key.toLowerCase()==='f'){const target=document.documentElement;if(target.requestFullscreen)target.requestFullscreen();else if(target.webkitRequestFullscreen)target.webkitRequestFullscreen()}});addEventListener('scroll',()=>{let best=0,dist=Infinity;slides.forEach((slide,index)=>{const delta=Math.abs(slide.getBoundingClientRect().top);if(delta<dist){dist=delta;best=index}});at=best;syncNav()},{passive:true});const query=new URLSearchParams(location.search),requestedLanguage=query.get('lang'),requestedQuality=query.get('quality');applyLanguage(presentationState.locales[requestedLanguage]?requestedLanguage:'${esc(languages[0]||'es')}');applyQuality(['good','better','best'].includes(requestedQuality)?requestedQuality:presentationState.quality);syncNav();const imageTimer=${Array.isArray(config.outputs)&&config.outputs.includes('backgrounds')&&imageSet?.status!=='complete'?'setInterval(syncImages,10000)':'0'};if(imageTimer){syncImages();addEventListener('pagehide',()=>clearInterval(imageTimer),{once:true})}
+  window.__ADMIRA_APPLY_LANGUAGE__=applyLanguage;window.__ADMIRA_APPLY_QUALITY__=applyQuality;addEventListener('keydown',event=>{if(event.target?.isContentEditable||event.target?.closest?.('input,textarea,select,button'))return;if(['ArrowDown','ArrowRight',' '].includes(event.key)){event.preventDefault();go(at+1)}if(['ArrowUp','ArrowLeft'].includes(event.key)){event.preventDefault();go(at-1)}if(event.key.toLowerCase()==='f'){const target=document.documentElement;if(target.requestFullscreen)target.requestFullscreen();else if(target.webkitRequestFullscreen)target.webkitRequestFullscreen()}});addEventListener('scroll',()=>{let best=0,dist=Infinity;slides.forEach((slide,index)=>{const delta=Math.abs(slide.getBoundingClientRect().top);if(delta<dist){dist=delta;best=index}});at=best;syncNav()},{passive:true});// PANTALLA COMPLETA HASTA QUE SE PULSE ESC (Carlos, 02-09-2026). El cliente entra por el
+  // boton del portal, que ahora trae ?fullscreen=1. El navegador solo concede pantalla
+  // completa dentro de un gesto del usuario y el gesto se queda en la pagina anterior, asi
+  // que se intenta de inmediato y, si lo rechaza, se arma UNA sola vez al primer clic o
+  // tecla. Una sola vez a proposito: al salir con ESC no debe volver a entrar sola, que
+  // seria imposible de abandonar. Salir es ESC, que es lo que ya hace el navegador.
+  (function(){
+    if(new URLSearchParams(location.search).get('fullscreen')!=='1')return;
+    var raiz=document.documentElement,pedir=raiz.requestFullscreen||raiz.webkitRequestFullscreen;
+    if(!pedir)return;
+    var hecho=false;
+    var entrar=function(){
+      if(hecho||document.fullscreenElement)return;
+      hecho=true;
+      try{var p=pedir.call(raiz);if(p&&p.catch)p.catch(function(){});}catch(_){}
+    };
+    var alPrimerGesto=function(){entrar();quitar();};
+    var quitar=function(){
+      document.removeEventListener('pointerdown',alPrimerGesto,true);
+      document.removeEventListener('keydown',alPrimerGesto,true);
+    };
+    try{
+      var intento=pedir.call(raiz);
+      if(intento&&intento.then)intento.then(quitar).catch(function(){
+        document.addEventListener('pointerdown',alPrimerGesto,{capture:true,once:true});
+        document.addEventListener('keydown',alPrimerGesto,{capture:true,once:true});
+      });
+      else quitar();
+    }catch(_){
+      document.addEventListener('pointerdown',alPrimerGesto,{capture:true,once:true});
+      document.addEventListener('keydown',alPrimerGesto,{capture:true,once:true});
+    }
+  })();
+  const query=new URLSearchParams(location.search),requestedLanguage=query.get('lang'),requestedQuality=query.get('quality');applyLanguage(presentationState.locales[requestedLanguage]?requestedLanguage:'${esc(languages[0]||'es')}');applyQuality(['good','better','best'].includes(requestedQuality)?requestedQuality:presentationState.quality);syncNav();const imageTimer=${Array.isArray(config.outputs)&&config.outputs.includes('backgrounds')&&imageSet?.status!=='complete'?'setInterval(syncImages,10000)':'0'};if(imageTimer){syncImages();addEventListener('pagehide',()=>clearInterval(imageTimer),{once:true})}
   </script></body></html>`;
   const responsiveGoodCss=`.deck-good{background:linear-gradient(145deg,#fbfcf8,#e8eddd)}.deck-good img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:.72;filter:saturate(.84) contrast(.98) brightness(.98);transform:scale(1.04);background:#eef2e5}.deck-good:before{content:"";position:absolute;z-index:1;inset:0;background:linear-gradient(105deg,rgba(250,252,246,.92) 0%,rgba(250,252,246,.68) 30%,rgba(232,239,216,.2) 56%,rgba(120,155,58,.03) 100%)}.deck-good .deck-copy{display:flex;flex-direction:column;justify-content:flex-end;left:8vw;top:18vh;bottom:14vh;width:min(920px,80vw);color:#172126}.deck-good .deck-kicker{color:#789b3a}.deck-good .deck-copy h2{max-width:920px;font-family:Inter,-apple-system,"Segoe UI",Arial,sans-serif;font-size:clamp(52px,9vw,132px);font-weight:780;line-height:.9;letter-spacing:-.065em;text-shadow:0 1px 18px rgba(255,255,255,.46)}.deck-good .deck-progress{border:1px solid rgba(24,33,42,.16);background:rgba(255,255,255,.82);color:#263229}@media(max-aspect-ratio:4/5){.deck-good .deck-copy{left:8vw;top:19vh;bottom:14vh;width:84vw}.deck-good .deck-copy h2{font-size:clamp(46px,14vw,104px);line-height:.92}.deck-good img{opacity:.56;transform:scale(1.18)}.deck-good:before{background:linear-gradient(105deg,rgba(250,252,246,.95) 0%,rgba(250,252,246,.82) 52%,rgba(232,239,216,.38) 82%,rgba(120,155,58,.08) 100%)}}`;
   const responsiveDetailCss=`.deck-detail{display:none}.deck-good .deck-detail{display:block;max-width:720px;margin:24px 0 0;color:rgba(23,33,38,.68);font-size:clamp(17px,2vw,27px);font-weight:620;line-height:1.32}@media(max-aspect-ratio:4/5){.deck-good .deck-detail{max-width:82vw;font-size:clamp(16px,4.4vw,25px)}}`;

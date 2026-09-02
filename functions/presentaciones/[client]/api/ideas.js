@@ -28,6 +28,18 @@ function minutosDeEnsayo(item){
   return {minutes: Math.round(Math.min(segundos, 3600) / 6) / 10};
 }
 
+// DOS IDIOMAS COMO MINIMO, CASTELLANO E INGLES (Carlos, 02-09-2026). Una presentacion
+// monolingue no solo se ve a medias: apaga la propagacion de ediciones, porque
+// inline-edit traduce a los OTROS idiomas de la presentacion y, si no hay otros, no hay
+// nada que corregir. El deck de NVIDIA nacio solo en 'en' y por eso editar un texto no
+// tocaba el castellano. El orden se respeta —el primero manda como idioma por defecto—
+// y solo se anaden los que falten.
+function conMinimoBilingue(lista){
+  const salida = Array.isArray(lista) ? lista.filter(Boolean) : [];
+  for (const obligatorio of ['es','en']) if (!salida.includes(obligatorio)) salida.push(obligatorio);
+  return salida;
+}
+
 function normalize(payload, client){
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Formato no válido.');
   const skeleton = Array.isArray(payload.skeleton) ? payload.skeleton.slice(0, 20) : [];
@@ -36,7 +48,7 @@ function normalize(payload, client){
   const outputs = [...new Set(requested.filter(value => OUTPUTS.includes(value)))];
   if (!outputs.length) throw new Error('Selecciona al menos un contenido para generar.');
   const requestedLanguages = Array.isArray(payload.languages) ? payload.languages.map(value => String(value).toLowerCase()) : LANGUAGES;
-  const languages = [...new Set(requestedLanguages.filter(value => LANGUAGES.includes(value)))];
+  const languages = conMinimoBilingue([...new Set(requestedLanguages.filter(value => LANGUAGES.includes(value)))]);
   if (!languages.length) throw new Error('Selecciona al menos un idioma.');
 
   const normalizeContent = (source, fallbackSkeleton = skeleton) => ({

@@ -176,7 +176,10 @@ export async function onRequestPut(context){
   const outputs=[...new Set(requested.filter(value=>OUTPUTS.includes(value)))];
   if (!outputs.length) return json({error:'Selecciona al menos un entregable.'},400);
   const requestedLanguages=Array.isArray(raw.languages)?raw.languages.map(value=>String(value).toLowerCase()):['es'];
+  // Minimo castellano e ingles, siempre (Carlos, 02-09-2026): ver la nota en
+  // [client]/api/ideas.js — una presentacion monolingue apaga la correccion cruzada.
   const languages=[...new Set(requestedLanguages.filter(value=>LANGUAGES.includes(value)))];
+  for(const obligatorio of ['es','en']) if(!languages.includes(obligatorio)) languages.push(obligatorio);
   if (!languages.length) return json({error:'Selecciona al menos un idioma.'},400);
   let terminology;try{terminology=normalizeTerminology(raw.terminology)}catch(error){return json({error:error.message},400)}
   let slideMedia;try{slideMedia=normalizeSlideMedia(raw.slideMedia,slug)}catch(error){return json({error:error.message},400)}
@@ -218,7 +221,19 @@ export async function onRequestPut(context){
     if(spanish){ideas.hero=spanish.hero;ideas.objective=spanish.objective;ideas.skeleton=spanish.skeleton;ideas.closing=spanish.closing;ideas.labels=spanish.labels;delete localized.es}
     ideas.translations=localized;
   }
-  catch(error){return json({error:error.message||'No se pudieron generar todos los idiomas.'},502)}
+  catch(error){
+    // EL BILINGUISMO NO PUEDE TUMBAR UN ALTA (Neo · MBP14, 02-09-2026). Desde que castellano
+    // e ingles son obligatorios, TODA presentacion pasa por la traduccion; antes una
+    // monolingue en castellano se la saltaba. Si aqui devolvemos 502, un tropiezo del
+    // proveedor deja al comercial sin poder crear la presentacion —hemos convertido una
+    // mejora en un punto unico de fallo—. Se degrada: el segundo idioma nace con el texto
+    // de origen y queda marcado para revision, que es justo lo que hace el editor en linea
+    // cuando un idioma no existe todavia. La presentacion se crea; la traduccion se repasa.
+    const copia=JSON.parse(JSON.stringify({hero:ideas.hero||{},objective:ideas.objective||'',skeleton:ideas.skeleton||[],closing:ideas.closing||{},labels:ideas.labels||{}}));
+    ideas.translations=Object.fromEntries(languages.filter(language=>language!=='es').map(language=>[language,JSON.parse(JSON.stringify(copia))]));
+    ideas.translationPending=languages.filter(language=>language!=='es');
+    ideas.translationError=String(error&&error.message||error).slice(0,300);
+  }
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const sequence=normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck});
   const compatibilityFeatures=['css-layout','interactive-controls','custom-fonts'];

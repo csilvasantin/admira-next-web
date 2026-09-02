@@ -1,5 +1,7 @@
 .presenter-launch{
-  position:fixed;z-index:32;left:18px;top:18px;min-height:42px;padding:0 15px;
+  /* ENSAYAR debajo del conmutador de calidad (Carlos, 02-09-2026): a 18px se le
+   montaba encima y en la portada tapaba el BETTER/BEST. */
+  position:fixed;z-index:32;left:18px;top:76px;min-height:42px;padding:0 15px;
   border:1px solid color-mix(in srgb,var(--ink) 18%,transparent);border-radius:999px;
   background:color-mix(in srgb,var(--surface) 82%,transparent);color:var(--ink);
   backdrop-filter:blur(12px);font:800 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer
