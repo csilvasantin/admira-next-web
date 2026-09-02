@@ -117,6 +117,20 @@
     }
     var css = document.createElement("style");
     css.textContent =
+            // CUANDO TODO ESTA AL DIA, ESTORBAR LO MINIMO (Neo · MBP14, 02-09-2026). Carlos:
+      // «¿por que sigue apareciendome lo de Comprobar?». No era un fallo: el panel se
+      // pintaba SIEMPRE, tambien en el estado «current», con sus 360x170 px tapando la
+      // esquina y un boton que no tenia nada que hacer. Un aviso que esta siempre deja de
+      // ser un aviso y pasa a ser mobiliario. Ahora, si no hay novedad, se pliega a una
+      // pastilla con el sello; se abre al pulsarla y se recuerda la eleccion en la
+      // pestana. Con una version nueva se despliega solo, que es cuando SI debe
+      // interrumpir, y ahi no hay manera de plegarlo.
+      ".admira-version[data-collapsed='1']{width:auto;max-width:min(320px,calc(100vw - 28px));padding:7px 11px;cursor:pointer}" +
+      ".admira-version[data-collapsed='1'] .admira-version__grid," +
+      ".admira-version[data-collapsed='1'] .admira-version__guidance," +
+      ".admira-version[data-collapsed='1'] details{display:none}" +
+      ".admira-version[data-collapsed='1'] .admira-version__action{display:none}" +
+      ".admira-version[data-collapsed='1'] .admira-version__top{gap:8px}" +
       ".admira-version{--av-accent:#74e6d0;position:fixed;right:14px;bottom:14px;z-index:2147483000;" +
       "width:min(360px,calc(100vw - 28px));box-sizing:border-box;padding:12px;border:1px solid rgba(116,230,208,.32);" +
       "border-radius:12px;background:rgba(8,17,27,.96);color:#eef7f5;box-shadow:0 12px 34px rgba(0,0,0,.42);" +
@@ -174,6 +188,15 @@
     });
     top.appendChild(accion);
     panel.appendChild(top);
+    // Se abre y se cierra pulsando la pastilla. El clic en el boton de accion no cuenta:
+    // «Comprobar» y «Recargar» hacen lo suyo y no deben plegar nada por debajo.
+    panel.addEventListener("click", function (evento) {
+      if (evento.target.closest(".admira-version__action")) return;
+      if (panel.getAttribute("data-state") === "stale") return;   // con novedad, no se pliega
+      var plegado = panel.getAttribute("data-collapsed") === "1";
+      panel.setAttribute("data-collapsed", plegado ? "0" : "1");
+      try { sessionStorage.setItem("admira.version.abierto", plegado ? "1" : "0"); } catch (_) {}
+    });
     panel.appendChild(nodo("div", "admira-version__grid"));
     panel.appendChild(nodo("p", "admira-version__guidance"));
     var details = nodo("details", "admira-version__tech");
@@ -196,6 +219,13 @@
   function pinta(estado, actual, disponible, nota) {
     aseguraPanel();
     panel.setAttribute("data-state", estado);
+    // «stale» manda: una version nueva se enseña entera, y no se puede plegar.
+    if (estado === "stale") panel.setAttribute("data-collapsed", "0");
+    else {
+      var recordado = null;
+      try { recordado = sessionStorage.getItem("admira.version.abierto"); } catch (_) {}
+      panel.setAttribute("data-collapsed", recordado === "1" ? "0" : "1");
+    }
     // EL TITULAR ES LA VERSIÓN (Carlos, 2026-08-09): «en lugar de versión nueva pon
     // la versión, que se sobreentiende que es nueva». Decir «versión nueva» gastaba
     // el sitio más visible del aviso en la única palabra que ya se deducía del icono

@@ -131,7 +131,7 @@ test('todas las páginas que cargan el verificador fijan la huella de su conteni
     references.push(...html.matchAll(/\/assets\/admira-version-watch\.js([^"']*)/g));
   }
   assert.ok(references.length >= 12, 'la guardia debe cubrir todas las superficies que montan el verificador');
-  assert.ok(references.every((match) => match[1] === '?build=10080804'),
+  assert.ok(references.every((match) => match[1] === '?build=02092026-1'),
     'un verificador cacheado ocultaría el nuevo contexto de release hasta cuatro horas');
 });
 
@@ -165,4 +165,17 @@ test('sólo se monta un verificador por pestaña, y el botón siempre responde',
     'comprobar y no cambiar nada debe decirse; un botón mudo parece averiado');
   assert.match(js, /function ronda\(manual\)/,
     'el sondeo automático no debe parpadear como si lo hubiera pulsado alguien');
+});
+
+test('cuando no hay novedad, el verificador se pliega y no tapa la esquina', async () => {
+  const js = await readFile(new URL('../assets/admira-version-watch.js', import.meta.url), 'utf8');
+  // Carlos, 2-sep-2026: «¿por qué sigue apareciéndome lo de Comprobar?». No era un fallo:
+  // el panel se pintaba entero también cuando todo estaba al día, con 360x170 px sobre la
+  // esquina y un botón sin nada que hacer. Un aviso que está siempre deja de ser un aviso.
+  assert.match(js, /data-collapsed/, 'tiene que existir un estado plegado');
+  assert.match(js, /\[data-collapsed='1'\] \.admira-version__grid/, 'y el CSS que lo aplica');
+  assert.match(js, /if \(estado === "stale"\) panel\.setAttribute\("data-collapsed", "0"\)/,
+    'con una release nueva se despliega solo: ahí SÍ debe interrumpir');
+  assert.doesNotMatch(js, /removeAttribute/,
+    'el verificador se monta también sobre un DOM mínimo: no ampliar la superficie que necesita');
 });
