@@ -20,6 +20,14 @@ function cleanText(value, max = 1600){
   return String(value == null ? '' : value).replace(/\r\n?/g, '\n').trim().slice(0, max);
 }
 
+// Minutos declarados por lámina para el ensayo. Acepta minutes o seconds, descarta lo
+// imposible y pone tope de una hora: el mismo criterio que aplica el render.
+function minutosDeEnsayo(item){
+  const segundos = Number(item?.seconds) > 0 ? Number(item.seconds) : Number(item?.minutes) * 60;
+  if (!Number.isFinite(segundos) || segundos <= 0) return {};
+  return {minutes: Math.round(Math.min(segundos, 3600) / 6) / 10};
+}
+
 function normalize(payload, client){
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Formato no válido.');
   const skeleton = Array.isArray(payload.skeleton) ? payload.skeleton.slice(0, 20) : [];
@@ -68,7 +76,12 @@ function normalize(payload, client){
       title: cleanText(item?.title, 180) || `Idea ${index + 1}`,
       message: cleanText(item?.message, 900),
       detail: cleanText(item?.detail, 1600),
-      enabled: item?.enabled !== false
+      enabled: item?.enabled !== false,
+      // Minutos de ensayo de ESTA lámina (Neo · MBP14, 02-09-2026). Sin esto el guardado
+      // limpiaba el campo, y el atributo que el render escribe y el entrenador de ritmo
+      // lee no llegaba nunca: el contrato tenía tres mitades —quien lo lee, quien lo
+      // escribe y quien lo guarda— y ésta era la que faltaba.
+      ...minutosDeEnsayo(item)
     })),
     closing: {
       title: cleanText(payload.closing?.title, 220),
