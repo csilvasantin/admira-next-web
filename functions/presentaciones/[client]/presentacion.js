@@ -58,8 +58,8 @@ function withPresenterMode(html,notes,audienceMode=false,sourceTraceability=null
   const translationReviewStyle=audienceMode?'':'<link rel="stylesheet" href="/assets/presentation-translation-review.css?v=20260723-1">';
   const translationReviewScript=audienceMode?'':'<script src="/assets/presentation-translation-review.js?v=20260723-1"></script>';
   return marked
-    .replace('</head>',`<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260723-5"><link rel="stylesheet" href="/assets/presentation-caption-accessibility.css?v=20260723-2"><link rel="stylesheet" href="/assets/presentation-slide-media.css?v=20260723-1">${translationReviewStyle}</head>`)
-    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-pace-coach.js?v=20260723-1"></script><script src="/assets/presentation-share-guardian.js?v=20260723-1"></script>${speakerHandoffScript}${productionBackchannelScript}${sourceTraceabilityScript}${roomDeviceLabScript}<script src="/assets/presentation-presenter-mode.js?v=20260724-3"></script><script src="/assets/presentation-slide-media.js?v=20260724-carlos-approval"></script>${translationReviewScript}</body>`);
+    .replace('</head>',`<link rel="stylesheet" href="/assets/presentation-presenter-mode.css?v=20260902-1"><link rel="stylesheet" href="/assets/presentation-caption-accessibility.css?v=20260723-2"><link rel="stylesheet" href="/assets/presentation-slide-media.css?v=20260723-1">${translationReviewStyle}</head>`)
+    .replace('</body>',`${presenterData}<script src="/assets/presentation-caption-accessibility.js?v=20260723-2"></script><script src="/assets/presentation-pace-coach.js?v=20260723-1"></script><script src="/assets/presentation-share-guardian.js?v=20260723-1"></script>${speakerHandoffScript}${productionBackchannelScript}${sourceTraceabilityScript}${roomDeviceLabScript}<script src="/assets/presentation-presenter-mode.js?v=20260902-1"></script><script src="/assets/presentation-slide-media.js?v=20260724-carlos-approval"></script>${translationReviewScript}</body>`);
 }
 
 const sectionLabels={
