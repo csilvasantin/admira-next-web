@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="theme-color" content="#0a0703" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="AdmiraNeXT v.02.09.2026.r12.09:49" />
+  <meta name="admiranext-version" content="AdmiraNeXT v.02.09.2026.r13.11:18" />
   <link rel="alternate" type="text/plain" href="/mcp/llms.txt" title="MCP · llms.txt" />
   <link rel="alternate" type="application/json" href="/mcp/manifest.json" title="MCP · manifest" />
   <link rel="manifest" href="site.webmanifest" />
@@ -262,7 +262,7 @@
           'boot.l11': 'Don\'t look for /secrets here...',
           'boot.l12': 'Strategic thinking: activated',
           'boot.l13': '\n✦ ',
-          'boot.l14': 'ADmiraNeXT v.04.08.2026.r9.20:36',
+          'boot.l14': 'ADmiraNeXT',
           'boot.l15': ' — ready.\n',
           'boot.l16': 'Press Enter to continue...',
           'launch.opening': '  Opening in a new tab...',
@@ -463,7 +463,7 @@
           'boot.l11': 'No busques /secrets aquí...',
           'boot.l12': 'Pensamiento estratégico: activado',
           'boot.l13': '\n✦ ',
-          'boot.l14': 'ADmiraNeXT v.04.08.2026.r9.20:36',
+          'boot.l14': 'ADmiraNeXT',
           'boot.l15': ' — listo.\n',
           'boot.l16': 'Presiona Enter para continuar...',
           'launch.opening': '  Abriendo en una pestaña nueva...',
@@ -476,6 +476,23 @@
         var L = window.I18N[window.currentLang] || window.I18N.en;
         return (L[key] != null ? L[key] : (window.I18N.en[key] != null ? window.I18N.en[key] : key));
       };
+      // EL SELLO DE LA PANTALLA DE ARRANQUE SE LEE, NO SE TECLEA (Neo · MBP14, 02-09-2026).
+      // 'boot.l14' llevaba escrito a mano «v.04.08.2026.r9.20:36» desde el 4 de agosto: la
+      // home anunciaba una versión de hacía un mes mientras el verificador —que lee el
+      // <meta> y /version.json— decía «al día». Los dos tenían razón sobre fuentes
+      // distintas, que es la peor manera de mentir. Y la guardia de la regla 07 solo mira
+      // el <footer>, así que a éste no lo veía nadie. Ahora sale del mismo sitio que el
+      // verificador y no puede volver a divergir.
+      (function () {
+        var meta = document.querySelector('meta[name="admiranext-version"]');
+        var sello = (meta && meta.content ? meta.content : '').match(/v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}/);
+        if (!sello) return;
+        Object.keys(window.I18N || {}).forEach(function (lang) {
+          var d = window.I18N[lang];
+          if (d && d['boot.l14']) d['boot.l14'] = d['boot.l14'].replace(/\s*v\.[\d.r:]+$/, '') + ' ' + sello[0];
+        });
+      })();
+
       window.applyLang = function () {
         document.documentElement.lang = window.currentLang;
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
