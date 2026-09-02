@@ -121,9 +121,15 @@
   .count-note{color:var(--dim);font:700 10px/1.4 var(--mono);letter-spacing:.06em}
 
   /* Cuadrícula: tarjetas compactas, la misma información en menos sitio. */
-  [data-gallery-view="grid"] .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,232px),1fr))}
+  [data-gallery-view="grid"] .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,232px),1fr));gap:12px}
+  /* Compacta de verdad: sin el min-height de 300px la cuadrícula seguía teniendo
+     la altura del detalle, que es justo lo que no se quería. */
+  [data-gallery-view="grid"] .card{min-height:0;padding:16px 16px 14px;gap:8px}
   [data-gallery-view="grid"] .card .sub{display:none}
-  [data-gallery-view="grid"] .card h2{font-size:16px}
+  [data-gallery-view="grid"] .card h2{font-size:15px;margin:0}
+  [data-gallery-view="grid"] .card .meta{margin:0;gap:6px}
+  [data-gallery-view="grid"] .card .meta span:nth-child(n+3){display:none}
+  [data-gallery-view="grid"] .card .go{margin-top:4px;font-size:11px}
   /* Lista: una fila por presentación, para recorrerlas con la vista. */
   [data-gallery-view="list"] .grid{grid-template-columns:minmax(0,1fr);gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
   [data-gallery-view="list"] .card{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(0,2.4fr) minmax(90px,.7fr) auto;align-items:center;gap:14px;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:13px 16px;min-height:0}
