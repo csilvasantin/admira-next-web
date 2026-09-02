@@ -97,6 +97,51 @@
   }
   @media (max-width:480px){.brand-lockup span{display:none}.mode-switch button{font-size:9px;padding:0 7px}.top-actions{gap:6px}}
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+  /* ═══ BARRA DE LECTURA — el patrón de yokup.com/informes ═══════════════════
+     Mismo contrato que allí: un filtro de fechas a la izquierda y un conmutador
+     de tres vistas a la derecha, y la vista viaja en data-gallery-view sobre el
+     contenedor para que el CSS haga el trabajo. Aquí se aplica a dos colecciones
+     —presentaciones y usuarios— porque son las dos cosas que hay que poder ver
+     bien: qué se ha publicado y quién ha entrado. */
+  .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;justify-content:space-between;margin:26px 0 18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .toolbar-left{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .tabs{display:flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .tabs button{min-height:38px;padding:0 16px;border:0;background:transparent;color:var(--dim);font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .tabs button+button{border-left:1px solid var(--line)}
+  .tabs button[aria-selected="true"]{background:rgba(101,233,244,.13);color:var(--brand)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--dim);font:700 10px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
+  .chip[aria-pressed="true"]{border-color:var(--brand);background:rgba(101,233,244,.12);color:var(--brand)}
+  .date-input{min-height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg2);color:var(--ink);font:700 11px/1 var(--mono);color-scheme:dark}
+  .view-switch{display:inline-grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .view-option{min-width:0;min-height:38px;padding:8px 14px;border:0;background:transparent;color:var(--dim);font:700 11px/1 var(--mono);letter-spacing:.06em;cursor:pointer}
+  .view-option+.view-option{border-left:1px solid var(--line)}
+  .view-option[aria-pressed="true"]{background:rgba(101,233,244,.13);color:var(--brand)}
+  .count-note{color:var(--dim);font:700 10px/1.4 var(--mono);letter-spacing:.06em}
+
+  /* Cuadrícula: tarjetas compactas, la misma información en menos sitio. */
+  [data-gallery-view="grid"] .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,232px),1fr))}
+  [data-gallery-view="grid"] .card .sub{display:none}
+  [data-gallery-view="grid"] .card h2{font-size:16px}
+  /* Lista: una fila por presentación, para recorrerlas con la vista. */
+  [data-gallery-view="list"] .grid{grid-template-columns:minmax(0,1fr);gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  [data-gallery-view="list"] .card{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(0,2.4fr) minmax(90px,.7fr) auto;align-items:center;gap:14px;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:13px 16px;min-height:0}
+  [data-gallery-view="list"] .card:last-child{border-bottom:0}
+  [data-gallery-view="list"] .card h2{font-size:14px;margin:0}
+  [data-gallery-view="list"] .card .sub{display:none}
+  [data-gallery-view="list"] .card .meta{margin:0;justify-content:flex-end}
+  [data-gallery-view="list"] .card .meta span:not(.date){display:none}
+  [data-gallery-view="list"] .card .go{margin:0;white-space:nowrap}
+  [data-gallery-view="list"] .card .badge{margin:0}
+  .empty-note{grid-column:1/-1;padding:28px;border:1px dashed var(--line);border-radius:var(--radius);color:var(--ink2);font-size:14px;text-align:center}
+  .empty-note b{display:block;margin-bottom:6px;color:var(--ink)}
+  @media(max-width:680px){
+    [data-gallery-view="list"] .card{grid-template-columns:minmax(0,1fr);gap:6px}
+    [data-gallery-view="list"] .card .meta{justify-content:flex-start}
+    .toolbar{gap:12px}
+    .view-switch,.tabs{width:100%}
+  }
 </style>
   <link rel="stylesheet" href="/assets/admira-frame.css?v=v.12.08.2026">
 </head>
@@ -161,6 +206,29 @@
       </div>
     </section>
 
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="tabs" role="tablist" aria-label="Qué se está viendo">
+          <button type="button" role="tab" id="tabDecks" data-tab="decks" aria-selected="true">Presentaciones</button>
+          <button type="button" role="tab" id="tabUsers" data-tab="users" aria-selected="false">Usuarios</button>
+        </div>
+        <div class="chips" role="group" aria-label="Filtrar por fecha">
+          <button type="button" class="chip" data-range="today" aria-pressed="false">Hoy</button>
+          <button type="button" class="chip" data-range="yesterday" aria-pressed="false">Ayer</button>
+          <button type="button" class="chip" data-range="7d" aria-pressed="false">Últimos 7 días</button>
+          <button type="button" class="chip" data-range="all" aria-pressed="true">Todas</button>
+        </div>
+        <input class="date-input" type="date" id="dateExact" aria-label="Ver un día concreto">
+      </div>
+      <div class="toolbar-left">
+        <span class="count-note" id="countNote"></span>
+        <div class="view-switch" role="group" aria-label="Vista">
+          <button type="button" class="view-option" data-view="detail" aria-pressed="true">Detalle</button>
+          <button type="button" class="view-option" data-view="grid" aria-pressed="false">Cuadrícula</button>
+          <button type="button" class="view-option" data-view="list" aria-pressed="false">Lista</button>
+        </div>
+      </div>
+    </div>
     <div class="grid" id="presentationGrid">
       <a class="card control" href="/presentaciones/control/">
         <span class="badge">Herramienta interna</span>
@@ -215,7 +283,190 @@
   </main>
   </div>
   <script>
-  (async()=>{try{const r=await fetch('/presentaciones/api/clients',{headers:{accept:'application/json'},cache:'no-store'});if(!r.ok)return;const data=await r.json();const grid=document.getElementById('presentationGrid');const dateLabel=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?'Generada':new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(date)};(data.clients||[]).forEach(client=>{const a=document.createElement('a');a.className='card';a.style.setProperty('--accent',client.theme?.accent||'#3df08a');a.href='/presentaciones/'+encodeURIComponent(client.slug)+'/';a.dataset.createdAt=client.createdAt||client.updatedAt||'';const problem=client.problem||'Presentación generada desde un problema concreto.';a.innerHTML='<span class="badge"></span><h2></h2><p class="sub"></p><div class="meta"><span class="date"></span><span>Castellano</span><span>Editable</span></div><span class="go">Abrir presentación <span class="ar">→</span></span>';a.querySelector('.badge').textContent=client.displayName;a.querySelector('h2').textContent='Ecosistema Admira × '+client.displayName;a.querySelector('.sub').textContent=problem;a.querySelector('.date').textContent=dateLabel(a.dataset.createdAt);grid.appendChild(a)});[...grid.querySelectorAll('.card[data-created-at]')].sort((a,b)=>Date.parse(b.dataset.createdAt||'')-Date.parse(a.dataset.createdAt||'')).forEach(card=>grid.appendChild(card));document.getElementById('presentationCount').textContent=grid.querySelectorAll('.card').length}catch(_){}})();
+  /* ═══ LECTURA DE LA GALERÍA ═══════════════════════════════════════════════════
+     La página servía una rejilla y punto: con catorce presentaciones y creciendo,
+     no había manera de ver «lo de esta semana» ni de recorrerlas de un vistazo, y
+     los usuarios del generador vivían en otra página. Aquí se adopta el contrato
+     de yokup.com/informes —filtro de fechas + Detalle / Cuadrícula / Lista— sobre
+     DOS colecciones: las presentaciones y quién ha entrado en ellas.
+     Las dos herramientas internas (Control y Generador) son puertas, no obras:
+     van fijas al principio y el filtro de fechas no las esconde nunca. */
+  (function(){
+    'use strict';
+    var VISTA_KEY='admira.presentaciones.vista.v1';
+    var grid=document.getElementById('presentationGrid');
+    var shell=document.querySelector('.app-shell');
+    var countNote=document.getElementById('countNote');
+    var countHero=document.getElementById('presentationCount');
+    var dateExact=document.getElementById('dateExact');
+    var estado={tab:'decks',rango:'all',dia:'',vista:'detail'};
+    var decks=[],users=null,usersError='';
+
+    function esc(v){return String(v==null?'':v).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]})}
+    function ms(v){var d=Date.parse(v||'');return isNaN(d)?0:d}
+    function fecha(v){var d=new Date(v);return isNaN(d.getTime())?'':new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(d)}
+
+    /* ── el modelo sale del propio HTML: las tarjetas escritas a mano son datos ── */
+    function cosechar(){
+      return [].slice.call(grid.querySelectorAll('.card')).map(function(a){
+        var badge=a.querySelector('.badge'), h2=a.querySelector('h2'), sub=a.querySelector('.sub');
+        var metas=[].slice.call(a.querySelectorAll('.meta span')).map(function(s){return s.textContent.trim()});
+        var herramienta=/Herramienta interna/i.test(badge?badge.textContent:'');
+        return {
+          kind:herramienta?'tool':'deck',
+          name:badge?badge.textContent.trim():'',
+          title:h2?h2.textContent.trim():'',
+          sub:sub?sub.textContent.trim():'',
+          href:a.getAttribute('href')||'',
+          createdAt:a.dataset.createdAt||'',
+          meta:metas,
+          accent:a.style.getPropertyValue('--accent')||'',
+          cls:a.className.replace(/\bcard\b/,'').trim()
+        };
+      });
+    }
+
+    function enRango(iso){
+      if(estado.dia){
+        if(!iso)return false;
+        var d=new Date(iso), sel=new Date(estado.dia+'T00:00:00');
+        return d.getFullYear()===sel.getFullYear()&&d.getMonth()===sel.getMonth()&&d.getDate()===sel.getDate();
+      }
+      if(estado.rango==='all')return true;
+      if(!iso)return false;
+      var hoy=new Date();hoy.setHours(0,0,0,0);
+      var t0=hoy.getTime(), t=ms(iso);
+      if(estado.rango==='today')return t>=t0;
+      if(estado.rango==='yesterday')return t>=t0-86400000&&t<t0;
+      if(estado.rango==='7d')return t>=t0-6*86400000;
+      return true;
+    }
+
+    function tarjeta(item){
+      var accent=item.accent?' style="--accent:'+esc(item.accent)+'"':'';
+      var metas=item.meta.map(function(m,i){return '<span'+(i===0?' class="date"':'')+'>'+esc(m)+'</span>'}).join('');
+      return '<a class="card '+esc(item.cls)+'" href="'+esc(item.href)+'"'+accent+
+        (item.createdAt?' data-created-at="'+esc(item.createdAt)+'"':'')+'>'+
+        '<span class="badge">'+esc(item.name)+'</span>'+
+        '<h2>'+esc(item.title)+'</h2>'+
+        '<p class="sub">'+esc(item.sub)+'</p>'+
+        '<div class="meta">'+metas+'</div>'+
+        '<span class="go">'+esc(item.kind==='tool'?'Abrir panel':'Abrir presentación')+' <span class="ar">→</span></span></a>';
+    }
+
+    function vacio(titulo,detalle){
+      return '<div class="empty-note"><b>'+esc(titulo)+'</b>'+esc(detalle)+'</div>';
+    }
+
+    function pintar(){
+      var lista, herramientas=[];
+      if(estado.tab==='decks'){
+        herramientas=decks.filter(function(d){return d.kind==='tool'});
+        lista=decks.filter(function(d){return d.kind==='deck'&&enRango(d.createdAt)});
+        // Las herramientas van fijas, así que la rejilla nunca queda vacía del todo:
+        // sin este añadido, «Ayer» sin presentaciones parecía la galería normal.
+        grid.innerHTML=herramientas.map(tarjeta).join('')+(lista.length?lista.map(tarjeta).join('')
+          :vacio('Ninguna presentación en este periodo','Cambia el filtro de fechas o pulsa «Todas» para ver el repositorio completo.'));
+        countNote.textContent=lista.length+' de '+decks.filter(function(d){return d.kind==='deck'}).length+' presentaciones';
+      }else{
+        if(usersError){grid.innerHTML=vacio('No puedo leer los usuarios',usersError);countNote.textContent='';return}
+        if(users===null){grid.innerHTML=vacio('Cargando usuarios…','Leyendo la actividad de acceso de las presentaciones.');countNote.textContent='';return}
+        lista=users.filter(function(u){return enRango(u.lastAccess)});
+        grid.innerHTML=lista.map(function(u){
+          return tarjeta({kind:'deck',cls:'',name:u.name||'Sin nombre',title:u.email||u.visitorId,
+            sub:u.decks.length?('Ha entrado en: '+u.decks.join(', ')):'Sin presentaciones registradas.',
+            href:'/presentaciones/control/',
+            createdAt:u.lastAccess,
+            meta:[fecha(u.lastAccess)||'sin fecha', u.visits+' visita'+(u.visits===1?'':'s'), u.downloads+' descarga'+(u.downloads===1?'':'s')],
+            accent:'#65e9f4'});
+        }).join('')||vacio('Nadie ha entrado en este periodo','Prueba con «Últimos 7 días» o «Todas».');
+        countNote.textContent=lista.length+' de '+users.length+' usuarios';
+      }
+      if(countHero)countHero.textContent=estado.tab==='decks'?decks.filter(function(d){return d.kind==='deck'}).length:(users?users.length:0);
+    }
+
+    function cargarUsuarios(){
+      if(users!==null||usersError)return pintar();
+      fetch('/presentaciones/control/api/events?days=180',{headers:{accept:'application/json'},cache:'no-store'})
+        .then(function(r){
+          if(r.status===401||r.status===403)throw new Error('Esta lista sale del panel de accesos, que pide clave maestra. Entra en /presentaciones/control/ y vuelve.');
+          if(!r.ok)throw new Error('El panel de accesos respondió '+r.status+'.');
+          return r.json();
+        })
+        .then(function(data){
+          var porPersona={};
+          (data.events||[]).forEach(function(ev){
+            var clave=ev.email||ev.visitorId;if(!clave)return;
+            var u=porPersona[clave]||(porPersona[clave]={name:ev.name||'',email:ev.email||'',visitorId:ev.visitorId||'',visits:0,downloads:0,lastAccess:'',decks:[]});
+            if(!u.name&&ev.name)u.name=ev.name;
+            if(ev.type==='page_view')u.visits+=1;
+            if(ev.type==='download')u.downloads+=1;
+            if(ev.client&&u.decks.indexOf(ev.client)<0)u.decks.push(ev.client);
+            if(!u.lastAccess||ev.timestamp>u.lastAccess)u.lastAccess=ev.timestamp;
+          });
+          users=Object.keys(porPersona).map(function(k){return porPersona[k]})
+            .sort(function(a,b){return ms(b.lastAccess)-ms(a.lastAccess)});
+          pintar();
+        })
+        .catch(function(error){usersError=error.message;pintar()});
+    }
+
+    function aplicarVista(v){
+      estado.vista=(v==='grid'||v==='list')?v:'detail';
+      shell.setAttribute('data-gallery-view',estado.vista);
+      [].forEach.call(document.querySelectorAll('.view-option'),function(b){
+        b.setAttribute('aria-pressed',String(b.dataset.view===estado.vista));
+      });
+      try{localStorage.setItem(VISTA_KEY,estado.vista)}catch(_){}
+    }
+
+    document.querySelector('.view-switch').addEventListener('click',function(ev){
+      var b=ev.target.closest('.view-option');if(!b)return;aplicarVista(b.dataset.view);
+    });
+    document.querySelector('.chips').addEventListener('click',function(ev){
+      var b=ev.target.closest('.chip');if(!b)return;
+      estado.rango=b.dataset.range;estado.dia='';dateExact.value='';
+      [].forEach.call(document.querySelectorAll('.chip'),function(c){c.setAttribute('aria-pressed',String(c===b))});
+      pintar();
+    });
+    dateExact.addEventListener('change',function(){
+      estado.dia=dateExact.value;
+      if(estado.dia)[].forEach.call(document.querySelectorAll('.chip'),function(c){c.setAttribute('aria-pressed','false')});
+      else document.querySelector('.chip[data-range="all"]').setAttribute('aria-pressed','true');
+      pintar();
+    });
+    document.querySelector('.tabs').addEventListener('click',function(ev){
+      var b=ev.target.closest('button[data-tab]');if(!b)return;
+      estado.tab=b.dataset.tab;
+      [].forEach.call(document.querySelectorAll('.tabs button'),function(x){x.setAttribute('aria-selected',String(x===b))});
+      if(estado.tab==='users')cargarUsuarios();else pintar();
+    });
+
+    try{aplicarVista(localStorage.getItem(VISTA_KEY))}catch(_){aplicarVista('detail')}
+    decks=cosechar();
+    pintar();
+
+    /* Las generadas llegan después: se suman al modelo y se repinta con el filtro puesto. */
+    fetch('/presentaciones/api/clients',{headers:{accept:'application/json'},cache:'no-store'})
+      .then(function(r){return r.ok?r.json():null})
+      .then(function(data){
+        if(!data)return;
+        (data.clients||[]).forEach(function(c){
+          decks.push({kind:'deck',cls:'',name:c.displayName,title:'Ecosistema Admira × '+c.displayName,
+            sub:c.problem||'Presentación generada desde un problema concreto.',
+            href:'/presentaciones/'+encodeURIComponent(c.slug)+'/',
+            createdAt:c.createdAt||c.updatedAt||'',
+            meta:[fecha(c.createdAt||c.updatedAt)||'Generada','Castellano','Editable'],
+            accent:(c.theme&&c.theme.accent)||'#3df08a'});
+        });
+        decks.sort(function(a,b){
+          if(a.kind!==b.kind)return a.kind==='tool'?-1:1;
+          return ms(b.createdAt)-ms(a.createdAt);
+        });
+        pintar();
+      })
+      .catch(function(){});
+  })();
   </script>
   <script src="/assets/admira-frame.js?v=v.12.08.2026" defer></script>
   <script src="/assets/admira-version-watch.js?build=10080804" defer></script>
