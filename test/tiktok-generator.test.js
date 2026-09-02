@@ -65,6 +65,9 @@ test('la ruta pública carga los recursos del estudio', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'tiktok', 'index.html'), 'utf8');
   const middleware = fs.readFileSync(path.join(__dirname, '..', 'functions', 'presentaciones', '_middleware.js'), 'utf8');
   assert.match(html, /id="generatorForm"/);
+  assert.match(html, /id="contentSourceUrl"/);
+  assert.match(html, /id="loadContentSource"/);
+  assert.match(html, /Crear un vídeo resumen/);
   assert.match(html, /id="adIdeaForm"/);
   assert.match(html, /Ideas de anuncios/);
   // El botón se llamó «Crear anuncio» hasta 36d8ea4, que lo renombró a «Crear
@@ -98,8 +101,27 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /5 \+ 15 \+ 5/);
   assert.match(middleware, /'grok-video'/);
   assert.match(middleware, /'ad-idea'/);
+  assert.match(middleware, /'source-brief'/);
   assert.match(middleware, /'video-reference'/);
   assert.match(middleware, /'video-package'/);
+});
+
+test('conserva la fuente y sus hechos en el plan de vídeo', () => {
+  const plan = core.buildPlan({
+    task:'Infraestructura para IA',
+    solution:'Acelerar cargas de trabajo',
+    result:'Una propuesta clara',
+    sourceUrl:'https://www.admiranext.com/presentaciones/nvidia/presentacion?lang=en',
+    sourceKind:'presentation',
+    sourceTitle:'NVIDIA proposal',
+    sourceSummary:'A factual summary of the proposal.',
+    sourceKeyPoints:['First verified point', 'Second verified point']
+  });
+  assert.equal(plan.source.kind, 'presentation');
+  assert.equal(plan.source.url, 'https://www.admiranext.com/presentaciones/nvidia/presentacion?lang=en');
+  assert.match(plan.grokPrompt, /Factual source summary/);
+  assert.match(plan.grokPrompt, /do not add claims/);
+  assert.match(plan.grokPrompt, /PURE VIDEO CONTRACT/);
 });
 
 test('la exportación vertical queda disponible para el Tester sin subirla a un servidor', () => {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Crea un anuncio vertical de 25 segundos con preroll, vídeo principal, postroll y publicación automática en Pixeria.">
+  <meta name="description" content="Convierte una URL, una presentación o una idea en un vídeo vertical de 25 segundos y publícalo en Pixeria.">
   <meta name="theme-color" content="#05090d">
   <meta name="admiranext-version" content="v.02.08.2026.r9.22:45">
   <link rel="canonical" href="https://www.admiranext.com/tiktok/">
@@ -40,13 +40,13 @@
     <section class="hero">
       <div>
         <p class="kicker">Generador · Vídeo vertical</p>
-        <h1>De una idea a un <em>anuncio completo en 25 segundos.</em></h1>
-        <p class="lead">Apunta la idea como en Objetivos. El estudio crea 15 segundos de vídeo y los entrega con 5 segundos de entrada, 5 de salida y publicación automática en Pixeria.</p>
+        <h1>De una URL o una idea a un <em>vídeo completo en 25 segundos.</em></h1>
+        <p class="lead">Pega una web o una presentación. El estudio resume su contenido, crea 15 segundos de vídeo y los entrega con 5 segundos de entrada, 5 de salida y publicación automática en Pixeria.</p>
       </div>
       <aside class="hero-aside">
         <span>FLUJO AUTÓNOMO</span>
         <ol>
-          <li><b>01</b> Idea</li>
+          <li><b>01</b> URL o idea</li>
           <li><b>02</b> Guion</li>
           <li><b>03</b> Storyboard</li>
           <li><b>04</b> Vídeo</li>
@@ -126,6 +126,24 @@
           <button class="text-button" id="loadExample" type="button">Cargar ejemplo</button>
         </div>
 
+        <section class="source-card" aria-labelledby="sourceTitle">
+          <div class="source-copy">
+            <span class="section-code">FUENTE URL</span>
+            <h3 id="sourceTitle">Crear un vídeo resumen</h3>
+            <p>Pega una web o una presentación de ADmiraNeXT. Leeremos sus ideas principales y prepararemos el brief sin inventar datos.</p>
+          </div>
+          <div class="source-row">
+            <label>
+              <span class="visually-hidden">URL de la fuente del vídeo</span>
+              <input id="contentSourceUrl" type="url" inputmode="url" maxlength="1600" placeholder="https://www.admiranext.com/presentaciones/…/presentacion?lang=en" aria-describedby="sourceStatus">
+            </label>
+            <button class="button source-button" id="loadContentSource" type="button">Preparar resumen</button>
+          </div>
+          <p class="source-status" id="sourceStatus" role="status" aria-live="polite">También puedes completar el brief manualmente.</p>
+          <div class="source-summary" id="sourceSummary" hidden></div>
+          <a class="composer-access" id="sourceAccess" href="/presentaciones/generador/" target="_blank" rel="noopener" hidden>Iniciar sesión para leer la presentación ↗</a>
+        </section>
+
         <label class="field full">
           <span>Tarea o problema</span>
           <textarea id="task" name="task" rows="3" required>Encontrar las acciones importantes dentro de un PDF largo</textarea>
@@ -174,7 +192,7 @@
           <button class="button secondary" id="variationButton" type="button">Otra dirección</button>
           <button class="button primary" type="submit">Generar TikTok</button>
         </div>
-        <p class="privacy-note">El modo ADmira procesa el brief en este dispositivo. Solo el modo Grok envía la dirección visual a xAI cuando pulsas expresamente “Generar con Grok”.</p>
+        <p class="privacy-note">La URL se usa para preparar el resumen. Solo el modo Grok envía la dirección visual a xAI cuando pulsas expresamente “Generar con Grok”.</p>
       </form>
 
       <section class="preview panel" aria-labelledby="previewTitle">
@@ -427,7 +445,7 @@
     <span>Primera pieza del ecosistema de presentaciones</span>
   </footer>
 
-  <script src="/assets/tiktok-core.js?v=20260802-9"></script>
-  <script src="/tiktok/app.js?v=20260902-tester-bridge"></script>
+  <script src="/assets/tiktok-core.js?v=20260902-source-url"></script>
+  <script src="/tiktok/app.js?v=20260902-source-url"></script>
 </body>
 </html>

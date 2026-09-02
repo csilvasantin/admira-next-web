@@ -6,6 +6,11 @@
 
   const $ = (selector) => document.querySelector(selector);
   const form = $('#generatorForm');
+  const contentSourceUrl = $('#contentSourceUrl');
+  const loadContentSource = $('#loadContentSource');
+  const sourceStatus = $('#sourceStatus');
+  const sourceSummary = $('#sourceSummary');
+  const sourceAccess = $('#sourceAccess');
   const adIdeaForm = $('#adIdeaForm');
   const adIdeaStatus = $('#adIdeaStatus');
   const adIdeaCount = $('#adIdeaCount');
@@ -89,6 +94,7 @@
   const downloadGrokPackage = $('#downloadGrokPackage');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const STORAGE_KEY = 'admiranext:tiktok15:brief:v1';
+  const SOURCE_KEY = 'admiranext:tiktok15:source:v1';
   const AD_IDEAS_KEY = 'admiranext:tiktok15:ad-ideas:v1';
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
   const REFERENCE_PROFILE_KEY = 'admiranext:tiktok:reference-profile:v1';
@@ -113,6 +119,7 @@
   let packageBlobUrl = '';
   let packageId = '';
   let adIdeas = [];
+  let contentSource = null;
 
   const example = {
     task: 'Encontrar las acciones importantes dentro de un PDF largo',
@@ -155,6 +162,101 @@
     } catch (_) { /* Ignore malformed local data. */ }
   }
 
+  function setSourceMessage(message, state = '') {
+    sourceStatus.textContent = message;
+    sourceStatus.classList.toggle('is-success', state === 'success');
+    sourceStatus.classList.toggle('is-error', state === 'error');
+  }
+
+  function renderContentSource() {
+    if(!contentSource){
+      sourceSummary.hidden = true;
+      sourceSummary.textContent = '';
+      return;
+    }
+    const label = contentSource.source?.kind === 'presentation' ? 'Presentación' : 'Web';
+    const title = core.clean(contentSource.source?.title, 180) || 'Fuente preparada';
+    const summary = core.clean(contentSource.summary, 600);
+    sourceSummary.replaceChildren();
+    const strong = document.createElement('strong');
+    strong.textContent = `${label} · ${title}`;
+    sourceSummary.append(strong, document.createTextNode(summary ? ` — ${summary}` : ''));
+    sourceSummary.hidden = false;
+  }
+
+  function saveContentSource() {
+    try{
+      if(contentSource) localStorage.setItem(SOURCE_KEY, JSON.stringify(contentSource));
+      else localStorage.removeItem(SOURCE_KEY);
+    }catch(_){ /* Device-local persistence is optional. */ }
+  }
+
+  function clearContentSource(clearInput = true) {
+    contentSource = null;
+    if(clearInput) contentSourceUrl.value = '';
+    sourceAccess.hidden = true;
+    saveContentSource();
+    renderContentSource();
+    setSourceMessage('También puedes completar el brief manualmente.');
+  }
+
+  function restoreContentSource() {
+    try{
+      const saved = JSON.parse(localStorage.getItem(SOURCE_KEY) || 'null');
+      if(saved?.source?.url && saved?.brief){
+        contentSource = saved;
+        contentSourceUrl.value = saved.source.url;
+        writeForm(saved.brief);
+        renderContentSource();
+        setSourceMessage('Fuente recuperada. El brief y el prompt conservan su resumen.', 'success');
+      }
+    }catch(_){contentSource = null;}
+  }
+
+  async function loadBriefFromSource() {
+    const url = core.clean(contentSourceUrl.value, 1600);
+    if(!url){setSourceMessage('Pega primero la URL de una web o presentación.', 'error'); contentSourceUrl.focus(); return;}
+    loadContentSource.disabled = true;
+    loadContentSource.textContent = 'Leyendo…';
+    sourceAccess.hidden = true;
+    setSourceMessage('Leyendo la fuente y seleccionando las ideas principales…');
+    try{
+      const response = await fetch('/presentaciones/api/source-brief', {
+        method:'POST',
+        credentials:'same-origin',
+        headers:{'content-type':'application/json', accept:'application/json'},
+        body:JSON.stringify({url})
+      });
+      const type = response.headers.get('content-type') || '';
+      if(!type.includes('application/json')){
+        const error = new Error('Inicia sesión en el Generador de Presentaciones para preparar una fuente.');
+        error.auth = response.status === 401 || response.status === 403;
+        throw error;
+      }
+      const payload = await response.json();
+      if(!response.ok){
+        const error = new Error(payload?.error || 'No se pudo leer la fuente.');
+        error.auth = response.status === 401 || response.status === 403;
+        throw error;
+      }
+      if(!payload?.brief || !payload?.source?.url) throw new Error('La fuente no devolvió un resumen utilizable.');
+      contentSource = payload;
+      contentSourceUrl.value = payload.source.url;
+      writeForm(payload.brief);
+      saveContentSource();
+      renderContentSource();
+      variation = 0;
+      generate();
+      setSourceMessage(`Resumen listo · ${payload.keyPoints?.length || 0} ideas principales convertidas en un vídeo de 15 segundos.`, 'success');
+    }catch(error){
+      sourceAccess.hidden = !error?.auth;
+      setSourceMessage(String(error?.message || 'No se pudo preparar la fuente.'), 'error');
+    }finally{
+      loadContentSource.disabled = false;
+      loadContentSource.textContent = 'Preparar resumen';
+    }
+  }
+
   function todayValue() {
     const now = new Date();
     const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
@@ -179,6 +281,7 @@
   }
 
   function openAdIdea(ad, grokMode) {
+    clearContentSource();
     writeForm(core.buildBriefFromAd(ad));
     variation = 0;
     generate();
@@ -711,7 +814,15 @@
   }
 
   function generate() {
-    renderPlan(core.buildPlan(readForm(), variation));
+    const data = readForm();
+    if(contentSource){
+      data.sourceUrl = contentSource.source?.url;
+      data.sourceKind = contentSource.source?.kind;
+      data.sourceTitle = contentSource.source?.title;
+      data.sourceSummary = contentSource.summary;
+      data.sourceKeyPoints = contentSource.keyPoints;
+    }
+    renderPlan(core.buildPlan(data, variation));
   }
 
   function copyText(text, button, idleText) {
@@ -1870,7 +1981,19 @@
   form.addEventListener('submit', (event) => { event.preventDefault(); variation = 0; generate(); });
   form.addEventListener('input', saveDraft);
   $('#variationButton').addEventListener('click', () => { variation = (variation + 1) % 3; generate(); });
-  $('#loadExample').addEventListener('click', () => { writeForm(example); variation = 0; generate(); });
+  $('#loadExample').addEventListener('click', () => { clearContentSource(); writeForm(example); variation = 0; generate(); });
+  loadContentSource.addEventListener('click', () => { void loadBriefFromSource(); });
+  contentSourceUrl.addEventListener('keydown', event => {
+    if(event.key === 'Enter'){event.preventDefault(); void loadBriefFromSource();}
+  });
+  contentSourceUrl.addEventListener('input', () => {
+    if(contentSource?.source?.url && contentSourceUrl.value.trim() !== contentSource.source.url){
+      contentSource = null;
+      saveContentSource();
+      renderContentSource();
+      setSourceMessage('URL modificada. Pulsa “Preparar resumen” para actualizar el brief.');
+    }
+  });
   $('#restartPreview').addEventListener('click', restart);
   playPause.addEventListener('click', () => {
     playing = !playing;
@@ -1911,6 +2034,7 @@
   loadAdIdeas();
   renderAdIdeas();
   loadDraft();
+  restoreContentSource();
   loadReferenceProfile();
   generate();
   setProductionMode(selectedProductionMode());
@@ -1927,4 +2051,11 @@
     scheduleGrokPoll(pendingGrokJob.requestId, 500);
   }
   animationFrame = requestAnimationFrame(tick);
+
+  const requestedSource = new URLSearchParams(window.location.search).get('source');
+  if(requestedSource && (!contentSource || requestedSource !== contentSource.source?.url)){
+    if(contentSource) clearContentSource(false);
+    contentSourceUrl.value = requestedSource;
+    void loadBriefFromSource();
+  }
 })();

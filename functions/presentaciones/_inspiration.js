@@ -6,6 +6,27 @@ function clean(value, max = 180){
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+function decodeEntities(value){
+  const named={amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '};
+  return String(value||'').replace(/&(#x?[0-9a-f]+|[a-z]+);/gi,(_,entity)=>{
+    if(entity[0]==='#'){
+      const hex=entity[1]?.toLowerCase()==='x';
+      const code=Number.parseInt(entity.slice(hex?2:1),hex?16:10);
+      return Number.isFinite(code)&&code>0&&code<=0x10ffff?String.fromCodePoint(code):' ';
+    }
+    return named[entity.toLowerCase()]||' ';
+  });
+}
+
+export function extractReadableText(html){
+  const source=String(html||'')
+    .replace(/<!--[^]*?-->/g,' ')
+    .replace(/<(script|style|noscript|svg|template)\b[^>]*>[^]*?<\/\1>/gi,' ')
+    .replace(/<(nav|footer|form)\b[^>]*>[^]*?<\/\1>/gi,' ')
+    .replace(/<[^>]+>/g,' ');
+  return clean(decodeEntities(source),5000);
+}
+
 function attribute(tag, name){
   const match=String(tag||'').match(new RegExp(`\\s${name}\\s*=\\s*(?:["']([^"']*)["']|([^\\s>]+))`,'i'));
   return clean(match?.[1]||match?.[2],2000);
@@ -163,7 +184,7 @@ export function extractInspiration({url, finalUrl, html, css = ''}){
   const logo=extractLogo(html,finalUrl||url);
   return {
     schemaVersion:1, url:String(url), finalUrl:String(finalUrl || url), host:new URL(finalUrl || url).hostname,
-    title, description, ...palette, ...traits, profile, logo,
+    title, description, contentExcerpt:extractReadableText(html), ...palette, ...traits, profile, logo,
     analyzedAt:new Date().toISOString()
   };
 }
@@ -184,7 +205,7 @@ export function normalizeInspiration(value, expectedUrl = ''){
   }
   return {
     schemaVersion:1, url, finalUrl:clean(value.finalUrl || url, 500), host:clean(value.host || new URL(url).hostname, 180),
-    title:clean(value.title, 140), description:clean(value.description, 240),
+    title:clean(value.title, 140), description:clean(value.description, 240), contentExcerpt:clean(value.contentExcerpt, 5000),
     primary:validColor(value.primary, '#12233e'), accent:validColor(value.accent, '#ffb000'), background:validColor(value.background, '#f5f6f8'), surface:validColor(value.surface, '#ffffff'), text:validColor(value.text, '#142238'),
     palette:(Array.isArray(value.palette) ? value.palette : []).map(color => normalizeHex(color)).filter(Boolean).slice(0, 7),
     mode:allowed(value.mode, ['dark','light'], 'light'), fontStyle:allowed(value.fontStyle, ['grotesk','serif','rounded','mono'], 'grotesk'), sourceFont:clean(value.sourceFont, 120),

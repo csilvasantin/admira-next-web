@@ -127,6 +127,18 @@
     const audience = clean(data.audience, 110) || 'Personas que quieren ahorrar tiempo';
     const cta = withoutTrailingPunctuation(clean(data.cta, 90) || 'Guárdalo y pruébalo hoy');
     const tone = clean(data.tone, 20) || 'energetic';
+    const sourceUrl = clean(data.sourceUrl, 1600);
+    const sourceTitle = clean(data.sourceTitle, 180);
+    const sourceSummary = clean(data.sourceSummary, 600);
+    const sourceKeyPoints = (Array.isArray(data.sourceKeyPoints) ? data.sourceKeyPoints : [])
+      .map(item => clean(item, 240)).filter(Boolean).slice(0, 5);
+    const source = sourceUrl ? {
+      kind:clean(data.sourceKind, 30) || 'web',
+      url:sourceUrl,
+      title:sourceTitle,
+      summary:sourceSummary,
+      keyPoints:sourceKeyPoints
+    } : null;
     const opening = presenter.opening[variant];
     const hook = makeHook(task, opening, tone, variant);
     const action = sentence(compactPhrase(solution, 18));
@@ -165,8 +177,15 @@
       }
     ];
 
+    const sourceDirection = source ? [
+      `This video summarizes the supplied source titled: ${sourceTitle || task}.`,
+      sourceSummary ? `Factual source summary: ${clean(sourceSummary, 360)}.` : '',
+      sourceKeyPoints.length ? `Key source points: ${sourceKeyPoints.slice(0, 3).map(item => clean(item, 160)).join(' | ')}.` : '',
+      'Preserve the meaning of these facts and do not add claims that are absent from the source.'
+    ].filter(Boolean).join(' ') : '';
     const grokPrompt = clean([
       'Create one original, cinematic vertical social video in a 9:16 aspect ratio, exactly 15 seconds long.',
+      sourceDirection,
       `The visual story begins with the problem: ${task}.`,
       `It then reveals the solution through clear physical action: ${solution}.`,
       `Finish with the visible result: ${result}.`,
@@ -184,6 +203,7 @@
       variation: variant,
       presenter: { key: presenterKey, name: presenter.name, direction: presenter.character },
       brief: { task, solution, result, audience, cta, tone },
+      source,
       script,
       pace,
       scenes,

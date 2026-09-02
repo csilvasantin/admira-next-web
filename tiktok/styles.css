@@ -386,6 +386,30 @@ main {
 
 .panel-heading h2 { margin: 0.45rem 0 0; font-size: 1.4rem; letter-spacing: -0.04em; }
 
+.source-card {
+  margin: -0.35rem 0 1.35rem;
+  padding: 1rem;
+  border: 1px solid rgba(189, 134, 255, 0.42);
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(189, 134, 255, 0.1), rgba(101, 233, 244, 0.04));
+}
+.source-copy h3 { margin: 0.35rem 0 0.35rem; font-size: 1rem; }
+.source-copy p { margin: 0 0 0.85rem; color: var(--muted); font-size: 0.72rem; line-height: 1.5; }
+.source-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.55rem; }
+.source-row label { min-width: 0; }
+.source-row input { height: 100%; }
+.source-button { border-color: var(--purple); color: #09040f; background: var(--purple); }
+.source-status { min-height: 1rem; margin: 0.7rem 0 0; color: var(--muted); font: 0.6rem/1.5 var(--mono); }
+.source-status.is-success { color: var(--green); }
+.source-status.is-error { color: var(--orange); }
+.source-summary { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--line); color: #c8d9de; font-size: 0.7rem; line-height: 1.55; }
+.source-summary strong { color: var(--cyan); }
+
+@media(max-width:620px){
+  .source-row { grid-template-columns: 1fr; }
+  .source-button { width: 100%; }
+}
+
 .field { display: block; margin-bottom: 1rem; }
 .field > span {
   display: block;
