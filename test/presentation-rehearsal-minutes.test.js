@@ -46,3 +46,13 @@ test('el guardado de ideas conserva los minutos, o el resto no sirve de nada', a
   assert.deepEqual(minutos({minutes: 0}), {});
   assert.deepEqual(minutos({minutes: 5000}), {minutes: 60}, 'con el mismo tope que el render');
 });
+
+test('la proyeccion a la vista no se come el tiempo declarado', async () => {
+  const fuente = await renderer();
+  const cuerpo = fuente.match(/function visibleBlock\(value=\{\}\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(cuerpo, 'no encuentro visibleBlock');
+  const visibleBlock = new Function(`${cuerpo} return visibleBlock;`)();
+  assert.equal(visibleBlock({id: 'x', minutes: 3.5}).minutes, 3.5, 'los minutos llegan a la lamina');
+  assert.equal(visibleBlock({id: 'x', seconds: 90}).seconds, 90);
+  assert.equal('minutes' in visibleBlock({id: 'x'}), false, 'sin declarar, el bloque no inventa tiempo');
+});

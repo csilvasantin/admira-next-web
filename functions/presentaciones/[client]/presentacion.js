@@ -25,7 +25,12 @@ function slideMediaMarkup(entry){
 }
 
 function visibleBlock(value={}){
-  return {id:value.id||'',title:value.title||'',message:value.message||'',detail:value.detail||'',enabled:value.enabled!==false};
+  // El tiempo declarado viaja con el bloque. Esta proyeccion recortaba a los cinco
+  // campos de texto, asi que los minutos guardados en el esqueleto no llegaban nunca
+  // a la lamina: cuarto y ultimo eslabon del mismo contrato (leer, escribir, guardar
+  // y proyectar), y cada uno lo perdia en silencio.
+  const tiempo=Number(value.seconds)>0?{seconds:Number(value.seconds)}:(Number(value.minutes)>0?{minutes:Number(value.minutes)}:{});
+  return {id:value.id||'',title:value.title||'',message:value.message||'',detail:value.detail||'',enabled:value.enabled!==false,...tiempo};
 }
 function visibleLocale(value={},fallback={}){
   return {
