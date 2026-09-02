@@ -26,6 +26,7 @@
   const playPause = $('#playPause');
   const exportVideo = $('#exportVideo');
   const exportStatus = $('#exportStatus');
+  const openTester = $('#openTester');
   const storyboard = $('#storyboard');
   const grokBoard = $('#grokBoard');
   const grokBoardStrip = $('#grokBoardStrip');
@@ -91,6 +92,9 @@
   const AD_IDEAS_KEY = 'admiranext:tiktok15:ad-ideas:v1';
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
   const REFERENCE_PROFILE_KEY = 'admiranext:tiktok:reference-profile:v1';
+  const TESTER_DB = 'pixeria-media-transfer';
+  const TESTER_STORE = 'media';
+  const TESTER_KEY = 'latest-tiktok';
 
   let variation = 0;
   let plan = null;
@@ -739,6 +743,33 @@
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
+  function guardarParaTester(blob, filename) {
+    if (!openTester || !('indexedDB' in window)) return Promise.resolve(false);
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(TESTER_DB, 1);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains(TESTER_STORE)) {
+          request.result.createObjectStore(TESTER_STORE);
+        }
+      };
+      request.onerror = () => reject(request.error || new Error('No se pudo preparar el Tester.'));
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction(TESTER_STORE, 'readwrite');
+        tx.objectStore(TESTER_STORE).put({
+          blob,
+          filename,
+          type: blob.type,
+          width: 1080,
+          height: 1920,
+          createdAt: new Date().toISOString()
+        }, TESTER_KEY);
+        tx.oncomplete = () => { db.close(); resolve(true); };
+        tx.onerror = () => { db.close(); reject(tx.error || new Error('No se pudo guardar el vídeo para el Tester.')); };
+      };
+    });
   }
 
   function downloadPlan() {
@@ -1813,8 +1844,13 @@
       const finalType = recorder.mimeType || mimeType || 'video/webm';
       const extension = finalType.includes('mp4') ? 'mp4' : 'webm';
       const blob = new Blob(chunks, { type: finalType });
-      downloadBlob(blob, `${core.fileSlug(plan.brief.task)}-15s.${extension}`);
-      exportStatus.textContent = `Vídeo descargado en ${extension.toUpperCase()}. Incluye animación, subtítulos y base sonora; la locución queda en el guion.`;
+      const filename = `${core.fileSlug(plan.brief.task)}-15s.${extension}`;
+      downloadBlob(blob, filename);
+      const preparado = await guardarParaTester(blob, filename).catch(() => false);
+      if (openTester) openTester.hidden = !preparado;
+      exportStatus.textContent = preparado
+        ? `Vídeo descargado en ${extension.toUpperCase()} y preparado para probarlo en los formatos de digital signage.`
+        : `Vídeo descargado en ${extension.toUpperCase()}. Incluye animación, subtítulos y base sonora; la locución queda en el guion.`;
     } catch (error) {
       exportStatus.textContent = error && error.message ? error.message : 'No se pudo generar el vídeo en este navegador.';
     } finally {

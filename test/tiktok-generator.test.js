@@ -80,6 +80,8 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /\/assets\/tiktok-core\.js/);
   assert.match(html, /\/tiktok\/app\.js/);
   assert.match(html, /Exportar vídeo 9:16/);
+  assert.match(html, /id="openTester"/);
+  assert.match(html, /pixeria\.com\/tester\/\?source=tiktok/);
   assert.match(html, /Grok · vídeo puro/);
   assert.match(html, /id="generateGrokVideo"/);
   assert.match(html, /Pixeria · envío automático activado/);
@@ -98,4 +100,12 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(middleware, /'ad-idea'/);
   assert.match(middleware, /'video-reference'/);
   assert.match(middleware, /'video-package'/);
+});
+
+test('la exportación vertical queda disponible para el Tester sin subirla a un servidor', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'tiktok', 'app.js'), 'utf8');
+  assert.match(app, /const TESTER_DB = 'pixeria-media-transfer'/);
+  assert.match(app, /indexedDB\.open\(TESTER_DB, 1\)/);
+  assert.match(app, /objectStore\(TESTER_STORE\)\.put\(/);
+  assert.match(app, /guardarParaTester\(blob, filename\)/);
 });
