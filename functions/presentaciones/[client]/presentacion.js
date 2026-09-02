@@ -145,7 +145,18 @@ export async function onRequestGet(context){
   });
   const adaptedImages=imageSlides.filter(slide=>slide?.status==='ready'&&slide?.textFreeVerified===true&&new RegExp(`^/presentaciones/${client}/images/[a-z0-9._-]+$`,'i').test(String(slide?.url||''))).map(slide=>slide.url);
   const imageAttr=index=>{const slide=imageSlides[index],url=String(slide?.url||'');return slide?.status==='ready'&&slide?.textFreeVerified===true&&new RegExp(`^/presentaciones/${client}/images/[a-z0-9._-]+$`,'i').test(url)?` data-has-image="true" style="--slide-image:url('${esc(url)}')"`:''};
-  const slides=baseBlocks.map((item,index)=>{const key=String(item.id||`idea-${index+1}`).toLowerCase();return `<section class="slide"${mediaFor(key)?' data-slide-media':''} data-slide-key="${esc(key)}" data-segment="proposal" data-section="proposal" data-image-index="${index+2}" data-block="${index}" data-block-id="${esc(item.id||`idea-${index+1}`)}"${imageAttr(index+2)}>${mediaFor(key)}<div class="inner"><span class="num">${String(index+1).padStart(2,'0')}</span><h2 data-edit-field="skeleton.title">${esc(item.title)}</h2><p class="message" data-edit-field="skeleton.message">${esc(item.message)}</p><p class="detail" data-edit-field="skeleton.detail">${esc(item.detail)}</p></div></section>`}).join('');
+  // EL GUION DE ENSAYO SALE DEL DOCUMENTO, NO DEL REPARTO A PARTES IGUALES
+  // (Neo · MBP14, 02-09-2026). El entrenador de ritmo YA leia data-presenter-seconds
+  // por lamina (presentation-presenter-mode.js:1988), pero ningun sitio lo escribia:
+  // todas las laminas de contenido pesaban 1.15 y el plan salia plano —dos minutos
+  // para «donde encaja NVIDIA» y dos para «donde aterriza», que no es lo mismo—.
+  // Ahora un bloque del esqueleto puede declarar sus minutos (minutes) o segundos
+  // (seconds) y el ensayo los respeta; sin declarar, todo sigue como estaba.
+  const presenterSeconds=item=>{
+    const segundos=Number(item?.seconds)>0?Number(item.seconds):Number(item?.minutes)*60;
+    return Number.isFinite(segundos)&&segundos>0?` data-presenter-seconds="${Math.round(Math.min(segundos,3600))}"`:'';
+  };
+  const slides=baseBlocks.map((item,index)=>{const key=String(item.id||`idea-${index+1}`).toLowerCase();return `<section class="slide"${presenterSeconds(item)}${mediaFor(key)?' data-slide-media':''} data-slide-key="${esc(key)}" data-segment="proposal" data-section="proposal" data-image-index="${index+2}" data-block="${index}" data-block-id="${esc(item.id||`idea-${index+1}`)}"${imageAttr(index+2)}>${mediaFor(key)}<div class="inner"><span class="num">${String(index+1).padStart(2,'0')}</span><h2 data-edit-field="skeleton.title">${esc(item.title)}</h2><p class="message" data-edit-field="skeleton.message">${esc(item.message)}</p><p class="detail" data-edit-field="skeleton.detail">${esc(item.detail)}</p></div></section>`}).join('');
   const buttons=(logo?`<span class="brand-identity"><span class="brand-mark"><img src="${logo}" alt="Logo de ${name}"></span><span class="brand-name">${name}</span></span>`:'')+languages.map((language,index)=>`<button type="button" data-language="${esc(language)}" aria-pressed="${index===0?'true':'false'}">${esc(language.toUpperCase())}</button>`).join('');
   const initialQuality=option(config.sequence?.beforeQuality,['good','better','best'],'good');
   const beforeSlides=deckSlides(config.sequence?.before,client,'before',{length:config.sequence?.beforeLength,quality:initialQuality,adaptedImages}),afterSlides=deckSlides(config.sequence?.after,client,'after',{quality:initialQuality,adaptedImages});
