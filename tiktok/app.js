@@ -10,7 +10,6 @@
   const loadContentSource = $('#loadContentSource');
   const sourceStatus = $('#sourceStatus');
   const sourceSummary = $('#sourceSummary');
-  const sourceAccess = $('#sourceAccess');
   const adIdeaForm = $('#adIdeaForm');
   const adIdeaStatus = $('#adIdeaStatus');
   const adIdeaCount = $('#adIdeaCount');
@@ -194,7 +193,6 @@
   function clearContentSource(clearInput = true) {
     contentSource = null;
     if(clearInput) contentSourceUrl.value = '';
-    sourceAccess.hidden = true;
     saveContentSource();
     renderContentSource();
     setSourceMessage('También puedes completar el brief manualmente.');
@@ -218,7 +216,6 @@
     if(!url){setSourceMessage('Pega primero la URL de una web o presentación.', 'error'); contentSourceUrl.focus(); return;}
     loadContentSource.disabled = true;
     loadContentSource.textContent = 'Leyendo…';
-    sourceAccess.hidden = true;
     setSourceMessage('Leyendo la fuente y seleccionando las ideas principales…');
     try{
       const response = await fetch('/presentaciones/api/source-brief', {
@@ -229,14 +226,11 @@
       });
       const type = response.headers.get('content-type') || '';
       if(!type.includes('application/json')){
-        const error = new Error('Inicia sesión en el Generador de Presentaciones para preparar una fuente.');
-        error.auth = response.status === 401 || response.status === 403;
-        throw error;
+        throw new Error('El lector de URLs no está disponible ahora. Vuelve a intentarlo en unos segundos.');
       }
       const payload = await response.json();
       if(!response.ok){
         const error = new Error(payload?.error || 'No se pudo leer la fuente.');
-        error.auth = response.status === 401 || response.status === 403;
         throw error;
       }
       if(!payload?.brief || !payload?.source?.url) throw new Error('La fuente no devolvió un resumen utilizable.');
@@ -249,7 +243,6 @@
       generate();
       setSourceMessage(`Resumen listo · ${payload.keyPoints?.length || 0} ideas principales convertidas en un vídeo de 15 segundos.`, 'success');
     }catch(error){
-      sourceAccess.hidden = !error?.auth;
       setSourceMessage(String(error?.message || 'No se pudo preparar la fuente.'), 'error');
     }finally{
       loadContentSource.disabled = false;

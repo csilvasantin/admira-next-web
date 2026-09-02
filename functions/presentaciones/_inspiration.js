@@ -217,6 +217,7 @@ export function normalizeInspiration(value, expectedUrl = ''){
 export async function analyzeInspiration(value){
   const requested = assertPublicHttps(value);
   const response = await fetch(requested.toString(), {headers:{accept:'text/html,application/xhtml+xml','user-agent':'ADmiraNeXT Inspiration Analyzer/1.0'}, redirect:'follow', signal:AbortSignal.timeout(8000)});
+  if (response.status === 401 || response.status === 403) throw new Error('Esa URL no permite lectura pública. Usa su enlace público o una presentación de Pixeria/ADmiraNeXT.');
   if (!response.ok) throw new Error(`La web inspiradora responde con HTTP ${response.status}.`);
   const finalUrl = assertPublicHttps(response.url || requested.toString());
   const type = response.headers.get('content-type') || '';

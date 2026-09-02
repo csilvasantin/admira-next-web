@@ -1,7 +1,7 @@
 import {analyzeInspiration} from '../_inspiration.js';
 
 const MAX_REQUEST_BYTES = 4 * 1024;
-const INTERNAL_HOSTS = new Set(['admiranext.com', 'www.admiranext.com']);
+const INTERNAL_HOSTS = new Set(['admiranext.com', 'www.admiranext.com', 'pixeria.com', 'www.pixeria.com']);
 const LANGUAGES = new Set(['es', 'en', 'ca']);
 
 function json(payload, status = 200){
@@ -46,6 +46,17 @@ async function readJsonLimited(request){
   let offset = 0;
   for(const chunk of chunks){bytes.set(chunk, offset); offset += chunk.byteLength;}
   try{return JSON.parse(new TextDecoder().decode(bytes));}catch(_){throw new Error('json_invalid');}
+}
+
+async function consumeRateLimit(env, request){
+  const ip = clean(request.headers.get('cf-connecting-ip'), 80);
+  const store = env.PRESENTATION_IDEAS;
+  if(!ip || !store || typeof store.get !== 'function' || typeof store.put !== 'function') return true;
+  const key = `tiktok:source-brief:rate:${ip}:${Math.floor(Date.now() / 60000)}`;
+  const count = Math.max(0, Number(await store.get(key)) || 0);
+  if(count >= 12) return false;
+  await store.put(key, String(count + 1), {expirationTtl:120});
+  return true;
 }
 
 export function parseSourceUrl(value){
@@ -167,6 +178,7 @@ export async function onRequest(context){
 
   let parsed;
   try{parsed = parseSourceUrl(body?.url);}catch(error){return json({error:error.message}, 422);}
+  if(!(await consumeRateLimit(env, request))) return json({error:'Has preparado muchas URLs seguidas. Espera un minuto y vuelve a intentarlo.'}, 429);
 
   try{
     let result;

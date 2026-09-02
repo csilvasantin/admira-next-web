@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {briefFromPresentation, briefFromWeb, onRequest, parseSourceUrl} from '../functions/presentaciones/api/source-brief.js';
 import {extractReadableText} from '../functions/presentaciones/_inspiration.js';
+import {onRequest as presentationMiddleware} from '../functions/presentaciones/_middleware.js';
 
 const URL_NVIDIA = 'https://www.admiranext.com/presentaciones/nvidia/presentacion?lang=en';
 
@@ -34,8 +35,24 @@ test('detecta una presentación y respeta el idioma de la URL', () => {
   const parsed = parseSourceUrl(URL_NVIDIA);
   assert.equal(parsed.presentation.client, 'nvidia');
   assert.equal(parsed.presentation.language, 'en');
+  const proxied = parseSourceUrl('https://www.pixeria.com/presentaciones/nvidia/presentacion?lang=en');
+  assert.equal(proxied.presentation.client, 'nvidia');
+  assert.equal(proxied.presentation.language, 'en');
   assert.equal(parseSourceUrl('https://example.com/article').presentation, null);
   assert.throws(() => parseSourceUrl('http://127.0.0.1/private'), /https/);
+});
+
+test('el lector de URLs atraviesa el middleware sin login', async () => {
+  let reachedEndpoint = false;
+  const response = await presentationMiddleware({
+    request:new Request('https://www.admiranext.com/presentaciones/api/source-brief', {
+      method:'POST', headers:{origin:'https://www.admiranext.com', 'content-type':'application/json'}
+    }),
+    env:{},
+    next:async () => {reachedEndpoint = true; return new Response('next');}
+  });
+  assert.equal(reachedEndpoint, true);
+  assert.equal(await response.text(), 'next');
 });
 
 test('convierte una presentación traducida en un brief factual de 15 segundos', () => {
@@ -67,6 +84,24 @@ test('el endpoint lee NVIDIA desde KV sin raspar la página privada', async () =
   assert.equal(payload.source.client, 'nvidia');
   assert.equal(payload.source.language, 'en');
   assert.equal(payload.source.url, URL_NVIDIA);
+});
+
+test('la URL equivalente de Pixeria también lee NVIDIA sin pedir acceso', async () => {
+  const {config, ideas} = nvidiaFixture();
+  const kv = {get:async key => key === 'presentation:nvidia' ? config : key === 'ideas:nvidia' ? ideas : null};
+  const sourceUrl = 'https://www.pixeria.com/presentaciones/nvidia/presentacion?lang=en';
+  const response = await onRequest({
+    request:new Request('https://www.admiranext.com/presentaciones/api/source-brief', {
+      method:'POST',
+      headers:{origin:'https://www.admiranext.com', 'content-type':'application/json'},
+      body:JSON.stringify({url:sourceUrl})
+    }),
+    env:{PRESENTATION_IDEAS:kv}
+  });
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.source.client, 'nvidia');
+  assert.equal(payload.source.url, sourceUrl);
 });
 
 test('extrae texto legible de una web y elimina navegación y scripts', () => {

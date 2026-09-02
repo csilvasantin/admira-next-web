@@ -167,7 +167,8 @@ export async function onRequest(context){
   const isPresentationMode = !isGallery && second === 'presentacion';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
   const isGeneratorPage = first === 'generador' && parts.length === 1;
-  const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library','grok-video','ad-idea','source-brief','video-reference','video-package'].includes(second);
+  const isPublicSourceBriefApi = first === 'api' && second === 'source-brief';
+  const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library','grok-video','ad-idea','video-reference','video-package'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
   const isCapsuleApi = first === 'api' && second === 'capsule-tiktok';
   const isClientsApi = first === 'api' && second === 'clients';
@@ -183,6 +184,11 @@ export async function onRequest(context){
   // esto recibía la página de login en vez de la petición — y en silencio, porque
   // un 200 con HTML no parece un error desde el otro lado.
   if (isCapsuleApi) return next();
+  // Leer una URL y preparar un brief no inicia ninguna generación de pago ni
+  // concede acceso a la presentación. El endpoint devuelve únicamente una
+  // proyección acotada (título, resumen y bloques visibles), por lo que puede
+  // usarse desde Pixeria sin obligar al visitante a entrar en el Generador.
+  if (isPublicSourceBriefApi) return next();
   // La creación de sesión atraviesa la puerta humana normal. El emparejamiento
   // y el polling posterior usan secretos efímeros verificados por sus endpoints.
   if (isRemoteApi && parts.length > 4) return next();

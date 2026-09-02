@@ -101,7 +101,8 @@ test('la ruta pública carga los recursos del estudio', () => {
   assert.match(html, /5 \+ 15 \+ 5/);
   assert.match(middleware, /'grok-video'/);
   assert.match(middleware, /'ad-idea'/);
-  assert.match(middleware, /'source-brief'/);
+  assert.match(middleware, /isPublicSourceBriefApi/);
+  assert.doesNotMatch(middleware, /\['generate'[^\]]*'source-brief'/);
   assert.match(middleware, /'video-reference'/);
   assert.match(middleware, /'video-package'/);
 });
