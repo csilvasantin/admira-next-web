@@ -25,8 +25,9 @@ test('generated presentations load the intelligent presenter mode without exposi
   assert.match(html,/presentation-share-guardian\.js\?v=20260723-1/);
   assert.match(html,/presentation-production-backchannel\.js\?v=20260723-1/);
   assert.match(html,/presentation-presenter-mode\.js\?v=20260902-2/);
-  assert.match(html,/presentation-ui-i18n\.js\?v=20260902-3/);
+  assert.match(html,/presentation-ui-i18n\.js\?v=20260903-1/);
   assert.match(html,/presentation-floating-labels\.js\?v=20260902-1/);
+  assert.match(html,/admira-version-watch\.js\?build=02092026-1/);
   assert.ok(html.indexOf('presentation-share-guardian.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.ok(html.indexOf('presentation-production-backchannel.js')<html.indexOf('presentation-presenter-mode.js'));
   assert.match(html,/window\.__ADMIRA_PRESENTER_NOTES__/);
@@ -44,6 +45,7 @@ test('audience output is structurally separated and never serializes private pre
   assert.equal(response.status,200);
   assert.match(html,/presentation-presenter-mode\.js\?v=/);
   assert.doesNotMatch(html,/__ADMIRA_PRESENTER_NOTES__/);
+  assert.doesNotMatch(html,/admira-version-watch\.js/,'la audiencia nunca debe ver avisos internos de publicación');
   assert.doesNotMatch(html,/Recordar el contexto/);
   assert.doesNotMatch(html,/Nota privada de portada|Nota privada de bloque/);
   assert.doesNotMatch(html,/Notas del orador|presenterNotes|admiraPresenterPanel/);

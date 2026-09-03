@@ -62,6 +62,8 @@ test('las etiquetas flotantes se pueden mover y cerrar sin contaminar el idioma'
   assert.match(ui, /'Ensayar':'Rehearse'/);
   assert.match(ui, /'Pantalla completa':'Full screen'/);
   assert.match(ui, /'Guardar y traducir':'Save and translate'/);
+  assert.match(ui,/\.admira-version/,'el aviso de versión también debe respetar el idioma del deck');
+  assert.match(ui,/'Comprobar':'Check'/);
 });
 
 test('H deja únicamente la presentación y vuelve a mostrar las superposiciones',async()=>{
@@ -71,11 +73,11 @@ test('H deja únicamente la presentación y vuelve a mostrar las superposiciones
     lee('assets/presentation-clean-mode.css')
   ]);
   assert.match(deck,/presentation-clean-mode\.js\?v=20260903-1/);
-  assert.match(deck,/presentation-clean-mode\.css\?v=20260903-1/);
+  assert.match(deck,/presentation-clean-mode\.css\?v=20260903-2/);
   assert.match(deck,/↑ ↓ · F · H/,'la ayuda visible debe enseñar el atajo');
   assert.match(clean,/String\(event\.key\)\.toLowerCase\(\)!=='h'/);
   assert.match(clean,/classList\.toggle\('presentation-clean-mode'/,'H debe ser reversible');
-  for(const overlay of ['presentation-floating-shell','presenter-panel','inline-editor','presenter-caption-layer','slide-media-diagnostics']){
+  for(const overlay of ['presentation-floating-shell','presenter-panel','inline-editor','admira-version','presenter-caption-layer','slide-media-diagnostics']){
     assert.match(styles,new RegExp(overlay),`falta ocultar ${overlay}`);
   }
   assert.doesNotMatch(styles,/body\s*>\s*\.slide(?:\s|,|\{)/,'el modo limpio nunca debe ocultar la presentación');
