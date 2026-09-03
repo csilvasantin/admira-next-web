@@ -146,6 +146,15 @@ export async function onRequest(context){
   const isGallery = parts.length === 0 || (parts.length === 1 && first === 'index');
   const seg = isGallery ? '' : first;
 
+  if(request.method==='GET'&&first==='generador'&&parts.length===1){
+    const canonical=new URL(request.url);canonical.pathname='/presentaciones/';
+    return Response.redirect(canonical.toString(),308);
+  }
+  if(request.method==='GET'&&parts.length===1&&first==='index'){
+    const canonical=new URL(request.url);canonical.pathname='/presentaciones/';
+    return Response.redirect(canonical.toString(),308);
+  }
+
   if (request.method === 'GET' && parts[1] === 'Ideas') {
     const canonical = new URL(request.url); canonical.pathname = canonical.pathname.replace(/\/Ideas\/?$/, '/ideas');
     return Response.redirect(canonical.toString(), 308);
@@ -166,7 +175,8 @@ export async function onRequest(context){
   const isBrandAssets = !isGallery && second === 'brand';
   const isPresentationMode = !isGallery && second === 'presentacion';
   const isIdeasWrite = isIdeasApi && request.method !== 'GET';
-  const isGeneratorPage = first === 'generador' && parts.length === 1;
+  const isGeneratorPage = isGallery;
+  const isGalleryPage = first === 'galeria' && parts.length === 1;
   const isPublicSourceBriefApi = first === 'api' && second === 'source-brief';
   const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library','grok-video','ad-idea','video-reference','video-package'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
@@ -174,7 +184,7 @@ export async function onRequest(context){
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
   const isRemoteApi = !isGallery && second === 'api' && third === 'remote';
-  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isGeneratorPage || isGeneratorApi || isClientsApi || isControlArea;
+  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
 
   // El productor local se autentica con un Bearer token propio. No debe atravesar
   // el formulario/cookie de las áreas humanas antes de llegar a su endpoint.
@@ -218,7 +228,7 @@ export async function onRequest(context){
   if (!isGallery && env.PRESENTATION_IDEAS && !isGeneratorApi && !isGeneratorPage && !isControlArea) generated = await env.PRESENTATION_IDEAS.get(`presentation:${seg}`, {type:'json'});
   const dynamicVerifier = generated?.passwordVerifier || '';
   const clientTitle = generated?.displayName || names[seg] || seg.charAt(0).toUpperCase() + seg.slice(1);
-  const title = isGallery ? 'Presentaciones' : (isGeneratorPage || isGeneratorApi || isClientsApi ? 'Generador de presentaciones' : (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi ? `${clientTitle} · Ideas` : clientTitle));
+  const title = isGeneratorPage || isGeneratorApi || isClientsApi ? 'Generador de presentaciones' : (isGalleryPage ? 'Presentaciones' : (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi ? `${clientTitle} · Ideas` : clientTitle));
 
   if (!signKey || (!expected && !dynamicVerifier && !master && !generic)) return htmlResponse(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'), 503);
 
@@ -248,7 +258,7 @@ export async function onRequest(context){
     return new Response(null, {status:303, headers});
   }
   const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
-  const ownerAllowed = isGeneratorPage || isGeneratorApi || isClientsApi;
+  const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi;
   const authorized = masterValid || (editorAllowed && editorValid) || (ownerAllowed && ownerValid) || (!isInternalArea && clientValid);
   const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : ownerValid ? 'owner' : 'client';
   const contentType = request.headers.get('content-type') || '';

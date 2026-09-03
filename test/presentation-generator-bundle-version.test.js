@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {onRequestGet} from '../functions/presentaciones/generador.js';
+import {onRequestGet} from '../functions/presentaciones/index.js';
 
 // El Generador cargaba su bundle por DOS caminos con DOS claves distintas: la
 // función de Pages reescribía el <script> a ?v=20260724-media-library y, fuera
@@ -47,7 +47,7 @@ test('la clave del bundle es la misma en el HTML, en la función de borde y en l
 test('la función de borde sigue inyectando el envoltorio cuadrático sobre el HTML vivo', async () => {
   const {html} = await sources();
   const response = await onRequestGet({
-    request: new Request('https://admiranext.test/presentaciones/generador/'),
+    request: new Request('https://admiranext.test/presentaciones/'),
     env: {ASSETS: {fetch: async () => new Response(html)}}
   });
   const salida = await response.text();

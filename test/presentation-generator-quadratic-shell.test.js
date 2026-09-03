@@ -1,16 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {onRequestGet} from '../functions/presentaciones/generador.js';
+import {onRequestGet} from '../functions/presentaciones/index.js';
+import {onRequestGet as legacyGenerator} from '../functions/presentaciones/generador.js';
 
 test('generator route injects the quadratic shell without replacing the form',async()=>{
   const source='<!doctype html><html><head><title>Generator</title></head><body><form id="generator"><input name="displayName"></form><script src="/assets/presentation-generator.js"></script></body></html>';
-  const response=await onRequestGet({request:new Request('https://admiranext.test/presentaciones/generador/'),env:{ASSETS:{fetch:async()=>new Response(source)}}});
+  const response=await onRequestGet({request:new Request('https://admiranext.test/presentaciones/'),env:{ASSETS:{fetch:async()=>new Response(source)}}});
   const html=await response.text();
   assert.match(html,/presentation-generator-20260721-11\.js/);
   assert.match(html,/presentation-generator-quadratic\.css\?v=1/);
   assert.match(html,/presentation-generator-quadratic\.js\?v=1/);
   assert.match(html,/form id="generator"/);
+});
+
+test('presentaciones is the canonical generator entry',async()=>{
+  const response=await legacyGenerator({request:new Request('https://admiranext.test/presentaciones/generador/?source=brief'),env:{}});
+  assert.equal(response.status,308);
+  assert.equal(response.headers.get('location'),'https://admiranext.test/presentaciones/?source=brief');
 });
 
 test('quadratic generator exposes the three requested navigation surfaces',async()=>{
@@ -24,4 +31,5 @@ test('quadratic generator exposes the three requested navigation surfaces',async
   assert.match(styles,/generator-side-drawer\.left/);
   assert.match(styles,/generator-side-drawer\.right/);
   assert.match(styles,/generator-bottom-drawer/);
+  assert.match(script,/href="\/presentaciones\/galeria\/"/);
 });

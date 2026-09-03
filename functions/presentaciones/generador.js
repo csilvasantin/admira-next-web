@@ -1,4 +1,9 @@
 export async function onRequestGet(context){
+  const requested=new URL(context.request.url);
+  if(/^\/presentaciones\/generador(?:\.html)?\/?$/i.test(requested.pathname)){
+    requested.pathname='/presentaciones/';
+    return Response.redirect(requested.toString(),308);
+  }
   const source=new URL('/presentaciones/generador.html',context.request.url);
   const asset=await context.env.ASSETS.fetch(source);
   if(!asset.ok)return new Response('Generador no disponible',{status:503});

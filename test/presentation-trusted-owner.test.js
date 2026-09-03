@@ -23,7 +23,7 @@ function cookieHeader(response){
 }
 
 test('Cloudflare Access inicia automáticamente al propietario verificado', async () => {
-  const response = await onRequest(context('https://www.admiranext.com/presentaciones/generador/', {
+  const response = await onRequest(context('https://www.admiranext.com/presentaciones/', {
     headers:{
       'Cf-Access-Authenticated-User-Email':'csilva@admira.com',
       'Cf-Access-Jwt-Assertion':'verified-by-cloudflare-access'
@@ -31,7 +31,7 @@ test('Cloudflare Access inicia automáticamente al propietario verificado', asyn
   }));
 
   assert.equal(response.status, 303);
-  assert.equal(response.headers.get('location'), '/presentaciones/generador/');
+  assert.equal(response.headers.get('location'), '/presentaciones/');
   const cookies = response.headers.getSetCookie();
   assert.ok(cookies.some(value => value.startsWith('pres_owner=')));
   assert.ok(cookies.some(value => value.startsWith('pres_identity=')));
@@ -46,9 +46,9 @@ test('Cloudflare Access inicia automáticamente al propietario verificado', asyn
 
 test('el propietario automático exige correo exacto, JWT y dominio protegido', async () => {
   for (const [url, headers] of [
-    ['https://www.admiranext.com/presentaciones/generador/', {'Cf-Access-Authenticated-User-Email':'otro@admira.com', 'Cf-Access-Jwt-Assertion':'jwt'}],
-    ['https://www.admiranext.com/presentaciones/generador/', {'Cf-Access-Authenticated-User-Email':'csilvasantin@gmail.com'}],
-    ['https://preview.pages.dev/presentaciones/generador/', {'Cf-Access-Authenticated-User-Email':'csilvasantin@gmail.com', 'Cf-Access-Jwt-Assertion':'jwt'}]
+    ['https://www.admiranext.com/presentaciones/', {'Cf-Access-Authenticated-User-Email':'otro@admira.com', 'Cf-Access-Jwt-Assertion':'jwt'}],
+    ['https://www.admiranext.com/presentaciones/', {'Cf-Access-Authenticated-User-Email':'csilvasantin@gmail.com'}],
+    ['https://preview.pages.dev/presentaciones/', {'Cf-Access-Authenticated-User-Email':'csilvasantin@gmail.com', 'Cf-Access-Jwt-Assertion':'jwt'}]
   ]) {
     const response = await onRequest(context(url, {headers}));
     assert.equal(response.status, 401);
@@ -57,7 +57,7 @@ test('el propietario automático exige correo exacto, JWT y dominio protegido', 
 });
 
 test('la sesión de propietario no abre el área de control', async () => {
-  const login = await onRequest(context('https://www.admiranext.com/presentaciones/generador/', {
+  const login = await onRequest(context('https://www.admiranext.com/presentaciones/', {
     headers:{
       'Cf-Access-Authenticated-User-Email':'csilvasantin@gmail.com',
       'Cf-Access-Jwt-Assertion':'verified-by-cloudflare-access'
@@ -67,6 +67,12 @@ test('la sesión de propietario no abre el área de control', async () => {
     headers:{Cookie:cookieHeader(login)}
   }));
   assert.equal(response.status, 401);
+});
+
+test('la ruta antigua del generador redirige a la entrada canónica',async()=>{
+  const response=await onRequest(context('https://www.admiranext.com/presentaciones/generador/?source=brief'));
+  assert.equal(response.status,308);
+  assert.equal(response.headers.get('location'),'https://www.admiranext.com/presentaciones/?source=brief');
 });
 
 test('las dos cuentas Google propietarias acceden a presentaciones y áreas internas', async t => {

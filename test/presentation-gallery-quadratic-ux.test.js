@@ -215,5 +215,5 @@ test('el rediseño conserva el control de accesos y la entrada al presentador', 
   const html = await galeria();
 
   assert.match(html, /href=["']\/presentaciones\/control\/["']/i);
-  assert.match(html, /href=["']\/presentaciones\/generador\/["']/i);
+  assert.match(html, /href=["']\/presentaciones\/["']/i);
 });

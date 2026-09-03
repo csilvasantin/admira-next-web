@@ -1,0 +1,16 @@
+html.presentation-clean-mode .presentation-floating-shell,
+html.presentation-clean-mode body > .languages,
+html.presentation-clean-mode body > .section-nav,
+html.presentation-clean-mode body > .nav,
+html.presentation-clean-mode .quality-levels,
+html.presentation-clean-mode .inline-editor,
+html.presentation-clean-mode .presenter-launch,
+html.presentation-clean-mode .presenter-panel,
+html.presentation-clean-mode #presenterCalibrationPattern,
+html.presentation-clean-mode .translation-review,
+html.presentation-clean-mode .presenter-caption-layer,
+html.presentation-clean-mode .slide-media-diagnostics,
+html.presentation-clean-mode .slide-media-rights,
+html.presentation-clean-mode .slide-media-control {
+  display: none !important;
+}

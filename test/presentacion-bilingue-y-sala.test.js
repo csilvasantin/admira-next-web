@@ -64,6 +64,23 @@ test('las etiquetas flotantes se pueden mover y cerrar sin contaminar el idioma'
   assert.match(ui, /'Guardar y traducir':'Save and translate'/);
 });
 
+test('H deja únicamente la presentación y vuelve a mostrar las superposiciones',async()=>{
+  const [deck,clean,styles]=await Promise.all([
+    lee('functions/presentaciones/[client]/presentacion.js'),
+    lee('assets/presentation-clean-mode.js'),
+    lee('assets/presentation-clean-mode.css')
+  ]);
+  assert.match(deck,/presentation-clean-mode\.js\?v=20260903-1/);
+  assert.match(deck,/presentation-clean-mode\.css\?v=20260903-1/);
+  assert.match(deck,/↑ ↓ · F · H/,'la ayuda visible debe enseñar el atajo');
+  assert.match(clean,/String\(event\.key\)\.toLowerCase\(\)!=='h'/);
+  assert.match(clean,/classList\.toggle\('presentation-clean-mode'/,'H debe ser reversible');
+  for(const overlay of ['presentation-floating-shell','presenter-panel','inline-editor','presenter-caption-layer','slide-media-diagnostics']){
+    assert.match(styles,new RegExp(overlay),`falta ocultar ${overlay}`);
+  }
+  assert.doesNotMatch(styles,/body\s*>\s*\.slide(?:\s|,|\{)/,'el modo limpio nunca debe ocultar la presentación');
+});
+
 test('el botón de ensayar no se monta sobre el conmutador de calidad', async () => {
   const css = await lee('assets/presentation-presenter-mode.css');
   const bloque = css.match(/\.presenter-launch\{[\s\S]*?\}/)?.[0];

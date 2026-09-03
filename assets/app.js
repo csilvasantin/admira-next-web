@@ -1995,7 +1995,7 @@
     ]},
     { groupEs: '🚀  Desarrollo · AdmiraNeXT', groupEn: '🚀  Development · AdmiraNeXT', items: [
       { cmd: '/admiralive',   labelEs: 'admira.live — el Consejo',                 labelEn: 'admira.live — the Council',                 url: 'https://www.admira.live',      color: 'purple' },
-      { cmd: '/presentaciones', labelEs: 'Generador de presentaciones',               labelEn: 'Presentation generator',                      url: 'https://www.admiranext.com/presentaciones/generador', color: 'accent' },
+      { cmd: '/presentaciones', labelEs: 'Generador de presentaciones',               labelEn: 'Presentation generator',                      url: 'https://www.admiranext.com/presentaciones/', color: 'accent' },
       { cmd: '/presupuestos', labelEs: 'Generador de Presupuestos',                   labelEn: 'Budget generator',                            url: 'https://www.admiranext.com/presupuestos/', color: 'accent' },
       { cmd: '/creditos',      labelEs: 'Generador de créditos finales',              labelEn: 'End credits generator',                        url: 'https://www.admiranext.com/creditos/', color: 'green' },
       { cmd: '/impacto',       labelEs: 'Narrativa de Impacto — historias humanas',    labelEn: 'Impact Narratives — human stories',            url: 'https://www.admiranext.com/impacto/', color: 'blue' },
