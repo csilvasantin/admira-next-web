@@ -21,10 +21,10 @@ test("una discrepancia de identidad no puede producir atribución de puntos", ()
   assert.doesNotMatch(rule, /el censo manda/);
 });
 
-test("la normativa queda numerada de 01 a 27 sin huecos", () => {
+test("la normativa queda numerada de 01 a 28 sin huecos", () => {
   const numbers = [...html.matchAll(/<article class="art" id="n(\d+)">\s*<div class="num">(\d+)<\/div>/g)]
     .map((match) => [match[1], match[2]]);
-  assert.deepEqual(numbers, Array.from({ length: 27 }, (_, index) => {
+  assert.deepEqual(numbers, Array.from({ length: 28 }, (_, index) => {
     const value = String(index + 1).padStart(2, "0");
     return [value, value];
   }));
@@ -58,4 +58,19 @@ test("la regla 27 ata el alta y el cierre en una sola obligación para todos", (
   assert.match(rule, /no está cerrado/);
   assert.match(rule, /TODOS los agentes de AdmiraNeXT, sin excepción/);
   assert.match(rule, /el tamaño no es un criterio/i);
+});
+
+// La regla 28 nació el 3-sep-2026, y de un caso concreto: el 2 de septiembre
+// xpaceos.com/nvidia devolvía un 404 el día de la reunión con NVIDIA, se arregló en
+// veinte minutos y se quedó sin misión porque quien lo arregló no figuraba en ese
+// proyecto del censo. Un registro que impide arreglar lo que está roto no protege nada.
+test("la regla 28 abre los proyectos a los cinco sin quitarle el mando a nadie", async () => {
+  const html = await readFile(new URL("../normativa.html", import.meta.url), "utf8");
+  const regla = html.match(/<article class="art" id="n28">[\s\S]*?<\/article>/)?.[0];
+  assert.ok(regla, "la regla 28 tiene que existir");
+  for (const persona of ["Neo", "Trinity", "Morfeo", "Oráculo", "Smith"]) {
+    assert.ok(regla.includes(persona), `la regla nombra a los cinco: falta ${persona}`);
+  }
+  assert.match(regla, /responsable de silicio/, "sigue habiendo un responsable por proyecto");
+  assert.match(regla, /avisa, no pisa/, "acceso para cuidar, no para mandar");
 });
