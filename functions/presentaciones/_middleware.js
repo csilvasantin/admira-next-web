@@ -5,9 +5,11 @@
  */
 
 import {cleanIdentity, identityCookie, makeIdentityToken, readCookies, readIdentity, writeAccessEvent} from './_access.js';
+import {allowedBy, generatorAccess, makeSessionToken, readSession} from './_directory.js';
 
 const MAXAGE = 60 * 60 * 24 * 30;
-const TRUSTED_GENERATOR_EMAILS = new Set(['csilva@admira.com', 'csilvasantin@gmail.com']);
+// La lista de correos autorizados ya NO vive aquí: manda el directorio de /usuarios
+// (AUTH_DB) a través de ./_directory.js. Ver FLT-1631.
 const GOOGLE_CLIENT_ID = '861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com';
 const enc = new TextEncoder();
 
@@ -77,8 +79,9 @@ async function verifyGoogleCredential(credential){
     const email = String(payload.email || '').trim().toLowerCase();
     const verified = payload.email_verified === true || payload.email_verified === 'true';
     const validExpiry = Number(payload.exp) > Math.floor(Date.now() / 1000);
-    if (payload.aud !== GOOGLE_CLIENT_ID || !verified || !validExpiry || !TRUSTED_GENERATOR_EMAILS.has(email)) return null;
-    return cleanIdentity({name:payload.name || email.split('@')[0], email});
+    if (payload.aud !== GOOGLE_CLIENT_ID || !verified || !validExpiry || !email) return null;
+    const verifiedIdentity = cleanIdentity({name:payload.name || email.split('@')[0], email});
+    return verifiedIdentity ? {...verifiedIdentity, sub:String(payload.sub || '')} : null;
   } catch (_) { return null; }
 }
 
@@ -218,11 +221,13 @@ export async function onRequest(context){
   const recoveryRequested = url.searchParams.get('recuperar') === '1';
   const accessEmail = String(request.headers.get('Cf-Access-Authenticated-User-Email') || '').trim().toLowerCase();
   const accessAssertion = request.headers.get('Cf-Access-Jwt-Assertion') || '';
-  const trustedGeneratorIdentity = request.method === 'GET'
+  const accessCandidate = request.method === 'GET'
     && isGeneratorPage
     && url.hostname.toLowerCase() === 'www.admiranext.com'
     && Boolean(accessAssertion)
-    && TRUSTED_GENERATOR_EMAILS.has(accessEmail);
+    && accessEmail;
+  const accessDirectory = accessCandidate ? await generatorAccess(env, {email:accessEmail}) : null;
+  const trustedGeneratorIdentity = Boolean(accessDirectory);
 
   let generated = null;
   if (!isGallery && env.PRESENTATION_IDEAS && !isGeneratorApi && !isGeneratorPage && !isControlArea) generated = await env.PRESENTATION_IDEAS.get(`presentation:${seg}`, {type:'json'});
@@ -233,34 +238,34 @@ export async function onRequest(context){
   if (!signKey || (!expected && !dynamicVerifier && !master && !generic)) return htmlResponse(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'), 503);
 
   const cookies = readCookies(request);
-  const [masterValid, editorValid, ownerValid, clientValid, identity] = await Promise.all([
+  const [masterValid, editorValid, directorySession, clientValid, identity] = await Promise.all([
     validToken(signKey, '_master', cookies.pres_master),
     editor ? validToken(signKey, '_editor', cookies.pres_editor) : false,
-    validToken(signKey, '_owner', cookies.pres_owner),
+    readSession(env, signKey, cookies.pres_owner),
     validToken(signKey, cookieSlug, cookies[cookieName]),
     readIdentity(request, signKey)
   ]);
-  if (trustedGeneratorIdentity && !ownerValid) {
+  if (trustedGeneratorIdentity && !directorySession) {
     const ownerIdentity = cleanIdentity({
-      name:accessEmail === 'csilva@admira.com' ? 'Carlos Silva' : 'Carlos Silva Santín',
+      name:accessDirectory.name,
       email:accessEmail,
       visitorId:identity?.visitorId
     });
-    const exp = Math.floor(Date.now() / 1000) + MAXAGE;
     const [ownerToken, identityToken] = await Promise.all([
-      makeToken(signKey, '_owner', exp),
+      makeSessionToken(signKey, accessDirectory, MAXAGE),
       makeIdentityToken(signKey, ownerIdentity, MAXAGE)
     ]);
     const headers = new Headers({Location:cleanPath, 'cache-control':'no-store'});
     headers.append('Set-Cookie', `pres_owner=${ownerToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
     headers.append('Set-Cookie', identityCookie(identityToken, MAXAGE));
-    context.waitUntil(writeAccessEvent(env, request, {type:'trusted_owner_login', client:'generador', presentation:title, identity:ownerIdentity, access:'owner', path:url.pathname}));
+    context.waitUntil(writeAccessEvent(env, request, {type:'trusted_owner_login', client:'generador', presentation:title, identity:ownerIdentity, access:accessDirectory.level, path:url.pathname}));
     return new Response(null, {status:303, headers});
   }
   const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
   const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi;
-  const authorized = masterValid || (editorAllowed && editorValid) || (ownerAllowed && ownerValid) || (!isInternalArea && clientValid);
-  const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : ownerValid ? 'owner' : 'client';
+  const directoryAllowed = Boolean(directorySession) && allowedBy(directorySession.level, {ownerAllowed, editorAllowed, internalArea:isInternalArea});
+  const authorized = masterValid || (editorAllowed && editorValid) || directoryAllowed || (!isInternalArea && clientValid);
+  const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : directoryAllowed ? directorySession.level : 'client';
   const contentType = request.headers.get('content-type') || '';
   const isFormPost = request.method === 'POST' && /application\/x-www-form-urlencoded|multipart\/form-data/i.test(contentType);
 
@@ -281,19 +286,20 @@ export async function onRequest(context){
     }
     if (form.get('intent') === 'google') {
       const googleIdentity = await verifyGoogleCredential(String(form.get('credential') || ''));
-      if (!googleIdentity) {
-        context.waitUntil(writeAccessEvent(env, request, {type:'google_login_failed', client:seg || '_gallery', presentation:title, access:'denied', path:url.pathname}));
-        return htmlResponse(loginPage(title, cleanPath, 'La cuenta de Google no está autorizada.'));
+      const googleAccess = googleIdentity ? await generatorAccess(env, googleIdentity) : null;
+      if (!googleIdentity || !googleAccess) {
+        context.waitUntil(writeAccessEvent(env, request, {type:'google_login_failed', client:seg || '_gallery', presentation:title, identity:googleIdentity || undefined, access:'denied', path:url.pathname}));
+        return htmlResponse(loginPage(title, cleanPath, googleIdentity ? 'Esa cuenta no tiene acceso al generador. Pide el alta en el panel de usuarios de ADmiraNeXT.' : 'La cuenta de Google no se ha podido verificar.'));
       }
-      const exp = Math.floor(Date.now() / 1000) + MAXAGE;
+      const googleSessionIdentity = cleanIdentity({name:googleAccess.name, email:googleAccess.email, visitorId:identity?.visitorId || googleIdentity.visitorId});
       const [accessToken, identityToken] = await Promise.all([
-        makeToken(signKey, '_master', exp),
-        makeIdentityToken(signKey, googleIdentity, MAXAGE)
+        makeSessionToken(signKey, googleAccess, MAXAGE),
+        makeIdentityToken(signKey, googleSessionIdentity, MAXAGE)
       ]);
       const headers = new Headers({Location:cleanPath, 'cache-control':'no-store'});
-      headers.append('Set-Cookie', `pres_master=${accessToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
+      headers.append('Set-Cookie', `pres_owner=${accessToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
       headers.append('Set-Cookie', identityCookie(identityToken, MAXAGE));
-      context.waitUntil(writeAccessEvent(env, request, {type:'google_master_login', client:seg || '_gallery', presentation:title, identity:googleIdentity, access:'master', path:url.pathname}));
+      context.waitUntil(writeAccessEvent(env, request, {type:'google_directory_login', client:seg || '_gallery', presentation:title, identity:googleSessionIdentity, access:googleAccess.level, path:url.pathname}));
       return new Response(null, {status:303, headers});
     }
     if (form.get('intent') === 'identify') {
