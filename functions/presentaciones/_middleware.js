@@ -65,8 +65,11 @@ function identityFields(values = {}){
 }
 
 function loginPage(title, action, error = '', values = {}){
+  // Modo redirección de Google Identity (FLT-1631/0478): el navegador insertado de Claude
+  // bloquea los popups, así que Google vuelve por POST a esta misma URL con `credential`.
+  const loginUri = 'https://www.admiranext.com' + String(action || '/presentaciones/').split('?')[0];
   const recovery = `${action}${action.includes('?') ? '&' : '?'}recuperar=1`;
-  const google = `<div class="or">O ELIGE TU CUENTA</div><form id="google-access" method="POST" action="${esc(action)}"><input type="hidden" name="intent" value="google"><input id="google-credential" type="hidden" name="credential"><div id="g_id_onload" data-client_id="${GOOGLE_CLIENT_ID}" data-callback="admiraGoogleAccess" data-auto_prompt="false"></div><div class="google-picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-logo_alignment="left" data-width="320"></div></div></form><script>function admiraGoogleAccess(response){var input=document.getElementById('google-credential');if(!input||!response||!response.credential)return;input.value=response.credential;document.getElementById('google-access').submit()}</script><script src="https://accounts.google.com/gsi/client" async defer></script>`;
+  const google = `<div class="or">O ELIGE TU CUENTA</div><form id="google-access" method="POST" action="${esc(action)}"><input type="hidden" name="intent" value="google"><input id="google-credential" type="hidden" name="credential"><div id="g_id_onload" data-client_id="${GOOGLE_CLIENT_ID}" data-ux_mode="redirect" data-login_uri="${esc(loginUri)}" data-callback="admiraGoogleAccess" data-auto_prompt="false"></div><div class="google-picker"><div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="continue_with" data-size="large" data-logo_alignment="left" data-width="320"></div></div></form><script>function admiraGoogleAccess(response){var input=document.getElementById('google-credential');if(!input||!response||!response.credential)return;input.value=response.credential;document.getElementById('google-access').submit()}</script><script src="https://accounts.google.com/gsi/client" async defer></script>`;
   return shell(title, `<div class="box"><form method="POST" action="${esc(action)}" autocomplete="on"><div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div><h1>${esc(title)}</h1><p class="sub">Contenido privado. Identifícate e introduce la contraseña facilitada por nuestro equipo.</p>${identityFields(values)}<label for="password">Contraseña</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Entrar</button><a class="secondary" href="${esc(recovery)}">¿Has olvidado la contraseña?</a></form>${google}<div class="notice">Puedes usar una contraseña guardada en Google Password Manager o en el gestor de tu navegador.</div><div class="notice">Por seguridad, registramos identidad, fecha, presentación, IP y acciones sobre los materiales.</div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com</div></div>`);
 }
 
@@ -275,7 +278,8 @@ export async function onRequest(context){
     let form;
     try { form = await request.formData(); } catch (_) { form = new FormData(); }
     const supplied = cleanIdentity({name:form.get('name'), email:form.get('email'), visitorId:identity?.visitorId});
-    if (form.get('intent') === 'recover') {
+    const intent = String(form.get('intent') || (form.get('credential') ? 'google' : ''));
+    if (intent === 'recover') {
       const values = {name:form.get('name'), email:form.get('email')};
       if (!supplied) return htmlResponse(recoveryPage(title, cleanPath, 'invalid', values));
       context.waitUntil(Promise.all([
@@ -284,7 +288,13 @@ export async function onRequest(context){
       ]));
       return htmlResponse(recoveryPage(title, cleanPath, 'sent', values), 200);
     }
-    if (form.get('intent') === 'google') {
+    if (intent === 'google') {
+      // Doble envío de Google (cookie g_csrf_token == campo): si viene, tiene que cuadrar.
+      const csrfField = String(form.get('g_csrf_token') || '');
+      if (csrfField && !ctEq(csrfField, String(cookies.g_csrf_token || ''))) {
+        context.waitUntil(writeAccessEvent(env, request, {type:'google_login_failed', client:seg || '_gallery', presentation:title, access:'denied', path:url.pathname}));
+        return htmlResponse(loginPage(title, cleanPath, 'La respuesta de Google no cuadra con esta sesión. Vuelve a intentarlo.'));
+      }
       const googleIdentity = await verifyGoogleCredential(String(form.get('credential') || ''));
       const googleAccess = googleIdentity ? await generatorAccess(env, googleIdentity) : null;
       if (!googleIdentity || !googleAccess) {
@@ -302,7 +312,7 @@ export async function onRequest(context){
       context.waitUntil(writeAccessEvent(env, request, {type:'google_directory_login', client:seg || '_gallery', presentation:title, identity:googleSessionIdentity, access:googleAccess.level, path:url.pathname}));
       return new Response(null, {status:303, headers});
     }
-    if (form.get('intent') === 'identify') {
+    if (intent === 'identify') {
       if (!authorized) return htmlResponse(loginPage(title, cleanPath, 'La sesión ha caducado. Vuelve a introducir la contraseña.', supplied || {}));
       if (!supplied) return htmlResponse(identifyPage(title, cleanPath, 'Indica un nombre y un correo válidos.', {name:form.get('name'), email:form.get('email')}));
       const token = await makeIdentityToken(signKey, supplied);

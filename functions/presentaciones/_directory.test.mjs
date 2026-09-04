@@ -90,4 +90,7 @@ test('el middleware ya no lleva la lista de correos escrita: consulta el directo
   assert.match(middleware, /generatorAccess\(/);
   assert.match(middleware, /readSession\(env, signKey, cookies\.pres_owner\)/);
   assert.match(middleware, /makeSessionToken\(signKey/);
+  // Sin popup: Google vuelve por redirección a la propia página del generador.
+  assert.match(middleware, /data-ux_mode="redirect" data-login_uri=/);
+  assert.match(middleware, /form\.get\('credential'\) \? 'google'/);
 });
