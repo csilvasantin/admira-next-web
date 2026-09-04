@@ -32,7 +32,7 @@ export async function onRequest(context){
   try { body = await request.json(); } catch (_) { return withCors(Response.json(rpcError(null, -32700, 'JSON no válido'), { status: 400 })); }
   const waitUntil = (p) => { try { context.waitUntil(p); } catch (_) {} };
   const { access } = await accessFromRequest(env, request, waitUntil);
-  const ctx = { env, access, fetchImpl: fetch };
+  const ctx = { env, access, fetchImpl: (url, init) => fetch(url, init) };
   const sse = wantsSse(request);
   const messages = Array.isArray(body) ? body : [body];
   const answers = [];
