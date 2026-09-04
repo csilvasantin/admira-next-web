@@ -18,6 +18,19 @@ export async function onRequest(context) {
   if (request.method === 'POST') {
     let form;
     try { form = await request.formData(); } catch (_) { form = new FormData(); }
+    // PUENTE PARA EL GENERADOR DE PRESENTACIONES (0478, 4-sep-2026). Google Identity en
+    // modo redirección solo puede volver a una URI registrada en el cliente OAuth, y la
+    // única registrada es /webmaster. El generador deja la cookie `pres_return` antes de
+    // mandar al usuario a Google; si está, aquí NO se abre sesión de webmaster: se reenvía
+    // la credencial (mismo origen, formulario auto-enviado) a la página del generador,
+    // que la verifica y decide contra el directorio. Sin popups: funciona en el navegador
+    // insertado de Claude, donde ux_mode=popup moría con «Failed to open popup window».
+    const presReturn = decodeURIComponent((request.headers.get('Cookie') || '').split(/;\s*/).map((c) => c.split('=')).find((kv) => kv[0] === 'pres_return')?.[1] || '');
+    if (form.get('credential') && /^\/presentaciones(\/|$)/.test(presReturn) && !/[<>"'\s]/.test(presReturn)) {
+      const escapeHtml = (v) => String(v).replace(/[<>&"']/g, (ch) => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[ch]));
+      const body = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Volviendo al generador…</title></head><body style="background:#070a10;color:#7186a8;font:14px system-ui;display:grid;place-items:center;min-height:100vh;margin:0"><form id="back" method="POST" action="${escapeHtml(presReturn)}"><input type="hidden" name="intent" value="google"><input type="hidden" name="credential" value="${escapeHtml(form.get('credential'))}"><input type="hidden" name="g_csrf_token" value="${escapeHtml(form.get('g_csrf_token') || '')}"><noscript><button type="submit">Continuar al generador</button></noscript></form><p>Volviendo al generador de presentaciones…</p><script>document.getElementById('back').submit()</script></body></html>`;
+      return new Response(body, {status:200, headers:{'content-type':'text/html; charset=utf-8', 'cache-control':'no-store', 'x-robots-tag':'noindex, nofollow', 'set-cookie':'pres_return=; Path=/; Max-Age=0; Secure; SameSite=Lax'}});
+    }
     const identity = await verificarGoogle(String(form.get('credential') || ''));
     if (!identity) {
       return respuestaLogin(env, 'Google no pudo verificar esa identidad.', '/webmaster');

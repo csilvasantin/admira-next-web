@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { allowedBy, generatorAccess, levelForRole, makeSessionToken, projectGrantsGenerator, readSession } from './_directory.js';
 
 const middleware = await readFile(new URL('./_middleware.js', import.meta.url), 'utf8');
+const webmaster = await readFile(new URL('../webmaster.js', import.meta.url), 'utf8');
 
 // D1 de mentira: usuarios + proyectos, con la forma prepare().bind().first()/all().
 function fakeDb(users, projects){
@@ -92,5 +93,14 @@ test('el middleware ya no lleva la lista de correos escrita: consulta el directo
   assert.match(middleware, /makeSessionToken\(signKey/);
   // Sin popup: Google vuelve por redirección a la propia página del generador.
   assert.match(middleware, /data-ux_mode="redirect" data-login_uri=/);
+  assert.match(middleware, /loginUri = 'https:\/\/www\.admiranext\.com\/webmaster'/);
+  assert.match(middleware, /document\.cookie="pres_return="/);
   assert.match(middleware, /form\.get\('credential'\) \? 'google'/);
+});
+
+test('/webmaster reenvía la credencial de Google al generador cuando hay pres_return (y solo bajo /presentaciones)', () => {
+  assert.match(webmaster, /pres_return/);
+  assert.match(webmaster, /\^\\\/presentaciones\(\\\/\|\$\)/);
+  assert.match(webmaster, /name="intent" value="google"/);
+  assert.match(webmaster, /pres_return=; Path=\/; Max-Age=0/);
 });
