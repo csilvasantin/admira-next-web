@@ -1,5 +1,6 @@
 import { asegurarDirectorio, exigirRol, csrfValido, auditar } from '../_webmaster-gate.js';
 import { catalogoProyectos, normalizarPermisos } from '../_project-access.js';
+import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion } from '../_usuarios-estado.js';
 
 const ROLES = new Set(['admin','editor','viewer']);
 const json = (body, status=200) => Response.json(body, {status, headers:{'cache-control':'no-store'}});
@@ -37,14 +38,22 @@ async function permisosValidos(body,env) {
 export async function onRequestGet({request,env}) {
   const auth=await admin(request,env); if(auth.error)return auth.error;
   await asegurarDirectorio(env);
-  const [users,audit,permissions,catalog]=await Promise.all([
+  const [users,audit,permissions,catalog,lista]=await Promise.all([
     env.AUTH_DB.prepare('SELECT email,display_name,role,status,session_version,created_at,updated_at,last_login_at FROM admiranext_users ORDER BY status,role,email').all(),
     env.AUTH_DB.prepare('SELECT actor_email,target_email,action,detail,created_at FROM admiranext_user_audit ORDER BY created_at DESC LIMIT 80').all(),
-    permisosPorUsuario(env), catalogoProyectos(env)
+    permisosPorUsuario(env), catalogoProyectos(env), leerListaBlanca(env)
   ]);
+  const rows=(users.results||[]).map((user)=>({...user,project_keys:permissions[user.email]||[]}));
+  // Directorio honesto (FLT-1577): estado real, cruce con admira.live e invitación lista.
+  const cruce=cruzarListaBlanca(rows,lista);
+  const url=new URL(request.url);
+  const entrada=url.origin.endsWith('admiranext.com')?url.origin+'/webmaster':undefined;
   return json({ok:true,current:{email:auth.current.email,role:auth.current.role,csrf:auth.current.csrf},
-    users:(users.results||[]).map((user)=>({...user,project_keys:permissions[user.email]||[]})),audit:audit.results||[],
-    projects:catalog.projects,catalog_complete:catalog.complete,catalog_warning:catalog.warning});
+    users:rows.map((user)=>({...user,estado:estadoUsuario(user),...cruce.por_email[user.email],
+      invitacion:textoInvitacion(user,user.project_keys,catalog.projects,entrada)})),audit:audit.results||[],
+    projects:catalog.projects,catalog_complete:catalog.complete,catalog_warning:catalog.warning,
+    lista_blanca:{complete:lista.complete,warning:lista.warning,total:lista.emails.length,
+      solo_en_lista_blanca:cruce.solo_en_lista_blanca,solo_en_directorio:cruce.solo_en_directorio}});
 }
 
 export async function onRequestPost({request,env}) {
