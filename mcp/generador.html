@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP del Generador de Presentaciones · ADmiraNeXT</title>
+<meta name="description" content="Ayuda y conexión del servidor MCP del Generador de Presentaciones de AdmiraNeXT: endpoint, token, tools y flujo para consejeros de silicio y carbono.">
+<meta name="robots" content="index,follow">
+<style>
+:root{--bg:#070a10;--panel:#0d1522;--line:#1e2940;--ink:#e8eef8;--dim:#7186a8;--brand:#3df08a;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(90% 60% at 80% -10%,rgba(61,240,138,.08),transparent 60%);pointer-events:none}
+main{position:relative;max-width:920px;margin:0 auto;padding:48px 22px 80px}
+.eyebrow{font:700 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--brand);margin-bottom:18px}
+h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.02em;margin:0 0 10px}h2{font-size:20px;margin:40px 0 12px;color:var(--brand)}h3{font-size:15px;margin:22px 0 8px}
+p{color:#b9c6dc}.sub{font-size:18px;color:var(--dim)}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;font:13px/1.5 var(--mono);color:#cfe3ff}
+code{font:13px var(--mono);color:#cfe3ff;background:rgba(120,243,255,.08);padding:2px 6px;border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--dim);font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+td code{white-space:nowrap}.ok{color:var(--brand)}.mut{color:var(--dim)}
+a{color:var(--brand);text-underline-offset:3px}.nav{display:flex;gap:16px;flex-wrap:wrap;font:700 12px var(--mono);margin-bottom:28px}.nav a{color:#a8bad4;text-decoration:none}.nav a:hover{color:var(--brand)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:12px 0}
+ol li,ul li{margin:6px 0;color:#b9c6dc}
+footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
+</style>
+</head>
+<body>
+<main>
+  <nav class="nav"><a href="/mcp/">← Hub MCP</a><a href="/presentaciones/">Generador</a><a href="/usuarios">Usuarios</a><a href="/mcp/manifest.json">manifest.json</a></nav>
+  <div class="eyebrow">ADmiraNeXT · MCP · Generador de Presentaciones</div>
+  <h1>Conecta tu asistente al Generador de Presentaciones.</h1>
+  <p class="sub">De un cliente y un problema a una presentación viva. Este servidor MCP deja que un consejero de silicio, o cualquier persona con su asistente (Claude, Cursor, OpenCode…), liste, cree, regenere y restaure presentaciones con los mismos permisos que tiene en <a href="/usuarios">/usuarios</a>.</p>
+
+  <h2>1 · Conectar</h2>
+  <div class="card">
+    <p><strong>Endpoint:</strong> <code>https://www.admiranext.com/mcp</code> · JSON-RPC 2.0 · Streamable HTTP (responde JSON, o SSE si pides <code>text/event-stream</code>).<br>
+    <strong>Autenticación:</strong> <code>Authorization: Bearer anmcp_…</code> — token personal, ligado a tu usuario del directorio.</p>
+  </div>
+  <h3>Configuración para Claude / Cursor / OpenCode</h3>
+<pre>{
+  "mcpServers": {
+    "admiranext-presentaciones": {
+      "url": "https://www.admiranext.com/mcp",
+      "headers": { "Authorization": "Bearer anmcp_TU_TOKEN" }
+    }
+  }
+}</pre>
+  <h3>Prueba desde la terminal</h3>
+<pre>curl -s https://www.admiranext.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer anmcp_TU_TOKEN" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"help"}}'</pre>
+
+  <h2>2 · Conseguir un token</h2>
+  <div class="card">
+    <ol>
+      <li>Tu usuario tiene que existir en <a href="/usuarios">/usuarios</a>, activo y con el proyecto <code>generador-de-presentaciones</code> (o <code>*</code>).</li>
+      <li>Un administrador crea el token: <code>POST /api/mcp-tokens</code> con <code>{"email":"tu@admira.com","label":"mi asistente"}</code> desde su sesión (o desde el panel de usuarios).</li>
+      <li>El token se muestra <strong>una sola vez</strong>. Se guarda solo su huella. Revocarlo, o darte de baja, corta el acceso al instante.</li>
+    </ol>
+    <p class="mut">Sin token puedes hacer <code>initialize</code>, <code>tools/list</code> y <code>help</code>; nada más.</p>
+  </div>
+
+  <h2>3 · Tools</h2>
+  <table>
+    <tr><th>Tool</th><th>Qué hace</th><th>Rol mínimo</th></tr>
+    <tr><td><code>help</code></td><td>Esta ayuda. <code>tema</code> opcional: <code>crear</code>, <code>presentaciones</code>, <code>versiones</code>, <code>permisos</code>.</td><td class="mut">ninguno</td></tr>
+    <tr><td><code>list_presentations</code></td><td>Presentaciones existentes: slug, nombre, web, idiomas, entregables.</td><td>viewer</td></tr>
+    <tr><td><code>list_decks</code></td><td>Packs de deck (antes/después) para <code>create_presentation</code>.</td><td>viewer</td></tr>
+    <tr><td><code>get_presentation</code></td><td>Contenido vivo de una presentación (láminas, idiomas, secuencia). <code>{client}</code></td><td>viewer</td></tr>
+    <tr><td><code>create_presentation</code></td><td>Crea, o regenera con <code>overwrite:true</code>, a partir de <code>displayName</code>, <code>website</code>, <code>problem</code>, <code>audience</code>… Devuelve slug, contraseña y URLs.</td><td class="ok">editor</td></tr>
+    <tr><td><code>generation_status</code></td><td>Estado de la generación (idiomas × entregables). <code>{client}</code></td><td>viewer</td></tr>
+    <tr><td><code>list_versions</code></td><td>Historial de versiones. <code>{client}</code></td><td>viewer</td></tr>
+    <tr><td><code>restore_version</code></td><td>Restaura una versión. <code>{client, id}</code></td><td class="ok">editor</td></tr>
+    <tr><td><code>presentation_urls</code></td><td>URLs de la presentación, la sala y el historial. <code>{client}</code></td><td class="mut">ninguno</td></tr>
+  </table>
+
+  <h2>4 · Flujo típico de un consejero</h2>
+  <div class="card">
+    <ol>
+      <li><code>list_presentations</code> → ¿ya existe el cliente?</li>
+      <li><code>create_presentation</code> con nombre, web oficial (de ahí sale el logo), problema que resolvemos y a quién se presenta. Castellano e inglés siempre; añade idiomas con <code>languages</code>.</li>
+      <li><code>generation_status</code> hasta que todos los entregables estén <code>done</code>.</li>
+      <li><code>presentation_urls</code> → comparte la URL privada y la contraseña con el cliente. La sala (<code>/presentacion</code>) tiene salida de audiencia sin notas.</li>
+    </ol>
+  </div>
+
+  <h2>5 · Permisos y seguridad</h2>
+  <div class="card">
+    <ul>
+      <li>El token no lleva privilegios: en cada llamada se cruza con el directorio. <strong>admin</strong> → todo · <strong>editor</strong> → crear, regenerar, restaurar · <strong>viewer</strong> → solo lectura.</li>
+      <li>Cada tool llama a la API que el generador ya tiene, en el mismo origen, con una sesión de 5 minutos emitida a nombre del dueño del token. Todo queda en la auditoría de accesos del generador.</li>
+      <li>El MCP no guarda contraseñas de clientes ni tokens: solo huellas.</li>
+    </ul>
+  </div>
+
+  <footer>ADmiraNeXT · MCP del Generador de Presentaciones · <a href="/mcp/">hub MCP de la matriz</a> · <a href="https://www.admira.live/mcp/">Consejo (admira.live)</a></footer>
+</main>
+</body>
+</html>

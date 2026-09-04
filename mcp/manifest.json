@@ -115,5 +115,26 @@
     "tienda": "https://admira.shop/mcp/",
     "consejo": "https://www.admira.live/mcp/",
     "consejo_live_api": "https://macmini.tail48b61c.ts.net"
-  }
+  },
+  "mcp_servers": [
+    {
+      "name": "admiranext-generador-presentaciones",
+      "endpoint": "https://www.admiranext.com/mcp",
+      "transport": "streamable-http",
+      "auth": "Authorization: Bearer anmcp_… (token de /usuarios → POST /api/mcp-tokens)",
+      "help": "https://www.admiranext.com/mcp/generador",
+      "yokup_id": "generador-de-presentaciones",
+      "tools": [
+        "help",
+        "list_presentations",
+        "list_decks",
+        "get_presentation",
+        "create_presentation",
+        "generation_status",
+        "list_versions",
+        "restore_version",
+        "presentation_urls"
+      ]
+    }
+  ]
 }

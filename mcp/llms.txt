@@ -58,3 +58,10 @@ Misma convención `/mcp/` en cada pata:
 
 - Versionado visible: v.AA.MM.DD.rN.
 - Avisos de cambios: Telegram grupo AdmiraXP, firmados "Admira IA".
+
+## MCP vivo: Generador de Presentaciones
+
+Servidor MCP (JSON-RPC 2.0, Streamable HTTP): https://www.admiranext.com/mcp
+Ayuda y tools: https://www.admiranext.com/mcp/generador
+Token: Authorization: Bearer anmcp_… (lo crea un admin en /usuarios → POST /api/mcp-tokens)
+Tools: help, list_presentations, list_decks, get_presentation, create_presentation, generation_status, list_versions, restore_version, presentation_urls
