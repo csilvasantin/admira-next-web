@@ -9,7 +9,7 @@
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.05.09.2026.r4.23:37
+Versión: v.05.09.2026.r5.23:50
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es
@@ -48,7 +48,7 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 - HANDOFF de la trilogía: https://www.admiranext.com/HANDOFF.md
 - README: https://www.admiranext.com/README.md
 
-## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.05.09.2026.r4.23:37)
+## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.05.09.2026.r5.23:50)
 
 Unir la suite por MCP no es un servidor único: cada producto tiene el suyo, en su dominio propio,
 y todos reconocen a la misma persona con la misma clave. Este es el directorio canónico;
@@ -58,7 +58,7 @@ manifest.json lo lleva en `mcp_servers` con el mismo contenido.
 |---|---|---|---|---|
 | Consejo, flota y yokup · admira.live | https://mcp.admira.live/mcp | clave de flota (ver Identidad) o clave de consejero | https://www.admira.live/mcp/llms.txt | https://www.admira.live/help |
 | Misiones y bandeja · yokup.com | https://yokup.com/mcp | credencial individual (30 días); clave de flota en curso (encargo a Oráculo) | https://www.yokup.com/mcp/llms.txt | https://www.yokup.com/help#mcp |
-| Retail media · XpaceOS (admira.store) | https://mcp.admira.store/mcp | lectura abierta; escritura con clave de flota (en curso, encargo a Neo) | https://www.admira.store/mcp/llms.txt | https://www.xpaceos.com/help/ |
+| Retail media · XpaceOS (admira.store) | https://mcp.admira.store/mcp | lectura abierta; escritura con clave de flota (worker 2.1.0, desde el 5-sep-2026) | https://www.admira.store/mcp/llms.txt | https://www.xpaceos.com/help/ |
 | Audiencia y emisión verificada · admira.app | https://www.admira.app/mcp | ver su página | https://www.admira.app/mcp | https://www.admira.app/mcp |
 | Presentaciones · admiranext.com | https://www.admiranext.com/mcp | token anmcp_ (admin en /usuarios) | este fichero | https://www.admiranext.com/mcp/generador |
 | Studio · admira.studio | tras login (federado desde aquí) | Google | — | https://www.admira.studio/ |

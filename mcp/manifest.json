@@ -2,7 +2,7 @@
   "name": "admiranext-matriz",
   "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
   "description": "Hub MCP de la matriz de la trilogía AdmiraNeXT. Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
-  "version": "v.05.09.2026.r4.23:37",
+  "version": "v.05.09.2026.r5.23:50",
   "type": "static-site",
   "site": "https://www.admiranext.com",
   "hub": "https://www.admiranext.com/mcp/",
@@ -180,7 +180,7 @@
       "producto": "Retail media: pantallas, audiencia, proof-of-play (admira.store)",
       "endpoint": "https://mcp.admira.store/mcp",
       "transport": "streamable-http",
-      "auth": "lectura abierta; escritura con clave de flota (en curso)",
+      "auth": "lectura abierta; escritura con clave de flota (worker 2.1.0)",
       "llms": "https://www.admira.store/mcp/llms.txt",
       "help": "https://www.xpaceos.com/help/",
       "manifest": "https://www.xpaceos.com/mcp/manifest.json"
