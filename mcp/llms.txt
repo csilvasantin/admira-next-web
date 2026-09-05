@@ -9,7 +9,7 @@
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.26.07.31.r1
+Versión: v.05.09.2026.r4.23:37
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es
@@ -48,16 +48,51 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 - HANDOFF de la trilogía: https://www.admiranext.com/HANDOFF.md
 - README: https://www.admiranext.com/README.md
 
-## Federación (viceversa)
+## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.05.09.2026.r4.23:37)
 
-Misma convención `/mcp/` en cada pata:
-- Tienda de robots: https://admira.shop/mcp/
-- Consejo (API viva): https://www.admira.live/mcp/ — estado de flota, AgoraMatrix, tareas.
+Unir la suite por MCP no es un servidor único: cada producto tiene el suyo, en su dominio propio,
+y todos reconocen a la misma persona con la misma clave. Este es el directorio canónico;
+manifest.json lo lleva en `mcp_servers` con el mismo contenido.
 
-## Convenciones
+| Producto | Endpoint MCP | Auth | Silicio (llms.txt) | Humanos |
+|---|---|---|---|---|
+| Consejo, flota y yokup · admira.live | https://mcp.admira.live/mcp | clave de flota (ver Identidad) o clave de consejero | https://www.admira.live/mcp/llms.txt | https://www.admira.live/help |
+| Misiones y bandeja · yokup.com | https://yokup.com/mcp | credencial individual (30 días); clave de flota en curso (encargo a Oráculo) | https://www.yokup.com/mcp/llms.txt | https://www.yokup.com/help#mcp |
+| Retail media · XpaceOS (admira.store) | https://mcp.admira.store/mcp | lectura abierta; escritura con clave de flota (en curso, encargo a Neo) | https://www.admira.store/mcp/llms.txt | https://www.xpaceos.com/help/ |
+| Audiencia y emisión verificada · admira.app | https://www.admira.app/mcp | ver su página | https://www.admira.app/mcp | https://www.admira.app/mcp |
+| Presentaciones · admiranext.com | https://www.admiranext.com/mcp | token anmcp_ (admin en /usuarios) | este fichero | https://www.admiranext.com/mcp/generador |
+| Studio · admira.studio | tras login (federado desde aquí) | Google | — | https://www.admira.studio/ |
 
-- Versionado visible: v.AA.MM.DD.rN.
-- Avisos de cambios: Telegram grupo AdmiraXP, firmados "Admira IA".
+Bus compartido: los encargos entre agentes y consejeros van por el bot-inbox de admira-telegram
+(bot.yokup.com), que sirve a yokup y a admira.live; por eso sus MCP se entienden (FLT-2111).
+Regla de Carlos (5-sep-2026): entre agentes y consejeros TODA comunicación va por MCP; Telegram es
+el canal del humano.
+
+## Identidad común de la flota
+
+    clave = base64url( HMAC-SHA256( MCP_FLOTA_SEED, "Persona|Equipo" ) ).slice(0, 40)
+
+- Personas: Morfeo, Neo, Smith, Trinity, Oraculo, Niobe, Link, Cypher, Switch, Persefone, Seraph.
+  Equipos: MacMini, MacBookPro14, MacBookPro16, MacBookAirAzul, MacBookAirRosa, MacBookAirCrema,
+  MacBookAirPlata, MacBookAir16. Los consejeros de GrokBot (Wozniak, Jobs, Lucas, Disney) llevan
+  clave propia (MCP_KEYS de admira.live), no derivada.
+- La semilla es secreto de cada worker (`wrangler secret put MCP_FLOTA_SEED`, valor en la bóveda
+  s:MCP_FLOTA_SEED). El agente lee su clave de s:MCP_KEY_<PERSONA>_<EQUIPO>; mcp-conectar.sh la
+  registra en Claude Code / Codex / OpenCode.
+- Módulo verificador sin dependencias (WebCrypto), para vendorizar en cada worker:
+  https://www.admiranext.com/mcp/identidad-flota.mjs — `identidadPorClave(clave, seed)` →
+  {persona, equipo, runtime, agente} | null; `claveDeRequest(request)`; `sinAutorizacion()`.
+- El servidor no guarda claves: recalcula las parejas y compara en tiempo constante. Revocar =
+  rotar la semilla. Un secreto de Cloudflare no pasa de 5 KB: por eso no hay mapa de claves.
+
+## Convenciones comunes (normativa 24 aplicada)
+
+- Primera herramienta: `quien_soy` (o `yokup_quien_soy`, `yokup_whoami`): quién eres según la clave.
+- Nombres en castellano con prefijo de producto (`consejo_`, `agente_`, `yokup_`, `xpace_`…).
+- Cada producto abre `/help` (carbono) y `/mcp` con `llms.txt` y `manifest.json` (silicio).
+- Sello único por publicación: `v.DD.MM.AAAA.rN.HH:MM` (normativa 07 y 09).
+- Lo que un MCP encarga a un agente entra por el bot-inbox; lo que un agente hace se da de alta
+  en yokup (normativa 14).
 
 ## MCP vivo: Generador de Presentaciones
 

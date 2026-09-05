@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ADmiraNeXT MCP | Matriz de la trilogía (RaaS · IoT)</title>
   <meta name="description" content="Hub MCP de la matriz AdmiraNeXT: qué es, superficie pública, documentación y federación con la tienda y el Consejo. Sección legible por agentes.">
-  <meta name="admiranext-version" content="v.05.09.2026.r3.10:26">
+  <meta name="admiranext-version" content="v.05.09.2026.r4.23:37">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -130,19 +130,36 @@
       </div>
     </section>
 
-    <section class="band">
+    <section class="band" id="directorio">
+      <div class="shell">
+        <p class="eyebrow" style="color:var(--accent-ink)">Directorio · FLT-2137</p>
+        <h2>Los MCP de la suite, uno por producto.</h2>
+        <p>Unir AdmiraNeXT por MCP no es un servidor único: cada producto tiene el suyo, en su dominio, y todos reconocen a la misma persona con la misma clave. Este directorio es el canónico; <a href="manifest.json">manifest.json</a> lo lleva en <code>mcp_servers</code>.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-size:.92rem">
+          <tr style="background:rgba(255,176,0,.12)"><th style="text-align:left;padding:10px">Producto</th><th style="text-align:left;padding:10px">Endpoint MCP</th><th style="text-align:left;padding:10px">Autenticación</th><th style="text-align:left;padding:10px">Silicio</th><th style="text-align:left;padding:10px">Humanos</th></tr>
+          <tr><td style="padding:10px;border-top:1px solid var(--line)">Consejo, flota y yokup · admira.live</td><td style="padding:10px;border-top:1px solid var(--line)"><code>mcp.admira.live/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">clave de flota o de consejero</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.live/mcp/llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.live/help">/help</a></td></tr>
+          <tr><td style="padding:10px;border-top:1px solid var(--line)">Misiones y bandeja · yokup.com</td><td style="padding:10px;border-top:1px solid var(--line)"><code>yokup.com/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">credencial individual · clave de flota en curso</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.yokup.com/mcp/llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.yokup.com/help#mcp">/help</a></td></tr>
+          <tr><td style="padding:10px;border-top:1px solid var(--line)">Retail media · XpaceOS (admira.store)</td><td style="padding:10px;border-top:1px solid var(--line)"><code>mcp.admira.store/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">lectura abierta · escritura con clave de flota en curso</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.store/mcp/llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.xpaceos.com/help/">/help</a></td></tr>
+          <tr><td style="padding:10px;border-top:1px solid var(--line)">Audiencia y emisión verificada · admira.app</td><td style="padding:10px;border-top:1px solid var(--line)"><code>admira.app/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">ver su página</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.app/mcp">/mcp</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.app/mcp">/mcp</a></td></tr>
+          <tr><td style="padding:10px;border-top:1px solid var(--line)">Presentaciones · admiranext.com</td><td style="padding:10px;border-top:1px solid var(--line)"><code>admiranext.com/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">token anmcp_</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="generador">/mcp/generador</a></td></tr>
+          <tr><td style="padding:10px;border-top:1px solid var(--line)">Studio · admira.studio</td><td style="padding:10px;border-top:1px solid var(--line)">federado desde aquí, tras login</td><td style="padding:10px;border-top:1px solid var(--line)">Google</td><td style="padding:10px;border-top:1px solid var(--line)">—</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.studio/">sitio</a></td></tr>
+        </table></div>
+        <p style="margin-top:14px"><b>Bus compartido:</b> los encargos entre agentes y consejeros van por el bot-inbox de admira-telegram, que sirve a yokup y a admira.live; por eso sus MCP se entienden. <b>Regla de Carlos (5-sep-2026):</b> entre agentes y consejeros toda comunicación va por MCP; Telegram es el canal del humano.</p>
+      </div>
+    </section>
+    <section class="band" id="identidad">
       <div class="shell callout">
-        <div><p class="eyebrow" style="color:var(--accent-ink)">Federación</p><h2>Una puerta /mcp en cada pata.</h2></div>
+        <div><p class="eyebrow" style="color:var(--accent-ink)">Identidad común</p><h2>Una clave por persona y equipo, válida en toda la suite.</h2></div>
         <div>
-          <p>Misma convención en toda la trilogía, para que cualquier agente salte de una a otra (y para que la matriz consulte a sus hermanas):</p>
-          <p><a href="https://www.admiranext.com/mcp/">admiranext.com/mcp</a> (matriz, aquí) · <a href="https://admira.shop/mcp/">admira.shop/mcp</a> (tienda) · <a href="https://www.admira.live/mcp/">admira.live/mcp</a> (Consejo · API viva).</p>
+          <p><code>clave = base64url( HMAC-SHA256( MCP_FLOTA_SEED, "Persona|Equipo" ) ).slice(0, 40)</code></p>
+          <p>La semilla es secreto de cada worker y vive en la bóveda; el agente lee su clave de <code>s:MCP_KEY_&lt;PERSONA&gt;_&lt;EQUIPO&gt;</code> y <code>mcp-conectar.sh</code> la registra en su cliente. Ningún servidor guarda claves: recalcula y compara en tiempo constante. Módulo verificador sin dependencias para vendorizar: <a href="identidad-flota.mjs">identidad-flota.mjs</a>. Los consejeros de GrokBot llevan clave propia.</p>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="shell">
-    <span>ADmiraNeXT MCP · v.04.08.2026.r9.20:36</span>
+    <span>ADmiraNeXT MCP · <span id="mcpStamp">v.05.09.2026.r4.23:37</span></span>
     <span><a href="llms.txt">llms.txt</a> · <a href="manifest.json">manifest.json</a> · Admira IA</span>
   </footer>
 </body>
