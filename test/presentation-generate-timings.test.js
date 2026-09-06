@@ -48,3 +48,15 @@ test('el alta devuelve tiempos por paso, reintenta el guion y no se cae si xAI n
     assert.ok(env.PRESENTATION_IDEAS.values.has('presentation:cliente-prueba'));
   } finally { globalThis.fetch=realFetch; }
 });
+
+test('el documento de trabajo nace listo y apunta al deck en PDF: la matriz no se queda al 0 %', async () => {
+  const { buildGeneration, publicGeneration } = await import('../functions/presentaciones/_generation.js');
+  const job = buildGeneration({ client:'demo', displayName:'Demo', outputs:['website','documents'], languages:['es','en'] });
+  const doc = job.tasks['en:documents'];
+  assert.equal(doc.status, 'ready');
+  assert.equal(doc.progress, 100);
+  assert.equal(doc.url, '/presentaciones/demo/presentacion?lang=en&pdf=1');
+  assert.equal(doc.provider, 'admiranext');
+  const pub = publicGeneration(job);
+  assert.ok(Object.values(pub.tasks || job.tasks).every(t => t.status === 'ready'), 'website y documento listos al crear');
+});

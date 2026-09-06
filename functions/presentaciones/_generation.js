@@ -2,6 +2,8 @@ export const OUTPUTS = ['website','audio','video','pdf','powerpoint','documents'
 export const DEFAULT_OUTPUTS = ['website','documents'];
 export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
 export const AUXILIARY_OUTPUTS = new Set(['backgrounds']);
+// Nativos: los sirve el propio sitio al instante (website, créditos y el documento = deck en PDF).
+export const NATIVE_OUTPUTS = new Set(['website','credits','postcredits','documents']);
 export const LANGUAGES = ['es','ca','en'];
 export const OUTPUT_LABELS = {
   website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
@@ -61,6 +63,12 @@ function postProcess(output){
 
 function taskUrl(client, displayName, language, output){
   if (output === 'website') return `/presentaciones/${client}/presentacion?lang=${language}`;
+  // DOCUMENTO DE TRABAJO = EL DECK EN PDF (MorfeoMacMini, 6-sep-2026 · FLT-100018). Era un entregable por
+  // defecto que nadie producía: nacía «en cola» con proveedor admiranext, sin URL, y la matriz de
+  // entregables se quedaba al 0 % para siempre —«no está generando las presentaciones» (Carlos)—.
+  // Desde r10 el deck se imprime a PDF (botón PDF / tecla P): el documento de trabajo es ese PDF, así
+  // que el entregable nace listo y apunta al deck con la pista de descarga.
+  if (output === 'documents') return `/presentaciones/${client}/presentacion?lang=${language}&pdf=1`;
   if (!['credits','postcredits'].includes(output)) return null;
   const params = new URLSearchParams({
     mode:output,
@@ -81,11 +89,11 @@ export function buildGeneration({client, displayName, outputs, languages, source
       const key = taskKey(language, output);
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],
-        status:['website','credits','postcredits'].includes(output) ? 'ready' : 'queued',
-        progress:['website','credits','postcredits'].includes(output) ? 100 : 0, url:taskUrl(client, displayName, language, output), attempts:0, postProcess:postProcess(output),
+        status:NATIVE_OUTPUTS.has(output) ? 'ready' : 'queued',
+        progress:NATIVE_OUTPUTS.has(output) ? 100 : 0, url:taskUrl(client, displayName, language, output), attempts:0, postProcess:postProcess(output),
         provider:NOTEBOOKLM_OUTPUTS.has(output)?'notebooklm':'admiranext', requestedAt:now,
-        startedAt:['website','credits','postcredits'].includes(output) ? now : undefined,
-        completedAt:['website','credits','postcredits'].includes(output) ? now : undefined, updatedAt:now
+        startedAt:NATIVE_OUTPUTS.has(output) ? now : undefined,
+        completedAt:NATIVE_OUTPUTS.has(output) ? now : undefined, updatedAt:now
       };
     }
   }
