@@ -20,12 +20,15 @@
 // contenga los tres marcadores en el margen izquierdo, que es la única señal
 // que un conflicto sin resolver deja SIEMPRE.
 
-const { test } = require("node:test");
-const assert = require("node:assert");
-const fs = require("node:fs");
-const path = require("node:path");
+// ESM, como el resto de test/: con `require` este guardia reventaba en `node --test`
+// («require is not defined in ES module scope») y no vigilaba nada. (FLT-100008, 6-sep-2026.)
+import { test } from "node:test";
+import assert from "node:assert";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const RAIZ = path.join(__dirname, "..");
+const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // Lo que se sirve al navegador. El .md y los propios tests quedan fuera a
 // propósito: este fichero, sin ir más lejos, cita los marcadores para explicar
