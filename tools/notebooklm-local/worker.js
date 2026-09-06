@@ -23,11 +23,23 @@ const once=process.argv.includes('--once'),setup=process.argv.includes('--setup'
 const CLIENT_FILTER=String(process.env.NOTEBOOKLM_CLIENT||'').trim().toLowerCase();
 const OUTPUT_FILTER=new Set(String(process.env.NOTEBOOKLM_OUTPUTS||'').split(',').map(value=>value.trim().toLowerCase()).filter(Boolean));
 
+// LA BÓVEDA MANDA SOBRE EL FICHERO Y EL LLAVERO (MorfeoMacMini, 6-sep-2026 · FLT-100018). El 2-sep
+// el token pasó a vivir en admira-vault (bfae46b) y Pages estrenó el nuevo, pero este orden
+// leía ANTES el worker.token del 19-jul del MacMini: 12.800 «No autorizado» cada 30 s durante
+// cuatro días, sin audio, vídeo, PDF ni PowerPoint para nadie, y nadie se enteró porque el
+// proceso seguía «vivo». Orden nuevo: entorno (explícito) → bóveda (fuente única de la
+// flota) → fichero → Llavero (respaldos para sesiones sin bóveda). Si la bóveda responde,
+// se refresca el fichero para que el respaldo no vuelva a quedarse rancio.
 function token(){
   if(process.env.PRESENTATION_WORKER_TOKEN)return process.env.PRESENTATION_WORKER_TOKEN.trim();
+  try{
+    const vault=execFileSync('bash',[path.join(os.homedir(),'Claude/admira-vault/vault-get.sh'),'PRESENTATION_WORKER_TOKEN'],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
+    if(vault){
+      try{fsSync.writeFileSync(path.join(RUNTIME,'worker.token'),vault,{mode:0o600});}catch(_){}
+      return vault;
+    }
+  }catch(_){}
   try{return fsSync.readFileSync(path.join(RUNTIME,'worker.token'),'utf8').trim();}
-  catch(_){}
-  try{return execFileSync('bash',[path.join(os.homedir(),'Claude/admira-vault/vault-get.sh'),'PRESENTATION_WORKER_TOKEN'],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}
   catch(_){}
   try{return execFileSync('security',['find-generic-password','-a','notebooklm-local','-s','admiranext-presentations','-w'],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}
   catch(_){return '';}
