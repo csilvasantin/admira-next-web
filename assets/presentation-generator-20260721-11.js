@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260902-1';
+  window.__ADMIRA_GENERATOR_VERSION__='20260906-2';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
