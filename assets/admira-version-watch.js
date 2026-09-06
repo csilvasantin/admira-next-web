@@ -27,6 +27,7 @@
   var SRC = (document.currentScript && document.currentScript.src) || "";
   var referencia = null, referenciaTomada = false;
   var huellaRef = null, panel = null, accion = null, comprobando = false, confirmando = false;
+  var estiloPuesto = false;
 
   function texto(valor) {
     return valor === undefined || valor === null ? "" : String(valor).trim();
@@ -172,7 +173,7 @@
       ".admira-version__tech summary{cursor:pointer;color:#9eacb6}.admira-version__tech p{margin:5px 0 0;overflow-wrap:anywhere}" +
       "@media(max-width:430px){.admira-version[data-state=stale] .admira-version__grid{grid-template-columns:1fr}}" +
       "@media(prefers-reduced-motion:reduce){.admira-version *{scroll-behavior:auto!important}}";
-    document.head.appendChild(css);
+    if (!estiloPuesto) { document.head.appendChild(css); estiloPuesto = true; }
 
     panel = nodo("section", "admira-version");
     panel.setAttribute("aria-live", "polite");
@@ -206,6 +207,23 @@
     document.body.appendChild(panel);
   }
 
+  // AL DÍA NO ES UNA NOTICIA: NO SE PINTA NADA (Neo · MBP14, 06-09-2026, encargo #2715).
+  // El 2-sep se plegó el panel a una pastilla para que dejara de tapar la esquina, pero
+  // la pastilla seguía ahí SIEMPRE, flotando abajo a la derecha con «v.…r6.18:56 · AL DÍA»
+  // en cada página de la casa. Carlos (Carbono UI): molesta y no aporta. Y es verdad —
+  // «estás al día» es el estado normal del 99% de las visitas: informar de lo normal es
+  // ruido, no información. Con novedad (stale) el aviso sigue saliendo entero, que es
+  // cuando SÍ hay algo que hacer; y «no declarada»/«no disponible» también se dicen,
+  // porque esos no son estar al día, son que la verificación falla y hay que arreglarla.
+  // Se RETIRA del DOM en vez de esconderse con CSS: un position:fixed con el z-index más
+  // alto de la página no debe quedarse rondando invisible sobre los clics de nadie.
+  function retiraPanel() {
+    if (!panel) return;
+    if (panel.parentNode) panel.parentNode.removeChild(panel);
+    panel = null;
+    accion = null;
+  }
+
   function bloque(etiqueta, datos) {
     var b = nodo("div", "admira-version__release");
     b.appendChild(nodo("span", "admira-version__label", etiqueta));
@@ -217,6 +235,7 @@
   }
 
   function pinta(estado, actual, disponible, nota) {
+    if (estado === "current") { retiraPanel(); return; }
     aseguraPanel();
     panel.setAttribute("data-state", estado);
     // «stale» manda: una version nueva se enseña entera, y no se puede plegar.

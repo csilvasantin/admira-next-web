@@ -72,7 +72,12 @@ function fixture(manifests, meta = 'AdmiraNeXT v.08.08.2026.r1.12:26') {
   return {context, body};
 }
 
-test('muestra la versión vigente, fecha humana y hash desde el manifiesto', async () => {
+test('al día no pinta nada: sin novedad no hay aviso en la esquina', async () => {
+  // Carlos (Carbono UI), 6-sep-2026 · encargo #2715: la pastilla «v.…r6.18:56 · AL DÍA»
+  // salía flotando en TODAS las páginas, siempre. Estar al día es el estado normal: no
+  // es una noticia, y un aviso permanente deja de leerse. Aquí no basta con que no se
+  // vea el texto — el panel es position:fixed con z-index 2147483000, así que se exige
+  // que no exista NADA en el body, no que exista escondido.
   const manifest = response({
     version: 'v.08.08.2026.r1.12:26',
     deployedAt: '2026-08-08T10:26:00Z',
@@ -80,12 +85,22 @@ test('muestra la versión vigente, fecha humana y hash desde el manifiesto', asy
   });
   const {context, body} = fixture([manifest]);
   await context.window.AdmiraVersionWatch.ready;
-  const visible = textTree(body);
-  // El titular es LA VERSIÓN, no la palabra «vigente» (Carlos, 2026-08-09).
-  assert.match(visible, /v\.08\.08\.2026\.r1\.12:26 · al día/);
-  assert.match(visible, /v\.08\.08\.2026\.r1\.12:26/);
-  assert.match(visible, /publicada 8 ago 2026, 12:26/i);
-  assert.match(visible, /2d6226b/);
+  assert.equal(body.children.length, 0, 'estando al día no se monta ningún panel');
+  assert.equal(textTree(body), '', 'ni una pastilla plegada con el sello');
+});
+
+test('el aviso se retira cuando la pestaña vuelve a estar al día', async () => {
+  // La otra mitad de la regla: si el panel llegó a salir por una release nueva y la
+  // comprobación siguiente dice que ya no hay novedad, se QUITA del DOM. Esconderlo con
+  // CSS dejaría un fixed con el z-index más alto de la página rondando sobre los clics.
+  const vieja = response({version: 'v.08.08.2026.r1.12:26', deployedAt: '2026-08-08T10:26:00Z', gitShort: '2d6226b'});
+  const nueva = response({version: 'v.08.08.2026.r2.13:40', deployedAt: '2026-08-08T11:40:00Z', gitShort: 'abcdef1'});
+  const {context, body} = fixture([vieja, nueva, vieja]);
+  await context.window.AdmiraVersionWatch.ready;
+  await context.window.AdmiraVersionWatch.check();
+  assert.equal(body.children.length, 1, 'con release nueva el aviso sí sale');
+  await context.window.AdmiraVersionWatch.check();
+  assert.equal(body.children.length, 0, 'y desaparece en cuanto deja de haber novedad');
 });
 
 test('distingue la release de esta pestaña de una nueva release disponible', async () => {
@@ -102,6 +117,7 @@ test('distingue la release de esta pestaña de una nueva release disponible', as
   assert.match(visible, /Esta pestaña ejecuta v\.08\.08\.2026\.r1\.12:26/);
   assert.match(visible, /hace \d+ (s|min|h|día)/);
   assert.match(visible, /En esta pestaña.*v\.08\.08\.2026\.r1\.12:26/i);
+  assert.match(visible, /publicada 8 ago 2026, 12:26/i);
   assert.match(visible, /Disponible.*v\.08\.08\.2026\.r2\.13:40/i);
   assert.match(visible, /2d6226b.*abcdef1/);
 });
@@ -132,7 +148,7 @@ test('todas las páginas que cargan el verificador fijan la huella de su conteni
     references.push(...html.matchAll(/\/assets\/admira-version-watch\.js([^"']*)/g));
   }
   assert.ok(references.length >= 12, 'la guardia debe cubrir todas las superficies que montan el verificador');
-  assert.ok(references.every((match) => match[1] === '?build=02092026-1'),
+  assert.ok(references.every((match) => match[1] === '?build=06092026-1'),
     'un verificador cacheado ocultaría el nuevo contexto de release hasta cuatro horas');
 });
 
@@ -168,12 +184,21 @@ test('sólo se monta un verificador por pestaña, y el botón siempre responde',
     'el sondeo automático no debe parpadear como si lo hubiera pulsado alguien');
 });
 
-test('cuando no hay novedad, el verificador se pliega y no tapa la esquina', async () => {
+test('estar al día se resuelve antes de montar nada, y lo anómalo sí se dice', async () => {
   const js = await readFile(new URL('../assets/admira-version-watch.js', import.meta.url), 'utf8');
-  // Carlos, 2-sep-2026: «¿por qué sigue apareciéndome lo de Comprobar?». No era un fallo:
-  // el panel se pintaba entero también cuando todo estaba al día, con 360x170 px sobre la
-  // esquina y un botón sin nada que hacer. Un aviso que está siempre deja de ser un aviso.
-  assert.match(js, /data-collapsed/, 'tiene que existir un estado plegado');
+  // Carlos, 2-sep-2026: «¿por qué sigue apareciéndome lo de Comprobar?» — entonces se
+  // plegó a una pastilla. El 6-sep (encargo #2715) la respuesta es más simple: al día no
+  // se pinta. El corte va ANTES de aseguraPanel(); si alguien lo mueve después, el panel
+  // y su <style> vuelven al DOM y el síntoma regresa entero.
+  assert.match(js, /if \(estado === "current"\) \{ retiraPanel\(\); return; \}\n    aseguraPanel\(\);/,
+    'al día se sale de pinta() sin montar panel: el corte va antes de aseguraPanel()');
+  assert.match(js, /panel\.parentNode\.removeChild\(panel\)/,
+    'y el que ya estuviera puesto se retira del DOM, no se esconde con CSS');
+  // Lo que NO es estar al día se sigue diciendo: una verificación rota es un problema,
+  // no silencio. Y con release nueva el aviso sale entero y no se puede plegar.
+  assert.match(js, /pinta\("undeclared"/, 'una versión sin declarar se sigue avisando');
+  assert.match(js, /pinta\("unavailable"/, 'y una verificación que no responde, también');
+  assert.match(js, /data-collapsed/, 'esos dos estados siguen saliendo plegados, sin tapar la esquina');
   assert.match(js, /\[data-collapsed='1'\] \.admira-version__grid/, 'y el CSS que lo aplica');
   assert.match(js, /if \(estado === "stale"\) panel\.setAttribute\("data-collapsed", "0"\)/,
     'con una release nueva se despliega solo: ahí SÍ debe interrumpir');
