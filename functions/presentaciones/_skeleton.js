@@ -150,6 +150,24 @@ export async function generateNarrative(env, input){
   return narrative ? {narrative, reason:''} : {narrative:null, reason:'formato'};
 }
 
+// UN TROPIEZO NO ES UNA PLANTILLA (MorfeoMacMini, 6-sep-2026 · FLT-100018 a). Antes, un fallo
+// de red, un 5xx o una respuesta mal formada de xAI mandaban la presentación al molde
+// genérico a la primera, y el operador se enteraba por un aviso que es fácil no leer.
+// Los fallos RÁPIDOS (red, rechazo, ilegible, formato) se reintentan una vez con una
+// pausa corta; un «plazo» (90 s ya esperados) o «sin-clave» no se reintentan, porque
+// repetirlos sólo dobla la espera. Devuelve además cuántos intentos hizo y cuánto tardó.
+export const RETRYABLE_REASONS = new Set(['red', 'rechazo', 'ilegible', 'formato']);
+export async function generateNarrativeWithRetry(env, input, {attempts = 2, pauseMs = 400, run = generateNarrative, sleep = (ms) => new Promise(r => setTimeout(r, ms))} = {}){
+  const started = Date.now();
+  let result = null;
+  for (let attempt = 1; attempt <= Math.max(1, attempts); attempt += 1){
+    result = await run(env, input);
+    if (result?.narrative || !RETRYABLE_REASONS.has(result?.reason)) return {...result, attempts:attempt, ms:Date.now() - started};
+    if (attempt < attempts) await sleep(pauseMs);
+  }
+  return {...result, attempts:Math.max(1, attempts), ms:Date.now() - started};
+}
+
 // Lo que el operador ha escrito en el formulario manda siempre sobre lo redactado.
 // Acepta tanto la narración a secas como el {narrative, reason} de generateNarrative,
 // para no romper a quien ya llamaba a esto con el objeto pelado.

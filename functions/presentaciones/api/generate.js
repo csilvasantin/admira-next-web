@@ -9,7 +9,7 @@ import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
 import {normalizeSlideMedia} from '../_slide-media.js';
 import {normalizeSourceTraceability} from '../_source-traceability.js';
-import {generateNarrative,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC} from '../_skeleton.js';
+import {generateNarrativeWithRetry,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC} from '../_skeleton.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 
@@ -198,18 +198,34 @@ export async function onRequestPut(context){
   if (!/^https:\/\//i.test(input.website)) return json({error:'La web oficial debe comenzar por https://'},400);
   if (input.requestedInspirationUrl && !/^https:\/\//i.test(input.requestedInspirationUrl)) return json({error:'La web inspiradora debe comenzar por https://'},400);
   input.inspirationUrl=input.requestedInspirationUrl||input.website;
+  // TIEMPOS POR PASO (MorfeoMacMini, 6-sep-2026 · FLT-100018 a): «rápido» sólo se puede
+  // mejorar si se mide. Cada etapa del alta deja sus milisegundos en `timings`, que viajan
+  // en la respuesta al operador y en una línea de log del worker (evento presentacion-creada).
+  const timings={};const reloj=Date.now();let marca=reloj;
+  const cronometra=(paso)=>{const ahora=Date.now();timings[paso]=ahora-marca;marca=ahora;};
   let inspiration=null;
   let brandAnalysis=null;
   try{
     inspiration=normalizeInspiration(raw.inspiration,input.inspirationUrl) || await analyzeInspiration(input.inspirationUrl);
     brandAnalysis=input.inspirationUrl===input.website?inspiration:await analyzeInspiration(input.website);
     if(!raw.inspiration){input.primaryColor=inspiration.primary;input.accentColor=inspiration.accent}
-    input.brand=await persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis});
   }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
+  cronometra('web');
   input.inspiration=inspiration;
+  // El logo y el guion no se necesitan el uno al otro: van EN PARALELO. Antes el guion
+  // esperaba a que el logo se descargara y se guardara, y ese tiempo lo pagaba el operador.
   // El motivo del respaldo se queda AQUÍ, en una variable del operador: nunca dentro
   // de `ideas`, que se persiste en KV y lo leen las rutas del portal del cliente.
-  const narrativeResult=await generateNarrative(context.env,input);
+  let narrativeResult;
+  try{
+    const [brand,narrative]=await Promise.all([
+      persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis}),
+      generateNarrativeWithRetry(context.env,input)
+    ]);
+    input.brand=brand;narrativeResult=narrative;
+  }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
+  cronometra('logo+guion');
+  timings.guion=narrativeResult?.ms??null;timings.guionIntentos=narrativeResult?.attempts??1;
   const ideas=mergeNarrative(buildIdeas(input,slug,languages),narrativeResult,input);
   ideas.embeds=embeds;   // las webs que se enseñan vivas dentro del deck (ver _embeds.js)
   ideas.terminology=terminology;
@@ -221,6 +237,7 @@ export async function onRequestPut(context){
   }catch(error){return json({error:error.message||'La trazabilidad de fuentes no es válida.'},400)}
   try{
     const localized=await generateTranslations(context.env,ideas,languages,terminology),spanish=localized.es;
+    cronometra('traduccion');
     if(spanish){ideas.hero=spanish.hero;ideas.objective=spanish.objective;ideas.skeleton=spanish.skeleton;ideas.closing=spanish.closing;ideas.labels=spanish.labels;delete localized.es}
     ideas.translations=localized;
   }
@@ -267,7 +284,10 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas)),
     context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
+  cronometra('guardado');
   await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null});
+  cronometra('version');timings.total=Date.now()-reloj;
+  try{console.log(JSON.stringify({evento:'presentacion-creada',slug,narrativeSource:ideas.narrativeSource||'template',timings}));}catch(_){}
   const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
   // Quién escribió el guion viaja en la respuesta. Si se cayó al molde, el operador
   // tiene que enterarse ANTES de mandarle el enlace a un cliente: ese texto es el
@@ -275,5 +295,5 @@ export async function onRequestPut(context){
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':'template';
   const narrativeFallback=narrativeSource==='xai'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }
