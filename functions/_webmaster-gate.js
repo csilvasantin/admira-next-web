@@ -288,7 +288,8 @@ function esc(value) {
 }
 export function returnToSeguro(value) {
   const path = String(value || '');
-  return path === '/usuarios' || path === '/webmaster' ? path : '/webmaster';
+  // /github (zona militarizada, 06-09-2026) vuelve a su sitio tras el login, como /usuarios.
+  return path === '/usuarios' || path === '/webmaster' || path === '/github' ? path : '/webmaster';
 }
 
 export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {
