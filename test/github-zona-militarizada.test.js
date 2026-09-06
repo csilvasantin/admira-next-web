@@ -85,6 +85,7 @@ test('la propiedad (gmail) y cualquier @admira.com entran; el inventario sale re
     assert.match(body,/rel="noopener noreferrer"/);
     assert.match(body,/AdmiraNeXT v\.06\.09\.2026\.r4\.18:30/,'lleva el sello vivo de version.json');
     assert.match(body,/Zona militarizada/);
+    assert.match(body,/<!--email_off-->[\s\S]*<!--\/email_off-->/,'Cloudflare no debe ofuscar los correos: su descodificador lo bloquea la CSP');
   }
   await alta(env,'editor@admira.com','editor');
   assert.equal((await pide(env,await cookie(env,'editor@admira.com'))).status,200);

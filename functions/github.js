@@ -51,11 +51,14 @@ footer{margin-top:22px;color:var(--dim);font:12px var(--mono);display:flex;justi
 
 function cabecera(titulo, sello) {
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">${
-    sello ? `<meta name="admiranext-version" content="AdmiraNeXT ${esc(sello)}">` : ''}<title>${esc(titulo)} · AdmiraNeXT</title><style>${CSS}</style></head><body><main class="shell">`;
+    sello ? `<meta name="admiranext-version" content="AdmiraNeXT ${esc(sello)}">` : ''}<title>${esc(titulo)} · AdmiraNeXT</title><style>${CSS}</style></head><body><main class="shell"><!--email_off-->`;
+// <!--email_off-->: Cloudflare reescribe los correos del HTML como «[email protected]» y su descodificador
+// es un script que nuestra CSP bloquea (06-09-2026, r4 en producción). Con el marcador no toca nada.
+const PIE = '<!--/email_off--></main></body></html>';
 }
 
 export function paginaDenegada(email, sello = '') {
-  return `${cabecera('Zona militarizada', sello)}<header><div><div class="eyebrow">AdmiraNeXT · Zona militarizada</div><h1>Sin acceso a esta zona</h1><div class="meta">${esc(email)} está en el directorio, pero /github es solo para cuentas @admira.com y la propiedad.</div></div><div class="actions"><a class="btn" href="/webmaster">← Webmaster</a></div></header><div class="aviso">Este intento queda anotado en la auditoría de /usuarios. Si necesitas entrar, pídeselo a un administrador.</div></main></body></html>`;
+  return `${cabecera('Zona militarizada', sello)}<header><div><div class="eyebrow">AdmiraNeXT · Zona militarizada</div><h1>Sin acceso a esta zona</h1><div class="meta">${esc(email)} está en el directorio, pero /github es solo para cuentas @admira.com y la propiedad.</div></div><div class="actions"><a class="btn" href="/webmaster">← Webmaster</a></div></header><div class="aviso">Este intento queda anotado en la auditoría de /usuarios. Si necesitas entrar, pídeselo a un administrador.</div>${PIE}`;
 }
 
 export function paginaInventario(current, doc, sello = '') {
@@ -64,7 +67,7 @@ export function paginaInventario(current, doc, sello = '') {
     doc ? `actualizado ${esc(fecha(doc.updated_at))}${doc.updated_by ? ' por ' + esc(doc.updated_by) : ''}` : 'sin documento'}</div></div><div class="actions"><a class="btn" href="/webmaster">← Webmaster</a><a class="btn" href="/usuarios">Usuarios</a></div></header>
 <div class="aviso">Zona militarizada: este inventario nombra repositorios PRIVADOS. Se sirve solo con sesión y no se copia a chats, capturas ni documentos públicos. Cada lectura queda en la auditoría.</div>
 <article>${cuerpo}</article>
-<footer><span>Fuente: admira-vault · docs/GITHUB-INVENTARIO.md (privado) · cargado en D1</span><span>${sello ? 'AdmiraNeXT ' + esc(sello) : ''}</span></footer></main></body></html>`;
+<footer><span>Fuente: admira-vault · docs/GITHUB-INVENTARIO.md (privado) · cargado en D1</span><span>${sello ? 'AdmiraNeXT ' + esc(sello) : ''}</span></footer>${PIE}`;
 }
 
 export async function onRequest({ request, env }) {
