@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.05.09.2026.r3.10:26">
+<meta name="admiranext-version" content="v.06.09.2026.r2.07:43">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -1072,6 +1072,40 @@
           en yokup como en cualquier otro trabajo. Acceso para cuidar, no para mandar.</p>
         <p><i>(Carlos, 3 de septiembre de 2026. Aplicado ese mismo día al censo: los cinco, miembros
           de los 26 proyectos.)</i></p>
+      </div>
+    </article>
+    <article class="art" id="n29">
+      <div class="num">29</div>
+      <div>
+        <h2>Sesión corta; contexto largo es basura cara</h2>
+        <p>Una sesión de agente que dura días no acumula sabiduría: acumula <b>historial que se
+          reenvía entero en cada llamada</b>. Lo que se paga no es la respuesta, es todo lo que va
+          delante de ella. Medido en la flota el 5 de septiembre de 2026: <b>Morfeo 687 M</b> de
+          tokens, <b>Neo 437 M</b>, <b>Oráculo 279 M</b> (casi todo heartbeat) y <b>Trinity 21 M</b>,
+          para una <b>salida útil de unos 4,6 M</b>. Más del 99 % del gasto fue contexto arrastrado
+          por chats de varios días, no trabajo.</p>
+        <div class="formula">sesión ≥ 2 días o ~100k tokens por llamada → handoff FLT y sesión limpia &middot; sin heartbeat en hilos gordos &middot; alarma &gt; 100 M</div>
+          <table aria-label="Reglas de sesión corta">
+            <thead><tr><th>Regla</th><th>Qué se hace</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td>1 · Cerrar a tiempo</td><td>Sesión de <b>2 días o más</b>, o con <b>~100k tokens o más por llamada</b>: se cierra. Antes, un <b>handoff corto</b> en la misión (FLT) con lo hecho, lo pendiente y dónde quedó; y se abre una sesión limpia que retoma desde ahí.</td><td>El handoff cuesta un párrafo; el historial cuesta millones cada vez que se reenvía.</td></tr>
+              <tr><td>2 · Sin heartbeat en hilos gordos</td><td>Ningún latido, presencia ni temporizador sobre una sesión con contexto largo. La presencia se reporta desde un proceso ligero, nunca desde el hilo de trabajo.</td><td>Oráculo: 279 M de tokens de heartbeat sin producir nada. Un latido sobre un hilo gordo reenvía el hilo entero cada vez.</td></tr>
+              <tr><td>3 · Alarma</td><td>Más de <b>100 M</b> de tokens en un agente, o una llamada cuyo contexto largo va <b>≥ 95 % en caché</b>: se avisa en el canal común y se cierra la sesión.</td><td>El 95 % en caché es la firma del historial reenviado: la llamada lleva casi nada nuevo.</td></tr>
+              <tr><td>4 · Supervisión</td><td>La vigilancia sigue el <a href="/mandamientos">Mandamiento 15</a>, «Cuenta tus tokens»: cada cierre declara el contexto gastado (<a href="#n23">norma 23</a>) y el parte diario compara agente por agente.</td><td>Lo que no se mide se paga igual, pero sin enterarse.</td></tr>
+            </tbody>
+          </table>
+        <p><b>Por qué hace falta.</b> El coste de un agente no crece con lo que hace, sino con el
+          tamaño del chat en el que lo hace. Dos agentes con el mismo trabajo pueden costar diez
+          veces distinto según lleven una sesión de una hora o de una semana. Y el heartbeat
+          convierte ese chat en una factura que corre sola mientras nadie mira.</p>
+        <p><b>Qué NO cambia.</b> El trabajo no se pierde: se cierra la sesión, no la misión. El
+          handoff va a la misión de yokup, que es donde estaba ya la memoria buena; la sesión
+          nueva arranca con handon y sigue. Tampoco cambia el reporte: el Mandamiento 11 se
+          cumple con un proceso ligero, no manteniendo vivo el hilo caro.</p>
+        <p><i>(Borrador de Wozniak, CTO del Consejo, con las cifras de la flota del 5-sep-2026.
+          Publicada el 6 de septiembre de 2026 por Neo en MBP14, encargo 2466. Para el equipo:
+          si tu sesión tiene más de dos días o tu contexto pasa de ~100k por llamada, haz
+          handoff y ciérrala hoy.)</i></p>
       </div>
     </article>
   </main>
