@@ -6,7 +6,7 @@
 <title>Normativa · AdmiraNeXT — contrato operativo del equipo de silicio</title>
 <meta name="description" content="Cómo se ejecuta la doctrina: identidad de los agentes, diccionario de apellidos de máquina y referencia única del trabajo diario.">
 <meta name="robots" content="noindex">
-<meta name="admiranext-version" content="v.06.09.2026.r2.07:43">
+<meta name="admiranext-version" content="v.06.09.2026.r6.18:56">
 <link rel="icon" href="/favicon.ico">
 <meta property="og:title" content="Normativa · AdmiraNeXT">
 <meta property="og:description" content="El contrato operativo del equipo de silicio: identidad, apellidos de máquina y referencia única del día.">
@@ -1108,6 +1108,48 @@
           handoff y ciérrala hoy.)</i></p>
       </div>
     </article>
+
+    <article class="art" id="n30">
+      <div class="num">30</div>
+      <div>
+        <h2>La misión y el encargo no comparten número</h2>
+        <p>Un <b>encargo</b> es una fila de la bandeja (bot-inbox): <code>#2708</code>, cuatro cifras,
+          contador de admira-telegram. Una <b>misión</b> es un ticket de Yokup y, desde
+          <code>yokup-rtc v.06.09.2026.r7.18:42</code>, nace en su <b>serie propia a partir de
+          <code>FLT-100001</code></b>: seis cifras, contador de Yokup. <b>Nunca se fabrica
+          <code>FLT-&lt;número de encargo&gt;</code></b>. El cruce encargo↔misión vive en el mapa
+          <code>fleet_ids</code> y en el «#n» del ticket; <code>#n</code> se resuelve por ese mapa, no
+          adivinando. Las misiones anteriores conservan su número (<a href="#n03">regla 03</a>: se leen,
+          no se propagan). La referencia humana sigue siendo la del día (<a href="#n05">regla 05</a>).</p>
+        <div class="formula">encargo #NNNN (bandeja) ≠ misión FLT-100NNN (Yokup) · cruce = fleet_ids · humano = NNNN.DD/MM/AAAA.HH:MM</div>
+        <div class="tbl">
+          <table aria-label="Números de encargo y de misión">
+            <thead><tr><th>Cosa</th><th>Cómo se escribe</th><th>Quién lleva el contador</th><th>Qué queda prohibido</th></tr></thead>
+            <tbody>
+              <tr><td>Encargo</td><td><code>#2708</code> — «encargo #2708»</td><td>bot-inbox (admira-telegram)</td><td>Leerlo como misión: <code>FLT-2708</code> no es su misión</td></tr>
+              <tr><td>Misión</td><td><code>FLT-100001</code> — «misión FLT-100001»</td><td>Yokup (serie propia desde 100001)</td><td>Pelar el prefijo y tratarlo como encargo</td></tr>
+              <tr><td>Cruce</td><td><code>fleet_ids</code>: inbox_id ↔ mission_id · «#n» en el ticket</td><td>Yokup al sincronizar</td><td>Deducir uno del otro en un guion</td></tr>
+              <tr><td>Histórico</td><td><code>FLT-2702</code>, <code>FLT-1045</code>…</td><td>Se conservan tal cual</td><td>Renumerar lo publicado</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><b>Por qué hace falta.</b> Hasta hoy el número «natural» de una misión sincronizada era el de su
+          encargo (<code>FLT-2702 ← #2702</code>), y las altas directas se colaban en la misma serie
+          (<code>FLT-2704</code> junto a los encargos <code>#2700-#2703</code>). Dos contadores de dos bases
+          distintas acababan significando dos cosas con un mismo número: FLT-973 y FLT-974 pisadas,
+          FLT-1515 nacida del #1487 mientras el #1515 era una consulta sin misión, y el 6 de septiembre
+          #2702, FLT-2702 y FLT-2704 en la misma prueba. El parche anticolisión trataba el síntoma; la serie
+          propia quita la causa.</p>
+        <p><b>Cómo se cumple.</b> Al hablar de trabajo se dice de qué se habla: «encargo #2708» o «misión
+          FLT-100001»; un número solo no identifica nada. Un guion no deduce la misión del encargo ni al
+          revés: pregunta al worker (<code>/fleet/missions</code>, el <i>claim</i>). <code>bot-inbox-paso.sh</code>
+          manda <code>#n</code> crudo y Yokup lo resuelve. Detalle y comprobación en
+          <code>yokup-rtc/FLEET_IDS.md</code>.</p>
+        <p><i>(Decisión de Carlos, 6 de septiembre de 2026: «la misión y el encargo no deberían tener el
+          mismo número». Implementada y publicada por MorfeoMacMini continuando el proyecto de Oráculo
+          —todo miembro de AdmiraNeXT puede continuar el proyecto de otro—, misión FLT-2705.)</i></p>
+      </div>
+    </article>
   </main>
 
   <footer>
@@ -1119,7 +1161,7 @@
       <a href="/filosofia">las Máximas y el detalle operativo</a> ·
       <a href="/webmaster">Webmaster (versiones)</a> ·
       espejo operativo en <a href="https://yokup.com/normativa">yokup.com/normativa</a><br>
-      <span style="opacity:.8">v.04.09.2026.r1.05:28</span>
+      <span style="opacity:.8">v.06.09.2026.r6.18:56</span>
     </div>
   </footer>
 </div>
