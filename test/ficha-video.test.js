@@ -1,7 +1,8 @@
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
 /* La ficha decide cómo se llama la pieza en el catálogo y en qué categoría cae.
  * Es la diferencia entre 14 vídeos distintos y 14 vídeos con el mismo nombre. */
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 let mod;
 test.before(async () => { mod = await import('../functions/presentaciones/api/_ficha-video.mjs'); });

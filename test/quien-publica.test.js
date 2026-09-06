@@ -1,7 +1,10 @@
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const { pathToFileURL } = require("node:url");
-const path = require("node:path");
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
+import { fileURLToPath } from 'node:url';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import path from 'node:path';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let M;
 test.before(async () => {

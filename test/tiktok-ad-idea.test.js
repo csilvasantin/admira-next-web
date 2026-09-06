@@ -1,5 +1,6 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 function kv(initialValue = null){
   const puts = [];

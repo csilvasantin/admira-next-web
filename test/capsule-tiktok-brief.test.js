@@ -1,7 +1,8 @@
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
 /* La traducción cápsula → TikTok de 15 s es donde se decide si el vídeo sirve o
  * es relleno, así que se prueba aquí y no a ojo mirando el resultado. */
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 let mod;
 test.before(async () => {

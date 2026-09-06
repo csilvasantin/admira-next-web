@@ -1,9 +1,14 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
+import { fileURLToPath } from 'node:url';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const core = require('../assets/tiktok-core.js');
+// tiktok-core es UMD: en módulo ESM no exporta nada, deja la API en globalThis.TikTokCore (igual que en el navegador).
+import '../assets/tiktok-core.js';
+const core = globalThis.TikTokCore;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test('genera un plan vertical de tres escenas y quince segundos', () => {
   const plan = core.buildPlan({

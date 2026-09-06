@@ -1,8 +1,9 @@
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
 /* La subida a YouTube tiene dos formas conocidas de salir mal —la cuota diaria y
  * el permiso caducado— y ninguna de las dos se arregla reintentando. Se prueba
  * que se distinguen, porque confundirlas quema las pocas subidas que quedan. */
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 let yt;
 test.before(async () => { yt = await import('../functions/presentaciones/api/_youtube-subida.mjs'); });

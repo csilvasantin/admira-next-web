@@ -1,8 +1,9 @@
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
 /* La puerta cápsula → TikTok. Se prueba con un motor de mentira: lo que importa
  * aquí es quién puede llamar, qué se le manda al motor y qué se contesta cuando
  * la cápsula no da para vídeo. */
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 let onRequest;
 test.before(async () => {

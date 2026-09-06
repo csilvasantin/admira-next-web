@@ -75,7 +75,7 @@ test('la ruta antigua del generador redirige a la entrada canónica',async()=>{
   assert.equal(response.headers.get('location'),'https://www.admiranext.com/presentaciones/?source=brief');
 });
 
-test('las dos cuentas Google propietarias acceden a presentaciones y áreas internas', async t => {
+test('las dos cuentas Google propietarias acceden a presentaciones y al generador, no al área de control', async t => {
   t.mock.method(globalThis, 'fetch', async () => Response.json({
     aud:'861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com',
     email:'csilva@admira.com',
@@ -91,15 +91,19 @@ test('las dos cuentas Google propietarias acceden a presentaciones y áreas inte
   }));
 
   assert.equal(response.status, 303);
-  assert.ok(response.headers.getSetCookie().some(value => value.startsWith('pres_master=')));
+  // Desde el 4-sep-2026 el acceso con Google emite la sesión del generador (pres_owner), no pres_master.
+  assert.ok(response.headers.getSetCookie().some(value => value.startsWith('pres_owner=')));
 
   const presentation = await onRequest(context('https://www.admiranext.com/presentaciones/demo/', {
     headers:{Cookie:cookieHeader(response), Accept:'text/html'}
   }));
   assert.equal(presentation.status, 200);
 
+  // El área de control NO se abre con la sesión de propietario (lo dice el test de arriba y el
+  // middleware desde el 1-ago-2026, 3131156): sólo con la contraseña maestra. Esta aserción
+  // esperaba 200 y se contradecía con su propio fichero; llevaba en rojo desde entonces.
   const control = await onRequest(context('https://www.admiranext.com/presentaciones/control/', {
     headers:{Cookie:cookieHeader(response), Accept:'text/html'}
   }));
-  assert.equal(control.status, 200);
+  assert.equal(control.status, 401);
 });

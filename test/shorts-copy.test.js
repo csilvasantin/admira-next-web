@@ -1,7 +1,8 @@
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
 /* El texto de la bandeja. Si hay que reescribirlo, la bandeja no ahorra trabajo:
  * solo cambia el sitio donde lo haces. Por eso se prueba el pack, no la página. */
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
 let mod;
 test.before(async () => { mod = await import('../assets/shorts-copy.js'); });

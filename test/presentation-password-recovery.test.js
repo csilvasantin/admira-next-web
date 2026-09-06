@@ -17,14 +17,18 @@ test('el acceso es reconocible por Google Password Manager', () => {
   assert.match(source, /Google Password Manager/);
 });
 
-test('las presentaciones muestran el selector oficial de cuentas de Google', () => {
-  assert.match(source, /accounts\.google\.com\/gsi\/client/);
-  assert.match(source, /class="g_id_signin"/);
-  assert.match(source, /data-text="continue_with"/);
+test('las presentaciones ofrecen el acceso con cuenta de Google por redirección y verifican la credencial', () => {
+  // Contrato del 4-sep-2026 (FLT-1631/0478, NeoMBP14): sin popup ni botón GSI. Google vuelve por POST
+  // a /webmaster (única URI registrada) y webmaster.js reenvía la credencial a esta página, que la
+  // verifica en tokeninfo, exige el aud del cliente y emite la sesión del generador (pres_owner).
+  // Este test guardaba el contrato anterior (g_id_signin, pres_master) y llevaba en rojo desde entonces.
+  assert.match(source, /id="google-access" method="POST"/);
+  assert.match(source, /name="intent" value="google"/);
+  assert.match(source, /https:\/\/www\.admiranext\.com\/webmaster/);
   assert.match(source, /oauth2\.googleapis\.com\/tokeninfo/);
   assert.match(source, /payload\.aud !== GOOGLE_CLIENT_ID/);
-  assert.match(source, /pres_master=\$\{accessToken\}/);
-  assert.match(source, /makeToken\(signKey, '_master', exp\)/);
+  assert.match(source, /pres_owner=\$\{accessToken\}/);
+  assert.match(source, /makeSessionToken\(signKey, googleAccess, MAXAGE\)/);
 });
 
 test('la recuperación no revela la contraseña ni enumera usuarios', () => {

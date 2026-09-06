@@ -1,0 +1,7 @@
+{
+  "name": "admira-next-web",
+  "private": true,
+  "type": "module",
+  "description": "Sitio estático de admiranext.com (Cloudflare Pages). Este package.json sólo fija el tipo de módulo de los tests: sin él, Node hereda el package.json de la carpeta que contenga el repo (en el MacMini uno con type=module) y los tests con require reventaban en unos Macs y pasaban en otros (FLT-100016, 6-sep-2026).",
+  "scripts": { "test": "node --test test/*.test.js" }
+}

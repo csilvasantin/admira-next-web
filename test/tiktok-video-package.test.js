@@ -1,5 +1,10 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+// ESM (FLT-100016, 6-sep-2026): con `require` este fichero reventaba en `node --test` y no vigilaba nada.
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function kv(){
   const values = new Map();
@@ -139,7 +144,7 @@ test('sirve el master únicamente mediante su ruta opaca', async () => {
 });
 
 test('el compositor mantiene un reloj de audio durante preroll, anuncio y postroll', async () => {
-  const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../tiktok/app.js'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '../tiktok/app.js'), 'utf8');
   assert.match(source, /packageAudioContext\.createMediaStreamDestination\(\)/);
   assert.match(source, /packageAudioClock\.connect\(silentGain\)\.connect\(destination\)/);
   assert.match(source, /silentGain\.gain\.value = 0/);
