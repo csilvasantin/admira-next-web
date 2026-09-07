@@ -307,3 +307,14 @@ test('revocar sesiones incrementa versión e invalida sólo al usuario objetivo'
   const r=await onRequestPatch({request:request('PATCH',cookie,me.csrf,{email:'csilvasantin@gmail.com',action:'revoke_sessions'}),env});
   assert.equal(r.status,200); assert.equal(await current(env,other),null); assert.ok(await current(env,cookie));
 });
+
+test('la página /usuarios quita el ceja Identidad y pliega los proyectos del Alta',()=>{
+  const html=fs.readFileSync(new URL('../usuarios.html',import.meta.url),'utf8');
+  assert.doesNotMatch(html,/AdmiraNeXT · Identidad/,'la URL ya dice AdmiraNeXT; el ceja no aporta');
+  assert.match(html,/<h1>Gestión de usuarios<\/h1>/);
+  assert.match(html,/<details class="project-picker">/);
+  assert.doesNotMatch(html,/<details class="project-picker"[^>]*\sopen/);
+  assert.match(html,/<summary><strong>Proyectos permitidos<\/strong>/);
+  const alta=html.slice(html.indexOf('id="add"'), html.indexOf('id="notice"'));
+  assert.ok(alta.indexOf('id="addProjects"')>alta.indexOf('</summary>'),'la parrilla de proyectos queda dentro del details, no a la vista al abrir');
+});
