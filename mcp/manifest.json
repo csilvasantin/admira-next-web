@@ -2,7 +2,7 @@
   "name": "admiranext-matriz",
   "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
   "description": "Hub MCP de la matriz de la trilogía AdmiraNeXT. Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
-  "version": "v.05.09.2026.r5.23:50",
+  "version": "v.07.09.2026.r2.06:06",
   "type": "static-site",
   "site": "https://www.admiranext.com",
   "hub": "https://www.admiranext.com/mcp/",
@@ -192,6 +192,56 @@
       "transport": "streamable-http",
       "auth": "ver su página",
       "help": "https://www.admira.app/mcp"
+    },
+    {
+      "name": "pixeria-mcp",
+      "producto": "Pixeria · stock de imágenes (crear)",
+      "endpoint": "https://mcp-pixeria.admira.store/mcp",
+      "transport": "streamable-http",
+      "auth": "lectura abierta (sin clave)",
+      "llms": "https://www.pixeria.com/mcp/llms.txt",
+      "help": "https://www.pixeria.com/help",
+      "salud": "https://mcp-pixeria.admira.store/",
+      "servidor": "Pixeria 1.0.0",
+      "nota": "llms.txt y /help de www.pixeria.com quedan tras la verja de acceso; el servidor MCP responde sin clave",
+      "tools": [
+        "search_stock",
+        "stock_stats",
+        "get_asset"
+      ]
+    },
+    {
+      "name": "admira-tv-mcp",
+      "producto": "Admira.tv · el canal (emitir): en antena, proof-of-play, URL del canal y player",
+      "endpoint": "https://mcp-tv.admira.store/mcp",
+      "transport": "streamable-http",
+      "auth": "lectura abierta (sin clave)",
+      "llms": "https://admira.tv/mcp/llms.txt",
+      "help": "https://admira.tv/help",
+      "manifest": "https://admira.tv/mcp/manifest.json",
+      "salud": "https://mcp-tv.admira.store/",
+      "servidor": "Admira.tv 1.1.0",
+      "tools": [
+        "on_air",
+        "airtime_report",
+        "channel_url",
+        "player_info"
+      ]
+    },
+    {
+      "name": "council-mcp",
+      "producto": "Consejo de Silicio por HTTP: consejeros, pregunta a uno o al consejo",
+      "endpoint": "https://council-mcp.admira.store/mcp",
+      "transport": "streamable-http",
+      "auth": "lectura abierta (sin clave)",
+      "help": "https://www.admira.live/help",
+      "salud": "https://council-mcp.admira.store/",
+      "servidor": "AdmiraNeXT Council 1.0.0",
+      "tools": [
+        "list_consejeros",
+        "ask_consejero",
+        "ask_council"
+      ]
     },
     {
       "name": "admiranext-generador-presentaciones",

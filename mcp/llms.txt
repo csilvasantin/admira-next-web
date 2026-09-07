@@ -63,7 +63,7 @@ Tres directorios distintos. No mezclarlos:
 - HANDOFF de la trilogía: https://www.admiranext.com/HANDOFF.md
 - README: https://www.admiranext.com/README.md
 
-## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.05.09.2026.r5.23:50)
+## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.07.09.2026.r2.06:06)
 
 Unir la suite por MCP no es un servidor único: cada producto tiene el suyo, en su dominio propio,
 y todos reconocen a la misma persona con la misma clave. Este es el directorio canónico;
@@ -75,8 +75,16 @@ manifest.json lo lleva en `mcp_servers` con el mismo contenido.
 | Misiones y bandeja · yokup.com | https://yokup.com/mcp | credencial individual (30 días); clave de flota en curso (encargo a Oráculo) | https://www.yokup.com/mcp/llms.txt | https://www.yokup.com/help#mcp |
 | Retail media · XpaceOS (admira.store) | https://mcp.admira.store/mcp | lectura abierta; escritura con clave de flota (worker 2.1.0, desde el 5-sep-2026) | https://www.admira.store/mcp/llms.txt | https://www.xpaceos.com/help/ |
 | Audiencia y emisión verificada · admira.app | https://www.admira.app/mcp | ver su página | https://www.admira.app/mcp | https://www.admira.app/mcp |
+| Stock de imágenes · Pixeria (pixeria.com) | https://mcp-pixeria.admira.store/mcp | lectura abierta (sin clave) | https://www.pixeria.com/mcp/llms.txt (tras verja) | https://www.pixeria.com/help (tras verja) |
+| El canal · Admira.tv (admira.tv) | https://mcp-tv.admira.store/mcp | lectura abierta (sin clave) | https://admira.tv/mcp/llms.txt | https://admira.tv/help |
+| Consejo de Silicio por HTTP · council-mcp | https://council-mcp.admira.store/mcp | lectura abierta (sin clave) | — | https://www.admira.live/help |
 | Presentaciones · admiranext.com | https://www.admiranext.com/mcp | token anmcp_ (admin en /usuarios) | este fichero | https://www.admiranext.com/mcp/generador |
 | Studio · admira.studio | tras login (federado desde aquí) | Google | — | https://www.admira.studio/ |
+
+Tres de ellos medidos el 7-sep-2026 sin cabecera Authorization: `initialize` responde 200 en
+pixeria-mcp (Pixeria 1.0.0: search_stock, stock_stats, get_asset), admira-tv-mcp (Admira.tv 1.1.0:
+on_air, airtime_report, channel_url, player_info) y council-mcp (AdmiraNeXT Council 1.0.0:
+list_consejeros, ask_consejero, ask_council).
 
 Bus compartido: los encargos entre agentes y consejeros van por el bot-inbox de admira-telegram
 (bot.yokup.com), que sirve a yokup y a admira.live; por eso sus MCP se entienden (FLT-2111).
