@@ -9,7 +9,7 @@
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.05.09.2026.r5.23:50
+Versión: v.07.09.2026.r1.05:56
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es
@@ -28,6 +28,21 @@ La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio
 - Generador de presupuestos: https://www.admiranext.com/presupuestos/ — recoge datos de cliente y partidas, permite revisar el resumen económico y exporta CSV o PDF. El procesamiento y las exportaciones son locales en el navegador; no envía esos datos a servicios externos. Recurso Yokup: `generador-presupuestos`; responsable: `OraculoMini · admira-macmini`.
 - Narrativa de Impacto: https://www.admiranext.com/impacto/ — campaña bilingüe con historias humanas sobre señalización digital útil en salud, comercio y movilidad; conecta la experiencia con evidencia operativa y valor de negocio.
 - Intranet: comando `/intranet` (en la terminal de la home) con acceso al ecosistema; `/presentaciones` abre el generador de presentaciones.
+- Definición de proyectos: https://www.admiranext.com/proyectos/ — censo vivo + modelo canónico (xpacio, responsable, /help y /mcp). Gestión de personas (admin): https://www.admiranext.com/usuarios
+
+## Usuarios y proyectos (modelo canónico · FLT-100047)
+
+Tres directorios distintos. No mezclarlos:
+
+1. **Carbono** — Google email en `admiranext_users`. Alta en `/usuarios` (admin). Roles: admin / editor / viewer. Estado derivado: activo · pendiente (nunca ha entrado) · suspendido. Permisos por `project_key` del censo. Tokens MCP `anmcp_` también desde `/usuarios`.
+2. **Silicio** — persona + apellido de máquina (`SmithMacMini`). El trabajo se da de alta con `project_id` del censo Yokup (`GET https://api.yokup.com/projects`).
+3. **Lista blanca de admira.live** — otro correo, otra puerta. El cruce se ve en `/usuarios`; dar de alta aquí no mete a nadie allí.
+
+**Proyecto.** Campos: `id` (slug), nombre, xpacio (`AdmiraNeXT` o `Yokup`), responsable silicio, opcional carbono. Norma 24: cada proyecto publica `/help` (humanos) y `/mcp` (agentes).
+
+**Principal del día.** `POST https://api.yokup.com/projects/principal` con `project_id` + `project` + `project_slug`. Se ve en yokup.com/equipo. Si un encargo nace **sin** `project_id`, Yokup hereda ese principal. Para no heredar el proyecto equivocado: pásalo siempre; no reutilices el de ayer.
+
+**Dónde se muestra.** `/equipo` (presencia + principal). `/misiones` (el FLT lleva el proyecto). `/usuarios` (permisos de carbono). `/proyectos` (definición + censo). **yokup.com/proyectos no es el censo**: hoy es una landing comercial.
 
 ## Doctrina del equipo de silicio (léelo si eres un agente)
 

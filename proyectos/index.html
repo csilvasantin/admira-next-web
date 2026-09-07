@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proyectos · AdmiraNeXT</title>
+<meta name="description" content="Modelo canónico de usuario y proyecto: xpacio, responsable, puertas /help y /mcp, y cómo se declara el principal del día.">
+<meta name="admiranext-version" content="v.07.09.2026.r1.05:56">
+<link rel="icon" href="/favicon.ico">
+<style>
+:root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% -20%,#14332f 0,transparent 42%),var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;line-height:1.55}
+.shell{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:32px 0 72px}
+.eyebrow{font:700 12px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+h1{margin:6px 0 10px;font-size:clamp(28px,5vw,46px)}h2{margin:0 0 10px;font-size:1.15rem}
+.lede,.meta{color:var(--dim)}.meta{font:600 12px/1.5 var(--mono)}
+nav{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 8px}nav a,a.btn{border:1px solid var(--line);background:#121c2c;color:var(--ink);padding:8px 12px;border-radius:10px;text-decoration:none;font:700 12px var(--mono)}
+nav a:hover,a.btn:hover{border-color:var(--cyan)}
+.panel{background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}
+.warn{border-color:#5a4a26;background:#1a1610;color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 11px var(--mono);color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
+.xp{font:700 11px var(--mono);padding:3px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.xp.next{color:var(--cyan)}.xp.yok{color:var(--warn)}
+code{font-family:var(--mono);font-size:.92em}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#09111d}
+.card h3{margin:0 0 6px;font-size:15px}
+.counts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.counts span{font:700 11px var(--mono);padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.counts b{color:var(--ink)}
+@media(max-width:760px){table,thead,tbody,tr,th,td{display:block}thead{display:none}td{border:0;padding:4px 0}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <p class="eyebrow">AdmiraNeXT · definición</p>
+  <h1>Usuarios y proyectos</h1>
+  <p class="lede">El censo vivo está en Yokup. Aquí se ve el modelo (quién es un usuario, qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada.</p>
+  <nav>
+    <a href="/usuarios">Gestión de usuarios</a>
+    <a href="/webmaster">Webmaster</a>
+    <a href="/help/#usuarios-proyectos">/help</a>
+    <a href="/mcp/">/mcp</a>
+    <a href="https://www.yokup.com/misiones">Yokup /misiones</a>
+    <a href="https://www.yokup.com/equipo">Yokup /equipo</a>
+  </nav>
+
+  <section class="panel warn">
+    <h2>Hueco: yokup.com/proyectos no es el censo</h2>
+    <p class="meta">Hoy <a href="https://www.yokup.com/proyectos">yokup.com/proyectos</a> sirve una landing comercial (Clear Channel). El censo de la flota es <code>GET https://api.yokup.com/projects</code>. Las misiones se ven en <a href="https://www.yokup.com/misiones">/misiones</a> y el principal del día en <a href="https://www.yokup.com/equipo">/equipo</a>.</p>
+  </section>
+
+  <section class="panel" id="modelo">
+    <h2>Modelo canónico</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>Usuario (carbono)</h3>
+        <p class="meta">Google email en <code>/usuarios</code>. Campos: email, nombre, rol (admin/editor/viewer), estado derivado (activo / pendiente de primer acceso / suspendido), proyectos permitidos, tokens MCP (<code>anmcp_</code>).</p>
+        <p class="meta">Alta: admin en /usuarios → copiar invitación. No entra solo en la lista blanca de admira.live.</p>
+      </article>
+      <article class="card">
+        <h3>Agente (silicio)</h3>
+        <p class="meta">Persona + apellido de máquina (<code>SmithMacMini</code>). El alta de trabajo lleva <code>project_id</code> del censo. Si falta, Yokup hereda el principal del día — y se trabaja en el proyecto equivocado.</p>
+        <p class="meta">Principal del día: <code>POST /projects/principal</code> con id + nombre + slug. Se ve en /equipo.</p>
+      </article>
+      <article class="card">
+        <h3>Proyecto</h3>
+        <p class="meta">Obligatorios: <code>id</code> (slug), nombre, xpacio (AdmiraNeXT o Yokup), responsable. Puertas norma 24: <code>/help</code> (humanos) y <code>/mcp</code> (agentes). No se borra el censo: se añade o se retitula.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="dir-head">
+      <h2>Censo vivo</h2>
+      <div id="counts" class="counts"><span>cargando…</span></div>
+    </div>
+    <p class="meta" id="status">Leyendo api.yokup.com/projects</p>
+    <div style="overflow:auto">
+      <table>
+        <thead><tr><th>Id</th><th>Nombre</th><th>Xpacio</th><th>Responsable</th><th>/help</th><th>/mcp</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function xpacioDe(p){
+  const slug = String(p.id || '').toLowerCase();
+  const site = String(p.web || '').toLowerCase();
+  if (slug === 'yokup' || slug.startsWith('yokup-') || site.includes('yokup.com')) return 'Yokup';
+  return 'AdmiraNeXT';
+}
+function originDe(web){
+  const raw = String(web || '').trim();
+  if (!raw) return '';
+  try { return new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw).origin; } catch { return ''; }
+}
+function puerta(web, path){
+  const o = originDe(web);
+  return o ? o + path : '';
+}
+(async () => {
+  const status = document.getElementById('status');
+  const rows = document.getElementById('rows');
+  try {
+    const r = await fetch('https://api.yokup.com/projects', { headers: { Accept: 'application/json' } });
+    if (!r.ok) throw new Error('Yokup HTTP ' + r.status);
+    const d = await r.json();
+    const items = d.projects || [];
+    const next = items.filter(p => xpacioDe(p) === 'AdmiraNeXT').length;
+    const yok = items.length - next;
+    document.getElementById('counts').innerHTML =
+      `<span><b>${items.length}</b> proyectos</span><span class="xp next"><b>${next}</b> AdmiraNeXT</span><span class="xp yok"><b>${yok}</b> Yokup</span>`;
+    status.textContent = 'Censo del ' + (d.day || 'día') + ' · no se borra nada desde aquí.';
+    rows.innerHTML = items.map(p => {
+      const xp = xpacioDe(p);
+      const help = puerta(p.web, '/help');
+      const mcp = puerta(p.web, '/mcp');
+      const who = p.primary_responsible || p.owner || '—';
+      return `<tr>
+        <td><code>${esc(p.id)}</code></td>
+        <td><strong>${esc(p.name)}</strong><div class="meta">${esc(p.web || '')}</div></td>
+        <td><span class="xp ${xp==='Yokup'?'yok':'next'}">${esc(xp)}</span></td>
+        <td>${esc(who)}</td>
+        <td>${help ? `<a href="${esc(help)}">/help</a>` : '—'}</td>
+        <td>${mcp ? `<a href="${esc(mcp)}">/mcp</a>` : '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    status.textContent = 'No se pudo leer el censo: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>

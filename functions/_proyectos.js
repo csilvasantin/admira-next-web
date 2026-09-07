@@ -55,6 +55,17 @@ export const PROYECTOS = [
     nota: 'Subproyecto interno de AdmiraNeXT: inventario, releases, responsables y puntos de retorno. Requiere sesión Google autorizada.',
   },
   {
+    clave: 'admiranext-proyectos', nombre: 'AdmiraNeXT · definición de proyectos',
+    url: 'https://www.admiranext.com/proyectos/',
+    estadoUrl: 'https://www.admiranext.com',
+    parentKey: 'admiranext',
+    repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · proyectos/',
+    pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout c564c73 && ADMIRA_RELEASE_AGENT=SmithMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh',
+    tipo: 'sitio', shot: null,
+    nota: 'Página pública del modelo usuario+proyecto y del censo Yokup. No borra usuarios ni proyectos. yokup.com/proyectos no es este censo.',
+  },
+  {
     clave: 'generador-presupuestos', nombre: 'Generador de Presupuestos',
     url: 'https://www.admiranext.com/presupuestos/',
     estadoUrl: 'https://www.admiranext.com',

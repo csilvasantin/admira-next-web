@@ -1,8 +1,21 @@
 import { PROYECTOS } from './_proyectos.js';
+import { fichaProyecto } from './_modelo-proyectos.js';
 
 const YOKUP_PROJECTS = 'https://api.yokup.com/projects';
 
 const clean = (value) => String(value || '').trim().slice(0, 120);
+
+function metaDe(project, extras = {}) {
+  const ficha = fichaProyecto(project);
+  return {
+    xpacio: ficha.xpacio,
+    responsible: ficha.responsible,
+    carbon_responsible: ficha.carbon_responsible,
+    help: ficha.help,
+    mcp: ficha.mcp,
+    ...extras,
+  };
+}
 
 export async function catalogoProyectos(env = {}) {
   const rows = new Map();
@@ -13,6 +26,7 @@ export async function catalogoProyectos(env = {}) {
     url: project.url || '',
     source: 'webmaster',
     order,
+    ...metaDe({ id: project.clave, name: project.nombre, web: project.url }),
   }));
 
   const fetchImpl = typeof env.YOKUP_FETCH === 'function' ? env.YOKUP_FETCH : fetch;
@@ -23,7 +37,12 @@ export async function catalogoProyectos(env = {}) {
     if (!payload || !Array.isArray(payload.projects)) throw new Error('censo Yokup inválido');
     payload.projects.forEach((project, index) => {
       const key = clean(project.id);
-      if (!key || rows.has(key)) return;
+      if (!key) return;
+      const overlay = metaDe(project);
+      if (rows.has(key)) {
+        rows.set(key, { ...rows.get(key), ...overlay, url: rows.get(key).url || overlay.url || clean(project.web) });
+        return;
+      }
       rows.set(key, {
         key,
         name: clean(project.name) || key,
@@ -31,6 +50,7 @@ export async function catalogoProyectos(env = {}) {
         url: clean(project.web),
         source: 'yokup',
         order: 10000 + Number(project.sort_order ?? index),
+        ...overlay,
       });
     });
   } catch (error) {

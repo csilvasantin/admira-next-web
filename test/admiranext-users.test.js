@@ -285,7 +285,7 @@ test('Webmaster sólo entrega y permite modificar los proyectos autorizados',asy
     const response=await getProjects({request:new Request('https://www.admiranext.com/api/proyectos?parte=retornos',{headers:{cookie}}),env});
     const body=await response.json();
     assert.equal(body.accessRestricted,undefined);
-    assert.deepEqual(body.proyectos.map((p)=>p.clave),['admiranext','admiranext-webmaster','generador-presupuestos']);
+    assert.deepEqual(body.proyectos.map((p)=>p.clave),['admiranext','admiranext-webmaster','admiranext-proyectos','generador-presupuestos']);
     const denied=await patchProject({request:new Request('https://www.admiranext.com/api/proyectos',{method:'PATCH',headers:{cookie,origin:'https://www.admiranext.com','X-Admira-CSRF':me.csrf,'content-type':'application/json'},body:JSON.stringify({clave:'yokup',responsable:'NeoMacMini'})}),env:{...env,PRESENTATION_IDEAS:{put:async()=>{throw Error('no debe escribir')}}}});
     assert.equal(denied.status,403);assert.equal((await denied.json()).error,'proyecto no autorizado');
     const history=await getHistory({request:new Request('https://www.admiranext.com/api/historial?p=yokup',{headers:{cookie}}),env});
