@@ -9,7 +9,7 @@
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.07.09.2026.r1.05:56
+Versión: v.07.09.2026.r3.06:08
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es
@@ -63,7 +63,7 @@ Tres directorios distintos. No mezclarlos:
 - HANDOFF de la trilogía: https://www.admiranext.com/HANDOFF.md
 - README: https://www.admiranext.com/README.md
 
-## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.07.09.2026.r2.06:06)
+## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.07.09.2026.r3.06:08)
 
 Unir la suite por MCP no es un servidor único: cada producto tiene el suyo, en su dominio propio,
 y todos reconocen a la misma persona con la misma clave. Este es el directorio canónico;

@@ -2,7 +2,7 @@
   "name": "admiranext-matriz",
   "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
   "description": "Hub MCP de la matriz de la trilogía AdmiraNeXT. Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
-  "version": "v.07.09.2026.r2.06:06",
+  "version": "v.07.09.2026.r3.06:08",
   "type": "static-site",
   "site": "https://www.admiranext.com",
   "hub": "https://www.admiranext.com/mcp/",
