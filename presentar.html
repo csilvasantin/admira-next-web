@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Presentar · ADmiraNeXT</title>
+<meta name="description" content="Presentar en AdmiraNeXT: de un cliente y un problema a una presentación viva. Tres puertas: tu asistente por MCP, el generador para personas y el verbo Presentar del Consejo.">
+<meta name="admiranext-version" content="v.10.09.2026.r1.08:12">
+<meta name="robots" content="index,follow">
+<style>
+:root{--bg:#070a10;--panel:#0d1522;--line:#1e2940;--ink:#e8eef8;--dim:#7186a8;--brand:#3df08a;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(90% 60% at 80% -10%,rgba(61,240,138,.08),transparent 60%);pointer-events:none}
+main{position:relative;max-width:920px;margin:0 auto;padding:48px 22px 80px}
+.eyebrow{font:700 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--brand);margin-bottom:18px}
+h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.02em;margin:0 0 10px}h2{font-size:20px;margin:40px 0 12px;color:var(--brand)}h3{font-size:15px;margin:22px 0 8px}
+p{color:#b9c6dc}.sub{font-size:18px;color:var(--dim)}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;font:13px/1.5 var(--mono);color:#cfe3ff}
+code{font:13px var(--mono);color:#cfe3ff;background:rgba(120,243,255,.08);padding:2px 6px;border-radius:6px}
+a{color:var(--brand);text-underline-offset:3px}.nav{display:flex;gap:16px;flex-wrap:wrap;font:700 12px var(--mono);margin-bottom:28px}.nav a{color:#a8bad4;text-decoration:none}.nav a:hover{color:var(--brand)}
+.doors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}@media(max-width:720px){.doors{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:12px 0}.doors .card{margin:0}
+.card h3{margin:0 0 8px}.card .who{font:700 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+ol li,ul li{margin:6px 0;color:#b9c6dc}.mut{color:var(--dim)}
+footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
+</style>
+</head>
+<body>
+<main>
+  <nav class="nav"><a href="/">← admiranext.com</a><a href="/mcp/">Hub MCP</a><a href="/mcp/generador">Ayuda del MCP</a><a href="/presentaciones/">Generador</a><a href="https://www.admira.live/">Consejo</a></nav>
+  <div class="eyebrow">ADmiraNeXT · Verbo · Presentar</div>
+  <h1>Presentar.</h1>
+  <p class="sub">De un cliente y un problema a una presentación viva: portal privado con clave, guion editable y site navegable, en ES/EN (y más idiomas si los pides). Es el verbo que el Consejo ya tiene en <a href="https://www.admira.live/">admira.live</a>; aquí, en la matriz, tiene su puerta para agentes y personas.</p>
+
+  <h2>Tres puertas, una sola herramienta</h2>
+  <div class="doors">
+    <div class="card"><div class="who">Agente · MCP</div><h3>Tu asistente, por MCP</h3><p>Endpoint <code>https://www.admiranext.com/mcp</code>. Con un token <code>anmcp_…</code> el asistente lista, crea, sigue y restaura presentaciones con los permisos de su dueño. <a href="/mcp/generador">Ayuda completa →</a></p></div>
+    <div class="card"><div class="who">Persona · web</div><h3>El generador</h3><p><a href="/presentaciones/">/presentaciones</a>: formulario de cliente, problema, audiencia y soluciones embebidas. Requiere acceso interno (responde <code>401</code> sin él); se entra con la cuenta de <a href="/usuarios">/usuarios</a>.</p></div>
+    <div class="card"><div class="who">Consejo · admira.live</div><h3>El verbo en la mesa</h3><p>En <a href="https://www.admira.live/">admira.live</a> el Consejo tiene el verbo <strong>Presentar</strong> en su barra de acciones: elige audio, PDF, ambos o slides y genera desde la conversación con los consejeros.</p></div>
+  </div>
+
+  <h2>Presentar desde tu asistente en cuatro pasos</h2>
+  <div class="card">
+    <ol>
+      <li><code>list_presentations</code> → ¿ya existe el cliente?</li>
+      <li><code>create_presentation</code> con <code>displayName</code>, <code>website</code> (de ahí sale el logo), <code>problem</code> y <code>audience</code>. Devuelve slug, contraseña y URLs.</li>
+      <li><code>generation_status</code> hasta que todos los entregables estén <code>done</code>.</li>
+      <li><code>presentation_urls</code> → comparte la URL privada y la contraseña con el cliente.</li>
+    </ol>
+    <p class="mut">Sin token solo funcionan <code>initialize</code>, <code>tools/list</code> y <code>help</code>. El token lo crea un administrador desde <a href="/usuarios">/usuarios</a> y se muestra una sola vez.</p>
+  </div>
+<pre>curl -s https://www.admiranext.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer anmcp_TU_TOKEN" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"help","arguments":{"tema":"crear"}}}'</pre>
+
+  <h2>Qué sale</h2>
+  <div class="card">
+    <ul>
+      <li>Un <strong>portal privado</strong> con su clave, el <strong>esqueleto editable</strong> del relato y un <strong>site navegable</strong>.</li>
+      <li>Entregables nativos: site, documento, <a href="/creditos/">créditos</a> y postcréditos.</li>
+      <li>Historial de versiones con restauración (<code>list_versions</code>, <code>restore_version</code>).</li>
+    </ul>
+  </div>
+
+  <footer>ADmiraNeXT · Presentar · <a href="/mcp/">hub MCP de la matriz</a> · <a href="/mcp/generador">MCP del Generador</a> · <a href="https://www.admira.live/mcp/">Consejo (admira.live)</a> · <span id="admiranext-version">v.10.09.2026.r1.08:12</span></footer>
+</main>
+</body>
+</html>
