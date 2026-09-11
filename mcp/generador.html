@@ -64,11 +64,12 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
   <h2>3 · Tools</h2>
   <table>
     <tr><th>Tool</th><th>Qué hace</th><th>Rol mínimo</th></tr>
-    <tr><td><code>help</code></td><td>Esta ayuda. <code>tema</code> opcional: <code>crear</code>, <code>presentaciones</code>, <code>versiones</code>, <code>permisos</code>.</td><td class="mut">ninguno</td></tr>
+    <tr><td><code>help</code></td><td>Esta ayuda. <code>tema</code> opcional: <code>crear</code>, <code>presentaciones</code>, <code>versiones</code>, <code>permisos</code>, <code>informes</code>.</td><td class="mut">ninguno</td></tr>
     <tr><td><code>list_presentations</code></td><td>Presentaciones existentes: slug, nombre, web, idiomas, entregables.</td><td>viewer</td></tr>
     <tr><td><code>list_decks</code></td><td>Packs de deck (antes/después) para <code>create_presentation</code>.</td><td>viewer</td></tr>
     <tr><td><code>get_presentation</code></td><td>Contenido vivo de una presentación (láminas, idiomas, secuencia). <code>{client}</code></td><td>viewer</td></tr>
-    <tr><td><code>create_presentation</code></td><td>Crea, o regenera con <code>overwrite:true</code>, a partir de <code>displayName</code>, <code>website</code>, <code>problem</code>, <code>audience</code>… Devuelve slug, contraseña y URLs.</td><td class="ok">editor</td></tr>
+    <tr><td><code>create_presentation</code></td><td>Crea, o regenera con <code>overwrite:true</code>, a partir de <code>displayName</code>, <code>website</code>, <code>problem</code>, <code>audience</code>… Acepta <code>slideMedia</code> (vídeo flota HTTPS permitido en BEST). Devuelve slug, contraseña y URLs.</td><td class="ok">editor</td></tr>
+    <tr><td><code>create_yokup_report</code></td><td>Sala-informe Yokup desde una misión <code>FLT-…</code>: <code>mision</code>, <code>titulo</code>, <code>resumen</code>, <code>verificado</code>… Opcional <code>videoUrl</code> (MP4 flota, p.ej. <code>https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4</code>) para BEST en movimiento. Outputs website+documents+backgrounds. Devuelve URLs, pass y <code>yokupBlock</code> para <code>yokup_informe</code>.</td><td class="ok">editor</td></tr>
     <tr><td><code>generation_status</code></td><td>Estado de la generación (idiomas × entregables). <code>{client}</code></td><td>viewer</td></tr>
     <tr><td><code>list_versions</code></td><td>Historial de versiones. <code>{client}</code></td><td>viewer</td></tr>
     <tr><td><code>restore_version</code></td><td>Restaura una versión. <code>{client, id}</code></td><td class="ok">editor</td></tr>
@@ -83,6 +84,18 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
       <li><code>generation_status</code> hasta que todos los entregables estén <code>done</code>.</li>
       <li><code>presentation_urls</code> → comparte la URL privada y la contraseña con el cliente. La sala (<code>/presentacion</code>) tiene salida de audiencia sin notas.</li>
     </ol>
+  </div>
+
+  <h2>4b · Flujo informe Yokup (norma 22)</h2>
+  <div class="card">
+    <p>El generador de presentaciones es también el <strong>generador de informes Yokup</strong>: una sala viva (GOOD / BETTER / BEST) sustituye el informe de texto plano.</p>
+    <ol>
+      <li><code>create_yokup_report</code> con <code>mision</code> (FLT-…), <code>titulo</code>, <code>resumen</code> y <code>verificado</code>. Opcional: <code>tiempo</code>, <code>puntos</code>, <code>total</code>, <code>qualityHint</code> (<code>best</code> por defecto), <code>videoUrl</code> (MP4 flota para motion en BEST), <code>videoSlide</code> (default <code>cover</code>).</li>
+      <li>Abre la sala con <code>?quality=best</code> (vídeo en movimiento si hay <code>videoUrl</code>, o figura descriptiva) o <code>better</code> (fondos temáticos).</li>
+      <li>Captura evidencia de escritorio → <code>yokup_evidencia</code>.</li>
+      <li>Cierra con <code>yokup_informe</code> pegando la URL+pass (el tool devuelve <code>yokupBlock</code> listo).</li>
+    </ol>
+    <p class="mut">Help MCP: <code>help</code> con <code>tema: informes</code>.</p>
   </div>
 
   <h2>5 · Permisos y seguridad</h2>
