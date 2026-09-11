@@ -125,9 +125,18 @@ async function publishToPixeria(context, state){
   // nuevo debe ocupar el hueco —p. ej. el bruto «sin rótulo» publicado como
   // fallback cede al máster con rótulo— así que se retira la vieja y se vuelve
   // a publicar UNA vez. Sin identidad propia no hay hueco que disputar.
-  if(response.ok && payload?.ok && payload?.reused && state.ficha?.externalId && !state.replacedOnce && PIXERIA_ID_RE.test(String(payload.id || ''))){
+  //
+  // Desde el Stock v.11.09.2026.r1 esto lo hace el propio worker: si el contenido
+  // cambió responde `replaced:true` (ya es el máster nuevo) y si es idéntico
+  // responde `reused` con `reason` — en ambos casos no hay nada que retirar. La
+  // danza borrar+republicar queda SOLO para un worker antiguo (sin `reason`).
+  // El DELETE exige ahora la misma cabecera que el publish.
+  if(response.ok && payload?.ok && payload?.reused && !payload?.reason && state.ficha?.externalId && !state.replacedOnce && PIXERIA_ID_RE.test(String(payload.id || ''))){
     try{
-      const removed = await publishFetch(new Request(`https://api.admira.store/stock/${encodeURIComponent(String(payload.id))}`, {method:'DELETE', headers:{accept:'application/json'}}));
+      const removed = await publishFetch(new Request(`https://api.admira.store/stock/${encodeURIComponent(String(payload.id))}`, {
+        method:'DELETE',
+        headers:{accept:'application/json', 'x-admiranext-ingest':context.env.PIXERIA_INGEST_TOKEN}
+      }));
       console.log('video-package:pixeria-replace', JSON.stringify({id:state.id, previous:String(payload.id), removed:removed.status}));
     }catch(error){
       console.error('video-package:pixeria-replace-failed', JSON.stringify({id:state.id, previous:String(payload.id), message:String(error?.message || error).slice(0, 200)}));

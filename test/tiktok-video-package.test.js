@@ -178,7 +178,10 @@ test('si el Stock reutiliza la identidad estable, retira la pieza vieja y public
       pixeriaFetch:async request => {
         calls.push(`${request.method} ${new URL(request.url).pathname}`);
         if(request.method === 'GET') return new Response(null, {status:206}); // ya existe: se sustituirá
-        if(request.method === 'DELETE') return Response.json({ok:true, id:'auto-9a75882d2e3a36bce8e6', deleted:2});
+        if(request.method === 'DELETE'){
+          assert.equal(request.headers.get('x-admiranext-ingest'), 't', 'el DELETE del Stock exige la misma cabecera que el publish');
+          return Response.json({ok:true, id:'auto-9a75882d2e3a36bce8e6', deleted:2});
+        }
         const body = await request.json();
         assert.equal(body.externalId, 'admiranext:xtore:coche');
         return Response.json(calls.length === 2
