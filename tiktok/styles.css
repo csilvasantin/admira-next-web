@@ -227,6 +227,21 @@ main {
 
 .ad-composer { padding: clamp(1rem, 2vw, 1.5rem); }
 
+/* Ficha «Producto del catálogo» (deep-link ?producto=): folleto encima del composer. */
+.catalog-product { margin-bottom: 1rem; padding: clamp(1rem, 2vw, 1.5rem); border-color: rgba(255, 230, 0, 0.45); }
+.catalog-product-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.catalog-product-head h3 { margin: 0.35rem 0 0; font-size: clamp(1.3rem, 2.4vw, 1.8rem); letter-spacing: -0.03em; text-transform: uppercase; }
+.catalog-price-tag { display: inline-flex; flex-direction: column; align-items: flex-start; padding: 0.55rem 0.9rem 0.5rem; border-radius: 10px; background: #ffe600; color: #e3000f; transform: rotate(-3deg); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35); }
+.catalog-price-tag b { font-size: clamp(1.9rem, 4vw, 2.8rem); line-height: 1; font-weight: 900; letter-spacing: -0.04em; }
+.catalog-price-tag b.is-promo { font-size: clamp(1rem, 2vw, 1.3rem); max-width: 16rem; }
+.catalog-price-tag small { color: #111; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.catalog-product-data { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.6rem 1.2rem; margin: 1rem 0 0; }
+.catalog-product-data div { display: grid; gap: 0.15rem; }
+.catalog-product-data dt { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.catalog-product-data dd { margin: 0; color: var(--ink); }
+.catalog-product-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 1rem; }
+.catalog-product-actions .composer-status { margin: 0; flex: 1 1 18rem; }
+
 .ad-composer-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

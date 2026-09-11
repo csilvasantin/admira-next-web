@@ -65,3 +65,12 @@ test('los saltos de línea no viajan al título del catálogo', () => {
   assert.equal(f.title, 'Dos líneas');
   assert.equal(f.comment, 'a b');
 });
+
+test('la clave externa viaja saneada y solo cuando sirve (producto de catálogo, Yokup #3066)', () => {
+  const f = mod.saneaFicha({title: 'COCA-COLA · 10,20 € · Alcampo', externalId: 'admiranext:catalogo:alcampo-2026-09-10:coca-cola'});
+  assert.equal(f.externalId, 'admiranext:catalogo:alcampo-2026-09-10:coca-cola');
+  // Lo que el Stock no admite (^[A-Za-z0-9:_-]{16,160}$) se normaliza; lo inservible desaparece.
+  assert.equal(mod.claveExterna('admiranext:catálogo:alcampo 2026/09.10:coca cola'), 'admiranext:catalogo:alcampo-2026-09-10:coca-cola');
+  assert.equal(mod.claveExterna('x'), '');
+  assert.ok(!('externalId' in mod.saneaFicha({title: 'Sin clave'})), 'sin clave no aparece la propiedad');
+});

@@ -1,3 +1,5 @@
+import { saneaFicha } from './_ficha-video.mjs';
+
 const MAX_VIDEO_BYTES = 120 * 1024 * 1024;
 const MAX_JSON_BYTES = 8 * 1024;
 const MAX_PIXERIA_BYTES = 48 * 1024;
@@ -69,14 +71,16 @@ async function publishToPixeria(context, state){
     motor:'ADmiraNeXT TikTok Composer',
     prompt:'',
     title:state.title || 'Anuncio vertical · 25 segundos',
-    comment:'Master final compuesto: preroll 5s + anuncio Grok 15s + postroll 5s.',
+    comment:state.ficha?.comment || 'Master final compuesto: preroll 5s + anuncio Grok 15s + postroll 5s.',
     sourceUrl:state.sourceUrl,
     mime:state.contentType,
-    externalId:`admiranext:tiktok-package:${state.id}`,
+    // Un producto de catálogo trae su propia clave (x-package-ficha): el Stock
+    // deriva el id del asset de ella, así que el catálogo sabe si ya existe.
+    externalId:state.ficha?.externalId || `admiranext:tiktok-package:${state.id}`,
     // 'vertical' NO es decorativa: es la llave de emisión. El canal de admira.tv
     // segmenta por etiquetas (?tag=tiktok,vertical) y así el MUPI vertical del
     // Xtanco emite estas piezas en 9:16 nativo en vez de recortar un horizontal.
-    tags:['tiktok', 'vertical', 'anuncio', '25s'],
+    tags:state.ficha?.tags || ['tiktok', 'vertical', 'anuncio', '25s'],
     quality:'best'
   };
   let response;
@@ -160,9 +164,20 @@ async function createPackage(context){
 
   let title = 'Anuncio vertical · 25 segundos';
   try{ title = clean(decodeURIComponent(request.headers.get('x-package-title') || ''), 180) || title; }catch(_){ /* Default title. */ }
+  // Ficha opcional (producto de catálogo): JSON codificado en la cabecera
+  // x-package-ficha {title, comment, tags, externalId}. Si viene rota, se ignora.
+  let ficha = null;
+  try{
+    const raw = request.headers.get('x-package-ficha');
+    if(raw){
+      const saneada = saneaFicha(JSON.parse(decodeURIComponent(raw)));
+      if(saneada.externalId) ficha = saneada;
+    }
+  }catch(_){ ficha = null; }
+  if(ficha?.title && title === 'Anuncio vertical · 25 segundos') title = ficha.title;
   const origin = new URL(request.url).origin;
   let state = {
-    id, token, key, title, size:streamed, contentType,
+    id, token, key, title, ficha, size:streamed, contentType,
     sourceUrl:`${origin}/tiktok/media/${id}/${token}`,
     createdAt:new Date().toISOString(), pixeria:{status:'uploading'}
   };

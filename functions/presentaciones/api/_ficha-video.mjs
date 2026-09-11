@@ -21,6 +21,11 @@ const MAX_COMENTARIO = 1200;
 // orden de importancia— en vez de que se caiga lo último que toque. La primera
 // vez que pasó se perdió el tema de la pieza, que es de donde salen sus hashtags.
 const MAX_ETIQUETAS = 4;
+// El Stock exige ^[A-Za-z0-9:_-]{16,160}$ para externalId y deriva de él el id
+// del asset (sha256 → auto-…): el mismo externalId devuelve el MISMO asset. Por
+// eso quien encarga puede fijarlo cuando la pieza tiene identidad propia —un
+// producto de catálogo— y el catálogo sabe si ya existe sin preguntar.
+const MAX_EXTERNAL_ID = 120;
 
 // 'tiktok' NO es decorativa: es la marca por la que el Stock manda la pieza a la
 // categoría «tiktoks». Si se pierde, el vídeo cae donde Gemini decida y deja de
@@ -43,6 +48,14 @@ function etiqueta(v) {
     .toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32);
 }
 
+/** Clave externa: solo lo que el Stock admite; vacío si no sirve. */
+export function claveExterna(v) {
+  const limpia = String(v == null ? '' : v)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z0-9:_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, MAX_EXTERNAL_ID);
+  return limpia.length >= 8 ? limpia : '';
+}
+
 /**
  * Ficha lista para publicar. Nunca falla y nunca devuelve vacío: si no llega
  * nada aprovechable se cae a la genérica, porque un vídeo sin ficha debe
@@ -57,5 +70,6 @@ export function saneaFicha(bruto) {
   // ORDEN — con solo un hueco libre, ese orden es el que decide qué sobrevive,
   // así que quien encarga pone primero la que más le importa.
   const tags = [...new Set([...ETIQUETAS_BASE, ...propias])].slice(0, MAX_ETIQUETAS);
-  return { title, comment, tags };
+  const externalId = claveExterna(bruto?.externalId);
+  return externalId ? { title, comment, tags, externalId } : { title, comment, tags };
 }

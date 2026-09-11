@@ -95,6 +95,88 @@
   const STORAGE_KEY = 'admiranext:tiktok15:brief:v1';
   const SOURCE_KEY = 'admiranext:tiktok15:source:v1';
   const AD_IDEAS_KEY = 'admiranext:tiktok15:ad-ideas:v1';
+
+  // ── Producto de catálogo (deep-link ?producto=<JSON>) ─────────────────────
+  // admira.tv/contentcatalogue abre este estudio con un producto del folleto
+  // (Alcampo) ya cargado: nombre, precio REAL, unidad, promo y validez. El
+  // contrato del JSON es fijo; si llega roto se ignora y el estudio arranca
+  // como siempre. Con producto, el precio se pinta encima de todo el vídeo.
+  const UNIDADES_PRODUCTO = {ud:'la unidad', pack:'el pack', desde:'desde', '€/kg':'el kilo', '€/100 g':'los 100 g', '€/litro':'el litro'};
+  const MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const FECHA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+  function precioTexto(precio) { return precio.toFixed(2).replace('.', ',') + ' €'; }
+  function slugCatalogo(value) {
+    return String(value == null ? '' : value).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  }
+  function fechaPartes(iso) { const [y, m, d] = iso.split('-').map(Number); return {y, m, d}; }
+  function validezCorta(v) {
+    if(!v) return '';
+    const a = fechaPartes(v.desde), b = fechaPartes(v.hasta);
+    return a.m === b.m ? `${a.d}–${b.d} ${MESES_CORTOS[b.m - 1]}` : `${a.d} ${MESES_CORTOS[a.m - 1]} – ${b.d} ${MESES_CORTOS[b.m - 1]}`;
+  }
+  function validezSello(v) {
+    if(!v) return '';
+    const a = fechaPartes(v.desde), b = fechaPartes(v.hasta);
+    return a.m === b.m ? `Del ${a.d} al ${b.d} de ${MESES_LARGOS[b.m - 1]}` : `Del ${a.d} de ${MESES_LARGOS[a.m - 1]} al ${b.d} de ${MESES_LARGOS[b.m - 1]}`;
+  }
+  function leerProductoCatalogo() {
+    try{
+      const raw = new URLSearchParams(window.location.search).get('producto');
+      if(!raw) return null;
+      const p = JSON.parse(raw);
+      if(!p || typeof p !== 'object') return null;
+      const nombre = core.clean(p.nombre, 120);
+      if(!nombre) return null;
+      const precio = Number(p.precio);
+      const unidad = core.clean(p.unidad, 12);
+      const validez = p.validez && FECHA_ISO.test(String(p.validez.desde || '')) && FECHA_ISO.test(String(p.validez.hasta || ''))
+        ? {desde:String(p.validez.desde), hasta:String(p.validez.hasta)} : null;
+      const catalogo = core.clean(p.catalogo, 80);
+      const tienda = core.clean((catalogo.split(/[·–-]/)[0] || ''), 30) || 'Alcampo';
+      const producto = {
+        p:Number.isInteger(Number(p.p)) ? Number(p.p) : null,
+        seccion:core.clean(p.seccion, 40),
+        nombre,
+        marca:core.clean(p.marca, 60),
+        detalle:core.clean(p.detalle, 200),
+        precio:Number.isFinite(precio) && precio > 0 ? Math.round(precio * 100) / 100 : null,
+        unidad:UNIDADES_PRODUCTO[unidad] ? unidad : '',
+        promo:core.clean(p.promo, 160),
+        destacado:Boolean(p.destacado),
+        catalogo, tienda, validez,
+        origen:core.clean(p.origen, 60),
+        catalogo_id:slugCatalogo(p.catalogo_id) || `${slugCatalogo(tienda)}-${validez ? validez.desde : 'catalogo'}`
+      };
+      if(!producto.precio && !producto.promo) return null;
+      producto.precioTexto = producto.precio == null ? '' : `${precioTexto(producto.precio)}${producto.unidad ? ` ${UNIDADES_PRODUCTO[producto.unidad]}` : ''}`;
+      producto.validezCorta = validezCorta(validez);
+      producto.validezSello = validezSello(validez);
+      producto.slug = slugCatalogo(nombre) || 'producto';
+      return producto;
+    }catch(_){ return null; }
+  }
+  // Titular con el que se prefija el campo del director creativo.
+  function tituloProducto(p) {
+    return core.clean([p.nombre, p.precioTexto || p.promo, `${p.tienda}${p.validezCorta ? ` ${p.validezCorta}` : ''}`].join(' · '), 200);
+  }
+  // Ficha con la que la pieza llega al Stock. La clave externa es ESTABLE por
+  // producto y catálogo: el Stock deriva de ella el id del asset, así que el
+  // catálogo puede saber que ya existe (y dos clics no hacen dos piezas).
+  function fichaProducto(p) {
+    return {
+      title:core.clean(`${p.nombre} · ${p.precio != null ? precioTexto(p.precio) : p.promo} · ${p.tienda}`, 200),
+      comment:core.clean(`${p.catalogo || p.tienda}${p.p ? ` · página ${p.p}` : ''}${p.seccion ? ` · ${p.seccion}` : ''}. ${p.marca ? `${p.marca}. ` : ''}${p.detalle ? `${p.detalle}. ` : ''}${p.precioTexto ? `Precio ${p.precioTexto}. ` : ''}${p.promo ? `${p.promo}. ` : ''}${p.validezSello ? `${p.validezSello}. ` : ''}Generado desde ${p.origen || 'admira.tv/contentcatalogue'}.`, 1200),
+      tags:['admiranext', 'tiktok', 'vertical', 'catalogo', slugCatalogo(p.tienda), p.catalogo_id],
+      externalId:`admiranext:catalogo:${p.catalogo_id}:${p.slug}`.replace(/[^A-Za-z0-9:_-]+/g, '-').slice(0, 120)
+    };
+  }
+  const productoCatalogo = leerProductoCatalogo();
+  // Verdadero mientras dura el flujo de un clic del catálogo: idea → vídeo →
+  // publicación → máster con precio. Al terminar (o fallar) vuelve a falso.
+  let flujoCatalogo = false;
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
   const REFERENCE_PROFILE_KEY = 'admiranext:tiktok:reference-profile:v1';
   const TESTER_DB = 'pixeria-media-transfer';
@@ -360,7 +442,7 @@
         method:'POST',
         credentials:'same-origin',
         headers:{'content-type':'application/json', accept:'application/json'},
-        body:JSON.stringify({headline})
+        body:JSON.stringify(productoCatalogo ? {headline, producto:productoCatalogo} : {headline})
       });
       const type = response.headers.get('content-type') || '';
       if(!type.includes('application/json')){
@@ -385,24 +467,21 @@
         ? 'Idea creada desde cero. Revisa el concepto y pulsa “Storyboard” para obtener el guion y las escenas.'
         : 'Idea desarrollada. Revisa el enfoque y pulsa “Storyboard” para obtener el guion y las escenas.', 'success');
       $('#adDetail').focus();
+      return true;
     } catch(error) {
       adIdeaAccess.hidden = !error?.auth;
       setAdIdeaMessage(String(error?.message || 'No se pudo desarrollar la idea.'), 'error');
+      return false;
     } finally {
       developAdButton.disabled = false;
       syncAdIdeaAgentMode(false);
     }
   }
 
-  function createAdIdea(event) {
-    event.preventDefault();
+  function buildAdFromForm() {
     const raw = Object.fromEntries(new FormData(adIdeaForm).entries());
-    if(!core.clean(raw.idea, 200)){
-      setAdIdeaMessage('Primero pulsa “Crear idea”, o escribe un titular y pulsa “Desarrollar idea”.', 'error');
-      developAdButton.focus();
-      return;
-    }
-    const ad = {
+    if(!core.clean(raw.idea, 200)) return null;
+    return {
       id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `ad-${Date.now()}`,
       createdAt: new Date().toISOString(),
       idea: core.clean(raw.idea, 200),
@@ -412,11 +491,110 @@
       audience: core.clean(raw.audience, 110),
       date: raw.date
     };
+  }
+
+  function createAdIdea(event) {
+    event.preventDefault();
+    const ad = buildAdFromForm();
+    if(!ad){
+      setAdIdeaMessage('Primero pulsa “Crear idea”, o escribe un titular y pulsa “Desarrollar idea”.', 'error');
+      developAdButton.focus();
+      return;
+    }
     adIdeas = [ad, ...adIdeas].slice(0, 24);
     saveAdIdeas();
     renderAdIdeas();
     openAdIdea(ad, false);
     adIdeaStatus.textContent = 'Anuncio creado: ya tienes brief, guion y storyboard. Puedes ajustarlos o preparar el vídeo con Grok.';
+  }
+
+  // ── Ficha «Producto del catálogo» y flujo de un clic ──────────────────────
+  function renderFichaProducto() {
+    if(!productoCatalogo) return;
+    const p = productoCatalogo;
+    const aside = document.createElement('aside');
+    aside.className = 'catalog-product panel';
+    aside.id = 'catalogProduct';
+    aside.setAttribute('aria-labelledby', 'catalogProductTitle');
+    const meta = [p.p ? `p. ${p.p}` : '', p.seccion, p.destacado ? '★ destacado' : ''].filter(Boolean).join(' · ');
+    const filas = [
+      p.marca ? ['Marca', p.marca] : null,
+      p.detalle ? ['Detalle', p.detalle] : null,
+      p.promo ? ['Promo', p.promo] : null,
+      p.validezSello ? ['Validez', p.validezSello] : null,
+      p.catalogo ? ['Catálogo', p.catalogo] : null
+    ].filter(Boolean);
+    const dl = filas.map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join('');
+    aside.innerHTML = `
+      <div class="catalog-product-head">
+        <div>
+          <span class="section-code">PRODUCTO DEL CATÁLOGO${meta ? ` · ${escapeHtml(meta.toUpperCase())}` : ''}</span>
+          <h3 id="catalogProductTitle">${escapeHtml(p.nombre)}</h3>
+        </div>
+        <div class="catalog-price-tag" aria-label="Precio ${escapeHtml(p.precioTexto || p.promo)}">
+          ${p.precio != null ? `<b>${escapeHtml(precioTexto(p.precio))}</b><small>${escapeHtml(UNIDADES_PRODUCTO[p.unidad] || '')}</small>` : `<b class="is-promo">${escapeHtml(p.promo)}</b>`}
+        </div>
+      </div>
+      <dl class="catalog-product-data">${dl}</dl>
+      <div class="catalog-product-actions">
+        <button class="button primary" id="generarAnuncioCatalogo" type="button">Generar anuncio</button>
+        <p class="composer-status" id="catalogProductStatus" role="status">Un clic: idea → vídeo de 15 s con Grok → publicación en el Stock con el precio en pantalla.</p>
+      </div>`;
+    adIdeaForm.parentNode.insertBefore(aside, adIdeaForm);
+    $('#generarAnuncioCatalogo').addEventListener('click', () => { void generarAnuncioCatalogo(); });
+    adIdeaInput.value = tituloProducto(p);
+    $('#adBrand').value = p.marca || p.tienda;
+    $('#adObjective').value = 'sales';
+    syncAdIdeaAgentMode(true);
+    setAdIdeaMessage(`Titular prefijado desde el catálogo: «${adIdeaInput.value}». Pulsa “Generar anuncio” o “Desarrollar idea”.`, 'success');
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function setCatalogStatus(message, state = '') {
+    const status = $('#catalogProductStatus');
+    if(!status) return;
+    status.textContent = message;
+    status.classList.toggle('is-success', state === 'success');
+    status.classList.toggle('is-error', state === 'error');
+  }
+
+  // El mismo camino que ya existe, encadenado: director creativo → brief y
+  // storyboard → Grok → (al publicarse) máster de 15 s con el precio encima.
+  async function generarAnuncioCatalogo() {
+    if(!productoCatalogo || flujoCatalogo) return;
+    const button = $('#generarAnuncioCatalogo');
+    flujoCatalogo = true;
+    button.disabled = true;
+    try{
+      if(!core.clean(adIdeaInput.value, 200)) adIdeaInput.value = tituloProducto(productoCatalogo);
+      setCatalogStatus('1/3 · El director creativo escribe el guion con el precio literal…');
+      const ok = await developAdIdea();
+      if(!ok) throw new Error(adIdeaStatus.textContent || 'No se pudo desarrollar la idea.');
+      const ad = buildAdFromForm();
+      if(!ad) throw new Error('La idea desarrollada llegó sin titular.');
+      adIdeas = [ad, ...adIdeas].slice(0, 24);
+      saveAdIdeas();
+      renderAdIdeas();
+      openAdIdea(ad, true);
+      setCatalogStatus('2/3 · Grok genera el vídeo de 15 s…');
+      const enviado = await startGrokVideo();
+      if(!enviado) throw new Error(grokJobDetail.textContent || 'Grok no aceptó el encargo.');
+      setCatalogStatus('2/3 · Grok está generando. Al terminar se publica y se monta el máster con el precio en pantalla.', 'success');
+    }catch(error){
+      flujoCatalogo = false;
+      button.disabled = false;
+      setCatalogStatus(String(error?.message || 'No se pudo generar el anuncio.'), 'error');
+    }
+  }
+
+  function terminarFlujoCatalogo(message, state) {
+    flujoCatalogo = false;
+    const button = $('#generarAnuncioCatalogo');
+    if(button) button.disabled = false;
+    setCatalogStatus(message, state);
   }
 
   function formatTime(seconds) {
@@ -1372,8 +1550,16 @@
       composeGrokPackage.disabled = false;
       packageStatus.textContent = 'El máster principal está listo. Añadiremos preroll y postroll y publicaremos la pieza final en Pixeria.';
       clearGrokJob();
+      if(flujoCatalogo && productoCatalogo){
+        // Pieza de catálogo: 15 s justos (sin rolls) con el precio pintado encima.
+        preRollEnabled.checked = false;
+        postRollEnabled.checked = false;
+        setCatalogStatus('3/3 · Montando el máster de 15 s con el precio en pantalla…');
+        void composeAndPublishGrokPackage();
+      }
     }else{
       setGrokJob('Vídeo listo · Pixeria pendiente', 100, 'Puedes revisar el MP4 y reintentar su envío a Pixeria sin volver a generar el vídeo.');
+      if(flujoCatalogo) terminarFlujoCatalogo('El vídeo está listo pero el Stock no lo recibió. Reintenta Pixeria y luego “Montar y publicar”.', 'error');
     }
   }
 
@@ -1396,6 +1582,7 @@
         generateGrokButton.disabled = false;
         setGrokJob('Generación interrumpida', payload.progress || 0, payload.error || 'Grok no pudo completar el vídeo.');
         clearGrokJob();
+        if(flujoCatalogo) terminarFlujoCatalogo(payload.error || 'Grok no pudo completar el vídeo.', 'error');
         return;
       }
       const progressValue = payload.progress || 0;
@@ -1415,7 +1602,7 @@
     const prompt = core.clean(grokPrompt.value, 3200);
     if(prompt.length < 40){
       setGrokJob('Falta dirección visual', 0, 'Describe con algo más de detalle qué debe aparecer en el vídeo puro.');
-      return;
+      return false;
     }
     generateGrokButton.disabled = true;
     grokResultActions.hidden = true;
@@ -1440,14 +1627,17 @@
         method:'POST',
         credentials:'same-origin',
         headers:{'content-type':'application/json', accept:'application/json'},
-        body:JSON.stringify({prompt, resolution:grokResolution.value, clientRequestId})
+        body:JSON.stringify(productoCatalogo
+          ? {prompt, resolution:grokResolution.value, clientRequestId, ficha:fichaProducto(productoCatalogo)}
+          : {prompt, resolution:grokResolution.value, clientRequestId})
       });
       const payload = await readApiResponse(response);
       grokRequestId = payload.requestId;
       saveGrokJob({requestId:payload.requestId, startedAt:Date.now(), prompt, resolution:grokResolution.value});
       setGrokJob('Solicitud aceptada', 8, 'Grok ha recibido el encargo. Esperando los primeros fotogramas…');
       scheduleGrokPoll(payload.requestId, 2500);
-    }catch(error){ showGrokError(error); }
+      return true;
+    }catch(error){ showGrokError(error); return false; }
   }
 
   async function retryPixeriaPublication() {
@@ -1631,6 +1821,104 @@
     ctx.fillRect(0, height - 10, width, 10);
     ctx.fillStyle = accent;
     ctx.fillRect(0, height - 10, width * Math.min(1, seconds / planData.duration), 10);
+    if(productoCatalogo) drawPrecioOverlay(ctx, productoCatalogo, seconds);
+  }
+
+  // ── Overlay de precio estilo folleto ──────────────────────────────────────
+  // Se pinta sobre TODO el vídeo cuando hay producto de catálogo: nombre arriba,
+  // etiqueta amarilla con el precio en rojo y la unidad pequeña, y el sello de
+  // validez abajo. Sin producto no se llama y nada cambia. Lienzo 1080×1920;
+  // las medidas se escalan por si el lienzo es otro (storyboard, pruebas).
+  function drawPrecioOverlay(ctx, p, seconds = 0) {
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const k = width / 1080;
+    const m = 74 * k;
+    ctx.save();
+    ctx.textBaseline = 'alphabetic';
+
+    // Nombre del producto, arriba.
+    ctx.font = `900 ${Math.round(54 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    const nombre = wrapLines(ctx, p.nombre.toUpperCase(), width - 2 * m - 48 * k, 2);
+    const marcaAlto = p.marca ? 30 : 0;
+    const nombreAlto = (nombre.length * 62 + 44 + marcaAlto) * k;
+    roundedRect(ctx, m, 110 * k, width - 2 * m, nombreAlto, 14 * k);
+    ctx.fillStyle = 'rgba(5,9,13,0.82)';
+    ctx.fill();
+    ctx.strokeStyle = '#ffe600';
+    ctx.lineWidth = 4 * k;
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'left';
+    nombre.forEach((line, i) => ctx.fillText(line, m + 24 * k, (110 + 30 + 52 + marcaAlto + i * 62) * k));
+    if(p.marca){
+      ctx.font = `800 ${Math.round(24 * k)}px ui-monospace, monospace`;
+      ctx.fillStyle = '#ffe600';
+      ctx.fillText(p.marca.toUpperCase(), m + 24 * k, (110 + 40) * k);
+    }
+
+    // Etiqueta amarilla del precio, abajo a la izquierda, con un latido suave.
+    const pulso = 1 + Math.sin(seconds * 2.2) * 0.018;
+    const tagW = 470 * k, tagH = 330 * k;
+    const tagX = m, tagY = height - 660 * k;
+    ctx.save();
+    ctx.translate(tagX + tagW / 2, tagY + tagH / 2);
+    ctx.rotate(-0.07);
+    ctx.scale(pulso, pulso);
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = 28 * k;
+    ctx.shadowOffsetY = 10 * k;
+    roundedRect(ctx, -tagW / 2, -tagH / 2, tagW, tagH, 22 * k);
+    ctx.fillStyle = '#ffe600';
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = '#b3000c';
+    ctx.font = `800 ${Math.round(26 * k)}px ui-monospace, monospace`;
+    ctx.textAlign = 'left';
+    ctx.fillText(p.tienda.toUpperCase(), -tagW / 2 + 28 * k, -tagH / 2 + 46 * k);
+    if(p.precio != null){
+      const entero = Math.floor(p.precio);
+      const cent = Math.round((p.precio - entero) * 100).toString().padStart(2, '0');
+      ctx.fillStyle = '#e3000f';
+      ctx.font = `900 ${Math.round(150 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      const enteroTexto = `${entero},`;
+      const enteroAncho = ctx.measureText(enteroTexto).width;
+      ctx.fillText(enteroTexto, -tagW / 2 + 28 * k, 62 * k);
+      ctx.font = `900 ${Math.round(84 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.fillText(`${cent}€`, -tagW / 2 + 28 * k + enteroAncho, 6 * k);
+      ctx.fillStyle = '#111111';
+      ctx.font = `800 ${Math.round(36 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.fillText(UNIDADES_PRODUCTO[p.unidad] || '', -tagW / 2 + 28 * k, tagH / 2 - 40 * k);
+    }else{
+      ctx.fillStyle = '#e3000f';
+      ctx.font = `900 ${Math.round(52 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      wrapLines(ctx, p.promo, tagW - 56 * k, 4).forEach((line, i) => ctx.fillText(line, -tagW / 2 + 28 * k, -tagH / 2 + (120 + i * 58) * k));
+    }
+    ctx.restore();
+
+    // Promo corta bajo la etiqueta (cuando además hay precio).
+    if(p.precio != null && p.promo){
+      ctx.font = `800 ${Math.round(30 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.fillStyle = '#ffe600';
+      ctx.textAlign = 'left';
+      wrapLines(ctx, p.promo, width - 2 * m, 2).forEach((line, i) => ctx.fillText(line, m, height - 300 * k + i * 38 * k));
+    }
+
+    // Sello de validez, abajo y centrado.
+    if(p.validezSello){
+      ctx.font = `900 ${Math.round(38 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      const selloTexto = p.validezSello.toUpperCase();
+      const selloW = Math.min(width - 2 * m, ctx.measureText(selloTexto).width + 64 * k);
+      const selloH = 72 * k;
+      const selloX = (width - selloW) / 2, selloY = height - 215 * k;
+      roundedRect(ctx, selloX, selloY, selloW, selloH, selloH / 2);
+      ctx.fillStyle = '#e3000f';
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(selloTexto, width / 2, selloY + 50 * k);
+    }
+    ctx.restore();
   }
 
   function supportedMime() {
@@ -1827,6 +2115,7 @@
           if(!grokVideo.paused) grokVideo.pause();
           drawRollFrame(ctx, 'post', elapsed - before - 15, core.clean(postRollCta.value, 90) || plan.brief.cta || 'Descúbrelo hoy');
         }
+        if(productoCatalogo) drawPrecioOverlay(ctx, productoCatalogo, elapsed);
         const percent = Math.round((elapsed / totalDuration) * 90);
         packageProgress.firstElementChild.style.width = `${percent}%`;
         packageStatus.textContent = `Montando ${totalDuration}s · ${percent}%`;
@@ -1850,28 +2139,34 @@
       packageStatus.textContent = 'Montaje terminado. Subiendo el master final y publicándolo en Pixeria…';
       packageProgress.firstElementChild.style.width = '94%';
       const clientRequestId = crypto.randomUUID();
+      const headers = {
+        'content-type':finalType,
+        accept:'application/json',
+        'x-client-request-id':clientRequestId,
+        'x-package-title':encodeURIComponent(productoCatalogo ? fichaProducto(productoCatalogo).title : `${plan.brief.task} · ${totalDuration}s`)
+      };
+      if(productoCatalogo) headers['x-package-ficha'] = encodeURIComponent(JSON.stringify(fichaProducto(productoCatalogo)));
       const response = await fetch('/presentaciones/api/video-package', {
         method:'POST', credentials:'same-origin',
-        headers:{
-          'content-type':finalType,
-          accept:'application/json',
-          'x-client-request-id':clientRequestId,
-          'x-package-title':encodeURIComponent(`${plan.brief.task} · ${totalDuration}s`)
-        },
+        headers,
         body:blob
       });
       const payload = await readApiResponse(response, 'No se pudo guardar el máster final de 25 segundos.');
       packageId = payload.id || '';
-      if(payload.pixeria?.status === 'published') finishPackagePublication(payload);
-      else{
+      if(payload.pixeria?.status === 'published'){
+        finishPackagePublication(payload);
+        if(flujoCatalogo) terminarFlujoCatalogo('Anuncio publicado en el Stock con el precio en pantalla. Ya puedes volver al catálogo.', 'success');
+      }else{
         packageStatus.textContent = payload.pixeria?.error || 'El master está guardado en ADmiraNeXT, pero Pixeria todavía no lo ha incorporado.';
         composeGrokPackage.textContent = 'Reintentar Pixeria';
         composeGrokPackage.disabled = false;
+        if(flujoCatalogo) terminarFlujoCatalogo(packageStatus.textContent, 'error');
       }
     }catch(error){
       packageStatus.textContent = error.message || 'No se pudo montar el master final.';
       composeGrokPackage.textContent = 'Volver a montar 25s';
       composeGrokPackage.disabled = false;
+      if(flujoCatalogo) terminarFlujoCatalogo(`${packageStatus.textContent} Pulsa “Montar y publicar” para repetir el máster con el precio.`, 'error');
     }finally{
       if(!grokVideo.paused) grokVideo.pause();
       stream.getTracks().forEach(track => track.stop());
@@ -2030,6 +2325,7 @@
   restoreContentSource();
   loadReferenceProfile();
   generate();
+  renderFichaProducto();
   setProductionMode(selectedProductionMode());
   const pendingGrokJob = loadGrokJob();
   if(pendingGrokJob){

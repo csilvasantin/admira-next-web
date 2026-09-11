@@ -258,7 +258,9 @@ async function ensurePixeriaPublication(context, requestId, video, model, force 
     costEst:`xAI · ${String(model || 'Grok Imagine Video').slice(0, 56)}`,
     mime:'video/mp4',
     sourceUrl:video.url,
-    externalId:`admiranext:grok-video:${requestId}`
+    // Con clave propia (producto de catálogo) la pieza se identifica por ella,
+    // más el requestId para que dos generaciones del mismo producto no se pisen.
+    externalId:ficha.externalId ? `${ficha.externalId}:grok:${requestId}`.slice(0, 160) : `admiranext:grok-video:${requestId}`
   };
   let response;
   let provider;
