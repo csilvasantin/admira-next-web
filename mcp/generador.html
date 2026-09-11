@@ -65,11 +65,11 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
   <table>
     <tr><th>Tool</th><th>Qué hace</th><th>Rol mínimo</th></tr>
     <tr><td><code>help</code></td><td>Esta ayuda. <code>tema</code> opcional: <code>crear</code>, <code>presentaciones</code>, <code>versiones</code>, <code>permisos</code>, <code>informes</code>.</td><td class="mut">ninguno</td></tr>
-    <tr><td><code>list_presentations</code></td><td>Presentaciones existentes: slug, nombre, web, idiomas, entregables.</td><td>viewer</td></tr>
+    <tr><td><code>list_presentations</code></td><td><strong>Censo vivo</strong> (GET <code>/presentaciones/api/clients</code>): slug, nombre, web, updatedAt… Consultar antes de crear o informar.</td><td>viewer</td></tr>
     <tr><td><code>list_decks</code></td><td>Packs de deck (antes/después) para <code>create_presentation</code>.</td><td>viewer</td></tr>
     <tr><td><code>get_presentation</code></td><td>Contenido vivo de una presentación (láminas, idiomas, secuencia). <code>{client}</code></td><td>viewer</td></tr>
-    <tr><td><code>create_presentation</code></td><td>Crea, o regenera con <code>overwrite:true</code>, a partir de <code>displayName</code>, <code>website</code>, <code>problem</code>, <code>audience</code>… Acepta <code>slideMedia</code> (vídeo flota HTTPS permitido en BEST). Devuelve slug, contraseña y URLs.</td><td class="ok">editor</td></tr>
-    <tr><td><code>create_yokup_report</code></td><td>Sala-informe Yokup desde una misión <code>FLT-…</code>: <code>mision</code>, <code>titulo</code>, <code>resumen</code>, <code>verificado</code>… Opcional <code>videoUrl</code> (MP4 flota, p.ej. <code>https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4</code>) para BEST en movimiento. Outputs website+documents+backgrounds. Devuelve URLs, pass y <code>yokupBlock</code> para <code>yokup_informe</code>.</td><td class="ok">editor</td></tr>
+    <tr><td><code>create_presentation</code></td><td>Crea o <strong>mejora</strong> (<code>overwrite:true</code>) a partir de <code>displayName</code>, <code>website</code>, <code>problem</code>, <code>audience</code>… Antes: <code>list_presentations</code>. Un cliente = un slug. Acepta <code>slideMedia</code>. Devuelve slug, pass y URLs.</td><td class="ok">editor</td></tr>
+    <tr><td><code>create_yokup_report</code></td><td>Informe Yokup: <strong>mejora in situ</strong> la presentación del cliente (<code>overwrite:true</code> si existe). Resuelve por <code>cliente</code>/<code>client</code>/<code>slug</code> o <code>displayName</code>. Nunca crea <code>yokup-flt-…</code>. Opcional <code>videoUrl</code> (MP4 flota). Devuelve <code>mode</code> improved|created, URLs, pass y <code>yokupBlock</code>.</td><td class="ok">editor</td></tr>
     <tr><td><code>generation_status</code></td><td>Estado de la generación (idiomas × entregables). <code>{client}</code></td><td>viewer</td></tr>
     <tr><td><code>list_versions</code></td><td>Historial de versiones. <code>{client}</code></td><td>viewer</td></tr>
     <tr><td><code>restore_version</code></td><td>Restaura una versión. <code>{client, id}</code></td><td class="ok">editor</td></tr>
@@ -79,18 +79,19 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
   <h2>4 · Flujo típico de un consejero</h2>
   <div class="card">
     <ol>
-      <li><code>list_presentations</code> → ¿ya existe el cliente?</li>
-      <li><code>create_presentation</code> con nombre, web oficial (de ahí sale el logo), problema que resolvemos y a quién se presenta. Castellano e inglés siempre; añade idiomas con <code>languages</code>.</li>
+      <li><code>list_presentations</code> → <strong>censo</strong>: ¿ya existe el cliente? Un cliente = un slug.</li>
+      <li><code>create_presentation</code> con nombre, web oficial, problema y audiencia. Si ya existe: <code>overwrite:true</code> para mejorar in situ (no crees otro slug).</li>
       <li><code>generation_status</code> hasta que todos los entregables estén <code>done</code>.</li>
       <li><code>presentation_urls</code> → comparte la URL privada y la contraseña con el cliente. La sala (<code>/presentacion</code>) tiene salida de audiencia sin notas.</li>
     </ol>
   </div>
 
-  <h2>4b · Flujo informe Yokup (norma 22)</h2>
+  <h2>4b · Flujo informe Yokup (norma 22) · reutilizar destino</h2>
   <div class="card">
-    <p>El generador de presentaciones es también el <strong>generador de informes Yokup</strong>: una sala viva (GOOD / BETTER / BEST) sustituye el informe de texto plano.</p>
+    <p>El generador es el <strong>generador de informes Yokup</strong>. Misma regla que webmaster: <strong>un cliente = un destino</strong>. El informe <em>mejora</em> la presentación existente; no crea un <code>yokup-flt-…</code> por misión. El censo es <code>list_presentations</code> (y el bloque «Registro vivo» en <a href="/presentaciones/">/presentaciones/</a>).</p>
     <ol>
-      <li><code>create_yokup_report</code> con <code>mision</code> (FLT-…), <code>titulo</code>, <code>resumen</code> y <code>verificado</code>. Opcional: <code>tiempo</code>, <code>puntos</code>, <code>total</code>, <code>qualityHint</code> (<code>best</code> por defecto), <code>videoUrl</code> (MP4 flota para motion en BEST), <code>videoSlide</code> (default <code>cover</code>).</li>
+      <li><code>list_presentations</code> → localiza el slug del cliente.</li>
+      <li><code>create_yokup_report</code> con <code>mision</code> (FLT-…), <code>titulo</code>, <code>resumen</code>, <code>cliente</code>/<code>slug</code> (o <code>displayName</code>) y <code>verificado</code>. Si existe → <code>overwrite:true</code> por defecto (versión capturada). Opcional: <code>tiempo</code>, <code>puntos</code>, <code>total</code>, <code>qualityHint</code>, <code>videoUrl</code>, <code>videoSlide</code>. <code>forceNew:true</code> solo si realmente necesitas otro slug (desaconsejado).</li>
       <li>Abre la sala con <code>?quality=best</code> (vídeo en movimiento si hay <code>videoUrl</code>, o figura descriptiva) o <code>better</code> (fondos temáticos).</li>
       <li>Captura evidencia de escritorio → <code>yokup_evidencia</code>.</li>
       <li>Cierra con <code>yokup_informe</code> pegando la URL+pass (el tool devuelve <code>yokupBlock</code> listo).</li>
