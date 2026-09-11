@@ -83,3 +83,31 @@ test('la página de lanzamiento tiene las cuatro tipologías con identidad estab
   const index = await readFile(new URL('../tiktok/index.html', import.meta.url), 'utf8');
   assert.match(index, /href="\/tiktok\/xtore\.html"/, 'el creador enlaza la página de Xtore');
 });
+
+// Incidencia 11-sep-2026 19:20 (Carlos): con ?brief= de coche salió un anuncio
+// de edición de PDF (el ejemplo del estudio) con la ficha de Xtore, y el máster
+// no llegó al Stock. Con encargo, Grok solo arranca desde la idea desarrollada.
+test('con encargo, Grok nunca arranca desde el ejemplo: exige la idea desarrollada y la verifica en el prompt', async () => {
+  const app = await readFile(new URL('../tiktok/app.js', import.meta.url), 'utf8');
+  assert.match(app, /let ideaEncargo = null;/);
+  const guard = app.slice(app.indexOf('async function startGrokVideo()'), app.indexOf('generateGrokButton.disabled = true;', app.indexOf('async function startGrokVideo()')));
+  assert.match(guard, /if\(encargoActivo\(\)\)\{/, 'la guardia vive en el único sitio que llama a Grok');
+  assert.match(guard, /if\(!ideaEncargo\)\{[\s\S]*?return false;/, 'sin idea desarrollada no hay vídeo');
+  assert.match(guard, /prompt\.includes\(example\.task\)[\s\S]*?return false;/, 'el ejemplo del PDF jamás llega a Grok con un encargo');
+  const flujo = app.slice(app.indexOf('async function generarAnuncioCatalogo()'), app.indexOf('function terminarFlujoCatalogo'));
+  assert.match(flujo, /if\(!ok\) throw new Error\(`El director creativo no devolvió la idea/, 'si ad-idea falla se aborta con mensaje claro');
+  assert.match(flujo, /if\(!ideaCoherenteConEncargo\(ad\)\) throw/, 'una idea que no habla del encargo no se rueda');
+  assert.match(flujo, /const planEncargo = core\.buildPlan\(core\.buildBriefFromAd\(ad\), 0\);\s*grokPrompt\.value = /, 'el prompt se construye desde la idea desarrollada, no desde la pantalla');
+  assert.match(app, /function sembrarTallerConEncargo\(\)/, 'el taller se siembra con el encargo desde el primer segundo');
+});
+
+test('si el máster no se puede montar, el bruto se publica con la identidad EXACTA y avisa «sin rótulo»', async () => {
+  const app = await readFile(new URL('../tiktok/app.js', import.meta.url), 'utf8');
+  const fallback = app.slice(app.indexOf('async function publicarBrutoSinRotulo'), app.indexOf('async function composeAndPublishGrokPackage'));
+  assert.match(fallback, /const ficha = fichaActiva\(\);/);
+  assert.match(fallback, /title:core\.clean\(`\$\{ficha\.title\} · sin rótulo`, 200\)/);
+  assert.match(fallback, /'x-package-ficha':encodeURIComponent\(JSON\.stringify\(fichaBruto\)\)/, 'la ficha conserva externalId exacto (spread de ficha)');
+  assert.doesNotMatch(fallback, /externalId:/, 'no se reescribe el externalId: viaja el del encargo tal cual');
+  assert.match(fallback, /Publicado SIN rótulo como «\$\{ficha\.externalId\}»/);
+  assert.equal((app.match(/void publicarBrutoSinRotulo\(/g) || []).length, 3, 'navegador incapaz, Pixeria caída y montaje roto: los tres caminos caen al bruto');
+});

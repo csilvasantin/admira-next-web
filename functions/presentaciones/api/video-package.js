@@ -12,6 +12,7 @@ const VIDEO_TYPES = new Map([
   ['video/quicktime', 'mov']
 ]);
 const PIXERIA_PUBLISH_URL = 'https://api.admira.store/stock/publish';
+const PIXERIA_ID_RE = /^(?:\d{10,16}-[a-z0-9]{4,16}|auto-[a-f0-9]{20})$/i;
 
 function json(payload, status = 200){
   return Response.json(payload, {status, headers:{
@@ -100,6 +101,21 @@ async function publishToPixeria(context, state){
   }catch(error){
     console.error('video-package:pixeria-fetch', JSON.stringify({id:state.id, message:String(error?.message || error).slice(0, 300)}));
     return {...state, pixeria:{status:'failed', error:'Pixeria no respondió durante la publicación.'}};
+  }
+  // Identidad ESTABLE ya ocupada (reused): el Stock devuelve la pieza vieja sin
+  // tocarla. Para un encargo (admiranext:xtore:<lane>, catálogo…) el máster más
+  // nuevo debe ocupar el hueco —p. ej. el bruto «sin rótulo» publicado como
+  // fallback cede al máster con rótulo— así que se retira la vieja y se vuelve
+  // a publicar UNA vez. Sin identidad propia no hay hueco que disputar.
+  if(response.ok && payload?.ok && payload?.reused && state.ficha?.externalId && !state.replacedOnce && PIXERIA_ID_RE.test(String(payload.id || ''))){
+    try{
+      const publishFetch = context.data?.pixeriaFetch || fetch;
+      const removed = await publishFetch(new Request(`https://api.admira.store/stock/${encodeURIComponent(String(payload.id))}`, {method:'DELETE', headers:{accept:'application/json'}}));
+      console.log('video-package:pixeria-replace', JSON.stringify({id:state.id, previous:String(payload.id), removed:removed.status}));
+    }catch(error){
+      console.error('video-package:pixeria-replace-failed', JSON.stringify({id:state.id, previous:String(payload.id), message:String(error?.message || error).slice(0, 200)}));
+    }
+    return publishToPixeria(context, {...state, replacedOnce:true});
   }
   if(!response.ok || !payload?.ok || !payload?.id || !payload?.url){
     console.error('video-package:pixeria-rejected', JSON.stringify({

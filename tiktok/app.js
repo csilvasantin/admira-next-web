@@ -233,6 +233,47 @@
   // Verdadero mientras dura el flujo de un clic (catálogo o brief): idea → vídeo →
   // publicación → máster con overlay. Al terminar (o fallar) vuelve a falso.
   let flujoCatalogo = false;
+  // La idea que el director creativo desarrolló A PARTIR DEL ENCARGO en esta
+  // sesión. Con un brief o un producto cargado, Grok NUNCA arranca sin ella:
+  // el 11-sep-2026 el tótem de Xtore recibió un anuncio de edición de PDF (el
+  // ejemplo del estudio) con la ficha «Aparca. Entra. Estrena. · Xtore · coche».
+  let ideaEncargo = null;
+  function encargoActivo() { return productoCatalogo || briefCampana || null; }
+  // El taller (formulario del guion) se siembra con el encargo desde el primer
+  // segundo: así ni el storyboard ni el prompt muestran jamás el ejemplo del PDF.
+  function briefDelEncargo() {
+    if(productoCatalogo){
+      const p = productoCatalogo;
+      return {
+        task:core.clean(`${p.nombre} a ${p.precioTexto || p.promo} en ${p.tienda}`, 180),
+        solution:core.clean(p.detalle || p.promo || `Cógelo en ${p.tienda}`, 220),
+        result:core.clean(`${p.nombre} en el carro al precio del folleto`, 180),
+        presenter:'fusion', tone:'energetic',
+        audience:core.clean(`Clientes de ${p.tienda}`, 110),
+        cta:p.validezCorta ? `Solo ${p.validezCorta}` : 'Descúbrelo hoy'
+      };
+    }
+    if(briefCampana){
+      const b = briefCampana;
+      return {
+        task:core.clean(b.titulo, 180),
+        solution:core.clean(b.mensaje || `Entra ahora en ${b.marca}`, 220),
+        result:core.clean(`Más visitas a ${b.marca}`, 180),
+        presenter:'fusion', tone:'energetic',
+        audience:core.clean(`${b.tipologia} que pasa por delante de ${b.marca}`, 110),
+        cta:core.clean(b.claim, 90) || 'Ven a conocernos hoy'
+      };
+    }
+    return null;
+  }
+  // ¿La idea desarrollada habla del encargo? Si no, no se genera nada.
+  function ideaCoherenteConEncargo(ad) {
+    if(!ad || !ad.idea) return false;
+    const idea = ad.idea.toLowerCase();
+    if(productoCatalogo) return idea.includes(productoCatalogo.nombre.toLowerCase().slice(0, 12)) || (productoCatalogo.precio != null && idea.includes(precioTexto(productoCatalogo.precio)));
+    if(briefCampana) return idea.includes(briefCampana.titulo.toLowerCase().slice(0, 18)) || idea.includes(briefCampana.marca.toLowerCase());
+    return true;
+  }
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
   const REFERENCE_PROFILE_KEY = 'admiranext:tiktok:reference-profile:v1';
   const TESTER_DB = 'pixeria-media-transfer';
@@ -598,6 +639,7 @@
       </div>`;
     adIdeaForm.parentNode.insertBefore(aside, adIdeaForm);
     $('#generarAnuncioCatalogo').addEventListener('click', () => { void generarAnuncioCatalogo(); });
+    sembrarTallerConEncargo();
     adIdeaInput.value = tituloProducto(p);
     $('#adBrand').value = p.marca || p.tienda;
     $('#adObjective').value = 'sales';
@@ -638,11 +680,21 @@
       </div>`;
     adIdeaForm.parentNode.insertBefore(aside, adIdeaForm);
     $('#generarAnuncioCatalogo').addEventListener('click', () => { void generarAnuncioCatalogo(); });
+    sembrarTallerConEncargo();
     adIdeaInput.value = tituloBrief(b);
     $('#adBrand').value = b.marca;
     $('#adObjective').value = 'visits';
     syncAdIdeaAgentMode(true);
     setAdIdeaMessage(`Titular prefijado desde el brief: «${adIdeaInput.value}». Pulsa “Generar anuncio” o “Desarrollar idea”.`, 'success');
+  }
+
+  function sembrarTallerConEncargo() {
+    const brief = briefDelEncargo();
+    if(!brief) return;
+    clearContentSource();
+    writeForm(brief);
+    variation = 0;
+    generate();
   }
 
   function escapeHtml(value) {
@@ -668,13 +720,20 @@
       if(!core.clean(adIdeaInput.value, 200)) adIdeaInput.value = productoCatalogo ? tituloProducto(productoCatalogo) : tituloBrief(briefCampana);
       setCatalogStatus(productoCatalogo ? '1/3 · El director creativo escribe el guion con el precio literal…' : `1/3 · El director creativo escribe el guion para «${briefCampana.tipologia}»…`);
       const ok = await developAdIdea();
-      if(!ok) throw new Error(adIdeaStatus.textContent || 'No se pudo desarrollar la idea.');
+      if(!ok) throw new Error(`El director creativo no devolvió la idea (${adIdeaStatus.textContent || 'sin detalle'}). No se genera nada: el vídeo debe salir de la idea desarrollada, nunca del ejemplo del estudio.`);
       const ad = buildAdFromForm();
-      if(!ad) throw new Error('La idea desarrollada llegó sin titular.');
+      if(!ad) throw new Error('La idea desarrollada llegó sin titular. No se genera nada.');
+      if(!ideaCoherenteConEncargo(ad)) throw new Error(`La idea desarrollada («${ad.idea}») no habla del encargo. No se genera nada: vuelve a pulsar «Generar anuncio».`);
+      ideaEncargo = ad;
       adIdeas = [ad, ...adIdeas].slice(0, 24);
       saveAdIdeas();
       renderAdIdeas();
       openAdIdea(ad, true);
+      // El prompt de Grok se construye AQUÍ desde la idea desarrollada, no se
+      // confía en lo que haya quedado en pantalla.
+      const planEncargo = core.buildPlan(core.buildBriefFromAd(ad), 0);
+      grokPrompt.value = core.clean(`${planEncargo.grokPrompt}${referenceProfile?.promptFragment ? `\n\n${referenceProfile.promptFragment}` : ''}`, 3200);
+      if(!grokPrompt.value.includes(core.clean(ad.idea, 180).slice(0, 40))) throw new Error('El prompt de Grok no salió de la idea desarrollada. No se genera nada.');
       setCatalogStatus('2/3 · Grok genera el vídeo de 15 s…');
       const enviado = await startGrokVideo();
       if(!enviado) throw new Error(grokJobDetail.textContent || 'Grok no aceptó el encargo.');
@@ -1700,6 +1759,20 @@
       setGrokJob('Falta dirección visual', 0, 'Describe con algo más de detalle qué debe aparecer en el vídeo puro.');
       return false;
     }
+    // Con encargo (brief o producto) el vídeo sale SIEMPRE de la idea
+    // desarrollada por el director creativo; jamás del ejemplo ni de un plan
+    // que no venga del encargo. Se comprueba aquí, en el único sitio por el
+    // que se llama a Grok, para que dé igual qué botón se pulse.
+    if(encargoActivo()){
+      if(!ideaEncargo){
+        setGrokJob('Falta la idea del encargo', 0, 'Con un brief o un producto cargado, el vídeo debe salir de la idea desarrollada por el director creativo. Pulsa «Generar anuncio» en la ficha de arriba.');
+        return false;
+      }
+      if(prompt.includes(example.task) || !prompt.includes(core.clean(ideaEncargo.idea, 180).slice(0, 40))){
+        setGrokJob('El prompt no sale del encargo', 0, `El prompt de Grok debe llevar la idea desarrollada «${ideaEncargo.idea}». Pulsa «Generar anuncio» para regenerarlo.`);
+        return false;
+      }
+    }
     generateGrokButton.disabled = true;
     grokResultActions.hidden = true;
     grokAccess.hidden = true;
@@ -2172,10 +2245,57 @@
     packageProgress.firstElementChild.style.width = '100%';
   }
 
+  // Si el máster con rótulo no se puede montar en este navegador (autoplay,
+  // MediaRecorder, canvas sucio…), la pieza no se queda fuera del Stock: se
+  // publica el vídeo bruto tal cual con la identidad EXACTA del encargo
+  // (admiranext:xtore:<lane>), avisando de que va sin rótulo, para que la regla
+  // del player la enganche igual. El siguiente máster con rótulo la sustituye.
+  async function publicarBrutoSinRotulo(motivo) {
+    const ficha = fichaActiva();
+    const razon = core.clean(motivo, 200) || 'el máster no se pudo montar';
+    if(!flujoCatalogo || !ficha?.externalId || !grokVideoUrl){
+      terminarFlujoCatalogo(`${razon}. Pulsa “Montar y publicar” para repetir el máster.`, 'error');
+      return false;
+    }
+    setCatalogStatus(`3/3 · El máster no se pudo montar (${razon}). Publicando el vídeo bruto SIN rótulo como «${ficha.externalId}»…`);
+    try{
+      const origen = await fetch(grokVideoUrl, {mode:'cors'});
+      if(!origen.ok) throw new Error(`no se pudo leer el vídeo bruto (${origen.status})`);
+      const blob = await origen.blob();
+      if(blob.size < 1024) throw new Error('el vídeo bruto llegó vacío');
+      const tipo = ['video/mp4', 'video/webm', 'video/quicktime'].includes(blob.type) ? blob.type : 'video/mp4';
+      const fichaBruto = {
+        ...ficha,
+        title:core.clean(`${ficha.title} · sin rótulo`, 200),
+        comment:core.clean(`SIN RÓTULO (el máster no se montó: ${razon}). ${ficha.comment}`, 1200)
+      };
+      const response = await fetch('/presentaciones/api/video-package', {
+        method:'POST', credentials:'same-origin',
+        headers:{
+          'content-type':tipo, accept:'application/json',
+          'x-client-request-id':crypto.randomUUID(),
+          'x-package-title':encodeURIComponent(fichaBruto.title),
+          'x-package-ficha':encodeURIComponent(JSON.stringify(fichaBruto))
+        },
+        body:blob
+      });
+      const payload = await readApiResponse(response, 'No se pudo publicar el vídeo bruto.');
+      if(payload.pixeria?.status !== 'published') throw new Error(payload.pixeria?.error || 'Pixeria no guardó el bruto.');
+      packageId = payload.id || packageId;
+      finishPackagePublication(payload);
+      terminarFlujoCatalogo(`Publicado SIN rótulo como «${ficha.externalId}» (${payload.pixeria.id}): la regla del player ya lo encuentra. Cuando quieras el rótulo, vuelve a pulsar «Generar anuncio».`, 'success');
+      return true;
+    }catch(error){
+      terminarFlujoCatalogo(`Ni el máster ni el bruto llegaron al Stock: ${error?.message || error}. Pulsa “Montar y publicar” para reintentar.`, 'error');
+      return false;
+    }
+  }
+
   async function composeAndPublishGrokPackage() {
     if(packageId && composeGrokPackage.textContent.includes('Reintentar')) return retryPackagePublication();
     if(!grokVideoUrl || !window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){
       packageStatus.textContent = 'Este navegador no puede montar el vídeo final. Prueba con Chrome, Edge o Safari actualizado.';
+      if(flujoCatalogo) void publicarBrutoSinRotulo('este navegador no puede montar el máster');
       return;
     }
     composeGrokPackage.disabled = true;
@@ -2307,13 +2427,13 @@
         packageStatus.textContent = payload.pixeria?.error || 'El master está guardado en ADmiraNeXT, pero Pixeria todavía no lo ha incorporado.';
         composeGrokPackage.textContent = 'Reintentar Pixeria';
         composeGrokPackage.disabled = false;
-        if(flujoCatalogo) terminarFlujoCatalogo(packageStatus.textContent, 'error');
+        if(flujoCatalogo) void publicarBrutoSinRotulo(packageStatus.textContent);
       }
     }catch(error){
       packageStatus.textContent = error.message || 'No se pudo montar el master final.';
       composeGrokPackage.textContent = 'Volver a montar 25s';
       composeGrokPackage.disabled = false;
-      if(flujoCatalogo) terminarFlujoCatalogo(`${packageStatus.textContent} Pulsa “Montar y publicar” para repetir el máster con el precio.`, 'error');
+      if(flujoCatalogo) void publicarBrutoSinRotulo(packageStatus.textContent);
     }finally{
       if(!grokVideo.paused) grokVideo.pause();
       stream.getTracks().forEach(track => track.stop());

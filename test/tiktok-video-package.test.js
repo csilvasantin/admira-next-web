@@ -153,3 +153,57 @@ test('el compositor mantiene un reloj de audio durante preroll, anuncio y postro
   assert.match(source, /Seed the canvas before captureStream\(\)/);
   assert.ok(source.indexOf("drawRollFrame(ctx, 'pre', 0") < source.indexOf('const stream = canvas.captureStream(30)'), 'el primer fotograma debe existir antes de capturar el canvas');
 });
+
+// Identidad estable ocupada (reused): el máster nuevo sustituye a la pieza vieja
+// (p. ej. el bruto «sin rótulo» publicado como fallback en Xtore · Puerta Cam).
+test('si el Stock reutiliza la identidad estable, retira la pieza vieja y publica el máster nuevo', async () => {
+  const {onRequest} = await import('../functions/presentaciones/api/video-package.js');
+  const store = kv();
+  const media = r2();
+  const calls = [];
+  const bytes = new Uint8Array(2048).fill(9);
+  const ficha = {title:'Aparca. Entra. Estrena. · Xtore · coche', comment:'Xtore · Puerta Cam', tags:['xtore'], externalId:'admiranext:xtore:coche'};
+  const response = await onRequest({
+    request:new Request('https://www.admiranext.com/presentaciones/api/video-package', {
+      method:'POST',
+      headers:{
+        origin:'https://www.admiranext.com', 'content-type':'video/mp4', 'content-length':String(bytes.byteLength),
+        'x-client-request-id':'2b1c7e40-6d2a-4c1e-9a3f-0f2e9c8d7b6a', 'x-package-ficha':encodeURIComponent(JSON.stringify(ficha))
+      },
+      body:bytes
+    }),
+    env:{PRESENTATION_IDEAS:store, PRESENTATION_MEDIA:media, PIXERIA_INGEST_TOKEN:'t'},
+    data:{
+      pixeriaFetch:async request => {
+        calls.push(`${request.method} ${new URL(request.url).pathname}`);
+        if(request.method === 'DELETE') return Response.json({ok:true, id:'auto-9a75882d2e3a36bce8e6', deleted:2});
+        const body = await request.json();
+        assert.equal(body.externalId, 'admiranext:xtore:coche');
+        return Response.json(calls.length === 1
+          ? {ok:true, reused:true, id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6'}
+          : {ok:true, id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6'});
+      }
+    }
+  });
+  const payload = await response.json();
+  assert.equal(response.status, 201);
+  assert.equal(payload.pixeria.status, 'published');
+  assert.deepEqual(calls, ['POST /stock/publish', 'DELETE /stock/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish']);
+});
+
+test('sin identidad propia no se retira nada aunque el Stock diga reused', async () => {
+  const {onRequest} = await import('../functions/presentaciones/api/video-package.js');
+  const calls = [];
+  const bytes = new Uint8Array(2048).fill(1);
+  const response = await onRequest({
+    request:new Request('https://www.admiranext.com/presentaciones/api/video-package', {
+      method:'POST',
+      headers:{origin:'https://www.admiranext.com', 'content-type':'video/mp4', 'content-length':String(bytes.byteLength), 'x-client-request-id':'5c0d2f11-1a2b-4c3d-8e4f-6a7b8c9d0e1f'},
+      body:bytes
+    }),
+    env:{PRESENTATION_IDEAS:kv(), PRESENTATION_MEDIA:r2(), PIXERIA_INGEST_TOKEN:'t'},
+    data:{pixeriaFetch:async request => { calls.push(request.method); return Response.json({ok:true, reused:true, id:'auto-0123456789abcdef0123', url:'https://api.admira.store/stock/asset/auto-0123456789abcdef0123'}); }}
+  });
+  assert.equal((await response.json()).pixeria.status, 'published');
+  assert.deepEqual(calls, ['POST']);
+});
