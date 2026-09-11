@@ -15,7 +15,7 @@ import { generatorAccess, makeSessionToken } from '../presentaciones/_directory.
 import { bearerOf, tokenRow } from './_tokens.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.0.0' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.1.0' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -31,12 +31,14 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - Ayuda para humanos: ${SITE}/mcp/generador
 
 ## Tools
-- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos).
+- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes).
 - list_presentations — presentaciones existentes (slug, nombre, web, idiomas, entregables).
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
 - create_presentation {displayName, website, problem, audience, …} — crea (o regenera con
   overwrite:true) una presentación. Devuelve slug, contraseña y URLs.
+- create_yokup_report {mision, titulo, resumen, …} — crea una sala-informe Yokup (GOOD/BETTER/BEST)
+  a partir del cierre de una misión FLT. Devuelve slug, pass, URLs y el bloque listo para yokup_informe.
 - generation_status {client} — estado de la generación en curso (idiomas × entregables).
 - list_versions {client} — historial de versiones. restore_version {client,id} — restaurar.
 - presentation_urls {client} — URLs de la presentación, de la sala y de las versiones.
@@ -50,7 +52,13 @@ restaurar; viewer → solo listar y leer. Sin usuario activo o sin el proyecto
 1. list_presentations → ¿ya existe el cliente?
 2. create_presentation con nombre, web oficial, problema y a quién se presenta.
 3. generation_status hasta que todos los entregables estén «done».
-4. presentation_urls → compartir la URL y la contraseña con el cliente.`;
+4. presentation_urls → compartir la URL y la contraseña con el cliente.
+
+## Flujo informe Yokup (norma 22)
+1. create_yokup_report con mision FLT-…, titulo, resumen, verificado (y opcional tiempo/puntos/total).
+2. Abre la sala con ?quality=best (vídeo en movimiento si videoUrl / figura + tipografía) o better (fondos).
+3. Captura evidencia escritorio → yokup_evidencia.
+4. Cierra con yokup_informe pegando la URL+pass de la sala (el generador es el informe completo).`;
 
 const HELP_TOPICS = {
   crear: `create_presentation — campos:
@@ -60,21 +68,43 @@ const HELP_TOPICS = {
 - languages: ['es','en',…] (es y en siempre). outputs: entregables (por defecto los del generador).
 - password: ≥10 caracteres (si no, la genera). overwrite:true para regenerar una existente.
 - embeds: [{url,title}] webs que se muestran vivas dentro del deck (máx. 5, https).
-- beforeDeck / afterDeck: packs de list_decks. primaryColor / accentColor: hex.`,
+- beforeDeck / afterDeck: packs de list_decks. primaryColor / accentColor: hex.
+- slideMedia: array de medios por lámina (type video puede usar HTTPS flota admira.live /assets/…).`,
   presentaciones: 'list_presentations devuelve slug, displayName, website, idiomas y entregables. get_presentation {client} devuelve el contenido vivo (content-data). La URL privada es /presentaciones/<slug>/ y pide la contraseña del cliente o una cuenta con acceso.',
   versiones: 'Cada guardado o regeneración captura una versión. list_versions {client} las lista (id, motivo, fecha). restore_version {client,id} vuelve a esa versión y devuelve la lista actualizada.',
-  permisos: 'El token va ligado a un usuario de /usuarios. admin → owner (todo), editor → crear/regenerar/restaurar, viewer → solo lectura. Revocar el token o dar de baja al usuario corta el acceso al instante.'
+  permisos: 'El token va ligado a un usuario de /usuarios. admin → owner (todo), editor → crear/regenerar/restaurar, viewer → solo lectura. Revocar el token o dar de baja al usuario corta el acceso al instante.',
+  informes: `create_yokup_report — convierte el generador de presentaciones en el informe vivo de Yokup (más completo que texto plano).
+Campos:
+- mision (obligatorio): FLT-1234 o FLT-100235.
+- titulo (obligatorio): asunto del informe / displayName.
+- resumen (obligatorio): qué se hizo (alimenta problem/summary del deck).
+- verificado (recomendado): cómo se comprobó (evidencia, URL, criterio).
+- tiempo / puntos / total (opcionales): líneas de la norma 22.
+- website (opcional, default https://www.yokup.com).
+- password / overwrite / qualityHint (opcionales). qualityHint: good|better|best (default best).
+- videoUrl (opcional): HTTPS MP4 de flota (p.ej. https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4) → slideMedia vídeo en BEST.
+- videoSlide (opcional, default cover): lámina que lleva el vídeo.
+Devuelve: slug, password, urls (sala con ?quality=…), yokupBlock (texto listo para yokup_informe).
+Gesto consejero: create_yokup_report (+videoUrl) → sala ?quality=best (motion) → yokup_evidencia → yokup_informe.`
 };
 
 export const TOOLS = [
-  { name: 'help', description: 'Ayuda del Generador de Presentaciones y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos' } } } },
+  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes' } } } },
   { name: 'list_presentations', description: 'Presentaciones existentes con slug, nombre, web, idiomas y entregables.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_presentation', description: 'Contenido vivo de una presentación (láminas, idiomas, secuencia).', inputSchema: { type: 'object', properties: { client: { type: 'string', description: 'slug de la presentación' } }, required: ['client'] } },
   { name: 'create_presentation', description: 'Crea (o regenera con overwrite:true) una presentación a partir de cliente, web oficial, problema y audiencia. Devuelve slug, contraseña y URLs.', inputSchema: { type: 'object', properties: {
     displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' }, inspirationUrl: { type: 'string' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
     languages: { type: 'array', items: { type: 'string' } }, outputs: { type: 'array', items: { type: 'string' } }, password: { type: 'string' }, overwrite: { type: 'boolean' },
-    embeds: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, title: { type: 'string' } } } }, beforeDeck: { type: 'string' }, afterDeck: { type: 'string' }, primaryColor: { type: 'string' }, accentColor: { type: 'string' } }, required: ['displayName'] } },
+    embeds: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, title: { type: 'string' } } } }, beforeDeck: { type: 'string' }, afterDeck: { type: 'string' }, primaryColor: { type: 'string' }, accentColor: { type: 'string' }, slideMedia: { type: 'array', description: 'Medios por lámina (image/video/audio/animation) con rights' } }, required: ['displayName'] } },
+  { name: 'create_yokup_report', description: 'Crea una sala-informe Yokup (presentación completa GOOD/BETTER/BEST) a partir de una misión FLT. Opcional videoUrl (MP4 flota) para BEST en movimiento. Devuelve URLs, pass y bloque para yokup_informe.', inputSchema: { type: 'object', properties: {
+    mision: { type: 'string', description: 'FLT-…' }, titulo: { type: 'string' }, resumen: { type: 'string' }, verificado: { type: 'string' },
+    tiempo: { type: 'string' }, puntos: { type: 'string' }, total: { type: 'string' },
+    website: { type: 'string' }, password: { type: 'string' }, overwrite: { type: 'boolean' },
+    qualityHint: { type: 'string', description: 'good | better | best (default best)' }, slug: { type: 'string' },
+    videoUrl: { type: 'string', description: 'HTTPS MP4 de flota (admira.live /assets/…) para BEST en movimiento' },
+    videoSlide: { type: 'string', description: 'Lámina del vídeo (default cover)' }
+  }, required: ['mision', 'titulo', 'resumen'] } },
   { name: 'generation_status', description: 'Estado de la generación (idiomas × entregables) de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'list_versions', description: 'Historial de versiones de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'restore_version', description: 'Restaura una versión de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, id: { type: 'string' } }, required: ['client', 'id'] } },
@@ -122,9 +152,76 @@ export async function callTool(ctx, name, args = {}){
     case 'create_presentation': {
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
       const body = {};
-      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor']) if (a[key] !== undefined) body[key] = a[key];
+      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia']) if (a[key] !== undefined) body[key] = a[key];
       const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
       return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };
+    }
+    case 'create_yokup_report': {
+      const mision = String(a.mision || '').trim().toUpperCase();
+      if (!/^FLT-\d+$/.test(mision)) throw new Error('mision debe ser FLT-… (ej. FLT-100235).');
+      const titulo = String(a.titulo || '').trim();
+      const resumen = String(a.resumen || '').trim();
+      if (!titulo || !resumen) throw new Error('titulo y resumen son obligatorios.');
+      const verificado = String(a.verificado || '').trim();
+      const tiempo = String(a.tiempo || '').trim();
+      const puntos = String(a.puntos || '').trim();
+      const total = String(a.total || '').trim();
+      const qualityHint = ['good', 'better', 'best'].includes(String(a.qualityHint || '').toLowerCase()) ? String(a.qualityHint).toLowerCase() : 'best';
+      const digits = mision.replace(/\D/g, '');
+      const reportSlug = String(a.slug || `yokup-${mision.toLowerCase()}`).trim().toLowerCase();
+      const password = String(a.password || '').trim() || `yokupInforme${digits.slice(-6) || '26'}`;
+      if (password.length < 10) throw new Error('password debe tener ≥10 caracteres.');
+      const norma = [
+        tiempo ? `Tiempo dedicado: ${tiempo}` : '',
+        puntos ? `Puntos de la misión: ${puntos}` : '',
+        total ? `Total verificado: ${total}` : ''
+      ].filter(Boolean).join('\n');
+      const problem = `Informe Yokup ${mision}. ${resumen}${verificado ? ` Verificado: ${verificado}.` : ''}`;
+      const summary = `${mision} · ${titulo}. ${resumen}${norma ? ` ${norma.replace(/\n/g, ' · ')}` : ''} Abrir en quality=${qualityHint}.`;
+      const videoUrl = String(a.videoUrl || '').trim();
+      const videoSlide = String(a.videoSlide || 'cover').trim().toLowerCase() || 'cover';
+      const body = {
+        displayName: `Yokup ${mision} · ${titulo}`.slice(0, 120),
+        slug: reportSlug,
+        website: String(a.website || 'https://www.yokup.com').trim() || 'https://www.yokup.com',
+        problem,
+        audience: 'Consejo de Silicio · Yokup (cierre de misión)',
+        objective: `Cerrar ${mision} con informe vivo (sala AdmiraNeXT) y evidencia escritorio.`,
+        title: titulo,
+        summary,
+        languages: ['es', 'en'],
+        outputs: ['website', 'documents', 'backgrounds'],
+        password,
+        overwrite: a.overwrite === true
+      };
+      if (videoUrl) {
+        body.slideMedia = [{
+          slide: videoSlide,
+          type: 'video',
+          src: videoUrl,
+          loop: true,
+          muted: true,
+          autoplay: true,
+          caption: 'Resultado en movimiento',
+          rights: { source: videoUrl, permission: 'owned', license: 'AdmiraNeXT fleet', holder: 'AdmiraNeXT' }
+        }];
+      }
+      const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
+      const urls = out && out.slug ? urlsFor(out.slug) : undefined;
+      const salaQuality = urls ? `${urls.sala}?quality=${qualityHint}&lang=es` : undefined;
+      const yokupBlock = [
+        `Informe vivo ${mision}: ${titulo}`,
+        resumen,
+        verificado ? `Verificado: ${verificado}` : '',
+        norma,
+        videoUrl ? `Vídeo BEST: ${videoUrl} (lámina ${videoSlide})` : '',
+        salaQuality ? `Sala: ${salaQuality}` : '',
+        `Pass: ${out && out.password ? out.password : password}`,
+        videoUrl
+          ? 'Calidad recomendada: BEST (vídeo en movimiento) · BETTER (fondos) · GOOD (texto limpio).'
+          : 'Calidad recomendada: BEST (figura descriptiva) · BETTER (fondos) · GOOD (texto limpio).'
+      ].filter(Boolean).join('\n');
+      return { ...out, kind: 'yokup-report', mision, qualityHint, urls: urls ? { ...urls, salaQuality } : undefined, yokupBlock };
     }
     case 'generation_status': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/api/generation`);
     case 'list_versions': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/api/versions`);
@@ -146,7 +243,7 @@ export async function handleRpc(ctx, msg){
   switch (method) {
     case 'initialize':
       return rpcResult(id, { protocolVersion: (params && params.protocolVersion) || PROTOCOL, capabilities: { tools: { listChanged: false } }, serverInfo: SERVER_INFO,
-        instructions: 'Generador de Presentaciones de AdmiraNeXT. Empieza por la tool help. Cada tool envuelve una API del generador con los permisos del dueño del token (directorio /usuarios).' });
+        instructions: 'Generador de Presentaciones e informes Yokup de AdmiraNeXT. Empieza por help (tema informes para cierres FLT). Cada tool envuelve una API del generador con los permisos del dueño del token (directorio /usuarios).' });
     case 'notifications/initialized':
     case 'notifications/cancelled':
       return null;
