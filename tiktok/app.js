@@ -170,7 +170,9 @@
       title:core.clean(`${p.nombre} · ${p.precio != null ? precioTexto(p.precio) : p.promo} · ${p.tienda}`, 200),
       comment:core.clean(`${p.catalogo || p.tienda}${p.p ? ` · página ${p.p}` : ''}${p.seccion ? ` · ${p.seccion}` : ''}. ${p.marca ? `${p.marca}. ` : ''}${p.detalle ? `${p.detalle}. ` : ''}${p.precioTexto ? `Precio ${p.precioTexto}. ` : ''}${p.promo ? `${p.promo}. ` : ''}${p.validezSello ? `${p.validezSello}. ` : ''}Generado desde ${p.origen || 'admira.tv/contentcatalogue'}.`, 1200),
       tags:['admiranext', 'tiktok', 'vertical', 'catalogo', slugCatalogo(p.tienda), p.catalogo_id],
-      externalId:`admiranext:catalogo:${p.catalogo_id}:${p.slug}`.replace(/[^A-Za-z0-9:_-]+/g, '-').slice(0, 120)
+      externalId:`admiranext:catalogo:${p.catalogo_id}:${p.slug}`.replace(/[^A-Za-z0-9:_-]+/g, '-').slice(0, 120),
+      // El bruto de Grok NO va al Stock: se retiene como fuente y solo sale el máster.
+      brutoAlStock:false
     };
   }
   const productoCatalogo = leerProductoCatalogo();
@@ -220,7 +222,9 @@
       title:core.clean(`${b.titulo} · ${b.marca} · ${b.tipologia}`, 200),
       comment:core.clean(`${b.campana} · público: ${b.tipologia}${b.lane ? ` (${b.lane})` : ''}. ${b.mensaje ? `${b.mensaje} ` : ''}Claim: ${b.claim}. ${b.formato} · ${b.duracion} s. Generado desde ${b.origen || 'admiranext.com/tiktok'}.`, 1200),
       tags:['admiranext', 'tiktok', 'vertical', slugCatalogo(b.marca) || 'xtore'],
-      externalId:b.externalId
+      externalId:b.externalId,
+      // El bruto de Grok NO va al Stock: se retiene como fuente y solo sale el máster.
+      brutoAlStock:false
     };
   }
   const briefCampana = productoCatalogo ? null : leerBrief();
@@ -1293,9 +1297,14 @@
     if(status === 'uploading'){
       pixeriaLabel.textContent = 'Pixeria · copiando el MP4';
       pixeriaDetail.textContent = 'El enlace interno está transfiriendo el vídeo al Stock de Pixeria.';
+    }else if(status === 'retenido'){
+      pixeriaLabel.textContent = 'Pixeria · bruto retenido (no se publica)';
+      pixeriaDetail.textContent = 'Encargo con identidad estable: el bruto queda en ADmiraNeXT como fuente y al Stock solo irá el máster con rótulo. Así no hay duplicados.';
     }else if(status === 'published'){
-      pixeriaLabel.textContent = 'Pixeria · publicado en Stock';
-      pixeriaDetail.textContent = `Asset ${payload.id || ''} disponible para reutilizar y distribuir.`;
+      pixeriaLabel.textContent = payload.existente ? 'Pixeria · ya estaba en el Stock' : 'Pixeria · publicado en Stock';
+      pixeriaDetail.textContent = payload.existente
+        ? `Asset ${payload.id || ''} ya existía con esta identidad: no se ha duplicado.`
+        : `Asset ${payload.id || ''} disponible para reutilizar y distribuir.`;
       openPixeriaAsset.href = payload.stockUrl || 'https://www.pixeria.com/stock.html';
       openPixeriaAsset.hidden = false;
     }else if(status === 'failed'){
@@ -1567,7 +1576,9 @@
   }
 
   function showGrokVideo(payload) {
-    const durableUrl = payload.pixeria?.assetUrl || payload.video.url;
+    // Encargo: el bruto retenido se sirve same-origin (/tiktok/media/…) y el
+    // canvas del máster no se ensucia. Flujo libre: la copia del Stock.
+    const durableUrl = payload.pixeria?.mediaUrl || payload.pixeria?.assetUrl || payload.video.url;
     grokVideoUrl = durableUrl;
     if(grokVideo.src !== durableUrl) grokVideo.src = durableUrl;
     openGrokVideo.href = grokVideoUrl;
@@ -1699,8 +1710,10 @@
     }
     generateGrokButton.disabled = false;
     grokAccess.hidden = true;
-    if(publication.status === 'published'){
-      setGrokJob('Vídeo publicado', 100, 'Grok ha terminado y Pixeria ya tiene una copia permanente en su Stock.');
+    if(publication.status === 'published' || publication.status === 'retenido'){
+      if(publication.status === 'retenido') setGrokJob('Vídeo listo · bruto retenido', 100, 'Grok ha terminado. El bruto no se publica: al Stock irá solo el máster con rótulo.');
+      else if(publication.status === 'published' && recordarPublicado(grokRequestId, publication.id)) setGrokJob('Vídeo ya publicado antes', 100, `Este mismo vídeo ya estaba en el Stock como ${publication.id}. No se ha duplicado.`);
+      else setGrokJob('Vídeo publicado', 100, 'Grok ha terminado y Pixeria ya tiene una copia permanente en su Stock.');
       packageOutput.hidden = false;
       composeGrokPackage.disabled = false;
       packageStatus.textContent = 'El máster principal está listo. Añadiremos preroll y postroll y publicaremos la pieza final en Pixeria.';
@@ -1714,8 +1727,21 @@
       }
     }else{
       setGrokJob('Vídeo listo · Pixeria pendiente', 100, 'Puedes revisar el MP4 y reintentar su envío a Pixeria sin volver a generar el vídeo.');
-      if(flujoCatalogo) terminarFlujoCatalogo('El vídeo está listo pero el Stock no lo recibió. Reintenta Pixeria y luego “Montar y publicar”.', 'error');
+      if(flujoCatalogo) terminarFlujoCatalogo(encargoActivo() ? 'El vídeo está listo pero no se pudo retener como fuente del máster. Reintenta Pixeria y luego “Montar y publicar”.' : 'El vídeo está listo pero el Stock no lo recibió. Reintenta Pixeria y luego “Montar y publicar”.', 'error');
     }
+  }
+
+  // Flujo libre: memoria local de los requestId ya publicados (requestId → id del
+  // Stock). Devuelve true si este requestId ya se había registrado antes.
+  const PUBLICADOS_KEY = 'admiranext:tiktok15:publicados:v1';
+  function recordarPublicado(requestId, stockId) {
+    if(!requestId) return false;
+    let publicados = {};
+    try{ publicados = JSON.parse(localStorage.getItem(PUBLICADOS_KEY) || '{}') || {}; }catch(_){ publicados = {}; }
+    const yaEstaba = Boolean(publicados[requestId]);
+    publicados[requestId] = stockId || publicados[requestId] || true;
+    try{ localStorage.setItem(PUBLICADOS_KEY, JSON.stringify(publicados)); }catch(_){ /* Persistencia opcional. */ }
+    return yaEstaba;
   }
 
   function scheduleGrokPoll(requestId, delay = 5000) {
@@ -2236,7 +2262,7 @@
   function finishPackagePublication(payload) {
     packageId = payload.id || packageId;
     packageOutput.classList.add('is-published');
-    packageStatus.textContent = `Master final de ${payload.duration || 25} segundos publicado en Pixeria${payload.pixeria?.id ? ` · ${payload.pixeria.id}` : ''}.`;
+    packageStatus.textContent = `Master final de ${payload.duration || 25} segundos publicado en Pixeria${payload.pixeria?.id ? ` · ${payload.pixeria.id}` : ''}${payload.pixeria?.sustituye ? ' · sustituye a la pieza anterior con la misma identidad (sin duplicados)' : ''}.`;
     openPackageAsset.href = payload.pixeria?.stockUrl || 'https://www.pixeria.com/stock.html';
     openPackageAsset.hidden = false;
     composeGrokPackage.textContent = 'Publicado en Pixeria';

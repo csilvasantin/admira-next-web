@@ -10,6 +10,8 @@ const PIXERIA_ID_RE = /^(?:\d{10,16}-[a-z0-9]{4,16}|auto-[a-f0-9]{20})$/i;
 const ALLOWED_RESOLUTIONS = new Set(['480p', '720p', '1080p']);
 const PIXERIA_PUBLISH_URL = 'https://api.admira.store/stock/publish';
 const PIXERIA_PENDING_MS = 10 * 60 * 1000;
+const PIXERIA_ASSET_URL = 'https://api.admira.store/stock/asset/';
+const MAX_BRUTO_BYTES = 120 * 1024 * 1024;
 const PIXERIA_STATE_TTL = 30 * 24 * 60 * 60;
 
 function json(payload, status = 200, extraHeaders = {}){
@@ -226,6 +228,67 @@ async function savePixeriaState(context, key, state, ttl = PIXERIA_STATE_TTL){
   }
 }
 
+// El Stock deriva el id del asset del externalId (sha256 → auto-…): con él se
+// puede preguntar si la pieza YA existe antes de publicar, y no duplicar.
+async function stockIdDerivado(externalId){
+  return `auto-${(await digest(externalId)).slice(0, 20)}`;
+}
+
+async function existeEnStock(context, id){
+  if(!context.env.PIXERIA_STOCK) return false;
+  try{
+    const response = await context.env.PIXERIA_STOCK.fetch(new Request(`${PIXERIA_ASSET_URL}${id}`, {method:'GET', headers:{range:'bytes=0-0'}}));
+    try{ await response.body?.cancel(); }catch(_){ /* Solo interesa el estado. */ }
+    return response.status === 200 || response.status === 206;
+  }catch(_){ return false; }
+}
+
+// Encargo (brief/producto): el bruto NO se publica en el Stock. Se copia a R2
+// (PRESENTATION_MEDIA) bajo la misma ruta que los másteres (/tiktok/media/…),
+// same-origin, para que el navegador lo pinte en el canvas sin ensuciarlo y
+// monte el máster con rótulo, que es lo único que llega al Stock.
+const brutoKey = (requestId) => `tiktok:grok-video:bruto:${requestId}`;
+
+function publicBrutoState(record){
+  if(record?.status === 'retenido' && record.mediaUrl) return {status:'retenido', id:record.id, mediaUrl:record.mediaUrl, size:record.size};
+  if(record?.status === 'uploading') return {status:'uploading'};
+  if(record?.status === 'failed') return {status:'failed', error:'El vídeo está listo, pero no se pudo retener como fuente del máster.'};
+  return {status:'pending'};
+}
+
+async function ensureBrutoRetenido(context, requestId, video, force = false){
+  if(!context.env.PRESENTATION_IDEAS || !context.env.PRESENTATION_MEDIA) return {status:'failed', error:'El almacén interno del bruto no está configurado.'};
+  const key = brutoKey(requestId);
+  let previous = null;
+  try{ previous = await context.env.PRESENTATION_IDEAS.get(key, {type:'json'}); }
+  catch(_){ return {status:'failed', error:'No se pudo comprobar si el bruto ya estaba retenido.'}; }
+  if(previous?.status === 'retenido') return publicBrutoState(previous);
+  if(previous?.status === 'uploading' && Date.now() - Number(previous.startedAt || 0) < PIXERIA_PENDING_MS) return {status:'uploading'};
+  if(previous?.status === 'failed' && !force) return publicBrutoState(previous);
+  await savePixeriaState(context, key, {status:'uploading', requestId, startedAt:Date.now()}, 60 * 60);
+  try{
+    const origen = await fetch(video.url);
+    if(!origen.ok) throw new Error(`origen ${origen.status}`);
+    const bytes = await origen.arrayBuffer();
+    if(bytes.byteLength < 1024 || bytes.byteLength > MAX_BRUTO_BYTES) throw new Error(`tamaño ${bytes.byteLength}`);
+    const id = `pkg-${(await digest(`bruto:${requestId}`)).slice(0, 20)}`;
+    const token = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+    await context.env.PRESENTATION_MEDIA.put(`tiktok/packages/${id}-${token}.mp4`, bytes, {
+      httpMetadata:{contentType:'video/mp4', cacheControl:'public, max-age=31536000, immutable'},
+      customMetadata:{kind:'tiktok-bruto', requestId, id}
+    });
+    const origin = new URL(context.request.url).origin;
+    const retenido = {status:'retenido', requestId, id, token, size:bytes.byteLength, mediaUrl:`${origin}/tiktok/media/${id}/${token}`, retainedAt:Date.now()};
+    await savePixeriaState(context, key, retenido);
+    return publicBrutoState(retenido);
+  }catch(error){
+    console.error(JSON.stringify({message:'grok bruto retain failed', requestId, error:String(error?.message || error).slice(0, 200)}));
+    const failed = {status:'failed', requestId, failedAt:Date.now()};
+    await savePixeriaState(context, key, failed, 60 * 60);
+    return publicBrutoState(failed);
+  }
+}
+
 async function ensurePixeriaPublication(context, requestId, video, model, force = false){
   if(!context.env.PRESENTATION_IDEAS || !context.env.PIXERIA_STOCK || !context.env.PIXERIA_INGEST_TOKEN){
     return {status:'failed', error:'La conexión interna con Pixeria no está configurada.'};
@@ -247,6 +310,15 @@ async function ensurePixeriaPublication(context, requestId, video, model, force 
   // uno anterior a esto), se publica con la genérica: perder el vídeo sería peor
   // que publicarlo mal titulado.
   const ficha = saneaFicha(await leeFicha(context, requestId));
+  const externalId = ficha.externalId ? `${ficha.externalId}:grok:${requestId}`.slice(0, 160) : `admiranext:grok-video:${requestId}`;
+  // Antes de publicar se pregunta al Stock: si esa identidad ya existe (otra
+  // pestaña, otra sesión), se reutiliza y no se duplica.
+  const idPrevisto = await stockIdDerivado(externalId);
+  if(await existeEnStock(context, idPrevisto)){
+    const published = {status:'published', requestId, id:idPrevisto, assetUrl:`${PIXERIA_ASSET_URL}${idPrevisto}`, publishedAt:Date.now(), existente:true};
+    await savePixeriaState(context, key, published);
+    return {...publicPixeriaState(published), existente:true};
+  }
   const payload = {
     type:'video',
     motor:'grok-imagine-video',
@@ -260,7 +332,7 @@ async function ensurePixeriaPublication(context, requestId, video, model, force 
     sourceUrl:video.url,
     // Con clave propia (producto de catálogo) la pieza se identifica por ella,
     // más el requestId para que dos generaciones del mismo producto no se pisen.
-    externalId:ficha.externalId ? `${ficha.externalId}:grok:${requestId}`.slice(0, 160) : `admiranext:grok-video:${requestId}`
+    externalId
   };
   let response;
   let provider;
@@ -339,7 +411,12 @@ async function videoStatusById(context, requestId, forcePixeria = false){
       duration:Math.max(1, Math.min(15, Number(provider?.video?.duration || 15))),
       respectsModeration:provider?.video?.respect_moderation !== false
     };
-    result.pixeria = await ensurePixeriaPublication(context, requestId, result.video, result.model, forcePixeria);
+    // Encargo (ficha con brutoAlStock:false): el bruto se retiene en R2 y NO va
+    // al Stock; solo el máster con rótulo (identidad exacta) se publica.
+    const ficha = await leeFicha(context, requestId);
+    result.pixeria = ficha?.brutoAlStock === false
+      ? await ensureBrutoRetenido(context, requestId, result.video, forcePixeria)
+      : await ensurePixeriaPublication(context, requestId, result.video, result.model, forcePixeria);
   }
   if(status === 'failed' || status === 'expired') result.error = status === 'expired' ? 'La solicitud de Grok ha caducado.' : 'Grok no pudo completar este vídeo.';
   return json(result);

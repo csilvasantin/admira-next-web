@@ -76,6 +76,7 @@ test('guarda el master 25s en streaming y lo publica en Pixeria', async () => {
     },
     data:{
       pixeriaFetch:async request => {
+        if(request.method === 'GET') return new Response(null, {status:404});
         assert.equal(request.headers.get('x-admiranext-ingest'), 'test-ingest-token');
         publishBody = await request.json();
         return Response.json({ok:true, id:'1754074100000-final', url:'https://api.admira.store/stock/asset/1754074100000-final'});
@@ -176,10 +177,11 @@ test('si el Stock reutiliza la identidad estable, retira la pieza vieja y public
     data:{
       pixeriaFetch:async request => {
         calls.push(`${request.method} ${new URL(request.url).pathname}`);
+        if(request.method === 'GET') return new Response(null, {status:206}); // ya existe: se sustituirá
         if(request.method === 'DELETE') return Response.json({ok:true, id:'auto-9a75882d2e3a36bce8e6', deleted:2});
         const body = await request.json();
         assert.equal(body.externalId, 'admiranext:xtore:coche');
-        return Response.json(calls.length === 1
+        return Response.json(calls.length === 2
           ? {ok:true, reused:true, id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6'}
           : {ok:true, id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6'});
       }
@@ -188,7 +190,8 @@ test('si el Stock reutiliza la identidad estable, retira la pieza vieja y public
   const payload = await response.json();
   assert.equal(response.status, 201);
   assert.equal(payload.pixeria.status, 'published');
-  assert.deepEqual(calls, ['POST /stock/publish', 'DELETE /stock/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish']);
+  assert.equal(payload.pixeria.sustituye, 'auto-9a75882d2e3a36bce8e6', 'la UI sabe que sustituye a la pieza anterior');
+  assert.deepEqual(calls, ['GET /stock/asset/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish', 'DELETE /stock/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish']);
 });
 
 test('sin identidad propia no se retira nada aunque el Stock diga reused', async () => {
@@ -202,8 +205,8 @@ test('sin identidad propia no se retira nada aunque el Stock diga reused', async
       body:bytes
     }),
     env:{PRESENTATION_IDEAS:kv(), PRESENTATION_MEDIA:r2(), PIXERIA_INGEST_TOKEN:'t'},
-    data:{pixeriaFetch:async request => { calls.push(request.method); return Response.json({ok:true, reused:true, id:'auto-0123456789abcdef0123', url:'https://api.admira.store/stock/asset/auto-0123456789abcdef0123'}); }}
+    data:{pixeriaFetch:async request => { calls.push(request.method); return request.method === 'GET' ? new Response(null, {status:404}) : Response.json({ok:true, reused:true, id:'auto-0123456789abcdef0123', url:'https://api.admira.store/stock/asset/auto-0123456789abcdef0123'}); }}
   });
   assert.equal((await response.json()).pixeria.status, 'published');
-  assert.deepEqual(calls, ['POST']);
+  assert.deepEqual(calls, ['POST'], 'sin identidad propia ni se pregunta ni se retira nada');
 });

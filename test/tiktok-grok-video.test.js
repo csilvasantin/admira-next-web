@@ -29,7 +29,13 @@ function request(method, body, id){
 }
 
 function pixeria(handler){
-  return {fetch:handler};
+  // La pre-consulta al Stock (GET stock/asset/<id> con Range) responde 404: no existe.
+  return {fetch:async (req) => req.method === 'GET' ? new Response(null, {status:404}) : handler(req)};
+}
+
+function r2(){
+  const objects = new Map();
+  return {objects, async put(key, body, options){ objects.set(key, {size:body.byteLength ?? body.length, options}); return {size:objects.get(key).size}; }};
 }
 
 test('crea un vídeo Grok 15s 9:16 sin exponer la clave', async (t) => {
@@ -170,4 +176,45 @@ test('falla cerrado ante origen ajeno, falta de clave y URL final no segura', as
   t.after(() => { global.fetch = originalFetch; });
   const unsafe = await onRequest({request:request('GET', null, '41eb9a5f-cbd4-9f21-8d59-79005f1e61b7'), env:{XAI_API_KEY:'secret'}});
   assert.equal(unsafe.status, 502);
+});
+
+// Duplicados 11-sep-2026 (#988/#989/#990 del anuncio de coche): con encargo el
+// bruto NO va al Stock; se retiene en R2 same-origin como fuente del máster.
+test('con encargo (brutoAlStock:false) el bruto se retiene en R2 y no se publica en el Stock', async (t) => {
+  const {onRequest} = await import('../functions/presentaciones/api/grok-video.js');
+  const originalFetch = global.fetch;
+  global.fetch = async (url) => String(url).includes('vidgen.x.ai')
+    ? new Response(new Uint8Array(4096).fill(5), {status:200, headers:{'content-type':'video/mp4'}})
+    : Response.json({status:'done', progress:100, model:'grok-imagine-video-1.5', video:{url:'https://vidgen.x.ai/output/coche.mp4', duration:15}});
+  t.after(() => { global.fetch = originalFetch; });
+  const requestId = '7c2d0f31-aaaa-4b2c-9d1e-5f6a7b8c9d0e';
+  const ideas = kv({[`tiktok:grok-video:ficha:${requestId}`]:JSON.stringify({title:'Aparca. Entra. Estrena. · Xtore · coche', comment:'x', tags:['admiranext','tiktok','vertical','xtore'], externalId:'admiranext:xtore:coche', brutoAlStock:false})});
+  const media = r2();
+  let stockCalls = 0;
+  const env = {XAI_API_KEY:'secret', PIXERIA_INGEST_TOKEN:'t', PRESENTATION_IDEAS:ideas, PRESENTATION_MEDIA:media, PIXERIA_STOCK:pixeria(async () => { stockCalls++; return Response.json({ok:true}); })};
+  const first = await (await onRequest({request:request('GET', null, requestId), env})).json();
+  const second = await (await onRequest({request:request('GET', null, requestId), env})).json();
+  assert.equal(first.status, 'done');
+  assert.equal(first.pixeria.status, 'retenido');
+  assert.match(first.pixeria.mediaUrl, /^https:\/\/www\.admiranext\.com\/tiktok\/media\/pkg-[a-f0-9]{20}\/[a-f0-9]{64}$/, 'se sirve por la ruta same-origin de los másteres');
+  assert.equal(first.pixeria.size, 4096);
+  assert.equal(stockCalls, 0, 'ni una publicación en el Stock');
+  assert.equal(media.objects.size, 1, 'una copia en R2');
+  assert.ok([...media.objects.keys()][0].startsWith('tiktok/packages/pkg-'));
+  assert.equal(second.pixeria.mediaUrl, first.pixeria.mediaUrl, 'la segunda consulta reutiliza la copia');
+  assert.equal(media.objects.size, 1);
+});
+
+test('flujo libre: si la identidad ya existe en el Stock se reutiliza y no se vuelve a publicar', async (t) => {
+  const {onRequest} = await import('../functions/presentaciones/api/grok-video.js');
+  const originalFetch = global.fetch;
+  global.fetch = async () => Response.json({status:'done', progress:100, video:{url:'https://vidgen.x.ai/output/libre.mp4', duration:15}});
+  t.after(() => { global.fetch = originalFetch; });
+  const calls = [];
+  const env = {XAI_API_KEY:'secret', PIXERIA_INGEST_TOKEN:'t', PRESENTATION_IDEAS:kv(), PIXERIA_STOCK:{fetch:async (req) => { calls.push(`${req.method} ${new URL(req.url).pathname}`); return req.method === 'GET' ? new Response(null, {status:206}) : Response.json({ok:true}); }}};
+  const payload = await (await onRequest({request:request('GET', null, '41eb9a5f-cbd4-9f21-8d59-79005f1e61b7'), env})).json();
+  assert.equal(payload.pixeria.status, 'published');
+  assert.equal(payload.pixeria.existente, true);
+  assert.match(payload.pixeria.id, /^auto-[a-f0-9]{20}$/);
+  assert.deepEqual(calls, [`GET /stock/asset/${payload.pixeria.id}`], 'solo la pre-consulta; sin publish');
 });

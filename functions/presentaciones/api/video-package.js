@@ -65,8 +65,27 @@ async function readJsonLimited(source, maxBytes){
   catch(_){ throw new Error('json_invalid'); }
 }
 
+async function stockIdDerivado(externalId){
+  return `auto-${(await digest(externalId)).slice(0, 20)}`;
+}
+
+// ¿Existe ya la identidad estable en el Stock? (GET con Range 0-0, sin bajar el
+// vídeo.) Si existe, el máster nuevo la SUSTITUYE y la UI lo dice.
+async function existeEnStock(publishFetch, id){
+  try{
+    const response = await publishFetch(new Request(`https://api.admira.store/stock/asset/${id}`, {method:'GET', headers:{range:'bytes=0-0'}}));
+    try{ await response.body?.cancel(); }catch(_){ /* Solo interesa el estado. */ }
+    return response.status === 200 || response.status === 206;
+  }catch(_){ return false; }
+}
+
 async function publishToPixeria(context, state){
   if(!context.env.PIXERIA_INGEST_TOKEN) return {...state, pixeria:{status:'failed', error:'Pixeria no está conectado.'}};
+  const publishFetch = context.data?.pixeriaFetch || fetch;
+  if(state.ficha?.externalId && !state.replacedOnce && state.sustituye == null){
+    const idPrevisto = await stockIdDerivado(state.ficha.externalId);
+    state = {...state, sustituye:(await existeEnStock(publishFetch, idPrevisto)) ? idPrevisto : ''};
+  }
   const body = {
     type:'video',
     motor:'ADmiraNeXT TikTok Composer',
@@ -87,7 +106,6 @@ async function publishToPixeria(context, state){
   let response;
   let payload = {};
   try{
-    const publishFetch = context.data?.pixeriaFetch || fetch;
     response = await publishFetch(new Request(PIXERIA_PUBLISH_URL, {
       method:'POST',
       headers:{
@@ -109,7 +127,6 @@ async function publishToPixeria(context, state){
   // a publicar UNA vez. Sin identidad propia no hay hueco que disputar.
   if(response.ok && payload?.ok && payload?.reused && state.ficha?.externalId && !state.replacedOnce && PIXERIA_ID_RE.test(String(payload.id || ''))){
     try{
-      const publishFetch = context.data?.pixeriaFetch || fetch;
       const removed = await publishFetch(new Request(`https://api.admira.store/stock/${encodeURIComponent(String(payload.id))}`, {method:'DELETE', headers:{accept:'application/json'}}));
       console.log('video-package:pixeria-replace', JSON.stringify({id:state.id, previous:String(payload.id), removed:removed.status}));
     }catch(error){
@@ -126,7 +143,8 @@ async function publishToPixeria(context, state){
   }
   return {...state, pixeria:{
     status:'published', id:String(payload.id), assetUrl:String(payload.url),
-    stockUrl:`https://www.pixeria.com/stock.html?highlight=${encodeURIComponent(String(payload.id))}`
+    stockUrl:`https://www.pixeria.com/stock.html?highlight=${encodeURIComponent(String(payload.id))}`,
+    ...(state.sustituye ? {sustituye:state.sustituye} : {})
   }};
 }
 

@@ -66,7 +66,7 @@ test('el creador lee ?brief=, prefija el titular y publica con el externalId exa
   const app = await readFile(new URL('../tiktok/app.js', import.meta.url), 'utf8');
   assert.match(app, /get\('brief'\)/, 'lee el deep-link ?brief=');
   assert.match(app, /function fichaBrief\(b\)/);
-  assert.match(app, /externalId:b\.externalId\n/, 'el máster lleva la identidad exacta del brief');
+  assert.match(app, /externalId:b\.externalId,\n/, 'el máster lleva la identidad exacta del brief');
   assert.match(app, /tags:\['admiranext', 'tiktok', 'vertical', slugCatalogo\(b\.marca\) \|\| 'xtore'\]/);
   assert.match(app, /function drawBriefOverlay\(ctx, b, seconds = 0\)/);
   assert.match(app, /briefCampana\.overlay\) drawBriefOverlay/, 'brief.overlay === false apaga el rótulo');
@@ -110,4 +110,16 @@ test('si el máster no se puede montar, el bruto se publica con la identidad EXA
   assert.doesNotMatch(fallback, /externalId:/, 'no se reescribe el externalId: viaja el del encargo tal cual');
   assert.match(fallback, /Publicado SIN rótulo como «\$\{ficha\.externalId\}»/);
   assert.equal((app.match(/void publicarBrutoSinRotulo\(/g) || []).length, 3, 'navegador incapaz, Pixeria caída y montaje roto: los tres caminos caen al bruto');
+});
+
+test('con encargo el bruto no va al Stock: la ficha lleva brutoAlStock:false y la UI entiende «retenido»', async () => {
+  const {saneaFicha} = await import('../functions/presentaciones/api/_ficha-video.mjs');
+  assert.equal(saneaFicha({title:'x', externalId:'admiranext:xtore:coche', brutoAlStock:false}).brutoAlStock, false);
+  assert.ok(!('brutoAlStock' in saneaFicha({title:'x', externalId:'admiranext:xtore:coche'})), 'sin la marca, el flujo libre sigue publicando el bruto');
+  const app = await readFile(new URL('../tiktok/app.js', import.meta.url), 'utf8');
+  assert.equal((app.match(/brutoAlStock:false/g) || []).length, 2, 'ficha de producto y ficha de brief');
+  assert.match(app, /payload\.pixeria\?\.mediaUrl \|\| payload\.pixeria\?\.assetUrl/, 'el bruto retenido se reproduce same-origin');
+  assert.match(app, /publication\.status === 'published' \|\| publication\.status === 'retenido'/, 'retenido dispara el máster igual que published');
+  assert.match(app, /function recordarPublicado\(requestId, stockId\)/, 'flujo libre: memoria local de requestId publicados');
+  assert.match(app, /sustituye a la pieza anterior con la misma identidad/, 'la UI dice cuándo sustituye');
 });

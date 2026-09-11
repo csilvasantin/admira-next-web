@@ -71,5 +71,10 @@ export function saneaFicha(bruto) {
   // así que quien encarga pone primero la que más le importa.
   const tags = [...new Set([...ETIQUETAS_BASE, ...propias])].slice(0, MAX_ETIQUETAS);
   const externalId = claveExterna(bruto?.externalId);
-  return externalId ? { title, comment, tags, externalId } : { title, comment, tags };
+  const ficha = externalId ? { title, comment, tags, externalId } : { title, comment, tags };
+  // Encargo (brief/producto): el BRUTO de Grok no va al Stock; se retiene en
+  // R2 como fuente del máster y solo el máster (identidad exacta) se publica.
+  // El 11-sep-2026 Carlos vio tres piezas del mismo anuncio de coche en el Stock.
+  if(bruto?.brutoAlStock === false) ficha.brutoAlStock = false;
+  return ficha;
 }
