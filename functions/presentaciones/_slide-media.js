@@ -20,6 +20,35 @@ function safeAssetUrl(value, client){
   return new RegExp(`^/presentaciones/${escapedClient}/(?:media|images)/[a-z0-9][a-z0-9._-]{0,159}$`, 'i').test(url) ? url : '';
 }
 
+/**
+ * Fleet / AdmiraNeXT HTTPS video assets for BEST motion (FLT-100237).
+ * Hosts: www.admira.live, admira.live, www.admiranext.com, admiranext.com.
+ * Path must look like media: ends with .mp4/.webm/.mov OR under /assets/ or /presentaciones/.
+ * Rights model unchanged — fleet clips should declare permission owned or acceptedByCarlos.
+ */
+export function safeExternalVideoUrl(value){
+  const raw = text(value, 500);
+  if (!raw) return '';
+  let parsed;
+  try { parsed = new URL(raw); }
+  catch (_) { return ''; }
+  if (parsed.protocol !== 'https:') return '';
+  const host = parsed.hostname.toLowerCase();
+  const allowed = new Set(['www.admira.live', 'admira.live', 'www.admiranext.com', 'admiranext.com']);
+  if (!allowed.has(host)) return '';
+  const path = parsed.pathname || '';
+  const looksMedia = /\.(mp4|webm|mov)$/i.test(path) || /^\/assets\//i.test(path) || /^\/presentaciones\//i.test(path);
+  return looksMedia ? parsed.toString() : '';
+}
+
+function safeVideoSrc(value, client){
+  return safeAssetUrl(value, client) || safeExternalVideoUrl(value);
+}
+
+function safeVideoPoster(value, client){
+  return safeAssetUrl(value, client) || safeExternalVideoUrl(value);
+}
+
 function rawEntries(value){
   if (Array.isArray(value)) return value;
   if (typeof value !== 'string' || !value.trim()) return [];
@@ -98,25 +127,29 @@ export function normalizeSlideMedia(value, client){
     if (!slide) throw new Error('Cada medio necesita una diapositiva válida.');
     if (!TYPES.has(type)) throw new Error(`Tipo multimedia no válido en “${slide}”.`);
     if (occupied.has(slide)) throw new Error(`Solo puede haber un medio principal en “${slide}”.`);
-    const src = type === 'animation' ? '' : safeAssetUrl(entry.src, client);
+    const src = type === 'animation' ? '' : (type === 'video' ? safeVideoSrc(entry.src, client) : safeAssetUrl(entry.src, client));
     if (type !== 'animation' && !src) {
-      throw new Error(`El medio de “${slide}” debe usar una URL privada de /presentaciones/${client}/media/.`);
+      throw new Error(type === 'video'
+        ? `El vídeo de “${slide}” debe usar una URL privada de /presentaciones/${client}/media/ o un asset HTTPS de admira.live / admiranext.com.`
+        : `El medio de “${slide}” debe usar una URL privada de /presentaciones/${client}/media/.`);
     }
-    const poster = type === 'video' ? safeAssetUrl(entry.poster, client) : '';
-    if (entry.poster && !poster) throw new Error(`El póster de “${slide}” no es una URL privada permitida.`);
+    const poster = type === 'video' ? safeVideoPoster(entry.poster, client) : '';
+    if (entry.poster && !poster) throw new Error(`El póster de “${slide}” no es una URL de imagen/vídeo permitida.`);
     const rights = normalizeRights(entry.rights, slide, {legacy: !Object.prototype.hasOwnProperty.call(entry, 'rights')});
     let replacement = null;
     if (entry.replacement != null) {
       if (!entry.replacement || typeof entry.replacement !== 'object' || Array.isArray(entry.replacement)) {
         throw new Error(`La sustitución segura de “${slide}” debe ser un objeto.`);
       }
-      const replacementSrc = type === 'animation' ? '' : safeAssetUrl(entry.replacement.src, client);
+      const replacementSrc = type === 'animation' ? '' : (type === 'video' ? safeVideoSrc(entry.replacement.src, client) : safeAssetUrl(entry.replacement.src, client));
       if (type !== 'animation' && !replacementSrc) {
-        throw new Error(`La sustitución segura de “${slide}” debe usar una URL privada de esta presentación.`);
+        throw new Error(type === 'video'
+          ? `La sustitución segura de “${slide}” debe usar URL privada o asset HTTPS de flota (admira.live / admiranext.com).`
+          : `La sustitución segura de “${slide}” debe usar una URL privada de esta presentación.`);
       }
-      const replacementPoster = type === 'video' ? safeAssetUrl(entry.replacement.poster, client) : '';
+      const replacementPoster = type === 'video' ? safeVideoPoster(entry.replacement.poster, client) : '';
       if (entry.replacement.poster && !replacementPoster) {
-        throw new Error(`El póster de sustitución de “${slide}” no es una URL privada permitida.`);
+        throw new Error(`El póster de sustitución de “${slide}” no es una URL permitida.`);
       }
       const replacementRights = normalizeRights(entry.replacement.rights, `${slide} (sustitución)`);
       replacement = {
