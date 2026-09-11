@@ -2262,7 +2262,7 @@
   function finishPackagePublication(payload) {
     packageId = payload.id || packageId;
     packageOutput.classList.add('is-published');
-    packageStatus.textContent = `Master final de ${payload.duration || 25} segundos publicado en Pixeria${payload.pixeria?.id ? ` · ${payload.pixeria.id}` : ''}${payload.pixeria?.sustituye ? ' · sustituye a la pieza anterior con la misma identidad (sin duplicados)' : ''}.`;
+    packageStatus.textContent = `Master final de ${payload.duration || 25} segundos ${payload.pixeria?.reutilizado ? 'ya estaba en Pixeria (idéntico, no se ha duplicado)' : 'publicado en Pixeria'}${payload.pixeria?.id ? ` · ${payload.pixeria.id}` : ''}${payload.pixeria?.sustituye ? ' · sustituye a la pieza anterior con la misma identidad (sin duplicados)' : ''}.`;
     openPackageAsset.href = payload.pixeria?.stockUrl || 'https://www.pixeria.com/stock.html';
     openPackageAsset.hidden = false;
     composeGrokPackage.textContent = 'Publicado en Pixeria';

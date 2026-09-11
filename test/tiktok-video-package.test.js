@@ -79,6 +79,7 @@ test('guarda el master 25s en streaming y lo publica en Pixeria', async () => {
         if(request.method === 'GET') return new Response(null, {status:404});
         assert.equal(request.headers.get('x-admiranext-ingest'), 'test-ingest-token');
         publishBody = await request.json();
+        assert.match(publishBody.contentHash, /^[a-f0-9]{64}$/, 'el publish lleva el sha256 del máster');
         return Response.json({ok:true, id:'1754074100000-final', url:'https://api.admira.store/stock/asset/1754074100000-final'});
       }
     }
@@ -177,6 +178,7 @@ test('si el Stock reutiliza la identidad estable, retira la pieza vieja y public
     data:{
       pixeriaFetch:async request => {
         calls.push(`${request.method} ${new URL(request.url).pathname}`);
+        if(request.method === 'GET' && new URL(request.url).pathname === '/stock/exists') return new Response('caído', {status:503}); // worker sin /stock/exists → Range
         if(request.method === 'GET') return new Response(null, {status:206}); // ya existe: se sustituirá
         if(request.method === 'DELETE'){
           assert.equal(request.headers.get('x-admiranext-ingest'), 't', 'el DELETE del Stock exige la misma cabecera que el publish');
@@ -184,7 +186,7 @@ test('si el Stock reutiliza la identidad estable, retira la pieza vieja y public
         }
         const body = await request.json();
         assert.equal(body.externalId, 'admiranext:xtore:coche');
-        return Response.json(calls.length === 2
+        return Response.json(calls.filter(c => c.startsWith('POST')).length === 1 // primer publish: worker antiguo dice reused sin reason
           ? {ok:true, reused:true, id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6'}
           : {ok:true, id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6'});
       }
@@ -194,7 +196,68 @@ test('si el Stock reutiliza la identidad estable, retira la pieza vieja y public
   assert.equal(response.status, 201);
   assert.equal(payload.pixeria.status, 'published');
   assert.equal(payload.pixeria.sustituye, 'auto-9a75882d2e3a36bce8e6', 'la UI sabe que sustituye a la pieza anterior');
-  assert.deepEqual(calls, ['GET /stock/asset/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish', 'DELETE /stock/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish']);
+  assert.deepEqual(calls, ['GET /stock/exists', 'GET /stock/asset/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish', 'DELETE /stock/auto-9a75882d2e3a36bce8e6', 'POST /stock/publish']);
+});
+
+// Stock v.11.09.2026.r1: /stock/exists + dedup por externalId y contentHash.
+function peticionMaster(ficha, clientId, fill){
+  const bytes = new Uint8Array(2048).fill(fill);
+  return new Request('https://www.admiranext.com/presentaciones/api/video-package', {
+    method:'POST',
+    headers:{origin:'https://www.admiranext.com', 'content-type':'video/mp4', 'content-length':String(bytes.byteLength), 'x-client-request-id':clientId, 'x-package-ficha':encodeURIComponent(JSON.stringify(ficha))},
+    body:bytes
+  });
+}
+const FICHA_COCHE = {title:'Aparca. Entra. Estrena. · Xtore · coche', comment:'Xtore · Puerta Cam', tags:['xtore'], externalId:'admiranext:xtore:coche'};
+
+test('con /stock/exists: la identidad ya existe con otro contenido → el Stock responde replaced y no se borra nada', async () => {
+  const {onRequest} = await import('../functions/presentaciones/api/video-package.js');
+  const calls = [];
+  const response = await onRequest({
+    request:peticionMaster(FICHA_COCHE, '6d4e2a10-7b1c-4d2e-9f30-1a2b3c4d5e6f', 4),
+    env:{PRESENTATION_IDEAS:kv(), PRESENTATION_MEDIA:r2(), PIXERIA_INGEST_TOKEN:'t'},
+    data:{pixeriaFetch:async request => {
+      const url = new URL(request.url);
+      calls.push(`${request.method} ${url.pathname}`);
+      if(url.pathname === '/stock/exists'){
+        assert.equal(url.searchParams.get('externalId'), 'admiranext:xtore:coche');
+        return Response.json({ok:true, exists:true, by:'externalId', id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6', contentHash:'0'.repeat(64)});
+      }
+      const body = await request.json();
+      assert.match(body.contentHash, /^[a-f0-9]{64}$/);
+      return Response.json({ok:true, id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6', contentHash:body.contentHash, replaced:true, reason:'content_changed'});
+    }}
+  });
+  const payload = await response.json();
+  assert.equal(payload.pixeria.status, 'published');
+  assert.equal(payload.pixeria.sustituye, 'auto-9a75882d2e3a36bce8e6');
+  assert.equal(payload.pixeria.reason, 'content_changed');
+  assert.equal(payload.pixeria.reutilizado, undefined);
+  assert.deepEqual(calls, ['GET /stock/exists', 'POST /stock/publish'], 'sin DELETE ni segundo publish: el Stock ya sustituyó');
+});
+
+test('con /stock/exists: publish repetido idéntico → reused con reason, sin crear asset ni borrar', async () => {
+  const {onRequest} = await import('../functions/presentaciones/api/video-package.js');
+  const calls = [];
+  let hashEnviado = '';
+  const response = await onRequest({
+    request:peticionMaster(FICHA_COCHE, '9f8e7d6c-5b4a-4c3d-8e2f-1a0b9c8d7e6f', 4),
+    env:{PRESENTATION_IDEAS:kv(), PRESENTATION_MEDIA:r2(), PIXERIA_INGEST_TOKEN:'t'},
+    data:{pixeriaFetch:async request => {
+      const url = new URL(request.url);
+      calls.push(`${request.method} ${url.pathname}`);
+      if(url.pathname === '/stock/exists') return Response.json({ok:true, exists:true, by:'externalId', id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6', contentHash:'8f3e2f8b3b1b3ad6e0d4d3b62d5e2a2f5b3c9d7e6f1a2b3c4d5e6f708192a3b4'});
+      hashEnviado = (await request.json()).contentHash;
+      return Response.json({ok:true, reused:true, reason:'identical_content', id:'auto-9a75882d2e3a36bce8e6', url:'https://api.admira.store/stock/asset/auto-9a75882d2e3a36bce8e6', contentHash:hashEnviado});
+    }}
+  });
+  const payload = await response.json();
+  assert.equal(payload.pixeria.status, 'published');
+  assert.equal(payload.pixeria.reutilizado, true);
+  assert.equal(payload.pixeria.reason, 'identical_content');
+  assert.equal(payload.pixeria.sustituye, undefined, 'reused no es sustitución');
+  assert.equal(payload.contentHash, hashEnviado);
+  assert.deepEqual(calls, ['GET /stock/exists', 'POST /stock/publish']);
 });
 
 test('sin identidad propia no se retira nada aunque el Stock diga reused', async () => {

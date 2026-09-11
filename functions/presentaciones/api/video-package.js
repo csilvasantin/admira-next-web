@@ -69,14 +69,44 @@ async function stockIdDerivado(externalId){
   return `auto-${(await digest(externalId)).slice(0, 20)}`;
 }
 
-// ¿Existe ya la identidad estable en el Stock? (GET con Range 0-0, sin bajar el
-// vídeo.) Si existe, el máster nuevo la SUSTITUYE y la UI lo dice.
-async function existeEnStock(publishFetch, id){
+// ¿Existe ya la identidad estable en el Stock? Primero /stock/exists (el Stock
+// lo tiene desde v.11.09.2026.r1: devuelve id y contentHash sin bajar nada);
+// si no responde, GET del asset con Range 0-0. Si existe, el máster nuevo la
+// SUSTITUYE (o se reutiliza si es idéntico) y la UI lo dice.
+async function existeEnStock(publishFetch, externalId, idPrevisto){
   try{
-    const response = await publishFetch(new Request(`https://api.admira.store/stock/asset/${id}`, {method:'GET', headers:{range:'bytes=0-0'}}));
+    const response = await publishFetch(new Request(`https://api.admira.store/stock/exists?externalId=${encodeURIComponent(externalId)}`, {method:'GET', headers:{accept:'application/json'}}));
+    if(response.ok){
+      const payload = await readJsonLimited(response, MAX_JSON_BYTES);
+      if(payload?.ok === true) return {exists:payload.exists === true, id:payload.exists ? String(payload.id || idPrevisto) : '', contentHash:payload.contentHash || null, via:'exists'};
+    }else{ try{ await response.body?.cancel(); }catch(_){ /* nada */ } }
+  }catch(_){ /* Sin /stock/exists: se pregunta por el asset. */ }
+  try{
+    const response = await publishFetch(new Request(`https://api.admira.store/stock/asset/${idPrevisto}`, {method:'GET', headers:{range:'bytes=0-0'}}));
     try{ await response.body?.cancel(); }catch(_){ /* Solo interesa el estado. */ }
-    return response.status === 200 || response.status === 206;
-  }catch(_){ return false; }
+    const exists = response.status === 200 || response.status === 206;
+    return {exists, id:exists ? idPrevisto : '', contentHash:null, via:'range'};
+  }catch(_){ return {exists:false, id:'', contentHash:null, via:'none'}; }
+}
+
+// sha256 hex del máster ya guardado en R2 (se lee de vuelta: el put necesita el
+// body nativo con longitud conocida y no admite un tee). Con DigestStream si el
+// runtime lo tiene (Workers); si no, se acumula en memoria (tests en Node).
+async function hashDelMaster(env, key){
+  try{
+    const object = await env.PRESENTATION_MEDIA.get(key);
+    if(!object?.body) return null;
+    if(typeof crypto.DigestStream === 'function'){
+      const digestStream = new crypto.DigestStream('SHA-256');
+      await object.body.pipeTo(digestStream);
+      return Array.from(new Uint8Array(await digestStream.digest)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+    const bytes = new Uint8Array(await new Response(object.body).arrayBuffer());
+    return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))).map(byte => byte.toString(16).padStart(2, '0')).join('');
+  }catch(error){
+    console.error('video-package:hash', JSON.stringify({key, message:String(error?.message || error).slice(0, 200)}));
+    return null;
+  }
 }
 
 async function publishToPixeria(context, state){
@@ -84,7 +114,9 @@ async function publishToPixeria(context, state){
   const publishFetch = context.data?.pixeriaFetch || fetch;
   if(state.ficha?.externalId && !state.replacedOnce && state.sustituye == null){
     const idPrevisto = await stockIdDerivado(state.ficha.externalId);
-    state = {...state, sustituye:(await existeEnStock(publishFetch, idPrevisto)) ? idPrevisto : ''};
+    const previa = await existeEnStock(publishFetch, state.ficha.externalId, idPrevisto);
+    // Misma identidad y mismo contenido: el Stock responderá reused; distinto: sustituye.
+    state = {...state, sustituye:previa.exists ? previa.id : '', identica:Boolean(previa.exists && previa.contentHash && state.contentHash && previa.contentHash === state.contentHash)};
   }
   const body = {
     type:'video',
@@ -101,7 +133,9 @@ async function publishToPixeria(context, state){
     // segmenta por etiquetas (?tag=tiktok,vertical) y así el MUPI vertical del
     // Xtanco emite estas piezas en 9:16 nativo en vez de recortar un horizontal.
     tags:state.ficha?.tags || ['tiktok', 'vertical', 'anuncio', '25s'],
-    quality:'best'
+    quality:'best',
+    // sha256 del máster: el Stock deduplica por contenido sin bajar nada.
+    ...(state.contentHash ? {contentHash:state.contentHash} : {})
   };
   let response;
   let payload = {};
@@ -150,15 +184,22 @@ async function publishToPixeria(context, state){
     }));
     return {...state, pixeria:{status:'failed', error:`Pixeria rechazó el master${payload?.error ? ` (${clean(payload.error, 80)})` : ''}.`}};
   }
+  // Stock nuevo: `reused` + `reason` = ya existía idéntico (no se crea nada);
+  // `replaced` = la identidad ya existía y el binario nuevo la sustituyó.
+  const reutilizado = Boolean(payload.reused);
+  const sustituye = payload.replaced ? String(payload.id) : (reutilizado ? '' : state.sustituye || '');
   return {...state, pixeria:{
     status:'published', id:String(payload.id), assetUrl:String(payload.url),
     stockUrl:`https://www.pixeria.com/stock.html?highlight=${encodeURIComponent(String(payload.id))}`,
-    ...(state.sustituye ? {sustituye:state.sustituye} : {})
+    ...(payload.contentHash ? {contentHash:String(payload.contentHash)} : {}),
+    ...(payload.reason ? {reason:String(payload.reason).slice(0, 40)} : {}),
+    ...(reutilizado ? {reutilizado:true} : {}),
+    ...(sustituye ? {sustituye} : {})
   }};
 }
 
 function publicState(state){
-  return {ok:true, id:state.id, size:state.size, contentType:state.contentType, duration:25, pixeria:state.pixeria};
+  return {ok:true, id:state.id, size:state.size, contentType:state.contentType, duration:25, ...(state.contentHash ? {contentHash:state.contentHash} : {}), pixeria:state.pixeria};
 }
 
 async function saveState(env, state){
@@ -219,8 +260,9 @@ async function createPackage(context){
   }catch(_){ ficha = null; }
   if(ficha?.title && title === 'Anuncio vertical · 25 segundos') title = ficha.title;
   const origin = new URL(request.url).origin;
+  const contentHash = await hashDelMaster(env, key);
   let state = {
-    id, token, key, title, ficha, size:streamed, contentType,
+    id, token, key, title, ficha, size:streamed, contentType, contentHash,
     sourceUrl:`${origin}/tiktok/media/${id}/${token}`,
     createdAt:new Date().toISOString(), pixeria:{status:'uploading'}
   };

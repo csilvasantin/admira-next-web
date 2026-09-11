@@ -122,4 +122,5 @@ test('con encargo el bruto no va al Stock: la ficha lleva brutoAlStock:false y l
   assert.match(app, /publication\.status === 'published' \|\| publication\.status === 'retenido'/, 'retenido dispara el máster igual que published');
   assert.match(app, /function recordarPublicado\(requestId, stockId\)/, 'flujo libre: memoria local de requestId publicados');
   assert.match(app, /sustituye a la pieza anterior con la misma identidad/, 'la UI dice cuándo sustituye');
+  assert.match(app, /ya estaba en Pixeria \(idéntico, no se ha duplicado\)/, 'la UI dice cuándo el Stock reutilizó');
 });
