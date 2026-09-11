@@ -106,6 +106,55 @@ export function normalizeProducto(raw){
   return producto;
 }
 
+// Brief de campaña (?brief=…, p. ej. admira.tv/videoanalytics/xtore → /tiktok/):
+// no hay precio; hay una TIPOLOGÍA de público (quien pasa por delante de la
+// tienda) y un título y mensaje que el anuncio debe respetar. El director
+// creativo la usa como contexto: tono calle→tienda, 15 s, 9:16.
+const PUBLICO_TIPOLOGIA = {
+  persona:'una persona a pie que pasa por delante de la tienda',
+  coche:'un conductor que pasa en coche por delante de la tienda',
+  moto:'un motorista que pasa por delante de la tienda',
+  bici:'un ciclista que pasa por delante de la tienda',
+  hombre:'un hombre que pasa por delante de la tienda',
+  mujer:'una mujer que pasa por delante de la tienda'
+};
+
+function slug(value){
+  return String(value == null ? '' : value).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+}
+
+export function normalizeBrief(raw){
+  if(!raw || typeof raw !== 'object') return null;
+  const titulo = clean(raw.titulo, 120);
+  if(!titulo) return null;
+  const lane = slug(raw.lane || raw.tipologia);
+  const duracion = Number(raw.duracion);
+  const brief = {
+    campana:clean(raw.campana, 80) || 'Campaña',
+    lane,
+    tipologia:clean(raw.tipologia, 40) || lane,
+    titulo,
+    mensaje:clean(raw.mensaje, 240),
+    claim:clean(raw.claim, 60) || 'Xtore · IoT Gallery',
+    marca:clean(raw.marca, 60) || 'Xtore',
+    formato:clean(raw.formato, 8) || '9:16',
+    duracion:Number.isFinite(duracion) && duracion > 0 ? Math.min(60, Math.round(duracion)) : 15,
+    origen:clean(raw.origen, 80)
+  };
+  brief.publico = PUBLICO_TIPOLOGIA[lane] || `${brief.tipologia || 'una persona'} que pasa por delante de la tienda`;
+  return brief;
+}
+
+// Garantía del brief: la marca es la del brief y el titular conserva su título.
+function aseguraBrief(ad, brief){
+  if(!brief) return ad;
+  if(!ad.brand || /ficticia|genérica|generica/i.test(ad.brand)) ad.brand = brief.marca;
+  const clave = brief.titulo.toLowerCase().slice(0, 18);
+  if(!ad.idea.toLowerCase().includes(clave)) ad.idea = clean(`${brief.titulo} · ${ad.idea}`, 200);
+  return ad;
+}
+
 // Garantía literal: si el modelo se deja el precio o la validez, se añaden tal
 // cual al detalle. Un anuncio de folleto sin precio no es un anuncio de folleto.
 function aseguraPrecio(ad, producto){
@@ -146,9 +195,11 @@ function normalizeAd(candidate){
   return normalized;
 }
 
-async function developAd(context, headline, producto){
-  const mode = producto ? 'producto' : headline ? 'develop' : 'create';
-  const assignment = mode === 'producto'
+async function developAd(context, headline, producto, brief = null){
+  const mode = producto ? 'producto' : brief ? 'brief' : headline ? 'develop' : 'create';
+  const assignment = mode === 'brief'
+    ? `Hay un BRIEF DE CAMPAÑA para una pantalla vertical en la puerta de una tienda (${brief.marca}: tienda de zapatillas · IoT Gallery). Campaña: «${brief.campana}». El anuncio lo verá ${brief.publico} ${brief.marca}; ese es el público objetivo y el guion debe hablarle directamente en su situación (a pie, al volante, sobre la moto o la bici) sin ponerle en peligro ni pedirle que mire la pantalla conduciendo. Título obligatorio de la campaña: «${brief.titulo}»${brief.mensaje ? `; mensaje que debe respetar: «${brief.mensaje}»` : ''}. Tono de calle a tienda: una invitación concreta a entrar ahora, sin precios ni descuentos. El titular (idea) debe incluir el título literal. La marca (brand) es ${brief.marca}. Dura ${brief.duracion} segundos en formato ${brief.formato}. El objetivo es visits.`
+    : mode === 'producto'
     ? `Hay un PRODUCTO DE CATÁLOGO real con precio de folleto. Es un anuncio de supermercado (${producto.catalogo || 'Alcampo'}): el producto es «${producto.nombre}»${producto.marca ? ` de la marca ${producto.marca}` : ''}${producto.detalle ? ` (${producto.detalle})` : ''}. Usa literalmente el precio y la unidad tal como llegan: «${producto.precioTexto || producto.promo}»${producto.promo && producto.precioTexto ? `, con la promoción literal «${producto.promo}»` : ''}. No inventes precios, descuentos, promociones ni cifras que no estén en los datos. El titular (idea) debe contener el precio literal y el nombre del producto. El detalle debe decir el precio exacto${producto.validezTexto ? ` y la validez literal «${producto.validezTexto}»` : ''}. La marca (brand) es la marca del producto o ${producto.catalogo || 'Alcampo'}. El objetivo es sales.`
     : mode === 'create'
     ? 'No hay titular. Inventa desde cero una idea de anuncio completa, concreta y visualmente potente. Elige una categoría de negocio reconocible, un problema o deseo humano, una propuesta honesta, un público y un objetivo. Crea también un nombre de trabajo claramente ficticio o una etiqueta neutral de categoría; nunca uses una marca real. Evita ideas vagas como “mejorar tu vida”.'
@@ -166,7 +217,7 @@ async function developAd(context, headline, producto){
         },
         {
           role:'user',
-          content:[{type:'input_text', text:JSON.stringify({mode:mode === 'producto' ? 'catalog_product' : mode === 'create' ? 'create_from_scratch' : 'develop_headline', headline:headline || null, producto:producto ? {nombre:producto.nombre, marca:producto.marca || null, detalle:producto.detalle || null, precio:producto.precioTexto || null, promo:producto.promo || null, validez:producto.validezTexto || null, catalogo:producto.catalogo || null} : null, format:'vídeo vertical de 15 segundos', language:'es'})}]
+          content:[{type:'input_text', text:JSON.stringify({mode:mode === 'producto' ? 'catalog_product' : mode === 'brief' ? 'campaign_brief' : mode === 'create' ? 'create_from_scratch' : 'develop_headline', headline:headline || null, producto:producto ? {nombre:producto.nombre, marca:producto.marca || null, detalle:producto.detalle || null, precio:producto.precioTexto || null, promo:producto.promo || null, validez:producto.validezTexto || null, catalogo:producto.catalogo || null} : null, brief:brief ? {campana:brief.campana, tipologia:brief.tipologia, lane:brief.lane || null, publico:brief.publico, titulo:brief.titulo, mensaje:brief.mensaje || null, claim:brief.claim, marca:brief.marca} : null, format:brief ? `vídeo vertical de ${brief.duracion} segundos (${brief.formato})` : 'vídeo vertical de 15 segundos', language:'es'})}]
         }
       ],
       text:{format:{type:'json_schema', name:'developed_ad_idea', strict:true, schema:{
@@ -197,7 +248,7 @@ async function developAd(context, headline, producto){
   catch(_){ return {error:json({error:'El desarrollador creativo no devolvió una idea estructurada.'}, 502)}; }
   const ad = normalizeAd(parsed);
   if(!ad) return {error:json({error:'La idea recibida quedó incompleta. Vuelve a intentarlo.'}, 502)};
-  return {ad:aseguraPrecio(ad, producto), mode};
+  return {ad:aseguraBrief(aseguraPrecio(ad, producto), brief), mode};
 }
 
 export async function onRequest(context){
@@ -212,6 +263,7 @@ export async function onRequest(context){
   catch(error){ return json({error:error.message === 'body_too_large' ? 'La solicitud creativa es demasiado grande.' : 'JSON no válido.'}, error.message === 'body_too_large' ? 413 : 400); }
   const headline = clean(body?.headline, 200);
   const producto = normalizeProducto(body?.producto);
+  const brief = producto ? null : normalizeBrief(body?.brief);
 
   const ip = context.request.headers.get('CF-Connecting-IP') || 'unknown';
   const rateKey = `tiktok:ad-idea:rate:${ip}:${Math.floor(Date.now() / 10000)}`;
@@ -219,9 +271,9 @@ export async function onRequest(context){
   await context.env.PRESENTATION_IDEAS.put(rateKey, '1', {expirationTtl:60});
 
   try{
-    const result = await developAd(context, headline, producto);
+    const result = await developAd(context, headline, producto, brief);
     if(result.error) return result.error;
-    return json({mode:result.mode, ad:result.ad, producto:producto ? {nombre:producto.nombre, precio:producto.precioTexto, validez:producto.validezTexto} : null});
+    return json({mode:result.mode, ad:result.ad, producto:producto ? {nombre:producto.nombre, precio:producto.precioTexto, validez:producto.validezTexto} : null, brief:brief ? {campana:brief.campana, tipologia:brief.tipologia, lane:brief.lane, titulo:brief.titulo} : null});
   }catch(error){
     console.error(JSON.stringify({message:'ad idea development failed', error:String(error?.message || error)}));
     return json({error:'No se pudo conectar con el desarrollador creativo.'}, 502);

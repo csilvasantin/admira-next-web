@@ -174,8 +174,64 @@
     };
   }
   const productoCatalogo = leerProductoCatalogo();
-  // Verdadero mientras dura el flujo de un clic del catálogo: idea → vídeo →
-  // publicación → máster con precio. Al terminar (o fallar) vuelve a falso.
+
+  // ── Brief de campaña (deep-link ?brief=<JSON>) ────────────────────────────
+  // Generaliza ?producto=: quien encarga (p. ej. admira.tv/videoanalytics/xtore)
+  // manda campaña, tipología de público, título, mensaje y la IDENTIDAD con la
+  // que la pieza debe llegar al Stock (externalId estable, «admiranext:xtore:coche»).
+  // Sin precio: el overlay es un rótulo discreto con el título y un claim abajo.
+  // Los dos deep-links conviven; si vienen ambos, manda el producto (tiene precio).
+  const TIPOLOGIAS_BRIEF = {
+    persona:'Persona a pie', coche:'Conductor en coche', moto:'Motorista', bici:'Ciclista',
+    hombre:'Hombre', mujer:'Mujer'
+  };
+  function leerBrief() {
+    try{
+      const raw = new URLSearchParams(window.location.search).get('brief');
+      if(!raw) return null;
+      const b = JSON.parse(raw);
+      if(!b || typeof b !== 'object') return null;
+      const titulo = core.clean(b.titulo, 120);
+      if(!titulo) return null;
+      const lane = slugCatalogo(b.lane || b.tipologia);
+      const tipologia = core.clean(b.tipologia, 40) || TIPOLOGIAS_BRIEF[lane] || lane;
+      const duracion = Number(b.duracion);
+      const externalId = String(b.externalId == null ? '' : b.externalId).replace(/[^A-Za-z0-9:_-]+/g, '-').slice(0, 120);
+      return {
+        campana:core.clean(b.campana, 80) || 'Campaña',
+        lane, tipologia,
+        titulo,
+        mensaje:core.clean(b.mensaje, 240),
+        claim:core.clean(b.claim, 60) || 'Xtore · IoT Gallery',
+        marca:core.clean(b.marca, 60) || 'Xtore',
+        externalId:externalId.length >= 16 ? externalId : (lane ? `admiranext:xtore:${lane}` : ''),
+        formato:core.clean(b.formato, 8) || '9:16',
+        duracion:Number.isFinite(duracion) && duracion > 0 ? Math.min(60, Math.round(duracion)) : 15,
+        origen:core.clean(b.origen, 80),
+        overlay:b.overlay !== false
+      };
+    }catch(_){ return null; }
+  }
+  function tituloBrief(b) { return core.clean([b.titulo, b.mensaje].filter(Boolean).join(' · '), 200); }
+  // Ficha del Stock: el externalId del máster es EXACTAMENTE el del brief (estable,
+  // el MCP del player lo busca por prefijo); el bruto lleva :grok:<requestId>.
+  function fichaBrief(b) {
+    return {
+      title:core.clean(`${b.titulo} · ${b.marca} · ${b.tipologia}`, 200),
+      comment:core.clean(`${b.campana} · público: ${b.tipologia}${b.lane ? ` (${b.lane})` : ''}. ${b.mensaje ? `${b.mensaje} ` : ''}Claim: ${b.claim}. ${b.formato} · ${b.duracion} s. Generado desde ${b.origen || 'admiranext.com/tiktok'}.`, 1200),
+      tags:['admiranext', 'tiktok', 'vertical', slugCatalogo(b.marca) || 'xtore'],
+      externalId:b.externalId
+    };
+  }
+  const briefCampana = productoCatalogo ? null : leerBrief();
+  // Encargo de un clic (catálogo o brief): la ficha con la que la pieza llega al Stock.
+  function fichaActiva() {
+    if(productoCatalogo) return fichaProducto(productoCatalogo);
+    if(briefCampana) return fichaBrief(briefCampana);
+    return null;
+  }
+  // Verdadero mientras dura el flujo de un clic (catálogo o brief): idea → vídeo →
+  // publicación → máster con overlay. Al terminar (o fallar) vuelve a falso.
   let flujoCatalogo = false;
   const GROK_JOB_KEY = 'admiranext:tiktok15:grok-job:v1';
   const REFERENCE_PROFILE_KEY = 'admiranext:tiktok:reference-profile:v1';
@@ -442,7 +498,7 @@
         method:'POST',
         credentials:'same-origin',
         headers:{'content-type':'application/json', accept:'application/json'},
-        body:JSON.stringify(productoCatalogo ? {headline, producto:productoCatalogo} : {headline})
+        body:JSON.stringify(productoCatalogo ? {headline, producto:productoCatalogo} : briefCampana ? {headline, brief:briefCampana} : {headline})
       });
       const type = response.headers.get('content-type') || '';
       if(!type.includes('application/json')){
@@ -549,6 +605,46 @@
     setAdIdeaMessage(`Titular prefijado desde el catálogo: «${adIdeaInput.value}». Pulsa “Generar anuncio” o “Desarrollar idea”.`, 'success');
   }
 
+  // ── Ficha «Brief de campaña» (deep-link ?brief=) ──────────────────────────
+  function renderFichaBrief() {
+    if(!briefCampana) return;
+    const b = briefCampana;
+    const aside = document.createElement('aside');
+    aside.className = 'catalog-product brief-campaign panel';
+    aside.id = 'catalogProduct';
+    aside.setAttribute('aria-labelledby', 'catalogProductTitle');
+    const filas = [
+      ['Campaña', b.campana],
+      ['Tipología', `${b.tipologia}${b.lane && b.lane !== slugCatalogo(b.tipologia) ? ` · ${b.lane}` : ''}`],
+      b.mensaje ? ['Mensaje', b.mensaje] : null,
+      ['Claim', b.claim],
+      ['Formato', `${b.formato} · ${b.duracion} s`],
+      b.externalId ? ['Identidad en el Stock', b.externalId] : null,
+      b.origen ? ['Origen', b.origen] : null
+    ].filter(Boolean);
+    const dl = filas.map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join('');
+    aside.innerHTML = `
+      <div class="catalog-product-head">
+        <div>
+          <span class="section-code">BRIEF DE CAMPAÑA · ${escapeHtml(b.campana.toUpperCase())}</span>
+          <h3 id="catalogProductTitle">${escapeHtml(b.titulo)}</h3>
+        </div>
+        <div class="brief-lane-tag" aria-label="Tipología ${escapeHtml(b.tipologia)}"><small>público</small><b>${escapeHtml(b.tipologia)}</b></div>
+      </div>
+      <dl class="catalog-product-data">${dl}</dl>
+      <div class="catalog-product-actions">
+        <button class="button primary" id="generarAnuncioCatalogo" type="button">Generar anuncio</button>
+        <p class="composer-status" id="catalogProductStatus" role="status">Un clic: idea → vídeo de ${escapeHtml(String(b.duracion))} s con Grok → publicación en el Stock como «${escapeHtml(b.externalId || 'sin identidad')}».</p>
+      </div>`;
+    adIdeaForm.parentNode.insertBefore(aside, adIdeaForm);
+    $('#generarAnuncioCatalogo').addEventListener('click', () => { void generarAnuncioCatalogo(); });
+    adIdeaInput.value = tituloBrief(b);
+    $('#adBrand').value = b.marca;
+    $('#adObjective').value = 'visits';
+    syncAdIdeaAgentMode(true);
+    setAdIdeaMessage(`Titular prefijado desde el brief: «${adIdeaInput.value}». Pulsa “Generar anuncio” o “Desarrollar idea”.`, 'success');
+  }
+
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
@@ -564,13 +660,13 @@
   // El mismo camino que ya existe, encadenado: director creativo → brief y
   // storyboard → Grok → (al publicarse) máster de 15 s con el precio encima.
   async function generarAnuncioCatalogo() {
-    if(!productoCatalogo || flujoCatalogo) return;
+    if(!(productoCatalogo || briefCampana) || flujoCatalogo) return;
     const button = $('#generarAnuncioCatalogo');
     flujoCatalogo = true;
     button.disabled = true;
     try{
-      if(!core.clean(adIdeaInput.value, 200)) adIdeaInput.value = tituloProducto(productoCatalogo);
-      setCatalogStatus('1/3 · El director creativo escribe el guion con el precio literal…');
+      if(!core.clean(adIdeaInput.value, 200)) adIdeaInput.value = productoCatalogo ? tituloProducto(productoCatalogo) : tituloBrief(briefCampana);
+      setCatalogStatus(productoCatalogo ? '1/3 · El director creativo escribe el guion con el precio literal…' : `1/3 · El director creativo escribe el guion para «${briefCampana.tipologia}»…`);
       const ok = await developAdIdea();
       if(!ok) throw new Error(adIdeaStatus.textContent || 'No se pudo desarrollar la idea.');
       const ad = buildAdFromForm();
@@ -1550,11 +1646,11 @@
       composeGrokPackage.disabled = false;
       packageStatus.textContent = 'El máster principal está listo. Añadiremos preroll y postroll y publicaremos la pieza final en Pixeria.';
       clearGrokJob();
-      if(flujoCatalogo && productoCatalogo){
-        // Pieza de catálogo: 15 s justos (sin rolls) con el precio pintado encima.
+      if(flujoCatalogo && (productoCatalogo || briefCampana)){
+        // Pieza de catálogo o de brief: 15 s justos (sin rolls) con el overlay encima.
         preRollEnabled.checked = false;
         postRollEnabled.checked = false;
-        setCatalogStatus('3/3 · Montando el máster de 15 s con el precio en pantalla…');
+        setCatalogStatus(productoCatalogo ? '3/3 · Montando el máster de 15 s con el precio en pantalla…' : '3/3 · Montando el máster de 15 s con el rótulo de campaña…');
         void composeAndPublishGrokPackage();
       }
     }else{
@@ -1627,8 +1723,8 @@
         method:'POST',
         credentials:'same-origin',
         headers:{'content-type':'application/json', accept:'application/json'},
-        body:JSON.stringify(productoCatalogo
-          ? {prompt, resolution:grokResolution.value, clientRequestId, ficha:fichaProducto(productoCatalogo)}
+        body:JSON.stringify(fichaActiva()
+          ? {prompt, resolution:grokResolution.value, clientRequestId, ficha:fichaActiva()}
           : {prompt, resolution:grokResolution.value, clientRequestId})
       });
       const payload = await readApiResponse(response);
@@ -1821,7 +1917,58 @@
     ctx.fillRect(0, height - 10, width, 10);
     ctx.fillStyle = accent;
     ctx.fillRect(0, height - 10, width * Math.min(1, seconds / planData.duration), 10);
+    drawOverlayEncargo(ctx, seconds);
+  }
+
+  // Overlay del encargo de un clic: precio (catálogo) o rótulo (brief). Sin encargo, nada.
+  function drawOverlayEncargo(ctx, seconds) {
     if(productoCatalogo) drawPrecioOverlay(ctx, productoCatalogo, seconds);
+    else if(briefCampana && briefCampana.overlay) drawBriefOverlay(ctx, briefCampana, seconds);
+  }
+
+  // ── Overlay de brief: rótulo discreto ─────────────────────────────────────
+  // Sin precio que vender: arriba el título del brief en una caja oscura con
+  // filo cian, abajo el claim en una píldora centrada. Mismo lienzo y escala que
+  // drawPrecioOverlay; entra con un fundido corto para no tapar el arranque.
+  function drawBriefOverlay(ctx, b, seconds = 0) {
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const k = width / 1080;
+    const m = 74 * k;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, Math.max(0, seconds / 0.6));
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.font = `900 ${Math.round(48 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    const titulo = wrapLines(ctx, b.titulo.toUpperCase(), width - 2 * m - 48 * k, 2);
+    const cajaAlto = (titulo.length * 56 + 44) * k;
+    roundedRect(ctx, m, 110 * k, width - 2 * m, cajaAlto, 14 * k);
+    ctx.fillStyle = 'rgba(5,9,13,0.72)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(101,233,244,0.9)';
+    ctx.lineWidth = 3 * k;
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'left';
+    titulo.forEach((line, i) => ctx.fillText(line, m + 24 * k, (110 + 30 + 46 + i * 56) * k));
+
+    if(b.claim){
+      ctx.font = `800 ${Math.round(34 * k)}px ui-monospace, monospace`;
+      const claimTexto = b.claim.toUpperCase();
+      const claimW = Math.min(width - 2 * m, ctx.measureText(claimTexto).width + 64 * k);
+      const claimH = 68 * k;
+      const claimX = (width - claimW) / 2, claimY = height - 215 * k;
+      roundedRect(ctx, claimX, claimY, claimW, claimH, claimH / 2);
+      ctx.fillStyle = 'rgba(5,9,13,0.72)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(101,233,244,0.9)';
+      ctx.lineWidth = 3 * k;
+      ctx.stroke();
+      ctx.fillStyle = '#65e9f4';
+      ctx.textAlign = 'center';
+      ctx.fillText(claimTexto, width / 2, claimY + 46 * k);
+    }
+    ctx.restore();
   }
 
   // ── Overlay de precio estilo folleto ──────────────────────────────────────
@@ -2115,7 +2262,7 @@
           if(!grokVideo.paused) grokVideo.pause();
           drawRollFrame(ctx, 'post', elapsed - before - 15, core.clean(postRollCta.value, 90) || plan.brief.cta || 'Descúbrelo hoy');
         }
-        if(productoCatalogo) drawPrecioOverlay(ctx, productoCatalogo, elapsed);
+        drawOverlayEncargo(ctx, elapsed);
         const percent = Math.round((elapsed / totalDuration) * 90);
         packageProgress.firstElementChild.style.width = `${percent}%`;
         packageStatus.textContent = `Montando ${totalDuration}s · ${percent}%`;
@@ -2143,9 +2290,9 @@
         'content-type':finalType,
         accept:'application/json',
         'x-client-request-id':clientRequestId,
-        'x-package-title':encodeURIComponent(productoCatalogo ? fichaProducto(productoCatalogo).title : `${plan.brief.task} · ${totalDuration}s`)
+        'x-package-title':encodeURIComponent(fichaActiva() ? fichaActiva().title : `${plan.brief.task} · ${totalDuration}s`)
       };
-      if(productoCatalogo) headers['x-package-ficha'] = encodeURIComponent(JSON.stringify(fichaProducto(productoCatalogo)));
+      if(fichaActiva()) headers['x-package-ficha'] = encodeURIComponent(JSON.stringify(fichaActiva()));
       const response = await fetch('/presentaciones/api/video-package', {
         method:'POST', credentials:'same-origin',
         headers,
@@ -2155,7 +2302,7 @@
       packageId = payload.id || '';
       if(payload.pixeria?.status === 'published'){
         finishPackagePublication(payload);
-        if(flujoCatalogo) terminarFlujoCatalogo('Anuncio publicado en el Stock con el precio en pantalla. Ya puedes volver al catálogo.', 'success');
+        if(flujoCatalogo) terminarFlujoCatalogo(productoCatalogo ? 'Anuncio publicado en el Stock con el precio en pantalla. Ya puedes volver al catálogo.' : `Anuncio publicado en el Stock como «${briefCampana?.externalId || 'brief'}». El player lo engancha por esa identidad.`, 'success');
       }else{
         packageStatus.textContent = payload.pixeria?.error || 'El master está guardado en ADmiraNeXT, pero Pixeria todavía no lo ha incorporado.';
         composeGrokPackage.textContent = 'Reintentar Pixeria';
@@ -2326,6 +2473,7 @@
   loadReferenceProfile();
   generate();
   renderFichaProducto();
+  renderFichaBrief();
   setProductionMode(selectedProductionMode());
   const pendingGrokJob = loadGrokJob();
   if(pendingGrokJob){

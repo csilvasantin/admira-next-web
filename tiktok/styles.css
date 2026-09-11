@@ -241,6 +241,11 @@ main {
 .catalog-product-data dd { margin: 0; color: var(--ink); }
 .catalog-product-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 1rem; }
 .catalog-product-actions .composer-status { margin: 0; flex: 1 1 18rem; }
+/* Ficha «Brief de campaña» (deep-link ?brief=): mismo panel, filo cian y etiqueta de tipología. */
+.brief-campaign { border-color: rgba(101, 233, 244, 0.45); }
+.brief-lane-tag { display: inline-flex; flex-direction: column; align-items: flex-start; padding: 0.5rem 0.9rem; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--dark-cyan); color: var(--cyan); }
+.brief-lane-tag small { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.brief-lane-tag b { font-size: clamp(1.1rem, 2.2vw, 1.5rem); line-height: 1.1; font-weight: 900; letter-spacing: -0.03em; }
 
 .ad-composer-head {
   display: grid;

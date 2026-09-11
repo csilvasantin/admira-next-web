@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Xtore · Puerta Cam: un anuncio vertical por tipología (persona, coche, moto, bici) para el tótem de la tienda. Cada tarjeta abre el creador con el brief ya escrito.">
+<meta name="theme-color" content="#05090d">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/favicon.ico">
+<title>Xtore · Puerta Cam · Anuncios por tipología · ADmiraNeXT</title>
+<style>
+  :root{--bg:#05090d;--panel:#08131c;--line:rgba(101,233,244,.2);--line-strong:rgba(101,233,244,.4);--ink:#eef8fa;--muted:#8da3ad;--cyan:#65e9f4;--green:#3df08a;--orange:#ff7a30;--mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background-image:linear-gradient(rgba(101,233,244,.026) 1px,transparent 1px),linear-gradient(90deg,rgba(101,233,244,.026) 1px,transparent 1px);background-size:32px 32px}
+  header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+  header a.brand{color:var(--ink);text-decoration:none;font-weight:700;letter-spacing:-.01em}
+  header a.brand small{display:block;color:var(--muted);font:600 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase}
+  header nav{display:flex;gap:8px;flex-wrap:wrap}
+  header nav a{color:var(--muted);text-decoration:none;font:600 .75rem var(--mono);padding:6px 10px;border:1px solid var(--line);border-radius:6px}
+  header nav a:hover{color:var(--cyan);border-color:var(--cyan)}
+  .hero{padding:32px 22px 10px;max-width:1100px}
+  .kicker{margin:0;color:var(--cyan);font:700 .72rem var(--mono);letter-spacing:.12em;text-transform:uppercase}
+  h1{margin:.4rem 0 .6rem;font-size:clamp(1.6rem,3.4vw,2.4rem);letter-spacing:-.04em;line-height:1.1}
+  h1 em{color:var(--cyan);font-style:normal}
+  .lead{margin:0;color:var(--muted);max-width:60rem}
+  .como{margin:14px 22px 0;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(8,19,28,.7);max-width:1056px;color:var(--muted);font-size:.9rem}
+  .como b{color:var(--ink)}
+  .como code{font-family:var(--mono);font-size:.8rem;color:var(--cyan)}
+  main{padding:22px 22px 60px;display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));max-width:1100px}
+  .card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px;display:flex;flex-direction:column;gap:10px}
+  .card:hover{border-color:var(--line-strong)}
+  .lane{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .lane .code{font:700 .68rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .lane .icon{font-size:1.7rem;line-height:1}
+  .card h2{margin:0;font-size:1.25rem;letter-spacing:-.03em}
+  .card h2 small{display:block;color:var(--muted);font-weight:500;font-size:.85rem;letter-spacing:0}
+  .card .titulo{margin:0;font-size:1.1rem;font-weight:800;color:var(--ink)}
+  .card .mensaje{margin:0;color:var(--muted);flex:1}
+  .card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:.8rem}
+  .card dt{font:600 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+  .card dd{margin:0;font-family:var(--mono);font-size:.78rem;word-break:break-all}
+  .acciones{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px}
+  .btn{display:inline-block;padding:10px 14px;border-radius:6px;border:1px solid var(--cyan);background:var(--cyan);color:#031014;font-weight:700;text-decoration:none;font-size:.9rem}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.sec{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+  .estado{font:600 .72rem var(--mono);color:var(--muted);letter-spacing:.04em}
+  .estado.si{color:var(--green)}
+  .estado.no{color:var(--orange)}
+  .estado a{color:inherit}
+  footer{padding:0 22px 40px;color:var(--muted);font-size:.8rem;max-width:1100px}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/tiktok/">ADmiraNeXT · TikTok<small>Xtore · Puerta Cam</small></a>
+  <nav aria-label="Herramientas">
+    <a href="/tiktok/">Creador de anuncios</a>
+    <a href="https://admira.tv/videoanalytics/xtore/" target="_blank" rel="noopener">Puerta Cam ↗</a>
+    <a href="https://api.admira.store/stock/list?limit=200&amp;type=video" target="_blank" rel="noopener">Stock ↗</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <p class="kicker">Xtore · tótem vertical · un anuncio por tipología</p>
+  <h1>Lo que pasa por la puerta <em>decide el anuncio.</em></h1>
+  <p class="lead">La Puerta Cam de Xtore etiqueta a quien pasa: persona, coche, moto o bici (además de hombre → Matrix y mujer → Top Gun, que ya existen). Cada tarjeta abre el creador con el brief ya escrito; al publicarse, la pieza llega al Stock con una identidad estable y el player la engancha solo a su regla.</p>
+</section>
+<p class="como"><b>Cómo va:</b> 1) pulsa «Crear anuncio» · 2) en el creador, «Generar anuncio» (idea → vídeo 15 s con Grok → máster con rótulo → Stock) · 3) vuelve aquí: la tarjeta pasa a «ya existe en el Stock». La identidad en el Stock es <code>admiranext:xtore:&lt;tipología&gt;</code>; su id de asset es <code>auto-</code> + los 20 primeros hex del SHA-256 de esa clave.</p>
+
+<main id="tarjetas" aria-label="Briefs por tipología"></main>
+
+<footer>Los briefs se pueden editar en el creador antes de generar. El bruto de Grok lleva el sufijo <code>:grok:&lt;requestId&gt;</code>; el máster de 15 s con rótulo lleva la identidad exacta, y esa es la que busca el player.</footer>
+
+<script>
+(() => {
+  const ORIGEN = 'admira.tv/videoanalytics/xtore';
+  const CAMPANA = 'Xtore · Puerta Cam';
+  const CLAIM = 'Xtore · IoT Gallery';
+  const BRIEFS = [
+    {lane:'persona', icon:'🚶', nombre:'Persona', publico:'A pie, sin sexo conocido',
+      titulo:'Pasa, mira, pruébatelas',
+      mensaje:'Estás a un paso de las zapatillas que buscabas. Entra en Xtore, pruébatelas sin prisa y sal estrenando.'},
+    {lane:'coche', icon:'🚗', nombre:'Coche', publico:'Conductor que pasa en coche',
+      titulo:'Aparca. Entra. Estrena.',
+      mensaje:'Tienes plaza a un minuto y las zapatillas que quieres a dos pasos. Baja del coche y sube de nivel en Xtore.'},
+    {lane:'moto', icon:'🏍️', nombre:'Moto', publico:'Motorista que pasa por delante',
+      titulo:'Del casco a las zapas',
+      mensaje:'Frena un momento: en Xtore tienes las zapatillas que aguantan tu ritmo. Aparca la moto en la puerta y entra.'},
+    {lane:'bici', icon:'🚲', nombre:'Bici', publico:'Ciclista que pasa por delante',
+      titulo:'Pedalea hasta aquí',
+      mensaje:'Tu próxima pedalada empieza con zapatillas nuevas. Entra en Xtore: la bici te espera en la puerta.'}
+  ];
+  const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const externalId = (b) => `admiranext:xtore:${b.lane}`;
+  function brief(b) {
+    return {campana:CAMPANA, lane:b.lane, tipologia:b.lane, titulo:b.titulo, mensaje:b.mensaje, claim:CLAIM, marca:'Xtore',
+      externalId:externalId(b), formato:'9:16', duracion:15, origen:ORIGEN};
+  }
+  const deepLink = (b) => `/tiktok/?brief=${encodeURIComponent(JSON.stringify(brief(b)))}`;
+  // El Stock deriva el id del asset del externalId: 'auto-' + 20 hex del SHA-256.
+  async function stockId(value) {
+    const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+    return 'auto-' + Array.from(new Uint8Array(bytes)).slice(0, 10).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const main = document.getElementById('tarjetas');
+  main.innerHTML = BRIEFS.map((b) => `
+    <article class="card" data-lane="${esc(b.lane)}">
+      <div class="lane"><span class="code">tipología · ${esc(b.lane)}</span><span class="icon" aria-hidden="true">${b.icon}</span></div>
+      <h2>${esc(b.nombre)}<small>${esc(b.publico)}</small></h2>
+      <p class="titulo">${esc(b.titulo)}</p>
+      <p class="mensaje">${esc(b.mensaje)}</p>
+      <dl><dt>Stock</dt><dd>${esc(externalId(b))}</dd><dt>Formato</dt><dd>9:16 · 15 s · claim «${esc(CLAIM)}»</dd></dl>
+      <div class="acciones">
+        <a class="btn" href="${esc(deepLink(b))}">Crear anuncio</a>
+        <span class="estado" id="estado-${esc(b.lane)}">consultando el Stock…</span>
+      </div>
+    </article>`).join('');
+
+  async function comprobarStock() {
+    let items = [];
+    try{
+      const response = await fetch('https://api.admira.store/stock/list?limit=200&type=video', {headers:{accept:'application/json'}});
+      const payload = await response.json();
+      items = Array.isArray(payload?.items) ? payload.items : [];
+    }catch(_){
+      BRIEFS.forEach((b) => { const el = document.getElementById(`estado-${b.lane}`); el.textContent = 'Stock no disponible ahora'; el.className = 'estado'; });
+      return;
+    }
+    for(const b of BRIEFS){
+      const el = document.getElementById(`estado-${b.lane}`);
+      const id = await stockId(externalId(b));
+      // El listado expone externalRef (= id derivado), no la clave: se busca por el id.
+      const asset = items.find((item) => item?.id === id || item?.externalRef === id || item?.externalId === externalId(b));
+      if(asset){
+        el.className = 'estado si';
+        el.innerHTML = `✓ ya existe en el Stock · <a href="${esc(asset.url || `https://api.admira.store/stock/asset/${id}`)}" target="_blank" rel="noopener">ver</a>`;
+      }else{
+        el.className = 'estado no';
+        el.textContent = 'aún no está en el Stock';
+      }
+    }
+  }
+  void comprobarStock();
+})();
+</script>
+</body>
+</html>
