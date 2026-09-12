@@ -264,3 +264,43 @@ test('generator UI assigns budgetLines from the visible table', async () => {
   assert.match(editor, /Añadir partida/);
   assert.match(editor, /function collectBudgetLines/);
 });
+
+test('PDF print keeps the budget table (3 lines + totals) as its own page', async () => {
+  const three = [
+    {id:'a', concept:'Piloto sala', price:1000, discount:10, iva:21},
+    {id:'b', concept:'Informe vivo', price:250, discount:0, iva:21},
+    {id:'c', concept:'Soporte primer mes', price:100, discount:0, iva:10}
+  ];
+  const budget = computeBudget(three);
+  assert.equal(budget.totals.base, 1350);
+  assert.equal(budget.totals.discountTotal, 100);
+  assert.equal(budget.totals.ivaTotal, 251.5);
+  assert.equal(budget.totals.total, 1501.5);
+  const presentation = {displayName:'PDF Demo', outputs:['website','documents'], languages:['es','en'], theme:{}, sequence:{}};
+  const ideas = {
+    hero:{title:'Presentación',summary:'Delante'}, objective:'Piloto',
+    skeleton:[{id:'problema',title:'Problema',message:'Mensaje',detail:'Detalle',enabled:true}],
+    closing:{title:'Cierre',action:'Siguiente'}, labels:{objective:'El objetivo',next:'Siguiente paso'},
+    budget: persistBudget(three)
+  };
+  const env = {PRESENTATION_IDEAS:{
+    async get(key, options){
+      const values = {'presentation:pdf-demo':presentation,'ideas:pdf-demo':ideas};
+      const value=values[key]; if(value==null) return null; return options?.type==='json'?value:JSON.stringify(value);
+    }
+  }};
+  const html = await (await renderPresentation({
+    params:{client:'pdf-demo'}, env,
+    request:new Request('https://admiranext.test/presentaciones/pdf-demo/presentacion?pdf=1'),
+    next(){ return new Response('missing',{status:404}); }
+  })).text();
+  assert.match(html, /@media print/);
+  assert.match(html, /\.budget-slide\{page-break-inside:avoid/);
+  assert.match(html, /\.budget-table\{font-size:11pt/);
+  assert.match(html, /data-print/);
+  assert.match(html, /Soporte primer mes/);
+  assert.match(html, /Piloto sala/);
+  assert.match(html, /Informe vivo/);
+  assert.ok(html.includes(formatMoney(1501.5)) || /1\.501,50|1501[,.]5/.test(html), 'PDF HTML must show 1.501,50 total');
+  assert.match(html, /class="deck-print"/);
+});
