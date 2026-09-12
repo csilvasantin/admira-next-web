@@ -188,7 +188,10 @@ test('tiktok/app.js canjea ?pase= al cargar, lo retira de la URL y conserva prod
   assert.match(source, /searchParams\.delete\('pase'\)/);
   assert.match(source, /history\.replaceState\(/);
   assert.match(source, /Sesión abierta desde admira\.tv/);
-  assert.match(source, /void abrirSesionConPase\(\);/);
+  // FLT-100372: el canje devuelve el resultado y, con ?auto=1, arranca solo el flujo de un clic.
+  assert.match(source, /void abrirSesionConPase\(\)\.then\(/);
+  assert.match(source, /retirarAutoDeLaUrl\(\)/);
+  assert.match(source, /searchParams\.delete\('auto'\)/);
   assert.match(source, /link\.href = '\/presentaciones\/'/, 'si falla, enlace al login vivo del Generador');
   assert.doesNotMatch(source, /searchParams\.delete\('producto'\)/);
   assert.doesNotMatch(source, /searchParams\.delete\('brief'\)/);
