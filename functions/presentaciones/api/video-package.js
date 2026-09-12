@@ -138,7 +138,12 @@ async function publishToPixeria(context, state){
     ...(state.ficha?.catalogo ? {catalogo:state.ficha.catalogo} : {}),
     quality:'best',
     // sha256 del máster: el Stock deduplica por contenido sin bajar nada.
-    ...(state.contentHash ? {contentHash:state.contentHash} : {})
+    ...(state.contentHash ? {contentHash:state.contentHash} : {}),
+    // Póster representativo (data URL JPEG 540×960) y veredicto de la validación
+    // que el creador preparó ANTES de subir el máster (Yokup #3199): el Stock lo
+    // guarda en stock/<id>/poster.jpg y los consumidores nunca pintan el frame 0.
+    ...(state.poster ? {poster:state.poster, ...(state.posterAt != null ? {posterAt:state.posterAt} : {})} : {}),
+    ...(state.validacion ? {validacion:state.validacion} : {})
   };
   let response;
   let payload = {};
@@ -264,8 +269,14 @@ async function createPackage(context){
   if(ficha?.title && title === 'Anuncio vertical · 25 segundos') title = ficha.title;
   const origin = new URL(request.url).origin;
   const contentHash = await hashDelMaster(env, key);
+  // Póster + validación preparados por el creador con PATCH antes del máster
+  // (Yokup #3199). Si no los hay, el máster se publica igual y el catálogo
+  // captura el fotograma en cliente.
+  const preparado = await env.PRESENTATION_IDEAS.get(`tiktok:video-package:poster:${id}`, {type:'json'}).catch(() => null);
   let state = {
     id, token, key, title, ficha, size:streamed, contentType, contentHash,
+    ...(preparado?.poster ? {poster:preparado.poster, posterAt:preparado.posterAt ?? null} : {}),
+    ...(preparado?.validacion ? {validacion:preparado.validacion} : {}),
     sourceUrl:`${origin}/tiktok/media/${id}/${token}`,
     createdAt:new Date().toISOString(), pixeria:{status:'uploading'}
   };
@@ -290,9 +301,46 @@ async function retryPackage(context){
   return json(publicState(state), state.pixeria?.status === 'published' ? 200 : 202);
 }
 
+// PATCH {clientRequestId, poster?, posterAt?, validacion?} — Yokup #3199.
+// El creador valida el máster en el navegador (≥12 fotogramas, luma y varianza)
+// y elige el fotograma con más información como póster. Lo manda AQUÍ antes del
+// máster, bajo el id que tendrá el montaje (mismo x-client-request-id), y
+// createPackage lo reenvía al Stock dentro del mismo publish.
+const MAX_POSTER_JSON_BYTES = 560 * 1024; // 400 KB de JPEG en base64 + JSON
+const POSTER_TTL = 60 * 60;
+function saneaValidacion(v){
+  if(!v || typeof v !== 'object') return null;
+  const num = (x, max) => (x == null || !Number.isFinite(+x)) ? null : Math.max(0, Math.min(max, Math.round(+x * 100) / 100));
+  return {
+    ok:v.ok === true, negros:num(v.negros, 10000), muestras:num(v.muestras, 10000), duracion:num(v.duracion, 36000),
+    motivo:v.motivo == null ? null : clean(v.motivo, 200), por:clean(v.por || 'creador admiranext (canvas)', 80)
+  };
+}
+async function preparePackage(context){
+  const {request, env} = context;
+  if(!env.PRESENTATION_IDEAS) return json({error:'El almacenamiento del montaje no está configurado.'}, 503);
+  let body;
+  try{ body = await readJsonLimited(request, MAX_POSTER_JSON_BYTES); }
+  catch(error){
+    const grande = String(error?.message || '') === 'body_too_large';
+    return json({error:grande ? 'El póster supera el límite de 400 KB.' : 'No pudimos leer el póster.'}, grande ? 413 : 400);
+  }
+  const clientRequestId = clean(body?.clientRequestId, 40);
+  if(!CLIENT_ID_RE.test(clientRequestId)) return json({error:'Identificador de montaje no válido.'}, 400);
+  const poster = (typeof body?.poster === 'string' && /^data:image\/(jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(body.poster)) ? body.poster : '';
+  if(typeof body?.poster === 'string' && body.poster && !poster) return json({error:'El póster debe ser una data URL JPEG o WebP.'}, 400);
+  const validacion = saneaValidacion(body?.validacion);
+  if(!poster && !validacion) return json({error:'Falta el póster o la validación.'}, 400);
+  const id = `pkg-${(await digest(clientRequestId)).slice(0, 20)}`;
+  const posterAt = Number.isFinite(+body?.posterAt) ? Math.max(0, Math.round(+body.posterAt * 1000) / 1000) : null;
+  await env.PRESENTATION_IDEAS.put(`tiktok:video-package:poster:${id}`, JSON.stringify({poster, posterAt, validacion, at:new Date().toISOString()}), {expirationTtl:POSTER_TTL});
+  return json({ok:true, id, poster:Boolean(poster), validacion}, 200);
+}
+
 export async function onRequest(context){
   if(!sameOrigin(context.request)) return json({error:'Origen no permitido.'}, 403);
   if(context.request.method === 'POST') return createPackage(context);
   if(context.request.method === 'PUT') return retryPackage(context);
+  if(context.request.method === 'PATCH') return preparePackage(context);
   return json({error:'Método no permitido.'}, 405);
 }

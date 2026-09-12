@@ -2354,6 +2354,38 @@
     return types.find((type) => MediaRecorder.isTypeSupported(type)) || '';
   }
 
+  // GATE DE VALIDACIÓN DEL MÁSTER (Yokup #3199, 12-sep-2026). Antes de subir
+  // nada se reproduce el blob en un <video> oculto, se muestrean ≥12 fotogramas
+  // repartidos y se mide luma media y varianza de cada uno. Si más del 70 % son
+  // negros (luma < 16 y varianza baja), dura < 10 s o no hay pista de vídeo,
+  // NO se publica. Además se elige el fotograma con más información como póster
+  // (JPEG 540×960): el frame 0 del máster es el relleno #020508 con el que se
+  // siembra el canvas antes de captureStream(), y era lo que el catálogo de
+  // admira.tv enseñaba en negro con el «Langostino cocido».
+  // Sin validador cargado no se publica: la regla es «prueba antes de publicar».
+  async function validarMaster(blob, duracionEsperada){
+    const V = window.AdmiraValidacionVideo;
+    if(!V) return {validacion:{ok:false, negros:0, muestras:0, duracion:null, motivo:'validador de vídeo no cargado (assets/tiktok-validacion.js)'}, poster:null, posterT:null, muestras:[]};
+    try{
+      return await V.muestrearVideo(blob, {duracionEsperada, muestras:12});
+    }catch(error){
+      return {validacion:{ok:false, negros:0, muestras:0, duracion:null, motivo:`no se pudo analizar el máster (${error?.message || error})`}, poster:null, posterT:null, muestras:[]};
+    }
+  }
+  function registrarMasterInvalido(analisis, duracionEsperada){
+    const v = analisis.validacion || {};
+    const registro = {
+      at:new Date().toISOString(), motivo:v.motivo, negros:v.negros, muestras:v.muestras, duracion:v.duracion, esperada:duracionEsperada,
+      ficha:fichaActiva()?.externalId || null, lumas:(analisis.muestras || []).map(m => Math.round(m.luma))
+    };
+    console.warn('tiktok:master-invalido', JSON.stringify(registro));
+    try{
+      const lista = JSON.parse(localStorage.getItem('admiranext.tiktok.masters-invalidos') || '[]');
+      lista.unshift(registro);
+      localStorage.setItem('admiranext.tiktok.masters-invalidos', JSON.stringify(lista.slice(0, 20)));
+    }catch(_){ /* sin registro local */ }
+  }
+
   function drawVideoCover(ctx, video) {
     const width = ctx.canvas.width;
     const height = ctx.canvas.height;
@@ -2616,6 +2648,18 @@
       const extension = finalType.includes('mp4') ? 'mp4' : 'webm';
       const blob = new Blob(chunks, {type:finalType});
       if(blob.size < 1024) throw new Error('El master final quedó vacío. Vuelve a intentarlo.');
+      packageStatus.textContent = 'Validando el máster (fotogramas, luma, duración)…';
+      packageProgress.firstElementChild.style.width = '91%';
+      const analisis = await validarMaster(blob, totalDuration);
+      if(!analisis.validacion.ok){
+        registrarMasterInvalido(analisis, totalDuration);
+        packageStatus.textContent = `${analisis.validacion.motivo}. No se ha publicado nada: pulsa «Rehacer montaje».`;
+        composeGrokPackage.textContent = 'Rehacer montaje';
+        composeGrokPackage.disabled = false;
+        packageProgress.firstElementChild.style.width = '0%';
+        if(flujoCatalogo) terminarFlujoCatalogo(`Máster rechazado (${analisis.validacion.motivo}). Nada se ha publicado; pulsa «Rehacer montaje».`, 'error');
+        return;
+      }
       if(packageBlobUrl) URL.revokeObjectURL(packageBlobUrl);
       packageBlobUrl = URL.createObjectURL(blob);
       downloadGrokPackage.href = packageBlobUrl;
@@ -2624,6 +2668,16 @@
       packageStatus.textContent = 'Montaje terminado. Subiendo el master final y publicándolo en Pixeria…';
       packageProgress.firstElementChild.style.width = '94%';
       const clientRequestId = crypto.randomUUID();
+      // Póster representativo + veredicto → ANTES del máster, para que el Stock
+      // los reciba en el mismo publish (Yokup #3199). Si esta llamada falla, el
+      // máster se publica igual y el catálogo captura el fotograma en cliente.
+      try{
+        await fetch('/presentaciones/api/video-package', {
+          method:'PATCH', credentials:'same-origin',
+          headers:{'content-type':'application/json', accept:'application/json'},
+          body:JSON.stringify({clientRequestId, poster:analisis.poster || '', posterAt:analisis.posterT, validacion:analisis.validacion})
+        });
+      }catch(_){ /* el póster es deseable, no imprescindible para publicar */ }
       const headers = {
         'content-type':finalType,
         accept:'application/json',
