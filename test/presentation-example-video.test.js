@@ -83,12 +83,17 @@ test('generate injects example video when outputs include video and not otherwis
   } finally { globalThis.fetch = realFetch; }
 });
 
-test('generator UI exposes incluir ejemplo vídeo and sala editor documents the delete gesture', async () => {
+test('generator UI exposes incluir ejemplo vídeo, URL demo captura and sala editor documents the delete gesture', async () => {
   const generator = await readFile(new URL('../assets/presentation-generator-20260721-11.js', import.meta.url), 'utf8');
   assert.match(generator, /includeExampleVideo/);
   assert.match(generator, /Incluir ejemplo vídeo/);
-  assert.match(generator, /20260912-norma-video/);
+  assert.match(generator, /URL vídeo demo \(captura\)/);
+  assert.match(generator, /name="videoUrl"/);
+  assert.match(generator, /20260912-demo-video/);
   const editor = await readFile(new URL('../assets/presentation-inline-editor.js', import.meta.url), 'utf8');
   assert.match(editor, /Ctrl\+⌫ quitar lámina/);
   assert.match(editor, /__ADMIRA_REFRESH_SLIDES__/);
+  const gesto = await readFile(new URL('../mcp/GESTO-DEMO-VIDEO.md', import.meta.url), 'utf8');
+  assert.match(gesto, /FLT-100316/);
+  assert.match(gesto, /videoUrl/);
 });

@@ -163,10 +163,42 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.4.0');
+  assert.equal(init.result.serverInfo.version, '1.5.0');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');
+});
+
+
+test('demoVideo / requireExampleVideo exigen videoUrl y help tema demo lo documenta', async () => {
+  const log = []; const ctx = ctxFor('owner', log);
+  await assert.rejects(
+    () => callTool(ctx, 'create_yokup_report', {
+      mision: 'FLT-100316', titulo: 'Sin captura', resumen: 'debe fallar', cliente: 'valiant-alcampo', demoVideo: true
+    }),
+    /demoVideo|videoUrl|requireExampleVideo/
+  );
+  await assert.rejects(
+    () => callTool(ctx, 'create_presentation', {
+      displayName: 'Demo Sin Url', requireExampleVideo: true
+    }),
+    /demoVideo|videoUrl|requireExampleVideo/
+  );
+  const ok = await callTool(ctx, 'create_yokup_report', {
+    mision: 'FLT-100316', titulo: 'Demo captura', resumen: 'MP4 embebido',
+    cliente: 'valiant-alcampo', demoVideo: true,
+    videoUrl: 'https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4',
+    videoSlide: 'closing'
+  });
+  assert.ok(ok.yokupBlock.includes('Vídeo BEST'));
+  assert.ok(ok.yokupBlock.includes('boca-v2-ciclo.mp4'));
+  const body = JSON.parse([...log].reverse().find(e => e.method === 'PUT' && e.body && e.body.includes('Demo en captura')).body);
+  assert.equal(body.slideMedia[0].slide, 'closing');
+  assert.equal(body.slideMedia[0].src, 'https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4');
+  assert.match(body.slideMedia[0].caption, /Demo en captura|plataforma/i);
+  const helpDemo = await handleRpc(ctx, { jsonrpc: '2.0', id: 316, method: 'tools/call', params: { name: 'help', arguments: { tema: 'demo' } } });
+  assert.match(helpDemo.result.content[0].text, /FLT-100316|videoUrl|demoVideo|admira\.live\/assets/);
+  assert.match(help, /Gesto DEMO|demoVideo|GESTO-DEMO-VIDEO/);
 });
 
 test('tokens: formato anmcp_, hash estable y cabecera Bearer', async () => {
