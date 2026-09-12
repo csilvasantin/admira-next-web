@@ -27,9 +27,15 @@ test('the text editor stays hidden until Ctrl+E and exposes undo and redo histor
   assert.match(source,/dataset\.deckQuality/);
   assert.match(source,/activeQuality/);
   assert.match(source,/Look & feel de la presentación Admira/);
-  assert.match(source,/Dirección editorial definida por Codex/);
-  assert.match(source,/Adaptación a la web o película elegida/);
+  assert.match(source,/Cada lámina con imagen temática del tema \(Grok\)/);
+  assert.match(source,/Imagen descriptiva encima del fondo/);
   assert.match(source,/__ADMIRA_APPLY_QUALITY__/);
+  assert.match(source,/class="delete-slide"/);
+  assert.match(source,/function deleteSlide\(/);
+  assert.match(source,/action:'deleteSlide'/);
+  assert.match(source,/Ctrl\+Backspace|event\.key==='Backspace'/);
+  assert.match(source,/¿Eliminar la lámina/);
+
 });
 
 function kv(values){
@@ -122,4 +128,44 @@ test('a presentation without Grok images remains complete and imports verified b
   assert.equal('prompt' in body.imageSet.slides[0],false);
   const writeAttempt=await readImages({request:new Request('https://admiranext.test/presentaciones/cliente-demo/api/images',{method:'POST'}),params:{client:'cliente-demo'},env});
   assert.equal(writeAttempt.status,405);
+});
+
+test('deleteSlide removes one skeleton block without regenerating and keeps at least one lamina',async()=>{
+  const {deleteSkeletonBlock}=await import('../functions/presentaciones/[client]/api/inline-edit.js');
+  const ideas={
+    updatedAt:'2026-07-19T10:00:00.000Z',
+    skeleton:[
+      {id:'problema',title:'El problema',message:'m',detail:'d',enabled:true},
+      {id:'momento',title:'El momento',message:'m2',detail:'d2',enabled:true}
+    ],
+    translations:{en:{skeleton:[{id:'problema',title:'The problem'},{id:'momento',title:'The moment'}]}}
+  };
+  assert.equal(deleteSkeletonBlock(ideas,'problema'),'problema');
+  assert.deepEqual(ideas.skeleton.map(item=>item.id),['momento']);
+  assert.deepEqual(ideas.translations.en.skeleton.map(item=>item.id),['momento']);
+  assert.throws(()=>deleteSkeletonBlock(ideas,'momento'),/al menos una lámina/);
+  assert.throws(()=>deleteSkeletonBlock(ideas,'no-existe'),/ya no existe/);
+});
+
+test('inline-edit action deleteSlide persists the remaining skeleton and captures a version',async()=>{
+  const ideas={
+    displayName:'Cliente Demo',languages:['es','en'],translations:{en:{skeleton:[{id:'problema',title:'The problem',message:'m',detail:'d'},{id:'momento',title:'The moment',message:'m2',detail:'d2'}]}},updatedAt:'2026-07-19T10:00:00.000Z',
+    hero:{eyebrow:'Presentación privada',title:'Título original',summary:'Resumen'},objective:'Acordar un piloto',
+    skeleton:[{id:'problema',title:'El problema',message:'Mensaje original',detail:'Detalle',enabled:true},{id:'momento',title:'El momento',message:'Ahora',detail:'Detalle 2',enabled:true}],
+    closing:{title:'Cierre',action:'Siguiente acción'},labels:{objective:'El objetivo',next:'Siguiente paso'}
+  };
+  const values=new Map([['presentation:cliente-demo',JSON.stringify(presentation)],['ideas:cliente-demo',JSON.stringify(ideas)]]);
+  const request=new Request('https://admiranext.test/presentaciones/cliente-demo/api/inline-edit',{method:'PUT',headers:{origin:'https://admiranext.test','content-type':'application/json'},body:JSON.stringify({action:'deleteSlide',language:'es',revision:ideas.updatedAt,blockId:'problema'})});
+  const resultResponse=await handleInlineEdit({request,env:{PRESENTATION_IDEAS:kv(values)},params:{client:'cliente-demo'}});
+  assert.equal(resultResponse.status,200);
+  const result=await resultResponse.json();
+  assert.equal(result.ok,true);
+  assert.equal(result.deleted,'problema');
+  assert.equal(result.locales.es.skeleton.length,1);
+  assert.equal(result.locales.es.skeleton[0].id,'momento');
+  assert.equal(result.locales.en.skeleton.length,1);
+  assert.equal(result.locales.en.skeleton[0].id,'momento');
+  const saved=JSON.parse(values.get('ideas:cliente-demo'));
+  assert.deepEqual(saved.skeleton.map(item=>item.id),['momento']);
+  assert.notEqual(saved.updatedAt,ideas.updatedAt);
 });

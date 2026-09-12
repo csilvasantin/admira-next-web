@@ -190,3 +190,52 @@ export function normalizeSlideMedia(value, client){
   }
   return normalized;
 }
+
+
+/** Fleet smoke / demo clip for BEST motion (FLT-100315). HTTPS admira.live /assets/. */
+export const FLEET_EXAMPLE_VIDEO = 'https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4';
+
+export function exampleVideoEntry({src, slide = 'cover', caption} = {}){
+  const url = safeExternalVideoUrl(src) || FLEET_EXAMPLE_VIDEO;
+  return {
+    slide: safeSlide(slide) || 'cover',
+    type: 'video',
+    src: url,
+    loop: true,
+    muted: true,
+    autoplay: true,
+    caption: text(caption, 180) || 'Ejemplo en movimiento',
+    fallback: 'El ejemplo de vídeo no está disponible. Continúa con el relato.',
+    rights: {source: url, permission: 'owned', license: 'AdmiraNeXT fleet', holder: 'AdmiraNeXT'}
+  };
+}
+
+export function wantsExampleVideo(raw = {}){
+  const flag = raw.includeExampleVideo;
+  if (flag === true || flag === 1 || flag === 'on' || flag === 'true' || flag === '1') return true;
+  if (String(raw.exampleVideoUrl || raw.videoUrl || '').trim()) return true;
+  const outputs = Array.isArray(raw.outputs) ? raw.outputs.map(value => String(value).toLowerCase()) : [];
+  if (outputs.some(value => value === 'video' || value === 'tiktok' || value.includes('tiktok'))) return true;
+  const blob = JSON.stringify({embeds: raw.embeds, title: raw.title, summary: raw.summary}).toLowerCase();
+  return /\btiktok\b|youtube\.com\/shorts/.test(blob);
+}
+
+/** Inject a real fleet (or caller) MP4 when the video/TikTok path is used and no video slide exists. */
+export function ensureExampleVideo(slideMedia, raw = {}, client = ''){
+  const list = rawEntries(slideMedia).slice();
+  if (list.some(entry => String(entry?.type || '').toLowerCase() === 'video' && entry.src)) return list;
+  if (!wantsExampleVideo({...raw, slideMedia: list})) return list;
+  const occupied = new Set(list.map(entry => safeSlide(entry?.slide)).filter(Boolean));
+  const requested = safeSlide(raw.videoSlide || raw.exampleVideoSlide || 'cover') || 'cover';
+  let slide = requested;
+  if (occupied.has(slide)) {
+    slide = ['cover', 'objective', 'vision', 'activar', 'crear', 'closing'].find(id => !occupied.has(id)) || '';
+    if (!slide) return list;
+  }
+  list.push(exampleVideoEntry({
+    src: raw.exampleVideoUrl || raw.videoUrl,
+    slide,
+    caption: raw.exampleVideoCaption
+  }));
+  return list;
+}
