@@ -189,6 +189,8 @@ export async function onRequest(context){
   const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library','grok-video','ad-idea','video-reference','video-package'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
   const isCapsuleApi = first === 'api' && second === 'capsule-tiktok';
+  // Canje del pase firmado de admira.tv por la sesión del generador (Yokup #3165).
+  const isSsoApi = first === 'api' && second === 'sso';
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
   const isRemoteApi = !isGallery && second === 'api' && third === 'remote';
@@ -202,6 +204,10 @@ export async function onRequest(context){
   // esto recibía la página de login en vez de la petición — y en silencio, porque
   // un 200 con HTML no parece un error desde el otro lado.
   if (isCapsuleApi) return next();
+  // El pase de admira.tv llega ANTES de tener sesión: es justo lo que viene a
+  // conseguir. api/sso.js verifica la firma HMAC, el nonce y la lista de correos
+  // y emite las mismas cookies (pres_owner + pres_identity) que el login Google.
+  if (isSsoApi) return next();
   // Leer una URL y preparar un brief no inicia ninguna generación de pago ni
   // concede acceso a la presentación. El endpoint devuelve únicamente una
   // proyección acotada (título, resumen y bloques visibles), por lo que puede

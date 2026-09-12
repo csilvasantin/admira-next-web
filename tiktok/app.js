@@ -776,6 +776,69 @@
     }
   }
 
+  // ── Pase firmado desde admira.tv (Yokup #3165) ─────────────────────────────
+  // admira.tv abre este estudio con ?producto=…&pase=<payload.firma>. Carlos ya
+  // estaba logado allí, pero el Generador sólo conocía su propia sesión y ad-idea
+  // / grok-video contestaban 401. El pase se canjea UNA vez en
+  // /presentaciones/api/sso, que emite las mismas cookies que el login del
+  // Generador. Se borra de la URL al instante (un F5 no debe reintentar un
+  // nonce ya quemado) y `producto`/`brief` se quedan donde estaban.
+  function retirarPaseDeLaUrl() {
+    const url = new URL(window.location.href);
+    const pase = url.searchParams.get('pase');
+    if(!pase) return '';
+    url.searchParams.delete('pase');
+    try { window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`); } catch (_) { /* Sin historial no pasa nada. */ }
+    return pase;
+  }
+  function avisoSesion(message, state = '', conEnlaceLogin = false) {
+    const status = $('#catalogProductStatus') || adIdeaStatus;
+    if(!status) return;
+    status.replaceChildren(document.createTextNode(message));
+    if(conEnlaceLogin){
+      const link = document.createElement('a');
+      link.className = 'composer-access';
+      link.href = '/presentaciones/';
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = 'Iniciar sesión en el Generador ↗';
+      status.append(' ', link);
+    }
+    status.classList.toggle('is-success', state === 'success');
+    status.classList.toggle('is-error', state === 'error');
+  }
+  async function abrirSesionConPase() {
+    const pase = retirarPaseDeLaUrl();
+    if(!pase) return false;
+    const encargo = encargoActivo();
+    avisoSesion('Abriendo sesión desde admira.tv…');
+    try{
+      const response = await fetch('/presentaciones/api/sso', {
+        method:'POST',
+        credentials:'same-origin',
+        headers:{'content-type':'application/json', accept:'application/json'},
+        body:JSON.stringify({pase})
+      });
+      let payload = null;
+      try { payload = await response.json(); } catch (_) { payload = null; }
+      if(!response.ok || !payload?.ok){
+        const motivo = payload?.error || (response.status === 401 ? 'El pase no es válido o ha caducado.' : `El Generador respondió ${response.status}.`);
+        throw new Error(motivo);
+      }
+      adIdeaAccess.hidden = true;
+      grokAccess.hidden = true;
+      const quien = payload.email_masked ? ` · ${payload.email_masked}` : '';
+      avisoSesion(encargo
+        ? `Sesión abierta desde admira.tv${quien}. Pulsa «Generar anuncio»: idea → vídeo de 15 s con Grok → publicación en el Stock.`
+        : `Sesión abierta desde admira.tv${quien}. Ya puedes desarrollar ideas y usar Grok.`, 'success');
+      return true;
+    }catch(error){
+      avisoSesion(`No se pudo abrir la sesión desde admira.tv: ${String(error?.message || 'sin detalle')} ${encargo ? 'El encargo sigue cargado; inicia sesión y vuelve a pulsar «Generar anuncio».' : ''}`.trim(), 'error', true);
+      adIdeaAccess.hidden = false;
+      return false;
+    }
+  }
+
   function terminarFlujoCatalogo(message, state) {
     flujoCatalogo = false;
     const button = $('#generarAnuncioCatalogo');
@@ -2700,6 +2763,7 @@
   generate();
   renderFichaProducto();
   renderFichaBrief();
+  void abrirSesionConPase();
   setProductionMode(selectedProductionMode());
   const pendingGrokJob = loadGrokJob();
   if(pendingGrokJob){
