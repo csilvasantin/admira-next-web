@@ -111,6 +111,14 @@
     return String(value == null ? '' : value).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
   }
+  // Imagen real del producto (FLT-100318): URL pública https, sin espacios. Si
+  // no vale, el anuncio sale sin foto: nunca rompe. (Espejo de
+  // functions/presentaciones/api/_imagen-producto.mjs, que además acota hosts.)
+  function urlImagenProducto(value) {
+    const raw = String(value == null ? '' : value).trim();
+    if(!/^https:\/\/\S{4,500}$/.test(raw)) return '';
+    try{ const url = new URL(raw); return url.protocol === 'https:' && !url.username && !url.password ? url.href : ''; }catch(_){ return ''; }
+  }
   function fechaPartes(iso) { const [y, m, d] = iso.split('-').map(Number); return {y, m, d}; }
   function validezCorta(v) {
     if(!v) return '';
@@ -148,7 +156,8 @@
         destacado:Boolean(p.destacado),
         catalogo, tienda, validez,
         origen:core.clean(p.origen, 60),
-        catalogo_id:slugCatalogo(p.catalogo_id) || `${slugCatalogo(tienda)}-${validez ? validez.desde : 'catalogo'}`
+        catalogo_id:slugCatalogo(p.catalogo_id) || `${slugCatalogo(tienda)}-${validez ? validez.desde : 'catalogo'}`,
+        imagen:urlImagenProducto(p.imagen)
       };
       if(!producto.precio && !producto.promo) return null;
       producto.precioTexto = producto.precio == null ? '' : `${precioTexto(producto.precio)}${producto.unidad ? ` ${UNIDADES_PRODUCTO[producto.unidad]}` : ''}`;
@@ -176,6 +185,20 @@
     };
   }
   const productoCatalogo = leerProductoCatalogo();
+  // La foto real del folleto, precargada al abrir la ficha con crossOrigin para
+  // que el lienzo del máster no quede «manchado» (toDataURL y captureStream
+  // fallarían). Si la carga falla se queda en null y el overlay sale sin imagen.
+  let imagenProducto = null;
+  function imagenLista(img) { return Boolean(img && img.complete && img.naturalWidth > 0); }
+  function precargarImagenProducto(p, onLoad) {
+    if(!p?.imagen) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.decoding = 'async';
+    img.onload = () => { imagenProducto = img; if(typeof onLoad === 'function') onLoad(img); };
+    img.onerror = () => { imagenProducto = null; };
+    img.src = p.imagen;
+  }
 
   // ── Brief de campaña (deep-link ?brief=<JSON>) ────────────────────────────
   // Generaliza ?producto=: quien encarga (p. ej. admira.tv/videoanalytics/xtore)
@@ -628,6 +651,7 @@
     const dl = filas.map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join('');
     aside.innerHTML = `
       <div class="catalog-product-head">
+        ${p.imagen ? `<figure class="catalog-product-figure"><img src="${escapeHtml(p.imagen)}" alt="Foto del producto: ${escapeHtml(p.nombre)}" width="120" height="120" crossorigin="anonymous" decoding="async"></figure>` : ''}
         <div>
           <span class="section-code">PRODUCTO DEL CATÁLOGO${meta ? ` · ${escapeHtml(meta.toUpperCase())}` : ''}</span>
           <h3 id="catalogProductTitle">${escapeHtml(p.nombre)}</h3>
@@ -639,10 +663,13 @@
       <dl class="catalog-product-data">${dl}</dl>
       <div class="catalog-product-actions">
         <button class="button primary" id="generarAnuncioCatalogo" type="button">Generar anuncio</button>
-        <p class="composer-status" id="catalogProductStatus" role="status">Un clic: idea → vídeo de 15 s con Grok → publicación en el Stock con el precio en pantalla.</p>
+        <p class="composer-status" id="catalogProductStatus" role="status">Un clic: idea → vídeo de 15 s con Grok → publicación en el Stock con el precio${p.imagen ? ' y la foto real del producto' : ''} en pantalla.</p>
       </div>`;
     adIdeaForm.parentNode.insertBefore(aside, adIdeaForm);
     $('#generarAnuncioCatalogo').addEventListener('click', () => { void generarAnuncioCatalogo(); });
+    // La foto llega después que el storyboard: al cargar, se repintan los
+    // fotogramas para que enseñen la tarjeta con el producto real.
+    precargarImagenProducto(p, () => { if(plan) storyboard.replaceChildren(...plan.scenes.map((scene, i) => createStoryCard(scene, i, plan))); });
     sembrarTallerConEncargo();
     adIdeaInput.value = tituloProducto(p);
     $('#adBrand').value = p.marca || p.tienda;
@@ -1823,7 +1850,7 @@
         credentials:'same-origin',
         headers:{'content-type':'application/json', accept:'application/json'},
         body:JSON.stringify(fichaActiva()
-          ? {prompt, resolution:grokResolution.value, clientRequestId, ficha:fichaActiva()}
+          ? {prompt, resolution:grokResolution.value, clientRequestId, ficha:fichaActiva(), ...(productoCatalogo?.imagen ? {imagen:productoCatalogo.imagen} : {})}
           : {prompt, resolution:grokResolution.value, clientRequestId})
       });
       const payload = await readApiResponse(response);
@@ -2070,6 +2097,86 @@
     ctx.restore();
   }
 
+  // Etiqueta amarilla del precio (tienda, precio en rojo, unidad). `o` da centro,
+  // tamaño, giro, escala y factor de fuente `f` (1 = la etiqueta grande de
+  // siempre; 0.74 = la que solapa la tarjeta de producto).
+  function drawEtiquetaPrecio(ctx, p, k, o) {
+    const tagW = o.w, tagH = o.h, f = o.f || 1;
+    const px = -tagW / 2 + 28 * k * f;
+    ctx.save();
+    ctx.translate(o.cx, o.cy);
+    ctx.rotate(o.rot || 0);
+    ctx.scale(o.scale || 1, o.scale || 1);
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = 28 * k;
+    ctx.shadowOffsetY = 10 * k;
+    roundedRect(ctx, -tagW / 2, -tagH / 2, tagW, tagH, 22 * k * f);
+    ctx.fillStyle = '#ffe600';
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = '#b3000c';
+    ctx.font = `800 ${Math.round(26 * k * f)}px ui-monospace, monospace`;
+    ctx.textAlign = 'left';
+    ctx.fillText(p.tienda.toUpperCase(), px, -tagH / 2 + 46 * k * f);
+    if(p.precio != null){
+      const entero = Math.floor(p.precio);
+      const cent = Math.round((p.precio - entero) * 100).toString().padStart(2, '0');
+      ctx.fillStyle = '#e3000f';
+      ctx.font = `900 ${Math.round(150 * k * f)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      const enteroTexto = `${entero},`;
+      const enteroAncho = ctx.measureText(enteroTexto).width;
+      ctx.fillText(enteroTexto, px, 62 * k * f);
+      ctx.font = `900 ${Math.round(84 * k * f)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.fillText(`${cent}€`, px + enteroAncho, 6 * k * f);
+      ctx.fillStyle = '#111111';
+      ctx.font = `800 ${Math.round(36 * k * f)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      ctx.fillText(UNIDADES_PRODUCTO[p.unidad] || '', px, tagH / 2 - 40 * k * f);
+    }else{
+      ctx.fillStyle = '#e3000f';
+      ctx.font = `900 ${Math.round(52 * k * f)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      wrapLines(ctx, p.promo, tagW - 56 * k * f, 4).forEach((line, i) => ctx.fillText(line, px, -tagH / 2 + (120 + i * 58) * k * f));
+    }
+    ctx.restore();
+  }
+
+  // ── Tarjeta de producto estilo folleto (FLT-100318) ───────────────────────
+  // Con la foto REAL del folleto cargada: marco blanco con sombra, la imagen
+  // centrada (contain, sin deformar) y la etiqueta amarilla solapando la esquina
+  // inferior derecha. Entra con escala 0.9→1 en 0,4 s y flota suavemente; NO se
+  // apaga nunca: producto y precio se ven los 15 s completos. Sin foto no se
+  // llama y el overlay es el de siempre.
+  function drawTarjetaProducto(ctx, p, foto, seconds, k, zona) {
+    const width = ctx.canvas.width;
+    const maxW = Math.min(720 * k, width - 148 * k);
+    const maxH = Math.max(320 * k, zona.bottom - zona.top - 80 * k);
+    const marco = 26 * k;
+    const ratio = (foto.naturalWidth || 1) / (foto.naturalHeight || 1);
+    let imgW = maxW - 2 * marco, imgH = imgW / ratio;
+    if(imgH > maxH - 2 * marco){ imgH = maxH - 2 * marco; imgW = imgH * ratio; }
+    const cardW = imgW + 2 * marco, cardH = imgH + 2 * marco;
+    const entrada = Math.min(1, Math.max(0, seconds / 0.4));
+    const esc = 0.9 + 0.1 * (1 - Math.pow(1 - entrada, 3));
+    const cx = width / 2 - 24 * k;
+    const cy = zona.top + (zona.bottom - zona.top) / 2 - 24 * k + Math.sin(seconds * 1.7) * 7 * k;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, 0.4 + entrada);
+    ctx.translate(cx, cy);
+    ctx.scale(esc, esc);
+    ctx.rotate(-0.02);
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 40 * k;
+    ctx.shadowOffsetY = 16 * k;
+    roundedRect(ctx, -cardW / 2, -cardH / 2, cardW, cardH, 18 * k);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.drawImage(foto, -imgW / 2, -imgH / 2, imgW, imgH);
+    ctx.restore();
+    const f = 0.74;
+    const pulso = 1 + Math.sin(seconds * 2.2) * 0.018;
+    drawEtiquetaPrecio(ctx, p, k, {cx:cx + (cardW / 2) * esc - 44 * k, cy:cy + (cardH / 2) * esc - 30 * k, w:470 * k * f, h:330 * k * f, rot:-0.07, scale:pulso * esc, f});
+  }
+
   // ── Overlay de precio estilo folleto ──────────────────────────────────────
   // Se pinta sobre TODO el vídeo cuando hay producto de catálogo: nombre arriba,
   // etiqueta amarilla con el precio en rojo y la unidad pequeña, y el sello de
@@ -2103,44 +2210,17 @@
       ctx.fillText(p.marca.toUpperCase(), m + 24 * k, (110 + 40) * k);
     }
 
-    // Etiqueta amarilla del precio, abajo a la izquierda, con un latido suave.
-    const pulso = 1 + Math.sin(seconds * 2.2) * 0.018;
-    const tagW = 470 * k, tagH = 330 * k;
-    const tagX = m, tagY = height - 660 * k;
-    ctx.save();
-    ctx.translate(tagX + tagW / 2, tagY + tagH / 2);
-    ctx.rotate(-0.07);
-    ctx.scale(pulso, pulso);
-    ctx.shadowColor = 'rgba(0,0,0,0.45)';
-    ctx.shadowBlur = 28 * k;
-    ctx.shadowOffsetY = 10 * k;
-    roundedRect(ctx, -tagW / 2, -tagH / 2, tagW, tagH, 22 * k);
-    ctx.fillStyle = '#ffe600';
-    ctx.fill();
-    ctx.shadowColor = 'transparent';
-    ctx.fillStyle = '#b3000c';
-    ctx.font = `800 ${Math.round(26 * k)}px ui-monospace, monospace`;
-    ctx.textAlign = 'left';
-    ctx.fillText(p.tienda.toUpperCase(), -tagW / 2 + 28 * k, -tagH / 2 + 46 * k);
-    if(p.precio != null){
-      const entero = Math.floor(p.precio);
-      const cent = Math.round((p.precio - entero) * 100).toString().padStart(2, '0');
-      ctx.fillStyle = '#e3000f';
-      ctx.font = `900 ${Math.round(150 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-      const enteroTexto = `${entero},`;
-      const enteroAncho = ctx.measureText(enteroTexto).width;
-      ctx.fillText(enteroTexto, -tagW / 2 + 28 * k, 62 * k);
-      ctx.font = `900 ${Math.round(84 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-      ctx.fillText(`${cent}€`, -tagW / 2 + 28 * k + enteroAncho, 6 * k);
-      ctx.fillStyle = '#111111';
-      ctx.font = `800 ${Math.round(36 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-      ctx.fillText(UNIDADES_PRODUCTO[p.unidad] || '', -tagW / 2 + 28 * k, tagH / 2 - 40 * k);
+    // Con la foto real cargada: tarjeta estilo folleto en el centro con la
+    // etiqueta solapando su esquina; sin foto, la etiqueta amarilla de siempre.
+    const foto = imagenLista(imagenProducto) ? imagenProducto : null;
+    if(foto){
+      drawTarjetaProducto(ctx, p, foto, seconds, k, {top:110 * k + nombreAlto + 36 * k, bottom:height - (p.precio != null && p.promo ? 330 : 250) * k});
     }else{
-      ctx.fillStyle = '#e3000f';
-      ctx.font = `900 ${Math.round(52 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-      wrapLines(ctx, p.promo, tagW - 56 * k, 4).forEach((line, i) => ctx.fillText(line, -tagW / 2 + 28 * k, -tagH / 2 + (120 + i * 58) * k));
+      // Etiqueta amarilla del precio, abajo a la izquierda, con un latido suave.
+      const pulso = 1 + Math.sin(seconds * 2.2) * 0.018;
+      const tagW = 470 * k, tagH = 330 * k;
+      drawEtiquetaPrecio(ctx, p, k, {cx:m + tagW / 2, cy:height - 660 * k + tagH / 2, w:tagW, h:tagH, rot:-0.07, scale:pulso, f:1});
     }
-    ctx.restore();
 
     // Promo corta bajo la etiqueta (cuando además hay precio).
     if(p.precio != null && p.promo){

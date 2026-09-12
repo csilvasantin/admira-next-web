@@ -933,3 +933,6 @@ footer {
 /* Pie del storyboard: exportar la hoja de aprobación (decisión 0323). */
 .storyboard-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 .storyboard-note{margin:0;font-size:12px;line-height:1.4;opacity:.72;flex:1;min-width:180px}
+/* Miniatura real del producto del folleto en la ficha (FLT-100318). */
+.catalog-product-figure { margin: 0; flex: 0 0 auto; width: 7.5rem; height: 7.5rem; padding: 0.35rem; border-radius: 12px; background: #fff; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35); }
+.catalog-product-figure img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }

@@ -1,4 +1,5 @@
 import { saneaFicha } from './_ficha-video.mjs';
+import { urlImagenProducto, descargarImagenProducto, promptConReferencia } from './_imagen-producto.mjs';
 
 const MAX_BODY_BYTES = 12 * 1024;
 const MAX_PROVIDER_BYTES = 96 * 1024;
@@ -140,18 +141,40 @@ async function createVideo(context){
   }
 
   const model = context.env.XAI_VIDEO_MODEL || 'grok-imagine-video-1.5';
-  const response = await fetch('https://api.x.ai/v1/videos/generations', {
-    method:'POST',
-    headers:{'authorization':`Bearer ${context.env.XAI_API_KEY}`, 'content-type':'application/json'},
-    body:JSON.stringify({model, prompt, duration:15, aspect_ratio:'9:16', resolution})
-  });
-  let provider;
-  try{ provider = await readJsonLimited(response); }
-  catch(error){
-    console.error(JSON.stringify({message:'invalid grok video create response', error:String(error?.message || error), status:response.status}));
-    return json({error:'Grok devolvió una respuesta no válida.'}, 502);
+  // Imagen real del producto (FLT-100318): se descarga AQUÍ y va a Grok como
+  // referencia (`image.url`, image-to-video de docs.x.ai) para que el vídeo
+  // muestre el producto tal cual es. Tres intentos, del más fiel al más seguro:
+  // data URI → URL pública → sin imagen. Si nada de esto vale, el máster sigue
+  // llevando la foto real en el overlay, así que el anuncio nunca se pierde.
+  const imagenUrl = urlImagenProducto(parsed.payload?.imagen);
+  const referencia = imagenUrl ? await descargarImagenProducto(imagenUrl) : null;
+  if(imagenUrl && !referencia) console.error(JSON.stringify({message:'grok video product image download failed', imagen:imagenUrl}));
+  const base = {model, prompt, duration:15, aspect_ratio:'9:16', resolution};
+  const intentos = referencia
+    ? [
+      {...base, prompt:promptConReferencia(prompt, true), image:{url:referencia.dataUrl}},
+      {...base, prompt:promptConReferencia(prompt, true), image:{url:imagenUrl}},
+      base
+    ]
+    : [base];
+  let response, provider, usado = null;
+  for(let i = 0; i < intentos.length; i += 1){
+    response = await fetch('https://api.x.ai/v1/videos/generations', {
+      method:'POST',
+      headers:{'authorization':`Bearer ${context.env.XAI_API_KEY}`, 'content-type':'application/json'},
+      body:JSON.stringify(intentos[i])
+    });
+    try{ provider = await readJsonLimited(response); }
+    catch(error){
+      console.error(JSON.stringify({message:'invalid grok video create response', error:String(error?.message || error), status:response.status}));
+      return json({error:'Grok devolvió una respuesta no válida.'}, 502);
+    }
+    if(response.ok){ usado = intentos[i]; break; }
+    if(response.status === 429 || i === intentos.length - 1) break;
+    console.error(JSON.stringify({message:'grok video image reference rejected', intento:i, status:response.status, detail:String(provider?.error?.message || provider?.error || '').slice(0, 200)}));
   }
   if(!response.ok) return json({error:providerMessage(response.status)}, response.status === 429 ? 429 : 502);
+  const imagen = referencia ? (usado?.image ? 'referencia' : 'rechazada') : imagenUrl ? 'no-descargada' : undefined;
   const requestId = String(provider?.request_id || '').trim();
   if(!REQUEST_ID_RE.test(requestId)) return json({error:'Grok no devolvió un identificador de vídeo válido.'}, 502);
 
@@ -164,7 +187,7 @@ async function createVideo(context){
   if(context.env.PRESENTATION_IDEAS){
     await context.env.PRESENTATION_IDEAS.put(dedupeKey, JSON.stringify({requestId, model, resolution, createdAt:new Date().toISOString()}), {expirationTtl:60 * 60 * 6});
   }
-  return json({ok:true, requestId, status:'pending', model, resolution, duration:15, aspectRatio:'9:16'}, 202);
+  return json(imagen ? {ok:true, requestId, status:'pending', model, resolution, duration:15, aspectRatio:'9:16', imagen} : {ok:true, requestId, status:'pending', model, resolution, duration:15, aspectRatio:'9:16'}, 202);
 }
 
 function safeVideoUrl(value){
