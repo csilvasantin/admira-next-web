@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import JSZip from 'jszip';
+import {PDFDocument} from 'pdf-lib';
 import sharp from 'sharp';
 
 const PROVIDER_MARK = /\b(?:notebook\s*lm|notebooklm|gemini\s+notebook|google\s+notebook)\b/i;
@@ -111,6 +112,87 @@ function relationshipTargets(xml){
   return result;
 }
 
+function trustedNotebookProvider(value){
+  return clean(value,40).toLowerCase()==='notebooklm';
+}
+
+function slideSize(xml){
+  const match=String(xml).match(/<p:sldSz\b[^>]*\bcx="(\d+)"[^>]*\bcy="(\d+)"/);
+  return {width:Number(match?.[1])||0,height:Number(match?.[2])||0};
+}
+
+function fullSlidePictures(slideXml,rels,size){
+  if(!size.width||!size.height)return [];
+  const result=[];
+  for(const match of String(slideXml).matchAll(/<p:pic\b[\s\S]*?<\/p:pic>/g)){
+    const block=match[0],rid=block.match(/\br:embed="([^"]+)"/)?.[1];
+    const transform=block.match(/<a:xfrm\b[^>]*>[\s\S]*?<a:off\b[^>]*\bx="(-?\d+)"[^>]*\by="(-?\d+)"[^>]*\/>[\s\S]*?<a:ext\b[^>]*\bcx="(\d+)"[^>]*\bcy="(\d+)"[^>]*\/>/);
+    if(!rid||!transform)continue;
+    const left=Number(transform[1]),top=Number(transform[2]),width=Number(transform[3]),height=Number(transform[4]);
+    const marginX=size.width*.015,marginY=size.height*.015;
+    if(Math.abs(left)>marginX||Math.abs(top)>marginY||Math.abs(width-size.width)>marginX||Math.abs(height-size.height)>marginY)continue;
+    const target=rels.get(rid);if(!target)continue;
+    result.push(path.posix.normalize(path.posix.join('ppt/slides',target)));
+  }
+  return result;
+}
+
+async function visualComplexity(bytes){
+  const {data,info}=await sharp(bytes).greyscale().raw().toBuffer({resolveWithObject:true});
+  let edges=0,dark=0;
+  for(let y=0;y<info.height;y+=1)for(let x=0;x<info.width;x+=1){
+    const index=y*info.width+x,value=data[index];
+    if(value<105)dark+=1;
+    if(x)edges+=Math.abs(value-data[index-1]);
+    if(y)edges+=Math.abs(value-data[index-info.width]);
+  }
+  return (edges/data.length)+(dark/data.length)*90;
+}
+
+async function cleanRasterCorner(bytes,width,height){
+  const coverWidth=Math.ceil(width*.09),coverHeight=Math.ceil(height*.04),top=height-coverHeight;
+  if(width<coverWidth*2||height<coverHeight*2)return null;
+  const candidates=[
+    {sourceDirection:'left',left:width-coverWidth*2,top},
+    {sourceDirection:'above',left:width-coverWidth,top:height-coverHeight*2},
+    {sourceDirection:'diagonal',left:width-coverWidth*2,top:height-coverHeight*2}
+  ];
+  for(const candidate of candidates){
+    candidate.bytes=await sharp(bytes).extract({left:candidate.left,top:candidate.top,width:coverWidth,height:coverHeight}).png().toBuffer();
+    candidate.score=await visualComplexity(candidate.bytes);
+  }
+  candidates.sort((a,b)=>a.score-b.score);
+  const selected=candidates[0],cleaned=await sharp(bytes).composite([{input:selected.bytes,left:width-coverWidth,top}]).png().toBuffer();
+  return {cleaned,coverWidth,coverHeight,sourceDirection:selected.sourceDirection,sourceScore:selected.score};
+}
+
+async function sanitizeRasterizedSlides(archive,slides,{trustedProvider,rasterizedProviderCorner}={}){
+  if(!rasterizedProviderCorner||!trustedNotebookProvider(trustedProvider))return [];
+  const presentation=await archive.file('ppt/presentation.xml')?.async('string')||'',size=slideSize(presentation),seen=new Set(),changes=[];
+  for(const slideName of slides){
+    const xml=await archive.file(slideName)?.async('string')||'';
+    const relName=slideName.replace('ppt/slides/','ppt/slides/_rels/')+'.rels';
+    const rels=relationshipTargets(await archive.file(relName)?.async('string')||'');
+    const pictures=fullSlidePictures(xml,rels,size);
+    // El contrato de NotebookLM observado es exactamente una imagen raster a
+    // página completa. Cualquier otra composición falla cerrado.
+    if(pictures.length!==1)continue;
+    for(const assetName of pictures){
+      if(seen.has(assetName))continue;seen.add(assetName);
+      const bytes=await archive.file(assetName)?.async('nodebuffer');if(!bytes)continue;
+      const metadata=await sharp(bytes).metadata(),width=Number(metadata.width),height=Number(metadata.height);
+      // NotebookLM exports these decks as one lossless full-slide PNG per page.
+      // Limiting the repair to that exact structure avoids recompressing photos or
+      // touching a normal editable deck that happens to contain a corner image.
+      if(metadata.format!=='png'||width<640||height<360)continue;
+      const repair=await cleanRasterCorner(bytes,width,height);if(!repair)continue;
+      archive.file(assetName,repair.cleaned);
+      changes.push({slide:slideName,asset:assetName,mode:'trusted-provider-corner-clone',beforeSha256:sha256(bytes),afterSha256:sha256(repair.cleaned),width,height,coverWidth:repair.coverWidth,coverHeight:repair.coverHeight,sourceDirection:repair.sourceDirection,sourceScore:repair.sourceScore});
+    }
+  }
+  return changes;
+}
+
 async function pictureHashes(archive,slideName,slideXml){
   const relName=slideName.replace('ppt/slides/','ppt/slides/_rels/')+'.rels';
   const relXml=await archive.file(relName)?.async('string')||'';
@@ -140,7 +222,7 @@ function sanitizeShapeBlocks(xml,pictureHashByRid,watermarkHashes){
   return {xml:cleaned,removed};
 }
 
-export async function sanitizePowerPointBranding(file,{watermarkHashes=[]}={}){
+export async function sanitizePowerPointBranding(file,{watermarkHashes=[],trustedProvider='',rasterizedProviderCorner=false}={}){
   const archive=await JSZip.loadAsync(await fs.readFile(file));
   const protectedBefore=await contentHashes(archive,name=>PROTECTED_PART.test(name));
   const nonSlideBefore=await contentHashes(archive,name=>!SLIDE_XML.test(name));
@@ -155,13 +237,17 @@ export async function sanitizePowerPointBranding(file,{watermarkHashes=[]}={}){
     archive.file(slideName,sanitized.xml);
     changes.push({slide:slideName,removedShapes:sanitized.removed,beforeSha256:sha256(before),afterSha256:sha256(sanitized.xml)});
   }
-  if(!changes.length){
+  const rasterChanges=await sanitizeRasterizedSlides(archive,slides,{trustedProvider,rasterizedProviderCorner});
+  if(!changes.length&&!rasterChanges.length){
     return {file,report:{changed:false,removedShapes:0,slides:[],protectedParts:protectedBefore,narrativeSafe:true}};
   }
   const protectedAfter=await contentHashes(archive,name=>PROTECTED_PART.test(name));
   const nonSlideAfter=await contentHashes(archive,name=>!SLIDE_XML.test(name));
   if(JSON.stringify(protectedBefore)!==JSON.stringify(protectedAfter))throw new Error('La limpieza intentó alterar tema, masters, layouts o tipografías.');
-  if(JSON.stringify(nonSlideBefore)!==JSON.stringify(nonSlideAfter))throw new Error('La limpieza intentó alterar partes ajenas a las marcas identificadas.');
+  const allowedMedia=new Set(rasterChanges.map(item=>item.asset));
+  const stableBefore=Object.fromEntries(Object.entries(nonSlideBefore).filter(([name])=>!allowedMedia.has(name)));
+  const stableAfter=Object.fromEntries(Object.entries(nonSlideAfter).filter(([name])=>!allowedMedia.has(name)));
+  if(JSON.stringify(stableBefore)!==JSON.stringify(stableAfter))throw new Error('La limpieza intentó alterar partes ajenas a las marcas identificadas.');
   const output=path.join(path.dirname(file),`${path.basename(file,'.pptx')}.fidelity.pptx`);
   await fs.writeFile(output,await archive.generateAsync({type:'nodebuffer',compression:'DEFLATE'}));
   return {
@@ -170,10 +256,49 @@ export async function sanitizePowerPointBranding(file,{watermarkHashes=[]}={}){
       changed:true,
       removedShapes:changes.reduce((sum,item)=>sum+item.removedShapes,0),
       slides:changes,
+      rasterizedSlides:rasterChanges,
       protectedParts:protectedAfter,
       narrativeSafe:true
     }
   };
+}
+
+async function rasterDeckPages(file){
+  if(!file)return [];
+  const archive=await JSZip.loadAsync(await fs.readFile(file)),presentation=await archive.file('ppt/presentation.xml')?.async('string')||'',size=slideSize(presentation);
+  const slides=Object.keys(archive.files).filter(name=>SLIDE_XML.test(name)).sort((a,b)=>Number(a.match(/\d+/)?.[0])-Number(b.match(/\d+/)?.[0])),pages=[];
+  for(const slideName of slides){
+    const xml=await archive.file(slideName)?.async('string')||'',relName=slideName.replace('ppt/slides/','ppt/slides/_rels/')+'.rels';
+    const rels=relationshipTargets(await archive.file(relName)?.async('string')||''),assetName=fullSlidePictures(xml,rels,size)[0];
+    const bytes=assetName?await archive.file(assetName)?.async('nodebuffer'):null;
+    if(!bytes||(await sharp(bytes).metadata()).format!=='png')return [];
+    pages.push(bytes);
+  }
+  return pages;
+}
+
+export async function sanitizePdfBranding(file,{trustedProvider='',rasterizedProviderCorner=false,rasterDeckFile=''}={}){
+  if(!rasterizedProviderCorner||!trustedNotebookProvider(trustedProvider)){
+    return {file,report:{changed:false,pages:[],mode:'original',narrativeSafe:true}};
+  }
+  const source=await PDFDocument.load(await fs.readFile(file)),output=await PDFDocument.create(),changes=[],deckPages=await rasterDeckPages(rasterDeckFile).catch(()=>[]);
+  for(const [index,sourcePage] of source.getPages().entries()){
+    const {width,height}=sourcePage.getSize(),page=output.addPage([width,height]);
+    if(deckPages.length===source.getPageCount()){
+      const image=await output.embedPng(deckPages[index]);page.drawImage(image,{x:0,y:0,width,height});
+      changes.push({page:index+1,mode:'trusted-provider-clean-pptx-source'});
+    }else{
+      const full=await output.embedPage(sourcePage);page.drawPage(full,{x:0,y:0,width,height});
+      const coverWidth=width*.09,coverHeight=height*.04;
+      const sample=await output.embedPage(sourcePage,{left:width-coverWidth*2,bottom:0,right:width-coverWidth,top:coverHeight});
+      page.drawPage(sample,{x:width-coverWidth,y:0,width:coverWidth,height:coverHeight});
+      changes.push({page:index+1,mode:'trusted-provider-corner-clone',coverWidth,coverHeight});
+    }
+  }
+  const target=path.join(path.dirname(file),`${path.basename(file,'.pdf')}.fidelity.pdf`);
+  await fs.writeFile(target,await output.save({useObjectStreams:false}));
+  const mode=deckPages.length===source.getPageCount()?'trusted-provider-clean-pptx-source':'trusted-provider-corner-clone';
+  return {file:target,report:{changed:true,pages:changes,mode,pageCount:changes.length,narrativeSafe:true}};
 }
 
 export async function sanitizeInfographicBranding(file,{watermarkHashes=[]}={}){
