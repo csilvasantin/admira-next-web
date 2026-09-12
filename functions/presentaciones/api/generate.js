@@ -12,6 +12,7 @@ import {normalizeSourceTraceability} from '../_source-traceability.js';
 import {generateNarrativeWithRetry,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC} from '../_skeleton.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
+import {normalizeBudgetLines,persistBudget,readBudgetInput} from '../_budget.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -81,7 +82,7 @@ function buildIdeas(input, slug, languages){
 }
 
 function sourceSlideKeys(ideas){
-  return ['cover','objective',...(ideas.skeleton||[]).filter(item=>item.enabled!==false).map((item,index)=>slugify(item.id||`idea-${index+1}`)),'closing'];
+  return ['cover','objective',...(ideas.skeleton||[]).filter(item=>item.enabled!==false).map((item,index)=>slugify(item.id||`idea-${index+1}`)),'closing','budget'];
 }
 
 function translatableCopy(ideas){
@@ -167,7 +168,10 @@ export async function onRequestPut(context){
   const displayName=text(raw.displayName,100); const slug=slugify(raw.slug||displayName);
   if (!displayName || slug.length<2) return json({error:'Indica un nombre de cliente válido.'},400);
   if (['api','generador','index','assets'].includes(slug)) return json({error:'Ese identificador está reservado.'},400);
-  const existing=await context.env.PRESENTATION_IDEAS.get(`presentation:${slug}`,{type:'json'});
+  const [existing,existingIdeas]=await Promise.all([
+    context.env.PRESENTATION_IDEAS.get(`presentation:${slug}`,{type:'json'}),
+    context.env.PRESENTATION_IDEAS.get(`ideas:${slug}`,{type:'json'})
+  ]);
   if (existing && raw.overwrite!==true) return json({error:'Ya existe una presentación con ese identificador.',exists:true,slug},409);
   let presite=null;
   try{presite=presiteOpeningInput(raw,existing?.presite)}
@@ -229,6 +233,14 @@ export async function onRequestPut(context){
   const ideas=mergeNarrative(buildIdeas(input,slug,languages),narrativeResult,input);
   ideas.embeds=embeds;   // las webs que se enseñan vivas dentro del deck (ver _embeds.js)
   ideas.terminology=terminology;
+  const incomingBudget=readBudgetInput(raw);
+  if(incomingBudget!==undefined){
+    ideas.budget=persistBudget(incomingBudget);
+  }else if(existingIdeas?.budget){
+    ideas.budget={currency:'EUR',lines:normalizeBudgetLines(existingIdeas.budget.lines)};
+  }else{
+    ideas.budget=persistBudget([]);
+  }
   let sourceTraceability;
   try{
     sourceTraceability=normalizeSourceTraceability(raw.sourceTraceability,sourceSlideKeys(ideas),{

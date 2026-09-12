@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260912-demo-video';
+  window.__ADMIRA_GENERATOR_VERSION__='20260912-budget';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -83,7 +83,67 @@
   const terminologyStyle=document.createElement('style');terminologyStyle.textContent='.terminology-field{margin-top:18px}.terminology-field textarea{width:100%;min-height:108px;resize:vertical;background:#08111e;color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:12px 13px;font:600 12px/1.55 var(--mono)}.terminology-field textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}';document.head.appendChild(terminologyStyle);
   const outputPanel=document.createElement('section'); outputPanel.className='panel output-panel';
   outputPanel.innerHTML='<h2>7. ¿Qué queremos obtener?</h2><p class="sub">La presentación, el documento, los créditos y los postcréditos se preparan en AdmiraNeXT sin esperar a Grok. Si activas Imágenes de fondo, Grok trabajará aparte y cada fondo sin texto se importará automáticamente cuando esté listo, compartido por todos los idiomas.</p><div class="output-grid"><label class="output"><input type="checkbox" name="output" value="website" checked><b>01</b><span>Website</span></label><label class="output"><input type="checkbox" name="output" value="audio"><b>02</b><span>Audio</span></label><label class="output"><input type="checkbox" name="output" value="video"><b>03</b><span>Vídeo</span></label><label class="output"><input type="checkbox" name="output" value="pdf"><b>04</b><span>PDF</span></label><label class="output"><input type="checkbox" name="output" value="powerpoint"><b>05</b><span>PowerPoint</span></label><label class="output"><input type="checkbox" name="output" value="documents" checked><b>06</b><span>Documento de trabajo</span></label><label class="output"><input type="checkbox" name="output" value="infographic"><b>07</b><span>Infografía</span></label><label class="output"><input type="checkbox" name="output" value="backgrounds"><b>08</b><span>Imágenes de fondo</span></label><label class="output"><input type="checkbox" name="output" value="credits"><b>09</b><span>Créditos</span></label><label class="output"><input type="checkbox" name="output" value="postcredits"><b>10</b><span>Postcréditos</span></label><label class="output all"><input type="checkbox" id="allOutputs"><b>11</b><span>Todo</span></label></div>';
-  form.insertBefore(sequencePanel,status);form.insertBefore(languagePanel,status); form.insertBefore(outputPanel,status);
+  const budgetPanel=document.createElement('section');budgetPanel.className='panel budget-panel';
+  budgetPanel.innerHTML='<h2>Valoración económica (final de sala)</h2><p class="sub">Última lámina de la sala: concepto, precio, descuento %, IVA % e importe calculado. Totales automáticos. Un cliente = un slug. No es un ERP.</p><div class="budget-gen-wrap"><table class="budget-gen-table" id="budgetLinesTable"><thead><tr><th>Concepto</th><th>Precio</th><th>Dto. %</th><th>IVA %</th><th>Importe</th><th></th></tr></thead><tbody></tbody><tfoot><tr><th>Base</th><td colspan="5" data-budget-total="base">0,00 €</td></tr><tr><th>Descuentos</th><td colspan="5" data-budget-total="discountTotal">0,00 €</td></tr><tr><th>IVA</th><td colspan="5" data-budget-total="ivaTotal">0,00 €</td></tr><tr><th>Total</th><td colspan="5" data-budget-total="total">0,00 €</td></tr></tfoot></table><button class="btn" type="button" id="budgetAddRow">Añadir partida</button></div>';
+  const budgetGenStyle=document.createElement('style');budgetGenStyle.textContent='.budget-gen-wrap{overflow:auto}.budget-gen-table{width:100%;border-collapse:collapse;margin:0 0 12px;font-size:13px}.budget-gen-table th,.budget-gen-table td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right}.budget-gen-table th:first-child,.budget-gen-table td:first-child{text-align:left}.budget-gen-table input{width:100%;min-width:0;background:#08111e;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 9px;font:600 12px/1.3 var(--sans)}.budget-gen-table tfoot th{text-align:left}.budget-row-remove{border:1px solid var(--line);background:#08111e;color:var(--ink);border-radius:8px;padding:7px 9px;font:800 9px/1 var(--mono);cursor:pointer}';document.head.appendChild(budgetGenStyle);
+  const budgetRound2=n=>Math.round((Number(n)||0)*100)/100;
+  const budgetMoney=n=>{try{return budgetRound2(n).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}catch(_){return budgetRound2(n).toFixed(2)+' €'}};
+  function collectLines(){
+    const rows=[...budgetPanel.querySelectorAll('tbody tr')];
+    const lines=[];
+    for(const row of rows){
+      const concept=String(row.querySelector('[data-budget-concept]')?.value||'').replace(/\s+/g,' ').trim().slice(0,180);
+      const price=Math.max(0,budgetRound2(Number(row.querySelector('[data-budget-price]')?.value)||0));
+      const discount=Math.min(100,Math.max(0,budgetRound2(Number(row.querySelector('[data-budget-discount]')?.value)||0)));
+      const ivaRaw=row.querySelector('[data-budget-iva]')?.value;
+      const iva=String(ivaRaw).trim()===''?21:Math.min(100,Math.max(0,budgetRound2(Number(ivaRaw)||0)));
+      if(!concept&&price<=0)continue;
+      lines.push({concept,price,discount,iva});
+    }
+    return lines.slice(0,40);
+  }
+  function recalcGeneratorBudget(){
+    const lines=collectLines();
+    let base=0,discountTotal=0,ivaTotal=0,total=0;
+    budgetPanel.querySelectorAll('tbody tr').forEach(row=>{
+      const price=Math.max(0,budgetRound2(Number(row.querySelector('[data-budget-price]')?.value)||0));
+      const discount=Math.min(100,Math.max(0,budgetRound2(Number(row.querySelector('[data-budget-discount]')?.value)||0)));
+      const ivaRaw=row.querySelector('[data-budget-iva]')?.value;
+      const iva=String(ivaRaw).trim()===''?21:Math.min(100,Math.max(0,budgetRound2(Number(ivaRaw)||0)));
+      const net=budgetRound2(price*(1-discount/100));
+      const tax=budgetRound2(net*(iva/100));
+      const amount=budgetRound2(net+tax);
+      const out=row.querySelector('[data-budget-amount]');if(out)out.textContent=budgetMoney(amount);
+    });
+    lines.forEach(line=>{
+      const net=budgetRound2(line.price*(1-line.discount/100));
+      const tax=budgetRound2(net*(line.iva/100));
+      base=budgetRound2(base+line.price);
+      discountTotal=budgetRound2(discountTotal+budgetRound2(line.price-net));
+      ivaTotal=budgetRound2(ivaTotal+tax);
+      total=budgetRound2(total+budgetRound2(net+tax));
+    });
+    const set=(key,value)=>{const node=budgetPanel.querySelector('[data-budget-total="'+key+'"]');if(node)node.textContent=budgetMoney(value)};
+    set('base',base);set('discountTotal',discountTotal);set('ivaTotal',ivaTotal);set('total',total);
+  }
+  function addBudgetGenRow(line){
+    const body=budgetPanel.querySelector('tbody');
+    if(body.querySelectorAll('tr').length>=40)return;
+    const row=document.createElement('tr');
+    row.innerHTML='<td><input data-budget-concept maxlength="180" placeholder="Concepto" value=""></td><td><input data-budget-price type="number" min="0" step="0.01" placeholder="0"></td><td><input data-budget-discount type="number" min="0" max="100" step="1" value="0"></td><td><input data-budget-iva type="number" min="0" max="100" step="1" value="21"></td><td data-budget-amount>0,00 €</td><td><button class="budget-row-remove" type="button">Quitar</button></td>';
+    if(line){
+      const c=row.querySelector('[data-budget-concept]');if(c)c.value=line.concept||'';
+      const p=row.querySelector('[data-budget-price]');if(p)p.value=line.price??'';
+      const d=row.querySelector('[data-budget-discount]');if(d)d.value=line.discount??0;
+      const i=row.querySelector('[data-budget-iva]');if(i)i.value=line.iva??21;
+    }
+    row.querySelectorAll('input').forEach(input=>input.addEventListener('input',recalcGeneratorBudget));
+    row.querySelector('.budget-row-remove').addEventListener('click',()=>{row.remove();recalcGeneratorBudget()});
+    body.appendChild(row);recalcGeneratorBudget();
+  }
+  addBudgetGenRow();addBudgetGenRow();
+  budgetPanel.querySelector('#budgetAddRow').addEventListener('click',()=>addBudgetGenRow());
+  form.insertBefore(sequencePanel,status);form.insertBefore(budgetPanel,status);form.insertBefore(languagePanel,status); form.insertBefore(outputPanel,status);
   const presiteSelect=document.getElementById('presiteSlug'),presiteHelp=document.getElementById('presiteHelp'),presitePreviewLink=document.getElementById('presitePreviewLink');let presites=[];
   function selectedPresite(){return presites.find(item=>item.slug===presiteSelect.value)||null}
   function renderPresiteSelection(){
@@ -279,6 +339,7 @@
       if(!inspirationAnalysis)await analyzeInspiration();
       message('Construyendo el relato y aplicando la dirección visual…');
       const data=Object.fromEntries(new FormData(form).entries()); if(!data.password)data.password=await passwordPromise;data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;const presite=selectedPresite();data.presiteSlug=presite?.slug||'';data.presite=presite?{slug:presite.slug}:null;
+      data.budgetLines=collectLines();
       const body=await createPresentation(data, Boolean(improveMode)); if(!body){message('No se ha modificado la presentación existente.');return}
       window.dispatchEvent(new CustomEvent('admira:presentation-created',{detail:body}));
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';

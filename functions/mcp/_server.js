@@ -36,8 +36,8 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
-- create_presentation {displayName, website, problem, audience, …} — crea o mejora (overwrite:true)
-  una presentación. Antes: list_presentations. Un cliente = un slug.
+- create_presentation {displayName, website, problem, audience, budgetLines?, …} — crea o mejora (overwrite:true)
+  una presentación. Antes: list_presentations. Un cliente = un slug. budgetLines opcional: valoración económica al final de la sala.
 - create_yokup_report {mision, titulo, resumen, cliente|client|slug, …} — mejora en sitio el informe
   Yokup del cliente (overwrite:true por defecto si existe). Nunca slug yokup-flt-…. Un cliente = un slug.
 - generation_status {client} — estado de la generación en curso (idiomas × entregables).
@@ -78,6 +78,7 @@ const HELP_TOPICS = {
 - slideMedia: array de medios por lámina (type video puede usar HTTPS flota admira.live /assets/…).
 - Norma vídeo (FLT-100315): si outputs incluye video, hay TikTok, o includeExampleVideo:true, el create inyecta un MP4 REAL de flota (no placeholder). Campos: exampleVideoUrl / videoUrl / videoSlide / includeExampleVideo. Default: https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4
 - Demo captura (FLT-100316): demoVideo:true o requireExampleVideo:true EXIGEN videoUrl (captura hospedada). videoSlide recomendado: closing. Ver help tema demo.
+- budgetLines (opcional): [{concept, price, discount, iva}] valoración económica como ÚLTIMA lámina de la sala (concepto, precio, dto %, IVA %, importe recalculado). Máx. 40 partidas. No es un ERP. Si omites el campo al mejorar, se conserva el presupuesto anterior; [] lo vacía.
 - delete_slide {client, blockId}: quita una lámina del esqueleto sin regenerar. En sala: Ctrl+E → botón Eliminar o Ctrl+Backspace.`,
   presentaciones: 'list_presentations / get_catalog es el catálogo vivo (GET /presentaciones/api/clients): slug, displayName, website, languages, outputs, passwordSet, versionCount, createdAt, updatedAt. get_presentation {client} devuelve el contenido vivo (content-data). La URL privada es /presentaciones/<slug>/ y pide la contraseña del cliente o una cuenta con acceso. UI: /presentaciones/galeria.',
   catalogo: `Catálogo = gesto principal (como el registro de proyectos del webmaster).
@@ -104,6 +105,7 @@ Campos:
 - overwrite (opcional): por defecto true si el cliente ya existe. Si false y existe → error claro (usa overwrite/improve).
 - forceNew (opcional, desaconsejado): solo true permite crear un slug nuevo en vez de mejorar el existente.
 - qualityHint: good|better|best (default best). videoUrl / exampleVideoUrl / videoSlide / includeExampleVideo.
+- budgetLines (opcional): [{concept, price, discount, iva}] presupuesto al final de la sala. Si omites, se conserva; [] vacía. No es un ERP.
 - Norma vídeo: si pasas videoUrl, exampleVideoUrl o includeExampleVideo, BEST lleva un MP4 real de flota (default boca-v2). No uses texto placeholder.
 Resolución: GET clients → match slug exacto (ci) o displayName (ci) → improve con overwrite:true.
 Sin match → slugify(displayName||cliente), NUNCA yokup-flt-<misión>.
@@ -142,7 +144,8 @@ export const TOOLS = [
     videoSlide: { type: 'string', description: 'Lámina del vídeo (default cover)' },
     includeExampleVideo: { type: 'boolean', description: 'Inyecta ejemplo vídeo de flota si no hay slideMedia video. También se inyecta si outputs incluye video.' },
     demoVideo: { type: 'boolean', description: 'FLT-100316: demo completa como captura embebida; exige videoUrl (rechaza sin él)' },
-    requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl explícito' } }, required: ['displayName'] } },
+    requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl explícito' },
+    budgetLines: { type: 'array', description: 'Valoración económica al final de la sala (concepto, precio, dto %, IVA %). No es un ERP.', items: { type: 'object', properties: { concept: { type: 'string' }, price: { type: 'number' }, discount: { type: 'number' }, iva: { type: 'number' } } } } }, required: ['displayName'] } },
   { name: 'create_yokup_report', description: 'Mejora in situ el informe Yokup del cliente (overwrite:true si existe). Resuelve por cliente/client/slug o displayName. Nunca crea yokup-flt-…. forceNew solo si hace falta un slug nuevo (desaconsejado).', inputSchema: { type: 'object', properties: {
     mision: { type: 'string', description: 'FLT-…' }, titulo: { type: 'string' }, resumen: { type: 'string' }, verificado: { type: 'string' },
     tiempo: { type: 'string' }, puntos: { type: 'string' }, total: { type: 'string' },
@@ -156,7 +159,8 @@ export const TOOLS = [
     includeExampleVideo: { type: 'boolean', description: 'Si true y no hay videoUrl, inyecta el MP4 de flota boca-v2' },
     videoSlide: { type: 'string', description: 'Lámina del vídeo (default cover; para demos suele ser closing)' },
     demoVideo: { type: 'boolean', description: 'FLT-100316: exige videoUrl de la captura (no placeholder; no abrir plataforma en sala)' },
-    requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl' }
+    requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl' },
+    budgetLines: { type: 'array', description: 'Valoración económica al final de la sala. Si se omite al mejorar, se conserva.', items: { type: 'object', properties: { concept: { type: 'string' }, price: { type: 'number' }, discount: { type: 'number' }, iva: { type: 'number' } } } }
   }, required: ['mision', 'titulo', 'resumen'] } },
   { name: 'generation_status', description: 'Estado de la generación (idiomas × entregables) de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'list_versions', description: 'Historial de versiones de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
@@ -244,7 +248,7 @@ export async function callTool(ctx, name, args = {}){
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
       assertDemoVideoUrl(a);
       const body = {};
-      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo']) if (a[key] !== undefined) body[key] = a[key];
+      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo', 'budgetLines']) if (a[key] !== undefined) body[key] = a[key];
       if (wantsExampleVideo(body) || requiresDemoVideoUrl(a)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
       const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
       return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };
@@ -323,6 +327,7 @@ export async function callTool(ctx, name, args = {}){
         overwrite
       };
       if (passwordArg) body.password = passwordArg;
+      if (a.budgetLines !== undefined) body.budgetLines = a.budgetLines;
       if (videoUrl || includeExampleVideo || demoMode) {
         body.slideMedia = [exampleVideoEntry({
           src: videoUrl || FLEET_EXAMPLE_VIDEO,
