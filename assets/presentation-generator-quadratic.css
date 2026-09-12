@@ -46,6 +46,8 @@ body.generator-quadratic{
 .generator-mode-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
 .generator-back{color:var(--mut);border:1px solid var(--generator-shell-line);border-radius:6px;padding:9px 12px;text-decoration:none;font:800 10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase}
 .generator-back:hover{color:var(--generator-cyan);border-color:var(--generator-cyan)}
+.generator-listado{display:inline-flex;align-items:center;color:#041014;background:var(--generator-cyan);border:1px solid var(--generator-cyan);border-radius:6px;padding:10px 14px;text-decoration:none;font:800 10px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.generator-listado:hover{filter:brightness(1.08)}
 .generator-shell-main{padding-top:var(--generator-top);transition:width .24s ease,margin .24s ease}
 .generator-quadratic .hero{padding-top:48px}
 .generator-quadratic .panel{border-radius:8px}
@@ -89,7 +91,8 @@ body.generator-quadratic{
 }
 @media(max-width:680px){
   :root{--generator-top:58px;--generator-bottom:54vh}
-  .generator-topbar{padding:0 10px}.generator-top-brand small,.generator-back{display:none}.generator-top-actions{gap:5px}
+  .generator-topbar{padding:0 10px}.generator-top-brand small{display:none}.generator-top-actions{gap:5px}
+  .generator-listado{padding:9px 10px;font-size:9px}
   .generator-mode-buttons{gap:2px}.generator-mode-button{width:34px;height:34px}
   .generator-expert-layout{grid-template-columns:1fr;height:auto}.generator-bottom-drawer{overflow:auto}
   .generator-quadratic .hero{padding-top:34px}
