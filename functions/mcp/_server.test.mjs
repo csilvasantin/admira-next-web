@@ -201,6 +201,33 @@ test('demoVideo / requireExampleVideo exigen videoUrl y help tema demo lo docume
   assert.match(help, /Gesto DEMO|demoVideo|GESTO-DEMO-VIDEO/);
 });
 
+test('create_presentation y create_yokup_report reenvían budgetLines y no inventan un array vacío', async () => {
+  const log = []; const ctx = ctxFor('owner', log);
+  await callTool(ctx, 'create_presentation', {
+    displayName: 'Con Presupuesto', slug: 'con-presupuesto',
+    budgetLines: [{ concept: 'Piloto sala', price: 1000, discount: 10, iva: 21 }]
+  });
+  const withBudget = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('con-presupuesto')).body);
+  assert.equal(withBudget.budgetLines.length, 1);
+  assert.equal(withBudget.budgetLines[0].concept, 'Piloto sala');
+  assert.equal(withBudget.budgetLines[0].price, 1000);
+  const created = await callTool(ctx, 'create_presentation', { displayName: 'Sin Presupuesto', slug: 'sin-presupuesto' });
+  assert.equal(created.slug, 'sin-presupuesto');
+  const omitted = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('sin-presupuesto')).body);
+  assert.equal(Object.prototype.hasOwnProperty.call(omitted, 'budgetLines'), false);
+  await callTool(ctx, 'create_presentation', { displayName: 'Vacio', slug: 'presupuesto-vacio', budgetLines: [] });
+  const emptied = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('presupuesto-vacio')).body);
+  assert.deepEqual(emptied.budgetLines, []);
+  await callTool(ctx, 'create_yokup_report', {
+    mision: 'FLT-100346', titulo: 'Informe con presupuesto', resumen: 'Sala con valoración',
+    cliente: 'valiant-alcampo',
+    budgetLines: [{ concept: 'Informe vivo', price: 250, discount: 0, iva: 21 }]
+  });
+  const yokup = JSON.parse([...log].reverse().find(e => e.method === 'PUT' && e.body && e.body.includes('Informe FLT-100346')).body);
+  assert.equal(yokup.budgetLines[0].concept, 'Informe vivo');
+  assert.equal(yokup.budgetLines[0].price, 250);
+});
+
 test('tokens: formato anmcp_, hash estable y cabecera Bearer', async () => {
   const t = newToken(); assert.match(t, /^anmcp_[A-Za-z0-9_-]{40,}$/);
   assert.equal(await sha256Hex('a'), 'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb');

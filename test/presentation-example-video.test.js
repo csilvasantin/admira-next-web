@@ -89,7 +89,7 @@ test('generator UI exposes incluir ejemplo vídeo, URL demo captura and sala edi
   assert.match(generator, /Incluir ejemplo vídeo/);
   assert.match(generator, /URL vídeo demo \(captura\)/);
   assert.match(generator, /name="videoUrl"/);
-  assert.match(generator, /20260912-demo-video/);
+  assert.match(generator, /20260912-budget/);
   const editor = await readFile(new URL('../assets/presentation-inline-editor.js', import.meta.url), 'utf8');
   assert.match(editor, /Ctrl\+⌫ quitar lámina/);
   assert.match(editor, /__ADMIRA_REFRESH_SLIDES__/);

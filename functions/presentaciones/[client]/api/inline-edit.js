@@ -9,6 +9,7 @@ const LIMITS = {
   'closing.title':220, 'closing.action':700, 'labels.objective':80, 'labels.next':80
 };
 import {captureVersion} from '../../_versions.js';
+import {persistBudget,publicBudget} from '../../_budget.js';
 
 function response(body, status = 200){
   return new Response(JSON.stringify(body), {status, headers:{
@@ -69,10 +70,12 @@ function applyEdit(content, edit, value=edit.value){
   else content[first]=clean(value,LIMITS[edit.field]);
 }
 function publicLocales(ideas, languages){
+  const budget=publicBudget(ideas.budget);
   const output={};
   for(const language of languages){
     const source=language==='es'?baseContent(ideas):clone(localeContent(ideas,language));
     source.skeleton=(source.skeleton||[]).filter(item=>item.enabled!==false);
+    source.budget=budget;
     output[language]=source;
   }
   return output;
@@ -151,6 +154,14 @@ export async function onRequest(context){
     await context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas));
     await captureVersion(context.env,client,`lámina ${deleted} eliminada`,{presentation,ideas});
     return response({ok:true,deleted,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages)});
+  }
+  if(action==='setBudget'){
+    const rawLines=payload.lines ?? payload.budgetLines ?? payload.budget?.lines;
+    ideas.budget=persistBudget(rawLines);
+    ideas.updatedAt=new Date().toISOString();
+    await context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas));
+    await captureVersion(context.env,client,'presupuesto actualizado',{presentation,ideas});
+    return response({ok:true,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages),budget:publicBudget(ideas.budget)});
   }
   let edits; try{edits=normalizedEdits(payload?.edits);}catch(error){return response({error:error.message},400);}
   const targetLanguages=languages.filter(item=>item!==language);
