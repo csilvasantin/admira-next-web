@@ -48,6 +48,7 @@ body.generator-quadratic{
 .generator-back:hover{color:var(--generator-cyan);border-color:var(--generator-cyan)}
 .generator-listado{display:inline-flex;align-items:center;color:#041014;background:var(--generator-cyan);border:1px solid var(--generator-cyan);border-radius:6px;padding:10px 14px;text-decoration:none;font:800 10px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .generator-listado:hover{filter:brightness(1.08)}
+.generator-quadratic .generator-listado-cta{margin-right:auto}
 .generator-shell-main{padding-top:var(--generator-top);transition:width .24s ease,margin .24s ease}
 .generator-quadratic .hero{padding-top:48px}
 .generator-quadratic .panel{border-radius:8px}

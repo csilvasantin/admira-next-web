@@ -46,6 +46,10 @@ test('home del generador tiene un botón visible al listado vivo, no un chip que
   assert.doesNotMatch(script, /class="generator-back" href="\/presentaciones\/"/);
   assert.match(html, /href="\/presentaciones\/galeria#registroVivo"/);
   assert.match(html, />Ver presentaciones<\/a>/);
+  assert.match(html, /id="generatorListadoCta"/);
+  assert.match(html, />Ver listado<\/a>/);
+  assert.match(script, /id="generatorListadoCta"/);
+  assert.match(script, />Ver listado<\/a>/);
   assert.match(styles, /\.generator-listado\{/);
   assert.doesNotMatch(styles, /\.generator-listado\{display:none/);
   const mobile = styles.match(/@media\(max-width:680px\)\{[\s\S]*?\}/);
