@@ -134,13 +134,15 @@ function shouldIdentify(request, parts){
   return !/\.(?:css|js|json|png|jpe?g|gif|webp|svg|ico|mp4|m4a|mp3|pdf|pptx|txt|csv|woff2?)$/i.test(last);
 }
 
-async function injectTelemetry(response, inlineEditor = false){
+async function injectTelemetry(response, {inlineEditor = false, qualityLevels = false} = {}){
   const type = response.headers.get('content-type') || '';
   if (!response.ok || !type.includes('text/html')) return response;
   const text = await response.text();
+  // FLT-100367: quality selector for any authenticated viewer; inline editor stays master/editor-only.
+  const quality = qualityLevels ? '<script src="/assets/presentation-quality-levels.js?v=20260912-hoist"></script>' : '';
   const editor = inlineEditor ? '<script>window.__ADMIRA_CAN_EDIT__=true</script><script src="/assets/presentation-inline-editor.js?v=20260912-delete-slide"></script>' : '';
   const telemetry = text.includes('presentation-telemetry.js') ? '' : '<script src="/assets/presentation-telemetry.js?v=20260717-1"></script>';
-  const html = text.replace(/<\/body>/i, `${editor}${telemetry}</body>`);
+  const html = text.replace(/<\/body>/i, `${quality}${editor}${telemetry}</body>`);
   const headers = new Headers(response.headers); headers.delete('content-length'); headers.set('cache-control', 'no-store');
   return new Response(html, {status:response.status, statusText:response.statusText, headers});
 }
@@ -361,5 +363,8 @@ export async function onRequest(context){
   const trackView = request.method === 'GET' && shouldIdentify(request, parts) && !isInternalArea && !isGallery;
   if (trackView && identity) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || ''}));
   const isAudienceOutput = isPresentationMode && url.searchParams.get('audience') === '1';
-  return injectTelemetry(response, isPresentationMode && !isAudienceOutput && (masterValid || editorValid));
+  return injectTelemetry(response, {
+    inlineEditor: isPresentationMode && !isAudienceOutput && (masterValid || editorValid),
+    qualityLevels: isPresentationMode && !isAudienceOutput
+  });
 }

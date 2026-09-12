@@ -280,7 +280,10 @@ test('audience mode cannot render presenter controls, notes or private-marked co
 test('middleware never injects editor controls into the audience response',async()=>{
   const middleware=await readFile(new URL('../functions/presentaciones/_middleware.js',import.meta.url),'utf8');
   assert.match(middleware,/isAudienceOutput = isPresentationMode && url\.searchParams\.get\('audience'\) === '1'/);
-  assert.match(middleware,/isPresentationMode && !isAudienceOutput && \(masterValid \|\| editorValid\)/);
+  assert.match(middleware,/inlineEditor:\s*isPresentationMode && !isAudienceOutput && \(masterValid \|\| editorValid\)/);
+  assert.match(middleware,/qualityLevels:\s*isPresentationMode && !isAudienceOutput/);
+  assert.match(middleware,/presentation-quality-levels\.js\?v=20260912-hoist/);
+  assert.doesNotMatch(middleware,/injectTelemetry\(response,\s*isPresentationMode/);
 });
 
 test('presenter preferences persist only non-sensitive timing and reading settings',async()=>{

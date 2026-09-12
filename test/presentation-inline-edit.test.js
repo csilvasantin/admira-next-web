@@ -23,13 +23,9 @@ test('the text editor stays hidden until Ctrl+E and exposes undo and redo histor
   assert.match(source,/function remember\(\)/);
   assert.match(source,/function restore\(index\)/);
   assert.match(source,/history=history\.slice\(0,historyIndex\+1\)/);
-  assert.match(source,/Good, Better and Best/);
-  assert.match(source,/dataset\.deckQuality/);
-  assert.match(source,/activeQuality/);
-  assert.match(source,/Look & feel de la presentación Admira/);
-  assert.match(source,/Cada lámina con imagen temática del tema \(Grok\)/);
-  assert.match(source,/Imagen descriptiva encima del fondo/);
-  assert.match(source,/__ADMIRA_APPLY_QUALITY__/);
+  assert.doesNotMatch(source,/quality-levels/);
+  assert.doesNotMatch(source,/Good, Better and Best/);
+  assert.doesNotMatch(source,/__ADMIRA_APPLY_QUALITY__/);
   assert.match(source,/class="delete-slide"/);
   assert.match(source,/function deleteSlide\(/);
   assert.match(source,/action:'deleteSlide'/);
