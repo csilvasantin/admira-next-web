@@ -1,4 +1,4 @@
-import { saneaFicha } from './_ficha-video.mjs';
+import { saneaFicha, saneaFormato } from './_ficha-video.mjs';
 import { urlImagenProducto, descargarImagenProducto, promptConReferencia } from './_imagen-producto.mjs';
 
 const MAX_BODY_BYTES = 12 * 1024;
@@ -123,6 +123,9 @@ async function createVideo(context){
   const prompt = cleanPrompt(parsed.payload?.prompt);
   const resolution = ALLOWED_RESOLUTIONS.has(parsed.payload?.resolution) ? parsed.payload.resolution : '720p';
   const clientRequestId = String(parsed.payload?.clientRequestId || '').trim();
+  // Formato (FLT-100372): 9:16 (vertical, el de siempre) o 16:9 (horizontal).
+  // Va a Grok como aspect_ratio y queda en la ficha para el Stock.
+  const formato = saneaFormato(parsed.payload?.formato || parsed.payload?.ficha?.formato);
   if(prompt.length < 40) return json({error:'Describe con algo más de detalle el vídeo que debe crear Grok.'}, 400);
   if(!CLIENT_ID_RE.test(clientRequestId)) return json({error:'Identificador de solicitud no válido.'}, 400);
 
@@ -130,11 +133,13 @@ async function createVideo(context){
   if(context.env.PRESENTATION_IDEAS){
     const previous = await context.env.PRESENTATION_IDEAS.get(dedupeKey, {type:'json'});
     if(previous?.requestId && REQUEST_ID_RE.test(previous.requestId)){
-      return json({ok:true, reused:true, requestId:previous.requestId, status:'pending', model:previous.model, resolution:previous.resolution}, 202);
+      return json({ok:true, reused:true, requestId:previous.requestId, status:'pending', model:previous.model, resolution:previous.resolution, aspectRatio:previous.formato || formato}, 202);
     }
     const ip = context.request.headers.get('CF-Connecting-IP') || 'unknown';
     const ipHash = await digest(ip);
-    const rateKey = `tiktok:grok-video:rate:${ipHash.slice(0, 24)}`;
+    // Un vídeo por minuto y FORMATO: «las dos versiones» encadena 9:16 y 16:9
+    // del mismo producto en menos de un minuto y no debe chocar consigo mismo.
+    const rateKey = `tiktok:grok-video:rate:${ipHash.slice(0, 24)}:${formato}`;
     const limited = await context.env.PRESENTATION_IDEAS.get(rateKey);
     if(limited) return json({error:'Espera un minuto antes de iniciar otro vídeo de Grok.'}, 429, {'retry-after':'60'});
     await context.env.PRESENTATION_IDEAS.put(rateKey, '1', {expirationTtl:60});
@@ -149,7 +154,7 @@ async function createVideo(context){
   const imagenUrl = urlImagenProducto(parsed.payload?.imagen);
   const referencia = imagenUrl ? await descargarImagenProducto(imagenUrl) : null;
   if(imagenUrl && !referencia) console.error(JSON.stringify({message:'grok video product image download failed', imagen:imagenUrl}));
-  const base = {model, prompt, duration:15, aspect_ratio:'9:16', resolution};
+  const base = {model, prompt, duration:15, aspect_ratio:formato, resolution};
   const intentos = referencia
     ? [
       {...base, prompt:promptConReferencia(prompt, true), image:{url:referencia.dataUrl}},
@@ -182,12 +187,12 @@ async function createVideo(context){
   // cuanto tiene el requestId, y el sondeo es lo que dispara la publicación. Si
   // se guardara después habría una ventana en la que el vídeo se publica con la
   // ficha genérica justo cuando el encargo sí traía una buena.
-  if(parsed.payload?.ficha) await guardaFicha(context, requestId, saneaFicha(parsed.payload.ficha));
+  if(parsed.payload?.ficha) await guardaFicha(context, requestId, saneaFicha({...parsed.payload.ficha, formato}));
 
   if(context.env.PRESENTATION_IDEAS){
-    await context.env.PRESENTATION_IDEAS.put(dedupeKey, JSON.stringify({requestId, model, resolution, createdAt:new Date().toISOString()}), {expirationTtl:60 * 60 * 6});
+    await context.env.PRESENTATION_IDEAS.put(dedupeKey, JSON.stringify({requestId, model, resolution, formato, createdAt:new Date().toISOString()}), {expirationTtl:60 * 60 * 6});
   }
-  return json(imagen ? {ok:true, requestId, status:'pending', model, resolution, duration:15, aspectRatio:'9:16', imagen} : {ok:true, requestId, status:'pending', model, resolution, duration:15, aspectRatio:'9:16'}, 202);
+  return json(imagen ? {ok:true, requestId, status:'pending', model, resolution, duration:15, aspectRatio:formato, imagen} : {ok:true, requestId, status:'pending', model, resolution, duration:15, aspectRatio:formato}, 202);
 }
 
 function safeVideoUrl(value){

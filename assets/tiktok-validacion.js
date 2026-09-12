@@ -152,7 +152,11 @@
       if (i >= 0 && tienePista) {
         posterT = muestras[i].t;
         await seekA(video, posterT, 2500);
-        const c = doc.createElement('canvas'); c.width = POSTER_W; c.height = POSTER_H;
+        // Tamaño del póster: el de siempre (540×960) o el que pida quien llama
+        // (másteres horizontales 16:9 → 960×540, FLT-100372).
+        const c = doc.createElement('canvas');
+        c.width = (o.posterW > 0 && o.posterH > 0) ? Math.round(o.posterW) : POSTER_W;
+        c.height = (o.posterW > 0 && o.posterH > 0) ? Math.round(o.posterH) : POSTER_H;
         const cx = c.getContext('2d');
         cx.fillStyle = '#000'; cx.fillRect(0, 0, c.width, c.height);
         const escala = Math.max(c.width / video.videoWidth, c.height / video.videoHeight);

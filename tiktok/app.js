@@ -121,6 +121,34 @@
     if(!/^https:\/\/\S{4,500}$/.test(raw)) return '';
     try{ const url = new URL(raw); return url.protocol === 'https:' && !url.username && !url.password ? url.href : ''; }catch(_){ return ''; }
   }
+  // Formato del anuncio (FLT-100372, Carlos 12-sep-2026): «tenemos que poder
+  // escoger si queremos los vídeos en landscape o en portrait o las dos
+  // versiones». El catálogo manda `formatos` (['9:16'], ['16:9'] o los dos);
+  // cada versión es una generación de Grok, un máster y una pieza del Stock con
+  // identidad propia (la horizontal lleva el sufijo «:16x9» en el externalId).
+  const FORMATOS_ANUNCIO = {'9:16':{w:1080, h:1920, nombre:'vertical 9:16', tag:'vertical'}, '16:9':{w:1920, h:1080, nombre:'horizontal 16:9', tag:'horizontal'}};
+  function leerFormatos(value) {
+    const lista = (Array.isArray(value) ? value : [value]).map(v => String(v == null ? '' : v).trim()).filter(v => FORMATOS_ANUNCIO[v]);
+    return lista.length ? [...new Set(lista)] : ['9:16'];
+  }
+  // Estética del folleto (FLT-100372): «por defecto hay que coger la estética
+  // del catálogo de referencia para que se vea una continuidad de marca; todos
+  // los vídeos son muy oscuros cuando el catálogo es blanco». El catálogo mide
+  // la portada y manda {fondo, claro, colores[], tinta}; sin dato, un folleto
+  // de supermercado se asume claro (fondo blanco).
+  const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+  function leerEstilo(value) {
+    const e = value && typeof value === 'object' ? value : {};
+    const fondo = HEX_COLOR.test(String(e.fondo || '')) ? String(e.fondo).toLowerCase() : '#ffffff';
+    const tinta = HEX_COLOR.test(String(e.tinta || '')) ? String(e.tinta).toLowerCase() : '#111111';
+    const colores = (Array.isArray(e.colores) ? e.colores : []).map(c => String(c || '').toLowerCase()).filter(c => HEX_COLOR.test(c)).slice(0, 4);
+    const claro = e.claro == null ? lumaHex(fondo) > 140 : Boolean(e.claro);
+    return {fondo, tinta, colores, claro, origen:core.clean(e.origen, 40), acento:colores[0] || '#e3000f'};
+  }
+  function lumaHex(hex) {
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
   function fechaPartes(iso) { const [y, m, d] = iso.split('-').map(Number); return {y, m, d}; }
   function validezCorta(v) {
     if(!v) return '';
@@ -159,7 +187,9 @@
         catalogo, tienda, validez,
         origen:core.clean(p.origen, 60),
         catalogo_id:slugCatalogo(p.catalogo_id) || `${slugCatalogo(tienda)}-${validez ? validez.desde : 'catalogo'}`,
-        imagen:urlImagenProducto(p.imagen)
+        imagen:urlImagenProducto(p.imagen),
+        formatos:leerFormatos(p.formatos || p.formato),
+        estilo:leerEstilo(p.estilo)
       };
       if(!producto.precio && !producto.promo) return null;
       producto.precioTexto = producto.precio == null ? '' : `${precioTexto(producto.precio)}${producto.unidad ? ` ${UNIDADES_PRODUCTO[producto.unidad]}` : ''}`;
@@ -204,14 +234,20 @@
   // Ficha con la que la pieza llega al Stock. La clave externa es ESTABLE por
   // producto y catálogo: el Stock deriva de ella el id del asset, así que el
   // catálogo puede saber que ya existe (y dos clics no hacen dos piezas).
-  function fichaProducto(p) {
+  function fichaProducto(p, formato = formatoActual) {
     const catalogo = catalogoStock(p);
+    const f = FORMATOS_ANUNCIO[formato] ? formato : '9:16';
+    const horizontal = f === '16:9';
     return {
-      title:core.clean(`${p.nombre} · ${p.precio != null ? precioTexto(p.precio) : p.promo} · ${p.tienda}`, 200),
-      comment:core.clean(`${p.catalogo || p.tienda}${p.p ? ` · página ${p.p}` : ''}${p.seccion ? ` · ${p.seccion}` : ''}. ${p.marca ? `${p.marca}. ` : ''}${p.detalle ? `${p.detalle}. ` : ''}${p.precioTexto ? `Precio ${p.precioTexto}. ` : ''}${p.promo ? `${p.promo}. ` : ''}${p.validezSello ? `${p.validezSello}. ` : ''}Generado desde ${p.origen || 'admira.tv/contentcatalogue'}.`, 1200),
-      tags:etiquetasCatalogo(catalogo),
+      title:core.clean(`${p.nombre} · ${p.precio != null ? precioTexto(p.precio) : p.promo} · ${p.tienda}${horizontal ? ' · 16:9' : ''}`, 200),
+      comment:core.clean(`${p.catalogo || p.tienda}${p.p ? ` · página ${p.p}` : ''}${p.seccion ? ` · ${p.seccion}` : ''}. ${p.marca ? `${p.marca}. ` : ''}${p.detalle ? `${p.detalle}. ` : ''}${p.precioTexto ? `Precio ${p.precioTexto}. ` : ''}${p.promo ? `${p.promo}. ` : ''}${p.validezSello ? `${p.validezSello}. ` : ''}Formato ${FORMATOS_ANUNCIO[f].nombre}. Generado desde ${p.origen || 'admira.tv/contentcatalogue'}.`, 1200),
+      tags:etiquetasCatalogo(catalogo).map(t => t === 'vertical' ? FORMATOS_ANUNCIO[f].tag : t),
       catalogo,
-      externalId:`admiranext:catalogo:${p.catalogo_id}:${p.slug}`.replace(/[^A-Za-z0-9:_-]+/g, '-').slice(0, 120),
+      formato:f,
+      // La vertical conserva la identidad de siempre (el catálogo ya la busca así);
+      // la horizontal es OTRA pieza: misma receta + «:16x9». El catálogo pregunta
+      // por las dos al Stock (admira.tv/contentcatalogue → externalIdProducto).
+      externalId:`admiranext:catalogo:${p.catalogo_id}:${p.slug}${horizontal ? ':16x9' : ''}`.replace(/[^A-Za-z0-9:_-]+/g, '-').slice(0, 120),
       // El bruto de Grok NO va al Stock: se retiene como fuente y solo sale el máster.
       brutoAlStock:false
     };
@@ -276,16 +312,37 @@
     return {
       title:core.clean(`${b.titulo} · ${b.marca} · ${b.tipologia}`, 200),
       comment:core.clean(`${b.campana} · público: ${b.tipologia}${b.lane ? ` (${b.lane})` : ''}. ${b.mensaje ? `${b.mensaje} ` : ''}Claim: ${b.claim}. ${b.formato} · ${b.duracion} s. Generado desde ${b.origen || 'admiranext.com/tiktok'}.`, 1200),
-      tags:['admiranext', 'tiktok', 'vertical', slugCatalogo(b.marca) || 'xtore'],
+      tags:['admiranext', 'tiktok', b.formato === '16:9' ? 'horizontal' : 'vertical', slugCatalogo(b.marca) || 'xtore'],
       externalId:b.externalId,
+      formato:FORMATOS_ANUNCIO[b.formato] ? b.formato : '9:16',
       // El bruto de Grok NO va al Stock: se retiene como fuente y solo sale el máster.
       brutoAlStock:false
     };
   }
   const briefCampana = productoCatalogo ? null : leerBrief();
+  // Formato en curso y cola de versiones pendientes (FLT-100372). Con «las dos
+  // versiones» se hace primero la vertical y, publicada, la horizontal con la
+  // MISMA idea del director creativo (una sola llamada a ad-idea, dos a Grok).
+  let formatoActual = productoCatalogo ? productoCatalogo.formatos[0] : (briefCampana && FORMATOS_ANUNCIO[briefCampana.formato] ? briefCampana.formato : '9:16');
+  let colaFormatos = [];
+  function dimensionesFormato(formato = formatoActual) { return FORMATOS_ANUNCIO[formato] || FORMATOS_ANUNCIO['9:16']; }
+  // Arranque automático (FLT-100372, Carlos: «generar vídeos sin necesidad de
+  // volver a pulsar en el generador si ya lo hemos decidido en el catálogo»).
+  // admira.tv abre este estudio con ?auto=1 y, abierta la sesión, el flujo de
+  // un clic arranca solo. Se retira de la URL al instante: un F5 no debe
+  // encargar otro vídeo.
+  function retirarAutoDeLaUrl() {
+    const url = new URL(window.location.href);
+    if(!url.searchParams.has('auto')) return false;
+    const valor = url.searchParams.get('auto');
+    url.searchParams.delete('auto');
+    try { window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`); } catch (_) { /* Sin historial no pasa nada. */ }
+    return valor !== '0' && valor !== 'false' && valor !== 'no';
+  }
+  const arranqueAuto = retirarAutoDeLaUrl();
   // Encargo de un clic (catálogo o brief): la ficha con la que la pieza llega al Stock.
   function fichaActiva() {
-    if(productoCatalogo) return fichaProducto(productoCatalogo);
+    if(productoCatalogo) return fichaProducto(productoCatalogo, formatoActual);
     if(briefCampana) return fichaBrief(briefCampana);
     return null;
   }
@@ -693,12 +750,31 @@
         </div>
       </div>
       <dl class="catalog-product-data">${dl}</dl>
-      <div class="catalog-product-actions">
+      <div class="catalog-product-actions${arranqueAuto ? ' is-auto' : ''}">
         <button class="button primary" id="generarAnuncioCatalogo" type="button">Generar anuncio</button>
-        <p class="composer-status" id="catalogProductStatus" role="status">Un clic: idea → vídeo de 15 s con Grok → publicación en el Stock con el precio${p.imagen ? ' y la foto real del producto' : ''} en pantalla.</p>
+        <fieldset class="formato-anuncio" id="formatoAnuncio" aria-label="Formato del anuncio">
+          <legend>Formato</legend>
+          <label><input type="radio" name="formatoAnuncio" value="9:16"><i class="formato-icono v"></i> Vertical 9:16</label>
+          <label><input type="radio" name="formatoAnuncio" value="16:9"><i class="formato-icono h"></i> Horizontal 16:9</label>
+          <label><input type="radio" name="formatoAnuncio" value="ambos"><i class="formato-icono v"></i><i class="formato-icono h"></i> Las dos</label>
+        </fieldset>
+        <span class="estilo-folleto" title="Estética del folleto: fondo ${escapeHtml(p.estilo.fondo)}${p.estilo.colores.length ? ` · colores ${escapeHtml(p.estilo.colores.join(' '))}` : ''}"><i style="background:${escapeHtml(p.estilo.fondo)}"></i>${p.estilo.colores.slice(0, 3).map(c => `<i style="background:${escapeHtml(c)}"></i>`).join('')} estética del folleto${p.estilo.claro ? ' · clara' : ' · oscura'}</span>
+        <p class="composer-status" id="catalogProductStatus" role="status">${arranqueAuto ? 'Arranque automático desde el catálogo: ' : 'Un clic: '}idea → vídeo de 15 s con Grok (${escapeHtml(p.formatos.map(f => FORMATOS_ANUNCIO[f].nombre).join(' + '))}) → publicación en el Stock con el precio${p.imagen ? ' y la foto real del producto' : ''} en pantalla.</p>
       </div>`;
     adIdeaForm.parentNode.insertBefore(aside, adIdeaForm);
     $('#generarAnuncioCatalogo').addEventListener('click', () => { void generarAnuncioCatalogo(); });
+    // Selector de formato: refleja lo que decidió el catálogo y se puede cambiar
+    // antes de generar (durante el flujo queda bloqueado).
+    const valorFormato = p.formatos.length > 1 ? 'ambos' : p.formatos[0];
+    aside.querySelectorAll('input[name="formatoAnuncio"]').forEach(input => {
+      input.checked = input.value === valorFormato;
+      input.addEventListener('change', () => {
+        if(flujoCatalogo){ input.checked = false; aside.querySelector(`input[name="formatoAnuncio"][value="${p.formatos.length > 1 ? 'ambos' : p.formatos[0]}"]`).checked = true; return; }
+        p.formatos = input.value === 'ambos' ? ['9:16', '16:9'] : [input.value];
+        formatoActual = p.formatos[0];
+        setCatalogStatus(`Formato: ${p.formatos.map(f => FORMATOS_ANUNCIO[f].nombre).join(' + ')}. Pulsa «Generar anuncio».`);
+      });
+    });
     // La foto llega después que el storyboard: al cargar, se repintan los
     // fotogramas para que enseñen la tarjeta con el producto real.
     precargarImagenProducto(p, () => { if(plan) storyboard.replaceChildren(...plan.scenes.map((scene, i) => createStoryCard(scene, i, plan))); });
@@ -774,14 +850,28 @@
 
   // El mismo camino que ya existe, encadenado: director creativo → brief y
   // storyboard → Grok → (al publicarse) máster de 15 s con el precio encima.
+  // Prompt de Grok para el formato en curso, SIEMPRE desde la idea desarrollada
+  // del encargo (nunca de lo que haya en pantalla) y con la estética del folleto.
+  function prepararPromptEncargo(ad, formato) {
+    const brief = core.buildBriefFromAd(ad);
+    const planEncargo = core.buildPlan(productoCatalogo ? {...brief, formato, estilo:productoCatalogo.estilo} : {...brief, formato}, 0);
+    grokPrompt.value = core.clean(`${planEncargo.grokPrompt}${referenceProfile?.promptFragment ? `\n\n${referenceProfile.promptFragment}` : ''}`, 3200);
+    return grokPrompt.value.includes(core.clean(ad.idea, 180).slice(0, 40));
+  }
+  function textoVersiones() {
+    const hechas = (productoCatalogo ? productoCatalogo.formatos : [formatoActual]).length;
+    return hechas > 1 ? ` (versión ${dimensionesFormato().nombre}${colaFormatos.length ? `, luego ${colaFormatos.map(f => dimensionesFormato(f).nombre).join(' y ')}` : ''})` : ` (${dimensionesFormato().nombre})`;
+  }
   async function generarAnuncioCatalogo() {
     if(!(productoCatalogo || briefCampana) || flujoCatalogo) return;
     const button = $('#generarAnuncioCatalogo');
     flujoCatalogo = true;
     button.disabled = true;
+    colaFormatos = productoCatalogo ? [...productoCatalogo.formatos] : [FORMATOS_ANUNCIO[briefCampana.formato] ? briefCampana.formato : '9:16'];
+    formatoActual = colaFormatos.shift();
     try{
       if(!core.clean(adIdeaInput.value, 200)) adIdeaInput.value = productoCatalogo ? tituloProducto(productoCatalogo) : tituloBrief(briefCampana);
-      setCatalogStatus(productoCatalogo ? '1/3 · El director creativo escribe el guion con el precio literal…' : `1/3 · El director creativo escribe el guion para «${briefCampana.tipologia}»…`);
+      setCatalogStatus(productoCatalogo ? `1/3 · El director creativo escribe el guion con el precio literal y la estética del folleto${textoVersiones()}…` : `1/3 · El director creativo escribe el guion para «${briefCampana.tipologia}»…`);
       const ok = await developAdIdea();
       if(!ok) throw new Error(`El director creativo no devolvió la idea (${adIdeaStatus.textContent || 'sin detalle'}). No se genera nada: el vídeo debe salir de la idea desarrollada, nunca del ejemplo del estudio.`);
       const ad = buildAdFromForm();
@@ -794,17 +884,39 @@
       openAdIdea(ad, true);
       // El prompt de Grok se construye AQUÍ desde la idea desarrollada, no se
       // confía en lo que haya quedado en pantalla.
-      const planEncargo = core.buildPlan(core.buildBriefFromAd(ad), 0);
-      grokPrompt.value = core.clean(`${planEncargo.grokPrompt}${referenceProfile?.promptFragment ? `\n\n${referenceProfile.promptFragment}` : ''}`, 3200);
-      if(!grokPrompt.value.includes(core.clean(ad.idea, 180).slice(0, 40))) throw new Error('El prompt de Grok no salió de la idea desarrollada. No se genera nada.');
-      setCatalogStatus('2/3 · Grok genera el vídeo de 15 s…');
+      if(!prepararPromptEncargo(ad, formatoActual)) throw new Error('El prompt de Grok no salió de la idea desarrollada. No se genera nada.');
+      setCatalogStatus(`2/3 · Grok genera el vídeo de 15 s${textoVersiones()}…`);
       const enviado = await startGrokVideo();
       if(!enviado) throw new Error(grokJobDetail.textContent || 'Grok no aceptó el encargo.');
-      setCatalogStatus('2/3 · Grok está generando. Al terminar se publica y se monta el máster con el precio en pantalla.', 'success');
+      setCatalogStatus(`2/3 · Grok está generando${textoVersiones()}. Al terminar se publica y se monta el máster con el precio en pantalla.`, 'success');
     }catch(error){
       flujoCatalogo = false;
+      colaFormatos = [];
       button.disabled = false;
       setCatalogStatus(String(error?.message || 'No se pudo generar el anuncio.'), 'error');
+    }
+  }
+  // Siguiente versión de la cola («las dos»): misma idea, otro formato. Se llama
+  // al publicar con éxito la anterior; si falla, la cola se vacía y se avisa.
+  async function siguienteVersion() {
+    if(!colaFormatos.length || !ideaEncargo) return false;
+    formatoActual = colaFormatos.shift();
+    flujoCatalogo = true;
+    const button = $('#generarAnuncioCatalogo');
+    if(button) button.disabled = true;
+    try{
+      if(!prepararPromptEncargo(ideaEncargo, formatoActual)) throw new Error('El prompt de la siguiente versión no salió de la idea desarrollada.');
+      setCatalogStatus(`Versión ${dimensionesFormato().nombre}: Grok genera el vídeo de 15 s con la misma idea…`);
+      const enviado = await startGrokVideo();
+      if(!enviado) throw new Error(grokJobDetail.textContent || 'Grok no aceptó la siguiente versión.');
+      setCatalogStatus(`Versión ${dimensionesFormato().nombre}: Grok está generando. Al terminar se publica como pieza propia en el Stock.`, 'success');
+      return true;
+    }catch(error){
+      flujoCatalogo = false;
+      colaFormatos = [];
+      if(button) button.disabled = false;
+      setCatalogStatus(`La versión ${dimensionesFormato().nombre} no arrancó: ${String(error?.message || 'sin detalle')}. La anterior ya está publicada; cambia el formato y vuelve a pulsar «Generar anuncio» para esta.`, 'error');
+      return false;
     }
   }
 
@@ -841,7 +953,7 @@
   }
   async function abrirSesionConPase() {
     const pase = retirarPaseDeLaUrl();
-    if(!pase) return false;
+    if(!pase) return 'sin-pase';
     const encargo = encargoActivo();
     avisoSesion('Abriendo sesión desde admira.tv…');
     try{
@@ -861,7 +973,7 @@
       grokAccess.hidden = true;
       const quien = payload.email_masked ? ` · ${payload.email_masked}` : '';
       avisoSesion(encargo
-        ? `Sesión abierta desde admira.tv${quien}. Pulsa «Generar anuncio»: idea → vídeo de 15 s con Grok → publicación en el Stock.`
+        ? (arranqueAuto ? `Sesión abierta desde admira.tv${quien}. Arrancando solo: idea → vídeo de 15 s con Grok → publicación en el Stock.` : `Sesión abierta desde admira.tv${quien}. Pulsa «Generar anuncio»: idea → vídeo de 15 s con Grok → publicación en el Stock.`)
         : `Sesión abierta desde admira.tv${quien}. Ya puedes desarrollar ideas y usar Grok.`, 'success');
       return true;
     }catch(error){
@@ -873,6 +985,14 @@
 
   function terminarFlujoCatalogo(message, state) {
     flujoCatalogo = false;
+    // Publicada una versión y quedan formatos en cola: se encadena la siguiente
+    // sin tocar nada (el aviso de la publicada se enseña un instante).
+    if(state === 'success' && colaFormatos.length){
+      setCatalogStatus(`${message} Ahora la versión ${dimensionesFormato(colaFormatos[0]).nombre}…`, 'success');
+      window.setTimeout(() => { void siguienteVersion(); }, 1200);
+      return;
+    }
+    colaFormatos = [];
     const button = $('#generarAnuncioCatalogo');
     if(button) button.disabled = false;
     setCatalogStatus(message, state);
@@ -1736,7 +1856,7 @@
       metaStatus.textContent = 'Escribe antes el prompt: es lo que se copia.';
       return;
     }
-    const paraMeta = prompt + '\n\n' + META_FORMATO;
+    const paraMeta = prompt + '\n\n' + (encargoActivo() && formatoActual === '16:9' ? 'Formato: vídeo horizontal 16:9, 15 segundos, sin texto sobreimpreso.' : META_FORMATO);
     let copiado = false;
     try{ await navigator.clipboard.writeText(paraMeta); copiado = true; }catch(_){ copiado = false; }
     metaStatus.textContent = copiado
@@ -1939,20 +2059,25 @@
     grokVideo.load();
     grokVideo.hidden = true;
     stage.hidden = false;
-    setGrokJob('Enviando a Grok', 4, 'Crearemos una secuencia original de 15 segundos en formato 9:16.');
+    const formatoEnvio = encargoActivo() ? formatoActual : '9:16';
+    setGrokJob('Enviando a Grok', 4, `Crearemos una secuencia original de 15 segundos en formato ${dimensionesFormato(formatoEnvio).nombre}.`);
     const clientRequestId = crypto.randomUUID();
     try{
+      const ficha = fichaActiva();
       const response = await fetch('/presentaciones/api/grok-video', {
         method:'POST',
         credentials:'same-origin',
         headers:{'content-type':'application/json', accept:'application/json'},
-        body:JSON.stringify(fichaActiva()
-          ? {prompt, resolution:grokResolution.value, clientRequestId, ficha:fichaActiva(), ...(productoCatalogo?.imagen ? {imagen:productoCatalogo.imagen} : {})}
-          : {prompt, resolution:grokResolution.value, clientRequestId})
+        body:JSON.stringify(ficha
+          ? {prompt, resolution:grokResolution.value, clientRequestId, formato:formatoEnvio, ficha, ...(productoCatalogo?.imagen ? {imagen:productoCatalogo.imagen} : {})}
+          : {prompt, resolution:grokResolution.value, clientRequestId, formato:formatoEnvio})
       });
       const payload = await readApiResponse(response);
       grokRequestId = payload.requestId;
-      saveGrokJob({requestId:payload.requestId, startedAt:Date.now(), prompt, resolution:grokResolution.value});
+      // El trabajo se guarda con su identidad y formato: al recargar solo se
+      // retoma si es de ESTE encargo (con «Crear vídeo de todos» hay varias
+      // pestañas a la vez y cada una debe seguir el suyo).
+      saveGrokJob({requestId:payload.requestId, startedAt:Date.now(), prompt, resolution:grokResolution.value, formato:formatoEnvio, externalId:ficha?.externalId || '', cola:[...colaFormatos], flujo:flujoCatalogo});
       setGrokJob('Solicitud aceptada', 8, 'Grok ha recibido el encargo. Esperando los primeros fotogramas…');
       scheduleGrokPoll(payload.requestId, 2500);
       return true;
@@ -2156,7 +2281,7 @@
   function drawBriefOverlay(ctx, b, seconds = 0) {
     const width = ctx.canvas.width;
     const height = ctx.canvas.height;
-    const k = width / 1080;
+    const k = Math.min(width, height) / 1080;
     const m = 74 * k;
     ctx.save();
     ctx.globalAlpha = Math.min(1, Math.max(0, seconds / 0.6));
@@ -2244,7 +2369,10 @@
   // llama y el overlay es el de siempre.
   function drawTarjetaProducto(ctx, p, foto, seconds, k, zona) {
     const width = ctx.canvas.width;
-    const maxW = Math.min(720 * k, width - 148 * k);
+    // Zona horizontal opcional (máster 16:9): la tarjeta se centra en ella.
+    const left = zona.left != null ? zona.left : 74 * k;
+    const right = zona.right != null ? zona.right : width - 74 * k;
+    const maxW = Math.min(720 * k, right - left);
     const maxH = Math.max(320 * k, zona.bottom - zona.top - 80 * k);
     const marco = 26 * k;
     const ratio = (foto.naturalWidth || 1) / (foto.naturalHeight || 1);
@@ -2253,7 +2381,7 @@
     const cardW = imgW + 2 * marco, cardH = imgH + 2 * marco;
     const entrada = Math.min(1, Math.max(0, seconds / 0.4));
     const esc = 0.9 + 0.1 * (1 - Math.pow(1 - entrada, 3));
-    const cx = width / 2 - 24 * k;
+    const cx = (left + right) / 2 - 24 * k;
     const cy = zona.top + (zona.bottom - zona.top) / 2 - 24 * k + Math.sin(seconds * 1.7) * 7 * k;
     ctx.save();
     ctx.globalAlpha = Math.min(1, 0.4 + entrada);
@@ -2282,64 +2410,93 @@
   function drawPrecioOverlay(ctx, p, seconds = 0) {
     const width = ctx.canvas.width;
     const height = ctx.canvas.height;
-    const k = width / 1080;
+    // Formato (FLT-100372): en horizontal el nombre va arriba a la izquierda y
+    // la tarjeta con la foto a la derecha; la escala sale del lado corto para
+    // que el rótulo pese lo mismo en 1080×1920 que en 1920×1080.
+    const horizontal = width > height;
+    const k = Math.min(width, height) / 1080;
     const m = 74 * k;
+    // Estética del folleto (FLT-100372): con folleto claro, caja blanca con la
+    // tinta y el acento de la marca; con folleto oscuro, la caja oscura de antes.
+    const e = p.estilo || leerEstilo(null);
+    const claro = e.claro;
+    const acento = e.acento;
     ctx.save();
     ctx.textBaseline = 'alphabetic';
 
-    // Nombre del producto, arriba.
+    // Nombre del producto, arriba (en horizontal, la mitad izquierda).
+    const cajaX = m;
+    const cajaY = horizontal ? 64 * k : 110 * k;
+    const cajaW = horizontal ? Math.round(width * 0.5) : width - 2 * m;
     ctx.font = `900 ${Math.round(54 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-    const nombre = wrapLines(ctx, p.nombre.toUpperCase(), width - 2 * m - 48 * k, 2);
+    const nombre = wrapLines(ctx, p.nombre.toUpperCase(), cajaW - 48 * k, 2);
     const marcaAlto = p.marca ? 30 : 0;
     const nombreAlto = (nombre.length * 62 + 44 + marcaAlto) * k;
-    roundedRect(ctx, m, 110 * k, width - 2 * m, nombreAlto, 14 * k);
-    ctx.fillStyle = 'rgba(5,9,13,0.82)';
+    roundedRect(ctx, cajaX, cajaY, cajaW, nombreAlto, 14 * k);
+    ctx.fillStyle = claro ? 'rgba(255,255,255,0.94)' : 'rgba(5,9,13,0.82)';
     ctx.fill();
-    ctx.strokeStyle = '#ffe600';
+    ctx.strokeStyle = claro ? acento : '#ffe600';
     ctx.lineWidth = 4 * k;
     ctx.stroke();
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = claro ? e.tinta : '#ffffff';
     ctx.textAlign = 'left';
-    nombre.forEach((line, i) => ctx.fillText(line, m + 24 * k, (110 + 30 + 52 + marcaAlto + i * 62) * k));
+    nombre.forEach((line, i) => ctx.fillText(line, cajaX + 24 * k, cajaY + (30 + 52 + marcaAlto + i * 62) * k));
     if(p.marca){
       ctx.font = `800 ${Math.round(24 * k)}px ui-monospace, monospace`;
-      ctx.fillStyle = '#ffe600';
-      ctx.fillText(p.marca.toUpperCase(), m + 24 * k, (110 + 40) * k);
+      ctx.fillStyle = claro ? acento : '#ffe600';
+      ctx.fillText(p.marca.toUpperCase(), cajaX + 24 * k, cajaY + 40 * k);
     }
 
-    // Con la foto real cargada: tarjeta estilo folleto en el centro con la
-    // etiqueta solapando su esquina; sin foto, la etiqueta amarilla de siempre.
+    // Con la foto real cargada: tarjeta estilo folleto con la etiqueta solapando
+    // su esquina; sin foto, la etiqueta amarilla de siempre.
     const foto = imagenLista(imagenProducto) ? imagenProducto : null;
-    if(foto){
+    const pulso = 1 + Math.sin(seconds * 2.2) * 0.018;
+    const tagW = 470 * k, tagH = 330 * k;
+    if(horizontal){
+      const zona = {top:48 * k, bottom:height - 48 * k, left:width * 0.54, right:width - m};
+      if(foto) drawTarjetaProducto(ctx, p, foto, seconds, k, zona);
+      else drawEtiquetaPrecio(ctx, p, k, {cx:(zona.left + zona.right) / 2, cy:height / 2, w:tagW, h:tagH, rot:-0.07, scale:pulso, f:1});
+    }else if(foto){
       drawTarjetaProducto(ctx, p, foto, seconds, k, {top:110 * k + nombreAlto + 36 * k, bottom:height - (p.precio != null && p.promo ? 330 : 250) * k});
     }else{
       // Etiqueta amarilla del precio, abajo a la izquierda, con un latido suave.
-      const pulso = 1 + Math.sin(seconds * 2.2) * 0.018;
-      const tagW = 470 * k, tagH = 330 * k;
       drawEtiquetaPrecio(ctx, p, k, {cx:m + tagW / 2, cy:height - 660 * k + tagH / 2, w:tagW, h:tagH, rot:-0.07, scale:pulso, f:1});
     }
 
-    // Promo corta bajo la etiqueta (cuando además hay precio).
+    // Promo corta (cuando además hay precio): bajo la etiqueta en vertical,
+    // bajo el nombre en horizontal.
     if(p.precio != null && p.promo){
       ctx.font = `800 ${Math.round(30 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-      ctx.fillStyle = '#ffe600';
+      ctx.fillStyle = claro ? acento : '#ffe600';
       ctx.textAlign = 'left';
-      wrapLines(ctx, p.promo, width - 2 * m, 2).forEach((line, i) => ctx.fillText(line, m, height - 300 * k + i * 38 * k));
+      const promoY = horizontal ? cajaY + nombreAlto + 52 * k : height - 300 * k;
+      const lineas = wrapLines(ctx, p.promo, horizontal ? cajaW : width - 2 * m, 2);
+      if(horizontal && claro){
+        // Fondo claro bajo la promo para que se lea sobre cualquier vídeo.
+        const promoH = (lineas.length * 38 + 26) * k;
+        roundedRect(ctx, cajaX, promoY - 32 * k, cajaW, promoH, 10 * k);
+        ctx.fillStyle = 'rgba(255,255,255,0.86)';
+        ctx.fill();
+        ctx.fillStyle = acento;
+      }
+      lineas.forEach((line, i) => ctx.fillText(line, cajaX + (horizontal ? 24 * k : 0), promoY + i * 38 * k));
     }
 
-    // Sello de validez, abajo y centrado.
+    // Sello de validez: abajo y centrado (vertical) o abajo a la izquierda (horizontal).
     if(p.validezSello){
       ctx.font = `900 ${Math.round(38 * k)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
       const selloTexto = p.validezSello.toUpperCase();
-      const selloW = Math.min(width - 2 * m, ctx.measureText(selloTexto).width + 64 * k);
+      const anchoMax = horizontal ? cajaW : width - 2 * m;
+      const selloW = Math.min(anchoMax, ctx.measureText(selloTexto).width + 64 * k);
       const selloH = 72 * k;
-      const selloX = (width - selloW) / 2, selloY = height - 215 * k;
+      const selloX = horizontal ? cajaX : (width - selloW) / 2;
+      const selloY = horizontal ? height - 64 * k - selloH : height - 215 * k;
       roundedRect(ctx, selloX, selloY, selloW, selloH, selloH / 2);
-      ctx.fillStyle = '#e3000f';
+      ctx.fillStyle = claro ? acento : '#e3000f';
       ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
-      ctx.fillText(selloTexto, width / 2, selloY + 50 * k);
+      ctx.fillText(selloTexto, selloX + selloW / 2, selloY + 50 * k);
     }
     ctx.restore();
   }
@@ -2363,11 +2520,13 @@
   // siembra el canvas antes de captureStream(), y era lo que el catálogo de
   // admira.tv enseñaba en negro con el «Langostino cocido».
   // Sin validador cargado no se publica: la regla es «prueba antes de publicar».
-  async function validarMaster(blob, duracionEsperada){
+  async function validarMaster(blob, duracionEsperada, dimensiones){
     const V = window.AdmiraValidacionVideo;
     if(!V) return {validacion:{ok:false, negros:0, muestras:0, duracion:null, motivo:'validador de vídeo no cargado (assets/tiktok-validacion.js)'}, poster:null, posterT:null, muestras:[]};
     try{
-      return await V.muestrearVideo(blob, {duracionEsperada, muestras:12});
+      // Póster con la orientación del máster: 540×960 en vertical, 960×540 en horizontal.
+      const horizontal = dimensiones && dimensiones.w > dimensiones.h;
+      return await V.muestrearVideo(blob, {duracionEsperada, muestras:12, posterW:horizontal ? 960 : 540, posterH:horizontal ? 540 : 960});
     }catch(error){
       return {validacion:{ok:false, negros:0, muestras:0, duracion:null, motivo:`no se pudo analizar el máster (${error?.message || error})`}, poster:null, posterT:null, muestras:[]};
     }
@@ -2552,13 +2711,16 @@
     if(packageTags) packageTags.hidden = true;
     packageProgress.hidden = false;
     packageProgress.firstElementChild.style.width = '0%';
-    packageStatus.textContent = 'Preparando el master vertical…';
+    // Lienzo del máster según el formato del encargo (FLT-100372): 1080×1920
+    // (vertical, el de siempre) o 1920×1080 (horizontal). Sin encargo, vertical.
+    const dimensiones = encargoActivo() ? dimensionesFormato() : FORMATOS_ANUNCIO['9:16'];
+    packageStatus.textContent = `Preparando el master ${dimensiones.nombre}…`;
     const before = preRollEnabled.checked ? 5 : 0;
     const after = postRollEnabled.checked ? 5 : 0;
     const totalDuration = before + 15 + after;
     const canvas = document.createElement('canvas');
-    canvas.width = 1080;
-    canvas.height = 1920;
+    canvas.width = dimensiones.w;
+    canvas.height = dimensiones.h;
     const ctx = canvas.getContext('2d', {alpha:false});
     // Seed the canvas before captureStream(). Chrome can otherwise anchor the
     // first encoded video timestamp when the 15s source begins playing and
@@ -2650,7 +2812,7 @@
       if(blob.size < 1024) throw new Error('El master final quedó vacío. Vuelve a intentarlo.');
       packageStatus.textContent = 'Validando el máster (fotogramas, luma, duración)…';
       packageProgress.firstElementChild.style.width = '91%';
-      const analisis = await validarMaster(blob, totalDuration);
+      const analisis = await validarMaster(blob, totalDuration, dimensiones);
       if(!analisis.validacion.ok){
         registrarMasterInvalido(analisis, totalDuration);
         packageStatus.textContent = `${analisis.validacion.motivo}. No se ha publicado nada: pulsa «Rehacer montaje».`;
@@ -2663,7 +2825,7 @@
       if(packageBlobUrl) URL.revokeObjectURL(packageBlobUrl);
       packageBlobUrl = URL.createObjectURL(blob);
       downloadGrokPackage.href = packageBlobUrl;
-      downloadGrokPackage.download = `${core.fileSlug(plan.brief.task)}-${totalDuration}s.${extension}`;
+      downloadGrokPackage.download = `${core.fileSlug(plan.brief.task)}-${totalDuration}s${dimensiones.w > dimensiones.h ? '-16x9' : ''}.${extension}`;
       downloadGrokPackage.hidden = false;
       packageStatus.textContent = 'Montaje terminado. Subiendo el master final y publicándolo en Pixeria…';
       packageProgress.firstElementChild.style.width = '94%';
@@ -2694,7 +2856,7 @@
       packageId = payload.id || '';
       if(payload.pixeria?.status === 'published'){
         finishPackagePublication(payload);
-        if(flujoCatalogo) terminarFlujoCatalogo(productoCatalogo ? 'Anuncio publicado en el Stock con el precio en pantalla. Ya puedes volver al catálogo.' : `Anuncio publicado en el Stock como «${briefCampana?.externalId || 'brief'}». El player lo engancha por esa identidad.`, 'success');
+        if(flujoCatalogo) terminarFlujoCatalogo(productoCatalogo ? `Anuncio ${dimensiones.nombre} publicado en el Stock con el precio en pantalla.${colaFormatos.length ? '' : ' Ya puedes volver al catálogo.'}` : `Anuncio publicado en el Stock como «${briefCampana?.externalId || 'brief'}». El player lo engancha por esa identidad.`, 'success');
       }else{
         packageStatus.textContent = payload.pixeria?.error || 'El master está guardado en ADmiraNeXT, pero Pixeria todavía no lo ha incorporado.';
         composeGrokPackage.textContent = 'Reintentar Pixeria';
@@ -2866,20 +3028,35 @@
   generate();
   renderFichaProducto();
   renderFichaBrief();
-  void abrirSesionConPase();
   setProductionMode(selectedProductionMode());
+  // Un trabajo pendiente solo se retoma si es de este mismo encargo (o no hay
+  // encargo): otra pestaña con otro producto tiene el suyo y no se pisan.
   const pendingGrokJob = loadGrokJob();
-  if(pendingGrokJob){
+  const fichaAlCargar = fichaActiva();
+  const retomable = pendingGrokJob && (!fichaAlCargar || !pendingGrokJob.externalId || (fichaAlCargar.externalId === pendingGrokJob.externalId || String(pendingGrokJob.externalId).startsWith(`${fichaAlCargar.externalId.replace(/:16x9$/, '')}`)));
+  if(retomable){
     grokRequestId = pendingGrokJob.requestId;
     const grokMode = modeInputs.find((input) => input.value === 'grok');
     if(grokMode) grokMode.checked = true;
     if(typeof pendingGrokJob.prompt === 'string') grokPrompt.value = pendingGrokJob.prompt;
     if(['480p','720p','1080p'].includes(pendingGrokJob.resolution)) grokResolution.value = pendingGrokJob.resolution;
+    if(FORMATOS_ANUNCIO[pendingGrokJob.formato]) formatoActual = pendingGrokJob.formato;
+    if(Array.isArray(pendingGrokJob.cola)) colaFormatos = pendingGrokJob.cola.filter(f => FORMATOS_ANUNCIO[f]);
     setProductionMode('grok');
     generateGrokButton.disabled = true;
     setGrokJob('Recuperando generación', 8, 'Retomando el seguimiento del vídeo iniciado anteriormente…');
     scheduleGrokPoll(pendingGrokJob.requestId, 500);
   }
+  // Arranque automático desde el catálogo (FLT-100372): con la sesión abierta
+  // por el pase (o sin pase, si ya había sesión), el flujo de un clic arranca
+  // solo. Si el pase falló, se queda el aviso con el enlace de login y NO se
+  // encarga nada. Si ya se está retomando un trabajo de este encargo, tampoco.
+  void abrirSesionConPase().then(resultado => {
+    if(!arranqueAuto || !encargoActivo()) return;
+    if(resultado === false) return;
+    if(retomable){ setCatalogStatus('Este anuncio ya se estaba generando: se retoma donde estaba.'); return; }
+    window.setTimeout(() => { void generarAnuncioCatalogo(); }, 400);
+  });
   animationFrame = requestAnimationFrame(tick);
 
   const requestedSource = new URLSearchParams(window.location.search).get('source');

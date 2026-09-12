@@ -183,15 +183,33 @@
       sourceKeyPoints.length ? `Key source points: ${sourceKeyPoints.slice(0, 3).map(item => clean(item, 160)).join(' | ')}.` : '',
       'Preserve the meaning of these facts and do not add claims that are absent from the source.'
     ].filter(Boolean).join(' ') : '';
+    // Formato y estética (FLT-100372): el encargo de catálogo puede pedir
+    // horizontal 16:9 y trae la estética del folleto (fondo claro, paleta),
+    // que sustituye a la paleta oscura/cian de la casa para que el vídeo se
+    // parezca al catálogo y no al estudio. Sin encargo, todo sigue igual.
+    const formato = data.formato === '16:9' ? '16:9' : '9:16';
+    const estilo = data.estilo && typeof data.estilo === 'object' ? data.estilo : null;
+    const fraseFormato = formato === '16:9'
+      ? 'Create one original, cinematic horizontal video in a 16:9 aspect ratio, exactly 15 seconds long.'
+      : 'Create one original, cinematic vertical social video in a 9:16 aspect ratio, exactly 15 seconds long.';
+    const colores = estilo && Array.isArray(estilo.colores) ? estilo.colores.filter(c => /^#[0-9a-f]{6}$/i.test(String(c))).slice(0, 4) : [];
+    const frasePaleta = estilo
+      ? (estilo.claro !== false
+        ? `Brand continuity with the printed catalogue is mandatory: bright, clean, daylight scene on a light ${estilo.fondo ? `${estilo.fondo} ` : 'white '}background, soft natural shadows, fresh supermarket-flyer look, high-key lighting${colores.length ? `, brand accent colours ${colores.join(', ')}` : ''}. Never dark, never night, never neon, never sci-fi.`
+        : `Brand continuity with the printed catalogue is mandatory: dark ${estilo.fondo || ''} background with clean high contrast${colores.length ? ` and brand accent colours ${colores.join(', ')}` : ''}.`)
+      : 'Make it one coherent continuous sequence with confident camera movement, premium futuristic production design, strong depth, and a precise dark technical palette with cyan light and one warm orange accent.';
+    const fraseGuia = estilo
+      ? 'One coherent continuous sequence with confident camera movement; the real product is the protagonist, shown appetising and true to life; no robot, no mascot, no characters that distract from the product.'
+      : `Use ${presenter.name} as a friendly compact geometric robot guide, expressive through motion and staging rather than dialogue or typography.`;
     const grokPrompt = clean([
-      'Create one original, cinematic vertical social video in a 9:16 aspect ratio, exactly 15 seconds long.',
+      fraseFormato,
       sourceDirection,
       `The visual story begins with the problem: ${task}.`,
       `It then reveals the solution through clear physical action: ${solution}.`,
       `Finish with the visible result: ${result}.`,
       `The intended audience is ${audience}.`,
-      `Use ${presenter.name} as a friendly compact geometric robot guide, expressive through motion and staging rather than dialogue or typography.`,
-      'Make it one coherent continuous sequence with confident camera movement, premium futuristic production design, strong depth, and a precise dark technical palette with cyan light and one warm orange accent.',
+      fraseGuia,
+      frasePaleta,
       'PURE VIDEO CONTRACT: no visible text, no captions, no subtitles, no letters, no numbers, no logos, no watermarks, no social-network interface, and no trademarked products. Do not imitate a named artist, film, studio, campaign, character, or existing artwork. Avoid identifiable real people. Keep the action legible without words and suitable for commercial human review.'
     ].join(' '), 3000);
 
@@ -199,7 +217,8 @@
       version: 'admiranext-tiktok-plan-v1',
       generatedAt: new Date().toISOString(),
       duration: 15,
-      format: { width: 1080, height: 1920, aspectRatio: '9:16', fps: 30 },
+      format: formato === '16:9' ? { width: 1920, height: 1080, aspectRatio: '16:9', fps: 30 } : { width: 1080, height: 1920, aspectRatio: '9:16', fps: 30 },
+      estilo,
       variation: variant,
       presenter: { key: presenterKey, name: presenter.name, direction: presenter.character },
       brief: { task, solution, result, audience, cta, tone },

@@ -937,3 +937,16 @@ footer {
 /* Miniatura real del producto del folleto en la ficha (FLT-100318). */
 .catalog-product-figure { margin: 0; flex: 0 0 auto; width: 7.5rem; height: 7.5rem; padding: 0.35rem; border-radius: 12px; background: #fff; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35); }
 .catalog-product-figure img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+
+/* Formato del anuncio (FLT-100372): vertical 9:16 · horizontal 16:9 · las dos. En la ficha del encargo. */
+.formato-anuncio { display: inline-flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin: 0; padding: 0; border: 0; }
+.formato-anuncio legend { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0; margin-right: 0.35rem; float: left; }
+.formato-anuncio label { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.7rem; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 0.85rem; cursor: pointer; color: var(--ink); background: rgba(255, 255, 255, 0.03); }
+.formato-anuncio label:has(input:checked) { border-color: var(--cyan); background: var(--dark-cyan); color: var(--cyan); }
+.formato-anuncio input { accent-color: var(--cyan); margin: 0; }
+.formato-anuncio .formato-icono { display: inline-block; border: 2px solid currentColor; border-radius: 2px; }
+.formato-anuncio .formato-icono.v { width: 0.55rem; height: 0.95rem; }
+.formato-anuncio .formato-icono.h { width: 0.95rem; height: 0.55rem; }
+.catalog-product-actions.is-auto .button.primary { opacity: 0.55; }
+.estilo-folleto { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.estilo-folleto i { display: inline-block; width: 0.9rem; height: 0.9rem; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.25); }
