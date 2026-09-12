@@ -133,6 +133,9 @@ async function publishToPixeria(context, state){
     // segmenta por etiquetas (?tag=tiktok,vertical) y así el MUPI vertical del
     // Xtanco emite estas piezas en 9:16 nativo en vez de recortar un horizontal.
     tags:state.ficha?.tags || ['tiktok', 'vertical', 'anuncio', '25s'],
+    // Pieza de catálogo (Yokup #3183): meta con la que el Stock de Pixeria la
+    // agrupa en la opción «Catálogo» y la asigna a players. Sin catálogo no va.
+    ...(state.ficha?.catalogo ? {catalogo:state.ficha.catalogo} : {}),
     quality:'best',
     // sha256 del máster: el Stock deduplica por contenido sin bajar nada.
     ...(state.contentHash ? {contentHash:state.contentHash} : {})

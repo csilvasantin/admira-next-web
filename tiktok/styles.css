@@ -736,6 +736,7 @@ body[data-production-mode="grok"] .timecode{grid-column:1 / -1}
 .grok-job p { margin: 0.7rem 0 0; }
 .grok-result-actions { gap: 0.65rem; margin-top: 0.8rem; }
 .package-output { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; margin-top: 1rem; padding: 1rem; border: 1px solid rgba(189,134,255,0.48); background: rgba(189,134,255,0.055); }
+.package-output .package-tags { color: var(--green); word-break: break-word; }
 .package-output.is-published { border-color: rgba(95,224,145,0.55); background: rgba(95,224,145,0.055); }
 .package-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.55rem; }
 .package-progress { grid-column: 1 / -1; height: 7px; overflow: hidden; background: rgba(255,255,255,0.1); }

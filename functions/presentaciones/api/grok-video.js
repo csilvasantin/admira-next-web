@@ -349,6 +349,9 @@ async function ensurePixeriaPublication(context, requestId, video, model, force 
     title:ficha.title,
     comment:ficha.comment,
     tags:ficha.tags,
+    // Pieza de catálogo (Yokup #3183): misma meta que el máster, para que el
+    // bruto —cuando sí va al Stock— caiga en la misma opción «Catálogo».
+    ...(ficha.catalogo ? {catalogo:ficha.catalogo} : {}),
     quality:'best',
     costEst:`xAI · ${String(model || 'Grok Imagine Video').slice(0, 56)}`,
     mime:'video/mp4',

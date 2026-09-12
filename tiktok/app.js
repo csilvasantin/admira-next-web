@@ -90,6 +90,8 @@
   const packageProgress = $('#packageProgress');
   const composeGrokPackage = $('#composeGrokPackage');
   const openPackageAsset = $('#openPackageAsset');
+  const openStockCatalogo = $('#openStockCatalogo');
+  const packageTags = $('#packageTags');
   const downloadGrokPackage = $('#downloadGrokPackage');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const STORAGE_KEY = 'admiranext:tiktok15:brief:v1';
@@ -171,14 +173,44 @@
   function tituloProducto(p) {
     return core.clean([p.nombre, p.precioTexto || p.promo, `${p.tienda}${p.validezCorta ? ` ${p.validezCorta}` : ''}`].join(' · '), 200);
   }
+  // Meta `catalogo` con la que la pieza llega al Stock (Yokup #3183, contrato
+  // fijo con el Worker de Pixeria): con ella el Stock agrupa las piezas en la
+  // opción «Catálogo» y las asigna a players. El cliente es lo que va antes del
+  // primer guion del id («alcampo-2026-09-10» → «alcampo»). Espejo de
+  // saneaCatalogo en functions/presentaciones/api/_ficha-video.mjs, que la
+  // vuelve a sanear en el servidor sin recalcular nada.
+  function catalogoStock(p) {
+    if(!p?.catalogo_id) return null;
+    return {
+      id:p.catalogo_id,
+      cliente:slugCatalogo(p.catalogo_id.split('-')[0]),
+      nombre:p.catalogo || '',
+      desde:p.validez ? p.validez.desde : '',
+      hasta:p.validez ? p.validez.hasta : '',
+      proyecto:'admira-tv',
+      producto:p.slug
+    };
+  }
+  // Las 7 etiquetas de una pieza de catálogo, en el orden del contrato: casa,
+  // 'catalogo', cliente, id del catálogo y mes «AAAA-MM» de inicio de validez.
+  function etiquetasCatalogo(c) {
+    if(!c) return ['admiranext', 'tiktok', 'vertical'];
+    return ['admiranext', 'tiktok', 'vertical', 'catalogo', c.cliente, c.id, c.desde ? c.desde.slice(0, 7) : ''].filter(Boolean);
+  }
+  // URL de la opción «Catálogo» del Stock de Pixeria para un catálogo concreto.
+  function urlStockCatalogo(c) {
+    return c?.id ? `https://www.pixeria.com/stock.html?catalogo=${encodeURIComponent(c.id)}` : '';
+  }
   // Ficha con la que la pieza llega al Stock. La clave externa es ESTABLE por
   // producto y catálogo: el Stock deriva de ella el id del asset, así que el
   // catálogo puede saber que ya existe (y dos clics no hacen dos piezas).
   function fichaProducto(p) {
+    const catalogo = catalogoStock(p);
     return {
       title:core.clean(`${p.nombre} · ${p.precio != null ? precioTexto(p.precio) : p.promo} · ${p.tienda}`, 200),
       comment:core.clean(`${p.catalogo || p.tienda}${p.p ? ` · página ${p.p}` : ''}${p.seccion ? ` · ${p.seccion}` : ''}. ${p.marca ? `${p.marca}. ` : ''}${p.detalle ? `${p.detalle}. ` : ''}${p.precioTexto ? `Precio ${p.precioTexto}. ` : ''}${p.promo ? `${p.promo}. ` : ''}${p.validezSello ? `${p.validezSello}. ` : ''}Generado desde ${p.origen || 'admira.tv/contentcatalogue'}.`, 1200),
-      tags:['admiranext', 'tiktok', 'vertical', 'catalogo', slugCatalogo(p.tienda), p.catalogo_id],
+      tags:etiquetasCatalogo(catalogo),
+      catalogo,
       externalId:`admiranext:catalogo:${p.catalogo_id}:${p.slug}`.replace(/[^A-Za-z0-9:_-]+/g, '-').slice(0, 120),
       // El bruto de Grok NO va al Stock: se retiene como fuente y solo sale el máster.
       brutoAlStock:false
@@ -1898,6 +1930,8 @@
     packageOutput.hidden = true;
     packageOutput.classList.remove('is-published');
     openPackageAsset.hidden = true;
+    if(openStockCatalogo) openStockCatalogo.hidden = true;
+    if(packageTags) packageTags.hidden = true;
     downloadGrokPackage.hidden = true;
     packageId = '';
     setPixeriaState('ready');
@@ -2408,6 +2442,19 @@
     packageStatus.textContent = `Master final de ${payload.duration || 25} segundos ${payload.pixeria?.reutilizado ? 'ya estaba en Pixeria (idéntico, no se ha duplicado)' : 'publicado en Pixeria'}${payload.pixeria?.id ? ` · ${payload.pixeria.id}` : ''}${payload.pixeria?.sustituye ? ' · sustituye a la pieza anterior con la misma identidad (sin duplicados)' : ''}.`;
     openPackageAsset.href = payload.pixeria?.stockUrl || 'https://www.pixeria.com/stock.html';
     openPackageAsset.hidden = false;
+    // Pieza de catálogo (Yokup #3183): se enseñan los hashtags con los que ha
+    // salido y el enlace a la opción «Catálogo» del Stock, que la agrupa con
+    // el resto de piezas del mismo folleto para asignarlas a players.
+    const ficha = fichaActiva();
+    const catalogo = ficha?.catalogo || null;
+    if(packageTags){
+      packageTags.textContent = ficha?.tags?.length ? `Publicado con ${ficha.tags.map(t => `#${t}`).join(' ')}` : '';
+      packageTags.hidden = !packageTags.textContent;
+    }
+    if(openStockCatalogo){
+      openStockCatalogo.href = urlStockCatalogo(catalogo) || '#';
+      openStockCatalogo.hidden = !catalogo;
+    }
     composeGrokPackage.textContent = 'Publicado en Pixeria';
     composeGrokPackage.disabled = true;
     packageProgress.hidden = false;
@@ -2469,6 +2516,8 @@
     }
     composeGrokPackage.disabled = true;
     openPackageAsset.hidden = true;
+    if(openStockCatalogo) openStockCatalogo.hidden = true;
+    if(packageTags) packageTags.hidden = true;
     packageProgress.hidden = false;
     packageProgress.firstElementChild.style.width = '0%';
     packageStatus.textContent = 'Preparando el master vertical…';
