@@ -15,7 +15,7 @@ import { generatorAccess, makeSessionToken } from '../presentaciones/_directory.
 import { bearerOf, tokenRow } from './_tokens.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.2.0' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.3.0' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -31,8 +31,8 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - Ayuda para humanos: ${SITE}/mcp/generador
 
 ## Tools
-- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes).
-- list_presentations — censo vivo de presentaciones (GET /presentaciones/api/clients): slug, nombre, web…
+- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo).
+- list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
 - create_presentation {displayName, website, problem, audience, …} — crea o mejora (overwrite:true)
@@ -48,11 +48,12 @@ El token hereda el rol del directorio: admin → todo; editor → crear, regener
 restaurar; viewer → solo listar y leer. Sin usuario activo o sin el proyecto
 «generador-de-presentaciones», el MCP responde 401.
 
-## Flujo típico de un consejero
-1. list_presentations → censo: ¿ya existe el cliente? (un cliente = un slug).
-2. create_presentation con nombre, web oficial, problema y audiencia. Si existe: overwrite:true para mejorar.
+## Flujo típico de un consejero (gesto catálogo)
+1. list_presentations (o get_catalog) → catálogo: ¿ya existe el cliente? (un cliente = un slug).
+2. Si existe: create_presentation / create_yokup_report con overwrite:true (Mejorar). Si no: crear con displayName + website.
 3. generation_status hasta que todos los entregables estén «done».
 4. presentation_urls → compartir la URL y la contraseña con el cliente.
+UI humana: /presentaciones/galeria (Registro vivo) y /presentaciones/?improve=<slug>.
 
 ## Flujo informe Yokup (norma 22)
 1. list_presentations → resuelve el slug del cliente (nunca yokup-flt-…).
@@ -73,7 +74,16 @@ const HELP_TOPICS = {
 - embeds: [{url,title}] webs que se muestran vivas dentro del deck (máx. 5, https).
 - beforeDeck / afterDeck: packs de list_decks. primaryColor / accentColor: hex.
 - slideMedia: array de medios por lámina (type video puede usar HTTPS flota admira.live /assets/…).`,
-  presentaciones: 'list_presentations es el censo vivo (GET /presentaciones/api/clients): slug, displayName, website, updatedAt, idiomas y entregables. get_presentation {client} devuelve el contenido vivo (content-data). La URL privada es /presentaciones/<slug>/ y pide la contraseña del cliente o una cuenta con acceso.',
+  presentaciones: 'list_presentations / get_catalog es el catálogo vivo (GET /presentaciones/api/clients): slug, displayName, website, languages, outputs, passwordSet, versionCount, createdAt, updatedAt. get_presentation {client} devuelve el contenido vivo (content-data). La URL privada es /presentaciones/<slug>/ y pide la contraseña del cliente o una cuenta con acceso. UI: /presentaciones/galeria.',
+  catalogo: `Catálogo = gesto principal (como el registro de proyectos del webmaster).
+list_presentations IS the catalog (alias get_catalog). Campos: slug, displayName, website, languages, outputs, passwordSet (sí/no, nunca la clave), versionCount, createdAt, updatedAt.
+Gesto del consejero:
+1. list_presentations / get_catalog → localiza el cliente.
+2. list_versions {client} si necesitas historial (también en la ficha del Registro vivo).
+3. create_presentation o create_yokup_report con overwrite:true para Mejorar in situ. Un cliente = un slug.
+4. presentation_urls → sala / versiones / portal.
+UI: /presentaciones/galeria (Registro vivo + ficha) · /presentaciones/?improve=<slug> (generador en modo Mejorar).
+No crees un slug nuevo por misión Yokup.`,
   versiones: 'Cada guardado o regeneración captura una versión. list_versions {client} las lista (id, motivo, fecha). restore_version {client,id} vuelve a esa versión y devuelve la lista actualizada.',
   permisos: 'El token va ligado a un usuario de /usuarios. admin → owner (todo), editor → crear/regenerar/restaurar, viewer → solo lectura. Revocar el token o dar de baja al usuario corta el acceso al instante.',
   informes: `create_yokup_report — informe vivo Yokup: mejora la presentación del cliente in situ (no crea un yokup-flt-… por misión).
@@ -96,8 +106,9 @@ Gesto: list_presentations → create_yokup_report(cliente=…) → sala ?quality
 };
 
 export const TOOLS = [
-  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes' } } } },
-  { name: 'list_presentations', description: 'Censo vivo de presentaciones (slug, displayName, website, updatedAt…). Consulta antes de crear o informar.', inputSchema: { type: 'object', properties: {} } },
+  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo' } } } },
+  { name: 'list_presentations', description: 'Catálogo / censo vivo (slug, displayName, website, languages, outputs, passwordSet, versionCount, updatedAt…). Consulta antes de crear o mejorar.', inputSchema: { type: 'object', properties: {} } },
+  { name: 'get_catalog', description: 'Alias de list_presentations: el catálogo es el gesto principal. Mismos campos.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_presentation', description: 'Contenido vivo de una presentación (láminas, idiomas, secuencia).', inputSchema: { type: 'object', properties: { client: { type: 'string', description: 'slug de la presentación' } }, required: ['client'] } },
   { name: 'create_presentation', description: 'Crea o mejora (overwrite:true) una presentación. Antes: list_presentations. Un cliente = un slug. Devuelve slug, contraseña y URLs.', inputSchema: { type: 'object', properties: {
@@ -121,7 +132,7 @@ export const TOOLS = [
   { name: 'presentation_urls', description: 'URLs de la presentación, la sala de presentación y el historial.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } }
 ];
 
-const READ_ONLY = new Set(['help', 'list_presentations', 'list_decks', 'get_presentation', 'generation_status', 'list_versions', 'presentation_urls']);
+const READ_ONLY = new Set(['help', 'list_presentations', 'get_catalog', 'list_decks', 'get_presentation', 'generation_status', 'list_versions', 'presentation_urls']);
 
 function slug(value){
   const s = String(value == null ? '' : value).trim().toLowerCase();
@@ -179,7 +190,8 @@ export async function callTool(ctx, name, args = {}){
       const tema = String(a.tema || '').toLowerCase().trim();
       return { help: tema && HELP_TOPICS[tema] ? HELP_TOPICS[tema] : HELP, temas: Object.keys(HELP_TOPICS), usuario: ctx.access.email, rol: ctx.access.level };
     }
-    case 'list_presentations': return callGenerator(ctx, 'GET', '/presentaciones/api/clients');
+    case 'list_presentations':
+    case 'get_catalog': return callGenerator(ctx, 'GET', '/presentaciones/api/clients');
     case 'list_decks': return callGenerator(ctx, 'GET', '/presentaciones/api/decks');
     case 'get_presentation': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/content-data`);
     case 'create_presentation': {

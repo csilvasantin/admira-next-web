@@ -106,6 +106,32 @@
   .registro .empty{padding:28px 14px;color:var(--dim);text-align:center;font:600 13px/1.5 var(--sans)}
   .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px 26px;justify-content:space-between;font:600 12px/1 var(--mono);color:var(--dim);letter-spacing:.04em}
   .foot a:hover{color:var(--brand)}
+
+  .registro-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px}
+  .registro-search{flex:1;min-width:220px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg2);color:var(--ink);font:600 13px/1 var(--sans)}
+  .registro-search:focus{outline:2px solid var(--brand);outline-offset:2px;border-color:var(--brand)}
+  .registro .outputs,.registro .langs{display:flex;flex-wrap:wrap;gap:5px}
+  .registro .pill{font:700 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:5px 8px}
+  .registro .pill.ok{color:var(--brand2);border-color:rgba(61,240,138,.35)}
+  .registro .pill.warn{color:#ffbf70;border-color:rgba(255,191,112,.4)}
+  .registro .links a.mejorar{color:#041014;background:var(--brand2);border-color:var(--brand2)}
+  .registro .links a.mejorar:hover{filter:brightness(1.08)}
+  .registro tr[data-slug]{cursor:pointer}
+  .registro tr.active td{background:rgba(101,233,244,.07)}
+  .ficha{margin-top:16px;padding:18px;border:1px solid var(--line);border-radius:var(--radius);background:rgba(5,9,13,.65)}
+  .ficha[hidden]{display:none!important}
+  .ficha-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .ficha-head h3{margin:0;font-size:18px}
+  .ficha-meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+  .ficha-actions{display:flex;flex-wrap:wrap;gap:8px}
+  .ficha-actions a,.ficha-actions button{font:700 11px/1 var(--mono);letter-spacing:.04em;color:var(--brand);border:1px solid var(--line);border-radius:999px;padding:9px 12px;background:transparent;cursor:pointer}
+  .ficha-actions a.mejorar,.ficha-actions button.mejorar{color:#041014;background:var(--brand2);border-color:var(--brand2)}
+  .ficha-versions{margin-top:8px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .ficha-versions table{width:100%;border-collapse:collapse;font-size:12px;min-width:0}
+  .ficha-versions th,.ficha-versions td{padding:9px 11px;border-top:1px solid rgba(23,49,59,.75);text-align:left;vertical-align:top}
+  .ficha-versions th{border-top:0;background:#0a141d;color:var(--dim);font:750 9px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+  .ficha .mut{color:var(--dim)}
+
   @media (max-width:760px){
     :root{--rail:0px;--topbar:58px}
     .app-shell{padding-left:0}.side-rail{display:none}.topbar{left:0;padding:0 14px}.brand-lockup small{display:none}
@@ -197,7 +223,7 @@
       <h2>Operación del sistema</h2>
       <p>Supervisa la publicación y abre las herramientas internas de la plataforma.</p>
       <div class="panel-actions">
-        <a class="panel-action" href="/presentaciones/">Nueva propuesta <output>↗</output></a>
+        <a class="panel-action" href="/presentaciones/galeria#registroVivo">Catálogo <output>↗</output></a>
         <a class="panel-action" href="/presentaciones/control/">Analítica <output>↗</output></a>
       </div>
     </section>
@@ -221,7 +247,7 @@
           ADmiraNeXT · Ecosistema comercial
         </div>
         <h1 id="pageTitle">Presentaciones</h1>
-        <p class="lead">El ecosistema Admira —Pixeria, admira.tv, XpaceOS y OmniPublicity— contado para cada cliente. Presentaciones en castellano, a pantalla completa desde el navegador.</p>
+        <p class="lead">Catálogo vivo del ecosistema Admira por cliente. Busca en el Registro, abre la ficha y <strong>Mejora</strong> in situ — un cliente = un slug.</p>
       </div>
       <div class="hero-stat" aria-label="Estado del repositorio">
         <strong id="presentationCount">5</strong>
@@ -262,10 +288,10 @@
       </a>
       <a class="card generator" href="/presentaciones/">
         <span class="badge">Herramienta interna</span>
-        <h2>Presentador de presentaciones</h2>
-        <p class="sub">Crea, configura y publica una presentación completa para cada cliente.</p>
-        <div class="meta"><span>Generar</span><span>ES · CA · EN</span><span>Good · Better · Best</span></div>
-        <span class="go">Abrir presentador <span class="ar">→</span></span>
+        <h2>Generador · elige del censo</h2>
+        <p class="sub">Mejora un cliente existente o crea uno nuevo. El catálogo es el gesto principal.</p>
+        <div class="meta"><span>Mejorar</span><span>ES · CA · EN</span><span>Good · Better · Best</span></div>
+        <span class="go">Abrir generador <span class="ar">→</span></span>
       </a>
       <a class="card caixa" href="/presentaciones/LaCaixa" data-created-at="2026-07-16T00:00:00Z">
         <span class="badge">CaixaBank</span>
@@ -293,22 +319,44 @@
     <section class="registro" id="registroVivo" aria-labelledby="registroVivoTitle">
       <div class="registro-head">
         <div>
-          <div class="eyebrow" style="margin-bottom:10px">Censo · API clients</div>
+          <div class="eyebrow" style="margin-bottom:10px">Catálogo · API clients</div>
           <h2 id="registroVivoTitle">Registro vivo</h2>
-          <p>Misma fuente que <code>list_presentations</code> (<code>GET /presentaciones/api/clients</code>). Un cliente = un slug: los informes Yokup mejoran aquí in situ, no crean un destino nuevo por misión.</p>
+          <p>El catálogo es el gesto principal: misma fuente que <code>list_presentations</code> / <code>get_catalog</code> (<code>GET /presentaciones/api/clients</code>). Un cliente = un slug. Busca, abre la ficha y <strong>Mejora</strong> in situ — no crees otro destino por misión.</p>
         </div>
         <div class="registro-meta"><strong id="registroCount">—</strong><span id="registroStamp">Cargando censo…</span></div>
+      </div>
+      <div class="registro-tools">
+        <input class="registro-search" id="registroSearch" type="search" placeholder="Buscar slug, cliente o web…" aria-label="Filtrar el catálogo">
+        <a href="/presentaciones/" class="pill ok" style="padding:10px 14px;font-size:10px;text-decoration:none">Abrir generador →</a>
       </div>
       <div class="registro-table-wrap">
         <table>
           <thead>
-            <tr><th>Slug</th><th>Cliente</th><th>Web</th><th>Actualizado</th><th>Enlaces</th></tr>
+            <tr><th>Slug</th><th>Cliente</th><th>Web</th><th>Idiomas</th><th>Entregables</th><th>Pass</th><th>Actualizado</th><th>Acciones</th></tr>
           </thead>
           <tbody id="registroRows">
-            <tr><td colspan="5" class="empty">Leyendo el censo del generador…</td></tr>
+            <tr><td colspan="8" class="empty">Leyendo el censo del generador…</td></tr>
           </tbody>
         </table>
       </div>
+      <aside class="ficha" id="clienteFicha" hidden aria-live="polite">
+        <div class="ficha-head">
+          <div>
+            <div class="eyebrow" style="margin-bottom:8px">Ficha de cliente</div>
+            <h3 id="fichaTitle">—</h3>
+            <p class="mut" id="fichaSlug" style="margin:6px 0 0"></p>
+          </div>
+          <button type="button" class="icon-button" id="fichaClose" aria-label="Cerrar ficha" title="Cerrar">×</button>
+        </div>
+        <div class="ficha-meta" id="fichaMeta"></div>
+        <div class="ficha-actions" id="fichaActions"></div>
+        <div class="ficha-versions">
+          <table>
+            <thead><tr><th>Versión</th><th>Motivo</th><th>Fecha</th><th>Idiomas</th></tr></thead>
+            <tbody id="fichaVersions"><tr><td colspan="4" class="empty mut">Elige una fila del catálogo…</td></tr></tbody>
+          </table>
+        </div>
+      </aside>
     </section>
 
     <p class="note">Consejo: pulsa <b>F</b> para pantalla completa · ← → para navegar · cambia al inglés desde el control superior derecho.</p>
@@ -483,23 +531,29 @@
     decks=cosechar();
     pintar();
 
-    /* Registro vivo + tarjetas generadas: misma API que list_presentations (censo). */
-    function pintarRegistro(clients, error){
+    /* Catálogo / Registro vivo: list_presentations = get_catalog. Ficha + Mejorar. */
+    var catalogClients=[];
+    function pintarRegistro(clients, error, query){
       var rows=document.getElementById('registroRows');
       var count=document.getElementById('registroCount');
       var stamp=document.getElementById('registroStamp');
       if(!rows)return;
       if(error){
-        rows.innerHTML='<tr><td colspan="5" class="empty">'+esc(error)+'</td></tr>';
+        rows.innerHTML='<tr><td colspan="8" class="empty">'+esc(error)+'</td></tr>';
         if(count)count.textContent='0';
         if(stamp)stamp.textContent='Sin censo';
         return;
       }
-      var list=clients||[];
-      if(count)count.textContent=String(list.length);
-      if(stamp)stamp.textContent=list.length?'Actualizado '+new Intl.DateTimeFormat('es-ES',{dateStyle:'short',timeStyle:'short'}).format(new Date()):'Censo vacío';
+      var q=String(query||'').trim().toLowerCase();
+      var list=(clients||[]).filter(function(c){
+        if(!q)return true;
+        var hay=[c.slug,c.displayName,c.website,(c.outputs||[]).join(' '),(c.languages||[]).join(' ')].join(' ').toLowerCase();
+        return hay.indexOf(q)>=0;
+      });
+      if(count)count.textContent=String((clients||[]).length)+(q?' · '+list.length+' filtrados':'');
+      if(stamp)stamp.textContent=(clients||[]).length?'Actualizado '+new Intl.DateTimeFormat('es-ES',{dateStyle:'short',timeStyle:'short'}).format(new Date()):'Censo vacío';
       if(!list.length){
-        rows.innerHTML='<tr><td colspan="5" class="empty">Aún no hay presentaciones en el generador. Crea la primera o mejora una existente vía MCP.</td></tr>';
+        rows.innerHTML='<tr><td colspan="8" class="empty">'+(q?'Ningún cliente coincide con «'+esc(q)+'».':'Aún no hay presentaciones en el generador. Crea la primera o mejora una existente vía MCP.')+'</td></tr>';
         return;
       }
       rows.innerHTML=list.map(function(c){
@@ -507,20 +561,100 @@
         var sala='/presentaciones/'+encodeURIComponent(slug)+'/presentacion';
         var vers='/presentaciones/'+encodeURIComponent(slug)+'/versiones';
         var portal='/presentaciones/'+encodeURIComponent(slug)+'/';
+        var mejorar='/presentaciones/?improve='+encodeURIComponent(slug);
         var web=c.website||'';
         var when=fecha(c.updatedAt||c.createdAt)||'—';
-        return '<tr>'+
-          '<td><span class="slug">'+esc(slug)+'</span></td>'+
+        var langs=(c.languages&&c.languages.length?c.languages:['es']).map(function(l){return '<span class="pill">'+esc(String(l).toUpperCase())+'</span>'}).join('');
+        var outs=(c.outputs&&c.outputs.length?c.outputs:[]).slice(0,6).map(function(o){return '<span class="pill">'+esc(o)+'</span>'}).join('')||'<span class="mut">—</span>';
+        var pass=c.passwordSet?'<span class="pill ok">Sí</span>':'<span class="pill warn">No</span>';
+        return '<tr data-slug="'+esc(slug)+'">'+
+          '<td><span class="slug">'+esc(slug)+'</span><div class="mut" style="margin-top:4px">'+esc(String(c.versionCount||0))+' vers.</div></td>'+
           '<td><b>'+esc(c.displayName||slug)+'</b></td>'+
-          '<td>'+(web?'<a href="'+esc(web)+'" rel="noopener" target="_blank">'+esc(web.replace(/^https?:\/\//i,''))+'</a>':'<span class="mut">—</span>')+'</td>'+
+          '<td>'+(web?'<a href="'+esc(web)+'" rel="noopener" target="_blank" onclick="event.stopPropagation()">'+esc(web.replace(/^https?:\/\//i,''))+'</a>':'<span class="mut">—</span>')+'</td>'+
+          '<td><div class="langs">'+langs+'</div></td>'+
+          '<td><div class="outputs">'+outs+'</div></td>'+
+          '<td>'+pass+'</td>'+
           '<td class="mut">'+esc(when)+'</td>'+
-          '<td><div class="links">'+
-            '<a href="'+esc(portal)+'">Portal</a>'+
+          '<td><div class="links" onclick="event.stopPropagation()">'+
+            '<a href="'+esc(mejorar)+'" class="mejorar">Mejorar</a>'+
             '<a href="'+esc(sala)+'">Sala</a>'+
             '<a href="'+esc(vers)+'">Versiones</a>'+
+            '<a href="'+esc(portal)+'">Abrir</a>'+
           '</div></td></tr>';
       }).join('');
     }
+
+    function cerrarFicha(){
+      var ficha=document.getElementById('clienteFicha');
+      if(ficha)ficha.hidden=true;
+      [].forEach.call(document.querySelectorAll('#registroRows tr.active'),function(tr){tr.classList.remove('active')});
+    }
+
+    function abrirFicha(slug){
+      var c=(catalogClients||[]).find(function(x){return x.slug===slug});
+      var ficha=document.getElementById('clienteFicha');
+      if(!c||!ficha)return;
+      [].forEach.call(document.querySelectorAll('#registroRows tr[data-slug]'),function(tr){
+        tr.classList.toggle('active',tr.getAttribute('data-slug')===slug);
+      });
+      document.getElementById('fichaTitle').textContent=c.displayName||slug;
+      document.getElementById('fichaSlug').textContent='/'+slug+'/ · '+(c.passwordSet?'contraseña configurada':'sin contraseña')+' · '+(c.versionCount||0)+' versiones';
+      var meta=document.getElementById('fichaMeta');
+      var pills=[];
+      (c.languages||[]).forEach(function(l){pills.push('<span class="pill">'+esc(String(l).toUpperCase())+'</span>')});
+      (c.outputs||[]).forEach(function(o){pills.push('<span class="pill">'+esc(o)+'</span>')});
+      if(c.website)pills.push('<span class="pill">'+esc(c.website.replace(/^https?:\/\//i,''))+'</span>');
+      meta.innerHTML=pills.join('')||'<span class="mut">Sin metadatos</span>';
+      var mejorar='/presentaciones/?improve='+encodeURIComponent(slug);
+      document.getElementById('fichaActions').innerHTML=
+        '<a class="mejorar" href="'+esc(mejorar)+'">Mejorar</a>'+
+        '<a href="/presentaciones/'+encodeURIComponent(slug)+'/presentacion">Abrir sala</a>'+
+        '<a href="/presentaciones/'+encodeURIComponent(slug)+'/versiones">Listar versiones</a>'+
+        '<a href="/presentaciones/'+encodeURIComponent(slug)+'/">Portal</a>'+
+        '<button type="button" id="fichaRefreshVersions">Recargar versiones</button>';
+      ficha.hidden=false;
+      cargarVersionesFicha(slug);
+      var btn=document.getElementById('fichaRefreshVersions');
+      if(btn)btn.onclick=function(){cargarVersionesFicha(slug)};
+    }
+
+    function cargarVersionesFicha(slug){
+      var body=document.getElementById('fichaVersions');
+      if(!body)return;
+      body.innerHTML='<tr><td colspan="4" class="empty mut">Cargando versiones…</td></tr>';
+      fetch('/presentaciones/'+encodeURIComponent(slug)+'/api/versions',{headers:{accept:'application/json'},cache:'no-store'})
+        .then(function(r){
+          if(r.status===401||r.status===403)throw new Error('La ficha pide sesión del generador.');
+          if(!r.ok)throw new Error('No se pudieron leer las versiones ('+r.status+').');
+          return r.json();
+        })
+        .then(function(data){
+          var versions=data.versions||[];
+          if(!versions.length){
+            body.innerHTML='<tr><td colspan="4" class="empty mut">Todavía no hay versiones registradas.</td></tr>';
+            return;
+          }
+          body.innerHTML=versions.slice(0,12).map(function(v,i){
+            return '<tr><td class="slug">'+(i===0?'actual · ':'')+esc((v.id||'').slice(0,18))+'</td>'+
+              '<td>'+esc(v.reason||'—')+'</td>'+
+              '<td class="mut">'+esc(fecha(v.createdAt)||'—')+'</td>'+
+              '<td class="mut">'+esc((v.languages||[]).join('/').toUpperCase()||'—')+'</td></tr>';
+          }).join('');
+        })
+        .catch(function(err){
+          body.innerHTML='<tr><td colspan="4" class="empty">'+esc(err&&err.message||'Error')+'</td></tr>';
+        });
+    }
+
+    var registroSearch=document.getElementById('registroSearch');
+    if(registroSearch)registroSearch.addEventListener('input',function(){pintarRegistro(catalogClients,null,registroSearch.value)});
+    var registroRows=document.getElementById('registroRows');
+    if(registroRows)registroRows.addEventListener('click',function(ev){
+      var tr=ev.target.closest('tr[data-slug]'); if(!tr)return;
+      abrirFicha(tr.getAttribute('data-slug'));
+    });
+    var fichaClose=document.getElementById('fichaClose');
+    if(fichaClose)fichaClose.addEventListener('click',cerrarFicha);
 
     fetch('/presentaciones/api/clients',{headers:{accept:'application/json'},cache:'no-store'})
       .then(function(r){
@@ -530,13 +664,14 @@
       })
       .then(function(data){
         var clients=(data&&data.clients)||[];
+        catalogClients=clients;
         pintarRegistro(clients);
         clients.forEach(function(c){
           decks.push({kind:'deck',cls:'',name:c.displayName,title:'Ecosistema Admira × '+c.displayName,
             sub:c.problem||'Presentación generada desde un problema concreto.',
             href:'/presentaciones/'+encodeURIComponent(c.slug)+'/',
-            createdAt:c.createdAt||c.updatedAt||'',
-            meta:[fecha(c.createdAt||c.updatedAt)||'Generada','Castellano','Editable'],
+            createdAt:c.updatedAt||c.createdAt||'',
+            meta:[fecha(c.updatedAt||c.createdAt)||'Generada',(c.languages||['es']).join(' · ').toUpperCase()||'ES',(c.outputs||[]).slice(0,2).join(' · ')||'Editable'],
             accent:(c.theme&&c.theme.accent)||'#3df08a'});
         });
         decks.sort(function(a,b){

@@ -253,6 +253,7 @@
       "tools": [
         "help",
         "list_presentations",
+        "get_catalog",
         "list_decks",
         "get_presentation",
         "create_presentation",

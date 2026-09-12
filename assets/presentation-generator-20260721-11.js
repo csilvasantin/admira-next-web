@@ -1,10 +1,64 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260906-2';
+  window.__ADMIRA_GENERATOR_VERSION__='20260912-catalogo';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
   website.required=true;website.type='text';website.inputMode='url';website.closest('.field')?.querySelector('label')?.append(' · logo obligatorio');
+  /* Catálogo: elige del censo antes de crear/mejorar (FOCO CATÁLOGO). */
+  const contextPanel=form.querySelector('.panel');
+  const catalogBlock=document.createElement('div'); catalogBlock.className='field full catalog-picker';
+  catalogBlock.innerHTML='<label for="catalogPick">Elige del censo · mejorar cliente existente</label><div class="catalog-row"><select id="catalogPick"><option value="">— Nueva presentación (o escribe el nombre abajo) —</option></select><button class="btn" type="button" id="catalogRefresh" title="Recargar censo">↻</button></div><p class="field-help" id="catalogHelp">Misma fuente que <code>list_presentations</code>. Si eliges un cliente, rellenamos el formulario y el gesto pasa a <b>Mejorar</b> (overwrite).</p>';
+  contextPanel.querySelector('.grid')?.prepend(catalogBlock);
+  const catalogStyle=document.createElement('style'); catalogStyle.textContent='.catalog-row{display:grid;grid-template-columns:1fr auto;gap:9px}.catalog-picker select{width:100%}.catalog-mode{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:8px 12px;border:1px solid rgba(61,240,138,.4);border-radius:999px;background:rgba(61,240,138,.08);color:var(--green);font:800 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.catalog-mode[hidden]{display:none!important}'; document.head.appendChild(catalogStyle);
+  const catalogMode=document.createElement('div'); catalogMode.className='catalog-mode'; catalogMode.id='catalogMode'; catalogMode.hidden=true; catalogMode.textContent='Modo mejorar · un cliente = un slug';
+  contextPanel.querySelector('h2')?.after(catalogMode);
+  const catalogPick=document.getElementById('catalogPick'),catalogHelp=document.getElementById('catalogHelp'),catalogRefresh=document.getElementById('catalogRefresh');
+  let catalogClients=[],improveMode=false;
+  function fillFromCatalog(client){
+    if(!client){improveMode=false;catalogMode.hidden=true;submit.textContent='Generar presentación';return}
+    improveMode=true;catalogMode.hidden=false;submit.textContent='Mejorar presentación';
+    display.value=client.displayName||''; slug.value=client.slug||''; slugTouched=true;
+    if(client.website)website.value=client.website;
+    if(client.problem)document.getElementById('problem').value=client.problem;
+    if(Array.isArray(client.languages)&&client.languages.length){
+      document.querySelectorAll('input[name="language"]').forEach(box=>{box.checked=client.languages.includes(box.value)});
+    }
+    if(Array.isArray(client.outputs)&&client.outputs.length){
+      const boxes=[...document.querySelectorAll('input[name="output"]')];
+      boxes.forEach(box=>{box.checked=client.outputs.includes(box.value)});
+      const all=document.getElementById('allOutputs'); if(all)all.checked=boxes.every(item=>item.checked);
+    }
+    catalogHelp.textContent=`Censo: ${client.slug} · ${(client.languages||[]).join('/').toUpperCase()||'ES'} · pass ${client.passwordSet?'configurada':'pendiente'} · ${client.versionCount||0} versiones. Al enviar se mejora in situ.`;
+  }
+  async function loadCatalog(selectSlug){
+    catalogHelp.textContent='Cargando censo…';
+    try{
+      const response=await fetch('/presentaciones/api/clients',{headers:{accept:'application/json'},cache:'no-store'});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||`HTTP ${response.status}`);
+      catalogClients=Array.isArray(data.clients)?data.clients:[];
+      const previous=catalogPick.value;
+      catalogPick.innerHTML='<option value="">— Nueva presentación (o escribe el nombre abajo) —</option>';
+      for(const client of catalogClients){
+        const option=document.createElement('option');
+        option.value=client.slug;
+        const when=client.updatedAt?new Date(client.updatedAt).toLocaleDateString('es-ES'):'';
+        option.textContent=`${client.displayName||client.slug} · ${client.slug}${when?' · '+when:''}`;
+        catalogPick.appendChild(option);
+      }
+      const want=selectSlug||previous||new URLSearchParams(location.search).get('improve')||'';
+      if(want&&catalogClients.some(c=>c.slug===want)){catalogPick.value=want;fillFromCatalog(catalogClients.find(c=>c.slug===want))}
+      else {catalogHelp.textContent=`${catalogClients.length} clientes en el censo. Elige uno para mejorar, o crea uno nuevo abajo.`}
+    }catch(error){catalogHelp.textContent=`No se pudo leer el censo: ${error.message}`;}
+  }
+  catalogPick.addEventListener('change',()=>{
+    const client=catalogClients.find(c=>c.slug===catalogPick.value);
+    if(client)fillFromCatalog(client); else {improveMode=false;catalogMode.hidden=true;submit.textContent='Generar presentación';catalogHelp.textContent=`${catalogClients.length} clientes en el censo. Elige uno para mejorar, o crea uno nuevo abajo.`}
+  });
+  catalogRefresh.addEventListener('click',()=>loadCatalog(catalogPick.value));
+  loadCatalog();
+
   const inspirationStep=document.querySelector('.flow span:nth-child(2)'); if(inspirationStep)inspirationStep.innerHTML='<b>02</b> Inspiración';
   const thesisPanel=form.querySelectorAll('.panel')[1],thesisGrid=thesisPanel.querySelector('.grid'); thesisPanel.querySelector('h2').textContent='2. Inspiración e identidad'; thesisPanel.querySelector('.sub').textContent='La web oficial aporta la identidad y el logo. Si indicas otra inspiración, solo sustituye la dirección de arte.';
   const inspirationField=document.createElement('div'); inspirationField.className='field full inspiration-field';
@@ -12,7 +66,7 @@
   thesisGrid.prepend(inspirationField);
   const inspirationStyle=document.createElement('style'); inspirationStyle.textContent='.inspiration-input{display:grid;grid-template-columns:1fr auto;gap:9px}.inspiration-input .btn{white-space:nowrap}.field-help{margin:9px 0 0;color:var(--mut);font-size:12px}.inspiration-preview{margin-top:14px;display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:13px;padding:14px;background:#08111e}.inspiration-preview[hidden]{display:none}.inspiration-preview b,.inspiration-preview span{display:block}.inspiration-preview b{font-size:14px}.inspiration-preview span{margin-top:4px;color:var(--mut);font:700 10px/1.45 var(--mono);text-transform:uppercase;letter-spacing:.05em}.inspiration-palette{display:flex;flex:none}.inspiration-palette i{width:25px;height:42px;border:2px solid #08111e;margin-left:-5px}.inspiration-palette i:first-child{margin-left:0;border-radius:9px 0 0 9px}.inspiration-palette i:last-child{border-radius:0 9px 9px 0}@media(max-width:680px){.inspiration-input{grid-template-columns:1fr}.inspiration-input .btn{width:100%}}'; document.head.appendChild(inspirationStyle);
   const overwriteStyle=document.createElement('style'); overwriteStyle.textContent='.overwrite-dialog{width:min(540px,calc(100% - 28px));border:1px solid var(--line);border-radius:20px;padding:0;background:linear-gradient(145deg,var(--panel),var(--panel2));color:var(--ink);box-shadow:0 28px 90px rgba(0,0,0,.55)}.overwrite-dialog::backdrop{background:rgba(2,6,12,.78);backdrop-filter:blur(5px)}.overwrite-body{padding:28px}.overwrite-kicker{color:#f5a623;font:800 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}.overwrite-dialog h2{font-size:25px;line-height:1.15;margin:14px 0 10px}.overwrite-dialog p{color:var(--mut);font-size:14px;margin:0}.overwrite-target{display:block;margin-top:17px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--ink);background:#07101c;font:700 11px/1.4 var(--mono);overflow-wrap:anywhere}.overwrite-warning{margin-top:14px!important;color:#ffbf70!important}.overwrite-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px}.overwrite-actions .danger{background:#ff6b6b;border-color:#ff6b6b;color:#240707}@media(max-width:560px){.overwrite-actions{flex-direction:column-reverse}.overwrite-actions .btn{width:100%}}'; document.head.appendChild(overwriteStyle);
-  const overwriteDialog=document.createElement('dialog'); overwriteDialog.className='overwrite-dialog'; overwriteDialog.innerHTML='<div class="overwrite-body"><div class="overwrite-kicker">Presentación existente</div><h2>¿Crear otra presentación sobre la actual?</h2><p>Este identificador ya está en uso. Si continúas, reemplazaremos el esqueleto, el site y la nueva orden de producción.</p><code class="overwrite-target" id="overwriteTarget"></code><p class="overwrite-warning">Se aplicará la contraseña indicada o, si está vacía, la resuelta desde el portapapeles (*).</p><div class="overwrite-actions"><button class="btn" type="button" id="overwriteCancel">No, volver</button><button class="btn danger" type="button" id="overwriteConfirm">Sí, crear sobre la existente</button></div></div>'; document.body.appendChild(overwriteDialog);
+  const overwriteDialog=document.createElement('dialog'); overwriteDialog.className='overwrite-dialog'; overwriteDialog.innerHTML='<div class="overwrite-body"><div class="overwrite-kicker">Presentación existente</div><h2>¿Mejorar la presentación existente?</h2><p>Este cliente ya tiene un slug. Si continúas, mejoramos in situ: capturamos versión y regeneramos esqueleto, site y producción. Un cliente = un slug.</p><code class="overwrite-target" id="overwriteTarget"></code><p class="overwrite-warning">Se aplicará la contraseña indicada o, si está vacía, la resuelta desde el portapapeles (*).</p><div class="overwrite-actions"><button class="btn" type="button" id="overwriteCancel">No, volver</button><button class="btn danger" type="button" id="overwriteConfirm">Sí, mejorar in situ</button></div></div>'; document.body.appendChild(overwriteDialog);
   const inspirationUrl=document.getElementById('inspirationUrl'),analyzeButton=document.getElementById('analyzeInspiration');
   const sequencePanel=document.createElement('section');sequencePanel.className='panel sequence-panel';
   sequencePanel.innerHTML='<h2>5. Arquitectura de la presentación</h2><p class="sub">El relato se organiza siempre en cuatro segmentos. Los tres primeros presentan Admira y el cuarto convierte esa credibilidad en una propuesta específica para el cliente.</p><div class="segment-map"><div><b>01</b><strong>Quiénes somos</strong></div><div><b>02</b><strong>Qué hacemos</strong></div><div><b>03</b><strong>Cómo lo hacemos</strong></div><div><b>04</b><strong>Qué proponemos</strong></div></div><div class="sequence-flow"><div class="sequence-card"><b>APERTURA · SEGMENTOS 01–03</b><label for="beforeDeck">Presentación corporativa</label><select id="beforeDeck" name="beforeDeck"><option value="">Sin apertura corporativa</option></select><div class="sequence-options"><label for="beforeLength">Extensión<select id="beforeLength" name="beforeLength"><option value="full">Completa · 42 diapositivas</option><option value="short">Corta · 11 diapositivas</option></select></label><label for="beforeQuality">Nivel visual<select id="beforeQuality" name="beforeQuality"><option value="good">Good · Look & feel Admira</option><option value="better">Better · Dirección Codex</option><option value="best">Best · Web o película elegida</option></select></label></div><small id="beforeDeckHelp">Cargando biblioteca…</small></div><div class="sequence-card dynamic"><b>SEGMENTO 04 · QUÉ PROPONEMOS</b><strong>Generado para este cliente</strong><small>Reto · visión · solución · piloto · siguiente paso</small></div><div class="sequence-card"><b>CIERRE · SEGMENTO 04</b><label for="afterDeck">Extensión de la propuesta</label><select id="afterDeck" name="afterDeck"><option value="">Sin extensión posterior</option></select><small id="afterDeckHelp">Opcional</small></div></div>';
@@ -82,7 +136,7 @@
   function imageMessage(value,error=false){imageStatus.textContent=value;imageStatus.className=`image-status${error?' error':''}`;imageStatus.hidden=!value}
   function confirmOverwrite(targetSlug){
     const target=`${location.origin}/presentaciones/${targetSlug}/`;
-    if(typeof overwriteDialog.showModal!=='function') return Promise.resolve(window.confirm(`Ya existe ${target}. ¿Quieres crear otra presentación sobre la existente?`));
+    if(typeof overwriteDialog.showModal!=='function') return Promise.resolve(window.confirm(`Ya existe ${target}. ¿Quieres mejorar la presentación existente in situ?`));
     document.getElementById('overwriteTarget').textContent=target;
     return new Promise(resolve=>{
       let settled=false;
@@ -99,7 +153,7 @@
     if(response.status===409&&body.exists&&!overwrite){
       const confirmed=await confirmOverwrite(body.slug||data.slug);
       if(!confirmed)return null;
-      message('Creando una nueva presentación sobre la existente…');
+      message('Mejorando la presentación existente in situ…');
       return createPresentation(data,true);
     }
     if(!response.ok)throw new Error(body.error||`HTTP ${response.status}`);
@@ -217,7 +271,7 @@
       if(!inspirationAnalysis)await analyzeInspiration();
       message('Construyendo el relato y aplicando la dirección visual…');
       const data=Object.fromEntries(new FormData(form).entries()); if(!data.password)data.password=await passwordPromise;data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;const presite=selectedPresite();data.presiteSlug=presite?.slug||'';data.presite=presite?{slug:presite.slug}:null;
-      const body=await createPresentation(data); if(!body){message('No se ha modificado la presentación existente.');return}
+      const body=await createPresentation(data, Boolean(improveMode)); if(!body){message('No se ha modificado la presentación existente.');return}
       window.dispatchEvent(new CustomEvent('admira:presentation-created',{detail:body}));
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
       document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck'),launchUrl=body.presite?.launchUrl;openDeck.href=launchUrl||body.deckUrl;openDeck.textContent=launchUrl?'Abrir intro + presentación':'Abrir site';openDeck.hidden=!body.outputs.includes('website'); currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); (body.narrativeSource==='xai'?message(`Presentación lista: ${body.displayName}${launchUrl?' · Presite conectado':''}. Guion redactado para este cliente. Ya puedes abrirla y trabajar con ella.`):message(`Presentación creada: ${body.displayName}, PERO con el guion de respaldo — ${body.narrativeFallback||'la redacción con IA no estuvo disponible'}. Ese texto es el mismo para todos los clientes con el nombre cambiado: revísalo en «Editar esqueleto» ANTES de compartir el enlace, o vuelve a generar.`,true));if(body.outputs.includes('backgrounds'))runImageGeneration(false).catch(error=>imageMessage(`La presentación sigue lista sin los fondos pendientes. Grok no ha respondido: ${error.message} Puedes reintentarlo cuando quieras.`,true));else imageApi({action:'prepare',client:body.slug}).then(response=>renderImageSet(response.imageSet)).catch(()=>loadImages(body.slug).catch(()=>{}));

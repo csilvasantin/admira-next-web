@@ -144,7 +144,11 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   const helpInformes = await handleRpc(ctxFor('owner'), { jsonrpc: '2.0', id: 55, method: 'tools/call', params: { name: 'help', arguments: { tema: 'informes' } } });
   assert.match(helpInformes.result.content[0].text, /create_yokup_report/);
   assert.match(helpInformes.result.content[0].text, /list_presentations|censo|overwrite:true/);
-  assert.equal(init.result.serverInfo.version, '1.2.0');
+  const helpCatalogo = await handleRpc(ctxFor('owner'), { jsonrpc: '2.0', id: 56, method: 'tools/call', params: { name: 'help', arguments: { tema: 'catalogo' } } });
+  assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
+  assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
+  assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
+  assert.equal(init.result.serverInfo.version, '1.3.0');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');
