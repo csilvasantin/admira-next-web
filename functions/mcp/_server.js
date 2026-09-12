@@ -16,7 +16,7 @@ import { bearerOf, tokenRow } from './_tokens.js';
 import { FLEET_EXAMPLE_VIDEO, exampleVideoEntry, ensureExampleVideo, wantsExampleVideo } from '../presentaciones/_slide-media.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.4.0' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.5.0' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -32,7 +32,7 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - Ayuda para humanos: ${SITE}/mcp/generador
 
 ## Tools
-- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo).
+- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo).
 - list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
@@ -77,6 +77,7 @@ const HELP_TOPICS = {
 - beforeDeck / afterDeck: packs de list_decks. primaryColor / accentColor: hex.
 - slideMedia: array de medios por lámina (type video puede usar HTTPS flota admira.live /assets/…).
 - Norma vídeo (FLT-100315): si outputs incluye video, hay TikTok, o includeExampleVideo:true, el create inyecta un MP4 REAL de flota (no placeholder). Campos: exampleVideoUrl / videoUrl / videoSlide / includeExampleVideo. Default: https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4
+- Demo captura (FLT-100316): demoVideo:true o requireExampleVideo:true EXIGEN videoUrl (captura hospedada). videoSlide recomendado: closing. Ver help tema demo.
 - delete_slide {client, blockId}: quita una lámina del esqueleto sin regenerar. En sala: Ctrl+E → botón Eliminar o Ctrl+Backspace.`,
   presentaciones: 'list_presentations / get_catalog es el catálogo vivo (GET /presentaciones/api/clients): slug, displayName, website, languages, outputs, passwordSet, versionCount, createdAt, updatedAt. get_presentation {client} devuelve el contenido vivo (content-data). La URL privada es /presentaciones/<slug>/ y pide la contraseña del cliente o una cuenta con acceso. UI: /presentaciones/galeria.',
   catalogo: `Catálogo = gesto principal (como el registro de proyectos del webmaster).
@@ -107,11 +108,27 @@ Campos:
 Resolución: GET clients → match slug exacto (ci) o displayName (ci) → improve con overwrite:true.
 Sin match → slugify(displayName||cliente), NUNCA yokup-flt-<misión>.
 Devuelve: kind, mode improved|created, mision, slug, urls, yokupBlock, previous?
-Gesto: list_presentations → create_yokup_report(cliente=…) → sala ?quality=best → yokup_evidencia → yokup_informe.`
+Gesto: list_presentations → create_yokup_report(cliente=…) → sala ?quality=best → yokup_evidencia → yokup_informe.
+Demo completa (FLT-100316): si la demo es parte del informe, graba la captura, súbela a admira.live/assets/… o /presentaciones/<slug>/media/, y pasa videoUrl (+ videoSlide closing). Con demoVideo:true o requireExampleVideo:true el tool RECHAZA sin videoUrl — no uses placeholder ni abras admira.app en la sala.`
+,
+  demo: `Gesto DEMO en vídeo (FLT-100316) — la demo completa termina como MP4 embebido en la sala; el consejero NO abre admira.app / Tour DOOH en la reunión.
+
+1. Graba la demo en vivo (Tour DOOH en admira.app, player, etc.): OBS, ffmpeg o screen record del box.
+2. Hostea el MP4:
+   - Flota: https://www.admira.live/assets/<ruta>/<clip>.mp4
+   - O privado: /presentaciones/<slug>/media/<clip>.mp4
+3. create_presentation o create_yokup_report con:
+   - videoUrl: URL HTTPS del MP4 (obligatorio si demoVideo:true o requireExampleVideo:true)
+   - videoSlide: closing | cover | clave de lámina demo (recomendado closing)
+   - Opcional: demoVideo:true / requireExampleVideo:true (rechaza sin videoUrl)
+4. Abre la sala ?quality=best — BEST muestra el motion embebido. Sin abrir la plataforma.
+
+Stand-in de flota (smoke): https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4
+Doc: /mcp/GESTO-DEMO-VIDEO.md · help tema demo.`
 };
 
 export const TOOLS = [
-  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo' } } } },
+  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo' } } } },
   { name: 'list_presentations', description: 'Catálogo / censo vivo (slug, displayName, website, languages, outputs, passwordSet, versionCount, updatedAt…). Consulta antes de crear o mejorar.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_catalog', description: 'Alias de list_presentations: el catálogo es el gesto principal. Mismos campos.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
@@ -123,7 +140,9 @@ export const TOOLS = [
     exampleVideoUrl: { type: 'string', description: 'HTTPS MP4 de flota (admira.live /assets/…) para BEST en movimiento' },
     videoUrl: { type: 'string', description: 'Alias de exampleVideoUrl' },
     videoSlide: { type: 'string', description: 'Lámina del vídeo (default cover)' },
-    includeExampleVideo: { type: 'boolean', description: 'Inyecta ejemplo vídeo de flota si no hay slideMedia video. También se inyecta si outputs incluye video.' } }, required: ['displayName'] } },
+    includeExampleVideo: { type: 'boolean', description: 'Inyecta ejemplo vídeo de flota si no hay slideMedia video. También se inyecta si outputs incluye video.' },
+    demoVideo: { type: 'boolean', description: 'FLT-100316: demo completa como captura embebida; exige videoUrl (rechaza sin él)' },
+    requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl explícito' } }, required: ['displayName'] } },
   { name: 'create_yokup_report', description: 'Mejora in situ el informe Yokup del cliente (overwrite:true si existe). Resuelve por cliente/client/slug o displayName. Nunca crea yokup-flt-…. forceNew solo si hace falta un slug nuevo (desaconsejado).', inputSchema: { type: 'object', properties: {
     mision: { type: 'string', description: 'FLT-…' }, titulo: { type: 'string' }, resumen: { type: 'string' }, verificado: { type: 'string' },
     tiempo: { type: 'string' }, puntos: { type: 'string' }, total: { type: 'string' },
@@ -135,7 +154,9 @@ export const TOOLS = [
     videoUrl: { type: 'string', description: 'HTTPS MP4 de flota (admira.live /assets/…) para BEST en movimiento' },
     exampleVideoUrl: { type: 'string', description: 'Alias de videoUrl (norma ejemplo vídeo)' },
     includeExampleVideo: { type: 'boolean', description: 'Si true y no hay videoUrl, inyecta el MP4 de flota boca-v2' },
-    videoSlide: { type: 'string', description: 'Lámina del vídeo (default cover)' }
+    videoSlide: { type: 'string', description: 'Lámina del vídeo (default cover; para demos suele ser closing)' },
+    demoVideo: { type: 'boolean', description: 'FLT-100316: exige videoUrl de la captura (no placeholder; no abrir plataforma en sala)' },
+    requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl' }
   }, required: ['mision', 'titulo', 'resumen'] } },
   { name: 'generation_status', description: 'Estado de la generación (idiomas × entregables) de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'list_versions', description: 'Historial de versiones de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
@@ -193,6 +214,19 @@ async function callGenerator(ctx, method, path, body){
   return data == null ? { raw: text.slice(0, 4000) } : data;
 }
 
+/** FLT-100316: demoVideo / requireExampleVideo exigen videoUrl explícito (captura hospedada). */
+function requiresDemoVideoUrl(a = {}){
+  return a.demoVideo === true || a.demoVideo === 'true' || a.demoVideo === 1 || a.demoVideo === '1'
+    || a.requireExampleVideo === true || a.requireExampleVideo === 'true' || a.requireExampleVideo === 1 || a.requireExampleVideo === '1';
+}
+function assertDemoVideoUrl(a = {}){
+  if (!requiresDemoVideoUrl(a)) return;
+  const url = String(a.videoUrl || a.exampleVideoUrl || '').trim();
+  if (!url) {
+    throw new Error('demoVideo/requireExampleVideo exige videoUrl (HTTPS admira.live/assets/… o /presentaciones/<slug>/media/). Graba la demo, súbela y pásala; no abras la plataforma en la sala. Ver help tema demo.');
+  }
+}
+
 export async function callTool(ctx, name, args = {}){
   const a = args || {};
   if (!TOOLS.some(t => t.name === name)) throw new Error(`Tool desconocida: ${name}. Usa tools/list o help.`);
@@ -208,9 +242,10 @@ export async function callTool(ctx, name, args = {}){
     case 'get_presentation': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/content-data`);
     case 'create_presentation': {
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
+      assertDemoVideoUrl(a);
       const body = {};
-      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide']) if (a[key] !== undefined) body[key] = a[key];
-      if (wantsExampleVideo(body)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
+      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo']) if (a[key] !== undefined) body[key] = a[key];
+      if (wantsExampleVideo(body) || requiresDemoVideoUrl(a)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
       const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
       return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };
     }
@@ -265,9 +300,11 @@ export async function callTool(ctx, name, args = {}){
       const problem = `Informe Yokup ${mision}. ${resumen}${verificado ? ` Verificado: ${verificado}.` : ''}`;
       const summary = `Informe ${mision} · ${titulo}. ${resumen}${norma ? ` ${norma.replace(/\n/g, ' · ')}` : ''} Abrir en quality=${qualityHint}.`;
       const reportTitle = `Informe ${mision}: ${titulo}`.slice(0, 220);
+      assertDemoVideoUrl(a);
       const videoUrl = String(a.videoUrl || a.exampleVideoUrl || '').trim();
       const includeExampleVideo = a.includeExampleVideo === true || a.includeExampleVideo === 'true';
-      const videoSlide = String(a.videoSlide || 'cover').trim().toLowerCase() || 'cover';
+      const demoMode = requiresDemoVideoUrl(a);
+      const videoSlide = String(a.videoSlide || (demoMode ? 'closing' : 'cover')).trim().toLowerCase() || (demoMode ? 'closing' : 'cover');
       const websiteArg = String(a.website || '').trim();
       const website = websiteArg || (matched && matched.website) || 'https://www.yokup.com';
       const passwordArg = String(a.password || '').trim();
@@ -286,8 +323,12 @@ export async function callTool(ctx, name, args = {}){
         overwrite
       };
       if (passwordArg) body.password = passwordArg;
-      if (videoUrl || includeExampleVideo) {
-        body.slideMedia = [exampleVideoEntry({ src: videoUrl || FLEET_EXAMPLE_VIDEO, slide: videoSlide, caption: 'Resultado en movimiento' })];
+      if (videoUrl || includeExampleVideo || demoMode) {
+        body.slideMedia = [exampleVideoEntry({
+          src: videoUrl || FLEET_EXAMPLE_VIDEO,
+          slide: videoSlide,
+          caption: demoMode ? 'Demo en captura · sin abrir la plataforma' : 'Resultado en movimiento'
+        })];
       }
       const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
       const finalSlug = (out && out.slug) || reportSlug;
@@ -300,10 +341,10 @@ export async function callTool(ctx, name, args = {}){
         resumen,
         verificado ? `Verificado: ${verificado}` : '',
         norma,
-        (videoUrl || includeExampleVideo) ? `Vídeo BEST: ${videoUrl || FLEET_EXAMPLE_VIDEO} (lámina ${videoSlide})` : '',
+        (videoUrl || includeExampleVideo || demoMode) ? `Vídeo BEST: ${videoUrl || FLEET_EXAMPLE_VIDEO} (lámina ${videoSlide})` : '',
         `Sala: ${salaQuality}`,
         passLine,
-        (videoUrl || includeExampleVideo)
+        (videoUrl || includeExampleVideo || demoMode)
           ? 'Calidad recomendada: BEST (vídeo en movimiento) · BETTER (fondos) · GOOD (texto limpio).'
           : 'Calidad recomendada: BEST (figura descriptiva) · BETTER (fondos) · GOOD (texto limpio).'
       ].filter(Boolean).join('\n');

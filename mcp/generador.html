@@ -64,13 +64,13 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
   <h2>3 · Tools</h2>
   <table>
     <tr><th>Tool</th><th>Qué hace</th><th>Rol mínimo</th></tr>
-    <tr><td><code>help</code></td><td>Esta ayuda. <code>tema</code> opcional: <code>crear</code>, <code>presentaciones</code>, <code>versiones</code>, <code>permisos</code>, <code>informes</code>, <code>catalogo</code>.</td><td class="mut">ninguno</td></tr>
+    <tr><td><code>help</code></td><td>Esta ayuda. <code>tema</code> opcional: <code>crear</code>, <code>presentaciones</code>, <code>versiones</code>, <code>permisos</code>, <code>informes</code>, <code>catalogo</code>, <code>demo</code>.</td><td class="mut">ninguno</td></tr>
     <tr><td><code>list_presentations</code></td><td><strong>Catálogo / censo vivo</strong> (GET <code>/presentaciones/api/clients</code>): slug, nombre, web, languages, outputs, passwordSet, versionCount, updatedAt… Consultar antes de crear o <strong>Mejorar</strong>.</td><td>viewer</td></tr>
     <tr><td><code>get_catalog</code></td><td>Alias de <code>list_presentations</code>: el catálogo es el gesto principal.</td><td>viewer</td></tr>
     <tr><td><code>list_decks</code></td><td>Packs de deck (antes/después) para <code>create_presentation</code>.</td><td>viewer</td></tr>
     <tr><td><code>get_presentation</code></td><td>Contenido vivo de una presentación (láminas, idiomas, secuencia). <code>{client}</code></td><td>viewer</td></tr>
-    <tr><td><code>create_presentation</code></td><td>Crea o <strong>mejora</strong> (<code>overwrite:true</code>) a partir de <code>displayName</code>, <code>website</code>, <code>problem</code>, <code>audience</code>… Antes: <code>list_presentations</code>. Un cliente = un slug. Acepta <code>slideMedia</code>, <code>exampleVideoUrl</code>, <code>includeExampleVideo</code>. Si <code>outputs</code> incluye <code>video</code> o hay TikTok, inyecta un MP4 real de flota (BEST). Devuelve slug, pass y URLs.</td><td class="ok">editor</td></tr>
-    <tr><td><code>create_yokup_report</code></td><td>Informe Yokup: <strong>mejora in situ</strong> la presentación del cliente (<code>overwrite:true</code> si existe). Resuelve por <code>cliente</code>/<code>client</code>/<code>slug</code> o <code>displayName</code>. Nunca crea <code>yokup-flt-…</code>. Opcional <code>videoUrl</code> / <code>exampleVideoUrl</code> / <code>includeExampleVideo</code> (MP4 flota). Devuelve <code>mode</code> improved|created, URLs, pass y <code>yokupBlock</code>.</td><td class="ok">editor</td></tr>
+    <tr><td><code>create_presentation</code></td><td>Crea o <strong>mejora</strong> (<code>overwrite:true</code>) a partir de <code>displayName</code>, <code>website</code>, <code>problem</code>, <code>audience</code>… Antes: <code>list_presentations</code>. Un cliente = un slug. Acepta <code>slideMedia</code>, <code>exampleVideoUrl</code>/<code>videoUrl</code>, <code>includeExampleVideo</code>, <code>demoVideo</code>/<code>requireExampleVideo</code> (exige <code>videoUrl</code>). Si <code>outputs</code> incluye <code>video</code> o hay TikTok, inyecta un MP4 real de flota (BEST). Devuelve slug, pass y URLs.</td><td class="ok">editor</td></tr>
+    <tr><td><code>create_yokup_report</code></td><td>Informe Yokup: <strong>mejora in situ</strong> la presentación del cliente (<code>overwrite:true</code> si existe). Resuelve por <code>cliente</code>/<code>client</code>/<code>slug</code> o <code>displayName</code>. Nunca crea <code>yokup-flt-…</code>. Opcional <code>videoUrl</code> / <code>exampleVideoUrl</code> / <code>includeExampleVideo</code>; con <code>demoVideo:true</code> exige <code>videoUrl</code> (captura). Devuelve <code>mode</code> improved|created, URLs, pass y <code>yokupBlock</code>.</td><td class="ok">editor</td></tr>
     <tr><td><code>generation_status</code></td><td>Estado de la generación (idiomas × entregables). <code>{client}</code></td><td>viewer</td></tr>
     <tr><td><code>list_versions</code></td><td>Historial de versiones. <code>{client}</code></td><td>viewer</td></tr>
     <tr><td><code>restore_version</code></td><td>Restaura una versión. <code>{client, id}</code></td><td class="ok">editor</td></tr>
@@ -100,6 +100,18 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
       <li>Cierra con <code>yokup_informe</code> pegando la URL+pass (el tool devuelve <code>yokupBlock</code> listo).</li>
     </ol>
     <p class="mut">Help MCP: <code>help</code> con <code>tema: informes</code>.</p>
+  </div>
+
+  <h2>4c · Gesto DEMO en vídeo (FLT-100316)</h2>
+  <div class="card">
+    <p>Las demos completas <strong>terminan como vídeo embebido</strong> en la presentación. El consejero graba la demo en vivo (p.ej. Tour DOOH en admira.app), sube el MP4 y lo pasa a <code>videoUrl</code>. En la sala, BEST muestra el motion <em>sin abrir la plataforma</em>.</p>
+    <ol>
+      <li>Graba pantalla de la demo (OBS, ffmpeg o screen record del box).</li>
+      <li>Hostea bajo <code>https://www.admira.live/assets/…</code> o <code>/presentaciones/&lt;slug&gt;/media/</code>.</li>
+      <li><code>create_presentation</code> / <code>create_yokup_report</code> con <code>videoUrl</code> + opcional <code>videoSlide</code> (<code>closing</code> o clave demo). Con <code>demoVideo:true</code> o <code>requireExampleVideo:true</code> el MCP <strong>rechaza</strong> sin <code>videoUrl</code>.</li>
+      <li>Abre la sala <code>?quality=best</code> — el MP4 va en la lámina; no hace falta abrir admira.app.</li>
+    </ol>
+    <p class="mut">Help MCP: <code>tema: demo</code> · doc <a href="/mcp/GESTO-DEMO-VIDEO.md">GESTO-DEMO-VIDEO.md</a> · stand-in flota: <code>https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4</code>.</p>
   </div>
 
   <h2>5 · Permisos y seguridad</h2>
