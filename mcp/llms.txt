@@ -123,4 +123,4 @@ el canal del humano.
 Servidor MCP (JSON-RPC 2.0, Streamable HTTP): https://www.admiranext.com/mcp
 Ayuda y tools: https://www.admiranext.com/mcp/generador
 Token: Authorization: Bearer anmcp_… (lo crea un admin en /usuarios → POST /api/mcp-tokens)
-Tools: help, list_presentations, list_decks, get_presentation, create_presentation, generation_status, list_versions, restore_version, presentation_urls
+Tools: help, list_presentations, get_catalog, list_decks, get_presentation, create_presentation, create_yokup_report, generation_status, list_versions, restore_version, presentation_urls
