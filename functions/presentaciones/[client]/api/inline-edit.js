@@ -106,6 +106,24 @@ async function translateEdits(env, sourceLanguage, targetLanguages, edits, termi
   return parsed.translations;
 }
 
+
+export function deleteSkeletonBlock(ideas, blockId){
+  const id=clean(blockId,80);
+  if(!id) throw new Error('No se ha identificado la diapositiva a eliminar.');
+  const removeFrom=content=>{
+    if(!content||!Array.isArray(content.skeleton)) return false;
+    const next=content.skeleton.filter(item=>String(item?.id||'')!==id);
+    if(next.length===content.skeleton.length) return false;
+    content.skeleton=next;
+    return true;
+  };
+  const removed=removeFrom(ideas);
+  if(!removed) throw new Error('La diapositiva ya no existe. Recarga para continuar.');
+  if(!ideas.skeleton.length) throw new Error('La propuesta debe conservar al menos una lámina.');
+  for(const language of Object.keys(ideas.translations||{})) removeFrom(ideas.translations[language]);
+  return id;
+}
+
 export async function onRequest(context){
   if(context.request.method!=='PUT') return response({error:'Método no permitido.'},405);
   if(!context.env.PRESENTATION_IDEAS) return response({error:'Almacenamiento no configurado.'},503);
@@ -116,7 +134,7 @@ export async function onRequest(context){
   let payload; try{payload=await context.request.json();}catch(_){return response({error:'JSON no válido.'},400);}
   const language=String(payload?.language||'').toLowerCase();
   if(!LANGUAGES.includes(language)) return response({error:'Idioma no válido.'},400);
-  let edits; try{edits=normalizedEdits(payload?.edits);}catch(error){return response({error:error.message},400);}
+  const action=String(payload?.action||'').trim();
   const [presentation,ideas]=await Promise.all([
     context.env.PRESENTATION_IDEAS.get(`presentation:${client}`,{type:'json'}),
     context.env.PRESENTATION_IDEAS.get(`ideas:${client}`,{type:'json'})
@@ -125,6 +143,16 @@ export async function onRequest(context){
   if(payload.revision&&payload.revision!==ideas.updatedAt) return response({error:'La presentación cambió en otra sesión. Recarga antes de guardar.',conflict:true},409);
   const languages=[...new Set((presentation.languages||ideas.languages||['es']).filter(item=>LANGUAGES.includes(item)))];
   if(!languages.includes(language)) return response({error:'Este idioma no forma parte de la presentación.'},400);
+  if(action==='deleteSlide'){
+    let deleted;
+    try{deleted=deleteSkeletonBlock(ideas,payload.blockId);}
+    catch(error){return response({error:error.message||'No se pudo eliminar la lámina.'},409);}
+    ideas.updatedAt=new Date().toISOString();
+    await context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas));
+    await captureVersion(context.env,client,`lámina ${deleted} eliminada`,{presentation,ideas});
+    return response({ok:true,deleted,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages)});
+  }
+  let edits; try{edits=normalizedEdits(payload?.edits);}catch(error){return response({error:error.message},400);}
   const targetLanguages=languages.filter(item=>item!==language);
   let translated;
   const terminology=presentation.terminology||ideas.terminology||[];

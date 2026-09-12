@@ -20,6 +20,10 @@ function ctxFor(level, log = []){
     }
     if (path === '/presentaciones/portaventura/api/versions') return ok({ versions: [{ id: 'v1' }] });
     if (path === '/presentaciones/portaventura/content-data') return ok({ client: 'portaventura', slides: 12 });
+    if (path === '/presentaciones/portaventura/api/inline-edit') {
+      let body = {}; try { body = JSON.parse(init.body || '{}'); } catch {}
+      return ok({ ok: true, deleted: body.blockId, locales: { es: { skeleton: [] } } });
+    }
     return ok({ error: 'no existe' }, 404);
   };
   return { env: { PRES_SIGNING_KEY: 'clave' }, access: { level, email: 'x@admira.com', name: 'X', sessionVersion: 1, source: 'directory' }, fetchImpl };
@@ -44,6 +48,11 @@ test('cada tool envuelve la API del generador con sesión de directorio, mismo o
   const mediaBody = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('con-media-video')).body);
   assert.ok(Array.isArray(mediaBody.slideMedia));
   assert.equal(mediaBody.slideMedia[0].src, 'https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4');
+  await callTool(ctx, 'create_presentation', { displayName: 'Video Output', slug: 'video-output-demo', outputs: ['website', 'video'] });
+  const videoOutBody = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('video-output-demo')).body);
+  assert.ok(videoOutBody.slideMedia.some(item => item.type === 'video' && String(item.src).includes('boca-v2-ciclo.mp4')));
+  const deleted = await callTool(ctx, 'delete_slide', { client: 'portaventura', blockId: 'problema' });
+  assert.equal(deleted.deleted, 'problema');
   const improved = await callTool(ctx, 'create_yokup_report', {
     mision: 'FLT-100257', titulo: 'Reuse registro', resumen: 'Mejora in situ Valiant', verificado: 'list_presentations',
     cliente: 'valiant-alcampo'
@@ -113,6 +122,12 @@ test('cada tool envuelve la API del generador con sesión de directorio, mismo o
   assert.equal(videoBody.slideMedia[0].slide, 'cover');
   assert.equal(videoBody.slideMedia[0].loop, true);
   assert.equal(videoBody.slideMedia[0].rights.permission, 'owned');
+  const aliasVideo = await callTool(ctx, 'create_yokup_report', {
+    mision: 'FLT-100315', titulo: 'Alias ejemplo', resumen: 'exampleVideoUrl',
+    cliente: 'valiant-alcampo', includeExampleVideo: true
+  });
+  assert.ok(aliasVideo.yokupBlock.includes('Vídeo BEST'));
+  assert.ok(aliasVideo.yokupBlock.includes('boca-v2-ciclo.mp4'));
   await assert.rejects(() => callTool(ctx, 'create_yokup_report', { mision: 'X', titulo: 't', resumen: 'r' }), /FLT/);
   await assert.rejects(() => callTool(ctxFor('viewer'), 'create_yokup_report', { mision: 'FLT-1', titulo: 't', resumen: 'r', cliente: 'valiant-alcampo' }), /solo lectura/);
   assert.equal((await callTool(ctx, 'list_versions', { client: 'PortAventura' })).versions[0].id, 'v1');
@@ -148,7 +163,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.3.0');
+  assert.equal(init.result.serverInfo.version, '1.4.0');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');

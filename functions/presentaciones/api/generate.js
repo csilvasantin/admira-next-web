@@ -7,7 +7,7 @@ import {captureVersion} from '../_versions.js';
 import {normalizeSequence} from '../_deck-library.js';
 import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
-import {normalizeSlideMedia} from '../_slide-media.js';
+import {normalizeSlideMedia,ensureExampleVideo} from '../_slide-media.js';
 import {normalizeSourceTraceability} from '../_source-traceability.js';
 import {generateNarrativeWithRetry,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC} from '../_skeleton.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
@@ -183,7 +183,7 @@ export async function onRequestPut(context){
   for(const obligatorio of ['es','en']) if(!languages.includes(obligatorio)) languages.push(obligatorio);
   if (!languages.length) return json({error:'Selecciona al menos un idioma.'},400);
   let terminology;try{terminology=normalizeTerminology(raw.terminology)}catch(error){return json({error:error.message},400)}
-  let slideMedia;try{slideMedia=normalizeSlideMedia(raw.slideMedia,slug)}catch(error){return json({error:error.message},400)}
+  let slideMedia;try{slideMedia=normalizeSlideMedia(ensureExampleVideo(raw.slideMedia,raw,slug),slug)}catch(error){return json({error:error.message},400)}
   const embeds=normalizeEmbeds(raw.embeds);
   const supplied=text(raw.password,100);
   if (supplied && supplied.length<10) return json({error:'La contraseña debe tener al menos 10 caracteres.'},400);
