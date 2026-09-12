@@ -19,8 +19,12 @@
     if(!header||!main||!form||document.getElementById('generatorOptionsToggle'))return;
     document.body.classList.add('generator-quadratic');main.classList.add('generator-shell-main');header.classList.add('generator-shell-top');
     registerSections(form);
-    header.innerHTML='<div class="generator-topbar"><a class="generator-top-brand" href="/presentaciones/generador/"><i aria-hidden="true"></i><span>ADmiraNeXT · Generador</span><small>Workspace activo</small></a><div class="generator-top-actions"><div class="generator-mode-buttons" aria-label="Herramientas del generador">'+button('options','Opciones')+button('advanced','Opciones avanzadas')+button('expert','Modo experto')+'</div><a class="generator-back" href="/presentaciones/">Presentaciones</a></div></div>';
+    header.innerHTML='<div class="generator-topbar"><a class="generator-top-brand" href="/presentaciones/"><i aria-hidden="true"></i><span>ADmiraNeXT · Generador</span><small>Workspace activo</small></a><div class="generator-top-actions"><div class="generator-mode-buttons" aria-label="Herramientas del generador">'+button('options','Opciones')+button('advanced','Opciones avanzadas')+button('expert','Modo experto')+'</div><a class="generator-listado" id="generatorOpenListado" href="/presentaciones/galeria#registroVivo">Ver presentaciones</a></div></div>';
     header.insertAdjacentHTML('afterend',drawers());
+    var actions=document.querySelector('.actions');
+    if(actions&&!document.getElementById('generatorListadoCta')){
+      actions.insertAdjacentHTML('afterbegin','<a class="btn generator-listado-cta" id="generatorListadoCta" href="/presentaciones/galeria#registroVivo">Ver listado</a>');
+    }
     restore();renderAll();bind(form);syncDiagnostics(form);
     form.addEventListener('input',function(){syncDiagnostics(form)});form.addEventListener('change',function(){syncDiagnostics(form)});
     new MutationObserver(function(){registerSections(form);syncDiagnostics(form)}).observe(form,{childList:true,subtree:true});

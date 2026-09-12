@@ -15,8 +15,8 @@ export async function onRequestGet(context){
   // podía servir bajo dos URLs distintas y la consola del generador enseñaba una
   // versión que no era la que corría. (NeoMBP16 · MacBook Pro 16, 4-ago-2026.)
   html=html.replace('/assets/presentation-generator.js"','/assets/presentation-generator-20260721-11.js?v=20260912-demo-video"');
-  html=html.replace('</head>','<link rel="stylesheet" href="/assets/presentation-generator-quadratic.css?v=1"></head>');
+  html=html.replace('</head>','<link rel="stylesheet" href="/assets/presentation-generator-quadratic.css?v=2"></head>');
   html=html.replace('</head>','<link rel="stylesheet" href="/assets/presentation-media-library.css?v=20260724-1"></head>');
-  html=html.replace('</body>','<script src="/assets/presentation-generator-quadratic.js?v=1"></script><script src="/assets/presentation-media-library.js?v=20260724-1"></script></body>');
+  html=html.replace('</body>','<script src="/assets/presentation-generator-quadratic.js?v=2"></script><script src="/assets/presentation-media-library.js?v=20260724-1"></script></body>');
   return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
 }
