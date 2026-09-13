@@ -22,6 +22,12 @@ overlays. En infografía clona el fondo adyacente sobre la firma sin ampliar el
 lienzo. En PowerPoint elimina exclusivamente shapes identificados como
 NotebookLM/Gemini (o imágenes cuyo SHA-256 esté en una allowlist) y verifica que
 tema, masters, layouts, tipografías y partes no objetivo permanecen idénticos.
+Cuando NotebookLM devuelve el deck rasterizado —una única imagen PNG a página
+completa por diapositiva—, el productor usa la procedencia autenticada del
+proveedor para reconstruir solo la esquina firmada clonando la franja de fondo
+adyacente. El PDF recibe la misma reparación sobre cada página, sin rasterizar el
+resto del documento ni alterar su tamaño. Así el ciclo es realmente bidireccional:
+encargo, espera, descarga, limpieza conservadora y publicación privada.
 Los idiomas se producen por separado (`es`, `ca`, `en`) y el estilo visual se
 deriva de la referencia y el tema guardados en cada presentación.
 
