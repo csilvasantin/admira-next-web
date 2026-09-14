@@ -9,7 +9,7 @@
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.10.09.2026.r1.08:12
+Versión: v.14.09.2026.r1.18:21
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es

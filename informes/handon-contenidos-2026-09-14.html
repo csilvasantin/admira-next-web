@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HandON · Cadena de contenidos · ADmiraNeXT</title>
+<meta name="description" content="HandON 14-sep-2026: mapa de la cadena de creación de contenidos de AdmiraNeXT, del catálogo de folletos al vídeo y a Pixeria, con estado real en producción, roturas y tres vías de mejora.">
+<meta name="admiranext-version" content="v.14.09.2026.r1.18:21">
+<meta name="robots" content="index,follow">
+<style>
+:root{--bg:#05090d;--panel:#0a141d;--line:#17313b;--ink:#e8eef8;--mut:#9db0cc;--dim:#6b7d9a;--cyan:#65e9f4;--green:#3df08a;--warn:#ffb000;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:44px 22px 80px}.eyebrow{font:800 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:16px}
+h1{font-size:clamp(28px,5vw,42px);letter-spacing:-.02em;margin:0 0 10px}h2{font-size:20px;margin:38px 0 12px;color:var(--green)}h3{font-size:15px;margin:20px 0 8px;color:var(--cyan)}
+p,li{color:#b9c6dc}.sub{font-size:17px;color:var(--mut)}.nav{display:flex;gap:16px;flex-wrap:wrap;font:700 12px var(--mono);margin-bottom:26px}.nav a{color:#a8bad4;text-decoration:none}.nav a:hover{color:var(--green)}
+a{color:var(--green)}code{font:13px var(--mono);color:#cfe3ff;background:rgba(120,243,255,.08);padding:2px 6px;border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--dim);font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:12px 0}.chain{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}@media(max-width:820px){.chain{grid-template-columns:1fr 1fr}}
+.chain .card{margin:0}.chain b{display:block;color:var(--cyan);font:800 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}.chain small{color:var(--dim);display:block;margin-top:6px}
+.ok{color:var(--green)}.bad{color:#ff6b6b}.warn{color:var(--warn)}.via{border-color:rgba(61,240,138,.35)}.via.rec{background:rgba(61,240,138,.06)}
+footer{margin-top:56px;color:var(--dim);font:12px var(--mono)}
+</style>
+</head>
+<body>
+<main>
+  <nav class="nav"><a href="/informes/">← Informes</a><a href="/mcp/">Hub MCP</a><a href="/presentar">Presentar</a><a href="https://www.pixeria.com/stock.html">Stock Pixeria</a><a href="https://admira.tv/contentcatalogue/">Catálogo de folletos</a></nav>
+  <div class="eyebrow">HandON · 14-sep-2026 · MorfeoMacMini · MacMini · FLT-100443</div>
+  <h1>La cadena de contenidos, de punta a punta.</h1>
+  <p class="sub">Del catálogo de folletos en admira.tv al vídeo en admiranext.com, del vídeo al Stock de Pixeria y del Stock a la pantalla. Qué existe, qué está vivo hoy y por dónde se rompe. Inventariado en los repos <code>admira-next-web</code>, <code>admira-tv</code>, <code>pixeria</code>, <code>pixer-worker</code> y <code>ainimation</code>, y verificado con peticiones a producción.</p>
+
+  <h2>1 · La cadena que hoy funciona</h2>
+  <div class="chain">
+    <div class="card"><b>1 · Catálogo</b>admira.tv/contentcatalogue: se sube un folleto, Grok lo lee y saca productos con precio. Un solo piloto (Alcampo 10-sep).<small>catálogos en JSON commiteados a mano</small></div>
+    <div class="card"><b>2 · Vídeo</b>«Crear vídeo» abre admiranext.com/tiktok con el producto. Grok Imagine da 15 s MP4 9:16; el Composer monta 25 s en el navegador.<small>Composer = WebM mudo</small></div>
+    <div class="card"><b>3 · Pixeria</b>Se publica en <code>api.admira.store/stock/publish</code> con token de ingesta. Hoy ~1.000 piezas; 16 del Composer, 34 de Grok.<small>el «num» llega tarde, tags fijos</small></div>
+    <div class="card"><b>4 · Parrilla</b>Entra en pantalla solo si lleva la etiqueta <code>default</code> o una de circuito (<code>#canalkioskpubli</code>…), o si alguien la asigna a mano.<small>sin etiqueta no se emite</small></div>
+    <div class="card"><b>5 · Redes</b>La subida a YouTube está escrita pero no conectada: la bandeja pide descargar y pegar título a mano.<small>manual</small></div>
+  </div>
+  <p>Es el único pipeline de vídeo vivo. Todo lo demás (créditos, presentaciones, NotebookLM, ainimation) produce cosas que <em>no vuelven solas</em> al Stock ni a la parrilla.</p>
+
+  <h2>2 · Qué hay en cada tramo (estado real en producción)</h2>
+  <table>
+    <tr><th>Tramo</th><th>Superficie</th><th>Produce</th><th>Hoy</th></tr>
+    <tr><td>Catálogo</td><td>admira.tv/contentcatalogue</td><td>productos de un folleto (Grok, bbox, precios) → «Crear vídeo»</td><td class="ok">vivo · 1 catálogo, JSON a mano</td></tr>
+    <tr><td>Catálogo</td><td>Deck library (admiranext.com/presentaciones)</td><td>2 packs, 42 láminas, títulos es/ca/en</td><td class="warn">vivo · solo editable tocando código</td></tr>
+    <tr><td>Catálogo</td><td>apps/videos.json · public-catalog.json (admira.tv)</td><td>vídeos y PDF de marketing de 19 apps</td><td class="warn">vivo · JSON y R2 a mano</td></tr>
+    <tr><td>Vídeo</td><td>admiranext.com/tiktok (Grok Imagine + Composer)</td><td>MP4 15 s 9:16 · WebM 25 s 1080×1920 sin audio</td><td class="ok">vivo · el estudio es público pero su API pide login</td></tr>
+    <tr><td>Vídeo</td><td>Cápsulas TikTok (server-to-server)</td><td>brief → MP4 15 s → Stock</td><td class="ok">vivo</td></tr>
+    <tr><td>Vídeo</td><td>/creditos</td><td>WebM/MP4 en tiempo real, sin audio</td><td class="warn">vivo · solo descarga local, no se publica</td></tr>
+    <tr><td>Vídeo</td><td>Productor NotebookLM (Mac local)</td><td>MP4 con audio, m4a, PDF, PPTX, PNG</td><td class="bad">frágil · un solo Mac; 4 días parado sin avisar</td></tr>
+    <tr><td>Vídeo</td><td>ainimation.studio → /api/produce (OpenMontage)</td><td>MP4 1080p con narración</td><td class="bad">la cola acepta, nadie renderiza; 1 render (8-sep); el enlace /renders da 404</td></tr>
+    <tr><td>Pixeria</td><td>api.admira.store/stock/publish · /stock/upload/*</td><td>asset en R2 + meta.json; motores Grok, Veo, Lyria, ElevenLabs, yt-dlp, Telegram</td><td class="warn">vivo · el carril anónimo no pide auth; el autenticado solo acepta x.ai y admiranext.com</td></tr>
+    <tr><td>Pixeria</td><td>MCP mcp-pixeria.admira.store</td><td>search_stock, stock_stats, get_asset</td><td class="warn">solo lectura · publish_asset vive en mcp.admira.store</td></tr>
+    <tr><td>Parrilla</td><td>/grid/day · /api/playlist · canal.html</td><td>slots por bandas; sync automático solo por tag de circuito</td><td class="ok">vivo</td></tr>
+  </table>
+
+  <h2>3 · Dónde se rompe (lo que cuesta a mano o miente)</h2>
+  <div class="card"><ol>
+    <li><b>Formato:</b> el Composer entrega WebM mudo; Grok, MP4; ainimation, MP4 con voz. En el Stock conviven 16 WebM en «tiktoks». No hay ffmpeg en el borde para convertir, y WebM no es seguro ni para MUPI ni para YouTube.</li>
+    <li><b>Audio:</b> ningún vídeo de admiranext.com lleva audio (canvas puro). Solo NotebookLM y ainimation lo tienen, y ambos están frágiles o apagados.</li>
+    <li><b>Metadatos por convención:</b> <code>vertical</code> se estampa fijo aunque la pieza sea 16:9; emitir depende de la etiqueta <code>default</code> o de un regex por nombre de motor; <code>num</code> se asigna en el reindex, no al publicar; <code>format</code> viene nulo casi siempre.</li>
+    <li><b>Puertas a medias:</b> el estudio /tiktok es público pero su API devuelve 401; el carril de ingesta autenticado rechaza cualquier origen que no sea x.ai o admiranext.com (un MP4 de ainimation no pasa), mientras el carril anónimo acepta base64 sin token.</li>
+    <li><b>Salidas sin cerrar:</b> YouTube escrito y no conectado; créditos solo a disco; Xperiencias publicadas pero añadidas al canal a mano desde el CMS; renders de ainimation enlazados a un 404.</li>
+    <li><b>Catálogos a mano:</b> folletos, deck library, apps y xperiencias viven en JSON commiteados; ninguna API de alta.</li>
+    <li><b>Un solo hilo no existe:</b> cuatro dominios, tres mecanismos de auth (cookie, pase HMAC de 120 s, claves de servicio) y ninguna traza que siga una pieza del folleto a la pantalla.</li>
+    <li><b>Dependencias domésticas:</b> yt-dlp y los pósters de vídeo dependen de un Mac Mini por Tailscale; cuando falla, el catálogo se llena de «Enlace pendiente» con número consumido.</li>
+  </ol></div>
+
+  <h2>4 · Tres vías de mejora (ventana de decisión abierta a Carlos)</h2>
+  <div class="card via rec"><h3>★ Vía 1 · Cerrar el pipeline vivo: folleto → vídeo con audio → Pixeria → pantalla, sin manos</h3>
+    <p>Master MP4 en vez de WebM (Grok MP4 como base y pista de audio mezclada en el navegador con Web Audio + MediaRecorder, o reencode en el productor local); etiquetas honestas por dimensiones reales; <code>num</code> devuelto al publicar; auto-programación en la parrilla por segmentación y no solo por tag; conectar la subida a YouTube que ya está escrita; y una traza de pieza (folleto → vídeo → stock → pantalla) visible en Pixeria. Es el tramo que hoy produce y el que más se usa: cada mejora se nota en la calle.</p></div>
+  <div class="card via"><h3>Vía 2 · Catálogos con API y un solo «catálogo»</h3>
+    <p>Alta de catálogos de folletos por API/MCP en vez de JSON commiteados; deck library editable desde el generador; <code>get_catalog</code> unificado en el MCP de la FACE; el MCP de Pixeria con <code>publish_asset</code> y el carril autenticado abierto a ainimation.studio y xpaceos.com. Cierra la brecha agente → stock.</p></div>
+  <div class="card via"><h3>Vía 3 · Sala de render que no se apaga</h3>
+    <p>Worker de produce versionado en un repo propio, cola con panel, reintentos y aviso cuando vuelve la máquina; fallback al asset del Stock cuando /renders falla; brief completo desde el Director (cast, narración, audio) y Xperiencias al canal sin pasar por el CMS. Recupera ainimation y NotebookLM como fuentes de vídeo con voz.</p></div>
+
+  <h2>5 · Método y límites</h2>
+  <p>Tres inventarios en paralelo (FACE, Pixeria y workers, ainimation y admira.tv) con lectura de código y comprobación por curl de cada endpoint público; no se ha subido ni generado nada. Los repos locales iban entre 2 y 7 días por detrás de producción (el MCP de la FACE sirve 12 tools y el repo local define 9; el worker de Pixeria va por v.12.09.2026 en vivo): las cifras de arriba son las de producción. El código del MCP de Pixeria y del worker de produce de ainimation no está en ningún repo local.</p>
+
+  <footer>ADmiraNeXT · Informes · HandON contenidos · <a href="/informes/">volver</a> · <span id="admiranext-version">v.14.09.2026.r1.18:21</span></footer>
+</main>
+</body>
+</html>
