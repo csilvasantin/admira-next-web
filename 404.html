@@ -7,6 +7,10 @@
     <script>
       (function () {
         var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+        if (path === 'consumos') {
+          window.location.replace('https://www.yokup.com/consumos');
+          return;
+        }
         var map = {
           about: '/about',
           work: '/work',
