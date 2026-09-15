@@ -25,7 +25,7 @@ const ORIGIN = 'https://www.admiranext.com';
 const URL_API = `${ORIGIN}/presentaciones/api/video-package`;
 const CLIENT_ID = 'e8a65412-4fd3-4b58-9b66-f4bc15cb6d99';
 const POSTER = 'data:image/jpeg;base64,' + Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(900, 3)]).toString('base64');
-const VALIDACION = {ok:true, negros:1, muestras:12, duracion:15.02, motivo:null, por:'creador admiranext (canvas)'};
+const VALIDACION = {ok:true, negros:1, muestras:12, duracion:15.02, motivo:null, por:'creador admiranext (canvas)', ancho:null, alto:null};
 
 function patch(body){
   const raw = JSON.stringify(body);

@@ -313,7 +313,9 @@ function saneaValidacion(v){
   const num = (x, max) => (x == null || !Number.isFinite(+x)) ? null : Math.max(0, Math.min(max, Math.round(+x * 100) / 100));
   return {
     ok:v.ok === true, negros:num(v.negros, 10000), muestras:num(v.muestras, 10000), duracion:num(v.duracion, 36000),
-    motivo:v.motivo == null ? null : clean(v.motivo, 200), por:clean(v.por || 'creador admiranext (canvas)', 80)
+    motivo:v.motivo == null ? null : clean(v.motivo, 200), por:clean(v.por || 'creador admiranext (canvas)', 80),
+    // Dimensiones reales del máster (Vía 1 · FLT-100477): el Stock las usa para la orientación honesta.
+    ancho:num(v.ancho, 8192), alto:num(v.alto, 8192)
   };
 }
 async function preparePackage(context){

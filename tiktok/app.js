@@ -2501,9 +2501,17 @@
     ctx.restore();
   }
 
+  // MÁSTER EN MP4 CON AUDIO (Vía 1 · FLT-100477, 15-sep-2026). Chrome/Edge NO reconocen
+  // «h264,aac» como cadena de códecs de MediaRecorder (isTypeSupported → false), así que
+  // el máster caía siempre a WebM: el Stock tenía 16 másters WebM y ninguno MP4. Con los
+  // identificadores RFC 6381 (avc1 + mp4a) graba MP4 nativo con la pista AAC del audio
+  // que ya se mezcla (Grok + reloj Web Audio). Comprobado en Chromium: avc1.420020,mp4a.40.2.
   function supportedMime() {
     const types = [
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/mp4;codecs=avc1,mp4a.40.2',
       'video/mp4;codecs=h264,aac',
+      'video/mp4',
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm'
@@ -2837,7 +2845,9 @@
         await fetch('/presentaciones/api/video-package', {
           method:'PATCH', credentials:'same-origin',
           headers:{'content-type':'application/json', accept:'application/json'},
-          body:JSON.stringify({clientRequestId, poster:analisis.poster || '', posterAt:analisis.posterT, validacion:analisis.validacion})
+          // ancho/alto REALES del lienzo del máster (Vía 1): el Stock deriva de ellos la
+          // orientación honesta (vertical|horizontal) en vez de fiarse del formato pedido.
+          body:JSON.stringify({clientRequestId, poster:analisis.poster || '', posterAt:analisis.posterT, validacion:{...analisis.validacion, ancho:dimensiones.w, alto:dimensiones.h}})
         });
       }catch(_){ /* el póster es deseable, no imprescindible para publicar */ }
       const headers = {
