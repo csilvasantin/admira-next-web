@@ -1,0 +1,163 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="admiranext-version" content="AdmiraNeXT v.13.08.2026.r2.10:51">
+<title>Flota · marcador y misiones · AdmiraNeXT</title>
+<style>
+:root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--bad:#ff6b7a;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 80% -20%,#14332f 0,transparent 42%),var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif}
+.shell{width:min(1460px,calc(100% - 32px));margin:0 auto;padding:28px 0 64px}
+header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap}
+h1{margin:4px 0;font-size:clamp(26px,4vw,40px)}
+h2{margin:0 0 4px;font-size:19px}
+.eyebrow{font:700 12px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+.meta{color:var(--dim);font:600 12px/1.5 var(--mono)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+a.btn,button{border:1px solid var(--line);background:#121c2c;color:var(--ink);padding:9px 13px;border-radius:10px;text-decoration:none;font:700 12px var(--mono);cursor:pointer}
+a.btn:hover,button:hover{border-color:var(--cyan)}
+.panel{background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0;box-shadow:0 18px 50px #0004}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 11px var(--mono);color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
+td.num{text-align:right;font:700 14px var(--mono)}
+.tag{font:700 10px var(--mono);padding:4px 7px;border-radius:999px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.tag.ok{color:var(--ok);border-color:#2c5c3f}.tag.warn{color:var(--warn);border-color:#5c4a2c}.tag.bad{color:var(--bad);border-color:#5c2c33}
+.aviso{border:1px solid #5c4a2c;background:#1b1509;border-radius:12px;padding:13px 15px;margin:12px 0;color:var(--warn);font:600 13px/1.6 system-ui}
+.aviso b{color:#ffd9a3}
+.aviso.bad{border-color:#5c2c33;background:#1b0d10;color:var(--bad)}
+.vacio{color:var(--dim);font:600 13px var(--mono);padding:10px 0}
+.ref{font:600 11px var(--mono);color:var(--dim)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#09111d}
+.kpi b{display:block;font:800 26px/1.2 var(--mono);color:var(--cyan)}
+@media(max-width:760px){table,tbody,tr,td{display:block}thead{display:none}tr{padding:12px 0;border-bottom:1px solid var(--line)}td{border:0;padding:4px 0}td.num{text-align:left}}
+</style></head><body><main class="shell">
+<header>
+  <div>
+    <div class="eyebrow">AdmiraNeXT · Gestión de proyectos</div>
+    <h1>Flota: marcador y misiones</h1>
+    <div class="meta" id="cuando">cargando…</div>
+  </div>
+  <div class="actions">
+    <button id="refrescar">Refrescar</button>
+    <a class="btn" href="https://yokup.com/highscore.html" target="_blank" rel="noopener">Yokup · marcador</a>
+    <a class="btn" href="https://yokup.com/misiones.html" target="_blank" rel="noopener">Yokup · misiones</a>
+  </div>
+</header>
+
+<div id="fallo"></div>
+
+<section class="panel">
+  <div class="panel-head"><div><h2>Quién está trabajando</h2><div class="meta">api.yokup.com/highscore/active-work</div></div><span class="tag" id="modo"></span></div>
+  <div class="grid" id="kpis"></div>
+  <div id="diagnostico"></div>
+  <div id="trabajando"></div>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><div><h2>Marcador del día</h2><div class="meta">api.yokup.com/highscore/daily</div></div><span class="tag" id="dia"></span></div>
+  <div id="marcador"></div>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><div><h2>Misiones vivas</h2><div class="meta">api.yokup.com/fleet/missions</div></div><span class="tag" id="nmisiones"></span></div>
+  <div id="misiones"></div>
+</section>
+
+<script>
+const API='https://api.yokup.com';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hora=ms=>ms?new Intl.DateTimeFormat('es-ES',{hour:'2-digit',minute:'2-digit'}).format(new Date(Number(ms))):'—';
+const hace=ms=>{if(!ms)return '—';const s=Math.round((Date.now()-Number(ms))/1000);if(s<60)return s+' s';if(s<3600)return Math.round(s/60)+' min';return Math.round(s/3600)+' h';};
+
+async function pide(ruta){
+  const r=await fetch(API+ruta,{cache:'no-store'});
+  if(!r.ok) throw new Error(ruta+' → HTTP '+r.status);
+  return r.json();
+}
+
+// El marcador agrupa por NOMBRE de persona, y dos máquinas de la misma persona
+// aparecen como dos filas con el mismo nombre (Trinity en MBP14 y en MBACrema).
+// No se corrige aquí: se señala, porque el arreglo es de Yokup, no de esta vista.
+function duplicados(scores){
+  const veces=new Map();
+  scores.forEach(s=>veces.set(s.agent,(veces.get(s.agent)||0)+1));
+  return [...veces.entries()].filter(([,n])=>n>1).map(([nombre,n])=>nombre+' ×'+n);
+}
+
+function pintaMarcador(d){
+  const scores=(d&&d.scores||[]).map(s=>({...s,total:(s.objective_points||0)+(s.window_points||0)+(s.mission_points||0)}));
+  scores.sort((a,b)=>b.total-a.total);
+  $('#dia').textContent=(d&&d.day||'')+' · '+scores.length+' agentes';
+  const dup=duplicados(scores);
+  $('#marcador').innerHTML=(dup.length?`<div class="aviso">El marcador agrupa por <b>nombre de persona</b>, no por agente: ${esc(dup.join(', '))} aparece más de una vez porque la misma persona trabaja en varias máquinas. Sus puntos no se suman entre sí.</div>`:'')+
+    (scores.length?`<table><thead><tr><th>#</th><th>Agente</th><th>Total</th><th>Misiones</th><th>Ventanas</th></tr></thead><tbody>`+
+      scores.map((s,i)=>`<tr><td class="num">${i+1}</td><td><strong>${esc(s.agent)}</strong></td><td class="num">${s.total}</td><td class="num">${s.missions||0}</td><td class="num">${s.windows||0}</td></tr>`).join('')+
+      `</tbody></table>`:'<p class="vacio">Hoy no puntúa nadie todavía.</p>');
+}
+
+function pintaTrabajo(d){
+  const part=d&&d.participants||[], obs=d&&d.observations||[];
+  $('#modo').textContent='modo '+(d&&d.mode||'?');
+  const abiertas=obs.filter(o=>o.process_state==='open').length;
+  const corriendo=Number(d&&d.running_count||0);
+  $('#kpis').innerHTML=[
+    ['Contados trabajando',corriendo],
+    ['Sesiones abiertas',abiertas],
+    ['Con trabajo asignado',part.length],
+  ].map(([t,v])=>`<div class="kpi"><b>${v}</b><span class="meta">${t}</span></div>`).join('');
+
+  // El fallo que se ve desde el primer día: hay sesiones abiertas y misiones vivas,
+  // pero nadie cuenta como «trabajando». El motivo lo da el propio endpoint.
+  let aviso='';
+  if(corriendo===0&&abiertas>0){
+    const motivos=new Map();
+    obs.filter(o=>o.process_state==='open').forEach(o=>{const k=o.reason||o.activity_state||'sin motivo';motivos.set(k,(motivos.get(k)||0)+1)});
+    const detalle=[...motivos.entries()].map(([k,n])=>`${esc(k)} ×${n}`).join(' · ');
+    aviso=`<div class="aviso bad"><b>Nadie figura trabajando</b> y sin embargo hay ${abiertas} sesión(es) abierta(s). Yokup ve los procesos, pero no puede atarlos a una misión o tarea. Motivos que declara: ${detalle}. Mientras eso no se enlace, el marcador y esta vista dirán que la flota está parada aunque no lo esté.</div>`;
+  }
+  const rancias=part.filter(p=>String(p.state||'').includes('stale')).length;
+  if(rancias) aviso+=`<div class="aviso">${rancias} trabajo(s) con estado <b>rancio</b>: hay misión o tarea asignada, pero nadie ha mandado señal de avance reciente.</div>`;
+  $('#diagnostico').innerHTML=aviso;
+
+  $('#trabajando').innerHTML=part.length?`<table><thead><tr><th>Agente</th><th>Máquina</th><th>Trabajo</th><th>Estado</th><th>Última señal</th></tr></thead><tbody>`+
+    part.map(p=>`<tr>
+      <td><strong>${esc(p.agent||p.family_key||'?')}</strong>${p.executor&&p.executor!==p.agent?`<div class="ref">ejecuta ${esc(p.executor)}</div>`:''}</td>
+      <td class="ref">${esc(p.machine||'—')}</td>
+      <td>${esc(p.title||'—')}<div class="ref">${esc(p.kind||'')} · ${esc(p.reference||'')}</div></td>
+      <td><span class="tag ${String(p.state||'').includes('stale')?'warn':'ok'}">${esc(p.state||'?')}</span></td>
+      <td class="ref">hace ${hace(p.work_progress_at||p.active_at)}</td>
+    </tr>`).join('')+`</tbody></table>`:'<p class="vacio">Yokup no ve a nadie con trabajo asignado ahora mismo.</p>';
+}
+
+function pintaMisiones(d){
+  const ms=(d&&(d.missions||d.items)||[]).filter(m=>m.status!=='done'&&m.status!=='closed');
+  $('#nmisiones').textContent=ms.length+' vivas';
+  $('#misiones').innerHTML=ms.length?`<table><thead><tr><th>Ref</th><th>Agente</th><th>Proyecto</th><th>Estado</th><th>Asunto</th></tr></thead><tbody>`+
+    ms.map(m=>`<tr>
+      <td class="ref">${esc(m.display_ref||m.id||'')}</td>
+      <td><strong>${esc(m.persona||'—')}</strong></td>
+      <td class="ref">${esc(m.project||m.project_id||'—')}</td>
+      <td><span class="tag ${m.status==='in_progress'?'ok':''}">${esc(m.status||'?')}</span></td>
+      <td>${esc(m.subject||m.title||'')}</td>
+    </tr>`).join('')+`</tbody></table>`:'<p class="vacio">No hay misiones vivas.</p>';
+}
+
+async function carga(){
+  $('#fallo').innerHTML='';
+  const fallos=[];
+  const [trabajo,marcador,misiones]=await Promise.all([
+    pide('/highscore/active-work').catch(e=>{fallos.push(e.message);return null}),
+    pide('/highscore/daily').catch(e=>{fallos.push(e.message);return null}),
+    pide('/fleet/missions?limit=60').catch(e=>{fallos.push(e.message);return null}),
+  ]);
+  if(trabajo)pintaTrabajo(trabajo); if(marcador)pintaMarcador(marcador); if(misiones)pintaMisiones(misiones);
+  // Un bloque que no carga se dice, no se deja en blanco como si no hubiera datos.
+  if(fallos.length)$('#fallo').innerHTML=`<div class="aviso bad"><b>No he podido leer Yokup entero:</b> ${esc(fallos.join(' · '))}. Lo que se ve abajo puede estar incompleto.</div>`;
+  $('#cuando').textContent='Datos de api.yokup.com · actualizado a las '+hora(Date.now())+' · se refresca solo cada 30 s';
+}
+$('#refrescar').onclick=carga;
+carga(); setInterval(carga,30000);
+</script></main></body></html>
