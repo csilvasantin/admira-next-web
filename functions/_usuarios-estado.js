@@ -16,8 +16,9 @@
  *
  *  3) LA INVITACIÓN. Dar de alta no avisa a nadie: la persona no sabe que existe,
  *     ni por dónde entrar, ni a qué. El texto de invitación sale ya escrito, con el
- *     enlace y sus proyectos, para copiarlo y mandarlo por Telegram o WhatsApp.
- *     (Correo real desde el sitio exige un proveedor que hoy no hay; queda anotado.)
+ *     enlace y sus proyectos. El alta (y el botón «Enviar correo») lo mandan de
+ *     verdad vía whitelist.admira.store/invite (CF Email, acceso@admira.tv).
+ *     Copiar al portapapeles sigue disponible si el envío falla.
  */
 
 export const WHITELIST_API = 'https://whitelist.admira.store';
@@ -112,4 +113,52 @@ export function textoInvitacion(user, projectKeys, catalog, entrada = ENTRADA) {
     `Proyectos: ${proyectos}.`,
     'Si al entrar algo no encaja, responde a este mensaje.',
   ].join('\n');
+}
+
+/** Grants de apps usables. 0 = la persona no entra a nada operativo (el piloto exige ≥1). */
+export const APP_GRANT_KEYS = {
+  generador: new Set(['generador-de-presentaciones', 'presentaciones', 'generador', '*']),
+  webmaster: new Set(['admiranext', 'admiranext-webmaster', '*']),
+};
+
+export function aclApps({ project_keys = [], en_lista_blanca = false } = {}) {
+  const keys = (Array.isArray(project_keys) ? project_keys : []).map((k) => String(k || '').trim().toLowerCase());
+  const has = (set) => keys.some((k) => set.has(k));
+  const apps = [];
+  if (has(APP_GRANT_KEYS.generador)) apps.push('generador');
+  if (has(APP_GRANT_KEYS.webmaster)) apps.push('webmaster');
+  if (en_lista_blanca) apps.push('live');
+  return { apps, usable: apps.length };
+}
+
+/** Correo real de invitación vía worker whitelist (CF Email). Best-effort. */
+export async function enviarInvitacionEmail(env = {}, { to, subject, text, html, actor } = {}) {
+  const dest = email(to);
+  const bodyText = String(text || '').trim();
+  if (!dest || !bodyText) return { ok: false, sent: false, error: 'email o texto vacío' };
+  const fetchImpl = typeof env.WHITELIST_FETCH === 'function' ? env.WHITELIST_FETCH : fetch;
+  const token = String(env.WHITELIST_MACHINE_TOKEN || '').trim();
+  if (!token) return { ok: false, sent: false, error: 'WHITELIST_MACHINE_TOKEN missing' };
+  try {
+    const response = await fetchImpl(WHITELIST_API + '/invite', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Whitelist-Token': token,
+      },
+      body: JSON.stringify({
+        email: dest,
+        subject: String(subject || 'Tienes acceso a AdmiraNeXT').slice(0, 180),
+        text: bodyText.slice(0, 8000),
+        html: html ? String(html).slice(0, 20000) : undefined,
+        by: String(actor || '').slice(0, 120),
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) return { ok: false, sent: false, error: payload.error || `invite HTTP ${response.status}` };
+    return { ok: true, sent: payload.sent !== false, error: payload.error || '' };
+  } catch (error) {
+    return { ok: false, sent: false, error: String(error && error.message || error) };
+  }
 }

@@ -1,6 +1,6 @@
 import { asegurarDirectorio, exigirRol, csrfValido, auditar } from '../_webmaster-gate.js';
 import { catalogoProyectos, normalizarPermisos } from '../_project-access.js';
-import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion, escribirListaBlanca } from '../_usuarios-estado.js';
+import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion, escribirListaBlanca, aclApps, enviarInvitacionEmail } from '../_usuarios-estado.js';
 import { listTokens } from '../mcp/_tokens.js';
 
 const ROLES = new Set(['admin','editor','viewer']);
@@ -54,8 +54,12 @@ export async function onRequestGet({request,env}) {
   const url=new URL(request.url);
   const entrada=url.origin.endsWith('admiranext.com')?url.origin+'/webmaster':undefined;
   return json({ok:true,current:{email:auth.current.email,role:auth.current.role,csrf:auth.current.csrf},
-    users:rows.map((user)=>({...user,estado:estadoUsuario(user),...cruce.por_email[user.email],
-      invitacion:textoInvitacion(user,user.project_keys,catalog.projects,entrada),mcp_tokens:tokensDe(user.email)})),audit:audit.results||[],
+    users:rows.map((user)=>{
+      const cruceUser=cruce.por_email[user.email]||{en_lista_blanca:false,superusuario:false};
+      const invitacion=textoInvitacion(user,user.project_keys,catalog.projects,entrada);
+      const acl=aclApps({project_keys:user.project_keys,en_lista_blanca:cruceUser.en_lista_blanca});
+      return {...user,...cruceUser,estado:estadoUsuario(user),invitacion,acl,mcp_tokens:tokensDe(user.email)};
+    }),audit:audit.results||[],
     mcp:{endpoint:'https://www.admiranext.com/mcp',help:'https://www.admiranext.com/mcp/generador'},
     projects:catalog.projects,catalog_complete:catalog.complete,catalog_warning:catalog.warning,
     lista_blanca:{complete:lista.complete,warning:lista.warning,total:lista.emails.length,
@@ -75,7 +79,10 @@ export async function onRequestPost({request,env}) {
     .bind(target,name,role,now,now).run();
   await reemplazarPermisos(env,target,access.keys,auth.current.email);
   await auditar(env,auth.current.email,target,'user_created',JSON.stringify({role,projects:access.keys}));
-  return json({ok:true,email:target,role,project_keys:access.keys},201);
+  const invitacion=textoInvitacion({email:target,display_name:name,role},access.keys,access.catalog.projects);
+  const invite=await enviarInvitacionEmail(env,{to:target,subject:'Tienes acceso a AdmiraNeXT',text:invitacion,actor:auth.current.email});
+  await auditar(env,auth.current.email,target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
+  return json({ok:true,email:target,role,project_keys:access.keys,acl:aclApps({project_keys:access.keys}),invite_email:invite,invitacion},201);
 }
 
 export async function onRequestPatch({request,env}) {
@@ -89,6 +96,16 @@ export async function onRequestPatch({request,env}) {
     await env.AUTH_DB.prepare('UPDATE admiranext_users SET session_version=session_version+1,updated_at=? WHERE email=?').bind(Date.now(),target).run();
     await auditar(env,auth.current.email,target,'sessions_revoked','manual');
     return json({ok:true,email:target,action});
+  }
+  if(action==='invite_email'){
+    const keys=(await env.AUTH_DB.prepare('SELECT project_key FROM admiranext_user_projects WHERE user_email=?').bind(target).all()).results||[];
+    const projectKeys=keys.map((row)=>row.project_key);
+    const catalog=await catalogoProyectos(env);
+    const invitacion=textoInvitacion({email:user.email,display_name:user.display_name,role:user.role},projectKeys,catalog.projects);
+    const invite=await enviarInvitacionEmail(env,{to:target,subject:'Tienes acceso a AdmiraNeXT',text:invitacion,actor:auth.current.email});
+    await auditar(env,auth.current.email,target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
+    if(!invite.ok)return json({ok:false,error:invite.error||'invite',invite_email:invite,invitacion},502);
+    return json({ok:true,email:target,action,invite_email:invite,invitacion});
   }
   if(action==='whitelist_add'||action==='whitelist_remove'){
     const wlAct=action==='whitelist_add'?'add':'remove';

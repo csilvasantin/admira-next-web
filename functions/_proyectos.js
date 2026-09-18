@@ -76,6 +76,16 @@ export const PROYECTOS = [
     nota: 'Subsolución de AdmiraNeXT: abre /presupuestos/ y comparte despliegue, sello y firma con admiranext.com.',
   },
   {
+    clave: 'generador-de-presentaciones', nombre: 'Generador de presentaciones',
+    url: 'https://www.admiranext.com/presentaciones/',
+    estadoUrl: 'https://www.admiranext.com',
+    parentKey: 'admiranext',
+    repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · presentaciones/',
+    pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
+    tipo: 'sitio', shot: null,
+    nota: 'ACL del Generador Presentar: el alta en /usuarios con esta clave (o * o alias generador/presentaciones) otorga un grant usable. Sin ella el editor no entra.',
+  },
+  {
     clave: 'yokup', nombre: 'yokup.com', url: 'https://yokup.com',
     repo: 'csilvasantin/tool', repoTxt: 'tool · yokup-site/',
     pages: 'yokup', publica: 'cd yokup-site && wrangler pages deploy .',

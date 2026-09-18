@@ -251,7 +251,7 @@ test('admin crea usuario, cambia rol y revoca inmediatamente la cookie anterior'
   response=await onRequestPatch({request:request('PATCH',cookie,me.csrf,{email:'editor@example.com',role:'viewer',project_keys:['yokup']}),env});
   assert.equal(response.status,200); assert.equal(await current(env,editorCookie),null);
   const audit=await env.AUTH_DB.prepare("SELECT action FROM admiranext_user_audit WHERE target_email='editor@example.com'").all();
-  assert.deepEqual(audit.results.map(x=>x.action).sort(),['user_created','user_updated']);
+  assert.deepEqual(audit.results.map(x=>x.action).sort(),['invite_email','user_created','user_updated']);
 });
 
 test('lector no administra y una mutación sin Origin+CSRF exactos falla cerrada',async()=>{
@@ -285,7 +285,7 @@ test('Webmaster sólo entrega y permite modificar los proyectos autorizados',asy
     const response=await getProjects({request:new Request('https://www.admiranext.com/api/proyectos?parte=retornos',{headers:{cookie}}),env});
     const body=await response.json();
     assert.equal(body.accessRestricted,undefined);
-    assert.deepEqual(body.proyectos.map((p)=>p.clave),['admiranext','admiranext-webmaster','admiranext-proyectos','generador-presupuestos']);
+    assert.deepEqual(body.proyectos.map((p)=>p.clave),['admiranext','admiranext-webmaster','admiranext-proyectos','generador-presupuestos','generador-de-presentaciones']);
     const denied=await patchProject({request:new Request('https://www.admiranext.com/api/proyectos',{method:'PATCH',headers:{cookie,origin:'https://www.admiranext.com','X-Admira-CSRF':me.csrf,'content-type':'application/json'},body:JSON.stringify({clave:'yokup',responsable:'NeoMacMini'})}),env:{...env,PRESENTATION_IDEAS:{put:async()=>{throw Error('no debe escribir')}}}});
     assert.equal(denied.status,403);assert.equal((await denied.json()).error,'proyecto no autorizado');
     const history=await getHistory({request:new Request('https://www.admiranext.com/api/historial?p=yokup',{headers:{cookie}}),env});

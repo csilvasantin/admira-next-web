@@ -23,7 +23,7 @@
 
 import { buscarUsuario, buscarUsuarioIdentidad } from '../_webmaster-gate.js';
 
-export const GENERATOR_PROJECT_KEYS = new Set(['generador-de-presentaciones', 'presentaciones', '*']);
+export const GENERATOR_PROJECT_KEYS = new Set(['generador-de-presentaciones', 'presentaciones', 'generador', '*']);
 export const BOOTSTRAP_OWNERS = new Set(['csilva@admira.com', 'csilvasantin@gmail.com']);
 const LEVELS = { admin: 'owner', editor: 'editor', viewer: 'viewer' };
 const enc = new TextEncoder();

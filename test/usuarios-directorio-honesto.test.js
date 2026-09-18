@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import { cookieDeSesion, sesionCompleta, asegurarDirectorio } from '../functions/_webmaster-gate.js';
 import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
-import { estadoUsuario, cruzarListaBlanca, textoInvitacion, leerListaBlanca } from '../functions/_usuarios-estado.js';
+import { estadoUsuario, cruzarListaBlanca, textoInvitacion, leerListaBlanca, aclApps, enviarInvitacionEmail } from '../functions/_usuarios-estado.js';
 
 // Directorio honesto y accionable (FLT-1577 · HandON admiranext.com, 4-sep-2026).
 // Lo que se comprueba aquí es lo que Carlos ve en /usuarios: que el estado diga la
@@ -99,7 +99,7 @@ test('sin lista blanca el GET no inventa divergencias y avisa',async()=>{
 
 test('la página muestra estado, buscador, filtros, cruce con admira.live e invitación',()=>{
   const source=fs.readFileSync(new URL('../usuarios.html',import.meta.url),'utf8');
-  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=','data-wl-sync','data-wl-add=']) {
+  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','data-act="invite-email"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=','data-wl-sync','data-wl-add=','Enviar correo']) {
     assert.ok(source.includes(marca),`falta ${marca}`);
   }
   assert.match(source,/admiranext-version" content="AdmiraNeXT v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}"/);
@@ -118,6 +118,70 @@ test('leerListaBlanca envía X-Whitelist-Token', async () => {
   assert.equal(lista.complete, true);
 });
 
+test('ACL apps: 0 grants sin proyectos; ≥1 con generador o *', () => {
+  assert.equal(aclApps({project_keys:[]}).usable, 0);
+  assert.deepEqual(aclApps({project_keys:['generador-de-presentaciones']}).apps, ['generador']);
+  assert.ok(aclApps({project_keys:['generador']}).usable >= 1);
+  assert.ok(aclApps({project_keys:['*'], en_lista_blanca:true}).usable >= 2);
+  assert.ok(aclApps({project_keys:['*'], en_lista_blanca:true}).apps.includes('generador'));
+  assert.ok(aclApps({project_keys:['*'], en_lista_blanca:true}).apps.includes('live'));
+});
+
+test('GET /api/usuarios incluye ACL usable por persona', async () => {
+  const env = await setup(), cookie = await auth(env), me = await current(env, cookie);
+  await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'editor@admira.com', display_name: 'Editor', role: 'editor', project_keys: ['generador-de-presentaciones'] }), env });
+  const body = await (await onRequestGet({ request: request('GET', cookie, me.csrf), env })).json();
+  const editor = body.users.find((u) => u.email === 'editor@admira.com');
+  assert.ok(editor.acl.usable >= 1);
+  assert.ok(editor.acl.apps.includes('generador'));
+  const carlos = body.users.find((u) => u.email === 'csilva@admira.com');
+  assert.ok(carlos.acl.usable >= 1, 'bootstrap admin con * y live');
+});
+
+test('POST alta envía invite_email real al worker, no solo clipboard', async () => {
+  const calls = [];
+  const env = await setup();
+  env.WHITELIST_MACHINE_TOKEN = 'secret-token';
+  env.WHITELIST_FETCH = async (url, opts) => {
+    calls.push({ url, method: opts && opts.method, token: opts && opts.headers && opts.headers['X-Whitelist-Token'], body: opts && opts.body });
+    if (String(url).endsWith('/invite')) return Response.json({ ok: true, sent: true, action: 'invite' });
+    return Response.json(LISTA);
+  };
+  const cookie = await auth(env), me = await current(env, cookie);
+  const body = await (await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'nuevo@admira.com', display_name: 'Nuevo', role: 'editor', project_keys: ['generador-de-presentaciones'] }), env })).json();
+  assert.equal(body.ok, true);
+  assert.equal(body.invite_email.sent, true);
+  assert.ok(body.acl.usable >= 1);
+  assert.ok(calls.some((c) => /\/invite$/.test(c.url) && c.method === 'POST' && c.token === 'secret-token'));
+  const inviteCall = calls.find((c) => /\/invite$/.test(c.url));
+  const payload = JSON.parse(inviteCall.body);
+  assert.equal(payload.email, 'nuevo@admira.com');
+  assert.match(payload.text, /admiranext\.com\/webmaster/);
+});
+
+test('PATCH invite_email reenvía el correo', async () => {
+  const calls = [];
+  const env = await setup();
+  env.WHITELIST_MACHINE_TOKEN = 'secret-token';
+  env.WHITELIST_FETCH = async (url, opts) => {
+    calls.push(url);
+    if (String(url).endsWith('/invite')) return Response.json({ ok: true, sent: true });
+    return Response.json(LISTA);
+  };
+  const cookie = await auth(env), me = await current(env, cookie);
+  await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'nuevo@admira.com', display_name: 'Nuevo', role: 'editor', project_keys: ['generador-de-presentaciones'] }), env });
+  const body = await (await onRequestPatch({ request: request('PATCH', cookie, me.csrf, { email: 'nuevo@admira.com', action: 'invite_email' }), env })).json();
+  assert.equal(body.ok, true);
+  assert.equal(body.invite_email.sent, true);
+  assert.ok(calls.filter((u) => /\/invite$/.test(u)).length >= 2);
+});
+
+test('enviarInvitacionEmail sin token no finge el envío', async () => {
+  const r = await enviarInvitacionEmail({}, { to: 'csilvasantin@gmail.com', text: 'hola' });
+  assert.equal(r.sent, false);
+  assert.match(r.error, /WHITELIST_MACHINE_TOKEN/);
+});
+
 test('PATCH whitelist_add llama al worker con token de máquina', async () => {
   const calls = [];
   const env = await setup();
@@ -131,7 +195,8 @@ test('PATCH whitelist_add llama al worker con token de máquina', async () => {
   const body = await (await onRequestPatch({ request: request('PATCH', cookie, me.csrf, { email: 'nuevo@admira.com', action: 'whitelist_add' }), env })).json();
   assert.equal(body.ok, true);
   assert.equal(body.action, 'whitelist_add');
-  assert.equal(calls.length, 1);
-  assert.match(calls[0].url, /\/add$/);
-  assert.equal(calls[0].token, 'secret-token');
+  const addCalls = calls.filter((c) => /\/add$/.test(c.url));
+  assert.equal(addCalls.length, 1);
+  assert.equal(addCalls[0].token, 'secret-token');
+  assert.ok(calls.some((c) => /\/invite$/.test(c.url)), 'el alta también dispara el correo');
 });
