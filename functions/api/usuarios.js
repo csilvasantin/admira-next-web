@@ -1,6 +1,6 @@
 import { asegurarDirectorio, exigirRol, csrfValido, auditar } from '../_webmaster-gate.js';
 import { catalogoProyectos, normalizarPermisos } from '../_project-access.js';
-import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion } from '../_usuarios-estado.js';
+import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion, escribirListaBlanca } from '../_usuarios-estado.js';
 import { listTokens } from '../mcp/_tokens.js';
 
 const ROLES = new Set(['admin','editor','viewer']);
@@ -89,6 +89,24 @@ export async function onRequestPatch({request,env}) {
     await env.AUTH_DB.prepare('UPDATE admiranext_users SET session_version=session_version+1,updated_at=? WHERE email=?').bind(Date.now(),target).run();
     await auditar(env,auth.current.email,target,'sessions_revoked','manual');
     return json({ok:true,email:target,action});
+  }
+  if(action==='whitelist_add'||action==='whitelist_remove'){
+    const wlAct=action==='whitelist_add'?'add':'remove';
+    const wl=await escribirListaBlanca(env,wlAct,target);
+    if(!wl.ok)return json({ok:false,error:wl.error||'whitelist'},502);
+    await auditar(env,auth.current.email,target,'whitelist_'+wlAct,'live');
+    return json({ok:true,email:target,action,whitelist:{emails:wl.emails,superusers:wl.superusers}});
+  }
+  if(action==='whitelist_sync'){
+    const rows=await env.AUTH_DB.prepare("SELECT email FROM admiranext_users WHERE status='active'").all();
+    const emails=(rows.results||[]).map((row)=>email(row.email)).filter(Boolean);
+    const added=[]; const errors=[];
+    for(const mail of emails){
+      const wl=await escribirListaBlanca(env,'add',mail);
+      if(wl.ok)added.push(mail); else errors.push(mail+': '+(wl.error||'fail'));
+    }
+    await auditar(env,auth.current.email,'*','whitelist_sync',JSON.stringify({added:added.length,errors:errors.length}));
+    return json({ok:true,action,added:added.length,errors});
   }
   const role=String(body.role||user.role), status=String(body.status||user.status);
   if(!ROLES.has(role)||!['active','suspended'].includes(status))return json({ok:false,error:'rol o estado no válidos'},422);

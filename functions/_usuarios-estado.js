@@ -20,7 +20,7 @@
  *     (Correo real desde el sitio exige un proveedor que hoy no hay; queda anotado.)
  */
 
-export const WHITELIST_API = 'https://admira-whitelist.csilvasantin.workers.dev';
+export const WHITELIST_API = 'https://whitelist.admira.store';
 export const ENTRADA = 'https://www.admiranext.com/webmaster';
 
 export const ROL_LABEL = { admin: 'Administrador', editor: 'Editor', viewer: 'Lector' };
@@ -38,7 +38,10 @@ export function estadoUsuario(user) {
 export async function leerListaBlanca(env = {}) {
   const fetchImpl = typeof env.WHITELIST_FETCH === 'function' ? env.WHITELIST_FETCH : fetch;
   try {
-    const response = await fetchImpl(WHITELIST_API + '/list', { headers: { Accept: 'application/json' }, cache: 'no-store' });
+    const token = String(env.WHITELIST_MACHINE_TOKEN || '').trim();
+    const headers = { Accept: 'application/json' };
+    if (token) headers['X-Whitelist-Token'] = token;
+    const response = await fetchImpl(WHITELIST_API + '/list', { headers, cache: 'no-store' });
     if (!response.ok) throw new Error(`admira-whitelist HTTP ${response.status}`);
     const payload = await response.json();
     if (!payload || !Array.isArray(payload.emails)) throw new Error('lista blanca inválida');
@@ -49,6 +52,27 @@ export async function leerListaBlanca(env = {}) {
     };
   } catch (error) {
     return { emails: [], superusers: [], complete: false, warning: String(error && error.message || error) };
+  }
+}
+
+/** Alta/baja en whitelist live. Nunca quita OWNERS. Token de máquina, no JWT. */
+export async function escribirListaBlanca(env, action, targetEmail) {
+  const fetchImpl = typeof env.WHITELIST_FETCH === 'function' ? env.WHITELIST_FETCH : fetch;
+  const token = String(env.WHITELIST_MACHINE_TOKEN || '').trim();
+  if (!token) return { ok: false, error: 'WHITELIST_MACHINE_TOKEN missing' };
+  const act = String(action || '');
+  if (!['add', 'remove', 'promote', 'demote'].includes(act)) return { ok: false, error: 'action inválida' };
+  try {
+    const response = await fetchImpl(WHITELIST_API + '/' + act, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Whitelist-Token': token },
+      body: JSON.stringify({ email: targetEmail }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) return { ok: false, error: payload.error || `whitelist HTTP ${response.status}` };
+    return { ok: true, emails: payload.emails || [], superusers: payload.superusers || [] };
+  } catch (error) {
+    return { ok: false, error: String(error && error.message || error) };
   }
 }
 

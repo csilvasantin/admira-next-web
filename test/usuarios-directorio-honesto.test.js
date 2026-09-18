@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import { cookieDeSesion, sesionCompleta, asegurarDirectorio } from '../functions/_webmaster-gate.js';
-import { onRequestGet, onRequestPost } from '../functions/api/usuarios.js';
+import { onRequestGet, onRequestPost, onRequestPatch } from '../functions/api/usuarios.js';
 import { estadoUsuario, cruzarListaBlanca, textoInvitacion, leerListaBlanca } from '../functions/_usuarios-estado.js';
 
 // Directorio honesto y accionable (FLT-1577 · HandON admiranext.com, 4-sep-2026).
@@ -99,8 +99,39 @@ test('sin lista blanca el GET no inventa divergencias y avisa',async()=>{
 
 test('la página muestra estado, buscador, filtros, cruce con admira.live e invitación',()=>{
   const source=fs.readFileSync(new URL('../usuarios.html',import.meta.url),'utf8');
-  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=']) {
+  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=','data-wl-sync','data-wl-add=']) {
     assert.ok(source.includes(marca),`falta ${marca}`);
   }
   assert.match(source,/admiranext-version" content="AdmiraNeXT v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}"/);
+});
+
+test('leerListaBlanca envía X-Whitelist-Token', async () => {
+  let header = '';
+  const lista = await leerListaBlanca({
+    WHITELIST_MACHINE_TOKEN: 'secret-token',
+    WHITELIST_FETCH: async (url, opts) => {
+      header = opts && opts.headers && opts.headers['X-Whitelist-Token'];
+      return Response.json(LISTA);
+    }
+  });
+  assert.equal(header, 'secret-token');
+  assert.equal(lista.complete, true);
+});
+
+test('PATCH whitelist_add llama al worker con token de máquina', async () => {
+  const calls = [];
+  const env = await setup();
+  env.WHITELIST_MACHINE_TOKEN = 'secret-token';
+  env.WHITELIST_FETCH = async (url, opts) => {
+    calls.push({ url, method: opts && opts.method, token: opts && opts.headers && opts.headers['X-Whitelist-Token'] });
+    return Response.json({ ok: true, emails: ['csilva@admira.com', 'nuevo@admira.com'], superusers: ['csilva@admira.com'] });
+  };
+  const cookie = await auth(env), me = await current(env, cookie);
+  await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'nuevo@admira.com', display_name: 'Nuevo', role: 'editor', project_keys: ['pixeria'] }), env });
+  const body = await (await onRequestPatch({ request: request('PATCH', cookie, me.csrf, { email: 'nuevo@admira.com', action: 'whitelist_add' }), env })).json();
+  assert.equal(body.ok, true);
+  assert.equal(body.action, 'whitelist_add');
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].url, /\/add$/);
+  assert.equal(calls[0].token, 'secret-token');
 });
