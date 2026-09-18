@@ -82,7 +82,10 @@ export async function onRequestPost({request,env}) {
   const invitacion=textoInvitacion({email:target,display_name:name,role},access.keys,access.catalog.projects);
   const invite=await enviarInvitacionEmail(env,{to:target,subject:'Tienes acceso a AdmiraNeXT',text:invitacion,actor:auth.current.email});
   await auditar(env,auth.current.email,target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
-  return json({ok:true,email:target,role,project_keys:access.keys,acl:aclApps({project_keys:access.keys}),invite_email:invite,invitacion},201);
+  // P0.3 / FLT-100621: proyectar a live en el mismo alta. Best-effort ≤60s: si falla, el alta NeXT sigue.
+  const wl=await escribirListaBlanca(env,'add',target);
+  await auditar(env,auth.current.email,target,wl.ok?'whitelist_add':'whitelist_add_failed',wl.ok?'alta':String(wl.error||'fail'));
+  return json({ok:true,email:target,role,project_keys:access.keys,acl:aclApps({project_keys:access.keys,en_lista_blanca:wl.ok}),invite_email:invite,invitacion,whitelist:{ok:wl.ok,error:wl.ok?'':(wl.error||'fail')}},201);
 }
 
 export async function onRequestPatch({request,env}) {

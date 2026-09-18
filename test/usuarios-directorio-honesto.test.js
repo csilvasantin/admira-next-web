@@ -67,6 +67,8 @@ test('la invitación lleva nombre, rol, enlace de entrada y proyectos legibles',
   const texto=textoInvitacion({email:'agus@admira.com',display_name:'Agus',role:'editor'},['pixeria'],catalog);
   assert.match(texto,/^Hola Agus, ya tienes acceso a AdmiraNeXT como editor\./m);
   assert.match(texto,/agus@admira\.com en https:\/\/www\.admiranext\.com\/webmaster/);
+  assert.match(texto,/presentaciones/);
+  assert.match(texto,/sala del cliente/);
   assert.match(texto,/Proyectos: Pixeria\./);
   assert.match(textoInvitacion({email:'x@y.z',role:'admin'},['*'],catalog),/Hola x, .*administrador/);
   assert.match(textoInvitacion({email:'x@y.z',role:'viewer'},[],catalog),/sin proyectos asignados todavía/);
@@ -99,7 +101,7 @@ test('sin lista blanca el GET no inventa divergencias y avisa',async()=>{
 
 test('la página muestra estado, buscador, filtros, cruce con admira.live e invitación',()=>{
   const source=fs.readFileSync(new URL('../usuarios.html',import.meta.url),'utf8');
-  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','data-act="invite-email"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=','data-wl-sync','data-wl-add=','Enviar correo']) {
+  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','data-act="invite-email"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=','data-wl-sync','data-wl-add=','Enviar correo','DEFAULT_ALTA_KEYS','presentaciones','sala del cliente']) {
     assert.ok(source.includes(marca),`falta ${marca}`);
   }
   assert.match(source,/admiranext-version" content="AdmiraNeXT v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}"/);
@@ -136,6 +138,48 @@ test('GET /api/usuarios incluye ACL usable por persona', async () => {
   assert.ok(editor.acl.apps.includes('generador'));
   const carlos = body.users.find((u) => u.email === 'csilva@admira.com');
   assert.ok(carlos.acl.usable >= 1, 'bootstrap admin con * y live');
+});
+
+test('POST alta proyecta a whitelist /add y no tumba el alta si el sync falla', async () => {
+  const calls = [];
+  const env = await setup();
+  env.WHITELIST_MACHINE_TOKEN = 'secret-token';
+  env.WHITELIST_FETCH = async (url, opts) => {
+    calls.push(String(url));
+    if (String(url).endsWith('/add')) return Response.json({ error: 'whitelist caído' }, { status: 502 });
+    if (String(url).endsWith('/invite')) return Response.json({ ok: true, sent: true });
+    return Response.json(LISTA);
+  };
+  const cookie = await auth(env), me = await current(env, cookie);
+  const res = await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'nuevo@admira.com', display_name: 'Nuevo', role: 'editor', project_keys: ['presentaciones'] }), env });
+  assert.equal(res.status, 201);
+  const body = await res.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.whitelist.ok, false);
+  assert.ok(calls.some((u) => /\/add$/.test(u)));
+  const audit = await env.AUTH_DB.prepare("SELECT action FROM admiranext_user_audit WHERE target_email='nuevo@admira.com'").all();
+  assert.ok(audit.results.map((r) => r.action).includes('whitelist_add_failed'));
+});
+
+test('POST alta con whitelist OK deja el email proyectado a live', async () => {
+  const calls = [];
+  const env = await setup();
+  env.WHITELIST_MACHINE_TOKEN = 'secret-token';
+  env.WHITELIST_FETCH = async (url, opts) => {
+    calls.push({ url: String(url), method: opts && opts.method, token: opts && opts.headers && opts.headers['X-Whitelist-Token'] });
+    if (String(url).endsWith('/add')) return Response.json({ ok: true, emails: ['csilva@admira.com', 'nuevo@admira.com'], superusers: ['csilva@admira.com'] });
+    if (String(url).endsWith('/invite')) return Response.json({ ok: true, sent: true });
+    return Response.json({ emails: ['csilva@admira.com', 'nuevo@admira.com'], superusers: ['csilva@admira.com'] });
+  };
+  const cookie = await auth(env), me = await current(env, cookie);
+  const body = await (await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'nuevo@admira.com', display_name: 'Nuevo', role: 'editor', project_keys: ['presentaciones'] }), env })).json();
+  assert.equal(body.ok, true);
+  assert.equal(body.whitelist.ok, true);
+  const add = calls.find((c) => /\/add$/.test(c.url));
+  assert.equal(add.method, 'POST');
+  assert.equal(add.token, 'secret-token');
+  const listed = await leerListaBlanca(env);
+  assert.ok(listed.emails.includes('nuevo@admira.com'));
 });
 
 test('POST alta envía invite_email real al worker, no solo clipboard', async () => {
@@ -196,7 +240,7 @@ test('PATCH whitelist_add llama al worker con token de máquina', async () => {
   assert.equal(body.ok, true);
   assert.equal(body.action, 'whitelist_add');
   const addCalls = calls.filter((c) => /\/add$/.test(c.url));
-  assert.equal(addCalls.length, 1);
-  assert.equal(addCalls[0].token, 'secret-token');
+  assert.ok(addCalls.length >= 1, 'el alta ya proyecta a /add; el botón Añadir a live también');
+  assert.ok(addCalls.every((c) => c.token === 'secret-token'));
   assert.ok(calls.some((c) => /\/invite$/.test(c.url)), 'el alta también dispara el correo');
 });

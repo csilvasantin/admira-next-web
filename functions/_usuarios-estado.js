@@ -68,6 +68,7 @@ export async function escribirListaBlanca(env, action, targetEmail) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Whitelist-Token': token },
       body: JSON.stringify({ email: targetEmail }),
+      signal: typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(60000) : undefined,
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) return { ok: false, error: payload.error || `whitelist HTTP ${response.status}` };
@@ -109,7 +110,8 @@ export function textoInvitacion(user, projectKeys, catalog, entrada = ENTRADA) {
   const proyectos = nombres.length ? nombres.join(', ') : 'sin proyectos asignados todavía';
   return [
     `Hola ${nombre}, ya tienes acceso a AdmiraNeXT como ${(ROL_LABEL[user.role] || user.role || 'lector').toLowerCase()}.`,
-    `Entra con tu cuenta de Google ${user.email} en ${entrada}`,
+    `Entra con tu cuenta de Google ${user.email} en ${entrada} (webmaster).`,
+    `El Generador Presentar (equipo): https://www.admiranext.com/presentaciones/ — misma cuenta Google, no la contraseña de sala del cliente.`,
     `Proyectos: ${proyectos}.`,
     'Si al entrar algo no encaja, responde a este mensaje.',
   ].join('\n');

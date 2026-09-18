@@ -86,6 +86,16 @@ export const PROYECTOS = [
     nota: 'ACL del Generador Presentar: el alta en /usuarios con esta clave (o * o alias generador/presentaciones) otorga un grant usable. Sin ella el editor no entra.',
   },
   {
+    clave: 'presentaciones', nombre: 'Presentar (equipo)',
+    url: 'https://www.admiranext.com/presentaciones/',
+    estadoUrl: 'https://www.admiranext.com',
+    parentKey: 'admiranext',
+    repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · presentaciones/',
+    pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
+    tipo: 'sitio', shot: null,
+    nota: 'Clave del censo Yokup para el Generador Presentar. No es la contraseña de sala del cliente.',
+  },
+  {
     clave: 'yokup', nombre: 'yokup.com', url: 'https://yokup.com',
     repo: 'csilvasantin/tool', repoTxt: 'tool · yokup-site/',
     pages: 'yokup', publica: 'cd yokup-site && wrangler pages deploy .',
