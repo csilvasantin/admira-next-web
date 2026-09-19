@@ -131,10 +131,13 @@ test('una sala con el set cerrado no llama a la API del generador ni sondea',asy
   const html=await sala({status:'partial',slides:[0,1,2,3].map(n=>laminaLista('demo',n))});
   assert.match(html,/const imageTimer=0/);
   assert.match(html,/if\(wantsImages&&false&&/);
+  // applyQuality() tambien generaba, y corre en el arranque.
+  assert.match(html,/syncBestFigures\(\);if\(false&&\(quality==='better'/);
 });
 
 test('una sala con láminas aún en cola sigue sondeando y generando',async()=>{
   const html=await sala({status:'partial',slides:[laminaLista('demo',0),{status:'queued'},laminaLista('demo',2),laminaLista('demo',3)]});
   assert.match(html,/const imageTimer=setInterval\(syncImages,10000\)/);
   assert.match(html,/if\(wantsImages&&true&&/);
+  assert.match(html,/syncBestFigures\(\);if\(true&&\(quality==='better'/);
 });
