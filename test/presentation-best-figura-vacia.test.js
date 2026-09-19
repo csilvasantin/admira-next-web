@@ -49,3 +49,92 @@ test('el visor deja de sondear cuando ya no queda lámina por llegar y no reinte
   assert.match(fuente,/error\.status=response\.status/);
   assert.match(fuente,/if\(!\(error&&\(error\.status===401\|\|error\.status===403\)\)\)betterImagesTimer=setInterval/);
 });
+
+// FLT-100646 · P0-1 (Lucas, CSO): «sala WEB = acto vivo, no PDF en navegador».
+// La sala abria SIEMPRE en GOOD, y en GOOD la regla
+// `html[data-quality="good"] .slide[data-has-image="true"]:before{display:none}`
+// apaga el fondo de todas las laminas. Medido en la sala del smoke: 120 KB y
+// CERO imagenes de lamina transferidas, con 9 de 11 ya generadas y pagadas.
+// Ahora, si la portada tiene arte y lo tiene al menos la mitad del deck, la sala
+// abre en BEST — y `data-quality` sale ya del servidor, para que la primera
+// pintada no sea el gris #c0c0c0 de `:root` a la espera de que corra el JS.
+function laminaLista(cliente,n){return{status:'ready',textFreeVerified:true,url:`/presentaciones/${cliente}/images/slide-${n}.jpg`}}
+
+async function sala(imageSet,bloques=1){
+  const config={displayName:'Demo',outputs:['website','backgrounds'],languages:['es'],brand:{logoUrl:'/presentaciones/demo/brand/logo'},theme:{},sequence:{}};
+  const skeleton=Array.from({length:bloques},(_,i)=>({id:`b${i}`,title:`T${i}`,message:'M',detail:'D'}));
+  const ideas={hero:{title:'Propuesta',summary:'Resumen'},objective:'Objetivo',skeleton,closing:{title:'Cierre',action:'Acción'},labels:{objective:'Objetivo',next:'Siguiente'}};
+  const response=await renderPresentation({params:{client:'demo'},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas,'image-set:demo':imageSet})},next(){throw new Error('unexpected next')}});
+  return response.text();
+}
+
+test('una sala con arte abre en BEST, y la calidad sale ya del servidor',async()=>{
+  // 4 laminas (portada, objetivo, un bloque, cierre) con las 4 ilustradas.
+  const html=await sala({status:'partial',slides:[0,1,2,3].map(n=>laminaLista('demo',n))});
+  assert.match(html,/<html lang="es" data-quality="best"/);
+  assert.match(html,/quality:'best'/);
+  assert.equal((html.match(/--slide-image:url\('\/presentaciones\/demo\/images\//g)||[]).length,4);
+});
+
+test('una sala sin arte en portada no se disfraza de BEST',async()=>{
+  // La portada manda: sin ella, BEST enseñaria un hueco justo en los 3 s que venden.
+  const html=await sala({status:'partial',slides:[{status:'failed'},laminaLista('demo',1),laminaLista('demo',2),laminaLista('demo',3)]});
+  assert.match(html,/<html lang="es" data-quality="good"/);
+  assert.match(html,/quality:'good'/);
+});
+
+test('una sala sin ninguna imagen sigue abriendo en GOOD',async()=>{
+  const html=await sala({status:'partial',slides:[]});
+  assert.match(html,/<html lang="es" data-quality="good"/);
+  assert.doesNotMatch(html,/--slide-image:url/);
+});
+
+// FLT-100646 · P0-4: con la sala abriendo en BEST, cada visita se lleva 1,2 MB de
+// láminas. El nombre del fichero NO es inmutable —rehacer una sola lámina dentro
+// del mismo set reutiliza `slide-01-cover-<setId10>.jpg`— así que `immutable`
+// mentiría. Lo honesto es revalidar: ETag y 304.
+import {onRequestGet as serveImage} from '../functions/presentaciones/[client]/images/[file].js';
+
+function bucket({etag='"abc123"',cambiada=false}={}){
+  return {async get(key,options){
+    if(!key.endsWith('slide-01-cover-b3a34698da.jpg')) return null;
+    const meta={writeHttpMetadata(h){h.set('content-type','image/jpeg')},httpEtag:etag};
+    // R2 devuelve el objeto SIN cuerpo cuando se cumple el If-None-Match.
+    const coincide=options?.onlyIf?.get?.('if-none-match')===etag && !cambiada;
+    return coincide?{...meta,body:null}:{...meta,body:new Uint8Array([255,216,255])};
+  }};
+}
+const peticion=(headers={})=>({params:{client:'demo',file:'slide-01-cover-b3a34698da.jpg'},env:{PRESENTATION_MEDIA:bucket()},request:new Request('https://x/',{headers})});
+
+test('la primera visita se lleva la imagen con su ETag',async()=>{
+  const r=await serveImage(peticion());
+  assert.equal(r.status,200);
+  assert.equal(r.headers.get('etag'),'"abc123"');
+  assert.equal(r.headers.get('content-type'),'image/jpeg');
+});
+
+test('quien ya la tiene recibe 304 y ni un byte de imagen',async()=>{
+  const r=await serveImage(peticion({'if-none-match':'"abc123"'}));
+  assert.equal(r.status,304);
+  assert.equal(await r.text(),'');
+  assert.equal(r.headers.get('etag'),'"abc123"');
+});
+
+test('si la lámina se rehizo, el ETag ya no cuadra y baja la nueva',async()=>{
+  const ctx=peticion({'if-none-match':'"vieja"'});
+  const r=await serveImage(ctx);
+  assert.equal(r.status,200);
+});
+
+test('una sala con el set cerrado no llama a la API del generador ni sondea',async()=>{
+  // 10 ready + 1 failed es el caso del smoke: no queda nada por llegar.
+  const html=await sala({status:'partial',slides:[0,1,2,3].map(n=>laminaLista('demo',n))});
+  assert.match(html,/const imageTimer=0/);
+  assert.match(html,/if\(wantsImages&&false&&/);
+});
+
+test('una sala con láminas aún en cola sigue sondeando y generando',async()=>{
+  const html=await sala({status:'partial',slides:[laminaLista('demo',0),{status:'queued'},laminaLista('demo',2),laminaLista('demo',3)]});
+  assert.match(html,/const imageTimer=setInterval\(syncImages,10000\)/);
+  assert.match(html,/if\(wantsImages&&true&&/);
+});
