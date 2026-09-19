@@ -70,6 +70,7 @@ const HELP_TOPICS = {
 - Antes: list_presentations (censo). Un cliente = un slug. Si ya existe, usa overwrite:true para mejorar in situ (no crees otro).
 - displayName (obligatorio): nombre del cliente. slug (opcional): identificador de URL.
 - website (obligatorio para el logo): web oficial. inspirationUrl (opcional): otra dirección de arte.
+- SALIDA WEB: si el usuario pide "una web" espectacular, PÍDELE una URL de referencia y pásala en inspirationUrl (de ahí sale el look & feel: paleta, tipografía, modo). Para un arranque tipo voicebenchmarks, añade heroDevice:"pocket" (portada con dispositivo retro dot-matrix).
 - problem: problema que resolvemos. audience: a quién se la presentamos. objective: objetivo de la reunión. title: título principal.
 - languages: ['es','en',…] (es y en siempre). outputs: entregables (por defecto los del generador).
 - password: ≥10 caracteres (si no, la genera). overwrite:true para regenerar / mejorar una existente.
@@ -134,7 +135,7 @@ export const TOOLS = [
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_presentation', description: 'Contenido vivo de una presentación (láminas, idiomas, secuencia).', inputSchema: { type: 'object', properties: { client: { type: 'string', description: 'slug de la presentación' } }, required: ['client'] } },
   { name: 'create_presentation', description: 'Crea o mejora (overwrite:true) una presentación. Antes: list_presentations. Un cliente = un slug. Devuelve slug, contraseña y URLs.', inputSchema: { type: 'object', properties: {
-    displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' }, inspirationUrl: { type: 'string' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
+    displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' }, inspirationUrl: { type: 'string', description: 'URL de la web de referencia a emular en look & feel (paleta, tipografía, modo). Pídela al crear una web.' }, heroDevice: { type: 'string', enum: ['none','pocket'], description: 'Portada de la salida web: "pocket" abre el deck con un dispositivo retro dot-matrix (Game Boy) al estilo voicebenchmarks.' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
     languages: { type: 'array', items: { type: 'string' } }, outputs: { type: 'array', items: { type: 'string' } }, password: { type: 'string' }, overwrite: { type: 'boolean', description: 'true para mejorar una presentación existente in situ' },
     embeds: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, title: { type: 'string' } } } }, beforeDeck: { type: 'string' }, afterDeck: { type: 'string' }, primaryColor: { type: 'string' }, accentColor: { type: 'string' }, slideMedia: { type: 'array', description: 'Medios por lámina (image/video/audio/animation) con rights' },
     exampleVideoUrl: { type: 'string', description: 'HTTPS MP4 de flota (admira.live /assets/…) para BEST en movimiento' },
@@ -244,7 +245,7 @@ export async function callTool(ctx, name, args = {}){
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
       assertDemoVideoUrl(a);
       const body = {};
-      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo']) if (a[key] !== undefined) body[key] = a[key];
+      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'heroDevice', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo']) if (a[key] !== undefined) body[key] = a[key];
       if (wantsExampleVideo(body) || requiresDemoVideoUrl(a)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
       const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
       return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };
