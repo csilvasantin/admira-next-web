@@ -77,11 +77,14 @@
     background:linear-gradient(158deg,#f1eee5,#e4e1d7 58%,#d6d3c9);
     border-radius:16px 16px 18px 66px;border:1px solid #cecbc1;
     box-shadow:0 34px 74px rgba(48,61,49,.24),inset 0 2px 0 rgba(255,255,255,.9),inset 0 -4px 10px rgba(0,0,0,.10)}
-  .gb-power{position:absolute;top:-9px;left:40px;display:flex;align-items:center;gap:10px;
-    font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--dim)}
-  .gb-power .sld{width:44px;height:15px;border-radius:5px;border:1px solid #93919a;
-    background:repeating-linear-gradient(90deg,#a5a3ab 0 2px,#cbc9d0 2px 4px);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 2px 3px rgba(0,0,0,.28)}
+  .gb-power{position:absolute;top:-13px;left:30px;display:flex;align-items:center;gap:13px;
+    font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--accent-deep)}
+  .gb-power .slot{display:flex;align-items:center;justify-content:center;width:60px;height:24px;padding:4px;
+    border-radius:10px 10px 7px 7px;background:linear-gradient(#ece9e0,#d7d4cb);border:1px solid #c2bfb5;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.22),0 1px 0 rgba(255,255,255,.9)}
+  .gb-power .sld{width:36px;height:14px;border-radius:4px;border:1px solid #95929a;
+    background:repeating-linear-gradient(90deg,#a7a5ac 0 2px,#d2d0d7 2px 4px);
+    box-shadow:0 1px 2px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.6)}
   /* bisel de pantalla */
   .gb-bezel{position:relative;background:linear-gradient(160deg,#938f9b,#7d7986);
     border-radius:9px 9px 44px 9px;padding:34px 16px 18px 44px;
@@ -130,13 +133,12 @@
     box-shadow:0 5px 7px rgba(0,0,0,.42),inset 0 2px 3px rgba(255,255,255,.35),inset 0 -4px 6px rgba(0,0,0,.32)}
   .gb-ab .lbl{position:absolute;bottom:-21px;left:50%;transform:translateX(-50%) rotate(25deg);
     font-family:var(--sans);font-weight:800;font-size:15px;color:#2b3a6b}
-  .gb-se{display:flex;gap:24px;justify-content:center;margin:34px 0 0;transform:rotate(-25deg)}
-  .gb-se .k{position:relative}
-  .gb-se .cap{width:56px;height:15px;border-radius:9px;background:linear-gradient(#c6c4cb,#a9a7af);
+  .gb-se{display:flex;gap:40px;justify-content:center;margin:34px 0 0}
+  .gb-se .k{display:flex;flex-direction:column;align-items:center;gap:11px;transform:rotate(-25deg)}
+  .gb-se .cap{width:58px;height:15px;border-radius:9px;background:linear-gradient(#c6c4cb,#a9a7af);
     box-shadow:0 3px 4px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.6)}
-  .gb-se .lbl{position:absolute;bottom:-19px;left:50%;transform:translateX(-50%) rotate(25deg);
-    font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.05em;color:#2b3a6b}
-  .gb-phones{text-align:center;margin:36px 0 0;font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--dim)}
+  .gb-se .lbl{font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.05em;color:#2b3a6b}
+  .gb-phones{text-align:center;margin:30px 0 0;font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--dim)}
   .gb-phones .jack{display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--dim);margin-left:7px;vertical-align:middle}
   .gb-grille{position:absolute;right:24px;bottom:22px;display:flex;gap:6px;transform:rotate(-25deg)}
   .gb-grille i{width:4px;height:42px;border-radius:3px;background:linear-gradient(#c9c6bd,#b4b1a8);box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
@@ -216,7 +218,7 @@
   </section>
 
   <div class="gb-wrap"><div class="gb">
-    <div class="gb-power"><span class="sld"></span>◄ OFF · ON ►</div>
+    <div class="gb-power"><span class="slot"><span class="sld"></span></span>◄ OFF · ON ►</div>
     <div class="gb-bezel">
       <div class="dm">DOT MATRIX WITH STEREO SOUND</div>
       <span class="stripe l"></span><span class="stripe r"></span>
