@@ -29,6 +29,12 @@ export async function onRequestPost({ request, env }){
   const user = email ? await buscarUsuario(env, email) : null;
   if (!user) return json({ ok: false, error: 'ese email no está en el directorio (/usuarios)' }, 422);
   if (user.status !== 'active') return json({ ok: false, error: 'el usuario no está activo' }, 422);
+  const kind = String(user.account_kind || 'team');
+  if (kind === 'guest' || kind === 'partner') {
+    const rows = await env.AUTH_DB.prepare('SELECT app_key FROM admiranext_user_apps WHERE user_email=?').bind(email).all().catch(() => ({ results: [] }));
+    const apps = (rows.results || []).map((r) => r.app_key);
+    if (!apps.includes('mcp')) return json({ ok: false, error: 'este tercero no tiene MCP contratado (ni MCP de flota)' }, 403);
+  }
   const { token, row } = await createToken(env, { email, label: body.label, createdBy: auth.current.email });
   await auditar(env, auth.current.email, email, 'mcp_token_created', JSON.stringify({ id: row.id, label: row.label })).catch(() => {});
   return json({ ok: true, token, id: row.id, email, label: row.label, aviso: 'Guarda el token: no se vuelve a mostrar.' }, 201);

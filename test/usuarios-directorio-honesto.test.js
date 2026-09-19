@@ -43,6 +43,7 @@ test('el estado distingue a quien nunca ha entrado de quien está activo o suspe
   assert.equal(estadoUsuario({status:'active',last_login_at:1}),'activo');
   assert.equal(estadoUsuario({status:'suspended',last_login_at:1}),'suspendido');
   assert.equal(estadoUsuario({status:'suspended',last_login_at:null}),'suspendido');
+  assert.equal(estadoUsuario({status:'active',last_login_at:1,expires_at:Date.now()-1000}),'caducado');
 });
 
 test('el cruce con la lista blanca señala quién sobra y quién falta en cada lado',()=>{
@@ -101,7 +102,7 @@ test('sin lista blanca el GET no inventa divergencias y avisa',async()=>{
 
 test('la página muestra estado, buscador, filtros, cruce con admira.live e invitación',()=>{
   const source=fs.readFileSync(new URL('../usuarios.html',import.meta.url),'utf8');
-  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','data-act="invite-email"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=','data-wl-sync','data-wl-add=','Enviar correo','DEFAULT_ALTA_KEYS','presentaciones','sala del cliente']) {
+  for (const marca of ['id="q"','id="fRole"','id="fEstado"','id="fProject"','data-act="invite"','data-act="invite-email"','id="diverge"','pendiente de primer acceso','<th>admira.live</th>','data-prefill=','data-wl-sync','data-wl-add=','Enviar correo','DEFAULT_ALTA_KEYS','presentaciones','sala del cliente','Dar acceso a tercero','id="tercero"','revoke-tercero']) {
     assert.ok(source.includes(marca),`falta ${marca}`);
   }
   assert.match(source,/admiranext-version" content="AdmiraNeXT v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}"/);
@@ -224,6 +225,42 @@ test('enviarInvitacionEmail sin token no finge el envío', async () => {
   const r = await enviarInvitacionEmail({}, { to: 'csilvasantin@gmail.com', text: 'hola' });
   assert.equal(r.sent, false);
   assert.match(r.error, /WHITELIST_MACHINE_TOKEN/);
+});
+
+test('alta tercero guest+generador sin Control/MCP flota, invite, y revocación', async () => {
+  const env = await setup();
+  env.WHITELIST_MACHINE_TOKEN = 'secret-token';
+  const calls = [];
+  env.WHITELIST_FETCH = async (url) => {
+    calls.push(String(url));
+    if (String(url).endsWith('/invite')) return Response.json({ ok: true, sent: true });
+    if (String(url).endsWith('/remove')) return Response.json({ ok: true, emails: [] });
+    return Response.json(LISTA);
+  };
+  const cookie = await auth(env), me = await current(env, cookie);
+  const exp = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  assert.equal((await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'partner@cliente.test', kind: 'guest', role: 'admin', apps: ['generador'], expires_at: exp, project_keys: ['generador-de-presentaciones'] }), env })).status, 422);
+  assert.equal((await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'partner@cliente.test', kind: 'guest', role: 'editor', apps: ['control'], expires_at: exp, project_keys: ['generador-de-presentaciones'] }), env })).status, 422);
+  assert.equal((await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'csilvasantin@gmail.com', kind: 'guest', role: 'editor', apps: ['generador'], expires_at: exp, project_keys: ['generador-de-presentaciones'] }), env })).status, 422);
+  const res = await onRequestPost({ request: request('POST', cookie, me.csrf, { email: 'partner@cliente.test', display_name: 'Partner', kind: 'guest', role: 'editor', apps: ['generador'], expires_at: exp, project_keys: ['generador-de-presentaciones'] }), env });
+  assert.equal(res.status, 201);
+  const body = await res.json();
+  assert.equal(body.account_kind, 'guest');
+  assert.deepEqual(body.apps, ['generador']);
+  assert.equal(body.whitelist.ok, false);
+  assert.ok(body.acl.usable >= 1);
+  assert.ok(!calls.some((u) => /\/add$/.test(u)), 'sin sync live no se añade a whitelist');
+  assert.ok(calls.some((u) => /\/invite$/.test(u)));
+  assert.equal((await onRequestPatch({ request: request('PATCH', cookie, me.csrf, { email: 'partner@cliente.test', role: 'admin' }), env })).status, 422);
+  const rev = await (await onRequestPatch({ request: request('PATCH', cookie, me.csrf, { email: 'partner@cliente.test', action: 'revoke_tercero' }), env })).json();
+  assert.equal(rev.ok, true);
+  assert.equal(rev.status, 'suspended');
+});
+
+test('ACL guest usa las apps contratadas, no * del equipo', () => {
+  assert.equal(aclApps({ kind: 'guest', apps: ['generador'] }).usable, 1);
+  assert.ok(!aclApps({ kind: 'guest', apps: ['generador'] }).apps.includes('control'));
+  assert.equal(aclApps({ kind: 'guest', apps: [] }).usable, 0);
 });
 
 test('PATCH whitelist_add llama al worker con token de máquina', async () => {

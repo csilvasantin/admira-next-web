@@ -139,6 +139,16 @@ export async function asegurarDirectorio(env) {
     `INSERT INTO admiranext_user_projects(user_email,project_key,created_at,created_by)
      VALUES(?,'*',?,'bootstrap') ON CONFLICT(user_email,project_key) DO NOTHING`
   ).bind(email, now).run()));
+  for (const extra of [
+    "ALTER TABLE admiranext_users ADD COLUMN account_kind TEXT NOT NULL DEFAULT 'team'",
+    'ALTER TABLE admiranext_users ADD COLUMN expires_at INTEGER',
+    `CREATE TABLE IF NOT EXISTS admiranext_user_apps (
+      user_email TEXT NOT NULL, app_key TEXT NOT NULL, created_at INTEGER NOT NULL, created_by TEXT NOT NULL,
+      PRIMARY KEY(user_email, app_key))`,
+    'CREATE INDEX IF NOT EXISTS idx_admiranext_user_apps_email ON admiranext_user_apps(user_email)',
+  ]) {
+    try { await env.AUTH_DB.prepare(extra).run(); } catch (_) { /* columna/tabla ya existe */ }
+  }
   READY.add(env.AUTH_DB);
 }
 
@@ -205,6 +215,8 @@ async function leerToken(request, env) {
   if (!email) return null;
   const user = await buscarUsuario(env, email);
   if (!user || user.status !== 'active' || !ROLES.has(user.role)) return null;
+  const expira = Number(user.expires_at || 0);
+  if (expira > 0 && expira < Date.now()) return null;
   // Las cookies antiguas sólo migran mientras el usuario siga en la versión 1.
   if (legacy ? Number(user.session_version) !== 1 : Number(data.sv) !== Number(user.session_version)) return null;
   const csrf = legacy ? await hmac(clave, `csrf:${token}`) : String(data.csrf || '');

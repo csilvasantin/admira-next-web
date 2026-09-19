@@ -12,6 +12,8 @@ test('/presentar existe, lleva sello y abre las tres puertas del verbo', async (
   for (const puerta of ['href="/mcp/generador"', 'href="/presentaciones/"', 'href="https://www.admira.live/"']) assert.ok(html.includes(puerta), puerta);
   for (const tool of ['list_presentations', 'create_presentation', 'generation_status', 'presentation_urls']) assert.ok(html.includes(tool), tool);
   assert.ok(html.includes('https://www.admiranext.com/mcp'), 'endpoint del MCP');
+  assert.match(html, /Terceros \(guest \/ partner\)/);
+  assert.match(html, /Nunca \/control/);
 });
 test('el hub MCP, llms.txt y el sitemap enlazan /presentar', async () => {
   assert.ok((await read('mcp/index.html')).includes('href="https://www.admiranext.com/presentar"'));

@@ -2,6 +2,7 @@ import { asegurarDirectorio, exigirRol, csrfValido, auditar } from '../_webmaste
 import { catalogoProyectos, normalizarPermisos } from '../_project-access.js';
 import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion, escribirListaBlanca, aclApps, enviarInvitacionEmail } from '../_usuarios-estado.js';
 import { listTokens } from '../mcp/_tokens.js';
+import { APPS, kindDe, esTercero, esOwner, parseApps, parseExpires } from '../_terceros.js';
 
 const ROLES = new Set(['admin','editor','viewer']);
 const json = (body, status=200) => Response.json(body, {status, headers:{'cache-control':'no-store'}});
@@ -21,6 +22,18 @@ async function permisosPorUsuario(env) {
   const rows=await env.AUTH_DB.prepare('SELECT user_email,project_key FROM admiranext_user_projects ORDER BY user_email,project_key').all();
   return (rows.results||[]).reduce((map,row)=>{(map[row.user_email]||(map[row.user_email]=[])).push(row.project_key);return map},{});
 }
+async function appsPorUsuario(env) {
+  try {
+    const rows=await env.AUTH_DB.prepare('SELECT user_email,app_key FROM admiranext_user_apps ORDER BY user_email,app_key').all();
+    return (rows.results||[]).reduce((map,row)=>{(map[row.user_email]||(map[row.user_email]=[])).push(row.app_key);return map},{});
+  } catch (_) { return {}; }
+}
+async function reemplazarApps(env,target,apps,actor) {
+  const now=Date.now(), statements=[env.AUTH_DB.prepare('DELETE FROM admiranext_user_apps WHERE user_email=?').bind(target)];
+  apps.forEach((key)=>statements.push(env.AUTH_DB.prepare('INSERT INTO admiranext_user_apps(user_email,app_key,created_at,created_by) VALUES(?,?,?,?)').bind(target,key,now,actor)));
+  if(typeof env.AUTH_DB.batch==='function')await env.AUTH_DB.batch(statements);
+  else for(const statement of statements)await statement.run();
+}
 async function reemplazarPermisos(env,target,keys,actor) {
   const now=Date.now(), statements=[env.AUTH_DB.prepare('DELETE FROM admiranext_user_projects WHERE user_email=?').bind(target)];
   keys.forEach((key)=>statements.push(env.AUTH_DB.prepare('INSERT INTO admiranext_user_projects(user_email,project_key,created_at,created_by) VALUES(?,?,?,?)').bind(target,key,now,actor)));
@@ -39,10 +52,10 @@ async function permisosValidos(body,env) {
 export async function onRequestGet({request,env}) {
   const auth=await admin(request,env); if(auth.error)return auth.error;
   await asegurarDirectorio(env);
-  const [users,audit,permissions,catalog,lista,tokens]=await Promise.all([
-    env.AUTH_DB.prepare('SELECT email,display_name,role,status,session_version,created_at,updated_at,last_login_at FROM admiranext_users ORDER BY status,role,email').all(),
+  const [users,audit,permissions,catalog,lista,appMap,tokens]=await Promise.all([
+    env.AUTH_DB.prepare('SELECT email,display_name,role,status,session_version,created_at,updated_at,last_login_at,account_kind,expires_at FROM admiranext_users ORDER BY status,role,email').all(),
     env.AUTH_DB.prepare('SELECT actor_email,target_email,action,detail,created_at FROM admiranext_user_audit ORDER BY created_at DESC LIMIT 80').all(),
-    permisosPorUsuario(env), catalogoProyectos(env), leerListaBlanca(env),
+    permisosPorUsuario(env), catalogoProyectos(env), leerListaBlanca(env), appsPorUsuario(env),
     // Tokens MCP por persona (06-09-2026): el gestor los enseña y revoca desde la ficha; nunca el token, solo su huella.
     listTokens(env).catch(()=>[])
   ]);
@@ -57,9 +70,12 @@ export async function onRequestGet({request,env}) {
     users:rows.map((user)=>{
       const cruceUser=cruce.por_email[user.email]||{en_lista_blanca:false,superusuario:false};
       const invitacion=textoInvitacion(user,user.project_keys,catalog.projects,entrada);
-      const acl=aclApps({project_keys:user.project_keys,en_lista_blanca:cruceUser.en_lista_blanca});
-      return {...user,...cruceUser,estado:estadoUsuario(user),invitacion,acl,mcp_tokens:tokensDe(user.email)};
+      const kind=kindDe(user.account_kind)||'team';
+      const apps=appMap[user.email]||[];
+      const acl=aclApps({project_keys:user.project_keys,en_lista_blanca:cruceUser.en_lista_blanca,apps,kind});
+      return {...user,account_kind:kind,apps,...cruceUser,estado:estadoUsuario(user),invitacion,acl,mcp_tokens:tokensDe(user.email)};
     }),audit:audit.results||[],
+    apps_catalog:APPS,
     mcp:{endpoint:'https://www.admiranext.com/mcp',help:'https://www.admiranext.com/mcp/generador'},
     projects:catalog.projects,catalog_complete:catalog.complete,catalog_warning:catalog.warning,
     lista_blanca:{complete:lista.complete,warning:lista.warning,total:lista.emails.length,
@@ -71,21 +87,34 @@ export async function onRequestPost({request,env}) {
   let body; try{body=await request.json()}catch{return json({ok:false,error:'JSON no válido'},400)}
   const target=email(body.email), role=String(body.role||'viewer');
   if(!target||!ROLES.has(role))return json({ok:false,error:'email o rol no válidos'},422);
+  const kind=kindDe(body.kind||body.account_kind||'team');
+  if(!kind)return json({ok:false,error:'tipo de cuenta no válido'},422);
+  if(esTercero(kind)&&esOwner(target))return json({ok:false,error:'OWNERS no se dan de alta como terceros'},422);
+  if(esTercero(kind)&&role==='admin')return json({ok:false,error:'un tercero no puede ser administrador'},422);
+  const apps=esTercero(kind)?parseApps(body.apps):[];
+  if(esTercero(kind)&&!apps.length)return json({ok:false,error:'elige al menos una app contratada'},422);
+  if(esTercero(kind)&&apps.includes('control'))return json({ok:false,error:'un tercero no entra a /control'},422);
+  const expiresAt=esTercero(kind)?parseExpires(body.expires_at):0;
+  if(esTercero(kind)&&expiresAt<Date.now()+60*1000)return json({ok:false,error:'el tercero necesita una caducidad futura'},422);
   const access=await permisosValidos(body,env); if(access.error)return json({ok:false,error:access.error},422);
   const exists=await env.AUTH_DB.prepare('SELECT email FROM admiranext_users WHERE email=?').bind(target).first();
   if(exists)return json({ok:false,error:'el usuario ya existe'},409);
   const now=Date.now(), name=String(body.display_name||'').trim().slice(0,100);
-  await env.AUTH_DB.prepare("INSERT INTO admiranext_users(email,display_name,role,status,session_version,created_at,updated_at) VALUES(?,?,?,'active',1,?,?)")
-    .bind(target,name,role,now,now).run();
+  await env.AUTH_DB.prepare("INSERT INTO admiranext_users(email,display_name,role,status,session_version,created_at,updated_at,account_kind,expires_at) VALUES(?,?,?,'active',1,?,?,?,?)")
+    .bind(target,name,role,now,now,kind,expiresAt||null).run();
   await reemplazarPermisos(env,target,access.keys,auth.current.email);
-  await auditar(env,auth.current.email,target,'user_created',JSON.stringify({role,projects:access.keys}));
+  if(esTercero(kind))await reemplazarApps(env,target,apps,auth.current.email);
+  await auditar(env,auth.current.email,target,'user_created',JSON.stringify({role,kind,projects:access.keys,apps,expires_at:expiresAt||null}));
   const invitacion=textoInvitacion({email:target,display_name:name,role},access.keys,access.catalog.projects);
   const invite=await enviarInvitacionEmail(env,{to:target,subject:'Tienes acceso a AdmiraNeXT',text:invitacion,actor:auth.current.email});
   await auditar(env,auth.current.email,target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
-  // P0.3 / FLT-100621: proyectar a live en el mismo alta. Best-effort ≤60s: si falla, el alta NeXT sigue.
-  const wl=await escribirListaBlanca(env,'add',target);
-  await auditar(env,auth.current.email,target,wl.ok?'whitelist_add':'whitelist_add_failed',wl.ok?'alta':String(wl.error||'fail'));
-  return json({ok:true,email:target,role,project_keys:access.keys,acl:aclApps({project_keys:access.keys,en_lista_blanca:wl.ok}),invite_email:invite,invitacion,whitelist:{ok:wl.ok,error:wl.ok?'':(wl.error||'fail')}},201);
+  const syncLive=!esTercero(kind)||(body.sync_live===true&&apps.includes('live'));
+  let wl={ok:false,error:'no pedido'};
+  if(syncLive){
+    wl=await escribirListaBlanca(env,'add',target);
+    await auditar(env,auth.current.email,target,wl.ok?'whitelist_add':'whitelist_add_failed',wl.ok?'alta':String(wl.error||'fail'));
+  }
+  return json({ok:true,email:target,role,account_kind:kind,apps,expires_at:expiresAt||null,project_keys:access.keys,acl:aclApps({project_keys:access.keys,en_lista_blanca:wl.ok,apps,kind}),invite_email:invite,invitacion,whitelist:{ok:!!wl.ok,error:wl.ok?'':(wl.error||'')}},201);
 }
 
 export async function onRequestPatch({request,env}) {
@@ -99,6 +128,13 @@ export async function onRequestPatch({request,env}) {
     await env.AUTH_DB.prepare('UPDATE admiranext_users SET session_version=session_version+1,updated_at=? WHERE email=?').bind(Date.now(),target).run();
     await auditar(env,auth.current.email,target,'sessions_revoked','manual');
     return json({ok:true,email:target,action});
+  }
+  if(action==='revoke_tercero'){
+    if(esOwner(target))return json({ok:false,error:'OWNERS no se revocan'},409);
+    await env.AUTH_DB.prepare("UPDATE admiranext_users SET status='suspended',session_version=session_version+1,updated_at=? WHERE email=?").bind(Date.now(),target).run();
+    const wl=await escribirListaBlanca(env,'remove',target);
+    await auditar(env,auth.current.email,target,'tercero_revocado',wl.ok?'live-':'live-fail');
+    return json({ok:true,email:target,action,status:'suspended'});
   }
   if(action==='invite_email'){
     const keys=(await env.AUTH_DB.prepare('SELECT project_key FROM admiranext_user_projects WHERE user_email=?').bind(target).all()).results||[];
@@ -128,6 +164,9 @@ export async function onRequestPatch({request,env}) {
     await auditar(env,auth.current.email,'*','whitelist_sync',JSON.stringify({added:added.length,errors:errors.length}));
     return json({ok:true,action,added:added.length,errors});
   }
+  const kind=kindDe(body.account_kind||user.account_kind||'team')||'team';
+  if(esOwner(target)&&esTercero(kind))return json({ok:false,error:'OWNERS no se degradan a terceros'},422);
+  if(esTercero(kind||user.account_kind)&&String(body.role||'')==='admin')return json({ok:false,error:'un tercero no puede ser administrador'},422);
   const role=String(body.role||user.role), status=String(body.status||user.status);
   if(!ROLES.has(role)||!['active','suspended'].includes(status))return json({ok:false,error:'rol o estado no válidos'},422);
   const removesAdmin=user.role==='admin'&&user.status==='active'&&(role!=='admin'||status!=='active');

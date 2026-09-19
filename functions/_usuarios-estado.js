@@ -28,10 +28,12 @@ export const ROL_LABEL = { admin: 'Administrador', editor: 'Editor', viewer: 'Le
 
 const email = (value) => String(value || '').trim().toLowerCase();
 
-/** activo · pendiente (nunca ha entrado) · suspendido. Mandamiento 2: el estado dice la verdad. */
+/** activo · pendiente (nunca ha entrado) · suspendido · caducado. Mandamiento 2: el estado dice la verdad. */
 export function estadoUsuario(user) {
   if (!user) return 'pendiente';
   if (user.status === 'suspended') return 'suspendido';
+  const exp = Number(user.expires_at || 0);
+  if (exp > 0 && exp < Date.now()) return 'caducado';
   return user.last_login_at ? 'activo' : 'pendiente';
 }
 
@@ -123,7 +125,11 @@ export const APP_GRANT_KEYS = {
   webmaster: new Set(['admiranext', 'admiranext-webmaster', '*']),
 };
 
-export function aclApps({ project_keys = [], en_lista_blanca = false } = {}) {
+export function aclApps({ project_keys = [], en_lista_blanca = false, apps: granted = null, kind = 'team' } = {}) {
+  if (kind === 'guest' || kind === 'partner') {
+    const list = [...new Set((Array.isArray(granted) ? granted : []).map((a) => String(a || '').trim().toLowerCase()).filter(Boolean))];
+    return { apps: list, usable: list.length };
+  }
   const keys = (Array.isArray(project_keys) ? project_keys : []).map((k) => String(k || '').trim().toLowerCase());
   const has = (set) => keys.some((k) => set.has(k));
   const apps = [];
