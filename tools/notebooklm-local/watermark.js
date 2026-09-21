@@ -10,7 +10,9 @@
 //     silueta se compara con la plantilla de la marca (sirve igual para texto claro sobre
 //     fondo oscuro que al revés). Si no se parece lo bastante, NO se toca nada;
 //  2) se RECONSTRUYEN sólo esos píxeles (y un halo de 1 px) por difusión desde su entorno.
-//     El resto de la esquina queda intacto: si pasa el borde de una forma, se conserva.
+//     El resto de la esquina queda intacto: si pasa el borde de una forma, se conserva;
+//  3) si además la marca iba sobre la píldora esmerilada de Gemini, la píldora se pinta con
+//     el fondo que la rodea, y con ella la tira del logo que asomaba por encima (FLT-100799).
 // Cada fichero devuelve su informe (qué láminas, puntuación, cuántos píxeles).
 import zlib from 'node:zlib';
 import fs from 'node:fs/promises';
@@ -28,6 +30,11 @@ export const PLANTILLA = {w:103, h:15, bits:'00000000000000000000000000000000000
 export const UMBRAL_CONTRASTE = 45;   // diferencia de luminancia con el fondo para ser «trazo»
 export const UMBRAL_PARECIDO = 0.55;  // IoU mínimo con la plantilla para darla por reconocida
 export const UMBRAL_HALO = 10;       // contraste del brillo del suavizado alrededor del trazo
+// Píldora (FLT-100799): en algunas láminas Gemini pinta la marca sobre una píldora de cristal
+// esmerilado. Quitado el texto quedaba la píldora vacía, con el logo del cliente difuminado en
+// su parte alta. Medida en NVIDIA es 6/7/11/13/14: x 1263–1372, y 740–765, bordes nítidos.
+const PILDORA = {x0:1263, y0:740, x1:1372, y1:765};
+export const UMBRAL_PILDORA = 3;     // salto de luminancia mínimo (mediana) en cada lado del borde
 
 function caja(width, height){
   const sx = width / REF.w, sy = height / REF.h;
@@ -107,12 +114,140 @@ export function residuo(px, width, height, channels, alineada = null){
   return total ? quedan / total : 0;
 }
 
+function cajaPildora(width, height){
+  const sx = width / REF.w, sy = height / REF.h;
+  return {x0:Math.round(PILDORA.x0 * sx), y0:Math.round(PILDORA.y0 * sy), x1:Math.round(PILDORA.x1 * sx), y1:Math.round(PILDORA.y1 * sy)};
+}
+// Hay píldora sólo si su borde se ve en TRES lados (abajo, izquierda y derecha): dentro y
+// fuera se apartan con el mismo signo a lo largo de todo el borde. Arriba no se mira: ahí va el
+// logo difuminado. Un contenido que llega a la esquina (la franja verde de la portada de
+// NVIDIA, una línea de tabla) marca un lado, no los tres. En las 41 láminas reales: las 5 con
+// píldora dan ≥ 3,6 en los tres lados; ninguna otra pasa de uno.
+export function pildora(px, width, height, channels){
+  const p = cajaPildora(width, height);
+  if (p.x0 < 3 || p.x1 + 2 >= width || p.y1 + 2 >= height) return {hay:false};
+  const L = (x, y) => lum(px, (y * width + x) * channels);
+  const abajo = [], izquierda = [], derecha = [];
+  for (let x = p.x0 + 12; x <= p.x1 - 12; x += 1) abajo.push((L(x, p.y1 - 2) + L(x, p.y1 - 1) + L(x, p.y1)) / 3 - (L(x, p.y1 + 1) + L(x, p.y1 + 2)) / 2);
+  for (let y = p.y0 + 8; y <= p.y1 - 4; y += 1) {
+    izquierda.push((L(p.x0, y) + L(p.x0 + 1, y)) / 2 - (L(p.x0 - 3, y) + L(p.x0 - 2, y)) / 2);
+    derecha.push((L(p.x1, y) + L(p.x1 - 1, y)) / 2 - (L(p.x1 + 1, y) + L(p.x1 + 2, y)) / 2);
+  }
+  const lados = [abajo, izquierda, derecha].map(d => {
+    const orden = [...d].sort((a, c) => a - c), mediana = orden[orden.length >> 1];
+    return {mediana, constante:d.filter(v => Math.sign(v) === Math.sign(mediana) && Math.abs(v) >= 2).length / d.length};
+  });
+  const signo = Math.sign(lados[0].mediana);
+  const hay = lados.every(l => Math.abs(l.mediana) >= UMBRAL_PILDORA && Math.sign(l.mediana) === signo && l.constante >= 0.9);
+  return {hay, saltos:lados.map(l => Number(l.mediana.toFixed(1)))};
+}
+// Pinta la píldora (y 1 px alrededor, por el borde suavizado) con el fondo que la rodea: se
+// difunde desde un anillo de 3 px fuera de ella, sin tomar el contenido (el logo de encima).
+// Lo que el cristal tapaba del logo no se puede recuperar: el logo queda cortado en su borde.
+function pintarPildora(px, width, height, channels){
+  const p = cajaPildora(width, height);
+  const X0 = Math.max(0, p.x0 - 1), Y0 = Math.max(0, p.y0 - 1), X1 = Math.min(width - 1, p.x1 + 1), Y1 = Math.min(height - 1, p.y1 + 1);
+  const dentro = (x, y) => x >= X0 && x <= X1 && y >= Y0 && y <= Y1;
+  const anillo = [];
+  for (let y = Math.max(0, Y0 - 3); y <= Math.min(height - 1, Y1 + 3); y += 1) for (let x = Math.max(0, X0 - 3); x <= Math.min(width - 1, X1 + 3); x += 1) {
+    if (!dentro(x, y)) anillo.push(lum(px, (y * width + x) * channels));
+  }
+  const fondo = [...anillo].sort((a, c) => a - c)[anillo.length >> 1];
+  // El suavizado del logo (30–60 sobre un fondo de 15) también es contenido: umbral estrecho.
+  const esFondo = (x, y) => Math.abs(lum(px, (y * width + x) * channels) - fondo) <= 12;
+  const base = [0, 0, 0]; let n = 0;
+  for (let y = Math.max(0, Y0 - 3); y <= Math.min(height - 1, Y1 + 3); y += 1) for (let x = Math.max(0, X0 - 3); x <= Math.min(width - 1, X1 + 3); x += 1) {
+    if (dentro(x, y) || !esFondo(x, y)) continue;
+    const k = (y * width + x) * channels; base[0] += px[k]; base[1] += px[k + 1]; base[2] += px[k + 2]; n += 1;
+  }
+  if (!n) return 0;
+  for (let y = Y0; y <= Y1; y += 1) for (let x = X0; x <= X1; x += 1) {
+    const k = (y * width + x) * channels; for (let c = 0; c < 3; c += 1) px[k + c] = Math.round(base[c] / n);
+  }
+  for (let pasada = 0; pasada < 300; pasada += 1) {
+    for (let y = Y0; y <= Y1; y += 1) for (let x = X0; x <= X1; x += 1) {
+      const suma = [0, 0, 0]; let m = 0;
+      for (const [vx, vy] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
+        if (vx < 0 || vy < 0 || vx >= width || vy >= height) continue;
+        if (!dentro(vx, vy) && !esFondo(vx, vy)) continue;
+        const j = (vy * width + vx) * channels; suma[0] += px[j]; suma[1] += px[j + 1]; suma[2] += px[j + 2]; m += 1;
+      }
+      if (!m) continue;
+      const k = (y * width + x) * channels; for (let c = 0; c < 3; c += 1) px[k + c] = Math.round(suma[c] / m);
+    }
+  }
+  return (X1 - X0 + 1) * (Y1 - Y0 + 1);
+}
+// Lo que asomaba alrededor de la píldora (Carlos, 21-09-2026: «quita también la tira»). El
+// cristal tapaba la mitad de abajo del logo del cliente y eso no se recupera: pintada la
+// píldora, quedaba una tira suelta de su borde de arriba (y algún píxel a su lado) que parecía
+// un defecto. Se quita lo que toca la píldora por arriba o por los lados, con su brillo, antes
+// de pintarla (si no, su relleno arrastra el verde del logo). Siempre que sea pequeño: si llega
+// al techo de la franja que se mira o a su borde izquierdo, es otra cosa y no se toca.
+function quitarTira(px, width, height, channels){
+  const p = cajaPildora(width, height), sy = height / REF.h;
+  const alto = Math.round(26 * sy), X0 = Math.max(0, p.x0 - 12), X1 = Math.min(width - 1, p.x1 + 2);
+  const techo = Math.max(0, p.y0 - 1 - alto), Y1 = Math.min(height - 1, p.y1 + 1);
+  if (techo < 4) return 0;
+  // La píldora con su margen de 1 px la pinta pintarPildora: aquí ni se sigue ni se usa.
+  const enPildora = (x, y) => x >= p.x0 - 1 && x <= p.x1 + 1 && y >= p.y0 - 1 && y <= p.y1 + 1;
+  const referencia = [0, 0, 0]; let n = 0;
+  for (let y = techo - 4; y < techo; y += 1) for (let x = X0; x <= X1; x += 1) {
+    const k = (y * width + x) * channels; referencia[0] += px[k]; referencia[1] += px[k + 1]; referencia[2] += px[k + 2]; n += 1;
+  }
+  // Por COLOR, no por luminancia: el borde del logo es verde oscuro saturado, casi con la misma
+  // luminancia que el fondo, y con luminancia se quedaban puntos verdes sueltos.
+  const color = referencia.map(v => v / n);
+  const destaca = (x, y) => { const k = (y * width + x) * channels; return Math.max(Math.abs(px[k] - color[0]), Math.abs(px[k + 1] - color[1]), Math.abs(px[k + 2] - color[2])) > 8; };
+  const ancho = X1 - X0 + 1, idx = (x, y) => (y - techo) * ancho + (x - X0), tira = new Uint8Array(ancho * (Y1 - techo + 1));
+  const pila = [], semilla = (x, y) => { if (x >= X0 && x <= X1 && !tira[idx(x, y)] && destaca(x, y)) { tira[idx(x, y)] = 1; pila.push([x, y]); } };
+  for (let x = p.x0 - 1; x <= p.x1 + 1; x += 1) semilla(x, p.y0 - 2);
+  for (let y = p.y0 - 1; y <= Y1; y += 1) { semilla(p.x0 - 2, y); semilla(p.x1 + 2, y); }
+  if (!pila.length) return 0;
+  while (pila.length) {
+    const [x, y] = pila.pop();
+    for (let dy = -1; dy <= 1; dy += 1) for (let dx = -1; dx <= 1; dx += 1) {
+      const u = x + dx, v = y + dy;
+      if (u < X0 || u > X1 || v < techo || v > Y1 || tira[idx(u, v)] || enPildora(u, v) || !destaca(u, v)) continue;
+      if (v === techo || u === X0) return 0; // sigue más allá: no es una tira, es contenido de la lámina
+      tira[idx(u, v)] = 1; pila.push([u, v]);
+    }
+  }
+  // Zona: la tira y 3 px alrededor (el brillo del logo), sin salir de la franja ni entrar en la píldora.
+  const zona = new Uint8Array(tira.length);
+  for (let y = techo; y <= Y1; y += 1) for (let x = X0; x <= X1; x += 1) if (tira[idx(x, y)]) {
+    for (let v = Math.max(techo, y - 3); v <= Math.min(Y1, y + 3); v += 1) for (let u = Math.max(X0, x - 3); u <= Math.min(X1, x + 3); u += 1) if (!enPildora(u, v)) zona[idx(u, v)] = 1;
+  }
+  const enZona = (x, y) => x >= X0 && x <= X1 && y >= techo && y <= Y1 && zona[idx(x, y)];
+  // Arranca del color de referencia, para que el logo no tiña el relleno.
+  for (let y = techo; y <= Y1; y += 1) for (let x = X0; x <= X1; x += 1) if (zona[idx(x, y)]) {
+    const k = (y * width + x) * channels; for (let c = 0; c < 3; c += 1) px[k + c] = Math.round(color[c]);
+  }
+  for (let pasada = 0; pasada < 300; pasada += 1) {
+    for (let y = techo; y <= Y1; y += 1) for (let x = X0; x <= X1; x += 1) {
+      if (!zona[idx(x, y)]) continue;
+      const suma = [0, 0, 0]; let m = 0;
+      for (const [u, v] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
+        if (u < 0 || v < 0 || u >= width || v >= height || enPildora(u, v)) continue;
+        if (!enZona(u, v) && destaca(u, v)) continue;
+        const j = (v * width + u) * channels; suma[0] += px[j]; suma[1] += px[j + 1]; suma[2] += px[j + 2]; m += 1;
+      }
+      if (!m) continue;
+      const k = (y * width + x) * channels; for (let c = 0; c < 3; c += 1) px[k + c] = Math.round(suma[c] / m);
+    }
+  }
+  return zona.reduce((a, b) => a + b, 0);
+}
+
 // Limpia la marca en un buffer de píxeles (RGB o RGBA, entrelazado). Devuelve el informe.
 export function limpiarPixeles(px, width, height, channels){
   if (width < 400 || height < 200) return {quitada:false, motivo:'imagen demasiado pequeña'};
   const {mascara, w, h, caja:b, fondo} = mascaraEnCaja(px, width, height, channels);
   const al = alineacion(mascara, w, h), score = al.score;
   if (score < UMBRAL_PARECIDO) return {quitada:false, parecido:Number(score.toFixed(3))};
+  // La píldora se mira ANTES de tocar nada y sólo con la marca ya reconocida: sin marca no
+  // hay píldora que quitar.
+  const conPildora = pildora(px, width, height, channels);
   // La silueta se toma de la PLANTILLA alineada, no de «lo que se aparta del fondo»: si la
   // marca cae junto a un logo (portada de NVIDIA en castellano), el logo también se aparta del
   // fondo y acababa borrado. Así sólo se toca la marca.
@@ -165,7 +300,9 @@ export function limpiarPixeles(px, width, height, channels){
       for (let c = 0; c < 3; c += 1) px[k + c] = Math.round(suma[c] / n);
     }
   }
-  return {quitada:true, parecido:Number(score.toFixed(3)), pixeles, residuo:Number(residuo(px, width, height, channels, al).toFixed(3))};
+  let tira = 0;
+  if (conPildora.hay) { tira = quitarTira(px, width, height, channels); pixeles += tira + pintarPildora(px, width, height, channels); }
+  return {quitada:true, parecido:Number(score.toFixed(3)), pixeles, pildora:conPildora.hay, tira:tira > 0, residuo:Number(residuo(px, width, height, channels, al).toFixed(3))};
 }
 
 async function limpiarImagen(bytes){
@@ -192,7 +329,7 @@ export async function limpiarPptx(file){
   if (!quitadas) return {file, report:{changed:false, mode:'gemini-watermark', laminas}};
   const out = file.replace(/\.pptx$/i, '.sin-marca.pptx');
   await fs.writeFile(out, await zip.generateAsync({type:'nodebuffer', compression:'DEFLATE'}));
-  return {file:out, report:{changed:true, mode:'gemini-watermark', quitadas, total:laminas.length, laminas}};
+  return {file:out, report:{changed:true, mode:'gemini-watermark', quitadas, pildoras:laminas.filter(l => l.pildora).length, total:laminas.length, laminas}};
 }
 
 // ── PDF ───────────────────────────────────────────────────────────────────────
@@ -247,5 +384,5 @@ export async function limpiarPdf(file){
   if (!quitadas) return {file, report:{changed:false, mode:'gemini-watermark', paginas}};
   const out = file.replace(/\.pdf$/i, '.sin-marca.pdf');
   await fs.writeFile(out, await pdf.save({useObjectStreams:false}));
-  return {file:out, report:{changed:true, mode:'gemini-watermark', quitadas, total:paginas.length, paginas}};
+  return {file:out, report:{changed:true, mode:'gemini-watermark', quitadas, pildoras:paginas.filter(p => p.pildora).length, total:paginas.length, paginas}};
 }

@@ -307,7 +307,7 @@ async function processNext(browser){
 // parecido más bajo con la plantilla; el detalle por lámina se queda en el log local.
 function resumenMarca(report){
   const items=report.laminas||report.paginas||[],parecidos=items.map(item=>item.parecido).filter(Number.isFinite);
-  return {quitadas:report.quitadas||0,total:items.length,parecidoMin:parecidos.length?Math.min(...parecidos):null};
+  return {quitadas:report.quitadas||0,pildoras:report.pildoras||0,total:items.length,parecidoMin:parecidos.length?Math.min(...parecidos):null};
 }
 async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
