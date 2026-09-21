@@ -17,7 +17,9 @@ slug="${1:-}"
 cd "$(dirname "$0")/.."
 
 export CLOUDFLARE_API_TOKEN="$(bash ~/Claude/admira-vault/vault-get.sh CLOUDFLARE_API_TOKEN)"
-WR="npx --yes wrangler@latest"
+# Misma versión fijada que deploy.sh (FLT-100773 b): escribe secretos de producción.
+WRANGLER_VERSION="4.136.0"
+WR="npx --yes wrangler@${WRANGLER_VERSION}"
 PROJ="admiranext"
 
 # 1) Clave de firma de cookies (una sola vez, aleatoria).

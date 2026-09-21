@@ -72,6 +72,12 @@ jq -n \
   --arg git "$git_full" \
   '{version:$version,deployedAt:$deployedAt,deployer:$deployer,machine:$machine,signature:$signature,git:$git,gitShort:($git[0:7]),gitFull:$git,dirty:false}' \
   > "$TMP/version.json"
-npx --yes wrangler@latest pages deploy "$TMP" --project-name admiranext --branch main
+# WRANGLER FIJADO (MorfeoMacMini, 21-09-2026 · FLT-100773 b). Con @latest --yes cada deploy
+# compilaba las Functions con la CLI que npm sirviera ese día: mismo HEAD, worker distinto, y
+# sin que nadie lo decidiera. 4.136.0 es la que compiló v.21.09.2026.r1.17:08. Subirla es un
+# cambio como cualquier otro: se toca aquí y en scripts/set-presentation-access.sh a la vez
+# (test/higiene-pruebas-y-deploy.test.js lo vigila).
+WRANGLER_VERSION="4.136.0"
+npx --yes "wrangler@${WRANGLER_VERSION}" pages deploy "$TMP" --project-name admiranext --branch main
 rm -rf "$TMP"
 echo "✓ https://www.admiranext.com/status (Cloudflare Pages · sin caché) · mirror https://admiranext.pages.dev"
