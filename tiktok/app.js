@@ -2012,8 +2012,10 @@
       setGrokJob('Grok está generando', progressValue, 'La creación es asíncrona y puede tardar varios minutos. Esta pantalla se actualizará automáticamente.');
       scheduleGrokPoll(requestId);
     }catch(error){
-      if(error?.status === 429){
-        setGrokJob('Grok sigue trabajando', Number(grokJobPercent.textContent.replace('%','')) || 0, 'Límite temporal de consulta. Reintentaremos automáticamente.');
+      // 504 = la consulta a Grok venció su plazo (FLT-100766 a): el vídeo sigue en marcha,
+      // así que se reintenta igual que un límite de consultas, no se da por perdido.
+      if(error?.status === 429 || error?.status === 504){
+        setGrokJob('Grok sigue trabajando', Number(grokJobPercent.textContent.replace('%','')) || 0, error.status === 504 ? 'Grok tarda en responder. Reintentaremos automáticamente.' : 'Límite temporal de consulta. Reintentaremos automáticamente.');
         scheduleGrokPoll(requestId, 10000);
       }else showGrokError(error);
     }finally{

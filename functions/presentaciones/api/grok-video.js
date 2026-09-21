@@ -14,6 +14,14 @@ const PIXERIA_PENDING_MS = 10 * 60 * 1000;
 const PIXERIA_ASSET_URL = 'https://api.admira.store/stock/asset/';
 const MAX_BRUTO_BYTES = 120 * 1024 * 1024;
 const PIXERIA_STATE_TTL = 30 * 24 * 60 * 60;
+// PLAZOS CON xAI (MorfeoMacMini, 21-09-2026 · FLT-100766 a). Ni el encargo, ni la consulta
+// de estado, ni la descarga del bruto tenían reloj: un cuelgue del proveedor dejaba al
+// operador esperando sin respuesta y la descarga, además, leía el vídeo entero antes de
+// mirar su tamaño. Ahora cada llamada corta a su plazo y responde 504 con el motivo.
+export const VIDEO_CREATE_TIMEOUT_MS = 60 * 1000;
+export const VIDEO_STATUS_TIMEOUT_MS = 20 * 1000;
+export const VIDEO_DOWNLOAD_TIMEOUT_MS = 90 * 1000;
+const expiro = error => Boolean(error && (error.name === 'TimeoutError' || error.name === 'AbortError'));
 
 function json(payload, status = 200, extraHeaders = {}){
   return Response.json(payload, {
@@ -164,11 +172,17 @@ async function createVideo(context){
     : [base];
   let response, provider, usado = null;
   for(let i = 0; i < intentos.length; i += 1){
-    response = await fetch('https://api.x.ai/v1/videos/generations', {
-      method:'POST',
-      headers:{'authorization':`Bearer ${context.env.XAI_API_KEY}`, 'content-type':'application/json'},
-      body:JSON.stringify(intentos[i])
-    });
+    try{
+      response = await fetch('https://api.x.ai/v1/videos/generations', {
+        method:'POST',
+        headers:{'authorization':`Bearer ${context.env.XAI_API_KEY}`, 'content-type':'application/json'},
+        body:JSON.stringify(intentos[i]),
+        signal:AbortSignal.timeout(VIDEO_CREATE_TIMEOUT_MS)
+      });
+    }catch(error){
+      console.error(JSON.stringify({message:'grok video create unreachable', intento:i, error:String(error?.message || error).slice(0, 200)}));
+      return json({error:expiro(error) ? `Grok no respondió a tiempo (${VIDEO_CREATE_TIMEOUT_MS / 1000} s) al encargar el vídeo. Vuelve a intentarlo.` : 'No se pudo llegar a Grok para encargar el vídeo.'}, 504);
+    }
     try{ provider = await readJsonLimited(response); }
     catch(error){
       console.error(JSON.stringify({message:'invalid grok video create response', error:String(error?.message || error), status:response.status}));
@@ -295,8 +309,12 @@ async function ensureBrutoRetenido(context, requestId, video, force = false){
   if(previous?.status === 'failed' && !force) return publicBrutoState(previous);
   await savePixeriaState(context, key, {status:'uploading', requestId, startedAt:Date.now()}, 60 * 60);
   try{
-    const origen = await fetch(video.url);
+    const origen = await fetch(video.url, {signal:AbortSignal.timeout(VIDEO_DOWNLOAD_TIMEOUT_MS)});
     if(!origen.ok) throw new Error(`origen ${origen.status}`);
+    // El tamaño se mira ANTES de leer el cuerpo: leerlo entero para luego rechazarlo es
+    // pagar la descarga de lo que no se va a guardar.
+    const anunciado = Number(origen.headers.get('content-length') || 0);
+    if(anunciado > MAX_BRUTO_BYTES) throw new Error(`tamaño anunciado ${anunciado}`);
     const bytes = await origen.arrayBuffer();
     if(bytes.byteLength < 1024 || bytes.byteLength > MAX_BRUTO_BYTES) throw new Error(`tamaño ${bytes.byteLength}`);
     const id = `pkg-${(await digest(`bruto:${requestId}`)).slice(0, 20)}`;
@@ -407,9 +425,16 @@ async function ensurePixeriaPublication(context, requestId, video, model, force 
 }
 
 async function fetchVideoProvider(context, requestId){
-  const response = await fetch(`https://api.x.ai/v1/videos/${encodeURIComponent(requestId)}`, {
-    headers:{'authorization':`Bearer ${context.env.XAI_API_KEY}`, 'accept':'application/json'}
-  });
+  let response;
+  try{
+    response = await fetch(`https://api.x.ai/v1/videos/${encodeURIComponent(requestId)}`, {
+      headers:{'authorization':`Bearer ${context.env.XAI_API_KEY}`, 'accept':'application/json'},
+      signal:AbortSignal.timeout(VIDEO_STATUS_TIMEOUT_MS)
+    });
+  }catch(error){
+    console.error(JSON.stringify({message:'grok video status unreachable', requestId, error:String(error?.message || error).slice(0, 200)}));
+    return {error:json({error:expiro(error) ? 'Grok no respondió a tiempo con el estado del vídeo. Se volverá a consultar.' : 'No se pudo llegar a Grok para consultar el vídeo.'}, 504)};
+  }
   let provider;
   try{ provider = await readJsonLimited(response); }
   catch(error){

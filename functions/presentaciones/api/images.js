@@ -6,6 +6,20 @@ const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const MAX_MULTIPART_BYTES = MAX_UPLOAD_BYTES + 256 * 1024;
 const PROCESSING_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_TEXT_RETRIES = 3;
+// CADA LLAMADA A xAI CON SU RELOJ (MorfeoMacMini, 21-09-2026 · FLT-100766 a). Sin plazo, un
+// cuelgue del proveedor dejaba la lámina en 'processing' hasta que recoverStalled() la daba
+// por muerta a los 10 minutos; con plazo falla en segundos, con su código, y se reintenta.
+export const IMAGE_TIMEOUT_MS = 120 * 1000;
+export const VALIDATION_TIMEOUT_MS = 60 * 1000;
+async function xaiFetch(url, init, ms, etapa){
+  try{ return await fetch(url, {...init, signal:AbortSignal.timeout(ms)}); }
+  catch(cause){
+    const expiro = cause && (cause.name === 'TimeoutError' || cause.name === 'AbortError');
+    const error = new Error(expiro ? `xAI no respondió a tiempo (${Math.round(ms / 1000)} s) ${etapa}. Puedes reintentarla.` : `No se pudo llegar a xAI ${etapa}.`);
+    error.code = expiro ? 'provider_timeout' : 'provider_unreachable';
+    throw error;
+  }
+}
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), {status, headers:{
@@ -101,10 +115,10 @@ function providerMessage(status){
   return 'xAI no pudo generar esta imagen.';
 }
 async function generateImage(env, prompt){
-  const response = await fetch('https://api.x.ai/v1/images/generations', {
+  const response = await xaiFetch('https://api.x.ai/v1/images/generations', {
     method:'POST', headers:{'content-type':'application/json', authorization:`Bearer ${env.XAI_API_KEY}`},
     body:JSON.stringify({model:env.XAI_IMAGE_MODEL || 'grok-imagine-image', prompt, n:1, aspect_ratio:'16:9', resolution:'1k', response_format:'b64_json'})
-  });
+  }, IMAGE_TIMEOUT_MS, 'generando la imagen');
   if(!response.ok) throw new Error(providerMessage(response.status));
   const length = Number(response.headers.get('content-length') || 0);
   if(length > MAX_BASE64_CHARS) throw new Error('La respuesta de xAI supera el tamaño permitido.');
@@ -115,7 +129,7 @@ async function generateImage(env, prompt){
 }
 
 async function validateTextFree(env, image){
-  const response = await fetch('https://api.x.ai/v1/responses', {
+  const response = await xaiFetch('https://api.x.ai/v1/responses', {
     method:'POST', headers:{'content-type':'application/json', authorization:`Bearer ${env.XAI_API_KEY}`},
     body:JSON.stringify({
       model:env.XAI_VISION_MODEL || env.XAI_TEXT_MODEL || 'grok-4.5', store:false,
@@ -132,7 +146,7 @@ async function validateTextFree(env, image){
         required:['has_visible_text','confidence','evidence']
       }}}
     })
-  });
+  }, VALIDATION_TIMEOUT_MS, 'verificando que la imagen no tiene texto');
   if(!response.ok) throw new Error('No se pudo verificar que la imagen esté libre de texto. No se publicará.');
   const length = Number(response.headers.get('content-length') || 0);
   if(length > MAX_BODY_BYTES) throw new Error('La verificación visual devolvió una respuesta demasiado grande.');
@@ -276,7 +290,8 @@ async function generate(context, payload){
     const failedAt = new Date().toISOString();
     slide.status = 'failed'; slide.progress = 100; slide.stage = 'Error'; slide.error = String(error?.message || 'No se pudo generar la imagen.').slice(0, 220);
     slide.errorCode = String(error?.code || 'generation_failed').slice(0, 80);
-    slide.retryable = slide.errorCode === 'visible_text_detected' && slide.attempts < MAX_TEXT_RETRIES;
+    // Un plazo vencido es un tropiezo del proveedor, no un defecto de la imagen: se reintenta igual.
+    slide.retryable = ['visible_text_detected', 'provider_timeout'].includes(slide.errorCode) && slide.attempts < MAX_TEXT_RETRIES;
     if(error?.validation) slide.textValidation = error.validation;
     slide.failedAt = failedAt; slide.updatedAt = failedAt;
     delete slide.requestId;

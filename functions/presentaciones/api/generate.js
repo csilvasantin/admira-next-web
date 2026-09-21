@@ -17,6 +17,12 @@ const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
 const LANGUAGE_NAMES = {es:'Spanish',ca:'Catalan',en:'English'};
 const MAX_TERMS = 30;
+// LA TRADUCCIÓN TAMBIÉN TIENE RELOJ (MorfeoMacMini, 21-09-2026 · FLT-100766 a). El guion
+// (_skeleton.js) y el análisis de la web ya cortaban a su plazo; la traducción no, y es la
+// última llamada del alta: si xAI se quedaba colgado, el operador miraba «Construyendo el
+// relato…» sin fin y el respaldo de abajo (translationPending) no llegaba a ejecutarse.
+// Con plazo, un cuelgue es un tropiezo más: la presentación se crea y el idioma se repasa.
+export const TRANSLATION_TIMEOUT_MS = 60000;
 
 function json(body, status = 200){
   return new Response(JSON.stringify(body), { status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'} });
@@ -109,8 +115,9 @@ export async function generateTranslations(env, ideas, languages, terminology=[]
   if(!targets.length)return {};
   if(!env.XAI_API_KEY)throw new Error('La traducción automática no está configurada.');
   const source=translatableCopy(ideas),languageProperties=Object.fromEntries(targets.map(language=>[language,{type:'array',items:{type:'string'}}]));
-  const provider=await fetch('https://api.x.ai/v1/responses',{
-    method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.XAI_API_KEY}`},
+  let provider;
+  try{provider=await fetch('https://api.x.ai/v1/responses',{
+    method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.XAI_API_KEY}`},signal:AbortSignal.timeout(TRANSLATION_TIMEOUT_MS),
     body:JSON.stringify({
       model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,
       input:[
@@ -121,10 +128,14 @@ export async function generateTranslations(env, ideas, languages, terminology=[]
         type:'object',additionalProperties:false,properties:{translations:{type:'object',additionalProperties:false,properties:languageProperties,required:targets}},required:['translations']
       }}}
     })
-  });
+  });}catch(error){
+    const expiro=error&&(error.name==='TimeoutError'||error.name==='AbortError');
+    throw new Error(expiro?`xAI no respondió a tiempo con la traducción (${Math.round(TRANSLATION_TIMEOUT_MS/1000)} s).`:'No se pudo llegar a xAI para traducir.');
+  }
   if(!provider.ok)throw new Error(provider.status===429?'xAI ha alcanzado temporalmente el límite de traducción.':'No se pudieron generar todos los idiomas.');
   if(Number(provider.headers.get('content-length')||0)>MAX_BYTES)throw new Error('La traducción recibida es demasiado grande.');
-  const payload=await provider.json(),outputText=payload?.output?.find(item=>item?.type==='message')?.content?.find(item=>item?.type==='output_text')?.text;
+  let payload;try{payload=await provider.json()}catch(_){throw new Error('La traducción no devolvió un resultado válido.')}
+  const outputText=payload?.output?.find(item=>item?.type==='message')?.content?.find(item=>item?.type==='output_text')?.text;
   let parsed;try{parsed=JSON.parse(outputText||'')}catch(_){throw new Error('La traducción no devolvió un resultado válido.')}
   const translations={};
   for(const language of targets){
@@ -296,5 +307,5 @@ export async function onRequestPut(context){
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':'template';
   const narrativeFallback=narrativeSource==='xai'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

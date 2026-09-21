@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260912-demo-video';
+  window.__ADMIRA_GENERATOR_VERSION__='20260921-reloj-alta';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -155,8 +155,19 @@
       overwriteDialog.showModal();
     });
   }
+  // EL ALTA DICE QUE SIGUE VIVA Y TIENE TECHO (MorfeoMacMini, 21-09-2026 · FLT-100766 a). La
+  // web, el logo, el guion y la traducción pueden sumar más de un minuto; el operador veía
+  // una frase fija y no sabía si aquello seguía trabajando o se había quedado colgado. Ahora
+  // cuenta los segundos y, pasado el techo, corta con un motivo: el servidor pudo terminar
+  // igualmente, así que se le manda a la galería ANTES de reintentar y duplicar trabajo.
+  const CREATE_TIMEOUT_MS=5*60*1000;
   async function createPresentation(data,overwrite=false){
-    const response=await fetch('/presentaciones/api/generate',{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({...data,overwrite})});
+    const base=status.textContent,inicio=Date.now();
+    const reloj=setInterval(()=>{const s=Math.round((Date.now()-inicio)/1000);message(`${base} · ${s} s${s>=60?' · redactar y traducir con IA puede llevar un par de minutos':''}`)},1000);
+    let response;
+    try{response=await fetch('/presentaciones/api/generate',{method:'PUT',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({...data,overwrite}),signal:AbortSignal.timeout(CREATE_TIMEOUT_MS)})}
+    catch(error){if(error&&(error.name==='TimeoutError'||error.name==='AbortError'))throw new Error(`El alta no ha respondido en ${CREATE_TIMEOUT_MS/60000} minutos. Puede que se haya creado igualmente: mira la galería antes de volver a generar.`);throw new Error('No se pudo contactar con el generador. Revisa la conexión y vuelve a intentarlo.')}
+    finally{clearInterval(reloj);message(base)}
     const body=await response.json().catch(()=>({}));
     if(response.status===409&&body.exists&&!overwrite){
       const confirmed=await confirmOverwrite(body.slug||data.slug);
@@ -282,7 +293,7 @@
       const body=await createPresentation(data, Boolean(improveMode)); if(!body){message('No se ha modificado la presentación existente.');return}
       window.dispatchEvent(new CustomEvent('admira:presentation-created',{detail:body}));
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
-      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck'),launchUrl=body.presite?.launchUrl;openDeck.href=launchUrl||body.deckUrl;openDeck.textContent=launchUrl?'Abrir intro + presentación':'Abrir site';openDeck.hidden=!body.outputs.includes('website'); currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); (body.narrativeSource==='xai'?message(`Presentación lista: ${body.displayName}${launchUrl?' · Presite conectado':''}. Guion redactado para este cliente. Ya puedes abrirla y trabajar con ella.`):message(`Presentación creada: ${body.displayName}, PERO con el guion de respaldo — ${body.narrativeFallback||'la redacción con IA no estuvo disponible'}. Ese texto es el mismo para todos los clientes con el nombre cambiado: revísalo en «Editar esqueleto» ANTES de compartir el enlace, o vuelve a generar.`,true));if(body.outputs.includes('backgrounds'))runImageGeneration(false).catch(error=>imageMessage(`La presentación sigue lista sin los fondos pendientes. Grok no ha respondido: ${error.message} Puedes reintentarlo cuando quieras.`,true));else imageApi({action:'prepare',client:body.slug}).then(response=>renderImageSet(response.imageSet)).catch(()=>loadImages(body.slug).catch(()=>{}));
+      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck'),launchUrl=body.presite?.launchUrl;openDeck.href=launchUrl||body.deckUrl;openDeck.textContent=launchUrl?'Abrir intro + presentación':'Abrir site';openDeck.hidden=!body.outputs.includes('website'); currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); const idiomasPendientes=(body.translationPending||[]).map(language=>String(language).toUpperCase()).join(', '),avisoIdiomas=idiomasPendientes?` Ojo: la versión ${idiomasPendientes} no se pudo traducir (${body.translationError||'xAI no respondió'}) y de momento repite el castellano; revísala en el editor antes de compartirla.`:'';(body.narrativeSource==='xai'?message(`Presentación lista: ${body.displayName}${launchUrl?' · Presite conectado':''}. Guion redactado para este cliente. Ya puedes abrirla y trabajar con ella.${avisoIdiomas}`,Boolean(avisoIdiomas)):message(`Presentación creada: ${body.displayName}, PERO con el guion de respaldo — ${body.narrativeFallback||'la redacción con IA no estuvo disponible'}. Ese texto es el mismo para todos los clientes con el nombre cambiado: revísalo en «Editar esqueleto» ANTES de compartir el enlace, o vuelve a generar.${avisoIdiomas}`,true));if(body.outputs.includes('backgrounds'))runImageGeneration(false).catch(error=>imageMessage(`La presentación sigue lista sin los fondos pendientes. Grok no ha respondido: ${error.message} Puedes reintentarlo cuando quieras.`,true));else imageApi({action:'prepare',client:body.slug}).then(response=>renderImageSet(response.imageSet)).catch(()=>loadImages(body.slug).catch(()=>{}));
     }catch(error){message(error.message,true)}finally{submit.disabled=false}
   },true);
   setInterval(async()=>{
