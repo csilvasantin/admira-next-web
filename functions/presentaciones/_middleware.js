@@ -76,10 +76,19 @@ function loginPage(title, action, error = '', values = {}){
   return shell(title, `<div class="box"><form method="POST" action="${esc(action)}" autocomplete="on"><div class="eyebrow"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.3 2.1 7-6-4.3-6 4.3 2.1-7L2.5 9l7.1-.1z"/></svg>ADmiraNeXT · Presentación</div><h1>${esc(title)}</h1><p class="sub">Contenido privado. Identifícate e introduce la contraseña facilitada por nuestro equipo.</p>${identityFields(values)}<label for="password">Contraseña</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Entrar</button><a class="secondary" href="${esc(recovery)}">¿Has olvidado la contraseña?</a></form>${google}<div class="notice">Puedes usar una contraseña guardada en Google Password Manager o en el gestor de tu navegador.</div><div class="notice">Por seguridad, registramos identidad, fecha, presentación, IP y acciones sobre los materiales.</div>${error ? `<div class="err">${esc(error)}</div>` : ''}<div class="foot">admiranext.com</div></div>`);
 }
 
+// PLAZOS CON TERCEROS EN LA PUERTA (MorfeoMacMini, 21-09-2026 · FLT-100780 a). La
+// verificación de Google y el aviso de recuperación esperaban sin reloj. Google, en el
+// camino del login: un cuelgue dejaba la pantalla de acceso colgada; ahora vence, falla
+// cerrado —sin cookie— y deja su evento google_login_failed como cualquier otro rechazo.
+// La recuperación va en waitUntil y no bloquea a nadie, pero sin plazo retenía el worker
+// y su fallo no lo veía nadie: ahora vence y queda en el log.
+export const GOOGLE_VERIFY_TIMEOUT_MS = 8000;
+export const RECOVERY_NOTICE_TIMEOUT_MS = 8000;
+
 async function verifyGoogleCredential(credential){
   if (!credential || credential.length > 6000) return null;
   try {
-    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {signal:AbortSignal.timeout(GOOGLE_VERIFY_TIMEOUT_MS)});
     if (!response.ok) return null;
     const payload = await response.json();
     const email = String(payload.email || '').trim().toLowerCase();
@@ -115,9 +124,13 @@ async function requestRecovery(env, request, details){
   payload.set('_template', 'table');
   payload.set('_captcha', 'false');
   try {
-    const response = await fetch('https://formsubmit.co/ajax/info@admira.com', {method:'POST', body:payload, headers:{Accept:'application/json'}});
+    const response = await fetch('https://formsubmit.co/ajax/info@admira.com', {method:'POST', body:payload, headers:{Accept:'application/json'}, signal:AbortSignal.timeout(RECOVERY_NOTICE_TIMEOUT_MS)});
+    if (!response.ok) console.error(JSON.stringify({message:'aviso de recuperación no confirmado', status:response.status, presentation:details.presentation}));
     return response.ok;
-  } catch (_) { return false; }
+  } catch (error) {
+    console.error(JSON.stringify({message:'aviso de recuperación interrumpido', error:String(error?.name || error), presentation:details.presentation}));
+    return false;
+  }
 }
 
 function identifyPage(title, action, error = '', values = {}){

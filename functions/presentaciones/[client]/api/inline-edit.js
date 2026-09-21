@@ -1,4 +1,16 @@
 const MAX_BODY_BYTES = 64 * 1024;
+// PLAZO CON xAI (MorfeoMacMini, 21-09-2026 · FLT-100780 a). Guardar un texto en la sala con
+// más de un idioma traduce ANTES de escribir; sin reloj, un cuelgue de xAI dejaba al editor
+// mirando «guardando…» sin fin. Con plazo, vence, NO se escribe nada y se dice (504).
+export const INLINE_TRANSLATION_TIMEOUT_MS = 60000;
+function traduccionFallida(error){
+  const vencio = error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+  const fallo = new Error(vencio
+    ? `xAI no respondió a tiempo con la traducción (${INLINE_TRANSLATION_TIMEOUT_MS / 1000} s). No se ha guardado nada: vuelve a guardar.`
+    : 'No se pudo llegar a xAI para traducir. No se ha guardado nada: vuelve a guardar.');
+  fallo.code = vencio ? 'timeout' : 'unreachable';
+  return fallo;
+}
 const MAX_EDITS = 20;
 const LANGUAGES = ['es','ca','en'];
 const LANGUAGE_NAMES = {es:'Spanish',ca:'Catalan',en:'English'};
@@ -81,8 +93,9 @@ async function translateEdits(env, sourceLanguage, targetLanguages, edits, termi
   if(!targetLanguages.length) return {};
   if(!env.XAI_API_KEY) throw new Error('La traducción automática no está configurada.');
   const languageProperties=Object.fromEntries(targetLanguages.map(language=>[language,{type:'array',items:{type:'string'}}]));
-  const provider=await fetch('https://api.x.ai/v1/responses',{
-    method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.XAI_API_KEY}`},
+  let provider;
+  try{provider=await fetch('https://api.x.ai/v1/responses',{
+    method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.XAI_API_KEY}`},signal:AbortSignal.timeout(INLINE_TRANSLATION_TIMEOUT_MS),
     body:JSON.stringify({
       model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,
       input:[
@@ -93,11 +106,12 @@ async function translateEdits(env, sourceLanguage, targetLanguages, edits, termi
         type:'object',additionalProperties:false,properties:{translations:{type:'object',additionalProperties:false,properties:languageProperties,required:targetLanguages}},required:['translations']
       }}}
     })
-  });
+  });}catch(error){throw traduccionFallida(error);}
   if(!provider.ok) throw new Error(provider.status===429?'xAI ha alcanzado temporalmente el límite de traducción.':'No se pudieron sincronizar los idiomas.');
   const length=Number(provider.headers.get('content-length')||0);
   if(length>MAX_BODY_BYTES) throw new Error('La traducción recibida es demasiado grande.');
-  const payload=await provider.json();
+  let payload;
+  try{payload=await provider.json();}catch(error){if(error&&(error.name==='TimeoutError'||error.name==='AbortError'))throw traduccionFallida(error);throw new Error('La traducción no devolvió un resultado válido.');}
   const outputText=payload?.output?.find(item=>item?.type==='message')?.content?.find(item=>item?.type==='output_text')?.text;
   let parsed; try{parsed=JSON.parse(outputText||'');}catch(_){throw new Error('La traducción no devolvió un resultado válido.');}
   for(const language of targetLanguages){
@@ -162,7 +176,7 @@ export async function onRequest(context){
   }
   catch(error){
     console.error(JSON.stringify({message:'inline translation failed',client,language,error:String(error?.message||error)}));
-    return response({error:error.message||'No se pudieron sincronizar los idiomas.'},502);
+    return response({error:error.message||'No se pudieron sincronizar los idiomas.'},error.code==='timeout'?504:502);
   }
   try{
     const source=localeContent(ideas,language); edits.forEach(edit=>applyEdit(source,edit));

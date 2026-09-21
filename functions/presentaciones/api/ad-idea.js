@@ -1,5 +1,11 @@
 const MAX_REQUEST_BYTES = 4 * 1024;
 const MAX_PROVIDER_BYTES = 48 * 1024;
+// PLAZO CON xAI (MorfeoMacMini, 21-09-2026 · FLT-100780 a). La idea publicitaria esperaba a
+// xAI sin reloj —cabeceras y cuerpo—: si el proveedor se quedaba colgado, el estudio de
+// TikTok (y el flujo automático desde el catálogo) se quedaba esperando sin fin. El plazo
+// cubre también la lectura del cuerpo, y vencerlo es un 504 con motivo, no un 502 «no válido».
+export const AD_IDEA_TIMEOUT_MS = 60000;
+const vencido = error => Boolean(error && (error.name === 'TimeoutError' || error.name === 'AbortError'));
 const OBJECTIVES = new Set(['leads', 'visits', 'sales', 'launch', 'awareness']);
 
 function json(payload, status = 200){
@@ -256,6 +262,7 @@ async function developAd(context, headline, producto, brief = null){
     : 'Hay un titular aportado. Consérvalo como intención central y desarróllalo en una campaña completa. Puedes mejorar su redacción, pero no cambies de categoría, problema ni promesa principal.';
   const response = await fetch('https://api.x.ai/v1/responses', {
     method:'POST',
+    signal:AbortSignal.timeout(AD_IDEA_TIMEOUT_MS),
     headers:{'content-type':'application/json', authorization:`Bearer ${context.env.XAI_API_KEY}`},
     body:JSON.stringify({
       model:context.env.XAI_TEXT_MODEL || 'grok-4.5',
@@ -292,7 +299,10 @@ async function developAd(context, headline, producto, brief = null){
   if(!response.ok) return {error:json({error:providerMessage(response.status)}, response.status === 429 ? 429 : 502)};
   let payload;
   try{ payload = await readJsonLimited(response, MAX_PROVIDER_BYTES); }
-  catch(_){ return {error:json({error:'El desarrollador creativo devolvió una respuesta no válida.'}, 502)}; }
+  catch(error){
+    if(vencido(error)) throw error;
+    return {error:json({error:'El desarrollador creativo devolvió una respuesta no válida.'}, 502)};
+  }
   let parsed;
   try{ parsed = JSON.parse(outputText(payload) || ''); }
   catch(_){ return {error:json({error:'El desarrollador creativo no devolvió una idea estructurada.'}, 502)}; }
@@ -326,6 +336,7 @@ export async function onRequest(context){
     return json({mode:result.mode, ad:result.ad, producto:producto ? {nombre:producto.nombre, precio:producto.precioTexto, validez:producto.validezTexto} : null, brief:brief ? {campana:brief.campana, tipologia:brief.tipologia, lane:brief.lane, titulo:brief.titulo} : null});
   }catch(error){
     console.error(JSON.stringify({message:'ad idea development failed', error:String(error?.message || error)}));
+    if(vencido(error)) return json({error:`El desarrollador creativo no respondió a tiempo (${AD_IDEA_TIMEOUT_MS / 1000} s). Vuelve a intentarlo.`}, 504);
     return json({error:'No se pudo conectar con el desarrollador creativo.'}, 502);
   }
 }
