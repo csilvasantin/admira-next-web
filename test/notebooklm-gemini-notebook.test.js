@@ -77,14 +77,15 @@ test('el worker quita la marca de PDF y PowerPoint antes de publicar', () => {
   assert.match(publicar, /geminiWatermark:resumenMarca\(sinMarca\.report\)/);
 });
 
-// FLT-100798: el primer vídeo real (pixeria-beat-emocional, 7:26) falló en el último paso
-// porque la duración se leía de Spotlight (mdls), que no indexa .runtime y devolvía «(null)».
-test('la duración del vídeo no depende de Spotlight: si mdls no la da, la lee ffmpeg', () => {
-  const duracion = trozo('function videoDuration(', 'async function cleanVideoEnding(');
-  assert.match(duracion, /mdls/);
-  assert.match(duracion, /spawnSync\(ffmpegPath,\['-hide_banner','-i',file\]/);
-  assert.match(duracion, /Duration:/);
-  assert.match(trozo('async function cleanVideoEnding(', 'async function cleanInfographicBranding('), /const duration=videoDuration\(file\);/);
+// FLT-100798 → FLT-100803: el primer vídeo real (pixeria-beat-emocional) falló porque la
+// duración se leía de Spotlight (mdls), que no indexa .runtime. Ahora el vídeo lo limpia
+// video-marca.js, que lee la duración de la cabecera con ffmpeg: sin mdls en ningún sitio.
+test('la limpieza del vídeo no depende de Spotlight y va por video-marca.js', async () => {
+  const modulo = await readFile(new URL('../tools/notebooklm-local/video-marca.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(worker, /mdls/);
+  assert.doesNotMatch(modulo, /mdls/);
+  assert.match(modulo, /Duration:\\s\*/);
+  assert.match(trozo('async function waitAndPublish(', 'async function processNext('), /if\(output==='video'\)\{[\s\S]*?const sanitized=await limpiarVideo\(downloaded,\{ffmpeg:ffmpegPath\}\);/);
 });
 
 // FLT-100801: Gemini nombra el fichero por el título del cuaderno (PixerIA_Beat_Emocional.mp4

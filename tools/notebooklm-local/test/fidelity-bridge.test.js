@@ -97,14 +97,18 @@ test('infographic cleanup is byte-identical unless its exact corner fingerprint 
   assert.equal(metadata.height,height);
 });
 
-test('video ending cleanup is guarded by an exact fingerprint and is a no-op otherwise',async()=>{
+// FLT-100803: la huella exacta de la tarjeta final nunca llegó a configurarse y el vídeo salía
+// con la cortinilla de Gemini Notebook. Ahora se reconoce por plantilla y la marca de esquina se
+// deshace con su mapa de opacidad (tests de comportamiento en test/video-marca.test.js).
+test('video cleanup only acts on what it recognizes and is a no-op otherwise',async()=>{
   const worker=await fs.readFile(new URL('../worker.js',import.meta.url),'utf8');
-  const cleanup=worker.slice(worker.indexOf('async function cleanVideoEnding'),worker.indexOf('async function cleanInfographicBranding'));
-  assert.match(cleanup,/verifiedWatermark/);
-  assert.match(cleanup,/NOTEBOOKLM_VIDEO_ENDING_HASHES/);
-  assert.match(cleanup,/if\(!verification\.verified\)return\s*\{file,report:\{changed:false/);
-  assert.ok(cleanup.indexOf('if(!verification.verified)')<cleanup.indexOf('stop_mode=clone'),'video must verify before changing frames');
-  assert.doesNotMatch(cleanup,/overlay=|clientLogoBadge|badge/i);
+  const modulo=await fs.readFile(new URL('../video-marca.js',import.meta.url),'utf8');
+  assert.match(worker,/import \{limpiarVideo\} from '\.\/video-marca\.js';/);
+  assert.doesNotMatch(worker,/cleanVideoEnding|NOTEBOOKLM_VIDEO_ENDING_HASHES/);
+  assert.match(modulo,/parecido < UMBRAL_CORTINILLA\) return \{hay:false/);
+  assert.match(modulo,/hay:muestras >= 300 && con < 0\.5 \* sin/);
+  assert.ok(modulo.indexOf('if (!cortinilla.hay && !esquina.hay) return')<modulo.indexOf("spawnSync(ffmpeg, args"),'recognize before touching frames');
+  assert.doesNotMatch(modulo,/clientLogoBadge|badge/i);
 });
 
 test('new deck tasks declare the fidelity bridge instead of a visual overlay',()=>{

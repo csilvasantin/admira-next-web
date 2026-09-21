@@ -35,11 +35,14 @@ solo como compatibilidad heredada opt-in con
 `NOTEBOOKLM_DECK_LOGO_MODE=overlay`; no es el comportamiento predeterminado.
 `NOTEBOOKLM_WATERMARK_HASHES` admite una lista separada por comas de SHA-256 para
 marcas gráficas verificadas que no contengan texto identificable.
-La limpieza de vídeo e infografía es conservadora: solo actúa cuando el SHA-256
-de la tarjeta final o de la esquina coincide con
-`NOTEBOOKLM_VIDEO_ENDING_HASHES` o
+La limpieza es conservadora: solo actúa sobre lo que reconoce. En PDF y
+PowerPoint, `watermark.js` quita la marca «Gemini Notebook» de cada lámina (y la
+píldora esmerilada cuando la hay). En vídeo, `video-marca.js` corta la cortinilla
+final si el último fotograma coincide con la plantilla del logo y deshace la marca
+de esquina con su mapa de opacidad medido, solo si el modelo la explica. En
+infografía, la esquina se limpia cuando su SHA-256 coincide con
 `NOTEBOOKLM_INFOGRAPHIC_WATERMARK_HASHES`. Sin coincidencia, el archivo se
-publica byte a byte sin modificar y el informe registra el fingerprint observado.
+publica byte a byte sin modificar y el informe registra lo observado.
 
 Variables opcionales: `VISUAL_BRIEF_MODEL`, `VISUAL_BRIEF_OLLAMA_URL` y
 `VISUAL_BRIEF_MODE=off` para desactivar temporalmente el análisis visual.

@@ -2,15 +2,16 @@ import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {execFileSync,spawnSync} from 'node:child_process';
+import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
 import ffmpegPath from 'ffmpeg-static';
 import sharp from 'sharp';
 import {brandPdf,brandPowerPoint} from './brand-deck.js';
 import {generateVisualBrief} from './visual-brief.js';
-import {buildNotebookSourceBundle,sanitizeInfographicBranding,sanitizePowerPointBranding,verifiedWatermark} from './fidelity-bridge.js';
+import {buildNotebookSourceBundle,sanitizeInfographicBranding,sanitizePowerPointBranding} from './fidelity-bridge.js';
 import {fetchConPlazo,API_TIMEOUT_MS,plazoSubida} from './network.js';
 import {limpiarPdf,limpiarPptx} from './watermark.js';
+import {limpiarVideo} from './video-marca.js';
 
 const HERE=path.dirname(new URL(import.meta.url).pathname);
 const ROOT=path.resolve(HERE,'../..');
@@ -77,31 +78,6 @@ async function downloadClientLogo(client){
   if(!response.ok)throw new Error(`No se pudo obtener el logo oficial (${response.status}).`);
   const bytes=Buffer.from(await response.arrayBuffer()),dir=path.join(RUNTIME,'brands');await fs.mkdir(dir,{recursive:true});
   const output=path.join(dir,`${client}.png`);await sharp(bytes,{density:240}).trim().resize({width:1200,height:500,fit:'inside',withoutEnlargement:true}).png().toFile(output);return output;
-}
-// DURACIÓN SIN DEPENDER DE SPOTLIGHT (FLT-100798, 21-09-2026): mdls lee la metadata de
-// Spotlight, que no indexa .runtime —devolvía «(null)»— y el primer vídeo real de Gemini
-// Notebook (pixeria-beat-emocional, 7:26) falló en el último paso con «No se pudo preparar el
-// cierre limpio». Si mdls no la da, se lee de la cabecera con el propio ffmpeg.
-function videoDuration(file){
-  try{const valor=Number(execFileSync('mdls',['-raw','-name','kMDItemDurationSeconds',file],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim());if(Number.isFinite(valor)&&valor>0)return valor;}catch(_){}
-  if(!ffmpegPath)return NaN;
-  const salida=spawnSync(ffmpegPath,['-hide_banner','-i',file],{encoding:'utf8'});
-  const m=String(salida.stderr||'').match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
-  return m?Number(m[1])*3600+Number(m[2])*60+Number(m[3]):NaN;
-}
-async function cleanVideoEnding(file){
-  const duration=videoDuration(file);
-  if(!ffmpegPath||!Number.isFinite(duration)||duration<=4)throw new Error('No se pudo preparar el cierre limpio del vídeo.');
-  const sample=path.join(path.dirname(file),`${path.basename(file,'.mp4')}.ending-sample.png`);
-  execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','error','-ss',Math.max(0,duration-.2).toFixed(3),'-i',file,'-frames:v','1',sample],{stdio:'ignore'});
-  const verification=verifiedWatermark(await fs.readFile(sample),process.env.NOTEBOOKLM_VIDEO_ENDING_HASHES||process.env.NOTEBOOKLM_WATERMARK_HASHES||'');
-  await fs.unlink(sample).catch(()=>{});
-  if(!verification.verified)return {file,report:{changed:false,mode:'verified-freeze-last-clean-frame',fingerprint:verification.fingerprint,reason:'watermark-not-allowlisted',durationPreserved:true,overlaysAdded:false}};
-  const cut=(duration-3).toFixed(3),total=duration.toFixed(3);
-  const output=path.join(path.dirname(file),`${path.basename(file,'.mp4')}.admiranext.mp4`);
-  const filter=`[0:v]trim=start=0:end=${cut},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=3,trim=duration=${total},format=yuv420p[v];[0:a]atrim=start=0:end=${total},asetpts=PTS-STARTPTS[a]`;
-  execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','warning','-i',file,'-filter_complex',filter,'-map','[v]','-map','[a]','-c:v','libx264','-preset','medium','-crf','21','-profile:v','high','-r','24','-c:a','aac','-b:a','80k','-movflags','+faststart','-metadata','comment=NotebookLM ending removed · original visual style and duration preserved',output],{stdio:'ignore'});
-  return {file:output,report:{changed:true,mode:'verified-freeze-last-clean-frame',fingerprint:verification.fingerprint,durationPreserved:true,overlaysAdded:false}};
 }
 async function cleanInfographicBranding(file){
   const watermarkHashes=process.env.NOTEBOOKLM_INFOGRAPHIC_WATERMARK_HASHES||process.env.NOTEBOOKLM_WATERMARK_HASHES||'';
@@ -364,7 +340,8 @@ async function waitAndPublish(page,job,tasks,clientLogo){
         await setStage(job,[task],'Verificando la marca y preparando la publicación',92);
         let publishable=downloaded,fidelityReport={changed:false,mode:'original'};
         if(output==='video'){
-          const sanitized=await cleanVideoEnding(downloaded);
+          // La cortinilla final y la marca de esquina de Gemini Notebook, sólo si se reconocen (FLT-100803).
+          const sanitized=await limpiarVideo(downloaded,{ffmpeg:ffmpegPath});
           publishable=sanitized.file;fidelityReport=sanitized.report;
         }else if(output==='infographic'){
           const sanitized=await cleanInfographicBranding(downloaded);

@@ -193,7 +193,8 @@ test('a deck without identified branding is returned byte-for-byte and without i
 
 test('worker uses the fidelity bundle and conservative cleanup as the default path',async()=>{
   const worker=await fs.readFile(new URL('../worker.js',import.meta.url),'utf8');
-  const videoCleanup=worker.slice(worker.indexOf('async function cleanVideoEnding'),worker.indexOf('async function cleanInfographicBranding'));
+  // FLT-100803: el vídeo se limpia en video-marca.js (cortinilla por plantilla, esquina por mapa de opacidad).
+  const videoCleanup=await fs.readFile(new URL('../video-marca.js',import.meta.url),'utf8');
   const infographicCleanup=worker.slice(worker.indexOf('async function cleanInfographicBranding'),worker.indexOf('const sleep='));
   const publishing=worker.slice(worker.indexOf("const forceDeckLogo="),worker.indexOf('artifactFidelityReports[task.id]'));
   assert.match(worker,/buildNotebookSourceBundle/);
@@ -202,11 +203,9 @@ test('worker uses the fidelity bundle and conservative cleanup as the default pa
   assert.match(worker,/sanitizePowerPointBranding/);
   assert.match(publishing,/NOTEBOOKLM_DECK_LOGO_MODE===['"]overlay['"]/);
   assert.match(publishing,/if\(forceDeckLogo\)\s*\{[\s\S]*brandPowerPoint\(/);
-  assert.match(videoCleanup,/verifiedWatermark/);
-  assert.match(videoCleanup,/if\(!verification\.verified\)return\s*\{file,report:\{changed:false/);
-  assert.match(videoCleanup,/NOTEBOOKLM_VIDEO_ENDING_HASHES/);
-  assert.match(videoCleanup,/stop_mode=clone|freeze-last-clean-frame/);
-  assert.doesNotMatch(videoCleanup,/overlay=|clientLogoBadge|badge/i);
+  assert.match(publishing,/limpiarVideo\(downloaded,\{ffmpeg:ffmpegPath\}\)/);
+  assert.match(videoCleanup,/if \(!cortinilla\.hay && !esquina\.hay\) return \{file, report:\{\.\.\.base, changed:false/);
+  assert.doesNotMatch(videoCleanup,/clientLogoBadge|badge|logo del cliente/i);
   assert.match(infographicCleanup,/sanitizeInfographicBranding/);
   assert.match(infographicCleanup,/NOTEBOOKLM_INFOGRAPHIC_WATERMARK_HASHES/);
   assert.doesNotMatch(infographicCleanup,/\.extend\(\{bottom:|clientLogoBadge|logo/i);
