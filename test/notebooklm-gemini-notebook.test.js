@@ -86,3 +86,28 @@ test('la duración del vídeo no depende de Spotlight: si mdls no la da, la lee 
   assert.match(duracion, /Duration:/);
   assert.match(trozo('async function cleanVideoEnding(', 'async function cleanInfographicBranding('), /const duration=videoDuration\(file\);/);
 });
+
+// FLT-100801: Gemini nombra el fichero por el título del cuaderno (PixerIA_Beat_Emocional.mp4
+// en inglés y en castellano). Con uno igual ya en downloads, el worker sólo daba por nueva una
+// descarga con NOMBRE nuevo: la volvía a pedir cada 80 s hasta agotar los 90 min. Se ejecutan
+// las dos funciones reales del worker contra una carpeta temporal.
+test('una descarga con el mismo nombre que otra anterior cuenta como nueva si es posterior', async () => {
+  const fs = await import('node:fs/promises'), path = await import('node:path'), os = await import('node:os');
+  const fuente = trozo('async function fotoDescargas(', 'async function waitAndPublish(');
+  const DOWNLOADS = await fs.mkdtemp(path.join(os.tmpdir(), 'descargas-'));
+  const {fotoDescargas, descargaNueva} = new Function('fs', 'path', 'DOWNLOADS', `${fuente}; return {fotoDescargas, descargaNueva};`)(fs, path, DOWNLOADS);
+  const video = path.join(DOWNLOADS, 'PixerIA_Beat_Emocional.mp4'), pdf = path.join(DOWNLOADS, 'NVIDIA_Spatial_OS.pdf');
+  await fs.writeFile(video, 'en'); await fs.writeFile(pdf, 'deck');
+  const viejo = new Date(Date.now() - 60000); await fs.utimes(video, viejo, viejo); await fs.utimes(pdf, viejo, viejo);
+  const antes = await fotoDescargas();
+  assert.equal(await descargaNueva(antes, ''), '', 'sin descargar nada, no hay nada nuevo');
+  await fs.writeFile(path.join(DOWNLOADS, 'PixerIA_Beat_Emocional.mp4.crdownload'), 'a medias');
+  assert.equal(await descargaNueva(antes, ''), '', 'una descarga a medias no cuenta');
+  await fs.rm(path.join(DOWNLOADS, 'PixerIA_Beat_Emocional.mp4.crdownload'));
+  await fs.writeFile(video, 'es'); // Chrome sobrescribe el del mismo nombre
+  assert.equal(await descargaNueva(antes, '.pdf'), '', 'si se espera un PDF, el vídeo no vale');
+  assert.equal(await descargaNueva(antes, ''), 'PixerIA_Beat_Emocional.mp4');
+  await fs.writeFile(path.join(DOWNLOADS, 'Otro.pdf'), 'nuevo');
+  assert.equal(await descargaNueva(antes, '.pdf'), 'Otro.pdf', 'un nombre nuevo sigue valiendo');
+  assert.match(trozo('async function waitAndPublish(', 'async function processNext('), /const before=await fotoDescargas\(\);[\s\S]*?file=await descargaNueva\(before,expected\);/);
+});

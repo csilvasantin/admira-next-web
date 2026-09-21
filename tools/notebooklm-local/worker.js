@@ -309,6 +309,24 @@ function resumenMarca(report){
   const items=report.laminas||report.paginas||[],parecidos=items.map(item=>item.parecido).filter(Number.isFinite);
   return {quitadas:report.quitadas||0,pildoras:report.pildoras||0,total:items.length,parecidoMin:parecidos.length?Math.min(...parecidos):null};
 }
+// DESCARGA NUEVA = NOMBRE NUEVO O FECHA NUEVA (FLT-100801, 21-09-2026). Gemini nombra el fichero
+// por el título del cuaderno: el vídeo de pixeria-beat-emocional se llama igual en inglés y en
+// castellano, y un deck regenerado igual que el anterior. Chrome lo sobrescribe y, como sólo
+// contaba un nombre que no estuviera antes, el worker volvía a descargar cada 80 s sin darlo
+// nunca por bajado hasta agotar los 90 min (en:video, 21-09-2026). Ahora vale también el mismo
+// nombre con fecha posterior a la foto de antes del clic.
+async function fotoDescargas(){
+  const foto=new Map();
+  for(const nombre of await fs.readdir(DOWNLOADS).catch(()=>[])){const info=await fs.stat(path.join(DOWNLOADS,nombre)).catch(()=>null);if(info)foto.set(nombre,info.mtimeMs);}
+  return foto;
+}
+async function descargaNueva(antes,expected){
+  for(const [nombre,fecha] of await fotoDescargas()){
+    if(nombre.endsWith('.crdownload')||(expected&&!nombre.toLowerCase().endsWith(expected)))continue;
+    if(!antes.has(nombre)||fecha>antes.get(nombre))return nombre;
+  }
+  return '';
+}
 async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
   const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',pdf:'tablet',powerpoint:'tablet',infographic:'stacked_bar_chart'};
@@ -325,7 +343,7 @@ async function waitAndPublish(page,job,tasks,clientLogo){
     for(const [output,task] of [...pending]){
       const generating=output==='audio'?'Generando resumen de audio':output==='video'?'Generando resumen del vídeo':output==='infographic'?'Generando infografía':'Generando presentación';
       if(text.includes(generating))continue;
-      const before=new Set(await fs.readdir(DOWNLOADS).catch(()=>[]));
+      const before=await fotoDescargas();
       const clicked=await page.evaluate(marker=>{
         const menus=[...document.querySelectorAll('button')].filter(el=>(el.getAttribute('aria-label')||el.innerText||'').trim()==='Más');
         const target=menus.find(el=>{let node=el;for(let depth=0;depth<6&&node;depth+=1,node=node.parentElement){if((node.innerText||node.textContent||'').includes(marker))return true}return false});
@@ -338,7 +356,7 @@ async function waitAndPublish(page,job,tasks,clientLogo){
       },output);
       if(!download)continue;
       const expected=output==='pdf'?'.pdf':output==='powerpoint'?'.pptx':'';
-      let file='';for(let i=0;i<60&&!file;i+=1){await sleep(1000);const files=await fs.readdir(DOWNLOADS).catch(()=>[]);file=files.find(name=>!before.has(name)&&!name.endsWith('.crdownload')&&(!expected||name.toLowerCase().endsWith(expected)))||'';}
+      let file='';for(let i=0;i<60&&!file;i+=1){await sleep(1000);file=await descargaNueva(before,expected);}
       if(file){
         const downloaded=path.join(DOWNLOADS,file);
         await setStage(job,[task],'Descargando el resultado',86);
