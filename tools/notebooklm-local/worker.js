@@ -117,10 +117,34 @@ async function button(page,name,{exact=true,timeout=30000}={}){
     var formas=${ETIQUETA_LIMPIA}(el.getAttribute('aria-label')||el.innerText||'');
     return formas.some(function(v){return strict?v===label:v.indexOf(label)>=0});
   })`;
-  await page.waitForFunction(new Function('label','strict',`return [...document.querySelectorAll('button')].some(function(el){return ${casa}(el,label,strict)})`),{timeout},name,exact);
-  return page.evaluateHandle(new Function('label','strict',`return [...document.querySelectorAll('button')].find(function(el){return ${casa}(el,label,strict)})`),name,exact);
+  // GEMINI NOTEBOOK (FLT-100788, 21-09-2026): las tarjetas de Studio («Resumen de audio»,
+  // «Presentación», «Infografía»…) ya no son <button> sino div role="button" con aria-label.
+  await page.waitForFunction(new Function('label','strict',`return [...document.querySelectorAll('button,[role="button"]')].some(function(el){return ${casa}(el,label,strict)})`),{timeout},name,exact);
+  return page.evaluateHandle(new Function('label','strict',`return [...document.querySelectorAll('button,[role="button"]')].find(function(el){return ${casa}(el,label,strict)})`),name,exact);
 }
 async function clickButton(page,name,options){const handle=await button(page,name,options);await handle.click();await handle.dispose();}
+// Abre una tarjeta de Studio y espera a que su diálogo esté de verdad abierto (FLT-100788).
+// Justo después de pegar la fuente, Gemini Notebook aún la está procesando y la tarjeta no
+// responde: el clic se pierde y el diálogo no llega. Se reintenta hasta que aparece el
+// diálogo con «Generar» o vence el plazo.
+async function openStudio(page,card,{timeout=150000}={}){
+  const abierto=()=>page.evaluate(()=>[...document.querySelectorAll('[role="dialog"],mat-dialog-container')].some(el=>el.offsetParent!==null&&/Generar/.test(el.innerText||'')));
+  const limite=Date.now()+timeout;
+  while(Date.now()<limite){
+    await clickButton(page,card,{timeout:Math.max(1000,limite-Date.now())});
+    for(let i=0;i<16;i+=1){if(await abierto())return;await sleep(500);}
+  }
+  throw new Error(`La tarjeta «${card}» de Gemini Notebook no abrió su diálogo en ${Math.round(timeout/1000)} s.`);
+}
+// Elige una opción de los diálogos de Studio por su texto. En Gemini Notebook son
+// mat-radio-button (formatos, estilos) o button[role="radio"] (duración, orientación);
+// antes eran [role="radio"]. Espera a que exista; si no es obligatoria, no falla.
+async function pickOption(page,text,{required=true,timeout=15000}={}){
+  const find=`(function(texto){return [...document.querySelectorAll('mat-radio-button,[role="radio"]')].find(function(el){return ((el.getAttribute('aria-label')||'')+' '+(el.innerText||'')).indexOf(texto)>=0})})`;
+  const found=await page.waitForFunction(new Function('texto',`return Boolean(${find}(texto))`),{timeout},text).then(()=>true,()=>false);
+  if(!found){if(required)throw new Error(`Gemini Notebook no ofrece la opción «${text}».`);return false;}
+  await page.evaluate(new Function('texto',`var el=${find}(texto);(el.querySelector('input')||el).click();return true`),text);await sleep(400);return true;
+}
 async function fillByLabel(page,label,value){
   await page.waitForFunction(text=>[...document.querySelectorAll('textarea,input,[contenteditable="true"]')].some(el=>(el.getAttribute('aria-label')||'')===text),{timeout:30000},label);
   await page.evaluate((text,next)=>{const el=[...document.querySelectorAll('textarea,input,[contenteditable="true"]')].find(node=>(node.getAttribute('aria-label')||'')===text);el.focus();if('value'in el){const set=Object.getOwnPropertyDescriptor(el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value')?.set;set?.call(el,next);}else el.textContent=next;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));},label,value);
@@ -163,37 +187,40 @@ async function newNotebook(page,job,sourceBundle){
   if(continueExists)await clickButton(page,'Adelante');
   await clickButton(page,'Crear cuaderno');await page.waitForFunction(()=>location.pathname.includes('/notebook/'),{timeout:30000});await sleep(1500);
   await clickButton(page,'Texto copiado');await fillByLabel(page,'Texto pegado',sourceBundle.text);await clickButton(page,'Insertar');
-  await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(el=>(el.innerText||'').includes('ADMIRANEXT')), {timeout:60000});
+  // La fuente insertada lleva ahora su título en aria-label y el texto visible vacío.
+  await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(el=>((el.getAttribute('aria-label')||'')+' '+(el.innerText||'')).includes('ADMIRANEXT')), {timeout:60000});
   return page.url();
 }
 async function generateAudio(page,language){
   const name=LANGUAGE_NAMES[language]||'English';
   // «Personalizar resumen de audio» ya no existe: en la UI nueva la propia tarjeta
   // «Resumen de audio» abre el dialogo con idioma, duracion, formato y el campo de enfoque.
-  await clickButton(page,'Resumen de audio');await selectLanguage(page,language);
+  await openStudio(page,'Resumen de audio');await selectLanguage(page,language);
   await fillByLabel(page,'¿En qué deben centrarse los presentadores de IA en este episodio?',`Create an executive ${name}-language overview for leadership. Focus on the business problem, connected-experience vision, AdmiraNeXT capabilities, proposed pilot and call to action. Do not mention Gemini Notebook or NotebookLM.`);
   await clickButton(page,'Generar');
 }
 async function generateVideo(page,language,style){
   const name=LANGUAGE_NAMES[language]||'English';
-  await clickButton(page,'Resumen de vídeo');await selectLanguage(page,language);
-  await page.evaluate(()=>[...document.querySelectorAll('[role="radio"]')].find(el=>(el.getAttribute('aria-label')||el.innerText||'').includes('Personalizado'))?.click());
+  await openStudio(page,'Resumen de vídeo');
+  // El diálogo abre ahora en «Corto» (vertical 9:16). El entregable es el explicativo 16:9,
+  // y sólo con ese formato aparecen los estilos, entre ellos «Personalizado».
+  await pickOption(page,'Vídeo explicativo');await selectLanguage(page,language);
+  await pickOption(page,'Personalizado');
   await fillByLabel(page,'Describe un estilo visual personalizado',style);
-  await fillByLabel(page,'¿En qué deben centrarse los presentadores de IA?',`Produce a ${name}-language executive video: business tension, why now, connected-experience vision, Create/Activate/Understand/Measure, four-week pilot and decisive call to action. Do not mention Gemini Notebook or NotebookLM.`);
+  await fillByLabel(page,'¿En qué debe centrarse el vídeo?',`Produce a ${name}-language executive video: business tension, why now, connected-experience vision, Create/Activate/Understand/Measure, four-week pilot and decisive call to action. Do not mention Gemini Notebook or NotebookLM.`);
   await clickButton(page,'Generar');
 }
 async function generateInfographic(page,language,style){
   const name=LANGUAGE_NAMES[language]||'English';
-  await clickButton(page,'Personalizar infografía');await selectLanguage(page,language);
-  await page.evaluate(()=>[...document.querySelectorAll('[role="radio"]')].find(el=>(el.getAttribute('aria-label')||el.innerText||'').includes('Editorial'))?.click());
+  await openStudio(page,'Infografía');await selectLanguage(page,language);
+  await pickOption(page,'Editorial',{required:false});
   await fillByLabel(page,'Describe la infografía que quieres crear',`Create a premium horizontal executive infographic in ${name}. Apply this visual direction: ${style} Show Business tension → Connected experience → Create / Activate / Understand / Measure → Pilot → Success metrics. Omit provider branding.`);
   await clickButton(page,'Generar');
 }
 async function generateSlideDeck(page,language,style){
   const name=LANGUAGE_NAMES[language]||'English';
-  await clickButton(page,'Personalizar presentación de diapositivas');
-  await page.waitForFunction(()=>[...document.querySelectorAll('[role="radio"]')].some(el=>(el.getAttribute('aria-label')||el.innerText||'').includes('Diapositivas del presentador')),{timeout:15000});
-  await page.evaluate(()=>[...document.querySelectorAll('[role="radio"]')].find(el=>(el.getAttribute('aria-label')||el.innerText||'').includes('Diapositivas del presentador'))?.click());
+  await openStudio(page,'Presentación');
+  await pickOption(page,'Diapositivas del presentador');
   await selectLanguage(page,language);
   await fillByLabel(page,'Describe la presentación que quieres crear',`Create a polished ${name}-language executive presenter deck for a decision-making meeting. Build a clear narrative: business tension → why now → connected-experience vision → Create / Activate / Understand / Measure → four-week pilot → success metrics → decisive call to action. Use concise headlines, one idea per slide, minimal body copy, meaningful diagrams and evidence-led visuals. Apply this visual design contract consistently:\n${style}\nDo not mention Gemini Notebook or NotebookLM. Do not invent client facts, metrics or claims that are absent from the sources.`);
   await clickButton(page,'Generar');
