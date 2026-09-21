@@ -6,6 +6,7 @@
 
 import {cleanIdentity, identityCookie, makeIdentityToken, readCookies, readIdentity, writeAccessEvent} from './_access.js';
 import {allowedBy, generatorAccess, makeSessionToken, readSession} from './_directory.js';
+import {loginLockout, noteLoginAttempt, lockoutMessage} from './_login-rate.js';
 
 const MAXAGE = 60 * 60 * 24 * 30;
 // La lista de correos autorizados ya NO vive aquí: manda el directorio de /usuarios
@@ -334,6 +335,13 @@ export async function onRequest(context){
     const password = String(form.get('password') || '');
     const values = {name:form.get('name'), email:form.get('email')};
     if (!supplied) return htmlResponse(loginPage(title, cleanPath, 'Indica un nombre y un correo válidos.', values));
+    // Límite de intentos por IP, común a las tres puertas (ver _login-rate.js · FLT-100778 a).
+    // Se mira ANTES de comparar: durante el bloqueo ni la contraseña buena entra.
+    const bloqueo = await loginLockout(env, request);
+    if (bloqueo) {
+      context.waitUntil(writeAccessEvent(env, request, {type:'login_blocked', client:seg || '_gallery', presentation:title, identity:supplied, access:'denied', path:url.pathname}));
+      return htmlResponse(loginPage(title, cleanPath, lockoutMessage(bloqueo), values), 429);
+    }
     let targetName = '', targetSlug = '', granted = '';
     if (master && ctEq(password, master)) { targetName = 'pres_master'; targetSlug = '_master'; granted = 'master'; }
     else if (editorAllowed && editor && ctEq(password, editor)) { targetName = 'pres_editor'; targetSlug = '_editor'; granted = 'editor'; }
@@ -342,11 +350,15 @@ export async function onRequest(context){
     else if (!isInternalArea && dynamicVerifier && ctEq(await hmac(signKey, `password:${seg}:${password}`), dynamicVerifier)) { targetName = cookieName; targetSlug = cookieSlug; granted = 'client'; }
 
     if (!granted) {
+      // El fallo se anota ANTES de responder: si fuera en waitUntil, un atacante en serie
+      // leería siempre el contador de antes de su propio intento.
+      await noteLoginAttempt(env, request, false);
       context.waitUntil(writeAccessEvent(env, request, {type:'login_failed', client:seg || '_gallery', presentation:title, identity:supplied, access:'denied', path:url.pathname}));
       const message = isInternalArea ? 'Esta zona requiere acceso interno de Admira.' : 'Contraseña incorrecta.';
       return htmlResponse(loginPage(title, cleanPath, message, values));
     }
 
+    context.waitUntil(noteLoginAttempt(env, request, true));
     const exp = Math.floor(Date.now() / 1000) + MAXAGE;
     const [accessToken, identityToken] = await Promise.all([makeToken(signKey, targetSlug, exp), makeIdentityToken(signKey, supplied)]);
     const headers = new Headers({Location:cleanPath, 'cache-control':'no-store'});

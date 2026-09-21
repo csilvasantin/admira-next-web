@@ -1,4 +1,5 @@
 import {cleanIdentity,identityCookie,makeIdentityToken,readCookies} from '../presentaciones/_access.js';
+import {loginLockout,noteLoginAttempt,lockoutMessage} from '../presentaciones/_login-rate.js';
 const enc=new TextEncoder(),MAXAGE=60*60*24*30;
 function b64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 async function hmac(key,message){const cryptoKey=await crypto.subtle.importKey('raw',enc.encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);return b64url(await crypto.subtle.sign('HMAC',cryptoKey,enc.encode(message)))}
@@ -18,8 +19,12 @@ export async function onRequest(context){
     let form;try{form=await request.formData()}catch(_){form=new FormData()}
     const identity=cleanIdentity({name:form.get('name'),email:form.get('email')}),password=String(form.get('password')||'');
     if(!identity)return login(url.pathname+url.search,'Indica un nombre y un correo válidos.');
+    // Mismo límite de intentos que /presentaciones: el contador es por IP y común (FLT-100778 a).
+    const bloqueo=await loginLockout(env,request);
+    if(bloqueo){const r=login(url.pathname+url.search,lockoutMessage(bloqueo));return new Response(r.body,{status:429,headers:r.headers})}
     const master=env.PRES_ADMIN&&ctEq(password,env.PRES_ADMIN),editor=env.PRES_EDITOR&&ctEq(password,env.PRES_EDITOR);
-    if(!master&&!editor)return login(url.pathname+url.search,'Esta zona requiere acceso interno de Admira.');
+    if(!master&&!editor){await noteLoginAttempt(env,request,false);return login(url.pathname+url.search,'Esta zona requiere acceso interno de Admira.')}
+    context.waitUntil?.(noteLoginAttempt(env,request,true));
     const exp=Math.floor(Date.now()/1000)+MAXAGE,slug=master?'_master':'_editor',cookie=master?'pres_master':'pres_editor';
     const [token,identityToken]=await Promise.all([makeToken(key,slug,exp),makeIdentityToken(key,identity)]);
     const headers=new Headers({location:url.pathname+url.search,'cache-control':'no-store'});
