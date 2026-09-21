@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
 import ffmpegPath from 'ffmpeg-static';
 import sharp from 'sharp';
@@ -78,8 +78,19 @@ async function downloadClientLogo(client){
   const bytes=Buffer.from(await response.arrayBuffer()),dir=path.join(RUNTIME,'brands');await fs.mkdir(dir,{recursive:true});
   const output=path.join(dir,`${client}.png`);await sharp(bytes,{density:240}).trim().resize({width:1200,height:500,fit:'inside',withoutEnlargement:true}).png().toFile(output);return output;
 }
+// DURACIÓN SIN DEPENDER DE SPOTLIGHT (FLT-100798, 21-09-2026): mdls lee la metadata de
+// Spotlight, que no indexa .runtime —devolvía «(null)»— y el primer vídeo real de Gemini
+// Notebook (pixeria-beat-emocional, 7:26) falló en el último paso con «No se pudo preparar el
+// cierre limpio». Si mdls no la da, se lee de la cabecera con el propio ffmpeg.
+function videoDuration(file){
+  try{const valor=Number(execFileSync('mdls',['-raw','-name','kMDItemDurationSeconds',file],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim());if(Number.isFinite(valor)&&valor>0)return valor;}catch(_){}
+  if(!ffmpegPath)return NaN;
+  const salida=spawnSync(ffmpegPath,['-hide_banner','-i',file],{encoding:'utf8'});
+  const m=String(salida.stderr||'').match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+  return m?Number(m[1])*3600+Number(m[2])*60+Number(m[3]):NaN;
+}
 async function cleanVideoEnding(file){
-  const duration=Number(execFileSync('mdls',['-raw','-name','kMDItemDurationSeconds',file],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim());
+  const duration=videoDuration(file);
   if(!ffmpegPath||!Number.isFinite(duration)||duration<=4)throw new Error('No se pudo preparar el cierre limpio del vídeo.');
   const sample=path.join(path.dirname(file),`${path.basename(file,'.mp4')}.ending-sample.png`);
   execFileSync(ffmpegPath,['-hide_banner','-y','-loglevel','error','-ss',Math.max(0,duration-.2).toFixed(3),'-i',file,'-frames:v','1',sample],{stdio:'ignore'});

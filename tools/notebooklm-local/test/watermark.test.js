@@ -9,7 +9,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import JSZip from 'jszip';
 import {PDFDocument} from 'pdf-lib';
-import {PLANTILLA, UMBRAL_CONTRASTE, limpiarPixeles, mascaraEnCaja, limpiarPdf, limpiarPptx, quitarPredictorPng} from '../watermark.js';
+import {PLANTILLA, UMBRAL_CONTRASTE, limpiarPixeles, mascaraEnCaja, limpiarPdf, limpiarPptx, quitarPredictorPng, residuo} from '../watermark.js';
 
 const W = 1376, H = 768;
 function lamina({fondo = [10, 12, 14], marca = [225, 225, 225], conMarca = true} = {}){
@@ -85,4 +85,25 @@ test('el predictor PNG se deshace bien (Sub, Up, Average, Paeth)', () => {
   const fila = [10, 20, 30, 40, 50, 60];
   const datos = Buffer.from([1, 10, 20, 30, 30, 30, 30, 2, 0, 0, 0, 0, 0, 0]); // Sub + Up
   assert.deepEqual([...quitarPredictorPng(datos, 2, 3)], [...fila.slice(0, 3), 40, 50, 60, ...fila.slice(0, 3), 40, 50, 60]);
+});
+
+// Portada de NVIDIA en castellano (21-09-2026): la marca cae junto al logo del partner. La
+// primera versión tomaba como zona «todo lo que se aparta del fondo» y se comía la base del
+// logo; ahora la zona sale de la plantilla alineada y el relleno no usa el contenido.
+test('una marca pegada a un logo se quita sin tocar el logo', () => {
+  const px = lamina();
+  const logo = [];
+  for (let y = 722; y < 748; y += 1) for (let x = 1236; x < 1320; x += 1) { const k = (y * W + x) * 3; px[k] = 120; px[k + 1] = 200; px[k + 2] = 40; logo.push(k); }
+  // La marca vuelve a pintarse encima (el logo acaba justo donde empieza la marca).
+  for (let y = 0; y < PLANTILLA.h; y += 1) for (let x = 0; x < PLANTILLA.w; x += 1) {
+    const i = y * PLANTILLA.w + x;
+    if ((parseInt(PLANTILLA.bits[i >> 2], 16) >> (3 - (i & 3))) & 1) { const k = ((745 + y) * W + 1266 + x) * 3; px[k] = px[k + 1] = px[k + 2] = 225; }
+  }
+  const antes = Buffer.from(px), informe = limpiarPixeles(px, W, H, 3);
+  assert.equal(informe.quitada, true, JSON.stringify(informe));
+  assert.equal(informe.residuo, 0, 'no queda nada de la silueta respecto al fondo cercano');
+  // Todo el logo por encima de la franja de la marca (y < 742) sigue exactamente igual.
+  const intactos = logo.filter(k => Math.floor(k / 3 / W) < 742).every(k => px[k] === antes[k] && px[k + 1] === antes[k + 1] && px[k + 2] === antes[k + 2]);
+  assert.ok(intactos, 'la parte del logo fuera de la marca no cambia');
+  assert.equal(residuo(antes, W, H, 3) > 0.5, true, 'antes de limpiar, el residuo detecta la marca');
 });

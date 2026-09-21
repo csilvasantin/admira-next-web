@@ -76,3 +76,13 @@ test('el worker quita la marca de PDF y PowerPoint antes de publicar', () => {
   assert.match(publicar, /\}else if\(output==='pdf'\)\{[\s\S]*?const sinMarca=await limpiarPdf\(downloaded\);/);
   assert.match(publicar, /geminiWatermark:resumenMarca\(sinMarca\.report\)/);
 });
+
+// FLT-100798: el primer vídeo real (pixeria-beat-emocional, 7:26) falló en el último paso
+// porque la duración se leía de Spotlight (mdls), que no indexa .runtime y devolvía «(null)».
+test('la duración del vídeo no depende de Spotlight: si mdls no la da, la lee ffmpeg', () => {
+  const duracion = trozo('function videoDuration(', 'async function cleanVideoEnding(');
+  assert.match(duracion, /mdls/);
+  assert.match(duracion, /spawnSync\(ffmpegPath,\['-hide_banner','-i',file\]/);
+  assert.match(duracion, /Duration:/);
+  assert.match(trozo('async function cleanVideoEnding(', 'async function cleanInfographicBranding('), /const duration=videoDuration\(file\);/);
+});

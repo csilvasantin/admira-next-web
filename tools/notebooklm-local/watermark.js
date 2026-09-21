@@ -60,9 +60,10 @@ function plantillaA(w, h){
 }
 
 // IoU entre la máscara y la plantilla, tolerando ±1 px de desplazamiento.
-export function parecido(m, w, h){
+export function parecido(m, w, h){ return alineacion(m, w, h).score; }
+export function alineacion(m, w, h){
   const t = plantillaA(w, h);
-  let mejor = 0;
+  let mejor = 0, mdx = 0, mdy = 0;
   for (let dy = -1; dy <= 1; dy += 1) for (let dx = -1; dx <= 1; dx += 1) {
     let inter = 0, union = 0;
     for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) {
@@ -70,23 +71,58 @@ export function parecido(m, w, h){
       const c = sy >= 0 && sy < h && sx >= 0 && sx < w ? t[sy * w + sx] : 0;
       inter += a & c; union += a | c;
     }
-    if (union) mejor = Math.max(mejor, inter / union);
+    if (union && inter / union > mejor) { mejor = inter / union; mdx = dx; mdy = dy; }
   }
-  return mejor;
+  return {score:mejor, dx:mdx, dy:mdy, plantilla:t};
+}
+// Plantilla colocada en la caja con el desplazamiento encontrado (la máscara en (x, y) se
+// alinea con la plantilla en (x + dx, y + dy)).
+function plantillaColocada(al, w, h){
+  const out = new Uint8Array(w * h);
+  for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) {
+    const sx = x + al.dx, sy = y + al.dy;
+    if (sx >= 0 && sx < w && sy >= 0 && sy < h && al.plantilla[sy * w + sx]) out[y * w + x] = 1;
+  }
+  return out;
+}
+// Residuo tras limpiar: fracción de píxeles de la silueta que siguen apartándose del fondo
+// cercano (media de lo que no es silueta ni contenido a ≤3 px). Es la comprobación que mira
+// si queda ALGO de la marca, no si la marca se sigue pareciendo a la plantilla.
+export function residuo(px, width, height, channels, alineada = null){
+  const {mascara, w, h, caja:b, fondo} = mascaraEnCaja(px, width, height, channels);
+  const al = alineada || alineacion(mascara, w, h), sil = plantillaColocada(al.score > 0 || alineada ? al : {dx:0, dy:0, plantilla:al.plantilla}, w, h);
+  let total = 0, quedan = 0;
+  for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) {
+    if (!sil[y * w + x]) continue;
+    let suma = 0, n = 0;
+    for (let yy = Math.max(0, y - 3); yy <= Math.min(h - 1, y + 3); yy += 1) for (let xx = Math.max(0, x - 3); xx <= Math.min(w - 1, x + 3); xx += 1) {
+      if (sil[yy * w + xx]) continue;
+      const l = lum(px, ((b.y0 + yy) * width + b.x0 + xx) * channels);
+      if (Math.abs(l - fondo) > UMBRAL_CONTRASTE) continue; suma += l; n += 1;
+    }
+    if (!n) continue;
+    total += 1;
+    if (Math.abs(lum(px, ((b.y0 + y) * width + b.x0 + x) * channels) - suma / n) > 25) quedan += 1;
+  }
+  return total ? quedan / total : 0;
 }
 
 // Limpia la marca en un buffer de píxeles (RGB o RGBA, entrelazado). Devuelve el informe.
 export function limpiarPixeles(px, width, height, channels){
   if (width < 400 || height < 200) return {quitada:false, motivo:'imagen demasiado pequeña'};
   const {mascara, w, h, caja:b, fondo} = mascaraEnCaja(px, width, height, channels);
-  const score = parecido(mascara, w, h);
+  const al = alineacion(mascara, w, h), score = al.score;
   if (score < UMBRAL_PARECIDO) return {quitada:false, parecido:Number(score.toFixed(3))};
+  // La silueta se toma de la PLANTILLA alineada, no de «lo que se aparta del fondo»: si la
+  // marca cae junto a un logo (portada de NVIDIA en castellano), el logo también se aparta del
+  // fondo y acababa borrado. Así sólo se toca la marca.
+  const silueta = plantillaColocada(al, w, h);
   // Zona a reconstruir: el trazo, 2 px alrededor, y además el brillo tenue del suavizado del
   // texto (contraste > UMBRAL_HALO) que quede a ≤ 3 px del trazo. Con sólo 1 px de halo quedaba
   // un rastro visible de las letras en las láminas oscuras (comprobado a ojo, 21-09-2026).
   // Lo que está más lejos —el fondo, el borde de una forma— no se toca.
   const distancia = new Uint8Array(w * h).fill(255);
-  for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) if (mascara[y * w + x]) {
+  for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) if (silueta[y * w + x]) {
     for (let yy = Math.max(0, y - 3); yy <= Math.min(h - 1, y + 3); yy += 1) for (let xx = Math.max(0, x - 3); xx <= Math.min(w - 1, x + 3); xx += 1) {
       const d = Math.max(Math.abs(yy - y), Math.abs(xx - x)); if (d < distancia[yy * w + xx]) distancia[yy * w + xx] = d;
     }
@@ -96,6 +132,9 @@ export function limpiarPixeles(px, width, height, channels){
     const i = y * w + x, d = distancia[i];
     if (d <= 2 || (d <= 3 && Math.abs(lum(px, ((b.y0 + y) * width + b.x0 + x) * channels) - fondo) > UMBRAL_HALO)) zona[i] = 1;
   }
+  // Contenido que NO es marca (logo, formas): no se usa como fuente del relleno, para no
+  // arrastrar su color a donde estaba el texto.
+  const contenido = (gx, gy) => Math.abs(lum(px, (gy * width + gx) * channels) - fondo) > UMBRAL_CONTRASTE;
   // Difusión: cada píxel de la zona toma la media de sus vecinos, muchas pasadas. Arranca
   // del color medio de lo que NO es trazo en la caja, para converger rápido; los píxeles
   // fuera de la zona no cambian.
@@ -103,6 +142,7 @@ export function limpiarPixeles(px, width, height, channels){
   const base = [0, 0, 0]; let fuera = 0, pixeles = 0;
   for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) {
     if (zona[y * w + x]) { pixeles += 1; continue; }
+    if (contenido(b.x0 + x, b.y0 + y)) continue;
     const k = idx(x, y); base[0] += px[k]; base[1] += px[k + 1]; base[2] += px[k + 2]; fuera += 1;
   }
   for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) if (zona[y * w + x]) {
@@ -115,14 +155,17 @@ export function limpiarPixeles(px, width, height, channels){
       for (const [vx, vy] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
         const gx = b.x0 + vx, gy = b.y0 + vy;
         if (gx < 0 || gy < 0 || gx >= width || gy >= height) continue;
+        const dentro = vx >= 0 && vy >= 0 && vx < w && vy < h && zona[vy * w + vx];
+        if (!dentro && contenido(gx, gy)) continue;
         const j = (gy * width + gx) * channels;
         suma[0] += px[j]; suma[1] += px[j + 1]; suma[2] += px[j + 2]; n += 1;
       }
+      if (!n) continue;
       const k = idx(x, y);
       for (let c = 0; c < 3; c += 1) px[k + c] = Math.round(suma[c] / n);
     }
   }
-  return {quitada:true, parecido:Number(score.toFixed(3)), pixeles};
+  return {quitada:true, parecido:Number(score.toFixed(3)), pixeles, residuo:Number(residuo(px, width, height, channels, al).toFixed(3))};
 }
 
 async function limpiarImagen(bytes){
