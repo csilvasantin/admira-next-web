@@ -1,9 +1,9 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260921-reloj-alta';
+  window.__ADMIRA_GENERATOR_VERSION__='20260921-formulario-limpio';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
-  const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=true,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
+  const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=false,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
   website.required=true;website.type='text';website.inputMode='url';website.closest('.field')?.querySelector('label')?.append(' · logo obligatorio');
   /* Catálogo: elige del censo antes de crear/mejorar (FOCO CATÁLOGO). */
   const contextPanel=form.querySelector('.panel');
@@ -15,12 +15,31 @@
   contextPanel.querySelector('h2')?.after(catalogMode);
   const catalogPick=document.getElementById('catalogPick'),catalogHelp=document.getElementById('catalogHelp'),catalogRefresh=document.getElementById('catalogRefresh');
   let catalogClients=[],improveMode=false;
+  // UN CLIENTE NO HEREDA LOS TEXTOS DE OTRO (MorfeoMacMini, 21-09-2026 · FLT-100773 a). El
+  // formulario nacía con PortAventura y el slug clavado (slugTouched=true): escribir otro nombre
+  // dejaba slug=portaventura, el alta chocaba 409 y el diálogo ofrecía SOBRESCRIBIR PortAventura.
+  // Y «Mejorar» sólo pisaba los campos que el censo traía: título, objetivo, audiencia y embeds
+  // se quedaban con los del cliente anterior y acababan en el relato de otro. Ahora el formulario
+  // nace vacío, el slug sigue al nombre, y elegir del censo (o volver a «Nueva») reescribe TODOS
+  // los campos del relato: lo que el censo no guarda se vacía y el servidor pone su valor por
+  // defecto con el nombre de ESTE cliente. El análisis visual del anterior también se descarta:
+  // la web cambia por código, sin evento input, y el listener de la web no se enteraba.
+  const storyFields=['problem','audience','title','objective','embeds'];
+  function resetStory(values={}){
+    for(const id of storyFields){const field=document.getElementById(id);if(field)field.value=values[id]||''}
+    const inspirationField=document.getElementById('inspirationUrl');if(inspirationField)inspirationField.value=values.inspirationUrl||'';
+    inspirationAnalysis=null;renderInspiration(null);
+  }
   function fillFromCatalog(client){
-    if(!client){improveMode=false;catalogMode.hidden=true;submit.textContent='Generar presentación';return}
+    if(!client){
+      improveMode=false;catalogMode.hidden=true;submit.textContent='Generar presentación';
+      display.value='';slug.value='';slugTouched=false;website.value='';resetStory();
+      return;
+    }
     improveMode=true;catalogMode.hidden=false;submit.textContent='Mejorar presentación';
     display.value=client.displayName||''; slug.value=client.slug||''; slugTouched=true;
-    if(client.website)website.value=client.website;
-    if(client.problem)document.getElementById('problem').value=client.problem;
+    website.value=client.website||'';
+    resetStory({problem:client.problem,audience:client.audience,inspirationUrl:client.inspirationUrl&&client.inspirationUrl!==client.website?client.inspirationUrl:''});
     if(Array.isArray(client.languages)&&client.languages.length){
       document.querySelectorAll('input[name="language"]').forEach(box=>{box.checked=client.languages.includes(box.value)});
     }
@@ -54,7 +73,7 @@
   }
   catalogPick.addEventListener('change',()=>{
     const client=catalogClients.find(c=>c.slug===catalogPick.value);
-    if(client)fillFromCatalog(client); else {improveMode=false;catalogMode.hidden=true;submit.textContent='Generar presentación';catalogHelp.textContent=`${catalogClients.length} clientes en el censo. Elige uno para mejorar, o crea uno nuevo abajo.`}
+    if(client)fillFromCatalog(client); else {fillFromCatalog(null);catalogHelp.textContent=`${catalogClients.length} clientes en el censo. Elige uno para mejorar, o crea uno nuevo abajo.`}
   });
   catalogRefresh.addEventListener('click',()=>loadCatalog(catalogPick.value));
   loadCatalog();

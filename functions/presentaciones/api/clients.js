@@ -23,6 +23,8 @@ export async function onRequestGet(context){
       inspiration:item.inspiration?{host:item.inspiration.host||'',title:item.inspiration.title||'',profile:item.inspiration.profile||''}:null,
       brand:item.brand?{logoUrl:item.brand.logoUrl||'',website:item.brand.website||''}:null,
       problem:item.problem||'',
+      // La audiencia se guarda con la presentación; sin ella aquí, «Mejorar» tenía que vaciarla.
+      audience:item.audience||'',
       theme:item.theme||{},
       languages,
       outputs,
