@@ -1,6 +1,7 @@
 import { LANGUAGE_LABELS, OUTPUT_LABELS, normalizeGeneration, publicGeneration, recomputeGeneration, taskKey, updateTaskStatus, VALID_STATUSES } from '../_generation.js';
 import { analyzeInspiration } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
+import { reserveTasks, claimOwner } from '../_production-claims.js';
 
 const enc = new TextEncoder();
 const NOTEBOOK_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
@@ -124,6 +125,7 @@ async function updateJob(context,payload){
   if(!job)return json({error:'Generación no encontrada.'},404);
   if(payload.id&&payload.id!==job.id)return json({error:'La generación ya no es la vigente.'},409);
   const now=new Date().toISOString();
+  let claimedTasks,rejectedTasks=[];
   if(payload.action==='enqueue'){
     const outputs=[...new Set((Array.isArray(payload.outputs)?payload.outputs:[]).map(value=>String(value||'').toLowerCase()).filter(value=>NOTEBOOK_OUTPUTS.has(value)))];
     const languages=[...new Set((Array.isArray(payload.languages)&&payload.languages.length?payload.languages:job.languages||[]).map(value=>String(value||'').toLowerCase()).filter(value=>['es','ca','en'].includes(value)))];
@@ -135,13 +137,29 @@ async function updateJob(context,payload){
     }
   }else if(payload.action==='claim'){
     const requested=new Set(Array.isArray(payload.tasks)?payload.tasks:[]);
-    const candidates=notebookTasks(job,['queued']).filter(task=>!requested.size||requested.has(task.id));
+    let candidates=notebookTasks(job,['queued']).filter(task=>!requested.size||requested.has(task.id));
     if(!candidates.length)return json({error:'No hay tareas preparadas para reclamar.'},409);
+    // Reserva atómica en D1 (FLT-100787 a): de varios productores que lean el mismo estado,
+    // sólo uno se lleva cada intento de cada tarea. Sin D1 (entornos de prueba) se sigue
+    // como antes, pero producción siempre lo tiene (AUTH_DB).
+    if(context.env.AUTH_DB){
+      const granted=await reserveTasks(context.env.AUTH_DB,{client,generation:job.id,tasks:candidates,worker:cleanWorker(payload.worker)});
+      if(!granted.length)return json({error:'Esas tareas ya las ha reclamado otro productor.',claimedTasks:[]},409);
+      candidates=candidates.filter(task=>granted.includes(task.id));
+    }
     for(const task of candidates){updateTaskStatus(task,'processing',now);task.progress=5;task.stage='Encargo reclamado por el productor';task.worker=cleanWorker(payload.worker);task.attempts=Number(task.attempts||0)+1;}
     job.providerJob={...(job.providerJob||{}),worker:cleanWorker(payload.worker),claimedAt:now};
+    claimedTasks=candidates.map(task=>task.id);
   }else if(payload.action==='update'){
     for(const [taskId,change] of Object.entries(payload.tasks||{})){
       const task=job.tasks?.[taskId];if(!task||!change||typeof change!=='object')continue;
+      // Sólo quien ganó el reclamo toca la tarea: el perdedor de una carrera no puede
+      // marcarla fallida ni pisar el progreso del otro. Un worker antiguo que no dice su
+      // nombre sigue pudiendo actualizar (compatibilidad), pero ya no reclama duplicado.
+      if(context.env.AUTH_DB&&payload.worker){
+        const owner=await claimOwner(context.env.AUTH_DB,{client,generation:job.id,task:taskId});
+        if(owner&&owner!==cleanWorker(payload.worker)){rejectedTasks.push(taskId);continue;}
+      }
       if(VALID_STATUSES.has(change.status))updateTaskStatus(task,change.status,now);
       if(typeof change.url==='string'&&change.url.length<=1000)task.url=change.url;
       const error=cleanError(change.error);if(error)task.error=error;
@@ -153,7 +171,7 @@ async function updateJob(context,payload){
     if(payload.providerJob&&typeof payload.providerJob==='object')job.providerJob={...(job.providerJob||{}),...payload.providerJob,updatedAt:now};
   }else return json({error:'Acción no admitida.'},400);
   await putJob(context.env,client,job);
-  return json({ok:true,job:safeJob(job)});
+  return json({ok:true,job:safeJob(job),...(claimedTasks?{claimedTasks}:{}),...(rejectedTasks.length?{rejectedTasks}:{})});
 }
 
 async function uploadArtifact(context){
@@ -164,6 +182,10 @@ async function uploadArtifact(context){
   const job=await getJob(context.env,client);if(!job)return json({error:'Generación no encontrada.'},404);
   if(url.searchParams.get('id')&&url.searchParams.get('id')!==job.id)return json({error:'La generación ya no es la vigente.'},409);
   const task=job.tasks?.[`${language}:${output}`];if(!task)return json({error:'Entregable no solicitado.'},404);
+  if(context.env.AUTH_DB){
+    const owner=await claimOwner(context.env.AUTH_DB,{client,generation:job.id,task:task.id}),worker=cleanWorker(context.request.headers.get('x-worker'));
+    if(owner&&owner!==worker)return json({error:'Este entregable lo está produciendo otro productor.'},409);
+  }
   const contentType=(context.request.headers.get('content-type')||'application/octet-stream').split(';')[0].trim().toLowerCase();
   const hinted=String(context.request.headers.get('x-file-name')||'').toLowerCase().match(/\.([a-z0-9]{2,5})$/)?.[1];
   const extension=MIME_EXTENSIONS[contentType]||hinted;
