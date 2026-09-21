@@ -79,8 +79,8 @@ test('cada nivel llega hasta donde le toca', () => {
   const internal = { ownerAllowed:false, editorAllowed:true, internalArea:true };
   const generator = { ownerAllowed:true, editorAllowed:false, internalArea:true };
   const publicDeck = { ownerAllowed:false, editorAllowed:false, internalArea:false };
-  const control = { ownerAllowed:false, editorAllowed:false, internalArea:true };
-  assert.equal(allowedBy('owner', generator), true); assert.equal(allowedBy('owner', internal), true); assert.equal(allowedBy('owner', control), false);
+  const control = { ownerAllowed:true, editorAllowed:false, internalArea:true, ownerOnly:true };
+  assert.equal(allowedBy('owner', generator), true); assert.equal(allowedBy('owner', internal), true); assert.equal(allowedBy('owner', control), true);
   assert.equal(allowedBy('editor', internal), true); assert.equal(allowedBy('editor', generator), true); assert.equal(allowedBy('editor', control), false);
   assert.equal(allowedBy('viewer', publicDeck), true); assert.equal(allowedBy('viewer', internal), false); assert.equal(allowedBy('viewer', generator), false);
   assert.equal(allowedBy('', publicDeck), false);
