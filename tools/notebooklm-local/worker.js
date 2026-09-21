@@ -9,6 +9,7 @@ import sharp from 'sharp';
 import {brandPdf,brandPowerPoint} from './brand-deck.js';
 import {generateVisualBrief} from './visual-brief.js';
 import {buildNotebookSourceBundle,sanitizeInfographicBranding,sanitizePowerPointBranding,verifiedWatermark} from './fidelity-bridge.js';
+import {fetchConPlazo,API_TIMEOUT_MS,plazoSubida} from './network.js';
 
 const HERE=path.dirname(new URL(import.meta.url).pathname);
 const ROOT=path.resolve(HERE,'../..');
@@ -19,6 +20,7 @@ const API=process.env.PRESENTATION_PRODUCTION_API||'https://www.admiranext.com/p
 const ACCOUNT=process.env.NOTEBOOKLM_ACCOUNT||'csilvasantin@gmail.com';
 const WORKER=`notebooklm-${os.hostname().toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,48)}`;
 const POLL_MS=Math.max(15000,Number(process.env.NOTEBOOKLM_POLL_MS)||30000);
+const SETUP_TIMEOUT_MS=10*60*1000;
 const once=process.argv.includes('--once'),setup=process.argv.includes('--setup');
 const CLIENT_FILTER=String(process.env.NOTEBOOKLM_CLIENT||'').trim().toLowerCase();
 const OUTPUT_FILTER=new Set(String(process.env.NOTEBOOKLM_OUTPUTS||'').split(',').map(value=>value.trim().toLowerCase()).filter(Boolean));
@@ -48,7 +50,7 @@ const TOKEN=token();
 if(!TOKEN&&!setup)throw new Error('Falta PRESENTATION_WORKER_TOKEN en el entorno o en admira-vault.');
 
 async function api(method,query='',body){
-  const response=await fetch(`${API}${query}`,{method,headers:{authorization:`Bearer ${TOKEN}`,...(body?{'content-type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
+  const response=await fetchConPlazo(`${API}${query}`,{method,headers:{authorization:`Bearer ${TOKEN}`,...(body?{'content-type':'application/json'}:{})},body:body?JSON.stringify(body):undefined},API_TIMEOUT_MS);
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||`API ${response.status}`);
   return data;
@@ -57,7 +59,7 @@ async function upload(job,task,file){
   const bytes=await fs.readFile(file),ext=path.extname(file).toLowerCase();
   const types={'.m4a':'audio/mp4','.mp3':'audio/mpeg','.mp4':'video/mp4','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.pdf':'application/pdf','.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation'};
   const query=new URLSearchParams({client:job.client,language:task.language,output:task.output,id:job.id});
-  const response=await fetch(`${API}?${query}`,{method:'PUT',headers:{authorization:`Bearer ${TOKEN}`,'content-type':types[ext]||'application/octet-stream','x-file-name':path.basename(file),'x-worker':WORKER},body:bytes});
+  const response=await fetchConPlazo(`${API}?${query}`,{method:'PUT',headers:{authorization:`Bearer ${TOKEN}`,'content-type':types[ext]||'application/octet-stream','x-file-name':path.basename(file),'x-worker':WORKER},body:bytes},plazoSubida(bytes.byteLength));
   const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||`Upload ${response.status}`);return data;
 }
 async function clientLogoBadge(logo,maxWidth,maxHeight){
@@ -66,8 +68,8 @@ async function clientLogoBadge(logo,maxWidth,maxHeight){
   return sharp({create:{width:Number(metadata.width)+pad*2,height:Number(metadata.height)+pad*2,channels:4,background:{r:255,g:255,b:255,alpha:.92}}}).composite([{input:resized,left:pad,top:pad}]).png().toBuffer();
 }
 async function downloadClientLogo(client){
-  const query=new URLSearchParams({client,asset:'logo'});let response=await fetch(`${API}?${query}`,{headers:{authorization:`Bearer ${TOKEN}`}});
-  if(response.status===404){await api('POST','',{action:'refresh-brand',client});response=await fetch(`${API}?${query}`,{headers:{authorization:`Bearer ${TOKEN}`}});}
+  const query=new URLSearchParams({client,asset:'logo'});let response=await fetchConPlazo(`${API}?${query}`,{headers:{authorization:`Bearer ${TOKEN}`}},API_TIMEOUT_MS);
+  if(response.status===404){await api('POST','',{action:'refresh-brand',client});response=await fetchConPlazo(`${API}?${query}`,{headers:{authorization:`Bearer ${TOKEN}`}},API_TIMEOUT_MS);}
   if(!response.ok)throw new Error(`No se pudo obtener el logo oficial (${response.status}).`);
   const bytes=Buffer.from(await response.arrayBuffer()),dir=path.join(RUNTIME,'brands');await fs.mkdir(dir,{recursive:true});
   const output=path.join(dir,`${client}.png`);await sharp(bytes,{density:240}).trim().resize({width:1200,height:500,fit:'inside',withoutEnlargement:true}).png().toFile(output);return output;
@@ -309,8 +311,10 @@ const browser=await puppeteer.launch({headless:false,pipe:true,userDataDir:PROFI
 if(setup){
   const page=await browser.newPage();await page.goto('https://notebook.google.com/');
   console.log(`Accede como ${ACCOUNT}; la ventana se cerrará sola cuando la sesión quede validada.`);
-  let valid=false;while(!valid){await sleep(2000);valid=await page.evaluate(email=>[...document.querySelectorAll('[aria-label]')].some(el=>(el.getAttribute('aria-label')||'').includes(email)),ACCOUNT).catch(()=>false);}
-  console.log(`Sesión validada: ${ACCOUNT}`);await browser.close();
+  // Techo de 10 min (FLT-100780 b): antes esperaba para siempre a un login que nadie hacía.
+  const limite=Date.now()+SETUP_TIMEOUT_MS;let valid=false;while(!valid&&Date.now()<limite){await sleep(2000);valid=await page.evaluate(email=>[...document.querySelectorAll('[aria-label]')].some(el=>(el.getAttribute('aria-label')||'').includes(email)),ACCOUNT).catch(()=>false);}
+  if(valid)console.log(`Sesión validada: ${ACCOUNT}`);else{console.error(`Login no completado en ${SETUP_TIMEOUT_MS/60000} min: vuelve a ejecutar --setup y entra como ${ACCOUNT}.`);process.exitCode=1;}
+  await browser.close();
 }else{
   try{do{const worked=await processNext(browser).catch(error=>{console.error(new Date().toISOString(),error.message);return false});if(once)break;if(!worked)await sleep(POLL_MS);}while(true);}finally{await browser.close();}
 }
