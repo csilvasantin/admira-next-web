@@ -66,3 +66,13 @@ test('tras elegir idioma se cierra la lista, y «Generar» se confirma o falla y
   assert.equal((worker.match(/await pulsaGenerar\(page\);/g) || []).length, 4, 'audio, vídeo, infografía y presentación');
   assert.equal((worker.match(/clickButton\(page,'Generar'\)/g) || []).length, 1, 'sólo pulsaGenerar pulsa «Generar»');
 });
+
+// FLT-100798: la marca «Gemini Notebook» va pintada en la imagen de cada lámina/página; el
+// worker la quita con watermark.js antes de publicar (tests del módulo: tools/notebooklm-local/test/).
+test('el worker quita la marca de PDF y PowerPoint antes de publicar', () => {
+  assert.match(worker, /import \{limpiarPdf,limpiarPptx\} from '\.\/watermark\.js';/);
+  const publicar = trozo('async function waitAndPublish(', 'await upload(job,task,publishable)');
+  assert.match(publicar, /const sinMarca=await limpiarPptx\(publishable\);/);
+  assert.match(publicar, /\}else if\(output==='pdf'\)\{[\s\S]*?const sinMarca=await limpiarPdf\(downloaded\);/);
+  assert.match(publicar, /geminiWatermark:resumenMarca\(sinMarca\.report\)/);
+});

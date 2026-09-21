@@ -10,6 +10,7 @@ import {brandPdf,brandPowerPoint} from './brand-deck.js';
 import {generateVisualBrief} from './visual-brief.js';
 import {buildNotebookSourceBundle,sanitizeInfographicBranding,sanitizePowerPointBranding,verifiedWatermark} from './fidelity-bridge.js';
 import {fetchConPlazo,API_TIMEOUT_MS,plazoSubida} from './network.js';
+import {limpiarPdf,limpiarPptx} from './watermark.js';
 
 const HERE=path.dirname(new URL(import.meta.url).pathname);
 const ROOT=path.resolve(HERE,'../..');
@@ -291,6 +292,12 @@ async function processNext(browser){
     return true;
   }catch(error){if(job)await markFailed(job,tasks,error);throw error;}finally{await page.close().catch(()=>{});}
 }
+// Informe corto para providerJob (se guarda en KV): cuántas láminas, cuántas limpias y el
+// parecido más bajo con la plantilla; el detalle por lámina se queda en el log local.
+function resumenMarca(report){
+  const items=report.laminas||report.paginas||[],parecidos=items.map(item=>item.parecido).filter(Number.isFinite);
+  return {quitadas:report.quitadas||0,total:items.length,parecidoMin:parecidos.length?Math.min(...parecidos):null};
+}
 async function waitAndPublish(page,job,tasks,clientLogo){
   const pending=new Map(tasks.map(task=>[task.output,task]));const deadline=Date.now()+90*60*1000;
   const cardMarkers={audio:'audio_magic_eraser',video:'subscriptions',pdf:'tablet',powerpoint:'tablet',infographic:'stacked_bar_chart'};
@@ -337,13 +344,19 @@ async function waitAndPublish(page,job,tasks,clientLogo){
           const watermarkHashes=String(process.env.NOTEBOOKLM_WATERMARK_HASHES||'').split(',').map(value=>value.trim());
           const sanitized=await sanitizePowerPointBranding(downloaded,{watermarkHashes});
           publishable=sanitized.file;fidelityReport=sanitized.report;
+          // La marca «Gemini Notebook» va pintada DENTRO de la imagen de cada lámina: la
+          // limpieza por huella de arriba no la ve. watermark.js la reconoce y la quita (FLT-100798).
+          const sinMarca=await limpiarPptx(publishable);
+          publishable=sinMarca.file;fidelityReport={...fidelityReport,geminiWatermark:resumenMarca(sinMarca.report)};
           if(forceDeckLogo){
             publishable=await brandPowerPoint(publishable,clientLogo);
             fidelityReport={...fidelityReport,legacyLogoOverlay:true};
           }
-        }else if(output==='pdf'&&forceDeckLogo){
-          publishable=await brandPdf(downloaded,clientLogo);
-          fidelityReport={changed:true,mode:'legacy-logo-overlay'};
+        }else if(output==='pdf'){
+          // Igual que en PowerPoint: la marca va en la imagen de cada página (FLT-100798).
+          const sinMarca=await limpiarPdf(downloaded);
+          publishable=sinMarca.file;fidelityReport={changed:sinMarca.report.changed,mode:sinMarca.report.changed?'gemini-watermark':'original',geminiWatermark:resumenMarca(sinMarca.report)};
+          if(forceDeckLogo){publishable=await brandPdf(publishable,clientLogo);fidelityReport={...fidelityReport,changed:true,legacyLogoOverlay:true};}
         }
         artifactFidelityReports[task.id]=fidelityReport;
         await api('POST','',{action:'update',client:job.client,id:job.id,providerJob:{artifactFidelity:artifactFidelityReports}});
