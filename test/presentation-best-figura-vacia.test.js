@@ -60,11 +60,11 @@ test('el visor deja de sondear cuando ya no queda lámina por llegar y no reinte
 // pintada no sea el gris #c0c0c0 de `:root` a la espera de que corra el JS.
 function laminaLista(cliente,n){return{status:'ready',textFreeVerified:true,url:`/presentaciones/${cliente}/images/slide-${n}.jpg`}}
 
-async function sala(imageSet,bloques=1){
+async function sala(imageSet,bloques=1,acceso){
   const config={displayName:'Demo',outputs:['website','backgrounds'],languages:['es'],brand:{logoUrl:'/presentaciones/demo/brand/logo'},theme:{},sequence:{}};
   const skeleton=Array.from({length:bloques},(_,i)=>({id:`b${i}`,title:`T${i}`,message:'M',detail:'D'}));
   const ideas={hero:{title:'Propuesta',summary:'Resumen'},objective:'Objetivo',skeleton,closing:{title:'Cierre',action:'Acción'},labels:{objective:'Objetivo',next:'Siguiente'}};
-  const response=await renderPresentation({params:{client:'demo'},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas,'image-set:demo':imageSet})},next(){throw new Error('unexpected next')}});
+  const response=await renderPresentation({params:{client:'demo'},data:acceso?{presentationAccess:acceso}:{},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas,'image-set:demo':imageSet})},next(){throw new Error('unexpected next')}});
   return response.text();
 }
 
@@ -135,9 +135,29 @@ test('una sala con el set cerrado no llama a la API del generador ni sondea',asy
   assert.match(html,/syncBestFigures\(\);if\(false&&\(quality==='better'/);
 });
 
-test('una sala con láminas aún en cola sigue sondeando y generando',async()=>{
-  const html=await sala({status:'partial',slides:[laminaLista('demo',0),{status:'queued'},laminaLista('demo',2),laminaLista('demo',3)]});
+const enCola={status:'partial',slides:[laminaLista('demo',0),{status:'queued'},laminaLista('demo',2),laminaLista('demo',3)]};
+
+test('con láminas aún en cola, quien puede generar sigue sondeando y generando',async()=>{
+  const html=await sala(enCola,1,{level:'editor',canGenerate:true});
   assert.match(html,/const imageTimer=setInterval\(syncImages,10000\)/);
   assert.match(html,/if\(wantsImages&&true&&/);
   assert.match(html,/syncBestFigures\(\);if\(true&&\(quality==='better'/);
+});
+
+// FLT-100766 b (Morfeo, 21-sep-2026): lo que decide si la sala genera es el PERMISO de
+// quien mira, no sólo el estado del set. Con láminas en cola, el invitado (contraseña de
+// la sala) disparaba ensureBetterImages() → POST /presentaciones/api/images → 401.
+test('con láminas en cola, el invitado sondea su sala pero NO llama al generador',async()=>{
+  const html=await sala(enCola,1,{level:'client',canGenerate:false});
+  // Sigue viendo llegar las láminas que genere otro: el sondeo es lectura de su sala…
+  assert.match(html,/const imageTimer=setInterval\(syncImages,10000\)/);
+  // …pero ni el arranque ni applyQuality() hacen el POST que le contestaba 401.
+  assert.match(html,/if\(wantsImages&&false&&/);
+  assert.match(html,/syncBestFigures\(\);if\(false&&\(quality==='better'/);
+});
+
+test('sin permiso declarado por el middleware, la sala no genera (por defecto, cerrado)',async()=>{
+  const html=await sala(enCola);
+  assert.match(html,/if\(wantsImages&&false&&/);
+  assert.match(html,/syncBestFigures\(\);if\(false&&\(quality==='better'/);
 });

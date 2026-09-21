@@ -356,8 +356,27 @@ export async function onRequest(context){
     return new Response(null, {status:303, headers});
   }
 
-  if (!authorized) return htmlResponse(loginPage(title, cleanPath));
+  // UNA API NO CONTESTA CON UN FORMULARIO (MorfeoMacMini, 21-09-2026 · FLT-100766 a). Una
+  // llamada fetch() a /api/ sin sesión recibía la página de login entera (5,5 KB de HTML)
+  // con su 401; el cliente no podía leerla como JSON y el operador veía un «HTTP 401» seco,
+  // sin saber que lo único que pasaba era que su sesión había caducado. Mismo 401, pero en
+  // JSON y con el motivo. Una navegación (Accept: text/html) sigue recibiendo el login.
+  if (!authorized) {
+    if (parts.includes('api') && !(request.headers.get('Accept') || '').includes('text/html')) {
+      return new Response(JSON.stringify({error:'Tu sesión ha caducado o no tiene acceso a esta acción. Recarga la página e identifícate de nuevo.', login:cleanPath}), {status:401, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
+    }
+    return htmlResponse(loginPage(title, cleanPath));
+  }
   if (shouldIdentify(request, parts) && !identity) return htmlResponse(identifyPage(title, cleanPath));
+
+  // LA SALA SABE QUIÉN MIRA (MorfeoMacMini, 21-09-2026 · FLT-100766 b). La sala decidía si
+  // llamar a la API del generador mirando sólo el estado del set de láminas: con alguna en
+  // cola, al invitado (contraseña de la sala) le tocaba un POST que le contestaba 401. Lo que
+  // manda es el PERMISO, con la misma regla que aplica este middleware a /api/images: master,
+  // editor, o sesión del directorio con nivel owner/editor. Viaja en context.data, que Pages
+  // comparte entre el middleware y la función.
+  const canGenerate = Boolean(masterValid || editorValid || (directorySession && allowedBy(directorySession.level, {ownerAllowed:true, editorAllowed:true, internalArea:true})));
+  if (context.data) context.data.presentationAccess = {level:accessLevel, canGenerate};
 
   const response = await next();
   const trackView = request.method === 'GET' && shouldIdentify(request, parts) && !isInternalArea && !isGallery;
