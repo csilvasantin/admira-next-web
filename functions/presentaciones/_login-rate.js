@@ -1,11 +1,11 @@
 // LÍMITE DE INTENTOS DE LOGIN (MorfeoMacMini, 21-09-2026 · FLT-100778 a).
 //
-// Las tres puertas que aceptan contraseña —/presentaciones, /presentations y /presites—
-// comparaban sin límite: cualquiera podía probar contraseñas sin fin contra la maestra,
-// la de editor, la genérica y las de cada cliente. La recuperación sí tenía tope; el
-// login, que es lo que se ataca, no.
+// Las puertas que aceptan contraseña —/presentaciones y /presites; /presentations lo fue
+// hasta FLT-100782, que la convirtió en redirección— comparaban sin límite: cualquiera
+// podía probar contraseñas sin fin contra la maestra, la de editor, la genérica y las de
+// cada cliente. La recuperación sí tenía tope; el login, que es lo que se ataca, no.
 //
-// El contador es POR IP Y COMÚN A LAS TRES PUERTAS, a propósito. La maestra vale en
+// El contador es POR IP Y COMÚN A TODAS LAS PUERTAS, a propósito. La maestra vale en
 // cualquier slug —incluso en uno que no existe—, así que un contador por IP+presentación
 // se esquivaba cambiando de slug cada pocos intentos, y uno por puerta, cambiando de
 // puerta. Sólo se bloquea a la IP que falla: un atacante no puede dejar fuera a un
@@ -54,9 +54,7 @@ export async function noteLoginAttempt(env, request, ok, now = Date.now()){
   } catch (_) { /* KV caído o escritura limitada: el login sigue funcionando. */ }
 }
 
-export function lockoutMessage(seconds, language = 'es'){
+export function lockoutMessage(seconds){
   const minutes = Math.max(1, Math.ceil(seconds / 60));
-  return language === 'en'
-    ? `Too many failed attempts from your connection. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`
-    : `Demasiados intentos fallidos desde tu conexión. Vuelve a probar en ${minutes} minuto${minutes === 1 ? '' : 's'}.`;
+  return `Demasiados intentos fallidos desde tu conexión. Vuelve a probar en ${minutes} minuto${minutes === 1 ? '' : 's'}.`;
 }

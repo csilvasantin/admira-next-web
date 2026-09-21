@@ -406,7 +406,7 @@ export async function onRequest(context){
 
   const response = await next();
   const trackView = request.method === 'GET' && shouldIdentify(request, parts) && !isInternalArea && !isGallery;
-  if (trackView && identity) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || ''}));
+  if (trackView && identity) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || (second === 'english' ? 'en' : '')}));
   const isAudienceOutput = isPresentationMode && url.searchParams.get('audience') === '1';
   return injectTelemetry(response, {
     inlineEditor: isPresentationMode && !isAudienceOutput && (masterValid || editorValid),

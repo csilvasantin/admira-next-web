@@ -1,13 +1,12 @@
 // FLT-100778 a (Morfeo, 21-sep-2026) · el login deja de admitir intentos sin fin.
 //
-// Las tres puertas que aceptan contraseña (/presentaciones, /presentations y /presites)
-// comparaban sin límite contra la maestra, la de editor, la genérica y las de cliente.
-// El contador es por IP y COMÚN a las tres: la maestra vale en cualquier slug y en
-// cualquier puerta, así que un contador por slug o por puerta se esquivaba cambiando.
+// Las puertas que aceptan contraseña (/presentaciones y /presites; /presentations lo fue
+// hasta FLT-100782) comparaban sin límite contra la maestra, la de editor, la genérica y
+// las de cliente. El contador es por IP y COMÚN a todas: la maestra vale en cualquier slug
+// y en cualquier puerta, así que un contador por slug o por puerta se esquivaba cambiando.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequest as presentaciones} from '../functions/presentaciones/_middleware.js';
-import {onRequest as presentations} from '../functions/presentations/_middleware.js';
 import {onRequest as presites} from '../functions/presites/_middleware.js';
 import {LOGIN_FAIL_LIMIT, LOGIN_WINDOW_SEC, LOGIN_LOCKOUT_SEC, loginLockout, noteLoginAttempt} from '../functions/presentaciones/_login-rate.js';
 
@@ -28,7 +27,6 @@ const entorno = (extra = {}) => ({PRES_SIGNING_KEY:'limite-test-key', PRES_GENER
 
 const PUERTAS = {
   presentaciones:{fn:presentaciones, url:'https://www.admiranext.com/presentaciones/demo/presentacion'},
-  presentations:{fn:presentations, url:'https://www.admiranext.com/presentations/lacaixa'},
   presites:{fn:presites, url:'https://www.admiranext.com/presites/'}
 };
 
@@ -56,14 +54,11 @@ test('el bloqueo es de ESA IP: desde otra conexión se entra con normalidad', as
   assert.equal((await intenta(env, 'presentaciones', '1234', '198.51.100.20')).status, 303);
 });
 
-test('el contador es común a las tres puertas: cambiar de puerta no reinicia la cuenta', async () => {
+test('el contador es común a las puertas: cambiar de puerta no reinicia la cuenta', async () => {
   const env = entorno();
-  const puertas = ['presites', 'presentations', 'presentaciones'];
-  for (let i = 0; i < LOGIN_FAIL_LIMIT; i++) assert.equal((await intenta(env, puertas[i % 3], 'mala')).status, 401);
+  const puertas = ['presites', 'presentaciones'];
+  for (let i = 0; i < LOGIN_FAIL_LIMIT; i++) assert.equal((await intenta(env, puertas[i % 2], 'mala')).status, 401);
   assert.equal((await intenta(env, 'presentaciones', 'maestra-larga')).status, 429);
-  const en = await intenta(env, 'presentations', 'maestra-larga');
-  assert.equal(en.status, 429);
-  assert.match(await en.text(), /Too many failed attempts from your connection/);
   assert.equal((await intenta(env, 'presites', 'maestra-larga')).status, 429);
 });
 

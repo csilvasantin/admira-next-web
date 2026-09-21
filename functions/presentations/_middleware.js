@@ -1,28 +1,48 @@
-/* English route gatekeeper. Cookies and identity are shared with /presentaciones/*. */
-import {cleanIdentity, identityCookie, makeIdentityToken, readCookies, readIdentity, writeAccessEvent} from '../presentaciones/_access.js';
-import {loginLockout, noteLoginAttempt, lockoutMessage} from '../presentaciones/_login-rate.js';
+/* /presentations YA NO ES UNA PUERTA (MorfeoMacMini, 21-09-2026 · FLT-100782 b).
+ *
+ * Aquí vivía un segundo control de acceso, copia del de /presentaciones pero sin directorio,
+ * sin Google y sin contraseña genérica: el mismo cliente entraba en castellano y se quedaba
+ * fuera en inglés, y cada arreglo de seguridad había que hacerlo dos veces. Ahora hay UNA
+ * puerta (functions/presentaciones/_middleware.js) y esto sólo redirige, conservando cada
+ * enlace ya enviado:
+ *   /presentations/LaCaixa(.html) · caixa · lenovo → /presentaciones/<cliente>/english
+ *   /presentations/nvidia(.html)                   → la NVIDIA del generador (su puente)
+ *   /presentations/<slug> generado                 → /presentaciones/<slug>/presentacion?lang=en
+ *   /presentations/ (galería interna)              → /presentaciones/galeria
+ * Nunca llama a next(): los HTML de presentations/ sólo se sirven desde la puerta común.
+ * 301 para GET/HEAD con caché corta (si un destino hubiera que corregirlo, los navegadores
+ * no se lo quedan para siempre) y 307 para el resto, que conserva el método y el cuerpo.
+ */
+export const LEGACY_TARGETS = {
+  '':'/presentaciones/galeria',
+  index:'/presentaciones/galeria',
+  lacaixa:'/presentaciones/lacaixa/english',
+  caixa:'/presentaciones/caixa/english',
+  lenovo:'/presentaciones/lenovo/english',
+  nvidia:'/presentaciones/nvidia/presentacion'
+};
+const SLUG = /^[a-z0-9][a-z0-9-]{1,62}$/;
 
-const MAXAGE=60*60*24*30;const enc=new TextEncoder();
-function b64url(buf){let s=btoa(String.fromCharCode(...new Uint8Array(buf)));return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-async function hmac(key,msg){const k=await crypto.subtle.importKey('raw',enc.encode(key),{name:'HMAC',hash:'SHA-256'},false,['sign']);return b64url(await crypto.subtle.sign('HMAC',k,enc.encode(msg)))}
-function same(a,b){a=String(a);b=String(b);if(a.length!==b.length)return false;let r=0;for(let i=0;i<a.length;i++)r|=a.charCodeAt(i)^b.charCodeAt(i);return r===0}
-async function token(key,slug,exp){return exp+'.'+await hmac(key,slug+':'+exp)}
-async function valid(key,slug,value){if(!value)return false;const dot=value.indexOf('.'),exp=parseInt(value.slice(0,dot),10);return dot>0&&exp>=Math.floor(Date.now()/1000)&&same(value.slice(dot+1),await hmac(key,slug+':'+exp))}
-function esc(v){return String(v==null?'':v).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
-const css=`:root{--bg:#070a10;--panel:#0d1522;--line:#1e2940;--ink:#e8eef8;--dim:#7186a8;--brand:#3df08a}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;padding:24px}.box{width:100%;max-width:430px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:34px 30px;box-shadow:0 24px 60px #0008}.eyebrow{font:700 11px/1 ui-monospace,monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--brand);margin-bottom:20px}h1{font-size:26px;margin:0 0 7px}.sub{color:var(--dim);font-size:14px;line-height:1.5;margin:0 0 22px}label{display:block;font:700 11px/1 ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);margin:14px 0 8px}input{width:100%;background:#0a1220;color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:13px 14px;font-size:16px}button{width:100%;border:0;border-radius:11px;padding:13px;margin-top:18px;background:var(--brand);color:#052013;font-weight:800}.notice{margin-top:15px;padding:11px;border:1px solid var(--line);border-radius:10px;color:#9db0cc;font:600 11px/1.45 ui-monospace,monospace}.err{color:#ff6b6b;text-align:center;margin-top:14px}`;
-function fields(v={}){return `<label for="name">Full name</label><input id="name" name="name" value="${esc(v.name)}" required minlength="2" maxlength="100" autocomplete="name"><label for="email">Email</label><input id="email" name="email" type="email" value="${esc(v.email)}" required maxlength="180" autocomplete="email">`}
-function page(title,action,error='',identify=false,v={}){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${esc(title)} · Access</title><style>${css}</style></head><body><form class="box" method="POST" action="${esc(action)}">${identify?'<input type="hidden" name="intent" value="identify">':''}<div class="eyebrow">ADmiraNeXT · ${identify?'Access control':'Private presentation'}</div><h1>${identify?'Confirm your identity':esc(title)}</h1><p class="sub">${identify?'Your session is authorised. Identify it once to continue.':'Identify yourself and enter the password supplied by our team.'}</p>${fields(v)}${identify?'':`<label for="password">Password</label><input id="password" name="password" type="password" required autocomplete="current-password">`}<button>${identify?'Continue':'Enter'}</button><div class="notice">For security, identity, date, presentation, IP and material usage are recorded.</div>${error?`<div class="err">${esc(error)}</div>`:''}</form></body></html>`}
-function html(body,status=401){return new Response(body,{status,headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}})}
-function isHtml(request,parts){return request.method==='GET'&&(request.headers.get('accept')||'').includes('text/html')&&!/\.[a-z0-9]{2,5}$/i.test(parts.at(-1)||'')}
-async function inject(response){if(!response.ok||!(response.headers.get('content-type')||'').includes('text/html'))return response;const text=await response.text(),headers=new Headers(response.headers);headers.delete('content-length');headers.set('cache-control','no-store');return new Response(text.includes('presentation-telemetry.js')?text:text.replace(/<\/body>/i,'<script src="/assets/presentation-telemetry.js?v=20260717-1"></script></body>'),{status:response.status,headers})}
+export function legacyTarget(pathname){
+  const rel = String(pathname || '').replace(/^\/presentations\/?/i, '').replace(/^\/+|\/+$/g, '');
+  const parts = rel ? rel.split('/').filter(Boolean) : [];
+  if (parts.length > 1) return null;
+  const key = (parts[0] || '').replace(/\.html$/i, '').toLowerCase();
+  if (Object.hasOwn(LEGACY_TARGETS, key)) return {path:LEGACY_TARGETS[key], english:false};
+  return SLUG.test(key) ? {path:`/presentaciones/${key}/presentacion`, english:true} : null;
+}
 
-export async function onRequest(context){
-  const {request,env,next}=context,url=new URL(request.url);const rel=url.pathname.replace(/^\/presentations\/?/i,'').replace(/^\/+|\/+$/g,''),parts=rel?rel.split('/').filter(Boolean):[],first=(parts[0]||'').replace(/\.html$/i,'').toLowerCase(),gallery=parts.length===0||(parts.length===1&&first==='index'),seg=gallery?'':first;
-  const cookieName='pres_'+(gallery?'admin':seg),cookieSlug=gallery?'_admin':seg,secretName=gallery?'PRES_ADMIN':'PRES_'+seg.toUpperCase().replace(/[^A-Z0-9]+/g,'_'),signKey=env.PRES_SIGNING_KEY,master=env.PRES_ADMIN,expected=env[secretName],cleanPath=url.pathname+url.search,names={lacaixa:'La Caixa',clearchannel:'Clear Channel',lenovo:'Lenovo',caixa:'La Caixa'};
-  let generated=null;if(!gallery&&env.PRESENTATION_IDEAS)generated=await env.PRESENTATION_IDEAS.get('presentation:'+seg,{type:'json'});const verifier=generated?.passwordVerifier||'',title=gallery?'Presentations':(generated?.displayName||names[seg]||seg);
-  if(!signKey||(!expected&&!verifier&&!master))return html(page(title,cleanPath,'Access is temporarily unavailable.'),503);
-  const cookies=readCookies(request);const [masterValid,clientValid,identity]=await Promise.all([valid(signKey,'_master',cookies.pres_master),valid(signKey,cookieSlug,cookies[cookieName]),readIdentity(request,signKey)]);const authorised=masterValid||clientValid,type=request.headers.get('content-type')||'',formPost=request.method==='POST'&&/application\/x-www-form-urlencoded|multipart\/form-data/i.test(type);
-  if(formPost){let form;try{form=await request.formData()}catch(_){form=new FormData()}const supplied=cleanIdentity({name:form.get('name'),email:form.get('email'),visitorId:identity?.visitorId});if(form.get('intent')==='identify'){if(!authorised)return html(page(title,cleanPath,'Session expired.',false,supplied||{}));if(!supplied)return html(page(title,cleanPath,'Enter a valid name and email.',true,{name:form.get('name'),email:form.get('email')}));const idToken=await makeIdentityToken(signKey,supplied),headers=new Headers({location:cleanPath,'cache-control':'no-store'});headers.append('set-cookie',identityCookie(idToken));context.waitUntil(writeAccessEvent(env,request,{type:'identity_confirmed',client:seg||'_gallery',presentation:title,identity:supplied,access:masterValid?'master':'client',path:url.pathname}));return new Response(null,{status:303,headers})}
-    const password=String(form.get('password')||''),values={name:form.get('name'),email:form.get('email')};if(!supplied)return html(page(title,cleanPath,'Enter a valid name and email.',false,values));const lockout=await loginLockout(env,request);if(lockout){context.waitUntil(writeAccessEvent(env,request,{type:'login_blocked',client:seg||'_gallery',presentation:title,identity:supplied,access:'denied',path:url.pathname}));return html(page(title,cleanPath,lockoutMessage(lockout,'en'),false,values),429)}let name='',slug='',access='';if(master&&same(password,master)){name='pres_master';slug='_master';access='master'}else if(expected&&same(password,expected)){name=cookieName;slug=cookieSlug;access='client'}else if(verifier&&same(await hmac(signKey,'password:'+seg+':'+password),verifier)){name=cookieName;slug=cookieSlug;access='client'}if(!access){await noteLoginAttempt(env,request,false);context.waitUntil(writeAccessEvent(env,request,{type:'login_failed',client:seg||'_gallery',presentation:title,identity:supplied,access:'denied',path:url.pathname}));return html(page(title,cleanPath,'Incorrect password.',false,values))}context.waitUntil(noteLoginAttempt(env,request,true));const exp=Math.floor(Date.now()/1000)+MAXAGE,[accessToken,idToken]=await Promise.all([token(signKey,slug,exp),makeIdentityToken(signKey,supplied)]),headers=new Headers({location:cleanPath,'cache-control':'no-store'});headers.append('set-cookie',`${name}=${accessToken}; Path=/; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);headers.append('set-cookie',identityCookie(idToken));context.waitUntil(writeAccessEvent(env,request,{type:'login_success',client:seg||'_gallery',presentation:title,identity:supplied,access,path:url.pathname}));return new Response(null,{status:303,headers})}
-  if(!authorised)return html(page(title,cleanPath));if(isHtml(request,parts)&&!identity)return html(page(title,cleanPath,'',true));const response=await next();if(identity&&isHtml(request,parts)&&!gallery)context.waitUntil(writeAccessEvent(env,request,{type:'page_view',client:seg,presentation:title,identity,access:masterValid?'master':'client',path:url.pathname,language:'en'}));return inject(response);
+export async function onRequest({request}){
+  const url = new URL(request.url);
+  const target = legacyTarget(url.pathname);
+  if (!target) return new Response('Not found', {status:404, headers:{'cache-control':'no-store', 'x-robots-tag':'noindex, nofollow'}});
+  const query = new URLSearchParams(url.search);
+  if (target.english && !query.has('lang')) query.set('lang', 'en');
+  const search = query.toString();
+  const permanent = ['GET', 'HEAD'].includes(request.method);
+  return new Response(null, {status:permanent ? 301 : 307, headers:{
+    location:`${target.path}${search ? `?${search}` : ''}`,
+    'cache-control':permanent ? 'public, max-age=3600' : 'no-store',
+    'x-robots-tag':'noindex, nofollow'
+  }});
 }
