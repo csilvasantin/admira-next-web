@@ -63,7 +63,7 @@ function page(audienceMode,autoOpen=false){
   <section id="cover" class="slide" data-block-id="cover"${coverNotes}><div class="inner"><span class="eyebrow">AdmiraNeXT · QA reproducible</span><h1>Trazabilidad de fuentes</h1><p>El modo presentador comprueba dos afirmaciones verificables; la salida de audiencia no recibe el contrato privado.</p></div></section>
   <section id="objective" class="slide" data-block-id="objective"${objectiveNotes}><div class="inner"><span class="eyebrow">Objetivo</span><h2>Presentar con evidencia</h2><p>Esta página ejercita el mismo runtime que las presentaciones generadas.</p></div></section>
   ${privateRuntime}
-  <script src="/assets/presentation-presenter-mode.js?v=20260724-3"></script>
+  <script src="/assets/presentation-presenter-mode.js?v=20260921-antifallo"></script>
   ${!audienceMode&&autoOpen?'<script>document.getElementById("admiraPresenterLaunch")?.click();setTimeout(()=>document.getElementById("presenterLaunchAssistant")?.scrollIntoView({block:"start"}),120)</script>':''}
 </body>
 </html>`;

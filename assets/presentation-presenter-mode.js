@@ -1914,7 +1914,17 @@
       return Promise.resolve(false);
     }
     cacheState.textContent = 'Actualizando copia offline…';
-    return navigator.serviceWorker.register('/presentation-presenter-sw.js', {scope: '/'}).then(function (registration) {
+    // Alcance /presentaciones/ (FLT-100778 b): antes el service worker se registraba sobre
+    // todo el sitio. El registro viejo sobre «/» se da de baja aquí mismo —y el propio
+    // worker v3 también se desregistra si le toca ese alcance— para no dejar dos vivos.
+    return navigator.serviceWorker.getRegistrations().then(function (registrations) {
+      return Promise.all(registrations.filter(function (item) {
+        var worker = item.active || item.waiting || item.installing;
+        return item.scope === location.origin + '/' && worker && /\/presentation-presenter-sw\.js/.test(worker.scriptURL);
+      }).map(function (item) { return item.unregister(); }));
+    }).catch(function () {}).then(function () {
+      return navigator.serviceWorker.register('/presentation-presenter-sw.js', {scope: '/presentaciones/'});
+    }).then(function (registration) {
       return navigator.serviceWorker.ready.then(function () {
         var worker = registration.active || registration.waiting || registration.installing || navigator.serviceWorker.controller;
         if (!worker) throw new Error('service worker unavailable');

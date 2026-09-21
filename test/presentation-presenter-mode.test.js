@@ -24,7 +24,7 @@ test('generated presentations load the intelligent presenter mode without exposi
   assert.match(html,/presentation-pace-coach\.js\?v=20260723-1/);
   assert.match(html,/presentation-share-guardian\.js\?v=20260723-1/);
   assert.match(html,/presentation-production-backchannel\.js\?v=20260723-1/);
-  assert.match(html,/presentation-presenter-mode\.js\?v=20260902-2/);
+  assert.match(html,/presentation-presenter-mode\.js\?v=20260921-antifallo/);
   assert.match(html,/presentation-ui-i18n\.js\?v=20260903-1/);
   assert.match(html,/presentation-floating-labels\.js\?v=20260902-1/);
   assert.match(html,/admira-version-watch\.js\?build=06092026-1/);
@@ -324,7 +324,8 @@ test('presenter provides idempotent offline reconnect and a restricted cache fal
   assert.match(source,/function applyRemoteCommand\([\s\S]*if \(!Number\.isFinite\(nextIndex\)\) return false;[\s\S]*goLocal\(nextIndex\)/);
   assert.match(worker,/url\.pathname\.includes\('\/api\/'\)/);
   assert.match(worker,/request\.mode === 'navigate' && isPresentationPath\(url\.pathname\)/);
-  assert.match(worker,/fetchAndStore\(request\)\.catch\(\(\) => caches\.match\(request\)/);
+  // Desde FLT-100778 b la caída sin red pasa por offlineDeck(), que mira la hora de la copia.
+  assert.match(worker,/fetchAndStore\(request\)\.catch\(\(\) => offlineDeck\(request\)\)/);
   assert.match(worker,/results\.every\(result => result\.status === 'fulfilled'\)/);
 });
 
