@@ -52,3 +52,17 @@ test('las tarjetas se abren esperando a que el diálogo exista (la fuente recié
   assert.match(abrir, /no abrió su diálogo/);
   assert.match(trozo('async function generateAudio(', 'async function generateVideo('), /openStudio\(page,'Resumen de audio'\)/);
 });
+
+// La presentación en inglés de NVIDIA no llegó a pedirse: tras elegir «English» la lista de
+// idiomas seguía superpuesta y el clic en «Generar» caía en el cdk-overlay-backdrop (medido
+// con elementFromPoint: antes la capa, después el botón). Sin error, 90 min de espera en vano.
+test('tras elegir idioma se cierra la lista, y «Generar» se confirma o falla ya', () => {
+  const idioma = trozo('async function selectLanguage(', 'async function pulsaGenerar(');
+  assert.match(idioma, /\[role="listbox"\]/);
+  assert.match(idioma, /page\.keyboard\.press\('Escape'\)/);
+  const generar = trozo('async function pulsaGenerar(', 'async function ensureNotebookAccount(');
+  assert.match(generar, /for\(let intento=0;intento<3;intento\+=1\)/);
+  assert.match(generar, /no aceptó «Generar»/);
+  assert.equal((worker.match(/await pulsaGenerar\(page\);/g) || []).length, 4, 'audio, vídeo, infografía y presentación');
+  assert.equal((worker.match(/clickButton\(page,'Generar'\)/g) || []).length, 1, 'sólo pulsaGenerar pulsa «Generar»');
+});

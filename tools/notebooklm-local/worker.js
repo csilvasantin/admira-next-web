@@ -175,6 +175,24 @@ async function selectLanguage(page,language){
   if(abierto==='sin-combobox')throw new Error('No encuentro el selector de idioma en Gemini Notebook: la interfaz ha vuelto a cambiar.');
   await page.waitForFunction(value=>[...document.querySelectorAll('[role="option"]')].some(el=>(el.innerText||'').trim().toLowerCase()===value.toLowerCase()),{timeout:10000},option);
   await page.evaluate(value=>[...document.querySelectorAll('[role="option"]')].find(el=>(el.innerText||'').trim().toLowerCase()===value.toLowerCase())?.click(),option);
+  // LA LISTA SE QUEDABA ABIERTA (FLT-100788, 21-09-2026): tras elegir el idioma, el panel de
+  // opciones seguía superpuesto al diálogo y el clic en «Generar» caía sobre él —cerraba la
+  // lista y no generaba nada, sin error—. Así se perdió la presentación en inglés de NVIDIA.
+  // Se espera a que se cierre y, si no, Escape (con la lista delante, Escape sólo la cierra).
+  const listaVisible=()=>page.evaluate(()=>[...document.querySelectorAll('[role="listbox"]')].some(el=>el.offsetParent!==null&&el.getBoundingClientRect().height>0));
+  for(let i=0;i<6&&await listaVisible();i+=1)await sleep(250);
+  if(await listaVisible()){await page.keyboard.press('Escape');await sleep(400);}
+}
+// «Generar» CON CONFIRMACIÓN (FLT-100788): un clic que no llega —una capa encima, la tarjeta
+// aún procesando— no daba error y el worker esperaba 90 minutos un entregable que nadie había
+// pedido. Se comprueba que el diálogo se cierra; si no, se reintenta, y si tampoco, se falla ya.
+async function pulsaGenerar(page){
+  const abierto=()=>page.evaluate(()=>[...document.querySelectorAll('[role="dialog"],mat-dialog-container')].some(el=>el.offsetParent!==null&&/Generar/.test(el.innerText||'')));
+  for(let intento=0;intento<3;intento+=1){
+    await clickButton(page,'Generar');
+    for(let i=0;i<12;i+=1){if(!await abierto())return;await sleep(500);}
+  }
+  throw new Error('Gemini Notebook no aceptó «Generar»: el diálogo sigue abierto tras tres intentos.');
 }
 async function ensureNotebookAccount(page){
   await page.goto('https://notebook.google.com/',{waitUntil:'domcontentloaded'});await sleep(2500);
@@ -197,7 +215,7 @@ async function generateAudio(page,language){
   // «Resumen de audio» abre el dialogo con idioma, duracion, formato y el campo de enfoque.
   await openStudio(page,'Resumen de audio');await selectLanguage(page,language);
   await fillByLabel(page,'¿En qué deben centrarse los presentadores de IA en este episodio?',`Create an executive ${name}-language overview for leadership. Focus on the business problem, connected-experience vision, AdmiraNeXT capabilities, proposed pilot and call to action. Do not mention Gemini Notebook or NotebookLM.`);
-  await clickButton(page,'Generar');
+  await pulsaGenerar(page);
 }
 async function generateVideo(page,language,style){
   const name=LANGUAGE_NAMES[language]||'English';
@@ -208,14 +226,14 @@ async function generateVideo(page,language,style){
   await pickOption(page,'Personalizado');
   await fillByLabel(page,'Describe un estilo visual personalizado',style);
   await fillByLabel(page,'¿En qué debe centrarse el vídeo?',`Produce a ${name}-language executive video: business tension, why now, connected-experience vision, Create/Activate/Understand/Measure, four-week pilot and decisive call to action. Do not mention Gemini Notebook or NotebookLM.`);
-  await clickButton(page,'Generar');
+  await pulsaGenerar(page);
 }
 async function generateInfographic(page,language,style){
   const name=LANGUAGE_NAMES[language]||'English';
   await openStudio(page,'Infografía');await selectLanguage(page,language);
   await pickOption(page,'Editorial',{required:false});
   await fillByLabel(page,'Describe la infografía que quieres crear',`Create a premium horizontal executive infographic in ${name}. Apply this visual direction: ${style} Show Business tension → Connected experience → Create / Activate / Understand / Measure → Pilot → Success metrics. Omit provider branding.`);
-  await clickButton(page,'Generar');
+  await pulsaGenerar(page);
 }
 async function generateSlideDeck(page,language,style){
   const name=LANGUAGE_NAMES[language]||'English';
@@ -223,7 +241,7 @@ async function generateSlideDeck(page,language,style){
   await pickOption(page,'Diapositivas del presentador');
   await selectLanguage(page,language);
   await fillByLabel(page,'Describe la presentación que quieres crear',`Create a polished ${name}-language executive presenter deck for a decision-making meeting. Build a clear narrative: business tension → why now → connected-experience vision → Create / Activate / Understand / Measure → four-week pilot → success metrics → decisive call to action. Use concise headlines, one idea per slide, minimal body copy, meaningful diagrams and evidence-led visuals. Apply this visual design contract consistently:\n${style}\nDo not mention Gemini Notebook or NotebookLM. Do not invent client facts, metrics or claims that are absent from the sources.`);
-  await clickButton(page,'Generar');
+  await pulsaGenerar(page);
 }
 async function setStage(job,tasks,stage,progress,options={}){
   const changes={};for(const task of tasks)changes[task.id]={status:'processing',stage,progress,...(options.submitted?{submittedAt:new Date().toISOString()}:{})};
