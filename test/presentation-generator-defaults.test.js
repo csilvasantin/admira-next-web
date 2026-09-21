@@ -29,7 +29,8 @@ test('every presentation gets its own password, and the form explains it',async(
   const cien=new Set(Array.from({length:100},()=>createPresentationPassword()));
   assert.equal(cien.size,100);
   const script=await readFile(new URL('../assets/presentation-generator-20260721-11.js',import.meta.url),'utf8');
-  assert.match(script,/navigator\.clipboard\?\.readText/);
+  // Desde FLT-100792 (Carlos, 21-09): la clave vacía ya NO sale del portapapeles.
+  assert.doesNotMatch(script,/navigator\.clipboard\?\.readText/);
   assert.match(script,/generaremos una clave única para este cliente/);
   assert.doesNotMatch(script,/AdmiraNeXT;\)/);
   assert.match(script,/value="website" checked/);

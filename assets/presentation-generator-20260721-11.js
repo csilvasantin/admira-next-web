@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260921-formulario-limpio';
+  window.__ADMIRA_GENERATOR_VERSION__='20260921-resultado';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=false,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -147,15 +147,17 @@
   const passwordPanel=passwordInput.closest('.panel');
   passwordPanel.querySelector('.sub').textContent='La clave queda aislada para este cliente. Si indicas una contraseña aquí, tendrá prioridad.';
   passwordInput.closest('.field').querySelector('label').textContent='Contraseña del cliente · opcional *';
-  passwordInput.placeholder='Vacío = usar el portapapeles';
-  passwordInput.closest('.field').insertAdjacentHTML('beforeend',`<p class="field-help">* Si lo dejas vacío, al generar intentaremos usar el texto actual del portapapeles. Si está vacío, es demasiado corto o el navegador no permite leerlo, <b>generaremos una clave única para este cliente</b> y te la enseñaremos aquí al terminar — cópiala antes de cerrar.</p>`);
+  // CLAVE SIN PORTAPAPELES (Carlos, 21-09-2026 · FLT-100792 a). Con el campo vacío se leía el
+  // portapapeles y cualquier texto de 10+ caracteres copiado por error (una URL, un trozo de
+  // correo) se convertía en la clave que se envía al cliente. Vacío = la genera el servidor.
+  passwordInput.placeholder='Vacío = la generamos única para este cliente';
+  passwordInput.closest('.field').insertAdjacentHTML('beforeend',`<p class="field-help">* Si lo dejas vacío, <b>generaremos una clave única para este cliente</b> y te la enseñaremos aquí al terminar — cópiala antes de cerrar: después no se vuelve a mostrar.</p>`);
   function slugify(value){return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,63)}
   function ensureHttps(value){const cleaned=String(value||'').trim();if(!cleaned)return '';if(/^https:\/\//i.test(cleaned))return cleaned;if(/^http:\/\//i.test(cleaned))return `https://${cleaned.slice(7)}`;if(/^[a-z][a-z0-9+.-]*:\/\//i.test(cleaned))return cleaned;return `https://${cleaned.replace(/^\/+/, '')}`}
   function normalizeUrlInput(input){const normalized=ensureHttps(input.value);if(normalized)input.value=normalized;return normalized}
   async function resolvePassword(){
     const explicit=passwordInput.value.trim();if(explicit)return explicit;
-    try{const clipboard=String(await navigator.clipboard?.readText?.()||'').replace(/[\r\n]+/g,' ').trim().slice(0,100);if(clipboard.length>=10)return clipboard}catch(_){}
-    return ''; // sin clave explícita ni portapapeles: la genera el servidor, única para este cliente
+    return ''; // sin clave explícita: la genera el servidor, única para este cliente
   }
   [website,inspirationUrl].forEach(input=>input.addEventListener('blur',()=>normalizeUrlInput(input)));
   slug.addEventListener('input',()=>{slugTouched=Boolean(slug.value)}); display.addEventListener('input',()=>{if(!slugTouched)slug.value=slugify(display.value)});
@@ -239,7 +241,7 @@
   function renderImageSet(set,slideCount=0){
     currentImageSet=set||null;const html=value=>String(value==null?'':value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
     const total=set?.total||slideCount;if(!total){imageWorkspace.hidden=true;imageAction.hidden=true;return}
-    imageAction.hidden=false;imageAction.textContent=set?.status==='complete'?'Regenerar imágenes con Grok':set?`Continuar imágenes con Grok · ${set.completed||0}/${total}`:`Crear ${total} imágenes con Grok`;
+    imageAction.hidden=false;imageAction.textContent=set?.status==='complete'?'Regenerar imágenes con Grok':set?.startedAt?`Continuar imágenes con Grok · ${set.completed||0}/${total}`:`Opcional · crear ${total} fondos con Grok`;
     const slides=set?.slides||[];imageWorkspace.hidden=false;
     const last=Date.parse(set?.lastActivityAt||set?.updatedAt||''),started=Date.parse(set?.startedAt||''),terminal=['complete','partial'].includes(set?.status),stalled=Boolean(started&&!terminal&&Number.isFinite(last)&&Date.now()-last>10*60*1000);
     const progress=set?Math.max(0,Math.min(100,Math.round(Number(set.progress||0)))):0;
@@ -312,7 +314,10 @@
       const body=await createPresentation(data, Boolean(improveMode)); if(!body){message('No se ha modificado la presentación existente.');return}
       window.dispatchEvent(new CustomEvent('admira:presentation-created',{detail:body}));
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
-      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck'),launchUrl=body.presite?.launchUrl;openDeck.href=launchUrl||body.deckUrl;openDeck.textContent=launchUrl?'Abrir intro + presentación':'Abrir site';openDeck.hidden=!body.outputs.includes('website'); currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); const idiomasPendientes=(body.translationPending||[]).map(language=>String(language).toUpperCase()).join(', '),avisoIdiomas=idiomasPendientes?` Ojo: la versión ${idiomasPendientes} no se pudo traducir (${body.translationError||'xAI no respondió'}) y de momento repite el castellano; revísala en el editor antes de compartirla.`:'';(body.narrativeSource==='xai'?message(`Presentación lista: ${body.displayName}${launchUrl?' · Presite conectado':''}. Guion redactado para este cliente. Ya puedes abrirla y trabajar con ella.${avisoIdiomas}`,Boolean(avisoIdiomas)):message(`Presentación creada: ${body.displayName}, PERO con el guion de respaldo — ${body.narrativeFallback||'la redacción con IA no estuvo disponible'}. Ese texto es el mismo para todos los clientes con el nombre cambiado: revísalo en «Editar esqueleto» ANTES de compartir el enlace, o vuelve a generar.${avisoIdiomas}`,true));if(body.outputs.includes('backgrounds'))runImageGeneration(false).catch(error=>imageMessage(`La presentación sigue lista sin los fondos pendientes. Grok no ha respondido: ${error.message} Puedes reintentarlo cuando quieras.`,true));else imageApi({action:'prepare',client:body.slug}).then(response=>renderImageSet(response.imageSet)).catch(()=>loadImages(body.slug).catch(()=>{}));
+      document.getElementById('openIdeas').href=body.ideasUrl; const openDeck=document.getElementById('openDeck'),launchUrl=body.presite?.launchUrl;openDeck.href=launchUrl||body.deckUrl;openDeck.textContent=launchUrl?'Abrir intro + presentación':'Abrir site';openDeck.hidden=!body.outputs.includes('website');
+      // Acción principal según el guion (FLT-100792 b): si lo redactó xAI, lo natural es ver el
+      // site; si salió la plantilla de respaldo, hay que revisar el esqueleto ANTES de compartir.
+      {const guionPropio=body.narrativeSource==='xai'&&!openDeck.hidden,openIdeas=document.getElementById('openIdeas');openDeck.classList.toggle('primary',guionPropio);openIdeas.classList.toggle('primary',!guionPropio);(guionPropio?openDeck:openIdeas).parentElement.prepend(guionPropio?openDeck:openIdeas);} currentClient=body.slug;currentGenerationUrl=`/presentaciones/${body.slug}/api/generation`; renderGeneration(body.generation);renderImageSet(null,body.slideCount||0);result.classList.add('show'); result.scrollIntoView({behavior:'smooth',block:'center'}); const idiomasPendientes=(body.translationPending||[]).map(language=>String(language).toUpperCase()).join(', '),avisoIdiomas=idiomasPendientes?` Ojo: la versión ${idiomasPendientes} no se pudo traducir (${body.translationError||'xAI no respondió'}) y de momento repite el castellano; revísala en el editor antes de compartirla.`:'';(body.narrativeSource==='xai'?message(`Presentación lista: ${body.displayName}${launchUrl?' · Presite conectado':''}. Guion redactado para este cliente. Ya puedes abrirla y trabajar con ella.${avisoIdiomas}`,Boolean(avisoIdiomas)):message(`Presentación creada: ${body.displayName}, PERO con el guion de respaldo — ${body.narrativeFallback||'la redacción con IA no estuvo disponible'}. Ese texto es el mismo para todos los clientes con el nombre cambiado: revísalo en «Editar esqueleto» ANTES de compartir el enlace, o vuelve a generar.${avisoIdiomas}`,true));if(body.outputs.includes('backgrounds'))runImageGeneration(false).catch(error=>imageMessage(`La presentación sigue lista sin los fondos pendientes. Grok no ha respondido: ${error.message} Puedes reintentarlo cuando quieras.`,true));else imageApi({action:'prepare',client:body.slug}).then(response=>renderImageSet(response.imageSet)).catch(()=>loadImages(body.slug).catch(()=>{}));
     }catch(error){message(error.message,true)}finally{submit.disabled=false}
   },true);
   setInterval(async()=>{

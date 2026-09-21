@@ -10,7 +10,7 @@ test('generator route injects the quadratic shell without replacing the form',as
   const html=await response.text();
   assert.match(html,/presentation-generator-20260721-11\.js/);
   assert.match(html,/presentation-generator-quadratic\.css\?v=1/);
-  assert.match(html,/presentation-generator-quadratic\.js\?v=1/);
+  assert.match(html,/presentation-generator-quadratic\.js\?v=20260921-rail/);
   assert.match(html,/form id="generator"/);
 });
 

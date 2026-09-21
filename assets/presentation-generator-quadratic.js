@@ -31,7 +31,11 @@
 
   function registerSections(form){
     var panels=form.querySelectorAll(':scope > .panel');
-    if(panels[0])panels[0].id='generatorContext';if(panels[1])panels[1].id='generatorIdentity';if(panels[2])panels[2].id='generatorAccess';
+    // Por TÍTULO, no por posición (FLT-100792 b): el tercer panel es «Soluciones que se enseñan
+    // vivas» y el acceso es el cuarto, así que «Acceso privado» del raíl llevaba a los embeds.
+    var porTitulo=function(texto){return [].find.call(panels,function(panel){var h=panel.querySelector('h2');return h&&h.textContent.indexOf(texto)>=0})};
+    var contexto=porTitulo('Contexto del cliente'),identidad=porTitulo('identidad'),embebidos=porTitulo('Soluciones que se enseñan vivas'),acceso=porTitulo('Acceso privado');
+    if(contexto)contexto.id='generatorContext';if(identidad)identidad.id='generatorIdentity';if(embebidos)embebidos.id='generatorEmbeds';if(acceso)acceso.id='generatorAccess';
     var architecture=form.querySelector('.sequence-panel');if(architecture)architecture.id='generatorArchitecture';
     var languages=form.querySelector('.language-panel');if(languages)languages.id='generatorLanguages';
   }
