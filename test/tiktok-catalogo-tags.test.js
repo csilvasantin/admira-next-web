@@ -102,7 +102,10 @@ test('el estudio manda la meta catalogo en la ficha y enseña hashtags + enlace 
   assert.match(app, /function catalogoStock\(p\)/);
   assert.match(app, /cliente:slugCatalogo\(p\.catalogo_id\.split\('-'\)\[0\]\)/, 'cliente = antes del primer guion del id');
   assert.match(app, /proyecto:'admira-tv'/);
-  assert.match(app, /tags:etiquetasCatalogo\(catalogo\),\s*catalogo,/, 'fichaProducto lleva los 7 tags y la meta; video-package la recibe por x-package-ficha sin recalcular');
+  // Desde b3b0579 (12-09, FLT-100372) la 3.ª etiqueta es la orientación del formato
+  // ('vertical' | 'horizontal'); el resto de los 7 tags y la meta no cambian.
+  assert.match(app, /tags:etiquetasCatalogo\(catalogo\)\.map\(t => t === 'vertical' \? FORMATOS_ANUNCIO\[f\]\.tag : t\),\s*catalogo,/, 'fichaProducto lleva los 7 tags y la meta; video-package la recibe por x-package-ficha sin recalcular');
+  assert.match(app, /'9:16':\{[^}]*tag:'vertical'\}, '16:9':\{[^}]*tag:'horizontal'\}/, 'cada formato declara su etiqueta de orientación');
   assert.match(app, /'catalogo', c\.cliente, c\.id, c\.desde \? c\.desde\.slice\(0, 7\) : ''/);
   assert.match(app, /https:\/\/www\.pixeria\.com\/stock\.html\?catalogo=\$\{encodeURIComponent\(c\.id\)\}/);
   assert.match(app, /packageTags\.textContent = ficha\?\.tags\?\.length \? `Publicado con \$\{ficha\.tags\.map\(t => `#\$\{t\}`\)\.join\(' '\)\}` : ''/);

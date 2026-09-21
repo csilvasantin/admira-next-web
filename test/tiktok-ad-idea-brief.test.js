@@ -67,7 +67,9 @@ test('el creador lee ?brief=, prefija el titular y publica con el externalId exa
   assert.match(app, /get\('brief'\)/, 'lee el deep-link ?brief=');
   assert.match(app, /function fichaBrief\(b\)/);
   assert.match(app, /externalId:b\.externalId,\n/, 'el máster lleva la identidad exacta del brief');
-  assert.match(app, /tags:\['admiranext', 'tiktok', 'vertical', slugCatalogo\(b\.marca\) \|\| 'xtore'\]/);
+  // Desde b3b0579 (12-09, FLT-100372) la etiqueta de orientación sale del formato del
+  // brief: 16:9 → 'horizontal', cualquier otro → 'vertical'. Siguen siendo 4 tags.
+  assert.match(app, /tags:\['admiranext', 'tiktok', b\.formato === '16:9' \? 'horizontal' : 'vertical', slugCatalogo\(b\.marca\) \|\| 'xtore'\]/);
   assert.match(app, /function drawBriefOverlay\(ctx, b, seconds = 0\)/);
   assert.match(app, /briefCampana\.overlay\) drawBriefOverlay/, 'brief.overlay === false apaga el rótulo');
   assert.match(app, /body:JSON\.stringify\(productoCatalogo \? \{headline, producto:productoCatalogo\} : briefCampana \? \{headline, brief:briefCampana\}/);
@@ -97,7 +99,13 @@ test('con encargo, Grok nunca arranca desde el ejemplo: exige la idea desarrolla
   const flujo = app.slice(app.indexOf('async function generarAnuncioCatalogo()'), app.indexOf('function terminarFlujoCatalogo'));
   assert.match(flujo, /if\(!ok\) throw new Error\(`El director creativo no devolvió la idea/, 'si ad-idea falla se aborta con mensaje claro');
   assert.match(flujo, /if\(!ideaCoherenteConEncargo\(ad\)\) throw/, 'una idea que no habla del encargo no se rueda');
-  assert.match(flujo, /const planEncargo = core\.buildPlan\(core\.buildBriefFromAd\(ad\), 0\);\s*grokPrompt\.value = /, 'el prompt se construye desde la idea desarrollada, no desde la pantalla');
+  // Desde b3b0579 (12-09, FLT-100372) el prompt se monta en prepararPromptEncargo()
+  // —una vez por formato, con la estética del folleto— y el flujo aborta si no sale.
+  assert.match(flujo, /if\(!prepararPromptEncargo\(ad, formatoActual\)\) throw new Error\('El prompt de Grok no salió de la idea desarrollada/, 'sin prompt desde la idea no se rueda');
+  const prompt = app.slice(app.indexOf('function prepararPromptEncargo('), app.indexOf('function textoVersiones('));
+  assert.match(prompt, /const brief = core\.buildBriefFromAd\(ad\);\s*const planEncargo = core\.buildPlan\(/, 'el prompt se construye desde la idea desarrollada, no desde la pantalla');
+  assert.match(prompt, /grokPrompt\.value = core\.clean\(`\$\{planEncargo\.grokPrompt\}/, 'lo que llega a Grok es el plan de la idea');
+  assert.match(prompt, /return grokPrompt\.value\.includes\(core\.clean\(ad\.idea, 180\)\.slice\(0, 40\)\);/, 'y se verifica que el prompt contiene la idea');
   assert.match(app, /function sembrarTallerConEncargo\(\)/, 'el taller se siembra con el encargo desde el primer segundo');
 });
 
