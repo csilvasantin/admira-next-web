@@ -9,8 +9,8 @@ test('generator route injects the quadratic shell without replacing the form',as
   const response=await onRequestGet({request:new Request('https://admiranext.test/presentaciones/'),env:{ASSETS:{fetch:async()=>new Response(source)}}});
   const html=await response.text();
   assert.match(html,/presentation-generator-20260721-11\.js/);
-  assert.match(html,/presentation-generator-quadratic\.css\?v=1/);
-  assert.match(html,/presentation-generator-quadratic\.js\?v=1/);
+  assert.match(html,/presentation-generator-quadratic\.css\?v=2/);
+  assert.match(html,/presentation-generator-quadratic\.js\?v=2/);
   assert.match(html,/form id="generator"/);
 });
 
@@ -32,4 +32,27 @@ test('quadratic generator exposes the three requested navigation surfaces',async
   assert.match(styles,/generator-side-drawer\.right/);
   assert.match(styles,/generator-bottom-drawer/);
   assert.match(script,/href="\/presentaciones\/galeria\/"/);
+});
+
+test('home del generador tiene un botón visible al listado vivo, no un chip que vuelve a sí mismo', async () => {
+  const [script, styles, html] = await Promise.all([
+    readFile(new URL('../assets/presentation-generator-quadratic.js', import.meta.url), 'utf8'),
+    readFile(new URL('../assets/presentation-generator-quadratic.css', import.meta.url), 'utf8'),
+    readFile(new URL('../presentaciones/generador.html', import.meta.url), 'utf8')
+  ]);
+  assert.match(script, /id="generatorOpenListado"/);
+  assert.match(script, /href="\/presentaciones\/galeria#registroVivo"/);
+  assert.match(script, />Ver presentaciones<\/a>/);
+  assert.doesNotMatch(script, /class="generator-back" href="\/presentaciones\/"/);
+  assert.match(html, /href="\/presentaciones\/galeria#registroVivo"/);
+  assert.match(html, />Ver presentaciones<\/a>/);
+  assert.match(html, /id="generatorListadoCta"/);
+  assert.match(html, />Ver listado<\/a>/);
+  assert.match(script, /id="generatorListadoCta"/);
+  assert.match(script, />Ver listado<\/a>/);
+  assert.match(styles, /\.generator-listado\{/);
+  assert.doesNotMatch(styles, /\.generator-listado\{display:none/);
+  const mobile = styles.match(/@media\(max-width:680px\)\{[\s\S]*?\}/);
+  assert.ok(mobile, 'hay reglas móviles');
+  assert.doesNotMatch(mobile[0], /generator-listado\{display:none/);
 });
