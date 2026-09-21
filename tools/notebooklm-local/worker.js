@@ -50,6 +50,9 @@ const TOKEN=token();
 if(!TOKEN&&!setup)throw new Error('Falta PRESENTATION_WORKER_TOKEN en el entorno o en admira-vault.');
 
 async function api(method,query='',body){
+  // Todas las llamadas dicen QUIÉN las hace (FLT-100787 b): el servidor sólo acepta
+  // actualizaciones de una tarea del productor que ganó su reclamo.
+  if(body&&typeof body==='object'&&!body.worker)body={...body,worker:WORKER};
   const response=await fetchConPlazo(`${API}${query}`,{method,headers:{authorization:`Bearer ${TOKEN}`,...(body?{'content-type':'application/json'}:{})},body:body?JSON.stringify(body):undefined},API_TIMEOUT_MS);
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||`API ${response.status}`);
@@ -216,7 +219,11 @@ async function processNext(browser){
     const details=await api('GET',`?client=${encodeURIComponent(summary.client)}`),presentation={...(details.presentation||{}),displayName:summary.displayName},clientLogo=await downloadClientLogo(summary.client);
     const claimIds=eligible.filter(id=>id.startsWith(`${language}:`));
     const claimed=await api('POST','',{action:'claim',client:summary.client,id:summary.id,tasks:claimIds,worker:WORKER});
-    job=claimed.job;tasks=Object.values(job.tasks).filter(task=>claimIds.includes(task.id));
+    // Sólo lo CONCEDIDO (FLT-100787 b): antes procesaba todo lo que había pedido aunque el
+    // servidor le diera una parte, y generaba tareas que ya estaba haciendo otro productor.
+    // Un servidor antiguo sin claimedTasks concede todo lo pedido, como siempre.
+    const concedidas=Array.isArray(claimed.claimedTasks)?claimed.claimedTasks:claimIds;
+    job=claimed.job;tasks=Object.values(job.tasks).filter(task=>concedidas.includes(task.id));
     await setStage(job,tasks,'Analizando la referencia y construyendo la guía visual',10);
     const visual=await generateVisualBrief({browser,presentation,job,runtime:RUNTIME}),style=visual.brief;
     const sourceBundle=buildNotebookSourceBundle({job,presentation,visualBrief:style});
