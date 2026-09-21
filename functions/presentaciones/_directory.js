@@ -114,9 +114,10 @@ export async function readSession(env, signKey, token){
 
 /** Qué puede hacer cada nivel, en los términos de zonas del middleware. */
 export function allowedBy(level, zones){
-  const { ownerAllowed = false, editorAllowed = false, internalArea = false } = zones || {};
+  const { ownerAllowed = false, editorAllowed = false, internalArea = false, ownerOnly = false } = zones || {};
   if (level === 'owner') return Boolean(ownerAllowed || editorAllowed || !internalArea);
-  if (level === 'editor') return Boolean(editorAllowed || ownerAllowed || !internalArea);
+  // ownerOnly (p.ej. /presentaciones/control/): el editor no hereda la zona del owner.
+  if (level === 'editor') return Boolean(editorAllowed || (!ownerOnly && ownerAllowed) || !internalArea);
   if (level === 'viewer') return !internalArea;
   return false;
 }

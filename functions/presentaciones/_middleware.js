@@ -289,8 +289,9 @@ export async function onRequest(context){
     return new Response(null, {status:303, headers});
   }
   const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
-  const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi;
-  const directoryAllowed = Boolean(directorySession) && allowedBy(directorySession.level, {ownerAllowed, editorAllowed, internalArea:isInternalArea});
+  // FLT-100781: Admin (owner) entra a /control/ con Google; editor/viewer siguen fuera.
+  const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
+  const directoryAllowed = Boolean(directorySession) && allowedBy(directorySession.level, {ownerAllowed, editorAllowed, internalArea:isInternalArea, ownerOnly:isControlArea});
   const authorized = masterValid || (editorAllowed && editorValid) || directoryAllowed || (!isInternalArea && clientValid);
   const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : directoryAllowed ? directorySession.level : 'client';
   const contentType = request.headers.get('content-type') || '';

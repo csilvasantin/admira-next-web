@@ -1,16 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequest} from '../functions/presentaciones/_middleware.js';
+import {makeSessionToken} from '../functions/presentaciones/_directory.js';
 
 const env = {
   PRES_SIGNING_KEY:'trusted-owner-test-key',
   PRES_GENERIC:'1234'
 };
 
-function context(url, options = {}){
+function fakeDb(users, projects){
+  return {
+    prepare(sql){
+      return { async run(){ return {}; }, bind(...args){ return {
+        async first(){
+          if (/FROM admiranext_users WHERE google_sub=/.test(sql)) return users.find(u => u.google_sub === args[0]) || null;
+          if (/FROM admiranext_users WHERE email=\? AND google_sub IS NULL/.test(sql)) return users.find(u => u.email === args[0] && !u.google_sub) || null;
+          if (/FROM admiranext_users WHERE email=/.test(sql)) return users.find(u => u.email === args[0]) || null;
+          return null;
+        },
+        async all(){
+          if (/FROM admiranext_user_projects WHERE user_email=/.test(sql)) return { results: projects.filter(p => p.user_email === args[0]).map(p => ({project_key:p.project_key})) };
+          return { results: [] };
+        },
+        async run(){ return {}; }
+      }; } };
+    }
+  };
+}
+
+function context(url, options = {}, envOverride = env){
   return {
     request:new Request(url, options),
-    env,
+    env:envOverride,
     next:async () => new Response('ok'),
     waitUntil(){}
   };
@@ -56,7 +77,7 @@ test('el propietario automático exige correo exacto, JWT y dominio protegido', 
   }
 });
 
-test('la sesión de propietario no abre el área de control', async () => {
+test('la sesión de propietario Admin abre el área de control sin contraseña maestra', async () => {
   const login = await onRequest(context('https://www.admiranext.com/presentaciones/', {
     headers:{
       'Cf-Access-Authenticated-User-Email':'csilvasantin@gmail.com',
@@ -64,8 +85,33 @@ test('la sesión de propietario no abre el área de control', async () => {
     }
   }));
   const response = await onRequest(context('https://www.admiranext.com/presentaciones/control/', {
-    headers:{Cookie:cookieHeader(login)}
+    headers:{Cookie:cookieHeader(login), Accept:'text/html'}
   }));
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'ok');
+});
+
+test('la sesión de Editor no abre el área de control', async () => {
+  const users = [
+    { email:'editor@admira.com', display_name:'Edi Tor', role:'editor', status:'active', session_version:1, google_sub:null }
+  ];
+  const projects = [
+    { user_email:'editor@admira.com', project_key:'generador-de-presentaciones' }
+  ];
+  const editorEnv = {
+    PRES_SIGNING_KEY:'trusted-owner-test-key',
+    PRES_GENERIC:'1234',
+    AUTH_DB:fakeDb(users, projects)
+  };
+  const token = await makeSessionToken('trusted-owner-test-key', {
+    level:'editor',
+    email:'editor@admira.com',
+    name:'Edi Tor',
+    sessionVersion:1
+  }, 3600);
+  const response = await onRequest(context('https://www.admiranext.com/presentaciones/control/', {
+    headers:{Cookie:`pres_owner=${token}`, Accept:'text/html'}
+  }, editorEnv));
   assert.equal(response.status, 401);
 });
 
@@ -75,7 +121,7 @@ test('la ruta antigua del generador redirige a la entrada canónica',async()=>{
   assert.equal(response.headers.get('location'),'https://www.admiranext.com/presentaciones/?source=brief');
 });
 
-test('las dos cuentas Google propietarias acceden a presentaciones y al generador, no al área de control', async t => {
+test('las cuentas Google Admin abren presentaciones, generador y control', async t => {
   t.mock.method(globalThis, 'fetch', async () => Response.json({
     aud:'861856772040-e1ri6kpu6maagtb6crdfbb923hsaalgb.apps.googleusercontent.com',
     email:'csilva@admira.com',
@@ -99,11 +145,9 @@ test('las dos cuentas Google propietarias acceden a presentaciones y al generado
   }));
   assert.equal(presentation.status, 200);
 
-  // El área de control NO se abre con la sesión de propietario (lo dice el test de arriba y el
-  // middleware desde el 1-ago-2026, 3131156): sólo con la contraseña maestra. Esta aserción
-  // esperaba 200 y se contradecía con su propio fichero; llevaba en rojo desde entonces.
+  // FLT-100781: Admin (owner) abre /control/ sin contraseña maestra.
   const control = await onRequest(context('https://www.admiranext.com/presentaciones/control/', {
     headers:{Cookie:cookieHeader(response), Accept:'text/html'}
   }));
-  assert.equal(control.status, 401);
+  assert.equal(control.status, 200);
 });
