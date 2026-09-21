@@ -123,9 +123,12 @@ test('POST /presentaciones/api/sso: pase válido → 200, correo enmascarado y l
     assert.equal(api.status, 200, `${path} debe abrirse con la sesión del pase`);
     assert.equal(await api.text(), 'ok');
   }
-  // …pero sigue sin abrir el área de control, como cualquier propietario.
+  // Y desde FLT-100781 (e480700, 21-09) un propietario abre /control/ con su sesión de
+  // directorio: el pase de admira.tv da esa misma sesión (nivel owner, sólo para los correos
+  // de ADMIRA_SSO_EMAILS), así que también lo abre. Decisión de Carlos del 21-09 al publicar
+  // r5; antes este test exigía 401 y el PR no lo actualizó.
   const control = await middleware(context('https://www.admiranext.com/presentaciones/control/', {headers:{Cookie:cookieHeader(response), Accept:'text/html'}}));
-  assert.equal(control.status, 401);
+  assert.equal(control.status, 200);
 });
 
 test('POST /presentaciones/api/sso: errores con su código y sin cookies', async () => {
