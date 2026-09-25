@@ -16,7 +16,7 @@ import { bearerOf, tokenRow } from './_tokens.js';
 import { FLEET_EXAMPLE_VIDEO, exampleVideoEntry, ensureExampleVideo, wantsExampleVideo } from '../presentaciones/_slide-media.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.5.0' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.6.0' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -44,6 +44,8 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - list_versions {client} — historial de versiones. restore_version {client,id} — restaurar.
 - presentation_urls {client} — URLs de la presentación, de la sala y de las versiones.
 - delete_slide {client, blockId} — quita una lámina del esqueleto sin regenerar el deck (misma API que Ctrl+E → Eliminar / Ctrl+Backspace en la sala).
+- update_slide {client, blockId, title?, message?, detail?, language?} — actualiza una lámina del esqueleto sin regenerar.
+- structure:"admiranext" o slides[] — fuerza la estructura de 3 actos × (portada + a/b/c). beforeDeck/afterDeck/insertDeck aceptan pack o slug de otra presentación.
 
 ## Permisos
 El token hereda el rol del directorio: admin → todo; editor → crear, regenerar y
@@ -75,7 +77,12 @@ const HELP_TOPICS = {
 - languages: ['es','en',…] (es y en siempre). outputs: entregables (por defecto los del generador).
 - password: ≥10 caracteres (si no, la genera). overwrite:true para regenerar / mejorar una existente.
 - embeds: [{url,title}] webs que se muestran vivas dentro del deck (máx. 5, https).
-- beforeDeck / afterDeck: packs de list_decks. primaryColor / accentColor: hex.
+- beforeDeck / afterDeck: pack de list_decks O slug de otra presentación (error si no existe; ya no se descarta en silencio).
+- insertDeck: {slug, afterBlock} o array — inserta otra sala tras una lámina (cover|objective|closing|id del esqueleto).
+- structure:"admiranext" o slides[{code,title,message,duration,promise,act}] — 3 actos (studio/store/app) × portada + a/b/c.
+- footer: string u objeto {text, showSlideNumber, showBrand} — pie configurable en sala.
+- Campos desconocidos → error. El brief (problem/audience/objective/summary) ya no se corta a 1.200.
+- primaryColor / accentColor: hex.
 - slideMedia: array de medios por lámina (type video puede usar HTTPS flota admira.live /assets/…).
 - Norma vídeo (FLT-100315): si outputs incluye video, hay TikTok, o includeExampleVideo:true, el create inyecta un MP4 REAL de flota (no placeholder). Campos: exampleVideoUrl / videoUrl / videoSlide / includeExampleVideo. Default: https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4
 - Demo captura (FLT-100316): demoVideo:true o requireExampleVideo:true EXIGEN videoUrl (captura hospedada). videoSlide recomendado: closing. Ver help tema demo.
@@ -126,10 +133,19 @@ Demo completa (FLT-100316): si la demo es parte del informe, graba la captura, s
 
 Stand-in de flota (smoke): https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4
 Doc: /mcp/GESTO-DEMO-VIDEO.md · help tema demo.`
+,
+  estructura: `Estructura AdmiraNeXT (#4295): 45 minutos = 3 actos × 15 (admira.studio, admira.store, admira.app).
+Cada acto: portada + capítulos a, b y c (5 min).
+- structure:"admiranext" → 12 láminas canónicas en orden (studio-cover…app-c).
+- slides:[{code,title,message,duration,promise,act}] → misma forma, títulos/textos tuyos.
+- beforeDeck / afterDeck: pack O slug de otra presentación (error si no existe).
+- insertDeck:{slug, afterBlock} → inserta esa sala tras cover|objective|closing|id.
+- update_slide:{client,blockId,title?,message?,detail?} · footer configurable.
+- Campos desconocidos → error. Brief sin corte a 1.200.`
 };
 
 export const TOOLS = [
-  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo' } } } },
+  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo, estructura.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo · estructura' } } } },
   { name: 'list_presentations', description: 'Catálogo / censo vivo (slug, displayName, website, languages, outputs, passwordSet, versionCount, updatedAt…). Consulta antes de crear o mejorar.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_catalog', description: 'Alias de list_presentations: el catálogo es el gesto principal. Mismos campos.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
@@ -137,7 +153,7 @@ export const TOOLS = [
   { name: 'create_presentation', description: 'Crea o mejora (overwrite:true) una presentación. Antes: list_presentations. Un cliente = un slug. Devuelve slug, contraseña y URLs.', inputSchema: { type: 'object', properties: {
     displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' }, inspirationUrl: { type: 'string', description: 'URL de la web de referencia a emular en look & feel (paleta, tipografía, modo). Pídela al crear una web.' }, heroDevice: { type: 'string', enum: ['none','pocket'], description: 'Portada de la salida web: "pocket" abre el deck con un dispositivo retro dot-matrix (Game Boy) al estilo voicebenchmarks.' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
     languages: { type: 'array', items: { type: 'string' } }, outputs: { type: 'array', items: { type: 'string' } }, password: { type: 'string' }, overwrite: { type: 'boolean', description: 'true para mejorar una presentación existente in situ' },
-    embeds: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, title: { type: 'string' } } } }, beforeDeck: { type: 'string' }, afterDeck: { type: 'string' }, primaryColor: { type: 'string' }, accentColor: { type: 'string' }, slideMedia: { type: 'array', description: 'Medios por lámina (image/video/audio/animation) con rights' },
+    embeds: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, title: { type: 'string' } } } }, beforeDeck: { type: 'string', description: 'pack list_decks o slug de otra presentación' }, afterDeck: { type: 'string', description: 'pack list_decks o slug de otra presentación' }, insertDeck: { description: '{slug, afterBlock} o array' }, structure: { type: 'string', description: 'admiranext' }, slides: { type: 'array', description: '[{code,title,message,duration,promise,act}]' }, footer: { description: 'string | {text,showSlideNumber,showBrand}' }, primaryColor: { type: 'string' }, accentColor: { type: 'string' }, slideMedia: { type: 'array', description: 'Medios por lámina (image/video/audio/animation) con rights' },
     exampleVideoUrl: { type: 'string', description: 'HTTPS MP4 de flota (admira.live /assets/…) para BEST en movimiento' },
     videoUrl: { type: 'string', description: 'Alias de exampleVideoUrl' },
     videoSlide: { type: 'string', description: 'Lámina del vídeo (default cover)' },
@@ -163,7 +179,8 @@ export const TOOLS = [
   { name: 'list_versions', description: 'Historial de versiones de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'restore_version', description: 'Restaura una versión de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, id: { type: 'string' } }, required: ['client', 'id'] } },
   { name: 'presentation_urls', description: 'URLs de la presentación, la sala de presentación y el historial.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
-  { name: 'delete_slide', description: 'Elimina una lámina del esqueleto (blockId) sin regenerar el deck. En sala: Ctrl+E → Eliminar o Ctrl+Backspace.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, blockId: { type: 'string', description: 'id de la lámina (p.ej. problema)' }, language: { type: 'string' } }, required: ['client', 'blockId'] } }
+  { name: 'delete_slide', description: 'Elimina una lámina del esqueleto (blockId) sin regenerar el deck. En sala: Ctrl+E → Eliminar o Ctrl+Backspace.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, blockId: { type: 'string', description: 'id de la lámina (p.ej. problema)' }, language: { type: 'string' } }, required: ['client', 'blockId'] } },
+  { name: 'update_slide', description: 'Actualiza título/mensaje/detalle de una lámina del esqueleto sin regenerar el deck.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, blockId: { type: 'string' }, title: { type: 'string' }, message: { type: 'string' }, detail: { type: 'string' }, language: { type: 'string' } }, required: ['client', 'blockId'] } }
 ];
 
 const READ_ONLY = new Set(['help', 'list_presentations', 'get_catalog', 'list_decks', 'get_presentation', 'generation_status', 'list_versions', 'presentation_urls']);
@@ -245,7 +262,10 @@ export async function callTool(ctx, name, args = {}){
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
       assertDemoVideoUrl(a);
       const body = {};
-      for (const key of ['displayName', 'slug', 'website', 'inspirationUrl', 'heroDevice', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'afterDeck', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo']) if (a[key] !== undefined) body[key] = a[key];
+      const allowed = ['displayName', 'slug', 'website', 'inspirationUrl', 'heroDevice', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'beforeLength', 'beforeQuality', 'afterDeck', 'insertDeck', 'inserts', 'insert', 'structure', 'slides', 'footer', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo', 'closingTitle', 'closingAction'];
+      const unknown = Object.keys(a).filter(key => !allowed.includes(key));
+      if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
+      for (const key of allowed) if (a[key] !== undefined) body[key] = a[key];
       if (wantsExampleVideo(body) || requiresDemoVideoUrl(a)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
       const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
       return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };
@@ -363,6 +383,19 @@ export async function callTool(ctx, name, args = {}){
       if (!blockId) throw new Error('blockId es obligatorio (id de la lámina del esqueleto, p.ej. problema).');
       const language = ['es', 'ca', 'en'].includes(String(a.language || '').toLowerCase()) ? String(a.language).toLowerCase() : 'es';
       return callGenerator(ctx, 'PUT', `/presentaciones/${slug(a.client)}/api/inline-edit`, { action: 'deleteSlide', language, blockId });
+    }
+    case 'update_slide': {
+      const blockId = String(a.blockId || '').trim();
+      if (!blockId) throw new Error('blockId es obligatorio (id de la lámina del esqueleto).');
+      const language = ['es', 'ca', 'en'].includes(String(a.language || '').toLowerCase()) ? String(a.language).toLowerCase() : 'es';
+      const edits = [];
+      if (a.title !== undefined) edits.push({ field: 'skeleton.title', blockId, value: String(a.title) });
+      if (a.message !== undefined) edits.push({ field: 'skeleton.message', blockId, value: String(a.message) });
+      if (a.detail !== undefined) edits.push({ field: 'skeleton.detail', blockId, value: String(a.detail) });
+      if (!edits.length) throw new Error('Indica al menos title, message o detail.');
+      const unknown = Object.keys(a).filter(key => !['client', 'blockId', 'title', 'message', 'detail', 'language'].includes(key));
+      if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
+      return callGenerator(ctx, 'PUT', `/presentaciones/${slug(a.client)}/api/inline-edit`, { language, edits });
     }
   }
   throw new Error('Tool no implementada.');

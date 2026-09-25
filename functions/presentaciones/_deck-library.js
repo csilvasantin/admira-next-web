@@ -44,6 +44,7 @@ function qualityOption(value,fallback='good'){return ['good','better','best'].in
 function slideFile(number,language){return `${language}-slide-${String(number).padStart(2,'0')}.webp`}
 function assetUrl(client,file){return client?`/presentaciones/${client}/deck/admira-2026/${file}`:''}
 function bestFile(number){return `best-${bestPhases.find(phase=>number<=phase.to)?.file||'avatar'}.webp`}
+function isPresentationSlug(value){return /^[a-z0-9][a-z0-9-]{1,62}$/.test(String(value||''))}
 
 export function getDeckPack(value,client='',options={}){
   const pack=packs[cleanId(value)];if(!pack)return null;
@@ -56,9 +57,70 @@ export function getDeckPack(value,client='',options={}){
 
 export function listDeckPacks(){return Object.values(packs).map(pack=>({id:pack.id,title:pack.title,shortTitle:pack.shortTitle,description:pack.description,languages:pack.languages,recommendedPosition:pack.recommendedPosition,slideCount:pack.fullSlides.length,shortSlideCount:pack.shortSlides.length,sourceUrl:pack.sourceUrl,lengths:pack.recommendedPosition==='before'?['full','short']:['short'],qualities:pack.recommendedPosition==='before'?['good','better','best']:['good'],defaultLength:pack.defaultLength,defaultQuality:pack.defaultQuality}))}
 
-export function normalizeSequence(value={}){
-  const before=getDeckPack(value?.before)?.id||null,after=getDeckPack(value?.after)?.id||null;
-  return {before,beforeLength:lengthOption(value?.beforeLength,'full'),beforeQuality:qualityOption(value?.beforeQuality,'good'),after};
+/**
+ * Resuelve beforeDeck/afterDeck: pack de biblioteca O slug de otra presentación.
+ * Ya no descarta en silencio: si hay valor y no encaja, lanza.
+ */
+export function resolveDeckRef(value, {role='beforeDeck'}={}){
+  const raw=String(value==null?'':value).trim();
+  if(!raw)return null;
+  const id=cleanId(raw);
+  if(packs[id])return {kind:'pack',id};
+  if(isPresentationSlug(id))return {kind:'presentation',id};
+  throw new Error(`${role} «${raw}» no es un pack de list_decks ni el slug de una presentación.`);
+}
+
+/**
+ * insertDeck: {slug, afterBlock} o array de ellos. Posición = afterBlock (id de lámina del esqueleto),
+ * o "cover"|"objective"|"closing"|"" (inicio del bloque de propuesta).
+ */
+export function normalizeInsertDecks(value){
+  if(value==null||value===''||value===false)return [];
+  const rows=Array.isArray(value)?value:[value];
+  if(rows.length>8)throw new Error('insertDeck admite como máximo 8 inserciones.');
+  const out=[],seen=new Set();
+  for(const [index,row] of rows.entries()){
+    if(!row||typeof row!=='object'||Array.isArray(row))throw new Error(`insertDeck[${index}] debe ser {slug, afterBlock}.`);
+    const allowed=new Set(['slug','afterBlock','after','position','client']);
+    const unknown=Object.keys(row).filter(key=>!allowed.has(key));
+    if(unknown.length)throw new Error(`insertDeck[${index}] campos desconocidos: ${unknown.join(', ')}.`);
+    const slug=cleanId(row.slug||row.client);
+    if(!isPresentationSlug(slug))throw new Error(`insertDeck[${index}]: slug de presentación no válido.`);
+    const afterBlock=String(row.afterBlock??row.after??row.position??'').trim().toLowerCase();
+    if(afterBlock&&!/^[a-z0-9][a-z0-9_-]{0,62}$/.test(afterBlock))throw new Error(`insertDeck[${index}]: afterBlock no válido.`);
+    const key=`${slug}|${afterBlock}`;
+    if(seen.has(key))throw new Error(`insertDeck duplicado: ${slug} tras ${afterBlock||'(inicio)'}.`);
+    seen.add(key);
+    out.push({slug,afterBlock});
+  }
+  return out;
+}
+
+export function normalizeSequence(value={},{strict=true}={}){
+  const beforeRaw=value?.before;
+  const afterRaw=value?.after;
+  let before=null,after=null,beforeKind=null,afterKind=null;
+  if(beforeRaw!=null&&String(beforeRaw).trim()!==''){
+    const ref=resolveDeckRef(beforeRaw,{role:'beforeDeck'});
+    before=ref.id;beforeKind=ref.kind;
+  }
+  if(afterRaw!=null&&String(afterRaw).trim()!==''){
+    const ref=resolveDeckRef(afterRaw,{role:'afterDeck'});
+    after=ref.id;afterKind=ref.kind;
+  }
+  // Compat: llamadas antiguas sin valor siguen devolviendo nulls; con strict y valor
+  // inválido ya ha lanzado resolveDeckRef.
+  if(!strict&&beforeRaw&&!before)before=null;
+  const inserts=normalizeInsertDecks(value?.insert||value?.inserts||value?.insertDeck);
+  return {
+    before,
+    beforeKind:before?beforeKind:'pack',
+    beforeLength:lengthOption(value?.beforeLength,'full'),
+    beforeQuality:qualityOption(value?.beforeQuality,'good'),
+    after,
+    afterKind:after?afterKind:'pack',
+    inserts
+  };
 }
 
 export function isDeckAsset(collection,file){

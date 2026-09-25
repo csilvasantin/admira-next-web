@@ -17,8 +17,9 @@ test('deck library exposes a curated corporate opening and optional XaaS close',
   assert.equal(getDeckPack(DEFAULT_BEFORE_DECK,'demo',{length:'short'}).slides.length,11);
   assert.match(getDeckPack(DEFAULT_BEFORE_DECK,'demo',{quality:'best'}).slides[0].bestUrl,/best-team\.webp$/);
   assert.equal(DEFAULT_BEFORE_LENGTH,'full');assert.equal(DEFAULT_BEFORE_QUALITY,'good');
-  assert.deepEqual(normalizeSequence({before:DEFAULT_BEFORE_DECK,after:'invalid'}),{before:DEFAULT_BEFORE_DECK,beforeLength:'full',beforeQuality:'good',after:null});
-  assert.deepEqual(normalizeSequence({before:DEFAULT_BEFORE_DECK,beforeLength:'short',beforeQuality:'best'}),{before:DEFAULT_BEFORE_DECK,beforeLength:'short',beforeQuality:'best',after:null});
+  assert.throws(()=>normalizeSequence({before:DEFAULT_BEFORE_DECK,after:'!!!'}),/afterDeck/);
+  assert.equal(normalizeSequence({before:DEFAULT_BEFORE_DECK,after:'otra-sala-cliente'}).afterKind,'presentation');
+  assert.deepEqual(normalizeSequence({before:DEFAULT_BEFORE_DECK,beforeLength:'short',beforeQuality:'best'}),{before:DEFAULT_BEFORE_DECK,beforeKind:'pack',beforeLength:'short',beforeQuality:'best',after:null,afterKind:'pack',inserts:[]});
   assert.equal(isDeckAsset('admira-2026','en-slide-42.webp'),true);assert.equal(isDeckAsset('admira-2026','best-avatar.webp'),true);assert.equal(isDeckAsset('admira-2026','secret.pdf'),false);
 });
 

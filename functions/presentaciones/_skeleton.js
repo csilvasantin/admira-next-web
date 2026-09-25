@@ -80,11 +80,11 @@ export function skeletonBrief(input){
       siteTitle:clean(inspiration?.title, 140),
       siteDescription:clean(inspiration?.description, 240)
     },
-    problem:clean(input.problem, 1200),
-    audience:clean(input.audience, 500),
-    meetingObjective:clean(input.objective, 1200),
+    problem:clean(input.problem, 50000),
+    audience:clean(input.audience, 50000),
+    meetingObjective:clean(input.objective, 50000),
     suppliedTitle:clean(input.title, 220),
-    suppliedSummary:clean(input.summary, 900),
+    suppliedSummary:clean(input.summary, 50000),
     steps:BLUEPRINT
   };
 }

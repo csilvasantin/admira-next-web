@@ -41,9 +41,10 @@ test('cada tool envuelve la API del generador con sesión de directorio, mismo o
   const clients = await callTool(ctx, 'list_presentations');
   assert.equal(clients.clients[0].slug, 'portaventura');
   assert.match(log[0].cookie, /^pres_owner=\d+\.owner\./); assert.equal(log[0].origin, 'https://www.admiranext.com');
-  const created = await callTool(ctx, 'create_presentation', { displayName: 'Nuevo Cliente', website: 'https://nuevo.com', problem: 'p', extra: 'ignorado' });
+  await assert.rejects(() => callTool(ctx, 'create_presentation', { displayName: 'Nuevo Cliente', website: 'https://nuevo.com', problem: 'p', extra: 'ignorado' }), /Campos desconocidos/);
+  const created = await callTool(ctx, 'create_presentation', { displayName: 'Nuevo Cliente', website: 'https://nuevo.com', problem: 'p' });
   assert.equal(created.slug, 'nuevo-cliente'); assert.equal(created.urls.presentacion, 'https://www.admiranext.com/presentaciones/nuevo-cliente/');
-  assert.equal(log[1].method, 'PUT'); assert.ok(!JSON.parse(log[1].body).extra, 'solo pasan los campos del contrato');
+  assert.equal(log[1].method, 'PUT'); assert.ok(!('extra' in JSON.parse(log[1].body)), 'solo pasan los campos del contrato');
   await callTool(ctx, 'create_presentation', { displayName: 'Con Media', slug: 'con-media-video', slideMedia: [{ slide: 'cover', type: 'video', src: 'https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4' }] });
   const mediaBody = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('con-media-video')).body);
   assert.ok(Array.isArray(mediaBody.slideMedia));
@@ -163,7 +164,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.5.0');
+  assert.equal(init.result.serverInfo.version, '1.6.0');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');

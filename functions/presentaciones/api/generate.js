@@ -12,11 +12,27 @@ import {normalizeSourceTraceability} from '../_source-traceability.js';
 import {generateNarrativeWithRetry,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC} from '../_skeleton.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
+import {BRIEF_MAX,normalizeStructureInput,structureIdeasSeed,normalizeFooter} from '../_admiranext-structure.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
 const LANGUAGE_NAMES = {es:'Spanish',ca:'Catalan',en:'English'};
 const MAX_TERMS = 30;
+/** Campos admitidos en PUT /presentaciones/api/generate. Cualquier otro → 400. */
+export const GENERATE_ALLOWED_KEYS = new Set([
+  'displayName','slug','website','inspirationUrl','inspiration','heroDevice',
+  'problem','audience','objective','title','summary','languages','outputs','password',
+  'overwrite','embeds','beforeDeck','beforeLength','beforeQuality','afterDeck',
+  'insertDeck','inserts','insert','primaryColor','accentColor','slideMedia',
+  'exampleVideoUrl','includeExampleVideo','videoUrl','videoSlide','demoVideo',
+  'requireExampleVideo','terminology','sourceTraceability','presite','presiteSlug',
+  'structure','slides','footer','closingTitle','closingAction'
+]);
+
+export function assertKnownGenerateFields(raw={}){
+  const unknown=Object.keys(raw||{}).filter(key=>!GENERATE_ALLOWED_KEYS.has(key));
+  if(unknown.length)throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
+}
 // LA TRADUCCIÓN TAMBIÉN TIENE RELOJ (MorfeoMacMini, 21-09-2026 · FLT-100766 a). El guion
 // (_skeleton.js) y el análisis de la web ya cortaban a su plazo; la traducción no, y es la
 // última llamada del alta: si xAI se quedaba colgado, el operador miraba «Construyendo el
@@ -175,6 +191,7 @@ export async function onRequestPut(context){
   if (!origin || origin!==url.origin) return json({error:'Origen no permitido.'},403);
   if (Number(context.request.headers.get('Content-Length')||0)>MAX_BYTES) return json({error:'Petición demasiado grande.'},413);
   let raw; try{raw=await context.request.json();}catch(_){return json({error:'JSON no válido.'},400);}
+  try{assertKnownGenerateFields(raw)}catch(error){return json({error:error.message},400)}
   const displayName=text(raw.displayName,100); const slug=slugify(raw.slug||displayName);
   if (!displayName || slug.length<2) return json({error:'Indica un nombre de cliente válido.'},400);
   if (['api','generador','index','assets'].includes(slug)) return json({error:'Ese identificador está reservado.'},400);
@@ -184,6 +201,29 @@ export async function onRequestPut(context){
   try{presite=presiteOpeningInput(raw,existing?.presite)}
   catch(error){return json({error:error.message},400)}
   if(presite&&!await context.env.PRESENTATION_IDEAS.get(presiteKey(presite.slug),{type:'json'}))return json({error:'El Presite seleccionado no existe.',presite:presite.slug},422);
+  let structure=null,footer=null;
+  try{
+    structure=normalizeStructureInput({structure:raw.structure,slides:raw.slides,displayName});
+    footer=normalizeFooter(raw.footer);
+  }catch(error){return json({error:error.message},400)}
+  let sequence;
+  try{
+    sequence=normalizeSequence({
+      before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,
+      after:raw.afterDeck,insertDeck:raw.insertDeck??raw.inserts??raw.insert
+    });
+  }catch(error){return json({error:error.message},400)}
+  // before/after/insert por slug de otra presentación: deben existir en KV.
+  for(const [role,ref,kind] of [['beforeDeck',sequence.before,sequence.beforeKind],['afterDeck',sequence.after,sequence.afterKind]]){
+    if(ref&&kind==='presentation'){
+      if(ref===slug)return json({error:`${role} no puede ser la propia presentación.`},400);
+      if(!await context.env.PRESENTATION_IDEAS.get(`presentation:${ref}`,{type:'json'}))return json({error:`${role}: no existe la presentación «${ref}».`},422);
+    }
+  }
+  for(const insert of sequence.inserts||[]){
+    if(insert.slug===slug)return json({error:'insertDeck no puede insertarse a sí misma.'},400);
+    if(!await context.env.PRESENTATION_IDEAS.get(`presentation:${insert.slug}`,{type:'json'}))return json({error:`insertDeck: no existe la presentación «${insert.slug}».`},422);
+  }
   const requested=Array.isArray(raw.outputs)?raw.outputs.map(value=>String(value).toLowerCase()):DEFAULT_OUTPUTS;
   const outputs=[...new Set(requested.filter(value=>OUTPUTS.includes(value)))];
   if (!outputs.length) return json({error:'Selecciona al menos un entregable.'},400);
@@ -201,8 +241,9 @@ export async function onRequestPut(context){
   const password=supplied || (existing ? '' : createPresentationPassword());
   const passwordVerifier=password ? await hmac(context.env.PRES_SIGNING_KEY,`password:${slug}:${password}`) : existing.passwordVerifier;
   const input={
-    displayName, problem:text(raw.problem,1200), audience:text(raw.audience,500),
-    title:text(raw.title,220), summary:text(raw.summary,900), objective:text(raw.objective,1200),
+    displayName, problem:text(raw.problem,BRIEF_MAX), audience:text(raw.audience,BRIEF_MAX),
+    title:text(raw.title,220), summary:text(raw.summary,BRIEF_MAX), objective:text(raw.objective,BRIEF_MAX),
+    closingTitle:text(raw.closingTitle,220), closingAction:text(raw.closingAction,700),
     website:ensureHttpsUrl(raw.website), requestedInspirationUrl:ensureHttpsUrl(raw.inspirationUrl), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000'),
     heroDevice:['pocket','none'].includes(raw.heroDevice)?raw.heroDevice:'none'
   };
@@ -228,17 +269,27 @@ export async function onRequestPut(context){
   // esperaba a que el logo se descargara y se guardara, y ese tiempo lo pagaba el operador.
   // El motivo del respaldo se queda AQUÍ, en una variable del operador: nunca dentro
   // de `ideas`, que se persiste en KV y lo leen las rutas del portal del cliente.
-  let narrativeResult;
+  // Con structure/slides AdmiraNeXT el arco es fijo: no pedimos el guion de 8 pasos a xAI.
+  let narrativeResult=null;
+  let ideas;
   try{
-    const [brand,narrative]=await Promise.all([
-      persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis}),
-      generateNarrativeWithRetry(context.env,input)
-    ]);
-    input.brand=brand;narrativeResult=narrative;
+    if(structure){
+      const brand=await persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis});
+      input.brand=brand;
+      cronometra('logo+guion');
+      timings.guion=0;timings.guionIntentos=0;
+      ideas=structureIdeasSeed(structure,input,slug,languages);
+    }else{
+      const [brand,narrative]=await Promise.all([
+        persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis}),
+        generateNarrativeWithRetry(context.env,input)
+      ]);
+      input.brand=brand;narrativeResult=narrative;
+      cronometra('logo+guion');
+      timings.guion=narrativeResult?.ms??null;timings.guionIntentos=narrativeResult?.attempts??1;
+      ideas=mergeNarrative(buildIdeas(input,slug,languages),narrativeResult,input);
+    }
   }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
-  cronometra('logo+guion');
-  timings.guion=narrativeResult?.ms??null;timings.guionIntentos=narrativeResult?.attempts??1;
-  const ideas=mergeNarrative(buildIdeas(input,slug,languages),narrativeResult,input);
   ideas.embeds=embeds;   // las webs que se enseñan vivas dentro del deck (ver _embeds.js)
   ideas.terminology=terminology;
   let sourceTraceability;
@@ -267,7 +318,6 @@ export async function onRequestPut(context){
     ideas.translationError=String(error&&error.message||error).slice(0,300);
   }
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
-  const sequence=normalizeSequence({before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,after:raw.afterDeck});
   const compatibilityFeatures=['css-layout','interactive-controls','custom-fonts'];
   for(const entry of slideMedia){
     if(entry.type==='animation')compatibilityFeatures.push('animation');
@@ -275,17 +325,19 @@ export async function onRequestPut(context){
     if(entry.type==='video')compatibilityFeatures.push('video');
   }
   if(languages.length>1)compatibilityFeatures.push('multilingual');
+  if(structure)compatibilityFeatures.push('admiranext-structure');
   const compatibilityLab=createCompatibilityLab({
     decks:[
       {id:`proposal:${slug}`,label:`Propuesta · ${displayName}`},
-      ...(sequence.before?[{id:`library:${sequence.before}`,label:'Apertura corporativa'}]:[]),
-      ...(sequence.after?[{id:`library:${sequence.after}`,label:'Cierre corporativo'}]:[])
+      ...(sequence.before?[{id:`${sequence.beforeKind||'library'}:${sequence.before}`,label:sequence.beforeKind==='presentation'?`Antes · ${sequence.before}`:'Apertura corporativa'}]:[]),
+      ...(sequence.after?[{id:`${sequence.afterKind||'library'}:${sequence.after}`,label:sequence.afterKind==='presentation'?`Después · ${sequence.after}`:'Cierre corporativo'}]:[]),
+      ...((sequence.inserts||[]).map(item=>({id:`insert:${item.slug}`,label:`Insert · ${item.slug}`})))
     ],
     requestedOutputs:outputs,features:compatibilityFeatures
   });
   const roomDeviceLab=createRoomDeviceLab({features:compatibilityFeatures});
   const presentation={
-    schemaVersion:11,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,
+    schemaVersion:12,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,structure:structure?{id:structure.id,slideCodes:structure.slides.map(item=>item.code)}:null,footer,
     theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured',heroDevice:input.heroDevice||'none'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
@@ -304,8 +356,8 @@ export async function onRequestPut(context){
   // Quién escribió el guion viaja en la respuesta. Si se cayó al molde, el operador
   // tiene que enterarse ANTES de mandarle el enlace a un cliente: ese texto es el
   // mismo para todos y solo cambia el nombre.
-  const narrativeSource=ideas.narrativeSource==='xai'?'xai':'template';
-  const narrativeFallback=narrativeSource==='xai'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
+  const narrativeSource=ideas.narrativeSource==='xai'?'xai':ideas.narrativeSource==='admiranext-structure'?'admiranext-structure':'template';
+  const narrativeFallback=narrativeSource==='xai'||narrativeSource==='admiranext-structure'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

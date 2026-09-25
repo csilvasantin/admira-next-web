@@ -76,9 +76,21 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
     <tr><td><code>restore_version</code></td><td>Restaura una versión. <code>{client, id}</code></td><td class="ok">editor</td></tr>
     <tr><td><code>presentation_urls</code></td><td>URLs de la presentación, la sala y el historial. <code>{client}</code></td><td class="mut">ninguno</td></tr>
     <tr><td><code>delete_slide</code></td><td>Elimina una lámina del esqueleto (<code>blockId</code>) sin regenerar el deck. En sala: <code>Ctrl+E</code> → <strong>Eliminar</strong> o <code>Ctrl+Backspace</code>.</td><td class="ok">editor</td></tr>
+    <tr><td><code>update_slide</code></td><td>Actualiza título/mensaje/detalle de una lámina (<code>blockId</code>) sin regenerar. Campos: <code>title</code>, <code>message</code>, <code>detail</code>, <code>language</code>.</td><td class="ok">editor</td></tr>
   </table>
 
-  <h2>4 · Flujo típico de un consejero (gesto catálogo)</h2>
+  <h2>4 · Estructura AdmiraNeXT</h2>
+  <div class="card">
+    <p>45 minutos en tres actos de 15 (<code>admira.studio</code>, <code>admira.store</code>, <code>admira.app</code>): portada + capítulos a/b/c por acto. En <code>create_presentation</code>:</p>
+    <ul>
+      <li><code>structure: "admiranext"</code> o <code>slides:[{code,title,message,duration,promise,act}]</code></li>
+      <li><code>beforeDeck</code> / <code>afterDeck</code>: pack de <code>list_decks</code> <strong>o</strong> slug de otra presentación (error si no existe)</li>
+      <li><code>insertDeck: {slug, afterBlock}</code> — inserta otra sala tras una lámina</li>
+      <li><code>footer</code> configurable · campos desconocidos → error · brief sin corte a 1.200</li>
+    </ul>
+  </div>
+
+  <h2>5 · Flujo típico de un consejero (gesto catálogo)</h2>
   <div class="card">
     <ol>
       <li><code>list_presentations</code> / <code>get_catalog</code> → <strong>catálogo</strong>: ¿ya existe el cliente? Un cliente = un slug.</li>
