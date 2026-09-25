@@ -1,6 +1,6 @@
 import { assertKnownGenerateFields, onRequestPut, slugify } from './generate.js';
 import { ensureHttpsUrl } from '../_defaults.js';
-import { applyJobResult, publicCreateJob, readJob, reserveKey, slugJobKey, writeJob } from '../_create-job.js';
+import { applyJobResult, jobRunSignature, publicCreateJob, readJob, reserveKey, slugJobKey, writeJob } from '../_create-job.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -47,9 +47,25 @@ export async function onRequest(context) {
   };
   await writeJob(context.env, job);
   const cookie = context.request.headers.get('cookie') || '';
-  const task = runCreateJob(context, job, { origin: url.origin, cookie });
-  // El cliente ya tiene el jobId. La traducción sigue en este mismo isolate,
-  // sin una segunda petición que se corte al responder.
+  const sig = await jobRunSignature(context.env, job.id);
+  const runUrl = new URL(`/presentaciones/api/jobs/${job.id}/run`, url);
+  // Petición aparte: hace el alta dentro de su propia vida (la traducción pasa de 60 s).
+  // No llama otra vez al mismo worker, así que no se bloquea esperándose a sí misma.
+  const task = fetch(runUrl, {
+    method: 'POST',
+    headers: {
+      origin: url.origin,
+      cookie,
+      'content-type': 'application/json',
+      'x-presentation-job-run': sig
+    },
+    body: '{}'
+  }).catch(async (error) => {
+    const current = await readJob(context.env, job.id);
+    if (!current || current.status === 'saved' || current.status === 'failed') return;
+    applyJobResult(current, { ok: false, error: error && error.message || 'no se pudo arrancar el alta' });
+    await writeJob(context.env, current);
+  });
   if (typeof context.waitUntil === 'function') context.waitUntil(task);
   else await task;
   return json({ ok: true, jobId: job.id, slug, status: 'queued', displayName }, 202);
