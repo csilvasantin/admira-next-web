@@ -1625,6 +1625,18 @@
   // /filosofia — ABRE la página de filosofía del equipo (Máximas + 3 capas × 3 niveles).
   // No es contenido inline: navega a /filosofia (o filosofia.html en file://).
   // Los mandamientos canónicos NO viven aquí: viven en /mandamientos (ver cmdMandamientos).
+  function cmdLibro() {
+    const target = (window.location.protocol === 'file:') ? 'libro-de-estilo.html' : '/libro-de-estilo';
+    setTimeout(() => { window.location.href = target; }, 450);
+    return [
+      { text: 'Libro de estilo · ADmiraNeXT', cls: 'heading' },
+      { text: '' },
+      { text: '  Quiénes somos y cómo nos gustan las cosas.', cls: 'accent' },
+      { text: '' },
+      { text: '  → /libro-de-estilo', cls: 'green' },
+    ];
+  }
+
   function cmdFilosofia() {
     const target = (window.location.protocol === 'file:') ? 'filosofia.html' : '/filosofia';
     setTimeout(() => { window.location.href = target; }, 450);
@@ -2062,6 +2074,8 @@
   // Filosofía del equipo: /filosofia y /filosofía abren la página del manifiesto.
   registerHidden('/filosofia', cmdFilosofia);
   registerHidden('/filosofía', cmdFilosofia);
+  registerHidden('/libro-de-estilo', cmdLibro);
+  registerHidden('/estilo', cmdLibro);
 
   function launchEgg(label, url, color) {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
