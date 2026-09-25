@@ -1,4 +1,4 @@
-import { applyJobResult, jobRunSignature, readJob, writeJob } from '../../../../_create-job.js';
+import { applyJobResult, jobRunSignature, readJob, writeJob } from '../../../_create-job.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {

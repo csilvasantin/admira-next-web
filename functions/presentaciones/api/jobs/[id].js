@@ -1,4 +1,4 @@
-import { publicCreateJob, readJob } from '../../../_create-job.js';
+import { publicCreateJob, readJob } from '../../_create-job.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
