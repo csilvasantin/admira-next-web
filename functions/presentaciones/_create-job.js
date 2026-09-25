@@ -5,6 +5,8 @@
  */
 
 export const JOB_STATUSES = new Set(['queued', 'running', 'saved', 'failed']);
+export const STALE_MS = 10 * 60 * 1000;
+export const STALE_REASON = 'El alta llevaba más de 10 minutos sin avanzar y se ha dado por caducada. El identificador queda libre.';
 
 export function publicCreateJob(job) {
   if (!job || typeof job !== 'object') return null;
@@ -39,9 +41,26 @@ export async function readJob(env, id) {
   return env.PRESENTATION_IDEAS.get(jobKey(id), { type: 'json' });
 }
 
+export function jobIsStale(job, now = Date.now()) {
+  if (!job || (job.status !== 'queued' && job.status !== 'running')) return false;
+  const stamp = Date.parse(job.updatedAt || job.startedAt || job.createdAt || '');
+  if (!Number.isFinite(stamp)) return true;
+  return now - stamp > STALE_MS;
+}
+
+export async function expireJobIfStale(env, job, now = Date.now()) {
+  if (!jobIsStale(job, now)) return false;
+  applyJobResult(job, { ok: false, error: STALE_REASON });
+  await writeJob(env, job);
+  return true;
+}
+
 export async function writeJob(env, job) {
   await env.PRESENTATION_IDEAS.put(jobKey(job.id), JSON.stringify(job));
-  await env.PRESENTATION_IDEAS.put(reserveKey(job.slug), JSON.stringify({ id: job.id, status: job.status, slug: job.slug }));
+  const reserve = await env.PRESENTATION_IDEAS.get(reserveKey(job.slug), { type: 'json' });
+  const otherActive = reserve && reserve.id !== job.id && (reserve.status === 'queued' || reserve.status === 'running');
+  if (otherActive && job.status !== 'queued') return;
+  await env.PRESENTATION_IDEAS.put(reserveKey(job.slug), JSON.stringify({ id: job.id, status: job.status, slug: job.slug, updatedAt: job.updatedAt || null }));
   await env.PRESENTATION_IDEAS.put(slugJobKey(job.slug), job.id);
 }
 

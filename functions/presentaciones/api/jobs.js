@@ -1,6 +1,6 @@
 import { assertKnownGenerateFields, onRequestPut, slugify } from './generate.js';
 import { ensureHttpsUrl } from '../_defaults.js';
-import { applyJobResult, jobRunSignature, publicCreateJob, readJob, reserveKey, slugJobKey, writeJob } from '../_create-job.js';
+import { applyJobResult, expireJobIfStale, jobRunSignature, publicCreateJob, readJob, reserveKey, slugJobKey, writeJob } from '../_create-job.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -29,7 +29,11 @@ export async function onRequest(context) {
   if (existing && raw.overwrite !== true) return json({ error: 'Ya existe una presentación con ese identificador.', exists: true, slug }, 409);
   const reserve = await context.env.PRESENTATION_IDEAS.get(reserveKey(slug), { type: 'json' });
   if (reserve && (reserve.status === 'queued' || reserve.status === 'running')) {
-    return json({ error: 'Ya hay un alta en curso para ese identificador.', jobId: reserve.id, slug, status: reserve.status }, 409);
+    const current = reserve.id ? await readJob(context.env, reserve.id) : null;
+    const released = current ? await expireJobIfStale(context.env, current) : true;
+    if (!released) {
+      return json({ error: 'Ya hay un alta en curso para ese identificador.', jobId: reserve.id, slug, status: reserve.status }, 409);
+    }
   }
   const now = new Date().toISOString();
   const job = {
@@ -72,6 +76,8 @@ export async function onRequest(context) {
 }
 
 export async function runCreateJob(context, job, { origin, cookie }) {
+  if (job.status === 'saved' || job.status === 'failed') return job;
+  if (await expireJobIfStale(context.env, job)) return job;
   job.status = 'running';
   job.startedAt = new Date().toISOString();
   job.updatedAt = job.startedAt;
@@ -114,6 +120,7 @@ async function readStatus(context, url) {
     const id = await context.env.PRESENTATION_IDEAS.get(slugJobKey(client));
     if (id) job = await readJob(context.env, id);
   }
+  if (job) await expireJobIfStale(context.env, job);
   if (!job && !client) return json({ error: 'Indica client o job.' }, 400);
   let generation = null;
   const slug = job?.slug || client;

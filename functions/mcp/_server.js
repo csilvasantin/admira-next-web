@@ -40,7 +40,8 @@ navegable y los entregables, en castellano e inglés como mínimo.
   una presentación. Antes: list_presentations. Un cliente = un slug.
 - create_yokup_report {mision, titulo, resumen, cliente|client|slug, …} — mejora en sitio el informe
   Yokup del cliente (overwrite:true por defecto si existe). Nunca slug yokup-flt-…. Un cliente = un slug.
-- generation_status {client|job} — estado del alta (queued, running, saved, failed) y, si ya existe, la matriz de entregables. Un failed trae el error.
+- generation_status {client|job} — estado del alta (queued, running, saved, failed) y, si ya existe, la matriz de entregables. Un failed trae el error. Si lleva más de 10 minutos sin avanzar, la consulta lo da por caducado y libera el identificador.
+- cancel_presentation_job {client|job} — cancela un alta queued o running y deja el identificador libre.
 - list_versions {client} — historial de versiones. restore_version {client,id} — restaurar.
 - presentation_urls {client} — URLs de la presentación, de la sala y de las versiones.
 - delete_slide {client, blockId} — quita una lámina del esqueleto sin regenerar el deck (misma API que Ctrl+E → Eliminar / Ctrl+Backspace en la sala).
@@ -176,7 +177,8 @@ export const TOOLS = [
     demoVideo: { type: 'boolean', description: 'FLT-100316: exige videoUrl de la captura (no placeholder; no abrir plataforma en sala)' },
     requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl' }
   }, required: ['mision', 'titulo', 'resumen'] } },
-  { name: 'generation_status', description: 'Estado del alta asíncrona (queued, running, saved, failed) y, si ya existe, la matriz de entregables. Pasa client (slug) o job (jobId). failed incluye el error guardado.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, job: { type: 'string', description: 'jobId devuelto por create_presentation' } } } },
+  { name: 'generation_status', description: 'Estado del alta asíncrona (queued, running, saved, failed) y, si ya existe, la matriz de entregables. Pasa client (slug) o job (jobId). failed incluye el error guardado. Un alta de más de 10 minutos sin avanzar pasa a failed y libera el identificador.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, job: { type: 'string', description: 'jobId devuelto por create_presentation' } } } },
+  { name: 'cancel_presentation_job', description: 'Cancela un alta queued o running y deja el identificador libre. Pasa job (jobId) o client (slug). No borra una presentación ya guardada.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, job: { type: 'string', description: 'jobId devuelto por create_presentation' } } } },
   { name: 'list_versions', description: 'Historial de versiones de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'restore_version', description: 'Restaura una versión de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, id: { type: 'string' } }, required: ['client', 'id'] } },
   { name: 'presentation_urls', description: 'URLs de la presentación, la sala de presentación y el historial.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
@@ -380,6 +382,18 @@ export async function callTool(ctx, name, args = {}){
       if (job) params.set('job', job.toLowerCase());
       if (client) params.set('client', slug(client));
       return callGenerator(ctx, 'GET', `/presentaciones/api/jobs?${params}`);
+    }
+    case 'cancel_presentation_job': {
+      const job = String(a.job || '').trim().toLowerCase();
+      const client = String(a.client || '').trim();
+      if (!job && !client) throw new Error('Indica client (slug) o job (jobId).');
+      let id = job;
+      if (!id) {
+        const status = await callGenerator(ctx, 'GET', `/presentaciones/api/jobs?client=${slug(client)}`);
+        id = status && status.job && status.job.id;
+        if (!id) throw new Error('No hay un alta con ese identificador.');
+      }
+      return callGenerator(ctx, 'POST', `/presentaciones/api/jobs/${id}`, {});
     }
     case 'list_versions': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/api/versions`);
     case 'restore_version': {
