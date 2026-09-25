@@ -1,4 +1,5 @@
-import { applyJobResult, jobRunSignature, readJob, writeJob } from '../../../_create-job.js';
+import { jobRunSignature, readJob } from '../../../_create-job.js';
+import { runCreateJob } from '../../jobs.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -24,47 +25,7 @@ export async function onRequest(context) {
   const job = await readJob(context.env, id);
   if (!job) return json({ error: 'No hay un alta con ese número.', jobId: id }, 404);
   if (job.status === 'saved' || job.status === 'failed') return json({ ok: true, jobId: id, status: job.status, error: job.error || '' });
-  if (job.status === 'running') return json({ ok: true, jobId: id, status: 'running' });
-  job.status = 'running';
-  job.startedAt = new Date().toISOString();
-  job.updatedAt = job.startedAt;
-  await writeJob(context.env, job);
   const url = new URL(context.request.url);
-  try {
-    const response = await fetch(new URL('/presentaciones/api/generate', url), {
-      method: 'PUT',
-      headers: {
-        origin: url.origin,
-        cookie: context.request.headers.get('cookie') || '',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify(job.body || {})
-    });
-    const text = await response.text();
-    let data = null;
-    try { data = JSON.parse(text); } catch (_) { data = null; }
-    const current = await readJob(context.env, id) || job;
-    if (current.status === 'saved') return json({ ok: true, jobId: id, status: 'saved' });
-    if (!response.ok) {
-      applyJobResult(current, { ok: false, error: (data && data.error) || `HTTP ${response.status}` });
-    } else {
-      applyJobResult(current, {
-        ok: true,
-        result: {
-          slug: data?.slug || current.slug,
-          password: data?.password || null,
-          narrativeSource: data?.narrativeSource || null
-        }
-      });
-    }
-    await writeJob(context.env, current);
-    return json({ ok: response.ok, jobId: id, status: current.status, error: current.error || '' }, response.ok ? 200 : 422);
-  } catch (error) {
-    const current = await readJob(context.env, id) || job;
-    if (current.status !== 'saved') {
-      applyJobResult(current, { ok: false, error: error && error.message || error });
-      await writeJob(context.env, current);
-    }
-    return json({ ok: false, jobId: id, status: current.status, error: current.error || '' }, 422);
-  }
+  const current = await runCreateJob(context, job, { origin: url.origin, cookie: context.request.headers.get('cookie') || '' });
+  return json({ ok: current.status === 'saved', jobId: id, status: current.status, error: current.error || '' }, current.status === 'failed' ? 422 : 200);
 }

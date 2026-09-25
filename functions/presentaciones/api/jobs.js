@@ -1,6 +1,6 @@
-import { assertKnownGenerateFields, slugify } from './generate.js';
+import { assertKnownGenerateFields, onRequestPut, slugify } from './generate.js';
 import { ensureHttpsUrl } from '../_defaults.js';
-import { jobRunSignature, publicCreateJob, readJob, reserveKey, slugJobKey, writeJob } from '../_create-job.js';
+import { applyJobResult, publicCreateJob, readJob, reserveKey, slugJobKey, writeJob } from '../_create-job.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -46,43 +46,47 @@ export async function onRequest(context) {
     body: raw
   };
   await writeJob(context.env, job);
-  const sig = await jobRunSignature(context.env, job.id);
-  const runUrl = new URL(`/presentaciones/api/jobs/${job.id}/run`, url);
   const cookie = context.request.headers.get('cookie') || '';
-  const task = fetch(runUrl, {
-    method: 'POST',
-    headers: {
-      origin: url.origin,
-      cookie,
-      'content-type': 'application/json',
-      'x-presentation-job-run': sig
-    },
-    body: '{}'
-  }).then(async (response) => {
-    if (response.ok) return;
-    const text = await response.text();
-    let message = `HTTP ${response.status}`;
-    try { message = JSON.parse(text).error || message; } catch (_) {}
-    const current = await readJob(context.env, job.id);
-    if (current && current.status !== 'saved' && current.status !== 'failed') {
-      current.status = 'failed';
-      current.error = String(message).slice(0, 500);
-      current.finishedAt = new Date().toISOString();
-      current.updatedAt = current.finishedAt;
-      await writeJob(context.env, current);
-    }
-  }).catch(async (error) => {
-    const current = await readJob(context.env, job.id);
-    if (!current || current.status === 'saved' || current.status === 'failed') return;
-    current.status = 'failed';
-    current.error = String(error && error.message || error || 'no se pudo arrancar el alta').slice(0, 500);
-    current.finishedAt = new Date().toISOString();
-    current.updatedAt = current.finishedAt;
-    await writeJob(context.env, current);
-  });
+  const task = runCreateJob(context, job, { origin: url.origin, cookie });
+  // El cliente ya tiene el jobId. La traducción sigue en este mismo isolate,
+  // sin una segunda petición que se corte al responder.
   if (typeof context.waitUntil === 'function') context.waitUntil(task);
   else await task;
   return json({ ok: true, jobId: job.id, slug, status: 'queued', displayName }, 202);
+}
+
+export async function runCreateJob(context, job, { origin, cookie }) {
+  job.status = 'running';
+  job.startedAt = new Date().toISOString();
+  job.updatedAt = job.startedAt;
+  await writeJob(context.env, job);
+  try {
+    const response = await onRequestPut({
+      env: context.env,
+      waitUntil: typeof context.waitUntil === 'function' ? context.waitUntil.bind(context) : undefined,
+      request: new Request(new URL('/presentaciones/api/generate', origin), {
+        method: 'PUT',
+        headers: { origin, cookie: cookie || '', 'content-type': 'application/json' },
+        body: JSON.stringify(job.body || {})
+      })
+    });
+    const text = await response.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch (_) { data = null; }
+    const current = await readJob(context.env, job.id) || job;
+    if (current.status === 'saved') return current;
+    if (!response.ok) applyJobResult(current, { ok: false, error: (data && data.error) || `HTTP ${response.status}` });
+    else applyJobResult(current, { ok: true, result: { slug: data?.slug || current.slug, password: data?.password || null, narrativeSource: data?.narrativeSource || null } });
+    await writeJob(context.env, current);
+    return current;
+  } catch (error) {
+    const current = await readJob(context.env, job.id) || job;
+    if (current.status !== 'saved') {
+      applyJobResult(current, { ok: false, error: error && error.message || error });
+      await writeJob(context.env, current);
+    }
+    return current;
+  }
 }
 
 async function readStatus(context, url) {
