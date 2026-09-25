@@ -298,24 +298,34 @@ export async function onRequestPut(context){
       website:input.website,websiteLabel:`Web oficial de ${displayName}`
     });
   }catch(error){return json({error:error.message||'La trazabilidad de fuentes no es válida.'},400)}
-  try{
-    const localized=await generateTranslations(context.env,ideas,languages,terminology),spanish=localized.es;
-    cronometra('traduccion');
-    if(spanish){ideas.hero=spanish.hero;ideas.objective=spanish.objective;ideas.skeleton=spanish.skeleton;ideas.closing=spanish.closing;ideas.labels=spanish.labels;delete localized.es}
-    ideas.translations=localized;
+  // La traducción es lo que pasa de 60 s. Con waitUntil (alta asíncrona) el deck se
+  // guarda ya, con una copia marcada para revisión, y la traducción de verdad sigue después.
+  // Sin waitUntil (la llamada directa y los tests) se espera como hasta ahora.
+  const deferTranslation=typeof context.waitUntil==='function';
+  async function applyTranslations(){
+    try{
+      const localized=await generateTranslations(context.env,ideas,languages,terminology),spanish=localized.es;
+      cronometra('traduccion');
+      if(spanish){ideas.hero=spanish.hero;ideas.objective=spanish.objective;ideas.skeleton=spanish.skeleton;ideas.closing=spanish.closing;ideas.labels=spanish.labels;delete localized.es}
+      ideas.translations=localized;
+      delete ideas.translationPending;
+      delete ideas.translationError;
+    }
+    catch(error){
+      // EL BILINGUISMO NO PUEDE TUMBAR UN ALTA (Neo · MBP14, 02-09-2026).
+      const copia=JSON.parse(JSON.stringify({hero:ideas.hero||{},objective:ideas.objective||'',skeleton:ideas.skeleton||[],closing:ideas.closing||{},labels:ideas.labels||{}}));
+      ideas.translations=Object.fromEntries(languages.filter(language=>language!=='es').map(language=>[language,JSON.parse(JSON.stringify(copia))]));
+      ideas.translationPending=languages.filter(language=>language!=='es');
+      ideas.translationError=String(error&&error.message||error).slice(0,300);
+    }
   }
-  catch(error){
-    // EL BILINGUISMO NO PUEDE TUMBAR UN ALTA (Neo · MBP14, 02-09-2026). Desde que castellano
-    // e ingles son obligatorios, TODA presentacion pasa por la traduccion; antes una
-    // monolingue en castellano se la saltaba. Si aqui devolvemos 502, un tropiezo del
-    // proveedor deja al comercial sin poder crear la presentacion —hemos convertido una
-    // mejora en un punto unico de fallo—. Se degrada: el segundo idioma nace con el texto
-    // de origen y queda marcado para revision, que es justo lo que hace el editor en linea
-    // cuando un idioma no existe todavia. La presentacion se crea; la traduccion se repasa.
+  if(deferTranslation){
     const copia=JSON.parse(JSON.stringify({hero:ideas.hero||{},objective:ideas.objective||'',skeleton:ideas.skeleton||[],closing:ideas.closing||{},labels:ideas.labels||{}}));
     ideas.translations=Object.fromEntries(languages.filter(language=>language!=='es').map(language=>[language,JSON.parse(JSON.stringify(copia))]));
     ideas.translationPending=languages.filter(language=>language!=='es');
-    ideas.translationError=String(error&&error.message||error).slice(0,300);
+    timings.traduccion='deferred';
+  }else{
+    await applyTranslations();
   }
   const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
   const compatibilityFeatures=['css-layout','interactive-controls','custom-fonts'];
@@ -356,6 +366,17 @@ export async function onRequestPut(context){
   // Quién escribió el guion viaja en la respuesta. Si se cayó al molde, el operador
   // tiene que enterarse ANTES de mandarle el enlace a un cliente: ese texto es el
   // mismo para todos y solo cambia el nombre.
+  if(deferTranslation){
+    const env=context.env;
+    context.waitUntil((async()=>{
+      await applyTranslations();
+      ideas.updatedAt=new Date().toISOString();
+      await Promise.all([
+        env.PRESENTATION_IDEAS.put(`ideas:${slug}`,JSON.stringify(ideas)),
+        env.PRESENTATION_IDEAS.put(`ideas-base:${slug}`,JSON.stringify(ideas))
+      ]);
+    })());
+  }
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':ideas.narrativeSource==='admiranext-structure'?'admiranext-structure':'template';
   const narrativeFallback=narrativeSource==='xai'||narrativeSource==='admiranext-structure'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
