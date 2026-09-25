@@ -40,7 +40,7 @@ navegable y los entregables, en castellano e inglés como mínimo.
   una presentación. Antes: list_presentations. Un cliente = un slug.
 - create_yokup_report {mision, titulo, resumen, cliente|client|slug, …} — mejora en sitio el informe
   Yokup del cliente (overwrite:true por defecto si existe). Nunca slug yokup-flt-…. Un cliente = un slug.
-- generation_status {client} — estado de la generación en curso (idiomas × entregables).
+- generation_status {client|job} — estado del alta (queued, running, saved, failed) y, si ya existe, la matriz de entregables. Un failed trae el error.
 - list_versions {client} — historial de versiones. restore_version {client,id} — restaurar.
 - presentation_urls {client} — URLs de la presentación, de la sala y de las versiones.
 - delete_slide {client, blockId} — quita una lámina del esqueleto sin regenerar el deck (misma API que Ctrl+E → Eliminar / Ctrl+Backspace en la sala).
@@ -55,7 +55,7 @@ restaurar; viewer → solo listar y leer. Sin usuario activo o sin el proyecto
 ## Flujo típico de un consejero (gesto catálogo)
 1. list_presentations (o get_catalog) → catálogo: ¿ya existe el cliente? (un cliente = un slug).
 2. Si existe: create_presentation / create_yokup_report con overwrite:true (Mejorar). Si no: crear con displayName + website.
-3. generation_status hasta que todos los entregables estén «done».
+3. generation_status {client} o {job} hasta status saved (o failed, con el error guardado).
 4. presentation_urls → compartir la URL y la contraseña con el cliente.
 UI humana: /presentaciones/galeria (Registro vivo) y /presentaciones/?improve=<slug>.
 
@@ -75,7 +75,8 @@ const HELP_TOPICS = {
 - SALIDA WEB: si el usuario pide "una web" espectacular, PÍDELE una URL de referencia y pásala en inspirationUrl (de ahí sale el look & feel: paleta, tipografía, modo). Para un arranque tipo voicebenchmarks, añade heroDevice:"pocket" (portada con dispositivo retro dot-matrix).
 - problem: problema que resolvemos. audience: a quién se la presentamos. objective: objetivo de la reunión. title: título principal.
 - languages: ['es','en',…] (es y en siempre). outputs: entregables (por defecto los del generador).
-- password: ≥10 caracteres (si no, la genera). overwrite:true para regenerar / mejorar una existente.
+- password: ≥10 caracteres (si no, la genera; llega en generation_status cuando status es saved). overwrite:true para regenerar / mejorar una existente.
+- El alta vuelve al momento: jobId + slug + status queued. La traducción sigue en segundo plano y no corta la llamada. generation_status dice saved o failed; el fallo queda guardado.
 - embeds: [{url,title}] webs que se muestran vivas dentro del deck (máx. 5, https).
 - beforeDeck / afterDeck: pack de list_decks O slug de otra presentación (error si no existe; ya no se descarta en silencio).
 - insertDeck: {slug, afterBlock} o array — inserta otra sala tras una lámina (cover|objective|closing|id del esqueleto).
@@ -150,7 +151,7 @@ export const TOOLS = [
   { name: 'get_catalog', description: 'Alias de list_presentations: el catálogo es el gesto principal. Mismos campos.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_presentation', description: 'Contenido vivo de una presentación (láminas, idiomas, secuencia).', inputSchema: { type: 'object', properties: { client: { type: 'string', description: 'slug de la presentación' } }, required: ['client'] } },
-  { name: 'create_presentation', description: 'Crea o mejora (overwrite:true) una presentación. Antes: list_presentations. Un cliente = un slug. Devuelve slug, contraseña y URLs.', inputSchema: { type: 'object', properties: {
+  { name: 'create_presentation', description: 'Reserva el slug y arranca el alta. Devuelve jobId y slug al momento, sin esperar a la traducción. Sigue con generation_status hasta saved o failed. Antes: list_presentations. Un cliente = un slug.', inputSchema: { type: 'object', properties: {
     displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' }, inspirationUrl: { type: 'string', description: 'URL de la web de referencia a emular en look & feel (paleta, tipografía, modo). Pídela al crear una web.' }, heroDevice: { type: 'string', enum: ['none','pocket'], description: 'Portada de la salida web: "pocket" abre el deck con un dispositivo retro dot-matrix (Game Boy) al estilo voicebenchmarks.' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
     languages: { type: 'array', items: { type: 'string' } }, outputs: { type: 'array', items: { type: 'string' } }, password: { type: 'string' }, overwrite: { type: 'boolean', description: 'true para mejorar una presentación existente in situ' },
     embeds: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, title: { type: 'string' } } } }, beforeDeck: { type: 'string', description: 'pack list_decks o slug de otra presentación' }, afterDeck: { type: 'string', description: 'pack list_decks o slug de otra presentación' }, insertDeck: { description: '{slug, afterBlock} o array' }, structure: { type: 'string', description: 'admiranext' }, slides: { type: 'array', description: '[{code,title,message,duration,promise,act}]' }, footer: { description: 'string | {text,showSlideNumber,showBrand}' }, primaryColor: { type: 'string' }, accentColor: { type: 'string' }, slideMedia: { type: 'array', description: 'Medios por lámina (image/video/audio/animation) con rights' },
@@ -175,7 +176,7 @@ export const TOOLS = [
     demoVideo: { type: 'boolean', description: 'FLT-100316: exige videoUrl de la captura (no placeholder; no abrir plataforma en sala)' },
     requireExampleVideo: { type: 'boolean', description: 'Alias de demoVideo: exige videoUrl / exampleVideoUrl' }
   }, required: ['mision', 'titulo', 'resumen'] } },
-  { name: 'generation_status', description: 'Estado de la generación (idiomas × entregables) de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
+  { name: 'generation_status', description: 'Estado del alta asíncrona (queued, running, saved, failed) y, si ya existe, la matriz de entregables. Pasa client (slug) o job (jobId). failed incluye el error guardado.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, job: { type: 'string', description: 'jobId devuelto por create_presentation' } } } },
   { name: 'list_versions', description: 'Historial de versiones de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'restore_version', description: 'Restaura una versión de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, id: { type: 'string' } }, required: ['client', 'id'] } },
   { name: 'presentation_urls', description: 'URLs de la presentación, la sala de presentación y el historial.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
@@ -267,7 +268,7 @@ export async function callTool(ctx, name, args = {}){
       if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
       for (const key of allowed) if (a[key] !== undefined) body[key] = a[key];
       if (wantsExampleVideo(body) || requiresDemoVideoUrl(a)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
-      const out = await callGenerator(ctx, 'PUT', '/presentaciones/api/generate', body);
+      const out = await callGenerator(ctx, 'POST', '/presentaciones/api/jobs', body);
       return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };
     }
     case 'create_yokup_report': {
@@ -371,7 +372,15 @@ export async function callTool(ctx, name, args = {}){
       ].filter(Boolean).join('\n');
       return { ...out, kind: 'yokup-report', mode, mision, slug: finalSlug, qualityHint, urls: { ...urls, salaQuality }, yokupBlock, previous };
     }
-    case 'generation_status': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/api/generation`);
+    case 'generation_status': {
+      const job = String(a.job || '').trim();
+      const client = String(a.client || '').trim();
+      if (!job && !client) throw new Error('Indica client (slug) o job (jobId).');
+      const params = new URLSearchParams();
+      if (job) params.set('job', job.toLowerCase());
+      if (client) params.set('client', slug(client));
+      return callGenerator(ctx, 'GET', `/presentaciones/api/jobs?${params}`);
+    }
     case 'list_versions': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/api/versions`);
     case 'restore_version': {
       if (!String(a.id || '').trim()) throw new Error('id de versión obligatorio (list_versions).');

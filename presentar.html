@@ -48,7 +48,7 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
     <ol>
       <li><code>list_presentations</code> → ¿ya existe el cliente?</li>
       <li><code>create_presentation</code> con <code>displayName</code>, <code>website</code> (de ahí sale el logo), <code>problem</code> y <code>audience</code>. Devuelve slug, contraseña y URLs.</li>
-      <li><code>generation_status</code> hasta que todos los entregables estén <code>done</code>.</li>
+      <li><code>generation_status</code> hasta <code>saved</code> o <code>failed</code>. <code>create_presentation</code> devuelve <code>jobId</code> al momento.</li>
       <li><code>presentation_urls</code> → comparte la URL privada y la contraseña con el cliente.</li>
     </ol>
     <p class="mut">Sin token solo funcionan <code>initialize</code>, <code>tools/list</code> y <code>help</code>. El token lo crea un administrador desde <a href="/usuarios">/usuarios</a> y se muestra una sola vez.</p>

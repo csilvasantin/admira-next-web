@@ -13,6 +13,11 @@ function ctxFor(level, log = []){
     const path = new URL(url).pathname;
     const ok = (data, status = 200) => ({ status, ok: status < 400, text: async () => JSON.stringify(data) });
     if (path === '/presentaciones/api/clients') return ok({ clients: [{ slug: 'portaventura', displayName: 'PortAventura World' }, { slug: 'valiant-alcampo', displayName: 'Valiant Alcampo', website: 'https://www.alcampo.es', updatedAt: '2026-09-01T10:00:00Z' }] });
+    if (path === '/presentaciones/api/jobs') {
+      let slug = 'nuevo-cliente';
+      try { const b = JSON.parse(init.body || '{}'); if (b.slug) slug = b.slug; } catch {}
+      return ok({ ok: true, jobId: 'job-test', slug, status: 'queued' }, 202);
+    }
     if (path === '/presentaciones/api/generate') {
       let slug = 'nuevo-cliente'; let password = 'abc';
       try { const b = JSON.parse(init.body || '{}'); if (b.slug) slug = b.slug; if (b.password) password = b.password; } catch {}
@@ -44,13 +49,15 @@ test('cada tool envuelve la API del generador con sesión de directorio, mismo o
   await assert.rejects(() => callTool(ctx, 'create_presentation', { displayName: 'Nuevo Cliente', website: 'https://nuevo.com', problem: 'p', extra: 'ignorado' }), /Campos desconocidos/);
   const created = await callTool(ctx, 'create_presentation', { displayName: 'Nuevo Cliente', website: 'https://nuevo.com', problem: 'p' });
   assert.equal(created.slug, 'nuevo-cliente'); assert.equal(created.urls.presentacion, 'https://www.admiranext.com/presentaciones/nuevo-cliente/');
-  assert.equal(log[1].method, 'PUT'); assert.ok(!('extra' in JSON.parse(log[1].body)), 'solo pasan los campos del contrato');
+  assert.equal(created.jobId, 'job-test'); assert.equal(created.status, 'queued');
+  assert.equal(log[1].method, 'POST'); assert.match(log[1].url, /\/presentaciones\/api\/jobs$/);
+  assert.ok(!('extra' in JSON.parse(log[1].body)), 'solo pasan los campos del contrato');
   await callTool(ctx, 'create_presentation', { displayName: 'Con Media', slug: 'con-media-video', slideMedia: [{ slide: 'cover', type: 'video', src: 'https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4' }] });
-  const mediaBody = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('con-media-video')).body);
+  const mediaBody = JSON.parse(log.find(e => e.method === 'POST' && e.body && e.body.includes('con-media-video')).body);
   assert.ok(Array.isArray(mediaBody.slideMedia));
   assert.equal(mediaBody.slideMedia[0].src, 'https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4');
   await callTool(ctx, 'create_presentation', { displayName: 'Video Output', slug: 'video-output-demo', outputs: ['website', 'video'] });
-  const videoOutBody = JSON.parse(log.find(e => e.method === 'PUT' && e.body && e.body.includes('video-output-demo')).body);
+  const videoOutBody = JSON.parse(log.find(e => e.method === 'POST' && e.body && e.body.includes('video-output-demo')).body);
   assert.ok(videoOutBody.slideMedia.some(item => item.type === 'video' && String(item.src).includes('boca-v2-ciclo.mp4')));
   const deleted = await callTool(ctx, 'delete_slide', { client: 'portaventura', blockId: 'problema' });
   assert.equal(deleted.deleted, 'problema');

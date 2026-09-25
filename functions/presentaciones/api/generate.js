@@ -44,7 +44,7 @@ function json(body, status = 200){
   return new Response(JSON.stringify(body), { status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'} });
 }
 function text(value, max){ return String(value == null ? '' : value).replace(/\r\n?/g,'\n').trim().slice(0,max); }
-function slugify(value){
+export function slugify(value){
   return text(value,80).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,63);
 }
 function color(value, fallback){ return /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value).toLowerCase() : fallback; }
