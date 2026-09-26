@@ -110,7 +110,7 @@ def render(modo, carpeta, salida):
     from PIL import Image, ImageDraw, ImageFilter
     import numpy as np
     sys.path.insert(0, AQUI)
-    from comun import carga_guion, ruta, font, ease, fade, text_layer, with_alpha, paste, fit, wrap_balanced, wrap_greedy, glow, grain, rounded_card, qr_img
+    from comun import carga_guion, ruta, font, ease, fade, text_layer, with_alpha, paste, fit, wrap_balanced, wrap_greedy, titulo_en_lineas, glow, grain, rounded_card, qr_img
 
     g = carga_guion(os.path.join(carpeta, "guion.json"))
     TI = json.load(open(os.path.join(carpeta, "tiempos.json"), encoding="utf-8"))
@@ -393,9 +393,11 @@ def render(modo, carpeta, salida):
     resto = re.sub(r"\s+", " ", todo.replace(m.group(0), "") if m else todo).strip()
     HAS_QR = bool(g.get("qr"))
     tw_ = 980 if VERT else 640
-    fg = font(BEBAS, fit(BEBAS, [grande], 980, 200) if VERT else 190)
-    lg = [[grande]] if VERT else wrap_balanced(grande.split(), fg, tw_, 2)
-    C1 = text_layer([" ".join(l) for l in lg], fg, CIFRA, shadow=14, align="center" if VERT else "left", spacing=0.95)
+    # el mayor cuerpo con el que la frase cabe entera (wrap_balanced recorta lo que no cabe)
+    lg, sg = titulo_en_lineas(grande, BEBAS, tw_, 200 if VERT else 190, 2 if VERT else 3, 90)
+    if VERT and fit(BEBAS, [grande], tw_, 200) >= 150: lg, sg = [grande], fit(BEBAS, [grande], tw_, 200)   # en vertical, una línea si se lee grande
+    fg = font(BEBAS, sg)
+    C1 = text_layer(lg, fg, CIFRA, shadow=14, align="center" if VERT else "left", spacing=0.95)
     fr_ = inter(50 if VERT else 46, "SemiBold")
     lr = []
     for frase in re.findall(r"[^.]+\.?", resto):
@@ -416,9 +418,12 @@ def render(modo, carpeta, salida):
         QR_PX = 520 if HAS_QR else 0
         alto = sum(x.height - 20 for x in bloque); y = max(40, min((H - 60 - alto) / 2 - 20, H - 150 - alto)); POS_TXT = []   # por encima de la fuente
         for x in bloque: POS_TXT.append((x, 50, y)); y += x.height - 20
-        POR_CIERRE_H = 720 if HAS_QR else 820
-        POS_POR = (1080, 500) if HAS_QR else (1330, 500)
         POS_QR = (1640, 470)
+        # la portada cabe entre la columna de texto y el QR sin que este la tape (un disco es cuadrado)
+        izq, der = 740, (POS_QR[0] - QR_PX / 2 - 30) if HAS_QR else W - 60
+        rel = PORTADA.width / PORTADA.height
+        POR_CIERRE_H = int(min(720 if HAS_QR else 820, (der - izq - 80) / rel))
+        POS_POR = ((izq + der) / 2, 500)
     POR_CIERRE = portada(POR_CIERRE_H)
     if HAS_QR:
         qr = qr_img(g["qr"], QR_PX - 60, dark="#111111", light="#ffffff")
