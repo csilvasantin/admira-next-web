@@ -25,6 +25,11 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "${ARGS[0]:-}" = "--pendientes" ]; then
+  # Una sola vuelta a la vez: si el cron salta mientras la anterior aún compone, se va.
+  LOCK="$BASE/.pendientes.lock"; mkdir -p "$BASE"
+  mkdir "$LOCK" 2>/dev/null || { echo "$(date '+%F %T') otra vuelta en curso ($LOCK); salgo"; exit 0; }
+  trap 'rmdir "$LOCK"' EXIT
+  echo "$(date '+%F %T') vuelta de pendientes"
   for id in $("$PY" "$HERE/pendientes.py"); do
     bash "$HERE/capsula.sh" "$id" "$BASE/$id" $PUBLICAR || echo "✗ $id falló; sigo con la siguiente" >&2
   done

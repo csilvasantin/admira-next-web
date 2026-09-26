@@ -54,9 +54,11 @@ bash tools/capsulas/capsula.sh 1790336817010-dieu0q ~/capsulas/jobs-co-intellige
 bash tools/capsulas/capsula.sh --pendientes --publicar
 ```
 
-Automático para toda cápsula nueva: un cron en la máquina que componga, p. ej. cada 15 min
-`bash tools/capsulas/capsula.sh --pendientes --publicar`. Si una cápsula todavía no tiene clip
-(el motor tarda unos minutos), `pendientes.py --solo-con-clip` la deja para la siguiente vuelta.
+Automático para toda cápsula nueva: un cron en la máquina que componga, cada 15 min
+`bash tools/capsulas/capsula.sh --pendientes --publicar` (instalado en GrokBotBox con
+`instalar-cron.sh`). Una cápsula sin clip de Grok se espera 30 min (el motor tarda unos minutos
+en dejarlo); pasado ese margen se compone igual con el fondo del tema y voz local. Un candado
+evita que dos vueltas se pisen.
 
 Instalación (una vez por máquina):
 
