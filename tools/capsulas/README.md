@@ -55,8 +55,9 @@ bash tools/capsulas/capsula.sh --pendientes --publicar
 ```
 
 Automático para toda cápsula nueva: un cron en la máquina que componga, cada 15 min
-`bash tools/capsulas/capsula.sh --pendientes --publicar` (instalado en GrokBotBox con
-`instalar-cron.sh`). Una cápsula sin clip de Grok se espera 30 min (el motor tarda unos minutos
+`bash tools/capsulas/capsula.sh --pendientes --publicar`, que deja `instalar-cron.sh` (crontab si
+la máquina lo tiene; si no —las cajas Linux no traen cron ni systemd—, un bucle nohup con pidfile
+en `$CAPSULAS_DIR/.bucle.pid`, que no sobrevive a un reinicio: hay que relanzarlo al arrancar la caja). Una cápsula sin clip de Grok se espera 30 min (el motor tarda unos minutos
 en dejarlo); pasado ese margen se compone igual con el fondo del tema y voz local. Un candado
 evita que dos vueltas se pisen.
 
