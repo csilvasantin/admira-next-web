@@ -25,10 +25,11 @@ HUECO = 0.15
 
 # Plantillas de Walt: color del tipo, fondo y texto de la cifra.
 TIPOS = {
-    "literaria":  {"color": (0x4F, 0x6B, 0x3A), "detalle": (0x8A, 0x5A, 0x3B), "fondo": (0x16, 0x1D, 0x12), "cifra": (0xF2, 0xE6, 0xCF)},
-    "efemerides": {"color": (0xE8, 0xA3, 0x3D), "detalle": (0xE8, 0xA3, 0x3D), "fondo": (0x1A, 0x14, 0x10), "cifra": (0xE8, 0xA3, 0x3D)},
-    "musical":    {"color": (0xC8, 0x30, 0x2E), "detalle": (0xC8, 0x30, 0x2E), "fondo": (0x11, 0x11, 0x11), "cifra": (0xF5, 0xF0, 0xE6)},
+    "literaria":  {"color": (0x4F, 0x6B, 0x3A), "detalle": (0x8A, 0x5A, 0x3B), "fondo": (0x16, 0x1D, 0x12), "cifra": (0xF2, 0xE6, 0xCF), "tinte": (0xA9, 0xC4, 0x8E)},
+    "efemerides": {"color": (0xE8, 0xA3, 0x3D), "detalle": (0xE8, 0xA3, 0x3D), "fondo": (0x1A, 0x14, 0x10), "cifra": (0xE8, 0xA3, 0x3D), "tinte": (0xE8, 0xA3, 0x3D)},
+    "musical":    {"color": (0xC8, 0x30, 0x2E), "detalle": (0xC8, 0x30, 0x2E), "fondo": (0x11, 0x11, 0x11), "cifra": (0xF5, 0xF0, 0xE6), "tinte": (0xE8, 0x5A, 0x55)},
 }
+TIPOS["efemerides-santo"] = TIPOS["efemerides"]
 BLANCO = (0xF5, 0xF0, 0xE6)
 NEGRO = (0x11, 0x11, 0x11)
 
@@ -69,12 +70,21 @@ def voz(carpeta):
         if total <= VOZ_FIN - VOZ_INI or ls <= 0.7: break
         ls = round(ls - 0.02, 2)
     sr = tr["gancho"][0]
-    out = array.array("h", [0] * int(VOZ_INI * sr)); tiempos = {"length_scale": ls, "tramos": {}}
-    for k in orden:
-        _, m, pal = tr[k]; t0 = len(out) / sr
+    # Cada tramo arranca lo más cerca posible de la tabla de Walt (gancho 3,6 · cifra 8 · idea 11)
+    # sin pisar el anterior, y si el último se pasa de VOZ_FIN se adelantan hacia atrás: con una
+    # locución corta el gancho no dura un segundo y la idea no se queda seis.
+    dur = [len(tr[k][1]) / sr for k in orden]
+    tarde = [0.0] * len(orden); tarde[-1] = VOZ_FIN - dur[-1]          # arranque más tardío posible
+    for i in range(len(orden) - 2, -1, -1): tarde[i] = tarde[i + 1] - HUECO - dur[i]
+    ini = []
+    for i, obj in enumerate([VOZ_INI, 8.0, 11.0]):
+        ini.append(max(ini[-1] + dur[i - 1] + HUECO, min(obj, tarde[i])) if ini else obj)
+    out = array.array("h"); tiempos = {"length_scale": ls, "tramos": {}}
+    for k, t0 in zip(orden, ini):
+        _, m, pal = tr[k]
+        out.extend([0] * (int(round(t0 * sr)) - len(out))); t0 = len(out) / sr
         out.extend(m)
         tiempos["tramos"][k] = {"s": round(t0, 3), "e": round(len(out) / sr, 3), "palabras": [{"w": w, "s": round(t0 + s, 3), "e": round(t0 + e, 3)} for w, s, e in pal]}
-        out.extend([0] * int(HUECO * sr))
     out.extend([0] * (int(DUR * sr) - len(out)))
     bruto = os.path.join(carpeta, "voz-bruta.wav")
     with wave.open(bruto, "wb") as w:
@@ -105,7 +115,8 @@ def render(modo, carpeta, salida):
     g = carga_guion(os.path.join(carpeta, "guion.json"))
     TI = json.load(open(os.path.join(carpeta, "tiempos.json"), encoding="utf-8"))
     F_ = TI["fases"]
-    TP = TIPOS[g.get("tipo", "literaria")]
+    TIPO = {"efemerides-santo": "efemerides"}.get(g.get("tipo", "literaria"), g.get("tipo", "literaria"))
+    TP = TIPOS[TIPO]; TINTE = TP["tinte"]
     VERDE, MADERA, FONDO, CIFRA = TP["color"], TP["detalle"], TP["fondo"], TP["cifra"]
     FD = os.environ.get("CAPSULAS_FUENTES", "/usr/share/fonts/truetype/sand-box/")
     BEBAS = FD + "google/Bebas Neue/BebasNeue-Regular.ttf"
@@ -233,6 +244,79 @@ def render(modo, carpeta, salida):
         cols = [(VERDE if i == activa else TINTA) + ((255,) if i <= activa or t_abs >= ganchos[-1]["e"] else (70,)) for i in range(len(ws))]
         return text_layer([" ".join(l) for l in lines], g_font, TINTA, colors=cols, shadow=0, spacing=1.0)
 
+    # ---------- entradas de efemérides y musical: objeto a un lado, el gancho escrito al otro ----------
+    OBJ_C, OBJ_S = ((W / 2, 640), 600) if VERT else ((470, 560), 620)
+    GAN_C, GAN_W = ((W / 2, 1360), 960) if VERT else ((940, 560), 880)
+
+    def calendario(t):
+        """Taco de calendario: la hoja del día anterior se levanta y queda la fecha del día en ámbar."""
+        L = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        cw, ch = int(OBJ_S * 0.82), OBJ_S
+        a = ease(t / 0.3); cx, cy = OBJ_C; x0, y0 = int(cx - cw / 2), int(cy - ch / 2)
+        sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((x0, y0 + 24, x0 + cw, y0 + ch + 30), 30, fill=(0, 0, 0, 170))
+        L.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24))); d = ImageDraw.Draw(L)
+        dia, mes = (g.get("entrada") or "26 SEP").split(" ", 1)
+        # hoja de hoy (debajo): negro cálido con la fecha en ámbar
+        d.rounded_rectangle((x0, y0, x0 + cw, y0 + ch), 30, fill=(0x2A, 0x20, 0x18, 255), outline=VERDE + (255,), width=6)
+        d.rectangle((x0 + 6, y0 + 70, x0 + cw - 6, y0 + 78), fill=VERDE + (255,))
+        for k in range(2):
+            rx = x0 + cw * (0.3 + 0.4 * k); d.rounded_rectangle((rx - 14, y0 - 30, rx + 14, y0 + 40), 10, fill=(0x6A, 0x5A, 0x4A, 255))
+        fd = font(BEBAS, int(ch * 0.56)); fm = font(BEBAS, int(ch * 0.2))
+        d.text((cx - fd.getlength(dia) / 2, y0 + ch * 0.17), dia, font=fd, fill=VERDE + (255,))
+        d.text((cx - fm.getlength(mes) / 2, y0 + ch * 0.7), mes, font=fm, fill=VERDE + (255,))
+        # hoja de ayer (encima): se levanta por la bisagra de arriba
+        k = ease((t - 0.25) / 0.55)
+        if k < 1:
+            hh = int((ch - 78) * (1 - k))
+            if hh > 4:
+                hoja = Image.new("RGBA", (cw - 12, ch - 78), (0xF2, 0xE6, 0xCF, 255)); dh = ImageDraw.Draw(hoja)
+                ayer = str(int(dia) - 1) if dia.isdigit() else ""
+                dh.text(((cw - 12) / 2 - fd.getlength(ayer) / 2, ch * 0.17 - 78), ayer, font=fd, fill=(0x3A, 0x30, 0x26, 255))
+                dh.text(((cw - 12) / 2 - fm.getlength(mes) / 2, ch * 0.7 - 78), mes, font=fm, fill=(0x3A, 0x30, 0x26, 255))
+                hoja = hoja.resize((cw - 12, hh), Image.BILINEAR)
+                L.alpha_composite(hoja, (x0 + 6, y0 + 78))
+        return with_alpha(L, a)
+
+    DISCO_D = OBJ_S
+    _disco = Image.new("RGBA", (DISCO_D, DISCO_D), (0, 0, 0, 0)); dd = ImageDraw.Draw(_disco)
+    dd.ellipse((0, 0, DISCO_D - 1, DISCO_D - 1), fill=(0x0C, 0x0C, 0x0C, 255))
+    for r in range(int(DISCO_D * 0.19), DISCO_D // 2 - 8, 7):
+        c = DISCO_D / 2; dd.ellipse((c - r, c - r, c + r, c + r), outline=(0x26, 0x26, 0x26, 255) if r % 14 else (0x1A, 0x1A, 0x1A, 255), width=1)
+    brillo = Image.new("RGBA", (DISCO_D, DISCO_D), (0, 0, 0, 0)); db = ImageDraw.Draw(brillo)
+    db.pieslice((0, 0, DISCO_D - 1, DISCO_D - 1), 200, 235, fill=(255, 255, 255, 34)); db.pieslice((0, 0, DISCO_D - 1, DISCO_D - 1), 20, 55, fill=(255, 255, 255, 26))
+    _disco.alpha_composite(brillo.filter(ImageFilter.GaussianBlur(10)))
+    EL = int(DISCO_D * 0.36)
+    _etiqueta = Image.new("RGBA", (EL, EL), (0, 0, 0, 0)); de = ImageDraw.Draw(_etiqueta)
+    de.ellipse((0, 0, EL - 1, EL - 1), fill=VERDE + (255,))
+    fq = font(BEBAS, int(EL * 0.62)); de.text((EL / 2 - fq.getlength("¿?") / 2, EL * 0.14), "¿?", font=fq, fill=BLANCO + (255,))
+    de.ellipse((EL / 2 - 8, EL / 2 - 8 + EL * 0.36, EL / 2 + 8, EL / 2 + 8 + EL * 0.36), fill=(0x11, 0x11, 0x11, 255))
+
+    def vinilo(t):
+        """Un vinilo entra y empieza a girar; la etiqueta central es el «¿?»."""
+        L = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        k = ease(t / 0.6); cx, cy = OBJ_C
+        if VERT: cy = cy + (1 - k) * (H - cy + DISCO_D)          # entra desde abajo
+        else: cx = cx - (1 - k) * (cx + DISCO_D)                  # entra desde la izquierda
+        ang = -(max(0.0, t - 0.3) * 200 + 60 * max(0.0, t - 0.3) ** 2) % 360   # arranca y coge 33 rpm
+        disco = _disco.copy()
+        et = _etiqueta.rotate(ang, resample=Image.BICUBIC)
+        disco.alpha_composite(et, ((DISCO_D - EL) // 2, (DISCO_D - EL) // 2))
+        sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).ellipse((cx - DISCO_D / 2, cy - DISCO_D / 2 + 20, cx + DISCO_D / 2, cy + DISCO_D / 2 + 26), fill=(0, 0, 0, 160))
+        L.alpha_composite(sh.filter(ImageFilter.GaussianBlur(22)))
+        L.alpha_composite(glow((W, H), cx, cy, DISCO_D * 0.75, VERDE, 0.35))
+        paste(L, disco, cx, cy)
+        return L
+
+    gan_font = font(BEBAS, 130 if VERT else 120)
+    def texto_gancho_fondo(t_abs):
+        """El gancho sobre el fondo oscuro, en claro, con la palabra dicha en el color del tipo."""
+        ws = [p["w"] for p in ganchos]
+        lines = wrap_balanced(ws, gan_font, GAN_W, 4)
+        if max(gan_font.getlength(" ".join(l)) for l in lines) > GAN_W: lines = wrap_greedy(ws, gan_font, GAN_W)
+        activa = max([i for i, p in enumerate(ganchos) if p["s"] <= t_abs + 0.02] or [-1])
+        cols = [(TINTE if i == activa else BLANCO) + ((255,) if i <= activa or t_abs >= ganchos[-1]["e"] else (60,)) for i in range(len(ws))]
+        return text_layer([" ".join(l) for l in lines], gan_font, BLANCO, colors=cols, shadow=12, spacing=1.0, align="center" if VERT else "left")
+
     # ---------- subtítulos (≥ 6 % del alto) ----------
     SUB_SIZE = int(H * 0.062) + 2
     sub_font = inter(SUB_SIZE, "Bold")
@@ -297,32 +381,52 @@ def render(modo, carpeta, salida):
         POR_CIFRA = portada(650)
     CIF_MINI = text_layer([g["cifra"]], font(BEBAS, 220 if VERT else 240), CIFRA, shadow=12, align="center" if VERT else "left")
     kick_f = font(BEBAS, 76 if VERT else 70)
-    KICK = text_layer(["¿SABÍAS QUE…?"], kick_f, TP["color"] if g.get("tipo") != "literaria" else (0xA9, 0xC4, 0x8E), shadow=8, align="center" if VERT else "left")
+    KICK = text_layer(["¿SABÍAS QUE…?"], kick_f, TINTE, shadow=8, align="center" if VERT else "left")
     # idea: una flecha de la cifra al destino (sin datos nuevos: sale del guion)
     destino = g.get("idea_destino", "STAR WARS")
     DEST = text_layer([destino], font(BEBAS, fit(BEBAS, [destino], 960 if VERT else 820, 260)), BLANCO, shadow=14, align="center" if VERT else "left")
 
     # cierre
-    frase1, frase2 = g["cierre"]
+    todo = " ".join(g["cierre"])
+    m = re.search(r"Pídelo en barra[^.]*\.?", todo)
+    grande = (m.group(0) if m else "Pídelo en barra.").upper()
+    resto = re.sub(r"\s+", " ", todo.replace(m.group(0), "") if m else todo).strip()
+    HAS_QR = bool(g.get("qr"))
+    tw_ = 980 if VERT else 640
+    fg = font(BEBAS, fit(BEBAS, [grande], 980, 200) if VERT else 190)
+    lg = [[grande]] if VERT else wrap_balanced(grande.split(), fg, tw_, 2)
+    C1 = text_layer([" ".join(l) for l in lg], fg, CIFRA, shadow=14, align="center" if VERT else "left", spacing=0.95)
+    fr_ = inter(50 if VERT else 46, "SemiBold")
+    lr = []
+    for frase in re.findall(r"[^.]+\.?", resto):
+        if frase.strip(): lr += [" ".join(l) for l in wrap_balanced(frase.split(), fr_, tw_, 3)]
+    C2 = text_layer(lr, fr_, BLANCO, shadow=10, align="center" if VERT else "left") if lr else None
+    fs_ = inter(52 if VERT else 46, "Bold")
+    SANTO = text_layer([" ".join(l) for l in wrap_balanced(g["santo"].split(), fs_, tw_, 2)], fs_, BLANCO, shadow=10, align="center" if VERT else "left") if g.get("santo") else None
+    bloque = [x for x in (SANTO, C1, C2) if x is not None]
     if VERT:
-        C1 = text_layer([frase2.upper()], font(BEBAS, fit(BEBAS, [frase2.upper()], 980, 200)), CIFRA, shadow=14)
-        C2 = text_layer([frase1], inter(56, "SemiBold"), BLANCO, shadow=10)
-        POR_CIERRE_H = 620
-        QR_PX = 660
+        QR_PX = 560 if HAS_QR else 0
+        y = 60; POS_TXT = []
+        for x in bloque: POS_TXT.append((x, W / 2, y)); y += x.height - 20
+        tope = (H - 130 - QR_PX - 30) if HAS_QR else H - 150
+        POR_CIERRE_H = min(820, tope - y - 90)
+        POS_POR = (W / 2, (y + tope) / 2)
+        POS_QR = (W / 2, H - 130 - QR_PX / 2)
     else:
-        f2 = font(BEBAS, 190); l2 = wrap_balanced(frase2.upper().split(), f2, 640, 2)
-        C1 = text_layer([" ".join(l) for l in l2], f2, CIFRA, shadow=14, align="left", spacing=0.95)
-        l1 = wrap_balanced(frase1.split(), inter(50, "SemiBold"), 640, 2)
-        C2 = text_layer([" ".join(l) for l in l1], inter(50, "SemiBold"), BLANCO, shadow=10, align="left")
-        POR_CIERRE_H = 820
-        QR_PX = 560
+        QR_PX = 520 if HAS_QR else 0
+        alto = sum(x.height - 20 for x in bloque); y = max(40, min((H - 60 - alto) / 2 - 20, H - 150 - alto)); POS_TXT = []   # por encima de la fuente
+        for x in bloque: POS_TXT.append((x, 50, y)); y += x.height - 20
+        POR_CIERRE_H = 720 if HAS_QR else 820
+        POS_POR = (1080, 500) if HAS_QR else (1330, 500)
+        POS_QR = (1640, 470)
     POR_CIERRE = portada(POR_CIERRE_H)
-    qr = qr_img(g["qr"], QR_PX - 60, dark="#111111", light="#ffffff")
-    QR = rounded_card(QR_PX, QR_PX, 28, (255, 255, 255, 255)); QR.alpha_composite(qr, (30, 30))
+    if HAS_QR:
+        qr = qr_img(g["qr"], QR_PX - 60, dark="#111111", light="#ffffff")
+        QR = rounded_card(QR_PX, QR_PX, 28, (255, 255, 255, 255)); QR.alpha_composite(qr, (30, 30))
     QR_TXT = text_layer(["Escanéame"], inter(40 if VERT else 36, "SemiBold"), BLANCO, shadow=8)
 
     fuente_f = inter(26 if VERT else 24, "Regular")
-    fl = wrap_greedy(g["fuente"].split(), fuente_f, 860 if VERT else 760)
+    fl = wrap_greedy(g["fuente"].split(), fuente_f, 860 if VERT else 1150)
     FUENTE = with_alpha(text_layer([" ".join(l) for l in fl], fuente_f, BLANCO, shadow=4, align="left", spacing=1.1), 0.7)
     SELLO = text_layer(["¿?"], font(BEBAS, 120), BLANCO, shadow=8)
 
@@ -358,10 +462,14 @@ def render(modo, carpeta, salida):
             # libro + gancho: de la entrada hasta la cifra
             if t < t_cif + 0.4:
                 a = 1 - ease((t - t_cif) / 0.4) if t > t_cif else 1
-                fr.alpha_composite(with_alpha(libro(t - t_ent), a))
-                if t - t_ent > 0.55:
-                    lay = texto_gancho(t)
-                    paste(fr, lay, BX + BW / 2, BY + BH / 2, a * ease((t - t_ent - 0.55) / 0.3))
+                if TIPO == "literaria":
+                    fr.alpha_composite(with_alpha(libro(t - t_ent), a))
+                    if t - t_ent > 0.55:
+                        paste(fr, texto_gancho(t), BX + BW / 2, BY + BH / 2, a * ease((t - t_ent - 0.55) / 0.3))
+                else:
+                    fr.alpha_composite(with_alpha((calendario if TIPO == "efemerides" else vinilo)(t - t_ent), a))
+                    if t - t_ent > 0.55:
+                        paste(fr, texto_gancho_fondo(t), GAN_C[0] - (0 if VERT else 20), GAN_C[1], a * ease((t - t_ent - 0.55) / 0.3), "c" if VERT else "l")
                 paste(fr, KICK, *P["kick"], a * ease((t - t_ent) / 0.4), "c" if VERT else "l")
                 if t < t_ent + 0.35: fr = Image.blend(NEGRO_IMG, fr.convert("RGB"), ease((t - t_ent) / 0.35)).convert("RGBA")
             # cifra
@@ -383,12 +491,12 @@ def render(modo, carpeta, salida):
                 dd = ImageDraw.Draw(fr); fx, fy = P["flecha"]
                 if VERT:
                     ln = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d2 = ImageDraw.Draw(ln)
-                    d2.line((fx, fy - 60, fx, fy + 70), fill=(0xA9, 0xC4, 0x8E, 255), width=12)
-                    d2.polygon([(fx - 40, fy + 60), (fx + 40, fy + 60), (fx, fy + 110)], fill=(0xA9, 0xC4, 0x8E, 255))
+                    d2.line((fx, fy - 60, fx, fy + 70), fill=TINTE + (255,), width=12)
+                    d2.polygon([(fx - 40, fy + 60), (fx + 40, fy + 60), (fx, fy + 110)], fill=TINTE + (255,))
                 else:
                     ln = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d2 = ImageDraw.Draw(ln)
-                    d2.line((fx - 150, fy, fx - 150, fy + 40), fill=(0xA9, 0xC4, 0x8E, 255), width=12)
-                    d2.polygon([(fx - 190, fy + 30), (fx - 110, fy + 30), (fx - 150, fy + 75)], fill=(0xA9, 0xC4, 0x8E, 255))
+                    d2.line((fx - 150, fy, fx - 150, fy + 40), fill=TINTE + (255,), width=12)
+                    d2.polygon([(fx - 190, fy + 30), (fx - 110, fy + 30), (fx - 150, fy + 75)], fill=TINTE + (255,))
                 fr.alpha_composite(with_alpha(ln, a))
                 paste(fr, DEST, *P["dest"], a * ease((t - t_ide - 0.2) / 0.35), "c" if VERT else "l")
                 if t < t_cie: paste(fr, POR_CIFRA, *P["por_cif"], 1)
@@ -405,23 +513,19 @@ def render(modo, carpeta, salida):
             if t >= t_cie:
                 a = ease((t - t_cie) / 0.45)
                 por_up = 40 * (1 - ease((t - t_cie) / 0.6))
-                if VERT:
-                    paste(fr, C1, *P["c1"], a); paste(fr, C2, *P["c2"], ease((t - t_cie - 0.3) / 0.4))
-                    paste(fr, POR_CIERRE, P["por_cierre"][0], P["por_cierre"][1] + por_up, a)
-                    paste(fr, QR, *P["qr"], ease((t - t_cie - 0.2) / 0.4))
-                else:
-                    paste(fr, C2, P["c2"][0] - 20, P["c2"][1], ease((t - t_cie - 0.3) / 0.4), "l")
-                    paste(fr, C1, P["c1"][0] - 20, P["c1"][1], a, "l")
-                    paste(fr, POR_CIERRE, P["por_cierre"][0], P["por_cierre"][1] + por_up, a)
-                    paste(fr, QR, *P["qr"], ease((t - t_cie - 0.2) / 0.4))
-                    paste(fr, QR_TXT, *P["qr_txt"], ease((t - t_cie - 0.4) / 0.4))
+                for k, (x, px, py) in enumerate(POS_TXT):
+                    paste(fr, x, px, py, ease((t - t_cie - 0.15 * k) / 0.45), "t" if VERT else "lt")
+                paste(fr, POR_CIERRE, POS_POR[0], POS_POR[1] + por_up, a)
+                if HAS_QR:
+                    paste(fr, QR, *POS_QR, ease((t - t_cie - 0.2) / 0.4))
+                    if not VERT: paste(fr, QR_TXT, POS_QR[0], POS_QR[1] + QR_PX / 2 + 50, ease((t - t_cie - 0.4) / 0.4))
             # fuente: del segundo 8 al final, abajo a la izquierda
             if t >= 8.0: fuente_pos(fr, ease((t - 8.0) / 0.4))
             # sello final: «¿?» pequeño en la esquina
             if t >= t_sel: paste(fr, SELLO, *P["sello"], ease((t - t_sel) / 0.2))
         enc.stdin.write(fr.convert("RGB").tobytes())
     enc.stdin.close(); enc.wait()
-    print("ok", salida, f"{DUR:.1f}s", f"{W}x{H}", "QR", QR_PX, "px")
+    print("ok", salida, f"{DUR:.1f}s", f"{W}x{H}", "QR", f"{QR_PX} px" if HAS_QR else "no")
 
 
 # ---------------------------------------------------------------- montaje H · V · H
