@@ -66,3 +66,41 @@ test('el brief sale listo para EMITIRSE, no solo para verse', () => {
   // Sin caras ni marcas: son piezas para pantalla de calle, no para redes.
   assert.match(b.prompt, /sin caras reconocibles/i);
 });
+
+// #4398 (26-sep-2026): la voz abría con «Para carbono…» y el tope de 40 palabras
+// dejaba frases a medias. Cápsula completa real (El héroe de las mil caras).
+const COMPLETA = 'PARA CARBONO\nJoseph Campbell enseña que culturas que nunca se encontraron cuentan el mismo viaje: ' +
+  'alguien deja su mundo ordinario, cruza un umbral, supera una prueba que lo cambia y vuelve con un don para los suyos. ' +
+  'No es un molde para rellenar escenas.\n\nPARA SILICIO\nAl armar un guion: 1) nombra el mundo ordinario.\n\n' +
+  'APLICACIÓN\nLucas reescribe la próxima campaña.\n\nFuente: The Hero with a Thousand Faces, de Joseph Campbell.';
+
+test('la voz NO lee los rótulos del bloque ni la fuente', () => {
+  const idea = mod.ideaPrincipal(COMPLETA);
+  assert.doesNotMatch(idea, /para carbono|para silicio|aplicaci[oó]n|fuente/i);
+  assert.match(idea, /^Joseph Campbell enseña/);
+});
+
+test('se lee PARA CARBONO, no las instrucciones para agentes de PARA SILICIO', () => {
+  assert.doesNotMatch(mod.textoParaVoz(COMPLETA), /nombra el mundo ordinario|Lucas/);
+});
+
+test('una frase que no cabe se corta en una pausa, no a mitad de idea', () => {
+  const larga = 'Esta es una frase muy larga que habla de muchas cosas, de equipos pequeños, de burocracia mínima, ' +
+    'de ingeniería simple y de pruebas reales con prototipos que vuelan antes de que nadie firme un papel, ' +
+    'y sigue y sigue sin punto hasta pasar con creces las cuarenta palabras que caben en quince segundos de voz';
+  const idea = mod.ideaPrincipal(larga);
+  assert.ok(idea.split(/\s+/).length <= 40);
+  assert.match(idea, /\.$/, 'termina como frase, no con «…» a mitad');
+});
+
+test('no se pega la frase siguiente si con ella se pasa de lo que cabe', () => {
+  const idea = mod.ideaPrincipal('Menos es más. ' + 'Una segunda frase larguísima '.repeat(10) + 'que no cabe.');
+  assert.equal(idea, 'Menos es más.');
+});
+
+test('las siglas con punto no parten la frase (EE. UU.)', () => {
+  const idea = mod.ideaPrincipal('PARA CARBONO\nThe Impossible Factory, de Josh Dean (2026), cuenta cómo Kelly Johnson convirtió el taller ' +
+    'Skunk Works de Lockheed en una fábrica de imposibles: el primer caza a reacción de EE. UU. en 143 días, el U-2 y el SR-71 Blackbird. Su receta: equipos pequeños.');
+  assert.doesNotMatch(idea, /EE\.$/);
+  assert.match(idea, /en 143 días, el U-2 y el SR-71 Blackbird\.$/, 'la frase entera (40 palabras) cabe');
+});
