@@ -10,6 +10,11 @@
 # título, subtítulos, ideas y cierre con QR se componen aquí, en local, sin gastar en xAI.
 # Sin --publicar no se toca el Stock (ensayo). Ver README.md.
 set -euo pipefail
+# Todo el script va entre llaves y termina en `exit`: bash lo lee ENTERO antes de ejecutar.
+# Sin esto, un checkout o una edición mientras corría la vuelta de pendientes cambiaba el
+# fichero bajo sus pies y bash seguía leyendo el nuevo a mitad de línea: «line 52: unexpected
+# EOF» en heroe (26-sep 02:06) y la vuelta sin publicar.
+{
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="${CAPSULAS_PY:-python3}"                       # PIL, numpy, segno
 PY_VOZ="${CAPSULAS_PY_VOZ:-$HOME/.venvs/capsulas/bin/python}"   # faster-whisper + piper-tts
@@ -47,3 +52,5 @@ t0=$(date +%s)
 "$PY" "$HERE/covers.py" "$DIR"
 "$PY" "$HERE/publicar.py" "$DIR" $PUBLICAR
 echo "✓ $ID en $(( $(date +%s) - t0 )) s → $DIR"
+exit 0
+}
