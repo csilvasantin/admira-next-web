@@ -7,6 +7,7 @@
 import {cleanIdentity, identityCookie, makeIdentityToken, readCookies, readIdentity, writeAccessEvent} from './_access.js';
 import {allowedBy, generatorAccess, makeSessionToken, readSession} from './_directory.js';
 import {loginLockout, noteLoginAttempt, lockoutMessage} from './_login-rate.js';
+import {agentSessionFromRequest} from './_agent-token.js';
 
 const MAXAGE = 60 * 60 * 24 * 30;
 // La lista de correos autorizados ya NO vive aquí: manda el directorio de /usuarios
@@ -288,12 +289,23 @@ export async function onRequest(context){
     context.waitUntil(writeAccessEvent(env, request, {type:'trusted_owner_login', client:'generador', presentation:title, identity:ownerIdentity, access:accessDirectory.level, path:url.pathname}));
     return new Response(null, {status:303, headers});
   }
+  // LOS DEEPAGENTS SON EDITORES (Carlos, 27-09-2026: «Todos los deepagents tienen que poder
+  // ser editores, arréglalo»). Neo, Morfeo, Trinity, Oráculo, Smith y el Arquitecto trabajan
+  // con su token MCP `anmcp_…` y no tienen la cookie de Google de una persona. Ese mismo
+  // token, en `Authorization: Bearer`, vale ahora como sesión de directorio en las APIs
+  // (nunca en páginas ni en /control/). No abre nada al público: el token se cruza en cada
+  // petición con /usuarios (activo + proyecto del generador + rol) y sólo owner/editor
+  // cuentan; revocarlo o dar de baja al usuario lo corta al instante. Ver _agent-token.js.
+  const agentSession = (!masterValid && !editorValid && !directorySession && !isControlArea && parts.includes('api'))
+    ? await agentSessionFromRequest(env, request, fn => { try { context.waitUntil(fn); } catch (_) {} })
+    : null;
+  const session = directorySession || agentSession;
   const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
   // FLT-100781: Admin (owner) entra a /control/ con Google; editor/viewer siguen fuera.
   const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
-  const directoryAllowed = Boolean(directorySession) && allowedBy(directorySession.level, {ownerAllowed, editorAllowed, internalArea:isInternalArea, ownerOnly:isControlArea});
+  const directoryAllowed = Boolean(session) && allowedBy(session.level, {ownerAllowed, editorAllowed, internalArea:isInternalArea, ownerOnly:isControlArea});
   const authorized = masterValid || (editorAllowed && editorValid) || directoryAllowed || (!isInternalArea && clientValid);
-  const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : directoryAllowed ? directorySession.level : 'client';
+  const accessLevel = masterValid ? 'master' : editorValid ? 'editor' : directoryAllowed ? session.level : 'client';
   const contentType = request.headers.get('content-type') || '';
   const isFormPost = request.method === 'POST' && /application\/x-www-form-urlencoded|multipart\/form-data/i.test(contentType);
 
@@ -401,8 +413,18 @@ export async function onRequest(context){
   // manda es el PERMISO, con la misma regla que aplica este middleware a /api/images: master,
   // editor, o sesión del directorio con nivel owner/editor. Viaja en context.data, que Pages
   // comparte entre el middleware y la función.
-  const canGenerate = Boolean(masterValid || editorValid || (directorySession && allowedBy(directorySession.level, {ownerAllowed:true, editorAllowed:true, internalArea:true})));
-  if (context.data) context.data.presentationAccess = {level:accessLevel, canGenerate};
+  const canGenerate = Boolean(masterValid || editorValid || (session && allowedBy(session.level, {ownerAllowed:true, editorAllowed:true, internalArea:true})));
+  const viaAgent = Boolean(directoryAllowed && agentSession && session === agentSession);
+  if (context.data) {
+    context.data.presentationAccess = {level:accessLevel, canGenerate};
+    // Quién es, para dejarlo anotado en lo que suba (biblioteca multimedia): el correo del
+    // directorio y, si entra un agente con su token, `via` y la etiqueta del token.
+    if (directoryAllowed) context.data.presentationAccess.email = session.email;
+    if (viaAgent) Object.assign(context.data.presentationAccess, {via:'agent-token', tokenLabel:agentSession.tokenLabel});
+  }
+  if (viaAgent && request.method !== 'GET') {
+    context.waitUntil(writeAccessEvent(env, request, {type:'agent_token_write', client:seg || '_generator', presentation:title, identity:{name:agentSession.tokenLabel || agentSession.name, email:agentSession.email, visitorId:`anmcp:${agentSession.tokenId}`}, access:agentSession.level, path:url.pathname, target:request.method}));
+  }
 
   const response = await next();
   const trackView = request.method === 'GET' && shouldIdentify(request, parts) && !isInternalArea && !isGallery;

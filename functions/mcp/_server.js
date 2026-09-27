@@ -16,7 +16,7 @@ import { bearerOf, tokenRow } from './_tokens.js';
 import { FLEET_EXAMPLE_VIDEO, exampleVideoEntry, ensureExampleVideo, wantsExampleVideo } from '../presentaciones/_slide-media.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.6.0' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.7.0' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -46,6 +46,11 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - presentation_urls {client} — URLs de la presentación, de la sala y de las versiones.
 - delete_slide {client, blockId} — quita una lámina del esqueleto sin regenerar el deck (misma API que Ctrl+E → Eliminar / Ctrl+Backspace en la sala).
 - update_slide {client, blockId, title?, message?, detail?, language?} — actualiza una lámina del esqueleto sin regenerar.
+- list_media {client} — biblioteca multimedia de la presentación (recursos, láminas y slideMedia).
+- upload_media {client, filename, dataBase64, acceptedByCarlos:true, approvalNote?, slide?, caption?} — sube imagen/audio/vídeo (≤40 MB; PNG, JPEG, WebP, GIF, MP3, WAV, M4A, MP4, WebM) a la biblioteca privada y, con slide, lo asigna. acceptedByCarlos:true es obligatorio: sólo con el OK de Carlos.
+- assign_media {client, assetId, slide, caption?} — asigna un recurso de la biblioteca a una lámina.
+- delete_media {client, assetId} — retira un recurso de la biblioteca, de sus láminas y de R2.
+- Sin MCP (ficheros grandes): el mismo token vale como Bearer en /presentaciones/api/media-library (POST multipart client, acceptedByCarlos=true, file). Ver help tema media.
 - structure:"admiranext" o slides[] — fuerza la estructura de 3 actos × (portada + a/b/c). beforeDeck/afterDeck/insertDeck aceptan pack o slug de otra presentación.
 
 ## Permisos
@@ -99,6 +104,14 @@ Gesto del consejero:
 4. presentation_urls → sala / versiones / portal.
 UI: /presentaciones/galeria (Registro vivo + ficha) · /presentaciones/?improve=<slug> (generador en modo Mejorar).
 No crees un slug nuevo por misión Yokup.`,
+  media: `Biblioteca multimedia (DeepAgents editores · 27-09-2026). Tu token anmcp_ de owner/editor es sesión de editor.
+MCP: list_media {client} · upload_media {client, filename, dataBase64, acceptedByCarlos:true, approvalNote, slide?, caption?} · assign_media {client, assetId, slide} · delete_media {client, assetId}.
+HTTP (recomendado para vídeos, sin base64):
+  curl -sS -H "Authorization: Bearer $ANMCP" -F client=<slug> -F acceptedByCarlos=true -F "approvalNote=Aceptado por Carlos · <quién/cuándo>" -F file=@clip.mp4 ${SITE}/presentaciones/api/media-library
+  → 201 con assets[0].id y url /presentaciones/<slug>/media/library-es-….mp4
+  Asignar: curl -sS -X PUT -H "Authorization: Bearer $ANMCP" -H 'content-type: application/json' -d '{"client":"<slug>","assetId":"<id>","slide":"cover"}' ${SITE}/presentaciones/api/media-library
+  Retirar: mismo con -X DELETE y {"client","assetId"}.
+Límites: imagen 10 MB, audio 25 MB, vídeo 40 MB; 80 recursos por presentación. acceptedByCarlos=true es obligatorio (Carlos autoriza).`,
   versiones: 'Cada guardado o regeneración captura una versión. list_versions {client} las lista (id, motivo, fecha). restore_version {client,id} vuelve a esa versión y devuelve la lista actualizada.',
   permisos: 'El token va ligado a un usuario de /usuarios. admin → owner (todo), editor → crear/regenerar/restaurar, viewer → solo lectura. Revocar el token o dar de baja al usuario corta el acceso al instante.',
   informes: `create_yokup_report — informe vivo Yokup: mejora la presentación del cliente in situ (no crea un yokup-flt-… por misión).
@@ -183,10 +196,31 @@ export const TOOLS = [
   { name: 'restore_version', description: 'Restaura una versión de una presentación.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, id: { type: 'string' } }, required: ['client', 'id'] } },
   { name: 'presentation_urls', description: 'URLs de la presentación, la sala de presentación y el historial.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
   { name: 'delete_slide', description: 'Elimina una lámina del esqueleto (blockId) sin regenerar el deck. En sala: Ctrl+E → Eliminar o Ctrl+Backspace.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, blockId: { type: 'string', description: 'id de la lámina (p.ej. problema)' }, language: { type: 'string' } }, required: ['client', 'blockId'] } },
+  { name: 'list_media', description: 'Biblioteca multimedia de una presentación: recursos subidos (id, url, tipo, aceptación de Carlos, láminas asignadas), láminas disponibles y slideMedia.', inputSchema: { type: 'object', properties: { client: { type: 'string' } }, required: ['client'] } },
+  { name: 'upload_media', description: 'Sube una imagen, audio o vídeo (≤40 MB; PNG, JPEG, WebP, GIF, MP3, WAV, M4A, MP4, WebM) a la biblioteca privada de la presentación. acceptedByCarlos:true es obligatorio (Carlos autoriza el recurso). Con slide, además lo asigna a esa lámina. Para ficheros grandes usa el mismo token como Bearer en POST /presentaciones/api/media-library (help tema media).', inputSchema: { type: 'object', properties: { client: { type: 'string' }, filename: { type: 'string' }, dataBase64: { type: 'string', description: 'contenido del fichero en base64 (admite prefijo data:…;base64,)' }, acceptedByCarlos: { type: 'boolean', description: 'true: Carlos ha aceptado este recurso' }, approvalNote: { type: 'string', description: 'quién y cuándo lo aceptó Carlos' }, slide: { type: 'string', description: 'opcional: lámina a la que asignarlo (cover, objective, <blockId>, closing)' }, caption: { type: 'string' } }, required: ['client', 'filename', 'dataBase64', 'acceptedByCarlos'] } },
+  { name: 'assign_media', description: 'Asigna un recurso de la biblioteca (assetId de list_media) a una lámina (slide).', inputSchema: { type: 'object', properties: { client: { type: 'string' }, assetId: { type: 'string' }, slide: { type: 'string' }, caption: { type: 'string' }, fallback: { type: 'string' } }, required: ['client', 'assetId', 'slide'] } },
+  { name: 'delete_media', description: 'Retira un recurso de la biblioteca: lo quita del inventario, de las láminas que lo usaban y borra su objeto privado.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, assetId: { type: 'string' } }, required: ['client', 'assetId'] } },
   { name: 'update_slide', description: 'Actualiza título/mensaje/detalle de una lámina del esqueleto sin regenerar el deck.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, blockId: { type: 'string' }, title: { type: 'string' }, message: { type: 'string' }, detail: { type: 'string' }, language: { type: 'string' } }, required: ['client', 'blockId'] } }
 ];
 
-const READ_ONLY = new Set(['help', 'list_presentations', 'get_catalog', 'list_decks', 'get_presentation', 'generation_status', 'list_versions', 'presentation_urls']);
+const READ_ONLY = new Set(['help', 'list_presentations', 'get_catalog', 'list_decks', 'get_presentation', 'generation_status', 'list_versions', 'presentation_urls', 'list_media']);
+const MEDIA_MAX_BYTES = 40 * 1024 * 1024;
+
+function assetIdOf(value){
+  const id = String(value == null ? '' : value).trim().toLowerCase();
+  if (!/^[a-f0-9]{16}$/.test(id)) throw new Error('assetId no válido: usa el id de list_media.');
+  return id;
+}
+
+function bytesFromBase64(value){
+  const clean = String(value == null ? '' : value).replace(/^data:[^,]*;base64,/i, '').replace(/\s+/g, '');
+  if (!clean || !/^[A-Za-z0-9+/_-]+=*$/.test(clean)) throw new Error('dataBase64 no es base64 válido.');
+  if (Math.floor(clean.length * 3 / 4) > MEDIA_MAX_BYTES + 3) throw new Error('El fichero supera 40 MB. Para vídeos grandes usa POST /presentaciones/api/media-library con tu token como Bearer (help tema media).');
+  const binary = atob(clean.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
 
 function slug(value){
   const s = String(value == null ? '' : value).trim().toLowerCase();
@@ -226,8 +260,9 @@ export function urlsFor(client){
 async function callGenerator(ctx, method, path, body){
   const token = await makeSessionToken(ctx.env.PRES_SIGNING_KEY, ctx.access, SESSION_SECONDS);
   const headers = { cookie: `pres_owner=${token}`, origin: SITE, accept: 'application/json', 'user-agent': 'admiranext-mcp/1.0' };
-  if (body !== undefined) headers['content-type'] = 'application/json';
-  const response = await ctx.fetchImpl(SITE + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), redirect: 'manual' });
+  const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
+  if (body !== undefined && !isForm) headers['content-type'] = 'application/json';
+  const response = await ctx.fetchImpl(SITE + path, { method, headers, body: body === undefined ? undefined : (isForm ? body : JSON.stringify(body)), redirect: 'manual' });
   const text = await response.text();
   let data = null; try { data = JSON.parse(text); } catch (_) { data = null; }
   if (response.status === 401 || response.status === 303) throw new Error(`el generador no ha aceptado la sesión (${response.status}): tu usuario no tiene acceso a ${path}`);
@@ -420,6 +455,30 @@ export async function callTool(ctx, name, args = {}){
       if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
       return callGenerator(ctx, 'PUT', `/presentaciones/${slug(a.client)}/api/inline-edit`, { language, edits });
     }
+    case 'list_media': return callGenerator(ctx, 'GET', `/presentaciones/api/media-library?client=${slug(a.client)}`);
+    case 'upload_media': {
+      const client = slug(a.client);
+      if (a.acceptedByCarlos !== true && a.acceptedByCarlos !== 'true') throw new Error('acceptedByCarlos:true es obligatorio: sólo se incorporan recursos que Carlos ha aceptado.');
+      const filename = String(a.filename || '').trim().slice(0, 120);
+      if (!filename) throw new Error('filename es obligatorio.');
+      const bytes = bytesFromBase64(a.dataBase64);
+      const form = new FormData();
+      form.set('client', client);
+      form.set('acceptedByCarlos', 'true');
+      if (String(a.approvalNote || '').trim()) form.set('approvalNote', String(a.approvalNote).slice(0, 240));
+      form.set('file', new Blob([bytes]), filename);
+      const out = await callGenerator(ctx, 'POST', '/presentaciones/api/media-library', form);
+      const asset = out && Array.isArray(out.assets) ? out.assets[0] : null;
+      if (!String(a.slide || '').trim() || !asset) return { ...out, uploaded: asset };
+      const assigned = await callGenerator(ctx, 'PUT', '/presentaciones/api/media-library', { client, assetId: asset.id, slide: String(a.slide).trim().toLowerCase(), caption: a.caption ? String(a.caption) : undefined });
+      return { ...assigned, uploaded: asset, assignedTo: String(a.slide).trim().toLowerCase() };
+    }
+    case 'assign_media': {
+      const slide = String(a.slide || '').trim().toLowerCase();
+      if (!slide) throw new Error('slide es obligatorio (list_media → slides).');
+      return callGenerator(ctx, 'PUT', '/presentaciones/api/media-library', { client: slug(a.client), assetId: assetIdOf(a.assetId), slide, caption: a.caption ? String(a.caption) : undefined, fallback: a.fallback ? String(a.fallback) : undefined });
+    }
+    case 'delete_media': return callGenerator(ctx, 'DELETE', '/presentaciones/api/media-library', { client: slug(a.client), assetId: assetIdOf(a.assetId) });
   }
   throw new Error('Tool no implementada.');
 }

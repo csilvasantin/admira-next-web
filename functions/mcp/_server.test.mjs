@@ -171,7 +171,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.6.0');
+  assert.equal(init.result.serverInfo.version, '1.7.0');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');

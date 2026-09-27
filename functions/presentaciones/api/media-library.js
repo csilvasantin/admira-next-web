@@ -30,6 +30,18 @@ function sameOrigin(request){
   return Boolean(origin)&&origin===new URL(request.url).origin;
 }
 
+// Un DeepAgent con su token anmcp_ no es un navegador y no manda Origin; el middleware
+// ya lo ha validado contra /usuarios (ver ../_agent-token.js). La barrera de mismo origen
+// sigue intacta para las cookies, que es lo que protege del CSRF.
+function trustedCaller(context){
+  return sameOrigin(context.request) || context.data?.presentationAccess?.via === 'agent-token';
+}
+
+function actorOf(context){
+  const access=context.data?.presentationAccess||{};
+  return {email:cleanText(access.email,180), via:cleanText(access.via,20), label:cleanText(access.tokenLabel,80)};
+}
+
 function utf8Bytes(value){
   let total=0;
   for(const char of String(value)){
@@ -78,6 +90,8 @@ function publicAsset(asset){
     acceptedByCarlos:asset.acceptedByCarlos===true,
     acceptedAt:asset.acceptedAt||'',
     approvalNote:asset.approvalNote||'',
+    uploadedBy:asset.uploadedBy||'',
+    uploadedVia:asset.uploadedVia||'',
     assignedSlides:Array.isArray(asset.assignedSlides)?asset.assignedSlides:[]
   };
 }
@@ -123,7 +137,7 @@ export async function onRequestGet(context){
 }
 
 export async function onRequestPost(context){
-  if(!sameOrigin(context.request))return json({error:'Origen no permitido.'},403);
+  if(!trustedCaller(context))return json({error:'Origen no permitido.'},403);
   if(!context.env.PRESENTATION_IDEAS||!context.env.PRESENTATION_MEDIA)return json({error:'La biblioteca multimedia no está configurada.'},503);
   if(Number(context.request.headers.get('Content-Length')||0)>MAX_MULTIPART_BYTES)return json({error:'La subida completa supera el límite de 40 MB.'},413);
   let form;
@@ -155,6 +169,7 @@ export async function onRequestPost(context){
   const url=`/presentaciones/${client}/media/${filename}`;
   const objectKey=`presentations/${client}/es/${filename}`;
   const now=new Date().toISOString();
+  const actor=actorOf(context);
   const asset={
     id,
     name:cleanText(file.name,120)||`recurso.${type.extension}`,
@@ -166,7 +181,9 @@ export async function onRequestPost(context){
     uploadedAt:now,
     acceptedByCarlos:true,
     acceptedAt:now,
-    approvalNote:cleanText(form.get('approvalNote'),240)||'Aceptado por Carlos desde el generador de presentaciones.',
+    approvalNote:cleanText(form.get('approvalNote'),240)||(actor.via==='agent-token'?`Aceptado por Carlos · subido por ${actor.label||actor.email} con su token de agente.`:'Aceptado por Carlos desde el generador de presentaciones.'),
+    uploadedBy:actor.via==='agent-token'&&actor.label?`${actor.label} <${actor.email}>`:actor.email,
+    uploadedVia:actor.via,
     assignedSlides:[]
   };
   await context.env.PRESENTATION_MEDIA.put(objectKey,bytes,{
@@ -179,7 +196,7 @@ export async function onRequestPost(context){
 }
 
 export async function onRequestPut(context){
-  if(!sameOrigin(context.request))return json({error:'Origen no permitido.'},403);
+  if(!trustedCaller(context))return json({error:'Origen no permitido.'},403);
   if(!context.env.PRESENTATION_IDEAS)return json({error:'La biblioteca multimedia no está configurada.'},503);
   let body;
   try{body=await context.request.json()}catch(_){return json({error:'JSON no válido.'},400)}
@@ -227,4 +244,34 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`media-library:${client}`,JSON.stringify(data.library))
   ]);
   return json(payload(data,client));
+}
+
+// Retirar un recurso de la biblioteca (FLT · DeepAgents editores, 27-09-2026): lo quita
+// del inventario, de las láminas que lo usaban y borra su objeto privado en R2. Sólo toca
+// objetos de ESTA presentación (el objectKey tiene que colgar de presentations/<slug>/).
+export async function onRequestDelete(context){
+  if(!trustedCaller(context))return json({error:'Origen no permitido.'},403);
+  if(!context.env.PRESENTATION_IDEAS)return json({error:'La biblioteca multimedia no está configurada.'},503);
+  let body;
+  try{body=await context.request.json()}catch(_){return json({error:'JSON no válido.'},400)}
+  const client=cleanClient(body.client);
+  const assetId=cleanText(body.assetId,40);
+  if(!client||!/^[a-f0-9]{16}$/.test(assetId))return json({error:'Recurso no válido.'},400);
+  const data=await inputs(context.env,client);
+  if(!data.presentation||!data.ideas)return json({error:'No encontramos esta presentación.'},404);
+  const asset=data.library.find(item=>item.id===assetId);
+  if(!asset)return json({error:'El recurso ya no existe en esta biblioteca.'},404);
+  data.library=data.library.filter(item=>item.id!==assetId);
+  const before=Array.isArray(data.presentation.slideMedia)?data.presentation.slideMedia:[];
+  const after=before.filter(item=>String(item?.src||'')!==asset.url);
+  const writes=[context.env.PRESENTATION_IDEAS.put(`media-library:${client}`,JSON.stringify(data.library))];
+  if(after.length!==before.length){
+    data.presentation.slideMedia=after;
+    data.presentation.updatedAt=new Date().toISOString();
+    writes.push(context.env.PRESENTATION_IDEAS.put(`presentation:${client}`,JSON.stringify(data.presentation)));
+  }
+  const key=String(asset.objectKey||'');
+  if(context.env.PRESENTATION_MEDIA&&typeof context.env.PRESENTATION_MEDIA.delete==='function'&&key.startsWith(`presentations/${client}/`))writes.push(context.env.PRESENTATION_MEDIA.delete(key));
+  await Promise.all(writes);
+  return json({...payload(data,client),deleted:assetId});
 }
