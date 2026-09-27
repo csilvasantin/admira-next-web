@@ -20,6 +20,12 @@ def orient(x):
     return None
 
 
+def orient_propia(c):
+    tags = {sin_acentos(t) for t in c.get("tags") or []}
+    return ({"vertical"} if tags & {"vertical", "9:16", "9x16"} else set()) | \
+           ({"horizontal"} if tags & {"horizontal", "16:9", "16x9"} else set())
+
+
 def main():
     desde = sys.argv[sys.argv.index("--desde") + 1] if "--desde" in sys.argv else "2026-09-26"
     espera = float(sys.argv[sys.argv.index("--espera-min") + 1]) if "--espera-min" in sys.argv else 30
@@ -27,6 +33,10 @@ def main():
         items = json.load(r)["items"]
     for c in items:
         if c.get("type") not in ("capsula", "guion") or str(c.get("createdAt", "")) < desde: continue
+        # Cápsulas que ya nacen en las dos orientaciones (las sonoras de vinilo de Xpaces,
+        # que el visor compone en 16:9 y 9:16 a partir de su JSON): no son texto con ideas y
+        # el guion las rechaza, así que sin este salto fallaban en cada vuelta (FLT-101096).
+        if orient_propia(c) >= {"vertical", "horizontal"}: continue
         vids = [x for x in items if x.get("type") == "video" and x.get("externalRef") == f"capsula:{c['id']}"]
         tiene = {orient(v) for v in vids}
         if {"vertical", "horizontal"} <= tiene: continue
