@@ -13,6 +13,7 @@
 import {normalizarMarca, crearMarca, variablesMarca, cssVariables, cssFuentes, marcaEn, modoDe, idMarca, urlSegura, paletaDesdeColores, TIPOGRAFIAS, esHex} from '../../marcablanca/marca.js';
 import {pintar, urlDe, PLATAFORMAS} from '../../marcablanca/maquetas.js';
 import {persistBrandLogo} from './_brand.js';
+import {obtenerMarca, listarMarcas} from '../marcablanca/_catalogo.js';
 
 export const PROSPECT_CATALOGO = ['lumbre', 'brumelle', 'frescaria', 'admira'];
 export const PROSPECT_LOGO_MAX = 160 * 1024; // bytes del logo subido
@@ -21,22 +22,27 @@ export const PROSPECT_CSS_VERSION = '20261001-prospect';
 function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function clean(value,max){return String(value==null?'':value).replace(/\s+/g,' ').trim().slice(0,max)}
 
-/** Lee marcablanca/clientes/<id>.json del propio sitio (binding ASSETS de Pages). */
+/**
+ * Una marca del CATÁLOGO ÚNICO (functions/marcablanca/_catalogo.js): las semillas de
+ * marcablanca/clientes/*.json y las guardadas en KV (analizadas por URL o creadas aquí).
+ */
 export async function catalogBrand(env,request,id){
   const marca=idMarca(id);
-  if(!marca||!env?.ASSETS)return null;
+  if(!marca)return null;
   try{
-    const response=await env.ASSETS.fetch(new URL(`/marcablanca/clientes/${marca}.json`,request?.url||'https://www.admiranext.com/'));
-    if(!response.ok)return null;
-    const json=await response.json();
-    return json&&json.id===marca?normalizarMarca(json):null;
+    const json=await obtenerMarca(env,request,marca);
+    if(!json||json.id!==marca)return null;
+    const m=normalizarMarca(json);
+    m.ejemplo=json.catalogo?.tipo==='ejemplo'||json.ejemplo===true;
+    return m;
   }catch(_){return null}
 }
 
 export async function catalogIds(env,request){
   try{
-    const response=await env.ASSETS.fetch(new URL('/marcablanca/clientes/index.json',request?.url||'https://www.admiranext.com/'));
-    if(response.ok){const index=await response.json();const ids=(index.clientes||[]).map(item=>idMarca(item.id)).filter(Boolean);if(ids.length)return ids}
+    const lista=await listarMarcas(env,request);
+    const ids=(lista.clientes||[]).map(item=>idMarca(item.id)).filter(Boolean);
+    if(ids.length)return ids;
   }catch(_){}
   return PROSPECT_CATALOGO;
 }
@@ -82,7 +88,7 @@ export async function resolveProspect({env,request,raw,existing,slug,displayName
   const now=new Date().toISOString();
   if(marca&&marca!=='nueva'){
     const ids=await catalogIds(env,request);
-    if(!ids.includes(marca))throw new Error(`La marca «${marca}» no está en marcablanca/clientes.`);
+    if(!ids.includes(marca))throw new Error(`La marca «${marca}» no está en el catálogo de marca blanca.`);
     let cliente=await catalogBrand(env,request,marca);
     // Sin ASSETS (tests, previews locales) vale la copia que manda el generador, si es la misma marca.
     if(!cliente&&parsed.cliente&&idMarca(parsed.cliente.id)===marca)cliente=normalizarMarca(parsed.cliente);
@@ -114,7 +120,11 @@ export async function resolveProspect({env,request,raw,existing,slug,displayName
     try{brand={...await persistBrandLogo(env,{slug,displayName:nombre,website:prospectWeb,analysis:inspiration}),prospect:true};logo={imagen:brand.logoUrl}}catch(_){}
   }
   const cliente=crearMarca({id:idMarca(parsed.id||nombre)||'prospect',nombre,logo:{...logo,alt:`Logo de ${nombre}`},primario,secundario,acento,tipografia:tipografia||'grotesca',modo:['claro','oscuro'].includes(nueva.modo)?nueva.modo:undefined,web:prospectWeb,sector:clean(nueva.sector,80)||'Prospect'});
-  return {prospect:{activo:true,marca:cliente.id,origen:'nueva',nombre:cliente.nombre,cliente,actualizadoEn:now},brand};
+  // Para el catálogo único: el logo de la presentación vive en /presentaciones/<slug>/brand (privado),
+  // así que al catálogo va la fuente pública (la subida en data:, la URL https o el SVG de su web).
+  const svgWeb=inspiration?.logo?.type==='svg'&&inspiration.logo.svg?'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(inspiration.logo.svg))):'';
+  const logoCatalogo=nueva.logoData||(urlSegura(nueva.logoUrl)&&/^https:/.test(nueva.logoUrl)?nueva.logoUrl:'')||(inspiration?.logo?.type==='url'?urlSegura(inspiration.logo.url):'')||svgWeb||'';
+  return {prospect:{activo:true,marca:cliente.id,origen:'nueva',nombre:cliente.nombre,cliente,actualizadoEn:now},brand,catalogo:{marca:{...cliente,logo:{...cliente.logo,imagen:logoCatalogo||undefined,svg:undefined},favicon:''},web:prospectWeb}};
 }
 
 /** Tema clásico del deck derivado de la marca (lo leen el render antiguo, imágenes y producción). */
@@ -165,7 +175,8 @@ export async function resolveRenderBrand({env,request,config,override}){
   let m=null;
   const pedido=override?String(override).toLowerCase():'';
   if(pedido==='admira'||pedido==='ninguna')return null;
-  if(pedido&&PROSPECT_CATALOGO.includes(pedido))m=await catalogBrand(env,request,pedido);
+  // ?marca=<id>: cualquier marca del catálogo único (semillas o guardadas). Sin ?marca no se lee nada.
+  if(pedido&&idMarca(pedido)===pedido)m=await catalogBrand(env,request,pedido);
   if(!m&&config?.prospect?.activo&&config.prospect.cliente)m=normalizarMarca(config.prospect.cliente);
   if(!m)return null;
   const svgText=m.logo.svg?await loadLogoSvg(env,request,m.logo.svg):'';

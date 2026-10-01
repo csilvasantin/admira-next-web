@@ -399,7 +399,7 @@
     },
     "origen": {
       "type": "object",
-      "description": "Solo en marcas generadas (prospect): de dónde salió.",
+      "description": "De dónde salió una marca generada: tipo «nueva» (prospect del generador), «url» (analizada por URL en /marcablanca) o «generador» (guardada desde el generador).",
       "properties": {
         "tipo": {
           "type": "string"
@@ -409,6 +409,49 @@
         },
         "creadaEn": {
           "type": "string"
+        }
+      }
+    },
+    "catalogo": {
+      "type": "object",
+      "description": "Solo en las respuestas de la API del catálogo único (/marcablanca/api/marcas/<id>); no va en los JSON del repo.",
+      "properties": {
+        "tipo": {
+          "enum": [
+            "real",
+            "ejemplo"
+          ],
+          "description": "real = marca de un cliente (o Admira); ejemplo = marca ficticia."
+        },
+        "origen": {
+          "enum": [
+            "semilla",
+            "url",
+            "generador"
+          ]
+        },
+        "propuesta": {
+          "type": "boolean",
+          "description": "true = propuesta generada automáticamente: NO es la marca oficial del cliente."
+        },
+        "web": {
+          "type": "string"
+        },
+        "aviso": {
+          "type": "string"
+        },
+        "autor": {
+          "type": "string"
+        },
+        "creadaEn": {
+          "type": "string"
+        },
+        "actualizadaEn": {
+          "type": "string"
+        },
+        "protegida": {
+          "type": "boolean",
+          "description": "true = semilla del repo: la API no la sobrescribe."
         }
       }
     }

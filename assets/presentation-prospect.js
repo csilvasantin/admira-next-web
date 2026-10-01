@@ -2,62 +2,29 @@
  * presentation-prospect.js · interruptor «Prospect» del generador de presentaciones (01-10-2026).
  *
  * Una presentación para un cliente potencial se viste con SU marca: el operador activa
- * «Prospect», elige una marca de marcablanca/clientes/*.json o crea una «nueva marca»
+ * «Prospect», elige una marca del CATÁLOGO ÚNICO (/marcablanca/api/marcas: semillas de
+ * marcablanca/clientes/*.json + marcas guardadas, p. ej. analizadas por URL) o crea una «nueva marca»
  * (nombre, logo subido o por URL, primario, secundario, acento y tipografía; la paleta puede
  * salir sola del logo o de la web) y el panel guarda la elección en el campo oculto
  * name="prospect" del formulario. El servidor (functions/presentaciones/_prospect.js) la
- * normaliza con marcablanca/marca.js y la guarda con la presentación.
+ * normaliza con marcablanca/marca.js y la guarda con la presentación y, si es nueva, en el catálogo.
  *
  * También se monta en /marcablanca (modo demo): ahí no hay formulario, sólo vista previa.
  */
-import {crearMarca, normalizarMarca, paletaDesdeColores, TIPOGRAFIAS, variablesMarca, cssVariables, contraste, idMarca} from '/marcablanca/marca.js?v=20261001-prospect';
+import {crearMarca, normalizarMarca, paletaDesdeColores, TIPOGRAFIAS, variablesMarca, cssVariables, contraste, idMarca, datosDesdeInspiracion} from '/marcablanca/marca.js?v=20261001-catalogo';
+import {LOGO_MAX, leerArchivo, aligerar, coloresDeImagen} from '/marcablanca/logo-paleta.js?v=20261001-catalogo';
 
-const LOGO_MAX = 120 * 1024;
 const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
-const hexOk = (v) => /^#[0-9a-f]{6}$/i.test(String(v || ''));
 
 function cargarMarcaBlanca() {
   if (window.MarcaBlanca) return Promise.resolve(window.MarcaBlanca);
   return new Promise((ok, ko) => {
     const s = document.createElement('script');
-    s.src = '/marcablanca/marcablanca.js?v=20261001-prospect'; s.setAttribute('data-mb-auto', 'false');
+    s.src = '/marcablanca/marcablanca.js?v=20261001-catalogo'; s.setAttribute('data-mb-auto', 'false');
     s.onload = () => ok(window.MarcaBlanca); s.onerror = ko; document.head.appendChild(s);
   });
 }
 
-function leerArchivo(file) {
-  return new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = ko; r.readAsDataURL(file); });
-}
-function cargarImagen(src) {
-  return new Promise((ok, ko) => { const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => ok(img); img.onerror = () => ko(new Error('No se pudo cargar el logo.')); img.src = src; });
-}
-/** Reduce un logo de mapa de bits a ≤ 512 px y lo recodifica (PNG o WebP) para que viaje ligero. */
-async function aligerar(dataUrl) {
-  if (dataUrl.startsWith('data:image/svg+xml')) return dataUrl;
-  const img = await cargarImagen(dataUrl);
-  const k = Math.min(1, 512 / Math.max(img.naturalWidth, img.naturalHeight));
-  const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
-  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-  const png = c.toDataURL('image/png');
-  return png.length * 0.75 <= LOGO_MAX ? png : c.toDataURL('image/webp', 0.9);
-}
-/** Histograma de colores de un logo (ignora transparencias). Falla si la imagen es de otro origen sin CORS. */
-async function coloresDeImagen(src) {
-  const img = await cargarImagen(src);
-  const w = img.naturalWidth || 160, h = img.naturalHeight || 160, k = Math.min(1, 160 / Math.max(w, h));
-  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
-  const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, c.width, c.height);
-  const d = ctx.getImageData(0, 0, c.width, c.height).data, cubos = new Map();
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] < 160) continue;
-    const clave = ((d[i] >> 4) << 8) | ((d[i + 1] >> 4) << 4) | (d[i + 2] >> 4);
-    const b = cubos.get(clave) || {r: 0, g: 0, b: 0, n: 0};
-    b.r += d[i]; b.g += d[i + 1]; b.b += d[i + 2]; b.n += 1; cubos.set(clave, b);
-  }
-  const hex = (v) => Math.round(v).toString(16).padStart(2, '0');
-  return [...cubos.values()].sort((a, b) => b.n - a.n).slice(0, 24).map((b) => ({hex: ('#' + hex(b.r / b.n) + hex(b.g / b.n) + hex(b.b / b.n)).toUpperCase(), peso: b.n}));
-}
-const TIPO_DESDE_WEB = {serif: 'serif', rounded: 'redondeada', mono: 'grotesca', grotesk: 'grotesca'};
 
 /**
  * Monta el panel.
@@ -74,7 +41,7 @@ export function montarProspect(raiz, o = {}) {
     ${modo === 'generador' ? `<label class="pp-switch"><input type="checkbox" data-pp="activo"><span class="pp-track" aria-hidden="true"></span><span><b>Presentación para un prospect</b><small>Todo el deck (portada, fondos, tipografías, logo, gráficos y maquetas de Studio, Store, App y Yokup) se viste con la marca del destinatario.</small></span></label>` : ''}
     <div class="pp-cuerpo" data-pp="cuerpo"${modo === 'generador' ? ' hidden' : ''}>
       <div class="pp-label">Marca del destinatario</div>
-      <div class="pp-marcas" role="radiogroup" aria-label="Marca del prospect" data-pp="marcas"><span class="pp-cargando">Cargando marcas de /marcablanca…</span></div>
+      <div class="pp-marcas" role="radiogroup" aria-label="Marca del prospect" data-pp="marcas"><span class="pp-cargando">Cargando el catálogo de marcas…</span></div>
       <div class="pp-nueva" data-pp="nueva" hidden>
         <div class="pp-grid">
           <label class="pp-f"><span>Nombre de la marca</span><input type="text" maxlength="80" data-pp="nombre" placeholder="Nombre del prospect"></label>
@@ -150,13 +117,21 @@ export function montarProspect(raiz, o = {}) {
   function avisar(t) { aviso = t || ''; $('aviso').textContent = aviso; }
 
   async function cargarCatalogo() {
+    catalogo.clear();
     try {
-      const indice = await (await fetch('/marcablanca/clientes/index.json', {credentials: 'omit'})).json();
-      const ids = (indice.clientes || []).map((c) => c.id).filter((id) => id !== indice.porDefecto);
-      const marcas = await Promise.all(ids.map((id) => fetch(`/marcablanca/clientes/${id}.json`, {credentials: 'omit'}).then((r) => r.json()).then((j) => normalizarMarca(j)).catch(() => null)));
-      marcas.filter(Boolean).forEach((m) => catalogo.set(m.id, m));
+      // Catálogo único: la API (semillas + guardadas) y, si no responde, los JSON estáticos.
+      let lista = null;
+      try { const r = await fetch('/marcablanca/api/marcas?completo=1', {credentials: 'omit', cache: 'no-store'}); if (r.ok) lista = await r.json(); } catch (_) {}
+      if (lista?.marcas?.length) {
+        lista.marcas.filter((j) => j.id !== lista.porDefecto).forEach((j) => { const m = normalizarMarca(j); m.ejemplo = j.catalogo?.tipo === 'ejemplo' || j.ejemplo === true; m.catalogo = j.catalogo || null; catalogo.set(m.id, m); });
+      } else {
+        const indice = await (await fetch('/marcablanca/clientes/index.json', {credentials: 'omit'})).json();
+        const ids = (indice.clientes || []).map((c) => c.id).filter((id) => id !== indice.porDefecto);
+        const marcas = await Promise.all(ids.map((id) => fetch(`/marcablanca/clientes/${id}.json`, {credentials: 'omit'}).then((r) => r.json()).then((j) => normalizarMarca(j)).catch(() => null)));
+        marcas.filter(Boolean).forEach((m) => catalogo.set(m.id, m));
+      }
     } catch (_) { avisar('No se pudo leer el catálogo de /marcablanca; puedes crear una nueva marca.'); }
-    const chips = [...catalogo.values()].map((m) => { const p = m.colores[m.modo]; return `<button type="button" role="radio" class="pp-marca" data-elegir-marca="${esc(m.id)}" aria-checked="false"><span class="pp-chip-logo" data-pp-logo="${esc(m.id)}" style="background:${p.fondo};color:${p.texto}"><span class="mb-logo" data-mb-logo></span></span><b>${esc(m.nombre)}</b><small>${esc(m.sector || '')}</small><span class="pp-mini">${['primario', 'secundario', 'acento'].map((k) => `<i style="background:${p[k]}"></i>`).join('')}</span></button>`; });
+    const chips = [...catalogo.values()].map((m) => { const p = m.colores[m.modo]; return `<button type="button" role="radio" class="pp-marca" data-elegir-marca="${esc(m.id)}" aria-checked="false"><span class="pp-chip-logo" data-pp-logo="${esc(m.id)}" style="background:${p.fondo};color:${p.texto}"><span class="mb-logo" data-mb-logo></span></span><b>${esc(m.nombre)}</b><small>${esc(m.ejemplo ? `${m.sector || ''} · ejemplo` : m.catalogo?.propuesta ? 'Propuesta automática' : (m.sector || ''))}</small><span class="pp-mini">${['primario', 'secundario', 'acento'].map((k) => `<i style="background:${p[k]}"></i>`).join('')}</span></button>`; });
     const actual = estado.actual ? `<button type="button" role="radio" class="pp-marca pp-actual" data-elegir-marca="actual" aria-checked="false"><b>Conservar la actual</b><small>${esc(estado.actual.nombre || estado.actual.marca)}</small></button>` : '';
     $('marcas').innerHTML = actual + chips.join('') + `<button type="button" role="radio" class="pp-marca pp-mas" data-elegir-marca="nueva" aria-checked="false"><span class="pp-chip-logo">＋</span><b>Nueva marca</b><small>Nombre, logo, colores y tipografía</small></button>`;
     try { const MB = await cargarMarcaBlanca(); for (const m of catalogo.values()) MB.aplicar(m.id, {objetivo: raiz.querySelector(`[data-pp-logo="${m.id}"]`), modo: m.modo, favicon: false}); } catch (_) {}
@@ -180,9 +155,9 @@ export function montarProspect(raiz, o = {}) {
         const r = await fetch('/presentaciones/api/inspiration', {method: 'POST', headers: {'content-type': 'application/json', accept: 'application/json'}, body: JSON.stringify({url: /^https?:\/\//.test(url) ? url : 'https://' + url})});
         const body = await r.json().catch(() => ({})); if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
         const ins = body.inspiration || {};
-        const pal = paletaDesdeColores([ins.primary, ins.accent, ...(ins.palette || [])].filter(Boolean));
-        Object.assign(estado.nueva, {primario: hexOk(ins.primary) ? ins.primary.toUpperCase() : pal.primario, secundario: pal.secundario, acento: hexOk(ins.accent) ? ins.accent.toUpperCase() : pal.acento, tipografia: TIPO_DESDE_WEB[ins.fontStyle] || estado.nueva.tipografia, modo: ins.mode === 'dark' ? 'oscuro' : ins.mode === 'light' ? 'claro' : estado.nueva.modo});
-        if (!estado.nueva.nombre && ins.title) estado.nueva.nombre = String(ins.title).split(/[|·–-]/)[0].trim().slice(0, 80);
+        const d = datosDesdeInspiracion(ins);
+        Object.assign(estado.nueva, {primario: d.primario, secundario: d.secundario, acento: d.acento, tipografia: d.tipografia || estado.nueva.tipografia, modo: d.modo});
+        if (!estado.nueva.nombre && d.nombre) estado.nueva.nombre = d.nombre;
         if (!estado.nueva.logoData && !estado.nueva.logoUrl && ins.logo) {
           if (ins.logo.type === 'url' && /^https:\/\//.test(ins.logo.url || '')) estado.nueva.logoUrl = ins.logo.url;
           else if (ins.logo.type === 'svg' && ins.logo.svg && ins.logo.svg.length < LOGO_MAX) estado.nueva.logoData = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(ins.logo.svg)));

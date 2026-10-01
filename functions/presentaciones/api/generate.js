@@ -14,6 +14,7 @@ import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-l
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 import {BRIEF_MAX,normalizeStructureInput,structureIdeasSeed,normalizeFooter} from '../_admiranext-structure.js';
 import {resolveProspect,prospectTheme,prospectSource,publicProspect} from '../_prospect.js';
+import {guardarMarca} from '../../marcablanca/_catalogo.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -288,9 +289,9 @@ export async function onRequestPut(context){
   }
   cronometra('web');
   input.inspiration=inspiration;
-  let prospect=null,prospectLogo=null;
+  let prospect=null,prospectLogo=null,prospectCatalogo=null;
   try{
-    ({prospect,brand:prospectLogo}=await resolveProspect({env:context.env,request:context.request,raw:prospectRaw,existing,slug,displayName,website:input.website,inspiration:brandAnalysis||inspiration}));
+    ({prospect,brand:prospectLogo,catalogo:prospectCatalogo}=await resolveProspect({env:context.env,request:context.request,raw:prospectRaw,existing,slug,displayName,website:input.website,inspiration:brandAnalysis||inspiration}));
   }catch(error){return json({error:error.message||'La marca del prospect no es válida.'},400)}
   cronometra('prospect');
   // El logo de la web oficial: obligatorio sin prospect; con prospect, el del prospect manda y
@@ -416,8 +417,18 @@ export async function onRequestPut(context){
       ]);
     })());
   }
+  // CATÁLOGO ÚNICO (FLT-101330 a): una «nueva marca» de prospect se guarda también en el catálogo de
+  // /marcablanca, para usarla con ?marca=<id> en las 4 patas y en otros decks. Nunca tumba el alta.
+  let catalogoMarca=null;
+  if(prospectCatalogo){
+    try{
+      const access=context.data?.presentationAccess||{};
+      const r=await guardarMarca(context.env,context.request,{marca:prospectCatalogo.marca,origen:'generador',web:prospectCatalogo.web,propuesta:false,autor:{nombre:access.tokenLabel||access.email||'',email:access.email||''},actualizar:true});
+      catalogoMarca={guardada:true,id:r.id,creada:r.creada,url:`/marcablanca/?marca=${r.id}`};
+    }catch(error){catalogoMarca={guardada:false,error:error.message||'No se pudo guardar en el catálogo.'}}
+  }
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':ideas.narrativeSource==='admiranext-structure'?'admiranext-structure':'template';
   const narrativeFallback=narrativeSource==='xai'||narrativeSource==='admiranext-structure'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,prospect:publicProspect(presentation.prospect),narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,prospect:publicProspect(presentation.prospect),...(catalogoMarca?{catalogo:catalogoMarca}:{}),narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

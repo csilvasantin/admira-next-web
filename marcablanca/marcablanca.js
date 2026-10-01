@@ -1,6 +1,8 @@
 /*!
- * marcablanca.js · v1.1.0 · Galaxia Admira (Studio crea · Store distribuye · App comercializa · Yokup mantiene)
- * Cargador de la marca blanca común. Lee clientes/<cliente>.json y viste la web con los tokens --mb-*.
+ * marcablanca.js · v1.2.0 · Galaxia Admira (Studio crea · Store distribuye · App comercializa · Yokup mantiene)
+ * Cargador de la marca blanca común. Lee la marca del CATÁLOGO ÚNICO (/marcablanca/api/marcas/<id>,
+ * semillas + marcas guardadas) y, si la API no responde, de clientes/<cliente>.json; y viste la web
+ * con los tokens --mb-*.
  *
  *   <link rel="stylesheet" href="https://www.admiranext.com/marcablanca/marcablanca.css">
  *   <script src="https://www.admiranext.com/marcablanca/marcablanca.js"
@@ -14,13 +16,16 @@
   'use strict';
   if (w.MarcaBlanca && w.MarcaBlanca.version) return;
 
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
   var script = d.currentScript;
   var BASE = (script && script.src) ? new URL('.', script.src).href : new URL('/marcablanca/', w.location.href).href;
   var NATIVO = { studio: 'oscuro', store: 'oscuro', app: 'oscuro', yokup: 'claro' };
   var DOMINIO_PLATAFORMA = { 'admira.studio': 'studio', 'admira.store': 'store', 'admira.app': 'app', 'yokup.com': 'yokup' };
   var ID_VALIDO = /^[a-z0-9][a-z0-9-]{0,40}$/;
+  var API = BASE + 'api/marcas';
   var cacheJson = {};
+  var cacheMarca = {};
+  var cacheIndice = null;
   var cacheSvg = {};
   var fuentesCargadas = {};
   var contadorSvg = 0;
@@ -64,12 +69,23 @@
     return m;
   }
 
-  function cargarIndice() { return json(BASE + 'clientes/index.json'); }
+  // Catálogo único: primero la API (semillas + marcas guardadas); si no responde (web estática,
+  // red caída), los JSON estáticos de clientes/, que son la semilla y el respaldo.
+  function cargarIndice() {
+    if (!cacheIndice) cacheIndice = json(API).catch(function () { return json(BASE + 'clientes/index.json'); });
+    return cacheIndice;
+  }
 
   function cargar(id) {
     if (!ID_VALIDO.test(id || '')) return Promise.reject(new Error('marcablanca: cliente no válido «' + id + '»'));
-    var url = BASE + 'clientes/' + id + '.json';
-    return json(url).then(function (m) { return resolverUrls(fusionar({}, m), url); });
+    if (!cacheMarca[id]) {
+      var desdeApi = API + '/' + id, desdeFichero = BASE + 'clientes/' + id + '.json';
+      cacheMarca[id] = json(desdeApi).then(function (m) { return { m: m, desde: desdeApi }; }, function () {
+        return json(desdeFichero).then(function (m) { return { m: m, desde: desdeFichero }; });
+      });
+      cacheMarca[id].catch(function () { delete cacheMarca[id]; });
+    }
+    return cacheMarca[id].then(function (r) { return resolverUrls(fusionar({}, r.m), r.desde); });
   }
 
   function marcaPorDominio(indice, host) {
@@ -294,16 +310,20 @@
         return variables(m, resolverModo(m, o.plataforma, o.modo, base));
       });
     },
+    api: API,
     listar: function () { return cargarIndice().then(function (i) { return i.clientes || []; }); },
     /**
-     * Registra una marca que no está en clientes/ (p. ej. la «nueva marca» de un prospect, generada
-     * con marca.js → crearMarca). A partir de ahí aplicar(id) y cargar(id) la usan como a las demás.
+     * Registra una marca que no está en el catálogo (p. ej. la «nueva marca» de un prospect o la
+     * propuesta de «Tu marca · URL», generadas con marca.js). A partir de ahí aplicar(id) y cargar(id)
+     * la usan como a las demás. Volver a registrar el mismo id la sustituye (retoques en vivo).
      */
     registrar: function (marca) {
       if (!marca || !ID_VALIDO.test(marca.id || '')) throw new Error('marcablanca: marca sin id válido');
-      cacheJson[BASE + 'clientes/' + marca.id + '.json'] = Promise.resolve(JSON.parse(JSON.stringify(marca)));
+      cacheMarca[marca.id] = Promise.resolve({ m: JSON.parse(JSON.stringify(marca)), desde: BASE + 'clientes/' + marca.id + '.json' });
       return marca.id;
-    }
+    },
+    /** Olvida lo leído del catálogo (p. ej. tras guardar una marca nueva). */
+    refrescar: function (id) { if (id) delete cacheMarca[id]; else cacheMarca = {}; cacheIndice = null; cacheJson = {}; }
   };
   w.MarcaBlanca = api;
 

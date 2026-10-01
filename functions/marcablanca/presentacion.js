@@ -3,13 +3,14 @@
  *
  * Pinta UNA presentación de ejemplo con el MISMO render que las presentaciones reales
  * (functions/presentaciones/[client]/presentacion.js), vestida con la marca elegida:
- *   GET  ?marca=lumbre|brumelle|frescaria   → marca del catálogo (por defecto Lumbre Café)
+ *   GET  ?marca=<id del catálogo único>      → semillas (lumbre, brumelle, frescaria…) o marcas guardadas
+ *                                             en el catálogo (/marcablanca/api/marcas). Por defecto Lumbre Café.
  *   GET  ?marca=admira                      → la misma presentación sin prospect (Admira)
  *   POST marca=<JSON de cliente>            → «nueva marca» generada en el navegador (no se guarda)
  * No hay KV ni clave: el contenido es fijo y ficticio, y nada de lo que llega se almacena.
  */
 import {onRequestGet as renderDeck} from '../presentaciones/[client]/presentacion.js';
-import {catalogBrand,PROSPECT_CATALOGO} from '../presentaciones/_prospect.js';
+import {catalogBrand} from '../presentaciones/_prospect.js';
 import {normalizarMarca} from '../../marcablanca/marca.js';
 
 const SLUG='demo-prospect';
@@ -72,8 +73,7 @@ async function render(context,cliente){
 export async function onRequestGet(context){
   const pedido=String(new URL(context.request.url).searchParams.get('marca')||'lumbre').toLowerCase();
   if(pedido==='admira')return render(context,null);
-  const id=PROSPECT_CATALOGO.includes(pedido)?pedido:'lumbre';
-  const cliente=await catalogBrand(context.env,context.request,id);
+  const cliente=await catalogBrand(context.env,context.request,pedido)||await catalogBrand(context.env,context.request,'lumbre');
   if(!cliente)return new Response('Marca no disponible',{status:503});
   return render(context,cliente);
 }
