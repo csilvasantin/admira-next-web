@@ -187,6 +187,15 @@ function buildSource(data){
     `- No sustituir el cierre por otra plantilla ni cambiar paleta, tipografía, textura, composición o duración.${translated}`;
 }
 
+// Autoría: quién creó/regeneró la presentación (correo del directorio, o machine@admiranext.com
+// si entra la flota con la clave de máquina). Sin sesión identificada no se anota nada.
+export function authorFields(access,existing){
+  const email=typeof access?.email==='string'?access.email.slice(0,180):'';
+  if(!email)return existing?.createdBy?{createdBy:existing.createdBy}:{};
+  const who={email,via:String(access.via||'session').slice(0,40),at:new Date().toISOString()};
+  return {createdBy:existing?.createdBy||who,updatedBy:who};
+}
+
 export async function onRequestPut(context){
   if (!context.env.PRESENTATION_IDEAS || !context.env.PRES_SIGNING_KEY) return json({error:'Generador no configurado.'},503);
   const origin=context.request.headers.get('Origin'); const url=new URL(context.request.url);
@@ -196,7 +205,7 @@ export async function onRequestPut(context){
   try{assertKnownGenerateFields(raw)}catch(error){return json({error:error.message},400)}
   const displayName=text(raw.displayName,100); const slug=slugify(raw.slug||displayName);
   if (!displayName || slug.length<2) return json({error:'Indica un nombre de cliente válido.'},400);
-  if (['api','generador','index','assets'].includes(slug)) return json({error:'Ese identificador está reservado.'},400);
+  if (['api','generador','index','assets','auth'].includes(slug)) return json({error:'Ese identificador está reservado.'},400);
   const existing=await context.env.PRESENTATION_IDEAS.get(`presentation:${slug}`,{type:'json'});
   if (existing && raw.overwrite!==true) return json({error:'Ya existe una presentación con ese identificador.',exists:true,slug},409);
   let presite=null;
@@ -380,6 +389,7 @@ export async function onRequestPut(context){
     schemaVersion:12,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,structure:structure?{id:structure.id,slideCodes:structure.slides.map(item=>item.code)}:null,footer,prospect,
     theme:prospect?prospectTheme(prospect.cliente,input.heroDevice||'none'):{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured',heroDevice:input.heroDevice||'none'},
     passwordVerifier,
+    ...authorFields(context.data?.presentationAccess,existing),
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
   };
   await Promise.all([

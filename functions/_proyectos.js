@@ -42,7 +42,7 @@ export const PROYECTOS = [
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
     volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout retorno/pre-catalogo-marcas-20261001 && ADMIRA_RELEASE_AGENT=OraculoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh',
     tipo: 'sitio', shot: '/webmaster-shots/admiranext.jpg',
-    nota: 'Último retorno: etiqueta retorno/pre-catalogo-marcas-20261001 = producción justo antes del catálogo único de marcas y del análisis de marca por URL en /marcablanca (FLT-101330). Retornos anteriores: retorno/pre-presentaciones-prospect-20261001 (antes del modo prospect) y retorno/pre-marcablanca-20261001 (antes de /marcablanca). Sin guardas: revertir el merge en main y el CI vuelve a publicar.',
+    nota: 'Último retorno: etiqueta retorno/pre-catalogo-marcas-20261001 = producción justo antes del catálogo único de marcas y del análisis de marca por URL en /marcablanca (FLT-101330). Retornos anteriores: retorno/pre-clave-maquina-presentaciones-20261001 (antes de la clave de máquina del generador; revocar solo la clave: borrar o rotar el secreto PRES_MACHINE_KEY de Pages), retorno/pre-presentaciones-prospect-20261001 (antes del modo prospect) y retorno/pre-marcablanca-20261001 (antes de /marcablanca). Sin guardas: revertir el merge en main y el CI vuelve a publicar.',
   },
   {
     clave: 'admiranext-webmaster', nombre: 'AdmiraNeXT Webmaster',
@@ -85,7 +85,7 @@ export const PROYECTOS = [
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
     tipo: 'sitio', shot: null,
     volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout retorno/pre-catalogo-marcas-20261001 && ADMIRA_RELEASE_AGENT=OraculoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh',
-    nota: 'ACL del Generador Presentar: el alta en /usuarios con esta clave (o * o alias generador/presentaciones) otorga un grant usable. Sin ella el editor no entra. Modo prospect (01-10-2026): interruptor + marca de /marcablanca/clientes o nueva; la marca se guarda en presentation.prospect y, si es nueva, en el catálogo único de marcas (KV marca:<id>, FLT-101330). Retorno: retorno/pre-catalogo-marcas-20261001.',
+    nota: 'ACL del Generador Presentar: el alta en /usuarios con esta clave (o * o alias generador/presentaciones) otorga un grant usable. Sin ella el editor no entra. Modo prospect (01-10-2026): interruptor + marca de /marcablanca/clientes o nueva; la marca se guarda en presentation.prospect y, si es nueva, en el catálogo único de marcas (KV marca:<id>, FLT-101330). Clave de máquina (01-10-2026): la flota entra sin Google con X-Admira-Machine-Key (secreto PRES_MACHINE_KEY, nivel editor, machine@admiranext.com); revocar = borrar o rotar el secreto. Retorno: retorno/pre-catalogo-marcas-20261001.',
   },
   {
     clave: 'presentaciones', nombre: 'Presentar (equipo)',
