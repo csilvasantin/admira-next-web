@@ -120,6 +120,9 @@ export function montarProspect(raiz, o = {}) {
     if (o.campo) o.campo.value = valorCampo();
     $('cuerpo').hidden = !estado.activo;
     if ($('activo')) $('activo').checked = estado.activo;
+    // Con prospect la web oficial es opcional: el bundle la marca `required` al arrancar y el
+    // navegador bloqueaba el envío antes de llegar al servidor (visto en la prueba real).
+    if (modo === 'generador') { const web = document.getElementById('website'); if (web) web.required = !(estado.activo && estado.marca); }
     raiz.querySelectorAll('[data-elegir-marca]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.elegirMarca === estado.marca)));
     $('nueva').hidden = estado.marca !== 'nueva';
     for (const k of ['primario', 'secundario', 'acento']) { $(k).value = estado.nueva[k]; raiz.querySelector(`[data-pp-hex="${k}"]`).textContent = estado.nueva[k].toUpperCase(); }
