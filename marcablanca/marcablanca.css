@@ -68,6 +68,7 @@
 /* 3 · Componentes ----------------------------------------------------------- */
 .mb-logo { display: inline-flex; align-items: center; color: var(--mb-texto); line-height: 0; }
 .mb-logo .mb-logo-svg { height: 100%; width: auto; display: block; }
+.mb-logo .mb-logo-img { height: 100%; width: auto; max-width: 100%; display: block; object-fit: contain; }
 
 .mb-eyebrow {
   font-family: var(--mb-fuente-etiquetas);

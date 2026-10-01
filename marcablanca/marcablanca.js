@@ -1,5 +1,5 @@
 /*!
- * marcablanca.js · v1.0.0 · Galaxia Admira (Studio crea · Store distribuye · App comercializa · Yokup mantiene)
+ * marcablanca.js · v1.1.0 · Galaxia Admira (Studio crea · Store distribuye · App comercializa · Yokup mantiene)
  * Cargador de la marca blanca común. Lee clientes/<cliente>.json y viste la web con los tokens --mb-*.
  *
  *   <link rel="stylesheet" href="https://www.admiranext.com/marcablanca/marcablanca.css">
@@ -14,7 +14,7 @@
   'use strict';
   if (w.MarcaBlanca && w.MarcaBlanca.version) return;
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
   var script = d.currentScript;
   var BASE = (script && script.src) ? new URL('.', script.src).href : new URL('/marcablanca/', w.location.href).href;
   var NATIVO = { studio: 'oscuro', store: 'oscuro', app: 'oscuro', yokup: 'claro' };
@@ -51,6 +51,7 @@
 
   function resolverUrls(m, desde) {
     if (m.logo && m.logo.svg) m.logo = fusionar(m.logo, { svg: absoluta(m.logo.svg, desde) });
+    if (m.logo && m.logo.imagen) m.logo = fusionar(m.logo, { imagen: absoluta(m.logo.imagen, desde) });
     if (m.favicon) m.favicon = absoluta(m.favicon, desde);
     if (m.tipografia && m.tipografia.fuentes) {
       m.tipografia = fusionar(m.tipografia, { fuentes: m.tipografia.fuentes.map(function (f) { return fusionar(f, { url: absoluta(f.url, desde) }); }) });
@@ -185,7 +186,17 @@
   function pintarLogos(objetivo, m) {
     var nodos = Array.prototype.slice.call(objetivo.querySelectorAll('[data-mb-logo]'));
     if (objetivo.hasAttribute && objetivo.hasAttribute('data-mb-logo')) nodos.unshift(objetivo);
-    if (!nodos.length || !m.logo || !m.logo.svg) return Promise.resolve();
+    if (!nodos.length || !m.logo) return Promise.resolve();
+    // Logo de mapa de bits o de fuera (p. ej. el de un prospect): va como <img>, nunca incrustado.
+    if (!m.logo.svg && m.logo.imagen) {
+      nodos.forEach(function (n) {
+        var img = d.createElement('img');
+        img.src = m.logo.imagen; img.alt = m.logo.alt || m.nombre; img.className = 'mb-logo-img'; img.decoding = 'async';
+        n.innerHTML = ''; n.appendChild(img);
+      });
+      return Promise.resolve();
+    }
+    if (!m.logo.svg) return Promise.resolve();
     return textoSvg(m.logo.svg).then(function (txt) {
       nodos.forEach(function (n) {
         var svg = svgSeguro(txt);
@@ -283,7 +294,16 @@
         return variables(m, resolverModo(m, o.plataforma, o.modo, base));
       });
     },
-    listar: function () { return cargarIndice().then(function (i) { return i.clientes || []; }); }
+    listar: function () { return cargarIndice().then(function (i) { return i.clientes || []; }); },
+    /**
+     * Registra una marca que no está en clientes/ (p. ej. la «nueva marca» de un prospect, generada
+     * con marca.js → crearMarca). A partir de ahí aplicar(id) y cargar(id) la usan como a las demás.
+     */
+    registrar: function (marca) {
+      if (!marca || !ID_VALIDO.test(marca.id || '')) throw new Error('marcablanca: marca sin id válido');
+      cacheJson[BASE + 'clientes/' + marca.id + '.json'] = Promise.resolve(JSON.parse(JSON.stringify(marca)));
+      return marca.id;
+    }
   };
   w.MarcaBlanca = api;
 

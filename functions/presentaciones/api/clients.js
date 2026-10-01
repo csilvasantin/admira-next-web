@@ -1,4 +1,5 @@
 import {publicPresiteOpening} from '../_presite-opening.js';
+import {publicProspect} from '../_prospect.js';
 
 function json(body,status=200){return new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}})}
 
@@ -31,6 +32,8 @@ export async function onRequestGet(context){
       versionCount,
       passwordSet:Boolean(item.passwordVerifier),
       presite:publicPresiteOpening(item.presite,item.slug),
+      // Marca del destinatario (modo prospect): sólo el resumen; el JSON completo vive con la presentación.
+      prospect:publicProspect(item.prospect),
       createdAt:item.createdAt,
       updatedAt:item.updatedAt
     };

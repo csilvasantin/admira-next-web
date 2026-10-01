@@ -40,9 +40,9 @@ export const PROYECTOS = [
     clave: 'admiranext', nombre: 'admiranext.com', url: 'https://www.admiranext.com',
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
-    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout retorno/pre-marcablanca-20261001 && ADMIRA_RELEASE_AGENT=OraculoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout retorno/pre-presentaciones-prospect-20261001 && ADMIRA_RELEASE_AGENT=OraculoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh',
     tipo: 'sitio', shot: '/webmaster-shots/admiranext.jpg',
-    nota: 'Último retorno: etiqueta retorno/pre-marcablanca-20261001 = producción justo antes de publicar /marcablanca (marca blanca de Studio, Store, App y Yokup). Sin guardas: revertir el merge de la marca blanca en main y el CI vuelve a publicar.',
+    nota: 'Último retorno: etiqueta retorno/pre-presentaciones-prospect-20261001 = producción justo antes del modo prospect del generador de presentaciones (deck con la marca del destinatario vía /marcablanca). Retorno anterior: retorno/pre-marcablanca-20261001 (antes de /marcablanca). Sin guardas: revertir el merge en main y el CI vuelve a publicar.',
   },
   {
     clave: 'admiranext-webmaster', nombre: 'AdmiraNeXT Webmaster',
@@ -84,7 +84,8 @@ export const PROYECTOS = [
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · presentaciones/',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
     tipo: 'sitio', shot: null,
-    nota: 'ACL del Generador Presentar: el alta en /usuarios con esta clave (o * o alias generador/presentaciones) otorga un grant usable. Sin ella el editor no entra.',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout retorno/pre-presentaciones-prospect-20261001 && ADMIRA_RELEASE_AGENT=OraculoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh',
+    nota: 'ACL del Generador Presentar: el alta en /usuarios con esta clave (o * o alias generador/presentaciones) otorga un grant usable. Sin ella el editor no entra. Modo prospect (01-10-2026): interruptor + marca de /marcablanca/clientes o nueva; la marca se guarda en presentation.prospect. Retorno: retorno/pre-presentaciones-prospect-20261001.',
   },
   {
     clave: 'presentaciones', nombre: 'Presentar (equipo)',

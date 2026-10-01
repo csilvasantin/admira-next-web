@@ -13,6 +13,7 @@ import {generateNarrativeWithRetry,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENE
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 import {BRIEF_MAX,normalizeStructureInput,structureIdeasSeed,normalizeFooter} from '../_admiranext-structure.js';
+import {resolveProspect,prospectTheme,prospectSource,publicProspect} from '../_prospect.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -26,7 +27,7 @@ export const GENERATE_ALLOWED_KEYS = new Set([
   'insertDeck','inserts','insert','primaryColor','accentColor','slideMedia',
   'exampleVideoUrl','includeExampleVideo','videoUrl','videoSlide','demoVideo',
   'requireExampleVideo','terminology','sourceTraceability','presite','presiteSlug',
-  'structure','slides','footer','closingTitle','closingAction'
+  'structure','slides','footer','closingTitle','closingAction','prospect'
 ]);
 
 export function assertKnownGenerateFields(raw={}){
@@ -247,10 +248,17 @@ export async function onRequestPut(context){
     website:ensureHttpsUrl(raw.website), requestedInspirationUrl:ensureHttpsUrl(raw.inspirationUrl), primaryColor:color(raw.primaryColor,'#12233e'), accentColor:color(raw.accentColor,'#ffb000'),
     heroDevice:['pocket','none'].includes(raw.heroDevice)?raw.heroDevice:'none'
   };
-  if (!input.website) return json({error:'Indica la web oficial del cliente: es la fuente del logo y la inspiración por defecto.'},400);
-  if (!/^https:\/\//i.test(input.website)) return json({error:'La web oficial debe comenzar por https://'},400);
+  // PROSPECT (Carlos, 01-10-2026): con una marca de destinatario la web deja de ser obligatoria;
+  // la identidad (colores, tipografía y logo) la pone la marca elegida. Ver _prospect.js.
+  let prospectRaw;
+  try{prospectRaw=typeof raw.prospect==='string'?(raw.prospect.trim()?JSON.parse(raw.prospect):null):raw.prospect}catch(_){return json({error:'El campo prospect no es JSON válido.'},400)}
+  const prospectKeep=prospectRaw&&typeof prospectRaw==='object'&&prospectRaw.marca==='actual';
+  if(prospectKeep)prospectRaw=undefined;
+  const prospectActive=prospectRaw===undefined?Boolean(existing?.prospect?.activo):Boolean(prospectRaw&&typeof prospectRaw==='object'&&prospectRaw.activo!==false&&prospectRaw.activo!=='false');
+  if (!input.website && !prospectActive) return json({error:'Indica la web oficial del cliente: es la fuente del logo y la inspiración por defecto.'},400);
+  if (input.website && !/^https:\/\//i.test(input.website)) return json({error:'La web oficial debe comenzar por https://'},400);
   if (input.requestedInspirationUrl && !/^https:\/\//i.test(input.requestedInspirationUrl)) return json({error:'La web inspiradora debe comenzar por https://'},400);
-  input.inspirationUrl=input.requestedInspirationUrl||input.website;
+  input.inspirationUrl=input.requestedInspirationUrl||input.website||'';
   // TIEMPOS POR PASO (MorfeoMacMini, 6-sep-2026 · FLT-100018 a): «rápido» sólo se puede
   // mejorar si se mide. Cada etapa del alta deja sus milisegundos en `timings`, que viajan
   // en la respuesta al operador y en una línea de log del worker (evento presentacion-creada).
@@ -259,12 +267,33 @@ export async function onRequestPut(context){
   let inspiration=null;
   let brandAnalysis=null;
   try{
-    inspiration=normalizeInspiration(raw.inspiration,input.inspirationUrl) || await analyzeInspiration(input.inspirationUrl);
-    brandAnalysis=input.inspirationUrl===input.website?inspiration:await analyzeInspiration(input.website);
-    if(!raw.inspiration){input.primaryColor=inspiration.primary;input.accentColor=inspiration.accent}
-  }catch(error){return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422)}
+    if(input.inspirationUrl){
+      inspiration=normalizeInspiration(raw.inspiration,input.inspirationUrl) || await analyzeInspiration(input.inspirationUrl);
+      brandAnalysis=!input.website?null:input.inspirationUrl===input.website?inspiration:await analyzeInspiration(input.website);
+      if(!raw.inspiration){input.primaryColor=inspiration.primary;input.accentColor=inspiration.accent}
+    }
+  }catch(error){
+    // Con prospect la web sólo aporta contexto: si no se deja analizar, la marca elegida manda.
+    if(!prospectActive)return json({error:error.message||'No se pudo analizar la identidad del cliente.'},422);
+    inspiration=null;brandAnalysis=null;
+  }
   cronometra('web');
   input.inspiration=inspiration;
+  let prospect=null,prospectLogo=null;
+  try{
+    ({prospect,brand:prospectLogo}=await resolveProspect({env:context.env,request:context.request,raw:prospectRaw,existing,slug,displayName,website:input.website,inspiration:brandAnalysis||inspiration}));
+  }catch(error){return json({error:error.message||'La marca del prospect no es válida.'},400)}
+  cronometra('prospect');
+  // El logo de la web oficial: obligatorio sin prospect; con prospect, el del prospect manda y
+  // el oficial sólo se intenta si no hay otro (y su ausencia ya no tumba el alta).
+  const officialLogo=async()=>{
+    if(prospectLogo)return prospectLogo;
+    if(prospect){
+      if(!brandAnalysis?.logo)return existing?.prospect?existing.brand||null:null;
+      try{return await persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis})}catch(_){return null}
+    }
+    return persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis});
+  };
   // El logo y el guion no se necesitan el uno al otro: van EN PARALELO. Antes el guion
   // esperaba a que el logo se descargara y se guardara, y ese tiempo lo pagaba el operador.
   // El motivo del respaldo se queda AQUÍ, en una variable del operador: nunca dentro
@@ -274,14 +303,14 @@ export async function onRequestPut(context){
   let ideas;
   try{
     if(structure){
-      const brand=await persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis});
+      const brand=await officialLogo();
       input.brand=brand;
       cronometra('logo+guion');
       timings.guion=0;timings.guionIntentos=0;
       ideas=structureIdeasSeed(structure,input,slug,languages);
     }else{
       const [brand,narrative]=await Promise.all([
-        persistBrandLogo(context.env,{slug,displayName,website:input.website,analysis:brandAnalysis}),
+        officialLogo(),
         generateNarrativeWithRetry(context.env,input)
       ]);
       input.brand=brand;narrativeResult=narrative;
@@ -327,7 +356,7 @@ export async function onRequestPut(context){
   }else{
     await applyTranslations();
   }
-  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)});
+  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)+prospectSource(prospect)});
   const compatibilityFeatures=['css-layout','interactive-controls','custom-fonts'];
   for(const entry of slideMedia){
     if(entry.type==='animation')compatibilityFeatures.push('animation');
@@ -347,8 +376,8 @@ export async function onRequestPut(context){
   });
   const roomDeviceLab=createRoomDeviceLab({features:compatibilityFeatures});
   const presentation={
-    schemaVersion:12,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,structure:structure?{id:structure.id,slideCodes:structure.slides.map(item=>item.code)}:null,footer,
-    theme:{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured',heroDevice:input.heroDevice||'none'},
+    schemaVersion:12,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,structure:structure?{id:structure.id,slideCodes:structure.slides.map(item=>item.code)}:null,footer,prospect,
+    theme:prospect?prospectTheme(prospect.cliente,input.heroDevice||'none'):{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured',heroDevice:input.heroDevice||'none'},
     passwordVerifier,
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
   };
@@ -380,5 +409,5 @@ export async function onRequestPut(context){
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':ideas.narrativeSource==='admiranext-structure'?'admiranext-structure':'template';
   const narrativeFallback=narrativeSource==='xai'||narrativeSource==='admiranext-structure'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,prospect:publicProspect(presentation.prospect),narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

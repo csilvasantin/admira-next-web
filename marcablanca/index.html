@@ -17,10 +17,13 @@
 <meta property="og:image" content="/og-image.jpg">
 <meta property="og:url" content="https://www.admiranext.com/marcablanca/">
 <link rel="alternate" type="application/json" href="/marcablanca/clientes/index.json" title="Clientes de marca blanca">
-<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261001-1">
-<link rel="stylesheet" href="/marcablanca/demo.css?v=20261001-1">
-<script src="/marcablanca/marcablanca.js?v=20261001-1" data-mb-auto="false"></script>
-<script src="/marcablanca/demo.js?v=20261001-1" defer></script>
+<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261001-2">
+<link rel="stylesheet" href="/marcablanca/maquetas.css?v=20261001-2">
+<link rel="stylesheet" href="/marcablanca/demo.css?v=20261001-2">
+<link rel="stylesheet" href="/assets/presentation-prospect.css?v=20261001-prospect">
+<script src="/marcablanca/marcablanca.js?v=20261001-2" data-mb-auto="false"></script>
+<script type="module" src="/marcablanca/maquetas.js?v=20261001-2"></script>
+<script src="/marcablanca/demo.js?v=20261001-2" defer></script>
 </head>
 <body>
 <div class="win">
@@ -100,6 +103,13 @@
       <div id="componentes" class="componentes"></div>
     </section>
 
+    <section id="presentaciones">
+      <div class="sec-head"><span class="ico">▶</span><h2>En las presentaciones · prospect</h2><span class="note">el generador viste el deck con la marca del destinatario</span></div>
+      <p class="mas">En el <a href="/presentaciones/">generador de presentaciones</a>, activa <b>Prospect</b> y elige una marca de <code>clientes/*.json</code> o crea una nueva (nombre, logo, colores, tipografía). Portada, fondos, tipografías, logo, gráficos y las maquetas de Studio, Store, App y Yokup se adaptan solos; sin prospect, todo sigue en Admira. La misma presentación de ejemplo, para cada cliente:</p>
+      <p class="mas pp-demo-enlaces"><a href="/marcablanca/presentacion?marca=lumbre" target="_blank" rel="noopener">Lumbre Café ↗</a> · <a href="/marcablanca/presentacion?marca=brumelle" target="_blank" rel="noopener">BRUMELLE ↗</a> · <a href="/marcablanca/presentacion?marca=frescaria" target="_blank" rel="noopener">Frescaria ↗</a> · <a href="/marcablanca/presentacion?marca=admira" target="_blank" rel="noopener">Admira (por defecto) ↗</a></p>
+      <div id="prospectDemo"></div>
+    </section>
+
     <section id="adoptar">
       <div class="sec-head"><span class="ico">⌘</span><h2>Cómo adoptarlo en cada web</h2><span class="note">3 pasos · sin reescribir el CSS</span></div>
       <ol class="pasos">
@@ -138,5 +148,10 @@
   <span class="sep">·</span>
   <span>Marca blanca de la Galaxia Admira · v.01.10.2026.r3.14:01</span>
 </footer>
+<script type="module">
+import {montarProspect} from '/assets/presentation-prospect.js?v=20261001-prospect';
+const raiz = document.getElementById('prospectDemo');
+if (raiz) montarProspect(raiz, {modo: 'demo'});
+</script>
 </body>
 </html>

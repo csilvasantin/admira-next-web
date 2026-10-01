@@ -136,3 +136,31 @@ document.addEventListener('marcablanca:aplicada', (e) => console.log(e.detail.id
 ```
 
 Con `data-mb-auto="false"` en el `<script>` el cargador no se aplica solo (útil para previsualizar).
+
+## Presentaciones para un prospect (generador de presentaciones)
+
+El generador de `/presentaciones/` puede vestir una presentación entera con la marca del
+**destinatario** (cliente potencial). Sin prospect, todo sigue exactamente igual: marca Admira.
+
+**Uso**
+
+1. Abre `/presentaciones/` y rellena el contexto del cliente como siempre.
+2. En el panel **Prospect · marca del destinatario**, activa *Presentación para un prospect*.
+3. Elige una marca de `clientes/*.json` (Lumbre Café, BRUMELLE, Frescaria…) o **Nueva marca**:
+   nombre, logo (subida ≤ 120 KB o URL `https://`), primario, secundario, acento, tipografía y modo.
+   *Extraer paleta del logo* y *Extraer de la web* rellenan los colores solos; *Descargar JSON de
+   cliente* genera el fichero con el esquema de `clientes/esquema.json` para darlo de alta aquí.
+4. *Vista previa de la presentación* abre la demo con esa marca; **Generar** guarda la marca con la
+   presentación (`presentation.prospect` en KV; el logo subido va a R2).
+
+**Qué se adapta**: colores (todas las calidades good/better/best), tipografías, logo (botón y
+portada «Marca × ADmiraNeXT»), fondos, gráficos, una maqueta de Studio, Store, App o Yokup en cada
+diapositiva que habla de esa plataforma y una diapositiva final «Su galaxia» con las cuatro.
+
+**Demo pública** (misma presentación, contenido fijo): `/marcablanca/presentacion?marca=lumbre`,
+`?marca=brumelle`, `?marca=frescaria` y `?marca=admira` (sin prospect). En una presentación real,
+`?marca=<id de catálogo>` previsualiza otra marca y `?marca=admira` la muestra en Admira.
+
+**Código**: `marca.js` (tokens compartidos navegador/servidor), `maquetas.js|css` (maquetas de las
+cuatro webs), `functions/presentaciones/_prospect.js` (resolución, guardado y render),
+`assets/presentation-prospect.js|css` (panel). Retorno: `retorno/pre-presentaciones-prospect-20261001`.
