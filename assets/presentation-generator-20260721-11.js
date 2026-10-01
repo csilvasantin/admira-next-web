@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20260921-resultado';
+  window.__ADMIRA_GENERATOR_VERSION__='20261001-prospect';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=false,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -308,7 +308,7 @@
     event.preventDefault(); event.stopImmediatePropagation(); submit.disabled=true; result.classList.remove('show');currentClient='';currentImageSet=null;currentGenerationUrl='';imageMessage('');message('Analizando el problema y construyendo la presentación…');
     const passwordPromise=resolvePassword();normalizeUrlInput(website);normalizeUrlInput(inspirationUrl);
     try{
-      if(!inspirationAnalysis)await analyzeInspiration();
+      const prospectOn=Boolean(window.AdmiraProspect&&window.AdmiraProspect.activo());if(!inspirationAnalysis&&(!prospectOn||website.value.trim())){try{await analyzeInspiration()}catch(error){if(!prospectOn)throw error}}
       message('Construyendo el relato y aplicando la dirección visual…');
       const data=Object.fromEntries(new FormData(form).entries()); if(!data.password)data.password=await passwordPromise;data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;const presite=selectedPresite();data.presiteSlug=presite?.slug||'';data.presite=presite?{slug:presite.slug}:null;
       const body=await createPresentation(data, Boolean(improveMode)); if(!body){message('No se ha modificado la presentación existente.');return}

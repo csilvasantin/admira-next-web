@@ -50,9 +50,6 @@
     },
     "logo": {
       "type": "object",
-      "required": [
-        "svg"
-      ],
       "properties": {
         "svg": {
           "type": "string",
@@ -60,8 +57,24 @@
         },
         "alt": {
           "type": "string"
+        },
+        "imagen": {
+          "type": "string",
+          "description": "Logo de mapa de bits o externo (PNG, JPG, WebP o SVG ajeno) para marcas generadas: se pinta como <img>, nunca incrustado."
         }
-      }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "svg"
+          ]
+        },
+        {
+          "required": [
+            "imagen"
+          ]
+        }
+      ]
     },
     "favicon": {
       "type": "string"
@@ -383,6 +396,21 @@
     "demo": {
       "type": "object",
       "description": "Contenido de ejemplo para las maquetas de admiranext.com/marcablanca. Opcional en clientes reales."
+    },
+    "origen": {
+      "type": "object",
+      "description": "Solo en marcas generadas (prospect): de dónde salió.",
+      "properties": {
+        "tipo": {
+          "type": "string"
+        },
+        "web": {
+          "type": "string"
+        },
+        "creadaEn": {
+          "type": "string"
+        }
+      }
     }
   }
 }
