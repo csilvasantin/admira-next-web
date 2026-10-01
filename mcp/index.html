@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ADmiraNeXT MCP | Matriz de la trilogía (RaaS · IoT)</title>
+  <title>ADmiraNeXT MCP | Las 4 patas del sistema operativo del retail</title>
   <meta name="description" content="Hub MCP de la matriz AdmiraNeXT: qué es, superficie pública, documentación y federación con la tienda y el Consejo. Sección legible por agentes.">
-  <meta name="admiranext-version" content="v.14.09.2026.r1.18:21">
+  <meta name="admiranext-version" content="v.01.10.2026.r1.04:56">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -45,13 +45,14 @@
     .section-head{display:grid;grid-template-columns:.92fr 1.08fr;gap:24px;align-items:end;margin-bottom:22px}
     .section-head p{color:var(--muted);font-size:1.02rem;line-height:1.7}
     .grid-3{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-4{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr))}
     .card{padding:18px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(30,22,8,.06)}
     .card p{color:var(--muted);line-height:1.6;margin:10px 0 0}
     .tag{display:inline-flex;margin-bottom:10px;padding:5px 8px;border-radius:7px;background:rgba(255,176,0,.16);color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:.72rem;font-weight:900}
     .callout{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px;align-items:center;padding:24px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.86);box-shadow:var(--shadow)}
     .callout a{font-weight:800;color:var(--accent-ink)}
     footer{padding:30px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
-    @media(max-width:820px){.hero{grid-template-columns:1fr}.section-head{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}.callout{grid-template-columns:1fr}}
+    @media(max-width:820px){.hero{grid-template-columns:1fr}.section-head{grid-template-columns:1fr}.grid-3,.grid-4{grid-template-columns:1fr}.callout{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -69,23 +70,40 @@
       <div>
         <p class="eyebrow">Model Context Protocol</p>
         <h1>ADmiraNeXT MCP</h1>
-        <p class="lead">La matriz de la trilogía AdmiraNeXT — empresa agéntica de Robots-as-a-Service (RaaS) e IoT con IA. Esta sección es la "puerta oculta" para que cualquier agente entienda qué es AdmiraNeXT, navegue sus superficies y salte al resto de la trilogía. Y viceversa.</p>
+        <p class="lead">La matriz de AdmiraNeXT — empresa agéntica de Robots-as-a-Service (RaaS) e IoT con IA, cuyo producto es el sistema operativo del retail: <a href="#cuatro-patas">las 4 patas</a> (admira.studio, admira.store, admira.app y yokup.com). Esta sección es la "puerta oculta" para que cualquier agente entienda qué es AdmiraNeXT, navegue sus superficies y salte a las demás. Y viceversa.</p>
         <div class="actions">
           <a class="button primary" href="llms.txt">llms.txt</a>
           <a class="button" href="manifest.json">manifest.json</a>
           <a class="button" href="https://www.admiranext.com">← admiranext.com</a>
         </div>
         <div class="status-row">
-          <div class="stat"><strong>3</strong><span>patas en la trilogía, con la misma convención <code>/mcp</code>.</span></div>
+          <div class="stat"><strong>4</strong><span>patas del sistema operativo del retail, cada una con su <code>/mcp</code>.</span></div>
           <div class="stat"><strong>1</strong><span>API viva (el Consejo) que esta matriz federa.</span></div>
           <div class="stat"><strong>RaaS</strong><span>Robots-as-a-Service + IoT con IA.</span></div>
         </div>
       </div>
       <aside class="visual" aria-label="Federación AdmiraNeXT">
         <div class="node"><span>Matriz</span><small>admiranext.com (aquí)</small></div>
-        <div class="node"><span>Tienda</span><small>admira.shop</small></div>
+        <div class="node"><span>Crear</span><small>admira.studio = pixeria.com</small></div>
+        <div class="node"><span>Distribuir</span><small>admira.store = xpaceos.com</small></div>
+        <div class="node"><span>Comercializar</span><small>admira.app = clearchannel.tv</small></div>
+        <div class="node"><span>Mantener · ITIL</span><small>yokup.com</small></div>
         <div class="node"><span>Consejo</span><small>admira.live · API viva</small></div>
       </aside>
+    </section>
+
+    <section class="band" id="cuatro-patas">
+      <div class="shell section-head">
+        <div><p class="eyebrow">Visión · producto</p><h2>Las 4 patas: el sistema operativo del retail.</h2></div>
+        <p>La comunicación en el punto de venta es una mesa de cuatro patas, y su coordinación es el sistema operativo del retail. Cada pata tiene un dominio Admira y uno de marca que son lo mismo. Se coordinan en bucle <b>Studio → Store → App → Yokup</b>, con el <a href="#directorio">MCP</a> como pegamento y <b>Yokup como maestro del ITIL</b> (inventario tecnológico de los Xpacios), que reparte por MCP a las otras tres. Texto canónico humano: <a href="https://www.admiranext.com/filosofia#cuatro-patas">/filosofia#cuatro-patas</a>.</p>
+      </div>
+      <div class="shell grid-4">
+        <article class="card"><span class="tag">1 · crear</span><h3><a href="https://www.admira.studio/">admira.studio</a> = <a href="https://www.pixeria.com/">pixeria.com</a></h3><p>Pixeria: importación y creación de contenidos.</p></article>
+        <article class="card"><span class="tag">2 · distribuir</span><h3><a href="https://www.admira.store/">admira.store</a> = <a href="https://www.xpaceos.com/">xpaceos.com</a></h3><p>XpaceOS: inventario del punto de venta y distribución de los contenidos.</p></article>
+        <article class="card"><span class="tag">3 · comercializar</span><h3><a href="https://www.admira.app/">admira.app</a> = <a href="https://www.clearchannel.tv/">clearchannel.tv</a></h3><p>ClearChannel.tv: comercialización de los Xpacios y visión global de los circuitos.</p></article>
+        <article class="card"><span class="tag">4 · mantener</span><h3><a href="https://www.yokup.com/">yokup.com</a></h3><p>Yokup: mantenimiento y gestión diaria de los Xpacios; maestro del ITIL que sirve por MCP a las demás patas.</p></article>
+      </div>
+      <div class="shell" style="margin-top:14px"><p><b>¿Y la «trilogía»?</b> Es otra cosa y sigue existiendo: la federación corporativa de sitios <code>/mcp</code> de la empresa agéntica —matriz (admiranext.com), tienda de robots (admira.shop) y Consejo de Silicio (admira.live, la única con API viva)—. Las 4 patas son el producto que esa empresa vende al retail; la trilogía, cómo se organizan sus sitios. Estado de la trilogía: <a href="https://www.admiranext.com/HANDOFF.md">HANDOFF.md</a>.</p></div>
     </section>
 
     <section class="band">
@@ -114,7 +132,7 @@
         <article class="card"><span class="tag">herramienta</span><h3><a href="https://www.admiranext.com/presupuestos/">Generador de presupuestos</a></h3><p>Prepara datos de cliente y partidas, revisa totales y exporta CSV o PDF localmente, sin enviar la información a servicios externos. Yokup: <code>generador-presupuestos</code>.</p></article>
         <article class="card"><span class="tag">campaña</span><h3><a href="https://www.admiranext.com/impacto/">Narrativa de Impacto</a></h3><p>Historias humanas sobre señalización digital útil en salud, comercio y movilidad.</p></article>
         <article class="card"><span class="tag">doctrina</span><h3><a href="https://www.admiranext.com/mandamientos">Los 14 Mandamientos</a></h3><p>Doctrina operativa del equipo de silicio: cómo trabajan los agentes autónomos de AdmiraNeXT. Fuente de verdad para cualquier agente que se incorpore.</p></article>
-        <article class="card"><span class="tag">cultura</span><h3><a href="https://www.admiranext.com/filosofia">Filosofía del equipo</a></h3><p>Las Máximas y el modelo de 3 capas × 3 niveles. Los mandamientos canónicos viven en <a href="https://www.admiranext.com/mandamientos">/mandamientos</a>.</p></article>
+        <article class="card"><span class="tag">cultura</span><h3><a href="https://www.admiranext.com/filosofia">Filosofía del equipo</a></h3><p>Las 4 patas del sistema operativo del retail, las Máximas y el modelo de 3 capas × 3 niveles. Los mandamientos canónicos viven en <a href="https://www.admiranext.com/mandamientos">/mandamientos</a>.</p></article>
         <article class="card"><span class="tag">gobernanza</span><h3><a href="https://www.admiranext.com/normativa">Normativa operativa</a></h3><p>Dos Xpacios con el mismo origen y la misma importancia: Neo responde por AdmiraNeXT y Morfeo por Yokup.com, ambos bajo la dirección del Arquitecto Carlos.</p></article>
       </div>
     </section>
@@ -125,7 +143,7 @@
         <p>Los ficheros máquina (<a href="llms.txt">llms.txt</a>, <a href="manifest.json">manifest.json</a>) describen la matriz de forma estable.</p>
       </div>
       <div class="shell grid-3">
-        <article class="card"><span class="tag">trilogía</span><h3><a href="https://www.admiranext.com/HANDOFF.md">HANDOFF.md</a></h3><p>Estado y continuidad de toda la trilogía AdmiraNeXT (la matriz lo publica).</p></article>
+        <article class="card"><span class="tag">trilogía</span><h3><a href="https://www.admiranext.com/HANDOFF.md">HANDOFF.md</a></h3><p>Estado y continuidad de la trilogía corporativa (matriz · tienda · Consejo), que la matriz publica. No confundir con las <a href="#cuatro-patas">4 patas</a> del producto.</p></article>
         <article class="card"><span class="tag">guía</span><h3><a href="https://www.admiranext.com/README.md">README.md</a></h3><p>Resumen del sitio y arranque.</p></article>
         <article class="card"><span class="tag">máquina</span><h3><a href="manifest.json">manifest.json</a> · <a href="llms.txt">llms.txt</a></h3><p>Descriptor e índice legible por agentes.</p></article>
       </div>
@@ -163,7 +181,7 @@
   </main>
 
   <footer class="shell">
-    <span>ADmiraNeXT MCP · <span id="mcpStamp">v.14.09.2026.r1.18:21</span></span>
+    <span>ADmiraNeXT MCP · <span id="mcpStamp">v.01.10.2026.r1.04:56</span></span>
     <span><a href="llms.txt">llms.txt</a> · <a href="manifest.json">manifest.json</a> · Admira IA</span>
   </footer>
 </body>
