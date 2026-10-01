@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20261001-prospect';
+  window.__ADMIRA_GENERATOR_VERSION__='20261001-campos';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=false,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -310,7 +310,11 @@
     try{
       const prospectOn=Boolean(window.AdmiraProspect&&window.AdmiraProspect.activo());if(!inspirationAnalysis&&(!prospectOn||website.value.trim())){try{await analyzeInspiration()}catch(error){if(!prospectOn)throw error}}
       message('Construyendo el relato y aplicando la dirección visual…');
-      const data=Object.fromEntries(new FormData(form).entries()); if(!data.password)data.password=await passwordPromise;data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value); data.inspiration=inspirationAnalysis;const presite=selectedPresite();data.presiteSlug=presite?.slug||'';data.presite=presite?{slug:presite.slug}:null;
+      const data=Object.fromEntries(new FormData(form).entries()); if(!data.password)data.password=await passwordPromise;data.outputs=outputBoxes.filter(box=>box.checked).map(box=>box.value); data.languages=[...languagePanel.querySelectorAll('input[name="language"]:checked')].map(box=>box.value);
+      // Las casillas sueltas (name=language / name=output) ya van como arrays en languages/outputs.
+      // Desde el 25-09 la API rechaza campos desconocidos y el alta desde la UI fallaba con
+      // «Campos desconocidos: language, output» (visto en la prueba real con la clave de máquina).
+      delete data.language;delete data.output; data.inspiration=inspirationAnalysis;const presite=selectedPresite();data.presiteSlug=presite?.slug||'';data.presite=presite?{slug:presite.slug}:null;
       const body=await createPresentation(data, Boolean(improveMode)); if(!body){message('No se ha modificado la presentación existente.');return}
       window.dispatchEvent(new CustomEvent('admira:presentation-created',{detail:body}));
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';
