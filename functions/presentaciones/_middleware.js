@@ -8,6 +8,7 @@ import {cleanIdentity, identityCookie, makeIdentityToken, readCookies, readIdent
 import {allowedBy, generatorAccess, makeSessionToken, readSession} from './_directory.js';
 import {loginLockout, noteLoginAttempt, lockoutMessage} from './_login-rate.js';
 import {agentSessionFromRequest} from './_agent-token.js';
+import {MACHINE_IDENTITY, machineSessionFromRequest} from './_machine-key.js';
 
 const MAXAGE = 60 * 60 * 24 * 30;
 // La lista de correos autorizados ya NO vive aquí: manda el directorio de /usuarios
@@ -225,6 +226,8 @@ export async function onRequest(context){
   // conseguir. api/sso.js verifica la firma HMAC, el nonce y la lista de correos
   // y emite las mismas cookies (pres_owner + pres_identity) que el login Google.
   if (isSsoApi) return next();
+  // Canje de la clave de máquina por una sesión corta (auth/machine.js valida la clave).
+  if (first === 'auth' && second === 'machine' && parts.length === 2) return next();
   // Leer una URL y preparar un brief no inicia ninguna generación de pago ni
   // concede acceso a la presentación. El endpoint devuelve únicamente una
   // proyección acotada (título, resumen y bloques visibles), por lo que puede
@@ -299,7 +302,19 @@ export async function onRequest(context){
   const agentSession = (!masterValid && !editorValid && !directorySession && !isControlArea && parts.includes('api'))
     ? await agentSessionFromRequest(env, request, fn => { try { context.waitUntil(fn); } catch (_) {} })
     : null;
-  const session = directorySession || agentSession;
+  // CLAVE DE MÁQUINA (Carlos, 01-10-2026 · «Monta una clave de máquina para que la flota
+  // entre sin Google»). Cabecera X-Admira-Machine-Key / Bearer amk_… o cookie corta
+  // pres_machine (de auth/machine). Nivel editor, identidad machine@admiranext.com, solo
+  // /presentaciones y nunca /control/. Revocable borrando o rotando PRES_MACHINE_KEY.
+  // Ver _machine-key.js.
+  const machine = (!masterValid && !editorValid && !directorySession && !agentSession)
+    ? await machineSessionFromRequest(env, request, signKey, cookies)
+    : {session:null, attempted:false};
+  const machineSession = machine.session;
+  if (machine.attempted && !machineSession) {
+    context.waitUntil(writeAccessEvent(env, request, {type:'machine_key_failed', client:seg || '_generator', presentation:title, access:'denied', path:url.pathname}));
+  }
+  const session = directorySession || agentSession || machineSession;
   const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
   // FLT-100781: Admin (owner) entra a /control/ con Google; editor/viewer siguen fuera.
   const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
@@ -405,7 +420,7 @@ export async function onRequest(context){
     }
     return htmlResponse(loginPage(title, cleanPath));
   }
-  if (shouldIdentify(request, parts) && !identity) return htmlResponse(identifyPage(title, cleanPath));
+  if (shouldIdentify(request, parts) && !identity && !machineSession) return htmlResponse(identifyPage(title, cleanPath));
 
   // LA SALA SABE QUIÉN MIRA (MorfeoMacMini, 21-09-2026 · FLT-100766 b). La sala decidía si
   // llamar a la API del generador mirando sólo el estado del set de láminas: con alguna en
@@ -415,12 +430,17 @@ export async function onRequest(context){
   // comparte entre el middleware y la función.
   const canGenerate = Boolean(masterValid || editorValid || (session && allowedBy(session.level, {ownerAllowed:true, editorAllowed:true, internalArea:true})));
   const viaAgent = Boolean(directoryAllowed && agentSession && session === agentSession);
+  const viaMachine = Boolean(directoryAllowed && machineSession && session === machineSession);
   if (context.data) {
     context.data.presentationAccess = {level:accessLevel, canGenerate};
     // Quién es, para dejarlo anotado en lo que suba (biblioteca multimedia): el correo del
     // directorio y, si entra un agente con su token, `via` y la etiqueta del token.
     if (directoryAllowed) context.data.presentationAccess.email = session.email;
     if (viaAgent) Object.assign(context.data.presentationAccess, {via:'agent-token', tokenLabel:agentSession.tokenLabel});
+    if (viaMachine) Object.assign(context.data.presentationAccess, {via:machineSession.via, tokenLabel:MACHINE_IDENTITY.name});
+  }
+  if (viaMachine && request.method !== 'GET') {
+    context.waitUntil(writeAccessEvent(env, request, {type:'machine_key_write', client:seg || '_generator', presentation:title, identity:MACHINE_IDENTITY, access:machineSession.level, path:url.pathname, target:request.method}));
   }
   if (viaAgent && request.method !== 'GET') {
     context.waitUntil(writeAccessEvent(env, request, {type:'agent_token_write', client:seg || '_generator', presentation:title, identity:{name:agentSession.tokenLabel || agentSession.name, email:agentSession.email, visitorId:`anmcp:${agentSession.tokenId}`}, access:agentSession.level, path:url.pathname, target:request.method}));
@@ -428,7 +448,8 @@ export async function onRequest(context){
 
   const response = await next();
   const trackView = request.method === 'GET' && shouldIdentify(request, parts) && !isInternalArea && !isGallery;
-  if (trackView && identity) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || (second === 'english' ? 'en' : '')}));
+  const viewer = identity || (viaMachine ? MACHINE_IDENTITY : null);
+  if (trackView && viewer) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity:viewer, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || (second === 'english' ? 'en' : '')}));
   const isAudienceOutput = isPresentationMode && url.searchParams.get('audience') === '1';
   return injectTelemetry(response, {
     inlineEditor: isPresentationMode && !isAudienceOutput && (masterValid || editorValid),
