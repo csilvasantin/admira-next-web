@@ -8,9 +8,15 @@
  *                                URLs de logo seguras…) y rellena lo que falte.
  *   - variablesMarca(m, modo)  → el mapa { '--mb-…': valor } que también pinta marcablanca.js.
  *   - paletaDesdeColores(lista)→ elige primario, secundario y acento de un histograma de colores.
- * Lo usan el generador de presentaciones (marca del prospect) y /marcablanca/presentacion.
+ *   - datosDesdeInspiracion(i) → del análisis de una web (_inspiration.js) a los datos de una marca
+ *                                (nombre, logo, colores, tipografía, modo). Lo comparten el panel
+ *                                prospect del generador y «Tu marca · introduce una URL» de /marcablanca.
+ *   - propuestaDesdeDatos(d)   → la PROPUESTA de marca blanca (marca completa) a partir de esos datos.
+ *   - validarMarca(m)          → errores de esquema (clientes/esquema.json) de una marca ya normalizada.
+ * Lo usan el generador de presentaciones (marca del prospect), /marcablanca/presentacion y el
+ * catálogo único de marcas (functions/marcablanca/_catalogo.js).
  */
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const PLATAFORMAS = ['studio', 'store', 'app', 'yokup'];
 export const CLAVES_PALETA = ['primario', 'primarioTexto', 'secundario', 'secundarioTexto', 'acento', 'acentoTexto',
   'fondo', 'fondoAlt', 'superficie', 'superficieAlt', 'borde', 'texto', 'textoSuave', 'textoTenue', 'ok', 'aviso', 'error', 'info'];
@@ -277,14 +283,121 @@ export function crearMarca(d = {}) {
   const logo = typeof d.logo === 'string' ? { imagen: d.logo } : (d.logo || {});
   return normalizarMarca({
     id: d.id || nombre, nombre, nombreCorto: d.nombreCorto, sector: d.sector || 'Prospect',
-    descripcion: `Marca de ${nombre} generada en el generador de presentaciones de AdmiraNeXT.`,
+    descripcion: d.descripcion || `Marca de ${nombre} generada en el generador de presentaciones de AdmiraNeXT.`,
     logo: { ...logo, alt: logo.alt || `Logo de ${nombre}` }, favicon: logo.svg || logo.imagen || '',
     modo,
     tipografia: { titulos: T.titulos, texto: T.texto, etiquetas: T.etiquetas, pesoTitulos: T.pesoTitulos, transformTitulos: T.transformTitulos, trackingTitulos: T.trackingTitulos, fuentes: T.fuentes },
     radios: T.radios,
     colores: { claro: derivarPaleta(d.primario, d.secundario, d.acento, 'claro'), oscuro: derivarPaleta(d.primario, d.secundario, d.acento, 'oscuro') },
-    origen: { tipo: 'nueva', web: d.web || '', creadaEn: new Date().toISOString() }
+    origen: { tipo: d.origenTipo || 'nueva', web: d.web || '', creadaEn: new Date().toISOString() }
   }, { tipografia: tipo });
+}
+
+/* ── Análisis de una web → propuesta de marca blanca ───────────────────── */
+const GENERICOS = /^(home|homepage|inicio|portada|bienvenid[oa]s?|welcome|p[aá]gina (de )?inicio|official site|sitio oficial|web oficial|tienda online|online shop)$/i;
+/** Nombre de marca a partir del análisis: og:site_name, el trozo del <title> que casa con el dominio o el dominio. */
+export function nombreDesdeInspiracion(ins = {}) {
+  if (ins.siteName && !GENERICOS.test(ins.siteName.trim())) return texto(ins.siteName, 80);
+  const host = String(ins.host || '').toLowerCase().replace(/^www\d?\./, '');
+  const etiqueta = host.split('.')[0] || '';
+  const partes = String(ins.title || '').split(/\s+[|·–—:-]\s+|\s*[|·–—]\s*/).map((p) => p.trim()).filter(Boolean);
+  const casa = partes.find((p) => { const id = idMarca(p).replace(/-/g, ''); return id && etiqueta && (id.includes(etiqueta) || etiqueta.includes(id)); });
+  const elegida = casa || partes.find((p) => !GENERICOS.test(p) && p.length <= 40);
+  if (elegida) return texto(elegida, 80);
+  return etiqueta ? etiqueta.charAt(0).toUpperCase() + etiqueta.slice(1) : 'Tu marca';
+}
+/** La tipografía del catálogo (todas OFL) que más se parece a la fuente detectada en la web. */
+export function tipografiaDesdeInspiracion(ins = {}) {
+  const f = String(ins.sourceFont || '').toLowerCase().split(',')[0];
+  if (/oswald|condensed|narrow|bebas|anton|league gothic/.test(f)) return 'condensada';
+  if (/nunito|quicksand|varela|rounded|comfortaa|poppins|baloo/.test(f)) return 'redondeada';
+  if (/manrope|sora|jakarta|urbanist|outfit/.test(f)) return 'moderna';
+  if (/dm sans|montserrat|futura|avenir|gotham|proxima|circular|lato|raleway|work sans|gilroy/.test(f)) return 'geometrica';
+  if (ins.fontStyle === 'serif' || /fraunces|playfair|georgia|garamond|times|merriweather|lora|serif/.test(f) && !/sans/.test(f)) return 'serif';
+  if (ins.fontStyle === 'rounded') return 'redondeada';
+  return 'grotesca';
+}
+/** Colores de un SVG (fill/stroke/stop-color), con peso por aparición: el logo manda en la paleta. */
+export function coloresDeSvg(svg) {
+  const pesos = new Map();
+  for (const m of String(svg || '').matchAll(/(?:fill|stroke|stop-color)\s*[:=]\s*["']?\s*(#[0-9a-f]{6}|#[0-9a-f]{3})\b/gi)) {
+    let h = m[1].toUpperCase(); if (h.length === 4) h = '#' + h.slice(1).split('').map((c) => c + c).join('');
+    pesos.set(h, (pesos.get(h) || 0) + 1);
+  }
+  return [...pesos.entries()].map(([hex, n]) => ({ hex, peso: n }));
+}
+/**
+ * Del análisis de una web (functions/presentaciones/_inspiration.js → normalizeInspiration) a los
+ * datos de una marca. `logoColores` = histograma del logo si ya se tiene (navegador o SVG).
+ */
+export function datosDesdeInspiracion(ins = {}, { logo = '', logoColores = [] } = {}) {
+  const pesoLogo = logoColores.reduce((s, c) => s + (Number(c.peso) || 1), 0) || 1;
+  const candidatos = [
+    ...(esHex(ins.themeColor) ? [{ hex: ins.themeColor, peso: 60 }] : []),
+    ...logoColores.map((c) => ({ hex: c.hex, peso: 80 * (Number(c.peso) || 1) / pesoLogo })),
+    ...(esHex(ins.primary) ? [{ hex: ins.primary, peso: 30 }] : []),
+    ...(esHex(ins.accent) ? [{ hex: ins.accent, peso: 24 }] : []),
+    ...(Array.isArray(ins.palette) ? ins.palette : []).filter(esHex).map((hex, i) => ({ hex, peso: 10 - i }))
+  ];
+  const pal = paletaDesdeColores(candidatos);
+  const modo = ins.mode === 'dark' ? 'oscuro' : 'claro';
+  const fondoWeb = esHex(ins.background) ? ins.background.toUpperCase() : '';
+  const fondoCuadra = fondoWeb && (modo === 'oscuro' ? luminancia(fondoWeb) < 0.08 : luminancia(fondoWeb) > 0.75);
+  const nombre = nombreDesdeInspiracion(ins);
+  return {
+    nombre, id: idMarca(nombre) || idMarca(String(ins.host || '').replace(/^www\./, '').split('.')[0]) || 'tu-marca',
+    web: urlSegura(ins.url) || '', logo: urlSegura(logo) || '',
+    primario: pal.primario, secundario: pal.secundario, acento: pal.acento,
+    fondo: fondoCuadra ? fondoWeb : '', tipografia: tipografiaDesdeInspiracion(ins), modo,
+    fuenteDetectada: texto(String(ins.sourceFont || '').split(',')[0].replace(/["']/g, ''), 60)
+  };
+}
+/** Ajusta el fondo de una paleta y re-deriva superficies y textos para que todo siga leyéndose. */
+export function conFondo(p, fondo) {
+  if (!esHex(fondo)) return p;
+  const F = fondo.toUpperCase(), oscuro = luminancia(F) < 0.2, hacia = oscuro ? '#FFFFFF' : '#000000';
+  const textoN = ajustar(p.texto, F, 7, hacia);
+  return {
+    ...p, fondo: F, fondoAlt: mezclar(F, textoN, 0.04), superficie: oscuro ? mezclar(F, '#FFFFFF', 0.06) : (luminancia(F) > 0.9 ? '#FFFFFF' : mezclar(F, '#FFFFFF', 0.6)),
+    superficieAlt: mezclar(F, textoN, 0.07), borde: mezclar(F, textoN, 0.16), texto: textoN,
+    textoSuave: ajustar(mezclar(textoN, F, 0.30), F, 4.5, hacia), textoTenue: mezclar(textoN, F, 0.52),
+    primario: ajustar(p.primario, F, 3, hacia), secundario: ajustar(p.secundario, F, 3, hacia), acento: ajustar(p.acento, F, 2.6, hacia)
+  };
+}
+/**
+ * La PROPUESTA de marca blanca a partir de unos datos (los de datosDesdeInspiracion, quizá retocados
+ * a mano). Siempre declara que es automática y de dónde sale: nunca pasa por la marca oficial.
+ */
+export function propuestaDesdeDatos(d = {}) {
+  const nombre = texto(d.nombre, 80) || 'Tu marca';
+  const web = urlSegura(d.web) || '';
+  const m = crearMarca({
+    id: idMarca(d.id) || idMarca(nombre) || 'tu-marca', nombre, logo: d.logo ? { imagen: d.logo, alt: `Logo de ${nombre}` } : {},
+    primario: d.primario, secundario: d.secundario, acento: d.acento, tipografia: d.tipografia, modo: d.modo === 'oscuro' || d.modo === 'claro' ? d.modo : undefined,
+    web, sector: texto(d.sector, 80) || 'Retail físico', origenTipo: 'url',
+    descripcion: `Propuesta de marca blanca generada automáticamente a partir de ${web || 'su web'}. No es la marca oficial de ${nombre}.`
+  });
+  if (esHex(d.fondo)) {
+    const p = m.colores[m.modo];
+    m.colores[m.modo] = conFondo(p, d.fondo);
+    m.colores[m.modo].primarioTexto = textoSobre(m.colores[m.modo].primario, mezclar('#000000', m.colores[m.modo].primario, 0.25));
+    m.colores[m.modo].secundarioTexto = textoSobre(m.colores[m.modo].secundario);
+    m.colores[m.modo].acentoTexto = textoSobre(m.colores[m.modo].acento);
+  }
+  return m;
+}
+
+/** Errores de esquema (clientes/esquema.json) de una marca ya normalizada. [] = válida. */
+export function validarMarca(m) {
+  const e = [];
+  if (!m || typeof m !== 'object') return ['La marca no es un objeto.'];
+  for (const k of ['id', 'nombre', 'logo', 'favicon', 'modo', 'tipografia', 'radios', 'sombras', 'tono', 'colores']) if (!(k in m)) e.push(`Falta «${k}».`);
+  if (!ID.test(String(m.id || ''))) e.push('El id debe ser un slug: minúsculas, números y guiones (máx. 41).');
+  if (!texto(m.nombre, 80)) e.push('Falta el nombre.');
+  if (!['claro', 'oscuro'].includes(m.modo)) e.push('El modo debe ser «claro» u «oscuro».');
+  for (const modo of ['claro', 'oscuro']) for (const k of CLAVES_PALETA) if (!esHex(m.colores?.[modo]?.[k])) e.push(`colores.${modo}.${k} no es un color #RRGGBB.`);
+  for (const u of [m.logo?.svg, m.logo?.imagen, m.favicon]) if (u && !urlSegura(u)) e.push('Logo o favicon con una URL no permitida (solo https, data:image pequeño o rutas propias).');
+  return e;
 }
 
 /* ── Tokens ────────────────────────────────────────────────────────────── */
@@ -328,5 +441,5 @@ export function cssFuentes(m) {
 }
 
 if (typeof globalThis !== 'undefined' && typeof window !== 'undefined') {
-  window.MarcaBlancaMarca = { VERSION, PLATAFORMAS, TIPOGRAFIAS, crearMarca, normalizarMarca, derivarPaleta, paletaDesdeColores, variablesMarca, cssVariables, cssFuentes, contraste, textoSobre, idMarca, urlSegura, marcaEn, modoDe };
+  window.MarcaBlancaMarca = { VERSION, PLATAFORMAS, TIPOGRAFIAS, crearMarca, normalizarMarca, derivarPaleta, paletaDesdeColores, variablesMarca, cssVariables, cssFuentes, contraste, textoSobre, idMarca, urlSegura, marcaEn, modoDe, datosDesdeInspiracion, propuestaDesdeDatos, validarMarca, conFondo, coloresDeSvg };
 }

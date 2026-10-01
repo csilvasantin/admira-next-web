@@ -17,7 +17,10 @@ Una sola hoja de estilos para que las cuatro webs de la Galaxia Admira se vistan
 marcablanca/
 ├── marcablanca.css        tokens --mb-* (Admira por defecto) + componentes .mb-* + puentes a cada web
 ├── marcablanca.js         cargador: elige el cliente y aplica sus tokens, logo, favicon, fuentes y tono
-├── clientes/
+├── marca.js               utilidades compartidas navegador/servidor (crearMarca, propuestaDesdeDatos…)
+├── logo-paleta.js         paleta de un logo en el navegador (la comparten /marcablanca y el generador)
+├── propuesta.js           «Tu marca · introduce una URL» en la página de demostración
+├── clientes/              SEMILLA del catálogo único (estáticos del repo, respaldo si la API cae)
 │   ├── index.json         lista de clientes, marca por defecto y mapa dominio → cliente
 │   ├── esquema.json       JSON Schema de un cliente
 │   ├── admira.json        marca por defecto (con el aspecto nativo de cada web)
@@ -63,7 +66,8 @@ El favicon y el `<meta name="theme-color">` se cambian solos. Las frases disponi
 
 Por orden de prioridad:
 
-1. `?marca=lumbre` en la URL (se recuerda en la pestaña al navegar).
+1. `?marca=<id>` en la URL (se recuerda en la pestaña al navegar). Vale cualquier marca del
+   **catálogo único**: las semillas y las guardadas después (analizadas por URL o desde el generador).
 2. `data-mb-marca="lumbre"` en el `<script>` o en `<html>` (marca fija).
 3. **Dominio**: el mapa `dominios` de `clientes/index.json` (p. ej. el dominio propio del cliente)
    o la convención `<cliente>.<web>`: `lumbre.admira.studio`, `lumbre.admira.store`,
@@ -113,7 +117,78 @@ Componentes listos: `.mb-btn` (`--primario`, `--secundario`, `--acento`, `--bord
 `--error`, `--info`), `.mb-input`, `.mb-select`, `.mb-textarea`, `.mb-tabla`, `.mb-nav`,
 `.mb-eyebrow`, `.mb-logo` y `.mb-base` (fondo, texto y tipografía de la marca en un contenedor).
 
+## Catálogo único de marcas
+
+Una sola fuente de verdad para `/marcablanca`, el cargador `marcablanca.js` (y con él Studio/Pixeria,
+Store/XpaceOS, App/ClearChannel y Yokup) y el generador de presentaciones.
+
+| Pieza | Dónde | Qué guarda |
+|---|---|---|
+| **Semilla** | `clientes/*.json` (repo) | Admira y los tres ejemplos ficticios. Protegidas: la API nunca las sobrescribe. Se sirven aunque KV esté vacío o caído. |
+| **Marcas guardadas** | KV `PRESENTATION_IDEAS`, clave `marca:<id>` | `{version, marca, catalogo}`; la metadata de la clave lleva el resumen para listar sin leer cada marca. |
+| **Logos subidos** | R2 `PRESENTATION_MEDIA`, `marcas/<id>/logo.<ext>` | Servidos por `/marcablanca/api/marcas/<id>/logo` (CSP con sandbox, siempre como `<img>`). |
+
+Se reutilizan los bindings que ya existían (no hay recursos nuevos de Cloudflare). Cada entrada
+declara `catalogo.origen` (`semilla` · `url` · `generador`), `catalogo.tipo` (`real` · `ejemplo`),
+`catalogo.propuesta` (true = propuesta automática, **no** la marca oficial), la web de origen, autor
+(si había sesión; el correo no se publica) y fechas.
+
+**API**
+
+| Método y ruta | Acceso | Qué hace |
+|---|---|---|
+| `GET /marcablanca/api/marcas` | público (CORS `*`) | índice con el formato de `clientes/index.json` + `catalogo` por marca; `?completo=1` añade cada marca entera |
+| `GET /marcablanca/api/marcas/<id>` | público (CORS `*`) | la marca con el esquema de `clientes/esquema.json` + `catalogo` |
+| `POST /marcablanca/api/analizar` `{url}` | público, mismo origen, 12 análisis / 10 min por IP | propuesta de marca a partir de una web; **no guarda nada** |
+| `GET /presentaciones/api/marcas` | sesión del generador | dice si quien mira puede guardar |
+| `POST /presentaciones/api/marcas` `{marca, origen, tipo?, web?}` | sesión del generador (owner/editor, maestra/editor o token MCP de deepagent) | crea; 409 si ya existe o si es una semilla |
+| `PUT /presentaciones/api/marcas` | ídem | actualiza una marca guardada (nunca una semilla) |
+
+La escritura vive bajo `/presentaciones` porque la sesión del generador (cookie `pres_owner`) tiene
+esa ruta: la valida el mismo `_middleware.js` que el resto de APIs del generador, sin contraseñas ni
+puertas nuevas. Se valida contra el esquema, el id se normaliza a slug, el cuerpo máximo es 320 KB y
+el logo solo puede ser `https://` o una imagen subida (`data:image`, ≤ 160 KB, que va a R2).
+
+El cargador pide primero la API y, si no responde, los estáticos de `clientes/`. El panel
+**Prospect** del generador lista desde la API y, al **Generar** con una «nueva marca», la guarda
+también en el catálogo (origen `generador`); sin prospect, el generador no lee ni escribe el catálogo.
+
+## «Tu marca · introduce una URL»
+
+En el bloque **Elige un cliente** de `/marcablanca` se escribe la web de una marca y se pulsa
+*Analizar*:
+
+1. `POST /marcablanca/api/analizar` lee la web con el **mismo analizador** del generador
+   (`functions/presentaciones/_inspiration.js`): logo (SVG de la cabecera o imagen, que se descarga
+   y se devuelve como `data:`), color de tema, paleta de su CSS, fondo, modo, fuente y nombre
+   (`og:site_name` o el trozo del `<title>` que casa con el dominio).
+2. `marca.js → datosDesdeInspiracion()` y `propuestaDesdeDatos()` crean la **propuesta**: logo,
+   primario, secundario, acento, fondo, tipografía (la OFL del catálogo más parecida a la detectada),
+   modo y nombre, con contrastes legibles garantizados.
+3. Se aplica al momento a las maquetas de las 4 patas y se puede ver como presentación
+   (`POST /marcablanca/presentacion`, borrador sin guardar).
+4. Se retoca a mano (nombre, colores, fondo, tipografía, modo), se descarga como JSON o, con sesión
+   del generador, **Guardar en el catálogo** la deja con `?marca=<id>` en las 4 patas y en el generador.
+   Sin sesión, el botón explica que hace falta entrar en el generador.
+
+`/marcablanca/?web=https://www.marca.com` abre la página ya analizando esa web (no guarda nada).
+
+Siempre consta como «Propuesta generada automáticamente a partir de &lt;url&gt;. No es la marca
+oficial de &lt;marca&gt;»: en la página, en la descripción del JSON y en `catalogo.aviso`.
+
+**Defensas del analizador** (`fetchPublico` en `_inspiration.js`, también para el generador):
+solo `https` y puerto 443, sin credenciales en la URL; nunca IPs literales ni nombres locales o de
+metadatos (`localhost`, `*.local`, `*.internal`, `metadata`…); el dominio se resuelve por DNS sobre
+HTTPS y se corta si apunta a una red privada, de enlace local, CGNAT o reservada; redirecciones
+seguidas a mano (máx. 4) revalidando cada salto; plazo total de 8 s y tope de 900 KB de HTML,
+220 KB por hoja de estilos y 120 KB de logo. Si la web bloquea a los analizadores (401/403/429 o un
+muro antibots) se dice tal cual, con el código HTTP: el analizador se identifica como
+`ADmiraNeXT Inspiration Analyzer` y no se disfraza de navegador.
+
 ## Alta de un cliente nuevo
+
+Lo normal ahora: analiza su web arriba y **Guardar en el catálogo** (o créala como «nueva marca» en
+el generador). Para una marca fija del repo (semilla, protegida):
 
 1. Copia `clientes/lumbre.json` a `clientes/<id>.json` (id en minúsculas, sin espacios).
 2. Cambia nombre, colores de los dos modos (o solo uno), tipografías, radios, sombras y tono.
@@ -146,21 +221,25 @@ El generador de `/presentaciones/` puede vestir una presentación entera con la 
 
 1. Abre `/presentaciones/` y rellena el contexto del cliente como siempre.
 2. En el panel **Prospect · marca del destinatario**, activa *Presentación para un prospect*.
-3. Elige una marca de `clientes/*.json` (Lumbre Café, BRUMELLE, Frescaria…) o **Nueva marca**:
+3. Elige una marca del catálogo único (Lumbre Café, BRUMELLE, Frescaria y las guardadas) o **Nueva marca**:
    nombre, logo (subida ≤ 120 KB o URL `https://`), primario, secundario, acento, tipografía y modo.
    *Extraer paleta del logo* y *Extraer de la web* rellenan los colores solos; *Descargar JSON de
-   cliente* genera el fichero con el esquema de `clientes/esquema.json` para darlo de alta aquí.
+   cliente* genera el fichero con el esquema de `clientes/esquema.json`.
 4. *Vista previa de la presentación* abre la demo con esa marca; **Generar** guarda la marca con la
-   presentación (`presentation.prospect` en KV; el logo subido va a R2).
+   presentación (`presentation.prospect` en KV; el logo subido va a R2) y, si es nueva, también en
+   el catálogo único (`marca:<id>`), con su logo público en `marcas/<id>/`.
 
 **Qué se adapta**: colores (todas las calidades good/better/best), tipografías, logo (botón y
 portada «Marca × ADmiraNeXT»), fondos, gráficos, una maqueta de Studio, Store, App o Yokup en cada
 diapositiva que habla de esa plataforma y una diapositiva final «Su galaxia» con las cuatro.
 
 **Demo pública** (misma presentación, contenido fijo): `/marcablanca/presentacion?marca=lumbre`,
-`?marca=brumelle`, `?marca=frescaria` y `?marca=admira` (sin prospect). En una presentación real,
+`?marca=brumelle`, `?marca=frescaria`, cualquier `?marca=<id>` del catálogo y `?marca=admira` (sin prospect). En una presentación real,
 `?marca=<id de catálogo>` previsualiza otra marca y `?marca=admira` la muestra en Admira.
 
 **Código**: `marca.js` (tokens compartidos navegador/servidor), `maquetas.js|css` (maquetas de las
 cuatro webs), `functions/presentaciones/_prospect.js` (resolución, guardado y render),
 `assets/presentation-prospect.js|css` (panel). Retorno: `retorno/pre-presentaciones-prospect-20261001`.
+Catálogo único y análisis por URL (FLT-101330): `functions/marcablanca/_catalogo.js`,
+`functions/marcablanca/api/`, `functions/presentaciones/api/marcas.js`, `marcablanca/propuesta.js`.
+Retorno: `retorno/pre-catalogo-marcas-20261001`.

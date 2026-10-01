@@ -36,7 +36,7 @@ function absoluteHttps(value, base){
   try{const url=new URL(String(value||''),base);return url.protocol==='https:'?url.toString():'';}catch(_){return '';}
 }
 
-function sanitizeSvg(value){
+export function sanitizeSvg(value){
   let svg=String(value||'').trim();
   if(!/^<svg\b/i.test(svg)||!/<\/svg>\s*$/i.test(svg)||svg.length>120*1024)return '';
   svg=svg.replace(/<script\b[\s\S]*?<\/script>/gi,'').replace(/<foreignObject\b[\s\S]*?<\/foreignObject>/gi,'').replace(/\s(?:on\w+|href|xlink:href)\s*=\s*(?:"[^"]*"|'[^']*')/gi,'');
@@ -70,19 +70,107 @@ function extractLogo(html,base){
   return candidates.sort((a,b)=>b.score-a.score)[0]||null;
 }
 
-function assertPublicHttps(value){
+/*
+ * DEFENSAS SSRF (SubMorfeoMacMini, 01-10-2026 · FLT-101330 b). El analizador lo usan el
+ * generador (privado) y, desde hoy, la página pública /marcablanca (POST /marcablanca/api/analizar),
+ * así que todo lo que se descarga pasa por aquí:
+ *   - solo https, puerto 443, sin usuario ni contraseña en la URL;
+ *   - nunca una IP literal (v4 ni v6, en ninguna de sus formas: el parser WHATWG ya convierte
+ *     0x7f.1 o 2130706433 en 127.0.0.1): una web de marca siempre tiene dominio;
+ *   - nunca un nombre local o de metadatos: localhost, *.localhost, *.local, *.internal,
+ *     *.home.arpa, *.lan, nombres de una sola etiqueta (metadata, instance-data…);
+ *   - el dominio se resuelve por DNS sobre HTTPS y se rechaza si apunta a una red privada,
+ *     de enlace local, CGNAT, multicast o reservada (defensa ante nombres «trampa» y
+ *     rebinding: Workers ya no alcanza redes privadas, esto es la segunda puerta);
+ *   - las redirecciones se siguen A MANO (máx. 4) y cada salto vuelve a pasar todo lo anterior;
+ *   - un único plazo total para la cadena entera y un tope de bytes por respuesta.
+ */
+const NOMBRES_LOCALES = /(^|\.)(localhost|local|internal|intranet|home\.arpa|lan|corp|localdomain)$/;
+export const MAX_REDIRECCIONES = 4;
+
+function ipv4Privada(ip){
+  const p = ip.split('.').map(Number);
+  if (p.length !== 4 || p.some(n => !Number.isInteger(n) || n < 0 || n > 255)) return true;
+  const [a, b] = p;
+  return a === 0 || a === 10 || a === 127 || a >= 224 ||
+    (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) || (a === 192 && b === 0 && (p[2] === 0 || p[2] === 2)) ||
+    (a === 198 && (b === 18 || b === 19)) || (a === 198 && b === 51 && p[2] === 100) || (a === 203 && b === 0 && p[2] === 113);
+}
+function ipv6Privada(ip){
+  const s = String(ip).toLowerCase();
+  if (s === '::' || s === '::1') return true;
+  const v4 = s.match(/(?:::ffff:|^::|^64:ff9b::)(\d+\.\d+\.\d+\.\d+)$/);
+  if (v4) return ipv4Privada(v4[1]);
+  if (/^::ffff:/.test(s) || /^64:ff9b:/.test(s)) return true;
+  return /^(f[cd]|fe[89ab]|ff|2001:db8|2001:0?:|100::)/.test(s);
+}
+/** true si una IP (v4 o v6) no es pública. Exportada para las pruebas. */
+export function ipPrivada(ip){ return String(ip).includes(':') ? ipv6Privada(ip) : ipv4Privada(String(ip)); }
+
+export function assertPublicHttps(value){
   let url;
   try { url = new URL(String(value || '')); }
   catch (_) { throw new Error('La URL inspiradora no es válida.'); }
   if (url.protocol !== 'https:') throw new Error('La web inspiradora debe comenzar por https://');
   if (url.username || url.password || (url.port && url.port !== '443')) throw new Error('La URL inspiradora no está permitida.');
-  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.internal')) throw new Error('La URL inspiradora no puede ser local.');
-  if (/^(?:10\.|127\.|169\.254\.|192\.168\.|0\.)/.test(host)) throw new Error('La URL inspiradora no puede apuntar a una red privada.');
-  const private172 = host.match(/^172\.(\d+)\./);
-  if (private172 && Number(private172[1]) >= 16 && Number(private172[1]) <= 31) throw new Error('La URL inspiradora no puede apuntar a una red privada.');
-  if (host === '::1' || host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe80:')) throw new Error('La URL inspiradora no puede apuntar a una red privada.');
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
+  if (!host || NOMBRES_LOCALES.test(host)) throw new Error('La URL inspiradora no puede ser local.');
+  if (host.includes(':') || /^[\d.]+$/.test(host)) throw new Error('La URL inspiradora no puede apuntar a una red privada ni a una IP: usa el dominio de la web.');
+  if (!host.includes('.')) throw new Error('La URL inspiradora no puede ser local.');
   return url;
+}
+
+/** Resuelve A y AAAA por DNS sobre HTTPS (Cloudflare). Devuelve [] si el resolutor no contesta. */
+export async function resolverDoh(host, {fetchImpl = fetch, timeoutMs = 3000} = {}){
+  const tipos = ['A', 'AAAA'];
+  const respuestas = await Promise.all(tipos.map(async tipo => {
+    try {
+      const r = await fetchImpl(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(host)}&type=${tipo}`, {headers:{accept:'application/dns-json'}, signal:AbortSignal.timeout(timeoutMs)});
+      if (!r.ok) return [];
+      const body = await r.json();
+      return (body.Answer || []).filter(a => a.type === 1 || a.type === 28).map(a => String(a.data));
+    } catch (_) { return []; }
+  }));
+  return respuestas.flat();
+}
+
+async function comprobarDns(host, resolver){
+  if (!resolver) return;
+  const ips = await resolver(host);
+  // Si el resolutor no contesta se sigue (el runtime de Workers no enruta a redes privadas);
+  // si contesta con CUALQUIER dirección no pública, se corta.
+  if ((ips || []).some(ipPrivada)) throw new Error('La URL inspiradora apunta a una red privada.');
+}
+
+/**
+ * fetch() endurecido: valida la URL, resuelve el dominio, sigue las redirecciones a mano
+ * revalidando cada salto y aplica un plazo total. Devuelve {response, url} (url = la final).
+ */
+export async function fetchPublico(value, {accept = 'text/html,application/xhtml+xml', timeoutMs = 8000, maxRedirecciones = MAX_REDIRECCIONES, resolver, fetchImpl = fetch, userAgent = 'ADmiraNeXT Inspiration Analyzer/1.0'} = {}){
+  const resolve = resolver === undefined ? (host => resolverDoh(host, {fetchImpl})) : resolver;
+  const signal = AbortSignal.timeout(timeoutMs);
+  let actual = assertPublicHttps(value);
+  for (let salto = 0; ; salto += 1) {
+    await comprobarDns(actual.hostname, resolve);
+    const response = await fetchImpl(actual.toString(), {headers:{accept, 'user-agent':userAgent}, redirect:'manual', signal});
+    if (![301, 302, 303, 307, 308].includes(response.status)) return {response, url:actual};
+    try { await response.body?.cancel(); } catch (_) {}
+    const destino = response.headers.get('location');
+    if (!destino) throw new Error('La web redirige sin destino.');
+    if (salto >= maxRedirecciones) throw new Error('La web redirige demasiadas veces.');
+    let siguiente;
+    try { siguiente = new URL(destino, actual); } catch (_) { throw new Error('La web redirige a una URL no válida.'); }
+    actual = assertPublicHttps(siguiente.toString());
+  }
+}
+
+/** Páginas de reto antibots (Cloudflare, Akamai, Incapsula, DataDome…): no son la web de la marca. */
+export function esMuroAntibots(response, html){
+  if (response?.headers?.get?.('cf-mitigated') === 'challenge') return true;
+  const titulo = String(html || '').match(/<title[^>]*>([\s\S]{0,200}?)<\/title>/i)?.[1] || '';
+  return /just a moment|attention required|access denied|acceso denegado|are you a (human|robot)|robot check|captcha|pardon our interruption|request unsuccessful|verifying you are human|security check/i.test(titulo) ||
+    /<form[^>]+id=["']challenge-form|cf-browser-verification|_Incapsula_Resource|geo\.captcha-delivery\.com|px-captcha/i.test(String(html || '').slice(0, 20000));
 }
 
 async function limitedText(response, maximum){
@@ -182,9 +270,12 @@ export function extractInspiration({url, finalUrl, html, css = ''}){
   const description = clean(html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i)?.[1] || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1], 240);
   const profile = traits.gradients >= 4 ? 'immersive' : traits.fontStyle === 'serif' ? 'editorial' : traits.radius >= 18 ? 'friendly' : traits.shadows <= 2 ? 'minimal' : 'structured';
   const logo=extractLogo(html,finalUrl||url);
+  const meta=(name)=>{const tag=[...html.matchAll(/<meta\b[^>]*>/gi)].map(m=>m[0]).find(t=>new RegExp(`(?:name|property)\\s*=\\s*["']${name}["']`,'i').test(t));return tag?decodeEntities(attribute(tag,'content')):''};
+  const siteName=clean(meta('og:site_name')||meta('application-name')||meta('apple-mobile-web-app-title'),80);
+  const themeColor=normalizeHex(meta('theme-color'));
   return {
     schemaVersion:1, url:String(url), finalUrl:String(finalUrl || url), host:new URL(finalUrl || url).hostname,
-    title, description, contentExcerpt:extractReadableText(html), ...palette, ...traits, profile, logo,
+    title, description, siteName, themeColor, contentExcerpt:extractReadableText(html), ...palette, ...traits, profile, logo,
     analyzedAt:new Date().toISOString()
   };
 }
@@ -205,7 +296,7 @@ export function normalizeInspiration(value, expectedUrl = ''){
   }
   return {
     schemaVersion:1, url, finalUrl:clean(value.finalUrl || url, 500), host:clean(value.host || new URL(url).hostname, 180),
-    title:clean(value.title, 140), description:clean(value.description, 240), contentExcerpt:clean(value.contentExcerpt, 5000),
+    title:clean(value.title, 140), description:clean(value.description, 240), siteName:clean(value.siteName, 80), themeColor:normalizeHex(value.themeColor), contentExcerpt:clean(value.contentExcerpt, 5000),
     primary:validColor(value.primary, '#12233e'), accent:validColor(value.accent, '#ffb000'), background:validColor(value.background, '#f5f6f8'), surface:validColor(value.surface, '#ffffff'), text:validColor(value.text, '#142238'),
     palette:(Array.isArray(value.palette) ? value.palette : []).map(color => normalizeHex(color)).filter(Boolean).slice(0, 7),
     mode:allowed(value.mode, ['dark','light'], 'light'), fontStyle:allowed(value.fontStyle, ['grotesk','serif','rounded','mono'], 'grotesk'), sourceFont:clean(value.sourceFont, 120),
@@ -214,15 +305,31 @@ export function normalizeInspiration(value, expectedUrl = ''){
   };
 }
 
-export async function analyzeInspiration(value){
+/** Error del analizador con el código HTTP de la web analizada (403, 429…) y si es un muro antibots. */
+export class ErrorAnalisis extends Error {
+  constructor(message, {estado = 0, bloqueo = false} = {}){ super(message); this.name = 'ErrorAnalisis'; this.estado = estado; this.bloqueo = bloqueo; }
+}
+
+/**
+ * Analiza una web pública. `opciones` (todas opcionales): resolver/fetchImpl (pruebas), timeoutMs y
+ * detectarBloqueo (true en /marcablanca: una página de reto antibots no es la web de la marca y se
+ * dice, en vez de sacar colores de ella).
+ */
+export async function analyzeInspiration(value, opciones = {}){
+  const {detectarBloqueo = false, timeoutMs = 8000, fetchImpl = fetch} = opciones;
+  // Una resolución DNS por dominio y análisis (la página y sus hojas suelen compartir dominio).
+  const base = opciones.resolver === undefined ? (host => resolverDoh(host, {fetchImpl})) : opciones.resolver;
+  const resueltos = new Map();
+  const resolver = base ? (host => { if (!resueltos.has(host)) resueltos.set(host, base(host)); return resueltos.get(host); }) : null;
+  const {response, url:finalUrl} = await fetchPublico(value, {...opciones, timeoutMs, resolver});
   const requested = assertPublicHttps(value);
-  const response = await fetch(requested.toString(), {headers:{accept:'text/html,application/xhtml+xml','user-agent':'ADmiraNeXT Inspiration Analyzer/1.0'}, redirect:'follow', signal:AbortSignal.timeout(8000)});
-  if (response.status === 401 || response.status === 403) throw new Error('Esa URL no permite lectura pública. Usa su enlace público o una presentación de Pixeria/ADmiraNeXT.');
-  if (!response.ok) throw new Error(`La web inspiradora responde con HTTP ${response.status}.`);
-  const finalUrl = assertPublicHttps(response.url || requested.toString());
+  if (response.status === 401 || response.status === 403) throw new ErrorAnalisis(detectarBloqueo ? `La web ha rechazado la lectura (HTTP ${response.status}): bloquea a los analizadores automáticos.` : 'Esa URL no permite lectura pública. Usa su enlace público o una presentación de Pixeria/ADmiraNeXT.', {estado:response.status, bloqueo:true});
+  if (response.status === 429) throw new ErrorAnalisis('La web limita las lecturas automáticas (HTTP 429). Prueba más tarde.', {estado:429, bloqueo:true});
+  if (!response.ok) throw new ErrorAnalisis(`La web inspiradora responde con HTTP ${response.status}.`, {estado:response.status});
   const type = response.headers.get('content-type') || '';
-  if (!/text\/html|application\/xhtml\+xml/i.test(type)) throw new Error('La URL inspiradora no devuelve una página web HTML.');
+  if (!/text\/html|application\/xhtml\+xml/i.test(type)) throw new ErrorAnalisis('La URL inspiradora no devuelve una página web HTML.', {estado:response.status});
   const html = await limitedText(response, MAX_HTML_BYTES);
+  if (detectarBloqueo && esMuroAntibots(response, html)) throw new ErrorAnalisis(`La web devuelve una página de verificación antibots (HTTP ${response.status}) en lugar de su contenido: no se puede analizar de forma automática.`, {estado:response.status, bloqueo:true});
   const stylesheetUrls = [...html.matchAll(/<link[^>]+rel=["'][^"']*stylesheet[^"']*["'][^>]+href=["']([^"']+)["']/gi), ...html.matchAll(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["'][^"']*stylesheet[^"']*["']/gi)]
     .map(match => { try { return new URL(match[1], finalUrl); } catch (_) { return null; } })
     .filter(url => url && url.protocol === 'https:' && url.hostname === finalUrl.hostname)
@@ -230,7 +337,7 @@ export async function analyzeInspiration(value){
     .slice(0, MAX_STYLESHEETS);
   const sheets = await Promise.all(stylesheetUrls.map(async url => {
     try {
-      const sheet = await fetch(url.toString(), {headers:{accept:'text/css,*/*;q=.1','user-agent':'ADmiraNeXT Inspiration Analyzer/1.0'}, redirect:'follow', signal:AbortSignal.timeout(5000)});
+      const {response:sheet} = await fetchPublico(url.toString(), {...opciones, accept:'text/css,*/*;q=.1', timeoutMs:5000, resolver});
       if (!sheet.ok || !/text\/css/i.test(sheet.headers.get('content-type') || 'text/css')) return '';
       return limitedText(sheet, MAX_CSS_BYTES);
     } catch (_) { return ''; }

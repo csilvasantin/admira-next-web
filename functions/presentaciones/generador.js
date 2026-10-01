@@ -20,6 +20,6 @@ export async function onRequestGet(context){
   html=html.replace('</body>','<script src="/assets/presentation-generator-quadratic.js?v=20260921-rail"></script><script src="/assets/presentation-media-library.js?v=20260724-1"></script></body>');
   // PROSPECT (01-10-2026): interruptor y selector de marca del destinatario (marca blanca).
   html=html.replace('</head>','<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261001-prospect"><link rel="stylesheet" href="/assets/presentation-prospect.css?v=20261001-prospect"></head>');
-  html=html.replace('</body>','<script type="module" src="/assets/presentation-prospect.js?v=20261001-prospect"></script></body>');
+  html=html.replace('</body>','<script type="module" src="/assets/presentation-prospect.js?v=20261001-catalogo"></script></body>');
   return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
 }

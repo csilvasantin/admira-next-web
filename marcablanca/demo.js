@@ -1,5 +1,8 @@
 /* demo.js · página admiranext.com/marcablanca
-   Pinta las maquetas de las 4 plataformas y las viste con MarcaBlanca.aplicar() en su ámbito. */
+   Pinta las maquetas de las 4 plataformas y las viste con MarcaBlanca.aplicar() en su ámbito.
+   Las marcas salen del catálogo único (/marcablanca/api/marcas): las cuatro fijas del selector, las
+   guardadas después (chips «Del catálogo») y la PROPUESTA de «Tu marca · URL» (propuesta.js), que
+   entra por window.MarcaBlancaDemo.mostrar(). */
 (function () {
   'use strict';
   var MB = window.MarcaBlanca;
@@ -10,6 +13,7 @@
     { id: 'yokup', nombre: 'yokup.com', verbo: 'mantiene', dominio: 'yokup.com', ruta: '/incidencias' }
   ];
   var CLIENTES = ['lumbre', 'brumelle', 'frescaria', 'admira'];
+  var ID_VALIDO = /^[a-z0-9][a-z0-9-]{0,40}$/;
   var MODOS = { marca: 'Modo de la marca', nativo: 'Nativo de cada web', claro: 'Claro', oscuro: 'Oscuro' };
 
   var MQ = window.MarcaBlancaMaquetas;
@@ -23,8 +27,9 @@
   /* ── Estado de la página ───────────────────────────────────────────────── */
   var q = new URLSearchParams(location.search);
   var estadoPagina = {
-    marca: CLIENTES.indexOf(q.get('marca')) !== -1 ? q.get('marca') : 'lumbre',
-    modo: MODOS[q.get('modo')] ? q.get('modo') : 'marca'
+    marca: ID_VALIDO.test(q.get('marca') || '') ? q.get('marca') : 'lumbre',
+    modo: MODOS[q.get('modo')] ? q.get('modo') : 'marca',
+    propuesta: false
   };
 
   function url(p, id) { return (id === 'admira' ? '' : id + '.') + p.dominio + p.ruta; }
@@ -69,7 +74,8 @@
           '<div class="fx-words"><span>Sí:</span> ' + tono.si.map(function (w) { return '<em>' + esc(w) + '</em>'; }).join(' ') + '</div>' +
           '<div class="fx-words no"><span>No:</span> ' + tono.no.map(function (w) { return '<em>' + esc(w) + '</em>'; }).join(' ') + '</div>' +
           '<ul class="fx-frases"><li><b>CTA</b> «' + esc(tono.frases.cta) + '»</li><li><b>Vacío</b> «' + esc(tono.frases.vacio) + '»</li><li><b>Error</b> «' + esc(tono.frases.error) + '»</li></ul>' +
-          '<a class="fx-json" href="clientes/' + esc(m.id) + '.json" target="_blank" rel="noopener">clientes/' + esc(m.id) + '.json ↗</a></div>';
+          (estadoPagina.propuesta ? '<span class="fx-json">propuesta sin guardar · «Descargar JSON» arriba</span>' :
+            '<a class="fx-json" href="api/marcas/' + esc(m.id) + '" target="_blank" rel="noopener">api/marcas/' + esc(m.id) + ' ↗</a>') + '</div>';
       var comp = document.getElementById('componentes');
       comp.innerHTML =
         '<div class="cp-row"><span class="mb-btn mb-btn--primario" data-mb-frase="cta">CTA</span><span class="mb-btn mb-btn--secundario">Secundario</span>' +
@@ -87,8 +93,10 @@
 
   function marcarBotones() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-elegir]'), function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute('data-elegir') === estadoPagina.marca));
+      b.setAttribute('aria-pressed', String(!estadoPagina.propuesta && b.getAttribute('data-elegir') === estadoPagina.marca));
     });
+    var url = document.querySelector('.sel--url');
+    if (url) url.setAttribute('data-activa', String(estadoPagina.propuesta));
     Array.prototype.forEach.call(document.querySelectorAll('[data-modo]'), function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-modo') === estadoPagina.modo));
     });
@@ -96,9 +104,10 @@
 
   function render(empujar) {
     marcarBotones();
-    if (empujar) {
+    if (empujar && !estadoPagina.propuesta) {
       var u = new URL(location.href);
       u.searchParams.set('marca', estadoPagina.marca);
+      u.searchParams.delete('web');
       if (estadoPagina.modo === 'marca') u.searchParams.delete('modo'); else u.searchParams.set('modo', estadoPagina.modo);
       history.replaceState(null, '', u.pathname + u.search + u.hash);
     }
@@ -106,23 +115,59 @@
       document.getElementById('resumenNombre').textContent = m.nombre;
       document.getElementById('resumenSector').textContent = m.sector;
       document.getElementById('resumenDesc').textContent = m.descripcion;
-      document.getElementById('resumenSello').hidden = !m.ejemplo;
+      var sello = document.getElementById('resumenSello');
+      var propuesta = estadoPagina.propuesta || (m.catalogo && m.catalogo.propuesta);
+      sello.hidden = !m.ejemplo && !propuesta;
+      sello.textContent = propuesta ? 'Propuesta automática · no es la marca oficial' : 'Cliente de ejemplo · marca ficticia';
       return Promise.all([pintarMaquetas(m), pintarFicha(m)]);
     }).catch(function (e) {
+      // Un ?marca= que no existe (o que ya no está en el catálogo) vuelve al ejemplo de siempre.
+      if (!estadoPagina.propuesta && estadoPagina.marca !== 'lumbre') { estadoPagina.marca = 'lumbre'; return render(true); }
       document.getElementById('maquetas').setAttribute('data-error', String(e && e.message || e));
     });
+  }
+
+  /* ── Marcas guardadas en el catálogo después (no son las cuatro fijas) ──── */
+  function pintarCatalogo() {
+    var cont = document.getElementById('catalogoExtra');
+    if (!cont || !MB.listar) return;
+    MB.listar().then(function (lista) {
+      var extra = lista.filter(function (c) { return CLIENTES.indexOf(c.id) === -1; });
+      if (!extra.length) { cont.hidden = true; return; }
+      cont.hidden = false;
+      cont.innerHTML = '<span class="cat-tit">Del catálogo</span>' + extra.map(function (c) {
+        var tipo = c.catalogo && c.catalogo.propuesta ? 'propuesta' : (c.ejemplo ? 'ejemplo' : 'real');
+        return '<button type="button" class="cat-chip" data-elegir="' + esc(c.id) + '" aria-pressed="false"><b>' + esc(c.nombre) + '</b><small>' + esc(tipo) + '</small></button>';
+      }).join('');
+      Array.prototype.forEach.call(cont.querySelectorAll('[data-elegir]'), function (b) {
+        b.addEventListener('click', function () { estadoPagina.marca = b.getAttribute('data-elegir'); estadoPagina.propuesta = false; render(true); });
+      });
+      marcarBotones();
+    }).catch(function () { cont.hidden = true; });
   }
 
   function iniciar() {
     // Logos del selector: cada botón se viste con su propia marca.
     Array.prototype.forEach.call(document.querySelectorAll('[data-elegir]'), function (b) {
       MB.aplicar(b.getAttribute('data-elegir'), { objetivo: b.querySelector('.sel-logo'), modo: 'oscuro' });
-      b.addEventListener('click', function () { estadoPagina.marca = b.getAttribute('data-elegir'); render(true); });
+      b.addEventListener('click', function () { estadoPagina.marca = b.getAttribute('data-elegir'); estadoPagina.propuesta = false; render(true); });
     });
     Array.prototype.forEach.call(document.querySelectorAll('[data-modo]'), function (b) {
       b.addEventListener('click', function () { estadoPagina.modo = b.getAttribute('data-modo'); render(true); });
     });
+    pintarCatalogo();
     render(false);
   }
+
+  /* API para propuesta.js: enseña en las maquetas una marca ya registrada (MB.registrar). */
+  window.MarcaBlancaDemo = {
+    mostrar: function (id, o) {
+      estadoPagina.marca = id;
+      estadoPagina.propuesta = Boolean(o && o.propuesta);
+      return render(Boolean(o && o.empujar));
+    },
+    catalogo: function () { if (MB.refrescar) MB.refrescar(); pintarCatalogo(); },
+    estado: function () { return { marca: estadoPagina.marca, modo: estadoPagina.modo, propuesta: estadoPagina.propuesta }; }
+  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
 })();
