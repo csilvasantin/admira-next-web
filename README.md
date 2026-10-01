@@ -90,6 +90,41 @@ acompañar la animación procedimental sin cambiar rutas, persistencia, editor,
 versiones ni salida segura. El sonido parte apagado y solo se crea tras una
 interacción. El workspace es `noindex` y no se incluye en `sitemap.xml`.
 
+## Clave de máquina del Generador de presentaciones (flota sin Google)
+
+Los agentes de la flota entran en `/presentaciones/*` (UI y API) sin la cuenta de Google de una
+persona con una **clave de máquina** `amk_…` (Carlos, 01-10-2026).
+
+- **Dónde está la clave** (nunca en el repo ni en logs): secreto `PRES_MACHINE_KEY` del proyecto
+  Pages `admiranext`; en la Cúpula como `ADMIRANEXT_PRESENTACIONES_MACHINE_KEY`
+  (`bash ~/Claude/admira-vault/vault-get.sh ADMIRANEXT_PRESENTACIONES_MACHINE_KEY`); y en el box en
+  `/workspace/flota/.secrets/ADMIRANEXT_PRESENTACIONES_MACHINE_KEY` (directorio 700, fichero 600).
+- **Qué abre**: solo `/presentaciones/*`, con nivel **editor** (generar, editar, ver). No abre
+  `/presentaciones/control/` (solo owner) ni nada más de admiranext.com. Identidad registrada:
+  `machine@admiranext.com` (registro de accesos `machine_*` y `createdBy`/`updatedBy` de lo generado).
+- **API** — en cada petición, cabecera `X-Admira-Machine-Key: <clave>` (o `Authorization: Bearer <clave>`).
+  Las escrituras del generador exigen además `Origin: https://www.admiranext.com`:
+
+  ```bash
+  K="$(cat /workspace/flota/.secrets/ADMIRANEXT_PRESENTACIONES_MACHINE_KEY)"
+  curl -s https://www.admiranext.com/presentaciones/api/clients -H "X-Admira-Machine-Key: $K"
+  curl -s -X PUT https://www.admiranext.com/presentaciones/api/generate \
+       -H "X-Admira-Machine-Key: $K" -H 'Origin: https://www.admiranext.com' \
+       -H 'content-type: application/json' --data @presentacion.json
+  ```
+- **UI con navegador** — canjea la clave por una sesión corta y navega con la cookie:
+  `POST /presentaciones/auth/machine` con la cabecera → cookie `pres_machine`
+  (Path=/presentaciones, 1 h, HttpOnly, Secure, SameSite=Strict). Con `Accept: text/html` redirige
+  a `?next=/presentaciones/…`. Hazlo desde una página de www.admiranext.com (p. ej. un `fetch` con
+  `credentials:'include'`) y no pongas la clave en cabeceras globales del navegador: se enviaría
+  a terceros.
+- **Revocar**: borrar o rotar el secreto (`wrangler pages secret delete|put PRES_MACHINE_KEY
+  --project-name admiranext`) y volver a desplegar. Las cookies emitidas van atadas a la huella de
+  la clave y dejan de valer al rotarla. Actualiza también la Cúpula y el box.
+- Código: `functions/presentaciones/_machine-key.js`, `functions/presentaciones/auth/machine.js` y
+  el middleware de `/presentaciones`. Tests: `test/presentation-machine-key.test.mjs`.
+  Retorno: `retorno/pre-clave-maquina-presentaciones-20261001`.
+
 ## Local preview
 
 ```sh
