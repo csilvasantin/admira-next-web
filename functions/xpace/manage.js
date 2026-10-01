@@ -1,0 +1,2 @@
+import { exigirRol,respuestaLogin } from '../_webmaster-gate.js';
+export async function onRequest({request,env,next}) {if(!await exigirRol(request,env,['admin']))return respuestaLogin(env,'Necesitas administración central.','/xpace/manage');const response=await next();const headers=new Headers(response.headers);headers.set('cache-control','no-store');return new Response(response.body,{status:response.status,headers});}

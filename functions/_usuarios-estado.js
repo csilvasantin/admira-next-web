@@ -135,6 +135,7 @@ export function aclApps({ project_keys = [], en_lista_blanca = false, apps: gran
   const apps = [];
   if (has(APP_GRANT_KEYS.generador)) apps.push('generador');
   if (has(APP_GRANT_KEYS.webmaster)) apps.push('webmaster');
+  if(keys.some(k=>k==='*'||k==='commercial-projects'||k.startsWith('commercial:')))apps.push('xpaceos');
   if (en_lista_blanca) apps.push('live');
   return { apps, usable: apps.length };
 }

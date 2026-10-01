@@ -4,7 +4,7 @@
  * La contraseña de sala Presentar no entra aquí.
  */
 
-export const APPS = ['live', 'control', 'webmaster', 'generador', 'mcp', 'yokup'];
+export const APPS = ['live', 'control', 'webmaster', 'generador', 'mcp', 'yokup', 'xpaceos'];
 export const KINDS = new Set(['team', 'guest', 'partner']);
 export const TERCERO = new Set(['guest', 'partner']);
 export const OWNERS = ['csilva@admira.com', 'csilvasantin@gmail.com'];

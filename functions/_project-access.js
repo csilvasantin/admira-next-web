@@ -1,3 +1,4 @@
+import { commercialCatalog } from './_xpace-registry.js';
 import { PROYECTOS } from './_proyectos.js';
 import { fichaProyecto } from './_modelo-proyectos.js';
 
@@ -28,6 +29,8 @@ export async function catalogoProyectos(env = {}) {
     order,
     ...metaDe({ id: project.clave, name: project.nombre, web: project.url }),
   }));
+
+  for(const project of await commercialCatalog(env)) rows.set(project.key,project);
 
   const fetchImpl = typeof env.YOKUP_FETCH === 'function' ? env.YOKUP_FETCH : fetch;
   try {

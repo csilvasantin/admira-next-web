@@ -10,6 +10,7 @@ import { onRequestGet as getHistory } from '../functions/api/historial.js';
 import { catalogoProyectos, proyectoPermitido } from '../functions/_project-access.js';
 import { PROYECTOS } from '../functions/_proyectos.js';
 import fs from 'node:fs';
+import {SEEDS} from '../functions/_xpace-registry.js';
 
 class Statement {
   constructor(stmt){ this.stmt=stmt; this.values=[]; }
@@ -57,7 +58,7 @@ test('el catálogo une todos los proyectos de Webmaster y Yokup sin duplicados',
     {id:'nuevo-yokup',name:'Nuevo Yokup',web:'https://nuevo.example'},
   ]})});
   assert.equal(catalog.complete,true);
-  assert.equal(catalog.projects.length,PROYECTOS.length+1);
+  assert.equal(catalog.projects.length,PROYECTOS.length+SEEDS.length+2);
   assert.equal(catalog.projects.filter((p)=>p.key==='admiranext').length,1);
   assert.equal(catalog.projects.find((p)=>p.key==='admiranext-webmaster').depth,1);
   assert.equal(catalog.projects.find((p)=>p.key==='nuevo-yokup').source,'yokup');
