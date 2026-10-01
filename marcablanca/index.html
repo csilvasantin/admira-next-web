@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marca blanca · AdmiraNeXT — una piel para Studio, Store, App y Yokup</title>
+<meta name="description" content="La hoja de estilos de marca blanca de la Galaxia Admira: Admira.Studio crea, Admira.store distribuye, Admira.app comercializa y yokup.com mantiene. Un marcablanca.css, un JSON por cliente y un cargador de una línea visten las cuatro webs con la marca de cada cliente.">
+<meta name="admiranext-version" content="v.01.10.2026.r3.14:01">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="canonical" href="https://www.admiranext.com/marcablanca/">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Marca blanca · Galaxia Admira">
+<meta property="og:description" content="Studio crea, Store distribuye, App comercializa, Yokup mantiene. Las cuatro, con la marca de cada cliente.">
+<meta property="og:image" content="/og-image.jpg">
+<meta property="og:url" content="https://www.admiranext.com/marcablanca/">
+<link rel="alternate" type="application/json" href="/marcablanca/clientes/index.json" title="Clientes de marca blanca">
+<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261001-1">
+<link rel="stylesheet" href="/marcablanca/demo.css?v=20261001-1">
+<script src="/marcablanca/marcablanca.js?v=20261001-1" data-mb-auto="false"></script>
+<script src="/marcablanca/demo.js?v=20261001-1" defer></script>
+</head>
+<body>
+<div class="win">
+  <div class="titlebar">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span class="path"><b>~/AdmiraNeXT</b>/marcablanca</span>
+    <a class="home" href="/">← admiranext.com</a>
+  </div>
+
+  <div class="content">
+    <header class="hero">
+      <div class="term"><span class="pr">$</span> cat clientes/lumbre.json | marcablanca --aplicar studio store app yokup <span class="ok">ok</span></div>
+      <div class="kicker">Marca blanca · Galaxia Admira</div>
+      <h1>Una sola piel para las cuatro patas</h1>
+      <p class="lede">Cada cliente ve <b>Admira.Studio</b>, <b>Admira.store</b>, <b>Admira.app</b> y <b>yokup.com</b> con
+        <b>su logo, sus colores, su tipografía y su tono</b>. Una hoja de estilos común —<code>marcablanca.css</code>—,
+        un JSON por cliente y un cargador de una línea. Cambia el cliente y cambian las cuatro webs a la vez.</p>
+    </header>
+
+    <section id="concepto">
+      <div class="sec-head"><span class="ico">◆</span><h2>La cadena: crear, distribuir, vender, mantener</h2><span class="note">una marca · cuatro webs</span></div>
+      <div class="patas">
+        <div class="pata"><span class="lvl">01 · admira.studio</span><h3>Studio <em>crea</em></h3><p>Contenidos con IA para cada pantalla: carteles, vídeos verticales, menús digitales.</p><span class="arrow">→</span></div>
+        <div class="pata"><span class="lvl">02 · admira.store</span><h3>Store <em>distribuye</em></h3><p>Despacha cada pieza a la superficie exacta del gemelo digital y confirma que se ve.</p><span class="arrow">→</span></div>
+        <div class="pata"><span class="lvl">03 · admira.app</span><h3>App <em>comercializa</em></h3><p>Vende el inventario DOOH por circuito, público y CPM, con pujas en vivo.</p><span class="arrow">→</span></div>
+        <div class="pata"><span class="lvl">04 · yokup.com</span><h3>Yokup <em>mantiene</em></h3><p>Detecta y resuelve incidencias IoT: pantallas, hilo musical, climatización, redes.</p></div>
+      </div>
+    </section>
+
+    <section id="probar">
+      <div class="sec-head"><span class="ico">▣</span><h2>Elige un cliente</h2><span class="note">tres marcas ficticias de ejemplo + Admira</span></div>
+      <div class="selector" role="group" aria-label="Cliente">
+        <button type="button" class="sel" data-elegir="lumbre" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Cafeterías · ejemplo</span></button>
+        <button type="button" class="sel" data-elegir="brumelle" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Moda · ejemplo</span></button>
+        <button type="button" class="sel" data-elegir="frescaria" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Supermercados · ejemplo</span></button>
+        <button type="button" class="sel sel--casa" data-elegir="admira" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Marca por defecto</span></button>
+      </div>
+      <div class="barra">
+        <div class="resumen">
+          <b id="resumenNombre">—</b> <span id="resumenSector"></span>
+          <span id="resumenSello" class="sello" hidden>Cliente de ejemplo · marca ficticia</span>
+          <p id="resumenDesc"></p>
+        </div>
+        <div class="modos" role="group" aria-label="Modo de color">
+          <button type="button" data-modo="marca" aria-pressed="true">Modo de la marca</button>
+          <button type="button" data-modo="nativo" aria-pressed="false">Nativo de cada web</button>
+          <button type="button" data-modo="claro" aria-pressed="false">Claro</button>
+          <button type="button" data-modo="oscuro" aria-pressed="false">Oscuro</button>
+        </div>
+      </div>
+
+      <div id="maquetas" class="maquetas" aria-live="polite">
+        <article class="mk" data-plataforma="studio">
+          <div class="mk-chrome"><span class="d"></span><span class="d"></span><span class="d"></span><span class="mk-url">admira.studio</span><span class="mk-tag">Studio · crea · <i class="mk-modo"></i></span></div>
+          <div class="mk-scope"></div>
+        </article>
+        <article class="mk" data-plataforma="store">
+          <div class="mk-chrome"><span class="d"></span><span class="d"></span><span class="d"></span><span class="mk-url">admira.store</span><span class="mk-tag">Store · distribuye · <i class="mk-modo"></i></span></div>
+          <div class="mk-scope"></div>
+        </article>
+        <article class="mk" data-plataforma="app">
+          <div class="mk-chrome"><span class="d"></span><span class="d"></span><span class="d"></span><span class="mk-url">admira.app</span><span class="mk-tag">App · comercializa · <i class="mk-modo"></i></span></div>
+          <div class="mk-scope"></div>
+        </article>
+        <article class="mk" data-plataforma="yokup">
+          <div class="mk-chrome"><span class="d"></span><span class="d"></span><span class="d"></span><span class="mk-url">yokup.com</span><span class="mk-tag">Yokup · mantiene · <i class="mk-modo"></i></span></div>
+          <div class="mk-scope"></div>
+        </article>
+      </div>
+      <p class="pie-maquetas">Maquetas fieles a la estructura real de cada web (cabecera, navegación y pantalla clave). Los clientes Lumbre Café, BRUMELLE y Frescaria son <b>marcas ficticias</b> creadas para este ejemplo.</p>
+    </section>
+
+    <section id="tokens">
+      <div class="sec-head"><span class="ico">◐</span><h2>Tokens de <span id="fichaNombre">—</span></h2><span class="note">lo que vive en clientes/&lt;cliente&gt;.json</span></div>
+      <div id="ficha" class="ficha"></div>
+      <h3 class="sub">Componentes base de <code>marcablanca.css</code></h3>
+      <div id="componentes" class="componentes"></div>
+    </section>
+
+    <section id="adoptar">
+      <div class="sec-head"><span class="ico">⌘</span><h2>Cómo adoptarlo en cada web</h2><span class="note">3 pasos · sin reescribir el CSS</span></div>
+      <ol class="pasos">
+        <li><b>Incluye la hoja y el cargador</b> en el <code>&lt;head&gt;</code> de la web, indicando qué plataforma es:</li>
+      </ol>
+<pre class="code"><span class="c">&lt;!-- admira.studio · admira.store · admira.app · yokup.com --&gt;</span>
+&lt;link rel="stylesheet" href="https://www.admiranext.com/marcablanca/marcablanca.css"&gt;
+&lt;script src="https://www.admiranext.com/marcablanca/marcablanca.js"
+        data-mb-plataforma="<b>studio</b>" data-mb-modo="nativo" defer&gt;&lt;/script&gt;</pre>
+      <ol class="pasos" start="2">
+        <li><b>Marca los huecos de marca</b>: <code>&lt;span class="mb-logo" data-mb-logo&gt;</code> para el logo, <code>data-mb-nombre</code> para el nombre y <code>data-mb-frase="cta"</code> para los textos del tono de voz. El favicon y el <code>theme-color</code> cambian solos.</li>
+        <li><b>Elige el cliente</b>: <code>?marca=lumbre</code> en la URL, por dominio (<code>lumbre.admira.app</code> o el dominio propio del cliente declarado en <code>clientes/index.json</code>) o fijo con <code>data-mb-marca="lumbre"</code>. Sin nada, se aplica <b>Admira</b>.</li>
+      </ol>
+      <div class="tabla-adopcion">
+        <table>
+          <thead><tr><th>Web</th><th><code>data-mb-plataforma</code></th><th>Modo nativo</th><th>Puente automático (sus variables → tokens)</th></tr></thead>
+          <tbody>
+            <tr><td>admira.studio</td><td><code>studio</code></td><td>oscuro</td><td><code>--bg --panel --ink --muted --line --matrix</code></td></tr>
+            <tr><td>admira.store</td><td><code>store</code></td><td>oscuro</td><td><code>--bg --ink --mut --brand --accent --good --card</code></td></tr>
+            <tr><td>admira.app</td><td><code>app</code></td><td>oscuro</td><td><code>--bg --ink --mut --brand --accent --card</code></td></tr>
+            <tr><td>yokup.com</td><td><code>yokup</code></td><td>claro</td><td><code>--p-paper --p-ink --p-dark --p-green --p-line --p-sans</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mas">Guía completa en <a href="/marcablanca/README.md">README.md</a> · clientes en <a href="/marcablanca/clientes/index.json">clientes/index.json</a> · esquema en <a href="/marcablanca/clientes/esquema.json">clientes/esquema.json</a>. Para un cliente nuevo: copia un JSON, cambia colores, fuentes, logo y tono, y añade su dominio.</p>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <a href="/">admiranext.com</a>
+  <span class="sep">·</span>
+  <a href="/libro-de-estilo">Libro de estilo</a>
+  <span class="sep">·</span>
+  <a href="/filosofia">Filosofía</a>
+  <span class="sep">·</span>
+  <span>Marca blanca de la Galaxia Admira · v.01.10.2026.r3.14:01</span>
+</footer>
+</body>
+</html>

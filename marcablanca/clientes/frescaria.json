@@ -1,0 +1,171 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "frescaria",
+  "nombre": "Frescaria Supermercados",
+  "nombreCorto": "Frescaria",
+  "ejemplo": true,
+  "sector": "Cadena de supermercados · 136 tiendas",
+  "descripcion": "Cliente de ejemplo con marca ficticia. Supermercado de proximidad: alegre, práctico y con producto fresco.",
+  "dominios": [
+    "frescaria.example",
+    "frescaria.admira.studio",
+    "frescaria.admira.store",
+    "frescaria.admira.app",
+    "frescaria.yokup.com"
+  ],
+  "logo": {
+    "svg": "../logos/frescaria.svg",
+    "alt": "Frescaria Supermercados (marca ficticia de ejemplo)"
+  },
+  "favicon": "../logos/frescaria-favicon.svg",
+  "modo": "claro",
+  "tipografia": {
+    "titulos": "Nunito, 'Trebuchet MS', 'Segoe UI', sans-serif",
+    "texto": "Nunito, 'Trebuchet MS', 'Segoe UI', sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Nunito, 'Trebuchet MS', sans-serif",
+    "pesoTitulos": 900,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.02em",
+    "fuentes": [
+      {
+        "familia": "Nunito",
+        "url": "../fuentes/nunito.woff2",
+        "peso": "400 900"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "10px",
+    "md": "16px",
+    "lg": "24px",
+    "boton": "999px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(35,70,216,.10)",
+    "md": "0 6px 18px rgba(35,70,216,.14)",
+    "lg": "0 18px 40px rgba(35,70,216,.18)"
+  },
+  "tono": {
+    "voz": "Alegre, práctico y claro. Números grandes y verbos de acción.",
+    "tratamiento": "tú",
+    "si": [
+      "de temporada",
+      "ahorra",
+      "llévatelo"
+    ],
+    "no": [
+      "premium",
+      "exclusivo",
+      "gourmet"
+    ],
+    "frases": {
+      "cta": "Llévatelo",
+      "vacio": "¡Todo en orden! Ni una etiqueta fuera de precio.",
+      "error": "Ups, algo no va. Ya va un técnico de camino.",
+      "exito": "¡Arreglado! A seguir llenando la cesta."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#2346D8",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#FF8A00",
+      "secundarioTexto": "#2B1600",
+      "acento": "#0E9F73",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#F3F6FF",
+      "fondoAlt": "#E9EEFC",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#EEF2FF",
+      "borde": "#D8E0F7",
+      "texto": "#121A3A",
+      "textoSuave": "#4B5578",
+      "textoTenue": "#8A93B3",
+      "ok": "#12A150",
+      "aviso": "#F08C00",
+      "error": "#E03131",
+      "info": "#2346D8"
+    },
+    "oscuro": {
+      "primario": "#7F9BFF",
+      "primarioTexto": "#0B1230",
+      "secundario": "#FFA53D",
+      "secundarioTexto": "#2B1600",
+      "acento": "#3DDC97",
+      "acentoTexto": "#04241A",
+      "fondo": "#0B1230",
+      "fondoAlt": "#0F1840",
+      "superficie": "#142054",
+      "superficieAlt": "#1A2963",
+      "borde": "#2A3A7A",
+      "texto": "#EEF2FF",
+      "textoSuave": "#AAB6E8",
+      "textoTenue": "#6F7CB0",
+      "ok": "#4CD38A",
+      "aviso": "#FFB84D",
+      "error": "#FF6B6B",
+      "info": "#7F9BFF"
+    }
+  },
+  "demo": {
+    "titular": "Fruta de temporada -30% esta semana",
+    "producto": "Mandarinas de Castellón · 1,49 €/kg",
+    "cta": "Llévatelo",
+    "prompt": "Cartel de lineal alegre: mandarinas sobre fondo azul cobalto, precio gigante en naranja y sello «-30%»",
+    "circuito": "Circuito Frescaria · 136 supermercados",
+    "puntos": 136,
+    "superficies": 1094,
+    "imprDia": "412.000",
+    "cpm": "3,90 €",
+    "tipoEspacio": "Supermercado · proximidad",
+    "tiendas": [
+      {
+        "nombre": "Frescaria Arturo Soria",
+        "dir": "Calle de Arturo Soria 212 · Madrid"
+      },
+      {
+        "nombre": "Frescaria Sant Andreu",
+        "dir": "Carrer Gran de Sant Andreu 88 · Barcelona"
+      },
+      {
+        "nombre": "Frescaria Nervión",
+        "dir": "Avenida Eduardo Dato 40 · Sevilla"
+      }
+    ],
+    "superficiesTipo": [
+      "cajas",
+      "lineal",
+      "etiqueta electrónica"
+    ],
+    "piezas": [
+      "Cartel lineal fruta",
+      "Pantalla cajas · ofertas",
+      "Etiquetas · precios semana"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-4C33",
+        "equipo": "Etiquetas electrónicas pasillo 4",
+        "tienda": "Frescaria Arturo Soria",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-4C29",
+        "equipo": "Pantalla cajas",
+        "tienda": "Frescaria Sant Andreu",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-4C18",
+        "equipo": "Climatización frescos",
+        "tienda": "Frescaria Nervión",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "nombre": "Marca blanca · Galaxia Admira",
+  "version": "1.0.0",
+  "porDefecto": "admira",
+  "plataformas": {
+    "studio": {
+      "nombre": "Admira.Studio",
+      "verbo": "crea",
+      "dominio": "admira.studio",
+      "modoNativo": "oscuro"
+    },
+    "store": {
+      "nombre": "Admira.store",
+      "verbo": "distribuye",
+      "dominio": "admira.store",
+      "modoNativo": "oscuro"
+    },
+    "app": {
+      "nombre": "Admira.app",
+      "verbo": "comercializa",
+      "dominio": "admira.app",
+      "modoNativo": "oscuro"
+    },
+    "yokup": {
+      "nombre": "yokup.com",
+      "verbo": "mantiene",
+      "dominio": "yokup.com",
+      "modoNativo": "claro"
+    }
+  },
+  "clientes": [
+    {
+      "id": "admira",
+      "nombre": "Admira",
+      "ejemplo": false,
+      "sector": "Marca por defecto"
+    },
+    {
+      "id": "lumbre",
+      "nombre": "Lumbre Café",
+      "ejemplo": true,
+      "sector": "Cafeterías"
+    },
+    {
+      "id": "brumelle",
+      "nombre": "BRUMELLE",
+      "ejemplo": true,
+      "sector": "Moda"
+    },
+    {
+      "id": "frescaria",
+      "nombre": "Frescaria Supermercados",
+      "ejemplo": true,
+      "sector": "Supermercados"
+    }
+  ],
+  "dominios": {
+    "admira.studio": "admira",
+    "www.admira.studio": "admira",
+    "admira.store": "admira",
+    "www.admira.store": "admira",
+    "admira.app": "admira",
+    "www.admira.app": "admira",
+    "yokup.com": "admira",
+    "www.yokup.com": "admira",
+    "lumbre.example": "lumbre",
+    "lumbre.admira.studio": "lumbre",
+    "lumbre.admira.store": "lumbre",
+    "lumbre.admira.app": "lumbre",
+    "lumbre.yokup.com": "lumbre",
+    "brumelle.example": "brumelle",
+    "brumelle.admira.studio": "brumelle",
+    "brumelle.admira.store": "brumelle",
+    "brumelle.admira.app": "brumelle",
+    "brumelle.yokup.com": "brumelle",
+    "frescaria.example": "frescaria",
+    "frescaria.admira.studio": "frescaria",
+    "frescaria.admira.store": "frescaria",
+    "frescaria.admira.app": "frescaria",
+    "frescaria.yokup.com": "frescaria"
+  }
+}

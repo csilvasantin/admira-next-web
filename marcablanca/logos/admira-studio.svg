@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 196 48" role="img" aria-label="Admira Studio">
+  <title>Admira Studio</title>
+  <rect x="3" y="7" width="34" height="34" rx="3" fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="2"/>
+  <text x="13" y="31" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" font-weight="700" fill="currentColor">P</text>
+  <text x="48" y="31" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="17" font-weight="700" fill="currentColor" letter-spacing=".5">Admira Studio</text>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 48" role="img" aria-label="BRUMELLE (marca ficticia de ejemplo)">
+  <title>BRUMELLE · marca ficticia de ejemplo</title>
+  <rect x="2" y="6" width="36" height="36" fill="none" stroke="currentColor" stroke-width="3"/>
+  <path d="M10 40 L30 8" stroke="#D4FF3A" stroke-width="6"/>
+  <rect x="26" y="30" width="8" height="8" fill="#FF3D7F"/>
+  <text x="52" y="35" font-family="Oswald, 'Arial Narrow', 'Roboto Condensed', Impact, sans-serif" font-size="28" font-weight="600" fill="currentColor" letter-spacing="6">BRUMELLE</text>
+</svg>

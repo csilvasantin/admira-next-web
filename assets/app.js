@@ -1637,6 +1637,19 @@
     ];
   }
 
+  function cmdMarcaBlanca() {
+    const target = (window.location.protocol === 'file:') ? 'marcablanca/index.html' : '/marcablanca/';
+    setTimeout(() => { window.location.href = target; }, 450);
+    return [
+      { text: 'Marca blanca · Galaxia Admira', cls: 'heading' },
+      { text: '' },
+      { text: '  Studio crea · Store distribuye · App comercializa · Yokup mantiene.', cls: 'accent' },
+      { text: '  Las cuatro webs, con la marca de cada cliente.', cls: 'dim' },
+      { text: '' },
+      { text: '  → /marcablanca', cls: 'green' },
+    ];
+  }
+
   function cmdFilosofia() {
     const target = (window.location.protocol === 'file:') ? 'filosofia.html' : '/filosofia';
     setTimeout(() => { window.location.href = target; }, 450);
@@ -2076,6 +2089,9 @@
   registerHidden('/filosofía', cmdFilosofia);
   registerHidden('/libro-de-estilo', cmdLibro);
   registerHidden('/estilo', cmdLibro);
+  // Marca blanca común de Studio, Store, App y Yokup (2026-10-01): solo comando, la home no cambia.
+  registerHidden('/marcablanca', cmdMarcaBlanca);
+  registerHidden('/marca-blanca', cmdMarcaBlanca);
 
   function launchEgg(label, url, color) {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);

@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "title": "Cliente de marca blanca · Galaxia Admira",
+  "description": "Tokens de marca de un cliente para Admira.Studio, Admira.store, Admira.app y yokup.com. Los colores de cada modo se convierten en --mb-<clave-en-kebab> (primarioTexto → --mb-primario-texto).",
+  "type": "object",
+  "required": [
+    "id",
+    "nombre",
+    "logo",
+    "favicon",
+    "modo",
+    "tipografia",
+    "radios",
+    "sombras",
+    "tono",
+    "colores"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,40}$",
+      "description": "Igual que el nombre del fichero y que ?marca=<id>."
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "nombreCorto": {
+      "type": "string"
+    },
+    "ejemplo": {
+      "type": "boolean",
+      "description": "true = cliente de ejemplo con marca ficticia."
+    },
+    "porDefecto": {
+      "type": "boolean"
+    },
+    "sector": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "dominios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Dominios que aplican esta marca automáticamente (copiarlos también a index.json → dominios)."
+    },
+    "logo": {
+      "type": "object",
+      "required": [
+        "svg"
+      ],
+      "properties": {
+        "svg": {
+          "type": "string",
+          "description": "Ruta relativa al JSON. Usa currentColor para que el logo siga el color de texto."
+        },
+        "alt": {
+          "type": "string"
+        }
+      }
+    },
+    "favicon": {
+      "type": "string"
+    },
+    "modo": {
+      "enum": [
+        "claro",
+        "oscuro"
+      ],
+      "description": "Modo por defecto de la marca."
+    },
+    "tipografia": {
+      "type": "object",
+      "required": [
+        "titulos",
+        "texto"
+      ],
+      "properties": {
+        "titulos": {
+          "type": "string"
+        },
+        "texto": {
+          "type": "string"
+        },
+        "mono": {
+          "type": "string"
+        },
+        "etiquetas": {
+          "type": "string"
+        },
+        "pesoTitulos": {
+          "type": "integer"
+        },
+        "transformTitulos": {
+          "enum": [
+            "none",
+            "uppercase",
+            "lowercase",
+            "capitalize"
+          ]
+        },
+        "trackingTitulos": {
+          "type": "string"
+        },
+        "fuentes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "familia",
+              "url"
+            ],
+            "properties": {
+              "familia": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "peso": {
+                "type": "string"
+              },
+              "estilo": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "radios": {
+      "type": "object",
+      "required": [
+        "sm",
+        "md",
+        "lg",
+        "boton"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "sombras": {
+      "type": "object",
+      "required": [
+        "sm",
+        "md",
+        "lg"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tono": {
+      "type": "object",
+      "required": [
+        "voz",
+        "frases"
+      ],
+      "properties": {
+        "voz": {
+          "type": "string"
+        },
+        "tratamiento": {
+          "enum": [
+            "tú",
+            "usted"
+          ]
+        },
+        "si": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "no": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "frases": {
+          "type": "object",
+          "required": [
+            "cta",
+            "vacio",
+            "error",
+            "exito"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "colores": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "claro": {
+          "type": "object",
+          "required": [
+            "primario",
+            "primarioTexto",
+            "secundario",
+            "secundarioTexto",
+            "acento",
+            "acentoTexto",
+            "fondo",
+            "fondoAlt",
+            "superficie",
+            "superficieAlt",
+            "borde",
+            "texto",
+            "textoSuave",
+            "textoTenue",
+            "ok",
+            "aviso",
+            "error",
+            "info"
+          ],
+          "properties": {
+            "primario": {
+              "type": "string"
+            },
+            "primarioTexto": {
+              "type": "string"
+            },
+            "secundario": {
+              "type": "string"
+            },
+            "secundarioTexto": {
+              "type": "string"
+            },
+            "acento": {
+              "type": "string"
+            },
+            "acentoTexto": {
+              "type": "string"
+            },
+            "fondo": {
+              "type": "string"
+            },
+            "fondoAlt": {
+              "type": "string"
+            },
+            "superficie": {
+              "type": "string"
+            },
+            "superficieAlt": {
+              "type": "string"
+            },
+            "borde": {
+              "type": "string"
+            },
+            "texto": {
+              "type": "string"
+            },
+            "textoSuave": {
+              "type": "string"
+            },
+            "textoTenue": {
+              "type": "string"
+            },
+            "ok": {
+              "type": "string"
+            },
+            "aviso": {
+              "type": "string"
+            },
+            "error": {
+              "type": "string"
+            },
+            "info": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "oscuro": {
+          "type": "object",
+          "required": [
+            "primario",
+            "primarioTexto",
+            "secundario",
+            "secundarioTexto",
+            "acento",
+            "acentoTexto",
+            "fondo",
+            "fondoAlt",
+            "superficie",
+            "superficieAlt",
+            "borde",
+            "texto",
+            "textoSuave",
+            "textoTenue",
+            "ok",
+            "aviso",
+            "error",
+            "info"
+          ],
+          "properties": {
+            "primario": {
+              "type": "string"
+            },
+            "primarioTexto": {
+              "type": "string"
+            },
+            "secundario": {
+              "type": "string"
+            },
+            "secundarioTexto": {
+              "type": "string"
+            },
+            "acento": {
+              "type": "string"
+            },
+            "acentoTexto": {
+              "type": "string"
+            },
+            "fondo": {
+              "type": "string"
+            },
+            "fondoAlt": {
+              "type": "string"
+            },
+            "superficie": {
+              "type": "string"
+            },
+            "superficieAlt": {
+              "type": "string"
+            },
+            "borde": {
+              "type": "string"
+            },
+            "texto": {
+              "type": "string"
+            },
+            "textoSuave": {
+              "type": "string"
+            },
+            "textoTenue": {
+              "type": "string"
+            },
+            "ok": {
+              "type": "string"
+            },
+            "aviso": {
+              "type": "string"
+            },
+            "error": {
+              "type": "string"
+            },
+            "info": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "plataformas": {
+      "type": "object",
+      "description": "Ajustes opcionales por plataforma (studio, store, app, yokup) que se fusionan sobre la marca.",
+      "propertyNames": {
+        "enum": [
+          "studio",
+          "store",
+          "app",
+          "yokup"
+        ]
+      }
+    },
+    "demo": {
+      "type": "object",
+      "description": "Contenido de ejemplo para las maquetas de admiranext.com/marcablanca. Opcional en clientes reales."
+    }
+  }
+}

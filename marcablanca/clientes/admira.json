@@ -1,0 +1,368 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "admira",
+  "nombre": "Admira",
+  "nombreCorto": "Admira",
+  "ejemplo": false,
+  "porDefecto": true,
+  "sector": "Galaxia Admira · marca por defecto",
+  "descripcion": "La piel de la casa. Si no se indica cliente, las cuatro plataformas se visten con Admira y cada una conserva su aspecto nativo.",
+  "dominios": [
+    "admira.studio",
+    "www.admira.studio",
+    "admira.store",
+    "www.admira.store",
+    "admira.app",
+    "www.admira.app",
+    "yokup.com",
+    "www.yokup.com"
+  ],
+  "logo": {
+    "svg": "../logos/admira.svg",
+    "alt": "Admira"
+  },
+  "favicon": "../logos/admira-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "texto": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "pesoTitulos": 800,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.01em",
+    "fuentes": [
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "400 800"
+      },
+      {
+        "familia": "JetBrains Mono",
+        "url": "../../assets/fonts/jetbrains-mono.woff2",
+        "peso": "400 700"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "6px",
+    "md": "10px",
+    "lg": "14px",
+    "boton": "10px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.35)",
+    "md": "0 12px 32px rgba(0,0,0,.45)",
+    "lg": "0 24px 70px rgba(0,0,0,.55)"
+  },
+  "tono": {
+    "voz": "Técnica, directa y optimista. Hablamos de espacios vivos, pantallas en verde y resultados medibles.",
+    "tratamiento": "tú",
+    "si": [
+      "en vivo",
+      "gemelo digital",
+      "del rojo al verde"
+    ],
+    "no": [
+      "sinergia",
+      "disruptivo"
+    ],
+    "frases": {
+      "cta": "Empezar ahora",
+      "vacio": "Todo en verde. No hay nada pendiente.",
+      "error": "Algo se ha puesto en rojo. Ya lo estamos mirando.",
+      "exito": "Hecho. La pantalla vuelve a verde."
+    }
+  },
+  "colores": {
+    "oscuro": {
+      "primario": "#FFD866",
+      "primarioTexto": "#1A1405",
+      "secundario": "#AA88FF",
+      "secundarioTexto": "#120A24",
+      "acento": "#FF4488",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#0A0C12",
+      "fondoAlt": "#10131C",
+      "superficie": "#141826",
+      "superficieAlt": "#1B2033",
+      "borde": "rgba(170,136,255,.25)",
+      "texto": "#F0E6FF",
+      "textoSuave": "rgba(216,200,255,.68)",
+      "textoTenue": "rgba(216,200,255,.42)",
+      "ok": "#88FFAA",
+      "aviso": "#FFB454",
+      "error": "#FF6B6B",
+      "info": "#50C8FF"
+    },
+    "claro": {
+      "primario": "#6C4CF1",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#15121F",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#FF4488",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#F7F6FB",
+      "fondoAlt": "#EFEDF7",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#F3F1FA",
+      "borde": "#E3DEF3",
+      "texto": "#15121F",
+      "textoSuave": "#5D5873",
+      "textoTenue": "#9590AA",
+      "ok": "#1F9D55",
+      "aviso": "#C77800",
+      "error": "#D93A3A",
+      "info": "#1B84C7"
+    }
+  },
+  "plataformas": {
+    "studio": {
+      "modo": "oscuro",
+      "logo": {
+        "svg": "../logos/admira-studio.svg",
+        "alt": "Admira Studio"
+      },
+      "tipografia": {
+        "titulos": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+        "texto": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+        "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+        "pesoTitulos": 700
+      },
+      "radios": {
+        "sm": "2px",
+        "md": "4px",
+        "lg": "6px",
+        "boton": "3px"
+      },
+      "sombras": {
+        "sm": "0 0 0 1px rgba(0,255,65,.10)",
+        "md": "0 0 18px rgba(0,255,65,.12)",
+        "lg": "0 0 40px rgba(0,255,65,.18)"
+      },
+      "colores": {
+        "oscuro": {
+          "primario": "#00FF41",
+          "primarioTexto": "#001A06",
+          "secundario": "#7DFF9E",
+          "secundarioTexto": "#001A06",
+          "acento": "#B5FF3C",
+          "acentoTexto": "#001A06",
+          "fondo": "#020602",
+          "fondoAlt": "#041004",
+          "superficie": "#061A08",
+          "superficieAlt": "#0A240D",
+          "borde": "#1A4A22",
+          "texto": "#C8FFD0",
+          "textoSuave": "#7FBF8A",
+          "textoTenue": "#4A8A55",
+          "ok": "#00FF41",
+          "aviso": "#D4FF5A",
+          "error": "#FF5F57",
+          "info": "#4DF0C8"
+        }
+      }
+    },
+    "store": {
+      "modo": "oscuro",
+      "logo": {
+        "svg": "../logos/admira-store.svg",
+        "alt": "admira.store"
+      },
+      "tipografia": {
+        "titulos": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "texto": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+        "pesoTitulos": 700
+      },
+      "radios": {
+        "sm": "6px",
+        "md": "10px",
+        "lg": "14px",
+        "boton": "8px"
+      },
+      "colores": {
+        "oscuro": {
+          "primario": "#78F3FF",
+          "primarioTexto": "#02080D",
+          "secundario": "#88FFAA",
+          "secundarioTexto": "#02080D",
+          "acento": "#FFD866",
+          "acentoTexto": "#1A1405",
+          "fondo": "#02080D",
+          "fondoAlt": "#06111A",
+          "superficie": "#0A1620",
+          "superficieAlt": "#0D1C28",
+          "borde": "rgba(120,243,255,.16)",
+          "texto": "#DFF8FF",
+          "textoSuave": "#75AAB9",
+          "textoTenue": "#4D7A88",
+          "ok": "#88FFAA",
+          "aviso": "#FFD866",
+          "error": "#FF8866",
+          "info": "#78F3FF"
+        }
+      }
+    },
+    "app": {
+      "modo": "oscuro",
+      "logo": {
+        "svg": "../logos/admira-app.svg",
+        "alt": "admira.app"
+      },
+      "tipografia": {
+        "titulos": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "texto": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+        "pesoTitulos": 700
+      },
+      "radios": {
+        "sm": "8px",
+        "md": "12px",
+        "lg": "16px",
+        "boton": "10px"
+      },
+      "colores": {
+        "oscuro": {
+          "primario": "#5EEAD4",
+          "primarioTexto": "#04201C",
+          "secundario": "#B49BFF",
+          "secundarioTexto": "#140B2E",
+          "acento": "#F5A524",
+          "acentoTexto": "#1F1300",
+          "fondo": "#07050D",
+          "fondoAlt": "#0C0916",
+          "superficie": "rgba(18,14,31,.92)",
+          "superficieAlt": "#191330",
+          "borde": "rgba(180,155,255,.24)",
+          "texto": "#ECE8FF",
+          "textoSuave": "#A49CC4",
+          "textoTenue": "#6E6790",
+          "ok": "#88FFAA",
+          "aviso": "#FFD866",
+          "error": "#FF8866",
+          "info": "#78F3FF"
+        }
+      }
+    },
+    "yokup": {
+      "modo": "claro",
+      "logo": {
+        "svg": "../logos/yokup.svg",
+        "alt": "yokup"
+      },
+      "tipografia": {
+        "titulos": "Manrope, 'DM Sans', sans-serif",
+        "texto": "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "etiquetas": "'DM Sans', -apple-system, sans-serif",
+        "pesoTitulos": 600,
+        "trackingTitulos": "-0.035em",
+        "fuentes": [
+          {
+            "familia": "DM Sans",
+            "url": "../fuentes/dmsans.woff2",
+            "peso": "400 800"
+          },
+          {
+            "familia": "Manrope",
+            "url": "../fuentes/manrope.woff2",
+            "peso": "400 800"
+          }
+        ]
+      },
+      "radios": {
+        "sm": "6px",
+        "md": "10px",
+        "lg": "16px",
+        "boton": "6px"
+      },
+      "sombras": {
+        "sm": "0 1px 2px rgba(19,61,50,.06)",
+        "md": "0 8px 24px rgba(19,61,50,.08)",
+        "lg": "0 20px 50px rgba(19,61,50,.12)"
+      },
+      "colores": {
+        "claro": {
+          "primario": "#133D32",
+          "primarioTexto": "#FFFFFF",
+          "secundario": "#67935C",
+          "secundarioTexto": "#FFFFFF",
+          "acento": "#7AAB49",
+          "acentoTexto": "#0F2A12",
+          "fondo": "#F6F8F3",
+          "fondoAlt": "#EEF2E9",
+          "superficie": "#FFFFFF",
+          "superficieAlt": "#EAF0DF",
+          "borde": "#DBE3D9",
+          "texto": "#173632",
+          "textoSuave": "#667A75",
+          "textoTenue": "#98A8A2",
+          "ok": "#7AAB49",
+          "aviso": "#D9A21B",
+          "error": "#AC3838",
+          "info": "#4F6E4C"
+        }
+      }
+    }
+  },
+  "demo": {
+    "titular": "Contenido IA para cada pantalla",
+    "producto": "Campaña otoño · red Admira",
+    "cta": "Ver en vivo",
+    "prompt": "Cartel vertical 9:16 para la red de estancos, fondo oscuro, titular grande y QR de la campaña",
+    "circuito": "Red Admira · 9101 gemelos",
+    "puntos": 9101,
+    "superficies": 24833,
+    "imprDia": "1,9 M",
+    "cpm": "4,80 €",
+    "tipoEspacio": "Estanco · retail físico",
+    "tiendas": [
+      {
+        "nombre": "Xtanco Barcelona",
+        "dir": "Portal de l'Àngel 20 · Barcelona"
+      },
+      {
+        "nombre": "CanalKiosk Gràcia",
+        "dir": "Plaça de la Vila de Gràcia · Barcelona"
+      },
+      {
+        "nombre": "Xtanco Valencia",
+        "dir": "Carrer de Colón 22 · Valencia"
+      }
+    ],
+    "superficiesTipo": [
+      "pantalla",
+      "escaparate",
+      "mostrador"
+    ],
+    "piezas": [
+      "Cartel campaña otoño",
+      "Vídeo escaparate 9:16",
+      "Loop mostrador"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-7KP2",
+        "equipo": "Pantalla escaparate",
+        "tienda": "Xtanco Barcelona",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-7KN9",
+        "equipo": "Hilo musical",
+        "tienda": "CanalKiosk Gràcia",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-7KM4",
+        "equipo": "Player mostrador",
+        "tienda": "Xtanco Valencia",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

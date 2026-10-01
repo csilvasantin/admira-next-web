@@ -40,8 +40,9 @@ export const PROYECTOS = [
     clave: 'admiranext', nombre: 'admiranext.com', url: 'https://www.admiranext.com',
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',
-    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout d25067db2524801b3313bd07df1d4fb49ba3b3df && ADMIRA_RELEASE_AGENT=TrinityMBP14 ADMIRA_RELEASE_MACHINE=MacBookProNegro14 ./deploy.sh',
+    volver: 'cd /tmp && git clone https://github.com/csilvasantin/admira-next-web.git admiranext-return && cd admiranext-return && git checkout retorno/pre-marcablanca-20261001 && ADMIRA_RELEASE_AGENT=OraculoMacMini ADMIRA_RELEASE_MACHINE=MacMini ./deploy.sh',
     tipo: 'sitio', shot: '/webmaster-shots/admiranext.jpg',
+    nota: 'Último retorno: etiqueta retorno/pre-marcablanca-20261001 = producción justo antes de publicar /marcablanca (marca blanca de Studio, Store, App y Yokup). Sin guardas: revertir el merge de la marca blanca en main y el CI vuelve a publicar.',
   },
   {
     clave: 'admiranext-webmaster', nombre: 'AdmiraNeXT Webmaster',
