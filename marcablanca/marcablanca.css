@@ -1,0 +1,188 @@
+/* ============================================================================
+   marcablanca.css · v1.0.0 · Hoja de estilos de MARCA BLANCA · Galaxia Admira
+   Admira.Studio crea · Admira.store distribuye · Admira.app comercializa · yokup.com mantiene
+   ----------------------------------------------------------------------------
+   1. Tokens --mb-* con la marca Admira por defecto (funciona sin JS).
+   2. Derivados (suaves, bordes de estado) recalculados en cada ámbito de marca.
+   3. Componentes base .mb-* (botones, tarjetas, tablas, estados, formularios).
+   4. Puentes opcionales a las variables propias de cada web (data-mb-plataforma).
+   El cargador marcablanca.js sustituye los tokens por los de clientes/<cliente>.json.
+   Documentación: https://www.admiranext.com/marcablanca/README.md
+   ========================================================================== */
+
+/* 1 · Tokens (Admira · modo oscuro) ---------------------------------------- */
+:root {
+  --mb-primario: #FFD866;        --mb-primario-texto: #1A1405;
+  --mb-secundario: #AA88FF;      --mb-secundario-texto: #120A24;
+  --mb-acento: #FF4488;          --mb-acento-texto: #FFFFFF;
+  --mb-fondo: #0A0C12;           --mb-fondo-alt: #10131C;
+  --mb-superficie: #141826;      --mb-superficie-alt: #1B2033;
+  --mb-borde: rgba(170,136,255,.25);
+  --mb-texto: #F0E6FF;           --mb-texto-suave: rgba(216,200,255,.68);
+  --mb-texto-tenue: rgba(216,200,255,.42);
+  --mb-ok: #88FFAA;  --mb-aviso: #FFB454;  --mb-error: #FF6B6B;  --mb-info: #50C8FF;
+
+  --mb-fuente-titulos: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mb-fuente-texto: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mb-fuente-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --mb-fuente-etiquetas: var(--mb-fuente-mono);
+  --mb-peso-titulos: 800;
+  --mb-titulos-transform: none;
+  --mb-titulos-tracking: -0.01em;
+
+  --mb-radio-sm: 6px;  --mb-radio-md: 10px;  --mb-radio-lg: 14px;
+  --mb-radio-boton: 10px;  --mb-radio-pill: 999px;
+  --mb-sombra-sm: 0 1px 2px rgba(0,0,0,.35);
+  --mb-sombra-md: 0 12px 32px rgba(0,0,0,.45);
+  --mb-sombra-lg: 0 24px 70px rgba(0,0,0,.55);
+  --mb-transicion: .18s ease;
+}
+
+/* 2 · Derivados: se declaran también en cada ámbito con marca para que hereden
+   los colores del cliente y no los de :root. ------------------------------- */
+:root, [data-mb-marca] {
+  --mb-ok-suave: color-mix(in srgb, var(--mb-ok) 15%, transparent);
+  --mb-aviso-suave: color-mix(in srgb, var(--mb-aviso) 16%, transparent);
+  --mb-error-suave: color-mix(in srgb, var(--mb-error) 15%, transparent);
+  --mb-info-suave: color-mix(in srgb, var(--mb-info) 15%, transparent);
+  --mb-primario-suave: color-mix(in srgb, var(--mb-primario) 14%, transparent);
+  --mb-acento-suave: color-mix(in srgb, var(--mb-acento) 16%, transparent);
+  --mb-primario-hover: color-mix(in srgb, var(--mb-primario) 86%, var(--mb-texto));
+  --mb-foco: 0 0 0 3px color-mix(in srgb, var(--mb-primario) 40%, transparent);
+}
+
+/* Base opcional: añade .mb-base al <body> (o a un contenedor) para heredar fondo,
+   texto y tipografía de la marca. ------------------------------------------ */
+.mb-base {
+  background: var(--mb-fondo);
+  color: var(--mb-texto);
+  font-family: var(--mb-fuente-texto);
+}
+.mb-base h1, .mb-base h2, .mb-base h3, .mb-titulo {
+  font-family: var(--mb-fuente-titulos);
+  font-weight: var(--mb-peso-titulos);
+  text-transform: var(--mb-titulos-transform);
+  letter-spacing: var(--mb-titulos-tracking);
+}
+
+/* 3 · Componentes ----------------------------------------------------------- */
+.mb-logo { display: inline-flex; align-items: center; color: var(--mb-texto); line-height: 0; }
+.mb-logo .mb-logo-svg { height: 100%; width: auto; display: block; }
+
+.mb-eyebrow {
+  font-family: var(--mb-fuente-etiquetas);
+  font-size: .72em; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--mb-texto-suave);
+  display: inline-flex; align-items: center; gap: .55em;
+}
+.mb-eyebrow::before { content: ""; width: .5em; height: .5em; border-radius: 50%; background: var(--mb-acento); }
+
+.mb-btn {
+  --_bg: var(--mb-superficie-alt); --_fg: var(--mb-texto); --_bd: var(--mb-borde);
+  display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+  padding: .62em 1.15em; border-radius: var(--mb-radio-boton);
+  border: 1px solid var(--_bd); background: var(--_bg); color: var(--_fg);
+  font: inherit; font-weight: 700; line-height: 1.1; cursor: pointer; text-decoration: none;
+  transition: transform var(--mb-transicion), filter var(--mb-transicion), box-shadow var(--mb-transicion);
+}
+.mb-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.mb-btn:focus-visible { outline: none; box-shadow: var(--mb-foco); }
+.mb-btn--primario { --_bg: var(--mb-primario); --_fg: var(--mb-primario-texto); --_bd: var(--mb-primario); }
+.mb-btn--secundario { --_bg: var(--mb-secundario); --_fg: var(--mb-secundario-texto); --_bd: var(--mb-secundario); }
+.mb-btn--acento { --_bg: var(--mb-acento); --_fg: var(--mb-acento-texto); --_bd: var(--mb-acento); }
+.mb-btn--borde { --_bg: transparent; --_fg: var(--mb-texto); --_bd: var(--mb-borde); }
+.mb-btn--fantasma { --_bg: transparent; --_fg: var(--mb-primario); --_bd: transparent; }
+.mb-btn--peligro { --_bg: var(--mb-error); --_fg: #fff; --_bd: var(--mb-error); }
+.mb-btn[disabled], .mb-btn--off { opacity: .45; pointer-events: none; }
+
+.mb-card {
+  background: var(--mb-superficie); color: var(--mb-texto);
+  border: 1px solid var(--mb-borde); border-radius: var(--mb-radio-lg);
+  box-shadow: var(--mb-sombra-sm); padding: 1.1em 1.2em;
+}
+.mb-card--alt { background: var(--mb-superficie-alt); }
+.mb-card--realce { border-color: var(--mb-primario); box-shadow: var(--mb-sombra-md); }
+
+.mb-chip {
+  display: inline-flex; align-items: center; gap: .4em;
+  padding: .22em .7em; border-radius: var(--mb-radio-pill);
+  border: 1px solid var(--mb-borde); background: var(--mb-superficie-alt);
+  color: var(--mb-texto-suave); font-size: .82em; font-weight: 600; white-space: nowrap;
+}
+.mb-chip--on { background: var(--mb-primario-suave); border-color: var(--mb-primario); color: var(--mb-texto); }
+
+.mb-estado {
+  --_c: var(--mb-info); --_s: var(--mb-info-suave);
+  display: inline-flex; align-items: center; gap: .45em;
+  padding: .2em .65em; border-radius: var(--mb-radio-pill);
+  background: var(--_s); color: var(--mb-texto); border: 1px solid color-mix(in srgb, var(--_c) 45%, transparent);
+  font-size: .8em; font-weight: 700; white-space: nowrap;
+}
+.mb-estado::before { content: ""; width: .55em; height: .55em; border-radius: 50%; background: var(--_c); }
+.mb-estado--ok { --_c: var(--mb-ok); --_s: var(--mb-ok-suave); }
+.mb-estado--aviso { --_c: var(--mb-aviso); --_s: var(--mb-aviso-suave); }
+.mb-estado--error { --_c: var(--mb-error); --_s: var(--mb-error-suave); }
+.mb-estado--info { --_c: var(--mb-info); --_s: var(--mb-info-suave); }
+
+.mb-input, .mb-select, .mb-textarea {
+  width: 100%; padding: .6em .8em; border-radius: var(--mb-radio-sm);
+  border: 1px solid var(--mb-borde); background: var(--mb-fondo); color: var(--mb-texto);
+  font: inherit;
+}
+.mb-input::placeholder, .mb-textarea::placeholder { color: var(--mb-texto-tenue); }
+.mb-input:focus, .mb-select:focus, .mb-textarea:focus { outline: none; border-color: var(--mb-primario); box-shadow: var(--mb-foco); }
+
+.mb-tabla { width: 100%; border-collapse: collapse; font-size: .88em; }
+.mb-tabla th {
+  text-align: left; font-family: var(--mb-fuente-etiquetas); font-size: .78em; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--mb-texto-tenue);
+  padding: .6em .7em; border-bottom: 1px solid var(--mb-borde);
+}
+.mb-tabla td { padding: .62em .7em; border-bottom: 1px solid color-mix(in srgb, var(--mb-borde) 70%, transparent); color: var(--mb-texto); }
+.mb-tabla tr:hover td { background: var(--mb-primario-suave); }
+
+.mb-nav { display: flex; align-items: center; gap: 1.2em; font-family: var(--mb-fuente-etiquetas); }
+.mb-nav a { color: var(--mb-texto-suave); text-decoration: none; }
+.mb-nav a[aria-current], .mb-nav a:hover { color: var(--mb-texto); }
+
+.mb-ejemplo-sello {
+  display: inline-flex; align-items: center; gap: .4em; padding: .2em .6em;
+  border: 1px dashed var(--mb-texto-tenue); border-radius: var(--mb-radio-pill);
+  color: var(--mb-texto-suave); font-size: .72em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+
+/* 4 · Puentes opcionales ------------------------------------------------------
+   Solo actúan si la web declara su plataforma (data-mb-plataforma) y el cargador
+   ha aplicado una marca. Traducen los tokens --mb-* a las variables que cada web
+   ya usa, así que vestirla no exige reescribir su CSS. */
+html[data-mb-marca] {
+  /* admira-design (tokens.css común del grupo) */
+  --admira-bg: var(--mb-fondo); --admira-bg-elev: var(--mb-superficie);
+  --admira-text: var(--mb-texto); --admira-text-muted: var(--mb-texto-suave); --admira-text-dim: var(--mb-texto-tenue);
+  --admira-amber: var(--mb-primario); --admira-violet: var(--mb-secundario); --admira-magenta: var(--mb-acento);
+  --admira-border: var(--mb-borde); --admira-border-strong: var(--mb-primario);
+  --admira-font-sans: var(--mb-fuente-texto); --admira-font-mono: var(--mb-fuente-mono);
+  --admira-radius-sm: var(--mb-radio-sm); --admira-radius-md: var(--mb-radio-md); --admira-radius-lg: var(--mb-radio-lg);
+  --admira-shadow-card: var(--mb-sombra-md);
+}
+html[data-mb-marca][data-mb-plataforma="studio"] {
+  --bg: var(--mb-fondo); --panel: var(--mb-superficie); --ink: var(--mb-texto); --muted: var(--mb-texto-tenue);
+  --line: var(--mb-borde); --line-bright: var(--mb-primario);
+  --matrix: var(--mb-primario); --matrix-deep: var(--mb-secundario); --xp: var(--mb-primario);
+  --image: var(--mb-secundario); --video: var(--mb-acento); --audio: var(--mb-info); --music: var(--mb-acento);
+}
+html[data-mb-marca][data-mb-plataforma="store"],
+html[data-mb-marca][data-mb-plataforma="app"] {
+  --bg: var(--mb-fondo); --ink: var(--mb-texto); --mut: var(--mb-texto-suave); --dim: var(--mb-texto-tenue);
+  --brand: var(--mb-primario); --accent: var(--mb-acento); --good: var(--mb-ok); --warn: var(--mb-error);
+  --card: var(--mb-superficie); --card2: var(--mb-superficie-alt); --line: var(--mb-borde);
+}
+html[data-mb-marca][data-mb-plataforma="yokup"] {
+  --p-paper: var(--mb-fondo); --p-ink: var(--mb-texto); --p-muted: var(--mb-texto-suave);
+  --p-dark: var(--mb-primario); --p-dark2: var(--mb-primario-hover); --p-green: var(--mb-secundario);
+  --p-accent: var(--mb-secundario); --p-live: var(--mb-ok); --p-red: var(--mb-error); --p-amber: var(--mb-aviso);
+  --p-line: var(--mb-borde); --p-line2: var(--mb-borde); --p-soft: var(--mb-superficie-alt); --p-soft-line: var(--mb-borde);
+  --p-sans: var(--mb-fuente-texto); --p-head: var(--mb-fuente-titulos);
+  --yk-bg: var(--mb-superficie); --yk-card: var(--mb-superficie); --yk-brand: var(--mb-secundario);
+  --yk-ink: var(--mb-texto); --yk-mut: var(--mb-texto-suave); --yk-line: var(--mb-borde);
+}

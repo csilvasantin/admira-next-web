@@ -1,0 +1,176 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "brumelle",
+  "nombre": "BRUMELLE",
+  "nombreCorto": "BRUMELLE",
+  "ejemplo": true,
+  "sector": "Cadena de moda · 22 flagships",
+  "descripcion": "Cliente de ejemplo con marca ficticia. Moda urbana editorial: negro, hueso y un golpe de lima ácida.",
+  "dominios": [
+    "brumelle.example",
+    "brumelle.admira.studio",
+    "brumelle.admira.store",
+    "brumelle.admira.app",
+    "brumelle.yokup.com"
+  ],
+  "logo": {
+    "svg": "../logos/brumelle.svg",
+    "alt": "BRUMELLE (marca ficticia de ejemplo)"
+  },
+  "favicon": "../logos/brumelle-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Oswald, 'Arial Narrow', 'Roboto Condensed', Impact, sans-serif",
+    "texto": "Inter, 'Helvetica Neue', Arial, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Oswald, 'Arial Narrow', sans-serif",
+    "pesoTitulos": 600,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "0.04em",
+    "fuentes": [
+      {
+        "familia": "Oswald",
+        "url": "../fuentes/oswald.woff2",
+        "peso": "400 700"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "400 800"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "0px",
+    "md": "0px",
+    "lg": "0px",
+    "boton": "0px",
+    "pill": "0px"
+  },
+  "sombras": {
+    "sm": "none",
+    "md": "none",
+    "lg": "none"
+  },
+  "tono": {
+    "voz": "Seco, seguro y editorial. Titulares de dos o tres palabras, en mayúsculas. Nunca diminutivos.",
+    "tratamiento": "tú",
+    "si": [
+      "drop",
+      "nueva temporada",
+      "edición limitada"
+    ],
+    "no": [
+      "chollo",
+      "monísimo",
+      "¡corre!"
+    ],
+    "frases": {
+      "cta": "Ver colección",
+      "vacio": "NADA PENDIENTE.",
+      "error": "FALLO DETECTADO. EN MARCHA.",
+      "exito": "RESUELTO."
+    }
+  },
+  "colores": {
+    "oscuro": {
+      "primario": "#D4FF3A",
+      "primarioTexto": "#0A0A0A",
+      "secundario": "#F2EFE9",
+      "secundarioTexto": "#0A0A0A",
+      "acento": "#FF3D7F",
+      "acentoTexto": "#0A0A0A",
+      "fondo": "#0A0A0A",
+      "fondoAlt": "#111111",
+      "superficie": "#161616",
+      "superficieAlt": "#1F1F1F",
+      "borde": "#2E2E2E",
+      "texto": "#F2EFE9",
+      "textoSuave": "#A8A39A",
+      "textoTenue": "#6B675F",
+      "ok": "#7EE08A",
+      "aviso": "#FFCF3A",
+      "error": "#FF4D4D",
+      "info": "#7AA7FF"
+    },
+    "claro": {
+      "primario": "#0A0A0A",
+      "primarioTexto": "#F2EFE9",
+      "secundario": "#D4FF3A",
+      "secundarioTexto": "#0A0A0A",
+      "acento": "#FF3D7F",
+      "acentoTexto": "#0A0A0A",
+      "fondo": "#F2EFE9",
+      "fondoAlt": "#E9E5DD",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#E9E5DD",
+      "borde": "#D6D1C7",
+      "texto": "#0A0A0A",
+      "textoSuave": "#55524C",
+      "textoTenue": "#8E897F",
+      "ok": "#1D8A3B",
+      "aviso": "#A87400",
+      "error": "#D42A2A",
+      "info": "#2D5BD6"
+    }
+  },
+  "demo": {
+    "titular": "NUEVA TEMPORADA. SIN EXCUSAS.",
+    "producto": "Abrigo oversize lana · AW26",
+    "cta": "Ver colección",
+    "prompt": "Vídeo vertical editorial en blanco y negro, modelo con abrigo oversize, cortes rápidos y rótulo en lima ácida",
+    "circuito": "Circuito BRUMELLE · 22 flagships",
+    "puntos": 22,
+    "superficies": 168,
+    "imprDia": "88.900",
+    "cpm": "9,40 €",
+    "tipoEspacio": "Flagship · moda",
+    "tiendas": [
+      {
+        "nombre": "BRUMELLE Serrano",
+        "dir": "Calle de Serrano 61 · Madrid"
+      },
+      {
+        "nombre": "BRUMELLE Passeig",
+        "dir": "Passeig de Gràcia 74 · Barcelona"
+      },
+      {
+        "nombre": "BRUMELLE Bilbao",
+        "dir": "Gran Vía 27 · Bilbao"
+      }
+    ],
+    "superficiesTipo": [
+      "videowall",
+      "probador",
+      "caja"
+    ],
+    "piezas": [
+      "Videowall escaparate · AW26",
+      "Lookbook probadores",
+      "Pantalla caja · drop 03"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-9B12",
+        "equipo": "Videowall escaparate",
+        "tienda": "BRUMELLE Serrano",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-9B08",
+        "equipo": "Pantalla probador 3",
+        "tienda": "BRUMELLE Passeig",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-9A97",
+        "equipo": "Difusor de aroma",
+        "tienda": "BRUMELLE Bilbao",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

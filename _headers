@@ -8,3 +8,7 @@
 # El resto revalida siempre (sirve fresco tras cada deploy, sin caché pegajosa).
 /*
   Cache-Control: public, max-age=0, must-revalidate
+# Marca blanca: cualquier web de la Galaxia (admira.studio, admira.store, admira.app,
+# yokup.com y los dominios de cliente) carga los tokens, logos y fuentes desde aquí.
+/marcablanca/*
+  Access-Control-Allow-Origin: *

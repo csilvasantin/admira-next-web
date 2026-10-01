@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" role="img" aria-label="Frescaria Supermercados (marca ficticia de ejemplo)">
+  <title>Frescaria Supermercados · marca ficticia de ejemplo</title>
+  <rect x="2" y="4" width="40" height="40" rx="12" fill="#2346D8"/>
+  <path d="M12 31c0-9 7-16 19-17-1 11-7 18-16 18" fill="#3DDC97"/>
+  <path d="M14 33c3-6 7-10 12-13" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+  <circle cx="32" cy="32" r="6" fill="#FF8A00"/>
+  <text x="52" y="30" font-family="Nunito, 'Trebuchet MS', 'Segoe UI', sans-serif" font-size="25" font-weight="900" fill="currentColor" letter-spacing="-0.4">frescaria</text>
+  <text x="53" y="42" font-family="Nunito, 'Trebuchet MS', 'Segoe UI', sans-serif" font-size="8" font-weight="800" fill="#FF8A00" letter-spacing="2.2">SUPERMERCADOS</text>
+</svg>

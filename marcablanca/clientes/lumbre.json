@@ -1,0 +1,176 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "lumbre",
+  "nombre": "Lumbre Café",
+  "nombreCorto": "Lumbre",
+  "ejemplo": true,
+  "sector": "Cadena de cafeterías · 48 locales",
+  "descripcion": "Cliente de ejemplo con marca ficticia. Cafetería de especialidad: cálida, artesana y de barrio.",
+  "dominios": [
+    "lumbre.example",
+    "lumbre.admira.studio",
+    "lumbre.admira.store",
+    "lumbre.admira.app",
+    "lumbre.yokup.com"
+  ],
+  "logo": {
+    "svg": "../logos/lumbre.svg",
+    "alt": "Lumbre Café (marca ficticia de ejemplo)"
+  },
+  "favicon": "../logos/lumbre-favicon.svg",
+  "modo": "claro",
+  "tipografia": {
+    "titulos": "Fraunces, Georgia, 'Times New Roman', serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Inter, -apple-system, 'Segoe UI', sans-serif",
+    "pesoTitulos": 700,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.015em",
+    "fuentes": [
+      {
+        "familia": "Fraunces",
+        "url": "../fuentes/fraunces.woff2",
+        "peso": "400 800"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "400 800"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "8px",
+    "md": "14px",
+    "lg": "22px",
+    "boton": "999px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(59,35,24,.08)",
+    "md": "0 8px 24px rgba(59,35,24,.12)",
+    "lg": "0 24px 60px rgba(59,35,24,.18)"
+  },
+  "tono": {
+    "voz": "Cálido, cercano y artesano. Frases cortas que huelen a café recién hecho.",
+    "tratamiento": "tú",
+    "si": [
+      "tostado hoy",
+      "de barrio",
+      "a fuego lento"
+    ],
+    "no": [
+      "oferta flash",
+      "low cost",
+      "¡¡urgente!!"
+    ],
+    "frases": {
+      "cta": "Pide tu café",
+      "vacio": "Todo tranquilo por aquí. Ni una taza fuera de sitio.",
+      "error": "Vaya, algo se ha quemado. Lo arreglamos enseguida.",
+      "exito": "¡Listo! Ya huele a café."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#3B2318",
+      "primarioTexto": "#FFF7EC",
+      "secundario": "#C2703F",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#E0703A",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#F7F0E6",
+      "fondoAlt": "#EFE4D4",
+      "superficie": "#FFFAF3",
+      "superficieAlt": "#F3E7D6",
+      "borde": "#E2D2BD",
+      "texto": "#2A1A12",
+      "textoSuave": "#6E5646",
+      "textoTenue": "#A08B7A",
+      "ok": "#4F7D3A",
+      "aviso": "#C98A16",
+      "error": "#B8432F",
+      "info": "#3F6E8C"
+    },
+    "oscuro": {
+      "primario": "#F2C79A",
+      "primarioTexto": "#2A1A12",
+      "secundario": "#E59A63",
+      "secundarioTexto": "#2A1A12",
+      "acento": "#E0703A",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#1C1310",
+      "fondoAlt": "#22170F",
+      "superficie": "#2A1D16",
+      "superficieAlt": "#34241B",
+      "borde": "#4A3426",
+      "texto": "#F7ECDF",
+      "textoSuave": "#CDB5A0",
+      "textoTenue": "#8F7766",
+      "ok": "#8CC56F",
+      "aviso": "#E8B04A",
+      "error": "#EF7A62",
+      "info": "#7FB3D5"
+    }
+  },
+  "demo": {
+    "titular": "Tu latte de otoño, tostado esta mañana",
+    "producto": "Latte de avellana tostada",
+    "cta": "Pide tu café",
+    "prompt": "Cartel vertical cálido: taza humeante de latte de avellana sobre madera, luz de mañana, titular en serif y precio 3,90 €",
+    "circuito": "Circuito Lumbre · 48 cafeterías",
+    "puntos": 48,
+    "superficies": 212,
+    "imprDia": "126.400",
+    "cpm": "6,20 €",
+    "tipoEspacio": "Cafetería · retail físico",
+    "tiendas": [
+      {
+        "nombre": "Lumbre Malasaña",
+        "dir": "Calle del Pez 14 · Madrid"
+      },
+      {
+        "nombre": "Lumbre Gràcia",
+        "dir": "Carrer de Verdi 31 · Barcelona"
+      },
+      {
+        "nombre": "Lumbre Ruzafa",
+        "dir": "Carrer de Sueca 9 · Valencia"
+      }
+    ],
+    "superficiesTipo": [
+      "menú digital",
+      "escaparate",
+      "barra"
+    ],
+    "piezas": [
+      "Menú digital · otoño",
+      "Cartel barra · latte avellana",
+      "Escaparate · desayunos"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-2F81",
+        "equipo": "Menú digital barra",
+        "tienda": "Lumbre Malasaña",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-2F77",
+        "equipo": "Hilo musical",
+        "tienda": "Lumbre Gràcia",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-2F70",
+        "equipo": "Pantalla escaparate",
+        "tienda": "Lumbre Ruzafa",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
