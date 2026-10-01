@@ -1,21 +1,38 @@
 # AdmiraNeXT (matriz · admiranext.com)
 
-> Matriz de la trilogía AdmiraNeXT: empresa agéntica de Robots-as-a-Service (RaaS)
-> e IoT con inteligencia artificial. Punto de entrada corporativo. Esta sección /mcp
-> es la puerta para que cualquier agente entienda la empresa, navegue sus superficies
-> y salte al resto de la trilogía — y viceversa. Sitio estático; la API operativa
+> Matriz de AdmiraNeXT: empresa agéntica de Robots-as-a-Service (RaaS) e IoT con
+> inteligencia artificial, cuyo producto es el sistema operativo del retail: las 4 patas
+> (admira.studio, admira.store, admira.app y yokup.com). Punto de entrada corporativo.
+> Esta sección /mcp es la puerta para que cualquier agente entienda la empresa, navegue
+> sus superficies y salte a las demás — y viceversa. Sitio estático; la API operativa
 > viva vive en el Consejo (admira.live) y se federa desde aquí.
 
 Sitio: https://www.admiranext.com
 Hub MCP: https://www.admiranext.com/mcp/
 Manifest máquina: https://www.admiranext.com/mcp/manifest.json
-Versión: v.14.09.2026.r1.18:21
+Versión: v.01.10.2026.r1.04:56
 Repo: https://github.com/csilvasantin/admira-next-web
 
 ## Qué es
 
 AdmiraNeXT conecta las cosas a internet con IA. Modelo: Robots-as-a-Service (RaaS) + IoT.
-La trilogía: matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio (admira.live).
+La trilogía corporativa (cómo se organizan los sitios /mcp de la empresa, no el producto):
+matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio (admira.live).
+
+## Las 4 patas de AdmiraNeXT · el sistema operativo del retail (todo DeepAgent debe saberlo)
+
+La comunicación en el punto de venta es una mesa de cuatro patas; la coordinación de las
+cuatro es el sistema operativo del retail. Cada dominio Admira es lo mismo que su dominio de marca:
+
+1. https://www.admira.studio = https://www.pixeria.com · Pixeria — importación y creación de contenidos.
+2. https://www.admira.store = https://www.xpaceos.com · XpaceOS — inventario del punto de venta y distribución de los contenidos.
+3. https://www.admira.app = https://www.clearchannel.tv · ClearChannel.tv — comercialización de los Xpacios y visión global de los circuitos.
+4. https://www.yokup.com · Yokup — mantenimiento y gestión diaria de los Xpacios.
+
+Coordinación: Studio → Store → App → Yokup, en bucle. El MCP es el pegamento (cada pata
+publica el suyo; ver el directorio más abajo). Yokup es el maestro del ITIL (inventario
+tecnológico de los Xpacios) y lo reparte por MCP a las otras tres patas.
+Es visión de producto, no un mandamiento ni una norma. Texto humano: https://www.admiranext.com/filosofia#cuatro-patas
 
 ## Superficie pública (sitio estático)
 
@@ -51,7 +68,7 @@ Tres directorios distintos. No mezclarlos:
   trabajan los agentes autónomos de AdmiraNeXT (autonomía, honestidad, límites, secretos, una sola
   bandeja en AgoraMatrix, la flota es una, latido de estado cada 5 min y BTV «búscate la vida»).
   Si te incorporas a la flota, este es el primer documento que debes leer.
-- Filosofía del equipo: https://www.admiranext.com/filosofia — las Máximas y el modelo de trabajo
+- Filosofía del equipo: https://www.admiranext.com/filosofia — las 4 patas, las Máximas y el modelo de trabajo
   de 3 capas × 3 niveles (principal · hijo · infra). Complementa a los mandamientos, no los sustituye.
 - Normativa operativa: https://www.admiranext.com/normativa — contrato numerado y verificable.
   Gobernanza principal: todos los proyectos pertenecen al Xpacio de AdmiraNeXT o al Xpacio de
@@ -61,7 +78,7 @@ Tres directorios distintos. No mezclarlos:
 
 ## Documentación
 
-- HANDOFF de la trilogía: https://www.admiranext.com/HANDOFF.md
+- HANDOFF de la trilogía corporativa (matriz · tienda · Consejo): https://www.admiranext.com/HANDOFF.md
 - README: https://www.admiranext.com/README.md
 
 ## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.07.09.2026.r3.06:08)

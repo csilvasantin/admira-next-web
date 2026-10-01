@@ -1,8 +1,8 @@
 {
   "name": "admiranext-matriz",
   "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
-  "description": "Hub MCP de la matriz de la trilogía AdmiraNeXT. Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
-  "version": "v.07.09.2026.r3.06:08",
+  "description": "Hub MCP de la matriz de AdmiraNeXT, cuyo producto son las 4 patas del sistema operativo del retail (admira.studio, admira.store, admira.app, yokup.com). Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
+  "version": "v.01.10.2026.r1.04:56",
   "type": "static-site",
   "site": "https://www.admiranext.com",
   "hub": "https://www.admiranext.com/mcp/",
@@ -13,6 +13,46 @@
     "signature": "Admira IA"
   },
   "model": "Robots-as-a-Service (RaaS) + IoT con IA",
+  "cuatro_patas": {
+    "nota": "Visión de producto (no es mandamiento ni norma). Todos los DeepAgents de Admira deben conocerla. La coordinación de las 4 patas de la comunicación en el punto de venta es el sistema operativo del retail.",
+    "canonico": "https://www.admiranext.com/filosofia#cuatro-patas",
+    "coordinacion": "Studio → Store → App → Yokup, en bucle; el MCP es el pegamento y Yokup es el maestro del ITIL (inventario tecnológico de los Xpacios), que reparte por MCP a las demás patas.",
+    "patas": [
+      {
+        "orden": 1,
+        "verbo": "crear",
+        "dominio": "https://www.admira.studio",
+        "equivale_a": "https://www.pixeria.com",
+        "marca": "Pixeria",
+        "funcion": "Importación y creación de contenidos."
+      },
+      {
+        "orden": 2,
+        "verbo": "distribuir",
+        "dominio": "https://www.admira.store",
+        "equivale_a": "https://www.xpaceos.com",
+        "marca": "XpaceOS",
+        "funcion": "Inventario del punto de venta y distribución de los contenidos."
+      },
+      {
+        "orden": 3,
+        "verbo": "comercializar",
+        "dominio": "https://www.admira.app",
+        "equivale_a": "https://www.clearchannel.tv",
+        "marca": "ClearChannel.tv",
+        "funcion": "Comercialización de los Xpacios y visión global de los circuitos."
+      },
+      {
+        "orden": 4,
+        "verbo": "mantener",
+        "dominio": "https://www.yokup.com",
+        "equivale_a": null,
+        "marca": "Yokup",
+        "funcion": "Mantenimiento y gestión diaria de los Xpacios; maestro del ITIL."
+      }
+    ],
+    "trilogia": "La trilogía (matriz admiranext.com · tienda admira.shop · Consejo admira.live) es la federación corporativa de sitios /mcp, no el producto; sigue vigente."
+  },
   "pages": [
     {
       "path": "/",
@@ -98,7 +138,7 @@
     {
       "path": "/filosofia",
       "audience": "agents",
-      "desc": "Filosofía del equipo: las Máximas y el modelo de 3 capas x 3 niveles (principal, hijo, infra). Complementa a /mandamientos, no lo sustituye."
+      "desc": "Filosofía del equipo: las 4 patas del sistema operativo del retail (#cuatro-patas), las Máximas y el modelo de 3 capas x 3 niveles (principal, hijo, infra). Complementa a /mandamientos, no lo sustituye."
     },
     {
       "path": "/normativa",
@@ -108,7 +148,8 @@
   ],
   "docs": {
     "handoff": "https://www.admiranext.com/HANDOFF.md",
-    "readme": "https://www.admiranext.com/README.md"
+    "readme": "https://www.admiranext.com/README.md",
+    "handoff_nota": "HANDOFF de la trilogía corporativa (matriz · tienda · Consejo), distinta de las 4 patas del producto."
   },
   "federation": {
     "note": "Directorio canónico de los MCP de la suite (FLT-2137). Cada producto tiene su MCP en su dominio; todos reconocen la misma clave de flota.",
