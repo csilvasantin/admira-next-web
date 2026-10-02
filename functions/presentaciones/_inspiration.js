@@ -173,7 +173,8 @@ export function esMuroAntibots(response, html){
     /<form[^>]+id=["']challenge-form|cf-browser-verification|_Incapsula_Resource|geo\.captcha-delivery\.com|px-captcha/i.test(String(html || '').slice(0, 20000));
 }
 
-async function limitedText(response, maximum){
+/** Lee como mucho `maximum` bytes del cuerpo (lo comparten el análisis de marca y el estudio de la compañía). */
+export async function limitedText(response, maximum){
   if(!response.body){const buffer=await response.arrayBuffer();return new TextDecoder().decode(buffer.slice(0,maximum));}
   const reader=response.body.getReader(),decoder=new TextDecoder();let total=0,out='';
   while(true){

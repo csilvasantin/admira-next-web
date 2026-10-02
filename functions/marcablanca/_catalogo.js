@@ -14,7 +14,7 @@
  *   R2       PRESENTATION_MEDIA (ya existe) con prefijo `marcas/<id>/logo.<ext>` para los logos
  *            subidos (data:) — servidos por /marcablanca/api/marcas/<id>/logo.
  *
- * Cada entrada declara su origen (semilla · url · generador), su tipo (real · ejemplo), si es una
+ * Cada entrada declara su origen (semilla · url · generador · propuesta), su tipo (real · ejemplo), si es una
  * PROPUESTA automática, la web de la que salió, autor (si había sesión) y fechas.
  */
 import {normalizarMarca, validarMarca, idMarca, urlSegura} from '../../marcablanca/marca.js';
@@ -27,7 +27,9 @@ export const MAX_LOGO = 160 * 1024;            // bytes de un logo subido (igual
 export const MAX_LOGO_EN_LINEA = 48 * 1024;    // sin R2, un data: hasta aquí se guarda dentro de la marca
 export const MAX_ENTRADA = 96 * 1024;          // JSON guardado en KV (sin logo en línea grande)
 /** ids que no puede tomar una marca nueva (además de las semillas). */
-export const RESERVADOS = new Set(['admira', 'nueva', 'actual', 'prospect', 'ninguna', 'index', 'esquema', 'api', 'marcas', 'analizar', 'logo', 'demo', 'presentacion', 'clientes', 'logos', 'fuentes']);
+export const RESERVADOS = new Set(['admira', 'nueva', 'actual', 'prospect', 'ninguna', 'index', 'esquema', 'api', 'marcas', 'analizar', 'logo', 'demo', 'presentacion', 'clientes', 'logos', 'fuentes', 'propuesta']);
+/** Orígenes de una marca guardada: analizada por URL en /marcablanca, creada en el generador o por la propuesta automática. */
+export const ORIGENES = ['url', 'generador', 'propuesta'];
 const SEMILLAS_RESPALDO = ['admira', 'lumbre', 'brumelle', 'frescaria'];
 const BASE = 'https://www.admiranext.com/';
 
@@ -76,8 +78,9 @@ async function leerKv(env, id){
 }
 /** Lo que se enseña en público de la ficha de catálogo (el correo del autor no sale). */
 function metaPublica(c = {}){
-  return {tipo:c.tipo === 'ejemplo' ? 'ejemplo' : 'real', origen:['url', 'generador'].includes(c.origen) ? c.origen : 'generador', propuesta:Boolean(c.propuesta),
-    web:c.web || '', aviso:c.aviso || '', autor:c.autor?.nombre || '', creadaEn:c.creadaEn || '', actualizadaEn:c.actualizadaEn || c.creadaEn || '', protegida:false};
+  return {tipo:c.tipo === 'ejemplo' ? 'ejemplo' : 'real', origen:ORIGENES.includes(c.origen) ? c.origen : 'generador', propuesta:Boolean(c.propuesta),
+    web:c.web || '', aviso:c.aviso || '', autor:c.autor?.nombre || '', creadaEn:c.creadaEn || '', actualizadaEn:c.actualizadaEn || c.creadaEn || '', protegida:false,
+    ...(c.pendienteLogo ? {pendienteLogo:true} : {})};
 }
 
 /**
@@ -99,7 +102,7 @@ export async function listarMarcas(env, request, {completo = false} = {}){
           if (!idMarca(id) || idMarca(id) !== id || ids.has(id)) continue;
           const md = key.metadata || {};
           ids.add(id);
-          clientes.push({id, nombre:corto(md.nombre, 80) || id, sector:corto(md.sector, 80), ejemplo:md.tipo === 'ejemplo', catalogo:metaPublica({tipo:md.tipo, origen:md.origen, propuesta:md.propuesta, web:md.web, creadaEn:md.creadaEn, actualizadaEn:md.actualizadaEn})});
+          clientes.push({id, nombre:corto(md.nombre, 80) || id, sector:corto(md.sector, 80), ejemplo:md.tipo === 'ejemplo', catalogo:metaPublica({tipo:md.tipo, origen:md.origen, propuesta:md.propuesta, web:md.web, creadaEn:md.creadaEn, actualizadaEn:md.actualizadaEn, pendienteLogo:md.pendienteLogo})});
         }
         cursor = page.list_complete === false ? page.cursor : undefined;
       } while (cursor && clientes.length < MAX_MARCAS + 10);
@@ -199,7 +202,7 @@ export function prepararMarca(entrada){
 
 /**
  * Crea (o, con `actualizar`, sobrescribe) una marca del catálogo.
- * @param {{marca:object, origen:'url'|'generador', tipo?:'real'|'ejemplo', web?:string, autor?:{nombre,email}, actualizar?:boolean, propuesta?:boolean}} o
+ * @param {{marca:object, origen:'url'|'generador'|'propuesta', tipo?:'real'|'ejemplo', web?:string, autor?:{nombre,email}, actualizar?:boolean, propuesta?:boolean, aviso?:string, pendienteLogo?:boolean}} o
  */
 export async function guardarMarca(env, request, o){
   if (!env?.PRESENTATION_IDEAS) throw new ErrorCatalogo('El catálogo no está disponible ahora mismo (KV).', 503);
@@ -217,14 +220,15 @@ export async function guardarMarca(env, request, o){
     marca.logo = {...marca.logo, imagen:ruta};
     marca.favicon = /^data:/.test(ruta) ? '' : ruta;
   } else if (!marca.favicon && marca.logo.imagen) marca.favicon = marca.logo.imagen;
-  const origen = o.origen === 'url' ? 'url' : 'generador';
+  const origen = ORIGENES.includes(o.origen) ? o.origen : 'generador';
   const web = urlSegura(o.web || marca.origen?.web || '') || '';
-  const propuesta = o.propuesta ?? origen === 'url';
+  const propuesta = o.propuesta ?? origen !== 'generador';
   const autor = o.autor?.email || o.autor?.nombre ? {nombre:corto(o.autor.nombre, 100), email:corto(o.autor.email, 180).toLowerCase()} : null;
   const t = ahora();
   const catalogo = {
     tipo:o.tipo === 'ejemplo' ? 'ejemplo' : 'real', origen, propuesta, web,
-    aviso:propuesta ? `Propuesta generada automáticamente a partir de ${web || 'su web'}; no es la marca oficial de ${marca.nombre}.` : '',
+    aviso:corto(o.aviso, 300) || (propuesta ? `Propuesta generada automáticamente a partir de ${web || 'su web'}; no es la marca oficial de ${marca.nombre}.` : ''),
+    ...(o.pendienteLogo ? {pendienteLogo:true} : {}),
     autor:previa?.catalogo?.autor || autor, creadaEn:previa?.catalogo?.creadaEn || t, actualizadaEn:t,
     ...(previa ? {actualizadaPor:autor} : {})
   };
@@ -233,7 +237,7 @@ export async function guardarMarca(env, request, o){
   const entrada = {version:1, marca, catalogo};
   const texto = JSON.stringify(entrada);
   if (texto.length > MAX_ENTRADA + (/^data:/.test(marca.logo.imagen || '') ? MAX_LOGO_EN_LINEA * 1.4 : 0)) throw new ErrorCatalogo('La marca es demasiado grande para el catálogo.', 413);
-  const metadata = {nombre:marca.nombre.slice(0, 80), sector:String(marca.sector || '').slice(0, 60), tipo:catalogo.tipo, origen, propuesta, web:web.slice(0, 200), creadaEn:catalogo.creadaEn, actualizadaEn:t};
+  const metadata = {nombre:marca.nombre.slice(0, 80), sector:String(marca.sector || '').slice(0, 60), tipo:catalogo.tipo, origen, propuesta, web:web.slice(0, 200), creadaEn:catalogo.creadaEn, actualizadaEn:t, ...(catalogo.pendienteLogo ? {pendienteLogo:true} : {})};
   await env.PRESENTATION_IDEAS.put(claveKv(id), texto, {metadata});
   return {id, marca:{...marca, catalogo:metaPublica(catalogo)}, creada:!previa};
 }

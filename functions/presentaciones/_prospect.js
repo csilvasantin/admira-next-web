@@ -208,6 +208,9 @@ export function maquetaHtml(brand,plataforma){
 export function plataformaDeBloque(item={}){
   const product=String(item.product||'').toLowerCase();
   if(/studio/.test(product))return 'studio';if(/store/.test(product))return 'store';if(/admira\.app|\bapp\b/.test(product))return 'app';if(/yokup/.test(product))return 'yokup';
+  // Un producto explícito que no es ninguna de las cuatro (p. ej. «Contexto» o «Primer piloto» en la
+  // propuesta automática) no lleva maqueta: no se adivina por el texto (FLT-101369).
+  if(product)return '';
   const id=String(item.id||'').toLowerCase();
   if(id==='crear')return 'studio';if(id==='activar')return 'store';if(id==='medir')return 'app';
   const text=`${item.title||''} ${item.message||''} ${item.detail||''}`.toLowerCase();
