@@ -9,10 +9,11 @@ export function period(days, now = new Date()) {
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - (days-1)*86400000).toISOString();
   return {start,end,days,timezone:'UTC'};
 }
-export function buildQuery(account, range, host = '') {
-  const f = `datetime_geq:${JSON.stringify(range.start)},datetime_lt:${JSON.stringify(range.end)},bot:0`;
+export const audienceFilter = value => value === 'carbono' ? ',bot:0' : value === 'silicio' ? ',bot:1' : '';
+export function buildQuery(account, range, host = '', audience = 'carbono') {
+  const f = `datetime_geq:${JSON.stringify(range.start)},datetime_lt:${JSON.stringify(range.end)}${audienceFilter(audience)}`;
   const end=new Date(range.end);
-  const coverageFilter=n=>`datetime_geq:${JSON.stringify(period(n,end).start)},datetime_lt:${JSON.stringify(range.end)},bot:0`;
+  const coverageFilter=n=>`datetime_geq:${JSON.stringify(period(n,end).start)},datetime_lt:${JSON.stringify(range.end)}${audienceFilter(audience)}`;
   const filter = host ? `${f},requestHost_in:${JSON.stringify([host, 'www.'+host])}` : f;
   const node = (alias,dimensions,limit=1000,nodeFilter=filter) => `${alias}:rumPageloadEventsAdaptiveGroups(limit:${limit},filter:{${nodeFilter}},orderBy:[${alias==='referrers'?'sum_visits_DESC':'count_DESC'}]){count sum{visits} dimensions{${dimensions}}}`;
   return `{viewer{accounts(filter:{accountTag:${JSON.stringify(account)}}){${node('hosts','requestHost',1000,f)} ${node('coverageWeek','requestHost',1000,coverageFilter(7))} ${node('coverageMonth','requestHost',1000,coverageFilter(30))} ${node('geography','countryName requestHost',1000)} ${node('daily',range.resolution==='minute'?'datetimeMinute requestHost':'date requestHost')} ${node('referrers','refererHost refererPath refererScheme requestHost',1000)} ${node('devices','deviceType requestHost',1000)} ${node('browsers','userAgentBrowser requestHost',1000)} ${node('systems','userAgentOS requestHost',1000)} ${host ? [node('paths','requestPath',10),node('countries','countryName',10)].join(' ') : ''}}}}`;
@@ -78,11 +79,11 @@ export function trafficBreakdown(rows, type) {
   }
   return [...grouped.values()].sort((a,b)=>b.visits-a.visits || b.pageviews-a.pageviews).slice(0,50);
 }
-export async function readAnalytics(env, days, host = '', fetchImpl = fetch, now = new Date()) {
+export async function readAnalytics(env, days, host = '', fetchImpl = fetch, now = new Date(), audience = 'carbono') {
   if (!env.CF_ACCOUNT_ID || !(env.CF_ANALYTICS_API_TOKEN || env.CF_API_TOKEN)) throw new Error('Falta configurar el acceso de servidor a Cloudflare.');
   const range = period(days,now);
   const [stats, projects, measurement] = await Promise.all([
-    cloudflare(env,'/graphql',{query:buildQuery(env.CF_ACCOUNT_ID,range,host)},fetchImpl),
+    cloudflare(env,'/graphql',{query:buildQuery(env.CF_ACCOUNT_ID,range,host,audience)},fetchImpl),
     cloudflare(env,`/accounts/${env.CF_ACCOUNT_ID}/pages/projects`,null,fetchImpl).catch(()=>null),
     cloudflare(env,`/accounts/${env.CF_ACCOUNT_ID}/rum/site_info/list`,null,fetchImpl).catch(()=>null)
   ]);
@@ -102,10 +103,10 @@ export async function readAnalytics(env, days, host = '', fetchImpl = fetch, now
     const totals=[...summarise(rows).values()];
     series.push({date,visits:totals.reduce((n,x)=>n+x.visits,0),pageviews:totals.reduce((n,x)=>n+x.pageviews,0)});
   }
-  return {ok:true,source:'Cloudflare Web Analytics',updatedAt:now.toISOString(),range,selected:host || null,
+  return {ok:true,audience,source:'Cloudflare Web Analytics',updatedAt:now.toISOString(),range,selected:host || null,
     totals:{visits:[...map.values()].reduce((n,x)=>n+x.visits,0),pageviews:[...map.values()].reduce((n,x)=>n+x.pageviews,0),configured:sites.filter(s=>s.configured).length,sites:sites.length},
     sites,series,traffic:Object.fromEntries(['referrers','devices','browsers','systems'].map(key=>[key,trafficBreakdown(account[key],key)])),trafficTruncated:['referrers','devices','browsers','systems'].some(key=>(account[key] || []).length>=1000),geography:aggregateGeography(account.geography || []),geographyTruncated:(account.geography || []).length>=1000,detail:host?{paths:account.paths,countries:account.countries,referrers:account.referrers,devices:account.devices}:null,
     truncated:account.hosts.length>=1000 || account.daily.length>=1000,
     coverageComplete:!!(projects && measurement),
-    note:'Visitas según Cloudflare: entradas desde otro dominio o acceso directo. No son personas únicas. Datos UTC, con muestreo y latencia; bots detectados y previews excluidos.'};
+    note:'Visitas según Cloudflare: entradas desde otro dominio o acceso directo. No son personas únicas. Datos UTC, con muestreo y latencia; previews excluidos. '+(audience==='carbono'?'Carbono: navegación no clasificada como bot por Cloudflare.':audience==='silicio'?'Silicio: bots detectados en la medición de navegación.':'Carbono y Silicio: toda la navegación medida.')+' Los rastreadores sin JavaScript requieren registros HTTP; acceso pendiente a Zone Analytics Read.'};
 }

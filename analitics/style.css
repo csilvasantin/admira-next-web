@@ -6,3 +6,5 @@
 .traffic-details{margin:20px 0}.traffic-details[hidden]{display:none}.traffic-details .detailgrid{margin-top:24px}.traffic-details h3{font-size:15px;margin:0 0 12px;color:#e3eef8}.traffic-details .breakdown b{font-size:10px;text-align:right}.visitor-referrer{color:#aaa0ff!important;overflow-wrap:anywhere}.globe-pages{max-height:145px}.location-detail{font-size:11px;color:var(--muted)}
 
 .traffic-details article>div{max-height:270px;overflow:auto;padding-right:8px}
+
+.audience{display:flex;gap:12px;border:1px solid #354158;border-radius:12px;padding:8px 12px;margin:0}.audience legend{font-size:11px;color:#a9b5ca}.audience label{display:flex;align-items:center;gap:6px;cursor:pointer}.audience input{accent-color:#4ae3d1;width:16px;height:16px}.audience span{font-size:11px;color:#a9b5ca}

@@ -29,3 +29,9 @@ test('última hora utiliza buckets de minuto y no pierde cobertura histórica',a
  assert.equal(r.range.resolution,'minute');assert.equal(r.series.length,60);assert.equal(r.series.find(x=>x.date==='2026-10-02T11:45:00.000Z').visits,1);assert.equal(r.sites.find(x=>x.host==='admira.app').configured,true);
  assert.match(buildQuery('a',period(0,now)),/datetimeMinute requestHost/);
 });
+test('Carbono y Silicio filtran todas las consultas y juntos incluyen ambos',()=>{
+ const range=period(7,now);
+ assert.match(buildQuery('a',range,'','carbono'),/bot:0/);
+ assert.match(buildQuery('a',range,'','silicio'),/bot:1/);
+ assert.doesNotMatch(buildQuery('a',range,'','ambos'),/bot:/);
+});
