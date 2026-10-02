@@ -4,7 +4,7 @@ AdmiraNext owns identity, users, commercial project ACLs and explicit venue/twin
 
 AdmiraNext centraliza identidad, usuarios, permisos de proyectos comerciales y asociaciones explícitas local/gemelo en AUTH_DB D1. Migra una sola vez los 20 IDs del backoffice, sin sobrescribir ediciones posteriores. Los permisos commercial:ID están separados de proyectos de software. Sólo se migra como local real Starbucks alsea-sbux-021. Xtanco y Cafebrería siguen como demos.
 
-- GET /api/xpace/demos: public, only three sample scenes; no customer directory.
+- GET /api/xpace/demos: public, three sample scenes plus the public Altadis circuit (9 OSM tobacconists, altadis_bcn); no customer directory.
 - GET /api/xpace/context: current central cookie or limited bearer, returns {ok,source,user:{display_name},projects:[{id,name,circuit}],venues:[{id,project_id,name,xpace_url}]}. No full user directory. Every request rechecks status, account expiry, session_version, project ACL. Third parties also require the contracted xpaceos app.
 - GET /api/xpace/registry: central admin cookie; projects, all venues including disabled and dedicated audit.
 - POST /api/xpace/registry: same-origin admin cookie + X-Admira-CSRF; kind project with {id,name,circuit}, or kind venue with {id,project_id,name,xpace_url,enabled:boolean}. Stable IDs cannot move between projects; existing circuits cannot change. Valid HTTPS renderer URLs only. Disabled venues disappear from context. Audit persists independently in admiranext_xpace_audit.
