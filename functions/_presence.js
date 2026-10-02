@@ -1,7 +1,7 @@
 import {PROYECTOS} from './_proyectos.js';
 import {canonicalHost} from './_analytics.js';
 export const ACTIVE_MS=45000;
-export const SITE_HOSTS=new Set(['digitalsignage.ai',...PROYECTOS.filter(p=>p.url).map(p=>{try{return canonicalHost(new URL(p.url).hostname)}catch{return ''}})].filter(Boolean));
+export const SITE_HOSTS=new Set(['digitalsignage.ai','admira.biz',...PROYECTOS.filter(p=>p.url).map(p=>{try{return canonicalHost(new URL(p.url).hostname)}catch{return ''}})].filter(Boolean));
 export function allowedOrigin(origin){try{const u=new URL(origin);return u.protocol==='https:' && !u.port && SITE_HOSTS.has(canonicalHost(u.hostname)) && (u.hostname===canonicalHost(u.hostname) || u.hostname==='www.'+canonicalHost(u.hostname)) ? u.origin : null}catch{return null}}
 export function payload(body){
   if(!body || !/^[a-f0-9-]{36}$/i.test(body.sid) || !/^[a-f0-9-]{36}$/i.test(body.page)) throw Error('Sesión no válida');
