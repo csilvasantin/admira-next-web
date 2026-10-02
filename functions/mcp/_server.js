@@ -14,6 +14,7 @@
 import { generatorAccess, makeSessionToken } from '../presentaciones/_directory.js';
 import { bearerOf, tokenRow } from './_tokens.js';
 import { FLEET_EXAMPLE_VIDEO, exampleVideoEntry, ensureExampleVideo, wantsExampleVideo } from '../presentaciones/_slide-media.js';
+import { leerAtajoMarca } from '../presentaciones/_marca-atajo.js';
 
 export const SITE = 'https://www.admiranext.com';
 export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.8.0' };
@@ -36,8 +37,9 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
-- create_presentation {displayName, website, problem, audience, …} — crea o mejora (overwrite:true)
+- create_presentation {displayName, website, problem, audience, marca?, prospectUrl?, …} — crea o mejora (overwrite:true)
   una presentación. Antes: list_presentations. Un cliente = un slug.
+  marca: id de GET /marcablanca/api/marcas (modo prospect). prospectUrl: web del cliente; se analiza y se guarda como propuesta no oficial. Una de las dos, no las dos.
 - create_yokup_report {mision, titulo, resumen, cliente|client|slug, …} — mejora en sitio el informe
   Yokup del cliente (overwrite:true por defecto si existe). Nunca slug yokup-flt-…. Un cliente = un slug.
 - generation_status {client|job} — estado del alta (queued, running, saved, failed) y, si ya existe, la matriz de entregables. Un failed trae el error. Si lleva más de 10 minutos sin avanzar, la consulta lo da por caducado y libera el identificador.
@@ -82,7 +84,11 @@ const HELP_TOPICS = {
   crear: `create_presentation — campos:
 - Antes: list_presentations (censo). Un cliente = un slug. Si ya existe, usa overwrite:true para mejorar in situ (no crees otro).
 - displayName (obligatorio): nombre del cliente. slug (opcional): identificador de URL.
-- website (obligatorio para el logo): web oficial. inspirationUrl (opcional): otra dirección de arte.
+- website (obligatorio para el logo, salvo marca o prospectUrl): web oficial. inspirationUrl (opcional): otra dirección de arte.
+- marca: id del catálogo de marca blanca (GET /marcablanca/api/marcas), p. ej. "lumbre". El deck sale en modo prospect con esa marca. La web deja de ser obligatoria.
+- prospectUrl: https:// de la web del cliente. El alta la analiza con el análisis de /marcablanca y guarda la marca en el catálogo (KV PRESENTATION_IDEAS, clave marca:<id>; logo en R2 PRESENTATION_MEDIA) como propuesta no oficial, no como marca oficial. No pases marca y prospectUrl a la vez, ni junto con el objeto prospect.
+- Ejemplo: create_presentation { "displayName": "Café Norte", "prospectUrl": "https://www.cafenorte.example" }
+- Ejemplo: create_presentation { "displayName": "Lumbre Café", "marca": "lumbre" }
 - SALIDA WEB: si el usuario pide "una web" espectacular, PÍDELE una URL de referencia y pásala en inspirationUrl (de ahí sale el look & feel: paleta, tipografía, modo). Para un arranque tipo voicebenchmarks, añade heroDevice:"pocket" (portada con dispositivo retro dot-matrix).
 - problem: problema que resolvemos. audience: a quién se la presentamos. objective: objetivo de la reunión. title: título principal.
 - languages: ['es','en',…] (es y en siempre). outputs: entregables (por defecto los del generador).
@@ -187,7 +193,10 @@ export const TOOLS = [
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_presentation', description: 'Contenido vivo de una presentación (láminas, idiomas, secuencia).', inputSchema: { type: 'object', properties: { client: { type: 'string', description: 'slug de la presentación' } }, required: ['client'] } },
   { name: 'create_presentation', description: 'Reserva el slug y arranca el alta. Devuelve jobId y slug al momento, sin esperar a la traducción. Sigue con generation_status hasta saved o failed. Antes: list_presentations. Un cliente = un slug.', inputSchema: { type: 'object', properties: {
-    displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' }, inspirationUrl: { type: 'string', description: 'URL de la web de referencia a emular en look & feel (paleta, tipografía, modo). Pídela al crear una web.' }, heroDevice: { type: 'string', enum: ['none','pocket'], description: 'Portada de la salida web: "pocket" abre el deck con un dispositivo retro dot-matrix (Game Boy) al estilo voicebenchmarks.' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
+    displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' },
+    marca: { type: 'string', description: 'Id del catálogo GET /marcablanca/api/marcas. Modo prospect con esa marca. No junto con prospectUrl.' },
+    prospectUrl: { type: 'string', description: 'https:// de la web del cliente. Se analiza con /marcablanca y se guarda en el catálogo como propuesta no oficial (marca:<id>, logo en R2). No junto con marca.' },
+    inspirationUrl: { type: 'string', description: 'URL de la web de referencia a emular en look & feel (paleta, tipografía, modo). Pídela al crear una web.' }, heroDevice: { type: 'string', enum: ['none','pocket'], description: 'Portada de la salida web: "pocket" abre el deck con un dispositivo retro dot-matrix (Game Boy) al estilo voicebenchmarks.' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
     languages: { type: 'array', items: { type: 'string' } }, outputs: { type: 'array', items: { type: 'string' } }, password: { type: 'string' }, overwrite: { type: 'boolean', description: 'true para mejorar una presentación existente in situ' },
     embeds: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, title: { type: 'string' } } } }, beforeDeck: { type: 'string', description: 'pack list_decks o slug de otra presentación' }, afterDeck: { type: 'string', description: 'pack list_decks o slug de otra presentación' }, insertDeck: { description: '{slug, afterBlock} o array' }, structure: { type: 'string', description: 'admiranext' }, slides: { type: 'array', description: '[{code,title,message,duration,promise,act}]' }, footer: { description: 'string | {text,showSlideNumber,showBrand}' }, primaryColor: { type: 'string' }, accentColor: { type: 'string' }, slideMedia: { type: 'array', description: 'Medios por lámina (image/video/audio/animation) con rights' },
     exampleVideoUrl: { type: 'string', description: 'HTTPS MP4 de flota (admira.live /assets/…) para BEST en movimiento' },
@@ -326,10 +335,11 @@ export async function callTool(ctx, name, args = {}){
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
       assertDemoVideoUrl(a);
       const body = {};
-      const allowed = ['displayName', 'slug', 'website', 'inspirationUrl', 'heroDevice', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'beforeLength', 'beforeQuality', 'afterDeck', 'insertDeck', 'inserts', 'insert', 'structure', 'slides', 'footer', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo', 'closingTitle', 'closingAction'];
+      const allowed = ['displayName', 'slug', 'website', 'marca', 'prospectUrl', 'inspirationUrl', 'heroDevice', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'beforeLength', 'beforeQuality', 'afterDeck', 'insertDeck', 'inserts', 'insert', 'structure', 'slides', 'footer', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo', 'closingTitle', 'closingAction'];
       const unknown = Object.keys(a).filter(key => !allowed.includes(key));
       if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
       for (const key of allowed) if (a[key] !== undefined) body[key] = a[key];
+      leerAtajoMarca(body);
       if (wantsExampleVideo(body) || requiresDemoVideoUrl(a)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
       const out = await callGenerator(ctx, 'POST', '/presentaciones/api/jobs', body);
       return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };

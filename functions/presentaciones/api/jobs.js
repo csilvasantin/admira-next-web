@@ -1,5 +1,6 @@
 import { assertKnownGenerateFields, onRequestPut, slugify } from './generate.js';
 import { ensureHttpsUrl } from '../_defaults.js';
+import { leerAtajoMarca } from '../_marca-atajo.js';
 import { applyJobResult, expireJobIfStale, jobRunSignature, publicCreateJob, readJob, reserveKey, slugJobKey, writeJob } from '../_create-job.js';
 
 function json(body, status = 200) {
@@ -23,8 +24,13 @@ export async function onRequest(context) {
   const slug = slugify(raw.slug || displayName);
   if (!displayName || slug.length < 2) return json({ error: 'Indica un nombre de cliente válido.' }, 400);
   if (['api', 'generador', 'index', 'assets', 'jobs'].includes(slug)) return json({ error: 'Ese identificador está reservado.' }, 400);
-  const website = ensureHttpsUrl(raw.website);
-  if (!website || !/^https:\/\//i.test(website)) return json({ error: 'La web oficial debe comenzar por https://' }, 400);
+  let atajoMarca;
+  try { atajoMarca = leerAtajoMarca(raw); } catch (error) { return json({ error: error.message }, 400); }
+  // Con `marca` la web deja de ser obligatoria (la identidad la pone el catálogo).
+  // Con `prospectUrl` esa URL es la web del cliente y el alta la analiza en segundo plano.
+  const website = ensureHttpsUrl(raw.website) || atajoMarca.prospectUrl;
+  if (website && !/^https:\/\//i.test(website)) return json({ error: 'La web oficial debe comenzar por https://' }, 400);
+  if (!website && !atajoMarca.marca) return json({ error: 'La web oficial debe comenzar por https://' }, 400);
   const existing = await context.env.PRESENTATION_IDEAS.get(`presentation:${slug}`, { type: 'json' });
   if (existing && raw.overwrite !== true) return json({ error: 'Ya existe una presentación con ese identificador.', exists: true, slug }, 409);
   const reserve = await context.env.PRESENTATION_IDEAS.get(reserveKey(slug), { type: 'json' });
