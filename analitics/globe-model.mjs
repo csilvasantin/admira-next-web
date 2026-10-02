@@ -19,11 +19,13 @@ export function globeLocations(snapshot, centres) {
     if (!Number.isFinite(visits) || visits <= 0) continue;
     const code = countryCode(row.country, centres);
     if (!code) { unknown += visits; continue; }
-    const item = groups.get(code) || {code,...centres[code],visits:0,pages:[],pageviews:0};
+    const located=live && Number.isFinite(row.latitude) && Number.isFinite(row.longitude) && Math.abs(row.latitude)<=90 && Math.abs(row.longitude)<=180;
+    const key=located?`${code}:${row.latitude},${row.longitude}`:code;
+    const item = groups.get(key) || {code,key,...centres[code],...(located?{lat:row.latitude,lng:row.longitude,city:row.city || '',region:row.region || '',geoSource:'Cloudflare IP'}:{geoSource:'País'}),visits:0,pages:[],pageviews:0};
     item.visits += visits;
     item.pageviews += live ? 1 : Number(row.pageviews || 0);
     if (live && !item.pages.includes(row.host + row.path)) item.pages.push(row.host + row.path);
-    groups.set(code,item);
+    groups.set(key,item);
   }
   return {locations:[...groups.values()].sort((a,b)=>b.visits-a.visits || a.code.localeCompare(b.code)),unknown};
 }

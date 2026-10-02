@@ -1,3 +1,4 @@
+import {visitorDetails,safeReferrer} from './_visitor-details.js';
 import {PROYECTOS} from './_proyectos.js';
 import {canonicalHost} from './_analytics.js';
 export const ACTIVE_MS=45000;
@@ -7,20 +8,20 @@ export function payload(body){
   if(!body || !/^[a-f0-9-]{36}$/i.test(body.sid) || !/^[a-f0-9-]{36}$/i.test(body.page)) throw Error('Sesión no válida');
   if(body.action==='leave') return {sid:body.sid,page:body.page,action:'leave'};
   if(body.action!=='ping' || typeof body.path!=='string' || !body.path.startsWith('/') || body.path.startsWith('//') || body.path.length>500 || /[?#\u0000-\u001f]/.test(body.path)) throw Error('Página no válida');
-  return {sid:body.sid,page:body.page,path:body.path,action:'ping'};
+  return {sid:body.sid,page:body.page,path:body.path,referrer:safeReferrer(body.referrer),deviceHint:body.deviceHint==='tablet'?'tablet':'',action:'ping'};
 }
 export async function record(env,request,host,body,now=Date.now()){
   const db=env.AUTH_DB;
   await db.prepare('DELETE FROM admiranext_presence WHERE seen_at<?').bind(now-ACTIVE_MS).run();
   if(body.action==='leave'){await db.prepare('DELETE FROM admiranext_presence WHERE host=? AND sid=? AND page_id=?').bind(host,body.sid,body.page).run();return}
   const country=/^[A-Z]{2}$/.test(request.cf?.country || '')?request.cf.country:'';
-  const ua=request.headers.get('user-agent') || '', device=/mobile|android|iphone/i.test(ua)?'Móvil':'Ordenador';
-  await db.prepare('INSERT INTO admiranext_presence(host,sid,page_id,path,country,device,started_at,seen_at) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(host,sid,page_id) DO UPDATE SET path=excluded.path,country=excluded.country,device=excluded.device,seen_at=excluded.seen_at').bind(host,body.sid,body.page,body.path,country,device,now,now).run();
+  const detail=visitorDetails(request,body);
+  await db.prepare('INSERT INTO admiranext_presence(host,sid,page_id,path,country,device,started_at,seen_at,city,region,latitude,longitude,browser,os,referrer) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(host,sid,page_id) DO UPDATE SET path=excluded.path,country=excluded.country,device=excluded.device,seen_at=excluded.seen_at,city=excluded.city,region=excluded.region,latitude=excluded.latitude,longitude=excluded.longitude,browser=excluded.browser,os=excluded.os,referrer=excluded.referrer').bind(host,body.sid,body.page,body.path,country,detail.device,now,now,detail.city,detail.region,detail.latitude,detail.longitude,detail.browser,detail.os,detail.referrer).run();
 }
 export async function snapshot(env,host='',now=Date.now()){
   // Se elimina la presencia caducada al consultar; no se conserva historial.
   await env.AUTH_DB.prepare('DELETE FROM admiranext_presence WHERE seen_at<?').bind(now-ACTIVE_MS).run();
-  const result=await env.AUTH_DB.prepare('SELECT host,sid,path,country,device,MIN(started_at) AS started_at,MAX(seen_at) AS seen_at FROM admiranext_presence WHERE seen_at>=? AND (?=\'\' OR host=?) GROUP BY host,sid,path,country,device ORDER BY seen_at DESC LIMIT 501').bind(now-ACTIVE_MS,host,host).all();
+  const result=await env.AUTH_DB.prepare('SELECT host,sid,path,country,device,city,region,latitude,longitude,browser,os,referrer,MIN(started_at) AS started_at,MAX(seen_at) AS seen_at FROM admiranext_presence WHERE seen_at>=? AND (?=\'\' OR host=?) GROUP BY host,sid,path,country,device,city,region,latitude,longitude,browser,os,referrer ORDER BY seen_at DESC LIMIT 501').bind(now-ACTIVE_MS,host,host).all();
   const rows=result.results || [];
   const pages=new Map();
   for(const r of rows.slice(0,500)){const key=r.host+r.path;const p=pages.get(key)||{host:r.host,path:r.path,sessions:new Set()};p.sessions.add(r.sid);pages.set(key,p)}

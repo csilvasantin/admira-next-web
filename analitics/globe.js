@@ -8,11 +8,11 @@ let land,centres,locations=[],mode='history',focus=-1,rotation=[-10,-20,0],zoom=
 let width=0,height=0,radius=0,auto=!reduced.matches,animation=null,frame=0,lastFrame=0,lastTour=0,drag=null,drawn=[];
 let ready=false,inView=true,pending=window.trafficSnapshot,liveTour=[],tourIndex=-1;
 function nextVisit(delta){
-  if(mode==='live' && liveTour.length){tourIndex=(tourIndex+delta+liveTour.length)%liveTour.length;select(locations.findIndex(p=>p.code===liveTour[tourIndex].code));}
+  if(mode==='live' && liveTour.length){tourIndex=(tourIndex+delta+liveTour.length)%liveTour.length;select(locations.findIndex(p=>p.key===liveTour[tourIndex].key));}
   else select(focus+delta);
 }
 const projection=d3.geoOrthographic().clipAngle(90), path=d3.geoPath(projection,ctx);
-const label=p=>names.of(p.code) || p.name;
+const label=p=>p.city || names.of(p.code) || p.name;
 function setAuto(value) {
   auto=value;lastTour=performance.now();
   $('globeTour').textContent=auto?'Pausar recorrido':'Recorrer tráfico';
@@ -32,12 +32,13 @@ function selection() {
   $('globeUnit').textContent=mode==='live'?'sesiones activas':'visitas en el periodo';
   $('globePages').replaceChildren();
   if(point) {
-    const visitor=mode==='live' && liveTour[tourIndex]?.code===point.code?liveTour[tourIndex]:null;
-    const lines=mode==='live'?(visitor?[visitor.visitor,visitor.host+visitor.path]:point.pages):[`${fmt(point.pageviews)} páginas vistas`];
+    const visitor=mode==='live' && liveTour[tourIndex]?.key===point.key?liveTour[tourIndex]:null;
+    const lines=mode==='live'?(visitor?[visitor.visitor,visitor.host+visitor.path,'Desde: '+(visitor.referrer || 'Directo / referencia no disponible'),[visitor.device,visitor.browser,visitor.os].filter(Boolean).join(' · ')]:point.pages):[`${fmt(point.pageviews)} páginas vistas`];
+    if(mode==='live')lines.push([point.region,names.of(point.code)].filter(Boolean).join(' · '),point.geoSource==='Cloudflare IP'?`Cloudflare IP: ${point.lat}, ${point.lng}`:'Ubicación disponible: sólo país');
     for(const line of lines){const p=document.createElement('p');p.textContent=line;$('globePages').append(p)}
   }
-  for(const button of $('globeCountries').children) button.setAttribute('aria-pressed',String(button.dataset.code===point?.code));
-  $('globePosition').textContent=point?mode==='live' && tourIndex>=0?`${tourIndex+1} / ${liveTour.length} sesiones`:`${focus+1} / ${locations.length} países`:'0 países';
+  for(const button of $('globeCountries').children) button.setAttribute('aria-pressed',String(button.dataset.key===point?.key));
+  $('globePosition').textContent=point?mode==='live' && tourIndex>=0?`${tourIndex+1} / ${liveTour.length} sesiones`:`${focus+1} / ${locations.length} ${mode==='live'?'ubicaciones':'países'}`:'0 países';
 }
 function select(index,motion=true) {
   if(!locations.length)return;
@@ -87,18 +88,18 @@ function tick(time) {
 function animate(){if(!frame && !document.hidden && inView)frame=requestAnimationFrame(tick)}
 function update(snapshot) {
   pending=snapshot;if(!ready)return;
-  const previous=locations[focus]?.code,previousSession=liveTour[tourIndex]?.visitor;mode=snapshot.mode;
+  const previous=locations[focus]?.key,previousSession=liveTour[tourIndex]?liveTour[tourIndex].host+':'+liveTour[tourIndex].visitor:'';mode=snapshot.mode;
   const result=globeLocations(snapshot,centres);locations=result.locations;
-  const visited=new Set();liveTour=mode==='live'?(snapshot.visitors || []).flatMap(v=>{const code=locations.find(p=>p.code===v.country)?.code,key=v.host+':'+v.visitor;if(!code || visited.has(key))return [];visited.add(key);return [{...v,code}]}):[];
-  tourIndex=liveTour.findIndex(v=>v.visitor===previousSession);if(tourIndex<0 && liveTour.length)tourIndex=0;
+  const visited=new Set();liveTour=mode==='live'?(snapshot.visitors || []).flatMap(v=>{const code=v.country,pointKey=Number.isFinite(v.latitude)&&Number.isFinite(v.longitude)?`${code}:${v.latitude},${v.longitude}`:code,key=v.host+':'+v.visitor;if(!locations.some(p=>p.key===pointKey) || visited.has(key))return [];visited.add(key);return [{...v,code,key:pointKey}]}):[];
+  tourIndex=liveTour.findIndex(v=>v.host+':'+v.visitor===previousSession);if(tourIndex<0 && liveTour.length)tourIndex=0;
   $('globeMode').textContent=mode==='live'?'TRÁFICO EN DIRECTO':'TRÁFICO ACUMULADO';
   $('globeScope').textContent=snapshot.scope || 'Todo el grupo';
-  $('globeCaption').textContent=snapshot.error?'No se han recibido datos actualizados.':snapshot.loading?'Consultando tráfico…':`${mode==='live'?'Sesiones visibles, últimos 45 s.':'Rayos en escala lineal: más visitas, más altura.'} Ubicación aproximada por país.${result.unknown?` ${fmt(result.unknown)} ${mode==='live'?'sesiones':'visitas'} sin país representable.`:''}${snapshot.geographyTruncated?' La consulta geográfica alcanzó su límite.':''}`;
-  canvas.setAttribute('aria-label',`Globo del tráfico de ${snapshot.scope || 'todo el grupo'}: ${locations.length} países. ${locations.slice(0,8).map(p=>label(p)+' '+fmt(p.visits)).join(', ')}`);
+  $('globeCaption').textContent=snapshot.error?'No se han recibido datos actualizados.':snapshot.loading?'Consultando tráfico…':`${mode==='live'?'Sesiones visibles, últimos 45 s.':'Rayos en escala lineal: más visitas, más altura.'} ${mode==='live'?'Ciudad y región de Cloudflare IP cuando disponibles; aproximadas, no GPS.':'Histórico RUM: ubicación disponible por país.'}${result.unknown?` ${fmt(result.unknown)} ${mode==='live'?'sesiones':'visitas'} sin país representable.`:''}${snapshot.geographyTruncated?' La consulta geográfica alcanzó su límite.':''}`;
+  canvas.setAttribute('aria-label',`Globo del tráfico de ${snapshot.scope || 'todo el grupo'}: ${locations.length} ${mode==='live'?'ubicaciones':'países'}. ${locations.slice(0,8).map(p=>label(p)+' '+fmt(p.visits)).join(', ')}`);
   $('globeCountries').replaceChildren();
-  for(let i=0;i<locations.length;i++){const point=locations[i],button=document.createElement('button');button.type='button';button.dataset.code=point.code;button.textContent=`${label(point)} · ${fmt(point.visits)}`;button.onclick=()=>{setAuto(false);tourIndex=-1;select(i)};$('globeCountries').append(button)}
+  for(let i=0;i<locations.length;i++){const point=locations[i],button=document.createElement('button');button.type='button';button.dataset.key=point.key;button.textContent=`${label(point)} · ${fmt(point.visits)}`;button.onclick=()=>{setAuto(false);tourIndex=-1;select(i)};$('globeCountries').append(button)}
   for(const id of ['globePrev','globeNext','globeTour'])$(id).disabled=!locations.length;
-  focus=locations.findIndex(p=>p.code===previous);
+  focus=locations.findIndex(p=>p.key===previous);
   if(focus<0 && locations.length)select(0);else{selection();paint();animate()}
 }
 window.addEventListener('traffic-geography',event=>update(event.detail));
@@ -106,7 +107,7 @@ $('globeTour').onclick=()=>setAuto(!auto);
 $('globePrev').onclick=()=>{setAuto(false);nextVisit(-1)};
 $('globeNext').onclick=()=>{setAuto(false);nextVisit(1)};
 $('globeReset').onclick=()=>{zoom=1;resize();if(locations.length)select(0);else{rotation=[-10,-20,0];projection.rotate(rotation);paint()}};
-for(const [id,delta] of [['globeZoomIn',.15],['globeZoomOut',-.15]])$(id).onclick=()=>{zoom=Math.max(.7,Math.min(1.25,zoom+delta));resize()};
+for(const [id,delta] of [['globeZoomIn',.15],['globeZoomOut',-.15]])$(id).onclick=()=>{zoom=Math.max(.7,Math.min(4,zoom+delta));resize()};
 canvas.addEventListener('pointerdown',event=>{setAuto(false);animation=null;drag={x:event.clientX,y:event.clientY,rotation:[...rotation],moved:false};canvas.setPointerCapture(event.pointerId)});
 canvas.addEventListener('pointermove',event=>{if(!drag)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;drag.moved ||= Math.abs(dx)+Math.abs(dy)>5;rotation=[drag.rotation[0]+dx*.3,Math.max(-80,Math.min(80,drag.rotation[1]-dy*.3)),0];projection.rotate(rotation);paint()});
 canvas.addEventListener('pointerup',event=>{if(drag && !drag.moved){const box=canvas.getBoundingClientRect(),x=event.clientX-box.left,y=event.clientY-box.top;const hit=drawn.find(p=>Math.hypot(p.end[0]-x,p.end[1]-y)<18 || Math.hypot(p.start[0]-x,p.start[1]-y)<18);if(hit)select(hit.i)}drag=null});
