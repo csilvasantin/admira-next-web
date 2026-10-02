@@ -165,6 +165,91 @@
     bar.appendChild(meta);
   }
 
+  // ── Modo AUTOMÁTICO (<body data-yk-auto="on">, sólo en modo barra) ───────────
+  // Para las páginas de admiranext.com que tenían cabecera propia (Carlos, 2-oct-2026:
+  // «hay que utilizar el logo de AdmiraNeXT» y la fórmula en todas): sin escribir
+  // slots, ☰ trae el MAPA DEL SITIO (lo que lleva a otra página), ▤ las ACCIONES de
+  // la página (cada [data-yk-accion] se repite como botón que pulsa el original) y
+  // «Ir a» sus secciones (los <h2> del contenido), y ⌘ el CLI con /ir, /seccion y
+  // /arriba. Lo que la página declare en data-yk-slot va DELANTE de lo automático.
+  var SITIO = Array.isArray(G.ADMIRA_FRAME_SITIO) ? G.ADMIRA_FRAME_SITIO : [
+    {grupo: 'La casa', enlaces: [['/consejo/', 'El Consejo'], ['/academia', 'Academia'], ['/mandamientos', 'Mandamientos'], ['/normativa', 'Normativa'], ['/filosofia', 'Filosofía'], ['/help/', '/help']]},
+    {grupo: 'Operación', enlaces: [['/proyectos/', 'Proyectos'], ['/flota', 'Flota'], ['/status', 'Status'], ['/mcp/', 'Hub MCP'], ['/telegram/', 'Telegram']]},
+    {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
+  ];
+  var modoAuto = !modoCabecera && body.dataset.ykAuto === 'on';
+  var secciones = [], sitioPlano = [], construirIrA = function () {};
+  function slugar(t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'seccion';
+  }
+  function irA(n) { if (n && n.scrollIntoView) n.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+  if (modoAuto) {
+    root.classList.add('yk-framed', 'yk-auto');
+    var izqAuto = el('div', 'yk-auto-blk');
+    izqAuto.setAttribute('data-yk-slot', 'left');
+    SITIO.forEach(function (g) {
+      izqAuto.appendChild(texto('div', 'yk-auto-hd', g.grupo));
+      var lista = el('nav', 'yk-auto-list');
+      lista.setAttribute('aria-label', g.grupo);
+      g.enlaces.forEach(function (par) {
+        var a = texto('a', 'yk-auto-act', par[1]);
+        a.href = par[0];
+        if (ruta(par[0]) === aquí) a.setAttribute('aria-current', 'page');
+        lista.appendChild(a);
+        sitioPlano.push({href: par[0], nombre: par[1], clave: ruta(par[0]).replace(/^\//, '').split('/').pop() || 'inicio'});
+      });
+      izqAuto.appendChild(lista);
+    });
+    var derAuto = el('div', 'yk-auto-blk');
+    derAuto.setAttribute('data-yk-slot', 'right');
+    var acciones = doc.querySelectorAll('[data-yk-accion]');
+    if (acciones.length) {
+      derAuto.appendChild(texto('div', 'yk-auto-hd', 'Acciones'));
+      var listaAcc = el('div', 'yk-auto-list');
+      acciones.forEach(function (orig) {
+        var b = texto('button', 'yk-auto-act', orig.dataset.ykAccion || String(orig.textContent || '').trim());
+        b.type = 'button';
+        b.addEventListener('click', function () { orig.click(); });
+        listaAcc.appendChild(b);
+      });
+      derAuto.appendChild(listaAcc);
+    }
+    derAuto.appendChild(texto('div', 'yk-auto-hd', 'Ir a'));
+    var listaIr = el('div', 'yk-auto-list');
+    derAuto.appendChild(listaIr);
+    construirIrA = function () {
+      // Se rehace cada vez que se abre ▤: hay páginas (academia, consejero…) que
+      // pintan sus secciones después de cargar, leídas en vivo.
+      secciones = [];
+      doc.querySelectorAll(body.dataset.ykSecciones || 'h2').forEach(function (h) {
+        if (h.closest && h.closest('header, nav, footer, [data-yk-slot], .yk-rail, [hidden], dialog, template')) return;
+        var t = String(h.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!t || secciones.length >= 40) return;
+        var destino = h.closest && h.closest('section[id], article[id]') || h;
+        if (!destino.id) {
+          var id = 'sec-' + slugar(t), k = id, i = 2;
+          while (doc.getElementById(k)) k = id + '-' + (i++);
+          destino.id = k;
+        }
+        if (secciones.some(function (x) { return x.nodo === destino; })) return;
+        secciones.push({nodo: destino, titulo: t.length > 64 ? t.slice(0, 62) + '…' : t});
+      });
+      listaIr.textContent = '';
+      if (!secciones.length) listaIr.appendChild(texto('p', 'yk-empty', '— esta página no tiene secciones'));
+      secciones.forEach(function (s, i) {
+        var b = el('button', 'yk-auto-act');
+        b.type = 'button';
+        b.appendChild(texto('span', '', s.titulo));
+        b.appendChild(texto('b', '', String(i + 1)));
+        b.addEventListener('click', function () { irA(s.nodo); });
+        listaIr.appendChild(b);
+      });
+    };
+    construirIrA();
+    body.appendChild(izqAuto);
+    body.appendChild(derAuto);
+  }
+
   // ── Raíles y franja inferior ───────────────────────────────────────────────
   // Lo que la página manda a un lado. En modo cabecera cada bloque se vuelve
   // columna (.yk-slot) y puede llevar su rótulo (data-yk-label).
@@ -216,7 +301,7 @@
 
   // La CUARTA barra: el nivel experto es un raíl inferior (.yk-rail-bottom), no una
   // sección suelta; se abre con .yk-open-bottom igual que los otros dos.
-  var hayCli = modoCabecera || body.dataset.ykCli === 'on';
+  var hayCli = modoCabecera || modoAuto || body.dataset.ykCli === 'on';
   var hayAbajo = hayCli || doc.querySelectorAll('[data-yk-slot="bottom"]').length > 0;
   var railAbajo = el('aside', 'yk-rail yk-rail-bottom');
   railAbajo.id = IDS.bottom.rail;
@@ -291,7 +376,7 @@
   }
   sincronizar();   // plegado por defecto, y dicho: los tres botones nacen en false
   btnIzq.addEventListener('click', function () { abrir('left', !abierto('left')); });
-  btnDer.addEventListener('click', function () { abrir('right', !abierto('right')); });
+  btnDer.addEventListener('click', function () { if (!abierto('right')) construirIrA(); abrir('right', !abierto('right')); });
   btnAbajo.addEventListener('click', function () {
     abrir('bottom', !abierto('bottom'));
     if (abierto('bottom') && cli && cli.input.focus) cli.input.focus();
@@ -556,6 +641,28 @@
     imprimir('CLI de ' + (doc.title || 'AdmiraNeXT') + ' · escribe /help');
   }
 
+  if (modoAuto) {
+    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre otra página de admiranext.com: ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), run: function (args) {
+      var q = normal(args.join(' '));
+      if (!q) { imprimir('Uso: /ir <página> · ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), 'err'); return; }
+      var d = sitioPlano.filter(function (p) { return p.clave.indexOf(q) === 0 || normal(p.nombre).indexOf(q) === 0; })[0];
+      if (!d) { imprimir('No hay ninguna página «' + q + '»', 'err'); return; }
+      imprimir('Abriendo ' + d.nombre + '…');
+      location.href = d.href;
+    }});
+    verbo({id: 'seccion', aliases: ['s'], uso: '<n|texto>', ayuda: 'Salta a una sección de la página (los <h2> del contenido)', run: function (args) {
+      construirIrA();
+      var q = normal(args.join(' '));
+      var s = secciones.filter(function (x, i) { return q && (String(i + 1) === q || normal(x.titulo).indexOf(q) >= 0); })[0];
+      if (!s) {
+        imprimir(secciones.length ? 'Uso: /seccion <n|texto> · ' + secciones.map(function (x, i) { return (i + 1) + ' ' + x.titulo; }).join(' · ') : 'Esta página no tiene secciones', 'err');
+        return;
+      }
+      irA(s.nodo);
+      imprimir('→ ' + s.titulo);
+    }});
+    verbo({id: 'arriba', aliases: ['top'], ayuda: 'Vuelve al principio de la página', run: function () { if (G.scrollTo) G.scrollTo({top: 0, behavior: 'smooth'}); }});
+  }
   (Array.isArray(G.ADMIRA_FRAME_VERBS) ? G.ADMIRA_FRAME_VERBS : []).forEach(verbo);
   G.AdmiraFrame = {
     verbo: verbo,

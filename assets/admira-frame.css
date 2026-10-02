@@ -646,6 +646,11 @@ html.yk-framed body{ padding-top: var(--yk-bar-h); }
    escritorio. Es la ley de la casa — cero barra horizontal en responsive— y además
    el desbordamiento no se ve, así que nadie sabría de dónde sale. */
 html, body{ overflow-x: hidden; max-width: 100% }
+/* …pero con `clip` donde exista: `hidden` en <html> y <body> convierte el <body> en
+   contenedor de scroll que nunca se desplaza, y todo `position: sticky` de la página
+   (la barra de herramientas de /presupuestos, sus columnas, el formulario del
+   business plan) dejaba de pegarse. `clip` recorta igual sin crear ese contenedor. */
+@supports (overflow-x: clip){ html, body{ overflow-x: clip } }
 
 /* En móvil el original esconde .yk-meta —allí lleva reloj y contadores que no caben—,
    pero aquí dentro viven los ÚNICOS accesos a AVANZADO y a NIVEL EXPERTO: ocultarlos
@@ -878,3 +883,46 @@ html.yk-resizing, html.yk-resizing *{ user-select: none !important; -webkit-user
 html.yk-resizing .yk-rail, html.yk-resizing.yk-head-mode body{ transition: none !important }
 /* Pie de los raíles también en modo barra (antes heredaba la letra de la página). */
 .yk-rail-foot{ font: 10px/1.4 var(--yk-mono); letter-spacing: .06em; color: var(--yk-dim) }
+
+/* ============================================================================
+ * MODO AUTOMÁTICO (<body data-yk-auto="on">) — las páginas de admiranext.com que
+ * tenían cabecera propia. Paleta fija de la casa (el logotipo oficial siempre va
+ * sobre oscuro, aunque la página sea de papel) y bloques de ☰ / ▤ con la
+ * especificidad justa para que los a{}, button{} o nav{} de cada página no los
+ * desfiguren.
+ * ==========================================================================*/
+html.yk-auto{
+  --yk-brand:#4ae3d1; --yk-hi:#7ff3e4;
+  --yk-bg:#101724; --yk-bg2:#080d17; --yk-card:#101724;
+  --yk-ink:#f2f6fc; --yk-mut:#92a0b4; --yk-dim:#6c7a90;
+  --yk-line:#253042; --yk-line2:#314057;
+  --yk-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  scroll-padding-top: calc(var(--yk-bar-h) + 14px);
+}
+html.yk-auto .yk-bar{ box-sizing: border-box; margin: 0; border-radius: 0; text-align: left; font-size: 13px; line-height: 1.2 }
+html.yk-auto .yk-bar .yk-ico{ box-sizing: border-box; margin: 0; font-size: 14px; line-height: 1; text-transform: none; letter-spacing: 0 }
+html.yk-auto .yk-rail{ box-sizing: border-box; font-size: 12px; line-height: 1.45; text-align: left; letter-spacing: 0 }
+html.yk-auto .yk-rail *{ box-sizing: border-box }
+.yk-rail .yk-auto-blk{ display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; border: 0; background: none }
+.yk-rail .yk-auto-hd{ margin: 14px 2px 6px; padding: 0; font: 700 9.5px/1.3 var(--yk-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--yk-dim) }
+.yk-rail .yk-auto-blk > .yk-auto-hd:first-child{ margin-top: 2px }
+.yk-rail .yk-auto-list{ display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; background: none; position: static }
+.yk-rail .yk-auto-act{
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; min-height: 36px; margin: 0; padding: 7px 11px;
+  color: var(--yk-ink); background: rgba(8,13,23,.6); border: 1px solid var(--yk-line2); border-radius: 6px;
+  font: 600 11.5px/1.3 var(--yk-mono); letter-spacing: .02em; text-transform: none; text-align: left; text-decoration: none;
+  cursor: pointer; box-shadow: none; white-space: normal;
+}
+.yk-rail .yk-auto-act:hover{ color: var(--yk-brand); border-color: var(--yk-brand); background: rgba(74,227,209,.06) }
+.yk-rail .yk-auto-act[aria-current="page"]{ color: var(--yk-brand); border-color: var(--yk-brand); border-left-width: 3px; font-weight: 800 }
+.yk-rail .yk-auto-act b{ color: var(--yk-brand); font-weight: 700 }
+.yk-rail .yk-auto-act:focus-visible{ outline: 2px solid var(--yk-brand); outline-offset: 1px }
+html.yk-auto .yk-rail-navhd{ margin: 0 0 6px }
+
+/* Al imprimir (presupuestos, benchmarks…) el armazón no sale en el papel. */
+@media print{
+  .yk-bar, .yk-rail, .yk-resize{ display: none !important }
+  html.yk-framed body, html.yk-head-mode body{ padding: 0 !important }
+}
+.yk-rail .yk-auto-note{ margin: 0; padding: 8px 10px; border: 1px dashed var(--yk-line2); border-radius: 6px; color: var(--yk-mut); font: 11px/1.5 var(--yk-mono); letter-spacing: .02em; text-transform: none; background: none }

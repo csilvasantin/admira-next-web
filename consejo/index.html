@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="yk-framed">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -71,14 +71,11 @@
   .ans .h .comic:hover{border-color:var(--amber);background:#241400}
 </style>
 <script src="/comic.js?v=20260627f"></script>
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r14">
 </head>
-<body>
+<body data-yk-title="EL CONSEJO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on">
 <div class="wrap">
-  <header class="top">
-    <span class="brand">ADmira<b>NeXT</b></span>
-    <span class="crumb">› El Consejo</span>
-    <span class="right"><a href="/">← admiranext.com</a> <a href="https://www.admira.live" target="_blank">Consejo en vivo ↗</a></span>
-  </header>
+  <div class="yk-auto-blk" data-yk-slot="left"><div class="yk-auto-hd">El Consejo</div><nav class="yk-auto-list" aria-label="El Consejo"><a class="yk-auto-act" href="https://www.admira.live" target="_blank" rel="noopener">Consejo en vivo <b>↗</b></a></nav></div>
 
   <h1>El Consejo de ADmiraNeXT</h1>
   <p class="lead">Ocho asesores legendarios deliberan sobre las decisiones <b style="color:var(--amber2)">reales</b> de la empresa:
@@ -211,5 +208,6 @@ $('#askOne').onclick=doOne; $('#askAll').onclick=doAll;
 $('#q').addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter') doOne(); });
 renderSeats();
 </script>
+<script defer src="/assets/admira-frame.js?v=v.02.10.2026-r14"></script>
 </body>
 </html>

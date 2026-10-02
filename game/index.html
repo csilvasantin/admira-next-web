@@ -16,6 +16,9 @@
   .hud{position:fixed;top:10px;left:12px;right:12px;display:flex;align-items:center;gap:12px;pointer-events:none;z-index:5}
   .hud .brand{font-weight:800;color:var(--amber);letter-spacing:1px;font-size:14px}
   .hud .brand b{color:var(--amber2)}
+  /* Logotipo oficial (libro-de-estilo.html §7.4): «ADmira» en blanco y N·e·X·T en neón. */
+  .hud .brand{font:800 16px/1 'Montserrat','Helvetica Neue',system-ui,sans-serif;letter-spacing:0;color:#fff;text-decoration:none}
+  .yk-wm-admira{color:#fff}.yk-wm-next{display:inline-flex}.yk-wm-n{color:#FF3366}.yk-wm-e{color:#FFCC00}.yk-wm-x{color:#33FF99}.yk-wm-t{color:#FF33CC}
   .hud .crumb{color:var(--mut);font-size:11px}
   .hud .links{margin-left:auto;display:flex;gap:14px;font-size:11px;pointer-events:auto}
   .hud a{color:var(--amber);text-decoration:none} .hud a:hover{color:var(--amber2)}
@@ -110,8 +113,8 @@
 </head>
 <body>
 <div class="hud">
-  <span class="brand">ADmira<b>NeXT</b></span><span class="crumb">› Xpacio del Consejo</span>
-  <span class="links"><a href="#" id="boardBtn">📋 decisiones</a> <a href="#" id="cliBtn">⌨ consola</a> <a href="#" id="voiceBtn">🗣️ voz</a> <a href="#" id="muteBtn">🔊</a> <a href="/consejo/">chat</a> <a href="/">admiranext.com</a></span>
+  <a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><span class="crumb">› Xpacio del Consejo</span>
+  <span class="links"><a href="#" id="boardBtn">📋 decisiones</a> <a href="#" id="cliBtn">⌨ consola</a> <a href="#" id="voiceBtn">🗣️ voz</a> <a href="#" id="muteBtn">🔊</a> <a href="/consejo/">chat</a></span>
 </div>
 <div id="stage"><canvas id="cv" width="320" height="192"></canvas></div>
 <div class="tip" id="tip">Muévete con <b>WASD</b>/flechas · acércate a un consejero y pulsa <b>E</b> para hablar</div>

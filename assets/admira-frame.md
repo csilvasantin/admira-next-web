@@ -22,7 +22,7 @@ Carlos (2-oct-2026): «en la UX cuadrática siempre tienen que ser resizables la
 
 La marca es el logotipo oficial (`libro-de-estilo.html` §7.4): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sobre oscuro. En modo barra lo pinta el armazón; en modo cabecera la página lo trae en su `<a class="brand">` (marcado `yk-wm-*`) y, si no, el armazón lo sustituye. Nada de «admiraNeXT.» en minúscula con punto.
 
-## Modo barra (por defecto) — `/presentaciones/galeria`, el generador (`/presentaciones/`), `/mcp/` y `/mcp/generador`
+## Modo barra (por defecto) — `/presentaciones/galeria`, el generador (`/presentaciones/`), `/mcp/` y `/mcp/generador` (y, en modo automático, el resto del sitio)
 
 El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones … [▤] [⌘]`. La página declara qué va a cada lado:
 
@@ -37,6 +37,38 @@ El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones
 - **Logotipo**: la marca de la barra es el logotipo oficial (`libro-de-estilo.html` §7.4, el de la portada `.titlebar-brand`): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sin efectos. Hasta el 2-oct era texto plano «ADmiraNeXT» en monoespaciada.
 - `<body data-yk-cli="on">` añade el CLI a ⌘ también en modo barra; los verbos se registran igual que en modo cabecera (`window.ADMIRA_FRAME_VERBS`).
 - El **generador** (`functions/presentaciones/generador.js`) no pinta barra propia desde el 2-oct (Carlos, tras el PR #28: «no respeta la fórmula de la UX cuadrática ni el logo»): `assets/presentation-generator-quadratic.js` declara los slots (☰ navegación a otras páginas · ▤ estado de producción, Validar, Copiar configuración e «Ir a» las secciones · ⌘ resumen del motor + CLI con `/validar /config /estado /seccion /galeria /accesos`) y la Function inyecta `admira-frame.js` detrás. `/mcp/generador` hace lo mismo en su HTML (verbos `/seccion /tools /copiar /endpoint /manifest`).
+
+## Modo automático — el resto de admiranext.com (`<body data-yk-auto="on">`)
+
+Ronda 3 del PR #34 (Carlos, 2-oct-2026): toda página de admiranext.com con cabecera propia pasa al armazón. Es el modo barra sin escribir slots:
+
+```html
+<html lang="es" class="yk-framed">            <!-- opcional: evita el salto al cargar; el armazón la pone igual -->
+<link rel="stylesheet" href="/assets/admira-frame.css?v=<sello>">
+<body data-yk-title="ACADEMIA" data-yk-auto="on">
+  …   <!-- sin cabecera de marca propia: la marca es la de la barra -->
+  <script defer src="/assets/admira-frame.js?v=<sello>"></script>
+```
+
+- **☰ Opciones**: el mapa del sitio (`SITIO` en `admira-frame.js`; la página puede sustituirlo con `window.ADMIRA_FRAME_SITIO`), con la página actual marcada. La home no se repite: su camino es la marca. Lo que la página declare en `data-yk-slot="left"` (los enlaces de su antigua cabecera, en bloques `.yk-auto-blk`) va delante.
+- **▤ Avanzado**: «Acciones», un botón por cada `[data-yk-accion="Rótulo"]` de la página que pulsa el original (presupuestos: Nuevo, Duplicar…; benchmarks: Descargar PDF), y «Ir a», los `<h2>` del contenido (`data-yk-secciones` cambia el selector), rehecho cada vez que se abre ▤ porque hay páginas que pintan sus secciones después de cargar.
+- **⌘ Experto**: el CLI, con `/ir <página>`, `/seccion <n|texto>` y `/arriba` además de `/help` y `/limpiar`.
+- Paleta oscura fija (`html.yk-auto`): el logotipo oficial va siempre sobre oscuro, aunque la página sea de papel (impacto, benchmarks). Al imprimir, el armazón no sale.
+- Lo que una página tenga pegado arriba (`position: sticky; top: 0`) baja a `top: var(--yk-bar-h)`.
+
+| Página | Qué se hizo con su cabecera |
+|---|---|
+| `academia`, `consejero`, `mandamientos`, `normativa`, `help/`, `marcablanca/` (+ `propuesta/`), `telegram/`, `tiktok/publicar/`, `credits-generator`, `filosofia`, `businessplan/` | cabecera de contenido (hero): se queda; se quita el «← admiranext.com» duplicado |
+| `consejo/`, `informes/`, `presites/` (+ `generador/`), `tiktok/` (+ `xtore.html`), `presentar`, `informes/handon-…` | barra de marca propia fuera; sus enlaces a ☰ |
+| `creditos/`, `impacto/` | barra fuera; su aviso, la campaña y el botón de idioma (se mueve con su id) a ▤ |
+| `presupuestos/` | sin marca; la barra de herramientas se queda bajo la del armazón y sus botones se repiten en ▤ |
+| `signage-benchmarks` | barra «digital signage benchmarks.» fuera; «Descargar PDF» a ▤ |
+
+**Excepciones** (guardián: `test/admira-frame-sitio.test.js`):
+
+- `/status` tiene su propio marco de cuatro barras (3.800 líneas, columnas en flujo que reencuadran el canvas). Conserva el marco, pero con el logotipo oficial, los glifos del canon (▤ ⌘ en vez de ⚙ >_) y sus asas, que ya se arrastraban y restauraban con doble clic, ahora también por teclado (`role="separator"`, flechas, Inicio/Fin, Intro). Sus tamaños siguen en `admira_pf_w_left/_right/_h_bottom`.
+- `/game/` (Xpacio del Consejo) es un juego a pantalla completa que escucha WASD, E y M en todo el documento: un CLI encima movería al personaje al escribir. Sólo cambia el logotipo de su HUD (y la marca pasa a ser el enlace a la home).
+- Fuera de alcance: la portada, el libro de estilo, los decks y presentaciones de clientes (`presentaciones/*`, `presentations/*`, las Functions `presentaciones/[client]`, `presites/[site]` y el mando), las redirecciones (`bots/`, `classic.html`) y la web clásica (`old/`).
 
 ## Modo cabecera — `/analitics` y sus derivadas
 

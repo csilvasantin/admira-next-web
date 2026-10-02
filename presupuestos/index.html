@@ -7,17 +7,19 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Generador de Presupuestos · AdmiraNeXT</title>
   <link rel="stylesheet" href="../assets/budget-generator.css?v=26.08.03.r3">
+  <style>/* Bajo la barra del armazón (assets/admira-frame.md; el armazón pone html.yk-framed al cargar): lo pegado arriba cuenta desde ella */.topbar{top:var(--yk-bar-h,0px)}.library,.preview-wrap{top:calc(72px + var(--yk-bar-h,0px));max-height:calc(100vh - 92px - var(--yk-bar-h,0px))}</style>
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r14">
 </head>
-<body>
+<body data-yk-title="PRESUPUESTOS" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on">
   <a class="skip" href="#editor">Saltar al editor</a>
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">A</span><div><b>AdmiraNeXT</b><span>Generador de Presupuestos</span></div></div>
+    <div class="brand"><div><b>Generador de Presupuestos</b><span>Acciones del documento</span></div></div>
     <div class="top-actions" role="toolbar" aria-label="Acciones del presupuesto">
-      <button class="button subtle" id="newBudget" type="button">Nuevo</button>
-      <button class="button subtle" id="duplicateBudget" type="button">Duplicar</button>
-      <button class="button subtle" id="saveVersion" type="button">Guardar versión</button>
-      <button class="button subtle" id="exportCsv" type="button">Exportar CSV</button>
-      <button class="button primary" id="printBudget" type="button">Imprimir / PDF</button>
+      <button class="button subtle" id="newBudget" type="button" data-yk-accion="Nuevo presupuesto">Nuevo</button>
+      <button class="button subtle" id="duplicateBudget" type="button" data-yk-accion="Duplicar">Duplicar</button>
+      <button class="button subtle" id="saveVersion" type="button" data-yk-accion="Guardar versión">Guardar versión</button>
+      <button class="button subtle" id="exportCsv" type="button" data-yk-accion="Exportar CSV">Exportar CSV</button>
+      <button class="button primary" id="printBudget" type="button" data-yk-accion="Imprimir / PDF">Imprimir / PDF</button>
     </div>
   </header>
 
@@ -110,5 +112,6 @@
   <footer class="app-footer"><span>v.26.08.03.r3</span><span>SubOraculoMini · admira-macmini</span></footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="../assets/budget-generator.js?v=26.08.03.r3"></script>
+<script defer src="/assets/admira-frame.js?v=v.02.10.2026-r14"></script>
 </body>
 </html>
