@@ -74,6 +74,36 @@
     }
   });
 
+  // ============ SALTOS DIRECTOS (Carlos, 2-oct-2026) ============
+  // Escribir el nombre de una solución —con o sin «/», en español o inglés—
+  // lleva directamente a ella en la misma pestaña. Única fuente de verdad: el
+  // listado de /help y el salto salen de esta tabla.
+  const SALTOS = [
+    { id: 'analitics',      url: '/analitics',      es: 'Analítica del grupo',          en: 'Group analytics',          alias: ['analitics', 'analytics', 'analitica', 'analiticas', 'estadisticas', 'stats'] },
+    { id: 'presentaciones', url: '/presentaciones/', es: 'Generador de presentaciones', en: 'Presentation generator',   alias: ['presentaciones', 'presentacion', 'presentations', 'presentation', 'presentar', 'slides'] },
+    { id: 'webmaster',      url: '/webmaster',      es: 'Webmaster · versiones',        en: 'Webmaster · versions',     alias: ['webmaster', 'versiones', 'versions'] },
+    { id: 'proyectos',      url: '/proyectos/',     es: 'Usuarios y proyectos',         en: 'Users and projects',       alias: ['proyectos', 'projects'] },
+    { id: 'usuarios',       url: '/usuarios',       es: 'Gestión de usuarios',          en: 'User management',          alias: ['usuarios', 'users'] },
+    { id: 'flota',          url: '/flota',          es: 'Flota',                        en: 'Fleet',                    alias: ['flota', 'fleet'] },
+    { id: 'marcablanca',    url: '/marcablanca/',   es: 'Marca blanca y propuestas',    en: 'White label and proposals', alias: ['marcablanca', 'marca-blanca', 'whitelabel', 'white-label', 'propuestas', 'proposals'] },
+    { id: 'presupuestos',   url: '/presupuestos/',  es: 'Generador de presupuestos',    en: 'Budget generator',         alias: ['presupuestos', 'budgets', 'budget'] },
+    { id: 'studio',         url: 'https://www.admira.studio/', es: 'Admira.Studio · crea',        en: 'Admira.Studio · creates',        alias: ['studio', 'admira.studio'] },
+    { id: 'store',          url: 'https://www.admira.store/',  es: 'Admira.store · distribuye',   en: 'Admira.store · distributes',     alias: ['store', 'admira.store'] },
+    { id: 'app',            url: 'https://www.admira.app/',    es: 'Admira.app · comercializa',   en: 'Admira.app · sells',             alias: ['app', 'admira.app'] },
+    { id: 'biz',            url: 'https://www.admira.biz/',    es: 'Admira.biz · mantiene',       en: 'Admira.biz · maintains',         alias: ['biz', 'admira.biz'] },
+  ];
+  const SALTO_POR_ALIAS = {};
+  SALTOS.forEach(function (s) { s.alias.forEach(function (a) { SALTO_POR_ALIAS[a] = s; }); });
+  function normalizarSalto(texto) {
+    return String(texto || '').trim().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/^\/+/, '').replace(/\/+$/, '');
+  }
+  function buscarSalto(texto) {
+    return SALTO_POR_ALIAS[normalizarSalto(texto)] || null;
+  }
+  window.AdmiraSaltos = { lista: SALTOS, buscar: buscarSalto };
+
   // ============ COMMANDS DATA ============
   const COMMANDS = {
     '/help': {
@@ -805,6 +835,12 @@
     for (const [cmd, data] of Object.entries(THEME_COMMANDS)) {
       lines.push({ html: `  <span class="cmd-name">${displaySlug(cmd)}</span> <span class="cmd-desc">${getDesc(cmd, data.desc)}</span>` });
     }
+    lines.push({ text: '' });
+    const isEnHelp = window.currentLang === 'en';
+    lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${isEnHelp ? 'Jump straight to' : 'Saltar directamente a'}</span>` });
+    SALTOS.forEach(function (s) {
+      lines.push({ html: `  <span class="cmd-name">${escapeHtml(s.id)}</span> <span class="cmd-desc">${escapeHtml(isEnHelp ? s.en : s.es)}</span>` });
+    });
     lines.push({ text: '' });
     lines.push({ text: _T('help.aliases'), cls: 'dim' });
     lines.push({ text: _T('help.tip'), cls: 'dim' });
@@ -2568,6 +2604,24 @@
   function executeCommand(input) {
     const raw = input.trim().toLowerCase();
     if (!raw) return;
+
+    // Salto directo a una solución (analitics, presentations, webmaster, studio…).
+    const salto = buscarSalto(raw);
+    if (salto) {
+      const isEn = window.currentLang === 'en';
+      commandHistory.unshift(input.trim());
+      if (commandHistory.length > 50) commandHistory.pop();
+      historyIndex = -1;
+      const block = document.createElement('div');
+      block.className = 'output-block';
+      block.innerHTML = '<div class="cmd-echo"><span class="prompt-symbol">&gt;</span> ' + escapeHtml(input.trim()) + '</div>' +
+        '<div class="output-line green">  → ' + escapeHtml(isEn ? salto.en : salto.es) + '</div>' +
+        '<div class="output-line dim">  ' + escapeHtml(salto.url) + '</div>';
+      outputArea.appendChild(block);
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+      setTimeout(function () { window.location.assign(salto.url); }, 250);
+      return;
+    }
 
     // Restore from minimized mode
     if (terminal.classList.contains('minimized')) {
