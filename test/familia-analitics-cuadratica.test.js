@@ -42,7 +42,7 @@ const ADOPTADAS = {
 // ya no se detecta (o que ya adopta la barra) también hace fallar el test.
 const EXCEPCIONES = {
   '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.',
-  'presentaciones/generador.html': 'Generador de presentaciones: tiene su propio armazón cuadrático (assets/presentation-generator-quadratic.js) y «Acceso privado» es un bloque de su formulario, no la cabecera del grupo.'
+  'presentaciones/generador.html': 'Generador de presentaciones: adopta el armazón en MODO BARRA (el de /presentaciones/galeria), que le monta la Function del generador con assets/presentation-generator-quadratic.js; «Acceso privado» es un bloque de su formulario, no la cabecera del grupo.'
 };
 
 const NAV_GRUPO = ['/analitics', '/webmaster', '/proyectos/', '/usuarios', '/xpace/manage', '/flota'];

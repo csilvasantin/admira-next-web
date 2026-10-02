@@ -611,6 +611,36 @@ html.yk-framed body{ padding-top: var(--yk-bar-h); }
 .yk-bar .yk-logo{ text-transform: none; letter-spacing: .01em; font-size: 14px }
 .yk-bar .yk-logo{ gap: 0 }
 
+/* El logotipo oficial (libro-de-estilo.html §7.4 · portada: .titlebar-brand de
+   index.html): «ADmira» en blanco y N·e·X·T en los cuatro neones de la casa, sin
+   cambiar el orden de los colores ni añadir efectos, siempre sobre oscuro. */
+.yk-bar .yk-logo.yk-wordmark{
+  font-family: 'Montserrat', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+  font-weight: 800; font-size: 17px; letter-spacing: 0; line-height: 1;
+  color: #fff; align-items: baseline;
+}
+.yk-wordmark .yk-wm-admira{ color: #fff }
+.yk-wordmark .yk-wm-next{ display: inline-flex }
+.yk-wordmark .yk-wm-n{ color: #FF3366 }
+.yk-wordmark .yk-wm-e{ color: #FFCC00 }
+.yk-wordmark .yk-wm-x{ color: #33FF99 }
+.yk-wordmark .yk-wm-t{ color: #FF33CC }
+.yk-bar .yk-logo.yk-wordmark:focus-visible{ outline: 2px solid var(--yk-brand); outline-offset: 4px; border-radius: 4px }
+/* Teléfonos estrechos: el logotipo es algo más ancho que el texto plano de antes;
+   se compacta la barra para que ▤ y ⌘ sigan dentro de la pantalla (390 px con tres
+   secciones en la barra, como el generador). */
+@media (max-width: 440px){
+  .yk-bar{ gap: 8px }
+  .yk-bar .yk-logo.yk-wordmark{ font-size: 15px }
+  .yk-bar .yk-barnav{ margin-left: 4px; padding-left: 6px; gap: 4px }
+}
+@media (max-width: 380px){
+  .yk-bar{ padding: 0 6px }
+  .yk-bar .yk-logo.yk-wordmark{ font-size: 14px }
+  .yk-bar .yk-barnav a.yk-ico, .yk-bar .yk-meta .yk-ico{ min-width: 30px; padding: 0 6px }
+  .yk-bar .yk-meta{ gap: 4px }
+}
+
 /* Los raíles cerrados viven FUERA de la pantalla (translateX(±103%), translateY)
    y, sin esto, ensanchan el documento: medido, 231px de scroll horizontal en
    escritorio. Es la ley de la casa — cero barra horizontal en responsive— y además

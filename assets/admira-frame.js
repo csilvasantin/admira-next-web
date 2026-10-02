@@ -129,9 +129,12 @@
     bar.setAttribute('role', 'banner');
 
     // La marca: un solo camino a la home, y va en la barra, no en un raíl.
-    // Un SOLO nodo de texto: .yk-logo es inline-flex con gap:8px, así que partir la
-    // marca en <b> la separaba visualmente y se leía «AD mira NeXT», en tres piezas.
-    var marca = el('a', 'yk-logo', 'ADmiraNeXT');
+    // Es el LOGOTIPO OFICIAL (libro-de-estilo.html §7.4, el mismo de la portada,
+    // .titlebar-brand de index.html): «ADmira» en blanco y N·e·X·T en neón rosa,
+    // amarillo, verde y magenta. Hasta el 2-oct era texto plano «ADmiraNeXT» en
+    // monoespaciada y Carlos lo señaló en el generador: «no respeta el logo». Las
+    // piezas van pegadas (.yk-bar .yk-logo lleva gap:0), así que se lee de un tirón.
+    var marca = el('a', 'yk-logo yk-wordmark', '<span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span>');
     marca.href = '/';
     marca.setAttribute('aria-label', 'ADmiraNeXT, inicio');
 

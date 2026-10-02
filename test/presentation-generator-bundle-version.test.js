@@ -51,8 +51,9 @@ test('la función de borde sigue inyectando el envoltorio cuadrático sobre el H
     env: {ASSETS: {fetch: async () => new Response(html)}}
   });
   const salida = await response.text();
-  assert.match(salida, /presentation-generator-quadratic\.css\?v=1/);
-  assert.match(salida, /presentation-generator-quadratic\.js\?v=20260921-rail/);
+  assert.match(salida, /presentation-generator-quadratic\.css\?v=2/);
+  assert.match(salida, /presentation-generator-quadratic\.js\?v=20261002-armazon/);
+  assert.match(salida, /admira-frame\.js\?v=/);
   assert.match(salida, /presentation-media-library\.(css|js)\?v=/);
   assert.match(salida, /form id="generator"/);
   // Una sola etiqueta del bundle: si la reescritura de compatibilidad volviera a

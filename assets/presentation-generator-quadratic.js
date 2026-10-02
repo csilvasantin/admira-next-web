@@ -1,33 +1,105 @@
+/* presentation-generator-quadratic.js — el generador adopta el ARMAZÓN DE LA CASA.
+ *
+ * Carlos (2-oct-2026, tras el PR #28): «no respeta la fórmula de la UX cuadrática ni
+ * el logo de AdmiraNeXT». Hasta aquí el generador pintaba su propia barra
+ * («ADMIRANEXT · GENERADOR» en texto plano y los tres iconos ≡ ⚙ >_ juntos a la
+ * derecha), cuando el canon (assets/admira-frame.md) dice:
+ *
+ *   [☰] ADmiraNeXT · GENERADOR · secciones …                         [▤] [⌘]
+ *
+ *   ☰ Opciones  → panel IZQUIERDO: navegación y enlaces que llevan a otra página.
+ *   ▤ Avanzado  → panel DERECHO: lo que trabaja sobre la página (estado, acciones,
+ *                 atajos a secciones).
+ *   ⌘ Experto   → franja INFERIOR: el CLI.
+ *
+ * Ahora este script NO dibuja barra ni cajones: declara qué va a cada lado con
+ * data-yk-slot y lo monta assets/admira-frame.js en MODO BARRA, el mismo armazón (y
+ * el mismo logotipo oficial) que /presentaciones/galeria. Se ejecuta en el acto
+ * (va al final del <body>, con el formulario ya leído) y ANTES que el armazón, que
+ * la Function del generador inyecta justo detrás.
+ */
 (function(){
   'use strict';
-  var STORAGE_KEY='admiranext.generator.shell.v1';
-  var modes={
-    options:{toggle:'generatorOptionsToggle',panel:'generatorOptionsRail',bodyClass:'gen-options-open'},
-    advanced:{toggle:'generatorAdvancedToggle',panel:'generatorAdvancedRail',bodyClass:'gen-advanced-open'},
-    expert:{toggle:'generatorExpertToggle',panel:'generatorExpertRail',bodyClass:'gen-expert-open'}
-  };
-  var state={options:false,advanced:false,expert:false};
+  var doc=document,body=doc.body;
+  var form=doc.getElementById('generator');
+  if(!body||!form||doc.getElementById('generatorOptionsSlot'))return;
 
-  function icon(type){
-    if(type==='options')return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
-    if(type==='advanced')return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 15a2 2 0 0 0 .4 2.2l.1.1-2.2 2.2-.1-.1A2 2 0 0 0 15 19l-.3.1V22h-5.4v-2.9L9 19a2 2 0 0 0-2.2.4l-.1.1-2.2-2.2.1-.1A2 2 0 0 0 5 15l-.1-.3H2v-5.4h2.9L5 9a2 2 0 0 0-.4-2.2l-.1-.1 2.2-2.2.1.1A2 2 0 0 0 9 5l.3-.1V2h5.4v2.9L15 5a2 2 0 0 0 2.2-.4l.1-.1 2.2 2.2-.1.1A2 2 0 0 0 19 9l.1.3H22v5.4h-2.9Z"/></svg>';
-    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 7 4 5-4 5M12 17h7"/></svg>';
-  }
+  // Atajos a las secciones del formulario (▤): los ids los pone registerSections.
+  var SECCIONES=[
+    {id:'generatorContext',n:'01',titulo:'Contexto del cliente',claves:['contexto','cliente']},
+    {id:'generatorIdentity',n:'02',titulo:'Inspiración e identidad',claves:['identidad','inspiracion','tesis']},
+    {id:'generatorEmbeds',n:'03',titulo:'Soluciones vivas',claves:['soluciones','embebidos','embeds']},
+    {id:'generatorAccess',n:'04',titulo:'Acceso privado',claves:['acceso','clave']},
+    {id:'generatorArchitecture',n:'05',titulo:'Arquitectura',claves:['arquitectura','esqueleto','secuencia']},
+    {id:'generatorLanguages',n:'06',titulo:'Idiomas y entregables',claves:['idiomas','entregables','idioma']}
+  ];
 
-  function start(){
-    var header=document.querySelector('.top'),main=document.querySelector('main.wrap'),form=document.getElementById('generator');
-    if(!header||!main||!form||document.getElementById('generatorOptionsToggle'))return;
-    document.body.classList.add('generator-quadratic');main.classList.add('generator-shell-main');header.classList.add('generator-shell-top');
+  function mount(){
+    var root=doc.documentElement;
+    root.classList.add('yk-framed');
+    body.classList.add('generator-quadratic');
+    body.dataset.ykTitle=body.dataset.ykTitle||'GENERADOR';
+    body.dataset.ykRailLeft=body.dataset.ykRailLeft||'OPCIONES';
+    body.dataset.ykRailRight=body.dataset.ykRailRight||'AVANZADO';
+    body.dataset.ykCli='on';
+    var main=doc.querySelector('main.wrap');if(main)main.classList.add('generator-shell-main');
+    // La cabecera propia del HTML («ADmiraNeXT · Generador» + «Catálogo») sobra: la
+    // barra del armazón es la única, y su marca el único enlace a la home.
+    var vieja=doc.querySelector('header.top');if(vieja)vieja.remove();
     registerSections(form);
-    header.innerHTML='<div class="generator-topbar"><a class="generator-top-brand" href="/presentaciones/generador/"><i aria-hidden="true"></i><span>ADmiraNeXT · Generador</span><small>Workspace activo</small></a><div class="generator-top-actions"><div class="generator-mode-buttons" aria-label="Herramientas del generador">'+button('options','Opciones')+button('advanced','Opciones avanzadas')+button('expert','Modo experto')+'</div><a class="generator-back" href="/presentaciones/">Presentaciones</a></div></div>';
-    header.insertAdjacentHTML('afterend',drawers());
-    restore();renderAll();bind(form);syncDiagnostics(form);
-    form.addEventListener('input',function(){syncDiagnostics(form)});form.addEventListener('change',function(){syncDiagnostics(form)});
-    new MutationObserver(function(){registerSections(form);syncDiagnostics(form)}).observe(form,{childList:true,subtree:true});
+    // Sin envoltorio: admira-frame.js MUDA cada data-yk-slot a su raíl, y un contenedor
+    // propio se quedaría vacío en la página (lo que ya pasó en la galería).
+    var plantilla=doc.createElement('template');
+    plantilla.innerHTML=navSlot()+optionsSlot()+advancedSlot()+expertSlot();
+    body.insertBefore(plantilla.content,body.firstChild);
+    window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat(verbos());
+    bind();syncDiagnostics();
+    form.addEventListener('input',syncDiagnostics);form.addEventListener('change',syncDiagnostics);
+    new MutationObserver(function(){registerSections(form);syncDiagnostics()}).observe(form,{childList:true,subtree:true});
   }
 
-  function button(mode,label){return '<button class="generator-mode-button" id="'+modes[mode].toggle+'" type="button" aria-controls="'+modes[mode].panel+'" aria-expanded="false" aria-label="'+label+'" title="'+label+'">'+icon(mode)+'</button>'}
-  function drawers(){return '<aside class="generator-drawer generator-side-drawer left" id="generatorOptionsRail" aria-label="Opciones" hidden><div class="generator-drawer-head"><div><span class="generator-drawer-kicker">Nivel 01 · Opciones</span><h2>Navegación del relato</h2></div><button class="generator-drawer-close" type="button" data-close-generator="options" aria-label="Cerrar Opciones">×</button></div><nav class="generator-nav-list" aria-label="Secciones del generador"><button class="generator-nav-action" type="button" data-generator-target="generatorContext"><span>Contexto del cliente</span><b>01</b></button><button class="generator-nav-action" type="button" data-generator-target="generatorIdentity"><span>Inspiración e identidad</span><b>02</b></button><button class="generator-nav-action" type="button" data-generator-target="generatorAccess"><span>Acceso privado</span><b>03</b></button><button class="generator-nav-action" type="button" data-generator-target="generatorArchitecture"><span>Arquitectura</span><b>04</b></button><button class="generator-nav-action" type="button" data-generator-target="generatorLanguages"><span>Idiomas y entregables</span><b>05</b></button></nav><p class="generator-drawer-note">El raíl organiza el trabajo sin modificar los datos introducidos.</p></aside><aside class="generator-drawer generator-side-drawer right" id="generatorAdvancedRail" aria-label="Opciones avanzadas" hidden><div class="generator-drawer-head"><div><span class="generator-drawer-kicker">Nivel 02 · Avanzadas</span><h2>Estado de producción</h2></div><button class="generator-drawer-close" type="button" data-close-generator="advanced" aria-label="Cerrar Opciones avanzadas">×</button></div><div class="generator-diagnostics"><div class="generator-diagnostic"><span>Cliente</span><output id="generatorDiagClient">—</output></div><div class="generator-diagnostic"><span>URL</span><output id="generatorDiagSlug">—</output></div><div class="generator-diagnostic"><span>Idiomas</span><output id="generatorDiagLanguages">ES</output></div><div class="generator-diagnostic"><span>Nivel visual</span><output id="generatorDiagQuality">Good</output></div><div class="generator-diagnostic"><span>Entregables</span><output id="generatorDiagOutputs">Site</output></div><div class="generator-diagnostic"><span>Formulario</span><output id="generatorDiagValidity">Pendiente</output></div></div><p class="generator-drawer-note">Resumen vivo de la configuración que se enviará al motor.</p></aside><section class="generator-drawer generator-bottom-drawer" id="generatorExpertRail" aria-label="Modo experto" hidden><div class="generator-drawer-head"><div><span class="generator-drawer-kicker">Nivel 03 · Experto</span><h2>Consola del generador</h2></div><button class="generator-drawer-close" type="button" data-close-generator="expert" aria-label="Cerrar Modo experto">×</button></div><div class="generator-expert-layout"><pre class="generator-console" id="generatorExpertConsole" aria-live="polite"></pre><div class="generator-expert-actions"><button type="button" id="generatorValidate">Validar formulario <span>↵</span></button><button type="button" id="generatorCopyConfig">Copiar configuración <span>⌘C</span></button><a href="/presentaciones/control/">Control de accesos <span>↗</span></a><a href="/presentaciones/galeria/">Galería <span>↗</span></a></div></div></section>'}
+  function ico(path){return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">'+path+'</svg>'}
+  // Secciones en la barra: las mismas que /presentaciones/galeria, más el generador.
+  function navSlot(){return '<nav data-yk-slot="nav" hidden>'+
+    '<a href="/presentaciones/" aria-label="Generador" title="Generador">'+ico('<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="4"/>')+'<span class="yk-lbl">Generador</span></a>'+
+    '<a href="/presentaciones/galeria" aria-label="Presentaciones" title="Presentaciones">'+ico('<rect x="4" y="3" width="16" height="18"/><path d="M8 8h8M8 12h8M8 16h5"/>')+'<span class="yk-lbl">Presentaciones</span></a>'+
+    '<a href="/presentaciones/control/" aria-label="Gestión de usuarios" title="Gestión de usuarios">'+ico('<circle cx="9" cy="8" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M17 8h4M19 6v4"/>')+'<span class="yk-lbl">Usuarios</span></a>'+
+    '</nav>'}
+  // ☰ Opciones: navegación, enlaces que llevan a otra página.
+  function optionsSlot(){return '<section class="progressive-panel generator-slot" id="generatorOptionsSlot" data-yk-slot="left">'+
+    '<p class="panel-kicker">Nivel 01 · Opciones</p><h2>Navegación</h2><p>Las páginas del generador y sus herramientas.</p>'+
+    '<div class="panel-actions generator-links">'+
+    '<a class="panel-action" href="/presentaciones/galeria">Galería de presentaciones <output>→</output></a>'+
+    '<a class="panel-action" href="/presentaciones/control/">Control de accesos <output>→</output></a>'+
+    '<a class="panel-action" href="/marcablanca/">Marca blanca <output>→</output></a>'+
+    '<a class="panel-action" href="/mcp/generador">MCP del generador <output>↗</output></a>'+
+    '</div></section>'}
+  // ▤ Avanzado: lo que trabaja sobre la página: estado vivo, acciones y atajos.
+  function advancedSlot(){
+    var diag=[['Cliente','generatorDiagClient','—'],['URL','generatorDiagSlug','—'],['Idiomas','generatorDiagLanguages','ES'],['Nivel visual','generatorDiagQuality','Good'],['Entregables','generatorDiagOutputs','Site'],['Formulario','generatorDiagValidity','Pendiente']];
+    return '<section class="progressive-panel generator-slot" id="generatorAdvancedSlot" data-yk-slot="right">'+
+    '<p class="panel-kicker">Nivel 02 · Avanzado</p><h2>Estado de producción</h2>'+
+    '<div class="generator-diagnostics">'+diag.map(function(d){return '<div class="generator-diagnostic"><span>'+d[0]+'</span><output id="'+d[1]+'">'+d[2]+'</output></div>'}).join('')+'</div>'+
+    '<div class="panel-actions generator-actions"><button type="button" class="panel-action" id="generatorValidate">Validar formulario <output>↵</output></button><button type="button" class="panel-action" id="generatorCopyConfig">Copiar configuración <output>⌘C</output></button></div>'+
+    '<p class="panel-kicker generator-goto-k">Ir a</p><nav class="generator-nav-list" aria-label="Secciones del generador">'+
+    SECCIONES.map(function(s){return '<button class="generator-nav-action" type="button" data-generator-target="'+s.id+'"><span>'+s.titulo+'</span><b>'+s.n+'</b></button>'}).join('')+
+    '</nav></section>'}
+  // ⌘ Experto: el resumen del motor; el CLI lo añade el armazón (data-yk-cli="on").
+  function expertSlot(){return '<section class="progressive-panel generator-slot" id="generatorExpertSlot" data-yk-slot="bottom">'+
+    '<pre class="generator-console" id="generatorExpertConsole" aria-live="polite"></pre></section>'}
+
+  function verbos(){return [
+    {id:'validar',aliases:['v'],ayuda:'Valida el formulario y dice qué falta',run:function(_a,ctx){var ok=form.reportValidity();syncDiagnostics();var faltan=[].slice.call(form.querySelectorAll(':invalid')).filter(function(n){return n.name}).map(function(n){return n.name});ctx.imprimir(ok?'Validación correcta: listo para generar.':'Faltan campos obligatorios: '+faltan.join(', '));writeConsole(ok?'VALIDACIÓN CORRECTA':'FALTAN CAMPOS OBLIGATORIOS')}},
+    {id:'config',aliases:['cfg'],uso:'[copiar]',ayuda:'Muestra (o copia) la configuración que se enviará al motor, sin la clave',run:function(args,ctx){var data=configuration();if(args[0]==='copiar'){return copiar(data).then(function(ok){ctx.imprimir(ok?'Configuración copiada.':'No se pudo copiar la configuración.')})}ctx.json(data)}},
+    {id:'estado',aliases:['st'],ayuda:'Resumen del motor: versión, cliente, idiomas, entregables',run:function(_a,ctx){lineas().forEach(function(l){ctx.imprimir(l)})}},
+    {id:'seccion',aliases:['s','ir'],uso:'<01-06|nombre>',ayuda:'Salta a una sección del formulario: '+SECCIONES.map(function(s){return s.claves[0]}).join(', '),run:function(args,ctx){var q=quitarAcentos(args.join(' ').toLowerCase());var s=SECCIONES.filter(function(x){return q&&(x.n===q.padStart(2,'0')||x.claves.some(function(c){return c.indexOf(q)===0}))})[0];if(!s){ctx.error('Uso: /seccion <01-06|nombre> · '+SECCIONES.map(function(x){return x.n+' '+x.claves[0]}).join(' · '));return}if(!irA(s.id)){ctx.error('La sección «'+s.titulo+'» no está en este formulario');return}ctx.imprimir('→ '+s.titulo)}},
+    {id:'galeria',aliases:['catalogo'],ayuda:'Abre la galería de presentaciones',run:function(_a,ctx){ctx.imprimir('Abriendo la galería…');location.href='/presentaciones/galeria'}},
+    {id:'accesos',aliases:['control'],ayuda:'Abre el control de accesos',run:function(_a,ctx){ctx.imprimir('Abriendo el control de accesos…');location.href='/presentaciones/control/'}}
+  ]}
+
+  function quitarAcentos(t){return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+  function irA(id){var node=doc.getElementById(id);if(!node)return false;node.scrollIntoView({behavior:'smooth',block:'start'});var campo=node.querySelector('input,textarea,select,button');if(campo)campo.focus({preventScroll:true});return true}
+  function copiar(data){var value=JSON.stringify(data,null,2);try{return navigator.clipboard.writeText(value).then(function(){return true},function(){return false})}catch(_){return Promise.resolve(false)}}
 
   function registerSections(form){
     var panels=form.querySelectorAll(':scope > .panel');
@@ -39,24 +111,16 @@
     var architecture=form.querySelector('.sequence-panel');if(architecture)architecture.id='generatorArchitecture';
     var languages=form.querySelector('.language-panel');if(languages)languages.id='generatorLanguages';
   }
-  function bind(form){
-    Object.keys(modes).forEach(function(mode){document.getElementById(modes[mode].toggle).addEventListener('click',function(){setOpen(mode,!state[mode],'toggle')})});
-    document.addEventListener('click',function(event){var close=event.target.closest('[data-close-generator]');if(close){setOpen(close.dataset.closeGenerator,false,'close');return}var target=event.target.closest('[data-generator-target]');if(target){var node=document.getElementById(target.dataset.generatorTarget);if(node){node.scrollIntoView({behavior:'smooth',block:'start'});node.querySelector('input,textarea,select,button')?.focus({preventScroll:true})}}});
-    document.addEventListener('keydown',function(event){if(event.key!=='Escape')return;var mode=state.expert?'expert':state.advanced?'advanced':state.options?'options':null;if(mode){event.preventDefault();setOpen(mode,false,'escape')}});
-    document.getElementById('generatorValidate').addEventListener('click',function(){var valid=form.reportValidity();syncDiagnostics(form);writeConsole(form,valid?'VALIDACIÓN CORRECTA':'FALTAN CAMPOS OBLIGATORIOS')});
-    document.getElementById('generatorCopyConfig').addEventListener('click',async function(){var value=JSON.stringify(configuration(form),null,2);try{await navigator.clipboard.writeText(value);writeConsole(form,'CONFIGURACIÓN COPIADA')}catch(_){writeConsole(form,'NO SE PUDO COPIAR LA CONFIGURACIÓN')}});
+  function bind(){
+    doc.addEventListener('click',function(event){var target=event.target.closest&&event.target.closest('[data-generator-target]');if(target)irA(target.dataset.generatorTarget)});
+    doc.getElementById('generatorValidate').addEventListener('click',function(){var valid=form.reportValidity();syncDiagnostics();writeConsole(valid?'VALIDACIÓN CORRECTA':'FALTAN CAMPOS OBLIGATORIOS')});
+    doc.getElementById('generatorCopyConfig').addEventListener('click',function(){copiar(configuration()).then(function(ok){writeConsole(ok?'CONFIGURACIÓN COPIADA':'NO SE PUDO COPIAR LA CONFIGURACIÓN')})});
   }
-  function setOpen(mode,open,source){
-    state[mode]=Boolean(open);
-    if(innerWidth<760&&open&&(mode==='options'||mode==='advanced'))state[mode==='options'?'advanced':'options']=false;
-    renderAll();persist();document.dispatchEvent(new CustomEvent('admira-generator-shell-change',{detail:{mode:mode,open:state[mode],source:source,state:Object.assign({},state)}}));
-  }
-  function renderAll(){Object.keys(modes).forEach(function(mode){var item=modes[mode],toggle=document.getElementById(item.toggle),panel=document.getElementById(item.panel);document.body.classList.toggle(item.bodyClass,state[mode]);if(toggle)toggle.setAttribute('aria-expanded',String(state[mode]));if(panel){panel.hidden=!state[mode];panel.setAttribute('aria-hidden',String(!state[mode]))}})}
-  function configuration(form){var data=Object.fromEntries(new FormData(form).entries());data.languages=[].slice.call(form.querySelectorAll('input[name="language"]:checked')).map(function(input){return input.value});data.outputs=[].slice.call(form.querySelectorAll('input[name="output"]:checked')).map(function(input){return input.value});delete data.password;return data}
-  function syncDiagnostics(form){var data=configuration(form),quality=data.beforeQuality||'good';setText('generatorDiagClient',data.displayName||'—');setText('generatorDiagSlug',data.slug||'automática');setText('generatorDiagLanguages',(data.languages||[]).map(function(v){return v.toUpperCase()}).join(' · ')||'—');setText('generatorDiagQuality',quality.charAt(0).toUpperCase()+quality.slice(1));setText('generatorDiagOutputs',(data.outputs||[]).join(' · ')||'—');setText('generatorDiagValidity',form.checkValidity()?'Listo':'Pendiente');writeConsole(form)}
-  function writeConsole(form,message){var data=configuration(form),lines=['ADMIRANEXT PRESENTATION ENGINE','version: '+(window.__ADMIRA_GENERATOR_VERSION__||'cargando'),'client: '+(data.displayName||'sin definir'),'slug: '+(data.slug||'automático'),'languages: '+((data.languages||[]).join(', ')||'sin selección'),'outputs: '+((data.outputs||[]).join(', ')||'sin selección'),'form: '+(form.checkValidity()?'ready':'incomplete')];if(message)lines.push('> '+message);setText('generatorExpertConsole',lines.join('\n'))}
-  function setText(id,value){var node=document.getElementById(id);if(node)node.textContent=value}
-  function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(_){}}
-  function restore(){try{var saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');Object.keys(modes).forEach(function(mode){state[mode]=Boolean(saved[mode])})}catch(_){}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  function configuration(){var data=Object.fromEntries(new FormData(form).entries());data.languages=[].slice.call(form.querySelectorAll('input[name="language"]:checked')).map(function(input){return input.value});data.outputs=[].slice.call(form.querySelectorAll('input[name="output"]:checked')).map(function(input){return input.value});delete data.password;return data}
+  function syncDiagnostics(){var data=configuration(),quality=data.beforeQuality||'good';setText('generatorDiagClient',data.displayName||'—');setText('generatorDiagSlug',data.slug||'automática');setText('generatorDiagLanguages',(data.languages||[]).map(function(v){return v.toUpperCase()}).join(' · ')||'—');setText('generatorDiagQuality',quality.charAt(0).toUpperCase()+quality.slice(1));setText('generatorDiagOutputs',(data.outputs||[]).join(' · ')||'—');setText('generatorDiagValidity',form.checkValidity()?'Listo':'Pendiente');writeConsole()}
+  function lineas(){var data=configuration();return ['ADMIRANEXT PRESENTATION ENGINE','version: '+(window.__ADMIRA_GENERATOR_VERSION__||'cargando'),'client: '+(data.displayName||'sin definir'),'slug: '+(data.slug||'automático'),'languages: '+((data.languages||[]).join(', ')||'sin selección'),'outputs: '+((data.outputs||[]).join(', ')||'sin selección'),'form: '+(form.checkValidity()?'ready':'incomplete')]}
+  function writeConsole(message){var l=lineas();if(message)l.push('> '+message);setText('generatorExpertConsole',l.join('\n'))}
+  function setText(id,value){var node=doc.getElementById(id);if(node)node.textContent=value}
+
+  mount();
 })();

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="yk-framed">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -22,11 +22,51 @@ a{color:var(--brand);text-underline-offset:3px}.nav{display:flex;gap:16px;flex-w
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:12px 0}
 ol li,ul li{margin:6px 0;color:#b9c6dc}
 footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
+/* Armazón de la casa (assets/admira-frame.md, modo barra): [☰] ADmiraNeXT · MCP · GENERADOR · secciones … [▤] [⌘].
+   Paleta del armazón con el verde de esta página; más específica que el :root de admira-frame.css. */
+html.yk-framed{--yk-brand:#3df08a;--yk-hi:#7af7b4;--yk-bg:#0d1522;--yk-bg2:#070a10;--yk-card:#0d1522;--yk-ink:#e8eef8;--yk-mut:#a8bad4;--yk-dim:#7186a8;--yk-line:#1e2940;--yk-line2:#2a3a55;scroll-padding-top:calc(var(--yk-bar-h) + 16px)}
+h2[id]{scroll-margin-top:calc(var(--yk-bar-h,46px) + 16px)}
+.yk-rail .mcp-slot{background:rgba(13,21,34,.97);border:1px solid var(--yk-line);border-radius:8px;padding:16px;font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
+.yk-rail .mcp-slot .k{margin:0 0 7px;color:var(--yk-brand);font:800 9px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
+.yk-rail .mcp-slot h2{margin:0 0 8px;font-size:17px;color:var(--yk-ink)}
+.yk-rail .mcp-slot p{margin:0;color:var(--yk-mut);font-size:12.5px;line-height:1.5}
+.yk-rail .mcp-acts{display:grid;gap:7px;margin-top:12px}
+.yk-rail .mcp-act{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:38px;padding:0 11px;color:var(--yk-ink);border:1px solid var(--yk-line2);background:#08111e;border-radius:5px;font:700 10.5px/1.25 var(--mono);text-align:left;text-decoration:none;cursor:pointer}
+.yk-rail .mcp-act:hover{color:var(--yk-brand);border-color:var(--yk-brand)}
+.yk-rail .mcp-act b{color:var(--yk-brand);font-weight:700}
+.yk-rail .mcp-slot .k + .mcp-acts{margin-top:4px}
+.yk-rail .mcp-slot .k.sep{margin-top:18px}
 </style>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r12">
 </head>
-<body>
+<body data-yk-title="MCP · GENERADOR" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-cli="on">
+<!-- Los tres niveles del marco cuadrático (assets/admira-frame.md): admira-frame.js los muda a su raíl por data-yk-slot. -->
+<nav data-yk-slot="nav" hidden>
+  <a href="/mcp/" aria-label="Hub MCP" title="Hub MCP"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h4l2-5 4 10 2-5h4"/></svg><span class="yk-lbl">Hub MCP</span></a>
+  <a href="/mcp/generador" aria-label="MCP del generador" title="MCP del generador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="16" height="18"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="yk-lbl">Generador</span></a>
+</nav>
+<section class="mcp-slot" data-yk-slot="left">
+  <p class="k">Nivel 01 · Opciones</p><h2>Navegación</h2><p>El generador, su conector y quién puede usarlo.</p>
+  <div class="mcp-acts">
+    <a class="mcp-act" href="/mcp/">Hub MCP de la matriz <b>→</b></a>
+    <a class="mcp-act" href="/presentaciones/">Generador de presentaciones <b>→</b></a>
+    <a class="mcp-act" href="/presentaciones/galeria">Galería de presentaciones <b>→</b></a>
+    <a class="mcp-act" href="/usuarios">Usuarios y tokens <b>→</b></a>
+    <a class="mcp-act" href="/mcp/manifest.json">manifest.json <b>↗</b></a>
+    <a class="mcp-act" href="https://www.admira.live/mcp/">Consejo (admira.live) <b>↗</b></a>
+  </div>
+</section>
+<section class="mcp-slot" data-yk-slot="right">
+  <p class="k">Nivel 02 · Avanzado</p><h2>Conectar</h2>
+  <div class="mcp-acts">
+    <button type="button" class="mcp-act" data-mcp-copiar="endpoint">Copiar endpoint <b>⌘C</b></button>
+    <button type="button" class="mcp-act" data-mcp-copiar="config">Copiar configuración MCP <b>⌘C</b></button>
+    <button type="button" class="mcp-act" data-mcp-copiar="curl">Copiar prueba curl <b>⌘C</b></button>
+  </div>
+  <p class="k sep">Ir a</p>
+  <div class="mcp-acts" id="mcpIrA"></div>
+</section>
 <main>
-  <nav class="nav"><a href="/mcp/">← Hub MCP</a><a href="/presentaciones/">Generador</a><a href="/usuarios">Usuarios</a><a href="/mcp/manifest.json">manifest.json</a></nav>
   <div class="eyebrow">ADmiraNeXT · MCP · Generador de Presentaciones</div>
   <h1>Conecta tu asistente al Generador de Presentaciones.</h1>
   <p class="sub">De un cliente y un problema a una presentación viva. Este servidor MCP deja que un consejero de silicio, o cualquier persona con su asistente (Claude, Cursor, OpenCode…), liste, cree, regenere y restaure presentaciones con los mismos permisos que tiene en <a href="/usuarios">/usuarios</a>.</p>
@@ -144,5 +184,31 @@ footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
 
   <footer>ADmiraNeXT · MCP del Generador de Presentaciones · <a href="/mcp/">hub MCP de la matriz</a> · <a href="https://www.admira.live/mcp/">Consejo (admira.live)</a></footer>
 </main>
+<script>
+// ⌘ Experto: verbos de esta página para el CLI del armazón (antes de cargar admira-frame.js).
+(function(){
+  var h2=[].slice.call(document.querySelectorAll('main > h2'));
+  // Ids correlativos (los rótulos repiten número: hay dos «5 ·» y un «4b»).
+  h2.forEach(function(h,i){if(!h.id)h.id='s'+(i+1);});
+  function titulo(h){return h.textContent.replace(/^\s*[0-9]+[a-z]?\s*·\s*/,'');}
+  function buscar(q){q=String(q||'').toLowerCase().replace(/^s/,'');return h2.filter(function(h,i){return q&&(String(i+1)===q||titulo(h).toLowerCase().indexOf(q)>=0);})[0];}
+  var ira=document.getElementById('mcpIrA');
+  h2.forEach(function(h){var b=document.createElement('button');b.type='button';b.className='mcp-act';b.dataset.mcpIr=h.id;b.innerHTML='<span></span><b>'+h.id.slice(1)+'</b>';b.firstChild.textContent=titulo(h);ira.appendChild(b);});
+  var pres=document.querySelectorAll('main pre');
+  var textos={endpoint:'https://www.admiranext.com/mcp',config:pres[0]?pres[0].textContent:'',curl:pres[1]?pres[1].textContent:''};
+  function copiar(clave){return navigator.clipboard.writeText(textos[clave]).then(function(){return true},function(){return false});}
+  function ir(id){var n=document.getElementById(id);if(n)n.scrollIntoView({behavior:'smooth',block:'start'});return !!n;}
+  document.addEventListener('click',function(e){var c=e.target.closest&&e.target.closest('[data-mcp-copiar]');if(c){var b=c.querySelector('b');copiar(c.dataset.mcpCopiar).then(function(ok){if(b){b.textContent=ok?'✓':'✗';setTimeout(function(){b.textContent='⌘C'},1400);}});}var i=e.target.closest&&e.target.closest('[data-mcp-ir]');if(i)ir(i.dataset.mcpIr);});
+  var tools=[].slice.call(document.querySelectorAll('main table tr')).map(function(tr){var td=tr.querySelectorAll('td');return td.length>=3?{tool:td[0].textContent.trim(),que:td[1].textContent.trim(),rol:td[2].textContent.trim()}:null;}).filter(Boolean);
+  window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
+    {id:'seccion',aliases:['s'],uso:'<n|texto>',ayuda:'Salta a una sección (1-'+h2.length+' o parte del título)',run:function(a,ctx){var h=buscar(a.join(' '));if(!h){ctx.error('Uso: /seccion <n|texto> · '+h2.map(function(x,i){return (i+1)+' '+titulo(x)}).join(' · '));return;}ir(h.id);ctx.imprimir('→ '+h.textContent);}},
+    {id:'tools',aliases:['t'],uso:'[filtro]',ayuda:'Lista las tools del conector y su rol mínimo',run:function(a,ctx){var q=String(a.join(' ')).toLowerCase();tools.filter(function(t){return !q||t.tool.indexOf(q)>=0||t.que.toLowerCase().indexOf(q)>=0;}).forEach(function(t){ctx.imprimir(t.tool+' · '+t.rol);});}},
+    {id:'copiar',aliases:['c'],uso:'<endpoint|config|curl>',ayuda:'Copia el endpoint, la configuración MCP o la prueba curl',run:function(a,ctx){var k=a[0];if(!textos[k]){ctx.error('Uso: /copiar <endpoint|config|curl>');return;}return copiar(k).then(function(ok){ctx.imprimir(ok?'Copiado: '+k:'No se pudo copiar '+k);});}},
+    {id:'endpoint',ayuda:'Muestra el endpoint y la autenticación',run:function(a,ctx){ctx.imprimir(textos.endpoint+' · Authorization: Bearer anmcp_…');}},
+    {id:'manifest',ayuda:'Abre manifest.json',run:function(a,ctx){ctx.imprimir('Abriendo manifest.json…');location.href='/mcp/manifest.json';}}
+  ]);
+})();
+</script>
+<script src="/assets/admira-frame.js?v=v.02.10.2026-r12" defer></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ Canon de la Galaxia (el mismo de admira.app, Pixeria, XpaceOS y Yokup; FLT-10137
 
 Hasta el 2-oct los glifos eran ⋯ y ⌄ y abrir un panel cerraba los otros; `test/presentation-gallery-quadratic-ux.test.js` vigila ahora el canon.
 
-## Modo barra (por defecto) — `/presentaciones/`
+## Modo barra (por defecto) — `/presentaciones/galeria`, el generador (`/presentaciones/`) y `/mcp/generador`
 
 El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones … [▤] [⌘]`. La página declara qué va a cada lado:
 
@@ -20,6 +20,10 @@ El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones
   <section data-yk-slot="bottom">…</section>   <!-- ⌘ -->
   <nav data-yk-slot="nav" hidden><a href="…">…</a></nav>  <!-- secciones en la barra -->
 ```
+
+- **Logotipo**: la marca de la barra es el logotipo oficial (`libro-de-estilo.html` §7.4, el de la portada `.titlebar-brand`): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sin efectos. Hasta el 2-oct era texto plano «ADmiraNeXT» en monoespaciada.
+- `<body data-yk-cli="on">` añade el CLI a ⌘ también en modo barra; los verbos se registran igual que en modo cabecera (`window.ADMIRA_FRAME_VERBS`).
+- El **generador** (`functions/presentaciones/generador.js`) no pinta barra propia desde el 2-oct (Carlos, tras el PR #28: «no respeta la fórmula de la UX cuadrática ni el logo»): `assets/presentation-generator-quadratic.js` declara los slots (☰ navegación a otras páginas · ▤ estado de producción, Validar, Copiar configuración e «Ir a» las secciones · ⌘ resumen del motor + CLI con `/validar /config /estado /seccion /galeria /accesos`) y la Function inyecta `admira-frame.js` detrás. `/mcp/generador` hace lo mismo en su HTML (verbos `/seccion /tools /copiar /endpoint /manifest`).
 
 ## Modo cabecera — `/analitics` y sus derivadas
 
@@ -79,7 +83,7 @@ window.ADMIRA_FRAME_VERBS = (window.ADMIRA_FRAME_VERBS || []).concat([
 | `proyectos/index.html` | adopta · pública | /help, /mcp, Yokup ↗ | Ir a, volver a leer el censo | `/buscar /censo /seccion` |
 | `flota.html` | adopta · pública | Yokup marcador ↗, misiones ↗ | Refrescar, Ir a | `/refrescar /misiones /seccion` |
 | `/github` | excepción | HTML generado por `functions/github.js`, sin scripts (zona militarizada). | | |
-| `presentaciones/generador.html` | excepción | Armazón propio del generador (`presentation-generator-quadratic.js`). | | |
+| `presentaciones/generador.html` | excepción | No usa el modo cabecera: adopta el armazón en **modo barra** (como la galería), montado por la Function del generador con `presentation-generator-quadratic.js`. | | |
 
 En webmaster los enlaces `data-yk-admin` nacen ocultos y los muestra la sesión si es de administrador.
 
