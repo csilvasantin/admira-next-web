@@ -37,6 +37,13 @@
 
 export const PROYECTOS = [
   {
+    clave: 'admiranext-analitics', nombre: 'AdmiraNeXT · Analitics',
+    url: 'https://www.admiranext.com/analitics', estadoUrl: 'https://www.admiranext.com',
+    parentKey: 'admiranext', repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web · analitics/',
+    pages: 'admiranext', publica: './deploy.sh → Pages admiranext', tipo: 'sitio', shot: null,
+    nota: 'Observatorio privado del grupo. Cloudflare Web Analytics desde el edge; requiere sesión de administrador. Censo y medición descubiertos en cada consulta.',
+  },
+  {
     clave: 'admiranext', nombre: 'admiranext.com', url: 'https://www.admiranext.com',
     repo: 'csilvasantin/admira-next-web', repoTxt: 'admira-next-web',
     pages: 'admiranext', publica: './deploy.sh → Pages admiranext',

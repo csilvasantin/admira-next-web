@@ -39,12 +39,13 @@ test("Webmaster distingue proyectos raíz, subproyectos y el total canónico de 
   const rootKeys = new Set(PROYECTOS.map((project) => project.clave));
   const subprojects = PROYECTOS.filter((project) => project.parentKey && rootKeys.has(project.parentKey));
   assert.equal(PROYECTOS.length - subprojects.length, 17);
-  assert.equal(subprojects.length, 28);
+  assert.equal(subprojects.length, 29);
   assert.deepEqual(
     subprojects
       .filter((project) => project.parentKey !== "admira-tv")
       .map((project) => [project.clave, project.parentKey]),
     [
+      ["admiranext-analitics", "admiranext"],
       ["admiranext-webmaster", "admiranext"],
       ["admiranext-proyectos", "admiranext"],
       ["generador-presupuestos", "admiranext"],
