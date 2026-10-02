@@ -1,5 +1,6 @@
 import { sesionCompleta } from '../_webmaster-gate.js';
 import { canonicalHost, readAnalytics } from '../_analytics.js';
+import {readHttpTraffic} from '../_http-traffic.js';
 const memo = new Map();
 const json = (data,status=200) => new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'private, no-store','vary':'Cookie','x-robots-tag':'noindex'}});
 export async function onRequestGet({request,env}) {
@@ -13,6 +14,7 @@ export async function onRequestGet({request,env}) {
   if(cached && Date.now()-cached.at<(days===0?30000:300000)) return json({...cached.data,cached:true});
   try {
     const data=await readAnalytics(env,days,host,fetch,new Date(),audience==='ninguno'?'ambos':audience);
+    data.http=await readHttpTraffic(env,data.range,host,audience);
     if(audience==='ninguno'){data.totals.visits=0;data.totals.pageviews=0;data.series=data.series.map(x=>({...x,visits:0,pageviews:0}));data.sites=data.sites.map(x=>({...x,visits:x.visits===null?null:0,pageviews:x.pageviews===null?null:0}));data.geography=[];data.traffic={};data.detail=null;data.note='Selecciona Carbono o Silicio para ver actividad.';}
     if (memo.size>100) memo.clear();
     memo.set(key,{at:Date.now(),data});
