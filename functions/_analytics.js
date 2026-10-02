@@ -14,7 +14,7 @@ export function buildQuery(account, range, host = '') {
   const coverageFilter=n=>`datetime_geq:${JSON.stringify(period(n,end).start)},datetime_lt:${JSON.stringify(range.end)},bot:0`;
   const filter = host ? `${f},requestHost_in:${JSON.stringify([host, 'www.'+host])}` : f;
   const node = (alias,dimensions,limit=1000,nodeFilter=filter) => `${alias}:rumPageloadEventsAdaptiveGroups(limit:${limit},filter:{${nodeFilter}},orderBy:[${alias==='referrers'?'sum_visits_DESC':'count_DESC'}]){count sum{visits} dimensions{${dimensions}}}`;
-  return `{viewer{accounts(filter:{accountTag:${JSON.stringify(account)}}){${node('hosts','requestHost',1000,f)} ${node('coverageWeek','requestHost',1000,coverageFilter(7))} ${node('coverageMonth','requestHost',1000,coverageFilter(30))} ${node('daily',range.resolution==='minute'?'datetimeMinute requestHost':'date requestHost')} ${host ? [node('paths','requestPath',10),node('countries','countryName',10),node('referrers','refererHost',10),node('devices','deviceType',10)].join(' ') : ''}}}}`;
+  return `{viewer{accounts(filter:{accountTag:${JSON.stringify(account)}}){${node('hosts','requestHost',1000,f)} ${node('coverageWeek','requestHost',1000,coverageFilter(7))} ${node('coverageMonth','requestHost',1000,coverageFilter(30))} ${node('geography','countryName requestHost',1000)} ${node('daily',range.resolution==='minute'?'datetimeMinute requestHost':'date requestHost')} ${host ? [node('paths','requestPath',10),node('countries','countryName',10),node('referrers','refererHost',10),node('devices','deviceType',10)].join(' ') : ''}}}}`;
 }
 async function cloudflare(env, path, body, fetchImpl) {
   const r = await fetchImpl('https://api.cloudflare.com/client/v4'+path, {
@@ -53,6 +53,19 @@ export function summarise(rows) {
   }
   return hosts;
 }
+export function aggregateGeography(rows) {
+  const countries = new Map();
+  for (const row of rows) {
+    const host = canonicalHost(row.dimensions?.requestHost);
+    if (!host || host.endsWith('.pages.dev') || host.endsWith('.workers.dev')) continue;
+    const country = String(row.dimensions?.countryName || '');
+    const entry = countries.get(country) || {country,visits:0,pageviews:0};
+    entry.visits += Number(row.sum?.visits || 0);
+    entry.pageviews += Number(row.count || 0);
+    countries.set(country,entry);
+  }
+  return [...countries.values()].sort((a,b)=>b.visits-a.visits);
+}
 export async function readAnalytics(env, days, host = '', fetchImpl = fetch, now = new Date()) {
   if (!env.CF_ACCOUNT_ID || !(env.CF_ANALYTICS_API_TOKEN || env.CF_API_TOKEN)) throw new Error('Falta configurar el acceso de servidor a Cloudflare.');
   const range = period(days,now);
@@ -79,7 +92,7 @@ export async function readAnalytics(env, days, host = '', fetchImpl = fetch, now
   }
   return {ok:true,source:'Cloudflare Web Analytics',updatedAt:now.toISOString(),range,selected:host || null,
     totals:{visits:[...map.values()].reduce((n,x)=>n+x.visits,0),pageviews:[...map.values()].reduce((n,x)=>n+x.pageviews,0),configured:sites.filter(s=>s.configured).length,sites:sites.length},
-    sites,series,detail:host?{paths:account.paths,countries:account.countries,referrers:account.referrers,devices:account.devices}:null,
+    sites,series,geography:aggregateGeography(account.geography || []),geographyTruncated:(account.geography || []).length>=1000,detail:host?{paths:account.paths,countries:account.countries,referrers:account.referrers,devices:account.devices}:null,
     truncated:account.hosts.length>=1000 || account.daily.length>=1000,
     coverageComplete:!!(projects && measurement),
     note:'Visitas según Cloudflare: entradas desde otro dominio o acceso directo. No son personas únicas. Datos UTC, con muestreo y latencia; bots detectados y previews excluidos.'};
