@@ -611,11 +611,46 @@ html.yk-framed body{ padding-top: var(--yk-bar-h); }
 .yk-bar .yk-logo{ text-transform: none; letter-spacing: .01em; font-size: 14px }
 .yk-bar .yk-logo{ gap: 0 }
 
+/* El logotipo oficial (libro-de-estilo.html §7.4 · portada: .titlebar-brand de
+   index.html): «ADmira» en blanco y N·e·X·T en los cuatro neones de la casa, sin
+   cambiar el orden de los colores ni añadir efectos, siempre sobre oscuro. */
+.yk-bar .yk-logo.yk-wordmark{
+  font-family: 'Montserrat', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+  font-weight: 800; font-size: 17px; letter-spacing: 0; line-height: 1;
+  color: #fff; align-items: baseline;
+}
+.yk-wm-admira{ color: #fff }
+.yk-wm-next{ display: inline-flex }
+.yk-wm-n{ color: #FF3366 }
+.yk-wm-e{ color: #FFCC00 }
+.yk-wm-x{ color: #33FF99 }
+.yk-wm-t{ color: #FF33CC }
+.yk-bar .yk-logo.yk-wordmark:focus-visible{ outline: 2px solid var(--yk-brand); outline-offset: 4px; border-radius: 4px }
+/* Teléfonos estrechos: el logotipo es algo más ancho que el texto plano de antes;
+   se compacta la barra para que ▤ y ⌘ sigan dentro de la pantalla (390 px con tres
+   secciones en la barra, como el generador). */
+@media (max-width: 440px){
+  .yk-bar{ gap: 8px }
+  .yk-bar .yk-logo.yk-wordmark{ font-size: 15px }
+  .yk-bar .yk-barnav{ margin-left: 4px; padding-left: 6px; gap: 4px }
+}
+@media (max-width: 380px){
+  .yk-bar{ padding: 0 6px }
+  .yk-bar .yk-logo.yk-wordmark{ font-size: 14px }
+  .yk-bar .yk-barnav a.yk-ico, .yk-bar .yk-meta .yk-ico{ min-width: 30px; padding: 0 6px }
+  .yk-bar .yk-meta{ gap: 4px }
+}
+
 /* Los raíles cerrados viven FUERA de la pantalla (translateX(±103%), translateY)
    y, sin esto, ensanchan el documento: medido, 231px de scroll horizontal en
    escritorio. Es la ley de la casa — cero barra horizontal en responsive— y además
    el desbordamiento no se ve, así que nadie sabría de dónde sale. */
 html, body{ overflow-x: hidden; max-width: 100% }
+/* …pero con `clip` donde exista: `hidden` en <html> y <body> convierte el <body> en
+   contenedor de scroll que nunca se desplaza, y todo `position: sticky` de la página
+   (la barra de herramientas de /presupuestos, sus columnas, el formulario del
+   business plan) dejaba de pegarse. `clip` recorta igual sin crear ese contenedor. */
+@supports (overflow-x: clip){ html, body{ overflow-x: clip } }
 
 /* En móvil el original esconde .yk-meta —allí lleva reloj y contadores que no caben—,
    pero aquí dentro viven los ÚNICOS accesos a AVANZADO y a NIVEL EXPERTO: ocultarlos
@@ -702,6 +737,10 @@ html.yk-head-mode header.yk-head .brand{
 }
 html.yk-head-mode header.yk-head .brand span{ font-weight: 800 }
 html.yk-head-mode header.yk-head .brand i{ display:inline-block; width:7px; height:7px; background:var(--yk-brand); margin:0 0 1px 4px; border-radius:50% }
+/* El logotipo oficial también en la cabecera de la familia (antes «admiraNeXT.» en
+   minúscula con un punto cian): misma letra y mismos neones que el modo barra. */
+html.yk-head-mode header.yk-head .brand{ font: 800 24px/1 'Montserrat','Helvetica Neue',system-ui,-apple-system,sans-serif; letter-spacing: 0; display: inline-flex; align-items: baseline }
+html.yk-head-mode header.yk-head .brand i{ display: none }
 html.yk-head-mode header.yk-head nav{
   display: flex; flex: 0 1 auto; min-width: 0; gap: clamp(16px,2.2vw,32px); margin: 0; padding: 0;
   border: 0; background: none; font-size: 13px; color: var(--yk-mut); flex-wrap: nowrap;
@@ -792,7 +831,7 @@ html.yk-head-mode .yk-expert{ flex: 1; min-height: 0; display: flex; flex-direct
   html.yk-head-mode{ --yk-rail-w: min(88vw, 340px); --yk-rail-h: 62vh }
   html.yk-head-mode header.yk-head{ height: 60px; padding: 0 12px }
   html.yk-head-mode header.yk-head > button.yk-ico{ margin-right: 10px }
-  html.yk-head-mode header.yk-head .brand{ font-size: 22px; margin-right: 8px }
+  html.yk-head-mode header.yk-head .brand{ font-size: 19px; margin-right: 8px }
   /* la navegación se sirve en ☰; en la barra quedan ☰, la marca, el punto de acceso, ▤ y ⌘ */
   html.yk-head-mode header.yk-head nav{ display: none }
   html.yk-head-mode header.yk-head [data-yk-access]{ padding-left: 8px; font-size: 13px }
@@ -803,3 +842,87 @@ html.yk-head-mode .yk-expert{ flex: 1; min-height: 0; display: flex; flex-direct
 @media (prefers-reduced-motion: reduce){
   html.yk-head-mode body{ transition: none }
 }
+
+/* ============================================================================
+ * PANELES REDIMENSIONABLES (obligatorio en la UX cuadrática; Carlos, 2-oct-2026)
+ * El tamaño elegido llega como --yk-w-left / --yk-w-right / --yk-h-bottom en el
+ * <html> (admira-frame.js, recordado en admiranext_frame_sizes_v1); sin él manda el
+ * tamaño por defecto (--yk-rail-w / --yk-rail-h). Los tiradores son position:fixed
+ * en el borde INTERIOR de cada panel y sólo aparecen con su panel abierto.
+ * ==========================================================================*/
+.yk-rail-left{ width: var(--yk-w-left, var(--yk-rail-w)); max-width: 92vw }
+.yk-rail-right{ width: var(--yk-w-right, var(--yk-rail-w)); max-width: 92vw }
+.yk-rail-bottom{ height: var(--yk-h-bottom, var(--yk-rail-h)) }
+html.yk-head-mode .yk-rail-left{ width: var(--yk-w-left, var(--yk-rail-w)) }
+html.yk-head-mode .yk-rail-right{ width: var(--yk-w-right, var(--yk-rail-w)) }
+html.yk-head-mode .yk-rail-bottom{ height: var(--yk-h-bottom, var(--yk-rail-h)) }
+
+.yk-resize{
+  position: fixed; z-index: calc(var(--yk-z) + 5);
+  display: none; touch-action: none; background: transparent;
+  outline: none;
+}
+.yk-resize::after{
+  content: ""; position: absolute; border-radius: 3px;
+  background: var(--yk-line2); opacity: .55; transition: background .15s, opacity .15s;
+}
+.yk-resize:hover::after, .yk-resize:focus-visible::after, html.yk-resizing .yk-resize::after{ background: var(--yk-brand); opacity: 1 }
+.yk-resize:focus-visible{ box-shadow: 0 0 0 2px var(--yk-brand) inset }
+/* laterales: franja de 10 px centrada en el borde interior, bajo la barra */
+.yk-resize-left, .yk-resize-right{ top: var(--yk-bar-h); bottom: 0; width: 10px; cursor: col-resize }
+.yk-resize-left{ left: calc(min(var(--yk-w-left, var(--yk-rail-w)), 92vw) - 5px) }
+.yk-resize-right{ right: calc(min(var(--yk-w-right, var(--yk-rail-w)), 92vw) - 5px) }
+.yk-resize-left::after, .yk-resize-right::after{ top: 50%; left: 3px; width: 4px; height: 44px; transform: translateY(-50%) }
+/* inferior: franja de 10 px en el borde superior de ⌘ */
+.yk-resize-bottom{ height: 10px; cursor: row-resize; left: 0; right: var(--yk-avatar-safe); bottom: calc(var(--yk-h-bottom, var(--yk-rail-h)) - 5px) }
+html.yk-head-mode .yk-resize-bottom{ left: var(--yk-dock-l); right: var(--yk-dock-r) }
+.yk-resize-bottom::after{ left: 50%; top: 3px; height: 4px; width: 44px; transform: translateX(-50%) }
+.yk-open-left .yk-resize-left, .yk-open-right .yk-resize-right, .yk-open-bottom .yk-resize-bottom{ display: block }
+/* Mientras se arrastra: sin animaciones (el panel sigue al puntero) ni selección de texto */
+html.yk-resizing, html.yk-resizing *{ user-select: none !important; -webkit-user-select: none !important }
+html.yk-resizing .yk-rail, html.yk-resizing.yk-head-mode body{ transition: none !important }
+/* Pie de los raíles también en modo barra (antes heredaba la letra de la página). */
+.yk-rail-foot{ font: 10px/1.4 var(--yk-mono); letter-spacing: .06em; color: var(--yk-dim) }
+
+/* ============================================================================
+ * MODO AUTOMÁTICO (<body data-yk-auto="on">) — las páginas de admiranext.com que
+ * tenían cabecera propia. Paleta fija de la casa (el logotipo oficial siempre va
+ * sobre oscuro, aunque la página sea de papel) y bloques de ☰ / ▤ con la
+ * especificidad justa para que los a{}, button{} o nav{} de cada página no los
+ * desfiguren.
+ * ==========================================================================*/
+html.yk-auto{
+  --yk-brand:#4ae3d1; --yk-hi:#7ff3e4;
+  --yk-bg:#101724; --yk-bg2:#080d17; --yk-card:#101724;
+  --yk-ink:#f2f6fc; --yk-mut:#92a0b4; --yk-dim:#6c7a90;
+  --yk-line:#253042; --yk-line2:#314057;
+  --yk-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  scroll-padding-top: calc(var(--yk-bar-h) + 14px);
+}
+html.yk-auto .yk-bar{ box-sizing: border-box; margin: 0; border-radius: 0; text-align: left; font-size: 13px; line-height: 1.2 }
+html.yk-auto .yk-bar .yk-ico{ box-sizing: border-box; margin: 0; font-size: 14px; line-height: 1; text-transform: none; letter-spacing: 0 }
+html.yk-auto .yk-rail{ box-sizing: border-box; font-size: 12px; line-height: 1.45; text-align: left; letter-spacing: 0 }
+html.yk-auto .yk-rail *{ box-sizing: border-box }
+.yk-rail .yk-auto-blk{ display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; border: 0; background: none }
+.yk-rail .yk-auto-hd{ margin: 14px 2px 6px; padding: 0; font: 700 9.5px/1.3 var(--yk-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--yk-dim) }
+.yk-rail .yk-auto-blk > .yk-auto-hd:first-child{ margin-top: 2px }
+.yk-rail .yk-auto-list{ display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; background: none; position: static }
+.yk-rail .yk-auto-act{
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; min-height: 36px; margin: 0; padding: 7px 11px;
+  color: var(--yk-ink); background: rgba(8,13,23,.6); border: 1px solid var(--yk-line2); border-radius: 6px;
+  font: 600 11.5px/1.3 var(--yk-mono); letter-spacing: .02em; text-transform: none; text-align: left; text-decoration: none;
+  cursor: pointer; box-shadow: none; white-space: normal;
+}
+.yk-rail .yk-auto-act:hover{ color: var(--yk-brand); border-color: var(--yk-brand); background: rgba(74,227,209,.06) }
+.yk-rail .yk-auto-act[aria-current="page"]{ color: var(--yk-brand); border-color: var(--yk-brand); border-left-width: 3px; font-weight: 800 }
+.yk-rail .yk-auto-act b{ color: var(--yk-brand); font-weight: 700 }
+.yk-rail .yk-auto-act:focus-visible{ outline: 2px solid var(--yk-brand); outline-offset: 1px }
+html.yk-auto .yk-rail-navhd{ margin: 0 0 6px }
+
+/* Al imprimir (presupuestos, benchmarks…) el armazón no sale en el papel. */
+@media print{
+  .yk-bar, .yk-rail, .yk-resize{ display: none !important }
+  html.yk-framed body, html.yk-head-mode body{ padding: 0 !important }
+}
+.yk-rail .yk-auto-note{ margin: 0; padding: 8px 10px; border: 1px dashed var(--yk-line2); border-radius: 6px; color: var(--yk-mut); font: 11px/1.5 var(--yk-mono); letter-spacing: .02em; text-transform: none; background: none }

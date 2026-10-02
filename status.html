@@ -124,6 +124,12 @@
     .hdr .brand{font-size:13px;letter-spacing:.32em;color:var(--cyan);text-shadow:0 0 12px rgba(34,230,255,.6);font-weight:700;white-space:nowrap;text-decoration:none}
     .hdr .brand b{color:#fff}
     .hdr a.brand:hover,.hdr a.brand:focus-visible{text-shadow:0 0 18px rgba(34,230,255,.9)}
+    /* Logotipo oficial (libro-de-estilo.html §7.4; Carlos, 2-oct-2026: «hay que utilizar el logo de AdmiraNeXT»):
+       «ADmira» en blanco y N·e·X·T en neón, en sans gruesa y sin efectos. */
+    .hdr .brand{font:800 19px/1 'Montserrat','Helvetica Neue',system-ui,-apple-system,sans-serif;letter-spacing:0;text-shadow:none;color:#fff}
+    .hdr a.brand:hover,.hdr a.brand:focus-visible{text-shadow:none;opacity:.88}
+    .yk-wm-admira{color:#fff}.yk-wm-next{display:inline-flex}.yk-wm-n{color:#FF3366}.yk-wm-e{color:#FFCC00}.yk-wm-x{color:#33FF99}.yk-wm-t{color:#FF33CC}
+    .pf-rz:focus-visible,#rzBottom:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}
     .hdr .ver{font-size:11px;letter-spacing:.18em;color:var(--cyan-dim);white-space:nowrap}
     .hdr .tag{font-size:12px;color:var(--text-dim);letter-spacing:.02em}
     .hdr .tag em{color:var(--text);font-style:normal}
@@ -240,7 +246,7 @@
       /* la zona central apila en columna: marca → contador → frase; así la
          fila del header queda [☰ | centro estrecho | ⚙ >_] SIN solaparse */
       .hdr-line{flex-direction:column;align-items:flex-start;gap:7px}
-      .hdr .brand{font-size:12px;letter-spacing:.2em}
+      .hdr .brand{font-size:16px;letter-spacing:0}
       .hdr .live{font-size:10px;padding:4px 10px;align-self:flex-start}
       .hdr .tag{font-size:10.5px}
       .hdr .ver{font-size:9px;letter-spacing:.12em}
@@ -481,14 +487,14 @@
       <div>● <span style="color:#eafcff">Agente</span> — dirige + humano</div>
       <div>● <span style="color:#a0e0ff">Subagente</span> — ejecuta</div>
       <div>● <span style="color:#7fb8d4">Infraagente</span> — reporta/doc</div>
-      <div style="margin-top:4px;color:var(--text-dim)">sub/infra ocultos por defecto — actívalos en ⚙ AVANZADO</div>
+      <div style="margin-top:4px;color:var(--text-dim)">sub/infra ocultos por defecto — actívalos en ▤ AVANZADO</div>
     </div>
-    <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ⚙ AVANZADO pausas la rotación automática.</div>
+    <div class="hint">La vista rota sola cada 20s. Elige una a mano para fijar el foco; en ▤ AVANZADO pausas la rotación automática.</div>
     <!-- pie del riel: versión dinámica + máquina actual -->
     <div class="pf-ver" id="verRail"><span id="verText">v.13.07.2026.r1.12:57</span></div>
   </aside>
   <!-- r15: asa de redimensionado del riel izquierdo (doble clic = restaurar) -->
-  <div class="pf-rz" id="rzLeft" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
+  <div class="pf-rz" id="rzLeft" role="separator" tabindex="0" aria-orientation="vertical" aria-controls="panelLeft" aria-label="Redimensionar opciones" title="Arrastra (o flechas) para redimensionar · doble clic o Intro restaura"></div>
 
   <!-- BARRA DERECHA — AVANZADO -->
   <aside class="pf-panel" id="panelRight" role="region" aria-label="Ajustes avanzados">
@@ -556,14 +562,14 @@
     </div>
   </aside>
   <!-- r15: asa de redimensionado del riel derecho (doble clic = restaurar) -->
-  <div class="pf-rz" id="rzRight" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
+  <div class="pf-rz" id="rzRight" role="separator" tabindex="0" aria-orientation="vertical" aria-controls="panelRight" aria-label="Redimensionar avanzado" title="Arrastra (o flechas) para redimensionar · doble clic o Intro restaura"></div>
   </div><!-- /stage -->
 
   <!-- ============================================================
        CUADRO de 3 zonas (patrón portería):
          · IZQ  → ☰ OPCIONES (extremo izquierdo)
          · CENTRO → marca (enlace a inicio) + versión + frase + contador «nodos vivos»
-         · DCHA → ⚙ AVANZADO + >_ EXPERTO (extremo derecho)
+         · DCHA → ▤ AVANZADO + >_ EXPERTO (extremo derecho)
        Layout flex: cada zona reserva su ancho, NADA se pisa.
        ============================================================ -->
   <header class="hdr">
@@ -574,7 +580,7 @@
 
     <div class="hdr-center">
       <div class="hdr-line">
-        <a class="brand" href="/" title="ADmiraNeXT — inicio">ADmira<b>NeXT</b></a>
+        <a class="brand" href="/" title="ADmiraNeXT — inicio" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a>
         <span class="tag">Admira no tiene centro — <em>es un universo que se expande.</em></span>
         <span class="live"><span class="dot"></span><span id="liveCount">—</span></span>
       </div>
@@ -582,9 +588,9 @@
 
     <div class="hdr-side right">
       <button class="pf-tg" id="tgRight" aria-expanded="false" aria-controls="panelRight"
-              title="Avanzado — filtros, umbral de vivo, velocidad, rotación">⚙</button>
+              aria-label="Avanzado" title="▤ Avanzado — filtros, umbral de vivo, velocidad, rotación">▤</button>
       <button class="pf-tg" id="tgBottom" aria-expanded="false" aria-controls="panelBottom"
-              title="Experto — consola CLI">&gt;_</button>
+              aria-label="Experto" title="⌘ Experto — consola CLI">⌘</button>
     </div>
   </header>
 
@@ -593,7 +599,7 @@
   <!-- BARRA INFERIOR — EXPERTO + CLI -->
   <section class="pf-panel" id="panelBottom" role="region" aria-label="Consola experto">
     <!-- r15: asa superior de redimensionado del cajón (doble clic = restaurar) -->
-    <div id="rzBottom" title="Arrastra para redimensionar · doble clic restaura" aria-hidden="true"></div>
+    <div id="rzBottom" role="separator" tabindex="0" aria-orientation="horizontal" aria-controls="panelBottom" aria-label="Redimensionar experto" title="Arrastra (o flechas) para redimensionar · doble clic o Intro restaura"></div>
     <button class="pf-close" id="closeBottom" aria-label="Cerrar consola">×</button>
     <h4>Experto · consola</h4>
     <!-- Compositor de PROMPT a un agente (se abre al pulsar ✎ PROMPT en una ficha fijada) -->
@@ -697,7 +703,7 @@
   //     mando se desbloquea SOLO, sin pegar nada. El POST lleva el ID token
   //     (JWT) y el worker lo verifica server-side contra la whitelist compartida.
   //  2) Token de mando (r5, se mantiene como alternativa): se pide UNA vez en
-  //     ⚙ AVANZADO y se guarda en localStorage; jamás se muestra.
+  //     ▤ AVANZADO y se guarda en localStorage; jamás se muestra.
   const MANDO_LS_KEY = 'admiranext-status-mando-token';
   let MANDO_TOKEN = (()=>{ try{ return localStorage.getItem(MANDO_LS_KEY)||''; }catch(e){ return ''; } })();
   // Sesión del auth-gate vigente (email + cred = ID token de Google) o null.
@@ -726,7 +732,7 @@
   let ONLY_LIVE = false;
   let SHOW_LABELS = true;
   // r17: capas satélite BAJO DEMANDA — los subagentes e infraagentes NO se
-  // muestran por defecto; se activan con sus checkboxes en ⚙ AVANZADO y la
+  // muestran por defecto; se activan con sus checkboxes en ▤ AVANZADO y la
   // elección se recuerda en localStorage (por navegador, como el resto).
   const SHOW_SUB_LS_KEY   = 'admiranext-status-show-sub';
   const SHOW_INFRA_LS_KEY = 'admiranext-status-show-infra';
@@ -1854,7 +1860,7 @@
         if(msg){
           msg.textContent = g
             ? '✗ sesión de Google caducada o no autorizada — recarga la página y vuelve a entrar'
-            : '✗ token de mando rechazado (revísalo en ⚙ AVANZADO)';
+            : '✗ token de mando rechazado (revísalo en ▤ AVANZADO)';
           msg.style.color='#ff6b6b';
         }
         return;
@@ -3412,25 +3418,44 @@
       el.addEventListener('pointerup', end);
       el.addEventListener('pointercancel', end);
       el.addEventListener('dblclick', ()=>{ opts.reset(); });
+      // Teclado (canon de los paneles redimensionables, assets/admira-frame.md): flechas
+      // = 16 px (Mayús = 64), Inicio/Fin = mínimo/máximo, Intro = tamaño por defecto.
+      el.addEventListener('keydown', e=>{
+        const paso = e.shiftKey ? 64 : 16, now = opts.current();
+        let v = null;
+        if(e.key===opts.grow) v = now + paso;
+        else if(e.key===opts.shrink) v = now - paso;
+        else if(e.key==='Home') v = opts.min();
+        else if(e.key==='End') v = opts.max();
+        else if(e.key==='Enter'){ e.preventDefault(); opts.reset(); return; }
+        else return;
+        e.preventDefault();
+        v = clamp(v, opts.min(), opts.max()); opts.apply(v); lsSet(opts.ls, Math.round(v));
+        el.setAttribute('aria-valuenow', String(Math.round(v)));
+      });
     }
+    const anchoDe = side => parseInt(getComputedStyle(root).getPropertyValue('--pf-w-'+side),10) || DEF_W;
 
     bindHandle(document.getElementById('rzLeft'), {
       axis:'x', ls:LS.left,
       measure:e=>e.clientX - 4,                       // borde interior del riel izq (asa de 8px)
       min:()=>MIN_W, max:()=>maxW('left'),
       apply:v=>applyW('left',v), reset:()=>resetW('left'),
+      current:()=>anchoDe('left'), grow:'ArrowRight', shrink:'ArrowLeft',
     });
     bindHandle(document.getElementById('rzRight'), {
       axis:'x', ls:LS.right,
       measure:e=>innerWidth - e.clientX - 4,          // borde interior del riel dcho
       min:()=>MIN_W, max:()=>maxW('right'),
       apply:v=>applyW('right',v), reset:()=>resetW('right'),
+      current:()=>anchoDe('right'), grow:'ArrowLeft', shrink:'ArrowRight',
     });
     bindHandle(document.getElementById('rzBottom'), {
       axis:'y', ls:LS.bottom,
       measure:e=>innerHeight - e.clientY - 4,         // borde superior del cajón
       min:()=>MIN_H, max:maxH,
       apply:applyH, reset:resetH,
+      current:()=>pb.offsetHeight, grow:'ArrowUp', shrink:'ArrowDown',
     });
   })();
 

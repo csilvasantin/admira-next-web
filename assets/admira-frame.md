@@ -9,7 +9,20 @@ Canon de la Galaxia (el mismo de admira.app, Pixeria, XpaceOS y Yokup; FLT-10137
 
 Hasta el 2-oct los glifos eran ⋯ y ⌄ y abrir un panel cerraba los otros; `test/presentation-gallery-quadratic-ux.test.js` vigila ahora el canon.
 
-## Modo barra (por defecto) — `/presentaciones/`
+### Paneles redimensionables — OBLIGATORIO
+
+Carlos (2-oct-2026): «en la UX cuadrática siempre tienen que ser resizables las ventanas de opciones, avanzado y experto». Toda página con el armazón los tiene sin hacer nada (lo pone `admira-frame.js`, en los dos modos); una interfaz cuadrática que no use el armazón tiene que dar lo mismo.
+
+- Tirador en el borde **interior**: ☰ su borde derecho, ▤ su borde izquierdo, ⌘ su borde superior. Ratón, dedo (`pointer`) y **teclado**: es un `role="separator"` enfocable con `aria-valuenow/min/max`; flechas = 16 px (Mayús = 64), Inicio/Fin = mínimo/máximo, **Intro o doble clic = tamaño por defecto**.
+- Límites: laterales de 220 px a `min(760 px, 60 % del ancho)` (en ≤720 px, hasta el 92 %); ⌘ de 120 px hasta el alto de la ventana menos la barra y 60 px.
+- El tamaño se **recuerda entre páginas** (`localStorage` `admiranext_frame_sizes_v1`, `{left, right, bottom}` en px) y se recorta, sin olvidarlo, si la ventana encoge. Llega a CSS como `--yk-w-left`, `--yk-w-right` y `--yk-h-bottom` en el `<html>`; sin ellas mandan `--yk-rail-w` / `--yk-rail-h`. Acoplados (modo cabecera, ≥1100 px), el contenido se aparta al nuevo ancho.
+- API: `AdmiraFrame.tamano('left'|'right'|'bottom', px|null)` (`null` = por defecto).
+
+### Logotipo — OBLIGATORIO
+
+La marca es el logotipo oficial (`libro-de-estilo.html` §7.4): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sobre oscuro. En modo barra lo pinta el armazón; en modo cabecera la página lo trae en su `<a class="brand">` (marcado `yk-wm-*`) y, si no, el armazón lo sustituye. Nada de «admiraNeXT.» en minúscula con punto.
+
+## Modo barra (por defecto) — `/presentaciones/galeria`, el generador (`/presentaciones/`), `/mcp/` y `/mcp/generador` (y, en modo automático, el resto del sitio)
 
 El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones … [▤] [⌘]`. La página declara qué va a cada lado:
 
@@ -21,12 +34,48 @@ El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones
   <nav data-yk-slot="nav" hidden><a href="…">…</a></nav>  <!-- secciones en la barra -->
 ```
 
+- **Logotipo**: la marca de la barra es el logotipo oficial (`libro-de-estilo.html` §7.4, el de la portada `.titlebar-brand`): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sin efectos. Hasta el 2-oct era texto plano «ADmiraNeXT» en monoespaciada.
+- `<body data-yk-cli="on">` añade el CLI a ⌘ también en modo barra; los verbos se registran igual que en modo cabecera (`window.ADMIRA_FRAME_VERBS`).
+- El **generador** (`functions/presentaciones/generador.js`) no pinta barra propia desde el 2-oct (Carlos, tras el PR #28: «no respeta la fórmula de la UX cuadrática ni el logo»): `assets/presentation-generator-quadratic.js` declara los slots (☰ navegación a otras páginas · ▤ estado de producción, Validar, Copiar configuración e «Ir a» las secciones · ⌘ resumen del motor + CLI con `/validar /config /estado /seccion /galeria /accesos`) y la Function inyecta `admira-frame.js` detrás. `/mcp/generador` hace lo mismo en su HTML (verbos `/seccion /tools /copiar /endpoint /manifest`).
+
+## Modo automático — el resto de admiranext.com (`<body data-yk-auto="on">`)
+
+Ronda 3 del PR #34 (Carlos, 2-oct-2026): toda página de admiranext.com con cabecera propia pasa al armazón. Es el modo barra sin escribir slots:
+
+```html
+<html lang="es" class="yk-framed">            <!-- opcional: evita el salto al cargar; el armazón la pone igual -->
+<link rel="stylesheet" href="/assets/admira-frame.css?v=<sello>">
+<body data-yk-title="ACADEMIA" data-yk-auto="on">
+  …   <!-- sin cabecera de marca propia: la marca es la de la barra -->
+  <script defer src="/assets/admira-frame.js?v=<sello>"></script>
+```
+
+- **☰ Opciones**: el mapa del sitio (`SITIO` en `admira-frame.js`; la página puede sustituirlo con `window.ADMIRA_FRAME_SITIO`), con la página actual marcada. La home no se repite: su camino es la marca. Lo que la página declare en `data-yk-slot="left"` (los enlaces de su antigua cabecera, en bloques `.yk-auto-blk`) va delante.
+- **▤ Avanzado**: «Acciones», un botón por cada `[data-yk-accion="Rótulo"]` de la página que pulsa el original (presupuestos: Nuevo, Duplicar…; benchmarks: Descargar PDF), y «Ir a», los `<h2>` del contenido (`data-yk-secciones` cambia el selector), rehecho cada vez que se abre ▤ porque hay páginas que pintan sus secciones después de cargar.
+- **⌘ Experto**: el CLI, con `/ir <página>`, `/seccion <n|texto>` y `/arriba` además de `/help` y `/limpiar`.
+- Paleta oscura fija (`html.yk-auto`): el logotipo oficial va siempre sobre oscuro, aunque la página sea de papel (impacto, benchmarks). Al imprimir, el armazón no sale.
+- Lo que una página tenga pegado arriba (`position: sticky; top: 0`) baja a `top: var(--yk-bar-h)`.
+
+| Página | Qué se hizo con su cabecera |
+|---|---|
+| `academia`, `consejero`, `mandamientos`, `normativa`, `help/`, `marcablanca/` (+ `propuesta/`), `telegram/`, `tiktok/publicar/`, `credits-generator`, `filosofia`, `businessplan/` | cabecera de contenido (hero): se queda; se quita el «← admiranext.com» duplicado |
+| `consejo/`, `informes/`, `presites/` (+ `generador/`), `tiktok/` (+ `xtore.html`), `presentar`, `informes/handon-…` | barra de marca propia fuera; sus enlaces a ☰ |
+| `creditos/`, `impacto/` | barra fuera; su aviso, la campaña y el botón de idioma (se mueve con su id) a ▤ |
+| `presupuestos/` | sin marca; la barra de herramientas se queda bajo la del armazón y sus botones se repiten en ▤ |
+| `signage-benchmarks` | barra «digital signage benchmarks.» fuera; «Descargar PDF» a ▤ |
+
+**Excepciones** (guardián: `test/admira-frame-sitio.test.js`):
+
+- `/status` tiene su propio marco de cuatro barras (3.800 líneas, columnas en flujo que reencuadran el canvas). Conserva el marco, pero con el logotipo oficial, los glifos del canon (▤ ⌘ en vez de ⚙ >_) y sus asas, que ya se arrastraban y restauraban con doble clic, ahora también por teclado (`role="separator"`, flechas, Inicio/Fin, Intro). Sus tamaños siguen en `admira_pf_w_left/_right/_h_bottom`.
+- `/game/` (Xpacio del Consejo) es un juego a pantalla completa que escucha WASD, E y M en todo el documento: un CLI encima movería al personaje al escribir. Sólo cambia el logotipo de su HUD (y la marca pasa a ser el enlace a la home).
+- Fuera de alcance: la portada, el libro de estilo, los decks y presentaciones de clientes (`presentaciones/*`, `presentations/*`, las Functions `presentaciones/[client]`, `presites/[site]` y el mando), las redirecciones (`bots/`, `classic.html`) y la web clásica (`old/`).
+
 ## Modo cabecera — `/analitics` y sus derivadas
 
 La página conserva SU cabecera y el armazón inserta los iconos en su sitio:
 
 ```
-[☰] admiraNeXT · Analitics · Webmaster · Proyectos · … ● Acceso privado [▤] [⌘]
+[☰] ADmiraNeXT · Analitics · Webmaster · Proyectos · … ● Acceso privado [▤] [⌘]
 ```
 
 ```html
@@ -35,7 +84,7 @@ La página conserva SU cabecera y el armazón inserta los iconos en su sitio:
 …
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head>
-  <a class="brand" href="/">admira<span>NeXT</span><i></i></a>          <!-- único enlace a la home -->
+  <a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a>  <!-- único enlace a la home -->
   <nav aria-label="Navegación del grupo">
     <a href="/analitics" data-yk-admin>Analitics</a><a href="/webmaster">Webmaster</a><a href="/proyectos/">Proyectos</a>
     <a href="/usuarios" data-yk-admin data-yk-rail-only>Usuarios</a>      <!-- data-yk-rail-only: sólo en ☰ -->
@@ -79,7 +128,7 @@ window.ADMIRA_FRAME_VERBS = (window.ADMIRA_FRAME_VERBS || []).concat([
 | `proyectos/index.html` | adopta · pública | /help, /mcp, Yokup ↗ | Ir a, volver a leer el censo | `/buscar /censo /seccion` |
 | `flota.html` | adopta · pública | Yokup marcador ↗, misiones ↗ | Refrescar, Ir a | `/refrescar /misiones /seccion` |
 | `/github` | excepción | HTML generado por `functions/github.js`, sin scripts (zona militarizada). | | |
-| `presentaciones/generador.html` | excepción | Armazón propio del generador (`presentation-generator-quadratic.js`). | | |
+| `presentaciones/generador.html` | excepción | No usa el modo cabecera: adopta el armazón en **modo barra** (como la galería), montado por la Function del generador con `presentation-generator-quadratic.js`. | | |
 
 En webmaster los enlaces `data-yk-admin` nacen ocultos y los muestra la sesión si es de administrador.
 

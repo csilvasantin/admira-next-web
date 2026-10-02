@@ -81,6 +81,8 @@
   };
   // Los glifos del canon, en un único sitio (el test guardián los lee de aquí).
   var GLIFOS = {left: '☰', right: '▤', bottom: '⌘'};
+  // El logotipo oficial, en un único sitio: «ADmira» en blanco y N·e·X·T en neón.
+  var LOGO = '<span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span>';
 
   function icono(lado, nombre) {
     var b = el('button', 'yk-ico', '<span aria-hidden="true">' + GLIFOS[lado] + '</span>');
@@ -115,6 +117,11 @@
     bar = cabecera;
     root.classList.add('yk-head-mode');
     cabecera.classList.add('yk-head');
+    // La marca de la cabecera es el LOGOTIPO OFICIAL (libro-de-estilo.html §7.4), el
+    // mismo que pinta el modo barra. Las páginas ya lo traen en su HTML; si alguna
+    // vuelve al «admiraNeXT.» en minúscula con punto, aquí se corrige.
+    var marcaCab = cabecera.querySelector('a[href="/"]');
+    if (marcaCab && String(marcaCab.innerHTML || '').indexOf('yk-wm-next') < 0) marcaCab.innerHTML = LOGO;
     cabecera.insertBefore(btnIzq, cabecera.firstChild);
     var acceso = cabecera.querySelector('[data-yk-access]');
     if (acceso && acceso.parentNode) acceso.parentNode.insertBefore(meta, acceso.nextSibling);
@@ -129,9 +136,12 @@
     bar.setAttribute('role', 'banner');
 
     // La marca: un solo camino a la home, y va en la barra, no en un raíl.
-    // Un SOLO nodo de texto: .yk-logo es inline-flex con gap:8px, así que partir la
-    // marca en <b> la separaba visualmente y se leía «AD mira NeXT», en tres piezas.
-    var marca = el('a', 'yk-logo', 'ADmiraNeXT');
+    // Es el LOGOTIPO OFICIAL (libro-de-estilo.html §7.4, el mismo de la portada,
+    // .titlebar-brand de index.html): «ADmira» en blanco y N·e·X·T en neón rosa,
+    // amarillo, verde y magenta. Hasta el 2-oct era texto plano «ADmiraNeXT» en
+    // monoespaciada y Carlos lo señaló en el generador: «no respeta el logo». Las
+    // piezas van pegadas (.yk-bar .yk-logo lleva gap:0), así que se lee de un tirón.
+    var marca = el('a', 'yk-logo yk-wordmark', LOGO);
     marca.href = '/';
     marca.setAttribute('aria-label', 'ADmiraNeXT, inicio');
 
@@ -153,6 +163,91 @@
     bar.appendChild(btnIzq); bar.appendChild(marca); bar.appendChild(pagina);
     if (nav.children.length) bar.appendChild(nav);
     bar.appendChild(meta);
+  }
+
+  // ── Modo AUTOMÁTICO (<body data-yk-auto="on">, sólo en modo barra) ───────────
+  // Para las páginas de admiranext.com que tenían cabecera propia (Carlos, 2-oct-2026:
+  // «hay que utilizar el logo de AdmiraNeXT» y la fórmula en todas): sin escribir
+  // slots, ☰ trae el MAPA DEL SITIO (lo que lleva a otra página), ▤ las ACCIONES de
+  // la página (cada [data-yk-accion] se repite como botón que pulsa el original) y
+  // «Ir a» sus secciones (los <h2> del contenido), y ⌘ el CLI con /ir, /seccion y
+  // /arriba. Lo que la página declare en data-yk-slot va DELANTE de lo automático.
+  var SITIO = Array.isArray(G.ADMIRA_FRAME_SITIO) ? G.ADMIRA_FRAME_SITIO : [
+    {grupo: 'La casa', enlaces: [['/consejo/', 'El Consejo'], ['/academia', 'Academia'], ['/mandamientos', 'Mandamientos'], ['/normativa', 'Normativa'], ['/filosofia', 'Filosofía'], ['/help/', '/help']]},
+    {grupo: 'Operación', enlaces: [['/proyectos/', 'Proyectos'], ['/flota', 'Flota'], ['/status', 'Status'], ['/mcp/', 'Hub MCP'], ['/telegram/', 'Telegram']]},
+    {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
+  ];
+  var modoAuto = !modoCabecera && body.dataset.ykAuto === 'on';
+  var secciones = [], sitioPlano = [], construirIrA = function () {};
+  function slugar(t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'seccion';
+  }
+  function irA(n) { if (n && n.scrollIntoView) n.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+  if (modoAuto) {
+    root.classList.add('yk-framed', 'yk-auto');
+    var izqAuto = el('div', 'yk-auto-blk');
+    izqAuto.setAttribute('data-yk-slot', 'left');
+    SITIO.forEach(function (g) {
+      izqAuto.appendChild(texto('div', 'yk-auto-hd', g.grupo));
+      var lista = el('nav', 'yk-auto-list');
+      lista.setAttribute('aria-label', g.grupo);
+      g.enlaces.forEach(function (par) {
+        var a = texto('a', 'yk-auto-act', par[1]);
+        a.href = par[0];
+        if (ruta(par[0]) === aquí) a.setAttribute('aria-current', 'page');
+        lista.appendChild(a);
+        sitioPlano.push({href: par[0], nombre: par[1], clave: ruta(par[0]).replace(/^\//, '').split('/').pop() || 'inicio'});
+      });
+      izqAuto.appendChild(lista);
+    });
+    var derAuto = el('div', 'yk-auto-blk');
+    derAuto.setAttribute('data-yk-slot', 'right');
+    var acciones = doc.querySelectorAll('[data-yk-accion]');
+    if (acciones.length) {
+      derAuto.appendChild(texto('div', 'yk-auto-hd', 'Acciones'));
+      var listaAcc = el('div', 'yk-auto-list');
+      acciones.forEach(function (orig) {
+        var b = texto('button', 'yk-auto-act', orig.dataset.ykAccion || String(orig.textContent || '').trim());
+        b.type = 'button';
+        b.addEventListener('click', function () { orig.click(); });
+        listaAcc.appendChild(b);
+      });
+      derAuto.appendChild(listaAcc);
+    }
+    derAuto.appendChild(texto('div', 'yk-auto-hd', 'Ir a'));
+    var listaIr = el('div', 'yk-auto-list');
+    derAuto.appendChild(listaIr);
+    construirIrA = function () {
+      // Se rehace cada vez que se abre ▤: hay páginas (academia, consejero…) que
+      // pintan sus secciones después de cargar, leídas en vivo.
+      secciones = [];
+      doc.querySelectorAll(body.dataset.ykSecciones || 'h2').forEach(function (h) {
+        if (h.closest && h.closest('header, nav, footer, [data-yk-slot], .yk-rail, [hidden], dialog, template')) return;
+        var t = String(h.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!t || secciones.length >= 40) return;
+        var destino = h.closest && h.closest('section[id], article[id]') || h;
+        if (!destino.id) {
+          var id = 'sec-' + slugar(t), k = id, i = 2;
+          while (doc.getElementById(k)) k = id + '-' + (i++);
+          destino.id = k;
+        }
+        if (secciones.some(function (x) { return x.nodo === destino; })) return;
+        secciones.push({nodo: destino, titulo: t.length > 64 ? t.slice(0, 62) + '…' : t});
+      });
+      listaIr.textContent = '';
+      if (!secciones.length) listaIr.appendChild(texto('p', 'yk-empty', '— esta página no tiene secciones'));
+      secciones.forEach(function (s, i) {
+        var b = el('button', 'yk-auto-act');
+        b.type = 'button';
+        b.appendChild(texto('span', '', s.titulo));
+        b.appendChild(texto('b', '', String(i + 1)));
+        b.addEventListener('click', function () { irA(s.nodo); });
+        listaIr.appendChild(b);
+      });
+    };
+    construirIrA();
+    body.appendChild(izqAuto);
+    body.appendChild(derAuto);
   }
 
   // ── Raíles y franja inferior ───────────────────────────────────────────────
@@ -206,7 +301,7 @@
 
   // La CUARTA barra: el nivel experto es un raíl inferior (.yk-rail-bottom), no una
   // sección suelta; se abre con .yk-open-bottom igual que los otros dos.
-  var hayCli = modoCabecera || body.dataset.ykCli === 'on';
+  var hayCli = modoCabecera || modoAuto || body.dataset.ykCli === 'on';
   var hayAbajo = hayCli || doc.querySelectorAll('[data-yk-slot="bottom"]').length > 0;
   var railAbajo = el('aside', 'yk-rail yk-rail-bottom');
   railAbajo.id = IDS.bottom.rail;
@@ -281,7 +376,7 @@
   }
   sincronizar();   // plegado por defecto, y dicho: los tres botones nacen en false
   btnIzq.addEventListener('click', function () { abrir('left', !abierto('left')); });
-  btnDer.addEventListener('click', function () { abrir('right', !abierto('right')); });
+  btnDer.addEventListener('click', function () { if (!abierto('right')) construirIrA(); abrir('right', !abierto('right')); });
   btnAbajo.addEventListener('click', function () {
     abrir('bottom', !abierto('bottom'));
     if (abierto('bottom') && cli && cli.input.focus) cli.input.focus();
@@ -306,7 +401,7 @@
     if (acoplable()) return;
     if (!LADOS.some(abierto)) return;
     if (!e.target || !e.target.closest) return;
-    if (e.target.closest('.yk-rail') || e.target.closest(modoCabecera ? '.yk-head' : '.yk-bar')) return;
+    if (e.target.closest('.yk-rail') || e.target.closest('.yk-resize') || e.target.closest(modoCabecera ? '.yk-head' : '.yk-bar')) return;
     // Un control de la página que abre un panel (data-yk-toggle) no lo cierra a la vez.
     if (e.target.closest('[data-yk-toggle]')) return;
     cerrarTodo();
@@ -315,6 +410,123 @@
     if (typeof ResizeObserver === 'function') new ResizeObserver(medir).observe(cabecera);
     if (typeof G.addEventListener === 'function') G.addEventListener('resize', medir);
   }
+
+  // ── Paneles REDIMENSIONABLES (Carlos, 2-oct-2026: «en la UX cuadrática siempre
+  // tienen que ser resizables las ventanas de opciones, avanzado y experto») ────
+  // Cada panel lleva un tirador en su borde INTERIOR: ☰ el derecho, ▤ el izquierdo y
+  // ⌘ el superior. Se arrastra con el ratón o el dedo, o con el teclado (flechas;
+  // Mayús = pasos largos; Inicio/Fin = mínimo/máximo; Intro o doble clic = tamaño por
+  // defecto). El tamaño se recuerda entre páginas (admiranext_frame_sizes_v1). Los
+  // tiradores viven FUERA del panel (position:fixed), porque el panel hace scroll y un
+  // hijo absoluto se iría con el contenido; sólo se ven con su panel abierto.
+  var CLAVE_TAM = 'admiranext_frame_sizes_v1';
+  var EJE = {left: 'x', right: 'x', bottom: 'y'};
+  var VAR_TAM = {left: '--yk-w-left', right: '--yk-w-right', bottom: '--yk-h-bottom'};
+  var NOMBRE = {left: nomIzq, right: nomDer, bottom: nomAbajo};
+  var tamaños = {};
+  try { tamaños = JSON.parse(localStorage.getItem(CLAVE_TAM) || '{}') || {}; } catch (e) { tamaños = {}; }
+  function ancho() { return G.innerWidth || 1280; }
+  function alto() { return G.innerHeight || 800; }
+  function limites(lado) {
+    if (EJE[lado] === 'y') {
+      var barra = (bar && bar.offsetHeight) || 46;
+      return {min: 120, max: Math.max(160, Math.round(alto() - barra - 60))};
+    }
+    var w = ancho();
+    return {min: Math.min(220, Math.round(w * 0.8)), max: w <= 720 ? Math.round(w * 0.92) : Math.min(760, Math.round(w * 0.6))};
+  }
+  function medida(lado) {
+    var r = CAJON[lado].rail;
+    return r ? Math.round(EJE[lado] === 'y' ? r.offsetHeight : r.offsetWidth) || 0 : 0;
+  }
+  var tiradores = {};
+  function aplicarTam(lado, px, guardarlo) {
+    if (!root.style || !root.style.setProperty) return;
+    if (px == null) {
+      if (root.style.removeProperty) root.style.removeProperty(VAR_TAM[lado]);
+      delete tamaños[lado];
+    } else {
+      var l = limites(lado);
+      px = Math.round(Math.min(l.max, Math.max(l.min, px)));
+      root.style.setProperty(VAR_TAM[lado], px + 'px');
+      tamaños[lado] = px;
+    }
+    var t = tiradores[lado];
+    if (t) {
+      var l2 = limites(lado);
+      t.setAttribute('aria-valuemin', String(l2.min));
+      t.setAttribute('aria-valuemax', String(l2.max));
+      t.setAttribute('aria-valuenow', String(px == null ? medida(lado) : px));
+    }
+    medir();
+    if (guardarlo) { try { localStorage.setItem(CLAVE_TAM, JSON.stringify(tamaños)); } catch (e) { /* sin almacenamiento */ } }
+  }
+  function tirador(lado) {
+    var r = CAJON[lado].rail;
+    if (!r) return null;
+    var t = el('div', 'yk-resize yk-resize-' + lado);
+    t.setAttribute('role', 'separator');
+    t.setAttribute('tabindex', '0');
+    t.setAttribute('aria-orientation', EJE[lado] === 'y' ? 'horizontal' : 'vertical');
+    t.setAttribute('aria-controls', IDS[lado].rail);
+    t.setAttribute('aria-label', 'Redimensionar ' + NOMBRE[lado].charAt(0) + NOMBRE[lado].slice(1).toLowerCase());
+    t.setAttribute('title', 'Arrastra para cambiar el tamaño · doble clic: tamaño por defecto');
+    var arrastre = null;
+    function desde(e) {
+      return lado === 'left' ? e.clientX : lado === 'right' ? ancho() - e.clientX : alto() - e.clientY;
+    }
+    t.addEventListener('pointerdown', function (e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      e.preventDefault();
+      arrastre = {id: e.pointerId};
+      if (t.setPointerCapture) { try { t.setPointerCapture(e.pointerId); } catch (x) { /* nada */ } }
+      root.classList.add('yk-resizing');
+    });
+    t.addEventListener('pointermove', function (e) {
+      if (!arrastre) return;
+      aplicarTam(lado, desde(e), false);
+    });
+    function soltar() {
+      if (!arrastre) return;
+      arrastre = null;
+      root.classList.remove('yk-resizing');
+      try { localStorage.setItem(CLAVE_TAM, JSON.stringify(tamaños)); } catch (e) { /* sin almacenamiento */ }
+    }
+    t.addEventListener('pointerup', soltar);
+    t.addEventListener('pointercancel', soltar);
+    t.addEventListener('dblclick', function () { aplicarTam(lado, null, true); });
+    t.addEventListener('keydown', function (e) {
+      var paso = e.shiftKey ? 64 : 16, actual = tamaños[lado] || medida(lado), l = limites(lado), nuevo = null;
+      // Las flechas mueven el BORDE: en ☰ la derecha agranda, en ▤ la izquierda, en ⌘ arriba.
+      var crece = {left: 'ArrowRight', right: 'ArrowLeft', bottom: 'ArrowUp'}[lado];
+      var mengua = {left: 'ArrowLeft', right: 'ArrowRight', bottom: 'ArrowDown'}[lado];
+      if (e.key === crece) nuevo = actual + paso;
+      else if (e.key === mengua) nuevo = actual - paso;
+      else if (e.key === 'Home') nuevo = l.min;
+      else if (e.key === 'End') nuevo = l.max;
+      else if (e.key === 'Enter') { e.preventDefault(); aplicarTam(lado, null, true); return; }
+      else return;
+      e.preventDefault();
+      aplicarTam(lado, nuevo, true);
+    });
+    body.appendChild(t);
+    tiradores[lado] = t;
+    return t;
+  }
+  LADOS.forEach(function (lado) {
+    tirador(lado);
+    if (tamaños[lado]) aplicarTam(lado, tamaños[lado], false);
+    else if (tiradores[lado]) aplicarTam(lado, null, false);
+  });
+  // Si la ventana encoge, el tamaño guardado se recorta a lo que cabe (sin olvidarlo).
+  if (typeof G.addEventListener === 'function') G.addEventListener('resize', function () {
+    LADOS.forEach(function (lado) {
+      if (!tamaños[lado] || !root.style || !root.style.setProperty) return;
+      var l = limites(lado);
+      root.style.setProperty(VAR_TAM[lado], Math.min(l.max, Math.max(l.min, tamaños[lado])) + 'px');
+    });
+    medir();
+  });
 
   // ── ⌘ Experto: CLI con registro de verbos ──────────────────────────────────
   var verbos = [];
@@ -429,12 +641,35 @@
     imprimir('CLI de ' + (doc.title || 'AdmiraNeXT') + ' · escribe /help');
   }
 
+  if (modoAuto) {
+    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre otra página de admiranext.com: ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), run: function (args) {
+      var q = normal(args.join(' '));
+      if (!q) { imprimir('Uso: /ir <página> · ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), 'err'); return; }
+      var d = sitioPlano.filter(function (p) { return p.clave.indexOf(q) === 0 || normal(p.nombre).indexOf(q) === 0; })[0];
+      if (!d) { imprimir('No hay ninguna página «' + q + '»', 'err'); return; }
+      imprimir('Abriendo ' + d.nombre + '…');
+      location.href = d.href;
+    }});
+    verbo({id: 'seccion', aliases: ['s'], uso: '<n|texto>', ayuda: 'Salta a una sección de la página (los <h2> del contenido)', run: function (args) {
+      construirIrA();
+      var q = normal(args.join(' '));
+      var s = secciones.filter(function (x, i) { return q && (String(i + 1) === q || normal(x.titulo).indexOf(q) >= 0); })[0];
+      if (!s) {
+        imprimir(secciones.length ? 'Uso: /seccion <n|texto> · ' + secciones.map(function (x, i) { return (i + 1) + ' ' + x.titulo; }).join(' · ') : 'Esta página no tiene secciones', 'err');
+        return;
+      }
+      irA(s.nodo);
+      imprimir('→ ' + s.titulo);
+    }});
+    verbo({id: 'arriba', aliases: ['top'], ayuda: 'Vuelve al principio de la página', run: function () { if (G.scrollTo) G.scrollTo({top: 0, behavior: 'smooth'}); }});
+  }
   (Array.isArray(G.ADMIRA_FRAME_VERBS) ? G.ADMIRA_FRAME_VERBS : []).forEach(verbo);
   G.AdmiraFrame = {
     verbo: verbo,
     ejecutar: ejecutar,
     abrir: function (lado, valor) { abrir(lado, valor !== false); },
     abierto: abierto,
+    tamano: function (lado, px) { if (VAR_TAM[lado]) aplicarTam(lado, px == null ? null : Number(px), true); },
     glifos: GLIFOS
   };
   if (typeof CustomEvent === 'function' && doc.dispatchEvent) doc.dispatchEvent(new CustomEvent('admira-frame:ready'));
