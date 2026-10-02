@@ -9,7 +9,20 @@ Canon de la Galaxia (el mismo de admira.app, Pixeria, XpaceOS y Yokup; FLT-10137
 
 Hasta el 2-oct los glifos eran ⋯ y ⌄ y abrir un panel cerraba los otros; `test/presentation-gallery-quadratic-ux.test.js` vigila ahora el canon.
 
-## Modo barra (por defecto) — `/presentaciones/galeria`, el generador (`/presentaciones/`) y `/mcp/generador`
+### Paneles redimensionables — OBLIGATORIO
+
+Carlos (2-oct-2026): «en la UX cuadrática siempre tienen que ser resizables las ventanas de opciones, avanzado y experto». Toda página con el armazón los tiene sin hacer nada (lo pone `admira-frame.js`, en los dos modos); una interfaz cuadrática que no use el armazón tiene que dar lo mismo.
+
+- Tirador en el borde **interior**: ☰ su borde derecho, ▤ su borde izquierdo, ⌘ su borde superior. Ratón, dedo (`pointer`) y **teclado**: es un `role="separator"` enfocable con `aria-valuenow/min/max`; flechas = 16 px (Mayús = 64), Inicio/Fin = mínimo/máximo, **Intro o doble clic = tamaño por defecto**.
+- Límites: laterales de 220 px a `min(760 px, 60 % del ancho)` (en ≤720 px, hasta el 92 %); ⌘ de 120 px hasta el alto de la ventana menos la barra y 60 px.
+- El tamaño se **recuerda entre páginas** (`localStorage` `admiranext_frame_sizes_v1`, `{left, right, bottom}` en px) y se recorta, sin olvidarlo, si la ventana encoge. Llega a CSS como `--yk-w-left`, `--yk-w-right` y `--yk-h-bottom` en el `<html>`; sin ellas mandan `--yk-rail-w` / `--yk-rail-h`. Acoplados (modo cabecera, ≥1100 px), el contenido se aparta al nuevo ancho.
+- API: `AdmiraFrame.tamano('left'|'right'|'bottom', px|null)` (`null` = por defecto).
+
+### Logotipo — OBLIGATORIO
+
+La marca es el logotipo oficial (`libro-de-estilo.html` §7.4): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sobre oscuro. En modo barra lo pinta el armazón; en modo cabecera la página lo trae en su `<a class="brand">` (marcado `yk-wm-*`) y, si no, el armazón lo sustituye. Nada de «admiraNeXT.» en minúscula con punto.
+
+## Modo barra (por defecto) — `/presentaciones/galeria`, el generador (`/presentaciones/`), `/mcp/` y `/mcp/generador`
 
 El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones … [▤] [⌘]`. La página declara qué va a cada lado:
 
@@ -30,7 +43,7 @@ El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones
 La página conserva SU cabecera y el armazón inserta los iconos en su sitio:
 
 ```
-[☰] admiraNeXT · Analitics · Webmaster · Proyectos · … ● Acceso privado [▤] [⌘]
+[☰] ADmiraNeXT · Analitics · Webmaster · Proyectos · … ● Acceso privado [▤] [⌘]
 ```
 
 ```html
@@ -39,7 +52,7 @@ La página conserva SU cabecera y el armazón inserta los iconos en su sitio:
 …
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head>
-  <a class="brand" href="/">admira<span>NeXT</span><i></i></a>          <!-- único enlace a la home -->
+  <a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a>  <!-- único enlace a la home -->
   <nav aria-label="Navegación del grupo">
     <a href="/analitics" data-yk-admin>Analitics</a><a href="/webmaster">Webmaster</a><a href="/proyectos/">Proyectos</a>
     <a href="/usuarios" data-yk-admin data-yk-rail-only>Usuarios</a>      <!-- data-yk-rail-only: sólo en ☰ -->

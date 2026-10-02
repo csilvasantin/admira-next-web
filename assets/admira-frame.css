@@ -619,12 +619,12 @@ html.yk-framed body{ padding-top: var(--yk-bar-h); }
   font-weight: 800; font-size: 17px; letter-spacing: 0; line-height: 1;
   color: #fff; align-items: baseline;
 }
-.yk-wordmark .yk-wm-admira{ color: #fff }
-.yk-wordmark .yk-wm-next{ display: inline-flex }
-.yk-wordmark .yk-wm-n{ color: #FF3366 }
-.yk-wordmark .yk-wm-e{ color: #FFCC00 }
-.yk-wordmark .yk-wm-x{ color: #33FF99 }
-.yk-wordmark .yk-wm-t{ color: #FF33CC }
+.yk-wm-admira{ color: #fff }
+.yk-wm-next{ display: inline-flex }
+.yk-wm-n{ color: #FF3366 }
+.yk-wm-e{ color: #FFCC00 }
+.yk-wm-x{ color: #33FF99 }
+.yk-wm-t{ color: #FF33CC }
 .yk-bar .yk-logo.yk-wordmark:focus-visible{ outline: 2px solid var(--yk-brand); outline-offset: 4px; border-radius: 4px }
 /* Teléfonos estrechos: el logotipo es algo más ancho que el texto plano de antes;
    se compacta la barra para que ▤ y ⌘ sigan dentro de la pantalla (390 px con tres
@@ -732,6 +732,10 @@ html.yk-head-mode header.yk-head .brand{
 }
 html.yk-head-mode header.yk-head .brand span{ font-weight: 800 }
 html.yk-head-mode header.yk-head .brand i{ display:inline-block; width:7px; height:7px; background:var(--yk-brand); margin:0 0 1px 4px; border-radius:50% }
+/* El logotipo oficial también en la cabecera de la familia (antes «admiraNeXT.» en
+   minúscula con un punto cian): misma letra y mismos neones que el modo barra. */
+html.yk-head-mode header.yk-head .brand{ font: 800 24px/1 'Montserrat','Helvetica Neue',system-ui,-apple-system,sans-serif; letter-spacing: 0; display: inline-flex; align-items: baseline }
+html.yk-head-mode header.yk-head .brand i{ display: none }
 html.yk-head-mode header.yk-head nav{
   display: flex; flex: 0 1 auto; min-width: 0; gap: clamp(16px,2.2vw,32px); margin: 0; padding: 0;
   border: 0; background: none; font-size: 13px; color: var(--yk-mut); flex-wrap: nowrap;
@@ -822,7 +826,7 @@ html.yk-head-mode .yk-expert{ flex: 1; min-height: 0; display: flex; flex-direct
   html.yk-head-mode{ --yk-rail-w: min(88vw, 340px); --yk-rail-h: 62vh }
   html.yk-head-mode header.yk-head{ height: 60px; padding: 0 12px }
   html.yk-head-mode header.yk-head > button.yk-ico{ margin-right: 10px }
-  html.yk-head-mode header.yk-head .brand{ font-size: 22px; margin-right: 8px }
+  html.yk-head-mode header.yk-head .brand{ font-size: 19px; margin-right: 8px }
   /* la navegación se sirve en ☰; en la barra quedan ☰, la marca, el punto de acceso, ▤ y ⌘ */
   html.yk-head-mode header.yk-head nav{ display: none }
   html.yk-head-mode header.yk-head [data-yk-access]{ padding-left: 8px; font-size: 13px }
@@ -833,3 +837,44 @@ html.yk-head-mode .yk-expert{ flex: 1; min-height: 0; display: flex; flex-direct
 @media (prefers-reduced-motion: reduce){
   html.yk-head-mode body{ transition: none }
 }
+
+/* ============================================================================
+ * PANELES REDIMENSIONABLES (obligatorio en la UX cuadrática; Carlos, 2-oct-2026)
+ * El tamaño elegido llega como --yk-w-left / --yk-w-right / --yk-h-bottom en el
+ * <html> (admira-frame.js, recordado en admiranext_frame_sizes_v1); sin él manda el
+ * tamaño por defecto (--yk-rail-w / --yk-rail-h). Los tiradores son position:fixed
+ * en el borde INTERIOR de cada panel y sólo aparecen con su panel abierto.
+ * ==========================================================================*/
+.yk-rail-left{ width: var(--yk-w-left, var(--yk-rail-w)); max-width: 92vw }
+.yk-rail-right{ width: var(--yk-w-right, var(--yk-rail-w)); max-width: 92vw }
+.yk-rail-bottom{ height: var(--yk-h-bottom, var(--yk-rail-h)) }
+html.yk-head-mode .yk-rail-left{ width: var(--yk-w-left, var(--yk-rail-w)) }
+html.yk-head-mode .yk-rail-right{ width: var(--yk-w-right, var(--yk-rail-w)) }
+html.yk-head-mode .yk-rail-bottom{ height: var(--yk-h-bottom, var(--yk-rail-h)) }
+
+.yk-resize{
+  position: fixed; z-index: calc(var(--yk-z) + 5);
+  display: none; touch-action: none; background: transparent;
+  outline: none;
+}
+.yk-resize::after{
+  content: ""; position: absolute; border-radius: 3px;
+  background: var(--yk-line2); opacity: .55; transition: background .15s, opacity .15s;
+}
+.yk-resize:hover::after, .yk-resize:focus-visible::after, html.yk-resizing .yk-resize::after{ background: var(--yk-brand); opacity: 1 }
+.yk-resize:focus-visible{ box-shadow: 0 0 0 2px var(--yk-brand) inset }
+/* laterales: franja de 10 px centrada en el borde interior, bajo la barra */
+.yk-resize-left, .yk-resize-right{ top: var(--yk-bar-h); bottom: 0; width: 10px; cursor: col-resize }
+.yk-resize-left{ left: calc(min(var(--yk-w-left, var(--yk-rail-w)), 92vw) - 5px) }
+.yk-resize-right{ right: calc(min(var(--yk-w-right, var(--yk-rail-w)), 92vw) - 5px) }
+.yk-resize-left::after, .yk-resize-right::after{ top: 50%; left: 3px; width: 4px; height: 44px; transform: translateY(-50%) }
+/* inferior: franja de 10 px en el borde superior de ⌘ */
+.yk-resize-bottom{ height: 10px; cursor: row-resize; left: 0; right: var(--yk-avatar-safe); bottom: calc(var(--yk-h-bottom, var(--yk-rail-h)) - 5px) }
+html.yk-head-mode .yk-resize-bottom{ left: var(--yk-dock-l); right: var(--yk-dock-r) }
+.yk-resize-bottom::after{ left: 50%; top: 3px; height: 4px; width: 44px; transform: translateX(-50%) }
+.yk-open-left .yk-resize-left, .yk-open-right .yk-resize-right, .yk-open-bottom .yk-resize-bottom{ display: block }
+/* Mientras se arrastra: sin animaciones (el panel sigue al puntero) ni selección de texto */
+html.yk-resizing, html.yk-resizing *{ user-select: none !important; -webkit-user-select: none !important }
+html.yk-resizing .yk-rail, html.yk-resizing.yk-head-mode body{ transition: none !important }
+/* Pie de los raíles también en modo barra (antes heredaba la letra de la página). */
+.yk-rail-foot{ font: 10px/1.4 var(--yk-mono); letter-spacing: .06em; color: var(--yk-dim) }

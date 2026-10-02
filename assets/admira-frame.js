@@ -81,6 +81,8 @@
   };
   // Los glifos del canon, en un único sitio (el test guardián los lee de aquí).
   var GLIFOS = {left: '☰', right: '▤', bottom: '⌘'};
+  // El logotipo oficial, en un único sitio: «ADmira» en blanco y N·e·X·T en neón.
+  var LOGO = '<span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span>';
 
   function icono(lado, nombre) {
     var b = el('button', 'yk-ico', '<span aria-hidden="true">' + GLIFOS[lado] + '</span>');
@@ -115,6 +117,11 @@
     bar = cabecera;
     root.classList.add('yk-head-mode');
     cabecera.classList.add('yk-head');
+    // La marca de la cabecera es el LOGOTIPO OFICIAL (libro-de-estilo.html §7.4), el
+    // mismo que pinta el modo barra. Las páginas ya lo traen en su HTML; si alguna
+    // vuelve al «admiraNeXT.» en minúscula con punto, aquí se corrige.
+    var marcaCab = cabecera.querySelector('a[href="/"]');
+    if (marcaCab && String(marcaCab.innerHTML || '').indexOf('yk-wm-next') < 0) marcaCab.innerHTML = LOGO;
     cabecera.insertBefore(btnIzq, cabecera.firstChild);
     var acceso = cabecera.querySelector('[data-yk-access]');
     if (acceso && acceso.parentNode) acceso.parentNode.insertBefore(meta, acceso.nextSibling);
@@ -134,7 +141,7 @@
     // amarillo, verde y magenta. Hasta el 2-oct era texto plano «ADmiraNeXT» en
     // monoespaciada y Carlos lo señaló en el generador: «no respeta el logo». Las
     // piezas van pegadas (.yk-bar .yk-logo lleva gap:0), así que se lee de un tirón.
-    var marca = el('a', 'yk-logo yk-wordmark', '<span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span>');
+    var marca = el('a', 'yk-logo yk-wordmark', LOGO);
     marca.href = '/';
     marca.setAttribute('aria-label', 'ADmiraNeXT, inicio');
 
@@ -309,7 +316,7 @@
     if (acoplable()) return;
     if (!LADOS.some(abierto)) return;
     if (!e.target || !e.target.closest) return;
-    if (e.target.closest('.yk-rail') || e.target.closest(modoCabecera ? '.yk-head' : '.yk-bar')) return;
+    if (e.target.closest('.yk-rail') || e.target.closest('.yk-resize') || e.target.closest(modoCabecera ? '.yk-head' : '.yk-bar')) return;
     // Un control de la página que abre un panel (data-yk-toggle) no lo cierra a la vez.
     if (e.target.closest('[data-yk-toggle]')) return;
     cerrarTodo();
@@ -318,6 +325,123 @@
     if (typeof ResizeObserver === 'function') new ResizeObserver(medir).observe(cabecera);
     if (typeof G.addEventListener === 'function') G.addEventListener('resize', medir);
   }
+
+  // ── Paneles REDIMENSIONABLES (Carlos, 2-oct-2026: «en la UX cuadrática siempre
+  // tienen que ser resizables las ventanas de opciones, avanzado y experto») ────
+  // Cada panel lleva un tirador en su borde INTERIOR: ☰ el derecho, ▤ el izquierdo y
+  // ⌘ el superior. Se arrastra con el ratón o el dedo, o con el teclado (flechas;
+  // Mayús = pasos largos; Inicio/Fin = mínimo/máximo; Intro o doble clic = tamaño por
+  // defecto). El tamaño se recuerda entre páginas (admiranext_frame_sizes_v1). Los
+  // tiradores viven FUERA del panel (position:fixed), porque el panel hace scroll y un
+  // hijo absoluto se iría con el contenido; sólo se ven con su panel abierto.
+  var CLAVE_TAM = 'admiranext_frame_sizes_v1';
+  var EJE = {left: 'x', right: 'x', bottom: 'y'};
+  var VAR_TAM = {left: '--yk-w-left', right: '--yk-w-right', bottom: '--yk-h-bottom'};
+  var NOMBRE = {left: nomIzq, right: nomDer, bottom: nomAbajo};
+  var tamaños = {};
+  try { tamaños = JSON.parse(localStorage.getItem(CLAVE_TAM) || '{}') || {}; } catch (e) { tamaños = {}; }
+  function ancho() { return G.innerWidth || 1280; }
+  function alto() { return G.innerHeight || 800; }
+  function limites(lado) {
+    if (EJE[lado] === 'y') {
+      var barra = (bar && bar.offsetHeight) || 46;
+      return {min: 120, max: Math.max(160, Math.round(alto() - barra - 60))};
+    }
+    var w = ancho();
+    return {min: Math.min(220, Math.round(w * 0.8)), max: w <= 720 ? Math.round(w * 0.92) : Math.min(760, Math.round(w * 0.6))};
+  }
+  function medida(lado) {
+    var r = CAJON[lado].rail;
+    return r ? Math.round(EJE[lado] === 'y' ? r.offsetHeight : r.offsetWidth) || 0 : 0;
+  }
+  var tiradores = {};
+  function aplicarTam(lado, px, guardarlo) {
+    if (!root.style || !root.style.setProperty) return;
+    if (px == null) {
+      if (root.style.removeProperty) root.style.removeProperty(VAR_TAM[lado]);
+      delete tamaños[lado];
+    } else {
+      var l = limites(lado);
+      px = Math.round(Math.min(l.max, Math.max(l.min, px)));
+      root.style.setProperty(VAR_TAM[lado], px + 'px');
+      tamaños[lado] = px;
+    }
+    var t = tiradores[lado];
+    if (t) {
+      var l2 = limites(lado);
+      t.setAttribute('aria-valuemin', String(l2.min));
+      t.setAttribute('aria-valuemax', String(l2.max));
+      t.setAttribute('aria-valuenow', String(px == null ? medida(lado) : px));
+    }
+    medir();
+    if (guardarlo) { try { localStorage.setItem(CLAVE_TAM, JSON.stringify(tamaños)); } catch (e) { /* sin almacenamiento */ } }
+  }
+  function tirador(lado) {
+    var r = CAJON[lado].rail;
+    if (!r) return null;
+    var t = el('div', 'yk-resize yk-resize-' + lado);
+    t.setAttribute('role', 'separator');
+    t.setAttribute('tabindex', '0');
+    t.setAttribute('aria-orientation', EJE[lado] === 'y' ? 'horizontal' : 'vertical');
+    t.setAttribute('aria-controls', IDS[lado].rail);
+    t.setAttribute('aria-label', 'Redimensionar ' + NOMBRE[lado].charAt(0) + NOMBRE[lado].slice(1).toLowerCase());
+    t.setAttribute('title', 'Arrastra para cambiar el tamaño · doble clic: tamaño por defecto');
+    var arrastre = null;
+    function desde(e) {
+      return lado === 'left' ? e.clientX : lado === 'right' ? ancho() - e.clientX : alto() - e.clientY;
+    }
+    t.addEventListener('pointerdown', function (e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      e.preventDefault();
+      arrastre = {id: e.pointerId};
+      if (t.setPointerCapture) { try { t.setPointerCapture(e.pointerId); } catch (x) { /* nada */ } }
+      root.classList.add('yk-resizing');
+    });
+    t.addEventListener('pointermove', function (e) {
+      if (!arrastre) return;
+      aplicarTam(lado, desde(e), false);
+    });
+    function soltar() {
+      if (!arrastre) return;
+      arrastre = null;
+      root.classList.remove('yk-resizing');
+      try { localStorage.setItem(CLAVE_TAM, JSON.stringify(tamaños)); } catch (e) { /* sin almacenamiento */ }
+    }
+    t.addEventListener('pointerup', soltar);
+    t.addEventListener('pointercancel', soltar);
+    t.addEventListener('dblclick', function () { aplicarTam(lado, null, true); });
+    t.addEventListener('keydown', function (e) {
+      var paso = e.shiftKey ? 64 : 16, actual = tamaños[lado] || medida(lado), l = limites(lado), nuevo = null;
+      // Las flechas mueven el BORDE: en ☰ la derecha agranda, en ▤ la izquierda, en ⌘ arriba.
+      var crece = {left: 'ArrowRight', right: 'ArrowLeft', bottom: 'ArrowUp'}[lado];
+      var mengua = {left: 'ArrowLeft', right: 'ArrowRight', bottom: 'ArrowDown'}[lado];
+      if (e.key === crece) nuevo = actual + paso;
+      else if (e.key === mengua) nuevo = actual - paso;
+      else if (e.key === 'Home') nuevo = l.min;
+      else if (e.key === 'End') nuevo = l.max;
+      else if (e.key === 'Enter') { e.preventDefault(); aplicarTam(lado, null, true); return; }
+      else return;
+      e.preventDefault();
+      aplicarTam(lado, nuevo, true);
+    });
+    body.appendChild(t);
+    tiradores[lado] = t;
+    return t;
+  }
+  LADOS.forEach(function (lado) {
+    tirador(lado);
+    if (tamaños[lado]) aplicarTam(lado, tamaños[lado], false);
+    else if (tiradores[lado]) aplicarTam(lado, null, false);
+  });
+  // Si la ventana encoge, el tamaño guardado se recorta a lo que cabe (sin olvidarlo).
+  if (typeof G.addEventListener === 'function') G.addEventListener('resize', function () {
+    LADOS.forEach(function (lado) {
+      if (!tamaños[lado] || !root.style || !root.style.setProperty) return;
+      var l = limites(lado);
+      root.style.setProperty(VAR_TAM[lado], Math.min(l.max, Math.max(l.min, tamaños[lado])) + 'px');
+    });
+    medir();
+  });
 
   // ── ⌘ Experto: CLI con registro de verbos ──────────────────────────────────
   var verbos = [];
@@ -438,6 +562,7 @@
     ejecutar: ejecutar,
     abrir: function (lado, valor) { abrir(lado, valor !== false); },
     abierto: abierto,
+    tamano: function (lado, px) { if (VAR_TAM[lado]) aplicarTam(lado, px == null ? null : Number(px), true); },
     glifos: GLIFOS
   };
   if (typeof CustomEvent === 'function' && doc.dispatchEvent) doc.dispatchEvent(new CustomEvent('admira-frame:ready'));

@@ -21,7 +21,7 @@ export async function onRequestGet(context){
   // monta [☰] ADmiraNeXT · GENERADOR · secciones … [▤] [⌘] con el logotipo oficial.
   html=html.replace('</head>','<link rel="stylesheet" href="/assets/presentation-generator-quadratic.css?v=2"></head>');
   html=html.replace('</head>','<link rel="stylesheet" href="/assets/presentation-media-library.css?v=20260724-1"></head>');
-  html=html.replace('</body>','<script src="/assets/presentation-generator-quadratic.js?v=20261002-armazon"></script><script src="/assets/admira-frame.js?v=v.02.10.2026-r12" defer></script><script src="/assets/presentation-media-library.js?v=20260724-1"></script></body>');
+  html=html.replace('</body>','<script src="/assets/presentation-generator-quadratic.js?v=20261002-armazon"></script><script src="/assets/admira-frame.js?v=v.02.10.2026-r13" defer></script><script src="/assets/presentation-media-library.js?v=20260724-1"></script></body>');
   // PROSPECT (01-10-2026): interruptor y selector de marca del destinatario (marca blanca).
   html=html.replace('</head>','<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261001-prospect"><link rel="stylesheet" href="/assets/presentation-prospect.css?v=20261001-prospect"></head>');
   html=html.replace('</body>','<script type="module" src="/assets/presentation-prospect.js?v=20261001-catalogo2"></script></body>');
@@ -31,6 +31,6 @@ export async function onRequestGet(context){
   html=html.replace('<form id="generator">','<section class="panel" id="propuestaAutomatica"><h2>Propuesta automática</h2><p class="sub">De una marca, su web o una idea a la propuesta completa: estudio de la compañía, presentación con su marca y las 4 soluciones (Studio, Store, App, Biz). Solo ante una oportunidad concreta.</p><div data-lanzar-propuesta="generador"></div></section><form id="generator">');
   html=html.replace('</body>','<script type="module" src="/marcablanca/lanzar-propuesta.js?v=20261002-propuesta"></script></body>');
   // El CSS del armazón, el ÚLTIMO del <head>: después de todos los estilos de la página.
-  html=html.replace('</head>','<link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r12"></head>');
+  html=html.replace('</head>','<link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r13"></head>');
   return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
 }
