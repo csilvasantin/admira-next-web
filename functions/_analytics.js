@@ -1,17 +1,20 @@
 import { PROYECTOS } from './_proyectos.js';
 export const canonicalHost = host => String(host || '').toLowerCase().replace(/^www\./, '');
 export function period(days, now = new Date()) {
-  if (![1,7,30].includes(days)) throw new Error('Periodo no válido');
+  if (![0,1,7,30].includes(days)) throw new Error('Periodo no válido');
   // Últimos N días naturales UTC, incluyendo el día en curso.
   const end = now.toISOString();
+  if (days === 0) return {start:new Date(now.getTime()-3600000).toISOString(),end,days,timezone:'UTC',resolution:'minute'};
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - (days-1)*86400000).toISOString();
   return {start,end,days,timezone:'UTC'};
 }
 export function buildQuery(account, range, host = '') {
   const f = `datetime_geq:${JSON.stringify(range.start)},datetime_lt:${JSON.stringify(range.end)},bot:0`;
+  const end=new Date(range.end);
+  const coverageFilter=n=>`datetime_geq:${JSON.stringify(period(n,end).start)},datetime_lt:${JSON.stringify(range.end)},bot:0`;
   const filter = host ? `${f},requestHost_in:${JSON.stringify([host, 'www.'+host])}` : f;
   const node = (alias,dimensions,limit=1000,nodeFilter=filter) => `${alias}:rumPageloadEventsAdaptiveGroups(limit:${limit},filter:{${nodeFilter}},orderBy:[${alias==='referrers'?'sum_visits_DESC':'count_DESC'}]){count sum{visits} dimensions{${dimensions}}}`;
-  return `{viewer{accounts(filter:{accountTag:${JSON.stringify(account)}}){${node('hosts','requestHost',1000,f)} ${node('daily','date requestHost')} ${host ? [node('paths','requestPath',10),node('countries','countryName',10),node('referrers','refererHost',10),node('devices','deviceType',10)].join(' ') : ''}}}}`;
+  return `{viewer{accounts(filter:{accountTag:${JSON.stringify(account)}}){${node('hosts','requestHost',1000,f)} ${node('coverageWeek','requestHost',1000,coverageFilter(7))} ${node('coverageMonth','requestHost',1000,coverageFilter(30))} ${node('daily',range.resolution==='minute'?'datetimeMinute requestHost':'date requestHost')} ${host ? [node('paths','requestPath',10),node('countries','countryName',10),node('referrers','refererHost',10),node('devices','deviceType',10)].join(' ') : ''}}}}`;
 }
 async function cloudflare(env, path, body, fetchImpl) {
   const r = await fetchImpl('https://api.cloudflare.com/client/v4'+path, {
@@ -62,13 +65,15 @@ export async function readAnalytics(env, days, host = '', fetchImpl = fetch, now
   if (!account || !Array.isArray(account.hosts) || !Array.isArray(account.daily)) throw new Error('Cloudflare no devolvió un resultado válido.');
   const allHosts=summarise(account.hosts);
   const map=host ? new Map([...allHosts].filter(([key])=>key===host)) : allHosts;
-  const sites = catalogue(projects?.result, measurement?.result,account.hosts).map(s=>{
+  const sites = catalogue(projects?.result, measurement?.result,[...account.hosts,...(account.coverageWeek || []),...(account.coverageMonth || [])]).map(s=>{
     const metrics=allHosts.get(s.host);
-    return {...s,visits:s.configured ? metrics?.visits || 0 : null,pageviews:s.configured ? metrics?.pageviews || 0 : null,status:metrics ? 'measuring' : s.configured ? 'no_activity' : (projects && measurement) ? 'not_configured' : 'unknown'};
+    return {...s,visits:s.configured ? metrics?.visits || 0 : null,pageviews:s.configured ? metrics?.pageviews || 0 : null,status:metrics ? 'measuring' : s.configured ? 'no_activity' : 'unknown'};
   });
   const series=[];
-  for(let d=new Date(range.start); d<=now; d=new Date(d.getTime()+86400000)) {
-    const date=d.toISOString().slice(0,10), rows=account.daily.filter(r=>r.dimensions.date===date);
+  const minute=range.resolution==='minute', step=minute?60000:86400000;
+  const first=minute?new Date(Math.floor(new Date(range.start).getTime()/60000)*60000):new Date(range.start);
+  for(let d=first; (minute?d<now:d<=now); d=new Date(d.getTime()+step)) {
+    const date=minute?d.toISOString():d.toISOString().slice(0,10), rows=account.daily.filter(r=>minute ? new Date(r.dimensions.datetimeMinute).getTime()===d.getTime() : r.dimensions.date===date);
     const totals=[...summarise(rows).values()];
     series.push({date,visits:totals.reduce((n,x)=>n+x.visits,0),pageviews:totals.reduce((n,x)=>n+x.pageviews,0)});
   }

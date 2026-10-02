@@ -23,3 +23,9 @@ test('ni API ni página entregan datos sin sesión; un editor no accede al grupo
   const user=env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind('csilva@admira.com').first();const cookie=(await cookieDeSesion(env,user)).split(';')[0];
   assert.equal((await onRequestGet({request:new Request(request,{headers:{cookie}}),env})).status,403);
 });
+test('última hora utiliza buckets de minuto y no pierde cobertura histórica',async()=>{
+ const fetchImpl=async(url)=>new Response(JSON.stringify(url.endsWith('/graphql')?{data:{viewer:{accounts:[{hosts:[],daily:[{count:2,sum:{visits:1},dimensions:{datetimeMinute:'2026-10-02T11:45:00Z',requestHost:'www.admira.app'}}],coverageWeek:[{dimensions:{requestHost:'www.admira.app'}}],coverageMonth:[]} ]}}}:{success:true,result:[]}));
+ const r=await readAnalytics({CF_ACCOUNT_ID:'a',CF_API_TOKEN:'secret'},0,'',fetchImpl,now);
+ assert.equal(r.range.resolution,'minute');assert.equal(r.series.length,60);assert.equal(r.series.find(x=>x.date==='2026-10-02T11:45:00.000Z').visits,1);assert.equal(r.sites.find(x=>x.host==='admira.app').configured,true);
+ assert.match(buildQuery('a',period(0,now)),/datetimeMinute requestHost/);
+});

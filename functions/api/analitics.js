@@ -8,9 +8,9 @@ export async function onRequestGet({request,env}) {
   // La vista del grupo cruza proyectos: sólo administradores del directorio.
   if (current.role !== 'admin') return json({ok:false,error:'La vista del grupo requiere un administrador de AdmiraNeXT.'},403);
   const params=new URL(request.url).searchParams, days=Number(params.get('days') || 7), host=canonicalHost(params.get('site') || '');
-  if (![1,7,30].includes(days) || host && !/^[a-z0-9.-]{1,253}$/.test(host)) return json({ok:false,error:'Filtro no válido.'},400);
+  if (![0,1,7,30].includes(days) || host && !/^[a-z0-9.-]{1,253}$/.test(host)) return json({ok:false,error:'Filtro no válido.'},400);
   const key=`${env.CF_ACCOUNT_ID}:${days}:${host}`, cached=memo.get(key);
-  if(cached && Date.now()-cached.at<300000) return json({...cached.data,cached:true});
+  if(cached && Date.now()-cached.at<(days===0?30000:300000)) return json({...cached.data,cached:true});
   try {
     const data=await readAnalytics(env,days,host);
     if (memo.size>100) memo.clear();
