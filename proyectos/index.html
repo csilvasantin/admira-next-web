@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Proyectos · AdmiraNeXT</title>
 <meta name="description" content="Modelo canónico de usuario y proyecto: xpacio, responsable, puertas /help y /mcp, y cómo se declara el principal del día.">
-<meta name="admiranext-version" content="v.07.09.2026.r1.05:56">
+<meta name="admiranext-version" content="v.02.10.2026.r10.21:08">
 <link rel="icon" href="/favicon.ico">
 <style>
 :root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -30,15 +30,16 @@ code{font-family:var(--mono);font-size:.92em}
 .counts b{color:var(--ink)}
 @media(max-width:760px){table,thead,tbody,tr,th,td{display:block}thead{display:none}td{border:0;padding:4px 0}}
 </style>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=02.10.2026.r10.21:08">
+<script defer src="/assets/admira-frame.js?v=02.10.2026.r10.21:08"></script>
 </head>
-<body>
+<body data-yk-frame="cabecera">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="AdmiraNeXT · Inicio">admira<span>NeXT</span><i></i></a><nav aria-label="Navegación del grupo"><a href="/analitics" data-yk-admin>Analitics</a><a href="/webmaster">Webmaster</a><a href="/proyectos/" aria-current="page">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-rail-only>Usuarios</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a><a href="/flota" data-yk-rail-only>Flota</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 <main class="shell">
   <p class="eyebrow">AdmiraNeXT · definición</p>
   <h1>Usuarios y proyectos</h1>
   <p class="lede">El censo vivo está en Yokup. Aquí se ve el modelo (quién es un usuario, qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada.</p>
-  <nav>
-    <a href="/usuarios">Gestión de usuarios</a>
-    <a href="/webmaster">Webmaster</a>
+  <nav data-yk-slot="left" data-yk-label="Esta página" aria-label="Enlaces de la página">
     <a href="/help/#usuarios-proyectos">/help</a>
     <a href="/mcp/">/mcp</a>
     <a href="https://www.yokup.com/misiones">Yokup /misiones</a>
@@ -70,7 +71,7 @@ code{font-family:var(--mono);font-size:.92em}
     </div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="censo">
     <div class="dir-head">
       <h2>Censo vivo</h2>
       <div id="counts" class="counts"><span>cargando…</span></div>
@@ -83,7 +84,20 @@ code{font-family:var(--mono);font-size:.92em}
       </table>
     </div>
   </section>
+  <div class="yk-slots" hidden>
+    <div data-yk-slot="right" data-yk-label="Ir a"><a href="#modelo">Modelo canónico</a><a href="#censo">Censo vivo</a></div>
+    <div data-yk-slot="right" data-yk-label="Acciones"><button type="button" data-pr-action="recargar">↻ Volver a leer el censo</button></div>
+  </div>
 </main>
+<script>
+/* ⌘ Experto de /proyectos (FLT-101373). */
+window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
+  {id:'buscar',aliases:['q'],uso:'<texto>',ayuda:'Filtra el censo vivo (id, nombre, xpacio o responsable)',run:function(a,ctx){var q=a.join(' ').toLowerCase(),n=0;[].forEach.call(document.querySelectorAll('#rows tr'),function(tr){var ok=!q||tr.textContent.toLowerCase().indexOf(q)>=0;tr.hidden=!ok;if(ok)n++;});ctx.imprimir(q?n+' proyectos coinciden con «'+q+'»':'Censo sin filtro');}},
+  {id:'censo',aliases:['counts'],ayuda:'Cuenta los proyectos del censo por xpacio',run:function(a,ctx){ctx.imprimir(document.getElementById('counts').textContent.replace(/\s+/g,' ').trim()+' · '+document.getElementById('status').textContent);}},
+  {id:'seccion',aliases:['ver'],uso:'<modelo|censo>',ayuda:'Salta a una sección',run:function(a,ctx){var s=document.getElementById(String(a[0]||'').toLowerCase());if(!s||['modelo','censo'].indexOf(s.id)<0){ctx.error('Uso: /seccion modelo | censo');return;}s.scrollIntoView({behavior:'smooth'});ctx.imprimir(s.querySelector('h2').textContent);}}
+]);
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-pr-action="recargar"]'))location.reload();});
+</script>
 <script>
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function xpacioDe(p){

@@ -195,20 +195,40 @@ test('cada nivel tiene su icono en la barra, dice qué cajón abre y nace plegad
   assert.deepEqual(iconos, ['ykOptionsToggle', 'ykAdvancedToggle', 'ykExpertToggle']);
 });
 
-test('abrir un nivel cierra los otros, y Escape los pliega todos', async () => {
+// Canon de la Galaxia (FLT-101373, 2-oct-2026): los tres paneles son INDEPENDIENTES
+// —abrir uno no cierra los otros, como en admira.app, Pixeria, XpaceOS y Yokup— y
+// Esc cierra el panel enfocado o, sin foco en ninguno, el último que se abrió.
+// Antes este test exigía lo contrario (abrir uno cerraba los otros y Esc los
+// plegaba todos de golpe).
+test('los niveles se abren por separado, y Escape pliega el último abierto', async () => {
   const {raiz, documento, pulsar, teclear} = await armazonMontado();
   const estado = () => NIVELES.map((nivel) => documento.getElementById(nivel.icono).getAttribute('aria-expanded'));
 
-  for (const abierto of NIVELES) {
+  NIVELES.forEach((abierto, i) => {
     pulsar(documento.getElementById(abierto.icono));
-    assert.deepEqual(estado(), NIVELES.map((nivel) => String(nivel === abierto)), `solo ${abierto.lado} queda abierto`);
+    assert.deepEqual(estado(), NIVELES.map((nivel, j) => String(j <= i)), `abrir ${abierto.lado} no cierra los que ya estaban abiertos`);
     assert.ok(raiz.clases.has(abierto.clase), `el armazón marca ${abierto.clase}`);
     assert.equal(documento.getElementById(abierto.cajon).inert, false, 'el cajón abierto sí recibe el tabulador');
-  }
+  });
+
+  pulsar(documento.getElementById(NIVELES[0].icono));
+  assert.deepEqual(estado(), ['false', 'true', 'true'], 'el icono vuelve a plegar SU panel y solo el suyo');
 
   teclear('Escape');
-  assert.deepEqual(estado(), ['false', 'false', 'false'], 'Escape devuelve el marco a plegado');
-  assert.deepEqual([...raiz.clases], [], 'y no deja ningún lado marcado como abierto');
+  assert.deepEqual(estado(), ['false', 'true', 'false'], 'Escape pliega el último que se abrió (⌘)');
+  teclear('Escape');
+  assert.deepEqual(estado(), ['false', 'false', 'false'], 'y el siguiente Escape, el anterior');
+  assert.deepEqual([...raiz.clases], [], 'sin ningún lado marcado como abierto');
+});
+
+test('los iconos son los del canon: ☰ Opciones, ▤ Avanzado y ⌘ Experto', async () => {
+  const fuente = await readFile(new URL('../assets/admira-frame.js', import.meta.url), 'utf8');
+  assert.match(fuente, /GLIFOS = \{left: '☰', right: '▤', bottom: '⌘'\}/);
+  assert.doesNotMatch(fuente, /aria-hidden="true">(⋯|⌄)</, 'los glifos viejos ⋯ y ⌄ no vuelven');
+  const {documento} = await armazonMontado();
+  for (const [id, glifo] of [['ykOptionsToggle', '☰'], ['ykAdvancedToggle', '▤'], ['ykExpertToggle', '⌘']]) {
+    assert.match(documento.getElementById(id).innerHTML, new RegExp(glifo));
+  }
 });
 
 test('el rediseño conserva el control de accesos y la entrada al presentador', async () => {
