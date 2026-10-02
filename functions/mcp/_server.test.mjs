@@ -171,7 +171,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.7.0');
+  assert.equal(init.result.serverInfo.version, '1.8.0');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');
@@ -207,6 +207,33 @@ test('demoVideo / requireExampleVideo exigen videoUrl y help tema demo lo docume
   const helpDemo = await handleRpc(ctx, { jsonrpc: '2.0', id: 316, method: 'tools/call', params: { name: 'help', arguments: { tema: 'demo' } } });
   assert.match(helpDemo.result.content[0].text, /FLT-100316|videoUrl|demoVideo|admira\.live\/assets/);
   assert.match(help, /Gesto DEMO|demoVideo|GESTO-DEMO-VIDEO/);
+});
+
+test('create_presentation acepta marca o prospectUrl y la ayuda lo cuenta', async () => {
+  const log = []; const ctx = ctxFor('editor', log);
+  await assert.rejects(
+    () => callTool(ctx, 'create_presentation', { displayName: 'Las dos', marca: 'lumbre', prospectUrl: 'https://www.example.com' }),
+    /no las dos/
+  );
+  const porMarca = await callTool(ctx, 'create_presentation', { displayName: 'Lumbre Café', marca: 'lumbre' });
+  assert.equal(porMarca.status, 'queued');
+  const cuerpoMarca = JSON.parse(log.at(-1).body);
+  assert.equal(cuerpoMarca.marca, 'lumbre');
+  assert.equal(cuerpoMarca.prospectUrl, undefined);
+  assert.equal(cuerpoMarca.website, undefined);
+  const porUrl = await callTool(ctx, 'create_presentation', { displayName: 'Café Norte', prospectUrl: 'https://www.cafenorte.example' });
+  assert.equal(porUrl.slug, 'nuevo-cliente');
+  const cuerpoUrl = JSON.parse(log.at(-1).body);
+  assert.equal(cuerpoUrl.prospectUrl, 'https://www.cafenorte.example');
+  assert.equal(cuerpoUrl.marca, undefined);
+  const ayuda = await callTool(ctx, 'help', { tema: 'crear' });
+  assert.match(ayuda.help, /prospectUrl/);
+  assert.match(ayuda.help, /marca:<id>|marca:<id>|PRESENTATION_IDEAS/);
+  assert.match(ayuda.help, /propuesta no oficial/);
+  assert.match(ayuda.help, /https:\/\/www\.cafenorte\.example/);
+  const create = TOOLS.find(t => t.name === 'create_presentation');
+  assert.equal(create.inputSchema.properties.marca.type, 'string');
+  assert.equal(create.inputSchema.properties.prospectUrl.type, 'string');
 });
 
 test('tokens: formato anmcp_, hash estable y cabecera Bearer', async () => {

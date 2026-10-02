@@ -1,5 +1,5 @@
 import { OUTPUTS, DEFAULT_OUTPUTS, LANGUAGES, buildGeneration, publicGeneration } from '../_generation.js';
-import { analyzeInspiration, normalizeInspiration } from '../_inspiration.js';
+import { analyzeInspiration, normalizeInspiration, ErrorAnalisis } from '../_inspiration.js';
 import { persistBrandLogo } from '../_brand.js';
 import { createPresentationPassword, ensureHttpsUrl } from '../_defaults.js';
 import { normalizeEmbeds } from '../_embeds.js';
@@ -14,7 +14,8 @@ import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-l
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 import {BRIEF_MAX,normalizeStructureInput,structureIdeasSeed,normalizeFooter} from '../_admiranext-structure.js';
 import {resolveProspect,prospectTheme,prospectSource,publicProspect} from '../_prospect.js';
-import {guardarMarca} from '../../marcablanca/_catalogo.js';
+import {guardarMarca,ErrorCatalogo} from '../../marcablanca/_catalogo.js';
+import {aplicarAtajoMarca} from '../_marca-atajo.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -28,7 +29,8 @@ export const GENERATE_ALLOWED_KEYS = new Set([
   'insertDeck','inserts','insert','primaryColor','accentColor','slideMedia',
   'exampleVideoUrl','includeExampleVideo','videoUrl','videoSlide','demoVideo',
   'requireExampleVideo','terminology','sourceTraceability','presite','presiteSlug',
-  'structure','slides','footer','closingTitle','closingAction','prospect'
+  'structure','slides','footer','closingTitle','closingAction','prospect',
+  'marca','prospectUrl'
 ]);
 
 export function assertKnownGenerateFields(raw={}){
@@ -264,6 +266,23 @@ export async function onRequestPut(context){
   try{prospectRaw=typeof raw.prospect==='string'?(raw.prospect.trim()?JSON.parse(raw.prospect):null):raw.prospect}catch(_){return json({error:'El campo prospect no es JSON válido.'},400)}
   const prospectKeep=prospectRaw&&typeof prospectRaw==='object'&&prospectRaw.marca==='actual';
   if(prospectKeep)prospectRaw=undefined;
+  // Atajo MCP: `marca` (id de GET /marcablanca/api/marcas) o `prospectUrl` (analizar y
+  // guardar propuesta no oficial). El objeto `prospect` del formulario sigue igual.
+  let atajoCatalogo=null;
+  try{
+    const access=context.data?.presentationAccess||{};
+    const autor=access.email||access.tokenLabel||access.name?{nombre:access.tokenLabel||access.name||access.email||'',email:access.email||''}:undefined;
+    const atajo=await aplicarAtajoMarca({raw,env:context.env,request:context.request,autor});
+    if(atajo.aplicado){
+      if(prospectRaw!==undefined)return json({error:'Usa marca o prospectUrl, o el objeto prospect del generador, no los dos.'},400);
+      prospectRaw=atajo.prospectRaw;
+      if(!input.website&&atajo.website)input.website=ensureHttpsUrl(atajo.website);
+      atajoCatalogo=atajo.catalogo;
+    }
+  }catch(error){
+    const status=error instanceof ErrorCatalogo?(error.estado||400):error instanceof ErrorAnalisis?422:400;
+    return json({error:error.message||'No se pudo preparar la marca.'},status);
+  }
   const prospectActive=prospectRaw===undefined?Boolean(existing?.prospect?.activo):Boolean(prospectRaw&&typeof prospectRaw==='object'&&prospectRaw.activo!==false&&prospectRaw.activo!=='false');
   if (!input.website && !prospectActive) return json({error:'Indica la web oficial del cliente: es la fuente del logo y la inspiración por defecto.'},400);
   if (input.website && !/^https:\/\//i.test(input.website)) return json({error:'La web oficial debe comenzar por https://'},400);
@@ -427,6 +446,7 @@ export async function onRequestPut(context){
       catalogoMarca={guardada:true,id:r.id,creada:r.creada,url:`/marcablanca/?marca=${r.id}`};
     }catch(error){catalogoMarca={guardada:false,error:error.message||'No se pudo guardar en el catálogo.'}}
   }
+  if(!catalogoMarca&&atajoCatalogo)catalogoMarca=atajoCatalogo;
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':ideas.narrativeSource==='admiranext-structure'?'admiranext-structure':'template';
   const narrativeFallback=narrativeSource==='xai'||narrativeSource==='admiranext-structure'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);

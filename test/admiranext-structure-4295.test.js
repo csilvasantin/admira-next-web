@@ -172,7 +172,7 @@ test('generate rechaza beforeDeck desconocido y campos inventados', async () => 
 });
 
 test('MCP expone update_slide, structure e insertDeck (v1.6)', async () => {
-  assert.equal(SERVER_INFO.version, '1.7.0');
+  assert.equal(SERVER_INFO.version, '1.8.0');
   assert.ok(TOOLS.some(t => t.name === 'update_slide'));
   const create = TOOLS.find(t => t.name === 'create_presentation');
   assert.ok(create.inputSchema.properties.structure);

@@ -201,6 +201,18 @@ test('el generador monta el panel Prospect y no exige la web cuando hay prospect
   assert.doesNotMatch(panel, /identidad<\/h2>/, 'el raíl del generador busca «identidad» en los títulos: el panel no debe confundirlo');
 });
 
+test('create_presentation con marca (id de catálogo) entra en modo prospect sin web', async () => {
+  const env = {PRESENTATION_IDEAS: kv(), PRESENTATION_MEDIA: r2(), PRES_SIGNING_KEY: 'k', XAI_API_KEY: 'x', ASSETS};
+  const res = await put(env, {displayName: 'Lumbre Café', outputs: ['website', 'pdf'], marca: 'lumbre'});
+  const body = await res.json();
+  assert.equal(res.status, 201, JSON.stringify(body).slice(0, 400));
+  assert.deepEqual(body.prospect, {activo: true, marca: 'lumbre', origen: 'catalogo', nombre: 'Lumbre Café'});
+  assert.equal(JSON.parse(env.PRESENTATION_IDEAS.values.get('presentation:lumbre-cafe')).prospect.marca, 'lumbre');
+  const lasDos = await put(env, {displayName: 'Otra', outputs: ['website'], marca: 'lumbre', prospectUrl: 'https://www.example.com'});
+  assert.equal(lasDos.status, 400);
+  assert.match((await lasDos.json()).error, /no las dos/);
+});
+
 test('el logo guardado nunca se ejecuta si se abre a pelo', async () => {
   const env = {PRESENTATION_IDEAS: kv(), PRESENTATION_MEDIA: {async get(){ return {body: '<svg/>', httpEtag: '"e"', writeHttpMetadata(h){ h.set('content-type', 'image/svg+xml'); }}; }}};
   env.PRESENTATION_IDEAS.values.set('presentation:x', JSON.stringify({brand: {logoKey: 'presentations/x/brand/logo.svg'}}));
