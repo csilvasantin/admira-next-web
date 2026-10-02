@@ -38,3 +38,12 @@ export function rayHeight(visits, maximum, radius) {
 export function closestAngle(current,target) {
   return current + ((target-current+540)%360)-180;
 }
+
+// Procedencia en barras (FLT-101380): de mayor a menor, con la anchura en la MISMA escala
+// lineal que los rayos del globo (sobre el máximo del periodo), para que barra y rayo
+// cuenten lo mismo. La cuota sobre el total va aparte, para el texto accesible.
+export function countryBars(locations) {
+  const ordered = [...locations].sort((a,b)=>b.visits-a.visits || String(a.code).localeCompare(String(b.code)));
+  const maximum = Math.max(1,...ordered.map(p=>p.visits)), total = ordered.reduce((n,p)=>n+p.visits,0);
+  return ordered.map((p,rank)=>({key:p.key,rank,visits:p.visits,width:Math.max(0,Math.min(1,p.visits/maximum)),share:total?p.visits/total:0}));
+}

@@ -1,4 +1,4 @@
-import {globeLocations,rayHeight,closestAngle} from './globe-model.mjs';
+import {globeLocations,rayHeight,closestAngle,countryBars} from './globe-model.mjs?v=02.10.2026.r12.23:55';
 
 const canvas=document.getElementById('trafficGlobe'), ctx=canvas.getContext('2d');
 const $=id=>document.getElementById(id), reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -6,7 +6,15 @@ const fmt=n=>new Intl.NumberFormat('es-ES').format(n);
 const names=new Intl.DisplayNames(['es'],{type:'region'});
 let land,centres,locations=[],mode='history',focus=-1,rotation=[-10,-20,0],zoom=1;
 let width=0,height=0,radius=0,auto=!reduced.matches,animation=null,frame=0,lastFrame=0,lastTour=0,drag=null,drawn=[];
-let ready=false,inView=true,pending=window.trafficSnapshot,liveTour=[],tourIndex=-1;
+let ready=false,inView=true,pending=window.trafficSnapshot,liveTour=[],tourIndex=-1,barsOpen=false;
+// Procedencia en barras: se ven los BAR_LIMIT primeros; «Ver todos» despliega el resto en la página.
+const BAR_LIMIT=8;
+function barsVisibility() {
+  const current=locations[focus]?.key,items=[...$('globeCountries').querySelectorAll('li')];
+  for(const item of items)item.hidden=!barsOpen && Number(item.dataset.rank)>=BAR_LIMIT && item.dataset.key!==current;
+  const toggle=$('globeCountriesMore');
+  if(toggle){toggle.setAttribute('aria-expanded',String(barsOpen));toggle.textContent=barsOpen?'Ver menos':`Ver todos (${fmt(items.length)} ${mode==='live'?'ubicaciones':'países'})`;}
+}
 function nextVisit(delta){
   if(mode==='live' && liveTour.length){tourIndex=(tourIndex+delta+liveTour.length)%liveTour.length;select(locations.findIndex(p=>p.key===liveTour[tourIndex].key));}
   else select(focus+delta);
@@ -37,7 +45,8 @@ function selection() {
     if(mode==='live')lines.push([point.region,names.of(point.code)].filter(Boolean).join(' · '),point.geoSource==='Cloudflare IP'?`Cloudflare IP: ${point.lat}, ${point.lng}`:'Ubicación disponible: sólo país');
     for(const line of lines){const p=document.createElement('p');p.textContent=line;$('globePages').append(p)}
   }
-  for(const button of $('globeCountries').children) button.setAttribute('aria-pressed',String(button.dataset.key===point?.key));
+  for(const button of $('globeCountries').querySelectorAll('button[data-key]')){if(button.dataset.key===point?.key)button.setAttribute('aria-current','true');else button.removeAttribute('aria-current')}
+  barsVisibility();
   $('globePosition').textContent=point?mode==='live' && tourIndex>=0?`${tourIndex+1} / ${liveTour.length} sesiones`:`${focus+1} / ${locations.length} ${mode==='live'?'ubicaciones':'países'}`:'0 países';
 }
 function select(index,motion=true) {
@@ -96,8 +105,25 @@ function update(snapshot) {
   $('globeScope').textContent=snapshot.scope || 'Todo el grupo';
   $('globeCaption').textContent=snapshot.error?'No se han recibido datos actualizados.':snapshot.loading?'Consultando tráfico…':`${mode==='live'?'Sesiones visibles, últimos 45 s.':'Rayos en escala lineal: más visitas, más altura.'} ${mode==='live'?'Ciudad y región de Cloudflare IP cuando disponibles; aproximadas, no GPS.':'Histórico RUM: ubicación disponible por país.'}${result.unknown?` ${fmt(result.unknown)} ${mode==='live'?'sesiones':'visitas'} sin país representable.`:''}${snapshot.geographyTruncated?' La consulta geográfica alcanzó su límite.':''}`;
   canvas.setAttribute('aria-label',`Globo del tráfico de ${snapshot.scope || 'todo el grupo'}: ${locations.length} ${mode==='live'?'ubicaciones':'países'}. ${locations.slice(0,8).map(p=>label(p)+' '+fmt(p.visits)).join(', ')}`);
-  $('globeCountries').replaceChildren();
-  for(let i=0;i<locations.length;i++){const point=locations[i],button=document.createElement('button');button.type='button';button.dataset.key=point.key;button.textContent=`${label(point)} · ${fmt(point.visits)}`;button.onclick=()=>{setAuto(false);tourIndex=-1;select(i)};$('globeCountries').append(button)}
+  const box=$('globeCountries'),list=document.createElement('ol'),unit=mode==='live'?'sesiones':'visitas',hadFocus=box.contains(document.activeElement)?document.activeElement.dataset.key || document.activeElement.id:null;
+  list.id='globeCountryList';list.className='globe-bar-list';box.replaceChildren(list);
+  for(const bar of countryBars(locations)){
+    const i=locations.findIndex(p=>p.key===bar.key),point=locations[i],item=document.createElement('li'),button=document.createElement('button'),track=document.createElement('span'),fill=document.createElement('i');
+    item.dataset.rank=bar.rank;item.dataset.key=point.key;button.type='button';button.dataset.key=point.key;
+    const rank=document.createElement('small'),name=document.createElement('span'),value=document.createElement('b');
+    rank.textContent=bar.rank+1;rank.setAttribute('aria-hidden','true');name.textContent=label(point);value.textContent=fmt(point.visits);
+    track.className='globe-bar';track.setAttribute('aria-hidden','true');fill.style.width=(bar.width*100).toFixed(1)+'%';track.append(fill);
+    button.setAttribute('aria-label',`${label(point)}: ${fmt(point.visits)} ${unit}, ${Math.round(bar.share*1000)/10} % del total`);
+    button.append(rank,name,value,track);button.onclick=()=>{setAuto(false);tourIndex=-1;select(i)};
+    item.append(button);list.append(item);
+  }
+  if(locations.length>BAR_LIMIT){
+    const more=document.createElement('button');more.type='button';more.id='globeCountriesMore';more.className='globe-bars-more';more.setAttribute('aria-controls','globeCountryList');
+    more.onclick=()=>{barsOpen=!barsOpen;barsVisibility();if(document.activeElement?.closest?.('li[hidden]'))more.focus()};
+    box.append(more);
+  }
+  barsVisibility();
+  if(hadFocus)(box.querySelector(`button[data-key="${CSS.escape(hadFocus)}"]`) || $(hadFocus))?.focus();
   for(const id of ['globePrev','globeNext','globeTour'])$(id).disabled=!locations.length;
   focus=locations.findIndex(p=>p.key===previous);
   if(focus<0 && locations.length)select(0);else{selection();paint();animate()}
