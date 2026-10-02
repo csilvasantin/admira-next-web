@@ -6,7 +6,11 @@
  * controles de la página (periodo, sitio, Carbono/Silicio, Actualizar, globo), así
  * que panel.js, live.js y globe.js siguen siendo los únicos que cargan y pintan.
  * Los datos que /json vuelca son los que la página ya tiene en memoria: la página
- * sólo la sirve el middleware a un administrador, y nada de aquí pide más.
+ * sólo la sirve el middleware a un administrador.
+ *
+ * FLT-101380: detalle, registros HTTP y tabla de sites se cargan al desplegar su bloque.
+ * /json los pide bajo demanda (a la misma API, con la sesión de admin) antes de volcar;
+ * /buscar despliega «Rendimiento por site»; /estado dice qué bloques hay cargados.
  */
 (function () {
   'use strict';
@@ -41,6 +45,7 @@
       sitio: (typeof selected !== 'undefined' && selected) || 'Todo el grupo',
       audiencia: audiencia(),
       historico: typeof data !== 'undefined' ? data : null,
+      partes: window.analiticsPartes ? window.analiticsPartes.vigentes() : null,
       directo: periodoActual() === -1 ? (window.trafficSnapshot || null) : undefined
     };
   }
@@ -90,8 +95,10 @@
       b.click();
       ctx.imprimir('Consultando…');
     }},
-    {id: 'buscar', aliases: ['dominio'], uso: '<texto>', ayuda: 'Filtra la tabla «Rendimiento por site»', run: function (args, ctx) {
+    {id: 'buscar', aliases: ['dominio'], uso: '<texto>', ayuda: 'Despliega «Rendimiento por site» y filtra su tabla', run: function (args, ctx) {
       var q = $('search');
+      if (periodoActual() === -1 || $('comparison').hidden) ctx.imprimir('La tabla de sites se ve con un periodo histórico y «Todo el grupo» (/periodo 7 · /site todo)');
+      else if (window.analiticsPartes) window.analiticsPartes.abrir('sites');
       q.value = args.join(' ');
       q.dispatchEvent(new Event('input'));
       ctx.imprimir(q.value ? 'Tabla filtrada por «' + q.value + '»' : 'Tabla sin filtro');
@@ -115,14 +122,30 @@
       ctx.imprimir($('visits').closest('article').querySelector('p').textContent + ': ' + $('visits').textContent + ' · ' +
         $('views').closest('article').querySelector('p').textContent + ': ' + $('views').textContent + ' · Conexión: ' + $('connection').textContent);
       ctx.imprimir($('message').textContent);
-    }},
-    {id: 'json', aliases: ['datos'], uso: '[copiar]', ayuda: 'Vuelca los datos que el panel tiene cargados ahora', run: function (args, ctx) {
-      var d = datosActuales();
-      if (!d.historico && !d.directo) { ctx.error('Todavía no hay datos cargados'); return; }
-      ctx.json(d);
-      if (String(args[0] || '').toLowerCase() === 'copiar' && navigator.clipboard) {
-        navigator.clipboard.writeText(JSON.stringify(d, null, 2)).then(function () { ctx.imprimir('Copiado al portapapeles'); }, function () { ctx.error('El navegador no dejó copiar'); });
+      if (window.analiticsPartes && periodoActual() !== -1) {
+        ctx.imprimir([['detalle', 'Cómo llegan'], ['http', 'Registros HTTP'], ['sites', 'Rendimiento por site']].map(function (b) {
+          var p = window.analiticsPartes.parte(b[0]);
+          return b[1] + ': ' + (p.abierta ? 'desplegado' : 'plegado') + ' · ' + ({'sin-cargar': 'sin cargar', cargando: 'cargando', ok: 'cargado', error: 'error', desactualizada: 'desactualizado'})[p.estado];
+        }).join(' · '));
       }
+    }},
+    {id: 'json', aliases: ['datos'], uso: '[copiar]', ayuda: 'Vuelca los datos del panel (carga bajo demanda los bloques plegados)', run: function (args, ctx) {
+      function volcar() {
+        var d = datosActuales();
+        if (!d.historico && !d.directo) { ctx.error('Todavía no hay datos cargados'); return; }
+        ctx.json(d);
+        if (String(args[0] || '').toLowerCase() === 'copiar' && navigator.clipboard) {
+          navigator.clipboard.writeText(JSON.stringify(d, null, 2)).then(function () { ctx.imprimir('Copiado al portapapeles'); }, function () { ctx.error('El navegador no dejó copiar'); });
+        }
+      }
+      var partes = window.analiticsPartes;
+      if (!partes || periodoActual() === -1) { volcar(); return; }
+      var vigentes = partes.vigentes(), faltan = ['detalle', 'http', 'sites'].filter(function (n) { return !vigentes[n]; });
+      if (!faltan.length) { volcar(); return; }
+      ctx.imprimir('Cargando bajo demanda: ' + faltan.join(', ') + '…');
+      return Promise.all(faltan.map(function (n) {
+        return partes.cargar(n).then(null, function (e) { ctx.error(n + ': ' + (e && e.message || e)); });
+      })).then(volcar);
     }}
   ];
   window.ADMIRA_FRAME_VERBS = (window.ADMIRA_FRAME_VERBS || []).concat(verbos);
