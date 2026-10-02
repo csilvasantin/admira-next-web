@@ -16,8 +16,8 @@ export async function onRequestGet({request,env}) {
     if (memo.size>100) memo.clear();
     memo.set(key,{at:Date.now(),data});
     return json(data);
-  } catch (_) {
-    // No revelar ni registrar tokens ni respuestas externas que puedan contenerlos.
-    return json({ok:false,error:'No se pudieron consultar las estadísticas de Cloudflare. Reintenta o revisa los permisos de Analytics del acceso de servidor.'},502);
+  } catch (error) {
+    // Mensajes internos controlados: nunca transmitir respuestas externas o tokens.
+    return json({ok:false,error:/^(Cloudflare|Falta)/.test(error.message) ? error.message : 'No se pudieron consultar las estadísticas de Cloudflare. Reintenta en unos minutos.'},424);
   }
 }

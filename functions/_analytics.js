@@ -10,8 +10,8 @@ export function period(days, now = new Date()) {
 export function buildQuery(account, range, host = '') {
   const f = `datetime_geq:${JSON.stringify(range.start)},datetime_lt:${JSON.stringify(range.end)},bot:0`;
   const filter = host ? `${f},requestHost_in:${JSON.stringify([host, 'www.'+host])}` : f;
-  const node = (alias,dimensions,limit=1000) => `${alias}:rumPageloadEventsAdaptiveGroups(limit:${limit},filter:{${filter}},orderBy:[count_DESC]){count sum{visits} dimensions{${dimensions}}}`;
-  return `{viewer{accounts(filter:{accountTag:${JSON.stringify(account)}}){${node('hosts','requestHost')} ${node('daily','date requestHost')} ${host ? [node('paths','requestPath',10),node('countries','countryName',10),node('referrers','refererHost',10),node('devices','deviceType',10)].join(' ') : ''}}}}`;
+  const node = (alias,dimensions,limit=1000,nodeFilter=filter) => `${alias}:rumPageloadEventsAdaptiveGroups(limit:${limit},filter:{${nodeFilter}},orderBy:[${alias==='referrers'?'sum_visits_DESC':'count_DESC'}]){count sum{visits} dimensions{${dimensions}}}`;
+  return `{viewer{accounts(filter:{accountTag:${JSON.stringify(account)}}){${node('hosts','requestHost',1000,f)} ${node('daily','date requestHost')} ${host ? [node('paths','requestPath',10),node('countries','countryName',10),node('referrers','refererHost',10),node('devices','deviceType',10)].join(' ') : ''}}}}`;
 }
 async function cloudflare(env, path, body, fetchImpl) {
   const r = await fetchImpl('https://api.cloudflare.com/client/v4'+path, {
@@ -60,9 +60,10 @@ export async function readAnalytics(env, days, host = '', fetchImpl = fetch, now
   ]);
   const account = stats.data?.viewer?.accounts?.[0];
   if (!account || !Array.isArray(account.hosts) || !Array.isArray(account.daily)) throw new Error('Cloudflare no devolvió un resultado válido.');
-  const map=summarise(account.hosts);
+  const allHosts=summarise(account.hosts);
+  const map=host ? new Map([...allHosts].filter(([key])=>key===host)) : allHosts;
   const sites = catalogue(projects?.result, measurement?.result,account.hosts).map(s=>{
-    const metrics=map.get(s.host);
+    const metrics=allHosts.get(s.host);
     return {...s,visits:s.configured ? metrics?.visits || 0 : null,pageviews:s.configured ? metrics?.pageviews || 0 : null,status:metrics ? 'measuring' : s.configured ? 'no_activity' : (projects && measurement) ? 'not_configured' : 'unknown'};
   });
   const series=[];
