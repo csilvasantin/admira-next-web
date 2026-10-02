@@ -33,7 +33,7 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - Ayuda para humanos: ${SITE}/mcp/generador
 
 ## Tools
-- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo).
+- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo · estructura · propuesta).
 - list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
@@ -54,6 +54,11 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - delete_media {client, assetId} — retira un recurso de la biblioteca, de sus láminas y de R2.
 - Sin MCP (ficheros grandes): el mismo token vale como Bearer en /presentaciones/api/media-library (POST multipart client, acceptedByCarlos=true, file). Ver help tema media.
 - structure:"admiranext" o slides[] — fuerza la estructura de 3 actos × (portada + a/b/c). beforeDeck/afterDeck/insertDeck aceptan pack o slug de otra presentación.
+- lanzar_propuesta {url? | marca? | idea?, idioma?, destinatario?, rehacer?} — PROPUESTA COMERCIAL AUTOMÁTICA ante una
+  oportunidad: marca (catálogo /marcablanca) → estudio de la compañía (web pública + IA, hipótesis marcadas) →
+  presentación vestida con su marca (Studio, Store, App, Biz y «Su galaxia») → enlaces de las 4 soluciones con ?marca=.
+  Solo a petición o con criterio comercial claro; NUNCA en bucle ni masivo (límite 20/día por usuario). Ver help tema propuesta.
+- estado_propuesta {id} — estado, estudio, presentación (URL y clave) y plataforma de una propuesta ya lanzada.
 
 ## Permisos
 El token hereda el rol del directorio: admin → todo; editor → crear, regenerar y
@@ -155,6 +160,22 @@ Demo completa (FLT-100316): si la demo es parte del informe, graba la captura, s
 Stand-in de flota (smoke): https://www.admira.live/assets/mouth-v2/boca-v2-ciclo.mp4
 Doc: /mcp/GESTO-DEMO-VIDEO.md · help tema demo.`
 ,
+  propuesta: `Propuesta comercial automática (FLT-101369 · 02-10-2026).
+Cuándo: cuando TÚ (persona o agente) detectas una oportunidad comercial concreta o alguien te la pide. Nunca en bucle,
+por lotes ni «por si acaso»: cada propuesta cuesta 1-2 llamadas de IA para el estudio (más la traducción del alta)
+y hay un límite de 20 por usuario y día. No hay disparo automático: lo lanzas tú.
+lanzar_propuesta {url?, marca?, idea?, idioma?, destinatario?, rehacer?} (al menos url, marca o idea):
+  url  → analiza la web (logo, colores, tipografía) y crea la marca como propuesta en el catálogo (/marcablanca).
+  marca → id del catálogo (se usa tal cual) o nombre (busca su web si es evidente; si no, marca neutra pendiente de logo).
+  idea → contexto de la oportunidad (también vale sola: marca neutra).
+Pasos (idempotentes por id; relanzar no duplica nada; rehacer:true lo rehace todo y gasta cupo):
+  1. marca · 2. estudio (portada + hasta 4 páginas internas; «hecho» solo con fuente leída, lo demás hipótesis; si la IA
+  falla, «estudio pendiente» honesto) · 3. presentación (/presentaciones/<id>/ con su marca, láminas Studio, Store, App,
+  Biz y «Su galaxia»; contraseña propia) · 4. plataforma (admira.studio, admira.store, admira.app, admira.biz con ?marca=<id>).
+Devuelve id, marca, estudio, presentacion{url, slug, password?}, plataforma{studio,store,app,biz}, propuestaUrl.
+La página privada de la propuesta: /marcablanca/propuesta/<id> (detrás de la puerta del generador).
+Las semillas no se tocan: admira.com → id admira-com (marca corporativa), distinta de «admira» (marca por defecto).
+estado_propuesta {id} para consultarla después. HTTP equivalente: POST /presentaciones/api/propuesta con el mismo token.`,
   estructura: `Estructura AdmiraNeXT (#4295): 45 minutos = 3 actos × 15 (admira.studio, admira.store, admira.app).
 Cada acto: portada + capítulos a, b y c (5 min).
 - structure:"admiranext" → 12 láminas canónicas en orden (studio-cover…app-c).
@@ -166,7 +187,7 @@ Cada acto: portada + capítulos a, b y c (5 min).
 };
 
 export const TOOLS = [
-  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo, estructura.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo · estructura' } } } },
+  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo, estructura, propuesta.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo · estructura · propuesta' } } } },
   { name: 'list_presentations', description: 'Catálogo / censo vivo (slug, displayName, website, languages, outputs, passwordSet, versionCount, updatedAt…). Consulta antes de crear o mejorar.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_catalog', description: 'Alias de list_presentations: el catálogo es el gesto principal. Mismos campos.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
@@ -209,10 +230,15 @@ export const TOOLS = [
   { name: 'upload_media', description: 'Sube una imagen, audio o vídeo (≤40 MB; PNG, JPEG, WebP, GIF, MP3, WAV, M4A, MP4, WebM) a la biblioteca privada de la presentación. acceptedByCarlos:true es obligatorio (Carlos autoriza el recurso). Con slide, además lo asigna a esa lámina. Para ficheros grandes usa el mismo token como Bearer en POST /presentaciones/api/media-library (help tema media).', inputSchema: { type: 'object', properties: { client: { type: 'string' }, filename: { type: 'string' }, dataBase64: { type: 'string', description: 'contenido del fichero en base64 (admite prefijo data:…;base64,)' }, acceptedByCarlos: { type: 'boolean', description: 'true: Carlos ha aceptado este recurso' }, approvalNote: { type: 'string', description: 'quién y cuándo lo aceptó Carlos' }, slide: { type: 'string', description: 'opcional: lámina a la que asignarlo (cover, objective, <blockId>, closing)' }, caption: { type: 'string' } }, required: ['client', 'filename', 'dataBase64', 'acceptedByCarlos'] } },
   { name: 'assign_media', description: 'Asigna un recurso de la biblioteca (assetId de list_media) a una lámina (slide).', inputSchema: { type: 'object', properties: { client: { type: 'string' }, assetId: { type: 'string' }, slide: { type: 'string' }, caption: { type: 'string' }, fallback: { type: 'string' } }, required: ['client', 'assetId', 'slide'] } },
   { name: 'delete_media', description: 'Retira un recurso de la biblioteca: lo quita del inventario, de las láminas que lo usaban y borra su objeto privado.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, assetId: { type: 'string' } }, required: ['client', 'assetId'] } },
+  { name: 'lanzar_propuesta', description: 'Propuesta comercial automática ante una oportunidad: marca (catálogo de /marcablanca) → estudio de la compañía (web pública + IA; lo deducido va como hipótesis) → presentación con su marca en Studio, Store, App y Biz → enlaces de las 4 soluciones con ?marca=. Idempotente por id. Úsala solo a petición o con criterio comercial; nunca en bucle (límite 20/día por usuario). Ver help tema propuesta.', inputSchema: { type: 'object', properties: {
+    url: { type: 'string', description: 'web pública de la marca (https://…)' }, marca: { type: 'string', description: 'id del catálogo o nombre de la marca' }, idea: { type: 'string', description: 'la oportunidad detectada / contexto comercial' },
+    idioma: { type: 'string', enum: ['es', 'en', 'ca'], description: 'idioma del estudio y de la presentación (es por defecto; es y en siempre)' }, destinatario: { type: 'string', description: 'a quién se presenta (cargo, área)' },
+    rehacer: { type: 'boolean', description: 'true: rehace todos los pasos (gasta cupo)' } } } },
+  { name: 'estado_propuesta', description: 'Estado de una propuesta automática ya lanzada: pasos, marca, estudio (fuentes y confianza), presentación (URL y clave) y plataforma.', inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'id devuelto por lanzar_propuesta' } }, required: ['id'] } },
   { name: 'update_slide', description: 'Actualiza título/mensaje/detalle de una lámina del esqueleto sin regenerar el deck.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, blockId: { type: 'string' }, title: { type: 'string' }, message: { type: 'string' }, detail: { type: 'string' }, language: { type: 'string' } }, required: ['client', 'blockId'] } }
 ];
 
-const READ_ONLY = new Set(['help', 'list_presentations', 'get_catalog', 'list_decks', 'get_presentation', 'generation_status', 'list_versions', 'presentation_urls', 'list_media']);
+const READ_ONLY = new Set(['help', 'list_presentations', 'get_catalog', 'list_decks', 'get_presentation', 'generation_status', 'list_versions', 'presentation_urls', 'list_media', 'estado_propuesta']);
 const MEDIA_MAX_BYTES = 40 * 1024 * 1024;
 
 function assetIdOf(value){
@@ -489,8 +515,35 @@ export async function callTool(ctx, name, args = {}){
       return callGenerator(ctx, 'PUT', '/presentaciones/api/media-library', { client: slug(a.client), assetId: assetIdOf(a.assetId), slide, caption: a.caption ? String(a.caption) : undefined, fallback: a.fallback ? String(a.fallback) : undefined });
     }
     case 'delete_media': return callGenerator(ctx, 'DELETE', '/presentaciones/api/media-library', { client: slug(a.client), assetId: assetIdOf(a.assetId) });
+    case 'lanzar_propuesta': {
+      const permitidos = ['url', 'marca', 'idea', 'idioma', 'destinatario', 'rehacer'];
+      const unknown = Object.keys(a).filter(key => !permitidos.includes(key));
+      if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
+      if (!['url', 'marca', 'idea'].some(k => String(a[k] || '').trim())) throw new Error('Indica al menos url, marca o idea.');
+      const entrada = {};
+      for (const k of permitidos) if (a[k] !== undefined) entrada[k] = a[k];
+      // Paso a paso (cada uno es una petición corta e idempotente): si una se corta, relanzar continúa donde iba.
+      let out = await callGenerator(ctx, 'POST', '/presentaciones/api/propuesta', { ...entrada, hasta: 'marca', canal: 'mcp' });
+      for (const hasta of ['estudio', 'presentacion', 'plataforma']) out = await callGenerator(ctx, 'POST', '/presentaciones/api/propuesta', { id: out.id, hasta, canal: 'mcp' });
+      return conUrlsPropuesta(out);
+    }
+    case 'estado_propuesta': {
+      const id = String(a.id || '').trim().toLowerCase();
+      if (!/^[a-z0-9][a-z0-9-]{0,40}$/.test(id)) throw new Error('id no válido: usa el id que devolvió lanzar_propuesta.');
+      return conUrlsPropuesta(await callGenerator(ctx, 'GET', `/presentaciones/api/propuesta?id=${id}`));
+    }
   }
   throw new Error('Tool no implementada.');
+}
+
+/** Las rutas de la propuesta, en absoluto (el agente las comparte tal cual). */
+function conUrlsPropuesta(out){
+  if (!out || typeof out !== 'object') return out;
+  const abs = u => (typeof u === 'string' && u.startsWith('/')) ? SITE + u : u;
+  const r = { ...out, propuestaUrl: abs(out.propuestaUrl) };
+  if (out.presentacion) r.presentacion = { ...out.presentacion, url: abs(out.presentacion.url), deckUrl: abs(out.presentacion.deckUrl), ideasUrl: abs(out.presentacion.ideasUrl) };
+  if (out.plataforma) r.plataforma = { ...out.plataforma, marcablanca: abs(out.plataforma.marcablanca), presentacionDemo: abs(out.plataforma.presentacionDemo) };
+  return r;
 }
 
 export function rpcResult(id, result){ return { jsonrpc: '2.0', id: id == null ? null : id, result }; }

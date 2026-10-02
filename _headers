@@ -12,3 +12,10 @@
 # yokup.com y los dominios de cliente) carga los tokens, logos y fuentes desde aquí.
 /marcablanca/*
   Access-Control-Allow-Origin: *
+# Propuesta automática (FLT-101369): página privada, fuera de buscadores.
+/marcablanca/propuesta/*
+  X-Robots-Tag: noindex, nofollow
+
+/assets/live-presence.js
+  Access-Control-Allow-Origin: *
+  Cache-Control: no-store

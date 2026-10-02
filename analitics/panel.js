@@ -1,0 +1,52 @@
+function trafficGlobeUpdate(snapshot){window.trafficSnapshot=snapshot;window.dispatchEvent(new CustomEvent('traffic-geography',{detail:snapshot}));}
+const $=id=>document.getElementById(id), number=n=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:1}).format(n);
+let days=7,selected='',data=null,sequence=0,lastLoad=0;
+const text=(id,value)=>$(id).textContent=value;
+const el=(tag,value,cls)=>{const e=document.createElement(tag);if(value!==undefined)e.textContent=value;if(cls)e.className=cls;return e};
+function audience(){return $('carbono').checked?($('silicio').checked?'ambos':'carbono'):($('silicio').checked?'silicio':'ninguno')}
+function draw(series){
+  $('chart').replaceChildren();
+  if(!series.length)return;
+  const w=800,h=190,p=30,max=Math.max(1,...series.map(x=>x.pageviews),...series.map(x=>x.visits));
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('role','img');svg.setAttribute('aria-label',`Evolución de visitas y páginas vistas en ${series.length} ${days===0?'minutos':'días'}`);
+  const add=(tag,attrs)=>{const e=document.createElementNS(svg.namespaceURI,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));svg.append(e);return e};
+  for(let i=0;i<4;i++){const y=p+(h-p*2)*i/3;add('line',{x1:p,y1:y,x2:w-8,y2:y,stroke:'#253042','stroke-dasharray':'3 5'});add('text',{x:0,y:y+4}).textContent=number(Math.round(max*(1-i/3)));}
+  const point=(r,i,key)=>[series.length===1?w/2:p+(w-p-8)*i/(series.length-1),h-p-(h-p*2)*r[key]/max];
+  for(const [key,color] of [['pageviews','#aaa0ff'],['visits','#4ae3d1']]){
+    const pts=series.map((r,i)=>point(r,i,key));add('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round'});
+    pts.forEach(([x,y],i)=>{const dot=add('circle',{cx:x,cy:y,r:series.length<10?3:1.5,fill:color});const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${series[i].date}: ${number(series[i][key])} ${key==='visits'?'visitas':'páginas vistas'}`;dot.append(title)});
+  }
+  [0,Math.floor((series.length-1)/2),series.length-1].filter((n,i,a)=>a.indexOf(n)===i).forEach(i=>add('text',{x:point(series[i],i,'visits')[0],y:h-4,'text-anchor':'middle'}).textContent=days===0?series[i].date.slice(11,16):series[i].date.slice(5));
+  $('chart').append(svg);
+}
+function table(){
+  $('rows').replaceChildren();if(!data)return;
+  const sites=data.sites.filter(s=>s.host.includes($('search').value.toLowerCase())).sort((a,b)=>(b.visits ?? -1)-(a.visits ?? -1));
+  for(const s of sites){const tr=el('tr');const td=el('td'),button=el('button',s.host,'sitebutton');button.onclick=()=>{$('site').value=s.host;selected=s.host;load()};td.append(button);tr.append(td,el('td',s.visits===null?'—':number(s.visits)),el('td',s.pageviews===null?'—':number(s.pageviews)));
+    const status=el('td');status.append(el('span',({measuring:'● Con actividad',no_activity:'● Sin actividad en el periodo',not_configured:'○ Medición por activar',unknown:'○ Sin configuración confirmada'})[s.status],'status '+s.status));tr.append(status);const more=el('td'),btn=el('button','↗');btn.setAttribute('aria-label','Ver detalle de '+s.host);btn.onclick=button.onclick;more.append(btn);tr.append(more);$('rows').append(tr);
+  }
+}
+function breakdown(id,rows,dim,visits=false){$(id).replaceChildren();if(!rows?.length){$(id).append(el('p','Sin actividad medida en este periodo.','status'));return}for(const r of rows){const row=el('div',undefined,'breakdown');let label=r.dimensions[dim] || (dim==='refererHost'?'Directo / sin referencia':'Sin clasificar');if(dim==='countryName'&&label.length===2){try{label=new Intl.DisplayNames(['es'],{type:'region'}).of(label)}catch{}}row.append(el('span',label),el('b',number(visits?r.sum.visits:r.count)));$(id).append(row)}}
+function trafficRows(id,rows){$(id).replaceChildren();for(const r of rows || []){const row=el('div',undefined,'breakdown');const labels={desktop:'Ordenador',mobile:'Móvil',tablet:'Tableta',Unknown:'No disponible',MacOSX:'macOS',ChromeMobile:'Chrome móvil',MobileSafari:'Safari móvil',ChromeDerivative:'Basado en Chrome'};row.append(el('span',labels[r.label] || r.label),el('b',number(r.visits)+' visitas · '+number(r.pageviews)+' páginas'));$(id).append(row)}if(!rows?.length)$(id).append(el('p','Sin datos medidos en este periodo.','status'))}
+function renderHttp(){
+ $('httpTraffic').hidden=false;$('httpGroups').replaceChildren();const h=data.http;
+ if(!h?.ok){text('httpSummary','Registros HTTP no disponibles');text('httpNote',h?.note || 'No hay respuesta de Cloudflare.');return}
+ text('httpSummary',`${number(h.total)} peticiones · ${number(h.verified)} bots verificados · ${number(h.declared)} agentes declarados · ${number(h.unknown)} sin clasificar`);
+ for(const g of h.groups){const row=el('div',undefined,'breakdown');row.append(el('span',g.host+' · '+g.label),el('b',number(g.requests)+' peticiones'));$('httpGroups').append(row)}
+ text('httpNote',h.start.slice(0,16).replace('T',' ')+' → '+h.end.slice(0,16).replace('T',' ')+' UTC. '+h.note+(h.truncated?' Lista parcial por límite de resultados.':'')+(h.failed?' Cobertura parcial: '+h.failed+' zonas sin respuesta.':'')+(audience()==='carbono'?' Carbono: en registros HTTP se muestra el tráfico sin clasificación; no acredita que sea humano.':''));
+}
+function render(){renderHttp();
+  trafficGlobeUpdate({mode:"history",geography:data.geography,geographyTruncated:data.geographyTruncated,scope:selected || "Todo el grupo"});
+  text('visits',number(data.totals.visits));text('views',number(data.totals.pageviews));text('depth',data.totals.visits?number(data.totals.pageviews/data.totals.visits):'—');text('coverage',`${data.totals.configured} / ${data.totals.sites}`);text('coverageNote','Sites con configuración o datos históricos');
+  text('scope',selected || (days===0?'Actividad reciente del grupo':'Actividad del grupo'));text('refreshNote',days===0?'Cada minuto':'Al abrir · cada 5 min');text('timeNote',days===0?'UTC · datos con latencia de Cloudflare':'UTC · hoy en curso');text('range',days===0?`${data.range.start.slice(11,16)} → ${data.range.end.slice(11,16)} UTC`:`${data.range.start.slice(0,10)} → ${data.range.end.slice(0,10)}`);text('connection','Conectado');text('freshness','Datos consultados a las '+new Date(data.updatedAt).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+'.');text('note',data.note);
+  $('trafficDetails').hidden=false;for(const key of ['referrers','devices','browsers','systems'])trafficRows('traffic-'+key,data.traffic?.[key]);text('trafficNote','Procedencia según la referencia enviada por el navegador; puede incluir sólo el dominio. Sin referencia no significa necesariamente acceso directo.'+(data.trafficTruncated?' Resultados parciales: límite de consulta alcanzado.':''));$('comparison').hidden=!!selected;$('detail').hidden=!selected;draw(data.series);table();
+  if(data.detail){breakdown('paths',data.detail.paths,'requestPath');breakdown('countries',data.detail.countries,'countryName');}
+  const old=$('site').value;$('site').replaceChildren(new Option('Todo el grupo',''));data.sites.forEach(s=>$('site').add(new Option(s.host,s.host)));$('site').value=old;
+  const site=data.sites.find(s=>s.host===selected);
+  text('message',data.truncated?'La consulta alcanzó el límite de resultados. Reduce el periodo.':!data.coverageComplete?'Datos disponibles; inventario de medición parcial.':site?.status==='not_configured'?'Este site necesita activar Cloudflare Web Analytics. No dispone de cifras medidas.':days===0?'Últimos 60 minutos · refresco cada minuto · no representa personas conectadas · datos con latencia de Cloudflare':'Navegación medida · '+({ambos:'Carbono + Silicio',carbono:'Carbono',silicio:'Silicio',ninguno:'Sin selección'})[audience()]+' · actualización cada 5 minutos');
+  if(site?.status==='not_configured'){['visits','views','depth'].forEach(id=>text(id,'—'));}
+}
+async function load(){trafficGlobeUpdate({mode:days===-1?"live":"history",scope:selected || "Todo el grupo",loading:true});lastLoad=Date.now();const seq=++sequence;if(days===-1){await loadPresence();return;}$('trafficDetails').hidden=true;$('live').hidden=true;document.querySelector('.activity').hidden=false;for(const [id,title,subtitle] of [['visits','VISITAS','Entradas desde otro dominio o directas'],['views','PÁGINAS VISTAS','Navegación medida en el periodo'],['depth','PÁGINAS / VISITA','Relación entre páginas vistas y visitas'],['coverage','COBERTURA DEL GRUPO','Revisando medición']]){$(id).closest('article').querySelector('p').textContent=title;$(id).closest('article').querySelector('small').textContent=subtitle;}$('refresh').disabled=true;$('message').className='';text('message','Consultando Cloudflare…');try{const r=await fetch(`/api/analitics?days=${days}&site=${encodeURIComponent(selected)}&audience=${audience()}`,{credentials:'same-origin',cache:'no-store'});if(!r.headers.get('content-type')?.includes('application/json'))throw Error('La conexión con Cloudflare no está disponible. Reintenta en unos minutos.');const result=await r.json();if(seq!==sequence)return;if(!r.ok||!result.ok)throw Error(result.error||'No se pudieron cargar las estadísticas.');data=result;render();}catch(e){if(seq!==sequence)return;trafficGlobeUpdate({mode:'history',scope:selected || 'Todo el grupo',error:true});$('message').className='error';text('message',e.message);text('connection','Sin conexión');text('freshness','No se han recibido datos actualizados.');['visits','views','depth','coverage'].forEach(id=>text(id,'—'));$('chart').replaceChildren();$('rows').replaceChildren();['paths','countries','traffic-devices','traffic-referrers','traffic-browsers','traffic-systems'].forEach(id=>$(id).replaceChildren());}finally{if(seq===sequence)$('refresh').disabled=false}}
+$('site').onchange=()=>{selected=$('site').value;load()};$('search').oninput=table;$('refresh').onclick=load;document.querySelectorAll('[data-days]').forEach(button=>button.onclick=()=>{days=Number(button.dataset.days);document.querySelectorAll('[data-days]').forEach(b=>b.classList.toggle('selected',b===button));load()});setInterval(()=>{if(!document.hidden && Date.now()-lastLoad>=(days===0?60000:300000))load()},15000);load();
+
+for(const id of ['carbono','silicio'])$(id).onchange=load;

@@ -302,7 +302,7 @@ function esc(value) {
 export function returnToSeguro(value) {
   const path = String(value || '');
   // /github (zona militarizada, 06-09-2026) vuelve a su sitio tras el login, como /usuarios.
-  return path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' ? path : safeConnection(path) || '/webmaster';
+  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' ? path : safeConnection(path) || '/webmaster';
 }
 
 export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {

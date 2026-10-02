@@ -21,5 +21,10 @@ export async function onRequestGet(context){
   // PROSPECT (01-10-2026): interruptor y selector de marca del destinatario (marca blanca).
   html=html.replace('</head>','<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261001-prospect"><link rel="stylesheet" href="/assets/presentation-prospect.css?v=20261001-prospect"></head>');
   html=html.replace('</body>','<script type="module" src="/assets/presentation-prospect.js?v=20261001-catalogo2"></script></body>');
+  // PROPUESTA AUTOMÁTICA (02-10-2026 · FLT-101369): marca → estudio → presentación → plataforma desde una
+  // marca, web o idea. Mismo lanzador que /marcablanca, misma API (POST /presentaciones/api/propuesta).
+  html=html.replace('</head>','<link rel="stylesheet" href="/marcablanca/propuesta-automatica.css?v=20261002-propuesta"></head>');
+  html=html.replace('<form id="generator">','<section class="panel" id="propuestaAutomatica"><h2>Propuesta automática</h2><p class="sub">De una marca, su web o una idea a la propuesta completa: estudio de la compañía, presentación con su marca y las 4 soluciones (Studio, Store, App, Biz). Solo ante una oportunidad concreta.</p><div data-lanzar-propuesta="generador"></div></section><form id="generator">');
+  html=html.replace('</body>','<script type="module" src="/marcablanca/lanzar-propuesta.js?v=20261002-propuesta"></script></body>');
   return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
 }
