@@ -6,7 +6,7 @@
 <title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
 <meta name="description" content="Qué versión está viva en cada proyecto de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.06.09.2026.r8.19:12">
+<meta name="admiranext-version" content="v.02.10.2026.r10.21:08">
 <link rel="icon" href="/favicon.ico">
 <style>
   :root{
@@ -212,9 +212,16 @@
   }
   @media (prefers-reduced-motion:reduce){ #rain{display:none} }
 </style>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=02.10.2026.r10.21:08">
+<script defer src="/assets/admira-frame.js?v=02.10.2026.r10.21:08"></script>
 </head>
-<body>
-<div id="identityTools" style="position:fixed;right:18px;top:18px;z-index:20;display:flex;align-items:center;gap:7px;padding:6px;border:1px solid #33445d;border-radius:11px;background:#0b1220;color:#bfeee8;font:700 12px ui-monospace,monospace"><span id="identityLabel">sesión…</span><a href="/analitics" style="color:#4ae3d1;text-decoration:none;padding:5px">Analitics</a><a id="usersLink" hidden href="/usuarios" style="color:#bfeee8;text-decoration:none;padding:5px">Usuarios</a><button id="logoutButton" type="button" style="border:0;border-left:1px solid #33445d;background:none;color:#ff9ba6;padding:5px 7px;cursor:pointer;font:inherit">Salir</button></div>
+<body data-yk-frame="cabecera">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="AdmiraNeXT · Inicio">admira<span>NeXT</span><i></i></a><nav aria-label="Navegación del grupo"><a href="/analitics" data-yk-admin hidden>Analitics</a><a href="/webmaster" aria-current="page">Webmaster</a><a href="/proyectos/">Proyectos</a><a id="usersLink" href="/usuarios" data-yk-admin hidden data-yk-rail-only>Usuarios</a><a href="/xpace/manage" data-yk-admin hidden data-yk-rail-only>Proyectos y locales</a><a href="/flota" data-yk-rail-only>Flota</a></nav><span class="private" data-yk-access="privado" title="Acceso privado">●<span class="yk-access-txt"> Acceso privado</span></span></header>
+<div class="yk-slots" hidden>
+<div data-yk-slot="right" data-yk-label="Sesión"><p class="yk-note" id="identityLabel">sesión…</p><button id="logoutButton" type="button" class="yk-danger">Salir</button></div>
+<div data-yk-slot="right" data-yk-label="Ordenar la tabla"><button type="button" data-wm-sort="proyecto">Por proyecto</button><button type="button" data-wm-sort="releases">Por producción (releases)</button><button type="button" data-wm-sort="responsable">Por responsable</button><button type="button" data-wm-sort="norma">Por norma</button></div>
+<div data-yk-slot="right" data-yk-label="Ir a"><a href="#vivo">Lo que está vivo</a><a href="#norma">Norma de versionado</a><a href="#canones">Cañones cargados</a><a href="#retornos">Puntos de retorno</a><a href="#como-retorno">Cómo se deja un retorno</a></div>
+</div>
 <canvas id="rain" aria-hidden="true"></canvas>
 <div class="glow a" aria-hidden="true"></div>
 <div class="glow b" aria-hidden="true"></div>
@@ -237,7 +244,7 @@
   </header>
 
   <main>
-    <h2 class="sec">Lo que está vivo ahora mismo</h2>
+    <h2 class="sec" id="vivo">Lo que está vivo ahora mismo</h2>
     <div id="resumen" class="resumen" hidden></div>
     <div class="tbl">
       <table aria-label="Versión viva de cada proyecto y subproyecto">
@@ -276,7 +283,7 @@
       esto. Las de GitHub Pages no tienen snapshot que abrir —no guarda una dirección por
       despliegue— pero sí cambios y puntos de retorno, como todas.</p>
 
-    <h2 class="sec">Control de la norma de versionado</h2>
+    <h2 class="sec" id="norma">Control de la norma de versionado</h2>
     <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Cada mejora, cambio o corrección que
       llega a producción <b>tiene que salir con versión nueva</b>: misma fecha y la r siguiente de
       ese día (<a href="/normativa#n09">norma 09</a>), escrita como manda la
@@ -285,7 +292,7 @@
       comprueba es una sugerencia, así que aquí se comprueba sola, solución por solución:</p>
     <div id="incumple" class="incumple"><p class="snap-msg">Comprobando…</p></div>
 
-    <h2 class="sec">Cañones cargados — leer antes de desplegar</h2>
+    <h2 class="sec" id="canones">Cañones cargados — leer antes de desplegar</h2>
 
     <div class="alert">
       <h3>El <code>deploy.sh</code> de admira-studio publica en pixeria.com</h3>
@@ -326,7 +333,7 @@
         Descargar el contenido de una versión vieja por API no funciona — solo devuelve metadatos.</p>
     </div>
 
-    <h2 class="sec">Puntos de retorno por solución</h2>
+    <h2 class="sec" id="retornos">Puntos de retorno por solución</h2>
     <p style="color:var(--dim);font-size:.9rem;margin:0 0 4px">Cada ficha abre con la
       <b>portada tal y como se ve ahora</b>: la tabla dice qué versión hay publicada, la imagen
       dice si esa versión se ve bien. Un despliegue que rompe la portada no cambia el sello.
@@ -337,7 +344,7 @@
 
     <div class="cards" id="fichas"><p class="snap-msg">Leyendo las etiquetas de cada repositorio…</p></div>
 
-    <h2 class="sec">Cómo se deja un punto de retorno</h2>
+    <h2 class="sec" id="como-retorno">Cómo se deja un punto de retorno</h2>
     <div class="tbl">
       <table aria-label="Convención de etiquetas">
         <thead><tr><th>Cuándo</th><th>Etiqueta</th><th>Ejemplo real</th></tr></thead>
@@ -363,7 +370,7 @@
     <div class="meta">
       Datos verificados el 2 de agosto de 2026 · se actualiza al publicar<br>
       <a href="/mandamientos">Mandamientos</a> · <a href="/normativa">Normativa</a><br>
-      <span style="opacity:.8">v.06.09.2026.r8.19:12</span>
+      <span style="opacity:.8">v.02.10.2026.r10.21:08</span>
     </div>
   </footer>
 </div>
@@ -541,7 +548,7 @@
   var ordenActual = null;
   var ADMIRA_CSRF = '';
   var ADMIRA_SESSION_READY = fetch('/api/session',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
-    if(d&&d.ok){ ADMIRA_CSRF=d.csrf||''; document.getElementById('identityLabel').textContent=d.user.email+' · '+d.user.role; document.getElementById('usersLink').hidden=d.user.role!=='admin'; }
+    if(d&&d.ok){ ADMIRA_CSRF=d.csrf||''; document.getElementById('identityLabel').textContent=d.user.email+' · '+d.user.role; document.querySelectorAll('[data-yk-admin]').forEach(function(a){a.hidden=d.user.role!=='admin'}); }
     return d;
   });
   document.getElementById('logoutButton').onclick=function(){ ADMIRA_SESSION_READY.then(function(){return fetch('/webmaster/logout',{method:'POST',headers:{'X-Admira-CSRF':ADMIRA_CSRF}})}).then(function(){location.href='/webmaster'}); };
@@ -885,6 +892,16 @@
   document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : start(); });
   start();
 })();
+</script>
+<script>
+/* ⌘ Experto de /webmaster (FLT-101373): los verbos pulsan los controles de la página. */
+window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
+  {id:'ordenar',aliases:['sort'],uso:'<proyecto|releases|responsable|norma|repo|publica>',ayuda:'Ordena la tabla de lo que está vivo',run:function(a,ctx){var b=document.querySelector('.sort-btn[data-sort="'+String(a[0]||'').toLowerCase()+'"]');if(!b){ctx.error('Uso: /ordenar proyecto | releases | responsable | norma | repo | publica');return;}b.click();ctx.imprimir('Tabla ordenada por '+b.textContent.replace(/[↕↑↓]/g,'').trim());}},
+  {id:'seccion',aliases:['ver'],uso:'<vivo|norma|canones|retornos|como-retorno>',ayuda:'Salta a una sección de la página',run:function(a,ctx){var s=document.getElementById(String(a[0]||'').toLowerCase());if(!s||!s.classList.contains('sec')){ctx.error('Uso: /seccion vivo | norma | canones | retornos | como-retorno');return;}s.scrollIntoView({behavior:'smooth'});ctx.imprimir(s.textContent);}},
+  {id:'proyectos',ayuda:'Lista los proyectos de la tabla',run:function(a,ctx){var f=[].slice.call(document.querySelectorAll('#tablaProyectos tr')).map(function(t){return t.cells[0]&&t.cells[0].textContent.trim().split('\n')[0]}).filter(Boolean);ctx.imprimir(f.length+' filas: '+f.join(' · '));}},
+  {id:'sesion',aliases:['whoami'],ayuda:'Quién tiene la sesión abierta',run:function(a,ctx){ctx.imprimir(document.getElementById('identityLabel').textContent);}}
+]);
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-wm-sort]');if(b){var o=document.querySelector('.sort-btn[data-sort="'+b.dataset.wmSort+'"]');if(o)o.click();}});
 </script>
   <script src="/assets/admira-version-watch.js?build=06092026-1" defer></script>
 <script defer src="/assets/live-presence.js?v=2"></script></body>

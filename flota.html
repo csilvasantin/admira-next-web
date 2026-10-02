@@ -1,6 +1,6 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="AdmiraNeXT v.16.09.2026.r1.09:35">
+<meta name="admiranext-version" content="AdmiraNeXT v.02.10.2026.r10.21:08">
 <title>Flota · marcador y misiones · AdmiraNeXT</title>
 <style>
 :root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--bad:#ff6b7a;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -32,7 +32,7 @@ td.num{text-align:right;font:700 14px var(--mono)}
 .kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#09111d}
 .kpi b{display:block;font:800 26px/1.2 var(--mono);color:var(--cyan)}
 @media(max-width:760px){table,tbody,tr,td{display:block}thead{display:none}tr{padding:12px 0;border-bottom:1px solid var(--line)}td{border:0;padding:4px 0}td.num{text-align:left}}
-</style></head><body><main class="shell">
+</style><link rel="stylesheet" href="/assets/admira-frame.css?v=02.10.2026.r10.21:08"><script defer src="/assets/admira-frame.js?v=02.10.2026.r10.21:08"></script></head><body data-yk-frame="cabecera"><header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="AdmiraNeXT · Inicio">admira<span>NeXT</span><i></i></a><nav aria-label="Navegación del grupo"><a href="/analitics" data-yk-admin>Analitics</a><a href="/webmaster">Webmaster</a><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-rail-only>Usuarios</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a><a href="/flota" data-yk-rail-only aria-current="page">Flota</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header><main class="shell">
 <header>
   <div>
     <div class="eyebrow">AdmiraNeXT · Gestión de proyectos</div>
@@ -41,30 +41,42 @@ td.num{text-align:right;font:700 14px var(--mono)}
   </div>
   <div class="actions">
     <button id="refrescar">Refrescar</button>
-    <a class="btn" href="https://yokup.com/highscore.html" target="_blank" rel="noopener">Yokup · marcador</a>
-    <a class="btn" href="https://yokup.com/misiones.html" target="_blank" rel="noopener">Yokup · misiones</a>
   </div>
 </header>
 
 <div id="fallo"></div>
 
-<section class="panel">
+<section class="panel" id="trabajo">
   <div class="panel-head"><div><h2>Quién está trabajando</h2><div class="meta">api.yokup.com/highscore/active-work</div></div><span class="tag" id="modo"></span></div>
   <div class="grid" id="kpis"></div>
   <div id="diagnostico"></div>
   <div id="trabajando"></div>
 </section>
 
-<section class="panel">
+<section class="panel" id="marcador-dia">
   <div class="panel-head"><div><h2>Marcador del día</h2><div class="meta">api.yokup.com/highscore/daily</div></div><span class="tag" id="dia"></span></div>
   <div id="marcador"></div>
 </section>
 
-<section class="panel">
+<section class="panel" id="misiones-vivas">
   <div class="panel-head"><div><h2>Misiones vivas</h2><div class="meta">api.yokup.com/fleet/missions</div></div><span class="tag" id="nmisiones"></span></div>
   <div id="misiones"></div>
 </section>
 
+<div class="yk-slots" hidden>
+<div data-yk-slot="left" data-yk-label="Yokup"><a href="https://yokup.com/highscore.html" target="_blank" rel="noopener">Yokup · marcador ↗</a><a href="https://yokup.com/misiones.html" target="_blank" rel="noopener">Yokup · misiones ↗</a></div>
+<div data-yk-slot="right" data-yk-label="Acciones"><button type="button" data-fl-action="refrescar">↻ Refrescar ahora</button></div>
+<div data-yk-slot="right" data-yk-label="Ir a"><a href="#trabajo">Quién está trabajando</a><a href="#marcador-dia">Marcador del día</a><a href="#misiones-vivas">Misiones vivas</a></div>
+</div>
+<script>
+/* ⌘ Experto de /flota (FLT-101373). Va ANTES del script de la página: el test de flota ejecuta el último <script>. */
+window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
+  {id:'refrescar',aliases:['actualizar','r'],ayuda:'Vuelve a leer Yokup',run:function(a,ctx){document.getElementById('refrescar').click();ctx.imprimir('Leyendo api.yokup.com…');}},
+  {id:'misiones',ayuda:'Lista las misiones vivas',run:function(a,ctx){var f=[].map.call(document.querySelectorAll('#misiones tbody tr'),function(t){return t.cells[0].textContent+' · '+t.cells[1].textContent+' · '+t.cells[4].textContent;});ctx.imprimir(f.length?f.join('\n'):document.getElementById('misiones').textContent.trim()||'Sin datos');}},
+  {id:'seccion',aliases:['ver'],uso:'<trabajo|marcador-dia|misiones-vivas>',ayuda:'Salta a una sección',run:function(a,ctx){var s=document.getElementById(String(a[0]||'').toLowerCase());if(!s||!s.classList.contains('panel')){ctx.error('Uso: /seccion trabajo | marcador-dia | misiones-vivas');return;}s.scrollIntoView({behavior:'smooth'});ctx.imprimir(s.querySelector('h2').textContent);}}
+]);
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-fl-action="refrescar"]'))document.getElementById('refrescar').click();});
+</script>
 <script>
 const API='https://api.yokup.com';
 const $=s=>document.querySelector(s);
