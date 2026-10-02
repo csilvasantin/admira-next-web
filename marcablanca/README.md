@@ -243,3 +243,68 @@ cuatro webs), `functions/presentaciones/_prospect.js` (resolución, guardado y r
 Catálogo único y análisis por URL (FLT-101330): `functions/marcablanca/_catalogo.js`,
 `functions/marcablanca/api/`, `functions/presentaciones/api/marcas.js`, `marcablanca/propuesta.js`.
 Retorno: `retorno/pre-catalogo-marcas-20261001`.
+
+## Propuesta comercial automática (FLT-101369)
+
+Encargo de Carlos (02-10-2026): *«lanzar propuestas comerciales automatizadas al detectar una
+oportunidad: se introduce una marca o idea, se hace un estudio de la compañía y se personaliza la
+presentación y la plataforma con su desarrollo de marca en las 4 soluciones (Studio, Store, App y Biz)»*.
+
+**Entradas** (las tres llaman a la misma API y exigen la sesión del generador):
+
+- `/marcablanca` → sección **Lanzar propuesta**: un campo «marca, web o idea» y un botón; enseña el
+  progreso por pasos (marca → estudio → presentación → plataforma) y el resultado. Sin sesión del
+  generador explica que hay que entrar.
+- `/presentaciones/` (generador) → panel **Propuesta automática**, equivalente.
+- MCP de admiranext.com → `lanzar_propuesta {url?, marca?, idea?, idioma?, destinatario?, rehacer?}` y
+  `estado_propuesta {id}` (ayuda: `help` tema `propuesta`), autenticadas con el token `anmcp_…` como el
+  resto. HTTP directo: `POST /presentaciones/api/propuesta` con el mismo token o con la clave de máquina.
+
+**Cuándo usarla**: siempre a petición de alguien o con un criterio comercial claro (una oportunidad
+concreta detectada por una persona o por un agente). **Nunca en bucle, por lotes ni «por si acaso»**.
+No hay ningún disparo automático en segundo plano: «detectar la oportunidad» es cosa de quien llama.
+
+**Pasos** (`functions/presentaciones/_propuesta.js`; idempotentes por id: relanzar continúa donde iba y
+no repite lo hecho; `rehacer:true` lo rehace todo):
+
+1. **Marca** — con web: el mismo analizador de «Tu marca · URL» (`analizarMarca` → `propuestaDesdeDatos`);
+   con un id del catálogo: esa marca tal cual; con solo un nombre: prueba `www.<nombre>.com|.es` y solo
+   la acepta si su título contiene el nombre (queda como *web deducida*); si no, o con solo una idea,
+   **marca neutra pendiente de logo**. Se guarda en el catálogo con `catalogo.origen = "propuesta"` y
+   `propuesta: true`. Nunca pisa una semilla ni una marca curada: **admira.com → id `admira-com`**, que
+   la UI presenta como la marca corporativa de admira.com, distinta de `admira` (la marca por defecto
+   de la plataforma).
+2. **Estudio** (`functions/presentaciones/_estudio.js`) — portada y hasta 4 páginas internas (quiénes
+   somos, soluciones, clientes, contacto/tiendas) con el mismo `fetchPublico` endurecido (≤ 400 KB y
+   8 s la portada, 6 s cada interna). Lo sintetiza **xAI** (`XAI_TEXT_MODEL`, la clave que ya usa el
+   generador; sin proveedores ni claves nuevas) con salida JSON de esquema cerrado: resumen, sector,
+   propuesta de valor, presencia, público, canales, retos probables y una oportunidad por solución
+   (Studio contenido · Store distribución e inventario · App comercialización y circuitos DOOH · Biz
+   mantenimiento y comercios/instaladores). Cada afirmación es `hecho` **solo si cita una URL leída**;
+   lo demás es `hipotesis` (los retos, siempre). Confianza = la del modelo, como mucho la que permiten
+   las fuentes. KV `estudio:<id>` con fecha. Si xAI falla: «estudio pendiente» honesto (como los
+   `FALLBACK_*` del generador), reintentable hasta 3 veces.
+3. **Presentación** — el `onRequestPut` de `/presentaciones/api/generate` tal cual (contraseña propia,
+   versiones, traducción, prospect) con `prospect = la marca` y 7 láminas del estudio: contexto, retos,
+   Studio, Store, App, Biz (cada una con su maqueta vestida) y piloto, y después «Su galaxia» y el
+   cierre. Slug = id (o `<id>-propuesta` si ya hay una presentación ajena con ese nombre).
+4. **Plataforma** — `https://www.admira.studio/?marca=<id>` (o pixeria.com), `admira.store` (xpaceos.com),
+   `admira.app` (clearchannel.tv) y `admira.biz` (yokup.com), más `/marcablanca/?marca=<id>`.
+
+**Página de la propuesta**: `/marcablanca/propuesta/<id>` — privada (los datos solo los da
+`GET /presentaciones/api/propuesta?id=<id>` detrás de la puerta del generador): resumen del estudio
+con fuentes y confianza, la marca (logo y paleta, con enlace para editarla en /marcablanca), la
+presentación (URL y clave) y las 4 soluciones con su maqueta y su enlace.
+
+**Coste y control**: cada propuesta hace **1 llamada a xAI para el estudio** (2 si la primera falla
+rápido; ~5-7 k tokens de entrada con 5 páginas y ~1-1,5 k de salida) y **1 de traducción** en el alta
+de la presentación (la misma que cualquier alta del generador). El guion no gasta llamada: las láminas
+salen del estudio. Las lecturas de la web no tienen coste de IA. Precio: el de la tarifa vigente de
+xAI para `XAI_TEXT_MODEL`. **Límite: 20 lanzamientos por usuario y día** (KV `propuesta-cupo:`;
+continuar una propuesta ya lanzada no cuenta). Cada lanzamiento queda registrado (quién, cuándo, para
+quién, por qué canal) en KV `propuesta-registro:<fecha>:<id>` (400 días) y en el log del worker
+(`evento: propuesta-lanzada`).
+
+**Local**: sin clave real, `XAI_API_URL=http://127.0.0.1:<puerto>/v1/responses` apunta a un simulador
+(solo se acepta localhost/127.0.0.1; en producción se ignora). Retorno:
+`retorno/pre-propuesta-automatica-20261002`.

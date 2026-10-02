@@ -9,7 +9,7 @@ import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
 import {normalizeSlideMedia,ensureExampleVideo} from '../_slide-media.js';
 import {normalizeSourceTraceability} from '../_source-traceability.js';
-import {generateNarrativeWithRetry,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC} from '../_skeleton.js';
+import {generateNarrativeWithRetry,mergeNarrative,FALLBACK_REASONS,FALLBACK_GENERIC,xaiResponsesUrl} from '../_skeleton.js';
 import {createCompatibilityLab,publicCompatibilityLab} from '../_compatibility-lab.js';
 import {createRoomDeviceLab,publicRoomDeviceLab} from '../_room-device-lab.js';
 import {BRIEF_MAX,normalizeStructureInput,structureIdeasSeed,normalizeFooter} from '../_admiranext-structure.js';
@@ -134,7 +134,7 @@ export async function generateTranslations(env, ideas, languages, terminology=[]
   if(!env.XAI_API_KEY)throw new Error('La traducción automática no está configurada.');
   const source=translatableCopy(ideas),languageProperties=Object.fromEntries(targets.map(language=>[language,{type:'array',items:{type:'string'}}]));
   let provider;
-  try{provider=await fetch('https://api.x.ai/v1/responses',{
+  try{provider=await fetch(xaiResponsesUrl(env),{
     method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.XAI_API_KEY}`},signal:AbortSignal.timeout(TRANSLATION_TIMEOUT_MS),
     body:JSON.stringify({
       model:env.XAI_TEXT_MODEL||'grok-4.5',store:false,

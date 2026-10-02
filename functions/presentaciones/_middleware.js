@@ -204,7 +204,7 @@ export async function onRequest(context){
   const isGeneratorPage = isGallery;
   const isGalleryPage = first === 'galeria' && parts.length === 1;
   const isPublicSourceBriefApi = first === 'api' && second === 'source-brief';
-  const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library','grok-video','ad-idea','video-reference','video-package','jobs','marcas'].includes(second);
+  const isGeneratorApi = first === 'api' && ['generate','inspiration','images','decks','media-library','grok-video','ad-idea','video-reference','video-package','jobs','marcas','propuesta'].includes(second);
   const isProductionApi = first === 'api' && second === 'production';
   const isCapsuleApi = first === 'api' && second === 'capsule-tiktok';
   // Canje del pase firmado de admira.tv por la sesión del generador (Yokup #3165).

@@ -10,6 +10,14 @@
 // de siempre: crear la presentación nunca puede depender de que el proveedor responda.
 
 const MAX_OUTPUT_BYTES = 256 * 1024;
+// SIMULADOR LOCAL DEL PROVEEDOR DE TEXTO (FLT-101369). En producción siempre es xAI. Para probar en
+// local (wrangler pages dev) sin clave real, XAI_API_URL puede apuntar a un simulador, pero SOLO a
+// http://localhost o http://127.0.0.1: cualquier otro valor se ignora, así que no abre otra salida.
+export const XAI_RESPONSES_URL = 'https://api.x.ai/v1/responses';
+export function xaiResponsesUrl(env){
+  const url = String(env?.XAI_API_URL || '');
+  return /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d{1,5})?\//.test(url) ? url : XAI_RESPONSES_URL;
+}
 // Medido el 6-ago-2026 contra grok-4.5: 33,7 s con effort 'low' y 49,2 s con 'high', para la
 // misma especificidad de texto. 45 s de plazo dejaban fuera la respuesta buena por los pelos.
 const TIMEOUT_MS = 90000;
@@ -130,7 +138,7 @@ export async function generateNarrative(env, input){
   if (!env?.XAI_API_KEY) return {narrative:null, reason:'sin-clave'};
   let response;
   try{
-    response = await fetch('https://api.x.ai/v1/responses', {
+    response = await fetch(xaiResponsesUrl(env), {
       method:'POST',
       headers:{'content-type':'application/json', authorization:`Bearer ${env.XAI_API_KEY}`},
       body:JSON.stringify(requestBody(env, skeletonBrief(input))),
