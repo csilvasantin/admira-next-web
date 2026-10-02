@@ -12,3 +12,6 @@
 # yokup.com y los dominios de cliente) carga los tokens, logos y fuentes desde aquí.
 /marcablanca/*
   Access-Control-Allow-Origin: *
+
+/assets/live-presence.js
+  Access-Control-Allow-Origin: *
