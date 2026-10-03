@@ -937,3 +937,59 @@ html.yk-auto .yk-rail-navhd{ margin: 0 0 6px }
   html.yk-framed body, html.yk-head-mode body{ padding: 0 !important }
 }
 .yk-rail .yk-auto-note{ margin: 0; padding: 8px 10px; border: 1px dashed var(--yk-line2); border-radius: 6px; color: var(--yk-mut); font: 11px/1.5 var(--yk-mono); letter-spacing: .02em; text-transform: none; background: none }
+
+/* ============================================================================
+ * FONDO COMÚN Y ANCHO DEL CUERPO — modo cabecera (Carlos, 3-oct-2026)
+ * «Vamos a utilizar el mismo fondo de digitalsignage.ai que se ilumina con el ratón
+ * en la intranet de admiranext.com […] y asegurarnos de que la zona central donde
+ * está el cuerpo de la información siempre tiene la misma anchura y no varía de una
+ * categoría a otra.»
+ *
+ * Fondo: el de digitalsignage.ai (.dsn-dots), portado sin librerías y con el cian de
+ * la casa. Una capa fija DETRÁS de todo (z-index:-1, sin eventos de puntero) que
+ * admira-frame.js crea en cada página con la cabecera del sitio:
+ *   · base: rejilla de puntos sutil, estática;
+ *   · reposo: puntos cian en dos esquinas que «respiran» despacio (sólo opacidad);
+ *   · halo: un cuadrado de --d px con puntos cian y una bruma suave, enmascarado en
+ *     círculo, que sigue al ratón con transform (el JS sólo escribe --x/--y dentro de
+ *     un requestAnimationFrame cuando el ratón se mueve); en táctil y con movimiento
+ *     reducido se queda fijo.
+ * Las páginas ya no pintan fondo propio (ni la lluvia Matrix de /webmaster, ni
+ * degradados, ni rejillas): el fondo es el del <body> de aquí, que el navegador
+ * lleva al lienzo, y los puntos van encima del lienzo y debajo del contenido.
+ * ==========================================================================*/
+:root{ --yk-content-w: 1200px; --yk-content-gutter: 16px }
+html:has(> body[data-yk-frame="cabecera"]){ background: none !important }
+body[data-yk-frame="cabecera"]{ background: #070b12 !important }
+.yk-dots{ --gap: 24px; --x: 78vw; --y: 20vh; --d: 560px; position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; contain: strict }
+.yk-dots > i{ position: absolute; display: block }
+.yk-dots-base, .yk-dots-idle{ inset: 0; background-size: var(--gap) var(--gap) }
+.yk-dots-base{ background-image: radial-gradient(circle at 50% 50%, #a9c3d12e 0, #a9c3d12e 1px, transparent 1.5px) }
+.yk-dots-idle{ background-image: radial-gradient(circle at 50% 50%, #4ae3d1 0, #4ae3d1 1px, transparent 1.6px); opacity: .22;
+  -webkit-mask: radial-gradient(ellipse 46% 40% at 88% 8%, #000, transparent 70%), radial-gradient(ellipse 40% 36% at 6% 96%, #000a, transparent 70%);
+          mask: radial-gradient(ellipse 46% 40% at 88% 8%, #000, transparent 70%), radial-gradient(ellipse 40% 36% at 6% 96%, #000a, transparent 70%) }
+.yk-dots-halo{ left: 0; top: 0; width: var(--d); height: var(--d); will-change: transform;
+  transform: translate3d(calc(var(--x) - var(--d) / 2), calc(var(--y) - var(--d) / 2), 0);
+  background-image: radial-gradient(circle at 50% 50%, #4ae3d1 0, #4ae3d1 1.2px, transparent 1.8px); background-size: var(--gap) var(--gap);
+  background-position: calc(var(--d) / 2 - var(--x)) calc(var(--d) / 2 - var(--y));
+  -webkit-mask: radial-gradient(closest-side, #000 0, #000c 30%, #0005 62%, transparent 100%);
+          mask: radial-gradient(closest-side, #000 0, #000c 30%, #0005 62%, transparent 100%);
+  opacity: .85; transition: opacity .5s }
+.yk-dots-halo::before{ content: ''; position: absolute; inset: 0; background: radial-gradient(closest-side, #4ae3d11a, transparent) }
+@media (hover: none), (pointer: coarse){ .yk-dots{ --x: 82vw; --y: 16vh; --d: 440px } .yk-dots-halo{ opacity: .6 } }
+@media (prefers-reduced-motion: no-preference){ .yk-dots-idle{ animation: yk-dots-respira 9s ease-in-out infinite alternate } }
+@keyframes yk-dots-respira{ from{ opacity: .1 } to{ opacity: .34 } }
+@media (prefers-reduced-motion: reduce){ .yk-dots-halo{ opacity: .5; transition: none } }
+@media print{ .yk-dots{ display: none } }
+
+/* Ancho del cuerpo: el contenedor principal de cada página de la intranet lleva
+   data-yk-main y mide EXACTAMENTE --yk-content-w (1200 px), centrado, con 16 px de
+   margen a cada lado en pantallas estrechas. Sin relleno lateral propio: la caja es
+   la misma en todas las categorías. Lo de dentro se adapta (las tablas anchas hacen
+   scroll en su propio contenedor) y nunca ensancha la página. Los paneles ☰ ▤ ⌘ se
+   superponen: no cambian este ancho. */
+body[data-yk-frame="cabecera"] [data-yk-main]{
+  box-sizing: border-box !important; width: min(var(--yk-content-w), calc(100% - 2 * var(--yk-content-gutter))) !important;
+  min-width: 0 !important; max-width: none !important; margin-left: auto !important; margin-right: auto !important;
+  padding-left: 0 !important; padding-right: 0 !important;
+}

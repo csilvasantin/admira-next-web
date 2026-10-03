@@ -359,7 +359,13 @@ const resumen = (n) => n.tagName === 'BUTTON' ? GLIFOS[n.id] || n.id : n.tagName
 
 for (const rel of Object.keys(ADOPTADAS)) {
   test(`${rel}: el armazón pone ☰ antes de la marca y ▤ ⌘ después del acceso`, async () => {
-    const {raiz, contexto} = await montar(rel);
+    const {raiz, contexto, cuerpo} = await montar(rel);
+    // El fondo común (puntos que se iluminan con el ratón, 3-oct-2026): el armazón lo
+    // pone como primera capa del <body>, detrás de todo.
+    const puntos = cuerpo.hijos[0];
+    assert.ok(puntos && puntos.classList.contains('yk-dots'), 'el armazón pone el fondo común .yk-dots');
+    assert.equal(puntos.getAttribute('aria-hidden'), 'true');
+    for (const capa of ['yk-dots-base', 'yk-dots-idle', 'yk-dots-halo']) assert.match(puntos.innerHTML, new RegExp(`class="${capa}"`));
     const cab = raiz.querySelector('[data-yk-head]');
     assert.deepEqual(cab.hijos.filter((n) => n.tagName !== '#TEXT').map(resumen), ['☰', 'marca', 'nav', 'acceso', '▤⌘'],
       '[☰] admiraNeXT · nav · … ● Acceso privado [▤] [⌘]');

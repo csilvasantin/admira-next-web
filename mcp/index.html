@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ADmiraNeXT MCP | Las 4 patas del sistema operativo del retail</title>
   <meta name="description" content="Hub MCP de la matriz AdmiraNeXT: qué es, superficie pública, documentación y federación con la tienda y el Consejo. Sección legible por agentes.">
-  <meta name="admiranext-version" content="v.03.10.2026.r5.03:03">
+  <meta name="admiranext-version" content="v.03.10.2026.r5.03:19">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
     /* Metaestilo de admiranext.com (3-oct-2026): el hub dejó el papel crema y el ámbar
@@ -20,11 +20,11 @@
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
-    body{margin:0;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55;
-      background:radial-gradient(circle at 80% -20%,#14332f 0,transparent 42%),var(--paper);}
+    body{margin:0;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55;}
     a{color:inherit}
     code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
-    .shell{width:min(1120px,calc(100% - 30px));margin:0 auto}
+    .shell{width:100%;margin:0 auto}
+    footer.shell{width:min(var(--yk-content-w,1200px),calc(100% - 32px))}
     .button{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#121c2c;color:var(--ink);text-decoration:none;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace}
     .button:hover{border-color:var(--accent)}
     .button.primary{color:var(--on-accent);border-color:transparent;background:var(--accent)}
@@ -86,7 +86,7 @@
   <div data-yk-slot="right" data-yk-label="Ir a" id="hubIrA"></div>
   <div data-yk-slot="right" data-yk-label="Para agentes"><a href="/mcp/llms.txt">Abrir llms.txt</a><a href="/mcp/manifest.json">Abrir manifest.json</a></div>
 
-  <main>
+  <main data-yk-main>
     <section class="shell hero">
       <div>
         <p class="eyebrow">Model Context Protocol</p>
@@ -201,7 +201,7 @@
   </main>
 
   <footer class="shell">
-    <span>ADmiraNeXT MCP · <span id="mcpStamp">v.03.10.2026.r5.03:03</span></span>
+    <span>ADmiraNeXT MCP · <span id="mcpStamp">v.03.10.2026.r5.03:19</span></span>
     <span><a href="llms.txt">llms.txt</a> · <a href="manifest.json">manifest.json</a> · Admira IA</span>
   </footer>
 <script>

@@ -265,6 +265,31 @@
     body.appendChild(derAuto);
   }
 
+  // ── Fondo común: puntos que se iluminan con el ratón (modo cabecera) ─────────
+  // Carlos, 3-oct-2026: «el mismo fondo de digitalsignage.ai que se ilumina con el
+  // ratón» en todas las páginas con la barra del sitio. Es el .dsn-dots de allí, sin
+  // librerías: una capa fija detrás del contenido (estilos en admira-frame.css,
+  // .yk-dots). El halo sólo se recoloca en un requestAnimationFrame cuando el ratón
+  // se mueve; en táctil o con prefers-reduced-motion no se escucha el puntero y el
+  // halo queda fijo (y las esquinas no respiran).
+  if (modoCabecera) {   // una sola vez: el armazón no se monta dos veces (ykFrameReady)
+    var puntos = el('div', 'yk-dots', '<i class="yk-dots-base"></i><i class="yk-dots-idle"></i><i class="yk-dots-halo"></i>');
+    puntos.setAttribute('aria-hidden', 'true');
+    body.insertBefore(puntos, body.firstChild);
+    var mm = typeof G.matchMedia === 'function' ? G.matchMedia.bind(G) : null;
+    var fino = mm ? mm('(hover: hover) and (pointer: fine)') : null, calma = mm ? mm('(prefers-reduced-motion: reduce)') : null;
+    var px = 0, py = 0, cuadro = 0;
+    var pintar = function () { cuadro = 0; puntos.style.setProperty('--x', px + 'px'); puntos.style.setProperty('--y', py + 'px'); };
+    if (typeof G.addEventListener === 'function') G.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse' || !fino || !fino.matches || (calma && calma.matches)) return;
+      px = e.clientX; py = e.clientY;
+      if (!cuadro && typeof G.requestAnimationFrame === 'function') cuadro = G.requestAnimationFrame(pintar);
+    }, {passive: true});
+    if (calma && calma.addEventListener) calma.addEventListener('change', function () {
+      if (calma.matches && puntos.style.removeProperty) { puntos.style.removeProperty('--x'); puntos.style.removeProperty('--y'); }
+    });
+  }
+
   // ── Raíles y franja inferior ───────────────────────────────────────────────
   // Lo que la página manda a un lado. En modo cabecera cada bloque se vuelve
   // columna (.yk-slot) y puede llevar su rótulo (data-yk-label).
