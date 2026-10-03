@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 
+// 3-oct-2026: la galería lleva la BARRA DE LA INTRANET (admira-frame.js en modo
+// cabecera, la misma de /proyectos/); este test monta esa cabecera real y comprueba
+// que los tres niveles siguen en sus cajones.
+//
 // La galería de presentaciones ya no monta su propia UX cuadrática: desde
 // «/presentaciones adopta la cuadricula de la casa» (846bfa2) los tres niveles son
 // los tres cajones del armazón compartido, y la página solo declara qué va en cada
@@ -27,36 +31,48 @@ const galeria = () => readFile(new URL('../presentaciones/index.html', import.me
 
 // ── Un DOM mínimo: lo justo que admira-frame.js toca ────────────────────────────
 class Nodo {
-  constructor(tag) {
+  constructor(tag, atributos = {}) {
     this.tagName = tag.toUpperCase();
     this.hijos = [];
     this.padre = null;
-    this.id = '';
-    this.dataset = {};
-    this.atributos = {};
+    this.atributos = {...atributos};
     this.oyentes = {};
-    this.clases = new Set();
+    this.texto = '';
     this.innerHTML = '';
   }
-  get className() { return [...this.clases].join(' '); }
-  set className(valor) { this.clases = new Set(String(valor).split(/\s+/).filter(Boolean)); }
+  get id() { return this.atributos.id || ''; }
+  set id(v) { this.atributos.id = String(v); }
+  get hidden() { return 'hidden' in this.atributos; }
+  set hidden(v) { if (v) this.atributos.hidden = ''; else delete this.atributos.hidden; }
+  get dataset() {
+    const nodo = this;
+    return new Proxy({}, {
+      get: (_, k) => nodo.atributos['data-' + String(k).replace(/[A-Z]/g, (l) => '-' + l.toLowerCase())],
+      set: (_, k, v) => { nodo.atributos['data-' + String(k).replace(/[A-Z]/g, (l) => '-' + l.toLowerCase())] = String(v); return true; }
+    });
+  }
+  get clases() { return new Set(String(this.atributos.class || '').split(/\s+/).filter(Boolean)); }
+  get className() { return this.atributos.class || ''; }
+  set className(v) { this.atributos.class = String(v); }
   get classList() {
-    const clases = this.clases;
+    const nodo = this;
+    const poner = (l) => { nodo.className = [...l].join(' '); };
     return {
-      add: (...nombres) => nombres.forEach((n) => clases.add(n)),
-      remove: (...nombres) => nombres.forEach((n) => clases.delete(n)),
-      contains: (nombre) => clases.has(nombre),
-      toggle: (nombre, forzar) => {
-        const encendido = forzar === undefined ? !clases.has(nombre) : Boolean(forzar);
-        if (encendido) clases.add(nombre); else clases.delete(nombre);
-        return encendido;
-      }
+      add: (...n) => { const l = nodo.clases; n.forEach((x) => l.add(x)); poner(l); },
+      remove: (...n) => { const l = nodo.clases; n.forEach((x) => l.delete(x)); poner(l); },
+      contains: (n) => nodo.clases.has(n),
+      toggle: (n, f) => { const l = nodo.clases; const on = f === undefined ? !l.has(n) : Boolean(f); if (on) l.add(n); else l.delete(n); poner(l); return on; }
     };
   }
+  get textContent() { return this.texto + this.hijos.map((h) => h.textContent).join(''); }
+  set textContent(v) { this.texto = String(v); this.hijos = []; }
   get children() { return this.hijos; }
   get firstChild() { return this.hijos[0] || null; }
-  setAttribute(clave, valor) { this.atributos[clave] = String(valor); }
-  getAttribute(clave) { return clave in this.atributos ? this.atributos[clave] : null; }
+  get parentNode() { return this.padre; }
+  get nextSibling() { return this.padre ? this.padre.hijos[this.padre.hijos.indexOf(this) + 1] || null : null; }
+  setAttribute(k, v) { this.atributos[k] = String(v); }
+  getAttribute(k) { return k in this.atributos ? this.atributos[k] : null; }
+  removeAttribute(k) { delete this.atributos[k]; }
   appendChild(nodo) { nodo.remove(); nodo.padre = this; this.hijos.push(nodo); return nodo; }
   insertBefore(nodo, referencia) {
     nodo.remove();
@@ -70,12 +86,35 @@ class Nodo {
     this.padre.hijos = this.padre.hijos.filter((hijo) => hijo !== this);
     this.padre = null;
   }
+  cloneNode() {
+    const copia = new Nodo(this.tagName, this.atributos);
+    copia.texto = this.texto;
+    this.hijos.forEach((h) => copia.appendChild(h.cloneNode()));
+    return copia;
+  }
   addEventListener(tipo, oyente) { (this.oyentes[tipo] ||= []).push(oyente); }
+  contains(n) { for (let x = n; x; x = x.padre) if (x === this) return true; return false; }
   closest(selector) {
-    const clase = selector.replace(/^\./, '');
-    for (let nodo = this; nodo; nodo = nodo.padre) if (nodo.clases.has(clase)) return nodo;
+    for (let nodo = this; nodo; nodo = nodo.padre) if (nodo.coincide(selector)) return nodo;
     return null;
   }
+  coincide(sel) {
+    if (sel.startsWith('.')) return this.clases.has(sel.slice(1));
+    const m = sel.match(/^(\w+)?(?:\[([\w-]+)(?:="([^"]*)")?\])?$/);
+    if (!m) throw new Error('selector no contemplado por el DOM de prueba: ' + sel);
+    const [, tag, attr, valor] = m;
+    if (tag && this.tagName !== tag.toUpperCase()) return false;
+    if (attr && !(attr in this.atributos)) return false;
+    if (attr && valor !== undefined && this.atributos[attr] !== valor) return false;
+    return true;
+  }
+  querySelectorAll(selector) {
+    const partes = selector.trim().split(/\s+/);
+    let base = descendientes(this).filter((n) => n.coincide(partes[0]));
+    for (const parte of partes.slice(1)) base = [...new Set(base.flatMap((n) => descendientes(n).filter((d) => d.coincide(parte))))];
+    return base;
+  }
+  querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
 }
 
 function descendientes(nodo, salida = []) {
@@ -83,32 +122,29 @@ function descendientes(nodo, salida = []) {
   return salida;
 }
 
-// Levanta el DOM que el armazón va a encontrar A PARTIR DE LA PÁGINA REAL: los
-// elementos con data-yk-slot y los enlaces del nav. Si la galería deja de declarar
-// un lado, este montaje se queda sin él y el test lo canta.
+const atributosDe = (texto) => Object.fromEntries([...texto.matchAll(/([\w-]+)(?:="([^"]*)")?/g)].map(([, k, v]) => [k, v ?? '']));
+
+// Un parser mínimo, suficiente para la cabecera (sin elementos vacíos).
+function parsear(fragmento, padre) {
+  let actual = padre;
+  for (const [, cierre, etiqueta, attrs, texto] of fragmento.matchAll(/<(\/?)(\w+)([^>]*)>|([^<]+)/g)) {
+    if (texto !== undefined) { if (texto.trim()) actual.appendChild(Object.assign(new Nodo('#text'), {texto})); continue; }
+    if (cierre) { actual = actual.padre || padre; continue; }
+    actual = actual.appendChild(new Nodo(etiqueta, atributosDe(attrs)));
+  }
+}
+
+// Levanta el DOM que el armazón va a encontrar A PARTIR DE LA PÁGINA REAL: el <body>
+// con sus data-yk-*, la cabecera del grupo y los elementos con data-yk-slot. Si la
+// galería deja de declarar un lado (o la cabecera), este montaje se queda sin él y
+// el test lo canta.
 function montarGaleria(html) {
   const raiz = new Nodo('html');
-  const cuerpo = new Nodo('body');
-  raiz.appendChild(cuerpo);
-
-  const atributosBody = html.match(/<body\b([^>]*)>/i)?.[1] || '';
-  for (const [, clave, valor] of atributosBody.matchAll(/data-yk-([a-z-]+)="([^"]*)"/gi)) {
-    cuerpo.dataset[clave.replace(/-([a-z])/g, (_, letra) => letra.toUpperCase())] = valor;
-  }
-
-  for (const [, etiqueta, atributos, slot] of html.matchAll(/<(\w+)\b([^>]*\bdata-yk-slot="([^"]+)"[^>]*)>/g)) {
-    const nodo = new Nodo(etiqueta);
-    nodo.id = atributos.match(/\bid="([^"]+)"/)?.[1] || '';
-    nodo.dataset.ykSlot = slot;
-    nodo.hidden = /\bhidden(?=[\s>]|$)/.test(atributos);
-    cuerpo.appendChild(nodo);
-    if (slot !== 'nav') continue;
-    const bloque = html.slice(html.indexOf(atributos)).split(/<\/nav>/i)[0];
-    for (const [, destino] of bloque.matchAll(/<a\b[^>]*\bhref="([^"]+)"/g)) {
-      const enlace = new Nodo('a');
-      enlace.setAttribute('href', destino);
-      nodo.appendChild(enlace);
-    }
+  const cuerpo = raiz.appendChild(new Nodo('body', atributosDe(html.match(/<body\b([^>]*)>/i)?.[1] || '')));
+  const inicio = html.search(/<header\b[^>]*\bdata-yk-head\b/);
+  if (inicio >= 0) parsear(html.slice(inicio, html.indexOf('</header>', inicio) + '</header>'.length), cuerpo);
+  for (const [, etiqueta, atributos] of html.matchAll(/<(\w+)\b([^>]*\bdata-yk-slot="[^"]+"[^>]*)>/g)) {
+    cuerpo.appendChild(new Nodo(etiqueta, atributosDe(atributos)));
   }
   return {raiz, cuerpo};
 }
@@ -123,19 +159,15 @@ async function armazonMontado() {
   const documento = {
     documentElement: raiz,
     body: cuerpo,
+    title: 'Presentaciones',
     createElement: (etiqueta) => new Nodo(etiqueta),
     getElementById: (id) => descendientes(raiz).find((nodo) => nodo.id === id) || null,
     addEventListener: (tipo, oyente) => { (oyentesDoc[tipo] ||= []).push(oyente); },
-    querySelectorAll(selector) {
-      const partes = selector.match(/^\[data-yk-slot="([^"]+)"\](?:\s+(\w+))?$/);
-      if (!partes) throw new Error(`selector no contemplado por el DOM de prueba: ${selector}`);
-      const base = descendientes(raiz).filter((nodo) => nodo.dataset.ykSlot === partes[1]);
-      if (!partes[2]) return base;
-      return base.flatMap((nodo) => descendientes(nodo).filter((hijo) => hijo.tagName === partes[2].toUpperCase()));
-    }
+    querySelector: (selector) => raiz.querySelector(selector),
+    querySelectorAll: (selector) => raiz.querySelectorAll(selector)
   };
 
-  vm.runInNewContext(fuente, {document: documento, location: {pathname: '/presentaciones/'}});
+  vm.runInNewContext(fuente, {document: documento, location: {pathname: '/presentaciones/galeria'}});
 
   const pulsar = (nodo) => {
     const evento = {target: nodo, preventDefault() {}};
@@ -188,11 +220,14 @@ test('cada nivel tiene su icono en la barra, dice qué cajón abre y nace plegad
     assert.equal(panel.hidden, false, `#${nivel.panel} no puede quedarse oculto dentro de su cajón`);
   }
 
-  // El canon de la casa: OPCIONES sola arriba-izquierda; a la derecha AVANZADO y,
-  // en el extremo, EXPERTO.
-  const barra = descendientes(documento.documentElement).find((nodo) => nodo.clases.has('yk-bar'));
-  const iconos = descendientes(barra).filter((nodo) => nodo.tagName === 'BUTTON').map((nodo) => nodo.id);
-  assert.deepEqual(iconos, ['ykOptionsToggle', 'ykAdvancedToggle', 'ykExpertToggle']);
+  // La barra es la de la intranet (Carlos, 3-oct-2026): ☰ antes de la marca, la
+  // navegación del grupo, «● Acceso privado» y, en el extremo, ▤ y ⌘.
+  const barra = descendientes(documento.documentElement).find((nodo) => nodo.clases.has('yk-head'));
+  assert.ok(barra, 'la galería lleva la cabecera de la intranet (modo cabecera)');
+  assert.equal(descendientes(documento.documentElement).find((nodo) => nodo.clases.has('yk-bar')), undefined, 'y no la barra propia del modo barra');
+  const piezas = barra.hijos.map((n) => n.tagName === 'BUTTON' ? n.id : n.tagName === 'A' ? 'marca' : n.tagName === 'NAV' ? 'nav' : n.getAttribute('data-yk-access') !== null ? 'acceso' : n.clases.has('yk-meta') ? n.hijos.map((b) => b.id).join('+') : n.tagName);
+  assert.deepEqual(piezas, ['ykOptionsToggle', 'marca', 'nav', 'acceso', 'ykAdvancedToggle+ykExpertToggle']);
+  assert.equal(barra.querySelector('[data-yk-access]').getAttribute('data-yk-access'), 'privado', 'la galería sólo se sirve con sesión: «● Acceso privado»');
 });
 
 // Canon de la Galaxia (FLT-101373, 2-oct-2026): los tres paneles son INDEPENDIENTES
@@ -218,7 +253,7 @@ test('los niveles se abren por separado, y Escape pliega el último abierto', as
   assert.deepEqual(estado(), ['false', 'true', 'false'], 'Escape pliega el último que se abrió (⌘)');
   teclear('Escape');
   assert.deepEqual(estado(), ['false', 'false', 'false'], 'y el siguiente Escape, el anterior');
-  assert.deepEqual([...raiz.clases], [], 'sin ningún lado marcado como abierto');
+  assert.deepEqual([...raiz.clases].filter((c) => c.startsWith('yk-open-')), [], 'sin ningún lado marcado como abierto');
 });
 
 test('los iconos son los del canon: ☰ Opciones, ▤ Avanzado y ⌘ Experto', async () => {

@@ -29,21 +29,26 @@ const SKIP = new Set(['node_modules', '.git', 'old', 'backups', 'webmaster-shots
 
 // Páginas que adoptan la barra. acceso: lo que dice la barra —«Acceso privado» si
 // sólo se sirve con sesión, «Página pública» si no; la barra no miente—.
+// actual: el enlace del grupo que va marcado, si no es la propia ruta (la galería
+// vive en /presentaciones/galeria pero en el grupo es «Presentaciones»).
+// funcion: la Function que sirve la página; el test lee lo que ella entrega (el
+// generador recibe el armazón y sus scripts por inyección), no el fichero suelto.
 const ADOPTADAS = {
   'analitics/index.html': {ruta: '/analitics', acceso: 'privado'},
   'webmaster.html': {ruta: '/webmaster', acceso: 'privado'},
   'usuarios.html': {ruta: '/usuarios', acceso: 'privado'},
   'xpace/manage.html': {ruta: '/xpace/manage', acceso: 'privado'},
   'proyectos/index.html': {ruta: '/proyectos/', acceso: 'publico'},
-  'flota.html': {ruta: '/flota', acceso: 'publico'}
+  'flota.html': {ruta: '/flota', acceso: 'publico'},
+  // Carlos (3-oct-2026): «que Presentaciones lleve también la barra de la intranet».
+  'presentaciones/generador.html': {ruta: '/presentaciones/', acceso: 'privado', funcion: 'functions/presentaciones/generador.js'},
+  'presentaciones/index.html': {ruta: '/presentaciones/galeria', acceso: 'privado', actual: '/presentaciones/', funcion: 'functions/presentaciones/galeria.js'}
 };
 
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que
 // ya no se detecta (o que ya adopta la barra) también hace fallar el test.
 const EXCEPCIONES = {
-  'presentaciones/index.html': 'Galería del generador de presentaciones: ya lleva el armazón cuadrático en MODO BARRA (☰ ▤ ⌘, assets/admira-frame.js con data-yk-*), con su propia navegación y su puerta de acceso; se enlaza desde la barra de la intranet (Carlos, 3-oct-2026) pero no se le cambia la cabecera.',
-  '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.',
-  'presentaciones/generador.html': 'Generador de presentaciones: adopta el armazón en MODO BARRA (el de /presentaciones/galeria), que le monta la Function del generador con assets/presentation-generator-quadratic.js; «Acceso privado» es un bloque de su formulario, no la cabecera del grupo.'
+  '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.'
 };
 
 const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/presentaciones/', '/xpace/manage'];
@@ -51,6 +56,19 @@ const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flo
 const GLIFOS = {ykOptionsToggle: '☰', ykAdvancedToggle: '▤', ykExpertToggle: '⌘'};
 
 const leer = (rel) => readFile(path.join(ROOT, rel), 'utf8');
+
+// Lo que el navegador recibe: el fichero, o lo que entrega la Function que lo sirve
+// (con un ASSETS que lee del repo, como Pages).
+async function servida(rel) {
+  const {funcion} = ADOPTADAS[rel] || {};
+  if (!funcion) return leer(rel);
+  const {onRequestGet} = await import(new URL('../' + funcion, import.meta.url));
+  const assets = {fetch: async (u) => new Response(await leer(new URL(String(u)).pathname.slice(1)))};
+  const ruta = ADOPTADAS[rel].ruta;
+  const respuesta = await onRequestGet({request: new Request('https://www.admiranext.com' + ruta), env: {ASSETS: assets}});
+  assert.equal(respuesta.status, 200, `${funcion} sirve ${ruta}`);
+  return respuesta.text();
+}
 const existe = (rel) => stat(path.join(ROOT, rel)).then(() => true, () => false);
 
 async function archivos(dir, extension, out = []) {
@@ -91,6 +109,17 @@ async function familia() {
     if (/logout$/.test(ruta)) continue;
     await apuntar(ruta, 'servida por ' + rel + ' tras exigir sesión');
   }
+  // 2b) La puerta propia de /presentaciones/ (functions/presentaciones/_middleware.js):
+  //     el generador y la galería son área interna, sólo con sesión. Las Functions que
+  //     las sirven leen su HTML de ASSETS.
+  const puertaPres = await leer('functions/presentaciones/_middleware.js');
+  const interna = puertaPres.match(/const isInternalArea = ([^;]+);/);
+  assert.ok(interna && /\bisGeneratorPage\b/.test(interna[1]) && /\bisGalleryPage\b/.test(interna[1]), 'la puerta de /presentaciones/ sigue tratando el generador y la galería como área interna');
+  for (const rel of await archivos('functions/presentaciones', '.js')) {
+    if (path.basename(rel).startsWith('_') || path.dirname(rel) !== 'functions/presentaciones') continue;
+    const html = (await leer(rel)).match(/new URL\('\/(presentaciones\/[^']+\.html)'/);
+    if (html && !miembros.has(html[1])) miembros.set(html[1], 'servida por ' + rel + ' tras exigir sesión (puerta de functions/presentaciones/_middleware.js)');
+  }
   // 3) La navegación del grupo.
   for (const ruta of NAV_GRUPO) await apuntar(ruta, 'navegación del grupo');
   // 4) Cualquier página que diga «Acceso privado» o declare la cabecera del grupo.
@@ -122,14 +151,14 @@ function cabeceraDe(html) {
   return html.slice(inicio, html.indexOf('</header>', inicio) + '</header>'.length);
 }
 
-for (const [rel, {ruta, acceso}] of Object.entries(ADOPTADAS)) {
+for (const [rel, {ruta, acceso, actual}] of Object.entries(ADOPTADAS)) {
   test(`${rel}: carga el armazón y declara la cabecera del grupo`, async () => {
-    const html = await leer(rel);
+    const html = await servida(rel);
     const css = html.match(/<link[^>]+href="\/assets\/admira-frame\.css\?v=([^"]+)"/);
-    const js = html.match(/<script([^>]*)\bsrc="\/assets\/admira-frame\.js\?v=([^"]+)"/);
+    const js = html.match(/<script([^>]*)\bsrc="\/assets\/admira-frame\.js\?v=([^"]+)"([^>]*)>/);
     assert.ok(css && js, 'carga /assets/admira-frame.css y /assets/admira-frame.js');
     assert.equal(css[1], js[2], 'el css y el js del armazón van con la misma clave de caché');
-    assert.match(js[1], /\bdefer\b/, 'el armazón se monta con defer, con el DOM ya leído');
+    assert.match(js[1] + js[3], /\bdefer\b/, 'el armazón se monta con defer, con el DOM ya leído');
     assert.ok(html.indexOf(css[0]) > html.lastIndexOf('</style>') || html.lastIndexOf('</style>') > html.indexOf('<body'), 'el css del armazón va después de los estilos de la página');
     assert.ok(html.indexOf(css[0]) < html.search(/<body\b/), 'el css del armazón va en el <head>');
     assert.match(html, /<body\b[^>]*\bdata-yk-frame="cabecera"/, '<body data-yk-frame="cabecera">');
@@ -146,7 +175,8 @@ for (const [rel, {ruta, acceso}] of Object.entries(ADOPTADAS)) {
     assert.deepEqual(hrefs, NAV_GRUPO, 'la navegación del grupo es la misma en todas las páginas');
     const enBarra = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => !/data-yk-rail-only/.test(m[1] + m[3])).map((m) => m[2]);
     assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes · Presentaciones; el resto, en ☰');
-    assert.match(cab, new RegExp(`href="${ruta.replace(/[/]/g, '\\/')}"[^>]*aria-current="page"`), 'la página actual va marcada');
+    assert.match(cab, new RegExp(`href="${(actual || ruta).replace(/[/]/g, '\\/')}"[^>]*aria-current="page"`), 'la página actual va marcada');
+    assert.equal((cab.match(/aria-current="page"/g) || []).length, 1, 'una sola página marcada en la barra');
     const etiqueta = acceso === 'privado' ? 'Acceso privado' : 'Página pública';
     assert.match(cab, new RegExp(`data-yk-access="${acceso}"[^>]*>[^<]*<span class="yk-access-txt"> ${etiqueta}</span>`), `la barra dice «${etiqueta}»`);
   });
@@ -255,7 +285,7 @@ function parsear(fragmento) {
 
 async function montar(rel) {
   const {ruta} = ADOPTADAS[rel];
-  const html = await leer(rel);
+  const html = await servida(rel);
   const raiz = new Nodo('html');
   const cuerpo = raiz.appendChild(new Nodo('body', {'data-yk-frame': 'cabecera'}));
   const cabeza = new Nodo('head');
@@ -284,7 +314,9 @@ async function montar(rel) {
   // que los defer) o en un script defer que va antes que admira-frame.js.
   const posArmazon = html.search(/<script[^>]+admira-frame\.js/);
   for (const [bloque, src, cuerpoScript] of [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)].map((m) => [m[0], m[1].match(/src="([^"?]+)/)?.[1], m[2]])) {
-    const codigo = src ? (src.startsWith('/analitics/') && src.endsWith('expert.js') ? await leer(src.slice(1)) : '') : cuerpoScript;
+    // Los scripts de la propia web se leen del repo (analitics/expert.js, el del generador…).
+    if (src === '/assets/admira-frame.js') continue;
+    const codigo = src ? (src.startsWith('/') && await existe(src.slice(1)) ? await leer(src.slice(1)) : '') : cuerpoScript;
     if (!/ADMIRA_FRAME_VERBS/.test(codigo)) continue;
     if (src) assert.ok(html.indexOf(bloque) < posArmazon, `${src} va antes que el armazón`);
     vm.runInContext(codigo, contexto);
@@ -338,3 +370,42 @@ test('/analitics: el Experto trae los verbos del encargo y ▤ los filtros que n
   assert.match(avanzado, /id="carbono"[\s\S]*id="silicio"/, 'Carbono y Silicio viven en ▤ Avanzado, con sus mismos ids');
   assert.match(html, /id="audienceChip"[^>]*data-yk-toggle="right"/, 'la pastilla abre ▤ sin que el clic fuera lo cierre');
 });
+
+// ── Presentaciones, con la barra de la intranet (Carlos, 3-oct-2026) ─────────
+// «La coherencia: la barra superior tiene que ser igual en todas las páginas de un
+// sitio». El generador y la galería traían otra barra (modo barra: rótulo
+// «GENERADOR», pestañas propias y sin «Acceso privado»). Ahora su cabecera es,
+// carácter a carácter, la de la familia; sólo cambia qué enlace va marcado.
+test('Presentaciones lleva la MISMA cabecera que el resto de la intranet', async () => {
+  const sinMarca = (cab) => cab.replace(/\s+aria-current="page"/g, '');
+  const modelo = sinMarca(cabeceraDe(await leer('analitics/index.html')));   // privada, como las dos
+  for (const rel of ['presentaciones/generador.html', 'presentaciones/index.html']) {
+    const cab = cabeceraDe(await servida(rel));
+    assert.equal(sinMarca(cab), modelo, `${rel}: la cabecera es la de /analitics (salvo el enlace marcado)`);
+    assert.match(cab, /<a href="\/presentaciones\/" aria-current="page">Presentaciones<\/a>/, `${rel}: marca Presentaciones`);
+    assert.doesNotMatch(cab, /GENERADOR|data-yk-slot|yk-page/, `${rel}: sin rótulo ni pestañas propias en la barra`);
+  }
+  // Y la de /proyectos/ es la misma salvo el acceso: aquella es pública y lo dice.
+  const acceso = /<span class="private"[^>]*>[^<]*<span class="yk-access-txt">[^<]*<\/span><\/span>/;
+  assert.equal(sinMarca(cabeceraDe(await leer('proyectos/index.html'))).replace(acceso, ''), modelo.replace(acceso, ''));
+});
+
+for (const [rel, propios, enlaces] of [
+  ['presentaciones/generador.html', ['/validar', '/config', '/estado', '/seccion', '/galeria', '/accesos'], ['/presentaciones/', '/presentaciones/galeria', '/presentaciones/control/', '/marcablanca/', '/mcp/generador']],
+  ['presentaciones/index.html', ['/buscar', '/vista', '/fecha', '/pestana', '/generador', '/accesos'], ['/presentaciones/', '/presentaciones/galeria', '/presentaciones/control/']]
+]) {
+  test(`${rel}: lo propio de Presentaciones sigue en ☰ ▤ ⌘`, async () => {
+    const {raiz, contexto, html} = await montar(rel);
+    // ☰: la navegación del grupo y, debajo, el bloque «Presentaciones» con sus páginas.
+    const rail = raiz.descendientes().find((n) => n.id === 'ykOptionsRail');
+    const rotulos = rail.hijos.filter((n) => n.classList.contains('yk-rail-sub')).map((n) => n.textContent);
+    assert.deepEqual(rotulos.slice(0, 2), ['Navegación del grupo', 'Presentaciones'], '☰: el grupo y, debajo, las páginas de Presentaciones');
+    const bloque = html.match(/<nav data-yk-slot="left" data-yk-label="Presentaciones"[^>]*>([\s\S]*?)<\/nav>/);
+    assert.ok(bloque, 'el bloque «Presentaciones» va a ☰');
+    assert.deepEqual([...bloque[1].matchAll(/href="([^"]+)"/g)].map((m) => m[1]), enlaces);
+    // ⌘: sus verbos, en el /help del CLI del armazón.
+    contexto.AdmiraFrame.ejecutar('/help');
+    const lineas = raiz.descendientes().find((n) => n.classList.contains('yk-cli-out')).hijos.map((l) => l.textContent);
+    for (const v of propios) assert.ok(lineas.some((l) => l.startsWith(v + ' ')), `/help lista ${v}`);
+  });
+}

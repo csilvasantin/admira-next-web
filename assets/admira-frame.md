@@ -5,7 +5,20 @@ Canon de la Galaxia (el mismo de admira.app, Pixeria, XpaceOS y Yokup; FLT-10137
 - **☰ Opciones** abre el panel vertical IZQUIERDO: navegación y enlaces que llevan a otra página.
 - **▤ Avanzado** abre el panel vertical DERECHO: lo que trabaja sobre la página (acciones, filtros que no son de diario, atajos a secciones).
 - **⌘ Experto** abre la franja horizontal INFERIOR: el CLI.
-- Paneles **independientes** (pueden estar abiertos a la vez), estado **recordado** entre páginas (`localStorage` `admiranext_frame_panels_v1`; se restaura sólo donde se acoplan, para no tapar un móvil al entrar), **Esc** cierra el panel que tiene el foco o, si no lo tiene ninguno, el último que se abrió. Sin scroll horizontal en móvil.
+- Paneles **independientes** (pueden estar abiertos a la vez) que **se superponen** al contenido en cualquier ancho, con su fondo, borde y sombra; **entran cerrados** en cada página; **Esc** cierra el panel que tiene el foco o, si no lo tiene ninguno, el último que se abrió; un clic fuera de ellos los cierra. Sin scroll horizontal en móvil.
+
+### El contenido no se desplaza — OBLIGATORIO
+
+Carlos (3-oct-2026): «el cuerpo central del site (contenido) no se desplaza al abrir las barras opcionales, ni verticales ni la horizontal inferior». Hasta ese día, en ≥1100 px los paneles se **acoplaban** (`--yk-dock-l`, `--yk-dock-r`, `--yk-bottom` apartaban el `<body>` y el globo de /analitics se redimensionaba): en /flota, abrir ☰ empujaba todo a la derecha. Ahora:
+
+- ☰ ▤ ⌘ flotan encima del contenido; el contenido no cambia de posición ni de ancho, sin reflow. El `<body>` sólo baja el alto de la cabecera (`--yk-bar-h`), que no depende de los paneles.
+- Ya **no se recuerdan abiertos** entre páginas (antes `localStorage` `admiranext_frame_panels_v1`, que el armazón ahora borra): al superponerse, reabrirlos al entrar taparía la página nada más cargar. Lo que sí se recuerda es su **tamaño**.
+- Con ⌘ abierta, el aviso de versión (`.admira-version`, fijo abajo a la derecha) sube por encima de la franja en vez de quedar tapado.
+- Guardián: `test/admira-frame-superpuesto.test.js` (ninguna hoja del sitio cambia nada que no sea un panel según `.yk-open-*`; el armazón, ejecutado en una pantalla ancha, no toca el `<body>` ni el contenido al abrir y cerrar cada panel).
+
+### Pie de los paneles: la versión viva
+
+El pie de ☰ y ▤ dice `ADmiraNeXT · v.DD.MM.AAAA.rN.HH:MM` de **`/version.json`** (el manifiesto que genera cada publicación); mientras llega, o si no existe (en local), el `<meta name="admiranext-version">` de la página. Antes leía sólo el meta, que se queda viejo en las páginas que nadie toca (/flota decía `v.02.10.2026.r10` con producción en la r3 del 3-oct).
 
 Hasta el 2-oct los glifos eran ⋯ y ⌄ y abrir un panel cerraba los otros; `test/presentation-gallery-quadratic-ux.test.js` vigila ahora el canon.
 
@@ -15,14 +28,16 @@ Carlos (2-oct-2026): «en la UX cuadrática siempre tienen que ser resizables la
 
 - Tirador en el borde **interior**: ☰ su borde derecho, ▤ su borde izquierdo, ⌘ su borde superior. Ratón, dedo (`pointer`) y **teclado**: es un `role="separator"` enfocable con `aria-valuenow/min/max`; flechas = 16 px (Mayús = 64), Inicio/Fin = mínimo/máximo, **Intro o doble clic = tamaño por defecto**.
 - Límites: laterales de 220 px a `min(760 px, 60 % del ancho)` (en ≤720 px, hasta el 92 %); ⌘ de 120 px hasta el alto de la ventana menos la barra y 60 px.
-- El tamaño se **recuerda entre páginas** (`localStorage` `admiranext_frame_sizes_v1`, `{left, right, bottom}` en px) y se recorta, sin olvidarlo, si la ventana encoge. Llega a CSS como `--yk-w-left`, `--yk-w-right` y `--yk-h-bottom` en el `<html>`; sin ellas mandan `--yk-rail-w` / `--yk-rail-h`. Acoplados (modo cabecera, ≥1100 px), el contenido se aparta al nuevo ancho.
+- El tamaño se **recuerda entre páginas** (`localStorage` `admiranext_frame_sizes_v1`, `{left, right, bottom}` en px) y se recorta, sin olvidarlo, si la ventana encoge. Llega a CSS como `--yk-w-left`, `--yk-w-right` y `--yk-h-bottom` en el `<html>`; sin ellas mandan `--yk-rail-w` / `--yk-rail-h`." Cambiar el tamaño de un panel tampoco mueve el contenido.
 - API: `AdmiraFrame.tamano('left'|'right'|'bottom', px|null)` (`null` = por defecto).
 
 ### Logotipo — OBLIGATORIO
 
 La marca es el logotipo oficial (`libro-de-estilo.html` §7.4): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sobre oscuro. En modo barra lo pinta el armazón; en modo cabecera la página lo trae en su `<a class="brand">` (marcado `yk-wm-*`) y, si no, el armazón lo sustituye. Nada de «admiraNeXT.» en minúscula con punto.
 
-## Modo barra (por defecto) — `/presentaciones/galeria`, el generador (`/presentaciones/`), `/mcp/` y `/mcp/generador` (y, en modo automático, el resto del sitio)
+## Modo barra (por defecto) — `/mcp/` y `/mcp/generador` (y, en modo automático, el resto del sitio)
+
+Hasta el 3-oct-2026 también `/presentaciones/` (el generador) y `/presentaciones/galeria`: ahora llevan la barra de la intranet (modo cabecera, ver «La familia de /analitics»).
 
 El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones … [▤] [⌘]`. La página declara qué va a cada lado:
 
@@ -36,7 +51,7 @@ El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones
 
 - **Logotipo**: la marca de la barra es el logotipo oficial (`libro-de-estilo.html` §7.4, el de la portada `.titlebar-brand`): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sin efectos. Hasta el 2-oct era texto plano «ADmiraNeXT» en monoespaciada.
 - `<body data-yk-cli="on">` añade el CLI a ⌘ también en modo barra; los verbos se registran igual que en modo cabecera (`window.ADMIRA_FRAME_VERBS`).
-- El **generador** (`functions/presentaciones/generador.js`) no pinta barra propia desde el 2-oct (Carlos, tras el PR #28: «no respeta la fórmula de la UX cuadrática ni el logo»): `assets/presentation-generator-quadratic.js` declara los slots (☰ navegación a otras páginas · ▤ estado de producción, Validar, Copiar configuración e «Ir a» las secciones · ⌘ resumen del motor + CLI con `/validar /config /estado /seccion /galeria /accesos`) y la Function inyecta `admira-frame.js` detrás. `/mcp/generador` hace lo mismo en su HTML (verbos `/seccion /tools /copiar /endpoint /manifest`).
+- `/mcp/generador` declara sus slots en su HTML (verbos `/seccion /tools /copiar /endpoint /manifest`).
 
 ## Modo automático — el resto de admiranext.com (`<body data-yk-auto="on">`)
 
@@ -99,7 +114,7 @@ La página conserva SU cabecera y el armazón inserta los iconos en su sitio:
 
 - ☰ va antes de la marca; ▤ y ⌘ justo después de `[data-yk-access]`. La página actual se marca con `aria-current="page"`.
 - La navegación de la cabecera se copia en ☰; en ≤720 px la barra la esconde y deja ☰, la marca, el punto de acceso, ▤ y ⌘.
-- La cabecera se fija arriba y mide su alto en `--yk-bar-h`. En ≥1100 px los paneles se **acoplan**: el `body` se aparta con `--yk-dock-l`, `--yk-dock-r` y `--yk-bottom`, y lo que observe su tamaño (el globo de /analitics, con `ResizeObserver`) se redimensiona. Por debajo se superponen y un clic fuera los cierra (salvo en un control con `data-yk-toggle`).
+- La cabecera se fija arriba y mide su alto en `--yk-bar-h`. Los paneles se **superponen** en cualquier ancho (el contenido no se mueve, ver «El contenido no se desplaza») y un clic fuera los cierra (salvo en un control con `data-yk-toggle`).
 - `data-yk-access="publico"` («○ Página pública») para las páginas que se sirven sin sesión: la barra no dice «privado» de lo que no lo es.
 - Los nodos con `data-yk-slot` se **mueven** (no se copian): conservan sus ids y manejadores.
 
@@ -128,8 +143,17 @@ window.ADMIRA_FRAME_VERBS = (window.ADMIRA_FRAME_VERBS || []).concat([
 | `proyectos/index.html` | adopta · pública | /help, /mcp, Yokup ↗ | Ir a, volver a leer el censo | `/buscar /censo /seccion` |
 | `flota.html` | adopta · pública | Yokup marcador ↗, misiones ↗ | Refrescar, Ir a | `/refrescar /misiones /seccion` |
 | `/github` | excepción | HTML generado por `functions/github.js`, sin scripts (zona militarizada). | | |
-| `presentaciones/generador.html` | excepción | No usa el modo cabecera: adopta el armazón en **modo barra** (como la galería), montado por la Function del generador con `presentation-generator-quadratic.js`. | | |
+| `presentaciones/generador.html` (`/presentaciones/`) | adopta · privada | bloque «Presentaciones»: Generador, Galería, Control de accesos, Marca blanca, MCP del generador ↗ | Estado de producción, Validar, Copiar configuración, Ir a (secciones del formulario) | `/validar /config /estado /seccion /galeria /accesos` |
+| `presentaciones/index.html` (`/presentaciones/galeria`) | adopta · privada | bloque «Presentaciones»: Generador, Galería, Gestión de usuarios · accesos; «Vista del repositorio» | Control editorial | `/buscar /vista /fecha /pestana /generador /accesos` |
 
 En webmaster los enlaces `data-yk-admin` nacen ocultos y los muestra la sesión si es de administrador.
 
-Guardián: `test/familia-analitics-cuadratica.test.js`. Descubre la familia (destinos de la puerta de login, Functions que sirven HTML tras exigir sesión, navegación del grupo y cualquier página que diga «Acceso privado») y exige que cada miembro adopte la barra o figure en `EXCEPCIONES` con su motivo; ejecuta el armazón sobre la cabecera real de cada página y comprueba el orden `☰ · marca · nav · acceso · ▤⌘`, la navegación en ☰, que ▤ tenga contenido y que `/help` liste los verbos.
+### Presentaciones (3-oct-2026)
+
+Carlos: «que Presentaciones lleve también la barra de la intranet» y «la coherencia: la barra superior tiene que ser igual en todas las páginas de un sitio». El generador y la galería dejaron el modo barra (rótulo «GENERADOR», pestañas propias, sin «Acceso privado») y llevan la cabecera de la familia carácter a carácter (la de /analitics; la de /proyectos/ sólo cambia en «○ Página pública»), con «Presentaciones» marcada en las dos.
+
+- Sus enlaces propios (antes pestañas de la barra y «Nivel 01 · Navegación») van a **☰**, en el bloque `data-yk-label="Presentaciones"` **bajo la navegación del grupo**, como «Cómo mide Cloudflare» en /analitics. No como `data-yk-rail-only` en la nav: la nav del grupo es idéntica en todas las páginas y el guardián lo exige.
+- Generador: la cabecera y los contenedores de los paneles están en `presentaciones/generador.html`; `assets/presentation-generator-quadratic.js` (inyectado por `functions/presentaciones/generador.js` antes que el armazón) rellena ▤ y registra los verbos de ⌘. La puerta (`functions/presentaciones/_middleware.js`), la propuesta automática, el panel prospect y el bundle no cambian.
+- Las presentaciones de cliente (`/presentaciones/<slug>/…`) siguen sin barra.
+
+Guardián: `test/familia-analitics-cuadratica.test.js`. Descubre la familia (destinos de la puerta de login, Functions que sirven HTML tras exigir sesión —también las de `functions/presentaciones/` tras su puerta propia—, navegación del grupo y cualquier página que diga «Acceso privado») y exige que cada miembro adopte la barra o figure en `EXCEPCIONES` con su motivo; ejecuta el armazón sobre la cabecera real de cada página y comprueba el orden `☰ · marca · nav · acceso · ▤⌘`, la navegación en ☰, que ▤ tenga contenido y que `/help` liste los verbos. Las páginas que sirve una Function (el generador) se comprueban tal como las entrega. Un test aparte compara la cabecera del generador y de la galería con la de /analitics y /proyectos/.

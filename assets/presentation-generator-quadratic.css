@@ -1,24 +1,14 @@
-/* presentation-generator-quadratic.css — el generador dentro del armazón de la casa.
+/* presentation-generator-quadratic.css — el generador bajo la barra de la intranet.
  *
- * La barra, los raíles ☰ ▤ y la franja ⌘ son de assets/admira-frame.css (modo barra,
- * el mismo de /presentaciones/galeria). Aquí sólo queda: la paleta del armazón igual
- * que en la galería, el fondo del generador y cómo se ven sus bloques dentro de los
- * raíles. Hasta el 2-oct este fichero pintaba una barra y unos cajones propios
- * (barra «ADMIRANEXT · GENERADOR» y cajones) que no seguían el canon. */
+ * La cabecera del grupo, los paneles ☰ ▤ y la franja ⌘ son de assets/admira-frame.css
+ * en MODO CABECERA (los mismos de /proyectos/, con su paleta y sus alturas: aquí no
+ * se redefine ninguna variable --yk-*). Aquí sólo queda el fondo del generador y
+ * cómo se ven sus bloques dentro de los paneles. Hasta el 3-oct el generador usaba
+ * el modo barra (rótulo «GENERADOR») con la paleta de la galería. */
 
-/* Misma paleta que la galería: las dos barras tienen que ser idénticas. Más
-   específico que el :root de admira-frame.css, que se carga después. */
-html.yk-framed{
-  --yk-brand:#65e9f4; --yk-hi:#7ff3f8;
-  --yk-bg:#0a141d; --yk-bg2:#05090d; --yk-card:#0a141d;
-  --yk-ink:#e8eef8; --yk-mut:#9db0cc; --yk-dim:#6b7d9a;
-  --yk-line:#17313b; --yk-line2:#22414d;
-  --yk-rail-h:270px;
+body.generator-quadratic{
   --generator-cyan:#65e9f4;
   --generator-shell-line:rgba(101,233,244,.22);
-  scroll-padding-top:calc(var(--yk-bar-h) + 16px);
-}
-body.generator-quadratic{
   min-height:100vh;
   background:
     linear-gradient(rgba(101,233,244,.026) 1px,transparent 1px),
@@ -29,37 +19,25 @@ body.generator-quadratic{
 }
 .generator-quadratic .hero{padding-top:48px}
 .generator-quadratic .panel{border-radius:8px}
-.generator-quadratic input,.generator-quadratic textarea,.generator-quadratic select,.generator-quadratic .btn{border-radius:6px}
+.generator-quadratic main input,.generator-quadratic main textarea,.generator-quadratic main select,.generator-quadratic main .btn{border-radius:6px}
 
-/* Bloques del generador dentro de los raíles (mismo lenguaje que los de la galería) */
-.yk-rail .generator-slot{background:rgba(8,16,23,.97);border:1px solid var(--yk-line);border-radius:8px;padding:16px;font-family:var(--sans,system-ui,sans-serif)}
-.yk-rail .generator-slot .panel-kicker{margin:0 0 7px;color:var(--yk-brand);font:800 9px/1 var(--yk-mono);letter-spacing:.16em;text-transform:uppercase}
-.yk-rail .generator-slot h2{margin:0 0 8px;font-size:17px;line-height:1.15;color:var(--yk-ink)}
-.yk-rail .generator-slot p{margin:0;color:var(--yk-mut);font-size:12.5px;line-height:1.5}
-.yk-rail .generator-slot .panel-actions{display:grid;gap:8px;margin-top:14px}
-.yk-rail .generator-slot .panel-action{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:40px;padding:0 11px;color:var(--yk-ink);border:1px solid var(--yk-line2);background:#071019;border-radius:5px;font:700 10.5px/1.2 var(--yk-mono);letter-spacing:.03em;text-align:left;text-decoration:none;cursor:pointer}
-.yk-rail .generator-slot .panel-action:hover{color:var(--yk-brand);border-color:var(--yk-brand)}
-.yk-rail .generator-slot .panel-action output{color:var(--yk-brand)}
-.yk-rail .generator-slot .generator-goto-k{margin-top:18px}
-.generator-diagnostics{display:grid;gap:7px;margin-top:6px}
-.generator-diagnostic{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 11px;border:1px solid var(--generator-shell-line);border-radius:5px;background:#071019}
+/* ▤ Avanzado: estado de producción, acciones e «Ir a» */
+.yk-rail .yk-slot button output{margin-left:auto;color:var(--yk-brand)}
+.generator-diagnostics{display:grid;gap:7px}
+.generator-diagnostic{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 11px;border:1px solid var(--generator-shell-line);border-radius:8px;background:rgba(74,227,209,.04)}
 .generator-diagnostic span{color:var(--yk-mut);font:750 10px/1.35 var(--yk-mono);text-transform:uppercase;letter-spacing:.05em}
 .generator-diagnostic output{color:var(--generator-cyan);font:800 10px/1.35 var(--yk-mono);text-align:right}
-.generator-nav-list{display:grid;gap:7px}
-.generator-nav-action{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:40px;padding:0 11px;border:1px solid var(--generator-shell-line);border-radius:5px;background:#071019;color:var(--yk-mut);text-align:left;cursor:pointer;font:750 10.5px/1.25 var(--yk-mono)}
-.generator-nav-action:hover{color:var(--yk-ink);border-color:var(--generator-cyan)}
-.generator-nav-action b{color:var(--generator-cyan);font-size:9px}
+.yk-rail .yk-slot .generator-nav-action{justify-content:space-between}
+.yk-rail .yk-slot .generator-nav-action b{color:var(--generator-cyan);font-size:9px}
 
 /* ⌘ Experto: a la izquierda el resumen del motor, a la derecha el CLI del armazón */
-.generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:row;gap:14px}
-.generator-quadratic .yk-rail-bottom .yk-expert > .generator-slot{flex:0 0 min(38%,420px);display:flex;padding:0;border:0;background:none}
+html.yk-head-mode .generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:row;gap:14px}
+.generator-quadratic .yk-rail-bottom .yk-expert > .generator-slot{flex:0 0 min(38%,420px);display:flex;min-height:0}
 .generator-quadratic .yk-rail-bottom .yk-cli{flex:1;min-width:0}
-.generator-console{flex:1;margin:0;overflow:auto;border:1px solid var(--generator-shell-line);border-radius:8px;padding:12px 14px;background:#03080c;color:#3df08a;font:700 11px/1.6 var(--yk-mono);white-space:pre-wrap}
+.generator-console{flex:1;margin:0;overflow:auto;border:1px solid var(--generator-shell-line);border-radius:10px;padding:12px 14px;background:#03080c;color:#3df08a;font:700 11px/1.6 var(--yk-mono);white-space:pre-wrap}
 
 @media(max-width:720px){
-  html.yk-framed{--yk-rail-w:min(88vw,340px);--yk-rail-h:62vh}
-  .generator-quadratic .yk-rail-bottom{right:0}
-  .generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:column}
+  html.yk-head-mode .generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:column}
   .generator-quadratic .yk-rail-bottom .yk-expert > .generator-slot{flex:0 0 auto;max-height:34%}
   .generator-quadratic .hero{padding-top:34px}
 }
