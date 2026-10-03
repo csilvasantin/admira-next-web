@@ -12,7 +12,7 @@ import vm from 'node:vm';
 // izquierda de AdmiraNeXT y a la derecha de acceso privado». La barra de la
 // familia es:
 //
-//   [☰] admiraNeXT · Proyectos · Usuarios · Webmaster · Analitics · … ● Acceso privado [▤] [⌘]
+//   [☰] admiraNeXT · Proyectos · Usuarios · Webmaster · Analitics · Agentes · … ● Acceso privado [▤] [⌘]
 //
 // La pone assets/admira-frame.js en MODO CABECERA: la página conserva su cabecera
 // (<header data-yk-head>) y el armazón inserta ☰ antes de la marca y ▤ ⌘ después
@@ -45,8 +45,8 @@ const EXCEPCIONES = {
   'presentaciones/generador.html': 'Generador de presentaciones: adopta el armazón en MODO BARRA (el de /presentaciones/galeria), que le monta la Function del generador con assets/presentation-generator-quadratic.js; «Acceso privado» es un bloque de su formulario, no la cabecera del grupo.'
 };
 
-const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/xpace/manage', '/flota'];
-const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics'];
+const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/xpace/manage'];
+const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota'];
 const GLIFOS = {ykOptionsToggle: '☰', ykAdvancedToggle: '▤', ykExpertToggle: '⌘'};
 
 const leer = (rel) => readFile(path.join(ROOT, rel), 'utf8');
@@ -144,7 +144,7 @@ for (const [rel, {ruta, acceso}] of Object.entries(ADOPTADAS)) {
     const hrefs = [...cab.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map((m) => m[1]).slice(1);
     assert.deepEqual(hrefs, NAV_GRUPO, 'la navegación del grupo es la misma en todas las páginas');
     const enBarra = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => !/data-yk-rail-only/.test(m[1] + m[3])).map((m) => m[2]);
-    assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics; el resto, en ☰');
+    assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes; el resto, en ☰');
     assert.match(cab, new RegExp(`href="${ruta.replace(/[/]/g, '\\/')}"[^>]*aria-current="page"`), 'la página actual va marcada');
     const etiqueta = acceso === 'privado' ? 'Acceso privado' : 'Página pública';
     assert.match(cab, new RegExp(`data-yk-access="${acceso}"[^>]*>[^<]*<span class="yk-access-txt"> ${etiqueta}</span>`), `la barra dice «${etiqueta}»`);
