@@ -12,7 +12,7 @@ import vm from 'node:vm';
 // izquierda de AdmiraNeXT y a la derecha de acceso privado». La barra de la
 // familia es:
 //
-//   [☰] admiraNeXT · Proyectos · Usuarios · Webmaster · Analitics · Agentes · … ● Acceso privado [▤] [⌘]
+//   [☰] admiraNeXT · Proyectos · Usuarios · Webmaster · Analitics · Agentes · Presentaciones · … ● Acceso privado [▤] [⌘]
 //
 // La pone assets/admira-frame.js en MODO CABECERA: la página conserva su cabecera
 // (<header data-yk-head>) y el armazón inserta ☰ antes de la marca y ▤ ⌘ después
@@ -41,12 +41,13 @@ const ADOPTADAS = {
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que
 // ya no se detecta (o que ya adopta la barra) también hace fallar el test.
 const EXCEPCIONES = {
+  'presentaciones/index.html': 'Galería del generador de presentaciones: ya lleva el armazón cuadrático en MODO BARRA (☰ ▤ ⌘, assets/admira-frame.js con data-yk-*), con su propia navegación y su puerta de acceso; se enlaza desde la barra de la intranet (Carlos, 3-oct-2026) pero no se le cambia la cabecera.',
   '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.',
   'presentaciones/generador.html': 'Generador de presentaciones: adopta el armazón en MODO BARRA (el de /presentaciones/galeria), que le monta la Function del generador con assets/presentation-generator-quadratic.js; «Acceso privado» es un bloque de su formulario, no la cabecera del grupo.'
 };
 
-const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/xpace/manage'];
-const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota'];
+const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/presentaciones/', '/xpace/manage'];
+const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/presentaciones/'];
 const GLIFOS = {ykOptionsToggle: '☰', ykAdvancedToggle: '▤', ykExpertToggle: '⌘'};
 
 const leer = (rel) => readFile(path.join(ROOT, rel), 'utf8');
@@ -144,7 +145,7 @@ for (const [rel, {ruta, acceso}] of Object.entries(ADOPTADAS)) {
     const hrefs = [...cab.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map((m) => m[1]).slice(1);
     assert.deepEqual(hrefs, NAV_GRUPO, 'la navegación del grupo es la misma en todas las páginas');
     const enBarra = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => !/data-yk-rail-only/.test(m[1] + m[3])).map((m) => m[2]);
-    assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes; el resto, en ☰');
+    assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes · Presentaciones; el resto, en ☰');
     assert.match(cab, new RegExp(`href="${ruta.replace(/[/]/g, '\\/')}"[^>]*aria-current="page"`), 'la página actual va marcada');
     const etiqueta = acceso === 'privado' ? 'Acceso privado' : 'Página pública';
     assert.match(cab, new RegExp(`data-yk-access="${acceso}"[^>]*>[^<]*<span class="yk-access-txt"> ${etiqueta}</span>`), `la barra dice «${etiqueta}»`);
