@@ -11,7 +11,7 @@
 /* Cabecera y paneles: los pone el armazón de la casa (assets/admira-frame.css, modo cabecera, FLT-101373). */
 .audience-chip{display:flex;flex-direction:column;align-items:flex-start;gap:3px;height:41px;justify-content:center;border:1px solid #314057;background:#101a28;color:#eef5fc;padding:4px 12px;text-align:left}.audience-chip small{margin:0;font-size:9px;letter-spacing:.08em;text-transform:uppercase}.audience-chip b{font-size:12px;font-weight:600;color:var(--cyan)}.audience-chip span{display:none}.audience-chip:hover{border-color:var(--cyan)}.audience-chip.filtered b{color:#ffbc8c}
 .heading{flex-wrap:wrap}.heading>div:first-child{flex:1 1 340px}.tablewrap{position:relative}
-/* Con ☰ y ▤ acoplados la tarjeta del globo se estrecha: el inspector pasa debajo y el globo conserva el ancho. */
+/* Si la tarjeta del globo es estrecha (ventana pequeña), el inspector pasa debajo y el globo conserva el ancho. Los paneles ☰ ▤ ⌘ ya no la estrechan: se superponen (3-oct-2026). */
 .globe-card{container-type:inline-size}@container (max-width:760px){.globe-layout{grid-template-columns:minmax(0,1fr)}.globe-inspector{border-left:0;border-top:1px solid var(--line);padding:20px 0 5px}}
 
 /* Procedencia en barras (FLT-101380): de mayor a menor, escala sobre el máximo (la de los rayos), sin scroll interno. */

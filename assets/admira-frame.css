@@ -696,10 +696,10 @@ html, body{ overflow-x: hidden; max-width: 100% }
  *
  *   [☰] admiraNeXT · Analitics · Webmaster · Proyectos · … ● Acceso privado [▤] [⌘]
  *
- * La cabecera se fija arriba (position:fixed) y mide su alto en --yk-bar-h. En
- * ≥1100px los paneles laterales se ACOPLAN: el contenido se aparta con
- * --yk-dock-l / --yk-dock-r y la franja ⌘ con --yk-bottom. Por debajo se
- * superponen. La paleta va fijada aquí para que la barra sea idéntica en todas
+ * La cabecera se fija arriba (position:fixed) y mide su alto en --yk-bar-h. Los
+ * paneles se SUPERPONEN al contenido en cualquier ancho, con su fondo, borde y
+ * sombra: el contenido no cambia de posición ni de ancho al abrirlos (Carlos,
+ * 3-oct-2026). Hasta entonces, en ≥1100px se acoplaban y lo empujaban. La paleta va fijada aquí para que la barra sea idéntica en todas
  * las páginas aunque cada una tenga sus colores, y los selectores llevan la
  * especificidad justa para que los header{}, nav{}, button{} o section{} sueltos
  * de cada página no la desfiguren.
@@ -710,15 +710,13 @@ html.yk-head-mode{
   --yk-ink:#f2f6fc; --yk-mut:#92a0b4; --yk-dim:#6c7a90;
   --yk-line:#253042; --yk-line2:#314057;
   --yk-rail-w: 300px; --yk-rail-h: 260px;
-  --yk-dock-l: 0px; --yk-dock-r: 0px; --yk-bottom: 0px;
   scroll-padding-top: calc(var(--yk-bar-h) + 12px);
 }
+/* El contenido sólo baja el alto de la cabecera, que no depende de los paneles.
+   Ninguna regla de este fichero toca margin, padding ni width del contenido según
+   .yk-open-* (lo vigila test/admira-frame-superpuesto.test.js). */
 html.yk-head-mode body{
   padding-top: var(--yk-bar-h);
-  padding-left: var(--yk-dock-l);
-  padding-right: var(--yk-dock-r);
-  padding-bottom: var(--yk-bottom);
-  transition: padding .28s cubic-bezier(.4,0,.2,1);
 }
 html.yk-head-mode [hidden]{ display:none !important }
 
@@ -772,11 +770,11 @@ html.yk-head-mode header.yk-head :focus-visible{ outline: 2px solid var(--yk-bra
 /* ☰ va pegado al borde y separado de la marca (después de la regla general, que pone margin:0) */
 html.yk-head-mode header.yk-head > button.yk-ico{ margin-right: 18px }
 
-/* Raíles: nacen bajo la cabecera; la franja ⌘ cabe entre los laterales acoplados */
+/* Raíles: nacen bajo la cabecera y se superponen; el último abierto queda encima */
 html.yk-head-mode .yk-rail{ font-size: 12px; line-height: 1.45; text-align: left }
-html.yk-head-mode .yk-rail-left, html.yk-head-mode .yk-rail-right{ top: var(--yk-bar-h); bottom: 0; width: var(--yk-rail-w) }
+html.yk-head-mode .yk-rail-left, html.yk-head-mode .yk-rail-right{ top: var(--yk-bar-h); bottom: 0; width: var(--yk-rail-w); z-index: calc(var(--yk-z) + 2) }
 html.yk-head-mode .yk-rail-right{ display: flex; flex-direction: column }
-html.yk-head-mode .yk-rail-bottom{ left: var(--yk-dock-l); right: var(--yk-dock-r); height: var(--yk-rail-h); display: flex; flex-direction: column; z-index: calc(var(--yk-z) + 1) }
+html.yk-head-mode .yk-rail-bottom{ left: 0; right: 0; height: var(--yk-rail-h); display: flex; flex-direction: column; z-index: calc(var(--yk-z) + 1) }
 html.yk-head-mode .yk-rail-navhd{ font: 700 11px/1.3 var(--yk-mono); letter-spacing: .14em; color: var(--yk-brand); padding: 0 2px 12px; margin-bottom: 4px; border-bottom: 1px solid var(--yk-line) }
 html.yk-head-mode .yk-rail-sub{ font: 700 9.5px/1.3 var(--yk-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--yk-dim); margin: 14px 2px 6px }
 html.yk-head-mode .yk-rail-group{ display: flex; flex-direction: column; margin: 0; padding: 0; border: 0; background: none; gap: 0 }
@@ -823,10 +821,6 @@ html.yk-head-mode .yk-expert{ flex: 1; min-height: 0; display: flex; flex-direct
   font: 13px var(--yk-mono); color: var(--yk-ink); background: transparent; border: 0; border-radius: 0; outline: none; box-shadow: none;
 }
 
-@media (max-width: 1099px){
-  /* superpuestos: el contenido no se aparta (las variables de acople valen 0) */
-  html.yk-head-mode .yk-rail-left, html.yk-head-mode .yk-rail-right{ z-index: calc(var(--yk-z) + 2) }
-}
 @media (max-width: 720px){
   html.yk-head-mode{ --yk-rail-w: min(88vw, 340px); --yk-rail-h: 62vh }
   html.yk-head-mode header.yk-head{ height: 60px; padding: 0 12px }
@@ -838,9 +832,6 @@ html.yk-head-mode .yk-expert{ flex: 1; min-height: 0; display: flex; flex-direct
   html.yk-head-mode header.yk-head .yk-access-txt{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
   html.yk-head-mode header.yk-head .yk-head-meta{ margin-left: 10px; gap: 6px }
   html.yk-head-mode header.yk-head .yk-ico{ height: 40px; min-width: 40px; padding: 0 8px }
-}
-@media (prefers-reduced-motion: reduce){
-  html.yk-head-mode body{ transition: none }
 }
 
 /* ============================================================================
@@ -875,12 +866,15 @@ html.yk-head-mode .yk-rail-bottom{ height: var(--yk-h-bottom, var(--yk-rail-h)) 
 .yk-resize-left::after, .yk-resize-right::after{ top: 50%; left: 3px; width: 4px; height: 44px; transform: translateY(-50%) }
 /* inferior: franja de 10 px en el borde superior de ⌘ */
 .yk-resize-bottom{ height: 10px; cursor: row-resize; left: 0; right: var(--yk-avatar-safe); bottom: calc(var(--yk-h-bottom, var(--yk-rail-h)) - 5px) }
-html.yk-head-mode .yk-resize-bottom{ left: var(--yk-dock-l); right: var(--yk-dock-r) }
+html.yk-head-mode .yk-resize-bottom{ left: 0; right: 0 }
 .yk-resize-bottom::after{ left: 50%; top: 3px; height: 4px; width: 44px; transform: translateX(-50%) }
 .yk-open-left .yk-resize-left, .yk-open-right .yk-resize-right, .yk-open-bottom .yk-resize-bottom{ display: block }
 /* Mientras se arrastra: sin animaciones (el panel sigue al puntero) ni selección de texto */
 html.yk-resizing, html.yk-resizing *{ user-select: none !important; -webkit-user-select: none !important }
-html.yk-resizing .yk-rail, html.yk-resizing.yk-head-mode body{ transition: none !important }
+html.yk-resizing .yk-rail{ transition: none !important }
+/* Con ⌘ abierta, lo que la página tiene fijo abajo (el aviso de versión) sube por
+   encima de la franja en vez de quedar tapado; el contenido no se mueve. */
+html.yk-open-bottom .admira-version{ bottom: calc(var(--yk-h-bottom, var(--yk-rail-h)) + 14px) !important }
 /* Pie de los raíles también en modo barra (antes heredaba la letra de la página). */
 .yk-rail-foot{ font: 10px/1.4 var(--yk-mono); letter-spacing: .06em; color: var(--yk-dim) }
 

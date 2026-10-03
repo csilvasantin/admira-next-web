@@ -26,8 +26,8 @@
   button{font:inherit}
   button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
   /* La barra es la de la intranet (admira-frame.js en MODO CABECERA, 3-oct-2026): el
-   armazón ya aparta el cuerpo de la página con --yk-bar-h y, acoplados, con los paneles abiertos.
-   Aquí no se reserva nada: un padding-top propio dejaba el hueco de la barra dos veces. */
+   armazón ya baja el cuerpo de la página el alto de la cabecera (--yk-bar-h) y los paneles
+   se superponen sin moverlo. Aquí no se reserva nada: un padding-top propio dejaba el hueco de la barra dos veces. */
   .app-shell{position:relative;z-index:1;min-height:100vh;padding-left:0;padding-top:0}
   /* ⌘ Experto: el panel de operación a la izquierda y el CLI del armazón a la derecha. */
   .yk-rail-bottom .yk-expert{flex-direction:row;gap:14px}
@@ -198,7 +198,7 @@
     .view-switch,.tabs{width:100%}
   }
 </style>
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r14">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.03.10.2026-r4">
 </head>
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/presentaciones/" aria-current="page">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="privado" title="Acceso privado">●<span class="yk-access-txt"> Acceso privado</span></span></header>
@@ -700,7 +700,7 @@
     {id:'accesos',aliases:['control'],ayuda:'Abre la gestión de usuarios y accesos',run:function(_a,ctx){ctx.imprimir('Abriendo el control de accesos…');location.href='/presentaciones/control/'}}
   ]);
   </script>
-  <script src="/assets/admira-frame.js?v=v.02.10.2026-r14" defer></script>
+  <script src="/assets/admira-frame.js?v=v.03.10.2026-r4" defer></script>
   <script src="/assets/admira-version-watch.js?build=06092026-1" defer></script>
 </body>
 </html>

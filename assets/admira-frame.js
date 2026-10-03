@@ -24,8 +24,9 @@
  * CANON DE LA GALAXIA (2-oct-2026, FLT-101373; el mismo de admira.app, Pixeria,
  * XpaceOS y Yokup): ☰ Opciones abre el panel IZQUIERDO, ▤ Avanzado el DERECHO y
  * ⌘ Experto la franja INFERIOR con el CLI. Los paneles son independientes (pueden
- * estar abiertos a la vez), recuerdan su estado entre páginas y Esc cierra el
- * panel enfocado (o, si el foco no está en ninguno, el último que se abrió).
+ * estar abiertos a la vez), entran cerrados en cada página (desde el 3-oct-2026;
+ * antes se recordaban) y Esc cierra el panel enfocado (o, si el foco no está en
+ * ninguno, el último que se abrió).
  * Hasta esta versión los glifos eran ⋯ y ⌄ y abrir uno cerraba los otros.
  *
  * MODO CABECERA (<body data-yk-frame="cabecera">): la página conserva SU cabecera
@@ -35,9 +36,10 @@
  *   [☰] admiraNeXT · Analitics · Webmaster · Proyectos · … ● Acceso privado [▤] [⌘]
  *
  * La navegación de la cabecera se copia además en ☰ (en móvil la barra la
- * esconde); los enlaces con data-yk-rail-only sólo se ven en ☰. En pantallas de
- * 1100 px o más los paneles se ACOPLAN y el contenido se estrecha a su lado (el
- * globo de /analitics se redimensiona solo); por debajo se superponen. La franja
+ * esconde); los enlaces con data-yk-rail-only sólo se ven en ☰. Los paneles se
+ * SUPERPONEN al contenido en cualquier ancho (Carlos, 3-oct-2026: «el cuerpo
+ * central del site no se desplaza al abrir las barras opcionales, ni verticales ni
+ * la horizontal inferior»): el contenido no cambia de sitio ni de ancho. La franja
  * ⌘ trae un CLI con /help generado del registro de verbos: la página añade los
  * suyos con window.ADMIRA_FRAME_VERBS = [...] (antes de cargar el armazón) o con
  * AdmiraFrame.verbo({...}) (después).
@@ -287,15 +289,30 @@
     }
     var movidos = mudar(lado, r);
     if (modoCabecera && !movidos && !(lado === 'left' && grupo.length)) r.appendChild(texto('p', 'yk-empty', '— sin opciones en esta página'));
-    var sello = '';
-    if (modoCabecera) {
-      var m = doc.querySelector('meta[name="admiranext-version"]');
-      sello = m ? String(m.getAttribute('content') || '').replace(/^AdmiraNeXT\s*/, '') : '';
-    }
     var pie = el('div', 'yk-rail-foot');
-    pie.appendChild(texto('span', '', 'ADmiraNeXT · ' + (sello || '2026')));
+    var piePlaca = texto('span', '', 'ADmiraNeXT · ' + (selloMeta() || '2026'));
+    piePlaca.setAttribute('data-yk-sello', '');
+    pie.appendChild(piePlaca);
     r.appendChild(pie);
     return r;
+  }
+  // El pie de los paneles dice la versión VIVA (Carlos, 3-oct-2026: el de /flota decía
+  // v.02.10.2026.r10 con producción en la r3 del 3-oct, porque leía el <meta> de la
+  // página y ése sólo avanza cuando alguien la toca). Manda /version.json, el
+  // manifiesto que genera cada publicación; el <meta> es el respaldo mientras llega
+  // (o si no existe, como en local).
+  function selloMeta() {
+    var m = doc.querySelector('meta[name="admiranext-version"]');
+    var v = m ? String(m.getAttribute('content') || '').match(/v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}/) : null;
+    return v ? v[0] : '';
+  }
+  function selloVivo() {
+    if (typeof G.fetch !== 'function') return;
+    G.fetch('/version.json', {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      var v = d && String(d.version || d.sello || '').match(/v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}/);
+      if (!v) return;
+      doc.querySelectorAll('[data-yk-sello]').forEach(function (n) { n.textContent = 'ADmiraNeXT · ' + v[0]; });
+    }).catch(function () { /* sin manifiesto: se queda el del <meta> */ });
   }
   var railIzq = rail('left', nomIzq), railDer = rail('right', nomDer);
 
@@ -314,27 +331,24 @@
   if (!modoCabecera) body.insertBefore(bar, body.firstChild);
   body.appendChild(railIzq); body.appendChild(railDer);
   if (hayAbajo) body.appendChild(railAbajo);
+  selloVivo();
 
   // ── Apertura ───────────────────────────────────────────────────────────────
   // Paneles independientes (canon de la Galaxia): abrir uno no cierra los otros.
   var CAJON = {left: {btn: btnIzq, rail: railIzq}, right: {btn: btnDer, rail: railDer}, bottom: {btn: btnAbajo, rail: hayAbajo ? railAbajo : null}};
-  var CLAVE = 'admiranext_frame_panels_v1';
+  // Los paneles NO se recuerdan abiertos entre páginas (3-oct-2026): ahora se
+  // superponen en cualquier ancho, y reabrirlos al entrar taparía el contenido nada
+  // más cargar. Se borra el estado que guardaban las versiones anteriores.
+  try { localStorage.removeItem('admiranext_frame_panels_v1'); } catch (e) { /* sin almacenamiento */ }
   var pila = [];   // orden de apertura: Esc sin foco en un panel cierra el último
   var cli = null;
   function abierto(lado) { return root.classList.contains('yk-open-' + lado); }
-  function acoplable() {
-    return modoCabecera && typeof matchMedia === 'function' && matchMedia('(min-width: 1100px)').matches;
-  }
-  function guardar() {
-    try { localStorage.setItem(CLAVE, JSON.stringify({left: abierto('left'), right: abierto('right'), bottom: abierto('bottom')})); } catch (e) { /* sin almacenamiento: no se recuerda */ }
-  }
-  function abrir(lado, valor, sinGuardar) {
+  function abrir(lado, valor) {
     if (!CAJON[lado] || !CAJON[lado].rail) return;
     root.classList.toggle('yk-open-' + lado, valor);
     pila = pila.filter(function (l) { return l !== lado; });
     if (valor) pila.push(lado);
     sincronizar();
-    if (!sinGuardar) guardar();
   }
   // El estado del cajón se dice UNA vez y para los dos: el botón lo anuncia con
   // aria-expanded y el cajón cerrado se sale del recorrido con inert. Un raíl
@@ -347,33 +361,22 @@
       if (!CAJON[lado].rail) return;
       CAJON[lado].rail.inert = !a;
       CAJON[lado].rail.setAttribute('aria-hidden', String(!a));
-      // Superpuestos (móvil), el último que se abre queda encima de los demás.
+      // Superpuestos, el último que se abre queda encima de los demás.
       if (modoCabecera && CAJON[lado].rail.style) CAJON[lado].rail.style.zIndex = a ? String(2147483001 + pila.indexOf(lado)) : '';
     });
     medir();
   }
-  // Modo cabecera: la altura de la cabecera y lo que ocupan los paneles abiertos
-  // se publican como variables; el contenido se aparta con ellas (acoplado) y los
-  // raíles nacen justo debajo de la cabecera.
+  // Modo cabecera: la altura de la cabecera se publica en --yk-bar-h (el contenido
+  // baja ese alto, siempre el mismo) y los raíles nacen justo debajo. Lo que ocupen
+  // los paneles abiertos NO se publica: el contenido no se aparta (hasta el 3-oct, en
+  // ≥1100 px, --yk-dock-l/-r y --yk-bottom lo empujaban y el globo de /analitics se
+  // redimensionaba).
   function medir() {
     if (!modoCabecera || !root.style || !root.style.setProperty) return;
-    var dock = acoplable();
-    root.classList.toggle('yk-dock', dock);
     root.style.setProperty('--yk-bar-h', (cabecera.offsetHeight || 76) + 'px');
-    var anchoIzq = railIzq.offsetWidth || 300, anchoDer = railDer.offsetWidth || 300;
-    root.style.setProperty('--yk-dock-l', dock && abierto('left') ? anchoIzq + 'px' : '0px');
-    root.style.setProperty('--yk-dock-r', dock && abierto('right') ? anchoDer + 'px' : '0px');
-    root.style.setProperty('--yk-bottom', hayAbajo && abierto('bottom') ? (railAbajo.offsetHeight || 260) + 'px' : '0px');
   }
   function cerrarTodo() { LADOS.forEach(function (l) { if (abierto(l)) abrir(l, false); }); }
 
-  // Estado recordado. Sólo se restaura donde los paneles se acoplan: en un móvil,
-  // reabrir un cajón al cargar taparía la página entera nada más entrar.
-  if (acoplable()) {
-    var previo = null;
-    try { previo = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { previo = null; }
-    if (previo) LADOS.forEach(function (l) { if (previo[l]) abrir(l, true, true); });
-  }
   sincronizar();   // plegado por defecto, y dicho: los tres botones nacen en false
   btnIzq.addEventListener('click', function () { abrir('left', !abierto('left')); });
   btnDer.addEventListener('click', function () { if (!abierto('right')) construirIrA(); abrir('right', !abierto('right')); });
@@ -394,11 +397,9 @@
     abrir(lado, false);
     if (conFoco && CAJON[lado].btn.focus) CAJON[lado].btn.focus();
   });
-  // Fuera del cajón se cierra, pero sólo cuando los cajones se SUPERPONEN: en móvil
-  // ocupan casi toda la pantalla y sin esto hay que apuntar al botón para salir.
-  // Acoplados no tapan nada, así que un clic en el contenido no los pliega.
+  // Fuera del cajón se cierra: los cajones se superponen al contenido (en cualquier
+  // ancho) y sin esto hay que apuntar al botón para volver a él.
   doc.addEventListener('click', function (e) {
-    if (acoplable()) return;
     if (!LADOS.some(abierto)) return;
     if (!e.target || !e.target.closest) return;
     if (e.target.closest('.yk-rail') || e.target.closest('.yk-resize') || e.target.closest(modoCabecera ? '.yk-head' : '.yk-bar')) return;
