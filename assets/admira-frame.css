@@ -789,6 +789,7 @@ html.yk-head-mode .yk-rail .yk-slot button{
 }
 html.yk-head-mode .yk-rail .yk-slot a:hover,
 html.yk-head-mode .yk-rail .yk-slot button:hover{ border-color: var(--yk-brand); color: var(--yk-brand) }
+html.yk-head-mode .yk-rail .yk-slot a[aria-current="page"]{ border-color: var(--yk-brand); color: var(--yk-brand); background: rgba(74,227,209,.08) }
 html.yk-head-mode .yk-rail .yk-slot .yk-quiet{ border-style: dashed; background: none }
 html.yk-head-mode .yk-rail .yk-slot .yk-danger{ color: #ff9ba6 }
 html.yk-head-mode .yk-rail .yk-slot fieldset{ margin: 0; padding: 10px 12px; border: 1px solid var(--yk-line2); border-radius: 10px; display: flex; flex-direction: column; gap: 8px }

@@ -31,13 +31,13 @@ body.generator-quadratic{
 .yk-rail .yk-slot .generator-nav-action b{color:var(--generator-cyan);font-size:9px}
 
 /* ⌘ Experto: a la izquierda el resumen del motor, a la derecha el CLI del armazón */
-.generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:row;gap:14px}
+html.yk-head-mode .generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:row;gap:14px}
 .generator-quadratic .yk-rail-bottom .yk-expert > .generator-slot{flex:0 0 min(38%,420px);display:flex;min-height:0}
 .generator-quadratic .yk-rail-bottom .yk-cli{flex:1;min-width:0}
 .generator-console{flex:1;margin:0;overflow:auto;border:1px solid var(--generator-shell-line);border-radius:10px;padding:12px 14px;background:#03080c;color:#3df08a;font:700 11px/1.6 var(--yk-mono);white-space:pre-wrap}
 
 @media(max-width:720px){
-  .generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:column}
+  html.yk-head-mode .generator-quadratic .yk-rail-bottom .yk-expert{flex-direction:column}
   .generator-quadratic .yk-rail-bottom .yk-expert > .generator-slot{flex:0 0 auto;max-height:34%}
   .generator-quadratic .hero{padding-top:34px}
 }

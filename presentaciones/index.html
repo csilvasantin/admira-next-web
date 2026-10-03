@@ -30,10 +30,10 @@
    se superponen sin moverlo. Aquí no se reserva nada: un padding-top propio dejaba el hueco de la barra dos veces. */
   .app-shell{position:relative;z-index:1;min-height:100vh;padding-left:0;padding-top:0}
   /* ⌘ Experto: el panel de operación a la izquierda y el CLI del armazón a la derecha. */
-  .yk-rail-bottom .yk-expert{flex-direction:row;gap:14px}
-  .yk-rail-bottom #ykExpertPanel{flex:0 0 min(38%,420px);overflow:auto}
-  .yk-rail-bottom .yk-cli{flex:1;min-width:0}
-  @media(max-width:720px){.yk-rail-bottom .yk-expert{flex-direction:column}.yk-rail-bottom #ykExpertPanel{flex:0 0 auto;max-height:40%}}
+  html.yk-head-mode .yk-rail-bottom .yk-expert{flex-direction:row;gap:14px}
+  html.yk-head-mode .yk-rail-bottom #ykExpertPanel{flex:0 0 min(38%,420px);overflow:auto}
+  html.yk-head-mode .yk-rail-bottom .yk-cli{flex:1;min-width:0}
+  @media(max-width:720px){html.yk-head-mode .yk-rail-bottom .yk-expert{flex-direction:column}html.yk-head-mode .yk-rail-bottom #ykExpertPanel{flex:0 0 auto;max-height:40%}}
   .topbar{position:fixed;z-index:20;inset:0 0 auto var(--rail);height:var(--topbar);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,3vw,36px);border-bottom:1px solid var(--line);background:rgba(5,9,13,.9);backdrop-filter:blur(18px)}
   .brand-lockup,.top-actions,.mode-switch{display:flex;align-items:center}
   .brand-lockup{gap:12px;font:800 12px/1 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--ink)}
