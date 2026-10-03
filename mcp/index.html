@@ -1,31 +1,33 @@
 <!doctype html>
-<html lang="es" class="yk-framed">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ADmiraNeXT MCP | Las 4 patas del sistema operativo del retail</title>
   <meta name="description" content="Hub MCP de la matriz AdmiraNeXT: qué es, superficie pública, documentación y federación con la tienda y el Consejo. Sección legible por agentes.">
-  <meta name="admiranext-version" content="v.01.10.2026.r1.04:56">
+  <meta name="admiranext-version" content="v.03.10.2026.r5.03:19">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
+    /* Metaestilo de admiranext.com (3-oct-2026): el hub dejó el papel crema y el ámbar
+       (Carlos: «no hay metaestilo en esta página») y lleva el fondo y los tokens
+       oscuros del sitio, los de /proyectos/ y la intranet: fondo #070b12 con el halo
+       verdoso, paneles #101724, líneas #25344b y el cian de la casa. */
     :root{
-      --ink:#141114; --muted:#6a625a; --line:rgba(20,17,20,.14);
-      --paper:#fbf7ef; --panel:#ffffff; --accent:#ffb000; --accent-ink:#5a3a00; --shadow:0 18px 42px rgba(30,22,8,.10);
+      color-scheme:dark;
+      --ink:#eef6ff; --muted:#8ea0b8; --line:#25344b;
+      --paper:#070b12; --panel:#101724; --panel2:#09111d; --accent:#63e6d5; --accent-ink:#63e6d5; --on-accent:#04211d;
+      --shadow:0 18px 42px rgba(0,0,0,.35);
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
-    body{margin:0;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-      background:linear-gradient(90deg,rgba(255,176,0,.07) 1px,transparent 1px),linear-gradient(rgba(26,14,0,.05) 1px,transparent 1px),var(--paper);
-      background-size:44px 44px,44px 44px,auto;}
+    body{margin:0;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55;}
     a{color:inherit}
-    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    .shell{width:min(1120px,calc(100% - 30px));margin:0 auto}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0}
-    .brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-weight:900}
-    .brand .dot{width:30px;height:30px;border-radius:8px;background:var(--accent);box-shadow:var(--shadow)}
-    nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-    nav a,.button{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:10px 13px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.8);text-decoration:none;font-weight:800;font-size:.9rem}
-    .button.primary{color:var(--accent-ink);border-color:transparent;background:var(--accent)}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+    .shell{width:100%;margin:0 auto}
+    footer.shell{width:min(var(--yk-content-w,1200px),calc(100% - 32px))}
+    .button{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#121c2c;color:var(--ink);text-decoration:none;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace}
+    .button:hover{border-color:var(--accent)}
+    .button.primary{color:var(--on-accent);border-color:transparent;background:var(--accent)}
     .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:40px 0 50px}
     .eyebrow{margin:0 0 12px;color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:.76rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
     h1{margin:0;font-size:clamp(2.8rem,7vw,5.4rem);line-height:.92;letter-spacing:-.01em}
@@ -34,60 +36,57 @@
     .lead{max-width:760px;margin-top:22px;color:var(--muted);font-size:1.08rem;line-height:1.7}
     .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
     .status-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:26px}
-    .stat{padding:14px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.82);box-shadow:0 8px 24px rgba(30,22,8,.06)}
-    .stat strong{display:block;font-size:1.7rem;line-height:1}
+    .stat{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+    .stat strong{display:block;font-size:1.7rem;line-height:1;color:var(--accent)}
     .stat span{display:block;margin-top:8px;color:var(--muted);line-height:1.35;font-size:.92rem}
-    .visual{min-height:300px;display:grid;align-content:end;gap:10px;padding:24px;border:1px solid var(--line);border-radius:8px;
-      background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,255,255,.72)),linear-gradient(135deg,#ffb000,#1a0e00);box-shadow:var(--shadow)}
-    .node{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;padding:12px 15px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.9);font-weight:850}
-    .node small{color:var(--muted);font-weight:750;text-align:right}
+    .visual{min-height:300px;display:grid;align-content:end;gap:10px;padding:24px;border:1px solid var(--line);border-radius:16px;
+      background:radial-gradient(120% 90% at 100% 0%,rgba(99,230,213,.14),transparent 60%),var(--panel);box-shadow:var(--shadow)}
+    .node{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;padding:12px 15px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-weight:800}
+    .node small{color:var(--muted);font-weight:700;text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem}
     .band{padding:54px 0;border-top:1px solid var(--line)}
+    .band p{color:var(--muted)}
+    .band p b{color:var(--ink)}
     .section-head{display:grid;grid-template-columns:.92fr 1.08fr;gap:24px;align-items:end;margin-bottom:22px}
     .section-head p{color:var(--muted);font-size:1.02rem;line-height:1.7}
     .grid-3{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr))}
     .grid-4{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr))}
-    .card{padding:18px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(30,22,8,.06)}
+    .card{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
     .card p{color:var(--muted);line-height:1.6;margin:10px 0 0}
-    .tag{display:inline-flex;margin-bottom:10px;padding:5px 8px;border-radius:7px;background:rgba(255,176,0,.16);color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:.72rem;font-weight:900}
-    .callout{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px;align-items:center;padding:24px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.86);box-shadow:var(--shadow)}
+    .card h3 a{text-underline-offset:3px}
+    .card h3 a:hover,.band p a:hover{color:var(--accent)}
+    .tag{display:inline-flex;margin-bottom:10px;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:rgba(99,230,213,.08);color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:.72rem;font-weight:900}
+    .callout{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px;align-items:center;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:var(--shadow)}
     .callout a{font-weight:800;color:var(--accent-ink)}
+    .dir{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-size:.92rem}
+    .dir th{text-align:left;padding:10px;background:rgba(99,230,213,.08);font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+    .dir td{padding:10px;border-top:1px solid var(--line);color:var(--muted);vertical-align:top}
+    .dir td:first-child{color:var(--ink)}
+    .dir a{color:var(--accent)}
     footer{padding:30px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
-    @media(max-width:820px){.hero{grid-template-columns:1fr}.section-head{grid-template-columns:1fr}.grid-3,.grid-4{grid-template-columns:1fr}.callout{grid-template-columns:1fr}}
-    /* Armazón de la casa (assets/admira-frame.md, modo barra): barra, raíles y CLI en
-       oscuro sobre el papel de la página; el logotipo oficial siempre va sobre oscuro. */
-    html.yk-framed{--yk-brand:#ffb000;--yk-hi:#ffd36b;--yk-bg:#17130c;--yk-bg2:#0d0b08;--yk-card:#17130c;--yk-ink:#f6efe2;--yk-mut:#c9bba3;--yk-dim:#8f826c;--yk-line:#2f281c;--yk-line2:#4a3f2b;scroll-padding-top:calc(var(--yk-bar-h) + 16px)}
-    .yk-rail .hub-slot{background:rgba(23,19,12,.97);border:1px solid var(--yk-line);border-radius:8px;padding:16px;font-family:Inter,system-ui,sans-serif}
-    .yk-rail .hub-slot .k{margin:0 0 7px;color:var(--yk-brand);font:800 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase}
-    .yk-rail .hub-slot h2{margin:0 0 8px;font-size:17px;color:var(--yk-ink)}
-    .yk-rail .hub-slot p{margin:0;color:var(--yk-mut);font-size:12.5px;line-height:1.5}
-    .yk-rail .hub-acts{display:grid;gap:7px;margin-top:12px}
-    .yk-rail .hub-act{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:38px;padding:0 11px;color:var(--yk-ink);border:1px solid var(--yk-line2);background:#120f0a;border-radius:5px;font:700 10.5px/1.25 ui-monospace,Menlo,monospace;text-align:left;text-decoration:none;cursor:pointer}
-    .yk-rail .hub-act:hover{color:var(--yk-brand);border-color:var(--yk-brand)}
-    .yk-rail .hub-act b{color:var(--yk-brand)}
+    @media(max-width:820px){.hero{grid-template-columns:1fr}.section-head{grid-template-columns:1fr}.grid-3,.grid-4{grid-template-columns:1fr}.callout{grid-template-columns:1fr}.status-row{grid-template-columns:1fr}}
   </style>
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.03.10.2026-r4">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.03.10.2026-r5">
+  <script defer src="/assets/admira-frame.js?v=v.03.10.2026-r5"></script>
 </head>
-<body data-yk-title="MCP" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-cli="on">
-  <!-- Los tres niveles del marco cuadrático (assets/admira-frame.md): admira-frame.js los muda a su raíl. -->
-  <nav data-yk-slot="nav" hidden>
-    <a href="/mcp/" aria-label="Hub MCP" title="Hub MCP"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h4l2-5 4 10 2-5h4"/></svg><span class="yk-lbl">Hub MCP</span></a>
-    <a href="/mcp/generador" aria-label="MCP del generador" title="MCP del generador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="16" height="18"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="yk-lbl">Generador</span></a>
+<body data-yk-frame="cabecera">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
+  <!-- La barra es la del sitio (Carlos, 3-oct-2026: «la barra superior tiene que ser
+       igual en todas las páginas de un sitio»): la misma cabecera que /proyectos/, con
+       «○ Página pública» porque /mcp/ es la puerta abierta para agentes. Las antiguas
+       pestañas de la barra (Hub MCP, Generador) y la navegación del panel van a ☰, en
+       el bloque «MCP» bajo la navegación del grupo; «Ir a» a ▤; los verbos a ⌘.
+       admira-frame.js muda cada data-yk-slot a su panel (assets/admira-frame.md). -->
+  <nav data-yk-slot="left" data-yk-label="MCP" aria-label="Páginas MCP">
+    <a href="/mcp/" aria-current="page">Hub MCP</a>
+    <a href="/mcp/generador">MCP del generador</a>
+    <a href="/mcp/llms.txt">llms.txt ↗</a>
+    <a href="/mcp/manifest.json">manifest.json ↗</a>
+    <a href="https://www.admira.live/mcp/">Consejo MCP (admira.live) ↗</a>
   </nav>
-  <section class="hub-slot" data-yk-slot="left">
-    <p class="k">Nivel 01 · Opciones</p><h2>Navegación</h2><p>Los MCP de la matriz y sus manifiestos.</p>
-    <div class="hub-acts">
-      <a class="hub-act" href="/mcp/generador">MCP del generador <b>→</b></a>
-      <a class="hub-act" href="llms.txt">llms.txt <b>↗</b></a>
-      <a class="hub-act" href="manifest.json">manifest.json <b>↗</b></a>
-      <a class="hub-act" href="https://www.admira.live/mcp/">Consejo MCP (admira.live) <b>↗</b></a>
-    </div>
-  </section>
-  <section class="hub-slot" data-yk-slot="right">
-    <p class="k">Nivel 02 · Avanzado</p><h2>Ir a</h2>
-    <div class="hub-acts" id="hubIrA"></div>
-  </section>
+  <div data-yk-slot="right" data-yk-label="Ir a" id="hubIrA"></div>
+  <div data-yk-slot="right" data-yk-label="Para agentes"><a href="/mcp/llms.txt">Abrir llms.txt</a><a href="/mcp/manifest.json">Abrir manifest.json</a></div>
 
-  <main>
+  <main data-yk-main>
     <section class="shell hero">
       <div>
         <p class="eyebrow">Model Context Protocol</p>
@@ -96,7 +95,6 @@
         <div class="actions">
           <a class="button primary" href="llms.txt">llms.txt</a>
           <a class="button" href="manifest.json">manifest.json</a>
-          <a class="button" href="https://www.admiranext.com">← admiranext.com</a>
         </div>
         <div class="status-row">
           <div class="stat"><strong>4</strong><span>patas del sistema operativo del retail, cada una con su <code>/mcp</code>.</span></div>
@@ -149,7 +147,7 @@
         <article class="card"><span class="tag">home</span><h3><a href="https://www.admiranext.com/">index.html</a></h3><p>Entrada principal con las tres experiencias.</p></article>
         <article class="card"><span class="tag">web</span><h3><a href="https://www.admiranext.com/classic.html">classic.html</a></h3><p>Web corporativa clásica.</p></article>
         <article class="card"><span class="tag">verbo</span><h3><a href="https://www.admiranext.com/presentar">Presentar</a></h3><p>La puerta del verbo Presentar en la matriz: tres entradas a la misma herramienta — tu asistente por MCP (<code>create_presentation</code>…), el generador para personas y el verbo del Consejo en admira.live.</p></article>
-        <article class="card"><span class="tag">herramienta</span><h3><a href="https://www.admiranext.com/presentaciones/">Generador de Presentaciones</a> <a href="/mcp/generador" style="color:#3df08a">· MCP vivo + ayuda</a></h3><p>La herramienta principal del ecosistema: de un cliente y un problema a un portal privado con su clave, el esqueleto editable del relato y un site navegable. Entregables nativos: site, documento, <a href="https://www.admiranext.com/creditos/">créditos</a> y postcréditos, en ES/CA/EN. Requiere acceso interno (responde <code>401</code> sin él). Yokup: <code>generador-de-presentaciones</code>.</p></article>
+        <article class="card"><span class="tag">herramienta</span><h3><a href="https://www.admiranext.com/presentaciones/">Generador de Presentaciones</a> <a href="/mcp/generador" style="color:var(--accent)">· MCP vivo + ayuda</a></h3><p>La herramienta principal del ecosistema: de un cliente y un problema a un portal privado con su clave, el esqueleto editable del relato y un site navegable. Entregables nativos: site, documento, <a href="https://www.admiranext.com/creditos/">créditos</a> y postcréditos, en ES/CA/EN. Requiere acceso interno (responde <code>401</code> sin él). Yokup: <code>generador-de-presentaciones</code>.</p></article>
         <article class="card"><span class="tag">herramienta</span><h3><a href="https://www.admiranext.com/creditos/">Generador de créditos</a></h3><p>Créditos finales animados para presentaciones, con exportación a vídeo y HTML. Es una salida nativa del Generador de Presentaciones, y también funciona suelto.</p></article>
         <article class="card"><span class="tag">herramienta</span><h3><a href="https://www.admiranext.com/presupuestos/">Generador de presupuestos</a></h3><p>Prepara datos de cliente y partidas, revisa totales y exporta CSV o PDF localmente, sin enviar la información a servicios externos. Yokup: <code>generador-presupuestos</code>.</p></article>
         <article class="card"><span class="tag">campaña</span><h3><a href="https://www.admiranext.com/impacto/">Narrativa de Impacto</a></h3><p>Historias humanas sobre señalización digital útil en salud, comercio y movilidad.</p></article>
@@ -173,27 +171,27 @@
 
     <section class="band" id="directorio">
       <div class="shell">
-        <p class="eyebrow" style="color:var(--accent-ink)">Directorio · FLT-2137</p>
+        <p class="eyebrow">Directorio · FLT-2137</p>
         <h2>Los MCP de la suite, uno por producto.</h2>
         <p>Unir AdmiraNeXT por MCP no es un servidor único: cada producto tiene el suyo, en su dominio, y todos reconocen a la misma persona con la misma clave. Este directorio es el canónico; <a href="manifest.json">manifest.json</a> lo lleva en <code>mcp_servers</code>.</p>
-        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-size:.92rem">
-          <tr style="background:rgba(255,176,0,.12)"><th style="text-align:left;padding:10px">Producto</th><th style="text-align:left;padding:10px">Endpoint MCP</th><th style="text-align:left;padding:10px">Autenticación</th><th style="text-align:left;padding:10px">Silicio</th><th style="text-align:left;padding:10px">Humanos</th></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Consejo, flota y yokup · admira.live</td><td style="padding:10px;border-top:1px solid var(--line)"><code>mcp.admira.live/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">clave de flota o de consejero</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.live/mcp/llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.live/help">/help</a></td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Misiones y bandeja · yokup.com</td><td style="padding:10px;border-top:1px solid var(--line)"><code>yokup.com/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">credencial individual · clave de flota en curso</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.yokup.com/mcp/llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.yokup.com/help#mcp">/help</a></td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Retail media · XpaceOS (admira.store)</td><td style="padding:10px;border-top:1px solid var(--line)"><code>mcp.admira.store/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">lectura abierta · escritura con clave de flota (2.1.0)</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.store/mcp/llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.xpaceos.com/help/">/help</a></td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Audiencia y emisión verificada · admira.app</td><td style="padding:10px;border-top:1px solid var(--line)"><code>admira.app/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">ver su página</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.app/mcp">/mcp</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.app/mcp">/mcp</a></td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Stock de imágenes · Pixeria (pixeria.com)</td><td style="padding:10px;border-top:1px solid var(--line)"><code>mcp-pixeria.admira.store/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">lectura abierta (sin clave)</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.pixeria.com/mcp/llms.txt">llms.txt</a> (tras verja)</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.pixeria.com/help">/help</a> (tras verja)</td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">El canal · Admira.tv (admira.tv)</td><td style="padding:10px;border-top:1px solid var(--line)"><code>mcp-tv.admira.store/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">lectura abierta (sin clave)</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://admira.tv/mcp/llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://admira.tv/help">/help</a></td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Consejo de Silicio por HTTP · council-mcp</td><td style="padding:10px;border-top:1px solid var(--line)"><code>council-mcp.admira.store/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">lectura abierta (sin clave)</td><td style="padding:10px;border-top:1px solid var(--line)">—</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.live/help">/help</a></td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Presentaciones · admiranext.com</td><td style="padding:10px;border-top:1px solid var(--line)"><code>admiranext.com/mcp</code></td><td style="padding:10px;border-top:1px solid var(--line)">token anmcp_</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="llms.txt">llms.txt</a></td><td style="padding:10px;border-top:1px solid var(--line)"><a href="generador">/mcp/generador</a></td></tr>
-          <tr><td style="padding:10px;border-top:1px solid var(--line)">Studio · admira.studio</td><td style="padding:10px;border-top:1px solid var(--line)">federado desde aquí, tras login</td><td style="padding:10px;border-top:1px solid var(--line)">Google</td><td style="padding:10px;border-top:1px solid var(--line)">—</td><td style="padding:10px;border-top:1px solid var(--line)"><a href="https://www.admira.studio/">sitio</a></td></tr>
+        <div style="overflow-x:auto"><table class="dir">
+          <tr><th>Producto</th><th>Endpoint MCP</th><th>Autenticación</th><th>Silicio</th><th>Humanos</th></tr>
+          <tr><td>Consejo, flota y yokup · admira.live</td><td><code>mcp.admira.live/mcp</code></td><td>clave de flota o de consejero</td><td><a href="https://www.admira.live/mcp/llms.txt">llms.txt</a></td><td><a href="https://www.admira.live/help">/help</a></td></tr>
+          <tr><td>Misiones y bandeja · yokup.com</td><td><code>yokup.com/mcp</code></td><td>credencial individual · clave de flota en curso</td><td><a href="https://www.yokup.com/mcp/llms.txt">llms.txt</a></td><td><a href="https://www.yokup.com/help#mcp">/help</a></td></tr>
+          <tr><td>Retail media · XpaceOS (admira.store)</td><td><code>mcp.admira.store/mcp</code></td><td>lectura abierta · escritura con clave de flota (2.1.0)</td><td><a href="https://www.admira.store/mcp/llms.txt">llms.txt</a></td><td><a href="https://www.xpaceos.com/help/">/help</a></td></tr>
+          <tr><td>Audiencia y emisión verificada · admira.app</td><td><code>admira.app/mcp</code></td><td>ver su página</td><td><a href="https://www.admira.app/mcp">/mcp</a></td><td><a href="https://www.admira.app/mcp">/mcp</a></td></tr>
+          <tr><td>Stock de imágenes · Pixeria (pixeria.com)</td><td><code>mcp-pixeria.admira.store/mcp</code></td><td>lectura abierta (sin clave)</td><td><a href="https://www.pixeria.com/mcp/llms.txt">llms.txt</a> (tras verja)</td><td><a href="https://www.pixeria.com/help">/help</a> (tras verja)</td></tr>
+          <tr><td>El canal · Admira.tv (admira.tv)</td><td><code>mcp-tv.admira.store/mcp</code></td><td>lectura abierta (sin clave)</td><td><a href="https://admira.tv/mcp/llms.txt">llms.txt</a></td><td><a href="https://admira.tv/help">/help</a></td></tr>
+          <tr><td>Consejo de Silicio por HTTP · council-mcp</td><td><code>council-mcp.admira.store/mcp</code></td><td>lectura abierta (sin clave)</td><td>—</td><td><a href="https://www.admira.live/help">/help</a></td></tr>
+          <tr><td>Presentaciones · admiranext.com</td><td><code>admiranext.com/mcp</code></td><td>token anmcp_</td><td><a href="llms.txt">llms.txt</a></td><td><a href="generador">/mcp/generador</a></td></tr>
+          <tr><td>Studio · admira.studio</td><td>federado desde aquí, tras login</td><td>Google</td><td>—</td><td><a href="https://www.admira.studio/">sitio</a></td></tr>
         </table></div>
         <p style="margin-top:14px"><b>Bus compartido:</b> los encargos entre agentes y consejeros van por el bot-inbox de admira-telegram, que sirve a yokup y a admira.live; por eso sus MCP se entienden. <b>Regla de Carlos (5-sep-2026):</b> entre agentes y consejeros toda comunicación va por MCP; Telegram es el canal del humano.</p>
       </div>
     </section>
     <section class="band" id="identidad">
       <div class="shell callout">
-        <div><p class="eyebrow" style="color:var(--accent-ink)">Identidad común</p><h2>Una clave por persona y equipo, válida en toda la suite.</h2></div>
+        <div><p class="eyebrow">Identidad común</p><h2>Una clave por persona y equipo, válida en toda la suite.</h2></div>
         <div>
           <p><code>clave = base64url( HMAC-SHA256( MCP_FLOTA_SEED, "Persona|Equipo" ) ).slice(0, 40)</code></p>
           <p>La semilla es secreto de cada worker y vive en la bóveda; el agente lee su clave de <code>s:MCP_KEY_&lt;PERSONA&gt;_&lt;EQUIPO&gt;</code> y <code>mcp-conectar.sh</code> la registra en su cliente. Ningún servidor guarda claves: recalcula y compara en tiempo constante. Módulo verificador sin dependencias para vendorizar: <a href="identidad-flota.mjs">identidad-flota.mjs</a>. Los consejeros de GrokBot llevan clave propia.</p>
@@ -203,27 +201,27 @@
   </main>
 
   <footer class="shell">
-    <span>ADmiraNeXT MCP · <span id="mcpStamp">v.01.10.2026.r1.04:56</span></span>
+    <span>ADmiraNeXT MCP · <span id="mcpStamp">v.03.10.2026.r5.03:19</span></span>
     <span><a href="llms.txt">llms.txt</a> · <a href="manifest.json">manifest.json</a> · Admira IA</span>
   </footer>
 <script>
-// ⌘ Experto: verbos de esta página para el CLI del armazón (antes de cargar admira-frame.js).
+// ▤ «Ir a» y ⌘ Experto: verbos de esta página para el CLI del armazón (script en línea:
+// corre antes que admira-frame.js, que va con defer).
 (function(){
-  var secs=[].slice.call(document.querySelectorAll('main section.band')).filter(function(x){return x.querySelector('h2')});
+  var secs=[].slice.call(document.querySelectorAll('main section')).filter(function(x){return x.classList.contains('band')&&x.querySelector('h2')});
   secs.forEach(function(x,i){if(!x.id)x.id='seccion-'+(i+1);});
   var ira=document.getElementById('hubIrA');
   function titulo(x){return x.querySelector('h2').textContent.trim();}
-  secs.forEach(function(x,i){var b=document.createElement('button');b.type='button';b.className='hub-act';b.dataset.hubIr=x.id;b.innerHTML='<span></span><b>'+(i+1)+'</b>';b.firstChild.textContent=titulo(x);ira.appendChild(b);});
+  secs.forEach(function(x,i){var b=document.createElement('button');b.type='button';b.dataset.hubIr=x.id;b.textContent=(i+1)+' · '+titulo(x);ira.appendChild(b);});
   function ir(id){var n=document.getElementById(id);if(n)n.scrollIntoView({behavior:'smooth',block:'start'});}
   document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-hub-ir]');if(b)ir(b.dataset.hubIr);});
   window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
     {id:'seccion',aliases:['s'],uso:'<n|texto>',ayuda:'Salta a una sección (1-'+secs.length+' o parte del título)',run:function(a,ctx){var q=a.join(' ').toLowerCase();var x=secs.filter(function(y,i){return q&&(String(i+1)===q||titulo(y).toLowerCase().indexOf(q)>=0);})[0];if(!x){ctx.error('Uso: /seccion <n|texto> · '+secs.map(function(y,i){return (i+1)+' '+titulo(y)}).join(' · '));return;}ir(x.id);ctx.imprimir('→ '+titulo(x));}},
     {id:'generador',ayuda:'Abre el MCP del generador de presentaciones',run:function(a,ctx){ctx.imprimir('Abriendo /mcp/generador…');location.href='/mcp/generador';}},
-    {id:'manifest',ayuda:'Abre manifest.json',run:function(a,ctx){location.href='manifest.json';}},
-    {id:'llms',ayuda:'Abre llms.txt',run:function(a,ctx){location.href='llms.txt';}}
+    {id:'manifest',ayuda:'Abre manifest.json',run:function(a,ctx){location.href='/mcp/manifest.json';}},
+    {id:'llms',ayuda:'Abre llms.txt',run:function(a,ctx){location.href='/mcp/llms.txt';}}
   ]);
 })();
 </script>
-<script src="/assets/admira-frame.js?v=v.03.10.2026-r4" defer></script>
 </body>
 </html>

@@ -35,9 +35,9 @@ Carlos (2-oct-2026): «en la UX cuadrática siempre tienen que ser resizables la
 
 La marca es el logotipo oficial (`libro-de-estilo.html` §7.4): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sobre oscuro. En modo barra lo pinta el armazón; en modo cabecera la página lo trae en su `<a class="brand">` (marcado `yk-wm-*`) y, si no, el armazón lo sustituye. Nada de «admiraNeXT.» en minúscula con punto.
 
-## Modo barra (por defecto) — `/mcp/` y `/mcp/generador` (y, en modo automático, el resto del sitio)
+## Modo barra (por defecto) — las páginas en modo automático que aún no llevan la barra del sitio
 
-Hasta el 3-oct-2026 también `/presentaciones/` (el generador) y `/presentaciones/galeria`: ahora llevan la barra de la intranet (modo cabecera, ver «La familia de /analitics»).
+Hasta el 3-oct-2026 también `/presentaciones/` (el generador), `/presentaciones/galeria`, `/mcp/` y `/mcp/generador`, y las páginas de contenido sencillas: ahora llevan la barra del sitio (modo cabecera, ver «Una sola barra en todo el sitio»).
 
 El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones … [▤] [⌘]`. La página declara qué va a cada lado:
 
@@ -51,7 +51,6 @@ El armazón crea su propia barra fija: `[☰] ADmiraNeXT · RÓTULO · secciones
 
 - **Logotipo**: la marca de la barra es el logotipo oficial (`libro-de-estilo.html` §7.4, el de la portada `.titlebar-brand`): «ADmira» en blanco y **N** `#FF3366` · **e** `#FFCC00` · **X** `#33FF99` · **T** `#FF33CC`, en una sans gruesa, sin efectos. Hasta el 2-oct era texto plano «ADmiraNeXT» en monoespaciada.
 - `<body data-yk-cli="on">` añade el CLI a ⌘ también en modo barra; los verbos se registran igual que en modo cabecera (`window.ADMIRA_FRAME_VERBS`).
-- `/mcp/generador` declara sus slots en su HTML (verbos `/seccion /tools /copiar /endpoint /manifest`).
 
 ## Modo automático — el resto de admiranext.com (`<body data-yk-auto="on">`)
 
@@ -157,3 +156,47 @@ Carlos: «que Presentaciones lleve también la barra de la intranet» y «la coh
 - Las presentaciones de cliente (`/presentaciones/<slug>/…`) siguen sin barra.
 
 Guardián: `test/familia-analitics-cuadratica.test.js`. Descubre la familia (destinos de la puerta de login, Functions que sirven HTML tras exigir sesión —también las de `functions/presentaciones/` tras su puerta propia—, navegación del grupo y cualquier página que diga «Acceso privado») y exige que cada miembro adopte la barra o figure en `EXCEPCIONES` con su motivo; ejecuta el armazón sobre la cabecera real de cada página y comprueba el orden `☰ · marca · nav · acceso · ▤⌘`, la navegación en ☰, que ▤ tenga contenido y que `/help` liste los verbos. Las páginas que sirve una Function (el generador) se comprueban tal como las entrega. Un test aparte compara la cabecera del generador y de la galería con la de /analitics y /proyectos/.
+
+## Una sola barra en todo el sitio (3-oct-2026)
+
+Carlos, con una captura de `/mcp/`: «no hay metaestilo en esta página»; y la máxima de la UX cuadrática: «la barra superior tiene que ser igual en todas las páginas de un sitio». La barra de admiranext.com es la de `/proyectos/` (modo cabecera): `[☰] ADmiraNeXT · Proyectos · Usuarios · Webmaster · Analitics · Agentes · Presentaciones … ●/○ acceso [▤] [⌘]`. Cada página que la adopta la copia **carácter a carácter**; sólo cambian el enlace marcado (ninguno si la página no es del grupo) y la etiqueta de acceso (`○ Página pública` si se sirve sin sesión). Lo propio de cada página va a ☰ (en un bloque `data-yk-label` bajo la navegación del grupo), a ▤ y a ⌘; nunca a la barra.
+
+- **`/mcp/` y `/mcp/generador`**: dejaron el modo barra (rótulo «MCP», pestañas Hub MCP · Generador, paleta crema-ámbar en el hub y verde en el generador). Ahora: barra del sitio con `○ Página pública` (es la puerta abierta para agentes); ☰ bloque **«MCP»** (Hub MCP, MCP del generador, `llms.txt`, `manifest.json`, Consejo MCP; la página actual marcada) y en el generador además «El generador» (generador, galería, usuarios y tokens); ▤ «Ir a» (+ «Para agentes» en el hub, «Conectar» con los botones de copiar en el generador); ⌘ conserva sus verbos (`/seccion /generador /manifest /llms` y `/seccion /tools /copiar /endpoint /manifest`). **El contenido pasa a los tokens oscuros del sitio** (fondo `#070b12` con el halo verdoso de /proyectos/, paneles `#101724`, líneas `#25344b`, cian `#63e6d5`): el papel crema bajo la barra oscura era justo la falta de metaestilo de la captura. `llms.txt`, `manifest.json` y los textos que leen los tests no cambian.
+- **Modo cabecera + automático** (`<body data-yk-frame="cabecera" data-yk-auto="on">`): la barra del sitio y lo automático en los paneles — ☰ el grupo y debajo el mapa del sitio (`SITIO`) sin repetir las páginas del grupo, más los bloques que declare la página; ▤ acciones e «Ir a»; ⌘ `/ir` (grupo + sitio), `/seccion`, `/arriba`. Así pasaron academia, consejero, filosofía, mandamientos, normativa, `/help/`, `/informes/` (+ el informe HandON), `/telegram/`, `/presentar` y `/consejo/`: su `<header>` de contenido (hero) se queda.
+- **Blindaje de la barra** (`admira-frame.css`): la cabecera fija lo que las hojas de cada página podían colarle — `min-height`, `gap`, sombras, mayúsculas, interletrado, pseudoelementos, `-webkit-font-smoothing` (academia, normativa… lo ponen en `body` y cambiaba el dibujo de las letras de la barra) y la monoespaciada de los iconos (`--yk-mono` fijo).
+- Guardián: `test/familia-analitics-cuadratica.test.js` — `ADOPTADAS` (con `actual: null` para las páginas fuera del grupo), «todas las páginas adoptadas llevan la MISMA barra que /proyectos/», lo propio de /mcp en ☰ ▤ ⌘ y el modo automático con cabecera. Las que siguen en modo barra automático están en `AUTOMATICAS` de `test/admira-frame-sitio.test.js`.
+
+### Inventario de barras de admiranext.com (3-oct-2026)
+
+| Página | Barra hoy | Clasificación |
+|---|---|---|
+| `/proyectos/`, `/flota` | sitio · pública | ya cumple |
+| `/analitics`, `/webmaster`, `/usuarios`, `/xpace/manage`, `/presentaciones/` (generador), `/presentaciones/galeria` | sitio · privada | ya cumple |
+| `/mcp/`, `/mcp/generador` | sitio · pública | adoptada (antes modo barra «MCP») |
+| `/academia`, `/consejero`, `/filosofia`, `/mandamientos`, `/normativa`, `/help/`, `/informes/`, `/informes/handon-contenidos-2026-09-14`, `/telegram/`, `/presentar`, `/consejo/` | sitio · pública (cabecera + automático) | adoptada (antes modo barra automático) |
+| `/creditos/`, `/credits-generator` | modo barra automático | adoptar después: herramientas con aviso/idioma en ▤ y, en credits-generator, un segundo documento en plantilla; conviene probar sus exportaciones (vídeo/HTML) con la barra de 76 px |
+| `/impacto/`, `/signage-benchmarks` | modo barra automático | adoptar después: páginas de papel imprimibles (i18n con el botón de idioma en ▤; benchmarks con su `header` sticky y «Descargar PDF»): verificar impresión y el `top` de lo pegado |
+| `/presupuestos/`, `/businessplan/` | modo barra automático | adoptar después: barras y formularios `position: sticky` con altos calculados sobre `--yk-bar-h` (46 → 76 px en cabecera) |
+| `/tiktok/`, `/tiktok/publicar/`, `/tiktok/xtore.html` | modo barra automático | adoptar después: herramientas de creación con su propio flujo |
+| `/marcablanca/`, `/marcablanca/propuesta/` | modo barra automático | adoptar después: la ventana-terminal aplica la marca blanca del cliente (`marcablanca.js`) y la propuesta es privada por id |
+| `/presites/`, `/presites/generador/` | modo barra automático | adoptar después como **privadas** (`● Acceso privado`): las sirve la puerta propia `functions/presites/_middleware.js`, que el guardián aún no reconoce como puerta (habría que añadirla a `familia()`) |
+| `/` (portada-terminal) | sin barra | excepción: es la experiencia de terminal del producto (Good · Better · Best), con su propia barra de ventana |
+| `/status` | marco propio de cuatro barras | excepción (ver arriba) |
+| `/game/` | HUD propio | excepción: juego a pantalla completa con WASD/E/M en todo el documento |
+| `/libro-de-estilo` | sin barra | excepción por ahora: documento canónico de marca; candidato sencillo a cabecera + automático |
+| `/404.html` | sin barra | excepción por ahora: página de error que Pages sirve en cualquier ruta; candidata sencilla |
+| `/classic.html`, `/bots/` | — | excepción: redirecciones |
+| `/presentaciones/<slug>/…`, `/presentations/*`, `presentaciones/*.html` de cliente | sin barra | excepción: decks y salas de cliente |
+| `/github` | sin scripts | excepción (zona militarizada) |
+| Functions con HTML propio: `/presentaciones/control/`, `/xpace/connect`, `/qa/source-traceability`, logins de `/webmaster`, `/presites` y `/presentaciones/auth/machine`, `/presites/<site>`, `/marcablanca/presentacion`, `/marcablanca/propuesta/<id>` | propia | adoptar después `/presentaciones/control/` (privada, en ☰ «Presentaciones» ya); el resto son logins, previsualizaciones o salidas de cliente: excepción |
+| `assets/presentation-presenter-remote.html`, `assets/presentation-ideas-template.html`, `old/` | — | no son páginas del sitio (mando, plantilla, web clásica) |
+
+## Fondo común y ancho del cuerpo — modo cabecera (3-oct-2026)
+
+Carlos: «vamos a utilizar el mismo fondo de digitalsignage.ai que se ilumina con el ratón en la intranet de admiranext.com […] y asegurarnos de que la zona central donde está el cuerpo de la información siempre tiene la misma anchura y no varía de una categoría a otra».
+
+- **Fondo puntillado iluminado.** Es el `.dsn-dots` de digitalsignage.ai (`/pricing/`), portado sin librerías al armazón: `admira-frame.js` pone en toda página con `data-yk-frame="cabecera"` una capa `.yk-dots` (primer hijo del `<body>`, `aria-hidden`, `position: fixed`, `z-index: -1`, sin eventos de puntero) con tres capas — base (rejilla de puntos sutil), reposo (puntos cian que respiran despacio en dos esquinas) y halo (círculo de puntos cian con bruma que sigue al ratón con `transform`). El JS sólo escribe `--x/--y` en un `requestAnimationFrame` cuando el ratón se mueve; en táctil el halo queda fijo arriba a la derecha y con `prefers-reduced-motion` ni sigue al ratón ni respiran las esquinas. Color: el cian de la casa `#4ae3d1`. Fondo de página `#070b12` en el `<body>` (el navegador lo lleva al lienzo; el `<html>` no pinta fondo), así los puntos quedan entre el lienzo y el contenido: no tapan nada ni bajan el contraste de las tarjetas.
+- **Fuera los fondos propios**: la lluvia Matrix y los brillos de /webmaster, /mandamientos y /normativa (canvas, script y estilos), los brillos de academia y consejero, la rejilla de la galería y de /informes, los degradados de /proyectos, /usuarios, /flota, /analitics, el generador, /help, /consejo, /filosofía, /presentar y /mcp.
+- **Ancho del cuerpo**: `--yk-content-w: 1200px` (y `--yk-content-gutter: 16px`). El contenedor principal de cada categoría de la intranet lleva `data-yk-main` y mide `min(1200px, 100% - 32px)`, centrado y sin relleno lateral propio: a 1440 px, x = 120 y 1200 de ancho en las ocho (Proyectos, Usuarios, Webmaster, Analitics, Agentes, Presentaciones, Galería, Proyectos y locales) y en /mcp y /mcp/generador; a 390 px, x = 16 y 358. Antes: Proyectos 1180, Usuarios y Agentes 1460, Webmaster 1120, Analitics 1500, generador 980, galería 1220, Proyectos y locales 1100. Los paneles ☰ ▤ ⌘ siguen superpuestos: el ancho no cambia al abrirlos.
+- Las páginas de lectura con la barra del sitio (academia, consejero, filosofía, mandamientos, normativa, /help, /informes y HandON, /telegram, /presentar, /consejo) llevan el fondo común pero conservan su medida de línea.
+- Guardián: `test/admira-frame-fondo-ancho.test.js` (el armazón trae el fondo y el ancho; ninguna página con la barra del sitio pinta fondo propio; cada una usa `data-yk-main` sin ancho propio o figura en `EXCEPCIONES_ANCHO` con su motivo) y, en `test/familia-analitics-cuadratica.test.js`, que el armazón ejecutado pone `.yk-dots` con sus tres capas.

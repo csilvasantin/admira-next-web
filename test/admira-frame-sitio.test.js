@@ -8,14 +8,18 @@ import {readFile} from 'node:fs/promises';
 // estilo, los decks de clientes, las redirecciones y la web clásica (old/).
 const leer = (rel) => readFile(new URL('../' + rel, import.meta.url), 'utf8');
 
-// Adoptan el armazón en modo automático (assets/admira-frame.md, «Modo automático»).
+// Adoptan el armazón en modo automático (assets/admira-frame.md, «Modo automático»)
+// con la barra PROPIA del armazón (rótulo de la página). Desde el 3-oct-2026 las
+// páginas de contenido sencillas llevan además la barra del sitio (modo cabecera +
+// automático): academia, consejero, filosofía, mandamientos, normativa, /help,
+// /informes (+ el informe HandON), /telegram, /presentar y /consejo. Ésas las vigila
+// test/familia-analitics-cuadratica.test.js (ADOPTADAS); éstas son las que quedan,
+// con su propuesta en assets/admira-frame.md («Inventario de barras»).
 export const AUTOMATICAS = [
-  'academia.html', 'consejero.html', 'consejo/index.html', 'creditos/index.html', 'credits-generator.html',
-  'filosofia.html', 'help/index.html', 'impacto/index.html', 'informes/index.html',
-  'informes/handon-contenidos-2026-09-14.html', 'mandamientos.html', 'marcablanca/index.html',
-  'marcablanca/propuesta/index.html', 'normativa.html', 'presites/index.html', 'presites/generador/index.html',
-  'presupuestos/index.html', 'signage-benchmarks.html', 'telegram/index.html', 'tiktok/index.html',
-  'tiktok/publicar/index.html', 'tiktok/xtore.html', 'businessplan/index.html', 'presentar.html'
+  'creditos/index.html', 'credits-generator.html', 'impacto/index.html', 'marcablanca/index.html',
+  'marcablanca/propuesta/index.html', 'presites/index.html', 'presites/generador/index.html',
+  'presupuestos/index.html', 'signage-benchmarks.html', 'tiktok/index.html',
+  'tiktok/publicar/index.html', 'tiktok/xtore.html', 'businessplan/index.html'
 ];
 
 test('cada página con cabecera propia adopta el armazón en modo automático', async () => {

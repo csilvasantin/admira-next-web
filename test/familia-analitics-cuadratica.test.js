@@ -42,7 +42,26 @@ const ADOPTADAS = {
   'flota.html': {ruta: '/flota', acceso: 'publico'},
   // Carlos (3-oct-2026): «que Presentaciones lleve también la barra de la intranet».
   'presentaciones/generador.html': {ruta: '/presentaciones/', acceso: 'privado', funcion: 'functions/presentaciones/generador.js'},
-  'presentaciones/index.html': {ruta: '/presentaciones/galeria', acceso: 'privado', actual: '/presentaciones/', funcion: 'functions/presentaciones/galeria.js'}
+  'presentaciones/index.html': {ruta: '/presentaciones/galeria', acceso: 'privado', actual: '/presentaciones/', funcion: 'functions/presentaciones/galeria.js'},
+  // Carlos (3-oct-2026, con una captura de /mcp/: «no hay metaestilo en esta página»;
+  // y «la barra superior tiene que ser igual en todas las páginas de un sitio»). Las
+  // páginas públicas que no son de la navegación del grupo llevan la MISMA barra, sin
+  // enlace marcado (actual: null) y con «○ Página pública». Lo suyo va a ☰ ▤ ⌘.
+  'mcp/index.html': {ruta: '/mcp/', acceso: 'publico', actual: null},
+  'mcp/generador.html': {ruta: '/mcp/generador', acceso: 'publico', actual: null},
+  // Páginas de contenido en modo cabecera + automático (<body data-yk-frame="cabecera"
+  // data-yk-auto="on">): ☰ el grupo y el mapa del sitio, ▤ «Ir a» sus secciones, ⌘ el CLI.
+  'academia.html': {ruta: '/academia', acceso: 'publico', actual: null, auto: true},
+  'consejero.html': {ruta: '/consejero', acceso: 'publico', actual: null, auto: true},
+  'filosofia.html': {ruta: '/filosofia', acceso: 'publico', actual: null, auto: true},
+  'mandamientos.html': {ruta: '/mandamientos', acceso: 'publico', actual: null, auto: true},
+  'normativa.html': {ruta: '/normativa', acceso: 'publico', actual: null, auto: true},
+  'help/index.html': {ruta: '/help/', acceso: 'publico', actual: null, auto: true},
+  'informes/index.html': {ruta: '/informes/', acceso: 'publico', actual: null, auto: true},
+  'informes/handon-contenidos-2026-09-14.html': {ruta: '/informes/handon-contenidos-2026-09-14', acceso: 'publico', actual: null, auto: true},
+  'telegram/index.html': {ruta: '/telegram/', acceso: 'publico', actual: null, auto: true},
+  'presentar.html': {ruta: '/presentar', acceso: 'publico', actual: null, auto: true},
+  'consejo/index.html': {ruta: '/consejo/', acceso: 'publico', actual: null, auto: true}
 };
 
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que
@@ -170,13 +189,21 @@ for (const [rel, {ruta, acceso, actual}] of Object.entries(ADOPTADAS)) {
     const piezas = [...cab.matchAll(/<(a class="brand"|nav\b|span[^>]*data-yk-access)/g)].map((m) => m[1].split(/[\s>]/)[0]);
     assert.deepEqual(piezas, ['a', 'nav', 'span'], 'dentro: marca, navegación y acceso, en ese orden');
     assert.match(cab, /<a class="brand" href="\/"/, 'la marca lleva a la home');
-    assert.equal((html.match(/href="\/"/g) || []).length, 1, 'la marca es el ÚNICO enlace a la home');
+    // (los pies pueden enlazarla, como en el modo automático: test/admira-frame-sitio.test.js)
+    const sinPies = html.replace(/<footer[\s\S]*?<\/footer>/g, '');
+    assert.equal((sinPies.match(/href="\/"/g) || []).length, 1, 'la marca es el ÚNICO enlace a la home');
+    assert.doesNotMatch(sinPies, /<a[^>]*href="(https:\/\/www\.admiranext\.com\/?|\.\.\/)"[^>]*>\s*←\s*admiranext\.com/i, 'sin un «← admiranext.com» que duplique la marca');
     const hrefs = [...cab.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map((m) => m[1]).slice(1);
     assert.deepEqual(hrefs, NAV_GRUPO, 'la navegación del grupo es la misma en todas las páginas');
     const enBarra = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => !/data-yk-rail-only/.test(m[1] + m[3])).map((m) => m[2]);
     assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes · Presentaciones; el resto, en ☰');
-    assert.match(cab, new RegExp(`href="${(actual || ruta).replace(/[/]/g, '\\/')}"[^>]*aria-current="page"`), 'la página actual va marcada');
-    assert.equal((cab.match(/aria-current="page"/g) || []).length, 1, 'una sola página marcada en la barra');
+    if (actual === null) {
+      // Página fuera de la navegación del grupo: la barra es la misma, sin nada marcado.
+      assert.equal((cab.match(/aria-current="page"/g) || []).length, 0, 'ninguna página del grupo marcada: ésta no es del grupo');
+    } else {
+      assert.match(cab, new RegExp(`href="${(actual || ruta).replace(/[/]/g, '\\/')}"[^>]*aria-current="page"`), 'la página actual va marcada');
+      assert.equal((cab.match(/aria-current="page"/g) || []).length, 1, 'una sola página marcada en la barra');
+    }
     const etiqueta = acceso === 'privado' ? 'Acceso privado' : 'Página pública';
     assert.match(cab, new RegExp(`data-yk-access="${acceso}"[^>]*>[^<]*<span class="yk-access-txt"> ${etiqueta}</span>`), `la barra dice «${etiqueta}»`);
   });
@@ -287,7 +314,10 @@ async function montar(rel) {
   const {ruta} = ADOPTADAS[rel];
   const html = await servida(rel);
   const raiz = new Nodo('html');
-  const cuerpo = raiz.appendChild(new Nodo('body', {'data-yk-frame': 'cabecera'}));
+  // El <body> con sus atributos reales (data-yk-frame, data-yk-auto…).
+  const atributosBody = {};
+  for (const [, k, v] of (html.match(/<body\b([^>]*)>/) || ['', ''])[1].matchAll(/([\w-]+)(?:="([^"]*)")?/g)) atributosBody[k] = v ?? '';
+  const cuerpo = raiz.appendChild(new Nodo('body', atributosBody));
   const cabeza = new Nodo('head');
   const sello = html.match(/<meta name="admiranext-version" content="([^"]*)"/);
   if (sello) cabeza.appendChild(new Nodo('meta', {name: 'admiranext-version', content: sello[1]}));
@@ -329,7 +359,13 @@ const resumen = (n) => n.tagName === 'BUTTON' ? GLIFOS[n.id] || n.id : n.tagName
 
 for (const rel of Object.keys(ADOPTADAS)) {
   test(`${rel}: el armazón pone ☰ antes de la marca y ▤ ⌘ después del acceso`, async () => {
-    const {raiz, contexto} = await montar(rel);
+    const {raiz, contexto, cuerpo} = await montar(rel);
+    // El fondo común (puntos que se iluminan con el ratón, 3-oct-2026): el armazón lo
+    // pone como primera capa del <body>, detrás de todo.
+    const puntos = cuerpo.hijos[0];
+    assert.ok(puntos && puntos.classList.contains('yk-dots'), 'el armazón pone el fondo común .yk-dots');
+    assert.equal(puntos.getAttribute('aria-hidden'), 'true');
+    for (const capa of ['yk-dots-base', 'yk-dots-idle', 'yk-dots-halo']) assert.match(puntos.innerHTML, new RegExp(`class="${capa}"`));
     const cab = raiz.querySelector('[data-yk-head]');
     assert.deepEqual(cab.hijos.filter((n) => n.tagName !== '#TEXT').map(resumen), ['☰', 'marca', 'nav', 'acceso', '▤⌘'],
       '[☰] admiraNeXT · nav · … ● Acceso privado [▤] [⌘]');
@@ -407,5 +443,72 @@ for (const [rel, propios, enlaces] of [
     contexto.AdmiraFrame.ejecutar('/help');
     const lineas = raiz.descendientes().find((n) => n.classList.contains('yk-cli-out')).hijos.map((l) => l.textContent);
     for (const v of propios) assert.ok(lineas.some((l) => l.startsWith(v + ' ')), `/help lista ${v}`);
+  });
+}
+
+// ── Una sola barra en todo el sitio (Carlos, 3-oct-2026) ─────────────────────
+// «La barra superior tiene que ser igual en todas las páginas de un sitio.» Cada
+// página adoptada lleva, carácter a carácter, la cabecera de /proyectos/: sólo
+// cambian el enlace marcado y la etiqueta de acceso («● Acceso privado» u «○ Página
+// pública»). Lo propio de cada página va a ☰ ▤ ⌘, nunca a la barra.
+test('todas las páginas adoptadas llevan la MISMA barra que /proyectos/', async () => {
+  // Fuera del texto: el enlace marcado y el estado que pone la sesión en /webmaster
+  // (sus enlaces de administración nacen con hidden y uno lleva id para mostrarlo).
+  const sinMarca = (cab) => cab.replace(/\s+aria-current="page"/g, '').replace(/(<a\b[^>]*?)\s+(?:hidden|id="[^"]*")(?=[\s>])/g, '$1').replace(/(<a\b[^>]*?)\s+(?:hidden|id="[^"]*")(?=[\s>])/g, '$1');
+  const acceso = /<span class="private"[^>]*>[^<]*<span class="yk-access-txt">[^<]*<\/span><\/span>/;
+  const modelo = sinMarca(cabeceraDe(await leer('proyectos/index.html'))).replace(acceso, '');
+  for (const rel of Object.keys(ADOPTADAS)) {
+    const cab = cabeceraDe(await servida(rel));
+    assert.equal(sinMarca(cab).replace(acceso, ''), modelo, `${rel}: la barra es la de /proyectos/ (salvo enlace marcado y acceso)`);
+    assert.doesNotMatch(cab, /data-yk-slot|yk-page|data-yk-title/, `${rel}: sin rótulo ni pestañas propias en la barra`);
+    const html = await servida(rel);
+    assert.doesNotMatch(html.match(/<body\b[^>]*>/)[0], /data-yk-title=/, `${rel}: sin el rótulo del modo barra`);
+    assert.doesNotMatch(html.match(/<html\b[^>]*>/)[0], /yk-framed/, `${rel}: sin la clase del modo barra`);
+  }
+});
+
+// /mcp/ y /mcp/generador: sus antiguas pestañas (Hub MCP, Generador) y su navegación
+// van a ☰ en el bloque «MCP», bajo la navegación del grupo; ▤ trae «Ir a» (y en el
+// generador «Conectar»); ⌘ conserva sus verbos.
+for (const [rel, propios, derecha] of [
+  ['mcp/index.html', ['/seccion', '/generador', '/manifest', '/llms'], ['Ir a', 'Para agentes']],
+  ['mcp/generador.html', ['/seccion', '/tools', '/copiar', '/endpoint', '/manifest'], ['Conectar', 'Ir a']]
+]) {
+  test(`${rel}: lo propio del MCP va a ☰ ▤ ⌘ y la barra es la del sitio`, async () => {
+    const {raiz, contexto, html} = await montar(rel);
+    const rail = raiz.descendientes().find((n) => n.id === 'ykOptionsRail');
+    const rotulos = rail.hijos.filter((n) => n.classList.contains('yk-rail-sub')).map((n) => n.textContent);
+    assert.deepEqual(rotulos.slice(0, 2), ['Navegación del grupo', 'MCP'], '☰: el grupo y, debajo, el bloque «MCP»');
+    const bloque = html.match(/<nav data-yk-slot="left" data-yk-label="MCP"[^>]*>([\s\S]*?)<\/nav>/);
+    assert.ok(bloque, 'el bloque «MCP» va a ☰');
+    const enlaces = [...bloque[1].matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+    for (const h of ['/mcp/', '/mcp/generador', '/mcp/manifest.json']) assert.ok(enlaces.includes(h), `☰ «MCP» lleva ${h}`);
+    assert.equal((bloque[1].match(/aria-current="page"/g) || []).length, 1, 'la página actual va marcada en su bloque');
+    const der = raiz.descendientes().find((n) => n.id === 'ykAdvancedRail');
+    assert.deepEqual(der.hijos.filter((n) => n.classList.contains('yk-rail-sub')).map((n) => n.textContent), derecha, '▤ Avanzado');
+    contexto.AdmiraFrame.ejecutar('/help');
+    const lineas = raiz.descendientes().find((n) => n.classList.contains('yk-cli-out')).hijos.map((l) => l.textContent);
+    for (const v of propios) assert.ok(lineas.some((l) => l.startsWith(v + ' ')), `/help lista ${v}`);
+  });
+}
+
+// Las páginas de contenido (modo cabecera + automático): ☰ el grupo y después el mapa
+// del sitio sin repetir el grupo; ▤ «Ir a»; ⌘ /ir (grupo + sitio), /seccion y /arriba.
+for (const rel of Object.keys(ADOPTADAS).filter((r) => ADOPTADAS[r].auto)) {
+  test(`${rel}: modo automático con la barra del sitio`, async () => {
+    const {raiz, contexto, html} = await montar(rel);
+    assert.match(html, /<body data-yk-frame="cabecera" data-yk-auto="on"/);
+    const rail = raiz.descendientes().find((n) => n.id === 'ykOptionsRail');
+    assert.equal(rail.hijos.filter((n) => n.classList.contains('yk-rail-sub'))[0].textContent, 'Navegación del grupo', '☰ empieza por el grupo');
+    const sitio = rail.descendientes().filter((n) => n.classList.contains('yk-auto-hd')).map((n) => n.textContent);
+    for (const g of ['La casa', 'Operación', 'Estudio']) assert.ok(sitio.includes(g), `☰ lleva el mapa del sitio («${g}»)`);
+    const enlacesSitio = rail.descendientes().filter((n) => n.classList.contains('yk-auto-act') && n.href).map((n) => n.href);
+    for (const g of ['/proyectos/', '/flota']) assert.ok(!enlacesSitio.includes(g), `el mapa no repite ${g}, que ya está en el grupo`);
+    const der = raiz.descendientes().find((n) => n.id === 'ykAdvancedRail');
+    assert.ok(der.descendientes().some((n) => n.classList.contains('yk-auto-hd') && n.textContent === 'Ir a'), '▤ trae «Ir a»');
+    contexto.AdmiraFrame.ejecutar('/help');
+    const lineas = raiz.descendientes().find((n) => n.classList.contains('yk-cli-out')).hijos.map((l) => l.textContent);
+    for (const v of ['/ir', '/seccion', '/arriba']) assert.ok(lineas.some((l) => l.startsWith(v + ' ')), `/help lista ${v}`);
+    assert.ok(lineas.find((l) => l.startsWith('/ir ')).includes('webmaster'), '/ir abre también las páginas del grupo');
   });
 }

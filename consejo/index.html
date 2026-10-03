@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" class="yk-framed">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,7 +14,7 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{background:radial-gradient(120% 80% at 50% -10%,#1a0e00,#0a0703);color:var(--ink);
+  body{color:var(--ink);
     font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh}
   a{color:var(--amber);text-decoration:none} a:hover{color:var(--amber2)}
   .wrap{max-width:980px;margin:0 auto;padding:22px 18px 80px}
@@ -71,9 +71,10 @@
   .ans .h .comic:hover{border-color:var(--amber);background:#241400}
 </style>
 <script src="/comic.js?v=20260627f"></script>
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.03.10.2026-r4">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=v.03.10.2026-r5">
 </head>
-<body data-yk-title="EL CONSEJO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on">
+<body data-yk-frame="cabecera" data-yk-auto="on">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 <div class="wrap">
   <div class="yk-auto-blk" data-yk-slot="left"><div class="yk-auto-hd">El Consejo</div><nav class="yk-auto-list" aria-label="El Consejo"><a class="yk-auto-act" href="https://www.admira.live" target="_blank" rel="noopener">Consejo en vivo <b>↗</b></a></nav></div>
 
@@ -208,6 +209,6 @@ $('#askOne').onclick=doOne; $('#askAll').onclick=doAll;
 $('#q').addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter') doOne(); });
 renderSeats();
 </script>
-<script defer src="/assets/admira-frame.js?v=v.03.10.2026-r4"></script>
+<script defer src="/assets/admira-frame.js?v=v.03.10.2026-r5"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /* presentation-prospect.css · panel «Prospect» (generador de presentaciones y /marcablanca). */
 .prospect-panel{--pp-line:var(--line,var(--border,#2a3550));--pp-mut:var(--mut,var(--text-dim,#8fa0bd));--pp-ink:var(--ink,var(--text,#e8eef8));--pp-bg:#08111e;--pp-acc:var(--accent,#f5a623);color:var(--pp-ink)}
-.pp-switch{display:flex;gap:14px;align-items:flex-start;cursor:pointer;padding:14px 16px;border:1px solid var(--pp-line);border-radius:14px;background:var(--pp-bg)}
-.pp-switch input{position:absolute;opacity:0;pointer-events:none}
+.pp-switch{position:relative;display:flex;gap:14px;align-items:flex-start;cursor:pointer;padding:14px 16px;border:1px solid var(--pp-line);border-radius:14px;background:var(--pp-bg)}
+.pp-switch input{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
 .pp-track{flex:none;width:44px;height:24px;border-radius:999px;background:#25324a;position:relative;transition:background .2s;margin-top:2px}
 .pp-track:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#cfd8e6;transition:transform .2s}
 .pp-switch input:checked+.pp-track{background:var(--pp-acc)}.pp-switch input:checked+.pp-track:after{transform:translateX(20px);background:#fff}
