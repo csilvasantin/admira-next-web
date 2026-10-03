@@ -1,7 +1,7 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="admiranext-version" content="AdmiraNeXT v.02.10.2026.r10.21:08">
-<title>Flota · marcador y misiones · AdmiraNeXT</title>
+<title>Agentes · marcador y misiones · AdmiraNeXT</title>
 <style>
 :root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--bad:#ff6b7a;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
 *{box-sizing:border-box}
@@ -32,11 +32,18 @@ td.num{text-align:right;font:700 14px var(--mono)}
 .kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#09111d}
 .kpi b{display:block;font:800 26px/1.2 var(--mono);color:var(--cyan)}
 @media(max-width:760px){table,tbody,tr,td{display:block}thead{display:none}tr{padding:12px 0;border-bottom:1px solid var(--line)}td{border:0;padding:4px 0}td.num{text-align:left}}
-</style><link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r14"><script defer src="/assets/admira-frame.js?v=v.02.10.2026-r14"></script></head><body data-yk-frame="cabecera"><header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a><a href="/flota" data-yk-rail-only aria-current="page">Flota</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header><main class="shell">
+</style><style id="plegables-flota">
+.plegar{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;font:inherit;color:inherit}
+.plegar::after{content:'▸';font-size:.7em;opacity:.7;transition:transform .15s}
+.plegar[aria-expanded="true"]::after{transform:rotate(90deg)}
+.plegar:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){.plegar::after{transition:none}}
+</style>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=v.02.10.2026-r14"><script defer src="/assets/admira-frame.js?v=v.02.10.2026-r14"></script></head><body data-yk-frame="cabecera"><header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota" aria-current="page">Agentes</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header><main class="shell">
 <header>
   <div>
     <div class="eyebrow">AdmiraNeXT · Gestión de proyectos</div>
-    <h1>Flota: marcador y misiones</h1>
+    <h1>Agentes: marcador y misiones</h1>
     <div class="meta" id="cuando">cargando…</div>
   </div>
   <div class="actions">
@@ -54,13 +61,13 @@ td.num{text-align:right;font:700 14px var(--mono)}
 </section>
 
 <section class="panel" id="marcador-dia">
-  <div class="panel-head"><div><h2>Marcador del día</h2><div class="meta">api.yokup.com/highscore/daily</div></div><span class="tag" id="dia"></span></div>
-  <div id="marcador"></div>
+  <div class="panel-head"><div><h2><button type="button" class="plegar" aria-expanded="false" aria-controls="marcador">Marcador del día</button></h2><div class="meta">api.yokup.com/highscore/daily</div></div><span class="tag" id="dia"></span></div>
+  <div id="marcador" hidden></div>
 </section>
 
 <section class="panel" id="misiones-vivas">
-  <div class="panel-head"><div><h2>Misiones vivas</h2><div class="meta">api.yokup.com/fleet/missions</div></div><span class="tag" id="nmisiones"></span></div>
-  <div id="misiones"></div>
+  <div class="panel-head"><div><h2><button type="button" class="plegar" aria-expanded="false" aria-controls="misiones">Misiones vivas</button></h2><div class="meta">api.yokup.com/fleet/missions</div></div><span class="tag" id="nmisiones"></span></div>
+  <div id="misiones" hidden></div>
 </section>
 
 <div class="yk-slots" hidden>
@@ -68,6 +75,15 @@ td.num{text-align:right;font:700 14px var(--mono)}
 <div data-yk-slot="right" data-yk-label="Acciones"><button type="button" data-fl-action="refrescar">↻ Refrescar ahora</button></div>
 <div data-yk-slot="right" data-yk-label="Ir a"><a href="#trabajo">Quién está trabajando</a><a href="#marcador-dia">Marcador del día</a><a href="#misiones-vivas">Misiones vivas</a></div>
 </div>
+<script>
+/* Marcador del día y Misiones vivas plegados por defecto (Carlos, 3-oct-2026). Los datos se
+   siguen cargando; plegado solo esconde el cuerpo. El contador de la cabecera queda visible. */
+(()=>{const abrir=(btn,on)=>{const c=document.getElementById(btn.getAttribute('aria-controls'));if(!c)return;btn.setAttribute('aria-expanded',String(on));c.hidden=!on;};
+document.querySelectorAll('button.plegar').forEach(b=>b.addEventListener('click',()=>abrir(b,b.getAttribute('aria-expanded')!=='true')));
+const desdeAncla=()=>{const sec=location.hash&&document.querySelector(location.hash);const b=sec&&sec.querySelector('button.plegar');if(b)abrir(b,true);};
+addEventListener('hashchange',desdeAncla);desdeAncla();
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a)return;const sec=document.querySelector(a.getAttribute('href'));const b=sec&&sec.querySelector('button.plegar');if(b)abrir(b,true);});})();
+</script>
 <script>
 /* ⌘ Experto de /flota (FLT-101373). Va ANTES del script de la página: el test de flota ejecuta el último <script>. */
 window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
