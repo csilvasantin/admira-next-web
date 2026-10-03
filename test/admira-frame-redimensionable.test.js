@@ -49,11 +49,12 @@ test('las cabeceras de la familia llevan el logotipo oficial, no «admiraNeXT.»
   assert.match(await leer('assets/admira-frame.js'), /marcaCab\.innerHTML = LOGO/, 'el armazón corrige una cabecera que vuelva al logo viejo');
 });
 
-test('el Hub MCP adopta el armazón', async () => {
+test('el Hub MCP adopta el armazón (con la barra del sitio desde el 3-oct-2026)', async () => {
   const html = await leer('mcp/index.html');
-  for (const slot of ['nav', 'left', 'right']) assert.match(html, new RegExp(`data-yk-slot="${slot}"`));
-  assert.match(html, /data-yk-cli="on"/);
-  const css = html.match(/admira-frame\.css\?v=([^"]+)"/), js = html.match(/admira-frame\.js\?v=([^"]+)" defer/);
+  for (const slot of ['left', 'right']) assert.match(html, new RegExp(`data-yk-slot="${slot}"`));
+  assert.match(html, /<body data-yk-frame="cabecera">/, 'modo cabecera: la barra es la de /proyectos/ (la vigila test/familia-analitics-cuadratica.test.js)');
+  assert.doesNotMatch(html, /data-yk-slot="nav"|data-yk-title=/, 'sin pestañas ni rótulo propios en la barra');
+  const css = html.match(/admira-frame\.css\?v=([^"]+)"/), js = html.match(/<script defer src="\/assets\/admira-frame\.js\?v=([^"]+)"/);
   assert.ok(css && js && css[1] === js[1], 'css y js del armazón, misma clave');
   assert.doesNotMatch(html, /class="shell topbar"/, 'sin la barra propia de antes');
 });

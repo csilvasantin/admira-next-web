@@ -769,6 +769,22 @@ html.yk-head-mode header.yk-head .yk-ico[aria-expanded="true"]{ color: var(--yk-
 html.yk-head-mode header.yk-head :focus-visible{ outline: 2px solid var(--yk-brand); outline-offset: 3px }
 /* ☰ va pegado al borde y separado de la marca (después de la regla general, que pone margin:0) */
 html.yk-head-mode header.yk-head > button.yk-ico{ margin-right: 18px }
+/* Blindaje (3-oct-2026, «la barra superior tiene que ser igual en todas las páginas de
+   un sitio»): la cabecera ya no vive sólo en la intranet, también en /mcp/ y en las
+   páginas de contenido (academia, filosofía, normativa…), cada una con sus header{},
+   nav{}, nav a{}, .brand{} o --mono sueltos. Lo que esas reglas podían colar y la
+   cabecera no fijaba —alto mínimo, huecos, sombras, mayúsculas, interletrado,
+   pseudoelementos, el suavizado de letra (-webkit-font-smoothing de academia, normativa…),
+   la letra monoespaciada de los iconos— queda fijado aquí. */
+html.yk-head-mode{ --yk-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace }
+html.yk-head-mode header.yk-head{ width: auto; max-width: none; min-height: 0; box-shadow: none; transform: none; opacity: 1; overflow: visible; letter-spacing: normal; word-spacing: normal; text-transform: none; text-shadow: none;
+  -webkit-font-smoothing: auto; -moz-osx-font-smoothing: auto; text-rendering: auto; font-kerning: auto; font-feature-settings: normal; font-variant: normal }
+html.yk-head-mode header.yk-head::before, html.yk-head-mode header.yk-head::after{ content: none; display: none }
+html.yk-head-mode header.yk-head .brand{ gap: 0; height: auto; min-height: 0; box-shadow: none; text-transform: none; text-shadow: none }
+html.yk-head-mode header.yk-head nav{ position: static; align-items: center; justify-content: flex-start; width: auto; max-width: none; height: auto; min-height: 0; box-shadow: none; line-height: 1.4; letter-spacing: normal; text-transform: none }
+html.yk-head-mode header.yk-head nav a{ height: auto; min-height: 0; line-height: inherit; letter-spacing: inherit; text-transform: none; text-shadow: none; box-shadow: none; opacity: 1 }
+html.yk-head-mode header.yk-head nav a::before, html.yk-head-mode header.yk-head nav a::after{ content: none; display: none }
+html.yk-head-mode header.yk-head [data-yk-access]{ font-family: inherit; font-weight: 400; text-transform: none; border: 0; background: none; box-shadow: none }
 
 /* Raíles: nacen bajo la cabecera y se superponen; el último abierto queda encima */
 html.yk-head-mode .yk-rail{ font-size: 12px; line-height: 1.45; text-align: left }

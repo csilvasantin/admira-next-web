@@ -1,71 +1,59 @@
 <!doctype html>
-<html lang="es" class="yk-framed">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MCP del Generador de Presentaciones · ADmiraNeXT</title>
 <meta name="description" content="Ayuda y conexión del servidor MCP del Generador de Presentaciones de AdmiraNeXT: endpoint, token, tools y flujo para consejeros de silicio y carbono.">
 <meta name="robots" content="index,follow">
+<meta name="admiranext-version" content="v.03.10.2026.r5.03:03">
 <style>
-:root{--bg:#070a10;--panel:#0d1522;--line:#1e2940;--ink:#e8eef8;--dim:#7186a8;--brand:#3df08a;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+:root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--brand:#63e6d5;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
-body::before{content:"";position:fixed;inset:0;background:radial-gradient(90% 60% at 80% -10%,rgba(61,240,138,.08),transparent 60%);pointer-events:none}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 80% -20%,#14332f 0,transparent 42%);pointer-events:none}
 main{position:relative;max-width:920px;margin:0 auto;padding:48px 22px 80px}
 .eyebrow{font:700 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--brand);margin-bottom:18px}
 h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.02em;margin:0 0 10px}h2{font-size:20px;margin:40px 0 12px;color:var(--brand)}h3{font-size:15px;margin:22px 0 8px}
 p{color:#b9c6dc}.sub{font-size:18px;color:var(--dim)}
 pre{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;font:13px/1.5 var(--mono);color:#cfe3ff}
-code{font:13px var(--mono);color:#cfe3ff;background:rgba(120,243,255,.08);padding:2px 6px;border-radius:6px}
+code{font:13px var(--mono);color:#cfe3ff;background:rgba(99,230,213,.08);padding:2px 6px;border-radius:6px}
 table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--dim);font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
 td code{white-space:nowrap}.ok{color:var(--brand)}.mut{color:var(--dim)}
 a{color:var(--brand);text-underline-offset:3px}.nav{display:flex;gap:16px;flex-wrap:wrap;font:700 12px var(--mono);margin-bottom:28px}.nav a{color:#a8bad4;text-decoration:none}.nav a:hover{color:var(--brand)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:12px 0}
 ol li,ul li{margin:6px 0;color:#b9c6dc}
 footer{margin-top:60px;color:var(--dim);font:12px var(--mono)}
-/* Armazón de la casa (assets/admira-frame.md, modo barra): [☰] ADmiraNeXT · MCP · GENERADOR · secciones … [▤] [⌘].
-   Paleta del armazón con el verde de esta página; más específica que el :root de admira-frame.css. */
-html.yk-framed{--yk-brand:#3df08a;--yk-hi:#7af7b4;--yk-bg:#0d1522;--yk-bg2:#070a10;--yk-card:#0d1522;--yk-ink:#e8eef8;--yk-mut:#a8bad4;--yk-dim:#7186a8;--yk-line:#1e2940;--yk-line2:#2a3a55;scroll-padding-top:calc(var(--yk-bar-h) + 16px)}
-h2[id]{scroll-margin-top:calc(var(--yk-bar-h,46px) + 16px)}
-.yk-rail .mcp-slot{background:rgba(13,21,34,.97);border:1px solid var(--yk-line);border-radius:8px;padding:16px;font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
-.yk-rail .mcp-slot .k{margin:0 0 7px;color:var(--yk-brand);font:800 9px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
-.yk-rail .mcp-slot h2{margin:0 0 8px;font-size:17px;color:var(--yk-ink)}
-.yk-rail .mcp-slot p{margin:0;color:var(--yk-mut);font-size:12.5px;line-height:1.5}
-.yk-rail .mcp-acts{display:grid;gap:7px;margin-top:12px}
-.yk-rail .mcp-act{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:38px;padding:0 11px;color:var(--yk-ink);border:1px solid var(--yk-line2);background:#08111e;border-radius:5px;font:700 10.5px/1.25 var(--mono);text-align:left;text-decoration:none;cursor:pointer}
-.yk-rail .mcp-act:hover{color:var(--yk-brand);border-color:var(--yk-brand)}
-.yk-rail .mcp-act b{color:var(--yk-brand);font-weight:700}
-.yk-rail .mcp-slot .k + .mcp-acts{margin-top:4px}
-.yk-rail .mcp-slot .k.sep{margin-top:18px}
+/* Metaestilo del sitio (3-oct-2026): la barra es la de /proyectos/ (modo cabecera del
+   armazón) y el contenido usa los mismos tokens oscuros y el cian de la casa (antes,
+   verde #3df08a y una barra propia «MCP · GENERADOR»). */
+h2[id]{scroll-margin-top:calc(var(--yk-bar-h,76px) + 16px)}
 </style>
-<link rel="stylesheet" href="/assets/admira-frame.css?v=v.03.10.2026-r4">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=v.03.10.2026-r5">
+<script defer src="/assets/admira-frame.js?v=v.03.10.2026-r5"></script>
 </head>
-<body data-yk-title="MCP · GENERADOR" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-cli="on">
-<!-- Los tres niveles del marco cuadrático (assets/admira-frame.md): admira-frame.js los muda a su raíl por data-yk-slot. -->
-<nav data-yk-slot="nav" hidden>
-  <a href="/mcp/" aria-label="Hub MCP" title="Hub MCP"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h4l2-5 4 10 2-5h4"/></svg><span class="yk-lbl">Hub MCP</span></a>
-  <a href="/mcp/generador" aria-label="MCP del generador" title="MCP del generador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="16" height="18"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="yk-lbl">Generador</span></a>
+<body data-yk-frame="cabecera">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
+<!-- La barra es la del sitio (Carlos, 3-oct-2026): la misma cabecera que /proyectos/ y
+     /mcp/, con «○ Página pública». Las pestañas de la antigua barra (Hub MCP, Generador)
+     y la navegación van a ☰ (bloque «MCP» bajo el grupo); «Conectar» e «Ir a» a ▤; los
+     verbos /seccion /tools /copiar /endpoint /manifest a ⌘. -->
+<nav data-yk-slot="left" data-yk-label="MCP" aria-label="Páginas MCP">
+  <a href="/mcp/">Hub MCP</a>
+  <a href="/mcp/generador" aria-current="page">MCP del generador</a>
+  <a href="/mcp/manifest.json">manifest.json ↗</a>
+  <a href="https://www.admira.live/mcp/">Consejo MCP (admira.live) ↗</a>
 </nav>
-<section class="mcp-slot" data-yk-slot="left">
-  <p class="k">Nivel 01 · Opciones</p><h2>Navegación</h2><p>El generador, su conector y quién puede usarlo.</p>
-  <div class="mcp-acts">
-    <a class="mcp-act" href="/mcp/">Hub MCP de la matriz <b>→</b></a>
-    <a class="mcp-act" href="/presentaciones/">Generador de presentaciones <b>→</b></a>
-    <a class="mcp-act" href="/presentaciones/galeria">Galería de presentaciones <b>→</b></a>
-    <a class="mcp-act" href="/usuarios">Usuarios y tokens <b>→</b></a>
-    <a class="mcp-act" href="/mcp/manifest.json">manifest.json <b>↗</b></a>
-    <a class="mcp-act" href="https://www.admira.live/mcp/">Consejo (admira.live) <b>↗</b></a>
-  </div>
-</section>
-<section class="mcp-slot" data-yk-slot="right">
-  <p class="k">Nivel 02 · Avanzado</p><h2>Conectar</h2>
-  <div class="mcp-acts">
-    <button type="button" class="mcp-act" data-mcp-copiar="endpoint">Copiar endpoint <b>⌘C</b></button>
-    <button type="button" class="mcp-act" data-mcp-copiar="config">Copiar configuración MCP <b>⌘C</b></button>
-    <button type="button" class="mcp-act" data-mcp-copiar="curl">Copiar prueba curl <b>⌘C</b></button>
-  </div>
-  <p class="k sep">Ir a</p>
-  <div class="mcp-acts" id="mcpIrA"></div>
-</section>
+<nav data-yk-slot="left" data-yk-label="El generador" aria-label="El generador">
+  <a href="/presentaciones/">Generador de presentaciones</a>
+  <a href="/presentaciones/galeria">Galería de presentaciones</a>
+  <a href="/usuarios">Usuarios y tokens</a>
+</nav>
+<div data-yk-slot="right" data-yk-label="Conectar">
+  <button type="button" data-mcp-copiar="endpoint">Copiar endpoint <b>⌘C</b></button>
+  <button type="button" data-mcp-copiar="config">Copiar configuración MCP <b>⌘C</b></button>
+  <button type="button" data-mcp-copiar="curl">Copiar prueba curl <b>⌘C</b></button>
+</div>
+<div data-yk-slot="right" data-yk-label="Ir a" id="mcpIrA"></div>
 <main>
   <div class="eyebrow">ADmiraNeXT · MCP · Generador de Presentaciones</div>
   <h1>Conecta tu asistente al Generador de Presentaciones.</h1>
@@ -182,18 +170,19 @@ h2[id]{scroll-margin-top:calc(var(--yk-bar-h,46px) + 16px)}
     </ul>
   </div>
 
-  <footer>ADmiraNeXT · MCP del Generador de Presentaciones · <a href="/mcp/">hub MCP de la matriz</a> · <a href="https://www.admira.live/mcp/">Consejo (admira.live)</a></footer>
+  <footer>ADmiraNeXT · MCP del Generador de Presentaciones · v.03.10.2026.r5.03:03 · <a href="/mcp/">hub MCP de la matriz</a> · <a href="https://www.admira.live/mcp/">Consejo (admira.live)</a></footer>
 </main>
 <script>
-// ⌘ Experto: verbos de esta página para el CLI del armazón (antes de cargar admira-frame.js).
+// ▤ y ⌘ Experto: verbos de esta página para el CLI del armazón (script en línea: corre
+// antes que admira-frame.js, que va con defer).
 (function(){
-  var h2=[].slice.call(document.querySelectorAll('main > h2'));
+  var h2=[].slice.call(document.querySelectorAll('main h2'));
   // Ids correlativos (los rótulos repiten número: hay dos «5 ·» y un «4b»).
   h2.forEach(function(h,i){if(!h.id)h.id='s'+(i+1);});
   function titulo(h){return h.textContent.replace(/^\s*[0-9]+[a-z]?\s*·\s*/,'');}
   function buscar(q){q=String(q||'').toLowerCase().replace(/^s/,'');return h2.filter(function(h,i){return q&&(String(i+1)===q||titulo(h).toLowerCase().indexOf(q)>=0);})[0];}
   var ira=document.getElementById('mcpIrA');
-  h2.forEach(function(h){var b=document.createElement('button');b.type='button';b.className='mcp-act';b.dataset.mcpIr=h.id;b.innerHTML='<span></span><b>'+h.id.slice(1)+'</b>';b.firstChild.textContent=titulo(h);ira.appendChild(b);});
+  h2.forEach(function(h){var b=document.createElement('button');b.type='button';b.dataset.mcpIr=h.id;b.textContent=h.id.slice(1)+' · '+titulo(h);ira.appendChild(b);});
   var pres=document.querySelectorAll('main pre');
   var textos={endpoint:'https://www.admiranext.com/mcp',config:pres[0]?pres[0].textContent:'',curl:pres[1]?pres[1].textContent:''};
   function copiar(clave){return navigator.clipboard.writeText(textos[clave]).then(function(){return true},function(){return false});}
@@ -209,6 +198,5 @@ h2[id]{scroll-margin-top:calc(var(--yk-bar-h,46px) + 16px)}
   ]);
 })();
 </script>
-<script src="/assets/admira-frame.js?v=v.03.10.2026-r4" defer></script>
 </body>
 </html>

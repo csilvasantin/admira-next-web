@@ -167,7 +167,7 @@
     bar.appendChild(meta);
   }
 
-  // ── Modo AUTOMÁTICO (<body data-yk-auto="on">, sólo en modo barra) ───────────
+  // ── Modo AUTOMÁTICO (<body data-yk-auto="on">, en modo barra o con cabecera) ──
   // Para las páginas de admiranext.com que tenían cabecera propia (Carlos, 2-oct-2026:
   // «hay que utilizar el logo de AdmiraNeXT» y la fórmula en todas): sin escribir
   // slots, ☰ trae el MAPA DEL SITIO (lo que lleva a otra página), ▤ las ACCIONES de
@@ -179,21 +179,34 @@
     {grupo: 'Operación', enlaces: [['/proyectos/', 'Proyectos'], ['/flota', 'Flota'], ['/status', 'Status'], ['/mcp/', 'Hub MCP'], ['/telegram/', 'Telegram']]},
     {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
   ];
-  var modoAuto = !modoCabecera && body.dataset.ykAuto === 'on';
+  // Desde el 3-oct-2026 el modo automático también va con la CABECERA del grupo
+  // (<body data-yk-frame="cabecera" data-yk-auto="on">): Carlos, «la barra superior
+  // tiene que ser igual en todas las páginas de un sitio». La barra es la de
+  // /proyectos/; lo automático (mapa del sitio, acciones, «Ir a», /seccion, /arriba)
+  // va a los paneles igual que en modo barra. En ☰ el mapa del sitio va debajo de la
+  // navegación del grupo y no repite sus páginas.
+  var modoAuto = body.dataset.ykAuto === 'on';
   var secciones = [], sitioPlano = [], construirIrA = function () {};
   function slugar(t) {
     return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'seccion';
   }
   function irA(n) { if (n && n.scrollIntoView) n.scrollIntoView({behavior: 'smooth', block: 'start'}); }
   if (modoAuto) {
-    root.classList.add('yk-framed', 'yk-auto');
+    root.classList.add('yk-auto');
+    if (!modoCabecera) root.classList.add('yk-framed');
     var izqAuto = el('div', 'yk-auto-blk');
     izqAuto.setAttribute('data-yk-slot', 'left');
+    var rutasGrupo = grupo.map(function (a) { return ruta(a.getAttribute('href')); });
+    grupo.forEach(function (a, i) {
+      sitioPlano.push({href: a.getAttribute('href'), nombre: String(a.textContent || '').trim(), clave: rutasGrupo[i].replace(/^\//, '').split('/').pop() || 'inicio'});
+    });
     SITIO.forEach(function (g) {
+      var enlaces = g.enlaces.filter(function (par) { return rutasGrupo.indexOf(ruta(par[0])) < 0; });
+      if (!enlaces.length) return;
       izqAuto.appendChild(texto('div', 'yk-auto-hd', g.grupo));
       var lista = el('nav', 'yk-auto-list');
       lista.setAttribute('aria-label', g.grupo);
-      g.enlaces.forEach(function (par) {
+      enlaces.forEach(function (par) {
         var a = texto('a', 'yk-auto-act', par[1]);
         a.href = par[0];
         if (ruta(par[0]) === aquí) a.setAttribute('aria-current', 'page');
