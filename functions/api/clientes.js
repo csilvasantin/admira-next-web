@@ -4,8 +4,8 @@
  * Clientes: D1 admiranext_commercial_projects, o las semillas de
  * functions/_xpace-registry.js si no hay base. Admira se añade si falta.
  *
- * Patas: D1 admiranext_clientes_acceso (migrations/0007_clientes_acceso.sql).
- * Starbucks, Altadis y Admira son globales (las cinco patas). El resto
+ * Patas: D1 admiranext_clientes_acceso (migrations/0007_clientes_acceso.sql y
+ * 0008_jti_global.sql). Starbucks, Altadis, JTI y Admira son globales (las cinco patas). El resto
  * conserva patas:["todas"] y origen:"provisional", con global:false.
  */
 import { SEEDS } from '../_xpace-registry.js';
@@ -19,10 +19,11 @@ const CORS = {
 const PATAS_GLOBALES = ['studio', 'store', 'tv', 'app', 'biz'];
 const ORIGEN_CARLOS = 'carlos-2026-10-04';
 
-/** Misma decisión que persiste migrations/0007_clientes_acceso.sql. */
+/** Misma decisión que persisten migrations/0007_clientes_acceso.sql y 0008_jti_global.sql. */
 export const ACCESO_GLOBAL = {
   starbucks: { nombre: 'Starbucks', patas: PATAS_GLOBALES, origen: ORIGEN_CARLOS, por_defecto: false },
   altadis: { nombre: 'Altadis', patas: PATAS_GLOBALES, origen: ORIGEN_CARLOS, por_defecto: false },
+  jti: { nombre: 'JTI Xtanco', patas: PATAS_GLOBALES, origen: ORIGEN_CARLOS, por_defecto: false },
   admira: { nombre: 'Admira', patas: PATAS_GLOBALES, origen: ORIGEN_CARLOS, por_defecto: true },
 };
 

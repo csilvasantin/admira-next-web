@@ -42,6 +42,12 @@
       "sector": "Estancos · Grupo Imperial Brands"
     },
     {
+      "id": "jti",
+      "nombre": "JTI",
+      "ejemplo": false,
+      "sector": "Estancos · Japan Tobacco International"
+    },
+    {
       "id": "lumbre",
       "nombre": "Lumbre Café",
       "ejemplo": true,
