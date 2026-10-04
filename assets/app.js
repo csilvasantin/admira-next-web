@@ -239,8 +239,9 @@
 
   // ============ AVATAR DIGITAL ============
   // Interruptor por usuario del avatar de digitalavatar.ai (assets/avatar.js).
-  // /avatarON lo enciende y abre, /avatarOFF lo apaga, /avatar alterna. La elección
-  // se guarda en este navegador y gana al interruptor del proyecto (/webmaster).
+  // /avatar good|better|best abre el calvo, la chica o Neo. /avatar sin nivel dice
+  // el estado. /avatarON lo muestra y /avatarOFF lo oculta. La elección se guarda
+  // en este navegador y gana al interruptor del proyecto (/webmaster).
   function cmdAvatar(text) {
     const A = window.AdmiraAvatar;
     const msg = A && typeof A.run === 'function' ? A.run(text) : null;
@@ -249,11 +250,11 @@
     return [{ text: '  ' + msg, cls: /desactivado|off|apagado/i.test(msg) ? 'dim' : 'green' }];
   }
   const AVATAR_COMMANDS = {
-    '/avatar':        { desc: 'Avatar digital: alterna (on si está apagado, off si se ve)', fn: () => cmdAvatar('/avatar') },
-    '/avataron':      { desc: 'Avatar digital: encender y abrir', fn: () => cmdAvatar('/avatarON') },
-    '/avataroff':     { desc: 'Avatar digital: apagar', fn: () => cmdAvatar('/avatarOFF') },
-    '/avatardigital': { desc: 'Alias de /avatar', fn: () => cmdAvatar('/avatar') },
-    '/digitalavatar': { desc: 'Alias de /avatar', fn: () => cmdAvatar('/avatar') },
+    '/avatar':        { desc: '/avatar good (calvo 3D) · /avatar better (chica, gafas) · /avatar best (Neo; si el render está apagado, la chica). Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta.', fn: () => cmdAvatar('/avatar') },
+    '/avataron':      { desc: 'Avatar digital: mostrar', fn: () => cmdAvatar('/avatarON') },
+    '/avataroff':     { desc: 'Avatar digital: ocultar', fn: () => cmdAvatar('/avatarOFF') },
+    '/avatardigital': { desc: 'Alias de /avatar (estado; good, better o best abren el nivel)', fn: () => cmdAvatar('/avatar') },
+    '/digitalavatar': { desc: 'Alias de /avatar (estado; good, better o best abren el nivel)', fn: () => cmdAvatar('/avatar') },
   };
   Object.assign(INFO_COMMANDS, AVATAR_COMMANDS);
 
@@ -265,11 +266,11 @@
   // devuelve data.desc (Spanish original).
   const DESC_EN = {
     '/help':         'List all available commands',
-    '/avatar':        'Digital avatar: toggle (on if off, off if showing)',
-    '/avataron':      'Digital avatar: turn on and open',
-    '/avataroff':     'Digital avatar: turn off',
-    '/avatardigital': 'Alias of /avatar',
-    '/digitalavatar': 'Alias of /avatar',
+    '/avatar':        '/avatar good (bald 3D face) · /avatar better (girl, glasses) · /avatar best (Neo; the girl if render is off). Alone, the status. /avatarON shows it and /avatarOFF hides it.',
+    '/avataron':      'Digital avatar: show',
+    '/avataroff':     'Digital avatar: hide',
+    '/avatardigital': 'Alias of /avatar (status; good, better or best open that level)',
+    '/digitalavatar': 'Alias of /avatar (status; good, better or best open that level)',
     '/classic':      'Open the classic web',
     '/robots':       'Initial robot catalog',
     '/identidad':    'Visual identity manual',
@@ -2629,6 +2630,25 @@
   function executeCommand(input) {
     const raw = input.trim().toLowerCase();
     if (!raw) return;
+
+    // /avatar good|better|best no coinciden con la clave exacta del mapa.
+    if (/^\/(?:avatar(?:on|off|digital)?|digitalavatar)(?:\s|$)/.test(raw) || /^\/cli\s+(?:ayudante|helper)\b/.test(raw)) {
+      commandHistory.unshift(input.trim());
+      if (commandHistory.length > 50) commandHistory.pop();
+      historyIndex = -1;
+      const block = document.createElement('div');
+      block.className = 'output-block';
+      block.innerHTML = '<div class="cmd-echo"><span class="prompt-symbol">&gt;</span> ' + escapeHtml(input.trim()) + '</div>';
+      cmdAvatar(input.trim()).forEach(function (line) {
+        const el = document.createElement('div');
+        el.className = 'output-line ' + (line.cls || '');
+        el.textContent = line.text;
+        block.appendChild(el);
+      });
+      outputArea.appendChild(block);
+      if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+      return;
+    }
 
     // Salto directo a una solución (analitics, presentations, webmaster, studio…).
     const salto = buscarSalto(raw);

@@ -169,6 +169,48 @@
   }});
   verb({name: 'limpiar', alias: ['clear', 'cls'], desc: ['vacía el registro', 'clear the log'], run: function (a, log) { log.textContent = ''; hello(log); }});
 
+  // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = calvo 3D,
+  // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
+  // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261004-avatar-2';
+  function avatarApi() {
+    if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
+    var tag = document.querySelector('script[data-admira-avatar]');
+    if (!tag) {
+      tag = document.createElement('script');
+      tag.src = AVATAR_SRC;
+      tag.async = true;
+      tag.setAttribute('data-admira-avatar', '');
+      (document.head || document.documentElement).appendChild(tag);
+    }
+    return new Promise(function (resolve) {
+      var done = function () { resolve(root.AdmiraAvatar || null); };
+      if (root.AdmiraAvatar) return done();
+      tag.addEventListener('load', done, {once: true});
+      tag.addEventListener('error', done, {once: true});
+      setTimeout(done, 4000);
+    });
+  }
+  function avatarRun(text, log) {
+    return avatarApi().then(function (A) {
+      if (!A) { out(log, T('Avatar digital no disponible', 'Digital avatar unavailable'), 'err'); return; }
+      return Promise.resolve(A.handle(text)).then(function (msg) { if (msg) out(log, String(msg)); });
+    });
+  }
+  verb({name: 'avatar', args: '[good|better|best]', desc: [
+    'good abre el calvo (cara 3D, 52 blendshapes) · better abre la chica (Ready Player Me, gafas) · best abre a Neo (MetaHuman; si el host de render está apagado, cae a la chica). Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta. /avatar reset vuelve al interruptor del proyecto',
+    'good opens the bald 3D face (facecap, 52 blendshapes) · better opens the web girl (Ready Player Me, glasses) · best opens Neo (MetaHuman; if the render host is off, the girl takes over). Alone, the status. /avatarON shows it and /avatarOFF hides it. /avatar reset follows the project switch'
+  ], run: function (a, log) { return avatarRun('/avatar' + (a.length ? ' ' + a.join(' ') : ''), log); }});
+  verb({name: 'avataron', desc: ['muestra el avatar digital y lo recuerda', 'show the digital avatar and remember it'], run: function (a, log) { return avatarRun('/avatarON', log); }});
+  verb({name: 'avataroff', desc: ['oculta el avatar digital y lo recuerda', 'hide the digital avatar and remember it'], run: function (a, log) { return avatarRun('/avatarOFF', log); }});
+  verb({name: 'avatardigital', alias: ['digitalavatar'], desc: ['alias de /avatar', 'alias of /avatar'], run: function (a, log) {
+    return avatarRun('/avatar' + (a.length ? ' ' + a.join(' ') : ''), log);
+  }});
+  verb({name: 'cli', args: 'ayudante|helper', desc: ['interruptor del avatar en esta consola', 'avatar switch on this console'], run: function (a, log) {
+    if (/^(ayudante|helper)$/i.test(a[0] || '')) return avatarRun('/cli ' + a.join(' '), log);
+    out(log, T('En esta consola, /cli ayudante es el avatar. /avatar good, /avatar better o /avatar best elige la cara.', 'On this console, /cli helper is the avatar. /avatar good, /avatar better or /avatar best picks the face.'), 'err');
+  }});
+
   function execute(text, log) {
     var t = String(text || '').trim();
     if (!t) return;

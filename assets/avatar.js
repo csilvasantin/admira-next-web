@@ -1,23 +1,25 @@
 /* AdmiraNeXT · avatar digital compartido (cargador único de la red).
  *
  * Una sola fuente para todos los sitios: https://www.admiranext.com/assets/avatar.js
- * La cara es https://digitalavatar.ai/embed.js (siempre la MISMA URL: dos URL
- * distintas cargarían dos módulos y saldrían dos avatares).
+ * La cara y la voz no se copian: el panel abre la demo viva de digitalavatar.ai
+ * (micro, texto, ElevenLabs por brain.digitalavatar.ai, cortar, estados).
+ *
+ *   /avatar good    el calvo — cara 3D facecap.glb, 52 blendshapes (better.html)
+ *   /avatar better  la chica — Ready Player Me con gafas (best.html)
+ *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html);
+ *                   si el host de render está apagado, esa página cae a la chica
+ *   /avatar         estado y las tres opciones
+ *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
  *
  * Precedencia (de más a menos fuerte):
  *   1. Elección del usuario en este sitio y navegador: localStorage
- *      «admira-avatar:override» = "on" | "off" (la escriben /avatarON, /avatarOFF y /avatar).
+ *      «admira-avatar:override» = "on" | "off" (la escriben /avatarON, /avatarOFF
+ *      y /avatar good|better|best).
  *   2. Interruptor del proyecto en admiranext.com (GET /api/avatar/flags?host=…).
  *   3. Apagado.
  * El encendido automático por interruptor NUNCA escribe la elección del usuario:
  * si Carlos apaga el proyecto, desaparece para todos los que no lo forzaron.
- * Con el interruptor sale la burbuja cerrada; /avatarON abre el panel.
- * Oculto cuenta como apagado (/avatar alterna según lo que se ve).
- *
- * Atributos opcionales del <script>:
- *   data-brain="/avatar-ask"   relé del mismo origen (si el sitio lo tiene);
- *                              sin él se usa el relé central de admiranext.com.
- *   data-title, data-greeting  textos del panel.
+ * Con el interruptor sale la burbuja cerrada; /avatarON y /avatar <nivel> abren el panel.
  * Migra el interruptor antiguo por sitio (FLT-101350: «da-avatar:<host>» = 1/0).
  */
 (function (root) {
@@ -26,8 +28,13 @@
   var ORIGIN = 'https://www.admiranext.com';
   var FLAGS_URL = ORIGIN + '/api/avatar/flags';
   var CENTRAL_BRAIN = ORIGIN + '/api/avatar-ask';
-  var EMBED_URL = 'https://digitalavatar.ai/embed.js';
+  var LEVELS = {
+    good: 'https://digitalavatar.ai/better.html?dock=1',
+    better: 'https://digitalavatar.ai/best.html?dock=1&kiosk=0',
+    best: 'https://digitalavatar.ai/metahuman.html?dock=1'
+  };
   var KEY = 'admira-avatar:override';
+  var LEVEL_KEY = 'admira-avatar:nivel';
   var CACHE = 'admira-avatar:flags';
   var CACHE_MS = 60000;
   var TIMEOUT_MS = 2500;
@@ -36,7 +43,8 @@
   var RESET = /^(reset|auto|proyecto|project|default)$/i;
 
   // ─── Piezas puras (se prueban en node: test/avatar-loader.test.mjs) ───
-  // null si el texto no es un comando del avatar. 'on' | 'off' | 'toggle' | 'reset' | 'bad'.
+  // null si el texto no es un comando del avatar.
+  // 'on' | 'off' | 'toggle' | 'reset' | 'status' | 'good' | 'better' | 'best' | 'bad'.
   function decide(text) {
     var raw = String(text == null ? '' : text).trim();
     var m = raw.match(/^\/?([^\s@]+)(?:@\S+)?(?:\s+([\s\S]*))?$/);
@@ -51,11 +59,12 @@
     } else if (verb !== 'avatar' && verb !== 'avatardigital' && verb !== 'digitalavatar') {
       return null;
     }
-    var arg = rest[0] || '';
-    if (!arg) return 'toggle';
+    var arg = (rest[0] || '').toLowerCase();
+    if (!arg) return verb === 'cli' ? 'toggle' : 'status';
     if (ON.test(arg)) return 'on';
     if (OFF.test(arg)) return 'off';
     if (RESET.test(arg)) return 'reset';
+    if (verb !== 'cli' && LEVELS[arg]) return arg;
     return 'bad';
   }
 
@@ -74,15 +83,21 @@
   function message(kind, en) {
     if (kind === 'on') return en ? 'Digital avatar on' : 'Avatar digital activado';
     if (kind === 'off') return en ? 'Digital avatar off' : 'Avatar digital desactivado';
+    if (kind === 'good') return en ? 'Avatar good: the bald 3D face (facecap, 52 blendshapes).' : 'Avatar good: el calvo, cara 3D (facecap, 52 blendshapes).';
+    if (kind === 'better') return en ? 'Avatar better: the web girl (Ready Player Me, glasses).' : 'Avatar better: la chica web (Ready Player Me, gafas).';
+    if (kind === 'best') return en ? 'Avatar best: Neo, MetaHuman. If the render host is off, the girl takes over.' : 'Avatar best: Neo, MetaHuman. Si el host de render está apagado, entra la chica.';
+    if (kind === 'status') return en
+      ? 'Digital avatar. /avatar good · bald 3D face. /avatar better · web girl with glasses. /avatar best · Neo (falls back to the girl). /avatarON shows it, /avatarOFF hides it.'
+      : 'Avatar digital. /avatar good · el calvo (cara 3D). /avatar better · la chica web con gafas. /avatar best · Neo (si el render está apagado, la chica). /avatarON lo muestra, /avatarOFF lo oculta.';
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
     if (kind === 'reset-off') return en ? 'Digital avatar follows the project switch (off)' : 'El avatar sigue el interruptor del proyecto (apagado)';
     return en
-      ? 'Use /avatarON, /avatarOFF or /avatar (toggle). /avatar reset follows the project switch.'
-      : 'Usa /avatarON, /avatarOFF o /avatar (alterna). /avatar reset vuelve al interruptor del proyecto.';
+      ? 'Use /avatar good, /avatar better or /avatar best. /avatar alone shows the status. /avatarON and /avatarOFF show or hide it.'
+      : 'Usa /avatar good, /avatar better o /avatar best. /avatar solo muestra el estado. /avatarON y /avatarOFF lo muestran o lo ocultan.';
   }
 
   var api = {decide: decide, resolve: resolve, legacyValue: legacyValue, message: message,
-    KEY: KEY, FLAGS_URL: FLAGS_URL, EMBED_URL: EMBED_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
+    KEY: KEY, LEVEL_KEY: LEVEL_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
   if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return; // ya cargado en esta página
@@ -120,7 +135,7 @@
     if (doc.getElementById('admira-avatar-lift')) return;
     var style = doc.createElement('style');
     style.id = 'admira-avatar-lift';
-    style.textContent = '#da-av{right:16px !important;bottom:var(--da-lift,20px) !important;top:auto !important}';
+    style.textContent = '#da-suite{right:16px !important;bottom:var(--da-lift,20px) !important;top:auto !important;z-index:25 !important}';
     (doc.head || doc.documentElement).appendChild(style);
   }
   function barHeight(el) {
@@ -146,63 +161,61 @@
     if (!liftTimer) liftTimer = root.setInterval(applyLift, 1500);
   }
 
-  // ─── Cara ───
-  var face = null, mounting = null, ours = false;
-  function node() { return doc.getElementById('da-av'); }
-  function visible() { var n = node(); return !!n && n.style.display !== 'none'; }
-
-  function fallbackFace() {
-    var wrap = node();
-    if (wrap) return wrap;
-    wrap = doc.createElement('div');
-    wrap.id = 'da-av';
-    wrap.setAttribute('style', 'position:fixed;right:20px;bottom:20px;z-index:2147483000');
-    wrap.innerHTML = '<div style="width:220px;padding:14px 16px;border-radius:16px;background:#02080d;border:1px solid rgba(120,243,255,.45);color:#eef7ff;font:13px/1.4 system-ui,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.45)">'
-      + '<div style="font:700 11px/1.2 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78f3ff;margin-bottom:8px">' + (en() ? 'Digital avatar' : 'Avatar digital') + '</div>'
-      + '<div style="font-size:42px;line-height:1;text-align:center">🤖</div>'
-      + '<div style="margin-top:8px">' + (en() ? 'The avatar could not load.' : 'El avatar no pudo cargar.') + '</div></div>';
+  // ─── Panel: una sola cara, la de digitalavatar.ai, en un iframe ───
+  function node() { return doc.getElementById('da-suite'); }
+  function visible() { var n = node(); return !!n && n.style.display !== 'none' && n.classList.contains('open'); }
+  function storedLevel() {
+    var v = get(LEVEL_KEY);
+    return LEVELS[v] ? v : 'good';
+  }
+  function ensureDock() {
+    if (node()) return node();
+    watchLift();
+    var wrap = doc.createElement('div');
+    wrap.id = 'da-suite';
+    wrap.setAttribute('style', 'position:fixed;right:16px;bottom:20px;z-index:25;font-family:ui-monospace,SFMono-Regular,Menlo,monospace');
+    wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;border-radius:50%;border:1px solid rgba(120,243,255,.4);background:#0a1620;color:#78f3ff;font-size:26px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.5)">🤖</button>'
+      + '<div id="da-suite-panel" style="display:none;width:min(400px,calc(100vw - 24px));height:min(680px,calc(100vh - var(--da-lift,20px) - 24px));background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
+      + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
     doc.body.appendChild(wrap);
+    var style = doc.getElementById('admira-avatar-open');
+    if (!style) {
+      style = doc.createElement('style');
+      style.id = 'admira-avatar-open';
+      style.textContent = '#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}';
+      (doc.head || doc.documentElement).appendChild(style);
+    }
+    wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { openLevel(storedLevel()); });
+    wrap.querySelector('#da-suite-x').addEventListener('click', function () { wrap.classList.remove('open'); });
     return wrap;
   }
-
-  function mount() {
-    if (face) return Promise.resolve(face);
-    // Otro componente (copiloto de flota de Yokup o admira.tv/cms) ya montó una cara: no se duplica.
-    if (node() && !ours) { face = {open: function () { var b = doc.getElementById('da-bubble'); if (b && !node().classList.contains('open')) b.click(); }, close: function () {}}; return Promise.resolve(face); }
-    if (mounting) return mounting;
-    var english = en();
-    mounting = import(EMBED_URL).then(function (mod) {
-      ours = true;
-      var f = mod.mount({
-        brainUrl: brainUrl(),
-        lang: english ? 'en-US' : 'es-ES',
-        title: data.title || (english ? 'Digital avatar' : 'Avatar digital'),
-        greeting: data.greeting || (english ? 'Hello. What do you need?' : 'Hola. ¿En qué te ayudo?'),
-        placeholder: english ? 'Ask about this project…' : 'Pregunta sobre este proyecto…'
-      });
-      face = f || {open: function () { var b = doc.getElementById('da-bubble'); if (b) b.click(); }, close: function () {}};
-      return face;
-    }).catch(function () {
-      ours = true;
-      fallbackFace();
-      face = {open: function () {}, close: function () {}};
-      return face;
-    }).then(function (f) { watchLift(); mounting = null; return f; });
-    return mounting;
+  function openLevel(level) {
+    var wrap = ensureDock();
+    var frame = wrap.querySelector('#da-suite-frame');
+    var url = LEVELS[level] || LEVELS.good;
+    if (frame.getAttribute('src') !== url) frame.setAttribute('src', url);
+    var label = wrap.querySelector('#da-suite-label');
+    if (label) label.textContent = level;
+    wrap.style.display = '';
+    wrap.classList.add('open');
+    applyLift();
   }
-
-  function show(open) {
-    return mount().then(function (f) {
+  function show(open, level) {
+    var lv = LEVELS[level] ? level : storedLevel();
+    set(LEVEL_KEY, lv);
+    ensureDock();
+    if (open) openLevel(lv);
+    else {
       var n = node();
-      if (n) n.style.display = '';
-      if (open) { try { f.open(); } catch (_) {} }
+      if (n) { n.style.display = ''; n.classList.remove('open'); }
       applyLift();
-      return true;
-    });
+    }
+    return Promise.resolve(true);
   }
   function hide() {
     var n = node();
-    if (n) n.style.display = 'none';
+    if (n) { n.classList.remove('open'); n.style.display = 'none'; var frame = n.querySelector('iframe'); if (frame) frame.removeAttribute('src'); }
     try { if (root.speechSynthesis) root.speechSynthesis.cancel(); } catch (_) {}
   }
 
@@ -237,14 +250,25 @@
     if (mode == null) return null;
     var english = en();
     if (mode === 'bad') return message('bad', english);
+    if (mode === 'status') {
+      var now = storedLevel();
+      var seen = visible() ? (english ? 'open' : 'abierto') : (english ? 'hidden' : 'oculto');
+      return message('status', english) + (english ? ' Now: ' : ' Ahora: ') + now + ' · ' + seen + '.';
+    }
     if (mode === 'reset') {
       set(KEY, null);
       projectFlag().then(function (flag) { if (flag) show(false); else hide(); });
       return message(readCache() ? 'reset-on' : 'reset-off', english);
     }
+    if (LEVELS[mode]) {
+      set(LEVEL_KEY, mode);
+      set(KEY, 'on');
+      show(true, mode);
+      return message(mode, english);
+    }
     var on = mode === 'toggle' ? !visible() : mode === 'on';
     set(KEY, on ? 'on' : 'off');
-    if (on) show(true); else hide();
+    if (on) show(true, storedLevel()); else hide();
     return message(on ? 'on' : 'off', english);
   }
   function handle(text) {
@@ -252,7 +276,7 @@
     return Promise.resolve(out == null ? message('bad', en()) : out);
   }
   function state() {
-    return {override: override(), visible: visible(), host: host, brain: brainUrl()};
+    return {override: override(), visible: visible(), level: storedLevel(), host: host, brain: brainUrl()};
   }
 
   root.AdmiraAvatar = {run: run, handle: handle, decide: decide, show: show, hide: hide, state: state,
