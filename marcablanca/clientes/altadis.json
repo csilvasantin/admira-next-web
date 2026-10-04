@@ -1,0 +1,156 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "altadis",
+  "nombre": "Altadis",
+  "nombreCorto": "Altadis",
+  "ejemplo": false,
+  "sector": "Estancos · Grupo Imperial Brands",
+  "descripcion": "Marca blanca de Altadis (Grupo Imperial Brands). Logo oficial de www.altadis.com; colores del logo: naranja #F47920 y marrón oscuro #3C3126.",
+  "logo": {
+    "imagen": "../logos/altadis.png",
+    "alt": "Altadis · Grupo Imperial Brands"
+  },
+  "favicon": "../logos/altadis-favicon.png",
+  "modo": "claro",
+  "tipografia": {
+    "titulos": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "pesoTitulos": 800,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.02em",
+    "fuentes": [
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "400 800"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "6px",
+    "md": "10px",
+    "lg": "16px",
+    "boton": "10px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.08)",
+    "md": "0 8px 24px rgba(0,0,0,.12)",
+    "lg": "0 24px 60px rgba(0,0,0,.18)"
+  },
+  "tono": {
+    "voz": "Claro, cercano y propio de Altadis.",
+    "tratamiento": "tú",
+    "si": [],
+    "no": [],
+    "frases": {
+      "cta": "Descúbrelo",
+      "vacio": "Todo en orden por aquí.",
+      "error": "Algo ha fallado. Lo estamos arreglando.",
+      "exito": "¡Listo!"
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#D76A1C",
+      "primarioTexto": "#361B07",
+      "secundario": "#3C3126",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#F47920",
+      "acentoTexto": "#2C1606",
+      "fondo": "#FFFFFF",
+      "fondoAlt": "#F7F6F6",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#F0EFEF",
+      "borde": "#DDDBDA",
+      "texto": "#2C1F19",
+      "textoSuave": "#6B625E",
+      "textoTenue": "#9A9391",
+      "ok": "#2F7D4F",
+      "aviso": "#B7791F",
+      "error": "#C0392B",
+      "info": "#2B6CB0"
+    },
+    "oscuro": {
+      "primario": "#F47920",
+      "primarioTexto": "#3D1E08",
+      "secundario": "#7A736B",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#F47920",
+      "acentoTexto": "#2C1606",
+      "fondo": "#221812",
+      "fondoAlt": "#2E1D12",
+      "superficie": "#30241D",
+      "superficieAlt": "#3C2D26",
+      "borde": "#523E33",
+      "texto": "#F5F1EF",
+      "textoSuave": "#B6B0AD",
+      "textoTenue": "#87807C",
+      "ok": "#6FCF97",
+      "aviso": "#F2C94C",
+      "error": "#EB5757",
+      "info": "#56CCF2"
+    }
+  },
+  "demo": {
+    "titular": "Altadis, también en pantalla",
+    "producto": "Campaña de temporada",
+    "cta": "Descúbrelo",
+    "prompt": "Cartel vertical de Altadis para estanco: colores de marca naranja y marrón oscuro, titular corto y llamada a la acción",
+    "circuito": "Circuito Altadis · 36 estancos",
+    "puntos": 36,
+    "superficies": 148,
+    "imprDia": "84.200",
+    "cpm": "7,10 €",
+    "tipoEspacio": "Estancos",
+    "tiendas": [
+      {
+        "nombre": "Altadis · Estanco Centro",
+        "dir": "Gran Vía 24 · Madrid"
+      },
+      {
+        "nombre": "Altadis · Estanco Diagonal",
+        "dir": "Av. Diagonal 512 · Barcelona"
+      },
+      {
+        "nombre": "Altadis · Estanco Ruzafa",
+        "dir": "Carrer de Sueca 18 · Valencia"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "pasillo"
+    ],
+    "piezas": [
+      "Escaparate · temporada",
+      "Pantalla mostrador · novedades",
+      "Pasillo · información"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-4A21",
+        "equipo": "Pantalla escaparate",
+        "tienda": "Altadis · Estanco Centro",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-4A17",
+        "equipo": "Hilo musical",
+        "tienda": "Altadis · Estanco Diagonal",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-4A09",
+        "equipo": "Player de mostrador",
+        "tienda": "Altadis · Estanco Ruzafa",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

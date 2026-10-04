@@ -36,6 +36,12 @@
       "sector": "Marca por defecto"
     },
     {
+      "id": "altadis",
+      "nombre": "Altadis",
+      "ejemplo": false,
+      "sector": "Estancos · Grupo Imperial Brands"
+    },
+    {
       "id": "lumbre",
       "nombre": "Lumbre Café",
       "ejemplo": true,

@@ -50,7 +50,7 @@ test('cada cliente trae todos los tokens y sus ficheros existen', async () => {
     }
     for (const f of ['cta', 'vacio', 'error', 'exito']) assert.ok(m.tono.frases[f], `${id}: falta la frase ${f}`);
     const desde = new URL(`clientes/${id}.json`, raiz);
-    await access(new URL(m.logo.svg, desde));
+    await access(new URL(m.logo.svg || m.logo.imagen, desde));
     await access(new URL(m.favicon, desde));
     for (const fuente of m.tipografia.fuentes || []) await access(new URL(fuente.url, desde));
     if (m.ejemplo) assert.match(m.descripcion, /marca ficticia/, `${id}: un cliente de ejemplo se anuncia como ficticio`);
