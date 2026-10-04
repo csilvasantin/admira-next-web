@@ -16,3 +16,18 @@ test('debajo del organigrama estático hay un árbol interactivo con líneas y d
   assert.ok(html.includes('Morfeo (Claude Code)'));
   assert.doesNotMatch(html, /JTI|Altadis/i);
 });
+
+test('#5060 columnas consejero→DeepAgent, líneas SVG al cargar y también en móvil', () => {
+  assert.ok(html.includes('org-cols'), 'org-cols');
+  assert.ok(html.includes('org-col'), 'org-col');
+  assert.ok(html.includes('path.org-line'), 'clear only paths');
+  // must NOT blank lines under 720 (old bug); matchMedia may still pick layout
+  assert.doesNotMatch(html, /matchMedia\([^)]*720[^)]*\)[\s\S]{0,120}return;/);
+  assert.doesNotMatch(html, /\.org-svg\s*\{\s*display\s*:\s*none/);
+  assert.ok(html.includes('jobsGlow') || html.includes('is-top'), 'Jobs highlight');
+  assert.ok(html.includes('orgPulse') || html.includes('org-line'), 'animated glow lines');
+  const elonCol = html.indexOf('data-col="elon"');
+  const mer = html.indexOf('data-id="merovingio"');
+  const lucasCol = html.indexOf('data-col="lucas"');
+  assert.ok(elonCol > 0 && mer > elonCol && mer < lucasCol, 'Merovingio under Elon column');
+});

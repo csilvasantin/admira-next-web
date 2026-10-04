@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Organigrama · ADmiraNeXT</title>
 <meta name="description" content="Organigrama de ADmiraNeXT: el Consejo de Silicio responde de la mesa, un DeepAgent dirige cada pata y los agentes ejecutan.">
-<meta name="admiranext-version" content="v.04.10.2026.r4.14:10">
+<meta name="admiranext-version" content="v.04.10.2026.r5.14:42">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -53,21 +53,34 @@
     .mesa{max-width:none}
   }
 
-  /* Árbol interactivo (#5054) — solo esta página; no toca el menú frame */
+  /* Árbol interactivo (#5060) — columnas consejero→DeepAgent + SVG en load */
   .arbol-wrap{margin-top:48px;padding-top:28px;border-top:1px solid var(--yk-line,#253042)}
   .arbol-wrap > h2{margin:0 0 8px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
   .arbol-hint{margin:0 0 22px;color:var(--yk-dim,#6c7a90);font-size:13px}
   .org-tree{position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:8px 4px 24px}
   .org-canvas{position:relative;min-width:720px;margin:0 auto;padding:12px 8px 8px}
-  .org-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
-  .org-svg path{fill:none;stroke:url(#orgGlow);stroke-width:2;opacity:.9;filter:drop-shadow(0 0 6px rgba(74,227,209,.45))}
-  .org-row{display:flex;justify-content:center;gap:14px;position:relative;z-index:1;margin:0 0 36px}
-  .org-row:last-child{margin-bottom:0}
-  .org-node{position:relative;min-width:124px;max-width:168px;padding:12px 12px 10px;border:1px solid var(--yk-line,#253042);border-radius:14px;background:linear-gradient(165deg,rgba(18,28,44,.95),rgba(8,12,20,.92));box-shadow:0 0 0 1px rgba(74,227,209,.08),0 12px 28px rgba(0,0,0,.35);cursor:pointer;user-select:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;touch-action:manipulation}
+  .org-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}
+  .org-svg path.org-line{
+    fill:none;stroke:#4ae3d1;stroke-width:3.5;opacity:1;
+    filter:drop-shadow(0 0 8px rgba(74,227,209,.85)) drop-shadow(0 0 18px rgba(42,107,255,.45));
+    stroke-linecap:round;
+    animation:orgPulse 2.2s ease-in-out infinite;
+  }
+  .org-svg path.org-line.is-branch{
+    stroke:url(#orgGlow);stroke-width:3;stroke-dasharray:6 5;
+    animation:orgPulse 2.2s ease-in-out infinite, orgDash 10s linear infinite;
+  }
+  @keyframes orgPulse{0%,100%{opacity:.82}50%{opacity:1}}
+  @keyframes orgDash{to{stroke-dashoffset:-130}}
+  .org-top{display:flex;justify-content:center;position:relative;z-index:1;margin:0 0 44px}
+  .org-cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;position:relative;z-index:1;align-items:start}
+  .org-col{display:flex;flex-direction:column;align-items:center;gap:48px;min-width:0}
+  .org-node{position:relative;min-width:124px;max-width:168px;width:100%;padding:12px 12px 10px;border:1px solid var(--yk-line,#253042);border-radius:14px;background:linear-gradient(165deg,rgba(18,28,44,.95),rgba(8,12,20,.92));box-shadow:0 0 0 1px rgba(74,227,209,.08),0 12px 28px rgba(0,0,0,.35);cursor:pointer;user-select:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;touch-action:manipulation;text-align:center}
   .org-node:hover,.org-node:focus-visible{border-color:var(--yk-brand,#4ae3d1);box-shadow:0 0 0 1px rgba(74,227,209,.35),0 0 24px rgba(74,227,209,.18);outline:none}
-  .org-node.is-top{min-width:200px;max-width:240px;border-color:rgba(74,227,209,.55);background:linear-gradient(165deg,rgba(24,48,56,.98),rgba(8,14,24,.95))}
-  .org-node.is-deep{min-width:112px;max-width:150px;opacity:.92;border-style:dashed}
-  .org-node.is-collapsed-child{opacity:.35;transform:scale(.92)}
+  .org-node.is-top{min-width:200px;max-width:240px;border-color:rgba(74,227,209,.75);background:linear-gradient(165deg,rgba(28,62,72,.98),rgba(8,16,28,.96));box-shadow:0 0 0 2px rgba(74,227,209,.45),0 0 36px rgba(74,227,209,.35),0 0 64px rgba(42,107,255,.22);animation:jobsGlow 2.8s ease-in-out infinite}
+  @keyframes jobsGlow{0%,100%{box-shadow:0 0 0 2px rgba(74,227,209,.4),0 0 28px rgba(74,227,209,.28),0 0 48px rgba(42,107,255,.18)}50%{box-shadow:0 0 0 2px rgba(74,227,209,.75),0 0 42px rgba(74,227,209,.48),0 0 72px rgba(42,107,255,.32)}}
+  .org-node.is-deep{min-width:112px;max-width:150px;opacity:.95;border-style:dashed}
+  .org-node.is-collapsed-child{opacity:.35;transform:scale(.92);pointer-events:none}
   .org-node .rol{font-size:9px;letter-spacing:.16em}
   .org-node .org-name{display:block;margin:4px 0 2px;font-size:15px;line-height:1.15;font-weight:700}
   .org-node.is-top .org-name{font-size:18px}
@@ -80,10 +93,13 @@
   .org-detail li{margin:2px 0}
   .org-node.is-open{z-index:2;box-shadow:0 0 0 1px rgba(74,227,209,.5),0 0 32px rgba(74,227,209,.22)}
   @media (max-width:720px){
-    .org-canvas{min-width:0;padding:4px 0}
-    .org-row{flex-direction:column;align-items:center;gap:10px;margin-bottom:22px}
+    .org-canvas{min-width:0;padding:4px 18px 4px 28px}
+    .org-top{margin-bottom:28px}
+    .org-cols{grid-template-columns:1fr;gap:28px}
+    .org-col{gap:32px}
     .org-node,.org-node.is-top,.org-node.is-deep{min-width:min(100%,280px);max-width:320px;width:100%}
-    .org-svg{display:none}
+    .org-svg path.org-line{stroke-width:3.5}
+    /* #5060: líneas SVG visibles también a 390px — no ocultar .org-svg */
   }
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261004-5053">
@@ -191,18 +207,26 @@
 
   <section class="bloque arbol-wrap" id="arbol-interactivo" aria-label="Organigrama interactivo">
     <h2>Árbol interactivo</h2>
-    <p class="arbol-hint">Doble clic (o doble toque) en un nodo para compactar o desplegar claim, motor y agentes. En móvil el árbol se apila en columna.</p>
+    <p class="arbol-hint">Doble clic (o doble toque) en un nodo para compactar o desplegar claim, motor y agentes. Líneas SVG visibles en escritorio y móvil.</p>
     <div class="org-tree">
       <div class="org-canvas" id="org-canvas">
         <svg class="org-svg" id="org-lines" aria-hidden="true">
           <defs>
             <linearGradient id="orgGlow" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stop-color="#4ae3d1"/>
+              <stop offset="55%" stop-color="#5ec8ff"/>
               <stop offset="100%" stop-color="#2a6bff"/>
             </linearGradient>
+            <filter id="orgSoftGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="2.2" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
           </defs>
         </svg>
-        <div class="org-row" data-tier="top">
+        <div class="org-top" data-tier="top">
           <article class="org-node is-top" tabindex="0" data-id="jobs" data-parent="" role="button" aria-expanded="false">
             <span class="rol">Mesa · une las cinco patas</span>
             <span class="org-name">Steve Jobs</span>
@@ -218,116 +242,124 @@
             </div>
           </article>
         </div>
-        <div class="org-row" data-tier="consejeros">
-          <article class="org-node" tabindex="0" data-id="elon" data-parent="jobs" role="button" aria-expanded="false">
-            <span class="rol">Consejero</span>
-            <span class="org-name">Elon Musk</span>
-            <span class="pata">admira.tv</span>
-            <div class="org-detail">
-              <p>«Reproducción, Emisión y Proof of Play»</p>
-              <p><strong>Motor:</strong> Merovingio (DeepAgents)</p>
-              <ul><li>Agentes de emisión y PoP</li></ul>
-            </div>
-          </article>
-          <article class="org-node" tabindex="0" data-id="lucas" data-parent="jobs" role="button" aria-expanded="false">
-            <span class="rol">Consejero</span>
-            <span class="org-name">George Lucas</span>
-            <span class="pata">admira.studio</span>
-            <div class="org-detail">
-              <p>«Creación y Adaptación de Contenidos»</p>
-              <p><strong>Motor:</strong> Oráculo (Codex)</p>
-              <ul><li>Agentes de creación</li></ul>
-            </div>
-          </article>
-          <article class="org-node" tabindex="0" data-id="jensen" data-parent="jobs" role="button" aria-expanded="false">
-            <span class="rol">Consejero</span>
-            <span class="org-name">Jensen Huang</span>
-            <span class="pata">admira.store</span>
-            <div class="org-detail">
-              <p>«Distribución, Gestión y Visualización»</p>
-              <p><strong>Motor:</strong> Cypher (DeepAgents)</p>
-              <ul><li>Agentes de distribución</li></ul>
-            </div>
-          </article>
-          <article class="org-node" tabindex="0" data-id="woz" data-parent="jobs" role="button" aria-expanded="false">
-            <span class="rol">Consejero</span>
-            <span class="org-name">Steve Wozniak</span>
-            <span class="pata">admira.app</span>
-            <div class="org-detail">
-              <p>«Instalaciones, Mantenimiento y Gestión»</p>
-              <p><strong>Motor:</strong> Smith (Grok)</p>
-              <ul><li>Agentes de instalaciones</li></ul>
-            </div>
-          </article>
-          <article class="org-node" tabindex="0" data-id="walt" data-parent="jobs" role="button" aria-expanded="false">
-            <span class="rol">Consejero</span>
-            <span class="org-name">Walt Disney</span>
-            <span class="pata">admira.biz</span>
-            <div class="org-detail">
-              <p>«Nuevos ingresos con DooH y Retail Media»</p>
-              <p><strong>Motor:</strong> Niobe (OpenCode)</p>
-              <ul><li>Agentes de retail media</li></ul>
-            </div>
-          </article>
-        </div>
-        <div class="org-row" data-tier="deep">
-          <article class="org-node is-deep" tabindex="0" data-id="merovingio" data-parent="elon" role="button" aria-expanded="false">
-            <span class="rol">DeepAgent</span>
-            <span class="org-name">Merovingio</span>
-            <span class="pata">DeepAgents</span>
-            <div class="org-detail">
-              <p>Dirige admira.tv bajo Elon.</p>
-              <p><strong>Motor:</strong> DeepAgents</p>
-              <ul><li>Emisión · PoP · player</li></ul>
-            </div>
-          </article>
-          <article class="org-node is-deep" tabindex="0" data-id="oraculo" data-parent="lucas" role="button" aria-expanded="false">
-            <span class="rol">DeepAgent</span>
-            <span class="org-name">Oráculo</span>
-            <span class="pata">Codex</span>
-            <div class="org-detail">
-              <p>Dirige admira.studio bajo Lucas.</p>
-              <p><strong>Motor:</strong> Codex</p>
-              <ul><li>Contenido · adaptación</li></ul>
-            </div>
-          </article>
-          <article class="org-node is-deep" tabindex="0" data-id="cypher" data-parent="jensen" role="button" aria-expanded="false">
-            <span class="rol">DeepAgent</span>
-            <span class="org-name">Cypher</span>
-            <span class="pata">DeepAgents</span>
-            <div class="org-detail">
-              <p>Dirige admira.store bajo Jensen.</p>
-              <p><strong>Motor:</strong> DeepAgents</p>
-              <ul><li>Stock · visualización</li></ul>
-            </div>
-          </article>
-          <article class="org-node is-deep" tabindex="0" data-id="smith" data-parent="woz" role="button" aria-expanded="false">
-            <span class="rol">DeepAgent</span>
-            <span class="org-name">Smith</span>
-            <span class="pata">Grok</span>
-            <div class="org-detail">
-              <p>Dirige admira.app bajo Woz.</p>
-              <p><strong>Motor:</strong> Grok</p>
-              <ul><li>Instalaciones · mantenimiento</li></ul>
-            </div>
-          </article>
-          <article class="org-node is-deep" tabindex="0" data-id="niobe" data-parent="walt" role="button" aria-expanded="false">
-            <span class="rol">DeepAgent</span>
-            <span class="org-name">Niobe</span>
-            <span class="pata">OpenCode</span>
-            <div class="org-detail">
-              <p>Dirige admira.biz bajo Walt.</p>
-              <p><strong>Motor:</strong> OpenCode</p>
-              <ul><li>DooH · retail media</li></ul>
-            </div>
-          </article>
+        <div class="org-cols" data-tier="columns">
+          <div class="org-col" data-col="elon">
+            <article class="org-node" tabindex="0" data-id="elon" data-parent="jobs" role="button" aria-expanded="false">
+              <span class="rol">Consejero</span>
+              <span class="org-name">Elon Musk</span>
+              <span class="pata">admira.tv</span>
+              <div class="org-detail">
+                <p>«Reproducción, Emisión y Proof of Play»</p>
+                <p><strong>Motor:</strong> Merovingio (DeepAgents)</p>
+                <ul><li>Agentes de emisión y PoP</li></ul>
+              </div>
+            </article>
+            <article class="org-node is-deep" tabindex="0" data-id="merovingio" data-parent="elon" role="button" aria-expanded="false">
+              <span class="rol">DeepAgent</span>
+              <span class="org-name">Merovingio</span>
+              <span class="pata">DeepAgents</span>
+              <div class="org-detail">
+                <p>Dirige admira.tv bajo Elon.</p>
+                <p><strong>Motor:</strong> DeepAgents</p>
+                <ul><li>Emisión · PoP · player</li></ul>
+              </div>
+            </article>
+          </div>
+          <div class="org-col" data-col="lucas">
+            <article class="org-node" tabindex="0" data-id="lucas" data-parent="jobs" role="button" aria-expanded="false">
+              <span class="rol">Consejero</span>
+              <span class="org-name">George Lucas</span>
+              <span class="pata">admira.studio</span>
+              <div class="org-detail">
+                <p>«Creación y Adaptación de Contenidos»</p>
+                <p><strong>Motor:</strong> Oráculo (Codex)</p>
+                <ul><li>Agentes de creación</li></ul>
+              </div>
+            </article>
+            <article class="org-node is-deep" tabindex="0" data-id="oraculo" data-parent="lucas" role="button" aria-expanded="false">
+              <span class="rol">DeepAgent</span>
+              <span class="org-name">Oráculo</span>
+              <span class="pata">Codex</span>
+              <div class="org-detail">
+                <p>Dirige admira.studio bajo Lucas.</p>
+                <p><strong>Motor:</strong> Codex</p>
+                <ul><li>Contenido · adaptación</li></ul>
+              </div>
+            </article>
+          </div>
+          <div class="org-col" data-col="jensen">
+            <article class="org-node" tabindex="0" data-id="jensen" data-parent="jobs" role="button" aria-expanded="false">
+              <span class="rol">Consejero</span>
+              <span class="org-name">Jensen Huang</span>
+              <span class="pata">admira.store</span>
+              <div class="org-detail">
+                <p>«Distribución, Gestión y Visualización»</p>
+                <p><strong>Motor:</strong> Cypher (DeepAgents)</p>
+                <ul><li>Agentes de distribución</li></ul>
+              </div>
+            </article>
+            <article class="org-node is-deep" tabindex="0" data-id="cypher" data-parent="jensen" role="button" aria-expanded="false">
+              <span class="rol">DeepAgent</span>
+              <span class="org-name">Cypher</span>
+              <span class="pata">DeepAgents</span>
+              <div class="org-detail">
+                <p>Dirige admira.store bajo Jensen.</p>
+                <p><strong>Motor:</strong> DeepAgents</p>
+                <ul><li>Stock · visualización</li></ul>
+              </div>
+            </article>
+          </div>
+          <div class="org-col" data-col="woz">
+            <article class="org-node" tabindex="0" data-id="woz" data-parent="jobs" role="button" aria-expanded="false">
+              <span class="rol">Consejero</span>
+              <span class="org-name">Steve Wozniak</span>
+              <span class="pata">admira.app</span>
+              <div class="org-detail">
+                <p>«Instalaciones, Mantenimiento y Gestión»</p>
+                <p><strong>Motor:</strong> Smith (Grok)</p>
+                <ul><li>Agentes de instalaciones</li></ul>
+              </div>
+            </article>
+            <article class="org-node is-deep" tabindex="0" data-id="smith" data-parent="woz" role="button" aria-expanded="false">
+              <span class="rol">DeepAgent</span>
+              <span class="org-name">Smith</span>
+              <span class="pata">Grok</span>
+              <div class="org-detail">
+                <p>Dirige admira.app bajo Woz.</p>
+                <p><strong>Motor:</strong> Grok</p>
+                <ul><li>Instalaciones · mantenimiento</li></ul>
+              </div>
+            </article>
+          </div>
+          <div class="org-col" data-col="walt">
+            <article class="org-node" tabindex="0" data-id="walt" data-parent="jobs" role="button" aria-expanded="false">
+              <span class="rol">Consejero</span>
+              <span class="org-name">Walt Disney</span>
+              <span class="pata">admira.biz</span>
+              <div class="org-detail">
+                <p>«Nuevos ingresos con DooH y Retail Media»</p>
+                <p><strong>Motor:</strong> Niobe (OpenCode)</p>
+                <ul><li>Agentes de retail media</li></ul>
+              </div>
+            </article>
+            <article class="org-node is-deep" tabindex="0" data-id="niobe" data-parent="walt" role="button" aria-expanded="false">
+              <span class="rol">DeepAgent</span>
+              <span class="org-name">Niobe</span>
+              <span class="pata">OpenCode</span>
+              <div class="org-detail">
+                <p>Dirige admira.biz bajo Walt.</p>
+                <p><strong>Motor:</strong> OpenCode</p>
+                <ul><li>DooH · retail media</li></ul>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
   <footer>
-    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.04.10.2026.r4.14:10</span>
+    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.04.10.2026.r5.14:42</span>
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
@@ -339,14 +371,19 @@
   if (!canvas || !svg) return;
   var collapsed = Object.create(null);
 
+  function clearPaths() {
+    svg.querySelectorAll('path.org-line').forEach(function (p) { p.remove(); });
+  }
+
   function drawLines() {
-    if (window.matchMedia('(max-width:720px)').matches) {
-      while (svg.childNodes.length > 1) svg.removeChild(svg.lastChild);
-      return;
-    }
     var rect = canvas.getBoundingClientRect();
-    svg.setAttribute('viewBox', '0 0 ' + Math.max(rect.width, 1) + ' ' + Math.max(rect.height, 1));
-    while (svg.childNodes.length > 1) svg.removeChild(svg.lastChild);
+    var w = Math.max(canvas.scrollWidth || rect.width, rect.width, 1);
+    var h = Math.max(canvas.scrollHeight || rect.height, rect.height, 1);
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    svg.setAttribute('width', String(w));
+    svg.setAttribute('height', String(h));
+    clearPaths();
+    var narrow = window.matchMedia('(max-width:720px)').matches;
     var byId = {};
     canvas.querySelectorAll('.org-node').forEach(function (n) {
       byId[n.getAttribute('data-id')] = n;
@@ -355,15 +392,34 @@
       var n = byId[id];
       var parentId = n.getAttribute('data-parent');
       if (!parentId || !byId[parentId] || n.classList.contains('is-collapsed-child')) return;
+      if (getComputedStyle(n).display === 'none') return;
       var a = byId[parentId].getBoundingClientRect();
       var b = n.getBoundingClientRect();
-      var x1 = a.left + a.width / 2 - rect.left;
-      var y1 = a.bottom - rect.top;
-      var x2 = b.left + b.width / 2 - rect.left;
-      var y2 = b.top - rect.top;
-      var mid = (y1 + y2) / 2;
+      var y1 = a.bottom - rect.top + canvas.scrollTop;
+      var y2 = b.top - rect.top + canvas.scrollTop;
+      var x1, x2, d;
+      if (narrow) {
+        /* rail izquierdo: las líneas no quedan tapadas por las cartas apiladas */
+        var rail = 12;
+        x1 = rail;
+        x2 = rail;
+        var mid = (y1 + y2) / 2;
+        d = 'M' + (a.left + a.width / 2 - rect.left + canvas.scrollLeft) + ' ' + y1 +
+            ' L' + x1 + ' ' + y1 +
+            ' L' + x2 + ' ' + y2 +
+            ' L' + (b.left + b.width / 2 - rect.left + canvas.scrollLeft) + ' ' + y2;
+      } else {
+        x1 = a.left + a.width / 2 - rect.left + canvas.scrollLeft;
+        x2 = b.left + b.width / 2 - rect.left + canvas.scrollLeft;
+        var midY = (y1 + y2) / 2;
+        d = 'M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + midY + ', ' + x2 + ' ' + midY + ', ' + x2 + ' ' + y2;
+      }
       var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + mid + ', ' + x2 + ' ' + mid + ', ' + x2 + ' ' + y2);
+      var cls = 'org-line';
+      if (parentId === 'jobs') cls += ' is-branch';
+      path.setAttribute('class', cls);
+      path.setAttribute('d', d);
+      path.setAttribute('filter', 'url(#orgSoftGlow)');
       svg.appendChild(path);
     });
   }
@@ -442,8 +498,9 @@
   });
   window.addEventListener('resize', function () { requestAnimationFrame(drawLines); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawLines);
-  requestAnimationFrame(drawLines);
-  setTimeout(drawLines, 120);
+  requestAnimationFrame(function () { requestAnimationFrame(drawLines); });
+  setTimeout(drawLines, 80);
+  setTimeout(drawLines, 250);
 })();
 </script>
 </body>
