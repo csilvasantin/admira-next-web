@@ -18,7 +18,12 @@
  *   data-chrome=".expert-module-head,.expert-module-resizer,.expert-layout-menu"  (se ocultan)
  *   data-version-url="/version.json"
  * Modo propio (patas sin CLI): data-mount="#af-panel-bottom" data-mount-body=".af-bd" [data-extras-label="vista"].
- * API: window.AdmiraExperto = {paint(), setState(texto), lines(), set(clave, valor), verb({name, args, desc:[es,en], run(args, log)}), run(texto)}.
+ * Minimizado por defecto (Carlos, 4-oct-2026 23:08): el panel queda anclado abajo y en la primera
+ * visita solo se ve la barra «⌘ EXPERTO · CLI»; un clic en ella lo despliega y otro lo pliega. La
+ * elección se recuerda por dominio (localStorage «ax-experto-abierto»). El botón ⌘ de la pata
+ * (data-toggle, con los de la suite por defecto) también despliega/pliega. data-dock="off" lo desactiva.
+ * API: window.AdmiraExperto = {paint(), setState(texto), lines(), set(clave, valor), verb({name, args, desc:[es,en], run(args, log)}), run(texto),
+ *      open(), close(), toggle(), isOpen()}.
  */
 (function (root) {
   'use strict';
@@ -45,8 +50,12 @@
     // ya tenía en ese panel tras «＋ vista».
     mount: ds.mount || '',
     mountBody: ds.mountBody || '',
-    extrasLabel: ds.extrasLabel || ''
+    extrasLabel: ds.extrasLabel || '',
+    dock: ds.dock !== 'off',
+    // Botones ⌘ propios de cada pata: biz/clearchannel, admira.tv, admira.app/yokup, pixeria/studio, store.
+    toggle: ds.toggle == null ? '#header-expert-toggle,#af-ico-bottom,.yk-ico-exp,.pf-ico[title^="Expert"],.pix-nav-icon-expert,#xsExpertToggle' : ds.toggle
   };
+  var DOCK_KEY = 'ax-experto-abierto';
   // Sin data-engine, el nombre sale de la pata: admira.biz → «ADMIRA BIZ ENGINE».
   cfg.engine = ds.engine || (cfg.pata.replace(/\.pages\.dev$/, '').split('.').slice(-2).join(' ').toUpperCase() + ' ENGINE');
   var state = '', version = '', extra = {}, panel = null;
@@ -267,6 +276,55 @@
     return true;
   }
 
+  // ── Barra plegable ────────────────────────────────────────────────────────────
+  function isOpen() { return !!panel && !panel.classList.contains('ax-min'); }
+  function setOpen(open, remember) {
+    if (!panel || !panel.classList.contains('ax-dock')) return;
+    panel.classList.toggle('ax-min', !open);
+    document.documentElement.setAttribute('data-ax-dock', open ? 'open' : 'min');
+    var f = panel.querySelector('.ax-fold');
+    if (f) {
+      f.textContent = open ? '▾' : '▴';
+      f.setAttribute('aria-expanded', open ? 'true' : 'false');
+      f.setAttribute('aria-label', open ? T('Minimizar el modo Experto', 'Minimise Expert mode') : T('Desplegar el modo Experto', 'Expand Expert mode'));
+    }
+    if (remember) { try { localStorage.setItem(DOCK_KEY, open ? '1' : '0'); } catch (_) {} }
+    if (open) {
+      var log = panel.querySelector('.ax-cli-out');
+      if (log) log.scrollTop = log.scrollHeight;
+      try { root.dispatchEvent(new Event('resize')); } catch (_) {}
+    }
+  }
+  function dock(hd) {
+    if (!cfg.dock || panel.classList.contains('ax-dock')) return;
+    // El camino de la cabecera al panel se marca para que, plegado, solo quede la barra.
+    for (var n = hd.parentNode; n && n !== panel; n = n.parentNode) n.classList.add('ax-hd-path');
+    var f = document.createElement('button');
+    f.type = 'button';
+    f.className = 'ax-fold';
+    hd.appendChild(f);
+    hd.setAttribute('role', 'button');
+    hd.tabIndex = 0;
+    hd.addEventListener('click', function (e) {
+      if (e.target.closest('button:not(.ax-fold),a,input,select,textarea,summary,label')) return;
+      setOpen(!isOpen(), true);
+    });
+    hd.addEventListener('keydown', function (e) {
+      if (e.target !== hd || (e.key !== 'Enter' && e.key !== ' ')) return;
+      e.preventDefault(); setOpen(!isOpen(), true);
+    });
+    if (cfg.toggle) {
+      document.addEventListener('click', function (e) {
+        var t = e.target.closest && e.target.closest(cfg.toggle);
+        if (t && !panel.contains(t)) setOpen(!isOpen(), true);
+      }, true);
+    }
+    panel.classList.add('ax-dock');
+    var open = false;
+    try { open = localStorage.getItem(DOCK_KEY) === '1'; } catch (_) {}
+    setOpen(open, false);
+  }
+
   function apply() {
     if (cfg.mount && !document.querySelector(cfg.mount + ' .ax-own-form') && !document.querySelector(cfg.panel + ' ' + cfg.form)) {
       if (!build()) return false;
@@ -371,6 +429,7 @@
     document.addEventListener('admira:marca', paint);
     try { new MutationObserver(paint).observe(document.documentElement, {attributes: true, attributeFilter: ['lang', 'data-version']}); } catch (_) {}
     paint();
+    dock(hd);
     if (readVersion() === '—' && cfg.versionUrl) {
       fetch(cfg.versionUrl, {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) { if (j && j.version) { version = j.version; paint(); } }).catch(function () {});
@@ -384,7 +443,11 @@
     set: function (k, v) { if (v == null) delete extra[k]; else extra[k] = v; paint(); },
     apply: apply,
     verb: verb,
-    run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); }
+    run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
+    open: function () { setOpen(true, true); },
+    close: function () { setOpen(false, true); },
+    toggle: function () { setOpen(!isOpen(), true); },
+    isOpen: isOpen
   };
 
   function boot() {
