@@ -1,13 +1,12 @@
 /**
  * GET /api/clientes — censo público de solo lectura.
  *
- * Fuente: la tabla D1 admiranext_commercial_projects cuando ya tiene filas
- * (el mismo registro que siembra functions/_xpace-registry.js). Si no hay
- * base o está vacía, las semillas de ese registro. No se inventan clientes
- * y no se lee el catálogo de marcas ficticias de /marcablanca.
+ * Clientes: D1 admiranext_commercial_projects, o las semillas de
+ * functions/_xpace-registry.js si no hay base. Admira se añade si falta.
  *
- * Ninguna fila declara a qué patas (studio, store, tv, app, biz) tiene
- * acceso, así que cada una sale con patas:["todas"] y origen:"provisional".
+ * Patas: D1 admiranext_clientes_acceso (migrations/0007_clientes_acceso.sql).
+ * Starbucks, Altadis y Admira son globales (las cinco patas). El resto
+ * conserva patas:["todas"] y origen:"provisional", con global:false.
  */
 import { SEEDS } from '../_xpace-registry.js';
 
@@ -17,29 +16,96 @@ const CORS = {
   'access-control-max-age': '86400',
 };
 
-export function fichaCliente(fila) {
-  return {
-    id: String(fila.id || '').trim(),
-    nombre: String(fila.name || fila.label || '').trim(),
-    patas: ['todas'],
-    origen: 'provisional',
-  };
+const PATAS_GLOBALES = ['studio', 'store', 'tv', 'app', 'biz'];
+const ORIGEN_CARLOS = 'carlos-2026-10-04';
+
+/** Misma decisión que persiste migrations/0007_clientes_acceso.sql. */
+export const ACCESO_GLOBAL = {
+  starbucks: { nombre: 'Starbucks', patas: PATAS_GLOBALES, origen: ORIGEN_CARLOS, por_defecto: false },
+  altadis: { nombre: 'Altadis', patas: PATAS_GLOBALES, origen: ORIGEN_CARLOS, por_defecto: false },
+  admira: { nombre: 'Admira', patas: PATAS_GLOBALES, origen: ORIGEN_CARLOS, por_defecto: true },
+};
+
+function patasGuardadas(valor) {
+  if (Array.isArray(valor)) return valor;
+  if (typeof valor !== 'string' || !valor) return null;
+  try {
+    const parsed = JSON.parse(valor);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
-export async function listarClientes(env) {
-  let filas = null;
+export function fichaCliente(fila, acceso) {
+  const id = String(fila.id || '').trim();
+  const nombre = String(fila.name || fila.label || acceso?.nombre || '').trim();
+  if (acceso) {
+    const ficha = {
+      id,
+      nombre,
+      patas: patasGuardadas(acceso.patas) || ['todas'],
+      global: Number(acceso.es_global) === 1 || acceso.es_global === true,
+      origen: acceso.origen || 'provisional',
+    };
+    if (Number(acceso.por_defecto) === 1 || acceso.por_defecto === true) ficha.por_defecto = true;
+    return ficha;
+  }
+  const regla = ACCESO_GLOBAL[id];
+  if (regla) {
+    const ficha = { id, nombre: nombre || regla.nombre, patas: regla.patas, global: true, origen: regla.origen };
+    if (regla.por_defecto) ficha.por_defecto = true;
+    return ficha;
+  }
+  return { id, nombre, patas: ['todas'], global: false, origen: 'provisional' };
+}
+
+function ordenar(lista) {
+  return lista.sort((a, b) => {
+    if (a.global !== b.global) return a.global ? -1 : 1;
+    if (Boolean(a.por_defecto) !== Boolean(b.por_defecto)) return a.por_defecto ? -1 : 1;
+    return a.id.localeCompare(b.id, 'es');
+  });
+}
+
+async function filasComerciales(env) {
   if (env?.AUTH_DB) {
     try {
       const q = await env.AUTH_DB.prepare(
         'SELECT id, name FROM admiranext_commercial_projects ORDER BY id'
       ).all();
-      if (Array.isArray(q?.results) && q.results.length) filas = q.results;
+      if (Array.isArray(q?.results) && q.results.length) return q.results;
     } catch {
-      filas = null;
+      /* sin tabla: semillas */
     }
   }
-  if (!filas) filas = SEEDS.map((p) => ({ id: p.id, name: p.label }));
-  return filas.map(fichaCliente).sort((a, b) => a.id.localeCompare(b.id, 'es'));
+  return SEEDS.map((p) => ({ id: p.id, name: p.label }));
+}
+
+async function accesoPersistido(env) {
+  if (!env?.AUTH_DB) return null;
+  try {
+    const q = await env.AUTH_DB.prepare(
+      'SELECT id, nombre, patas, es_global, origen, por_defecto FROM admiranext_clientes_acceso'
+    ).all();
+    if (!Array.isArray(q?.results) || !q.results.length) return null;
+    return new Map(q.results.map((fila) => [fila.id, fila]));
+  } catch {
+    return null;
+  }
+}
+
+export async function listarClientes(env) {
+  const filas = await filasComerciales(env);
+  const acceso = await accesoPersistido(env);
+  const porId = new Map(filas.map((fila) => [fila.id, fila]));
+  if (!porId.has('admira')) porId.set('admira', { id: 'admira', name: 'Admira' });
+  if (acceso) {
+    for (const [id, fila] of acceso) {
+      if (!porId.has(id)) porId.set(id, { id, name: fila.nombre });
+    }
+  }
+  return ordenar([...porId.values()].map((fila) => fichaCliente(fila, acceso ? acceso.get(fila.id) : null)));
 }
 
 function json(body, status, extra = {}) {
