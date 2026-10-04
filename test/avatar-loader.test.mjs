@@ -60,6 +60,8 @@ test('migra el interruptor por sitio de FLT-101350', () => {
 test('un solo panel y las tres caras viven en digitalavatar.ai', () => {
   assert.equal(Object.keys(A.LEVELS).length, 3);
   assert.equal((src.match(/da-suite/g) || []).length > 0, true);
+  assert.match(src, /#da-suite-panel\{display:none\}#da-suite\.open #da-suite-bubble\{display:none\}#da-suite\.open #da-suite-panel\{display:flex\}/);
+  assert.doesNotMatch(src, /id="da-suite-panel" style="display:none/);
   assert.equal((src.match(/digitalavatar\.ai\/embed\.js/g) || []).length, 0);
   assert.equal(A.CENTRAL_BRAIN, 'https://www.admiranext.com/api/avatar-ask');
   assert.equal(A.FLAGS_URL, 'https://www.admiranext.com/api/avatar/flags');

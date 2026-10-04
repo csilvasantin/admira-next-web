@@ -175,7 +175,7 @@
     wrap.id = 'da-suite';
     wrap.setAttribute('style', 'position:fixed;right:16px;bottom:20px;z-index:25;font-family:ui-monospace,SFMono-Regular,Menlo,monospace');
     wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;border-radius:50%;border:1px solid rgba(120,243,255,.4);background:#0a1620;color:#78f3ff;font-size:26px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.5)">🤖</button>'
-      + '<div id="da-suite-panel" style="display:none;width:min(400px,calc(100vw - 24px));height:min(680px,calc(100vh - var(--da-lift,20px) - 24px));background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
+      + '<div id="da-suite-panel" style="width:min(400px,calc(100vw - 24px));height:min(680px,calc(100vh - var(--da-lift,20px) - 24px));background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
       + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
     doc.body.appendChild(wrap);
@@ -183,7 +183,7 @@
     if (!style) {
       style = doc.createElement('style');
       style.id = 'admira-avatar-open';
-      style.textContent = '#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}';
+      style.textContent = '#da-suite-panel{display:none}#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}';
       (doc.head || doc.documentElement).appendChild(style);
     }
     wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { openLevel(storedLevel()); });
