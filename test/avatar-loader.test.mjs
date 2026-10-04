@@ -40,7 +40,33 @@ test('good es el calvo, better la chica y best Neo', () => {
   assert.match(A.message('status', false), /good/);
   assert.match(A.message('status', false), /better/);
   assert.match(A.message('status', false), /best/);
-  assert.match(A.message('best', false), /chica/);
+  assert.match(A.message('best', false), /MetaHuman/);
+  assert.doesNotMatch(A.message('best', false), /chica|apagado/);
+  assert.match(A.message('status', false), /Neo, MetaHuman/);
+  assert.doesNotMatch(A.message('status', false), /apagado/);
+});
+
+test('el panel respeta mínimo, máximo y el tope de 64 px', () => {
+  assert.equal(A.SIZE_KEY, 'admira-avatar:size');
+  const plain = (o) => JSON.parse(JSON.stringify(o));
+  const desk = {w: 1280, h: 800, top: 64, bottom: 20};
+  assert.deepEqual(plain(A.clampPanelSize(100, 100, desk)), {w: 240, h: 180});
+  assert.deepEqual(plain(A.clampPanelSize(400, 680, desk)), {w: 400, h: 680});
+  assert.deepEqual(plain(A.clampPanelSize(5000, 5000, desk)), {w: 1248, h: 716});
+  assert.deepEqual(plain(A.clampPanelSize(5000, 5000, {w: 1280, h: 800, top: 10, bottom: 20})), {w: 1248, h: 716});
+  assert.deepEqual(plain(A.clampPanelSize(5000, 5000, {w: 1280, h: 800, top: 120, bottom: 20})), {w: 1248, h: 660});
+  assert.deepEqual(
+    plain(A.panelSizeAfterDrag({w: 400, h: 300}, {x: 100, y: 80}, {x: 160, y: 140}, desk)),
+    {w: 460, h: 360}
+  );
+  assert.match(src, /id="da-suite-resize"/);
+  assert.match(src, /setPointerCapture/);
+  assert.match(src, /touch-action:none/);
+  assert.match(src, /pointer-events/);
+  assert.match(src, /width:44px;height:44px/);
+  assert.equal(A.LEVELS.best, 'https://digitalavatar.ai/metahuman.html?dock=1');
+  assert.doesNotMatch(src, /ts\.net/);
+  assert.doesNotMatch(src, /probeNeo|neoVerdict|faceChoice|NEO_WS/);
 });
 
 test('precedencia: elección del usuario > interruptor del proyecto > apagado', () => {

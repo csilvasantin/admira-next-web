@@ -6,8 +6,7 @@
  *
  *   /avatar good    el calvo — cara 3D facecap.glb, 52 blendshapes (better.html)
  *   /avatar better  la chica — Ready Player Me con gafas (best.html)
- *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html);
- *                   si el host de render está apagado, esa página cae a la chica
+ *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html)
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
  *
@@ -35,6 +34,7 @@
   };
   var KEY = 'admira-avatar:override';
   var LEVEL_KEY = 'admira-avatar:nivel';
+  var SIZE_KEY = 'admira-avatar:size';
   var CACHE = 'admira-avatar:flags';
   var CACHE_MS = 60000;
   var TIMEOUT_MS = 2500;
@@ -85,10 +85,10 @@
     if (kind === 'off') return en ? 'Digital avatar off' : 'Avatar digital desactivado';
     if (kind === 'good') return en ? 'Avatar good: the bald 3D face (facecap, 52 blendshapes).' : 'Avatar good: el calvo, cara 3D (facecap, 52 blendshapes).';
     if (kind === 'better') return en ? 'Avatar better: the web girl (Ready Player Me, glasses).' : 'Avatar better: la chica web (Ready Player Me, gafas).';
-    if (kind === 'best') return en ? 'Avatar best: Neo, MetaHuman. If the render host is off, the girl takes over.' : 'Avatar best: Neo, MetaHuman. Si el host de render está apagado, entra la chica.';
+    if (kind === 'best') return en ? 'Avatar best: Neo, MetaHuman.' : 'Avatar best: Neo, MetaHuman.';
     if (kind === 'status') return en
-      ? 'Digital avatar. /avatar good · bald 3D face. /avatar better · web girl with glasses. /avatar best · Neo (falls back to the girl). /avatarON shows it, /avatarOFF hides it.'
-      : 'Avatar digital. /avatar good · el calvo (cara 3D). /avatar better · la chica web con gafas. /avatar best · Neo (si el render está apagado, la chica). /avatarON lo muestra, /avatarOFF lo oculta.';
+      ? 'Digital avatar. /avatar good · bald 3D face. /avatar better · web girl with glasses. /avatar best · Neo, MetaHuman. /avatarON shows it, /avatarOFF hides it.'
+      : 'Avatar digital. /avatar good · el calvo (cara 3D). /avatar better · la chica web con gafas. /avatar best · Neo, MetaHuman. /avatarON lo muestra, /avatarOFF lo oculta.';
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
     if (kind === 'reset-off') return en ? 'Digital avatar follows the project switch (off)' : 'El avatar sigue el interruptor del proyecto (apagado)';
     return en
@@ -96,8 +96,37 @@
       : 'Usa /avatar good, /avatar better o /avatar best. /avatar solo muestra el estado. /avatarON y /avatarOFF lo muestran o lo ocultan.';
   }
 
+  // El asa está arriba a la izquierda y el panel sigue anclado abajo a la
+  // derecha: arrastrar hacia arriba-izquierda agranda. El borde superior no
+  // pasa de 64 px (o del borde inferior de la barra, si queda más abajo).
+  function clampPanelSize(w, h, view) {
+    view = view || {};
+    var vw = isFinite(view.w) ? view.w : 1280;
+    var vh = isFinite(view.h) ? view.h : 800;
+    var top = isFinite(view.top) ? view.top : 64;
+    if (top < 64) top = 64;
+    var bottom = isFinite(view.bottom) ? view.bottom : 20;
+    var maxW = Math.max(1, Math.floor(vw - 32));
+    var maxH = Math.max(1, Math.floor(vh - bottom - top));
+    var minW = Math.min(240, maxW);
+    var minH = Math.min(180, maxH);
+    var nw = Number(w), nh = Number(h);
+    if (!isFinite(nw) || nw <= 0) nw = Math.min(400, maxW);
+    if (!isFinite(nh) || nh <= 0) nh = Math.min(680, maxH);
+    return {
+      w: Math.round(Math.max(minW, Math.min(maxW, nw))),
+      h: Math.round(Math.max(minH, Math.min(maxH, nh)))
+    };
+  }
+  function panelSizeAfterDrag(start, point, origin, view) {
+    var dx = (point && point.x || 0) - (origin && origin.x || 0);
+    var dy = (point && point.y || 0) - (origin && origin.y || 0);
+    return clampPanelSize((start && start.w || 0) - dx, (start && start.h || 0) - dy, view);
+  }
+
   var api = {decide: decide, resolve: resolve, legacyValue: legacyValue, message: message,
-    KEY: KEY, LEVEL_KEY: LEVEL_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
+    clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag,
+    KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
   if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return; // ya cargado en esta página
@@ -151,6 +180,7 @@
     ['xsExpert', 'telegramDock', 'expert-panel', 'yk-rail-bottom'].forEach(function (id) { h = Math.max(h, barHeight(doc.getElementById(id))); });
     doc.querySelectorAll('.xs-expert, .yk-rail-bottom, .pf-cli').forEach(function (el) { h = Math.max(h, barHeight(el)); });
     doc.documentElement.style.setProperty('--da-lift', h + 'px');
+    if (!resizing) fitPanel();
   }
   var liftTimer = null;
   function watchLift() {
@@ -168,6 +198,80 @@
     var v = get(LEVEL_KEY);
     return LEVELS[v] ? v : 'good';
   }
+  var resizing = null;
+  function viewBox() {
+    var top = 64;
+    var bar = doc.getElementById('topBar') || doc.querySelector('.yk-bar');
+    if (bar && bar.getBoundingClientRect) {
+      var edge = bar.getBoundingClientRect().bottom;
+      if (isFinite(edge)) top = Math.max(64, Math.round(edge) + 8);
+    }
+    var raw = doc.documentElement.style.getPropertyValue('--da-lift') || '';
+    var lift = parseInt(raw, 10);
+    var bottom = isFinite(lift) ? lift : 20;
+    doc.documentElement.style.setProperty('--da-top', top + 'px');
+    return {w: root.innerWidth || 1280, h: root.innerHeight || 800, top: top, bottom: bottom};
+  }
+  function readSize() {
+    try { var s = JSON.parse(get(SIZE_KEY) || 'null'); if (s && isFinite(s.w) && isFinite(s.h)) return s; } catch (e) {}
+    return null;
+  }
+  function fitPanel() {
+    var panel = doc.getElementById('da-suite-panel');
+    if (!panel || resizing) return;
+    var stored = readSize();
+    var s = clampPanelSize(stored && stored.w, stored && stored.h, viewBox());
+    panel.style.width = s.w + 'px';
+    panel.style.height = s.h + 'px';
+    if (stored && (stored.w !== s.w || stored.h !== s.h)) set(SIZE_KEY, JSON.stringify(s));
+  }
+  function bindResize(handle) {
+    function frameEl() { return doc.getElementById('da-suite-frame'); }
+    function releasePointer() {
+      var frame = frameEl();
+      if (frame) frame.style.removeProperty('pointer-events');
+      var wrap = node();
+      if (wrap) wrap.classList.remove('da-resizing');
+    }
+    function end(e) {
+      if (!resizing || (e && e.pointerId != null && e.pointerId !== resizing.id)) return;
+      var panel = doc.getElementById('da-suite-panel');
+      if (panel) {
+        var rect = panel.getBoundingClientRect();
+        var s = clampPanelSize(rect.width, rect.height, viewBox());
+        panel.style.width = s.w + 'px';
+        panel.style.height = s.h + 'px';
+        set(SIZE_KEY, JSON.stringify(s));
+      }
+      releasePointer();
+      resizing = null;
+    }
+    handle.addEventListener('pointerdown', function (e) {
+      if (e.button != null && e.button !== 0) return;
+      var panel = doc.getElementById('da-suite-panel');
+      if (!panel) return;
+      var rect = panel.getBoundingClientRect();
+      resizing = {id: e.pointerId, x: e.clientX, y: e.clientY, w: rect.width, h: rect.height};
+      var frame = frameEl();
+      if (frame) frame.style.setProperty('pointer-events', 'none');
+      var wrap = node();
+      if (wrap) wrap.classList.add('da-resizing');
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+    handle.addEventListener('pointermove', function (e) {
+      if (!resizing || e.pointerId !== resizing.id) return;
+      var s = panelSizeAfterDrag({w: resizing.w, h: resizing.h}, {x: e.clientX, y: e.clientY}, {x: resizing.x, y: resizing.y}, viewBox());
+      var panel = doc.getElementById('da-suite-panel');
+      if (panel) {
+        panel.style.width = s.w + 'px';
+        panel.style.height = s.h + 'px';
+      }
+      e.preventDefault();
+    });
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+  }
   function ensureDock() {
     if (node()) return node();
     watchLift();
@@ -175,17 +279,25 @@
     wrap.id = 'da-suite';
     wrap.setAttribute('style', 'position:fixed;right:16px;bottom:20px;z-index:25;font-family:ui-monospace,SFMono-Regular,Menlo,monospace');
     wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;border-radius:50%;border:1px solid rgba(120,243,255,.4);background:#0a1620;color:#78f3ff;font-size:26px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.5)">🤖</button>'
-      + '<div id="da-suite-panel" style="width:min(400px,calc(100vw - 24px));height:min(680px,calc(100vh - var(--da-lift,20px) - 24px));background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
-      + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
+      + '<div id="da-suite-panel" style="position:relative;box-sizing:border-box;background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px 8px 48px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
+      + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;min-height:0;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+      + '<button type="button" id="da-suite-resize" aria-label="' + (en() ? 'Resize avatar' : 'Redimensionar el avatar') + '"></button></div>';
     doc.body.appendChild(wrap);
     var style = doc.getElementById('admira-avatar-open');
     if (!style) {
       style = doc.createElement('style');
       style.id = 'admira-avatar-open';
-      style.textContent = '#da-suite-panel{display:none}#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}';
+      style.textContent = '#da-suite-panel{display:none}#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}'
+        + '#da-suite-panel{max-width:calc(100vw - 32px);max-height:calc(100vh - var(--da-top,64px) - var(--da-lift,20px))}'
+        + '#da-suite-frame{position:relative;z-index:1}'
+        + '#da-suite-resize{position:absolute;left:0;top:0;width:44px;height:44px;padding:0;border:0;background:transparent;cursor:nwse-resize;touch-action:none;z-index:6}'
+        + '#da-suite-resize:before{content:"";position:absolute;left:8px;top:8px;width:14px;height:14px;border-left:2px solid rgba(120,243,255,.9);border-top:2px solid rgba(120,243,255,.9)}'
+        + '#da-suite.da-resizing{z-index:2147483646 !important}';
       (doc.head || doc.documentElement).appendChild(style);
     }
+    fitPanel();
+    bindResize(wrap.querySelector('#da-suite-resize'));
     wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { openLevel(storedLevel()); });
     wrap.querySelector('#da-suite-x').addEventListener('click', function () { wrap.classList.remove('open'); });
     return wrap;
