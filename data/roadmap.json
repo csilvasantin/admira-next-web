@@ -76,6 +76,86 @@
     "cliente": "admira"
   },
   {
+    "id": "store-xpacios-filtro-cliente-f7aeeab",
+    "solucion": "store",
+    "titulo": "Xpacios filtrados por cliente activo",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Jensen Huang (propuesta de Jobs)",
+    "fuente": "xpaceos f7aeeab"
+  },
+  {
+    "id": "store-cruces-paredes-muebles-4a773bf",
+    "solucion": "store",
+    "titulo": "Impedir cruces de paredes y muebles en Good Better Best",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Jensen Huang (propuesta de Jobs)",
+    "fuente": "xpaceos 4a773bf"
+  },
+  {
+    "id": "store-inventory-itil-b5a3e08",
+    "solucion": "store",
+    "titulo": "Fusionar Inventory e ITIL en diez subcategorias",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Jensen Huang (propuesta de Jobs)",
+    "fuente": "xpaceos b5a3e08"
+  },
+  {
+    "id": "store-perimetro-auth-agente-c2efab8",
+    "solucion": "store",
+    "titulo": "Perímetro: entrada de agentes /auth/agente",
+    "inicio": "2026-10-03",
+    "fin": "2026-10-03",
+    "estado": "hecho",
+    "responsable": "Jensen Huang (propuesta de Jobs)",
+    "fuente": "xpaceos c2efab8"
+  },
+  {
+    "id": "tv-creador-playlists-79d1913",
+    "solucion": "tv",
+    "titulo": "Creador de playlists con criterios, circuito y previa local",
+    "inicio": "2026-09-29",
+    "fin": "2026-09-29",
+    "estado": "hecho",
+    "responsable": "Elon Musk (propuesta de Jobs)",
+    "fuente": "admira-tv-playlist 79d1913"
+  },
+  {
+    "id": "tv-productor-va-xtore-563f68e",
+    "solucion": "tv",
+    "titulo": "Productor servidor VA: snapshot agregado a va_session_publish",
+    "inicio": "2026-09-27",
+    "fin": "2026-09-27",
+    "estado": "hecho",
+    "responsable": "Elon Musk (propuesta de Jobs)",
+    "fuente": "admira-tv-clone 563f68e"
+  },
+  {
+    "id": "tv-puerta-cam-78e18a6",
+    "solucion": "tv",
+    "titulo": "Diagrama y contrato de Puerta Cam",
+    "inicio": "2026-09-25",
+    "fin": "2026-09-25",
+    "estado": "hecho",
+    "responsable": "Elon Musk (propuesta de Jobs)",
+    "fuente": "admira-tv-clone 78e18a6"
+  },
+  {
+    "id": "tv-proof-of-pass-61ccdb5",
+    "solucion": "tv",
+    "titulo": "Proof of pass lista cada paso con hora de Madrid",
+    "inicio": "2026-09-24",
+    "fin": "2026-09-24",
+    "estado": "hecho",
+    "responsable": "Elon Musk (propuesta de Jobs)",
+    "fuente": "admira-tv-clone 61ccdb5"
+  },
+  {
     "id": "app-capturador-instaladores-portal-40km",
     "solucion": "app",
     "titulo": "Capturador instaladores portal 40km",

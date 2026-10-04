@@ -23,8 +23,10 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(por('biz').length, 7);
   assert.equal(por('admiranext').length, 5);
   assert.equal(por('studio').length, 7);
-  assert.equal(por('store').length, 0);
-  assert.equal(por('tv').length, 0);
+  assert.equal(por('store').length, 4);
+  assert.equal(por('tv').length, 4);
+  assert.ok(por('store').every((h) => h.responsable === 'Jensen Huang (propuesta de Jobs)' && h.estado === 'hecho' && h.fuente.startsWith('xpaceos ')));
+  assert.ok(por('tv').every((h) => h.responsable === 'Elon Musk (propuesta de Jobs)' && h.estado === 'hecho'));
   assert.ok(por('studio').every((h) => h.responsable === 'George Lucas'));
   assert.equal(por('studio').find((h) => h.id === 'studio-mcp-cliente-activo-xpaceos').cliente, undefined);
   assert.ok(por('app').every((h) => h.responsable === 'Steve Wozniak'));
@@ -61,6 +63,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   assert.equal(tri.soluciones.find((s) => s.id === 'app').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 7);
   assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 5);
+  assert.equal(tri.soluciones.find((s) => s.id === 'store').hitos.length, 4);
   assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 0);
 
   const ano = cortar(lista, 'ano', '2026-10-05');
@@ -80,7 +83,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
 test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   const plano = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap') });
   assert.equal(plano.headers.get('access-control-allow-origin'), '*');
-  assert.equal((await plano.json()).length, 27);
+  assert.equal((await plano.json()).length, 35);
   const corte = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?vista=semana&desde=2026-10-05') });
   const body = await corte.json();
   assert.equal(body.vista, 'semana');
