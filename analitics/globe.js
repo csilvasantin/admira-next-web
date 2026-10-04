@@ -1,4 +1,4 @@
-import {globeLocations,rayHeight,closestAngle,countryBars} from './globe-model.mjs?v=04.10.2026.r2.13:28';
+import {globeLocations,rayHeight,closestAngle,countryBars} from './globe-model.mjs?v=04.10.2026.r3.14:00';
 
 const canvas=document.getElementById('trafficGlobe'), ctx=canvas.getContext('2d');
 const $=id=>document.getElementById(id), reduced=matchMedia('(prefers-reduced-motion: reduce)');

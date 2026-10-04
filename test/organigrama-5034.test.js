@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 
 const leer = (rel) => readFile(new URL('../' + rel, import.meta.url), 'utf8');
 
-test('el organigrama nombra a los seis consejeros, su pata y el hueco vacío', async () => {
+test('el organigrama nombra a los seis consejeros, su pata y el DeepAgent que dirige', async () => {
   const html = await leer('organigrama.html');
   const nombres = [...html.matchAll(/<h3>([^<]+)<\/h3>/g)].map((m) => m[1]);
   assert.deepEqual(nombres, [
@@ -26,7 +26,16 @@ test('el organigrama nombra a los seis consejeros, su pata y el hueco vacío', a
     '«Nuevos ingresos con DooH y Retail Media»'
   ]) assert.ok(html.includes(claim), claim);
   assert.equal((html.match(/DeepAgent que lo dirige/g) || []).length, 6);
-  assert.equal((html.match(/Hueco vacío/g) || []).length, 6);
+  assert.equal((html.match(/Hueco vacío/g) || []).length, 0);
+  for (const director of [
+    'Morfeo (Claude Code)',
+    'Merovingio (DeepAgents)',
+    'Oráculo (Codex)',
+    'Cypher (DeepAgents)',
+    'Smith (Grok)',
+    'Niobe (OpenCode)'
+  ]) assert.ok(html.includes(director), director);
+  assert.ok(html.includes('El DeepAgent se puede cambiar o reforzar según la carga o si se queda sin tokens u horas'));
   assert.doesNotMatch(html, /JTI|Altadis/i);
   for (const href of [
     'https://www.admiranext.com',
