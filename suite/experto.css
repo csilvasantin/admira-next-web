@@ -48,7 +48,7 @@ html[data-ax-experto] .ax-experto .ax-cli-out :is(.expert-log-title){color:var(-
 html[data-ax-experto] .ax-experto .ax-cli-out :is(.expert-log-line,div,p,span){color:inherit}
 html[data-ax-experto] .ax-experto .ax-cli-out :is(.error,.err,.yk-cli-err) :is(div,.expert-log-line){color:var(--ax-err)}
 html[data-ax-experto] .ax-experto .ax-cli-out a{color:var(--ax-cyan)}
-html[data-ax-experto] .ax-experto .ax-cli-form{display:flex!important;align-items:center;gap:8px;flex:0 0 auto;margin:0;padding:0 10px!important;
+html[data-ax-experto] .ax-experto .ax-cli-form{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;gap:8px;flex:0 0 auto;margin:0;padding:0 10px!important;
   border:1px solid rgba(80,200,255,.55);border-radius:10px;background:#050a12;
   box-shadow:0 0 0 1px rgba(80,200,255,.08),0 0 12px rgba(80,200,255,.18);grid-template-columns:none}
 html[data-ax-experto] .ax-experto .ax-cli-form:focus-within{border-color:var(--ax-cyan);box-shadow:0 0 0 1px rgba(80,200,255,.25),0 0 16px rgba(80,200,255,.35)}
@@ -127,3 +127,5 @@ html[data-ax-experto] .ax-experto.ax-dock.ax-min .ax-cli-form{flex:0 0 auto;widt
 /* Las hojas de marca de cada pata (p. ej. pixeria «:root[data-mb-marca][…] .rail{background…!important}») no aclaran el panel. */
 html[data-ax-experto][data-ax-experto] .ax-experto.ax-experto.ax-experto{background:linear-gradient(180deg,var(--ax-bg),var(--ax-bg2))!important;
   border-color:rgba(80,200,255,.35)!important;color:var(--ax-text)!important;font-family:var(--ax-mono)!important}
+/* Orden en textarea (admira.store): una línea, sin asa de redimensionar. */
+html[data-ax-experto] .ax-experto textarea.ax-cli-input{height:38px!important;min-height:38px!important;max-height:38px!important;resize:none!important;overflow:hidden!important;line-height:18px!important}
