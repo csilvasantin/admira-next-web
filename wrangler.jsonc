@@ -14,6 +14,10 @@
     {
       "binding": "PRESENTATION_IDEAS",
       "id": "865b826b5e0f4093b693583d46fe69e0"
+    },
+    {
+      "binding": "AVATAR_FLAGS",
+      "id": "c8618c09b25d48b083558fbfec459a64"
     }
   ],
   "r2_buckets": [

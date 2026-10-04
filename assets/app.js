@@ -237,6 +237,26 @@
     },
   };
 
+  // ============ AVATAR DIGITAL ============
+  // Interruptor por usuario del avatar de digitalavatar.ai (assets/avatar.js).
+  // /avatarON lo enciende y abre, /avatarOFF lo apaga, /avatar alterna. La elección
+  // se guarda en este navegador y gana al interruptor del proyecto (/webmaster).
+  function cmdAvatar(text) {
+    const A = window.AdmiraAvatar;
+    const msg = A && typeof A.run === 'function' ? A.run(text) : null;
+    const en = (document.documentElement.lang || '').toLowerCase().indexOf('en') === 0;
+    if (msg == null) return [{ text: en ? '  Digital avatar unavailable' : '  Avatar digital no disponible', cls: 'red' }];
+    return [{ text: '  ' + msg, cls: /desactivado|off|apagado/i.test(msg) ? 'dim' : 'green' }];
+  }
+  const AVATAR_COMMANDS = {
+    '/avatar':        { desc: 'Avatar digital: alterna (on si está apagado, off si se ve)', fn: () => cmdAvatar('/avatar') },
+    '/avataron':      { desc: 'Avatar digital: encender y abrir', fn: () => cmdAvatar('/avatarON') },
+    '/avataroff':     { desc: 'Avatar digital: apagar', fn: () => cmdAvatar('/avatarOFF') },
+    '/avatardigital': { desc: 'Alias de /avatar', fn: () => cmdAvatar('/avatar') },
+    '/digitalavatar': { desc: 'Alias de /avatar', fn: () => cmdAvatar('/avatar') },
+  };
+  Object.assign(INFO_COMMANDS, AVATAR_COMMANDS);
+
   // Combined lookup for all command groups
   const ALL_COMMAND_GROUPS = [COMMANDS, INFO_COMMANDS, PROJECT_COMMANDS, THEME_COMMANDS];
 
@@ -245,6 +265,11 @@
   // devuelve data.desc (Spanish original).
   const DESC_EN = {
     '/help':         'List all available commands',
+    '/avatar':        'Digital avatar: toggle (on if off, off if showing)',
+    '/avataron':      'Digital avatar: turn on and open',
+    '/avataroff':     'Digital avatar: turn off',
+    '/avatardigital': 'Alias of /avatar',
+    '/digitalavatar': 'Alias of /avatar',
     '/classic':      'Open the classic web',
     '/robots':       'Initial robot catalog',
     '/identidad':    'Visual identity manual',
