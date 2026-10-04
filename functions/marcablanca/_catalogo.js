@@ -27,7 +27,7 @@ export const MAX_LOGO = 160 * 1024;            // bytes de un logo subido (igual
 export const MAX_LOGO_EN_LINEA = 48 * 1024;    // sin R2, un data: hasta aquí se guarda dentro de la marca
 export const MAX_ENTRADA = 96 * 1024;          // JSON guardado en KV (sin logo en línea grande)
 /** ids que no puede tomar una marca nueva (además de las semillas). */
-export const RESERVADOS = new Set(['admira', 'nueva', 'actual', 'prospect', 'ninguna', 'index', 'esquema', 'api', 'marcas', 'analizar', 'logo', 'demo', 'presentacion', 'clientes', 'logos', 'fuentes', 'propuesta']);
+export const RESERVADOS = new Set(['admira', 'nueva', 'actual', 'prospect', 'ninguna', 'index', 'esquema', 'api', 'marcas', 'analizar', 'logo', 'demo', 'presentacion', 'clientes', 'logos', 'fuentes', 'propuesta', 'estilo']);
 /** Orígenes de una marca guardada: analizada por URL en /marcablanca, creada en el generador o por la propuesta automática. */
 export const ORIGENES = ['url', 'generador', 'propuesta'];
 const SEMILLAS_RESPALDO = ['admira', 'lumbre', 'brumelle', 'frescaria'];
