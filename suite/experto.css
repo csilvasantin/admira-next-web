@@ -75,3 +75,10 @@ html[data-ax-experto] .ax-experto .ax-chrome{display:none!important}
   html[data-ax-experto] .ax-experto .ax-cli-module{min-height:220px}
   html[data-ax-experto] .ax-experto.ax-extras-on .ax-extra{flex:0 0 auto!important}
 }
+
+/* Modo propio (patas sin CLI, p. ej. admira.tv): experto.js monta cabecera, ficha y CLI en el cuerpo del panel. */
+html[data-ax-experto] .ax-experto .ax-own-panel{display:flex!important;flex-direction:column;flex:1;min-height:0;height:100%;margin:0;padding:0!important;overflow:hidden;background:none;border:0}
+html[data-ax-experto] .ax-experto .ax-own-extra{overflow:auto;padding:8px 10px;color:var(--ax-text)}
+html[data-ax-experto] .ax-experto .ax-cli-out li{list-style:none}
+html[data-ax-experto] .ax-experto .ax-cli-out li.cmd{color:var(--ax-cyan)}
+html[data-ax-experto] .ax-experto .ax-cli-out li.err{color:var(--ax-err)}
