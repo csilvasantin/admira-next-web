@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { cortar, hitos, htmlCorte } from '../functions/_roadmap.js';
+import { IDEAS, cortar, hitos, htmlCorte } from '../functions/_roadmap.js';
 import { onRequestGet, onRequestOptions, onRequestPost } from '../functions/api/roadmap.js';
 import { onRequestGet as pagina } from '../functions/roadmap.js';
 
@@ -37,6 +37,10 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(superusuario.inicio, '2026-10-05');
   assert.equal(superusuario.fin, '2026-10-09');
   assert.equal(lista.filter((h) => h.estado === 'propuesta').length, 5);
+  const ideas = new Set(lista.map((h) => h.idea));
+  assert.equal(ideas.size, IDEAS.length);
+  assert.ok(lista.every((h) => IDEAS.some((i) => i.nombre === h.idea)));
+  assert.ok(ideas.size <= 8);
 });
 
 test('las cinco vistas agrupan por solución y el vacío queda por definir', () => {
@@ -88,6 +92,26 @@ test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   const body = await corte.json();
   assert.equal(body.vista, 'semana');
   assert.equal(body.desde, '2026-10-05');
+  const store = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?proyecto=store&vista=mes&desde=2026-10-01') });
+  const cuerpoStore = await store.json();
+  assert.equal(cuerpoStore.agrupar, 'solucion');
+  assert.equal(cuerpoStore.soluciones.find((s) => s.id === 'store').hitos.length, 4);
+  assert.equal(cuerpoStore.soluciones.find((s) => s.id === 'studio').hitos.length, 0);
+  const altadis = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?cliente=altadis&vista=trimestre&desde=2026-10-01') });
+  const cuerpoAltadis = await altadis.json();
+  assert.equal(cuerpoAltadis.agrupar, 'cliente');
+  assert.equal(cuerpoAltadis.columnas.length, 1);
+  assert.equal(cuerpoAltadis.columnas[0].id, 'altadis');
+  assert.ok(cuerpoAltadis.columnas[0].hitos.every((h) => h.cliente === 'altadis'));
+  assert.equal(cuerpoAltadis.columnas[0].hitos.some((h) => h.cliente === 'jti'), false);
+  const idea = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?idea=reproduccion-pop&vista=ano&desde=2026-01-01') });
+  const cuerpoIdea = await idea.json();
+  assert.equal(cuerpoIdea.agrupar, 'idea');
+  assert.equal(cuerpoIdea.columnas[0].hitos.length, 4);
+  const combo = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?proyecto=studio&cliente=altadis&idea=contenidos-pixeria&vista=trimestre&desde=2026-10-01') });
+  const cuerpoCombo = await combo.json();
+  assert.equal(cuerpoCombo.agrupar, 'idea');
+  assert.equal(cuerpoCombo.columnas[0].hitos.length, 2);
   assert.equal(onRequestOptions().status, 204);
   assert.equal(onRequestPost().status, 405);
 });
@@ -102,4 +126,12 @@ test('la página pinta el corte de la URL', async () => {
   assert.match(texto, /Walt Disney/);
   assert.equal((texto.match(/fuente: ejemplo/g) || []).length, 0);
   assert.match(texto, /Por definir con Carlos/);
+  assert.match(texto, /aria-label="Proyecto"/);
+  assert.match(texto, /aria-label="Cliente"/);
+  assert.match(texto, /aria-label="Idea"/);
+  const filtrada = await pagina({ request: new Request('https://www.admiranext.com/roadmap?proyecto=studio&cliente=altadis&idea=contenidos-pixeria&vista=trimestre&desde=2026-10-01'), env });
+  const corteHtml = await filtrada.text();
+  assert.match(corteHtml, /proyecto=studio&amp;cliente=altadis&amp;idea=contenidos-pixeria/);
+  assert.match(corteHtml, /Gemelos 9 estancos BCN/);
+  assert.equal((corteHtml.match(/JTI global/g) || []).length, 0);
 });

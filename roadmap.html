@@ -28,6 +28,8 @@
   .vistas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
   .vistas a{padding:6px 10px;border:1px solid var(--yk-line,#253042);border-radius:999px;color:var(--yk-mut,#92a0b4);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
   .vistas a[aria-current="true"]{border-color:var(--yk-brand,#4ae3d1);color:var(--yk-ink,#f2f6fc)}
+  .vistas span{align-self:center;min-width:5.5rem;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--yk-dim,#6c7a90)}
+  .patas.eje{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
   .periodo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 22px}
   .periodo strong{font-size:16px;font-weight:650}
   .hitos{margin:0;padding:0;list-style:none}
@@ -61,7 +63,7 @@
   <p class="kicker">RoadMap</p>
   <h1>RoadMap</h1>
   <p class="aviso" role="note">Borrador para validar por Carlos</p>
-  <p class="lede">Día, semana, mes, trimestre o año. Los hitos salen de <a href="/api/roadmap">/api/roadmap</a>. Si el periodo no tiene ninguno, queda por definir.</p>
+  <p class="lede">Proyecto, cliente o idea, y día, semana, mes, trimestre o año. Los hitos salen de <a href="/api/roadmap">/api/roadmap</a>. Si el periodo no tiene ninguno, queda por definir.</p>
   <div id="corte"><!--CORTE--></div>
 
   <footer>

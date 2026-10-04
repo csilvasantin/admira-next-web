@@ -1,6 +1,6 @@
 /**
  * GET /api/roadmap — el fichero data/roadmap.json.
- * Con ?vista=&desde= devuelve el corte (día, semana, mes, trimestre, año).
+ * Con ?vista=&desde=&proyecto=&cliente=&idea= devuelve el corte.
  */
 import { hitos, cortar } from '../_roadmap.js';
 
@@ -30,8 +30,13 @@ export function onRequestOptions() {
 export function onRequestGet({ request }) {
   const url = new URL(request.url);
   const lista = hitos();
-  if (url.searchParams.has('vista') || url.searchParams.has('desde')) {
-    return json(cortar(lista, url.searchParams.get('vista'), url.searchParams.get('desde')));
+  const params = ['vista', 'desde', 'proyecto', 'cliente', 'idea'];
+  if (params.some((k) => url.searchParams.has(k))) {
+    return json(cortar(lista, url.searchParams.get('vista'), url.searchParams.get('desde'), new Date(), {
+      proyecto: url.searchParams.get('proyecto'),
+      cliente: url.searchParams.get('cliente'),
+      idea: url.searchParams.get('idea'),
+    }));
   }
   return json(lista);
 }

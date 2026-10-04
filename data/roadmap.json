@@ -8,6 +8,7 @@
     "estado": "hecho",
     "responsable": "George Lucas",
     "fuente": "pixeria PR #29, #30",
+    "idea": "Contenidos y Pixeria",
     "cliente": "admira"
   },
   {
@@ -19,6 +20,7 @@
     "estado": "en_curso",
     "responsable": "George Lucas",
     "fuente": "pixeria PR #32-35; Carlos 4-oct",
+    "idea": "Clientes globales y marca blanca",
     "cliente": "admira"
   },
   {
@@ -30,6 +32,7 @@
     "estado": "hecho",
     "responsable": "George Lucas",
     "fuente": "xpaceos PR #16, #17; admira-xp PR #18",
+    "idea": "Contenidos y Pixeria",
     "cliente": "altadis"
   },
   {
@@ -41,6 +44,7 @@
     "estado": "propuesta",
     "responsable": "George Lucas",
     "fuente": "#4968; falta video de Carlos",
+    "idea": "Contenidos y Pixeria",
     "cliente": "altadis"
   },
   {
@@ -52,6 +56,7 @@
     "estado": "hecho",
     "responsable": "George Lucas",
     "fuente": "#4896, #5108",
+    "idea": "Contenidos y Pixeria",
     "cliente": "admira"
   },
   {
@@ -62,7 +67,8 @@
     "fin": "2026-10-31",
     "estado": "propuesta",
     "responsable": "George Lucas",
-    "fuente": "tras xpaceos PR #16"
+    "fuente": "tras xpaceos PR #16",
+    "idea": "Clientes globales y marca blanca"
   },
   {
     "id": "studio-web-interactiva-preview",
@@ -73,6 +79,7 @@
     "estado": "propuesta",
     "responsable": "George Lucas",
     "fuente": "#4758-4760",
+    "idea": "Contenidos y Pixeria",
     "cliente": "admira"
   },
   {
@@ -83,7 +90,8 @@
     "fin": "2026-10-04",
     "estado": "hecho",
     "responsable": "Jensen Huang (propuesta de Jobs)",
-    "fuente": "xpaceos f7aeeab"
+    "fuente": "xpaceos f7aeeab",
+    "idea": "Clientes globales y marca blanca"
   },
   {
     "id": "store-cruces-paredes-muebles-4a773bf",
@@ -93,7 +101,8 @@
     "fin": "2026-10-04",
     "estado": "hecho",
     "responsable": "Jensen Huang (propuesta de Jobs)",
-    "fuente": "xpaceos 4a773bf"
+    "fuente": "xpaceos 4a773bf",
+    "idea": "Inventario y plano del local"
   },
   {
     "id": "store-inventory-itil-b5a3e08",
@@ -103,7 +112,8 @@
     "fin": "2026-10-04",
     "estado": "hecho",
     "responsable": "Jensen Huang (propuesta de Jobs)",
-    "fuente": "xpaceos b5a3e08"
+    "fuente": "xpaceos b5a3e08",
+    "idea": "Inventario y plano del local"
   },
   {
     "id": "store-perimetro-auth-agente-c2efab8",
@@ -113,7 +123,8 @@
     "fin": "2026-10-03",
     "estado": "hecho",
     "responsable": "Jensen Huang (propuesta de Jobs)",
-    "fuente": "xpaceos c2efab8"
+    "fuente": "xpaceos c2efab8",
+    "idea": "Entrada de agentes sin Google"
   },
   {
     "id": "tv-creador-playlists-79d1913",
@@ -123,7 +134,8 @@
     "fin": "2026-09-29",
     "estado": "hecho",
     "responsable": "Elon Musk (propuesta de Jobs)",
-    "fuente": "admira-tv-playlist 79d1913"
+    "fuente": "admira-tv-playlist 79d1913",
+    "idea": "Reproducción y Proof of Play"
   },
   {
     "id": "tv-productor-va-xtore-563f68e",
@@ -133,7 +145,8 @@
     "fin": "2026-09-27",
     "estado": "hecho",
     "responsable": "Elon Musk (propuesta de Jobs)",
-    "fuente": "admira-tv-clone 563f68e"
+    "fuente": "admira-tv-clone 563f68e",
+    "idea": "Reproducción y Proof of Play"
   },
   {
     "id": "tv-puerta-cam-78e18a6",
@@ -143,7 +156,8 @@
     "fin": "2026-09-25",
     "estado": "hecho",
     "responsable": "Elon Musk (propuesta de Jobs)",
-    "fuente": "admira-tv-clone 78e18a6"
+    "fuente": "admira-tv-clone 78e18a6",
+    "idea": "Reproducción y Proof of Play"
   },
   {
     "id": "tv-proof-of-pass-61ccdb5",
@@ -153,7 +167,8 @@
     "fin": "2026-09-24",
     "estado": "hecho",
     "responsable": "Elon Musk (propuesta de Jobs)",
-    "fuente": "admira-tv-clone 61ccdb5"
+    "fuente": "admira-tv-clone 61ccdb5",
+    "idea": "Reproducción y Proof of Play"
   },
   {
     "id": "app-capturador-instaladores-portal-40km",
@@ -164,6 +179,7 @@
     "estado": "hecho",
     "responsable": "Steve Wozniak",
     "fuente": "FLT-100423 #3281",
+    "idea": "Instalaciones y soporte",
     "cliente": "admira"
   },
   {
@@ -174,7 +190,8 @@
     "fin": "2026-10-31",
     "estado": "en_curso",
     "responsable": "Steve Wozniak",
-    "fuente": "FLT-100453 #3332"
+    "fuente": "FLT-100453 #3332",
+    "idea": "Instalaciones y soporte"
   },
   {
     "id": "app-pata-admira-app-yokup",
@@ -184,7 +201,8 @@
     "fin": "2026-10-04",
     "estado": "confirmado",
     "responsable": "Steve Wozniak",
-    "fuente": "Consejo 4-oct 19:00"
+    "fuente": "Consejo 4-oct 19:00",
+    "idea": "Instalaciones y soporte"
   },
   {
     "id": "app-filtro-cliente-modo-experto",
@@ -194,7 +212,8 @@
     "fin": "2026-11-15",
     "estado": "confirmado",
     "responsable": "Steve Wozniak",
-    "fuente": "norma Carlos 20:05"
+    "fuente": "norma Carlos 20:05",
+    "idea": "Modo Experto"
   },
   {
     "id": "app-incidencias-soporte-tickets",
@@ -204,7 +223,8 @@
     "fin": "2026-11-30",
     "estado": "en_curso",
     "responsable": "Steve Wozniak",
-    "fuente": "FLT-100402 #3258"
+    "fuente": "FLT-100402 #3258",
+    "idea": "Instalaciones y soporte"
   },
   {
     "id": "app-escalado-yokuper-geofence-voz",
@@ -214,7 +234,8 @@
     "fin": "2026-12-15",
     "estado": "en_curso",
     "responsable": "Steve Wozniak",
-    "fuente": "FLT-100467"
+    "fuente": "FLT-100467",
+    "idea": "Instalaciones y soporte"
   },
   {
     "id": "app-recorte-editor-expert",
@@ -224,7 +245,8 @@
     "fin": "2026-10-10",
     "estado": "en_curso",
     "responsable": "Steve Wozniak",
-    "fuente": "pedido Carlos 4-oct"
+    "fuente": "pedido Carlos 4-oct",
+    "idea": "Modo Experto"
   },
   {
     "id": "app-mcp-cloudflare-read-only",
@@ -234,7 +256,8 @@
     "fin": "2026-11-30",
     "estado": "propuesta",
     "responsable": "Steve Wozniak",
-    "fuente": "#3643 FLT-100674"
+    "fuente": "#3643 FLT-100674",
+    "idea": "Instalaciones y soporte"
   },
   {
     "id": "biz-pata-dooh-retail-media",
@@ -245,6 +268,7 @@
     "estado": "hecho",
     "responsable": "Walt Disney",
     "fuente": "Consejo Carlos 4-oct 19:00",
+    "idea": "Circuitos DooH",
     "cliente": "admira"
   },
   {
@@ -256,6 +280,7 @@
     "estado": "hecho",
     "responsable": "Walt Disney",
     "fuente": "Carlos 20:39; PR#45; 9e01ca65",
+    "idea": "Clientes globales y marca blanca",
     "cliente": "jti"
   },
   {
@@ -267,6 +292,7 @@
     "estado": "hecho",
     "responsable": "Walt Disney",
     "fuente": "api/clientes carlos-2026-10-04",
+    "idea": "Clientes globales y marca blanca",
     "cliente": "admira"
   },
   {
@@ -278,6 +304,7 @@
     "estado": "en_curso",
     "responsable": "Walt Disney",
     "fuente": "Carlos claims; preview /biz/",
+    "idea": "Circuitos DooH",
     "cliente": "admira"
   },
   {
@@ -289,6 +316,7 @@
     "estado": "en_curso",
     "responsable": "Walt Disney",
     "fuente": "FLT-101216; #4724 MX pend.",
+    "idea": "Circuitos DooH",
     "cliente": "starbucks"
   },
   {
@@ -300,6 +328,7 @@
     "estado": "confirmado",
     "responsable": "Walt Disney",
     "fuente": "Norma Carlos 4-oct 20:05",
+    "idea": "Circuitos DooH",
     "cliente": "admira"
   },
   {
@@ -311,6 +340,7 @@
     "estado": "propuesta",
     "responsable": "Walt Disney",
     "fuente": "Gap roadmap sin clave admira-biz",
+    "idea": "Circuitos DooH",
     "cliente": "admira"
   },
   {
@@ -321,7 +351,8 @@
     "fin": "2026-10-04",
     "estado": "hecho",
     "responsable": "Steve Jobs",
-    "fuente": "299696f La portada enlaza Agentes junto a Organigrama."
+    "fuente": "299696f La portada enlaza Agentes junto a Organigrama.",
+    "idea": "Entrada de agentes sin Google"
   },
   {
     "id": "admiranext-api-clientes-e80d952",
@@ -331,7 +362,8 @@
     "fin": "2026-10-04",
     "estado": "hecho",
     "responsable": "Steve Jobs",
-    "fuente": "e80d952 El censo comercial se lee en GET /api/clientes."
+    "fuente": "e80d952 El censo comercial se lee en GET /api/clientes.",
+    "idea": "Clientes globales y marca blanca"
   },
   {
     "id": "admiranext-globales-5788217",
@@ -341,7 +373,8 @@
     "fin": "2026-10-04",
     "estado": "hecho",
     "responsable": "Steve Jobs",
-    "fuente": "5788217 Starbucks, Altadis y Admira quedan como clientes globales."
+    "fuente": "5788217 Starbucks, Altadis y Admira quedan como clientes globales.",
+    "idea": "Clientes globales y marca blanca"
   },
   {
     "id": "admiranext-roadmap-865efa2-302e4c5",
@@ -351,7 +384,8 @@
     "fin": "2026-10-04",
     "estado": "hecho",
     "responsable": "Steve Jobs",
-    "fuente": "865efa2 El menú abre un RoadMap de borrador, sin hitos fechados. 302e4c5 El RoadMap se corta por día, semana, mes, trimestre y año."
+    "fuente": "865efa2 El menú abre un RoadMap de borrador, sin hitos fechados. 302e4c5 El RoadMap se corta por día, semana, mes, trimestre y año.",
+    "idea": "Clientes globales y marca blanca"
   },
   {
     "id": "admiranext-superusuario-api-clientes",
@@ -361,6 +395,7 @@
     "fin": "2026-10-09",
     "estado": "confirmado",
     "responsable": "Steve Jobs",
-    "fuente": "promesa a Lucas, 4-oct"
+    "fuente": "promesa a Lucas, 4-oct",
+    "idea": "Clientes globales y marca blanca"
   }
 ]
