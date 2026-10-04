@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadMap · ADmiraNeXT</title>
+<meta name="description" content="Borrador del RoadMap de octubre, noviembre y diciembre de 2026. Solo lo que ya consta en el repo o en D1.">
+<meta name="theme-color" content="#070b12">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="RoadMap · ADmiraNeXT">
+<meta property="og:description" content="Borrador para validar por Carlos. Octubre, noviembre y diciembre de 2026.">
+<meta property="og:image" content="/og-image.jpg">
+<meta property="og:url" content="https://www.admiranext.com/roadmap">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;color:var(--yk-ink,#f2f6fc);font-family:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,monospace;line-height:1.55}
+  a{color:var(--yk-brand,#4ae3d1);text-decoration:none}
+  a:hover{color:var(--yk-hi,#7ff3e4)}
+  main{padding:28px 0 72px}
+  .kicker{margin:0 0 10px;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--yk-brand,#4ae3d1)}
+  h1{margin:0 0 12px;font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em}
+  .lede{margin:0 0 22px;max-width:68ch;color:var(--yk-mut,#92a0b4)}
+  .aviso{margin:0 0 28px;padding:14px 16px;border:1px solid var(--yk-brand,#4ae3d1);border-radius:12px;background:rgba(74,227,209,.08);color:var(--yk-ink,#f2f6fc);font-size:14px}
+  .patas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .mesa{max-width:none;margin-top:12px}
+  .carta{display:flex;flex-direction:column;gap:10px;min-width:0;padding:16px;border:1px solid var(--yk-line,#253042);border-radius:14px;background:rgba(8,13,23,.86)}
+  .mesa .carta{border-color:var(--yk-brand,#4ae3d1)}
+  .rol{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--yk-dim,#6c7a90)}
+  .carta h2{margin:0;font-size:18px;line-height:1.2}
+  .pata{font-size:14px;word-break:break-word}
+  .claim{margin:0;color:var(--yk-mut,#92a0b4);font-size:13px}
+  .meses{margin:0;padding:0;list-style:none}
+  .meses li{margin:0 0 8px;padding:10px;border:1px solid var(--yk-line2,#314057);border-radius:10px;background:rgba(16,23,36,.55);font-size:13px}
+  .meses strong{display:block;margin-bottom:4px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--yk-brand,#4ae3d1)}
+  cite{display:block;margin-top:6px;color:var(--yk-dim,#6c7a90);font-style:normal;font-size:11px}
+  .sin-mes{margin:0;color:var(--yk-mut,#92a0b4);font-size:13px}
+  .bloque > h2{margin:28px 0 14px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
+  footer{margin-top:36px;color:var(--yk-dim,#6c7a90);font-size:12px}
+  footer a{color:var(--yk-mut,#92a0b4)}
+  @media (max-width:1100px){.patas{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:720px){.patas{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261004-5053">
+</head>
+<body data-yk-frame="cabecera" data-yk-auto="on">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/organigrama">Organigrama</a><a href="/roadmap" aria-current="page">RoadMap</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
+<main data-yk-main>
+  <p class="kicker">RoadMap</p>
+  <h1>Octubre, noviembre y diciembre de 2026</h1>
+  <p class="aviso" role="note">Borrador para validar por Carlos</p>
+  <p class="lede">Cada mes dice solo lo que una fuente fecha en ese mes. Si el repo o D1 no lo fechan, el mes queda por definir. Lo que sí consta, sin mes, va aparte y con su fuente.</p>
+
+  <section class="bloque" id="patas">
+    <h2>Las cinco patas</h2>
+    <div class="patas">
+      <article class="carta" id="studio" data-hitos="0">
+        <span class="rol">admira.studio</span>
+        <h2>Creación y Adaptación de Contenidos</h2>
+        <p class="claim">«Creación y Adaptación de Contenidos»</p>
+        <cite>Fuente: organigrama.html</cite>
+        <ol class="meses">
+          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+        </ol>
+        <p class="sin-mes">Sin mes en la fuente: admira.studio (PixerIA) está en producción; la integración de robótica es el roadmap inmediato. <cite>Fuente: businessplan/index.html · s7_default</cite></p>
+      </article>
+      <article class="carta" id="store" data-hitos="0">
+        <span class="rol">admira.store</span>
+        <h2>Distribución, Gestión y Visualización</h2>
+        <p class="claim">«Distribución, Gestión y Visualización»</p>
+        <cite>Fuente: organigrama.html</cite>
+        <ol class="meses">
+          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+        </ol>
+        <p class="sin-mes">Sin mes en la fuente: admira.store (XpaceOS + Club) está en producción; la integración de robótica es el roadmap inmediato. <cite>Fuente: businessplan/index.html · s7_default</cite></p>
+      </article>
+      <article class="carta" id="tv" data-hitos="0">
+        <span class="rol">admira.tv</span>
+        <h2>Reproducción, Emisión y Proof of Play</h2>
+        <p class="claim">«Reproducción, Emisión y Proof of Play»</p>
+        <cite>Fuente: organigrama.html</cite>
+        <ol class="meses">
+          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+        </ol>
+        <p class="sin-mes">Sin mes en la fuente: el censo ya publica 20 subsoluciones de admira.tv y no las asigna a octubre, noviembre ni diciembre. <cite>Fuente: functions/_proyectos.js · parentKey admira-tv</cite></p>
+      </article>
+      <article class="carta" id="app" data-hitos="0">
+        <span class="rol">admira.app</span>
+        <h2>Instalaciones, Mantenimiento y Gestión</h2>
+        <p class="claim">«Instalaciones, Mantenimiento y Gestión»</p>
+        <cite>Fuente: organigrama.html</cite>
+        <ol class="meses">
+          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+        </ol>
+        <p class="sin-mes">Sin mes en la fuente: admira.app (ClearChannel.tv) está en producción; la integración de robótica es el roadmap inmediato. <cite>Fuente: businessplan/index.html · s7_default</cite></p>
+      </article>
+      <article class="carta" id="biz" data-hitos="0">
+        <span class="rol">admira.biz</span>
+        <h2>Nuevos ingresos con DooH y Retail Media</h2>
+        <p class="claim">«Nuevos ingresos con DooH y Retail Media»</p>
+        <cite>Fuente: organigrama.html</cite>
+        <ol class="meses">
+          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+        </ol>
+        <p class="sin-mes">Sin mes en la fuente: el censo de proyectos no tiene una clave admira-biz. <cite>Fuente: functions/_proyectos.js</cite></p>
+      </article>
+    </div>
+  </section>
+
+  <section class="bloque mesa" id="admiranext">
+    <h2>AdmiraNeXT</h2>
+    <article class="carta" data-hitos="0">
+      <span class="rol">La mesa · une las cinco patas</span>
+      <h2>AdmiraNeXT</h2>
+      <p class="claim">«La mesa que une las cinco patas.»</p>
+      <cite>Fuente: organigrama.html</cite>
+      <ol class="meses">
+        <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+        <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+        <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
+      </ol>
+      <p class="sin-mes">Sin mes en la fuente: los clientes globales son Admira (por defecto), Altadis y Starbucks, con las cinco patas. El censo comercial de D1 tiene 22 proyectos y no asigna trabajo a un mes. <cite>Fuente: D1 admiranext_clientes_acceso y admiranext_commercial_projects · migrations/0007_clientes_acceso.sql</cite></p>
+      <p class="sin-mes">Sin mes en la fuente: el siguiente paso abierto del handoff es un agente Windows para que el monitor sondee los workers. <cite>Fuente: HANDOFF.md · Siguiente foco recomendado, punto 2</cite></p>
+    </article>
+  </section>
+
+  <footer>
+    <a href="/">admiranext.com</a> · RoadMap · borrador para validar por Carlos
+  </footer>
+</main>
+<script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
+</body>
+</html>
