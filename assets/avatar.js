@@ -272,13 +272,16 @@
     handle.addEventListener('pointerup', end);
     handle.addEventListener('pointercancel', end);
   }
+  // Mascota: la nube del imagotipo de Admira (contorno #689840 de admira-logo_green.svg) en cartoon,
+  // con ojos, mejillas y sonrisa; parpadea y bota al pasar el ratón (sin movimiento si reduced-motion).
+  var NUBE = '<svg class="da-nube" viewBox="-6 6 289 186" width="62" height="40" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><g class="da-nube-cuerpo"><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Z" fill="#f3f9e8"/><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Zm0,99.81a41.75,41.75,0,0,1-28.06-11,67.09,67.09,0,0,1-13.39,10.21,65.93,65.93,0,0,1-66.81,0A67.09,67.09,0,0,1,91.66,148,41.56,41.56,0,1,1,59,76a43.33,43.33,0,0,1,4.58-.26A41.39,41.39,0,0,1,76.11,77.7a66.43,66.43,0,0,1,124.69,0,41.39,41.39,0,0,1,12.51-1.93,43.33,43.33,0,0,1,4.58.26,41.58,41.58,0,0,1-4.58,82.91Z" fill="#689840"/><ellipse cx="92" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><ellipse cx="185" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><g class="da-nube-ojos"><ellipse cx="111" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><ellipse cx="166" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><circle cx="115.5" cy="103" r="5" fill="#fff"/><circle cx="170.5" cy="103" r="5" fill="#fff"/></g><path class="da-nube-boca" d="M122,135 Q138.5,153 155,135" fill="none" stroke="#1d2b12" stroke-width="8" stroke-linecap="round"/><path class="da-nube-risa" d="M121,131 Q138.5,162 156,131 Z" fill="#1d2b12" stroke="#1d2b12" stroke-width="4" stroke-linejoin="round"/><path class="da-nube-risa" d="M129,145 Q138.5,154 148,145 Q138.5,141 129,145Z" fill="#e8706f"/></g></svg>';
   function ensureDock() {
     if (node()) return node();
     watchLift();
     var wrap = doc.createElement('div');
     wrap.id = 'da-suite';
     wrap.setAttribute('style', 'position:fixed;right:16px;bottom:20px;z-index:25;font-family:ui-monospace,SFMono-Regular,Menlo,monospace');
-    wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;border-radius:50%;border:1px solid rgba(120,243,255,.4);background:#0a1620;color:#78f3ff;font-size:26px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.5)">🤖</button>'
+    wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;padding:0;border-radius:50%;border:0;background:transparent;cursor:pointer">' + NUBE + '</button>'
       + '<div id="da-suite-panel" style="position:relative;box-sizing:border-box;background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px 8px 48px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
       + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;min-height:0;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>'
@@ -289,6 +292,19 @@
       style = doc.createElement('style');
       style.id = 'admira-avatar-open';
       style.textContent = '#da-suite-panel{display:none}#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}'
+        + '#da-suite-bubble{display:grid;place-items:center}#da-suite.open #da-suite-bubble{display:none}'
+        + '#da-suite-bubble .da-nube{display:block;overflow:visible;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}'
+        + '#da-suite-bubble .da-nube-cuerpo{transform-box:fill-box;transform-origin:50% 100%}'
+        + '#da-suite-bubble .da-nube-ojos{transform-box:fill-box;transform-origin:50% 50%;animation:da-parpadeo 5s infinite}'
+        + '#da-suite-bubble .da-nube-risa{opacity:0;transition:opacity .15s}'
+        + '#da-suite-bubble .da-nube-boca{transition:opacity .15s}'
+        + '#da-suite-bubble:hover .da-nube-risa,#da-suite-bubble:focus-visible .da-nube-risa{opacity:1}'
+        + '#da-suite-bubble:hover .da-nube-boca,#da-suite-bubble:focus-visible .da-nube-boca{opacity:0}'
+        + '#da-suite-bubble:hover .da-nube-cuerpo{animation:da-bote .6s ease-out}'
+        + '#da-suite-bubble:focus-visible{outline:2px solid #689840;outline-offset:2px}'
+        + '@keyframes da-parpadeo{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}'
+        + '@keyframes da-bote{0%{transform:translateY(0) scale(1,1)}30%{transform:translateY(-14%) scale(.97,1.04)}55%{transform:translateY(0) scale(1.05,.94)}75%{transform:translateY(-4%) scale(1,1)}100%{transform:translateY(0) scale(1,1)}}'
+        + '@media (prefers-reduced-motion:reduce){#da-suite-bubble .da-nube-ojos,#da-suite-bubble:hover .da-nube-cuerpo{animation:none}}'
         + '#da-suite-panel{max-width:calc(100vw - 32px);max-height:calc(100vh - var(--da-top,64px) - var(--da-lift,20px))}'
         + '#da-suite-frame{position:relative;z-index:1}'
         + '#da-suite-resize{position:absolute;left:0;top:0;width:44px;height:44px;padding:0;border:0;background:transparent;cursor:nwse-resize;touch-action:none;z-index:6}'
