@@ -29,3 +29,9 @@ test('el libro de estilo es genérico: lee la marca del catálogo y no lista otr
   for (const s of ['zona de protección', 'Colores', 'Tipografía', 'Usos correctos e incorrectos', 'cinco patas']) assert.ok(js.includes(s), s);
   assert.ok(leer('marcablanca/estilo/index.html').includes('/marcablanca/estilo/estilo.js'));
 });
+
+test('el escaparate y el panel prospect no ofrecen al rival de la marca pedida', () => {
+  const js = leer('marcablanca/demo.js');
+  assert.match(js, /jti: \['altadis'\], altadis: \['jti'\]/);
+  assert.match(js, /marcablanca\\\/api\\\/marcas/);
+});
