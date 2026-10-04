@@ -41,7 +41,7 @@ html[data-ax-experto] .ax-experto .ax-cli-module{flex:1 1 0!important;display:fl
 html[data-ax-experto] .ax-experto .ax-cli{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:0!important;overflow:hidden;font:inherit}
 html[data-ax-experto] .ax-experto .ax-cli-out{flex:1;min-height:60px;overflow:auto;margin:0;padding:8px 10px!important;list-style:none;
   font:11.5px/1.5 var(--ax-mono)!important;color:var(--ax-muted)!important;white-space:pre-wrap;word-break:break-word;text-align:left;
-  background:rgba(2,8,13,.55)!important;border:1px solid rgba(80,200,255,.16)!important;border-radius:10px}
+  background:#05090f!important;border:1px solid rgba(80,200,255,.16)!important;border-radius:10px}
 html[data-ax-experto] .ax-experto .ax-cli-out > *{margin:0;padding:0;border:0!important;background:none}
 html[data-ax-experto] .ax-experto .ax-cli-out :is(code,.expert-log-cmd,.yk-cli-cmd,.cmd){display:block;color:var(--ax-cyan);background:none;font:inherit;padding:0}
 html[data-ax-experto] .ax-experto .ax-cli-out :is(.expert-log-title){color:var(--ax-cyan);font-weight:700;letter-spacing:.08em;margin-top:2px}
@@ -90,3 +90,30 @@ html[data-ax-experto] .ax-experto .ax-cli-form label:not(.ax-cli-prompt){display
 /* Patas que pliegan el panel a una sola línea (registro [hidden]): solo queda la orden. */
 html[data-ax-experto] .ax-experto:has(.ax-cli-out[hidden]){padding:4px 12px!important}
 html[data-ax-experto] .ax-experto:has(.ax-cli-out[hidden]) :is(.ax-hd,.ax-engine-slot){display:none!important}
+
+/* Barra plegable (Carlos, 4-oct-2026 23:08): anclada abajo, minimizada por defecto; clic en la barra despliega/pliega.
+   Manda sobre la geometría y la visibilidad propias de cada pata (hidden, fuera de pantalla, visibility…). */
+html[data-ax-experto] .ax-experto.ax-dock{display:flex!important;flex-direction:column!important;position:fixed!important;
+  left:0!important;right:0!important;bottom:0!important;top:auto!important;width:auto!important;max-width:none!important;
+  height:var(--ax-dock-h,min(46vh,440px))!important;min-height:0!important;max-height:none!important;margin:0!important;
+  transform:none!important;translate:none!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+  z-index:9000!important;overflow:hidden!important;transition:none!important}
+html[data-ax-experto] .ax-experto.ax-dock :is(.ax-hd-path){display:flex!important;flex-direction:column;flex:1 1 auto;min-height:0;
+  visibility:visible!important;opacity:1!important;transform:none!important;height:auto!important;max-height:none!important}
+html[data-ax-experto] .ax-experto.ax-dock .ax-hd{display:flex!important;flex-direction:row;cursor:pointer;user-select:none;visibility:visible!important}
+html[data-ax-experto] .ax-experto.ax-dock .ax-fold{margin-left:auto;padding:2px 10px;border:1px solid rgba(80,200,255,.35);border-radius:999px;
+  background:transparent;color:var(--ax-cyan);font:700 11px/1.2 var(--ax-mono);cursor:pointer}
+html[data-ax-experto] .ax-experto.ax-dock .ax-fold:hover{background:rgba(80,200,255,.12);border-color:var(--ax-cyan)}
+html[data-ax-experto] .ax-experto.ax-dock:not(.ax-min) .ax-cli-out[hidden]{display:block!important}
+html[data-ax-experto] .ax-experto.ax-dock:not(.ax-min):has(.ax-cli-out[hidden]){padding:14px 16px calc(16px + env(safe-area-inset-bottom))!important}
+html[data-ax-experto] .ax-experto.ax-dock:has(.ax-cli-out[hidden]) :is(.ax-hd){display:flex!important}
+html[data-ax-experto] .ax-experto.ax-dock:not(.ax-min):has(.ax-cli-out[hidden]) :is(.ax-engine-slot){display:flex!important}
+/* Plegado: solo la barra «⌘ EXPERTO · CLI». */
+html[data-ax-experto] .ax-experto.ax-dock.ax-min{height:auto!important;padding:9px 16px calc(9px + env(safe-area-inset-bottom))!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-min > :not(.ax-hd-path):not(.ax-hd),
+html[data-ax-experto] .ax-experto.ax-dock.ax-min .ax-hd-path > :not(.ax-hd-path):not(.ax-hd){display:none!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-min .ax-hd{margin:0!important;padding:0 2px!important;border-bottom:0!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-min .ax-hd > :is(button,a,details):not(.ax-fold){display:none!important}
+/* Las hojas de marca de cada pata (p. ej. pixeria «:root[data-mb-marca][…] .rail{background…!important}») no aclaran el panel. */
+html[data-ax-experto][data-ax-experto] .ax-experto.ax-experto.ax-experto{background:linear-gradient(180deg,var(--ax-bg),var(--ax-bg2))!important;
+  border-color:rgba(80,200,255,.35)!important;color:var(--ax-text)!important;font-family:var(--ax-mono)!important}
