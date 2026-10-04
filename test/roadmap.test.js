@@ -22,9 +22,11 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(por('app').length, 8);
   assert.equal(por('biz').length, 7);
   assert.equal(por('admiranext').length, 5);
-  assert.equal(por('studio').length, 0);
+  assert.equal(por('studio').length, 7);
   assert.equal(por('store').length, 0);
   assert.equal(por('tv').length, 0);
+  assert.ok(por('studio').every((h) => h.responsable === 'George Lucas'));
+  assert.equal(por('studio').find((h) => h.id === 'studio-mcp-cliente-activo-xpaceos').cliente, undefined);
   assert.ok(por('app').every((h) => h.responsable === 'Steve Wozniak'));
   assert.ok(por('biz').every((h) => h.responsable === 'Walt Disney'));
   assert.equal(por('admiranext').filter((h) => h.estado === 'hecho').length, 4);
@@ -32,20 +34,20 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(superusuario.estado, 'confirmado');
   assert.equal(superusuario.inicio, '2026-10-05');
   assert.equal(superusuario.fin, '2026-10-09');
-  assert.equal(lista.filter((h) => h.estado === 'propuesta').length, 2);
+  assert.equal(lista.filter((h) => h.estado === 'propuesta').length, 5);
 });
 
 test('las cinco vistas agrupan por solución y el vacío queda por definir', () => {
   const dia = cortar(lista, 'dia', '2026-10-05');
   assert.equal(dia.vista, 'dia');
   assert.equal(dia.desde, '2026-10-05');
-  assert.equal(dia.soluciones.find((s) => s.id === 'studio').hitos.length, 0);
+  assert.equal(dia.soluciones.find((s) => s.id === 'studio').hitos.length, 4);
   assert.equal(dia.soluciones.find((s) => s.id === 'admiranext').hitos.length, 1);
 
   const semana = cortar(lista, 'semana', '2026-10-05');
   assert.equal(semana.desde, '2026-10-05');
   assert.equal(semana.hasta, '2026-10-11');
-  assert.equal(semana.soluciones.find((s) => s.id === 'studio').hitos.length, 0);
+  assert.equal(semana.soluciones.find((s) => s.id === 'studio').hitos.length, 4);
   assert.ok(semana.soluciones.find((s) => s.id === 'admiranext').hitos.some((h) => h.id === 'admiranext-superusuario-api-clientes'));
 
   const mes = cortar(lista, 'mes', '2026-10-04');
@@ -55,6 +57,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   const tri = cortar(lista, 'trimestre', '2026-11-02');
   assert.equal(tri.desde, '2026-10-01');
   assert.equal(tri.hasta, '2026-12-31');
+  assert.equal(tri.soluciones.find((s) => s.id === 'studio').hitos.length, 7);
   assert.equal(tri.soluciones.find((s) => s.id === 'app').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 7);
   assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 5);
@@ -77,7 +80,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
 test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   const plano = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap') });
   assert.equal(plano.headers.get('access-control-allow-origin'), '*');
-  assert.equal((await plano.json()).length, 20);
+  assert.equal((await plano.json()).length, 27);
   const corte = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?vista=semana&desde=2026-10-05') });
   const body = await corte.json();
   assert.equal(body.vista, 'semana');

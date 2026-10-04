@@ -1,5 +1,81 @@
 [
   {
+    "id": "studio-exportacion-segundo-plano-stock",
+    "solucion": "studio",
+    "titulo": "Exportacion en segundo plano y guardado en Stock",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "George Lucas",
+    "fuente": "pixeria PR #29, #30",
+    "cliente": "admira"
+  },
+  {
+    "id": "studio-filtro-cliente-admira",
+    "solucion": "studio",
+    "titulo": "Filtro cliente: Admira ve todo, combo con /marca todas",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-05",
+    "estado": "en_curso",
+    "responsable": "George Lucas",
+    "fuente": "pixeria PR #32-35; Carlos 4-oct",
+    "cliente": "admira"
+  },
+  {
+    "id": "studio-gemelos-9-estancos-bcn",
+    "solucion": "studio",
+    "titulo": "Gemelos 9 estancos BCN sin otros clientes",
+    "inicio": "2026-10-03",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "George Lucas",
+    "fuente": "xpaceos PR #16, #17; admira-xp PR #18",
+    "cliente": "altadis"
+  },
+  {
+    "id": "studio-video-oficial-9-16-16-9",
+    "solucion": "studio",
+    "titulo": "Video oficial adaptado 9:16 y 16:9 sustituye pieza neutra",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-31",
+    "estado": "propuesta",
+    "responsable": "George Lucas",
+    "fuente": "#4968; falta video de Carlos",
+    "cliente": "altadis"
+  },
+  {
+    "id": "studio-narrativa-etiqueta-digital",
+    "solucion": "studio",
+    "titulo": "Narrativa Etiqueta Digital (borrador)",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "George Lucas",
+    "fuente": "#4896, #5108",
+    "cliente": "admira"
+  },
+  {
+    "id": "studio-mcp-cliente-activo-xpaceos",
+    "solucion": "studio",
+    "titulo": "MCP cliente activo en xpaceos-mcp",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-31",
+    "estado": "propuesta",
+    "responsable": "George Lucas",
+    "fuente": "tras xpaceos PR #16"
+  },
+  {
+    "id": "studio-web-interactiva-preview",
+    "solucion": "studio",
+    "titulo": "Web interactiva admira.studio en preview",
+    "inicio": "2026-10-05",
+    "fin": "2026-11-30",
+    "estado": "propuesta",
+    "responsable": "George Lucas",
+    "fuente": "#4758-4760",
+    "cliente": "admira"
+  },
+  {
     "id": "app-capturador-instaladores-portal-40km",
     "solucion": "app",
     "titulo": "Capturador instaladores portal 40km",
