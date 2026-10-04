@@ -1,0 +1,156 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "jti",
+  "nombre": "JTI",
+  "nombreCorto": "JTI",
+  "ejemplo": false,
+  "sector": "Estancos · Japan Tobacco International",
+  "descripcion": "Marca blanca de JTI (Japan Tobacco International). Logo oficial de www.jti.com; colores de marca: verde JTI #00BB31 y negro #101111.",
+  "logo": {
+    "svg": "../logos/jti.svg",
+    "alt": "JTI · Japan Tobacco International"
+  },
+  "favicon": "../logos/jti-favicon.svg",
+  "modo": "claro",
+  "tipografia": {
+    "titulos": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "pesoTitulos": 800,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.02em",
+    "fuentes": [
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "400 800"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "6px",
+    "md": "10px",
+    "lg": "16px",
+    "boton": "10px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.08)",
+    "md": "0 8px 24px rgba(0,0,0,.12)",
+    "lg": "0 24px 60px rgba(0,0,0,.18)"
+  },
+  "tono": {
+    "voz": "Claro, cercano y propio de JTI.",
+    "tratamiento": "tú",
+    "si": [],
+    "no": [],
+    "frases": {
+      "cta": "Descúbrelo",
+      "vacio": "Todo en orden por aquí.",
+      "error": "Algo ha fallado. Lo estamos arreglando.",
+      "exito": "¡Listo!"
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#00A52B",
+      "primarioTexto": "#00290B",
+      "secundario": "#101111",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#00BB31",
+      "acentoTexto": "#002209",
+      "fondo": "#FFFFFF",
+      "fondoAlt": "#F5F6F6",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#EEF0EF",
+      "borde": "#D9DCDB",
+      "texto": "#0F271B",
+      "textoSuave": "#57685F",
+      "textoTenue": "#8C9792",
+      "ok": "#2F7D4F",
+      "aviso": "#B7791F",
+      "error": "#C0392B",
+      "info": "#2B6CB0"
+    },
+    "oscuro": {
+      "primario": "#00BB31",
+      "primarioTexto": "#003A0F",
+      "secundario": "#707070",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#00BB31",
+      "acentoTexto": "#002209",
+      "fondo": "#101111",
+      "fondoAlt": "#092715",
+      "superficie": "#122C1F",
+      "superficieAlt": "#183729",
+      "borde": "#224B37",
+      "texto": "#EBF4F0",
+      "textoSuave": "#A8B4AE",
+      "textoTenue": "#76857D",
+      "ok": "#6FCF97",
+      "aviso": "#F2C94C",
+      "error": "#EB5757",
+      "info": "#56CCF2"
+    }
+  },
+  "demo": {
+    "titular": "JTI, también en pantalla",
+    "producto": "Campaña de temporada",
+    "cta": "Descúbrelo",
+    "prompt": "Cartel vertical de JTI para estanco: verde de marca y negro, titular corto y llamada a la acción",
+    "circuito": "Circuito JTI · 40 estancos",
+    "puntos": 40,
+    "superficies": 160,
+    "imprDia": "91.500",
+    "cpm": "7,20 €",
+    "tipoEspacio": "Estancos",
+    "tiendas": [
+      {
+        "nombre": "JTI · Estanco Castellana",
+        "dir": "Paseo de la Castellana 95 · Madrid"
+      },
+      {
+        "nombre": "JTI · Estanco Gràcia",
+        "dir": "Carrer Gran de Gràcia 120 · Barcelona"
+      },
+      {
+        "nombre": "JTI · Estanco Triana",
+        "dir": "Calle San Jacinto 30 · Sevilla"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "pasillo"
+    ],
+    "piezas": [
+      "Escaparate · temporada",
+      "Pantalla mostrador · novedades",
+      "Pasillo · información"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-5J12",
+        "equipo": "Pantalla escaparate",
+        "tienda": "JTI · Estanco Castellana",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-5J08",
+        "equipo": "Hilo musical",
+        "tienda": "JTI · Estanco Gràcia",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-5J03",
+        "equipo": "Player de mostrador",
+        "tienda": "JTI · Estanco Triana",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
