@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoadMap · ADmiraNeXT</title>
-<meta name="description" content="Borrador del RoadMap de octubre, noviembre y diciembre de 2026. Solo lo que ya consta en el repo o en D1.">
+<meta name="description" content="Borrador del RoadMap de ADmiraNeXT, por día, semana, mes, trimestre y año.">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -24,7 +24,16 @@
   .kicker{margin:0 0 10px;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--yk-brand,#4ae3d1)}
   h1{margin:0 0 12px;font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em}
   .lede{margin:0 0 22px;max-width:68ch;color:var(--yk-mut,#92a0b4)}
-  .aviso{margin:0 0 28px;padding:14px 16px;border:1px solid var(--yk-brand,#4ae3d1);border-radius:12px;background:rgba(74,227,209,.08);color:var(--yk-ink,#f2f6fc);font-size:14px}
+  .aviso{margin:0 0 22px;padding:14px 16px;border:1px solid var(--yk-brand,#4ae3d1);border-radius:12px;background:rgba(74,227,209,.08);color:var(--yk-ink,#f2f6fc);font-size:14px}
+  .vistas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+  .vistas a{padding:6px 10px;border:1px solid var(--yk-line,#253042);border-radius:999px;color:var(--yk-mut,#92a0b4);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  .vistas a[aria-current="true"]{border-color:var(--yk-brand,#4ae3d1);color:var(--yk-ink,#f2f6fc)}
+  .periodo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 22px}
+  .periodo strong{font-size:16px;font-weight:650}
+  .hitos{margin:0;padding:0;list-style:none}
+  .hito{margin:0 0 8px;padding:10px;border:1px solid var(--yk-line2,#314057);border-radius:10px;background:rgba(16,23,36,.55);font-size:13px}
+  .hito strong,.hito span{display:block}
+  .vacio{margin:0;color:var(--yk-mut,#92a0b4);font-size:13px}
   .patas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
   .mesa{max-width:none;margin-top:12px}
   .carta{display:flex;flex-direction:column;gap:10px;min-width:0;padding:16px;border:1px solid var(--yk-line,#253042);border-radius:14px;background:rgba(8,13,23,.86)}
@@ -50,92 +59,10 @@
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/organigrama">Organigrama</a><a href="/roadmap" aria-current="page">RoadMap</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 <main data-yk-main>
   <p class="kicker">RoadMap</p>
-  <h1>Octubre, noviembre y diciembre de 2026</h1>
+  <h1>RoadMap</h1>
   <p class="aviso" role="note">Borrador para validar por Carlos</p>
-  <p class="lede">Cada mes dice solo lo que una fuente fecha en ese mes. Si el repo o D1 no lo fechan, el mes queda por definir. Lo que sí consta, sin mes, va aparte y con su fuente.</p>
-
-  <section class="bloque" id="patas">
-    <h2>Las cinco patas</h2>
-    <div class="patas">
-      <article class="carta" id="studio" data-hitos="0">
-        <span class="rol">admira.studio</span>
-        <h2>Creación y Adaptación de Contenidos</h2>
-        <p class="claim">«Creación y Adaptación de Contenidos»</p>
-        <cite>Fuente: organigrama.html</cite>
-        <ol class="meses">
-          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-        </ol>
-        <p class="sin-mes">Sin mes en la fuente: admira.studio (PixerIA) está en producción; la integración de robótica es el roadmap inmediato. <cite>Fuente: businessplan/index.html · s7_default</cite></p>
-      </article>
-      <article class="carta" id="store" data-hitos="0">
-        <span class="rol">admira.store</span>
-        <h2>Distribución, Gestión y Visualización</h2>
-        <p class="claim">«Distribución, Gestión y Visualización»</p>
-        <cite>Fuente: organigrama.html</cite>
-        <ol class="meses">
-          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-        </ol>
-        <p class="sin-mes">Sin mes en la fuente: admira.store (XpaceOS + Club) está en producción; la integración de robótica es el roadmap inmediato. <cite>Fuente: businessplan/index.html · s7_default</cite></p>
-      </article>
-      <article class="carta" id="tv" data-hitos="0">
-        <span class="rol">admira.tv</span>
-        <h2>Reproducción, Emisión y Proof of Play</h2>
-        <p class="claim">«Reproducción, Emisión y Proof of Play»</p>
-        <cite>Fuente: organigrama.html</cite>
-        <ol class="meses">
-          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-        </ol>
-        <p class="sin-mes">Sin mes en la fuente: el censo ya publica 20 subsoluciones de admira.tv y no las asigna a octubre, noviembre ni diciembre. <cite>Fuente: functions/_proyectos.js · parentKey admira-tv</cite></p>
-      </article>
-      <article class="carta" id="app" data-hitos="0">
-        <span class="rol">admira.app</span>
-        <h2>Instalaciones, Mantenimiento y Gestión</h2>
-        <p class="claim">«Instalaciones, Mantenimiento y Gestión»</p>
-        <cite>Fuente: organigrama.html</cite>
-        <ol class="meses">
-          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-        </ol>
-        <p class="sin-mes">Sin mes en la fuente: admira.app (ClearChannel.tv) está en producción; la integración de robótica es el roadmap inmediato. <cite>Fuente: businessplan/index.html · s7_default</cite></p>
-      </article>
-      <article class="carta" id="biz" data-hitos="0">
-        <span class="rol">admira.biz</span>
-        <h2>Nuevos ingresos con DooH y Retail Media</h2>
-        <p class="claim">«Nuevos ingresos con DooH y Retail Media»</p>
-        <cite>Fuente: organigrama.html</cite>
-        <ol class="meses">
-          <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-          <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-        </ol>
-        <p class="sin-mes">Sin mes en la fuente: el censo de proyectos no tiene una clave admira-biz. <cite>Fuente: functions/_proyectos.js</cite></p>
-      </article>
-    </div>
-  </section>
-
-  <section class="bloque mesa" id="admiranext">
-    <h2>AdmiraNeXT</h2>
-    <article class="carta" data-hitos="0">
-      <span class="rol">La mesa · une las cinco patas</span>
-      <h2>AdmiraNeXT</h2>
-      <p class="claim">«La mesa que une las cinco patas.»</p>
-      <cite>Fuente: organigrama.html</cite>
-      <ol class="meses">
-        <li><strong>Octubre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-        <li><strong>Noviembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-        <li><strong>Diciembre 2026</strong> Por definir con Carlos <cite>Fuente: no hay hito fechado en el repo ni en D1</cite></li>
-      </ol>
-      <p class="sin-mes">Sin mes en la fuente: los clientes globales son Admira (por defecto), Altadis y Starbucks, con las cinco patas. El censo comercial de D1 tiene 22 proyectos y no asigna trabajo a un mes. <cite>Fuente: D1 admiranext_clientes_acceso y admiranext_commercial_projects · migrations/0007_clientes_acceso.sql</cite></p>
-      <p class="sin-mes">Sin mes en la fuente: el siguiente paso abierto del handoff es un agente Windows para que el monitor sondee los workers. <cite>Fuente: HANDOFF.md · Siguiente foco recomendado, punto 2</cite></p>
-    </article>
-  </section>
+  <p class="lede">Día, semana, mes, trimestre o año. Los hitos salen de <a href="/api/roadmap">/api/roadmap</a>. Si el periodo no tiene ninguno, queda por definir.</p>
+  <div id="corte"><!--CORTE--></div>
 
   <footer>
     <a href="/">admiranext.com</a> · RoadMap · borrador para validar por Carlos

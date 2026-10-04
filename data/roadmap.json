@@ -1,0 +1,23 @@
+[
+  {
+    "id": "ejemplo-studio-2026-10-05",
+    "solucion": "studio",
+    "titulo": "Ejemplo sustituible para probar el día",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-05",
+    "estado": "propuesta",
+    "responsable": "George Lucas",
+    "fuente": "ejemplo"
+  },
+  {
+    "id": "ejemplo-admiranext-2026-10-20",
+    "solucion": "admiranext",
+    "titulo": "Ejemplo sustituible para probar otro día",
+    "inicio": "2026-10-20",
+    "fin": "2026-10-20",
+    "estado": "propuesta",
+    "responsable": "Steve Jobs",
+    "fuente": "ejemplo",
+    "cliente": "admira"
+  }
+]
