@@ -281,8 +281,9 @@ export const PROYECTOS = [
     clave: 'admira-telegram', nombre: 'admira-telegram (worker)', url: null,
     repo: 'csilvasantin/admira-telegram', repoTxt: 'admira-telegram', privado: true,
     pages: null, publica: '~/Claude/admira-telegram/deploy.sh',
+    volver: 'npx wrangler rollback 2d1572fb-40f0-4375-a239-0b158531148b --name admira-telegram --yes',
     tipo: 'worker', shot: null,
-    nota: 'Espeja el grupo de Telegram en D1. Sostiene admira.live/telegram y el Diario de Silicio.',
+    nota: 'Espeja el grupo de Telegram en D1. Sostiene admira.live/telegram y el Diario de Silicio. Estado anulado (cancelled) desde el 5-oct-2026: sello v.05.10.2026.r1.00:06, commit 17202b4, despliegue 3a307bc9. Volver al anterior: etiqueta retorno/pre-anulado-20261005 (commit aed062f) y el rollback de arriba. El MCP que lee «anulado» es el worker admira-live-mcp, sello v.05.10.2026.r1.00:06, commit d77c88a, despliegue 38354482; su retorno es la etiqueta retorno/pre-anulado-mcp-20261005 y npx wrangler rollback 6a0cb492-872f-45ba-96d8-06e1b584a6a4 --name admira-live-mcp --yes.',
   },
   {
     clave: 'admira-vault', nombre: 'admira-vault (worker)', url: null,
