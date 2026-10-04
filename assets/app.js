@@ -82,7 +82,7 @@
     { id: 'analitics',      url: '/analitics',      es: 'Analítica del grupo',          en: 'Group analytics',          alias: ['analitics', 'analytics', 'analitica', 'analiticas', 'estadisticas', 'stats'] },
     { id: 'presentaciones', url: '/presentaciones/', es: 'Generador de presentaciones', en: 'Presentation generator',   alias: ['presentaciones', 'presentacion', 'presentations', 'presentation', 'presentar', 'slides'] },
     { id: 'webmaster',      url: '/webmaster',      es: 'Webmaster · versiones',        en: 'Webmaster · versions',     alias: ['webmaster', 'versiones', 'versions'] },
-    { id: 'proyectos',      url: '/proyectos/',     es: 'Usuarios y proyectos',         en: 'Users and projects',       alias: ['proyectos', 'projects'] },
+    { id: 'proyectos',      url: '/proyectos/',     es: 'Proyectos',                    en: 'Projects',                 alias: ['proyectos', 'projects'] },
     { id: 'usuarios',       url: '/usuarios',       es: 'Gestión de usuarios',          en: 'User management',          alias: ['usuarios', 'users'] },
     { id: 'flota',          url: '/flota',          es: 'Flota',                        en: 'Fleet',                    alias: ['flota', 'fleet'] },
     { id: 'marcablanca',    url: '/marcablanca/',   es: 'Marca blanca y propuestas',    en: 'White label and proposals', alias: ['marcablanca', 'marca-blanca', 'whitelabel', 'white-label', 'propuestas', 'proposals'] },

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Proyectos · AdmiraNeXT</title>
-<meta name="description" content="Modelo canónico de usuario y proyecto: xpacio, responsable, puertas /help y /mcp, y cómo se declara el principal del día.">
-<meta name="admiranext-version" content="v.04.10.2026.r3.14:00">
+<meta name="description" content="Proyectos de AdmiraNeXT: censo vivo con número, xpacio, responsable y puertas /help y /mcp, y cómo se declara el principal del día.">
+<meta name="admiranext-version" content="v.04.10.2026.r8.22:49">
 <link rel="icon" href="/favicon.ico">
 <style>
 :root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -28,7 +28,23 @@ code{font-family:var(--mono);font-size:.92em}
 .card h3{margin:0 0 6px;font-size:15px}
 .counts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.counts span{font:700 11px var(--mono);padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
 .counts b{color:var(--ink)}
-@media(max-width:760px){table,thead,tbody,tr,th,td{display:block}thead{display:none}td{border:0;padding:4px 0}}
+/* Censo vivo como hoja de cálculo (Carlos, 4-oct-2026): filas compactas, cabecera fija y orden por columna. */
+.hoja{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:10px}
+.hoja table{font-size:13px}
+.hoja th,.hoja td{padding:5px 8px;vertical-align:middle;white-space:nowrap}
+.hoja td:nth-child(3){white-space:normal;min-width:220px}
+.hoja tbody tr:nth-child(even){background:rgba(255,255,255,.025)}
+.hoja tbody tr:hover{background:rgba(99,230,213,.07)}
+.hoja thead th{position:sticky;top:0;z-index:1;background:#0d1522;border-bottom:1px solid var(--line);padding:0}
+.hoja th button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;padding:7px 8px;cursor:pointer;font:700 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.hoja th button:hover,.hoja th button:focus-visible{color:var(--ink)}
+.hoja th button::after{content:"↕";opacity:.35;font-size:10px}
+.hoja th[aria-sort="ascending"] button,.hoja th[aria-sort="descending"] button{color:var(--cyan)}
+.hoja th[aria-sort="ascending"] button::after{content:"▲";opacity:1}
+.hoja th[aria-sort="descending"] button::after{content:"▼";opacity:1}
+.hoja td.num{font-family:var(--mono);text-align:right;color:var(--dim)}
+.hoja .meta{display:inline;margin-left:6px;font-size:11px}
+@media(max-width:760px){.hoja{max-height:none}.hoja th,.hoja td{white-space:normal}}
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261004-5053">
 <script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
@@ -37,8 +53,8 @@ code{font-family:var(--mono);font-size:.92em}
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/" aria-current="page">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/organigrama">Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 <main class="shell" data-yk-main>
   <p class="eyebrow">AdmiraNeXT · definición</p>
-  <h1>Usuarios y proyectos</h1>
-  <p class="lede">El censo vivo está en Yokup. Aquí se ve el modelo (quién es un usuario, qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada.</p>
+  <h1>Proyectos</h1>
+  <p class="lede">El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.</p>
   <nav data-yk-slot="left" data-yk-label="Esta página" aria-label="Enlaces de la página">
     <a href="/help/#usuarios-proyectos">/help</a>
     <a href="/mcp/">/mcp</a>
@@ -54,11 +70,6 @@ code{font-family:var(--mono);font-size:.92em}
   <section class="panel" id="modelo">
     <h2>Modelo canónico</h2>
     <div class="grid">
-      <article class="card">
-        <h3>Usuario (carbono)</h3>
-        <p class="meta">Google email en <code>/usuarios</code>. Campos: email, nombre, rol (admin/editor/viewer), estado derivado (activo / pendiente de primer acceso / suspendido), proyectos permitidos, tokens MCP (<code>anmcp_</code>).</p>
-        <p class="meta">Alta: admin en /usuarios → copiar invitación. No entra solo en la lista blanca de admira.live.</p>
-      </article>
       <article class="card">
         <h3>Agente (silicio)</h3>
         <p class="meta">Persona + apellido de máquina (<code>SmithMacMini</code>). El alta de trabajo lleva <code>project_id</code> del censo. Si falta, Yokup hereda el principal del día — y se trabaja en el proyecto equivocado.</p>
@@ -77,9 +88,9 @@ code{font-family:var(--mono);font-size:.92em}
       <div id="counts" class="counts"><span>cargando…</span></div>
     </div>
     <p class="meta" id="status">Leyendo api.yokup.com/projects</p>
-    <div style="overflow:auto">
-      <table>
-        <thead><tr><th>Id</th><th>Nombre</th><th>Xpacio</th><th>Responsable</th><th>/help</th><th>/mcp</th></tr></thead>
+    <div class="hoja">
+      <table id="censo-tabla">
+        <thead><tr><th data-col="num" aria-sort="none" title="Número de proyecto: único en todo el ecosistema Admira"><button type="button">Nº</button></th><th data-col="id" aria-sort="none"><button type="button">Id</button></th><th data-col="nombre" aria-sort="none"><button type="button">Nombre</button></th><th data-col="xpacio" aria-sort="none"><button type="button">Xpacio</button></th><th data-col="responsable" aria-sort="none"><button type="button">Responsable</button></th><th data-col="help" aria-sort="none"><button type="button">/help</button></th><th data-col="mcp" aria-sort="none"><button type="button">/mcp</button></th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -115,10 +126,52 @@ function puerta(web, path){
   const o = originDe(web);
   return o ? o + path : '';
 }
+// Nº de proyecto: el número único que se sigue por todo el ecosistema. Se lee
+// del censo tal cual (number / numero / project_number / seq); NO se inventa ni
+// se deriva del orden. Si el censo aún no lo publica, la celda dice «—».
+function numeroDe(p){
+  for (const k of ['number','numero','project_number','projectNumber','num','seq']) {
+    const v = p && p[k];
+    if (v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v))) return Number(v);
+  }
+  return null;
+}
+let censo = [], orden = { col: null, dir: 1 };
+const COLS = {
+  num: f => f.num, id: f => f.id, nombre: f => f.nombre, xpacio: f => f.xpacio,
+  responsable: f => f.responsable, help: f => f.help, mcp: f => f.mcp,
+};
+function comparar(a, b){
+  const va = COLS[orden.col](a), vb = COLS[orden.col](b);
+  const vacioA = va === null || va === '' || va === '—', vacioB = vb === null || vb === '' || vb === '—';
+  if (vacioA || vacioB) return vacioA === vacioB ? a.pos - b.pos : (vacioA ? 1 : -1);   // vacíos siempre al final
+  const c = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), 'es', { sensitivity: 'base', numeric: true });
+  return (c || a.pos - b.pos) * orden.dir;
+}
+function pintar(){
+  const lista = orden.col ? censo.slice().sort(comparar) : censo;
+  document.getElementById('rows').innerHTML = lista.map(f => `<tr>
+        <td class="num">${f.num === null ? '—' : esc(f.num)}</td>
+        <td><code>${esc(f.id)}</code></td>
+        <td><strong>${esc(f.nombre)}</strong><span class="meta">${esc(f.web)}</span></td>
+        <td><span class="xp ${f.xpacio==='Yokup'?'yok':'next'}">${esc(f.xpacio)}</span></td>
+        <td>${esc(f.responsable)}</td>
+        <td>${f.help ? `<a href="${esc(f.help)}">/help</a>` : '—'}</td>
+        <td>${f.mcp ? `<a href="${esc(f.mcp)}">/mcp</a>` : '—'}</td>
+      </tr>`).join('');
+  document.querySelectorAll('#censo-tabla th[data-col]').forEach(th => {
+    th.setAttribute('aria-sort', th.dataset.col === orden.col ? (orden.dir > 0 ? 'ascending' : 'descending') : 'none');
+  });
+}
+document.querySelector('#censo-tabla thead').addEventListener('click', e => {
+  const th = e.target.closest && e.target.closest('th[data-col]');
+  if (!th) return;
+  orden = orden.col === th.dataset.col ? { col: th.dataset.col, dir: -orden.dir } : { col: th.dataset.col, dir: 1 };
+  pintar();
+});
 (async () => {
   const status = document.getElementById('status');
-  const rows = document.getElementById('rows');
-  try {
+    try {
     const r = await fetch('https://api.yokup.com/projects', { headers: { Accept: 'application/json' } });
     if (!r.ok) throw new Error('Yokup HTTP ' + r.status);
     const d = await r.json();
@@ -128,20 +181,15 @@ function puerta(web, path){
     document.getElementById('counts').innerHTML =
       `<span><b>${items.length}</b> proyectos</span><span class="xp next"><b>${next}</b> AdmiraNeXT</span><span class="xp yok"><b>${yok}</b> Yokup</span>`;
     status.textContent = 'Censo del ' + (d.day || 'día') + ' · no se borra nada desde aquí.';
-    rows.innerHTML = items.map(p => {
-      const xp = xpacioDe(p);
-      const help = puerta(p.web, '/help');
-      const mcp = puerta(p.web, '/mcp');
-      const who = p.primary_responsible || p.owner || '—';
-      return `<tr>
-        <td><code>${esc(p.id)}</code></td>
-        <td><strong>${esc(p.name)}</strong><div class="meta">${esc(p.web || '')}</div></td>
-        <td><span class="xp ${xp==='Yokup'?'yok':'next'}">${esc(xp)}</span></td>
-        <td>${esc(who)}</td>
-        <td>${help ? `<a href="${esc(help)}">/help</a>` : '—'}</td>
-        <td>${mcp ? `<a href="${esc(mcp)}">/mcp</a>` : '—'}</td>
-      </tr>`;
-    }).join('');
+    censo = items.map((p, pos) => ({
+      pos, num: numeroDe(p), id: String(p.id || ''), nombre: String(p.name || ''), web: String(p.web || ''),
+      xpacio: xpacioDe(p), responsable: p.primary_responsible || p.owner || '—',
+      help: puerta(p.web, '/help'), mcp: puerta(p.web, '/mcp'),
+    }));
+    pintar();
+    if (censo.length && censo.every(f => f.num === null)) {
+      status.textContent += ' · Nº pendiente: api.yokup.com/projects aún no publica el número de proyecto.';
+    }
   } catch (e) {
     status.textContent = 'No se pudo leer el censo: ' + e.message;
   }
