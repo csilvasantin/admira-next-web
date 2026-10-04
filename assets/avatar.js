@@ -6,8 +6,10 @@
  *
  *   /avatar good    el calvo — cara 3D facecap.glb, 52 blendshapes (better.html)
  *   /avatar better  la chica — Ready Player Me con gafas (best.html)
- *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html);
- *                   si el host de render está apagado, esa página cae a la chica
+ *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html),
+ *                   solo si este navegador recibe el vídeo. Si el stream no
+ *                   llega (host apagado, o el WebRTC solo tiene candidatos de
+ *                   la red local), en pocos segundos entra la chica.
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
  *
@@ -35,6 +37,13 @@
   };
   var KEY = 'admira-avatar:override';
   var LEVEL_KEY = 'admira-avatar:nivel';
+  var SIZE_KEY = 'admira-avatar:size';
+  // metahuman.html?dock=1 (digitalavatar.ai 1f5d1be) no cambia de cara: con el
+  // stream apagado se queda en negro y con la chapa «EN VIVO». El HTTP :8443
+  // responde igual (el sondeo del favicon da falso positivo) porque el vídeo
+  // solo anuncia candidatos ICE de la LAN y de Tailscale.
+  var NEO_WS = 'wss://macbook-pro-16.tail48b61c.ts.net:8443/';
+  var NEO_PROBE_MS = 4000;
   var CACHE = 'admira-avatar:flags';
   var CACHE_MS = 60000;
   var TIMEOUT_MS = 2500;
@@ -96,8 +105,152 @@
       : 'Usa /avatar good, /avatar better o /avatar best. /avatar solo muestra el estado. /avatarON y /avatarOFF lo muestran o lo ocultan.';
   }
 
+  // Tamaño del panel. El asa está en la esquina superior izquierda: el panel
+  // sigue anclado abajo a la derecha, así que arrastrar hacia arriba-izquierda agranda.
+  function clampPanelSize(w, h, view) {
+    var vw = view && isFinite(view.w) ? view.w : 1280;
+    var vh = view && isFinite(view.h) ? view.h : 800;
+    var lift = view && isFinite(view.lift) ? view.lift : 0;
+    var maxW = Math.min(920, Math.max(200, vw - 24));
+    var maxH = Math.min(1000, Math.max(200, vh - lift - 16));
+    var minW = Math.min(300, maxW);
+    var minH = Math.min(460, maxH);
+    var nw = Number(w), nh = Number(h);
+    if (!isFinite(nw) || nw <= 0) nw = Math.min(400, maxW);
+    if (!isFinite(nh) || nh <= 0) nh = Math.min(680, maxH);
+    return {
+      w: Math.round(Math.max(minW, Math.min(maxW, nw))),
+      h: Math.round(Math.max(minH, Math.min(maxH, nh)))
+    };
+  }
+  function panelSizeAfterDrag(start, point, origin, view) {
+    var dx = (point && point.x || 0) - (origin && origin.x || 0);
+    var dy = (point && point.y || 0) - (origin && origin.y || 0);
+    return clampPanelSize((start && start.w || 0) - dx, (start && start.h || 0) - dy, view);
+  }
+
+  // best solo abre metahuman.html si el stream llegó de verdad. Si no, la chica
+  // con dock=1 (sin barra) y kiosk=0 (la consola se queda; en un iframe estrecho
+  // el modo kiosco de best.html la ocultaría).
+  function faceChoice(level, neoUp) {
+    if (level === 'best') {
+      if (neoUp === true) return {label: 'best', url: LEVELS.best, fallback: false};
+      return {label: 'best', url: LEVELS.better, fallback: true};
+    }
+    var lv = LEVELS[level] ? level : 'good';
+    return {label: lv, url: LEVELS[lv], fallback: false};
+  }
+
+  // 'neo' si el vídeo llega, 'girl' si ya se sabe que no, 'wait' si aún cabe esperar.
+  function neoVerdict(s) {
+    s = s || {};
+    if (s.transportError) return 'girl';
+    if (s.ids && !s.ids.length) return 'girl';
+    var ice = s.ice || '';
+    var conn = s.conn || '';
+    if (ice === 'failed' || conn === 'failed') return 'girl';
+    if (ice === 'connected' || ice === 'completed' || conn === 'connected') return 'neo';
+    if (s.elapsed >= (s.timeout || NEO_PROBE_MS)) return 'girl';
+    return 'wait';
+  }
+
+  // Promesa true solo si este cliente completa el WebRTC con el streamer.
+  // opts permite inyectar WebSocket, RTCPeerConnection y temporizadores en los tests.
+  function probeNeo(opts) {
+    opts = opts || {};
+    var timeout = opts.timeoutMs || NEO_PROBE_MS;
+    var WS = opts.WebSocket || (typeof WebSocket === 'function' ? WebSocket : null);
+    var PC = opts.RTCPeerConnection || (typeof RTCPeerConnection === 'function' ? RTCPeerConnection : null);
+    var sched = opts.setTimeout || (root && root.setTimeout) || (typeof setTimeout === 'function' ? setTimeout : null);
+    var clear = opts.clearTimeout || (root && root.clearTimeout) || (typeof clearTimeout === 'function' ? clearTimeout : function () {});
+    var url = opts.url || NEO_WS;
+    return new Promise(function (resolve) {
+      var done = false, ws = null, pc = null, timer = null, t0 = Date.now();
+      var snap = {ids: null, ice: '', conn: '', transportError: false, elapsed: 0, timeout: timeout};
+      var pcOpts = {}, iceQueue = [], remoteSet = false;
+      function finish(ok) {
+        if (done) return;
+        done = true;
+        if (timer) clear(timer);
+        try { if (pc) pc.close(); } catch (e) {}
+        try { if (ws && ws.readyState === 1) ws.close(); } catch (e) {}
+        resolve(!!ok);
+      }
+      function look() {
+        snap.elapsed = Date.now() - t0;
+        var v = neoVerdict(snap);
+        if (v === 'neo') finish(true);
+        else if (v === 'girl') finish(false);
+      }
+      function send(obj) {
+        try { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); } catch (e) {}
+      }
+      if (!WS || !PC || !sched) { finish(false); return; }
+      timer = sched(function () { look(); if (!done) finish(false); }, timeout);
+      try { ws = new WS(url); }
+      catch (e) { snap.transportError = true; finish(false); return; }
+      ws.onerror = function () { if (!done && ws.readyState !== 1) { snap.transportError = true; look(); } };
+      ws.onclose = function () { if (!done) { snap.transportError = true; look(); } };
+      ws.onmessage = function (ev) {
+        if (done) return;
+        var msg; try { msg = JSON.parse(String(ev && ev.data || '')); } catch (e) { return; }
+        if (!msg || !msg.type) return;
+        if (msg.type === 'config') {
+          pcOpts = msg.peerConnectionOptions || {};
+          send({type: 'listStreamers'});
+        } else if (msg.type === 'streamerList') {
+          snap.ids = msg.ids || [];
+          look();
+          if (!done && snap.ids.length) send({type: 'subscribe', streamerId: snap.ids[0]});
+        } else if (msg.type === 'offer' && msg.sdp) {
+          startPc(msg.sdp);
+        } else if (msg.type === 'iceCandidate' && msg.candidate) {
+          takeIce(msg.candidate);
+        } else if (msg.type === 'streamerDisconnected') {
+          snap.ids = [];
+          look();
+        }
+      };
+      function takeIce(c) {
+        if (!c) return;
+        if (!pc || !remoteSet) { iceQueue.push(c); return; }
+        try { var added = pc.addIceCandidate(c); if (added && typeof added.catch === 'function') added.catch(function () {}); } catch (e) {}
+      }
+      function startPc(sdp) {
+        if (pc || done) return;
+        try { pc = new PC(pcOpts); }
+        catch (e) { snap.transportError = true; look(); return; }
+        pc.oniceconnectionstatechange = function () { if (done || !pc) return; snap.ice = pc.iceConnectionState || ''; look(); };
+        pc.onconnectionstatechange = function () { if (done || !pc) return; snap.conn = pc.connectionState || ''; look(); };
+        pc.onicecandidate = function (ev) {
+          if (done || !ev || !ev.candidate) return;
+          send({type: 'iceCandidate', candidate: {
+            candidate: ev.candidate.candidate,
+            sdpMid: ev.candidate.sdpMid,
+            sdpMLineIndex: ev.candidate.sdpMLineIndex
+          }});
+        };
+        Promise.resolve(pc.setRemoteDescription({type: 'offer', sdp: sdp})).then(function () {
+          if (done) return null;
+          remoteSet = true;
+          var queued = iceQueue; iceQueue = [];
+          queued.forEach(takeIce);
+          return pc.createAnswer();
+        }).then(function (ans) {
+          if (done || !ans) return null;
+          return pc.setLocalDescription(ans);
+        }).then(function () {
+          if (done || !pc || !pc.localDescription) return;
+          send({type: 'answer', sdp: pc.localDescription.sdp});
+        }).catch(function () { if (!done) { snap.transportError = true; look(); } });
+      }
+    });
+  }
+
   var api = {decide: decide, resolve: resolve, legacyValue: legacyValue, message: message,
-    KEY: KEY, LEVEL_KEY: LEVEL_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
+    clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, faceChoice: faceChoice, neoVerdict: neoVerdict, probeNeo: probeNeo,
+    KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN,
+    NEO_WS: NEO_WS, NEO_PROBE_MS: NEO_PROBE_MS};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
   if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return; // ya cargado en esta página
@@ -151,6 +304,7 @@
     ['xsExpert', 'telegramDock', 'expert-panel', 'yk-rail-bottom'].forEach(function (id) { h = Math.max(h, barHeight(doc.getElementById(id))); });
     doc.querySelectorAll('.xs-expert, .yk-rail-bottom, .pf-cli').forEach(function (el) { h = Math.max(h, barHeight(el)); });
     doc.documentElement.style.setProperty('--da-lift', h + 'px');
+    if (!resizing) fitPanel();
   }
   var liftTimer = null;
   function watchLift() {
@@ -168,6 +322,77 @@
     var v = get(LEVEL_KEY);
     return LEVELS[v] ? v : 'good';
   }
+  var resizing = null;
+  var neoTicket = 0;
+  var neoCache = null;
+  function viewBox() {
+    var raw = doc.documentElement.style.getPropertyValue('--da-lift') || '';
+    var lift = parseInt(raw, 10);
+    return {w: root.innerWidth || 1280, h: root.innerHeight || 800, lift: isFinite(lift) ? lift : 20};
+  }
+  function readSize() {
+    try { var s = JSON.parse(get(SIZE_KEY) || 'null'); if (s && isFinite(s.w) && isFinite(s.h)) return s; } catch (e) {}
+    return null;
+  }
+  function fitPanel() {
+    var panel = doc.getElementById('da-suite-panel');
+    if (!panel || resizing) return;
+    var s = clampPanelSize((readSize() || {}).w, (readSize() || {}).h, viewBox());
+    panel.style.width = s.w + 'px';
+    panel.style.height = s.h + 'px';
+  }
+  function setNote(text) {
+    var n = doc.getElementById('da-suite-note');
+    if (!n) return;
+    n.textContent = text || '';
+    n.style.display = text ? 'block' : 'none';
+  }
+  function bindResize(handle) {
+    function end(e) {
+      if (!resizing || (e && e.pointerId !== resizing.id)) return;
+      var panel = doc.getElementById('da-suite-panel');
+      var rect = panel.getBoundingClientRect();
+      var s = clampPanelSize(rect.width, rect.height, viewBox());
+      panel.style.width = s.w + 'px';
+      panel.style.height = s.h + 'px';
+      set(SIZE_KEY, JSON.stringify(s));
+      resizing = null;
+    }
+    handle.addEventListener('pointerdown', function (e) {
+      if (e.button != null && e.button !== 0) return;
+      var panel = doc.getElementById('da-suite-panel');
+      var rect = panel.getBoundingClientRect();
+      resizing = {id: e.pointerId, x: e.clientX, y: e.clientY, w: rect.width, h: rect.height};
+      try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+    handle.addEventListener('pointermove', function (e) {
+      if (!resizing || e.pointerId !== resizing.id) return;
+      var s = panelSizeAfterDrag({w: resizing.w, h: resizing.h}, {x: e.clientX, y: e.clientY}, {x: resizing.x, y: resizing.y}, viewBox());
+      var panel = doc.getElementById('da-suite-panel');
+      panel.style.width = s.w + 'px';
+      panel.style.height = s.h + 'px';
+      e.preventDefault();
+    });
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+    handle.addEventListener('keydown', function (e) {
+      var step = e.shiftKey ? 80 : 24;
+      var dx = 0, dy = 0;
+      if (e.key === 'ArrowLeft') dx = -step;
+      else if (e.key === 'ArrowRight') dx = step;
+      else if (e.key === 'ArrowUp') dy = -step;
+      else if (e.key === 'ArrowDown') dy = step;
+      else return;
+      var panel = doc.getElementById('da-suite-panel');
+      var rect = panel.getBoundingClientRect();
+      var s = panelSizeAfterDrag({w: rect.width, h: rect.height}, {x: dx, y: dy}, {x: 0, y: 0}, viewBox());
+      panel.style.width = s.w + 'px';
+      panel.style.height = s.h + 'px';
+      set(SIZE_KEY, JSON.stringify(s));
+      e.preventDefault();
+    });
+  }
   function ensureDock() {
     if (node()) return node();
     watchLift();
@@ -175,31 +400,79 @@
     wrap.id = 'da-suite';
     wrap.setAttribute('style', 'position:fixed;right:16px;bottom:20px;z-index:25;font-family:ui-monospace,SFMono-Regular,Menlo,monospace');
     wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;border-radius:50%;border:1px solid rgba(120,243,255,.4);background:#0a1620;color:#78f3ff;font-size:26px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.5)">🤖</button>'
-      + '<div id="da-suite-panel" style="width:min(400px,calc(100vw - 24px));height:min(680px,calc(100vh - var(--da-lift,20px) - 24px));background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
-      + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
+      + '<div id="da-suite-panel" style="position:relative;box-sizing:border-box;background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column;max-width:calc(100vw - 24px);max-height:calc(100vh - var(--da-lift,20px) - 16px)">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 28px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
+      + '<div id="da-suite-note" style="display:none;padding:0 12px 8px 28px;color:#ffb454;font-size:11px;letter-spacing:0;text-transform:none;line-height:1.35"></div>'
+      + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;min-height:0;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+      + '<button type="button" id="da-suite-resize" aria-label="' + (en() ? 'Resize avatar' : 'Redimensionar el avatar') + '"></button></div>';
     doc.body.appendChild(wrap);
     var style = doc.getElementById('admira-avatar-open');
     if (!style) {
       style = doc.createElement('style');
       style.id = 'admira-avatar-open';
-      style.textContent = '#da-suite-panel{display:none}#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}';
+      style.textContent = '#da-suite-panel{display:none}#da-suite.open #da-suite-bubble{display:none}#da-suite.open #da-suite-panel{display:flex}'
+        + '#da-suite-resize{position:absolute;left:0;top:0;width:28px;height:28px;padding:0;border:0;background:transparent;cursor:nwse-resize;touch-action:none;z-index:3}'
+        + '#da-suite-resize:before{content:"";position:absolute;left:7px;top:7px;width:12px;height:12px;border-left:2px solid rgba(120,243,255,.9);border-top:2px solid rgba(120,243,255,.9)}'
+        + '#da-suite-resize:focus-visible{outline:2px solid #78f3ff;outline-offset:-2px}';
       (doc.head || doc.documentElement).appendChild(style);
+    }
+    fitPanel();
+    bindResize(wrap.querySelector('#da-suite-resize'));
+    if (!root.__daAvatarSized) {
+      root.__daAvatarSized = true;
+      root.addEventListener('resize', fitPanel);
     }
     wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { openLevel(storedLevel()); });
     wrap.querySelector('#da-suite-x').addEventListener('click', function () { wrap.classList.remove('open'); });
     return wrap;
   }
-  function openLevel(level) {
+  function paintFace(level, url) {
     var wrap = ensureDock();
     var frame = wrap.querySelector('#da-suite-frame');
-    var url = LEVELS[level] || LEVELS.good;
     if (frame.getAttribute('src') !== url) frame.setAttribute('src', url);
     var label = wrap.querySelector('#da-suite-label');
     if (label) label.textContent = level;
     wrap.style.display = '';
     wrap.classList.add('open');
     applyLift();
+    return wrap;
+  }
+  function neoReady() {
+    if (neoCache && Date.now() - neoCache.t < (neoCache.ok ? 20000 : 8000)) return Promise.resolve(neoCache.ok);
+    return probeNeo().then(function (ok) { neoCache = {t: Date.now(), ok: !!ok}; return !!ok; });
+  }
+  function openLevel(level) {
+    var ticket = ++neoTicket;
+    if (level !== 'best') {
+      var direct = faceChoice(level, true);
+      setNote('');
+      paintFace(direct.label, direct.url);
+      return;
+    }
+    if (neoCache && neoCache.ok && Date.now() - neoCache.t < 20000) {
+      var live = faceChoice('best', true);
+      setNote('');
+      paintFace(live.label, live.url);
+      return;
+    }
+    var wrap = ensureDock();
+    wrap.style.display = '';
+    wrap.classList.add('open');
+    var label = wrap.querySelector('#da-suite-label');
+    if (label) label.textContent = 'best';
+    // No dejar puesta la consola de Neo (vídeo negro) mientras se comprueba el stream.
+    var frame = wrap.querySelector('#da-suite-frame');
+    if (frame && frame.getAttribute('src') === LEVELS.best) frame.removeAttribute('src');
+    setNote(en() ? 'Checking whether Neo is live…' : 'Comprobando si Neo está en vivo…');
+    applyLift();
+    neoReady().then(function (ok) {
+      if (ticket !== neoTicket) return;
+      var n = node();
+      if (!n || !n.classList.contains('open')) return;
+      var choice = faceChoice('best', ok === true);
+      paintFace(choice.label, choice.url);
+      setNote(choice.fallback ? (en() ? 'Neo is unavailable, showing the girl' : 'Neo no disponible, mostrando a la chica') : '');
+    });
   }
   function show(open, level) {
     var lv = LEVELS[level] ? level : storedLevel();
@@ -214,6 +487,8 @@
     return Promise.resolve(true);
   }
   function hide() {
+    neoTicket++;
+    setNote('');
     var n = node();
     if (n) { n.classList.remove('open'); n.style.display = 'none'; var frame = n.querySelector('iframe'); if (frame) frame.removeAttribute('src'); }
     try { if (root.speechSynthesis) root.speechSynthesis.cancel(); } catch (_) {}

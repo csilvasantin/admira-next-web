@@ -22,9 +22,12 @@
 
 # Avatar digital (encargo avatar · 4-oct-2026): el cargador y el interruptor los
 # leen todos los sitios de la red. Sin cookies ni datos personales.
+# max-age corto: un ?v= viejo no retiene el cargador. En www.admiranext.com una
+# regla de zona pisa esta cabecera y deja max-age=14400; mientras siga así, el
+# token ?v= sigue siendo lo que renueva la caché del navegador en ese dominio.
 /assets/avatar.js
   Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=300
+  Cache-Control: public, max-age=60, must-revalidate
 
 # ⌘ EXPERTO · CLI compartido (look digitalavatar.ai): lo cargan studio, store, app, tv y biz.
 /suite/*
