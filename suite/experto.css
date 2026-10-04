@@ -1,0 +1,77 @@
+/* ⌘ EXPERTO · CLI — piel compartida de la suite AdmiraNeXT (studio, store, app, tv, biz).
+   Carlos, 4-oct-2026: el modo Experto de todas las patas con el look de digitalavatar.ai.
+   Fuente: csilvasantin/digitalavatar.ai assets/da-shell.css (#daExpert .yk-cli + generator-console).
+   Solo dentro del panel Experto: cian #50c8ff + verde consola #3df08a (excepción explícita a la paleta).
+   Uso:  <link rel="stylesheet" href="https://admiranext.com/suite/experto.css?v=…">
+         <script defer src="https://admiranext.com/suite/experto.js?v=…" data-engine="ADMIRA BIZ ENGINE" data-pata="admira.biz"></script>
+   experto.js marca el panel con .ax-experto y las piezas con .ax-*; esta hoja no toca nada más. */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap");
+
+html[data-ax-experto] .ax-experto{
+  --ax-bg:#0a0c12;--ax-bg2:#10141e;--ax-text:#f0e6ff;--ax-muted:rgba(216,200,255,.72);
+  --ax-cyan:#50c8ff;--ax-green:#3df08a;--ax-err:#ffbc8c;
+  --ax-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:linear-gradient(180deg,var(--ax-bg),var(--ax-bg2))!important;
+  border:1px solid rgba(80,200,255,.35)!important;border-bottom:0!important;border-radius:0!important;
+  box-shadow:0 0 40px rgba(0,0,0,.6),inset 0 0 40px rgba(80,200,255,.03)!important;
+  color:var(--ax-text);font:12px/1.45 var(--ax-mono);
+  padding:14px 16px calc(16px + env(safe-area-inset-bottom))!important;gap:0!important;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+html[data-ax-experto] .ax-experto *{box-sizing:border-box}
+
+/* Cabecera «⌘ EXPERTO · CLI» */
+html[data-ax-experto] .ax-experto .ax-hd{display:flex;align-items:center;gap:10px;flex:0 0 auto;margin:0 0 10px;padding:0 2px 12px;
+  border-bottom:1px solid rgba(80,200,255,.22);background:none;min-height:0}
+html[data-ax-experto] .ax-experto .ax-title{flex:1;min-width:0;font:700 11px/1.3 var(--ax-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ax-cyan)}
+html[data-ax-experto] .ax-experto .ax-hd button,html[data-ax-experto] .ax-experto .ax-hd summary{color:var(--ax-cyan);border-color:rgba(80,200,255,.35)}
+html[data-ax-experto] .ax-experto .ax-extras-btn{padding:3px 9px;border:1px solid rgba(80,200,255,.35);border-radius:999px;background:transparent;
+  color:var(--ax-cyan);font:600 10px/1.3 var(--ax-mono);letter-spacing:.08em;cursor:pointer}
+html[data-ax-experto] .ax-experto .ax-extras-btn:hover,html[data-ax-experto] .ax-experto.ax-extras-on .ax-extras-btn{background:rgba(80,200,255,.12);border-color:var(--ax-cyan)}
+
+/* Cuerpo: ficha del motor (izquierda) + CLI (derecha) */
+html[data-ax-experto] .ax-experto .ax-body{flex:1;min-height:0;display:flex!important;flex-direction:row;gap:14px;margin:0;
+  border:0!important;border-radius:0!important;overflow:hidden;background:none}
+html[data-ax-experto] .ax-experto .ax-engine-slot{flex:0 0 min(34%,420px);display:flex;min-width:0;min-height:0;margin:0;padding:0}
+html[data-ax-experto] .ax-experto .ax-engine{flex:1;margin:0;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;
+  border:1px solid rgba(61,240,138,.28);border-radius:10px;padding:12px 14px;background:#03080c;color:var(--ax-green);
+  font:700 11px/1.6 var(--ax-mono);text-align:left}
+html[data-ax-experto] .ax-experto .ax-cli-module{flex:1 1 0!important;display:flex!important;flex-direction:column;min-width:0;min-height:0;
+  border:0!important;background:none!important;overflow:hidden;padding:0;margin:0}
+html[data-ax-experto] .ax-experto .ax-cli{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:0!important;overflow:hidden;font:inherit}
+html[data-ax-experto] .ax-experto .ax-cli-out{flex:1;min-height:60px;overflow:auto;margin:0;padding:8px 10px!important;list-style:none;
+  font:11.5px/1.5 var(--ax-mono);color:var(--ax-muted);white-space:pre-wrap;word-break:break-word;text-align:left;
+  background:rgba(2,8,13,.55);border:1px solid rgba(80,200,255,.16);border-radius:10px}
+html[data-ax-experto] .ax-experto .ax-cli-out > *{margin:0;padding:0;border:0!important;background:none}
+html[data-ax-experto] .ax-experto .ax-cli-out :is(code,.expert-log-cmd,.yk-cli-cmd,.cmd){display:block;color:var(--ax-cyan);background:none;font:inherit;padding:0}
+html[data-ax-experto] .ax-experto .ax-cli-out :is(.expert-log-title){color:var(--ax-cyan);font-weight:700;letter-spacing:.08em;margin-top:2px}
+html[data-ax-experto] .ax-experto .ax-cli-out :is(.expert-log-line,div,p,span){color:inherit}
+html[data-ax-experto] .ax-experto .ax-cli-out :is(.error,.err,.yk-cli-err) :is(div,.expert-log-line){color:var(--ax-err)}
+html[data-ax-experto] .ax-experto .ax-cli-out a{color:var(--ax-cyan)}
+html[data-ax-experto] .ax-experto .ax-cli-form{display:flex!important;align-items:center;gap:8px;flex:0 0 auto;margin:0;padding:0 10px!important;
+  border:1px solid rgba(80,200,255,.55);border-radius:10px;background:#050a12;
+  box-shadow:0 0 0 1px rgba(80,200,255,.08),0 0 12px rgba(80,200,255,.18);grid-template-columns:none}
+html[data-ax-experto] .ax-experto .ax-cli-form:focus-within{border-color:var(--ax-cyan);box-shadow:0 0 0 1px rgba(80,200,255,.25),0 0 16px rgba(80,200,255,.35)}
+html[data-ax-experto] .ax-experto .ax-cli-prompt{display:inline;margin:0;font:700 14px/1 var(--ax-mono);color:var(--ax-cyan);cursor:text}
+html[data-ax-experto] .ax-experto .ax-cli-input{flex:1;min-width:0;width:auto!important;display:block;height:auto;margin:0;padding:10px 0!important;
+  font:13px/1.2 var(--ax-mono)!important;color:var(--ax-text)!important;letter-spacing:normal;text-transform:none;
+  background:transparent!important;border:0!important;border-radius:0!important;outline:none!important;box-shadow:none!important;appearance:none}
+html[data-ax-experto] .ax-experto .ax-cli-input::placeholder{color:rgba(216,200,255,.45)}
+html[data-ax-experto] .ax-experto .ax-cli-form :is(button,[type=submit]){position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);border:0}
+html[data-ax-experto] .ax-experto .ax-cli-hint{margin:0;font:10px/1.3 var(--ax-mono);color:rgba(216,200,255,.45);flex:0 0 auto}
+
+/* Lo que cada pata tenía de más (verbos, rutinas…) queda tras «＋ verbos»; las asas de bloque sobran. */
+html[data-ax-experto] .ax-experto:not(.ax-extras-on) .ax-extra{display:none!important}
+html[data-ax-experto] .ax-experto.ax-extras-on .ax-extra{flex:0 0 min(26%,320px)!important;display:flex!important;flex-direction:column;min-width:0;
+  border:1px solid rgba(80,200,255,.16)!important;border-radius:10px;background:rgba(2,8,13,.55)!important;overflow:hidden}
+html[data-ax-experto] .ax-experto.ax-extras-on .ax-engine-slot{flex-basis:min(22%,300px)}
+html[data-ax-experto] .ax-experto.ax-extras-on .ax-extra{flex-basis:min(22%,300px)!important}
+html[data-ax-experto] .ax-experto .ax-chrome{display:none!important}
+
+@media (max-width:720px){
+  html[data-ax-experto] .ax-experto .ax-body{flex-direction:column;overflow:auto}
+  html[data-ax-experto] .ax-experto .ax-engine-slot{flex:0 0 auto}
+  html[data-ax-experto] .ax-experto .ax-engine{max-height:150px}
+  html[data-ax-experto] .ax-experto .ax-cli-module{min-height:220px}
+  html[data-ax-experto] .ax-experto.ax-extras-on .ax-extra{flex:0 0 auto!important}
+}
