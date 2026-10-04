@@ -32,6 +32,31 @@
     propuesta: false
   };
 
+  /* ── Competidores directos nunca se mezclan ─────────────────────────────
+   * Abierta con ?marca=<id>, la página no ofrece a su rival en ningún selector: el catálogo
+   * (/marcablanca/api/marcas) llega ya sin él tanto a los chips «Del catálogo» como al panel
+   * prospect, que lo pide por su cuenta (este script corre antes que su módulo). */
+  var RIVALES = { jti: ['altadis'], altadis: ['jti'] };
+  var rivales = RIVALES[(q.get('marca') || '').toLowerCase()] || [];
+  if (rivales.length && window.fetch) {
+    var fetchOriginal = window.fetch.bind(window);
+    window.fetch = function (entrada, opciones) {
+      var promesa = fetchOriginal(entrada, opciones);
+      var ruta = '';
+      try { ruta = new URL(typeof entrada === 'string' ? entrada : (entrada && entrada.url) || '', location.href).pathname; } catch (e) { return promesa; }
+      if (!/^\/marcablanca\/api\/marcas\/?$/.test(ruta)) return promesa;
+      return promesa.then(function (r) {
+        if (!r.ok) return r;
+        return r.clone().json().then(function (cuerpo) {
+          ['clientes', 'marcas'].forEach(function (k) {
+            if (Array.isArray(cuerpo[k])) cuerpo[k] = cuerpo[k].filter(function (c) { return !c || rivales.indexOf(c.id) === -1; });
+          });
+          return new Response(JSON.stringify(cuerpo), { status: r.status, statusText: r.statusText, headers: r.headers });
+        }).catch(function () { return r; });
+      });
+    };
+  }
+
   function url(p, id) { return (id === 'admira' ? '' : id + '.') + p.dominio + p.ruta; }
 
   function pintarMaquetas(m) {
