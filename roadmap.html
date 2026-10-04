@@ -21,7 +21,6 @@
   a{color:var(--yk-brand,#4ae3d1);text-decoration:none}
   a:hover{color:var(--yk-hi,#7ff3e4)}
   main{padding:28px 0 72px}
-  .kicker{margin:0 0 10px;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--yk-brand,#4ae3d1)}
   h1{margin:0 0 12px;font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em}
   .lede{margin:0 0 22px;max-width:68ch;color:var(--yk-mut,#92a0b4)}
   .aviso{margin:0 0 22px;padding:14px 16px;border:1px solid var(--yk-brand,#4ae3d1);border-radius:12px;background:rgba(74,227,209,.08);color:var(--yk-ink,#f2f6fc);font-size:14px}
@@ -29,6 +28,10 @@
   .vistas a{padding:6px 10px;border:1px solid var(--yk-line,#253042);border-radius:999px;color:var(--yk-mut,#92a0b4);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
   .vistas a[aria-current="true"]{border-color:var(--yk-brand,#4ae3d1);color:var(--yk-ink,#f2f6fc)}
   .vistas span{align-self:center;min-width:5.5rem;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--yk-dim,#6c7a90)}
+  .rm-filtro nav{display:flex;flex-direction:column;gap:6px}
+  html.yk-head-mode .yk-rail .rm-filtro a[aria-current="true"]{border-color:var(--yk-brand,#4ae3d1);color:var(--yk-brand,#4ae3d1);background:rgba(74,227,209,.08)}
+  main .rm-filtro{margin:0 0 14px}
+  main .rm-filtro nav{flex-direction:row;flex-wrap:wrap;gap:8px}
   .patas.eje{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
   .periodo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 22px}
   .periodo strong{font-size:16px;font-weight:650}
@@ -60,10 +63,9 @@
 <body data-yk-frame="cabecera" data-yk-auto="on">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/organigrama">Organigrama</a><a href="/roadmap" aria-current="page">RoadMap</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 <main data-yk-main>
-  <p class="kicker">RoadMap</p>
   <h1>RoadMap</h1>
   <p class="aviso" role="note">Borrador para validar por Carlos</p>
-  <p class="lede">Proyecto, cliente o idea, y día, semana, mes, trimestre o año. Los hitos salen de <a href="/api/roadmap">/api/roadmap</a>. Si el periodo no tiene ninguno, queda por definir.</p>
+  <p class="lede">Día, semana, mes, trimestre o año; proyecto, cliente e idea se filtran desde ☰ Opciones. Los hitos salen de <a href="/api/roadmap">/api/roadmap</a>. Si el periodo no tiene ninguno, queda por definir.</p>
   <div id="corte"><!--CORTE--></div>
 
   <footer>
