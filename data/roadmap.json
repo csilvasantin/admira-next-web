@@ -1,23 +1,210 @@
 [
   {
-    "id": "ejemplo-studio-2026-10-05",
-    "solucion": "studio",
-    "titulo": "Ejemplo sustituible para probar el día",
-    "inicio": "2026-10-05",
-    "fin": "2026-10-05",
-    "estado": "propuesta",
-    "responsable": "George Lucas",
-    "fuente": "ejemplo"
+    "id": "app-capturador-instaladores-portal-40km",
+    "solucion": "app",
+    "titulo": "Capturador instaladores portal 40km",
+    "inicio": "2026-09-14",
+    "fin": "2026-10-15",
+    "estado": "hecho",
+    "responsable": "Steve Wozniak",
+    "fuente": "FLT-100423 #3281",
+    "cliente": "admira"
   },
   {
-    "id": "ejemplo-admiranext-2026-10-20",
-    "solucion": "admiranext",
-    "titulo": "Ejemplo sustituible para probar otro día",
-    "inicio": "2026-10-20",
-    "fin": "2026-10-20",
+    "id": "app-api-installer-register-mcp",
+    "solucion": "app",
+    "titulo": "API installer_register MCP",
+    "inicio": "2026-09-14",
+    "fin": "2026-10-31",
+    "estado": "en_curso",
+    "responsable": "Steve Wozniak",
+    "fuente": "FLT-100453 #3332"
+  },
+  {
+    "id": "app-pata-admira-app-yokup",
+    "solucion": "app",
+    "titulo": "Pata admira.app=yokup.com",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "confirmado",
+    "responsable": "Steve Wozniak",
+    "fuente": "Consejo 4-oct 19:00"
+  },
+  {
+    "id": "app-filtro-cliente-modo-experto",
+    "solucion": "app",
+    "titulo": "Filtro cliente modo Experto",
+    "inicio": "2026-10-04",
+    "fin": "2026-11-15",
+    "estado": "confirmado",
+    "responsable": "Steve Wozniak",
+    "fuente": "norma Carlos 20:05"
+  },
+  {
+    "id": "app-incidencias-soporte-tickets",
+    "solucion": "app",
+    "titulo": "Incidencias Soporte tickets",
+    "inicio": "2026-09-14",
+    "fin": "2026-11-30",
+    "estado": "en_curso",
+    "responsable": "Steve Wozniak",
+    "fuente": "FLT-100402 #3258"
+  },
+  {
+    "id": "app-escalado-yokuper-geofence-voz",
+    "solucion": "app",
+    "titulo": "Escalado Yokuper geofence+voz",
+    "inicio": "2026-09-15",
+    "fin": "2026-12-15",
+    "estado": "en_curso",
+    "responsable": "Steve Wozniak",
+    "fuente": "FLT-100467"
+  },
+  {
+    "id": "app-recorte-editor-expert",
+    "solucion": "app",
+    "titulo": "/recorte editor Expert",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-10",
+    "estado": "en_curso",
+    "responsable": "Steve Wozniak",
+    "fuente": "pedido Carlos 4-oct"
+  },
+  {
+    "id": "app-mcp-cloudflare-read-only",
+    "solucion": "app",
+    "titulo": "MCP Cloudflare read-only",
+    "inicio": "2026-09-19",
+    "fin": "2026-11-30",
     "estado": "propuesta",
-    "responsable": "Steve Jobs",
-    "fuente": "ejemplo",
+    "responsable": "Steve Wozniak",
+    "fuente": "#3643 FLT-100674"
+  },
+  {
+    "id": "biz-pata-dooh-retail-media",
+    "solucion": "biz",
+    "titulo": "Pata biz=DooH/Retail Media (ex clearchannel.tv)",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Walt Disney",
+    "fuente": "Consejo Carlos 4-oct 19:00",
     "cliente": "admira"
+  },
+  {
+    "id": "biz-jti-global-marca-blanca",
+    "solucion": "biz",
+    "titulo": "JTI global 5 patas + marca blanca",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Walt Disney",
+    "fuente": "Carlos 20:39; PR#45; 9e01ca65",
+    "cliente": "jti"
+  },
+  {
+    "id": "biz-cuatro-clientes-globales-pata-biz",
+    "solucion": "biz",
+    "titulo": "4 clientes globales con pata biz",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Walt Disney",
+    "fuente": "api/clientes carlos-2026-10-04",
+    "cliente": "admira"
+  },
+  {
+    "id": "biz-claim-landings-dooh",
+    "solucion": "biz",
+    "titulo": "Claim landings DooH/Retail Media",
+    "inicio": "2026-10-03",
+    "fin": "2026-10-31",
+    "estado": "en_curso",
+    "responsable": "Walt Disney",
+    "fuente": "Carlos claims; preview /biz/",
+    "cliente": "admira"
+  },
+  {
+    "id": "biz-circuito-alsea-starbucks",
+    "solucion": "biz",
+    "titulo": "Circuito Alsea Starbucks ES+MX",
+    "inicio": "2026-09-28",
+    "fin": "2026-10-31",
+    "estado": "en_curso",
+    "responsable": "Walt Disney",
+    "fuente": "FLT-101216; #4724 MX pend.",
+    "cliente": "starbucks"
+  },
+  {
+    "id": "biz-experto-circuitos-dooh",
+    "solucion": "biz",
+    "titulo": "Experto Circuitos DooH por cliente",
+    "inicio": "2026-10-04",
+    "fin": "2026-11-30",
+    "estado": "confirmado",
+    "responsable": "Walt Disney",
+    "fuente": "Norma Carlos 4-oct 20:05",
+    "cliente": "admira"
+  },
+  {
+    "id": "biz-censo-admira-biz-proyectos",
+    "solucion": "biz",
+    "titulo": "Censo admira-biz en _proyectos.js",
+    "inicio": "2026-11-01",
+    "fin": "2026-12-15",
+    "estado": "propuesta",
+    "responsable": "Walt Disney",
+    "fuente": "Gap roadmap sin clave admira-biz",
+    "cliente": "admira"
+  },
+  {
+    "id": "admiranext-agentes-portada-299696f",
+    "solucion": "admiranext",
+    "titulo": "Enlace Agentes en la portada",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Steve Jobs",
+    "fuente": "299696f La portada enlaza Agentes junto a Organigrama."
+  },
+  {
+    "id": "admiranext-api-clientes-e80d952",
+    "solucion": "admiranext",
+    "titulo": "API de clientes",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Steve Jobs",
+    "fuente": "e80d952 El censo comercial se lee en GET /api/clientes."
+  },
+  {
+    "id": "admiranext-globales-5788217",
+    "solucion": "admiranext",
+    "titulo": "Proyectos globales Admira, Altadis y Starbucks",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Steve Jobs",
+    "fuente": "5788217 Starbucks, Altadis y Admira quedan como clientes globales."
+  },
+  {
+    "id": "admiranext-roadmap-865efa2-302e4c5",
+    "solucion": "admiranext",
+    "titulo": "RoadMap",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Steve Jobs",
+    "fuente": "865efa2 El menú abre un RoadMap de borrador, sin hitos fechados. 302e4c5 El RoadMap se corta por día, semana, mes, trimestre y año."
+  },
+  {
+    "id": "admiranext-superusuario-api-clientes",
+    "solucion": "admiranext",
+    "titulo": "Exponer superusuario en /api/clientes",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-09",
+    "estado": "confirmado",
+    "responsable": "Steve Jobs",
+    "fuente": "promesa a Lucas, 4-oct"
   }
 ]
