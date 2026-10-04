@@ -446,8 +446,21 @@
     cerrarTodo();
   });
   if (modoCabecera) {
-    if (typeof ResizeObserver === 'function') new ResizeObserver(medir).observe(cabecera);
-    if (typeof G.addEventListener === 'function') G.addEventListener('resize', medir);
+    var navGrupo = cabecera.querySelector('nav');
+    // Si los enlaces no caben en la caja del nav, se salen y tapan la derecha.
+    // Se esconden: ☰ ya lleva la misma lista. Primero se quita el pliegue para
+    // medir de verdad; si el CSS de móvil ya los escondió, no hay nada que plegar.
+    function plegarNav() {
+      if (!navGrupo || !cabecera.classList) return;
+      cabecera.classList.remove('yk-nav-folded');
+      var caja = G.getComputedStyle ? G.getComputedStyle(navGrupo) : null;
+      if (!caja || caja.display === 'none') return;
+      if (navGrupo.scrollWidth > navGrupo.clientWidth + 1) cabecera.classList.add('yk-nav-folded');
+    }
+    plegarNav();
+    if (typeof ResizeObserver === 'function') new ResizeObserver(function () { medir(); plegarNav(); }).observe(cabecera);
+    if (typeof G.addEventListener === 'function') G.addEventListener('resize', function () { medir(); plegarNav(); });
+    if (doc.fonts && doc.fonts.ready && typeof doc.fonts.ready.then === 'function') doc.fonts.ready.then(plegarNav).catch(function () {});
   }
 
   // ── Paneles REDIMENSIONABLES (Carlos, 2-oct-2026: «en la UX cuadrática siempre

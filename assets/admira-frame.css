@@ -785,6 +785,13 @@ html.yk-head-mode header.yk-head nav{ position: static; align-items: center; jus
 html.yk-head-mode header.yk-head nav a{ height: auto; min-height: 0; line-height: inherit; letter-spacing: inherit; text-transform: none; text-shadow: none; box-shadow: none; opacity: 1 }
 html.yk-head-mode header.yk-head nav a::before, html.yk-head-mode header.yk-head nav a::after{ content: none; display: none }
 html.yk-head-mode header.yk-head [data-yk-access]{ font-family: inherit; font-weight: 400; text-transform: none; border: 0; background: none; box-shadow: none }
+/* #5053: el nav puede encogerse (min-width:0) y los enlaces, en una sola línea,
+   se pintaban encima de «Página pública» y de ▤ ⌘. Por debajo de 1240 px pasan
+   al ☰. Por encima, .yk-nav-folded (admira-frame.js) hace lo mismo si no caben. */
+@media (max-width: 1239px){
+  html.yk-head-mode header.yk-head nav{ display: none }
+}
+html.yk-head-mode header.yk-head.yk-nav-folded nav{ display: none }
 
 /* Raíles: nacen bajo la cabecera y se superponen; el último abierto queda encima */
 html.yk-head-mode .yk-rail{ font-size: 12px; line-height: 1.45; text-align: left }

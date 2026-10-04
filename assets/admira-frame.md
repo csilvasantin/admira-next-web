@@ -112,7 +112,7 @@ La página conserva SU cabecera y el armazón inserta los iconos en su sitio:
 ```
 
 - ☰ va antes de la marca; ▤ y ⌘ justo después de `[data-yk-access]`. La página actual se marca con `aria-current="page"`.
-- La navegación de la cabecera se copia en ☰; en ≤720 px la barra la esconde y deja ☰, la marca, el punto de acceso, ▤ y ⌘.
+- La navegación de la cabecera se copia en ☰. En ≤1239 px la barra la esconde para que no se monte sobre «Página pública» ni sobre ▤ ⌘; por encima, si una fuente más ancha tampoco cabe, el armazón añade `yk-nav-folded` y hace lo mismo. En ≤720 px además queda la barra corta: ☰, la marca, el punto de acceso, ▤ y ⌘.
 - La cabecera se fija arriba y mide su alto en `--yk-bar-h`. Los paneles se **superponen** en cualquier ancho (el contenido no se mueve, ver «El contenido no se desplaza») y un clic fuera los cierra (salvo en un control con `data-yk-toggle`).
 - `data-yk-access="publico"` («○ Página pública») para las páginas que se sirven sin sesión: la barra no dice «privado» de lo que no lo es.
 - Los nodos con `data-yk-slot` se **mueven** (no se copian): conservan sus ids y manejadores.
