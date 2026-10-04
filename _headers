@@ -19,3 +19,9 @@
 /assets/live-presence.js
   Access-Control-Allow-Origin: *
   Cache-Control: no-store
+
+# Avatar digital (encargo avatar · 4-oct-2026): el cargador y el interruptor los
+# leen todos los sitios de la red. Sin cookies ni datos personales.
+/assets/avatar.js
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300

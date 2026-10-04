@@ -81,6 +81,13 @@
     background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
     background-size:5px 5px,5px 5px;background-position:calc(100% - 12px) 52%,calc(100% - 7px) 52%;background-repeat:no-repeat}
   .responsable-input option{background:var(--bg);color:var(--ink)}
+  /* Interruptor del avatar digital por proyecto (lo lee assets/avatar.js en cada sitio). */
+  .avatar-cell{white-space:nowrap}
+  .avatar-cell label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .avatar-cell input{width:16px;height:16px;accent-color:var(--neon2)}
+  .avatar-cell small{display:block;opacity:.75}
+  .avatar-cell small.error{color:var(--warn);opacity:1}
+  .avatar-extra{margin:8px 2px 0;font-size:.85em;opacity:.9}
   .responsable-input:hover{border-color:var(--line)}
   .responsable-input:focus{border-color:var(--neon);outline:0;background:rgba(124,232,216,.08)}
   .responsable-input[disabled]{opacity:.65;cursor:wait}
@@ -247,10 +254,12 @@
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="norma" aria-pressed="false">Norma <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="repo" aria-pressed="false">Repositorio <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
           <th aria-sort="none"><button type="button" class="sort-btn" data-sort="publica" aria-pressed="false">Se publica con <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+          <th title="Avatar digital: con el interruptor encendido sale la burbuja abajo a la derecha. /avatarON y /avatarOFF de cada usuario ganan.">Avatar</th>
         </tr></thead>
-        <tbody id="tablaProyectos"><tr><td colspan="6" style="padding:18px 12px">Leyendo el sello de cada portada…</td></tr></tbody>
+        <tbody id="tablaProyectos"><tr><td colspan="7" style="padding:18px 12px">Leyendo el sello de cada portada…</td></tr></tbody>
       </table>
     </div>
+    <p id="avatarExtra" class="avatar-extra" hidden></p>
     <div id="snapPanel" class="snap" hidden aria-live="polite">
       <div class="snap-head">
         <div>
@@ -671,8 +680,54 @@
       +   esc(ETIQUETA[c.estado] || c.estado || '—') + '</span></td>'
       + '<td>' + esc(p.repoTxt) + (p.privado ? ' <span style="opacity:.6">· privado</span>' : '') + '</td>'
       + '<td>' + esc(p.publica) + '</td>'
+      + '<td class="avatar-cell">' + celdaAvatar(p.clave) + '</td>'
       + '</tr>';
   }
+
+  /* ─── Avatar digital por proyecto (GET/PUT /api/avatar/flags) ───
+     Encendido = burbuja cerrada abajo a la derecha en ese sitio. La elección de
+     cada usuario (/avatarON, /avatarOFF) vive en su navegador y gana a esto. */
+  var avatarFlags = null;
+  function celdaAvatar(clave){
+    if (!avatarFlags || avatarFlags.keys.indexOf(clave) < 0) return '<span style="opacity:.4">—</span>';
+    var on = !!(avatarFlags.projects[clave] && avatarFlags.projects[clave].on);
+    return '<label><input type="checkbox" class="avatar-toggle" data-avatar="' + esc(clave) + '"' + (on ? ' checked' : '')
+      + ' aria-label="Avatar digital en ' + esc(clave) + '"><span>' + (on ? 'on' : 'off') + '</span></label><small class="avatar-state" aria-live="polite"></small>';
+  }
+  function pintarAvatarExtra(){
+    var extra = document.getElementById('avatarExtra');
+    if (!avatarFlags || !extra) return;
+    var conFila = proyectosVivos.map(function(p){ return p.clave; });
+    var sueltos = avatarFlags.keys.filter(function(k){ return conFila.indexOf(k) < 0; });
+    extra.hidden = !sueltos.length;
+    extra.innerHTML = sueltos.length ? 'Avatar sin fila en el censo: ' + sueltos.map(function(k){
+      return '<span class="avatar-cell">' + esc(k) + ' ' + celdaAvatar(k) + '</span>'; }).join(' · ') : '';
+  }
+  function cargarAvatarFlags(){
+    return fetch('/api/avatar/flags?_=' + Date.now(), {cache:'no-store'}).then(function(r){ return r.json(); })
+      .then(function(d){ if (d && d.ok) { avatarFlags = d; if (proyectosVivos.length) pintarTabla(); pintarAvatarExtra(); } })
+      .catch(function(){});
+  }
+  function guardarAvatar(input){
+    var clave = input.dataset.avatar, on = input.checked;
+    var estado = input.closest('.avatar-cell').querySelector('.avatar-state');
+    input.disabled = true; estado.className = 'avatar-state'; estado.textContent = 'guardando…';
+    ADMIRA_SESSION_READY.then(function(){ return fetch('/api/avatar/flags', {
+      method:'PUT', headers:{ 'content-type':'application/json', 'X-Admira-CSRF':ADMIRA_CSRF },
+      body:JSON.stringify({ project:clave, on:on })
+    }); }).then(function(r){ return r.json().then(function(d){ if (!r.ok || !d.ok) throw new Error(d.error || 'no se pudo guardar'); return d; }); })
+      .then(function(d){
+        avatarFlags.projects = d.projects;
+        input.nextElementSibling.textContent = on ? 'on' : 'off';
+        estado.textContent = 'guardado · ≤60 s en el sitio';
+      })
+      .catch(function(e){ input.checked = !on; estado.className = 'avatar-state error'; estado.textContent = e.message; })
+      .then(function(){ input.disabled = false; });
+  }
+  document.addEventListener('change', function(e){
+    if (e.target.matches && e.target.matches('.avatar-toggle')) guardarAvatar(e.target);
+  });
+  cargarAvatarFlags();
 
   function proyectoPorClave(clave){
     return proyectosVivos.find(function(p){ return p.clave === clave; });
@@ -829,12 +884,13 @@
       proyectosVivos = d.proyectos || [];
       censoResponsables = Array.isArray(d.censo) ? d.censo : [];
       pintarTabla();
+      pintarAvatarExtra();
       pintarCuenta(d);
       pintarResumen(d);
       pintarIncumplimientos(d);
     })
     .catch(function(e){
-      tabla.innerHTML = '<tr><td colspan="6" style="padding:18px 12px;color:var(--warn)">'
+      tabla.innerHTML = '<tr><td colspan="7" style="padding:18px 12px;color:var(--warn)">'
         + 'No se pudo leer el censo: ' + esc(e.message) + '</td></tr>';
       incum.innerHTML = '<p class="snap-msg" style="color:var(--warn)">Sin censo no hay control.</p>';
     })
