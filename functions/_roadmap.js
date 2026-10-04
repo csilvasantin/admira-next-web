@@ -210,12 +210,17 @@ function enlace(corte, extra = {}) {
   return `/roadmap?${q}`;
 }
 
+// Proyecto, Cliente e Idea viven en el panel ☰ Opciones (Carlos, 4-oct-2026:
+// «ponlo en el menú vertical izquierda de opciones para dejar la página más
+// limpia»). Cada filtro sale como bloque data-yk-slot="left": admira-frame.js lo
+// muda al raíl izquierdo con su rótulo (data-yk-label). Sin el armazón (JS
+// caído) los bloques se quedan en la página y siguen filtrando: son enlaces.
 function selector(etiqueta, actual, opciones, corte, clave) {
   const links = opciones.map((op) => {
     const marcado = op.id === actual ? ' aria-current="true"' : '';
     return `<a href="${esc(enlace(corte, { [clave]: op.id }))}"${marcado}>${esc(op.nombre)}</a>`;
   }).join('');
-  return `<nav class="vistas" aria-label="${esc(etiqueta)}"><span>${esc(etiqueta)}</span>${links}</nav>`;
+  return `<div class="rm-filtro" data-yk-slot="left" data-yk-label="${esc(etiqueta)}"><nav aria-label="${esc(etiqueta)}">${links}</nav></div>`;
 }
 
 export function htmlCorte(corte) {

@@ -129,6 +129,14 @@ test('la página pinta el corte de la URL', async () => {
   assert.match(texto, /aria-label="Proyecto"/);
   assert.match(texto, /aria-label="Cliente"/);
   assert.match(texto, /aria-label="Idea"/);
+  // Carlos, 4-oct-2026: un solo «RoadMap» (sin kicker) y los filtros en ☰ Opciones.
+  assert.equal((texto.match(/class="kicker"/g) || []).length, 0);
+  assert.equal((texto.match(/<h1>RoadMap<\/h1>/g) || []).length, 1);
+  for (const f of ['Proyecto', 'Cliente', 'Idea']) {
+    assert.match(texto, new RegExp(`<div class="rm-filtro" data-yk-slot="left" data-yk-label="${f}"><nav aria-label="${f}">`));
+  }
+  assert.equal((texto.match(/<nav class="vistas" aria-label="(Proyecto|Cliente|Idea)"/g) || []).length, 0);
+  assert.match(texto, /<nav class="vistas" aria-label="Escala del RoadMap">/);
   const filtrada = await pagina({ request: new Request('https://www.admiranext.com/roadmap?proyecto=studio&cliente=altadis&idea=contenidos-pixeria&vista=trimestre&desde=2026-10-01'), env });
   const corteHtml = await filtrada.text();
   assert.match(corteHtml, /proyecto=studio&amp;cliente=altadis&amp;idea=contenidos-pixeria/);
