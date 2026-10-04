@@ -82,3 +82,9 @@ html[data-ax-experto] .ax-experto .ax-own-extra{overflow:auto;padding:8px 10px;c
 html[data-ax-experto] .ax-experto .ax-cli-out li{list-style:none}
 html[data-ax-experto] .ax-experto .ax-cli-out li.cmd{color:var(--ax-cyan)}
 html[data-ax-experto] .ax-experto .ax-cli-out li.err{color:var(--ax-err)}
+
+/* Etiquetas propias de la orden («EXPERT ›»…): manda el «›» de la suite. */
+html[data-ax-experto] .ax-experto .ax-cli-form label:not(.ax-cli-prompt){display:none!important}
+/* Patas que pliegan el panel a una sola línea (registro [hidden]): solo queda la orden. */
+html[data-ax-experto] .ax-experto:has(.ax-cli-out[hidden]){padding:4px 12px!important}
+html[data-ax-experto] .ax-experto:has(.ax-cli-out[hidden]) :is(.ax-hd,.ax-engine-slot){display:none!important}

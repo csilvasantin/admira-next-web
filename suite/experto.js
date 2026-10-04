@@ -258,7 +258,17 @@
     title.setAttribute('data-shell-text-en', '⌘ EXPERT · CLI');
 
     // Cuerpo + ficha del motor
-    var body = panel.querySelector(cfg.body) || form.parentNode.parentNode;
+    var body = cfg.body ? panel.querySelector(cfg.body) : null;
+    if (!body && form.parentNode === panel) {
+      // Panel plano (registro y orden sueltos dentro del panel, p. ej. Pixeria/admira.studio):
+      // se envuelven sin recrearlos, así el CLI de la pata conserva sus nodos y listeners.
+      body = document.createElement('div');
+      var inner = document.createElement('div');
+      panel.insertBefore(body, log.parentNode === panel ? log : form);
+      inner.appendChild(log); inner.appendChild(form);
+      body.appendChild(inner);
+    }
+    if (!body) body = form.parentNode.parentNode;
     body.classList.add('ax-body');
     var cliModule = form.closest('[data-module]') || form.parentNode;
     if (cliModule === body) cliModule = form.parentNode;
