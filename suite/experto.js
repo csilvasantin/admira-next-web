@@ -18,10 +18,12 @@
  *   data-chrome=".expert-module-head,.expert-module-resizer,.expert-layout-menu"  (se ocultan)
  *   data-version-url="/version.json"
  * Modo propio (patas sin CLI): data-mount="#af-panel-bottom" data-mount-body=".af-bd" [data-extras-label="vista"].
- * Minimizado por defecto (Carlos, 4-oct-2026 23:08): el panel queda anclado abajo y en la primera
- * visita solo se ve la barra «⌘ EXPERTO · CLI»; un clic en ella lo despliega y otro lo pliega. La
- * elección se recuerda por dominio (localStorage «ax-experto-abierto»). El botón ⌘ de la pata
- * (data-toggle, con los de la suite por defecto) también despliega/pliega. data-dock="off" lo desactiva.
+ * Minimizado por defecto (Carlos, 4-oct-2026 23:08 y 23:11): el panel queda anclado abajo y en la
+ * primera visita solo se ve la orden «› /help» de una línea (se puede escribir) con un asa encima.
+ * El asa, el ▾ de la cabecera y el botón ⌘ de la pata (data-toggle, con los de la suite por defecto)
+ * despliegan/pliegan; una orden lanzada en minimizado lo despliega. La elección se recuerda por
+ * dominio (localStorage «ax-experto-abierto») y la página reserva abajo el alto minimizado
+ * (div.ax-dock-spacer al final del body, --ax-dock-pad). data-dock="off" lo desactiva.
  * API: window.AdmiraExperto = {paint(), setState(texto), lines(), set(clave, valor), verb({name, args, desc:[es,en], run(args, log)}), run(texto),
  *      open(), close(), toggle(), isOpen()}.
  */
@@ -276,43 +278,53 @@
     return true;
   }
 
-  // ── Barra plegable ────────────────────────────────────────────────────────────
+  // ── Minimizado = una línea de orden ─────────────────────────────────────────
+  // Carlos (4-oct 23:11): «no es cerrada es minimizada, que se pueda escribir pero no ocupe mucho
+  // espacio». Minimizado solo queda la orden «› /help» (escribible) con un asa pequeña encima;
+  // el asa, el ▾ de la cabecera o el ⌘ de la pata despliegan/pliegan, y una orden lanzada en
+  // minimizado lo despliega para que se vea la respuesta. La página reserva abajo ese alto.
   function isOpen() { return !!panel && !panel.classList.contains('ax-min'); }
+  function pad() {
+    if (!panel) return;
+    var h = panel.classList.contains('ax-min') ? panel.offsetHeight : 0;
+    if (h) document.documentElement.style.setProperty('--ax-dock-pad', h + 'px');
+  }
   function setOpen(open, remember) {
     if (!panel || !panel.classList.contains('ax-dock')) return;
     panel.classList.toggle('ax-min', !open);
     document.documentElement.setAttribute('data-ax-dock', open ? 'open' : 'min');
-    var f = panel.querySelector('.ax-fold');
-    if (f) {
-      f.textContent = open ? '▾' : '▴';
+    var lab = open ? T('Minimizar el modo Experto', 'Minimise Expert mode') : T('Desplegar el modo Experto', 'Expand Expert mode');
+    [].forEach.call(panel.querySelectorAll('.ax-fold,.ax-grip'), function (f) {
+      if (f.classList.contains('ax-fold')) f.textContent = open ? '▾' : '▴';
       f.setAttribute('aria-expanded', open ? 'true' : 'false');
-      f.setAttribute('aria-label', open ? T('Minimizar el modo Experto', 'Minimise Expert mode') : T('Desplegar el modo Experto', 'Expand Expert mode'));
-    }
+      f.setAttribute('aria-label', lab); f.title = lab;
+    });
     if (remember) { try { localStorage.setItem(DOCK_KEY, open ? '1' : '0'); } catch (_) {} }
     if (open) {
       var log = panel.querySelector('.ax-cli-out');
-      if (log) log.scrollTop = log.scrollHeight;
-      try { root.dispatchEvent(new Event('resize')); } catch (_) {}
-    }
+      if (log) setTimeout(function () { log.scrollTop = log.scrollHeight; }, 0);
+    } else pad();
+    try { root.dispatchEvent(new Event('resize')); } catch (_) {}
   }
-  function dock(hd) {
+  function dock(hd, form) {
     if (!cfg.dock || panel.classList.contains('ax-dock')) return;
-    // El camino de la cabecera al panel se marca para que, plegado, solo quede la barra.
-    for (var n = hd.parentNode; n && n !== panel; n = n.parentNode) n.classList.add('ax-hd-path');
+    // Caminos de la orden y de la cabecera hasta el panel: minimizado solo queda la orden.
+    for (var n = form.parentNode; n && n !== panel; n = n.parentNode) n.classList.add('ax-form-path');
     var f = document.createElement('button');
     f.type = 'button';
     f.className = 'ax-fold';
     hd.appendChild(f);
-    hd.setAttribute('role', 'button');
-    hd.tabIndex = 0;
     hd.addEventListener('click', function (e) {
       if (e.target.closest('button:not(.ax-fold),a,input,select,textarea,summary,label')) return;
       setOpen(!isOpen(), true);
     });
-    hd.addEventListener('keydown', function (e) {
-      if (e.target !== hd || (e.key !== 'Enter' && e.key !== ' ')) return;
-      e.preventDefault(); setOpen(!isOpen(), true);
-    });
+    var g = document.createElement('button');
+    g.type = 'button';
+    g.className = 'ax-grip';
+    g.addEventListener('click', function () { setOpen(!isOpen(), true); });
+    panel.insertBefore(g, panel.firstChild);
+    // Una orden lanzada en minimizado despliega el panel (sin recordarlo) para ver la respuesta.
+    form.addEventListener('submit', function () { if (!isOpen()) setOpen(true, false); }, true);
     if (cfg.toggle) {
       document.addEventListener('click', function (e) {
         var t = e.target.closest && e.target.closest(cfg.toggle);
@@ -320,6 +332,11 @@
       }, true);
     }
     panel.classList.add('ax-dock');
+    var sp = document.createElement('div');
+    sp.className = 'ax-dock-spacer';
+    sp.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(sp);
+    try { new ResizeObserver(pad).observe(panel); } catch (_) {}
     var open = false;
     try { open = localStorage.getItem(DOCK_KEY) === '1'; } catch (_) {}
     setOpen(open, false);
@@ -429,7 +446,7 @@
     document.addEventListener('admira:marca', paint);
     try { new MutationObserver(paint).observe(document.documentElement, {attributes: true, attributeFilter: ['lang', 'data-version']}); } catch (_) {}
     paint();
-    dock(hd);
+    dock(hd, form);
     if (readVersion() === '—' && cfg.versionUrl) {
       fetch(cfg.versionUrl, {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) { if (j && j.version) { version = j.version; paint(); } }).catch(function () {});
