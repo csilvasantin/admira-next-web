@@ -46,5 +46,9 @@ test('el organigrama está en el menú de la casa y en la portada', async () => 
   ]);
   assert.match(frame, /\['\/organigrama', 'Organigrama'\]/);
   assert.match(portada, /<a href="\/organigrama">Organigrama<\/a>/);
+  const barra = 'Agentes</a><a href="/organigrama">Organigrama</a>';
+  for (const rel of ['usuarios.html', 'presentaciones/index.html', 'presentaciones/generador.html', 'flota.html']) {
+    assert.ok((await leer(rel)).includes(barra), rel);
+  }
   assert.match(mapa, /https:\/\/www\.admiranext\.com\/organigrama/);
 });

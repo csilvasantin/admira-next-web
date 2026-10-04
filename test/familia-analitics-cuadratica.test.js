@@ -71,8 +71,8 @@ const EXCEPCIONES = {
   '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.'
 };
 
-const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/presentaciones/', '/xpace/manage'];
-const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/presentaciones/'];
+const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/organigrama', '/presentaciones/', '/xpace/manage'];
+const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/organigrama', '/presentaciones/'];
 const GLIFOS = {ykOptionsToggle: '☰', ykAdvancedToggle: '▤', ykExpertToggle: '⌘'};
 
 const leer = (rel) => readFile(path.join(ROOT, rel), 'utf8');
@@ -197,7 +197,7 @@ for (const [rel, {ruta, acceso, actual}] of Object.entries(ADOPTADAS)) {
     const hrefs = [...cab.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map((m) => m[1]).slice(1);
     assert.deepEqual(hrefs, NAV_GRUPO, 'la navegación del grupo es la misma en todas las páginas');
     const enBarra = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => !/data-yk-rail-only/.test(m[1] + m[3])).map((m) => m[2]);
-    assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes · Presentaciones; el resto, en ☰');
+    assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes · Organigrama · Presentaciones; el resto, en ☰');
     if (actual === null) {
       // Página fuera de la navegación del grupo: la barra es la misma, sin nada marcado.
       assert.equal((cab.match(/aria-current="page"/g) || []).length, 0, 'ninguna página del grupo marcada: ésta no es del grupo');
