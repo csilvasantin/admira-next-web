@@ -40,8 +40,8 @@ html[data-ax-experto] .ax-experto .ax-cli-module{flex:1 1 0!important;display:fl
   border:0!important;background:none!important;overflow:hidden;padding:0;margin:0}
 html[data-ax-experto] .ax-experto .ax-cli{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:0!important;overflow:hidden;font:inherit}
 html[data-ax-experto] .ax-experto .ax-cli-out{flex:1;min-height:60px;overflow:auto;margin:0;padding:8px 10px!important;list-style:none;
-  font:11.5px/1.5 var(--ax-mono);color:var(--ax-muted);white-space:pre-wrap;word-break:break-word;text-align:left;
-  background:rgba(2,8,13,.55);border:1px solid rgba(80,200,255,.16);border-radius:10px}
+  font:11.5px/1.5 var(--ax-mono)!important;color:var(--ax-muted)!important;white-space:pre-wrap;word-break:break-word;text-align:left;
+  background:rgba(2,8,13,.55)!important;border:1px solid rgba(80,200,255,.16)!important;border-radius:10px}
 html[data-ax-experto] .ax-experto .ax-cli-out > *{margin:0;padding:0;border:0!important;background:none}
 html[data-ax-experto] .ax-experto .ax-cli-out :is(code,.expert-log-cmd,.yk-cli-cmd,.cmd){display:block;color:var(--ax-cyan);background:none;font:inherit;padding:0}
 html[data-ax-experto] .ax-experto .ax-cli-out :is(.expert-log-title){color:var(--ax-cyan);font-weight:700;letter-spacing:.08em;margin-top:2px}
@@ -82,6 +82,8 @@ html[data-ax-experto] .ax-experto .ax-own-extra{overflow:auto;padding:8px 10px;c
 html[data-ax-experto] .ax-experto .ax-cli-out li{list-style:none}
 html[data-ax-experto] .ax-experto .ax-cli-out li.cmd{color:var(--ax-cyan)}
 html[data-ax-experto] .ax-experto .ax-cli-out li.err{color:var(--ax-err)}
+html[data-ax-experto] .ax-experto .ax-cli-out :is(li.cmd,.yk-lcli-in){color:var(--ax-cyan)!important;font-weight:700}
+html[data-ax-experto] .ax-experto .ax-cli-out :is(li.err,.yk-lcli-err){color:var(--ax-err)!important}
 
 /* Etiquetas propias de la orden («EXPERT ›»…): manda el «›» de la suite. */
 html[data-ax-experto] .ax-experto .ax-cli-form label:not(.ax-cli-prompt){display:none!important}
