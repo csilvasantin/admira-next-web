@@ -17,6 +17,7 @@
  *   data-extras='[data-module="verbos"],[data-module="rutinas"]'   (tras «＋ verbos»)
  *   data-chrome=".expert-module-head,.expert-module-resizer,.expert-layout-menu"  (se ocultan)
  *   data-version-url="/version.json"
+ * data-move-log: lleva el registro de la pata a la columna del CLI. data-toggle="": sin botones ⌘ genéricos.
  * Modo propio (patas sin CLI): data-mount="#af-panel-bottom" data-mount-body=".af-bd" [data-extras-label="vista"].
  * Minimizado por defecto (Carlos, 4-oct-2026 23:08 y 23:11): el panel queda anclado abajo y en la
  * primera visita solo se ve la orden «› /help» de una línea (se puede escribir) con un asa encima.
@@ -53,6 +54,9 @@
     mount: ds.mount || '',
     mountBody: ds.mountBody || '',
     extrasLabel: ds.extrasLabel || '',
+    // data-move-log: el registro de la pata vive en otro panel (admira.store: «PREVIOS»); se lleva
+    // a la columna del CLI, encima de la orden, como en digitalavatar.ai.
+    moveLog: ds.moveLog != null,
     dock: ds.dock !== 'off',
     // Botones ⌘ propios de cada pata: biz/clearchannel, admira.tv, admira.app/yokup, pixeria/studio, store.
     toggle: ds.toggle == null ? '#header-expert-toggle,#af-ico-bottom,.yk-ico-exp,.pf-ico[title^="Expert"],.pix-nav-icon-expert,#xsExpertToggle' : ds.toggle
@@ -416,7 +420,10 @@
       if (input.id) prompt.htmlFor = input.id;
       form.insertBefore(prompt, form.firstChild);
     }
+    if (cfg.moveLog && log.parentNode !== cli) cli.insertBefore(log, form);
     if (log.parentNode === cli) cli.insertBefore(form, log.nextSibling);
+    // Orden en textarea (admira.store): una sola línea; Enter ya lo gestiona la pata.
+    if (input.tagName === 'TEXTAREA') input.rows = 1;
     var hint = panel.querySelector(cfg.hint);
     if (hint) { hint.classList.add('ax-cli-hint'); cli.appendChild(hint); }
     hello(log);
