@@ -61,7 +61,8 @@ const ADOPTADAS = {
   'informes/handon-contenidos-2026-09-14.html': {ruta: '/informes/handon-contenidos-2026-09-14', acceso: 'publico', actual: null, auto: true},
   'telegram/index.html': {ruta: '/telegram/', acceso: 'publico', actual: null, auto: true},
   'presentar.html': {ruta: '/presentar', acceso: 'publico', actual: null, auto: true},
-  'consejo/index.html': {ruta: '/consejo/', acceso: 'publico', actual: null, auto: true}
+  'consejo/index.html': {ruta: '/consejo/', acceso: 'publico', actual: null, auto: true},
+  'organigrama.html': {ruta: '/organigrama', acceso: 'publico', actual: null, auto: true}
 };
 
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que
