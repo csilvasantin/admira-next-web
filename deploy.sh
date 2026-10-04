@@ -49,7 +49,13 @@ echo "  ✓ ninguna página lleva marcadores de conflicto"
 # producción el árbol del 7 de agosto. Validar una cosa y publicar otra es peor
 # que no validar: da por seguro justo lo que falla. Y desde un worktree en HEAD
 # separado —como trabajan los agentes para no pisarse— pasaba siempre.
-git push origin HEAD:main 2>&1 | tail -1 || echo "  (nada que pushear)"
+# Un push que falla no se disfraza de «nada que pushear». El 4-oct-2026
+# el script siguió y publicó un commit que no estaba en main; el siguiente
+# push lo pisó. Si GitHub no acepta el commit, aquí se para.
+if ! git push origin HEAD:main; then
+  echo "✗ El push a main falló. No se publica." >&2
+  exit 1
+fi
 echo "→ Cloudflare Pages (ORIGEN de producción)…"
 export CLOUDFLARE_API_TOKEN="$(bash ~/Claude/admira-vault/vault-get.sh CLOUDFLARE_API_TOKEN)"
 TMP="$(mktemp -d)"; git archive HEAD | tar -x -C "$TMP"

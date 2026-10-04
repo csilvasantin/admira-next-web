@@ -42,3 +42,12 @@ test('deploy y secretos usan la MISMA versión fijada de wrangler, nunca @latest
   assert.match(deploy, /npx --yes "wrangler@\$\{WRANGLER_VERSION\}" pages deploy/);
   assert.match(acceso, /WR="npx --yes wrangler@\$\{WRANGLER_VERSION\}"/);
 });
+
+test('un push fallido aborta el deploy y no se publica igual', () => {
+  assert.doesNotMatch(deploy, /\|\| echo "  \(nada que pushear\)"/);
+  assert.match(deploy, /if ! git push origin HEAD:main; then/);
+  assert.match(deploy, /El push a main falló\. No se publica\./);
+  const push = deploy.indexOf('git push origin HEAD:main');
+  const pages = deploy.indexOf('pages deploy');
+  assert.ok(push > 0 && pages > push, 'el push va antes de publicar en Cloudflare');
+});
