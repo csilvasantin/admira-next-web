@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Organigrama · ADmiraNeXT</title>
 <meta name="description" content="Organigrama de ADmiraNeXT: el Consejo de Silicio responde de la mesa, un DeepAgent dirige cada pata y los agentes ejecutan.">
-<meta name="admiranext-version" content="v.04.10.2026.r5.14:42">
+<meta name="admiranext-version" content="v.05.10.2026.r2.21:36">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -21,85 +21,138 @@
   body{margin:0;color:var(--yk-ink,#f2f6fc);font-family:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,monospace;line-height:1.55}
   a{color:var(--yk-brand,#4ae3d1);text-decoration:none}
   a:hover{color:var(--yk-hi,#7ff3e4)}
-  main{padding:28px 0 72px}
+  main{padding:28px 0 72px;position:relative}
   .kicker{margin:0 0 10px;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--yk-brand,#4ae3d1)}
   h1{margin:0 0 12px;font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em}
   .lede{margin:0 0 28px;max-width:62ch;color:var(--yk-mut,#92a0b4)}
-  .niveles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 36px;padding:0;list-style:none}
+  .niveles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 22px;padding:0;list-style:none}
   .niveles li{padding:16px;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(16,23,36,.72)}
   .niveles h2{margin:0 0 8px;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--yk-brand,#4ae3d1)}
   .niveles p{margin:0;color:var(--yk-ink,#f2f6fc);font-size:14px}
-  .bloque{margin-top:8px}
-  .bloque > h2{margin:0 0 14px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
-  .mesa{max-width:460px;margin:0 auto 22px}
-  .patas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-  .carta{display:flex;flex-direction:column;gap:10px;min-width:0;padding:16px;border:1px solid var(--yk-line,#253042);border-radius:14px;background:rgba(8,13,23,.86)}
-  .mesa .carta{border-color:var(--yk-brand,#4ae3d1)}
-  .rol{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--yk-dim,#6c7a90)}
-  .carta h3{margin:0;font-size:18px;line-height:1.2}
-  .pata{font-size:14px;word-break:break-word}
-  .claim{margin:0;color:var(--yk-mut,#92a0b4);font-size:13px}
-  .hueco{margin-top:auto;padding:12px;border:1px solid var(--yk-line2,#314057);border-radius:10px;background:rgba(16,23,36,.55)}
-  .hueco strong{display:block;margin-top:4px;font-size:13px;font-weight:700}
-  .hueco em{display:block;margin-top:6px;color:var(--yk-ink,#f2f6fc);font-style:normal;font-size:14px;font-weight:650}
-  .nota{margin:0 0 28px;max-width:68ch;color:var(--yk-mut,#92a0b4);font-size:14px}
+  .nota{margin:0 0 18px;max-width:68ch;color:var(--yk-mut,#92a0b4);font-size:14px}
   footer{margin-top:36px;color:var(--yk-dim,#6c7a90);font-size:12px}
   footer a{color:var(--yk-mut,#92a0b4)}
-  @media (max-width:1100px){
-    .patas{grid-template-columns:repeat(2,minmax(0,1fr))}
-  }
-  @media (max-width:720px){
-    .niveles,.patas{grid-template-columns:1fr}
-    .mesa{max-width:none}
-  }
+  @media (max-width:720px){.niveles{grid-template-columns:1fr}}
 
-  /* Árbol interactivo (#5060) — columnas consejero→DeepAgent + SVG en load */
-  .arbol-wrap{margin-top:48px;padding-top:28px;border-top:1px solid var(--yk-line,#253042)}
+  /* SEO / datos canónicos (cartas unificadas en la escena; no duplicar visualmente) */
+  .org-canon{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .org-canon .carta{display:block}
+  .org-canon h3{margin:0}
+
+  /* Escena única */
+  .arbol-wrap{margin-top:8px;padding-top:8px;position:relative}
   .arbol-wrap > h2{margin:0 0 8px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
-  .arbol-hint{margin:0 0 22px;color:var(--yk-dim,#6c7a90);font-size:13px}
-  .org-tree{position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:8px 4px 24px}
-  .org-canvas{position:relative;min-width:720px;margin:0 auto;padding:12px 8px 8px}
+  .arbol-hint{margin:0 0 14px;color:var(--yk-dim,#6c7a90);font-size:13px}
+  .org-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;align-items:center}
+  .org-toolbar button{
+    border:1px solid var(--yk-line,#253042);background:rgba(12,18,30,.9);color:var(--yk-ink,#f2f6fc);
+    padding:7px 11px;border-radius:10px;font:700 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer;letter-spacing:.04em
+  }
+  .org-toolbar button:hover,.org-toolbar button:focus-visible{border-color:#4ae3d1;outline:none;box-shadow:0 0 0 1px rgba(74,227,209,.35)}
+  .org-toolbar .org-live{margin-left:auto;font:600 11px/1.4 ui-monospace,Menlo,monospace;color:var(--yk-dim,#6c7a90)}
+  .org-stage{
+    position:relative;border:1px solid rgba(74,227,209,.28);border-radius:18px;overflow:hidden;
+    background:radial-gradient(ellipse at 50% 0%,rgba(74,227,209,.08),transparent 55%),rgba(5,9,16,.92);
+    min-height:min(78vh,820px);isolation:isolate
+  }
+  #org-matrix{
+    position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.42
+  }
+  .org-viewport{position:relative;z-index:1;width:100%;height:min(78vh,820px);overflow:hidden;cursor:grab;touch-action:none}
+  .org-viewport.is-panning{cursor:grabbing}
+  .org-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+  .org-tree{padding:8px 4px 24px}
+  .org-canvas{position:relative;min-width:860px;margin:0 auto;padding:18px 16px 28px}
   .org-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}
   .org-svg path.org-line{
-    fill:none;stroke:#4ae3d1;stroke-width:3.5;opacity:1;
-    filter:drop-shadow(0 0 8px rgba(74,227,209,.85)) drop-shadow(0 0 18px rgba(42,107,255,.45));
+    fill:none;stroke:#4ae3d1;stroke-width:3.2;opacity:1;
+    filter:drop-shadow(0 0 8px rgba(120,243,255,.75)) drop-shadow(0 0 18px rgba(74,227,209,.4));
     stroke-linecap:round;
     animation:orgPulse 2.2s ease-in-out infinite;
   }
   .org-svg path.org-line.is-branch{
-    stroke:url(#orgGlow);stroke-width:3;stroke-dasharray:6 5;
-    animation:orgPulse 2.2s ease-in-out infinite, orgDash 10s linear infinite;
+    stroke:url(#orgGlow);stroke-width:3;stroke-dasharray:7 6;
+    animation:orgPulse 2.2s ease-in-out infinite, orgDash 9s linear infinite;
   }
-  @keyframes orgPulse{0%,100%{opacity:.82}50%{opacity:1}}
-  @keyframes orgDash{to{stroke-dashoffset:-130}}
+  .org-svg path.org-line.is-flow{
+    stroke:#78f3ff;stroke-width:2;stroke-dasharray:4 10;opacity:.9;
+    animation:orgDash 3.2s linear infinite, orgPulse 1.8s ease-in-out infinite;
+    filter:drop-shadow(0 0 6px rgba(120,243,255,.9));
+  }
+  @keyframes orgPulse{0%,100%{opacity:.78}50%{opacity:1}}
+  @keyframes orgDash{to{stroke-dashoffset:-140}}
   .org-top{display:flex;justify-content:center;position:relative;z-index:1;margin:0 0 44px}
   .org-cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;position:relative;z-index:1;align-items:start}
-  .org-col{display:flex;flex-direction:column;align-items:center;gap:48px;min-width:0}
-  .org-node{position:relative;min-width:124px;max-width:168px;width:100%;padding:12px 12px 10px;border:1px solid var(--yk-line,#253042);border-radius:14px;background:linear-gradient(165deg,rgba(18,28,44,.95),rgba(8,12,20,.92));box-shadow:0 0 0 1px rgba(74,227,209,.08),0 12px 28px rgba(0,0,0,.35);cursor:pointer;user-select:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;touch-action:manipulation;text-align:center}
+  .org-col{display:flex;flex-direction:column;align-items:center;gap:36px;min-width:0}
+  .org-agents{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;min-height:8px}
+  .org-node{
+    position:relative;min-width:124px;max-width:168px;width:100%;padding:12px 12px 10px;
+    border:1px solid var(--yk-line,#253042);border-radius:14px;
+    background:linear-gradient(165deg,rgba(18,28,44,.95),rgba(8,12,20,.92));
+    box-shadow:0 0 0 1px rgba(74,227,209,.08),0 12px 28px rgba(0,0,0,.35);
+    cursor:pointer;user-select:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    touch-action:manipulation;text-align:center
+  }
   .org-node:hover,.org-node:focus-visible{border-color:var(--yk-brand,#4ae3d1);box-shadow:0 0 0 1px rgba(74,227,209,.35),0 0 24px rgba(74,227,209,.18);outline:none}
-  .org-node.is-top{min-width:200px;max-width:240px;border-color:rgba(74,227,209,.75);background:linear-gradient(165deg,rgba(28,62,72,.98),rgba(8,16,28,.96));box-shadow:0 0 0 2px rgba(74,227,209,.45),0 0 36px rgba(74,227,209,.35),0 0 64px rgba(42,107,255,.22);animation:jobsGlow 2.8s ease-in-out infinite}
+  .org-node.is-top{
+    min-width:210px;max-width:250px;border-color:rgba(74,227,209,.75);
+    background:linear-gradient(165deg,rgba(28,62,72,.98),rgba(8,16,28,.96));
+    box-shadow:0 0 0 2px rgba(74,227,209,.45),0 0 36px rgba(74,227,209,.35),0 0 64px rgba(42,107,255,.22);
+    animation:jobsGlow 2.8s ease-in-out infinite
+  }
   @keyframes jobsGlow{0%,100%{box-shadow:0 0 0 2px rgba(74,227,209,.4),0 0 28px rgba(74,227,209,.28),0 0 48px rgba(42,107,255,.18)}50%{box-shadow:0 0 0 2px rgba(74,227,209,.75),0 0 42px rgba(74,227,209,.48),0 0 72px rgba(42,107,255,.32)}}
   .org-node.is-deep{min-width:112px;max-width:150px;opacity:.95;border-style:dashed}
+  .org-node.is-agent{min-width:100px;max-width:140px;padding:10px 8px 8px;background:linear-gradient(165deg,rgba(14,24,38,.92),rgba(6,10,18,.9))}
   .org-node.is-collapsed-child{opacity:.35;transform:scale(.92);pointer-events:none}
-  .org-node .rol{font-size:9px;letter-spacing:.16em}
+  .org-node .rol{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--yk-dim,#6c7a90)}
   .org-node .org-name{display:block;margin:4px 0 2px;font-size:15px;line-height:1.15;font-weight:700}
   .org-node.is-top .org-name{font-size:18px}
+  .org-node.is-agent .org-name{font-size:12px}
   .org-node .pata{font-size:11px;word-break:break-word;color:var(--yk-brand,#4ae3d1)}
-  .org-node .chip{display:inline-block;margin-top:6px;padding:2px 7px;border-radius:999px;border:1px solid rgba(74,227,209,.28);font-size:10px;letter-spacing:.04em;color:var(--yk-mut,#92a0b4)}
+  .org-avatar{
+    width:36px;height:36px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;
+    font:800 12px/1 ui-monospace,Menlo,monospace;color:#041018;
+    background:radial-gradient(circle at 35% 30%,#78f3ff,#4ae3d1 55%,#2a8f9e);
+    box-shadow:0 0 0 2px rgba(120,243,255,.45),0 0 18px rgba(74,227,209,.55);
+  }
+  .org-node.is-top .org-avatar{width:44px;height:44px;font-size:14px;box-shadow:0 0 0 2px rgba(120,243,255,.65),0 0 28px rgba(74,227,209,.7)}
+  .org-node.is-agent .org-avatar{width:28px;height:28px;font-size:10px}
+  .chip{
+    display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;
+    border:1px solid rgba(120,243,255,.35);font-size:10px;letter-spacing:.04em;color:#b7f7ff;
+    background:rgba(74,227,209,.08);box-shadow:0 0 12px rgba(74,227,209,.25)
+  }
+  .chip.is-engine{border-color:rgba(120,243,255,.55);color:#78f3ff;text-shadow:0 0 8px rgba(120,243,255,.55)}
+  .org-presence{
+    display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;color:var(--yk-dim,#6c7a90)
+  }
+  .org-dot{width:8px;height:8px;border-radius:50%;background:#6c7a90;box-shadow:0 0 0 0 rgba(0,0,0,0)}
+  .org-dot.is-ok{background:#3dff9a;box-shadow:0 0 10px rgba(61,255,154,.8);animation:beat 1.4s ease-in-out infinite}
+  .org-dot.is-warn{background:#ffbd69;box-shadow:0 0 10px rgba(255,189,105,.75);animation:beat 1.8s ease-in-out infinite}
+  .org-dot.is-bad{background:#ff6b7a;box-shadow:0 0 8px rgba(255,107,122,.55)}
+  @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
   .org-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(37,48,66,.9);text-align:left}
   .org-node.is-open .org-detail{display:block}
   .org-detail p{margin:0 0 6px;font-size:12px;color:var(--yk-mut,#92a0b4);line-height:1.4}
   .org-detail ul{margin:0;padding:0 0 0 14px;color:var(--yk-ink,#f2f6fc);font-size:12px}
   .org-detail li{margin:2px 0}
   .org-node.is-open{z-index:2;box-shadow:0 0 0 1px rgba(74,227,209,.5),0 0 32px rgba(74,227,209,.22)}
+  body.is-presenter .yk-head,body.is-presenter footer,.is-presenter .niveles,.is-presenter .nota,.is-presenter .kicker,.is-presenter h1,.is-presenter .lede,.is-presenter .arbol-wrap > h2{display:none!important}
+  body.is-presenter main{padding:8px 0 12px}
+  body.is-presenter .org-stage{min-height:calc(100vh - 70px);border-radius:12px}
+  body.is-presenter .org-viewport{height:calc(100vh - 70px)}
+  body.is-presenter .org-toolbar{margin-bottom:8px}
   @media (max-width:720px){
     .org-canvas{min-width:0;padding:4px 18px 4px 28px}
     .org-top{margin-bottom:28px}
     .org-cols{grid-template-columns:1fr;gap:28px}
-    .org-col{gap:32px}
-    .org-node,.org-node.is-top,.org-node.is-deep{min-width:min(100%,280px);max-width:320px;width:100%}
+    .org-col{gap:24px}
+    .org-node,.org-node.is-top,.org-node.is-deep,.org-node.is-agent{min-width:min(100%,280px);max-width:320px;width:100%}
     .org-svg path.org-line{stroke-width:3.5}
-    /* #5060: líneas SVG visibles también a 390px — no ocultar .org-svg */
+    .org-toolbar .org-live{margin-left:0;width:100%}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .org-svg path.org-line,.org-node.is-top,.org-dot.is-ok,.org-dot.is-warn{animation:none!important}
   }
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261004-5053">
@@ -109,7 +162,7 @@
 <main data-yk-main>
   <p class="kicker">Organigrama</p>
   <h1>La mesa de ADmiraNeXT</h1>
-  <p class="lede">Tres niveles. Arriba, quien responde. En el hueco, quien dirige. Abajo, quien ejecuta.</p>
+  <p class="lede">Tres niveles. Arriba, quien responde. En el hueco, quien dirige. Abajo, quien ejecuta. Una sola escena: Jobs, las cinco patas, DeepAgents y agentes en vivo.</p>
   <ol class="niveles">
     <li>
       <h2>Responsabilidad</h2>
@@ -124,234 +177,225 @@
       <p>Los agentes ejecutan el trabajo de la pata que les toca.</p>
     </li>
   </ol>
-  <p class="nota">El DeepAgent se puede cambiar o reforzar según la carga o si se queda sin tokens u horas.</p>
+  <p class="nota">El DeepAgent se puede cambiar o reforzar según la carga o si se queda sin tokens u horas. Latido: verde &lt; 10 min · ámbar &lt; 30 min · rojo sin señal reciente (Yokup / flota).</p>
 
-  <section class="bloque" id="mesa">
-    <h2>La mesa</h2>
-    <div class="mesa">
-      <article class="carta">
-        <span class="rol">Consejero · une las cinco patas</span>
-        <h3>Steve Jobs</h3>
-        <a class="pata" href="https://www.admiranext.com">www.admiranext.com</a>
-        <p class="claim">«La mesa que une las cinco patas.»</p>
-        <div class="hueco">
-          <span class="rol">Dirección</span>
-          <strong>DeepAgent que lo dirige</strong>
-          <em>Morfeo (Claude Code)</em>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <section class="bloque" id="patas">
-    <h2>Las cinco patas</h2>
-    <div class="patas">
-      <article class="carta">
-        <span class="rol">Consejero</span>
-        <h3>Elon Musk</h3>
-        <a class="pata" href="https://www.admira.tv">www.admira.tv</a>
-        <p class="claim">«Reproducción, Emisión y Proof of Play»</p>
-        <div class="hueco">
-          <span class="rol">Dirección</span>
-          <strong>DeepAgent que lo dirige</strong>
-          <em>Merovingio (DeepAgents)</em>
-        </div>
-      </article>
-      <article class="carta">
-        <span class="rol">Consejero</span>
-        <h3>George Lucas</h3>
-        <a class="pata" href="https://admira.studio">admira.studio</a>
-        <p class="claim">«Creación y Adaptación de Contenidos»</p>
-        <div class="hueco">
-          <span class="rol">Dirección</span>
-          <strong>DeepAgent que lo dirige</strong>
-          <em>Oráculo (Codex)</em>
-        </div>
-      </article>
-      <article class="carta">
-        <span class="rol">Consejero</span>
-        <h3>Jensen Huang</h3>
-        <a class="pata" href="https://admira.store">admira.store</a>
-        <p class="claim">«Distribución, Gestión y Visualización»</p>
-        <div class="hueco">
-          <span class="rol">Dirección</span>
-          <strong>DeepAgent que lo dirige</strong>
-          <em>Cypher (DeepAgents)</em>
-        </div>
-      </article>
-      <article class="carta">
-        <span class="rol">Consejero</span>
-        <h3>Steve Wozniak</h3>
-        <a class="pata" href="https://admira.app">admira.app</a>
-        <p class="claim">«Instalaciones, Mantenimiento y Gestión»</p>
-        <div class="hueco">
-          <span class="rol">Dirección</span>
-          <strong>DeepAgent que lo dirige</strong>
-          <em>Smith (Grok)</em>
-        </div>
-      </article>
-      <article class="carta">
-        <span class="rol">Consejero</span>
-        <h3>Walt Disney</h3>
-        <a class="pata" href="https://www.admira.biz">www.admira.biz</a>
-        <p class="claim">«Nuevos ingresos con DooH y Retail Media»</p>
-        <div class="hueco">
-          <span class="rol">Dirección</span>
-          <strong>DeepAgent que lo dirige</strong>
-          <em>Niobe (OpenCode)</em>
-        </div>
-      </article>
-    </div>
-  </section>
-
+  <!-- Datos canónicos para SEO y tests; la escena viva es #arbol-interactivo -->
+  <div class="org-canon" id="mesa" aria-hidden="true">
+    <article class="carta">
+      <span class="rol">Consejero · une las cinco patas</span>
+      <h3>Steve Jobs</h3>
+      <a class="pata" href="https://www.admiranext.com">www.admiranext.com</a>
+      <p class="claim">«La mesa que une las cinco patas.»</p>
+      <div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Morfeo (Claude Code)</em></div>
+    </article>
+  </div>
+  <div class="org-canon" id="patas" aria-hidden="true">
+    <article class="carta"><span class="rol">Consejero</span><h3>Elon Musk</h3><a class="pata" href="https://www.admira.tv">www.admira.tv</a><p class="claim">«Reproducción, Emisión y Proof of Play»</p><div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Merovingio (DeepAgents)</em></div></article>
+    <article class="carta"><span class="rol">Consejero</span><h3>George Lucas</h3><a class="pata" href="https://admira.studio">admira.studio</a><p class="claim">«Creación y Adaptación de Contenidos»</p><div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Oráculo (Codex)</em></div></article>
+    <article class="carta"><span class="rol">Consejero</span><h3>Jensen Huang</h3><a class="pata" href="https://admira.store">admira.store</a><p class="claim">«Distribución, Gestión y Visualización»</p><div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Cypher (DeepAgents)</em></div></article>
+    <article class="carta"><span class="rol">Consejero</span><h3>Steve Wozniak</h3><a class="pata" href="https://admira.app">admira.app</a><p class="claim">«Instalaciones, Mantenimiento y Gestión»</p><div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Smith (Grok)</em></div></article>
+    <article class="carta"><span class="rol">Consejero</span><h3>Walt Disney</h3><a class="pata" href="https://www.admira.biz">www.admira.biz</a><p class="claim">«Nuevos ingresos con DooH y Retail Media»</p><div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Niobe (OpenCode)</em></div></article>
+  </div>
 
   <section class="bloque arbol-wrap" id="arbol-interactivo" aria-label="Organigrama interactivo">
-    <h2>Árbol interactivo</h2>
-    <p class="arbol-hint">Doble clic (o doble toque) en un nodo para compactar o desplegar claim, motor y agentes. Líneas SVG visibles en escritorio y móvil.</p>
-    <div class="org-tree">
-      <div class="org-canvas" id="org-canvas">
-        <svg class="org-svg" id="org-lines" aria-hidden="true">
-          <defs>
-            <linearGradient id="orgGlow" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#4ae3d1"/>
-              <stop offset="55%" stop-color="#5ec8ff"/>
-              <stop offset="100%" stop-color="#2a6bff"/>
-            </linearGradient>
-            <filter id="orgSoftGlow" x="-40%" y="-40%" width="180%" height="180%">
-              <feGaussianBlur stdDeviation="2.2" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-        </svg>
-        <div class="org-top" data-tier="top">
-          <article class="org-node is-top" tabindex="0" data-id="jobs" data-parent="" role="button" aria-expanded="false">
-            <span class="rol">Mesa · une las cinco patas</span>
-            <span class="org-name">Steve Jobs</span>
-            <span class="pata">admiranext.com</span>
-            <span class="chip">Morfeo</span>
-            <div class="org-detail">
-              <p>«La mesa que une las cinco patas.»</p>
-              <p><strong>Motor:</strong> Morfeo (Claude Code)</p>
-              <ul>
-                <li>Orquesta las cinco patas</li>
-                <li>Agentes de admiranext.com</li>
-              </ul>
+    <h2>Escena viva</h2>
+    <p class="arbol-hint">Clic o doble clic en un nodo para abrir o compactar. Arrastra para pan · rueda o +/− para zoom · P presentador · Esc salir · teclado Enter/Espacio.</p>
+    <div class="org-toolbar" role="toolbar" aria-label="Controles del organigrama">
+      <button type="button" id="org-zoom-in" title="Zoom +">Zoom +</button>
+      <button type="button" id="org-zoom-out" title="Zoom −">Zoom −</button>
+      <button type="button" id="org-reset" title="Centrar">Centrar</button>
+      <button type="button" id="org-presenter" title="Modo presentador">Presentador</button>
+      <span class="org-live" id="org-live">Latido: cargando flota…</span>
+    </div>
+    <div class="org-stage">
+      <canvas id="org-matrix" aria-hidden="true"></canvas>
+      <div class="org-viewport" id="org-viewport">
+        <div class="org-world" id="org-world">
+          <div class="org-tree">
+            <div class="org-canvas" id="org-canvas">
+              <svg class="org-svg" id="org-lines" aria-hidden="true">
+                <defs>
+                  <linearGradient id="orgGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#78f3ff"/>
+                    <stop offset="55%" stop-color="#4ae3d1"/>
+                    <stop offset="100%" stop-color="#2a6bff"/>
+                  </linearGradient>
+                  <filter id="orgSoftGlow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feGaussianBlur stdDeviation="2.2" result="blur"/>
+                    <feMerge>
+                      <feMergeNode in="blur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+              </svg>
+              <div class="org-top" data-tier="top">
+                <article class="org-node is-top" tabindex="0" data-id="jobs" data-parent="" data-family="morfeo" role="button" aria-expanded="false">
+                  <div class="org-avatar" aria-hidden="true">SJ</div>
+                  <span class="rol">Mesa · une las cinco patas</span>
+                  <span class="org-name">Steve Jobs</span>
+                  <span class="pata">admiranext.com</span>
+                  <span class="chip is-engine">Morfeo · Claude Code</span>
+                  <span class="org-presence" data-presence-for="morfeo"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                  <div class="org-detail">
+                    <p>«La mesa que une las cinco patas.»</p>
+                    <p><strong>Motor:</strong> Morfeo (Claude Code)</p>
+                    <ul>
+                      <li>Orquesta las cinco patas</li>
+                      <li>Agentes de admiranext.com</li>
+                    </ul>
+                  </div>
+                </article>
+              </div>
+              <div class="org-cols" data-tier="columns">
+                <div class="org-col" data-col="elon">
+                  <article class="org-node" tabindex="0" data-id="elon" data-parent="jobs" data-family="merovingio" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">EM</div>
+                    <span class="rol">Consejero</span>
+                    <span class="org-name">Elon Musk</span>
+                    <span class="pata">admira.tv</span>
+                    <span class="chip is-engine">Merovingio</span>
+                    <span class="org-presence" data-presence-for="merovingio"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>«Reproducción, Emisión y Proof of Play»</p>
+                      <p><strong>Motor:</strong> Merovingio (DeepAgents)</p>
+                      <ul><li>Agentes de emisión y PoP</li></ul>
+                    </div>
+                  </article>
+                  <article class="org-node is-deep" tabindex="0" data-id="merovingio" data-parent="elon" data-family="merovingio" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">Me</div>
+                    <span class="rol">DeepAgent</span>
+                    <span class="org-name">Merovingio</span>
+                    <span class="pata">DeepAgents</span>
+                    <span class="chip is-engine">DeepAgents</span>
+                    <span class="org-presence" data-presence-for="merovingio"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>Dirige admira.tv bajo Elon.</p>
+                      <p><strong>Motor:</strong> DeepAgents</p>
+                      <ul><li>Emisión · PoP · player</li></ul>
+                    </div>
+                  </article>
+                  <div class="org-agents" data-agents-for="merovingio"></div>
+                </div>
+                <div class="org-col" data-col="lucas">
+                  <article class="org-node" tabindex="0" data-id="lucas" data-parent="jobs" data-family="oraculo" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">GL</div>
+                    <span class="rol">Consejero</span>
+                    <span class="org-name">George Lucas</span>
+                    <span class="pata">admira.studio</span>
+                    <span class="chip is-engine">Oráculo</span>
+                    <span class="org-presence" data-presence-for="oraculo"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>«Creación y Adaptación de Contenidos»</p>
+                      <p><strong>Motor:</strong> Oráculo (Codex)</p>
+                      <ul><li>Agentes de creación</li></ul>
+                    </div>
+                  </article>
+                  <article class="org-node is-deep" tabindex="0" data-id="oraculo" data-parent="lucas" data-family="oraculo" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">Or</div>
+                    <span class="rol">DeepAgent</span>
+                    <span class="org-name">Oráculo</span>
+                    <span class="pata">Codex</span>
+                    <span class="chip is-engine">Codex</span>
+                    <span class="org-presence" data-presence-for="oraculo"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>Dirige admira.studio bajo Lucas.</p>
+                      <p><strong>Motor:</strong> Codex</p>
+                      <ul><li>Contenido · adaptación</li></ul>
+                    </div>
+                  </article>
+                  <div class="org-agents" data-agents-for="oraculo"></div>
+                </div>
+                <div class="org-col" data-col="jensen">
+                  <article class="org-node" tabindex="0" data-id="jensen" data-parent="jobs" data-family="cypher" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">JH</div>
+                    <span class="rol">Consejero</span>
+                    <span class="org-name">Jensen Huang</span>
+                    <span class="pata">admira.store</span>
+                    <span class="chip is-engine">Cypher</span>
+                    <span class="org-presence" data-presence-for="cypher"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>«Distribución, Gestión y Visualización»</p>
+                      <p><strong>Motor:</strong> Cypher (DeepAgents)</p>
+                      <ul><li>Agentes de distribución</li></ul>
+                    </div>
+                  </article>
+                  <article class="org-node is-deep" tabindex="0" data-id="cypher" data-parent="jensen" data-family="cypher" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">Cy</div>
+                    <span class="rol">DeepAgent</span>
+                    <span class="org-name">Cypher</span>
+                    <span class="pata">DeepAgents</span>
+                    <span class="chip is-engine">DeepAgents</span>
+                    <span class="org-presence" data-presence-for="cypher"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>Dirige admira.store bajo Jensen.</p>
+                      <p><strong>Motor:</strong> DeepAgents</p>
+                      <ul><li>Stock · visualización</li></ul>
+                    </div>
+                  </article>
+                  <div class="org-agents" data-agents-for="cypher"></div>
+                </div>
+                <div class="org-col" data-col="woz">
+                  <article class="org-node" tabindex="0" data-id="woz" data-parent="jobs" data-family="smith" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">SW</div>
+                    <span class="rol">Consejero</span>
+                    <span class="org-name">Steve Wozniak</span>
+                    <span class="pata">admira.app</span>
+                    <span class="chip is-engine">Smith</span>
+                    <span class="org-presence" data-presence-for="smith"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>«Instalaciones, Mantenimiento y Gestión»</p>
+                      <p><strong>Motor:</strong> Smith (Grok)</p>
+                      <ul><li>Agentes de instalaciones</li></ul>
+                    </div>
+                  </article>
+                  <article class="org-node is-deep" tabindex="0" data-id="smith" data-parent="woz" data-family="smith" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">Sm</div>
+                    <span class="rol">DeepAgent</span>
+                    <span class="org-name">Smith</span>
+                    <span class="pata">Grok</span>
+                    <span class="chip is-engine">Grok</span>
+                    <span class="org-presence" data-presence-for="smith"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>Dirige admira.app bajo Woz.</p>
+                      <p><strong>Motor:</strong> Grok</p>
+                      <ul><li>Instalaciones · mantenimiento</li></ul>
+                    </div>
+                  </article>
+                  <div class="org-agents" data-agents-for="smith"></div>
+                </div>
+                <div class="org-col" data-col="walt">
+                  <article class="org-node" tabindex="0" data-id="walt" data-parent="jobs" data-family="niobe" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">WD</div>
+                    <span class="rol">Consejero</span>
+                    <span class="org-name">Walt Disney</span>
+                    <span class="pata">admira.biz</span>
+                    <span class="chip is-engine">Niobe</span>
+                    <span class="org-presence" data-presence-for="niobe"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>«Nuevos ingresos con DooH y Retail Media»</p>
+                      <p><strong>Motor:</strong> Niobe (OpenCode)</p>
+                      <ul><li>Agentes de retail media</li></ul>
+                    </div>
+                  </article>
+                  <article class="org-node is-deep" tabindex="0" data-id="niobe" data-parent="walt" data-family="niobe" role="button" aria-expanded="false">
+                    <div class="org-avatar" aria-hidden="true">Ni</div>
+                    <span class="rol">DeepAgent</span>
+                    <span class="org-name">Niobe</span>
+                    <span class="pata">OpenCode</span>
+                    <span class="chip is-engine">OpenCode</span>
+                    <span class="org-presence" data-presence-for="niobe"><span class="org-dot" data-dot></span><span data-ago>—</span></span>
+                    <div class="org-detail">
+                      <p>Dirige admira.biz bajo Walt.</p>
+                      <p><strong>Motor:</strong> OpenCode</p>
+                      <ul><li>DooH · retail media</li></ul>
+                    </div>
+                  </article>
+                  <div class="org-agents" data-agents-for="niobe"></div>
+                </div>
+              </div>
+              <div class="org-agents" data-agents-for="morfeo" id="org-mesa-agents" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:28px;position:relative;z-index:1"></div>
             </div>
-          </article>
-        </div>
-        <div class="org-cols" data-tier="columns">
-          <div class="org-col" data-col="elon">
-            <article class="org-node" tabindex="0" data-id="elon" data-parent="jobs" role="button" aria-expanded="false">
-              <span class="rol">Consejero</span>
-              <span class="org-name">Elon Musk</span>
-              <span class="pata">admira.tv</span>
-              <div class="org-detail">
-                <p>«Reproducción, Emisión y Proof of Play»</p>
-                <p><strong>Motor:</strong> Merovingio (DeepAgents)</p>
-                <ul><li>Agentes de emisión y PoP</li></ul>
-              </div>
-            </article>
-            <article class="org-node is-deep" tabindex="0" data-id="merovingio" data-parent="elon" role="button" aria-expanded="false">
-              <span class="rol">DeepAgent</span>
-              <span class="org-name">Merovingio</span>
-              <span class="pata">DeepAgents</span>
-              <div class="org-detail">
-                <p>Dirige admira.tv bajo Elon.</p>
-                <p><strong>Motor:</strong> DeepAgents</p>
-                <ul><li>Emisión · PoP · player</li></ul>
-              </div>
-            </article>
-          </div>
-          <div class="org-col" data-col="lucas">
-            <article class="org-node" tabindex="0" data-id="lucas" data-parent="jobs" role="button" aria-expanded="false">
-              <span class="rol">Consejero</span>
-              <span class="org-name">George Lucas</span>
-              <span class="pata">admira.studio</span>
-              <div class="org-detail">
-                <p>«Creación y Adaptación de Contenidos»</p>
-                <p><strong>Motor:</strong> Oráculo (Codex)</p>
-                <ul><li>Agentes de creación</li></ul>
-              </div>
-            </article>
-            <article class="org-node is-deep" tabindex="0" data-id="oraculo" data-parent="lucas" role="button" aria-expanded="false">
-              <span class="rol">DeepAgent</span>
-              <span class="org-name">Oráculo</span>
-              <span class="pata">Codex</span>
-              <div class="org-detail">
-                <p>Dirige admira.studio bajo Lucas.</p>
-                <p><strong>Motor:</strong> Codex</p>
-                <ul><li>Contenido · adaptación</li></ul>
-              </div>
-            </article>
-          </div>
-          <div class="org-col" data-col="jensen">
-            <article class="org-node" tabindex="0" data-id="jensen" data-parent="jobs" role="button" aria-expanded="false">
-              <span class="rol">Consejero</span>
-              <span class="org-name">Jensen Huang</span>
-              <span class="pata">admira.store</span>
-              <div class="org-detail">
-                <p>«Distribución, Gestión y Visualización»</p>
-                <p><strong>Motor:</strong> Cypher (DeepAgents)</p>
-                <ul><li>Agentes de distribución</li></ul>
-              </div>
-            </article>
-            <article class="org-node is-deep" tabindex="0" data-id="cypher" data-parent="jensen" role="button" aria-expanded="false">
-              <span class="rol">DeepAgent</span>
-              <span class="org-name">Cypher</span>
-              <span class="pata">DeepAgents</span>
-              <div class="org-detail">
-                <p>Dirige admira.store bajo Jensen.</p>
-                <p><strong>Motor:</strong> DeepAgents</p>
-                <ul><li>Stock · visualización</li></ul>
-              </div>
-            </article>
-          </div>
-          <div class="org-col" data-col="woz">
-            <article class="org-node" tabindex="0" data-id="woz" data-parent="jobs" role="button" aria-expanded="false">
-              <span class="rol">Consejero</span>
-              <span class="org-name">Steve Wozniak</span>
-              <span class="pata">admira.app</span>
-              <div class="org-detail">
-                <p>«Instalaciones, Mantenimiento y Gestión»</p>
-                <p><strong>Motor:</strong> Smith (Grok)</p>
-                <ul><li>Agentes de instalaciones</li></ul>
-              </div>
-            </article>
-            <article class="org-node is-deep" tabindex="0" data-id="smith" data-parent="woz" role="button" aria-expanded="false">
-              <span class="rol">DeepAgent</span>
-              <span class="org-name">Smith</span>
-              <span class="pata">Grok</span>
-              <div class="org-detail">
-                <p>Dirige admira.app bajo Woz.</p>
-                <p><strong>Motor:</strong> Grok</p>
-                <ul><li>Instalaciones · mantenimiento</li></ul>
-              </div>
-            </article>
-          </div>
-          <div class="org-col" data-col="walt">
-            <article class="org-node" tabindex="0" data-id="walt" data-parent="jobs" role="button" aria-expanded="false">
-              <span class="rol">Consejero</span>
-              <span class="org-name">Walt Disney</span>
-              <span class="pata">admira.biz</span>
-              <div class="org-detail">
-                <p>«Nuevos ingresos con DooH y Retail Media»</p>
-                <p><strong>Motor:</strong> Niobe (OpenCode)</p>
-                <ul><li>Agentes de retail media</li></ul>
-              </div>
-            </article>
-            <article class="org-node is-deep" tabindex="0" data-id="niobe" data-parent="walt" role="button" aria-expanded="false">
-              <span class="rol">DeepAgent</span>
-              <span class="org-name">Niobe</span>
-              <span class="pata">OpenCode</span>
-              <div class="org-detail">
-                <p>Dirige admira.biz bajo Walt.</p>
-                <p><strong>Motor:</strong> OpenCode</p>
-                <ul><li>DooH · retail media</li></ul>
-              </div>
-            </article>
           </div>
         </div>
       </div>
@@ -359,17 +403,75 @@
   </section>
 
   <footer>
-    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.04.10.2026.r5.14:42</span>
+    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.05.10.2026.r2.21:36</span>
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
-
 <script>
 (function () {
   var canvas = document.getElementById('org-canvas');
   var svg = document.getElementById('org-lines');
-  if (!canvas || !svg) return;
+  var viewport = document.getElementById('org-viewport');
+  var world = document.getElementById('org-world');
+  var matrix = document.getElementById('org-matrix');
+  var liveEl = document.getElementById('org-live');
+  if (!canvas || !svg || !viewport || !world) return;
+
+  var ONLINE_MS = 10 * 60 * 1000;
+  var WARN_MS = 30 * 60 * 1000;
+  var YOKUP = 'https://api.yokup.com/highscore/active-work';
+  var DEEP = { morfeo: 'jobs', merovingio: 'merovingio', oraculo: 'oraculo', cypher: 'cypher', smith: 'smith', niobe: 'niobe' };
+  var EXTRA_FAMILIES = { neo: 'morfeo', link: 'morfeo', trinity: 'oraculo', architect: 'morfeo' };
   var collapsed = Object.create(null);
+  var scale = 1;
+  var tx = 0;
+  var ty = 0;
+  var panning = false;
+  var panX = 0;
+  var panY = 0;
+  var startTx = 0;
+  var startTy = 0;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function initials(name) {
+    var parts = String(name || '?').replace(/([a-z])([A-Z])/g, '$1 $2').split(/[\s@._-]+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  function familyOf(agent, familyKey) {
+    var key = String(familyKey || '').split('@')[0].toLowerCase();
+    if (key && DEEP[key]) return key;
+    if (key && EXTRA_FAMILIES[key]) return EXTRA_FAMILIES[key];
+    var n = String(agent || '').toLowerCase();
+    var keys = Object.keys(DEEP).concat(Object.keys(EXTRA_FAMILIES));
+    for (var i = 0; i < keys.length; i++) {
+      if (n.indexOf(keys[i]) === 0) return DEEP[keys[i]] ? keys[i] : EXTRA_FAMILIES[keys[i]];
+    }
+    return 'morfeo';
+  }
+
+  function agoLabel(ms) {
+    if (!ms) return 'sin señal';
+    var s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+    if (s < 5) return 'ahora';
+    if (s < 60) return 'hace ' + s + 's';
+    if (s < 3600) return 'hace ' + Math.floor(s / 60) + ' min';
+    return 'hace ' + Math.floor(s / 3600) + ' h';
+  }
+
+  function levelFor(ms) {
+    if (!ms) return 'bad';
+    var age = Date.now() - ms;
+    if (age < ONLINE_MS) return 'ok';
+    if (age < WARN_MS) return 'warn';
+    return 'bad';
+  }
+
+  function applyTransform() {
+    world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+  }
 
   function clearPaths() {
     svg.querySelectorAll('path.org-line').forEach(function (p) { p.remove(); });
@@ -395,28 +497,28 @@
       if (getComputedStyle(n).display === 'none') return;
       var a = byId[parentId].getBoundingClientRect();
       var b = n.getBoundingClientRect();
-      var y1 = a.bottom - rect.top + canvas.scrollTop;
-      var y2 = b.top - rect.top + canvas.scrollTop;
-      var x1, x2, d;
+      var scaleSafe = scale || 1;
+      var y1 = (a.bottom - rect.top) / scaleSafe;
+      var y2 = (b.top - rect.top) / scaleSafe;
+      var d, x1, x2;
       if (narrow) {
-        /* rail izquierdo: las líneas no quedan tapadas por las cartas apiladas */
         var rail = 12;
         x1 = rail;
         x2 = rail;
-        var mid = (y1 + y2) / 2;
-        d = 'M' + (a.left + a.width / 2 - rect.left + canvas.scrollLeft) + ' ' + y1 +
+        d = 'M' + ((a.left + a.width / 2 - rect.left) / scaleSafe) + ' ' + y1 +
             ' L' + x1 + ' ' + y1 +
             ' L' + x2 + ' ' + y2 +
-            ' L' + (b.left + b.width / 2 - rect.left + canvas.scrollLeft) + ' ' + y2;
+            ' L' + ((b.left + b.width / 2 - rect.left) / scaleSafe) + ' ' + y2;
       } else {
-        x1 = a.left + a.width / 2 - rect.left + canvas.scrollLeft;
-        x2 = b.left + b.width / 2 - rect.left + canvas.scrollLeft;
+        x1 = (a.left + a.width / 2 - rect.left) / scaleSafe;
+        x2 = (b.left + b.width / 2 - rect.left) / scaleSafe;
         var midY = (y1 + y2) / 2;
         d = 'M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + midY + ', ' + x2 + ' ' + midY + ', ' + x2 + ' ' + y2;
       }
       var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       var cls = 'org-line';
       if (parentId === 'jobs') cls += ' is-branch';
+      if (n.classList.contains('is-agent') || n.classList.contains('is-deep')) cls += ' is-flow';
       path.setAttribute('class', cls);
       path.setAttribute('d', d);
       path.setAttribute('filter', 'url(#orgSoftGlow)');
@@ -467,28 +569,196 @@
     drawLines();
   }
 
-  var lastTap = 0;
-  var lastTarget = null;
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
+  function upsertPresence(map, family, ts, label) {
+    if (!family) return;
+    var prev = map[family];
+    if (!prev || (ts || 0) > (prev.ts || 0)) map[family] = { ts: ts || 0, label: label || family };
+  }
+
+  function paintPresence(map) {
+    document.querySelectorAll('[data-presence-for]').forEach(function (el) {
+      var fam = el.getAttribute('data-presence-for');
+      var info = map[fam];
+      var ts = info && info.ts;
+      var lvl = levelFor(ts);
+      var dot = el.querySelector('[data-dot]');
+      var ago = el.querySelector('[data-ago]');
+      if (dot) {
+        dot.classList.remove('is-ok', 'is-warn', 'is-bad');
+        dot.classList.add('is-' + lvl);
+      }
+      if (ago) ago.textContent = agoLabel(ts);
+    });
+    var ok = 0, warn = 0, bad = 0;
+    Object.keys(DEEP).forEach(function (f) {
+      var lvl = levelFor(map[f] && map[f].ts);
+      if (lvl === 'ok') ok++; else if (lvl === 'warn') warn++; else bad++;
+    });
+    if (liveEl) liveEl.textContent = 'Latido flota · ' + ok + ' vivos · ' + warn + ' tibios · ' + bad + ' sin señal · api.yokup.com';
+  }
+
+  function renderAgents(groups) {
+    Object.keys(DEEP).forEach(function (fam) {
+      var host = canvas.querySelector('[data-agents-for="' + fam + '"]');
+      if (!host) return;
+      var list = groups[fam] || [];
+      var parentId = DEEP[fam];
+      host.innerHTML = list.map(function (a) {
+        var id = 'agent-' + String(a.agent).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        var engine = a.runtime || a.machine || 'agente';
+        return '<article class="org-node is-agent" tabindex="0" data-id="' + esc(id) + '" data-parent="' + esc(parentId) + '" data-family="' + esc(fam) + '" role="button" aria-expanded="false">' +
+          '<div class="org-avatar" aria-hidden="true">' + esc(initials(a.agent)) + '</div>' +
+          '<span class="rol">Agente</span>' +
+          '<span class="org-name">' + esc(a.agent) + '</span>' +
+          '<span class="pata">' + esc(a.machine || '') + '</span>' +
+          '<span class="chip is-engine">' + esc(engine) + '</span>' +
+          '<span class="org-presence" data-presence-for="' + esc(fam) + '"><span class="org-dot" data-dot></span><span data-ago>—</span></span>' +
+          '<div class="org-detail"><p>' + esc(a.title || 'Ejecuta bajo ' + fam) + '</p>' +
+          '<p><strong>Motor:</strong> ' + esc(engine) + '</p></div></article>';
+      }).join('');
+    });
+  }
+
+  function refreshFlota() {
+    fetch(YOKUP, { cache: 'no-store', mode: 'cors' }).then(function (r) {
+      if (!r.ok) throw new Error('yokup ' + r.status);
+      return r.json();
+    }).then(function (data) {
+      var map = Object.create(null);
+      var groups = Object.create(null);
+      Object.keys(DEEP).forEach(function (f) { groups[f] = []; });
+      var seen = Object.create(null);
+      function pushAgent(row) {
+        var agent = row.agent || row.executor || '';
+        if (!agent) return;
+        var fam = familyOf(agent, row.family_key);
+        var key = String(agent).toLowerCase();
+        var base = key.replace(/(macmini|mbp14|mbaazul|grokbotbox|dgx|reuniones1|mbpro).*$/i, '');
+        // DeepAgents ya están como nodos de 2º nivel: el 3º son instancias/máquinas u otros agentes
+        var isDeepOnly = Object.keys(DEEP).indexOf(base) >= 0 && !/[a-z0-9].*(mac|mb|box|dgx|reuni)/i.test(key) && key === base;
+        if (isDeepOnly) {
+          upsertPresence(map, fam, row.presence_at || row.active_at || row.observed_at || row.work_progress_at, agent);
+          return;
+        }
+        if (seen[key]) {
+          upsertPresence(map, fam, Math.max(seen[key], row.presence_at || row.active_at || row.observed_at || 0), agent);
+          return;
+        }
+        seen[key] = row.presence_at || row.active_at || row.observed_at || 0;
+        upsertPresence(map, fam, seen[key], agent);
+        if (!groups[fam]) groups[fam] = [];
+        if (groups[fam].length < 6) {
+          groups[fam].push({
+            agent: agent,
+            machine: row.machine || '',
+            runtime: row.runtime || row.host || '',
+            title: row.title || row.reason || '',
+            ts: seen[key]
+          });
+        }
+      }
+      (data.participants || []).forEach(pushAgent);
+      (data.observations || []).forEach(pushAgent);
+      renderAgents(groups);
+      paintPresence(map);
+      applyBranch();
+      requestAnimationFrame(function () { requestAnimationFrame(drawLines); });
+    }).catch(function () {
+      if (liveEl) liveEl.textContent = 'Latido flota · sin lectura de Yokup (reintento)';
+    });
+  }
+
+  /* Matrix rain suave cyan/teal Galaxia (retinte home; sin verde Pixeria) */
+  function startMatrix() {
+    if (!matrix || reduceMotion) return;
+    var ctx = matrix.getContext('2d');
+    var chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ADMIRANEXT';
+    var fontSize = 13;
+    var drops = [];
+    var colors = ['#78f3ff', '#4ae3d1', '#5ec8ff'];
+    function resize() {
+      var stage = matrix.parentElement;
+      matrix.width = stage.clientWidth;
+      matrix.height = stage.clientHeight;
+      var cols = Math.max(8, Math.floor(matrix.width / fontSize));
+      drops = Array(cols);
+      for (var i = 0; i < cols; i++) drops[i] = Math.random() * -40;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    function frame() {
+      ctx.fillStyle = 'rgba(5, 9, 16, 0.08)';
+      ctx.fillRect(0, 0, matrix.width, matrix.height);
+      ctx.font = fontSize + 'px monospace';
+      for (var i = 0; i < drops.length; i++) {
+        var text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.globalAlpha = 0.35 + (i % 5) * 0.08;
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > matrix.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function zoomBy(delta, cx, cy) {
+    var prev = scale;
+    scale = Math.min(2.4, Math.max(0.45, scale * (delta > 0 ? 1.12 : 0.9)));
+    if (cx != null) {
+      tx = cx - ((cx - tx) * (scale / prev));
+      ty = cy - ((cy - ty) * (scale / prev));
+    }
+    applyTransform();
+    requestAnimationFrame(drawLines);
+  }
+
+  function resetView() {
+    scale = 1; tx = 0; ty = 0; applyTransform();
+    requestAnimationFrame(drawLines);
+  }
+
+  function setPresenter(on) {
+    document.body.classList.toggle('is-presenter', on);
+    var btn = document.getElementById('org-presenter');
+    if (btn) btn.textContent = on ? 'Salir presentador' : 'Presentador';
+    requestAnimationFrame(function () { requestAnimationFrame(drawLines); });
+  }
+
   canvas.addEventListener('dblclick', function (e) {
     var node = e.target.closest('.org-node');
     if (!node || !canvas.contains(node)) return;
     e.preventDefault();
     toggleNode(node);
   });
+
+  var lastTap = 0;
+  var lastTarget = null;
   canvas.addEventListener('click', function (e) {
+    if (e.target.closest('a')) return;
     var node = e.target.closest('.org-node');
     if (!node || !canvas.contains(node)) return;
     var now = Date.now();
+    /* Un clic abre/cierra; doble también (compat #5054) */
     if (lastTarget === node && now - lastTap < 350) {
       e.preventDefault();
-      toggleNode(node);
       lastTap = 0;
       lastTarget = null;
-    } else {
-      lastTap = now;
-      lastTarget = node;
+      return;
     }
+    lastTap = now;
+    lastTarget = node;
+    toggleNode(node);
   });
+
   canvas.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     var node = e.target.closest('.org-node');
@@ -496,8 +766,66 @@
     e.preventDefault();
     toggleNode(node);
   });
+
+  viewport.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey || Math.abs(e.deltaY) > 0) {
+      e.preventDefault();
+      var r = viewport.getBoundingClientRect();
+      zoomBy(e.deltaY < 0 ? 1 : -1, e.clientX - r.left, e.clientY - r.top);
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.org-node')) return;
+    panning = true;
+    viewport.classList.add('is-panning');
+    panX = e.clientX; panY = e.clientY;
+    startTx = tx; startTy = ty;
+    viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener('pointermove', function (e) {
+    if (!panning) return;
+    tx = startTx + (e.clientX - panX);
+    ty = startTy + (e.clientY - panY);
+    applyTransform();
+  });
+  function endPan(e) {
+    if (!panning) return;
+    panning = false;
+    viewport.classList.remove('is-panning');
+    try { viewport.releasePointerCapture(e.pointerId); } catch (err) {}
+    requestAnimationFrame(drawLines);
+  }
+  viewport.addEventListener('pointerup', endPan);
+  viewport.addEventListener('pointercancel', endPan);
+
+  document.getElementById('org-zoom-in').addEventListener('click', function () { zoomBy(1, viewport.clientWidth / 2, viewport.clientHeight / 2); });
+  document.getElementById('org-zoom-out').addEventListener('click', function () { zoomBy(-1, viewport.clientWidth / 2, viewport.clientHeight / 2); });
+  document.getElementById('org-reset').addEventListener('click', resetView);
+  document.getElementById('org-presenter').addEventListener('click', function () {
+    setPresenter(!document.body.classList.contains('is-presenter'));
+  });
+
+  window.addEventListener('keydown', function (e) {
+    if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+    if (e.key === 'p' || e.key === 'P') { setPresenter(!document.body.classList.contains('is-presenter')); }
+    if (e.key === 'Escape') setPresenter(false);
+    if (e.key === '+' || e.key === '=') zoomBy(1, viewport.clientWidth / 2, viewport.clientHeight / 2);
+    if (e.key === '-' || e.key === '_') zoomBy(-1, viewport.clientWidth / 2, viewport.clientHeight / 2);
+    if (e.key === '0') resetView();
+    var step = 40;
+    if (e.key === 'ArrowLeft') { tx += step; applyTransform(); }
+    if (e.key === 'ArrowRight') { tx -= step; applyTransform(); }
+    if (e.key === 'ArrowUp') { ty += step; applyTransform(); }
+    if (e.key === 'ArrowDown') { ty -= step; applyTransform(); }
+  });
+
   window.addEventListener('resize', function () { requestAnimationFrame(drawLines); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawLines);
+  applyTransform();
+  startMatrix();
+  refreshFlota();
+  setInterval(refreshFlota, 30000);
   requestAnimationFrame(function () { requestAnimationFrame(drawLines); });
   setTimeout(drawLines, 80);
   setTimeout(drawLines, 250);
