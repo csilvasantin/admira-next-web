@@ -51,7 +51,7 @@ function withLang(initial) {
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
   vm.runInNewContext(src, sandbox, { filename: 'experto.js' });
-  return { api: sandbox.AdmiraExperto, documentElement, setLang: sandbox.AdmiraSetLanguage };
+  return { api: sandbox.AdmiraExperto, documentElement, setLang: sandbox.AdmiraSetLanguage, sandbox, storage, location };
 }
 
 test('parseLangCommand: toggle, fijar, typo y pegados', () => {
@@ -78,4 +78,17 @@ test('AdmiraSetLanguage actualiza html.lang', () => {
   assert.equal(documentElement.lang, 'en');
   assert.equal(setLang('es'), 'es');
   assert.equal(documentElement.lang, 'es');
+});
+
+test('applyLang guarda admiranext_expert_lang y navega con PixeriaIdioma.url', () => {
+  const { setLang, sandbox, storage, location } = withLang('en');
+  const fuimos = [];
+  location.assign = (u) => fuimos.push(u);
+  sandbox.PixeriaIdioma = { url: (l) => (l === 'es' ? '/stock.html?cliente=altadis&lang=es' : '') };
+  setLang('es');
+  assert.equal(storage.getItem('admiranext_expert_lang'), 'es');
+  assert.deepEqual(fuimos, ['/stock.html?cliente=altadis&lang=es']);
+  setLang('en');
+  assert.equal(storage.getItem('admiranext_expert_lang'), 'en');
+  assert.deepEqual(fuimos, ['/stock.html?cliente=altadis&lang=es'], 'si la pata dice que ya estás, no se navega');
 });
