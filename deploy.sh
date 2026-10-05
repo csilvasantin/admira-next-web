@@ -69,14 +69,25 @@ declared_signature="$(jq -r '.signature // empty' release-signature.json)"
 [[ "$declared_agent" == "$ADMIRA_RELEASE_AGENT" && "$declared_machine" == "$ADMIRA_RELEASE_MACHINE" ]] || { echo "✗ La declaración de responsable no coincide con este agente/equipo" >&2; exit 1; }
 [[ "$declared_signature" == "$ADMIRA_RELEASE_AGENT · $ADMIRA_RELEASE_MACHINE" ]] || { echo "✗ Firma inválida en release-signature.json" >&2; exit 1; }
 git_full="$(git rev-parse HEAD)"
-jq -n \
+# NOVEDADES DEL SELLO (Merovingio, 06-10-2026 · sello con novedades en toda la suite).
+# novedades.json[sello] o .default → version.json.novedades[] (2-4 líneas en español). Las
+# pinta al pasar el ratón el cargador compartido https://www.admiranext.com/assets/sello-novedades.js
+NOVEDADES_JSON='[]'
+if [ -f novedades.json ]; then
+  NOVEDADES_JSON="$(jq -c --arg v "$release" '
+    (if type=="object" then (.[$v] // .default // .novedades // []) elif type=="array" then . else [] end)
+    | if type=="array" then . else [] end | map(tostring) | map(select(length>0)) | .[0:4]
+  ' novedades.json 2>/dev/null || echo '[]')"
+fi
+[ -n "$NOVEDADES_JSON" ] || NOVEDADES_JSON='[]'
+jq -n --argjson novedades "$NOVEDADES_JSON" \
   --arg version "$release" \
   --arg deployedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   --arg deployer "$ADMIRA_RELEASE_AGENT" \
   --arg machine "$ADMIRA_RELEASE_MACHINE" \
   --arg signature "$ADMIRA_RELEASE_AGENT · $ADMIRA_RELEASE_MACHINE" \
   --arg git "$git_full" \
-  '{version:$version,deployedAt:$deployedAt,deployer:$deployer,machine:$machine,signature:$signature,git:$git,gitShort:($git[0:7]),gitFull:$git,dirty:false}' \
+  '{version:$version,deployedAt:$deployedAt,deployer:$deployer,machine:$machine,signature:$signature,git:$git,gitShort:($git[0:7]),gitFull:$git,dirty:false,novedades:$novedades}' \
   > "$TMP/version.json"
 # WRANGLER FIJADO (MorfeoMacMini, 21-09-2026 · FLT-100773 b). Con @latest --yes cada deploy
 # compilaba las Functions con la CLI que npm sirviera ese día: mismo HEAD, worker distinto, y
