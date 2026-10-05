@@ -73,6 +73,94 @@
   var lang = function () { return (document.documentElement.lang || 'es').slice(0, 2) === 'en' ? 'en' : 'es'; };
   var T = function (es, en) { return lang() === 'en' ? en : es; };
 
+  // ─── Idioma / language (Carlos, 5-oct-2026) ───
+  // /idioma y /language (y typo /languague) alternan o fijan ESP↔ENG.
+  // Acepta barra o no, args separados o pegados (idiomaESP, /languageENG…).
+  var LANG_VERBS = /^(idioma|language|languague)$/i;
+  function normalizeLangToken(s) {
+    var n = String(s == null ? '' : s).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z]/g, '');
+    if (!n) return '';
+    if (/^(en|eng|english|ingles)$/.test(n)) return 'en';
+    if (/^(es|esp|spa|spanish|espanol|castellano)$/.test(n)) return 'es';
+    return null;
+  }
+  // null = no es comando de idioma; {ok:false,usage} = verbo sí, arg inválido; {ok:true,lang} = aplicar.
+  function parseLangCommand(text) {
+    var raw = String(text == null ? '' : text).trim();
+    if (!raw) return null;
+    var body = raw.replace(/^\//, '').trim();
+    var m = body.match(/^(idioma|language|languague)(?:[\s_-]*(.*))?$/i);
+    if (!m) return null;
+    var token = normalizeLangToken(m[2] || '');
+    if (token === null) {
+      return {ok: false, usage: true, verb: m[1].toLowerCase()};
+    }
+    var next = token || (lang() === 'en' ? 'es' : 'en');
+    return {ok: true, lang: next, verb: m[1].toLowerCase(), toggled: !token};
+  }
+  function langMessage(l) {
+    return l === 'en' ? 'Language: English' : 'Idioma: español';
+  }
+  function langUsage() {
+    return T(
+      'Usa /idioma o /language (toggle), /idioma ESP|ENG (o es|en). También languageENG, idiomaESP…',
+      'Use /idioma or /language (toggle), /idioma ESP|ENG (or es|en). Also languageENG, idiomaESP…'
+    );
+  }
+  // Aplica el idioma a la ficha, a la pata (si expone API) y avisa a quien escuche.
+  function applyLang(next) {
+    var l = next === 'en' ? 'en' : 'es';
+    document.documentElement.lang = l;
+    try {
+      if (typeof root.setLanguage === 'function') root.setLanguage(l);
+      else if (typeof root.setLang === 'function') root.setLang(l);
+      else if (typeof root.applyHtmlLang === 'function') root.applyHtmlLang(l);
+    } catch (_) {}
+    try { root.localStorage.setItem('xtanco_lang', l); } catch (_) {}
+    try { root.localStorage.setItem('omnip-lang', l); } catch (_) {}
+    try {
+      var link = document.querySelector('link[rel="alternate"][hreflang="' + l + '"]');
+      if (link && link.href) {
+        var target = new URL(link.href, location.href);
+        if (target.origin === location.origin) {
+          var cur = (location.pathname.replace(/\/$/, '') || '/');
+          var want = (target.pathname.replace(/\/$/, '') || '/');
+          if (cur !== want) {
+            location.assign(target.pathname + target.search + target.hash);
+            return l;
+          }
+        }
+      }
+    } catch (_) {}
+    try { document.dispatchEvent(new CustomEvent('admiranext:lang', {detail: {lang: l}})); } catch (_) {}
+    try { root.dispatchEvent(new CustomEvent('admiranext:lang', {detail: {lang: l}})); } catch (_) {}
+    paint();
+    return l;
+  }
+  function handleLangCommand(text, log) {
+    var parsed = parseLangCommand(text);
+    if (!parsed) return false;
+    if (!parsed.ok) {
+      if (log) out(log, langUsage(), 'err');
+      return true;
+    }
+    applyLang(parsed.lang);
+    if (log) out(log, langMessage(parsed.lang));
+    return true;
+  }
+  if (typeof root.AdmiraSetLanguage !== 'function') {
+    root.AdmiraSetLanguage = function (l) { return applyLang(l); };
+  } else {
+    var _prevSetLang = root.AdmiraSetLanguage;
+    root.AdmiraSetLanguage = function (l) {
+      try { _prevSetLang(l); } catch (_) {}
+      return applyLang(l);
+    };
+  }
+
+
   function cliente() {
     try {
       var M = root.AdmiraMarca, a = M && typeof M.actual === 'function' && M.actual();
@@ -184,8 +272,12 @@
   }});
   verb({name: 'estado', desc: ['ficha del motor en el registro', 'engine card into the log'], run: function (a, log) { out(log, lines().join('\n')); }});
   verb({name: 'version', desc: ['sello de la release', 'release stamp'], run: function (a, log) { out(log, readVersion()); }});
-  verb({name: 'idioma', args: 'es|en', desc: ['idioma de la ficha y del CLI', 'language of the card and CLI'], run: function (a, log) {
-    var l = a[0] === 'en' ? 'en' : 'es'; document.documentElement.lang = l; paint(); out(log, T('Idioma: español', 'Language: English'));
+  verb({name: 'idioma', alias: ['language', 'languague'], args: '[ESP|ENG|es|en]', desc: ['idioma de la ficha y del CLI (sin arg: alterna)', 'language of the card and CLI (no arg: toggle)'], run: function (a, log) {
+    var joined = (a && a.length) ? a.join(' ') : '';
+    var parsed = parseLangCommand('idioma' + (joined ? ' ' + joined : ''));
+    if (!parsed || !parsed.ok) { out(log, langUsage(), 'err'); return; }
+    applyLang(parsed.lang);
+    out(log, langMessage(parsed.lang));
   }});
   verb({name: 'limpiar', alias: ['clear', 'cls'], desc: ['vacía el registro', 'clear the log'], run: function (a, log) { log.textContent = ''; hello(log); }});
 
@@ -238,6 +330,7 @@
     var t = String(text || '').trim();
     if (!t) return;
     out(log, '› ' + t, 'cmd');
+    if (handleLangCommand(t, log)) return;
     var parts = t.replace(/^\//, '').split(/\s+/), name = (parts.shift() || '').toLowerCase();
     var v = verbs.filter(function (x) { return x.name === name || (x.alias || []).indexOf(name) >= 0; })[0];
     if (!v) { out(log, T('Verbo desconocido: /', 'Unknown verb: /') + name + T(' · escribe /help', ' · type /help'), 'err'); return; }
@@ -454,6 +547,24 @@
       hd.insertBefore(b, title.nextSibling);
     }
 
+    // Idioma: intercepta en capture ANTES de que la pata diga «verbo desconocido».
+    // Cubre /idioma, /language, typos, pegados y sin barra, en cualquier pata con la piel.
+    form.addEventListener('submit', function (e) {
+      var val = (input && input.value != null) ? String(input.value) : '';
+      var parsed = parseLangCommand(val);
+      if (!parsed) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      var echoed = val.trim();
+      input.value = '';
+      if (!isOpen()) setOpen(true, false);
+      if (echoed) out(log, '› ' + echoed, 'cmd');
+      if (!parsed.ok) { out(log, langUsage(), 'err'); return; }
+      applyLang(parsed.lang);
+      out(log, langMessage(parsed.lang));
+      state = '';
+      paint();
+    }, true);
     // La ficha se repinta tras cada orden (/marca cambia el cliente) y al cambiar marca o idioma.
     form.addEventListener('submit', function () {
       state = T('ejecutando…', 'running…'); paint();
@@ -481,7 +592,10 @@
     open: function () { setOpen(true, true); },
     close: function () { setOpen(false, true); },
     toggle: function () { setOpen(!isOpen(), true); },
-    isOpen: isOpen
+    isOpen: isOpen,
+    parseLangCommand: parseLangCommand,
+    normalizeLangToken: normalizeLangToken,
+    setLanguage: applyLang
   };
 
   function boot() {
