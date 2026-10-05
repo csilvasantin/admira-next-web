@@ -177,7 +177,7 @@
   var SITIO = Array.isArray(G.ADMIRA_FRAME_SITIO) ? G.ADMIRA_FRAME_SITIO : [
     {grupo: 'La casa', enlaces: [['/consejo/', 'El Consejo'], ['/organigrama', 'Organigrama'], ['/academia', 'Academia'], ['/mandamientos', 'Mandamientos'], ['/normativa', 'Normativa'], ['/filosofia', 'Filosofía'], ['/help/', '/help']]},
     {grupo: 'Operación', enlaces: [['/proyectos/', 'Proyectos'], ['/flota', 'Flota'], ['/status', 'Status'], ['/mcp/', 'Hub MCP'], ['/telegram/', 'Telegram']]},
-    {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
+    {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/demo/', 'Créame demo'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
   ];
   // Desde el 3-oct-2026 el modo automático también va con la CABECERA del grupo
   // (<body data-yk-frame="cabecera" data-yk-auto="on">): Carlos, «la barra superior
