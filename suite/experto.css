@@ -123,6 +123,9 @@ html[data-ax-experto] .ax-experto.ax-dock.ax-min .ax-form-path{display:flex!impo
 html[data-ax-experto] .ax-experto.ax-dock.ax-min .ax-cli-form{flex:0 0 auto;width:100%}
 /* La página reserva abajo el alto de la orden minimizada para que no tape contenido. */
 .ax-dock-spacer{display:block;height:var(--ax-dock-pad,62px);flex:0 0 auto;pointer-events:none}
+/* data-min="hide": cerrado = fuera del todo (ni orden ni asa). */
+html[data-ax-experto] .ax-experto.ax-dock.ax-hide{display:none!important}
+html[data-ax-dock="hidden"] .ax-dock-spacer{display:none}
 
 /* Las hojas de marca de cada pata (p. ej. pixeria «:root[data-mb-marca][…] .rail{background…!important}») no aclaran el panel. */
 html[data-ax-experto][data-ax-experto] .ax-experto.ax-experto.ax-experto{background:linear-gradient(180deg,var(--ax-bg),var(--ax-bg2))!important;

@@ -44,7 +44,8 @@
 
   // ─── Piezas puras (se prueban en node: test/avatar-loader.test.mjs) ───
   // null si el texto no es un comando del avatar.
-  // 'on' | 'off' | 'toggle' | 'reset' | 'status' | 'good' | 'better' | 'best' | 'bad'.
+  // 'on' | 'off' | 'toggle' | 'mascota' | 'reset' | 'status' | 'good' | 'better' | 'best' | 'bad'.
+  // 'mascota' alterna la presencia de Admirito (burbuja nube), no el panel.
   function decide(text) {
     var raw = String(text == null ? '' : text).trim();
     var m = raw.match(/^\/?([^\s@]+)(?:@\S+)?(?:\s+([\s\S]*))?$/);
@@ -53,6 +54,13 @@
     var rest = String(m[2] || '').trim().split(/\s+/).filter(Boolean);
     if (verb === 'avataron') return 'on';
     if (verb === 'avataroff') return 'off';
+    // Admirito, la mascota nube (Carlos, 5-oct-2026): /avatarDigital, /avatar Digital y /admirito
+    // la muestran u ocultan (alternan); con on/off la fijan.
+    if (verb === 'admirito' || (verb === 'avatar' && /^digital$/i.test(rest[0] || ''))) {
+      var a0 = String((verb === 'admirito' ? rest[0] : rest[1]) || '').toLowerCase();
+      return !a0 ? 'mascota' : ON.test(a0) ? 'on' : OFF.test(a0) ? 'off' : 'bad';
+    }
+    if (verb === 'avatardigital' && !rest.length) return 'mascota';
     if (verb === 'cli') {
       if (!/^(ayudante|helper)$/i.test(rest[0] || '')) return null;
       rest = rest.slice(1);
@@ -89,6 +97,8 @@
     if (kind === 'status') return en
       ? 'Digital avatar. /avatar good · bald 3D face. /avatar better · web girl with glasses. /avatar best · Neo, MetaHuman. /avatarON shows it, /avatarOFF hides it.'
       : 'Avatar digital. /avatar good · el calvo (cara 3D). /avatar better · la chica web con gafas. /avatar best · Neo, MetaHuman. /avatarON lo muestra, /avatarOFF lo oculta.';
+    if (kind === 'mascota-on') return en ? 'Admirito shown. /avatarDigital or /admirito hides it again.' : 'Admirito visible. /avatarDigital o /admirito lo vuelve a ocultar.';
+    if (kind === 'mascota-off') return en ? 'Admirito hidden. /avatarDigital or /admirito shows it again.' : 'Admirito oculto. /avatarDigital o /admirito lo vuelve a mostrar.';
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
     if (kind === 'reset-off') return en ? 'Digital avatar follows the project switch (off)' : 'El avatar sigue el interruptor del proyecto (apagado)';
     return en
@@ -194,6 +204,8 @@
   // ─── Panel: una sola cara, la de digitalavatar.ai, en un iframe ───
   function node() { return doc.getElementById('da-suite'); }
   function visible() { var n = node(); return !!n && n.style.display !== 'none' && n.classList.contains('open'); }
+  // Admirito está «presente» si la burbuja (o el panel) se ve, abierto o no.
+  function present() { var n = node(); return !!n && n.style.display !== 'none'; }
   function storedLevel() {
     var v = get(LEVEL_KEY);
     return LEVELS[v] ? v : 'good';
@@ -394,6 +406,12 @@
       show(true, mode);
       return message(mode, english);
     }
+    if (mode === 'mascota') {
+      var vis = !present();
+      set(KEY, vis ? 'on' : 'off');
+      if (vis) show(false); else hide();
+      return message(vis ? 'mascota-on' : 'mascota-off', english);
+    }
     var on = mode === 'toggle' ? !visible() : mode === 'on';
     set(KEY, on ? 'on' : 'off');
     if (on) show(true, storedLevel()); else hide();
@@ -404,7 +422,7 @@
     return Promise.resolve(out == null ? message('bad', en()) : out);
   }
   function state() {
-    return {override: override(), visible: visible(), level: storedLevel(), host: host, brain: brainUrl()};
+    return {override: override(), visible: visible(), present: present(), level: storedLevel(), host: host, brain: brainUrl()};
   }
 
   root.AdmiraAvatar = {run: run, handle: handle, decide: decide, show: show, hide: hide, state: state,
