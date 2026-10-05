@@ -120,8 +120,21 @@
     } catch (_) {}
     try { root.localStorage.setItem('xtanco_lang', l); } catch (_) {}
     try { root.localStorage.setItem('omnip-lang', l); } catch (_) {}
+    // Preferencia explícita del Experto, compartida con pixeria / admira.studio (assets/site-nav.js la
+    // lee antes de su auto-redirect a /en/; sin ella, /language ESP en pixeria rebotaba al inglés).
+    try { root.localStorage.setItem('admiranext_expert_lang', l); } catch (_) {}
+    // La pata sabe mejor que el hreflang adónde ir (origen actual, ?lang=es, query conservado).
+    var paginaSabe = false;
     try {
-      var link = document.querySelector('link[rel="alternate"][hreflang="' + l + '"]');
+      var I = root.PixeriaIdioma;
+      if (I && typeof I.url === 'function') {
+        paginaSabe = true;
+        var dest = I.url(l);
+        if (dest) { location.assign(dest); return l; }
+      }
+    } catch (_) {}
+    try {
+      var link = paginaSabe ? null : document.querySelector('link[rel="alternate"][hreflang="' + l + '"]');
       if (link && link.href) {
         var target = new URL(link.href, location.href);
         if (target.origin === location.origin) {
