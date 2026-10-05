@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" class="yk-framed">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créame demo · AdmiraNeXT — formulario de demo formal</title>
+<meta name="description" content="Formaliza una demo completa Admira: Xpacios en admira.biz, contenido en admira.studio, distribución en admira.store, playlist en admira.tv, mantenimiento en admira.app. Incluye tipo de Xpacio (DemoStore / Estanco / Cafetería).">
+<meta name="admiranext-version" content="v.05.10.2026.r1.20:30">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="canonical" href="https://www.admiranext.com/demo">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Créame demo · AdmiraNeXT">
+<meta property="og:description" content="Formulario de demo formal con tipo de Xpacio. Cadena: biz → studio → store → tv → app.">
+<meta property="og:image" content="/og-image.jpg">
+<meta property="og:url" content="https://www.admiranext.com/demo">
+<link rel="preload" href="/assets/fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261004-5053">
+<link rel="stylesheet" href="/demo/demo.css?v=20261005-demo">
+</head>
+<body data-yk-title="DEMO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
+
+<section data-yk-slot="left" hidden>
+  <div class="yk-auto-blk">
+    <a href="/marcablanca/">Marca blanca</a>
+    <a href="/presentaciones/">Presentaciones</a>
+    <a href="/status">Status flota</a>
+  </div>
+</section>
+<section data-yk-slot="right" hidden>
+  <div class="yk-auto-blk">
+    <button type="button" data-yk-accion="Rellenar Lenovo" id="btnLenovo">Rellenar Lenovo (DemoStore)</button>
+    <button type="button" data-yk-accion="Vaciar" id="btnReset">Vaciar formulario</button>
+  </div>
+</section>
+
+<div class="horizonte" aria-hidden="true"><div class="sol"></div><div class="suelo"></div></div>
+
+<main class="demo-wrap">
+  <div class="win">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path"><b>~/AdmiraNeXT</b>/demo</span>
+      <span class="tb-meta">Metaestilo · formal</span>
+    </div>
+    <div class="content">
+      <header class="hero">
+        <div class="term"><span class="pr">$</span> crear-demo --xpacio-tipo demostore --ciudades london,newyork,barcelona,madrid <span class="ok">→ cola</span></div>
+        <div class="kicker">Créame demo · cadena completa</div>
+        <h1>Formaliza una demo Admira</h1>
+        <p class="lede">No basta el nombre de la compañía: el <b>tipo de Xpacio</b> decide la escena del gemelo.
+          <b>Lenovo = DemoStores</b>, no Estancos ni Cafeterías. Al enviar se encola
+          <code>tools/crear-demo/crear_demo.py</code> en el Mac Mini (o se guarda la solicitud + aviso Agora).</p>
+        <ol class="cadena" aria-label="Cadena de productos">
+          <li><b>admira.biz</b> registra Xpacios</li>
+          <li><b>admira.studio</b> crea contenido</li>
+          <li><b>admira.store</b> distribuye</li>
+          <li><b>admira.tv</b> playlist</li>
+          <li><b>admira.app</b> mantiene</li>
+        </ol>
+      </header>
+
+      <form id="demoForm" class="demo-form" novalidate>
+        <fieldset>
+          <legend>Compañía</legend>
+          <label class="f"><span>Nombre de la compañía <i>*</i></span>
+            <input name="cliente" id="cliente" type="text" required maxlength="80" autocomplete="organization" placeholder="Lenovo">
+          </label>
+          <label class="f"><span>Web <i>*</i></span>
+            <input name="website" id="website" type="url" required maxlength="300" inputmode="url" autocomplete="url" placeholder="https://www.lenovo.com/">
+          </label>
+          <label class="f f-color"><span>Color de marca</span>
+            <input name="color" id="color" type="color" value="#E2231A" aria-describedby="colorHex">
+            <code id="colorHex">#E2231A</code>
+          </label>
+          <label class="f"><span>Logo (opcional)</span>
+            <input name="logo" id="logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+            <small>PNG/JPG/WebP/SVG · máx. ~300 KB en cola</small>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Tipo de Xpacio <i>*</i></legend>
+          <p class="hint">Define la escena del gemelo digital (<code>autostart</code>) y el <code>kind</code> en admira.biz.</p>
+          <div class="tipos" role="radiogroup" aria-label="Tipo de Xpacio">
+            <label class="tipo"><input type="radio" name="xpacio_tipo" value="demostore" checked> <b>DemoStore</b><em>Lenovo, retail demo · escena shoptalk</em></label>
+            <label class="tipo"><input type="radio" name="xpacio_tipo" value="estanco"> <b>Estanco</b><em>Xtanco · escena xtanco</em></label>
+            <label class="tipo"><input type="radio" name="xpacio_tipo" value="cafeteria"> <b>Cafetería</b><em>Cafebrería / hospitality · escena cafeteria</em></label>
+            <label class="tipo"><input type="radio" name="xpacio_tipo" value="other"> <b>Otro</b><em>etiqueta libre</em></label>
+          </div>
+          <label class="f" id="wrapOtro" hidden><span>Etiqueta «otro»</span>
+            <input name="xpacio_otro" id="xpacio_otro" type="text" maxlength="60" placeholder="Gimnasio · Banco · …">
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Ciudades y voz</legend>
+          <div class="ciudades" id="ciudades">
+            <label><input type="checkbox" name="ciudad" value="london" checked> London</label>
+            <label><input type="checkbox" name="ciudad" value="newyork" checked> New York</label>
+            <label><input type="checkbox" name="ciudad" value="barcelona" checked> Barcelona</label>
+            <label><input type="checkbox" name="ciudad" value="madrid" checked> Madrid</label>
+            <label><input type="checkbox" name="ciudad" value="paris"> Paris</label>
+            <label><input type="checkbox" name="ciudad" value="milano"> Milano</label>
+            <label><input type="checkbox" name="ciudad" value="lisboa"> Lisboa</label>
+            <label><input type="checkbox" name="ciudad" value="valencia"> València</label>
+            <label><input type="checkbox" name="ciudad" value="mexico"> Ciudad de México</label>
+          </div>
+          <label class="f"><span>Hora de cierre (locuciones EN+ES)</span>
+            <input name="cierre" id="cierre" type="time" value="20:00" required>
+          </label>
+          <div class="idiomas">
+            <span class="lbl">Idiomas</span>
+            <label><input type="checkbox" name="idioma" value="en" checked> EN</label>
+            <label><input type="checkbox" name="idioma" value="es" checked> ES</label>
+          </div>
+          <label class="f"><span>Notas (opcional)</span>
+            <textarea name="notas" id="notas" rows="2" maxlength="500" placeholder="Contexto comercial, fecha de la demo, contacto…"></textarea>
+          </label>
+        </fieldset>
+
+        <div class="acciones">
+          <button type="submit" class="btn primario" id="btnEnviar">Encolar demo completa</button>
+          <button type="button" class="btn" id="btnDry">Ver comando (sin enviar)</button>
+        </div>
+        <p id="estado" class="estado" role="status" aria-live="polite"></p>
+        <pre id="comando" class="comando" hidden></pre>
+        <div id="resultado" class="resultado" hidden></div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script src="/demo/demo.js?v=20261005-demo" defer></script>
+<script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
+</body>
+</html>
