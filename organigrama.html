@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Organigrama · ADmiraNeXT</title>
 <meta name="description" content="Organigrama de ADmiraNeXT: el Consejo de Silicio responde de la mesa, un DeepAgent dirige cada pata y los agentes ejecutan.">
-<meta name="admiranext-version" content="v.05.10.2026.r3.22:35">
+<meta name="admiranext-version" content="v.05.10.2026.r4.22:55">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -90,9 +90,18 @@
     border:1px solid var(--yk-line,#253042);border-radius:14px;
     background:linear-gradient(165deg,rgba(18,28,44,.95),rgba(8,12,20,.92));
     box-shadow:0 0 0 1px rgba(74,227,209,.08),0 12px 28px rgba(0,0,0,.35);
-    cursor:pointer;user-select:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
-    touch-action:manipulation;text-align:center
+    cursor:pointer;user-select:none;-webkit-user-select:none;transition:border-color .18s ease,box-shadow .18s ease;
+    touch-action:none;text-align:center
   }
+  /* Drag de cajas: el transform lo pinta el muelle en JS (sin transition CSS para no ir con retraso) */
+  .org-node.is-dragging{
+    z-index:6;cursor:grabbing;border-color:#78f3ff;
+    box-shadow:0 0 0 2px rgba(120,243,255,.65),0 22px 44px rgba(0,0,0,.5),0 0 38px rgba(74,227,209,.42)
+  }
+  .org-canvas.is-dragging-any,.org-canvas.is-dragging-any .org-node{cursor:grabbing}
+  .org-top.is-drag-host,.org-cols.is-drag-host,.org-agents.is-drag-host{z-index:5!important}
+  .org-node.is-revealing{animation:orgReveal .42s ease-out}
+  @keyframes orgReveal{from{opacity:0}to{opacity:1}}
   .org-node:hover,.org-node:focus-visible{border-color:var(--yk-brand,#4ae3d1);box-shadow:0 0 0 1px rgba(74,227,209,.35),0 0 24px rgba(74,227,209,.18);outline:none}
   .org-node.is-top{
     min-width:210px;max-width:250px;border-color:rgba(74,227,209,.75);
@@ -155,7 +164,7 @@
     .org-toolbar .org-live{margin-left:0;width:100%}
   }
   @media (prefers-reduced-motion:reduce){
-    .org-svg path.org-line,.org-node.is-top,.org-dot.is-ok,.org-dot.is-warn{animation:none!important}
+    .org-svg path.org-line,.org-node.is-top,.org-dot.is-ok,.org-dot.is-warn,.org-node.is-revealing{animation:none!important}
   }
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261004-5053">
@@ -202,11 +211,12 @@
 
   <section class="bloque arbol-wrap" id="arbol-interactivo" aria-label="Organigrama interactivo">
     <h2>Escena viva</h2>
-    <p class="arbol-hint">Árbol compactado al cargar: solo Jobs. Clic en un nodo para descompactar el siguiente nivel (Jobs → patas → DeepAgents → agentes). Arrastra · rueda o +/− · P presentador · Esc · Enter/Espacio.</p>
+    <p class="arbol-hint">Árbol compactado al cargar: solo Jobs. Clic en un nodo para descompactar el siguiente nivel (Jobs → patas → DeepAgents → agentes). Arrastra una caja para recolocarla: las flechas la siguen en vivo y su rama se recoloca con muelle suave. Arrastra el fondo para mover la vista · rueda o +/− · R recolocar · P presentador · Esc · Enter/Espacio · Alt+flechas mueve la caja enfocada.</p>
     <div class="org-toolbar" role="toolbar" aria-label="Controles del organigrama">
       <button type="button" id="org-zoom-in" title="Zoom +">Zoom +</button>
       <button type="button" id="org-zoom-out" title="Zoom −">Zoom −</button>
       <button type="button" id="org-reset" title="Centrar">Centrar</button>
+      <button type="button" id="org-relayout" title="Devolver las cajas a su sitio (R)">Recolocar</button>
       <button type="button" id="org-presenter" title="Modo presentador">Presentador</button>
       <span class="org-live" id="org-live">Latido: cargando flota…</span>
     </div>
@@ -406,7 +416,7 @@
   </section>
 
   <footer>
-    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.05.10.2026.r3.22:35</span>
+    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.05.10.2026.r4.22:55</span>
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
@@ -477,23 +487,37 @@
     world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
   }
 
+  /* Paths SVG reutilizados por id de hijo: al arrastrar sólo cambia el atributo d
+     (no se recrean, así el latido/dash CSS no se reinicia en cada frame). */
+  var pathCache = Object.create(null);
+
   function clearPaths() {
     svg.querySelectorAll('path.org-line').forEach(function (p) { p.remove(); });
+    pathCache = Object.create(null);
   }
+
+  function num(v) { return Math.round(v * 10) / 10; }
 
   function drawLines() {
     var rect = canvas.getBoundingClientRect();
-    var w = Math.max(canvas.scrollWidth || rect.width, rect.width, 1);
-    var h = Math.max(canvas.scrollHeight || rect.height, rect.height, 1);
-    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-    svg.setAttribute('width', String(w));
-    svg.setAttribute('height', String(h));
-    clearPaths();
+    /* Tamaño de layout (sin zoom ni transforms de las cajas) para que viewBox = px de mundo */
+    var w = Math.max(canvas.offsetWidth || 0, 1);
+    var h = Math.max(canvas.offsetHeight || 0, 1);
+    /* Factor pantalla→mundo real (zoom del visor); robusto aunque cambie scale */
+    var k = (rect.width && canvas.offsetWidth) ? rect.width / canvas.offsetWidth : (scale || 1);
+    if (!k || !isFinite(k)) k = 1;
+    var vb = '0 0 ' + w + ' ' + h;
+    if (svg.getAttribute('viewBox') !== vb) {
+      svg.setAttribute('viewBox', vb);
+      svg.setAttribute('width', String(w));
+      svg.setAttribute('height', String(h));
+    }
     var narrow = window.matchMedia('(max-width:720px)').matches;
     var byId = {};
     canvas.querySelectorAll('.org-node').forEach(function (n) {
       byId[n.getAttribute('data-id')] = n;
     });
+    var used = Object.create(null);
     Object.keys(byId).forEach(function (id) {
       var n = byId[id];
       var parentId = n.getAttribute('data-parent');
@@ -501,36 +525,51 @@
       if (getComputedStyle(n).display === 'none') return;
       var a = byId[parentId].getBoundingClientRect();
       var b = n.getBoundingClientRect();
-      var scaleSafe = scale || 1;
-      var y1 = (a.bottom - rect.top) / scaleSafe;
-      var y2 = (b.top - rect.top) / scaleSafe;
-      var d, x1, x2;
+      if (!a.width || !b.width) return;
+      var acx = (a.left + a.width / 2 - rect.left) / k;
+      var bcx = (b.left + b.width / 2 - rect.left) / k;
+      /* Si el hijo se arrastra por encima del padre, la flecha sale por arriba */
+      var above = (b.top + b.height / 2) < (a.top + a.height / 2);
+      var y1 = ((above ? a.top : a.bottom) - rect.top) / k;
+      var y2 = ((above ? b.bottom : b.top) - rect.top) / k;
+      var d;
       if (narrow) {
         var rail = 12;
-        x1 = rail;
-        x2 = rail;
-        d = 'M' + ((a.left + a.width / 2 - rect.left) / scaleSafe) + ' ' + y1 +
-            ' L' + x1 + ' ' + y1 +
-            ' L' + x2 + ' ' + y2 +
-            ' L' + ((b.left + b.width / 2 - rect.left) / scaleSafe) + ' ' + y2;
+        d = 'M' + num(acx) + ' ' + num(y1) +
+            ' L' + rail + ' ' + num(y1) +
+            ' L' + rail + ' ' + num(y2) +
+            ' L' + num(bcx) + ' ' + num(y2);
       } else {
-        x1 = (a.left + a.width / 2 - rect.left) / scaleSafe;
-        x2 = (b.left + b.width / 2 - rect.left) / scaleSafe;
         var midY = (y1 + y2) / 2;
-        d = 'M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + midY + ', ' + x2 + ' ' + midY + ', ' + x2 + ' ' + y2;
+        d = 'M' + num(acx) + ' ' + num(y1) + ' C' + num(acx) + ' ' + num(midY) + ', ' + num(bcx) + ' ' + num(midY) + ', ' + num(bcx) + ' ' + num(y2);
       }
-      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       var cls = 'org-line';
       if (parentId === 'jobs') cls += ' is-branch';
       if (n.classList.contains('is-agent') || n.classList.contains('is-deep')) cls += ' is-flow';
-      path.setAttribute('class', cls);
-      path.setAttribute('d', d);
-      path.setAttribute('filter', 'url(#orgSoftGlow)');
-      svg.appendChild(path);
+      var path = pathCache[id];
+      if (!path || path.parentNode !== svg) {
+        path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('filter', 'url(#orgSoftGlow)');
+        path.setAttribute('data-edge', id);
+        svg.appendChild(path);
+        pathCache[id] = path;
+      }
+      if (path.getAttribute('class') !== cls) path.setAttribute('class', cls);
+      if (path.getAttribute('d') !== d) path.setAttribute('d', d);
+      used[id] = true;
+    });
+    Object.keys(pathCache).forEach(function (id) {
+      if (used[id]) return;
+      pathCache[id].remove();
+      delete pathCache[id];
     });
   }
 
   function applyBranch() {
+    var wasVisible = Object.create(null);
+    canvas.querySelectorAll('.org-node').forEach(function (n) {
+      wasVisible[n.getAttribute('data-id')] = n.getClientRects().length > 0;
+    });
     canvas.querySelectorAll('.org-node').forEach(function (n) {
       var parentId = n.getAttribute('data-parent');
       var hide = false;
@@ -563,6 +602,7 @@
       }
       host.classList.toggle('is-collapsed-tier', hideAgents);
     });
+    revealFromParents(wasVisible);
     drawLines();
   }
 
@@ -605,6 +645,234 @@
     node.classList.toggle('is-open', open);
     node.setAttribute('aria-expanded', open ? 'true' : 'false');
     drawLines();
+  }
+
+  /* ── Drag de cajas con muelle suave ─────────────────────────────────────
+     Cada caja guarda un desplazamiento propio (local) en px de mundo. Su destino es
+     la suma de su local + el de todos sus ancestros: al mover una caja su rama la
+     sigue entera, con un muelle que retrasa un poco más a cada generación (efecto
+     látigo suave). El padre se inclina levemente hacia el tirón y vuelve al soltar.
+     Cada frame: translate3d en las cajas + drawLines() → flechas SVG en vivo.
+     Sin librerías: requestAnimationFrame + transform. */
+  var LAYOUT_KEY = 'admiranext_org_layout_v1';
+  var DRAG_THRESHOLD = 5;      /* px de pantalla antes de considerar arrastre (clic sigue funcionando) */
+  var SPRING_K = 0.16;         /* rigidez base */
+  var SPRING_DAMP = 0.6;       /* amortiguación por frame (0..1) → spring leve, sin rebote brusco */
+  var LEAN = 0.12;             /* fracción del tirón que inclina al padre */
+  var LEAN_MAX = 36;
+  var local = Object.create(null);
+  var pos = Object.create(null);
+  var lean = Object.create(null);
+  var drag = null;
+  var suppressClick = false;
+  var suppressTimer = 0;
+  var animRaf = 0;
+
+  try {
+    var savedLayout = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}');
+    Object.keys(savedLayout || {}).forEach(function (id) {
+      var o = savedLayout[id];
+      if (o && isFinite(o.x) && isFinite(o.y)) local[id] = { x: +o.x, y: +o.y };
+    });
+  } catch (err) {}
+
+  function saveLayout() {
+    try {
+      var clean = {};
+      Object.keys(local).forEach(function (id) {
+        var o = local[id];
+        if (Math.abs(o.x) > 0.5 || Math.abs(o.y) > 0.5) clean[id] = { x: Math.round(o.x), y: Math.round(o.y) };
+      });
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify(clean));
+    } catch (err) {}
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  /* Un paso de muelle amortiguado (semi-implícito). Devuelve true si ya está en reposo. */
+  function springStep(p, tx, ty, k, damp) {
+    p.vx = (p.vx + (tx - p.x) * k) * damp;
+    p.vy = (p.vy + (ty - p.y) * k) * damp;
+    p.x += p.vx;
+    p.y += p.vy;
+    if (Math.abs(tx - p.x) < 0.15 && Math.abs(ty - p.y) < 0.15 && Math.abs(p.vx) < 0.05 && Math.abs(p.vy) < 0.05) {
+      p.x = tx; p.y = ty; p.vx = 0; p.vy = 0;
+      return true;
+    }
+    return false;
+  }
+
+  function targetFor(id, parents) {
+    var x = 0, y = 0, cur = id, guard = 0;
+    while (cur && guard++ < 16) {
+      var o = local[cur];
+      if (o) { x += o.x; y += o.y; }
+      cur = parents[cur];
+    }
+    var l = lean[id];
+    if (l) { x += l.x; y += l.y; }
+    return { x: x, y: y };
+  }
+
+  function depthBelow(id, rootId, parents) {
+    var cur = parents[id], d = 1;
+    while (cur && d < 16) {
+      if (cur === rootId) return d;
+      cur = parents[cur];
+      d++;
+    }
+    return 0;
+  }
+
+  function tick() {
+    animRaf = 0;
+    var els = Object.create(null);
+    var parents = Object.create(null);
+    canvas.querySelectorAll('.org-node').forEach(function (n) {
+      var id = n.getAttribute('data-id');
+      els[id] = n;
+      parents[id] = n.getAttribute('data-parent') || '';
+    });
+    var moving = false;
+    var activeId = drag && drag.active ? drag.id : '';
+    Object.keys(els).forEach(function (id) {
+      var t = targetFor(id, parents);
+      var p = pos[id];
+      if (!p) p = pos[id] = { x: t.x, y: t.y, vx: 0, vy: 0, tr: '' };
+      if (id === activeId || reduceMotion) {
+        p.x = t.x; p.y = t.y; p.vx = 0; p.vy = 0;
+      } else {
+        var k = SPRING_K;
+        if (activeId) {
+          var depth = depthBelow(id, activeId, parents);
+          if (depth) k = Math.max(0.07, SPRING_K - 0.03 * depth);
+        }
+        if (!springStep(p, t.x, t.y, k, SPRING_DAMP)) moving = true;
+      }
+      var tr = (Math.abs(p.x) > 0.01 || Math.abs(p.y) > 0.01)
+        ? 'translate3d(' + p.x.toFixed(2) + 'px,' + p.y.toFixed(2) + 'px,0)'
+        : '';
+      if (p.tr !== tr || p.el !== els[id]) {
+        els[id].style.transform = tr;
+        p.tr = tr;
+        p.el = els[id];
+      }
+    });
+    drawLines();
+    if (moving || activeId) animRaf = requestAnimationFrame(tick);
+  }
+
+  function kick() {
+    if (!animRaf) animRaf = requestAnimationFrame(tick);
+  }
+
+  function syncNow() {
+    if (animRaf) { cancelAnimationFrame(animRaf); animRaf = 0; }
+    tick();
+  }
+
+  /* Al descompactar, los hijos nacen desde el centro del padre y se despliegan con el muelle */
+  function revealFromParents(wasVisible) {
+    if (reduceMotion || !wasVisible) return;
+    var rect = canvas.getBoundingClientRect();
+    var k = (rect.width && canvas.offsetWidth) ? rect.width / canvas.offsetWidth : (scale || 1);
+    if (!k || !isFinite(k)) k = 1;
+    var any = false;
+    canvas.querySelectorAll('.org-node').forEach(function (n) {
+      var id = n.getAttribute('data-id');
+      if (wasVisible[id] || !n.getClientRects().length) return;
+      var parentEl = canvas.querySelector('.org-node[data-id="' + n.getAttribute('data-parent') + '"]');
+      if (!parentEl) return;
+      var a = parentEl.getBoundingClientRect();
+      var b = n.getBoundingClientRect();
+      var p = pos[id] || (pos[id] = { x: 0, y: 0, vx: 0, vy: 0, tr: '' });
+      p.x += ((a.left + a.width / 2) - (b.left + b.width / 2)) / k;
+      p.y += ((a.top + a.height / 2) - (b.top + b.height / 2)) / k;
+      p.vx = 0; p.vy = 0;
+      n.classList.add('is-revealing');
+      any = true;
+    });
+    if (any) syncNow();
+  }
+
+  canvas.addEventListener('animationend', function (e) {
+    if (e.animationName === 'orgReveal' && e.target.classList) e.target.classList.remove('is-revealing');
+  });
+
+  function setDragHost(node, on) {
+    var host = node.closest('.org-agents, .org-cols, .org-top');
+    /* los agentes viven dentro de .org-cols: sube también la columna entera */
+    var cols = node.closest('.org-cols');
+    if (host) host.classList.toggle('is-drag-host', on);
+    if (cols && cols !== host) cols.classList.toggle('is-drag-host', on);
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (e.target.closest('a')) return;
+    var node = e.target.closest('.org-node');
+    if (!node || !canvas.contains(node)) return;
+    var id = node.getAttribute('data-id');
+    var o = local[id] || { x: 0, y: 0 };
+    drag = {
+      id: id, node: node, pid: e.pointerId, sx: e.clientX, sy: e.clientY,
+      ox: o.x, oy: o.y, parent: node.getAttribute('data-parent') || '', active: false
+    };
+    try { node.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
+  canvas.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    var dx = e.clientX - drag.sx;
+    var dy = e.clientY - drag.sy;
+    if (!drag.active) {
+      if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
+      drag.active = true;
+      drag.node.classList.add('is-dragging');
+      canvas.classList.add('is-dragging-any');
+      setDragHost(drag.node, true);
+    }
+    e.preventDefault();
+    var s = scale || 1;
+    local[drag.id] = { x: drag.ox + dx / s, y: drag.oy + dy / s };
+    if (drag.parent) lean[drag.parent] = { x: clamp(dx / s * LEAN, -LEAN_MAX, LEAN_MAX), y: clamp(dy / s * LEAN, -LEAN_MAX, LEAN_MAX) };
+    kick();
+  });
+
+  function endDrag(e) {
+    if (!drag || (e && e.pointerId !== drag.pid)) return;
+    var d = drag;
+    drag = null;
+    try { d.node.releasePointerCapture(d.pid); } catch (err) {}
+    if (!d.active) return;
+    d.node.classList.remove('is-dragging');
+    canvas.classList.remove('is-dragging-any');
+    setDragHost(d.node, false);
+    if (d.parent) delete lean[d.parent];
+    /* el clic que llega tras soltar no debe compactar/descompactar */
+    suppressClick = true;
+    clearTimeout(suppressTimer);
+    suppressTimer = setTimeout(function () { suppressClick = false; }, 400);
+    saveLayout();
+    kick();
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('lostpointercapture', function (e) { if (drag && drag.active) endDrag(e); });
+
+  function nudgeNode(node, dx, dy) {
+    var id = node.getAttribute('data-id');
+    var o = local[id] || { x: 0, y: 0 };
+    local[id] = { x: o.x + dx, y: o.y + dy };
+    saveLayout();
+    kick();
+  }
+
+  function relayout() {
+    local = Object.create(null);
+    lean = Object.create(null);
+    saveLayout();
+    kick();
   }
 
   function esc(s) {
@@ -704,6 +972,7 @@
       (data.participants || []).forEach(pushAgent);
       (data.observations || []).forEach(pushAgent);
       renderAgents(groups);
+      syncNow();
       paintPresence(map);
       applyBranch();
       requestAnimationFrame(function () { requestAnimationFrame(drawLines); });
@@ -781,6 +1050,12 @@
   var lastTap = 0;
   var lastTarget = null;
   canvas.addEventListener('click', function (e) {
+    if (suppressClick) {
+      suppressClick = false;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if (e.target.closest('a')) return;
     var node = e.target.closest('.org-node');
     if (!node || !canvas.contains(node)) return;
@@ -840,12 +1115,23 @@
   document.getElementById('org-zoom-in').addEventListener('click', function () { zoomBy(1, viewport.clientWidth / 2, viewport.clientHeight / 2); });
   document.getElementById('org-zoom-out').addEventListener('click', function () { zoomBy(-1, viewport.clientWidth / 2, viewport.clientHeight / 2); });
   document.getElementById('org-reset').addEventListener('click', resetView);
+  document.getElementById('org-relayout').addEventListener('click', relayout);
   document.getElementById('org-presenter').addEventListener('click', function () {
     setPresenter(!document.body.classList.contains('is-presenter'));
   });
 
   window.addEventListener('keydown', function (e) {
     if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+    var focusedNode = e.target && e.target.closest ? e.target.closest('.org-node') : null;
+    if (focusedNode && e.altKey && /^Arrow/.test(e.key)) {
+      e.preventDefault();
+      var nudge = e.shiftKey ? 64 : 24;
+      nudgeNode(focusedNode,
+        e.key === 'ArrowLeft' ? -nudge : e.key === 'ArrowRight' ? nudge : 0,
+        e.key === 'ArrowUp' ? -nudge : e.key === 'ArrowDown' ? nudge : 0);
+      return;
+    }
+    if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey) relayout();
     if (e.key === 'p' || e.key === 'P') { setPresenter(!document.body.classList.contains('is-presenter')); }
     if (e.key === 'Escape') setPresenter(false);
     if (e.key === '+' || e.key === '=') zoomBy(1, viewport.clientWidth / 2, viewport.clientHeight / 2);
@@ -863,6 +1149,7 @@
   applyTransform();
   collapseAllByDefault();
   startMatrix();
+  syncNow();
   refreshFlota();
   setInterval(refreshFlota, 30000);
   requestAnimationFrame(function () { requestAnimationFrame(drawLines); });
