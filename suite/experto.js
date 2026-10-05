@@ -25,6 +25,7 @@
  * despliegan/pliegan; una orden lanzada en minimizado lo despliega. La elección se recuerda por
  * dominio (localStorage «ax-experto-abierto») y la página reserva abajo el alto minimizado
  * (div.ax-dock-spacer al final del body, --ax-dock-pad). data-dock="off" lo desactiva.
+ * data-min="hide": cerrado no deja ni la línea; se oculta del todo y se recuerda por pestaña.
  * API: window.AdmiraExperto = {paint(), setState(texto), lines(), set(clave, valor), verb({name, args, desc:[es,en], run(args, log)}), run(texto),
  *      open(), close(), toggle(), isOpen()}.
  */
@@ -58,10 +59,14 @@
     // a la columna del CLI, encima de la orden, como en digitalavatar.ai.
     moveLog: ds.moveLog != null,
     dock: ds.dock !== 'off',
+    // data-min="hide" (Pixeria, Carlos 5-oct-2026): cerrado = oculto del todo, sin la línea «› /help»;
+    // el ⌘ de la pata lo muestra completo u oculta, y el estado se recuerda en la pestaña (sessionStorage).
+    minHide: ds.min === 'hide',
     // Botones ⌘ propios de cada pata: biz/clearchannel, admira.tv, admira.app/yokup, pixeria/studio, store.
     toggle: ds.toggle == null ? '#header-expert-toggle,#af-ico-bottom,.yk-ico-exp,.pf-ico[title^="Expert"],.pix-nav-icon-expert,#xsExpertToggle' : ds.toggle
   };
   var DOCK_KEY = 'ax-experto-abierto';
+  function dockStore() { try { return cfg.minHide ? root.sessionStorage : root.localStorage; } catch (_) { return null; } }
   // Sin data-engine, el nombre sale de la pata: admira.biz → «ADMIRA BIZ ENGINE».
   cfg.engine = ds.engine || (cfg.pata.replace(/\.pages\.dev$/, '').split('.').slice(-2).join(' ').toUpperCase() + ' ENGINE');
   var state = '', version = '', extra = {}, panel = null;
@@ -187,7 +192,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = calvo 3D,
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261005-nube-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261005-admirito-1';
   function avatarApi() {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
     var tag = document.querySelector('script[data-admira-avatar]');
@@ -218,8 +223,11 @@
   ], run: function (a, log) { return avatarRun('/avatar' + (a.length ? ' ' + a.join(' ') : ''), log); }});
   verb({name: 'avataron', desc: ['muestra el avatar digital y lo recuerda', 'show the digital avatar and remember it'], run: function (a, log) { return avatarRun('/avatarON', log); }});
   verb({name: 'avataroff', desc: ['oculta el avatar digital y lo recuerda', 'hide the digital avatar and remember it'], run: function (a, log) { return avatarRun('/avatarOFF', log); }});
-  verb({name: 'avatardigital', alias: ['digitalavatar'], desc: ['alias de /avatar', 'alias of /avatar'], run: function (a, log) {
-    return avatarRun('/avatar' + (a.length ? ' ' + a.join(' ') : ''), log);
+  verb({name: 'avatardigital', alias: ['digitalavatar'], desc: ['sin nada, muestra u oculta a Admirito (la nube); con on/off lo fija', 'alone, shows or hides Admirito (the cloud); on/off sets it'], run: function (a, log) {
+    return avatarRun('/avatarDigital' + (a.length ? ' ' + a.join(' ') : ''), log);
+  }});
+  verb({name: 'admirito', desc: ['muestra u oculta a Admirito, la mascota nube', 'show or hide Admirito, the cloud mascot'], run: function (a, log) {
+    return avatarRun('/admirito' + (a.length ? ' ' + a.join(' ') : ''), log);
   }});
   verb({name: 'cli', args: 'ayudante|helper', desc: ['interruptor del avatar en esta consola', 'avatar switch on this console'], run: function (a, log) {
     if (/^(ayudante|helper)$/i.test(a[0] || '')) return avatarRun('/cli ' + a.join(' '), log);
@@ -290,20 +298,22 @@
   function isOpen() { return !!panel && !panel.classList.contains('ax-min'); }
   function pad() {
     if (!panel) return;
+    if (cfg.minHide) { document.documentElement.style.setProperty('--ax-dock-pad', '0px'); return; }
     var h = panel.classList.contains('ax-min') ? panel.offsetHeight : 0;
     if (h) document.documentElement.style.setProperty('--ax-dock-pad', h + 'px');
   }
   function setOpen(open, remember) {
     if (!panel || !panel.classList.contains('ax-dock')) return;
     panel.classList.toggle('ax-min', !open);
-    document.documentElement.setAttribute('data-ax-dock', open ? 'open' : 'min');
-    var lab = open ? T('Minimizar el modo Experto', 'Minimise Expert mode') : T('Desplegar el modo Experto', 'Expand Expert mode');
+    panel.classList.toggle('ax-hide', cfg.minHide && !open);
+    document.documentElement.setAttribute('data-ax-dock', open ? 'open' : cfg.minHide ? 'hidden' : 'min');
+    var lab = open ? (cfg.minHide ? T('Ocultar el modo Experto', 'Hide Expert mode') : T('Minimizar el modo Experto', 'Minimise Expert mode')) : T('Desplegar el modo Experto', 'Expand Expert mode');
     [].forEach.call(panel.querySelectorAll('.ax-fold,.ax-grip'), function (f) {
       if (f.classList.contains('ax-fold')) f.textContent = open ? '▾' : '▴';
       f.setAttribute('aria-expanded', open ? 'true' : 'false');
       f.setAttribute('aria-label', lab); f.title = lab;
     });
-    if (remember) { try { localStorage.setItem(DOCK_KEY, open ? '1' : '0'); } catch (_) {} }
+    if (remember) { try { dockStore().setItem(DOCK_KEY, open ? '1' : '0'); } catch (_) {} }
     if (open) {
       var log = panel.querySelector('.ax-cli-out');
       if (log) setTimeout(function () { log.scrollTop = log.scrollHeight; }, 0);
@@ -342,7 +352,7 @@
     document.body.appendChild(sp);
     try { new ResizeObserver(pad).observe(panel); } catch (_) {}
     var open = false;
-    try { open = localStorage.getItem(DOCK_KEY) === '1'; } catch (_) {}
+    try { open = dockStore().getItem(DOCK_KEY) === '1'; } catch (_) {}
     setOpen(open, false);
   }
 

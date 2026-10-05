@@ -24,7 +24,14 @@ test('verbos nuevos y alias antiguos', () => {
   assert.equal(A.decide('/avatar ocultar'), 'off');
   assert.equal(A.decide('/avatar reset'), 'reset');
   assert.equal(A.decide('/avatar xyz'), 'bad');
-  assert.equal(A.decide('/avatarDigital'), 'status');
+  assert.equal(A.decide('/avatarDigital'), 'mascota');
+  assert.equal(A.decide('/avatar Digital'), 'mascota');
+  assert.equal(A.decide('/AVATAR digital'), 'mascota');
+  assert.equal(A.decide('/admirito'), 'mascota');
+  assert.equal(A.decide('/Admirito off'), 'off');
+  assert.equal(A.decide('/avatar digital on'), 'on');
+  assert.equal(A.decide('/avatar'), 'status');
+  assert.equal(A.decide('/digitalAvatar'), 'status');
   assert.equal(A.decide('/digitalAvatar off'), 'off');
   assert.equal(A.decide('/cli ayudante on'), 'on');
   assert.equal(A.decide('/cli helper'), 'toggle');
