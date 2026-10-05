@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Organigrama · ADmiraNeXT</title>
 <meta name="description" content="Organigrama de ADmiraNeXT: el Consejo de Silicio responde de la mesa, un DeepAgent dirige cada pata y los agentes ejecutan.">
-<meta name="admiranext-version" content="v.05.10.2026.r2.21:36">
+<meta name="admiranext-version" content="v.05.10.2026.r3.22:35">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -103,7 +103,10 @@
   @keyframes jobsGlow{0%,100%{box-shadow:0 0 0 2px rgba(74,227,209,.4),0 0 28px rgba(74,227,209,.28),0 0 48px rgba(42,107,255,.18)}50%{box-shadow:0 0 0 2px rgba(74,227,209,.75),0 0 42px rgba(74,227,209,.48),0 0 72px rgba(42,107,255,.32)}}
   .org-node.is-deep{min-width:112px;max-width:150px;opacity:.95;border-style:dashed}
   .org-node.is-agent{min-width:100px;max-width:140px;padding:10px 8px 8px;background:linear-gradient(165deg,rgba(14,24,38,.92),rgba(6,10,18,.9))}
-  .org-node.is-collapsed-child{opacity:.35;transform:scale(.92);pointer-events:none}
+  .org-node.is-collapsed-child{display:none!important}
+  .org-cols.is-collapsed-tier{display:none!important}
+  .org-agents.is-collapsed-tier{display:none!important}
+  .org-node[aria-expanded="false"] .chip.is-engine::after{content:" · +";opacity:.7}
   .org-node .rol{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--yk-dim,#6c7a90)}
   .org-node .org-name{display:block;margin:4px 0 2px;font-size:15px;line-height:1.15;font-weight:700}
   .org-node.is-top .org-name{font-size:18px}
@@ -162,19 +165,19 @@
 <main data-yk-main>
   <p class="kicker">Organigrama</p>
   <h1>La mesa de ADmiraNeXT</h1>
-  <p class="lede">Tres niveles. Arriba, quien responde. En el hueco, quien dirige. Abajo, quien ejecuta. Una sola escena: Jobs, las cinco patas, DeepAgents y agentes en vivo.</p>
+  <p class="lede">Tres niveles: responde · dirige · ejecuta. Jobs, cinco patas, DeepAgents y agentes en vivo.</p>
   <ol class="niveles">
     <li>
       <h2>Responsabilidad</h2>
-      <p>El Consejo de Silicio responde de la mesa: cada consejero responde de una pata.</p>
+      <p>El Consejo responde de la mesa; cada consejero, de su pata.</p>
     </li>
     <li>
       <h2>Dirección</h2>
-      <p>Un DeepAgent dirige cada pata. Su nombre y su motor están en cada carta.</p>
+      <p>Un DeepAgent dirige cada pata (nombre y motor en la carta).</p>
     </li>
     <li>
       <h2>Ejecución</h2>
-      <p>Los agentes ejecutan el trabajo de la pata que les toca.</p>
+      <p>Los agentes ejecutan el trabajo de su pata.</p>
     </li>
   </ol>
   <p class="nota">El DeepAgent se puede cambiar o reforzar según la carga o si se queda sin tokens u horas. Latido: verde &lt; 10 min · ámbar &lt; 30 min · rojo sin señal reciente (Yokup / flota).</p>
@@ -199,7 +202,7 @@
 
   <section class="bloque arbol-wrap" id="arbol-interactivo" aria-label="Organigrama interactivo">
     <h2>Escena viva</h2>
-    <p class="arbol-hint">Clic o doble clic en un nodo para abrir o compactar. Arrastra para pan · rueda o +/− para zoom · P presentador · Esc salir · teclado Enter/Espacio.</p>
+    <p class="arbol-hint">Árbol compactado al cargar: solo Jobs. Clic en un nodo para descompactar el siguiente nivel (Jobs → patas → DeepAgents → agentes). Arrastra · rueda o +/− · P presentador · Esc · Enter/Espacio.</p>
     <div class="org-toolbar" role="toolbar" aria-label="Controles del organigrama">
       <button type="button" id="org-zoom-in" title="Zoom +">Zoom +</button>
       <button type="button" id="org-zoom-out" title="Zoom −">Zoom −</button>
@@ -403,7 +406,7 @@
   </section>
 
   <footer>
-    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.05.10.2026.r2.21:36</span>
+    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.05.10.2026.r3.22:35</span>
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
@@ -423,6 +426,7 @@
   var DEEP = { morfeo: 'jobs', merovingio: 'merovingio', oraculo: 'oraculo', cypher: 'cypher', smith: 'smith', niobe: 'niobe' };
   var EXTRA_FAMILIES = { neo: 'morfeo', link: 'morfeo', trinity: 'oraculo', architect: 'morfeo' };
   var collapsed = Object.create(null);
+  /* Compactación por defecto: solo nivel superior (Jobs) al cargar */
   var scale = 1;
   var tx = 0;
   var ty = 0;
@@ -541,29 +545,63 @@
         n.setAttribute('aria-expanded', 'false');
       }
     });
+    var cols = canvas.querySelector('.org-cols');
+    if (cols) cols.classList.toggle('is-collapsed-tier', !!collapsed.jobs);
+    canvas.querySelectorAll('.org-agents').forEach(function (host) {
+      var fam = host.getAttribute('data-agents-for');
+      var deepId = DEEP[fam];
+      var hideAgents = !deepId || !!collapsed[deepId];
+      /* también si algún ancestro del DeepAgent está colapsado */
+      if (!hideAgents && deepId) {
+        var walk = canvas.querySelector('.org-node[data-id="' + deepId + '"]');
+        var pid = walk ? walk.getAttribute('data-parent') : '';
+        while (pid) {
+          if (collapsed[pid]) { hideAgents = true; break; }
+          var pp = canvas.querySelector('.org-node[data-id="' + pid + '"]');
+          pid = pp ? pp.getAttribute('data-parent') : '';
+        }
+      }
+      host.classList.toggle('is-collapsed-tier', hideAgents);
+    });
     drawLines();
+  }
+
+  function collapseAllByDefault() {
+    var parents = Object.create(null);
+    canvas.querySelectorAll('.org-node').forEach(function (n) {
+      var pid = n.getAttribute('data-parent');
+      if (pid) parents[pid] = true;
+    });
+    Object.keys(parents).forEach(function (id) {
+      collapsed[id] = true;
+      var node = canvas.querySelector('.org-node[data-id="' + id + '"]');
+      if (node) {
+        node.classList.remove('is-open');
+        node.setAttribute('aria-expanded', 'false');
+      }
+    });
+    applyBranch();
   }
 
   function toggleNode(node) {
     var id = node.getAttribute('data-id');
-    var hasKids = !!canvas.querySelector('.org-node[data-parent="' + id + '"]');
-    var open = !node.classList.contains('is-open');
+    var hasKids = !!canvas.querySelector('.org-node[data-parent="' + id + '"]') ||
+      (id === 'jobs') ||
+      Object.keys(DEEP).some(function (f) { return DEEP[f] === id; });
     if (hasKids) {
       if (collapsed[id]) {
         delete collapsed[id];
         node.classList.add('is-open');
         node.setAttribute('aria-expanded', 'true');
-      } else if (open) {
-        node.classList.add('is-open');
-        node.setAttribute('aria-expanded', 'true');
       } else {
+        collapsed[id] = true;
         node.classList.remove('is-open');
         node.setAttribute('aria-expanded', 'false');
-        collapsed[id] = true;
       }
       applyBranch();
       return;
     }
+    var open = !node.classList.contains('is-open');
     node.classList.toggle('is-open', open);
     node.setAttribute('aria-expanded', open ? 'true' : 'false');
     drawLines();
@@ -823,6 +861,7 @@
   window.addEventListener('resize', function () { requestAnimationFrame(drawLines); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawLines);
   applyTransform();
+  collapseAllByDefault();
   startMatrix();
   refreshFlota();
   setInterval(refreshFlota, 30000);
