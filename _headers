@@ -26,6 +26,12 @@
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=300
 
+# Sello de versión con novedades (06-10-2026): cargador común de toda la suite; cada sitio
+# lo pide con su ?v= y lee SU propio /version.json. Sin cookies ni datos personales.
+/assets/sello-novedades.js
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300
+
 # ⌘ EXPERTO · CLI compartido (look digitalavatar.ai): lo cargan studio, store, app, tv y biz.
 /suite/*
   Access-Control-Allow-Origin: *
