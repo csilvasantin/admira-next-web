@@ -397,5 +397,84 @@
     "responsable": "Steve Jobs",
     "fuente": "promesa a Lucas, 4-oct",
     "idea": "Clientes globales y marca blanca"
+  },
+  {
+    "id": "store-avatar-suite-q4",
+    "solucion": "store",
+    "titulo": "Avatar digital en store/xpaceos: bandera, /avatarON y good|better|best",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-05",
+    "estado": "hecho",
+    "responsable": "Jensen Huang",
+    "fuente": "xpaceos #19–#20, d9eca48 avatar-5; espejo store c81ffe2; bandera admira-store ON",
+    "idea": "Modo Experto"
+  },
+  {
+    "id": "store-inventario-por-cliente",
+    "solucion": "store",
+    "titulo": "Inventario filtrado por cliente (sesión de pestaña)",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Jensen Huang",
+    "fuente": "xpaceos b613ddd",
+    "idea": "Inventario y plano del local"
+  },
+  {
+    "id": "store-itil-mas-alla-pg103",
+    "solucion": "store",
+    "titulo": "ITIL/garantía: mapeo CI más allá de Starbucks Paseo de Gracia 103",
+    "inicio": "2026-10-06",
+    "fin": "2026-11-15",
+    "estado": "propuesta",
+    "responsable": "Jensen Huang",
+    "fuente": "#4802; docs itil-3d-record (piloto PG103); faltan otros locales",
+    "idea": "Inventario y plano del local",
+    "cliente": "starbucks"
+  },
+  {
+    "id": "store-espejo-sin-lag",
+    "solucion": "store",
+    "titulo": "Espejo store←xpaceos: desplegar en el mismo ciclo que main (sin esperar al cron 06:20)",
+    "inicio": "2026-10-06",
+    "fin": "2026-10-31",
+    "estado": "propuesta",
+    "responsable": "Jensen Huang",
+    "fuente": "hoy store c81ffe2 vs xpaceos e67baf6; workflow Espejo + dispatch",
+    "idea": "Clientes globales y marca blanca"
+  },
+  {
+    "id": "store-altadis-demo-limpia",
+    "solucion": "store",
+    "titulo": "Demo Altadis BCN: gemelos 9 estancos sin restos de otros clientes",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-15",
+    "estado": "en_curso",
+    "responsable": "Jensen Huang",
+    "fuente": "xpaceos #15 abierta; e67baf6 quita JTI de comentarios",
+    "idea": "Clientes globales y marca blanca",
+    "cliente": "altadis"
+  },
+  {
+    "id": "store-relevo-avatar-central",
+    "solucion": "store",
+    "titulo": "Relevo central avatar-ask estable (xpaceos GH Pages sin Functions)",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-20",
+    "estado": "hecho",
+    "responsable": "Jensen Huang",
+    "fuente": "admiranext /api/avatar-ask; xpace-shell sin data-brain → relevo",
+    "idea": "Modo Experto"
+  },
+  {
+    "id": "store-experto-suite-minimizado",
+    "solucion": "store",
+    "titulo": "Modo Experto suite: minimizado + /cli avatar alineado con admira.app",
+    "inicio": "2026-10-04",
+    "fin": "2026-10-04",
+    "estado": "hecho",
+    "responsable": "Walt Disney",
+    "fuente": "xpaceos #22 #23; espejo store b948117",
+    "idea": "Modo Experto"
   }
 ]
