@@ -115,7 +115,12 @@
     [/^Ejecuta bajo (\S+)$/, 'Works under $1'],
     [/^Latido flota · (\d+) vivos · (\d+) tibios · (\d+) sin señal · (\d+) trabajando · (.+)$/, 'Fleet heartbeat · $1 alive · $2 lukewarm · $3 no signal · $4 working · $5'],
     [/^Trabajando · (.+)$/, 'Working · $1'],
-    [/^Latido flota · (\d+) vivos · (\d+) tibios · (\d+) sin señal · (.+)$/, 'Fleet heartbeat · $1 alive · $2 lukewarm · $3 no signal · $4'],
+    [/^Latido flota · (\d+) vivos · (\d+) tibios · (\d+) sin señal · ([\s\S]+)$/, function (m, t) {
+      return 'Fleet heartbeat · ' + m[1] + ' alive · ' + m[2] + ' lukewarm · ' + m[3] + ' no signal · ' + (t(m[4]) || m[4]);
+    }],
+    [/^(\d+) trabajando$/, '$1 working'],
+    [/^Trabajando · ([\s\S]+)$/, 'Working · $1'],
+    [/^trabajando$/, 'working'],
     [/^hace (\d+) ?(s|min|h|d)$/, '$1 $2 ago'],
     [/^ahora$/, 'now']
   ];
