@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Créame demo · AdmiraNeXT — formulario de demo formal</title>
-<meta name="description" content="Formaliza una demo completa Admira: Xpacios en admira.biz, contenido en admira.studio, distribución en admira.store, playlist en admira.tv, mantenimiento en admira.app. Incluye tipo de Xpacio (DemoStore / Estanco / Cafetería).">
-<meta name="admiranext-version" content="v.05.10.2026.r1.20:22">
+<title>Demo completa · AdmiraNeXT — ayuda y formulario</title>
+<meta name="description" content="Demo completa AdmiraNeXT: una marca franquicia, 4 establecimientos reales, gemelos digitales, inventario ITIL, una playlist por equipo y contenidos de Pixeria. Ayuda paso a paso y formulario con simulación (dry-run).">
+<meta name="admiranext-version" content="v.06.10.2026.r1.07:08">
 <meta name="theme-color" content="#1a1a2e">
 <link rel="canonical" href="https://www.admiranext.com/demo">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Créame demo · AdmiraNeXT">
-<meta property="og:description" content="Formulario de demo formal con tipo de Xpacio. Cadena: biz → studio → store → tv → app.">
+<meta property="og:title" content="Demo completa · AdmiraNeXT">
+<meta property="og:description" content="7 pasos sobre los 5 componentes: admira.app → admira.biz → admira.store → ITIL → admira.tv → pixeria → comprobación.">
 <meta property="og:image" content="/og-image.jpg">
 <meta property="og:url" content="https://www.admiranext.com/demo">
 <link rel="preload" href="/assets/fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
@@ -21,12 +21,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261004-5053">
-<link rel="stylesheet" href="/demo/demo.css?v=20261005-demo">
+<link rel="stylesheet" href="/demo/demo.css?v=20261006-completa">
 </head>
 <body data-yk-title="DEMO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
 
 <section data-yk-slot="left" hidden>
   <div class="yk-auto-blk">
+    <a href="/demo/#ayuda">Ayuda · demo completa</a>
+    <a href="/demo/#formulario">Formulario · demo completa</a>
+    <a href="/demo/#rapida">Demo rápida (clásica)</a>
     <a href="/marcablanca/">Marca blanca</a>
     <a href="/presentaciones/">Presentaciones</a>
     <a href="/status">Status flota</a>
@@ -34,8 +37,9 @@
 </section>
 <section data-yk-slot="right" hidden>
   <div class="yk-auto-blk">
-    <button type="button" data-yk-accion="Rellenar Lenovo" id="btnLenovo">Rellenar Lenovo (DemoStore)</button>
-    <button type="button" data-yk-accion="Vaciar" id="btnReset">Vaciar formulario</button>
+    <button type="button" data-yk-accion="Rellenar 365 Barcelona" id="btn365">Rellenar 365 · Barcelona (demo completa)</button>
+    <button type="button" data-yk-accion="Rellenar Lenovo" id="btnLenovo">Rellenar Lenovo (demo rápida)</button>
+    <button type="button" data-yk-accion="Vaciar" id="btnReset">Vaciar demo rápida</button>
   </div>
 </section>
 
@@ -46,97 +50,408 @@
     <div class="titlebar">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
       <span class="path"><b>~/AdmiraNeXT</b>/demo</span>
-      <span class="tb-meta">Metaestilo · formal</span>
+      <span class="tb-meta">Metaestilo · cuadrícula</span>
     </div>
     <div class="content">
       <header class="hero">
-        <div class="term"><span class="pr">$</span> crear-demo --xpacio-tipo demostore --ciudades london,newyork,barcelona,madrid <span class="ok">→ cola</span></div>
-        <div class="kicker">Créame demo · cadena completa</div>
-        <h1>Formaliza una demo Admira</h1>
-        <p class="lede">No basta el nombre de la compañía: el <b>tipo de Xpacio</b> decide la escena del gemelo.
-          <b>Lenovo = DemoStores</b>, no Estancos ni Cafeterías. Al enviar se encola
-          <code>tools/crear-demo/crear_demo.py</code> en el Mac Mini (o se guarda la solicitud + aviso Agora).</p>
-        <ol class="cadena" aria-label="Cadena de productos">
-          <li><b>admira.biz</b> registra Xpacios</li>
-          <li><b>admira.studio</b> crea contenido</li>
-          <li><b>admira.store</b> distribuye</li>
-          <li><b>admira.tv</b> playlist</li>
-          <li><b>admira.app</b> mantiene</li>
-        </ol>
+        <div class="term"><span class="pr">$</span> crear-demo --completa --cliente 365 --ciudad Barcelona,ES --establecimientos 4 --simulacion <span class="ok">→ plan</span></div>
+        <div class="kicker">Créame demo · demo completa</div>
+        <h1>Una franquicia, cuatro locales, cinco componentes</h1>
+        <p class="lede">La <b>demo completa</b> monta una marca franquicia de verdad sobre toda la galaxia AdmiraNeXT:
+          sus <b>establecimientos reales</b> en el mapa, un <b>gemelo digital</b> por local, los <b>equipos IoT</b> en el inventario ITIL,
+          una <b>playlist por equipo</b> y sus <b>contenidos</b> creados en Pixeria. Primer ejemplo: <b>365 en Barcelona</b>.</p>
+        <nav class="tabs" role="tablist" aria-label="Secciones de la demo">
+          <a href="#ayuda" role="tab" id="tab-ayuda" aria-controls="ayuda" class="tab">① Ayuda</a>
+          <a href="#formulario" role="tab" id="tab-formulario" aria-controls="formulario" class="tab">② Formulario</a>
+          <a href="#rapida" role="tab" id="tab-rapida" aria-controls="rapida" class="tab tab-sec">Demo rápida (clásica)</a>
+        </nav>
       </header>
 
-      <form id="demoForm" class="demo-form" novalidate>
-        <fieldset>
-          <legend>Compañía</legend>
-          <label class="f"><span>Nombre de la compañía <i>*</i></span>
-            <input name="cliente" id="cliente" type="text" required maxlength="80" autocomplete="organization" placeholder="Lenovo">
-          </label>
-          <label class="f"><span>Web <i>*</i></span>
-            <input name="website" id="website" type="url" required maxlength="300" inputmode="url" autocomplete="url" placeholder="https://www.lenovo.com/">
-          </label>
-          <label class="f f-color"><span>Color de marca</span>
-            <input name="color" id="color" type="color" value="#E2231A" aria-describedby="colorHex">
-            <code id="colorHex">#E2231A</code>
-          </label>
-          <label class="f"><span>Logo (opcional)</span>
-            <input name="logo" id="logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
-            <small>PNG/JPG/WebP/SVG · máx. ~300 KB en cola</small>
-          </label>
-        </fieldset>
+      <!-- ═══════════════════════ ① AYUDA ═══════════════════════ -->
+      <section id="ayuda" class="panel" role="tabpanel" aria-labelledby="tab-ayuda">
+        <h2 class="sec">Cómo funciona la demo completa</h2>
+        <p class="hint">Siete pasos, en este orden, sobre los cinco componentes de AdmiraNeXT. Cada paso deja algo visible
+          que el siguiente necesita: sin establecimientos no hay gemelos, sin gemelos Yokup no inventaría equipos,
+          sin equipos no hay playlists y sin playlists no hay dónde poner los contenidos.</p>
 
-        <fieldset>
-          <legend>Tipo de Xpacio <i>*</i></legend>
-          <p class="hint">Define la escena del gemelo digital (<code>autostart</code>) y el <code>kind</code> en admira.biz.</p>
-          <div class="tipos" role="radiogroup" aria-label="Tipo de Xpacio">
-            <label class="tipo"><input type="radio" name="xpacio_tipo" value="demostore" checked> <b>DemoStore</b><em>Lenovo, retail demo · escena shoptalk</em></label>
-            <label class="tipo"><input type="radio" name="xpacio_tipo" value="estanco"> <b>Estanco</b><em>Xtanco · escena xtanco</em></label>
-            <label class="tipo"><input type="radio" name="xpacio_tipo" value="cafeteria"> <b>Cafetería</b><em>Cafebrería / hospitality · escena cafeteria</em></label>
-            <label class="tipo"><input type="radio" name="xpacio_tipo" value="other"> <b>Otro</b><em>etiqueta libre</em></label>
-          </div>
-          <label class="f" id="wrapOtro" hidden><span>Etiqueta «otro»</span>
-            <input name="xpacio_otro" id="xpacio_otro" type="text" maxlength="60" placeholder="Gimnasio · Banco · …">
-          </label>
-        </fieldset>
+        <figure class="diagrama">
+<svg class="flujo" viewBox="0 0 1000 494" role="img" aria-labelledby="flujo-t flujo-d" xmlns="http://www.w3.org/2000/svg">
+<title id="flujo-t">Flujo de la demo completa</title>
+<desc id="flujo-d">Siete pasos sobre cinco componentes: admira.app elige el cliente franquicia, admira.biz registra los establecimientos, admira.store crea los gemelos, admira.app (Yokup) inventaria los equipos ITIL, admira.tv crea una playlist por equipo, pixeria rellena cada playlist y admira.app comprueba que todo funciona.</desc>
+<defs><marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e2e2f0" fill-opacity=".8"/></marker></defs>
+<line x1="100" y1="62" x2="100" y2="482" stroke="#7ce8d8" stroke-opacity=".22" stroke-width="2" stroke-dasharray="3 6"/>
+<rect x="14" y="8" width="172" height="48" fill="#141428" stroke="#7ce8d8" stroke-width="2"/>
+<text x="100" y="29" text-anchor="middle" class="fl-c" fill="#7ce8d8">admira.app</text>
+<text x="100" y="47" text-anchor="middle" class="fl-s">Yokup · ITIL</text>
+<line x1="300" y1="62" x2="300" y2="482" stroke="#FFCC00" stroke-opacity=".22" stroke-width="2" stroke-dasharray="3 6"/>
+<rect x="214" y="8" width="172" height="48" fill="#141428" stroke="#FFCC00" stroke-width="2"/>
+<text x="300" y="29" text-anchor="middle" class="fl-c" fill="#FFCC00">admira.biz</text>
+<text x="300" y="47" text-anchor="middle" class="fl-s">mapa · espacio</text>
+<line x1="500" y1="62" x2="500" y2="482" stroke="#33FF99" stroke-opacity=".22" stroke-width="2" stroke-dasharray="3 6"/>
+<rect x="414" y="8" width="172" height="48" fill="#141428" stroke="#33FF99" stroke-width="2"/>
+<text x="500" y="29" text-anchor="middle" class="fl-c" fill="#33FF99">admira.store</text>
+<text x="500" y="47" text-anchor="middle" class="fl-s">gemelos</text>
+<line x1="700" y1="62" x2="700" y2="482" stroke="#FF3366" stroke-opacity=".22" stroke-width="2" stroke-dasharray="3 6"/>
+<rect x="614" y="8" width="172" height="48" fill="#141428" stroke="#FF3366" stroke-width="2"/>
+<text x="700" y="29" text-anchor="middle" class="fl-c" fill="#FF3366">admira.tv</text>
+<text x="700" y="47" text-anchor="middle" class="fl-s">playlists</text>
+<line x1="900" y1="62" x2="900" y2="482" stroke="#FF33CC" stroke-opacity=".22" stroke-width="2" stroke-dasharray="3 6"/>
+<rect x="814" y="8" width="172" height="48" fill="#141428" stroke="#FF33CC" stroke-width="2"/>
+<text x="900" y="29" text-anchor="middle" class="fl-c" fill="#FF33CC">pixeria</text>
+<text x="900" y="47" text-anchor="middle" class="fl-s">contenidos</text>
+<path d="M100 111 V125.0 H300 V139" fill="none" stroke="#e2e2f0" stroke-opacity=".55" stroke-width="2" marker-end="url(#flecha)"/>
+<path d="M300 169 V183.0 H500 V197" fill="none" stroke="#e2e2f0" stroke-opacity=".55" stroke-width="2" marker-end="url(#flecha)"/>
+<path d="M500 227 V241.0 H100 V255" fill="none" stroke="#e2e2f0" stroke-opacity=".55" stroke-width="2" marker-end="url(#flecha)"/>
+<path d="M100 285 V299.0 H700 V313" fill="none" stroke="#e2e2f0" stroke-opacity=".55" stroke-width="2" marker-end="url(#flecha)"/>
+<path d="M700 343 V357.0 H900 V371" fill="none" stroke="#e2e2f0" stroke-opacity=".55" stroke-width="2" marker-end="url(#flecha)"/>
+<path d="M900 401 V415.0 H100 V429" fill="none" stroke="#e2e2f0" stroke-opacity=".55" stroke-width="2" marker-end="url(#flecha)"/>
+<rect x="85" y="81" width="30" height="30" fill="#7ce8d8"/>
+<text x="100" y="102" text-anchor="middle" class="fl-n">1</text>
+<text x="124" y="101" class="fl-l">Cliente franquicia</text>
+<rect x="285" y="139" width="30" height="30" fill="#FFCC00"/>
+<text x="300" y="160" text-anchor="middle" class="fl-n">2</text>
+<text x="324" y="159" class="fl-l">≥4 establecimientos</text>
+<rect x="485" y="197" width="30" height="30" fill="#33FF99"/>
+<text x="500" y="218" text-anchor="middle" class="fl-n">3</text>
+<text x="524" y="217" class="fl-l">1 gemelo por local</text>
+<rect x="85" y="255" width="30" height="30" fill="#7ce8d8"/>
+<text x="100" y="276" text-anchor="middle" class="fl-n">4</text>
+<text x="124" y="275" class="fl-l">ITIL · 4 equipos/local</text>
+<rect x="685" y="313" width="30" height="30" fill="#FF3366"/>
+<text x="700" y="334" text-anchor="middle" class="fl-n">5</text>
+<text x="724" y="333" class="fl-l">1 playlist por equipo</text>
+<rect x="885" y="371" width="30" height="30" fill="#FF33CC"/>
+<text x="900" y="392" text-anchor="middle" class="fl-n">6</text>
+<text x="876" y="391" text-anchor="end" class="fl-l">3 contenidos/playlist</text>
+<rect x="85" y="429" width="30" height="30" fill="#7ce8d8"/>
+<text x="100" y="450" text-anchor="middle" class="fl-n">7</text>
+<text x="124" y="449" class="fl-l">Comprobación final</text>
+</svg>
+          <figcaption>El flujo nace y muere en <b>admira.app</b>: allí se elige el cliente, se inventarían sus equipos y se comprueba el resultado.</figcaption>
+        </figure>
 
-        <fieldset>
-          <legend>Ciudades y voz</legend>
-          <div class="ciudades" id="ciudades">
-            <label><input type="checkbox" name="ciudad" value="london" checked> London</label>
-            <label><input type="checkbox" name="ciudad" value="newyork" checked> New York</label>
-            <label><input type="checkbox" name="ciudad" value="barcelona" checked> Barcelona</label>
-            <label><input type="checkbox" name="ciudad" value="madrid" checked> Madrid</label>
-            <label><input type="checkbox" name="ciudad" value="paris"> Paris</label>
-            <label><input type="checkbox" name="ciudad" value="milano"> Milano</label>
-            <label><input type="checkbox" name="ciudad" value="lisboa"> Lisboa</label>
-            <label><input type="checkbox" name="ciudad" value="valencia"> València</label>
-            <label><input type="checkbox" name="ciudad" value="mexico"> Ciudad de México</label>
-          </div>
-          <label class="f"><span>Hora de cierre (locuciones EN+ES)</span>
-            <input name="cierre" id="cierre" type="time" value="20:00" required>
-          </label>
-          <div class="idiomas">
-            <span class="lbl">Idiomas</span>
-            <label><input type="checkbox" name="idioma" value="en" checked> EN</label>
-            <label><input type="checkbox" name="idioma" value="es" checked> ES</label>
-          </div>
-          <label class="f"><span>Notas (opcional)</span>
-            <textarea name="notas" id="notas" rows="2" maxlength="500" placeholder="Contexto comercial, fecha de la demo, contacto…"></textarea>
-          </label>
-        </fieldset>
-
-        <div class="acciones">
-          <button type="submit" class="btn primario" id="btnEnviar">Encolar demo completa</button>
-          <button type="button" class="btn" id="btnDry">Ver comando (sin enviar)</button>
+        <h3 class="sub">Qué hace cada componente</h3>
+        <div class="comps">
+          <div class="comp c-app"><b>admira.app</b><em>Yokup · ITIL</em><p>Cliente franquicia (cuenta de marca), inventario tecnológico de cada local y la comprobación final.</p></div>
+          <div class="comp c-biz"><b>admira.biz</b><em>mapa · espacio</em><p>Da de alta los establecimientos con dirección real y coordenadas, agrupados en un circuito.</p></div>
+          <div class="comp c-store"><b>admira.store</b><em>gemelos digitales</em><p>Un gemelo por establecimiento (escena según el tipo de Xpacio) para ver la tienda sin ir.</p></div>
+          <div class="comp c-tv"><b>admira.tv</b><em>playlists · emisión</em><p>Una playlist por equipo con nombre fijo, asignada a su pantalla o altavoz.</p></div>
+          <div class="comp c-pix"><b>pixeria.com</b><em>Admira.Studio startup</em><p>Crea los contenidos: canciones del hilo musical, locuciones y visuales vertical y horizontal.</p></div>
         </div>
-        <p id="estado" class="estado" role="status" aria-live="polite"></p>
-        <pre id="comando" class="comando" hidden></pre>
-        <div id="resultado" class="resultado" hidden></div>
-      </form>
+
+        <h3 class="sub">Los 7 pasos</h3>
+        <ol class="pasos">
+          <li class="paso c-app"><span class="pn">1</span><div>
+            <h4>Elegir el cliente franquicia <i class="chip">admira.app</i> <i class="estado-hoy parcial">PARCIAL</i></h4>
+            <p>Una marca con red de franquicias o cadena (no una tienda suelta). Ejemplo: <b>365</b> (panadería-cafetería, 365obrador.com),
+              con más de 4 locales en la ciudad elegida: <b>Barcelona, España</b>. La marca puede ir con su imagen o con marca blanca.</p>
+          </div></li>
+          <li class="paso c-biz"><span class="pn">2</span><div>
+            <h4>Registrar los establecimientos <i class="chip">admira.biz</i> <i class="estado-hoy parcial">PARCIAL</i></h4>
+            <p>Mínimo <b>4</b>, con <b>dirección real y coordenadas</b>, situados en el mapa y en un circuito
+              <code>demo_&lt;cliente&gt;_&lt;ciudad&gt;</code>. El formulario los busca (localizador oficial u OpenStreetMap) y tú eliges cuáles.</p>
+          </div></li>
+          <li class="paso c-store"><span class="pn">3</span><div>
+            <h4>Crear los gemelos digitales <i class="chip">admira.store</i> <i class="estado-hoy listo">LISTO</i></h4>
+            <p>Uno por establecimiento: <b>4 gemelos</b>. La escena la decide el tipo de Xpacio (365 → <code>cafeteria</code>, no hay aún escena «panadería»).</p>
+          </div></li>
+          <li class="paso c-app"><span class="pn">4</span><div>
+            <h4>Inventario ITIL de cada local <i class="chip">admira.app · Yokup</i> <i class="estado-hoy parcial">PARCIAL</i></h4>
+            <p>Mínimo <b>4 equipos IoT por establecimiento</b>: altavoz de <b>hilo musical</b>, altavoz de <b>locuciones</b>,
+              <b>pantalla vertical</b> y <b>pantalla horizontal</b>. Se pueden añadir extras (escaparate, menu board, kiosko, aforo).
+              Cada equipo es un CI con código único, categoría y orientación.</p>
+          </div></li>
+          <li class="paso c-tv"><span class="pn">5</span><div>
+            <h4>Una playlist por equipo <i class="chip">admira.tv</i> <i class="estado-hoy parcial">PARCIAL</i></h4>
+            <p>Se amplía la convención que ya usamos (<code>cliente.xpacio.hilomusical</code>) a los cuatro canales:
+              <code>.hilomusical</code>, <code>.locuciones</code>, <code>.vertical</code>, <code>.horizontal</code>. 4 locales × 4 equipos = <b>16 playlists</b>.</p>
+          </div></li>
+          <li class="paso c-pix"><span class="pn">6</span><div>
+            <h4>Rellenar cada playlist <i class="chip">pixeria.com</i> <i class="estado-hoy parcial">PARCIAL</i></h4>
+            <p><b>3 contenidos por playlist</b>: 3 canciones para el hilo musical, 3 locuciones para megafonía,
+              3 visuales verticales (9:16) y 3 horizontales (16:9), en los idiomas elegidos (EN/ES como en las demos anteriores).
+              Por defecto las piezas se comparten entre locales: 12 piezas únicas llenan los 48 huecos.</p>
+          </div></li>
+          <li class="paso c-app"><span class="pn">7</span><div>
+            <h4>Comprobar que todo funciona <i class="chip">admira.app</i> <i class="estado-hoy falta">FALTA</i></h4>
+            <p>Equipos online (o simulados en la demo), cada playlist asignada a su equipo y el contenido sonando y emitiéndose.
+              Si algo falla, la incidencia se abre en el mismo admira.app.</p>
+          </div></li>
+        </ol>
+        <p class="hint">Estado de cada paso según la verificación en seco (dry-run) del 06-10-2026: <b class="ok-t">LISTO</b> existe y se puede automatizar ya,
+          <b class="warn-t">PARCIAL</b> el servicio existe pero el script de demo aún no lo cubre entero, <b class="err-t">FALTA</b> hay que construirlo.</p>
+
+        <h3 class="sub">Convención de nombres</h3>
+        <div class="tabla-wrap">
+        <table class="nombres">
+          <thead><tr><th>Objeto</th><th>Convención</th><th>Ejemplo · 365 Barcelona</th></tr></thead>
+          <tbody>
+            <tr><td>Circuito (admira.biz)</td><td><code>demo_&lt;cliente&gt;_&lt;ciu&gt;</code></td><td><code>demo_365_bcn</code></td></tr>
+            <tr><td>Xpacio / establecimiento</td><td><code>&lt;cliente&gt;-demo-&lt;ciu&gt;-&lt;barrio&gt;</code></td><td><code>365-demo-bcn-tetuan</code></td></tr>
+            <tr><td>Gemelo (admira.store)</td><td><code>admira-xp/?autostart=&lt;escena&gt;&amp;loc=&lt;xpacio&gt;</code></td><td><code>?autostart=cafeteria&amp;loc=365-demo-bcn-tetuan</code></td></tr>
+            <tr><td>Equipo ITIL (código CI)</td><td><code>&lt;CLI&gt;&lt;CIU&gt;&lt;NN&gt;-&lt;EQUIPO&gt;-&lt;NN&gt;</code></td><td><code>365BCN01-HILO-01</code> · <code>-LOCU-01</code> · <code>-PANV-01</code> · <code>-PANH-01</code></td></tr>
+            <tr><td>Pantalla / altavoz</td><td><code>&lt;xpacio&gt;-&lt;equipo&gt;</code></td><td><code>365-demo-bcn-tetuan-vertical</code></td></tr>
+            <tr><td>Playlist (admira.tv)</td><td><code>&lt;cliente&gt;.&lt;xpacio&gt;.&lt;canal&gt;</code></td><td><code>365.bcn-tetuan.hilomusical</code> · <code>.locuciones</code> · <code>.vertical</code> · <code>.horizontal</code></td></tr>
+            <tr><td>Id XPL</td><td><code>pl_&lt;playlist con _&gt;</code></td><td><code>pl_365_bcn_tetuan_hilomusical</code></td></tr>
+          </tbody>
+        </table>
+        </div>
+
+        <div class="cajas">
+          <div class="caja">
+            <h3 class="sub">Mínimos</h3>
+            <ul>
+              <li><b>≥ 4</b> establecimientos reales de la misma marca y ciudad</li>
+              <li><b>4</b> equipos por establecimiento (hilo musical, locuciones, vertical, horizontal)</li>
+              <li><b>1</b> playlist por equipo</li>
+              <li><b>3</b> contenidos por playlist</li>
+              <li>Simulación (dry-run) <b>activada</b> por defecto</li>
+            </ul>
+          </div>
+          <div class="caja caja-ok">
+            <h3 class="sub">Resultado esperado · 365 BCN</h3>
+            <ul>
+              <li><b>4</b> Xpacios en el mapa de admira.biz (circuito <code>demo_365_bcn</code>)</li>
+              <li><b>4</b> gemelos digitales en admira.store</li>
+              <li><b>16</b> equipos en el inventario ITIL de admira.app</li>
+              <li><b>16</b> playlists en admira.tv</li>
+              <li><b>48</b> huecos de contenido (12 piezas únicas de Pixeria)</li>
+              <li>Comprobación en verde en admira.app</li>
+            </ul>
+          </div>
+        </div>
+        <p class="acciones"><a class="btn primario" href="#formulario" id="irForm">Rellenar el formulario →</a>
+          <a class="btn" href="#formulario" id="irForm365">Ver el ejemplo 365 · Barcelona</a></p>
+      </section>
+
+      <!-- ═══════════════════════ ② FORMULARIO ═══════════════════════ -->
+      <section id="formulario" class="panel" role="tabpanel" aria-labelledby="tab-formulario">
+        <h2 class="sec">Formulario · demo completa</h2>
+        <p class="hint">Rellena y pulsa <b>Generar plan</b>: verás exactamente qué se crearía, con qué nombres, sin tocar nada.
+          Con la simulación activada, <b>Guardar simulación</b> deja el plan en la cola como <code>simulacion</code> (nadie lo ejecuta).</p>
+
+        <form id="completaForm" class="demo-form" novalidate>
+          <fieldset>
+            <legend>1 · Cliente franquicia <i>*</i></legend>
+            <div class="fila">
+              <label class="f"><span>Cliente / marca <i>*</i></span>
+                <input name="cliente" id="c_cliente" type="text" required maxlength="80" autocomplete="organization" placeholder="365">
+              </label>
+              <label class="f"><span>Web de la marca <i>*</i></span>
+                <input name="website" id="c_website" type="url" required maxlength="300" inputmode="url" placeholder="https://365obrador.com/">
+              </label>
+            </div>
+            <label class="check"><input type="checkbox" name="franquicia" id="c_franquicia" checked> <span>Es una <b>franquicia o cadena</b> con varios locales (requisito de la demo completa)</span></label>
+            <div class="fila">
+              <label class="f f-color"><span>Color de marca</span>
+                <input name="color" id="c_color" type="color" value="#1D1D1B">
+                <code id="c_colorHex">#1D1D1B</code>
+              </label>
+              <div class="f"><span>Marca en la demo</span>
+                <div class="radios" role="radiogroup" aria-label="Marca">
+                  <label><input type="radio" name="marca_modo" value="cliente" checked> Marca del cliente</label>
+                  <label><input type="radio" name="marca_modo" value="blanca"> Marca blanca</label>
+                </div>
+                <input name="marca_id" id="c_marca_id" type="text" maxlength="40" placeholder="id de marca blanca (admiranext, jti…)" hidden>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>2 · Ciudad y establecimientos <i>*</i></legend>
+            <div class="fila fila-3">
+              <label class="f"><span>Ciudad <i>*</i></span>
+                <input name="ciudad" id="c_ciudad" type="text" required maxlength="60" placeholder="Barcelona">
+              </label>
+              <label class="f"><span>País <i>*</i></span>
+                <select name="pais" id="c_pais">
+                  <option value="ES" selected>España (ES)</option>
+                  <option value="PT">Portugal (PT)</option>
+                  <option value="FR">Francia (FR)</option>
+                  <option value="IT">Italia (IT)</option>
+                  <option value="GB">Reino Unido (GB)</option>
+                  <option value="US">Estados Unidos (US)</option>
+                  <option value="MX">México (MX)</option>
+                </select>
+              </label>
+              <label class="f"><span>Nº de establecimientos (mín. 4)</span>
+                <input name="n_establecimientos" id="c_n" type="number" min="4" max="50" value="4" required>
+              </label>
+            </div>
+            <div class="acciones acciones-sm">
+              <button type="button" class="btn" id="c_buscar">Buscar establecimientos</button>
+              <button type="button" class="btn" id="c_manual">+ Añadir a mano</button>
+              <span class="cuenta" id="c_cuenta" aria-live="polite">0 elegidos</span>
+            </div>
+            <p class="hint" id="c_fuente">Busca en el localizador oficial de la marca (si lo tenemos) o en OpenStreetMap. Marca los que quieras en la demo.</p>
+            <div class="lista-wrap"><table class="lista" id="c_lista" hidden>
+              <thead><tr><th scope="col">Usar</th><th scope="col">Establecimiento</th><th scope="col">Coordenadas</th><th scope="col">Mapa</th></tr></thead>
+              <tbody></tbody>
+            </table></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>3 · Tipo de Xpacio <i>*</i></legend>
+            <div class="tipos tipos-4" role="radiogroup" aria-label="Tipo de Xpacio">
+              <label class="tipo"><input type="radio" name="c_xpacio_tipo" value="cafeteria" checked> <b>Cafetería</b><em>panadería-cafetería, hostelería · escena cafeteria</em></label>
+              <label class="tipo"><input type="radio" name="c_xpacio_tipo" value="demostore"> <b>DemoStore</b><em>retail demo · escena shoptalk</em></label>
+              <label class="tipo"><input type="radio" name="c_xpacio_tipo" value="estanco"> <b>Estanco</b><em>Xtanco · escena xtanco</em></label>
+              <label class="tipo"><input type="radio" name="c_xpacio_tipo" value="other"> <b>Otro</b><em>etiqueta libre</em></label>
+            </div>
+            <label class="f"><span>Subtipo (opcional)</span>
+              <input name="xpacio_subtipo" id="c_subtipo" type="text" maxlength="40" placeholder="Panadería">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>4 · Equipos por establecimiento</legend>
+            <p class="hint">Los cuatro primeros son el mínimo y van siempre. Los extras suman una playlist más por local (salvo el sensor).</p>
+            <div class="disp" id="c_disp">
+              <label class="d min"><input type="checkbox" name="disp" value="hilomusical" checked disabled> <b>Altavoz hilo musical</b><em>audio · .hilomusical</em></label>
+              <label class="d min"><input type="checkbox" name="disp" value="locuciones" checked disabled> <b>Altavoz locuciones</b><em>audio · .locuciones</em></label>
+              <label class="d min"><input type="checkbox" name="disp" value="vertical" checked disabled> <b>Pantalla vertical</b><em>9:16 · .vertical</em></label>
+              <label class="d min"><input type="checkbox" name="disp" value="horizontal" checked disabled> <b>Pantalla horizontal</b><em>16:9 · .horizontal</em></label>
+              <label class="d"><input type="checkbox" name="disp" value="escaparate"> <b>Pantalla escaparate</b><em>extra · .escaparate</em></label>
+              <label class="d"><input type="checkbox" name="disp" value="menuboard"> <b>Menu board</b><em>extra · .menuboard</em></label>
+              <label class="d"><input type="checkbox" name="disp" value="kiosko"> <b>Kiosko / tótem</b><em>extra · .kiosko</em></label>
+              <label class="d"><input type="checkbox" name="disp" value="aforo"> <b>Sensor de aforo</b><em>extra · sin playlist</em></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>5 · Contenidos</legend>
+            <div class="fila fila-3">
+              <div class="f"><span>Idiomas (locuciones y canciones)</span>
+                <div class="radios">
+                  <label><input type="checkbox" name="c_idioma" value="en" checked> EN</label>
+                  <label><input type="checkbox" name="c_idioma" value="es" checked> ES</label>
+                  <label><input type="checkbox" name="c_idioma" value="ca"> CA</label>
+                </div>
+              </div>
+              <label class="f"><span>Contenidos por playlist (mín. 3)</span>
+                <input name="contenidos" id="c_contenidos" type="number" min="3" max="12" value="3">
+              </label>
+              <label class="f"><span>Hora de cierre (locución)</span>
+                <input name="cierre" id="c_cierre" type="time" value="21:00">
+              </label>
+            </div>
+            <div class="fila">
+              <div class="f"><span>Fuente de contenido</span>
+                <div class="radios">
+                  <label><input type="radio" name="fuente" value="pixeria" checked> Pixeria (Admira.Studio startup) · genera</label>
+                  <label><input type="radio" name="fuente" value="stock"> Stock de Pixeria existente</label>
+                </div>
+              </div>
+              <label class="check"><input type="checkbox" id="c_compartidos" checked> <span>Compartir las piezas entre establecimientos (más barato)</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="fs-sim">
+            <legend>6 · Ejecución</legend>
+            <label class="toggle"><input type="checkbox" id="c_simulacion" checked>
+              <span class="sw" aria-hidden="true"></span>
+              <span><b>Simulación (dry-run)</b> · no se crea nada en producción; solo el plan.</span></label>
+            <label class="f"><span>Notas (opcional)</span>
+              <textarea name="notas" id="c_notas" rows="2" maxlength="500" placeholder="Fecha de la demo, contacto, contexto comercial…"></textarea>
+            </label>
+          </fieldset>
+
+          <div class="acciones">
+            <button type="button" class="btn primario" id="c_plan">Generar plan (dry-run)</button>
+            <button type="submit" class="btn" id="c_enviar">Guardar simulación</button>
+            <button type="button" class="btn" id="c_descargar" disabled>Descargar plan JSON</button>
+          </div>
+          <p id="c_estado" class="estado" role="status" aria-live="polite"></p>
+        </form>
+
+        <div id="c_resultado" class="plan" hidden>
+          <h3 class="sub">Plan · <span id="c_plan_titulo"></span></h3>
+          <div class="kpis" id="c_kpis"></div>
+          <div class="tabla-wrap"><table class="nombres" id="c_tabla_pasos"><thead><tr><th>#</th><th>Componente</th><th>Qué se crea</th><th>Hoy</th></tr></thead><tbody></tbody></table></div>
+          <div class="tabla-wrap"><table class="nombres" id="c_tabla_nombres"><thead><tr><th>Establecimiento</th><th>Xpacio</th><th>Equipos (ITIL) y playlists</th></tr></thead><tbody></tbody></table></div>
+          <details><summary>Plan JSON completo</summary><pre id="c_json" class="comando"></pre></details>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════ DEMO RÁPIDA (clásica, sin cambios) ═══════════════════════ -->
+      <section id="rapida" class="panel" role="tabpanel" aria-labelledby="tab-rapida">
+        <h2 class="sec">Demo rápida (clásica)</h2>
+        <p class="hint">El formulario del 5-oct: compañía + tipo de Xpacio + ciudades preset → <code>procesar_cola.py</code> → <code>crear_demo.py</code>.
+          Un Xpacio céntrico por ciudad y una sola playlist <code>&lt;cliente&gt;.xpacio.hilomusical</code>. <b>Lenovo = DemoStores</b>.</p>
+        <form id="demoForm" class="demo-form" novalidate>
+          <fieldset>
+            <legend>Compañía</legend>
+            <label class="f"><span>Nombre de la compañía <i>*</i></span>
+              <input name="cliente" id="cliente" type="text" required maxlength="80" autocomplete="organization" placeholder="Lenovo">
+            </label>
+            <label class="f"><span>Web <i>*</i></span>
+              <input name="website" id="website" type="url" required maxlength="300" inputmode="url" autocomplete="url" placeholder="https://www.lenovo.com/">
+            </label>
+            <label class="f f-color"><span>Color de marca</span>
+              <input name="color" id="color" type="color" value="#E2231A" aria-describedby="colorHex">
+              <code id="colorHex">#E2231A</code>
+            </label>
+            <label class="f"><span>Logo (opcional)</span>
+              <input name="logo" id="logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+              <small>PNG/JPG/WebP/SVG · máx. ~300 KB en cola</small>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tipo de Xpacio <i>*</i></legend>
+            <p class="hint">Define la escena del gemelo digital (<code>autostart</code>) y el <code>kind</code> en admira.biz.</p>
+            <div class="tipos" role="radiogroup" aria-label="Tipo de Xpacio">
+              <label class="tipo"><input type="radio" name="xpacio_tipo" value="demostore" checked> <b>DemoStore</b><em>Lenovo, retail demo · escena shoptalk</em></label>
+              <label class="tipo"><input type="radio" name="xpacio_tipo" value="estanco"> <b>Estanco</b><em>Xtanco · escena xtanco</em></label>
+              <label class="tipo"><input type="radio" name="xpacio_tipo" value="cafeteria"> <b>Cafetería</b><em>Cafebrería / hospitality · escena cafeteria</em></label>
+              <label class="tipo"><input type="radio" name="xpacio_tipo" value="other"> <b>Otro</b><em>etiqueta libre</em></label>
+            </div>
+            <label class="f" id="wrapOtro" hidden><span>Etiqueta «otro»</span>
+              <input name="xpacio_otro" id="xpacio_otro" type="text" maxlength="60" placeholder="Gimnasio · Banco · …">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Ciudades y voz</legend>
+            <div class="ciudades" id="ciudades">
+              <label><input type="checkbox" name="ciudad" value="london" checked> London</label>
+              <label><input type="checkbox" name="ciudad" value="newyork" checked> New York</label>
+              <label><input type="checkbox" name="ciudad" value="barcelona" checked> Barcelona</label>
+              <label><input type="checkbox" name="ciudad" value="madrid" checked> Madrid</label>
+              <label><input type="checkbox" name="ciudad" value="paris"> Paris</label>
+              <label><input type="checkbox" name="ciudad" value="milano"> Milano</label>
+              <label><input type="checkbox" name="ciudad" value="lisboa"> Lisboa</label>
+              <label><input type="checkbox" name="ciudad" value="valencia"> València</label>
+              <label><input type="checkbox" name="ciudad" value="mexico"> Ciudad de México</label>
+            </div>
+            <label class="f"><span>Hora de cierre (locuciones EN+ES)</span>
+              <input name="cierre" id="cierre" type="time" value="20:00" required>
+            </label>
+            <div class="idiomas">
+              <span class="lbl">Idiomas</span>
+              <label><input type="checkbox" name="idioma" value="en" checked> EN</label>
+              <label><input type="checkbox" name="idioma" value="es" checked> ES</label>
+            </div>
+            <label class="f"><span>Notas (opcional)</span>
+              <textarea name="notas" id="notas" rows="2" maxlength="500" placeholder="Contexto comercial, fecha de la demo, contacto…"></textarea>
+            </label>
+          </fieldset>
+
+          <div class="acciones">
+            <button type="submit" class="btn primario" id="btnEnviar">Encolar demo completa</button>
+            <button type="button" class="btn" id="btnDry">Ver comando (sin enviar)</button>
+          </div>
+          <p id="estado" class="estado" role="status" aria-live="polite"></p>
+          <pre id="comando" class="comando" hidden></pre>
+          <div id="resultado" class="resultado" hidden></div>
+        </form>
+      </section>
     </div>
   </div>
 </main>
 
 <script src="/demo/demo.js?v=20261005-demo" defer></script>
+<script type="module" src="/demo/completa.js?v=20261006-completa"></script>
 <script defer src="/assets/admira-frame.js?v=20261004-5053"></script>
 </body>
 </html>

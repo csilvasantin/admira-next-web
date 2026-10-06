@@ -1,0 +1,1051 @@
+{
+ "schema": "admiranext.demo-completa.establecimientos/1",
+ "marca": "365",
+ "marca_web": "https://365obrador.com/",
+ "ciudad": "Barcelona",
+ "pais": "ES",
+ "fuente": "Localizador oficial 365 Obrador (WP Store Locator público)",
+ "fuente_url": "https://365obrador.com/es/encuentranos/",
+ "consultado": "2026-10-06",
+ "nota": "Direcciones y coordenadas tal cual las publica 365. CP solo en los 4 sugeridos (deducido; verificar).",
+ "total": 102,
+ "establecimientos": [
+  {
+   "ref": "365-wpsl-9559",
+   "nombre": "365 · Plaça de Tetuan, 3",
+   "direccion": "Plaça de Tetuan, 3",
+   "cp": "08010",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.394094,
+   "lng": 2.176016,
+   "slug": "bcn-tetuan",
+   "barrio": "Eixample · Fort Pienc",
+   "sugerido": true,
+   "orden": 1
+  },
+  {
+   "ref": "365-wpsl-9468",
+   "nombre": "365 · Ronda de la Universitat, 7",
+   "direccion": "Ronda de la Universitat, 7",
+   "cp": "08007",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.386378,
+   "lng": 2.165318,
+   "slug": "bcn-universitat",
+   "barrio": "Eixample · Plaça Universitat",
+   "sugerido": true,
+   "orden": 2
+  },
+  {
+   "ref": "365-wpsl-9587",
+   "nombre": "365 · Plaça de la Sagrada Família, 20",
+   "direccion": "Plaça de la Sagrada Família, 20",
+   "cp": "08013",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.402198,
+   "lng": 2.173914,
+   "slug": "bcn-sagrada-familia",
+   "barrio": "Eixample · Sagrada Família",
+   "sugerido": true,
+   "direccion_fuente": "Plaça de la Sagarada Familia, 20",
+   "orden": 3
+  },
+  {
+   "ref": "365-wpsl-9436",
+   "nombre": "365 · Carrer de Sants, 91",
+   "direccion": "Carrer de Sants, 91",
+   "cp": "08014",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.37525,
+   "lng": 2.136099,
+   "slug": "bcn-sants",
+   "barrio": "Sants-Montjuïc · Sants",
+   "sugerido": true,
+   "orden": 4
+  },
+  {
+   "ref": "365-wpsl-9423",
+   "nombre": "365 · Av. madrid, 60",
+   "direccion": "Av. madrid, 60",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.377488,
+   "lng": 2.126035
+  },
+  {
+   "ref": "365-wpsl-9539",
+   "nombre": "365 · Avinguda Francesc Cambó, 15",
+   "direccion": "Avinguda Francesc Cambó, 15",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.386076,
+   "lng": 2.177164
+  },
+  {
+   "ref": "365-wpsl-9517",
+   "nombre": "365 · Avinguda Meridiana, 116",
+   "direccion": "Avinguda Meridiana, 116",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.394856,
+   "lng": 2.187327
+  },
+  {
+   "ref": "365-wpsl-9526",
+   "nombre": "365 · Avinguda de Madrid, 1",
+   "direccion": "Avinguda de Madrid, 1",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.376018,
+   "lng": 2.123015
+  },
+  {
+   "ref": "365-wpsl-9512",
+   "nombre": "365 · Avinguda de Roma, 133",
+   "direccion": "Avinguda de Roma, 133",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.386228,
+   "lng": 2.155795
+  },
+  {
+   "ref": "365-wpsl-9477",
+   "nombre": "365 · Avinguda de la Mare de Déu de Montserrat",
+   "direccion": "Avinguda de la Mare de Déu de Montserrat",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.417367,
+   "lng": 2.171193
+  },
+  {
+   "ref": "365-wpsl-9530",
+   "nombre": "365 · Avinguda del Parallel, 105",
+   "direccion": "Avinguda del Parallel, 105",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.374702,
+   "lng": 2.162772
+  },
+  {
+   "ref": "365-wpsl-9586",
+   "nombre": "365 · Avinguda del Parallel, 116",
+   "direccion": "Avinguda del Parallel, 116",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.375255,
+   "lng": 2.163559
+  },
+  {
+   "ref": "365-wpsl-9448",
+   "nombre": "365 · Avinguda meridiana,214",
+   "direccion": "Avinguda meridiana,214",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.41536,
+   "lng": 2.187208
+  },
+  {
+   "ref": "365-wpsl-9417",
+   "nombre": "365 · C/ Berlín, 51",
+   "direccion": "C/ Berlín, 51",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.383234,
+   "lng": 2.138408
+  },
+  {
+   "ref": "365-wpsl-9520",
+   "nombre": "365 · C/ Lepanto 278",
+   "direccion": "C/ Lepanto 278",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.404706,
+   "lng": 2.176513
+  },
+  {
+   "ref": "365-wpsl-9408",
+   "nombre": "365 · C/ de Sardenya, 492",
+   "direccion": "C/ de Sardenya, 492",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.410364,
+   "lng": 2.164557
+  },
+  {
+   "ref": "365-wpsl-9482",
+   "nombre": "365 · Carre d'Amigó, 65",
+   "direccion": "Carre d'Amigó, 65",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.39661,
+   "lng": 2.142651
+  },
+  {
+   "ref": "365-wpsl-9515",
+   "nombre": "365 · Carrer Aragó, 228",
+   "direccion": "Carrer Aragó, 228",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.389358,
+   "lng": 2.161544
+  },
+  {
+   "ref": "365-wpsl-9425",
+   "nombre": "365 · Carrer Bilbao, 69",
+   "direccion": "Carrer Bilbao, 69",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.403099,
+   "lng": 2.203008
+  },
+  {
+   "ref": "365-wpsl-9481",
+   "nombre": "365 · Carrer Comtal, 18",
+   "direccion": "Carrer Comtal, 18",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.386495,
+   "lng": 2.17333
+  },
+  {
+   "ref": "365-wpsl-9550",
+   "nombre": "365 · Carrer Girona, 109",
+   "direccion": "Carrer Girona, 109",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.396734,
+   "lng": 2.168332
+  },
+  {
+   "ref": "365-wpsl-9579",
+   "nombre": "365 · Carrer Mare de deu del port. 271",
+   "direccion": "Carrer Mare de deu del port. 271",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.359379,
+   "lng": 2.142253
+  },
+  {
+   "ref": "365-wpsl-9581",
+   "nombre": "365 · Carrer Mare de deu del port. 379",
+   "direccion": "Carrer Mare de deu del port. 379",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.363343,
+   "lng": 2.139339
+  },
+  {
+   "ref": "365-wpsl-9543",
+   "nombre": "365 · Carrer Nou de la Rambla, 46",
+   "direccion": "Carrer Nou de la Rambla, 46",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.37763,
+   "lng": 2.172566
+  },
+  {
+   "ref": "365-wpsl-9553",
+   "nombre": "365 · Carrer Pau Claris, 119",
+   "direccion": "Carrer Pau Claris, 119",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.392192,
+   "lng": 2.167479
+  },
+  {
+   "ref": "365-wpsl-9496",
+   "nombre": "365 · Carrer Provença, 186",
+   "direccion": "Carrer Provença, 186",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.389132,
+   "lng": 2.154326
+  },
+  {
+   "ref": "365-wpsl-9514",
+   "nombre": "365 · Carrer Provença, 463",
+   "direccion": "Carrer Provença, 463",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.405563,
+   "lng": 2.175728
+  },
+  {
+   "ref": "365-wpsl-9441",
+   "nombre": "365 · Carrer Sardenya, 326",
+   "direccion": "Carrer Sardenya, 326",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.403943,
+   "lng": 2.172947
+  },
+  {
+   "ref": "365-wpsl-9432",
+   "nombre": "365 · Carrer balmes, 206",
+   "direccion": "Carrer balmes, 206",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.397577,
+   "lng": 2.152237
+  },
+  {
+   "ref": "365-wpsl-13951",
+   "nombre": "365 · Carrer d'Àlaba, 124",
+   "direccion": "Carrer d'Àlaba, 124",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.399417,
+   "lng": 2.190167
+  },
+  {
+   "ref": "365-wpsl-9500",
+   "nombre": "365 · Carrer de Calàbria, 119",
+   "direccion": "Carrer de Calàbria, 119",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.380613,
+   "lng": 2.153632
+  },
+  {
+   "ref": "365-wpsl-13971",
+   "nombre": "365 · Carrer de Can Bruixa, 44",
+   "direccion": "Carrer de Can Bruixa, 44",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.384178,
+   "lng": 2.133542
+  },
+  {
+   "ref": "365-wpsl-9484",
+   "nombre": "365 · Carrer de Cartagena, 301",
+   "direccion": "Carrer de Cartagena, 301",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.410113,
+   "lng": 2.175581
+  },
+  {
+   "ref": "365-wpsl-9565",
+   "nombre": "365 · Carrer de Còrsega, 264",
+   "direccion": "Carrer de Còrsega, 264",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.393803,
+   "lng": 2.156056
+  },
+  {
+   "ref": "365-wpsl-9422",
+   "nombre": "365 · Carrer de Còrsega, 551",
+   "direccion": "Carrer de Còrsega, 551",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.406485,
+   "lng": 2.172349
+  },
+  {
+   "ref": "365-wpsl-9467",
+   "nombre": "365 · Carrer de Joaquim Costa, 34",
+   "direccion": "Carrer de Joaquim Costa, 34",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.382466,
+   "lng": 2.166016
+  },
+  {
+   "ref": "365-wpsl-9498",
+   "nombre": "365 · Carrer de Mallorca, 518",
+   "direccion": "Carrer de Mallorca, 518",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.4078,
+   "lng": 2.181411
+  },
+  {
+   "ref": "365-wpsl-9495",
+   "nombre": "365 · Carrer de Muntaner, 184",
+   "direccion": "Carrer de Muntaner, 184",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.39247,
+   "lng": 2.151982
+  },
+  {
+   "ref": "365-wpsl-9492",
+   "nombre": "365 · Carrer de Nicaragua, 96",
+   "direccion": "Carrer de Nicaragua, 96",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.385434,
+   "lng": 2.138827
+  },
+  {
+   "ref": "365-wpsl-9480",
+   "nombre": "365 · Carrer de Nàpols, 118",
+   "direccion": "Carrer de Nàpols, 118",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.395509,
+   "lng": 2.17943
+  },
+  {
+   "ref": "365-wpsl-9490",
+   "nombre": "365 · Carrer de Pau Claris, 155",
+   "direccion": "Carrer de Pau Claris, 155",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.394548,
+   "lng": 2.164346
+  },
+  {
+   "ref": "365-wpsl-9395",
+   "nombre": "365 · Carrer de Provença, 498",
+   "direccion": "Carrer de Provença, 498",
+   "cp": "8025",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.406381,
+   "lng": 2.177282
+  },
+  {
+   "ref": "365-wpsl-9469",
+   "nombre": "365 · Carrer de Rogent, 31",
+   "direccion": "Carrer de Rogent, 31",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.409356,
+   "lng": 2.184271
+  },
+  {
+   "ref": "365-wpsl-9494",
+   "nombre": "365 · Carrer de Roger de Flor, 166",
+   "direccion": "Carrer de Roger de Flor, 166",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.397822,
+   "lng": 2.174307
+  },
+  {
+   "ref": "365-wpsl-9404",
+   "nombre": "365 · Carrer de Roger de Llúria, 155",
+   "direccion": "Carrer de Roger de Llúria, 155",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.398141,
+   "lng": 2.162042
+  },
+  {
+   "ref": "365-wpsl-9555",
+   "nombre": "365 · Carrer de Sant Pau, 52",
+   "direccion": "Carrer de Sant Pau, 52",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.378996,
+   "lng": 2.171832
+  },
+  {
+   "ref": "365-wpsl-9475",
+   "nombre": "365 · Carrer de Sants, 295",
+   "direccion": "Carrer de Sants, 295",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.375449,
+   "lng": 2.129107
+  },
+  {
+   "ref": "365-wpsl-9556",
+   "nombre": "365 · Carrer de Tarragona, 161",
+   "direccion": "Carrer de Tarragona, 161",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.378448,
+   "lng": 2.144872
+  },
+  {
+   "ref": "365-wpsl-9505",
+   "nombre": "365 · Carrer de Trafalgar, 66",
+   "direccion": "Carrer de Trafalgar, 66",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.390332,
+   "lng": 2.178434
+  },
+  {
+   "ref": "365-wpsl-9563",
+   "nombre": "365 · Carrer de Valencia, 227",
+   "direccion": "Carrer de Valencia, 227",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.391341,
+   "lng": 2.16118
+  },
+  {
+   "ref": "365-wpsl-9486",
+   "nombre": "365 · Carrer de València, 481",
+   "direccion": "Carrer de València, 481",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.404271,
+   "lng": 2.17856
+  },
+  {
+   "ref": "365-wpsl-9519",
+   "nombre": "365 · Carrer de Vila i Vilà, 97",
+   "direccion": "Carrer de Vila i Vilà, 97",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.37447,
+   "lng": 2.167552
+  },
+  {
+   "ref": "365-wpsl-9584",
+   "nombre": "365 · Carrer de Villarroel, 217",
+   "direccion": "Carrer de Villarroel, 217",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.390287,
+   "lng": 2.149771
+  },
+  {
+   "ref": "365-wpsl-9562",
+   "nombre": "365 · Carrer de l'Hospital, 105",
+   "direccion": "Carrer de l'Hospital, 105",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.379911,
+   "lng": 2.168798
+  },
+  {
+   "ref": "365-wpsl-9421",
+   "nombre": "365 · Carrer de l'Oreneta, 2",
+   "direccion": "Carrer de l'Oreneta, 2",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.399921,
+   "lng": 2.152884
+  },
+  {
+   "ref": "365-wpsl-9580",
+   "nombre": "365 · Carrer de la Constitució. 13",
+   "direccion": "Carrer de la Constitució. 13",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.369984,
+   "lng": 2.137977
+  },
+  {
+   "ref": "365-wpsl-9483",
+   "nombre": "365 · Carrer de la Creu Coberta, 90",
+   "direccion": "Carrer de la Creu Coberta, 90",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.375459,
+   "lng": 2.142847
+  },
+  {
+   "ref": "365-wpsl-9577",
+   "nombre": "365 · Carrer de la Marina, 81",
+   "direccion": "Carrer de la Marina, 81",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.393048,
+   "lng": 2.188603
+  },
+  {
+   "ref": "365-wpsl-9545",
+   "nombre": "365 · Carrer de la Princesa, 14",
+   "direccion": "Carrer de la Princesa, 14",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.384766,
+   "lng": 2.179956
+  },
+  {
+   "ref": "365-wpsl-9472",
+   "nombre": "365 · Carrer de la Riera Blanca, 185",
+   "direccion": "Carrer de la Riera Blanca, 185",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.368602,
+   "lng": 2.131489
+  },
+  {
+   "ref": "365-wpsl-9582",
+   "nombre": "365 · Carrer de la Riera alta. 47",
+   "direccion": "Carrer de la Riera alta. 47",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.380336,
+   "lng": 2.164772
+  },
+  {
+   "ref": "365-wpsl-9542",
+   "nombre": "365 · Carrer del Carme, 38",
+   "direccion": "Carrer del Carme, 38",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.382184,
+   "lng": 2.169624
+  },
+  {
+   "ref": "365-wpsl-9547",
+   "nombre": "365 · Carrer del Carme, 8",
+   "direccion": "Carrer del Carme, 8",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.382882,
+   "lng": 2.170987
+  },
+  {
+   "ref": "365-wpsl-9585",
+   "nombre": "365 · Carrer del Comte Borrel, 91",
+   "direccion": "Carrer del Comte Borrel, 91",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.379056,
+   "lng": 2.160209
+  },
+  {
+   "ref": "365-wpsl-9522",
+   "nombre": "365 · Carrer del Comte d'Urgell, 224",
+   "direccion": "Carrer del Comte d'Urgell, 224",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.389299,
+   "lng": 2.149454
+  },
+  {
+   "ref": "365-wpsl-9473",
+   "nombre": "365 · Carrer del Rosés, 58",
+   "direccion": "Carrer del Rosés, 58",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.378471,
+   "lng": 2.133762
+  },
+  {
+   "ref": "365-wpsl-9508",
+   "nombre": "365 · Carrer del pi, 1",
+   "direccion": "Carrer del pi, 1",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.382749,
+   "lng": 2.174
+  },
+  {
+   "ref": "365-wpsl-9474",
+   "nombre": "365 · Carrer dell Rosselló, 202",
+   "direccion": "Carrer dell Rosselló, 202",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.393429,
+   "lng": 2.157773
+  },
+  {
+   "ref": "365-wpsl-9456",
+   "nombre": "365 · Carrer dels Escudellers, 28",
+   "direccion": "Carrer dels Escudellers, 28",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.379929,
+   "lng": 2.176762
+  },
+  {
+   "ref": "365-wpsl-9558",
+   "nombre": "365 · Carrer dels Tallers, 7",
+   "direccion": "Carrer dels Tallers, 7",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.3846,
+   "lng": 2.169863
+  },
+  {
+   "ref": "365-wpsl-9535",
+   "nombre": "365 · Carrer dels Tallers, 71",
+   "direccion": "Carrer dels Tallers, 71",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.384837,
+   "lng": 2.166918
+  },
+  {
+   "ref": "365-wpsl-9431",
+   "nombre": "365 · Carrer entença, 313",
+   "direccion": "Carrer entença, 313",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.389506,
+   "lng": 2.138019
+  },
+  {
+   "ref": "365-wpsl-9446",
+   "nombre": "365 · Carrer numancia. 163",
+   "direccion": "Carrer numancia. 163",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.38869,
+   "lng": 2.133229
+  },
+  {
+   "ref": "365-wpsl-9447",
+   "nombre": "365 · Comte d'urgell, 43",
+   "direccion": "Comte d'urgell, 43",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.381273,
+   "lng": 2.15944
+  },
+  {
+   "ref": "365-wpsl-9478",
+   "nombre": "365 · Gran Via de les Corts Catalanes, 192",
+   "direccion": "Gran Via de les Corts Catalanes, 192",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.368316,
+   "lng": 2.140827
+  },
+  {
+   "ref": "365-wpsl-9449",
+   "nombre": "365 · Gran de gracia, 266",
+   "direccion": "Gran de gracia, 266",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.405901,
+   "lng": 2.150714
+  },
+  {
+   "ref": "365-wpsl-9574",
+   "nombre": "365 · Gran via de les corts catalanes, 306",
+   "direccion": "Gran via de les corts catalanes, 306",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.37256,
+   "lng": 2.146477
+  },
+  {
+   "ref": "365-wpsl-9428",
+   "nombre": "365 · Mallorca, 285",
+   "direccion": "Mallorca, 285",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.396105,
+   "lng": 2.165392
+  },
+  {
+   "ref": "365-wpsl-9458",
+   "nombre": "365 · Passeig de Sant Gervasi 54",
+   "direccion": "Passeig de Sant Gervasi 54",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.41083,
+   "lng": 2.13825
+  },
+  {
+   "ref": "365-wpsl-9489",
+   "nombre": "365 · Passeig de Sant Joan, 53",
+   "direccion": "Passeig de Sant Joan, 53",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.396782,
+   "lng": 2.172604
+  },
+  {
+   "ref": "365-wpsl-9572",
+   "nombre": "365 · Passeig de la Zona Franca, 240",
+   "direccion": "Passeig de la Zona Franca, 240",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.363284,
+   "lng": 2.137193
+  },
+  {
+   "ref": "365-wpsl-9452",
+   "nombre": "365 · Passeig de la zona franca, 182",
+   "direccion": "Passeig de la zona franca, 182",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.360904,
+   "lng": 2.138764
+  },
+  {
+   "ref": "365-wpsl-13959",
+   "nombre": "365 · Pg. de la Zona Franca, 29",
+   "direccion": "Pg. de la Zona Franca, 29",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.352668,
+   "lng": 2.144109
+  },
+  {
+   "ref": "365-wpsl-13967",
+   "nombre": "365 · Plaça Bonanova, 3",
+   "direccion": "Plaça Bonanova, 3",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.406824,
+   "lng": 2.134113
+  },
+  {
+   "ref": "365-wpsl-9451",
+   "nombre": "365 · Plaça Comas, 11",
+   "direccion": "Plaça Comas, 11",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.385459,
+   "lng": 2.130443
+  },
+  {
+   "ref": "365-wpsl-9424",
+   "nombre": "365 · Plaça Joaquim Folguera, 3-5",
+   "direccion": "Plaça Joaquim Folguera, 3-5",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.405364,
+   "lng": 2.138958
+  },
+  {
+   "ref": "365-wpsl-9540",
+   "nombre": "365 · Rambla de Badal, 158",
+   "direccion": "Rambla de Badal, 158",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.373616,
+   "lng": 2.131505
+  },
+  {
+   "ref": "365-wpsl-9569",
+   "nombre": "365 · Rambla del Poblenou, 43",
+   "direccion": "Rambla del Poblenou, 43",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.399862,
+   "lng": 2.2026
+  },
+  {
+   "ref": "365-wpsl-13975",
+   "nombre": "365 · Ronda Guinardó, 36",
+   "direccion": "Ronda Guinardó, 36",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.411696,
+   "lng": 2.165842
+  },
+  {
+   "ref": "365-wpsl-9403",
+   "nombre": "365 · Ronda Sant Pere, 72",
+   "direccion": "Ronda Sant Pere, 72",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.391155,
+   "lng": 2.179072
+  },
+  {
+   "ref": "365-wpsl-9532",
+   "nombre": "365 · Ronda de Sant Antoni, 31",
+   "direccion": "Ronda de Sant Antoni, 31",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.381538,
+   "lng": 2.163265
+  },
+  {
+   "ref": "365-wpsl-9564",
+   "nombre": "365 · Ronda de Sant Antoni, 72",
+   "direccion": "Ronda de Sant Antoni, 72",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.383146,
+   "lng": 2.16389
+  },
+  {
+   "ref": "365-wpsl-9493",
+   "nombre": "365 · Ronda de Sant Pau, 79",
+   "direccion": "Ronda de Sant Pau, 79",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.378347,
+   "lng": 2.163314
+  },
+  {
+   "ref": "365-wpsl-9435",
+   "nombre": "365 · Sant Antoni Maria Claret, 157",
+   "direccion": "Sant Antoni Maria Claret, 157",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.411002,
+   "lng": 2.173831
+  },
+  {
+   "ref": "365-wpsl-9459",
+   "nombre": "365 · Selva de Mar, 125",
+   "direccion": "Selva de Mar, 125",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.412616,
+   "lng": 2.203482
+  },
+  {
+   "ref": "365-wpsl-9597",
+   "nombre": "365 · Trav. de Dalt 72",
+   "direccion": "Trav. de Dalt 72",
+   "cp": "08350",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.41011,
+   "lng": 2.156155
+  },
+  {
+   "ref": "365-wpsl-9557",
+   "nombre": "365 · Travessera de Gràcia, 66",
+   "direccion": "Travessera de Gràcia, 66",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.396611,
+   "lng": 2.15068
+  },
+  {
+   "ref": "365-wpsl-9453",
+   "nombre": "365 · Travessera de dalt, 83",
+   "direccion": "Travessera de dalt, 83",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.410751,
+   "lng": 2.156421
+  },
+  {
+   "ref": "365-wpsl-9554",
+   "nombre": "365 · Travessera de les Corts, 238",
+   "direccion": "Travessera de les Corts, 238",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.38516,
+   "lng": 2.13273
+  },
+  {
+   "ref": "365-wpsl-10540",
+   "nombre": "365 · Vía Augusta 124",
+   "direccion": "Vía Augusta 124",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.400977,
+   "lng": 2.14625
+  },
+  {
+   "ref": "365-wpsl-9548",
+   "nombre": "365 · Vía Layetana, 48",
+   "direccion": "Vía Layetana, 48",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.386679,
+   "lng": 2.175382
+  },
+  {
+   "ref": "365-wpsl-9427",
+   "nombre": "365 · passeig de borbó 3",
+   "direccion": "passeig de borbó 3",
+   "cp": "",
+   "ciudad": "Barcelona",
+   "pais": "ES",
+   "lat": 41.381209,
+   "lng": 2.187185
+  }
+ ]
+}

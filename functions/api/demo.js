@@ -10,8 +10,18 @@
  * Campos: cliente, website, color, xpacio_tipo (demostore|estanco|cafeteria|other),
  * xpacio_otro, ciudades[], cierre, idiomas[], logo (data URL opcional), notas.
  * Nunca persiste ni registra secretos.
+ *
+ * DEMO COMPLETA (merovingio · 06-10-2026) · modo:"completa"
+ *   Amplía el payload sin romper a procesar_cola.py: los campos clásicos siguen ahí y se
+ *   añaden establecimientos[], dispositivos[], contenidos_por_playlist, fuente_contenido,
+ *   marca{modo,id}, simulacion y el plan completo (demo/plan-completa.mjs).
+ *   Una demo completa NUNCA queda en estado «pendiente»: con simulacion=true (por defecto)
+ *   se guarda como «simulacion»; sin simulación, como «pendiente_completa». Así
+ *   procesar_cola.py (que solo lee ?estado=pendiente) no la ejecuta con la cadena clásica.
+ *   El futuro procesador v2 lee GET ?estado=pendiente_completa (clave de máquina).
  */
 import { limitarFrecuencia } from '../_limite-frecuencia.js';
+import { construirPlan, legacyPayload } from '../../demo/plan-completa.mjs';
 
 const TIPOS = new Set(['demostore', 'estanco', 'cafeteria', 'other']);
 const CIUDADES_OK = new Set(['london','newyork','barcelona','madrid','paris','milano','lisboa','valencia','mexico']);
@@ -86,7 +96,15 @@ async function notify(env, waitUntil, solicitud) {
 
 function publico(s) {
   if (!s) return null;
+  const completa = s.modo === 'completa' ? {
+    modo: 'completa',
+    simulacion: Boolean(s.simulacion),
+    ciudad: s.ciudad,
+    n_establecimientos: (s.establecimientos || []).length,
+    totales: s.plan?.totales || null,
+  } : {};
   return {
+    ...completa,
     id: s.id,
     cliente: s.cliente,
     website: s.website,
@@ -132,9 +150,28 @@ export async function onRequestGet(context) {
     return json({ ok: true, solicitudes: out });
   }
 
+  if (estado === 'pendiente_completa' || estado === 'simulacion') {
+    if (!machine) return json({ ok: false, error: 'Autorización de máquina requerida.' }, 401);
+    const ids = await leerIndice(env);
+    const out = [];
+    for (const sid of ids.slice().reverse()) {
+      const s = await env.PRESENTATION_IDEAS.get(PREF + sid, { type: 'json' });
+      if (s && s.estado === estado) out.push(s);
+      if (out.length >= 20) break;
+    }
+    return json({ ok: true, solicitudes: out });
+  }
+
   return json({
     ok: true,
     endpoint: '/api/demo',
+    modos: ['clasica', 'completa'],
+    completa: {
+      schema: 'admiranext.demo-completa/1',
+      minimos: { establecimientos: 4, dispositivos: 4, contenidos_por_playlist: 3 },
+      estados: ['simulacion', 'pendiente_completa'],
+      nota: 'Una demo completa nunca entra como «pendiente»: procesar_cola.py no la ejecuta.',
+    },
     metodos: ['POST', 'GET', 'PATCH'],
     xpacio_tipos: [...TIPOS],
     ciudades: [...CIUDADES_OK],
@@ -161,6 +198,8 @@ export async function onRequestPost(context) {
   } catch (_) {
     return json({ ok: false, error: 'JSON no válido.' }, 400);
   }
+
+  if (body && body.modo === 'completa') return encolarCompleta(context, body);
 
   const cliente = limpio(body.cliente || body.company || body.nombre, 80);
   const website = limpio(body.website || body.web || body.url, 300);
@@ -256,7 +295,7 @@ export async function onRequestPatch(context) {
   const id = limpio(body.id, 64);
   const estado = limpio(body.estado || body.status, 32).toLowerCase();
   if (!id) return json({ ok: false, error: 'Falta id.' }, 400);
-  const okEstados = new Set(['pendiente', 'encolada', 'en_curso', 'hecha', 'error', 'cancelada']);
+  const okEstados = new Set(['pendiente', 'encolada', 'en_curso', 'hecha', 'error', 'cancelada', 'simulacion', 'pendiente_completa']);
   if (!okEstados.has(estado)) return json({ ok: false, error: 'estado inválido.' }, 400);
   const s = await env.PRESENTATION_IDEAS.get(PREF + id, { type: 'json' });
   if (!s) return json({ ok: false, error: 'No existe.' }, 404);
@@ -273,4 +312,77 @@ export async function onRequestPatch(context) {
   }
   await env.PRESENTATION_IDEAS.put(PREF + id, JSON.stringify(s), { expirationTtl: 60 * 60 * 24 * 60 });
   return json({ ok: true, solicitud: publico(s) });
+}
+
+/**
+ * Demo completa: valida con el mismo módulo que el formulario, construye el plan y lo
+ * guarda. Nunca como «pendiente» (ver cabecera). Devuelve el plan para el dry-run.
+ */
+async function encolarCompleta(context, body) {
+  const { request, env, waitUntil } = context;
+  const plan = construirPlan(body);
+  if (!plan.valido) return json({ ok: false, error: plan.errores[0], errores: plan.errores }, 400);
+  if (!plan.cliente.web || !/^https?:\/\//i.test(plan.cliente.web)) {
+    return json({ ok: false, error: 'La web debe ser una URL http(s).' }, 400);
+  }
+  if (!env?.PRESENTATION_IDEAS) {
+    return json({ ok: false, error: 'Cola no disponible (KV).', plan }, 503);
+  }
+  const legado = legacyPayload(body);
+  const ahora = new Date().toISOString();
+  const id = `${Date.now().toString(36)}-${slug(plan.cliente.nombre).slice(0, 18)}-completa`;
+  const estado = plan.simulacion ? 'simulacion' : 'pendiente_completa';
+  const solicitud = {
+    // Campos clásicos (los que ya leen publico(), PATCH y procesar_cola.py).
+    id,
+    id_marca: plan.cliente.id,
+    cliente: legado.cliente,
+    website: legado.website,
+    color: legado.color,
+    xpacio_tipo: legado.xpacio_tipo,
+    xpacio_otro: legado.xpacio_otro,
+    ciudades: legado.ciudades,
+    cierre: legado.cierre,
+    idiomas: legado.idiomas,
+    notas: legado.notas,
+    // Ampliación demo completa.
+    modo: 'completa',
+    schema: plan.schema,
+    simulacion: plan.simulacion,
+    franquicia: plan.cliente.franquicia,
+    marca: plan.cliente.marca,
+    ciudad: plan.ciudad,
+    xpacio_subtipo: plan.xpacio.subtipo,
+    establecimientos: plan.establecimientos.map((e) => ({
+      id: e.id, slug: e.slug, nombre: e.nombre, direccion: e.direccion, cp: e.cp,
+      lat: e.lat, lng: e.lng, fuente_url: e.fuente_url,
+    })),
+    dispositivos: plan.establecimientos[0]?.equipos.map((q) => q.dispositivo) || [],
+    contenidos_por_playlist: plan.contenido.por_playlist,
+    fuente_contenido: plan.contenido.fuente,
+    plan,
+    estado,
+    creadaEn: ahora,
+    actualizadaEn: ahora,
+    origen: 'admiranext.com/demo#formulario',
+    ip: limpio(request.headers.get('CF-Connecting-IP'), 64),
+  };
+  await env.PRESENTATION_IDEAS.put(PREF + id, JSON.stringify(solicitud), { expirationTtl: 60 * 60 * 24 * 60 });
+  const ids = await leerIndice(env);
+  ids.push(id);
+  await escribirIndice(env, ids);
+  // Solo se avisa cuando se pide ejecución real; una simulación no despierta a nadie.
+  const aviso = plan.simulacion ? { ok: false } : await notify(env, waitUntil || (() => {}), solicitud);
+  return json({
+    ok: true,
+    id,
+    estado,
+    simulacion: plan.simulacion,
+    mensaje: plan.simulacion
+      ? 'Simulación guardada. No se ha creado nada en producción: este es el plan que se ejecutaría.'
+      : 'Demo completa en cola (pendiente_completa). La ejecuta el procesador v2 del Mac Mini; procesar_cola.py clásico no la toca.',
+    notify: aviso.ok ? 'hook' : 'kv-only',
+    solicitud: publico(solicitud),
+    plan,
+  }, 201);
 }
