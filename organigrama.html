@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Organigrama · ADmiraNeXT</title>
 <meta name="description" content="Organigrama de ADmiraNeXT: el Consejo de Silicio responde de la mesa, un DeepAgent dirige cada pata y los agentes ejecutan.">
-<meta name="admiranext-version" content="v.05.10.2026.r4.22:55">
+<meta name="admiranext-version" content="v.06.10.2026.r18.10:36">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -149,6 +149,21 @@
   .org-detail ul{margin:0;padding:0 0 0 14px;color:var(--yk-ink,#f2f6fc);font-size:12px}
   .org-detail li{margin:2px 0}
   .org-node.is-open{z-index:2;box-shadow:0 0 0 1px rgba(74,227,209,.5),0 0 32px rgba(74,227,209,.22)}
+  /* TRABAJANDO AHORA (Carlos, 2026-10-06): quien tiene trabajo en curso deja el cian y se
+     pinta en verde — la caja, su avatar, su motor y la flecha que le llega. */
+  .org-node.is-working:not(.is-dragging){
+    border-color:rgba(61,255,154,.8);
+    background:linear-gradient(165deg,rgba(16,54,38,.97),rgba(5,16,12,.94));
+    box-shadow:0 0 0 1px rgba(61,255,154,.5),0 0 28px rgba(61,255,154,.3)
+  }
+  .org-node.is-working:not(.is-dragging):hover,.org-node.is-working:not(.is-dragging):focus-visible{border-color:#3dff9a;box-shadow:0 0 0 1px rgba(61,255,154,.75),0 0 32px rgba(61,255,154,.42)}
+  .org-node.is-top.is-working:not(.is-dragging){animation:workGlow 2.8s ease-in-out infinite}
+  @keyframes workGlow{0%,100%{box-shadow:0 0 0 2px rgba(61,255,154,.45),0 0 28px rgba(61,255,154,.3),0 0 48px rgba(23,163,92,.2)}50%{box-shadow:0 0 0 2px rgba(61,255,154,.8),0 0 42px rgba(61,255,154,.5),0 0 72px rgba(23,163,92,.34)}}
+  .org-node.is-working .org-avatar{background:radial-gradient(circle at 35% 30%,#c4ffe0,#3dff9a 55%,#17a35c);box-shadow:0 0 0 2px rgba(61,255,154,.55),0 0 18px rgba(61,255,154,.6)}
+  .org-node.is-working .pata{color:#3dff9a}
+  .org-node.is-working .chip{border-color:rgba(61,255,154,.6);color:#a8ffd0;background:rgba(61,255,154,.1);box-shadow:0 0 12px rgba(61,255,154,.28);text-shadow:0 0 8px rgba(61,255,154,.5)}
+  .org-node.is-working .org-presence{color:#a8ffd0}
+  .org-svg path.org-line.is-working{stroke:#3dff9a;filter:drop-shadow(0 0 8px rgba(61,255,154,.8)) drop-shadow(0 0 18px rgba(61,255,154,.4))}
   body.is-presenter .yk-head,body.is-presenter footer,.is-presenter .niveles,.is-presenter .nota,.is-presenter .kicker,.is-presenter h1,.is-presenter .lede,.is-presenter .arbol-wrap > h2{display:none!important}
   body.is-presenter main{padding:8px 0 12px}
   body.is-presenter .org-stage{min-height:calc(100vh - 70px);border-radius:12px}
@@ -416,7 +431,7 @@
   </section>
 
   <footer>
-    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.05.10.2026.r4.22:55</span>
+    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.06.10.2026.r18.10:36</span>
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261006-idioma-paginas-3"></script>
@@ -546,6 +561,7 @@
       var cls = 'org-line';
       if (parentId === 'jobs') cls += ' is-branch';
       if (n.classList.contains('is-agent') || n.classList.contains('is-deep')) cls += ' is-flow';
+      if (n.classList.contains('is-working')) cls += ' is-working';
       var path = pathCache[id];
       if (!path || path.parentNode !== svg) {
         path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -887,7 +903,7 @@
     if (!prev || (ts || 0) > (prev.ts || 0)) map[family] = { ts: ts || 0, label: label || family };
   }
 
-  function paintPresence(map) {
+  function paintPresence(map, trabajando) {
     document.querySelectorAll('[data-presence-for]').forEach(function (el) {
       var fam = el.getAttribute('data-presence-for');
       var info = map[fam];
@@ -906,7 +922,44 @@
       var lvl = levelFor(map[f] && map[f].ts);
       if (lvl === 'ok') ok++; else if (lvl === 'warn') warn++; else bad++;
     });
-    if (liveEl) liveEl.textContent = 'Latido flota · ' + ok + ' vivos · ' + warn + ' tibios · ' + bad + ' sin señal · api.yokup.com';
+    if (liveEl) liveEl.textContent = 'Latido flota · ' + ok + ' vivos · ' + warn + ' tibios · ' + bad + ' sin señal · ' + (trabajando || 0) + ' trabajando · api.yokup.com';
+  }
+
+  /* TRABAJANDO = Yokup lo da en marcha («running») o tiene trabajo asignado con
+     actividad en los últimos 10 min. «last_work» es el último trabajo ya cerrado: no
+     cuenta. Las observaciones (procesos vistos sin trabajo ligado) tampoco. */
+  function isWorking(row) {
+    var st = String(row.state || '').toLowerCase();
+    if (st === 'running') return true;
+    if (row.ended_at || st.indexOf('assigned') !== 0) return false;
+    var t = Math.max(row.work_progress_at || 0, row.active_at || 0);
+    return !!t && (Date.now() - t) < ONLINE_MS;
+  }
+
+  function agentNodeId(agent) {
+    return 'agent-' + String(agent).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
+  /* Pinta en verde al consejero (y a su DeepAgent) cuya familia trabaja, y al agente
+     concreto que lo hace. Devuelve cuántos consejeros están trabajando. */
+  function paintWorking(work) {
+    var n = 0;
+    canvas.querySelectorAll('.org-node').forEach(function (node) {
+      var isAgent = node.classList.contains('is-agent');
+      var w = isAgent ? work.agents[node.getAttribute('data-id')] : work.fams[node.getAttribute('data-family')];
+      node.classList.toggle('is-working', !!w);
+      if (w) {
+        node.setAttribute('title', 'Trabajando · ' + w);
+        node.setAttribute('data-working', '1');
+        var ago = node.querySelector('[data-ago]');
+        if (ago) ago.textContent = 'trabajando';
+        if (!isAgent && !node.classList.contains('is-deep')) n++;
+      } else if (node.hasAttribute('data-working')) {
+        node.removeAttribute('data-working');
+        node.removeAttribute('title');
+      }
+    });
+    return n;
   }
 
   function renderAgents(groups) {
@@ -916,7 +969,7 @@
       var list = groups[fam] || [];
       var parentId = DEEP[fam];
       host.innerHTML = list.map(function (a) {
-        var id = 'agent-' + String(a.agent).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        var id = agentNodeId(a.agent);
         var engine = a.runtime || a.machine || 'agente';
         return '<article class="org-node is-agent" tabindex="0" data-id="' + esc(id) + '" data-parent="' + esc(parentId) + '" data-family="' + esc(fam) + '" role="button" aria-expanded="false">' +
           '<div class="org-avatar" aria-hidden="true">' + esc(initials(a.agent)) + '</div>' +
@@ -940,11 +993,17 @@
       var groups = Object.create(null);
       Object.keys(DEEP).forEach(function (f) { groups[f] = []; });
       var seen = Object.create(null);
+      var work = { fams: Object.create(null), agents: Object.create(null) };
       function pushAgent(row) {
         var agent = row.agent || row.executor || '';
         if (!agent) return;
         var fam = familyOf(agent, row.family_key);
         var key = String(agent).toLowerCase();
+        if (isWorking(row)) {
+          var que = agent + (row.title ? ': ' + row.title : '');
+          if (!work.fams[fam]) work.fams[fam] = que;
+          work.agents[agentNodeId(agent)] = que;
+        }
         var base = key.replace(/(macmini|mbp14|mbaazul|grokbotbox|dgx|reuniones1|mbpro).*$/i, '');
         // DeepAgents ya están como nodos de 2º nivel: el 3º son instancias/máquinas u otros agentes
         var isDeepOnly = Object.keys(DEEP).indexOf(base) >= 0 && !/[a-z0-9].*(mac|mb|box|dgx|reuni)/i.test(key) && key === base;
@@ -973,7 +1032,10 @@
       (data.observations || []).forEach(pushAgent);
       renderAgents(groups);
       syncNow();
-      paintPresence(map);
+      var consejeros = 0;
+      Object.keys(DEEP).forEach(function (f) { if (work.fams[f]) consejeros++; });
+      paintPresence(map, consejeros);
+      paintWorking(work);
       applyBranch();
       requestAnimationFrame(function () { requestAnimationFrame(drawLines); });
     }).catch(function () {

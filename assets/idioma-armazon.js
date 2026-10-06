@@ -107,12 +107,14 @@
     'Contenido · adaptación': 'Content · adaptation', 'Stock · visualización': 'Stock · visualization',
     'Instalaciones · mantenimiento': 'Installations · maintenance', 'Organigrama de ADmiraNeXT': 'ADmiraNeXT org chart',
     'Latido flota · sin lectura de Yokup (reintento)': 'Fleet heartbeat · no reading from Yokup (retrying)',
-    'sin señal': 'no signal'
+    'sin señal': 'no signal', 'trabajando': 'working'
   };
   var reglasOrg = [
     [/^Agentes de (\S+)$/, 'Agents of $1'],
     [/^Dirige (\S+) bajo (\S+)\.$/, 'Directs $1 under $2.'],
     [/^Ejecuta bajo (\S+)$/, 'Works under $1'],
+    [/^Latido flota · (\d+) vivos · (\d+) tibios · (\d+) sin señal · (\d+) trabajando · (.+)$/, 'Fleet heartbeat · $1 alive · $2 lukewarm · $3 no signal · $4 working · $5'],
+    [/^Trabajando · (.+)$/, 'Working · $1'],
     [/^Latido flota · (\d+) vivos · (\d+) tibios · (\d+) sin señal · (.+)$/, 'Fleet heartbeat · $1 alive · $2 lukewarm · $3 no signal · $4'],
     [/^hace (\d+) ?(s|min|h|d)$/, '$1 $2 ago'],
     [/^ahora$/, 'now']
