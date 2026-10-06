@@ -1,4 +1,6 @@
-// Pieles de cine 84–89 (06-10-2026 · FLT-101666 a y b, petición #5253 de Carlos).
+// Pieles de cine 81–89 (06-10-2026 · FLT-101666 a y b, petición #5253 de Carlos; 81–83 en la ampliación #5256).
+// #5256) /marca 81 · aventura en el desierto de 1981 (arena, cuero, mapas) · /marca 82 · neón bajo la lluvia de 1982
+//    (magenta y cian sobre negro mojado) · /marca 83 · noche de barrio (luna, azul de silueta, rojo cálido).
 // a) /marca 84 · ciencia ficción de 1984 (acero, negro, rojo infrarrojo) · /marca 85 · viajes en el tiempo
 //    de 1985 (noche violeta, llamarada naranja-amarilla, chispa azul).
 // b) /marca 86 · aviación de 1986 (atardecer, dorado de aviador) · /marca 87 · ciencia ficción policial de 1987
@@ -20,7 +22,7 @@ const leer = (p) => readFileSync(new URL(p, ROOT), 'utf8');
 // assets/marca-blanca.js es un script de navegador con salida CommonJS para pruebas (package.json es type=module).
 const MB = (() => { const module = {exports: {}}; vm.runInNewContext(leer('assets/marca-blanca.js'), {module, URLSearchParams, URL}); return module.exports; })();
 const marca = (id) => JSON.parse(leer(`marcablanca/clientes/${id}.json`));
-const PIELES = ['84', '85', '86', '87', '88', '89'];
+const PIELES = ['81', '82', '83', '84', '85', '86', '87', '88', '89'];
 const plano = (x) => JSON.parse(JSON.stringify(x));   // objetos del contexto vm → del realm de la prueba
 const AA = 4.5;
 
@@ -38,7 +40,7 @@ const mezcla = (fondo, color, alfa) => {
   return '#' + [c(a.r, b.r), c(a.g, b.g), c(a.b, b.b)].map((v) => v.toString(16).padStart(2, '0')).join('');
 };
 
-test('84–89 son pieles del catálogo, válidas, de ejemplo y con su libro de estilo', () => {
+test('81–89 son pieles del catálogo, válidas, de ejemplo y con su libro de estilo', () => {
   const indice = JSON.parse(leer('marcablanca/clientes/index.json'));
   for (const id of PIELES) {
     const m = marca(id);
@@ -57,6 +59,12 @@ test('84–89 son pieles del catálogo, válidas, de ejemplo y con su libro de e
 
 test('sin material de terceros: ni títulos, ni personajes, ni marcas registradas de las películas', () => {
   const PROHIBIDO = new RegExp([
+    // 81 · aventura en el desierto
+    'indiana', '\\bjones\\b', 'raiders', 'lost ark', '\\bark\\b', 'arca perdida', 'busca del arca', 'marion ravenwood', 'belloq', 'sallah', 'harrison ford',
+    // 82 · neón bajo la lluvia
+    'blade ?runner', 'deckard', 'replicant', 'replicante', 'tyrell', 'nexus', 'voight', 'kampff', 'roy batty', 'rachael', '\\bgaff\\b', 'tears in rain', 'lágrimas en la lluvia', 'ridley scott', 'philip k',
+    // 83 · noche de barrio
+    'elliott', 'extraterrestre', '\\be\\.?t\\.(?=\\s|$|[^a-z])', 'phone home', 'mi casa', 'reese', 'spielberg', 'lucasfilm',
     // 84 · 85
     'terminator', 'skynet', 'cyberdyne', 'sarah connor', 'kyle reese', 't-?800', 'back to the future', 'regreso al futuro', 'volver al futuro',
     'delorean', 'mcfly', 'doc brown', 'hill valley', 'flux', 'fluzo', 'condensador', '88 ?mph', '1\\.21', 'gigawatt',
@@ -71,6 +79,11 @@ test('sin material de terceros: ni títulos, ni personajes, ni marcas registrada
     // estudios
     'paramount', 'orion pictures', 'tri-?star', 'warner', 'disney', 'amblin', 'touchstone', 'carolco', 'universal pictures',
   ].join('|'), 'i');
+  // La lista funciona: detecta los nombres pedidos y no salta con palabras normales.
+  for (const x of ['Indiana Jones', 'Blade Runner', 'Deckard', 'un replicante', 'Elliott', 'E.T.', 'el extraterrestre', 'Spielberg', 'Lucasfilm', 'Amblin', 'Top Gun', 'Batman', 'Gotham', 'RoboCop', 'Roger Rabbit'])
+    assert.match(x, PROHIBIDO, x);
+  for (const x of ['dark', 'park', 'etc.', 'Desert', 'neón', 'luna llena', 'Sal a mirar la luna', 'estrellas'])
+    assert.doesNotMatch(x, PROHIBIDO, x);
   const css = leer('assets/marca-blanca.css');
   const bloque = css.slice(css.indexOf('Pieles de cine'));
   for (const id of PIELES) {
@@ -81,7 +94,7 @@ test('sin material de terceros: ni títulos, ni personajes, ni marcas registrada
   assert.doesNotMatch(bloque, /url\(/, 'los fondos son degradados, no imágenes');
 });
 
-test('contraste AA (≥ 4,5:1): texto/fondo, superficies, velo del fondo y botones de 84–89', (t) => {
+test('contraste AA (≥ 4,5:1): texto/fondo, superficies, velo del fondo y botones de 81–89', (t) => {
   const informe = [];
   for (const id of PIELES) {
     const m = marca(id);
@@ -120,7 +133,7 @@ test('contraste AA (≥ 4,5:1): texto/fondo, superficies, velo del fondo y boton
   t.diagnostic(informe.join('\n'));
 });
 
-test('/marca 84…89 y los atajos /84…/89 del Experto; /marca off vuelve a Admira', () => {
+test('/marca 81…89 y los atajos /81…/89 del Experto; /marca off vuelve a Admira', () => {
   assert.deepEqual(plano(MB.parseArg('84')), {kind: 'id', id: '84'});
   for (const id of PIELES) assert.deepEqual(plano(MB.parseArg(id)), {kind: 'id', id});
   assert.equal(MB.parseArg('off').kind, 'off');
@@ -128,11 +141,11 @@ test('/marca 84…89 y los atajos /84…/89 del Experto; /marca off vuelve a Adm
   assert.deepEqual(plano(MB.decide('?marca=off', {getItem: () => '85'})), {id: null, forget: true});
   assert.deepEqual(plano(MB.decide('', {getItem: () => '85'})), {id: '85'}, 'se recuerda en la pestaña');
   const js = leer('assets/experto-admiranext.js');
-  assert.match(js, new RegExp('PIELES_CINE = \\[\\s*' + PIELES.map((id) => `\\{id: '${id}'`).join('[\\s\\S]*')), 'las seis pieles, en orden');
+  assert.match(js, new RegExp('PIELES_CINE = \\[\\s*' + PIELES.map((id) => `\\{id: '${id}'`).join('[\\s\\S]*')), 'las nueve pieles, en orden');
   assert.match(js, /X\.verb\(\{name: p\.id[\s\S]*runMarca\(\[p\.id\], escribirEn\(log\)\)/, '/84 y /85 = /marca 84 y /marca 85');
-  assert.ok(js.includes('/^\\/8[4-9]$/.test(v)'), 'el terminal de la home reenvía /84…/89');
-  for (const id of PIELES) assert.ok(new RegExp('^\\/8[4-9]$').test('/' + id));
-  assert.ok(!/^\/8[4-9]$/.test('/83') && !/^\/8[4-9]$/.test('/90'), 'ni /81–/83 ni /90 todavía');
+  assert.ok(js.includes('/^\\/8[1-9]$/.test(v)'), 'el terminal de la home reenvía /81…/89');
+  for (const id of PIELES) assert.ok(new RegExp('^\\/8[1-9]$').test('/' + id));
+  assert.ok(!/^\/8[1-9]$/.test('/80') && !/^\/8[1-9]$/.test('/90'), 'ni /80 ni /90');
   // El CLI del armazón delega en la piel cualquier verbo que no tenga: /84 y /85 también allí.
   assert.match(js, /X\.list\(\)\.forEach\(function \(v\) \{/);
   // El armazón y la piel admiten verbos numéricos (se buscan por nombre exacto tras quitar la barra).
@@ -172,10 +185,10 @@ test('las pieles tienen sus detalles CSS propios (fondo, titulares, foco) solo c
     assert.match(css, new RegExp(`\\[data-mb-marca="${id}"\\][^{]*:focus-visible`));
   }
   const ver = leer('assets/marca-blanca.js').match(/marca-blanca\.css\?v=([^']+)'/)[1];
-  assert.equal(ver, '20261006-cine-86-89', 'sello nuevo para la hoja con las pieles');
+  assert.equal(ver, '20261006-cine-81-83', 'sello nuevo para la hoja con las pieles');
 });
 
-test('la API del catálogo sirve 84–89 y /marcablanca/estilo?marca= los nombra con 200 y sin salto 308', async () => {
+test('la API del catálogo sirve 81–89 y /marcablanca/estilo?marca= los nombra con 200 y sin salto 308', async () => {
   const env = {ASSETS: assets()};
   for (const id of PIELES) {
     const res = await una({request: new Request(`https://www.admiranext.com/marcablanca/api/marcas/${id}`), env, params: {id}});

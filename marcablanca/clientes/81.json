@@ -1,0 +1,179 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "81",
+  "nombre": "Cine 81",
+  "nombreCorto": "81",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1981 · aventura en el desierto",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico al cine de aventuras de 1981. Arena al atardecer, cuero gastado, pergamino de mapas antiguos y verde de cobre oxidado. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 81 (o /81) en el Experto.",
+  "logo": {
+    "svg": "../logos/81.svg",
+    "alt": "Cine 81 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/81-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Fraunces, Georgia, 'Times New Roman', serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Oswald, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif",
+    "pesoTitulos": 800,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "0.04em",
+    "fuentes": [
+      {
+        "familia": "Fraunces",
+        "url": "../fuentes/fraunces.woff2",
+        "peso": "100 900"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "100 900"
+      },
+      {
+        "familia": "Oswald",
+        "url": "../fuentes/oswald.woff2",
+        "peso": "200 700"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "3px",
+    "md": "6px",
+    "lg": "10px",
+    "boton": "4px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.5)",
+    "md": "0 0 18px rgba(224,168,79,.16), 0 8px 24px rgba(0,0,0,.5)",
+    "lg": "0 0 40px rgba(199,113,58,.18), 0 24px 60px rgba(0,0,0,.6)"
+  },
+  "tono": {
+    "voz": "Aventurero y con oficio: pistas, coordenadas y ganas de llegar antes que nadie.",
+    "tratamiento": "tú",
+    "si": [
+      "coordenadas y pistas",
+      "verbos de exploración",
+      "frases con ritmo de expedición"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "Empieza la expedición",
+      "vacio": "Mapa despejado: nada por descubrir aquí.",
+      "error": "Camino cortado. Buscamos otra ruta.",
+      "exito": "¡Tesoro encontrado!"
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#8A5214",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#8E3B12",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#2F6B5E",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#F7EEDC",
+      "fondoAlt": "#EFE2C8",
+      "superficie": "#FFFBF2",
+      "superficieAlt": "#F2E7D2",
+      "borde": "#D7C29C",
+      "texto": "#2A1D10",
+      "textoSuave": "#5A4630",
+      "textoTenue": "#75614A",
+      "ok": "#1D7A46",
+      "aviso": "#8A5A00",
+      "error": "#B3261E",
+      "info": "#1F5F99"
+    },
+    "oscuro": {
+      "primario": "#E0A84F",
+      "primarioTexto": "#17110A",
+      "secundario": "#D27B43",
+      "secundarioTexto": "#17110A",
+      "acento": "#7FB5A8",
+      "acentoTexto": "#17110A",
+      "fondo": "#17110A",
+      "fondoAlt": "#1E170E",
+      "superficie": "#271E13",
+      "superficieAlt": "#32271A",
+      "borde": "#54432C",
+      "texto": "#F6EBD6",
+      "textoSuave": "#D8C6A5",
+      "textoTenue": "#A8957A",
+      "ok": "#7BD88F",
+      "aviso": "#FFB648",
+      "error": "#FF6B5C",
+      "info": "#8AB8E6"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css) de baja opacidad sobre el fondo.",
+    "oscuro": "repeating-radial-gradient(circle at 18% 28%, rgba(224,168,79,.05) 0 1px, transparent 1px 22px), radial-gradient(90% 50% at 50% 110%, rgba(224,168,79,.16), transparent 70%), #17110A",
+    "velo": {
+      "color": "#E0A84F",
+      "alfaMax": 0.16
+    }
+  },
+  "demo": {
+    "titular": "Empieza la expedición",
+    "producto": "Ofertas por descubrir",
+    "cta": "Empieza la expedición",
+    "prompt": "Cartel vertical de aventuras de 1981: dunas al atardecer, mapa antiguo con curvas de nivel, cuero gastado y brújula genérica; sin personajes, sombreros reconocibles, reliquias de películas, logos ni fotogramas",
+    "circuito": "Circuito 81 · 16 pantallas de expedición",
+    "puntos": 16,
+    "tipoEspacio": "Tiendas de viaje",
+    "tiendas": [
+      {
+        "nombre": "81 · Oasis",
+        "dir": "Calle del Oasis, 8 · Barcelona"
+      },
+      {
+        "nombre": "81 · Mercado",
+        "dir": "Plaza del Mercado, 1 · Barcelona"
+      },
+      {
+        "nombre": "81 · Puerto",
+        "dir": "Muelle de Levante, 81 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · mapa antiguo",
+      "Pantalla mostrador · brújula",
+      "Caja · cuaderno de viaje"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8101",
+        "equipo": "Pantalla escaparate",
+        "tienda": "81 · Oasis",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8102",
+        "equipo": "Player de mostrador",
+        "tienda": "81 · Mercado",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8103",
+        "equipo": "Hilo musical",
+        "tienda": "81 · Puerto",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
