@@ -6,6 +6,12 @@
     "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
     "Contenido común de marca · desconexiones temporales por local, próximamente"
   ],
+  "v.06.10.2026.r27.20:20": [
+    "El avatar digital habla del negocio del cliente: estanco, cafetería, panadería, súper, moda, banca, quiosco o tecnología (catálogo /avatar/sectores.json)",
+    "Estanco solo informativo (Ley 28/2005): sin recomendar tabaco ni vapeo; servicios, +18 y recursos para dejar de fumar",
+    "El panel del avatar pasa local, idioma, sector y marca blanca a la cara (AdmiraAvatar.setContext)",
+    "El relé /api/avatar-ask manda la ficha aparte y la pregunta ya llega entera al cerebro"
+  ],
   "v.06.10.2026.r26.19:39": [
     "«Conecta con AdmiraNext» ya funciona desde el backoffice de admira.biz y de clearchannel.tv (antes 403)",
     "Lista los proyectos y locales autorizados para montar circuitos de demo",
