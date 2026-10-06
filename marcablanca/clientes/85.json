@@ -113,6 +113,11 @@
     "velo": {
       "color": "#FF7A00",
       "alfaMax": 0.22
+    },
+    "escena": {
+      "svg": "../escenas/85.svg",
+      "alt": "Coche de puertas de ala de gaviota con huellas de fuego ante una torre del reloj",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {

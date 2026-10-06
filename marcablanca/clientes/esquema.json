@@ -457,7 +457,7 @@
     },
     "fondos": {
       "type": "object",
-      "description": "Opcional. Fondos decorativos de una piel (degradados, barridos) que pinta assets/marca-blanca.css; velo.color/velo.alfaMax permiten comprobar que el texto sigue ≥ 4,5:1 sobre el fondo con el velo encima."
+      "description": "Opcional. Fondos decorativos de una piel (degradados, barridos) que pinta assets/marca-blanca.css; velo.color/velo.alfaMax permiten comprobar que el texto sigue ≥ 4,5:1 sobre el fondo con el velo encima. escena = {svg, alt}: ilustración propia de la piel (marcablanca/escenas/<id>.svg); marcablanca.js la expone como --mb-escena y data-mb-escena."
     }
   }
 }

@@ -118,6 +118,11 @@
     "velo": {
       "color": "#E0A84F",
       "alfaMax": 0.16
+    },
+    "escena": {
+      "svg": "../escenas/81.svg",
+      "alt": "Sombrero de ala y látigo ante la portada de un templo en el desierto",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {

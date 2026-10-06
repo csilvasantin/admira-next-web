@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="t86 d86">
+<title id="t86">Piel 86 · dos cazas cruzándose al atardecer sobre la cubierta de un portaaviones</title>
+<desc id="d86">Atardecer naranja y oro sobre el mar, el sol en el horizonte y, en primer plano, la cubierta de un portaaviones con sus marcas y la isla de mando; en el cielo, dos cazas cruzan sus estelas formando una X. Ilustración vectorial original de Admira para la piel de ejemplo 86: sin fotogramas, carteles, logotipos, títulos ni personajes de terceros.</desc>
+<defs><linearGradient id="c86" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B1220"/><stop offset=".35" stop-color="#2a2d58"/><stop offset=".55" stop-color="#9a4a5a"/><stop offset=".68" stop-color="#FF7A4D"/><stop offset=".72" stop-color="#F2B33D"/><stop offset=".72" stop-color="#3a3550"/><stop offset="1" stop-color="#0B1220"/></linearGradient>
+<radialGradient id="s86"><stop offset="0" stop-color="#FFE3A0"/><stop offset=".4" stop-color="#F2B33D" stop-opacity=".8"/><stop offset="1" stop-color="#FF7A4D" stop-opacity="0"/></radialGradient>
+<linearGradient id="d86" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3346"/><stop offset="1" stop-color="#121a2a"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#c86)"/>
+<circle cx="800" cy="648" r="300" fill="url(#s86)"/>
+<path d="M710 648 A90 90 0 0 1 890 648 Z" fill="#FFE3A0"/>
+<g stroke="#F2B33D" stroke-linecap="round" opacity=".55"><path d="M700 668 H900" stroke-width="5"/><path d="M730 690 H870" stroke-width="4"/><path d="M760 716 H840" stroke-width="3"/></g>
+<g fill="none" stroke="#FFF4E0" stroke-linecap="round" opacity=".45"><path d="M80 520 Q500 380 1020 150" stroke-width="5"/><path d="M1540 520 Q1100 380 590 150" stroke-width="5"/></g>
+<g transform="translate(1030 145) rotate(-24) scale(1.05)"><path d="M110 0 L64 -7 L14 -10 L-18 -58 L-42 -60 L-32 -12 L-78 -14 L-98 -40 L-112 -40 L-104 -10 L-110 0 L-104 10 L-112 40 L-98 40 L-78 14 L-32 12 L-42 60 L-18 58 L14 10 L64 7 Z" fill="#0B1220"/><path d="M70 -3 Q50 -10 30 -6 L30 0 Z" fill="#7FB8E6" opacity=".7"/></g>
+<g transform="translate(580 145) rotate(204) scale(1.05)"><path d="M110 0 L64 -7 L14 -10 L-18 -58 L-42 -60 L-32 -12 L-78 -14 L-98 -40 L-112 -40 L-104 -10 L-110 0 L-104 10 L-112 40 L-98 40 L-78 14 L-32 12 L-42 60 L-18 58 L14 10 L64 7 Z" fill="#0B1220"/><path d="M70 -3 Q50 -10 30 -6 L30 0 Z" fill="#7FB8E6" opacity=".7"/></g>
+<path d="M-200 900 L470 676 L1130 676 L1800 900 Z" fill="url(#d86)"/>
+<path d="M470 676 L1130 676" stroke="#F2B33D" stroke-width="3"/>
+<g stroke="#F4EEE2" stroke-opacity=".55" stroke-width="5" stroke-dasharray="40 30"><path d="M800 680 L800 900"/></g>
+<path d="M560 900 L860 676" stroke="#F2B33D" stroke-opacity=".6" stroke-width="4"/>
+<g stroke="#F4EEE2" stroke-opacity=".35" stroke-width="3"><path d="M-100 860 L1700 860 M200 780 L1400 780"/></g>
+<g fill="#0e1524"><path d="M1180 676 V560 H1290 V676 Z"/><path d="M1200 560 V500 H1270 V560 Z"/><path d="M1230 500 V430 H1240 V500 Z"/><path d="M1205 470 H1265 V476 H1205 Z"/></g>
+<g fill="#F2B33D" opacity=".8"><rect x="1195" y="580" width="14" height="8"/><rect x="1220" y="580" width="14" height="8"/><rect x="1245" y="580" width="14" height="8"/><rect x="1212" y="520" width="12" height="7"/><rect x="1240" y="520" width="12" height="7"/></g>
+<circle cx="1235" cy="430" r="4" fill="#FF7A4D"/>
+</svg>

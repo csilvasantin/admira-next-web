@@ -118,6 +118,11 @@
     "velo": {
       "color": "#FFCC1A",
       "alfaMax": 0.16
+    },
+    "escena": {
+      "svg": "../escenas/89.svg",
+      "alt": "Haz de un reflector con silueta alada proyectado en las nubes sobre un horizonte gótico",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {

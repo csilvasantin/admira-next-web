@@ -113,6 +113,11 @@
     "velo": {
       "color": "#FF7A4D",
       "alfaMax": 0.2
+    },
+    "escena": {
+      "svg": "../escenas/86.svg",
+      "alt": "Dos cazas cruzándose al atardecer sobre la cubierta de un portaaviones",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="t87 d87">
+<title id="t87">Piel 87 · visor de un casco policial cromado con una línea de HUD</title>
+<desc id="d87">Casco blindado de cromo con reflejos, un visor oscuro atravesado por una línea de datos cian con su retícula y marcas, protector de mentón y hombreras, sobre una rejilla azul de patrulla. Ilustración vectorial original de Admira para la piel de ejemplo 87: sin fotogramas, carteles, logotipos, títulos ni personajes de terceros.</desc>
+<defs><linearGradient id="c87" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#080C14"/><stop offset="1" stop-color="#0E1420"/></linearGradient>
+<pattern id="r87" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0 H0 V40" fill="none" stroke="#5CE1E6" stroke-opacity=".08"/></pattern>
+<radialGradient id="a87" cy=".35"><stop offset="0" stop-color="#4D9FFF" stop-opacity=".28"/><stop offset="1" stop-color="#4D9FFF" stop-opacity="0"/></radialGradient>
+<linearGradient id="m87" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f8fc"/><stop offset=".25" stop-color="#C3CCD8"/><stop offset=".5" stop-color="#5b6779"/><stop offset=".7" stop-color="#d6dde7"/><stop offset="1" stop-color="#3a4556"/></linearGradient>
+<linearGradient id="v87" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2a44"/><stop offset=".5" stop-color="#04070d"/><stop offset="1" stop-color="#0d1a2e"/></linearGradient>
+<filter id="g87" x="-20%" y="-200%" width="140%" height="500%"><feGaussianBlur stdDeviation="6"/></filter></defs>
+<rect width="1600" height="900" fill="url(#c87)"/><rect width="1600" height="900" fill="url(#r87)"/>
+<ellipse cx="800" cy="360" rx="700" ry="420" fill="url(#a87)"/>
+<path d="M360 900 Q380 760 560 720 L1040 720 Q1220 760 1240 900 Z" fill="#131B2A" stroke="#4D9FFF" stroke-opacity=".5" stroke-width="3"/>
+<path d="M480 900 Q500 800 620 770 L980 770 Q1100 800 1120 900" fill="none" stroke="#C3CCD8" stroke-opacity=".25" stroke-width="3"/>
+<path d="M560 480 Q556 190 800 170 Q1044 190 1040 480 L1044 590 Q1010 640 960 652 L640 652 Q590 640 556 590 Z" fill="url(#m87)"/>
+<path d="M800 172 V360" stroke="#3a4556" stroke-width="10" opacity=".5"/>
+<path d="M640 230 Q700 200 760 196" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity=".55" fill="none"/>
+<rect x="520" y="420" width="70" height="150" rx="26" fill="url(#m87)" stroke="#3a4556" stroke-width="3"/>
+<rect x="1010" y="420" width="70" height="150" rx="26" fill="url(#m87)" stroke="#3a4556" stroke-width="3"/>
+<circle cx="555" cy="495" r="9" fill="#3a4556"/><circle cx="1045" cy="495" r="9" fill="#3a4556"/>
+<path d="M586 392 Q800 360 1014 392 L1004 486 Q800 462 596 486 Z" fill="url(#v87)" stroke="#9aa6b6" stroke-width="3"/>
+<path d="M620 400 Q700 386 760 384 L700 470 Q650 474 612 478 Z" fill="#ffffff" opacity=".07"/>
+<path d="M604 432 Q800 412 996 432" stroke="#5CE1E6" stroke-width="10" fill="none" filter="url(#g87)" opacity=".8"/>
+<path d="M604 432 Q800 412 996 432" stroke="#bff8fa" stroke-width="2.5" fill="none"/>
+<g stroke="#5CE1E6" stroke-width="2" fill="none"><path d="M700 418 v-12 M740 414 v-10 M860 414 v-10 M900 418 v-12"/><path d="M780 406 h-8 v22 h8 M820 406 h8 v22 h-8"/><path d="M640 450 h40 M640 458 h26 M930 450 h34 M942 458 h22"/></g>
+<path d="M640 652 Q800 690 960 652 L944 700 Q800 744 656 700 Z" fill="url(#m87)" stroke="#3a4556" stroke-width="3"/>
+<g stroke="#3a4556" stroke-width="3"><path d="M720 690 v-22 M760 700 v-26 M800 704 v-28 M840 700 v-26 M880 690 v-22"/></g>
+</svg>

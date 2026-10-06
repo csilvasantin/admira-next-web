@@ -26,7 +26,7 @@ async function cargarMarca(id){
   try { return await leerJson(`/marcablanca/api/marcas/${encodeURIComponent(id)}`); }
   catch (_) {
     const m = await leerJson(`/marcablanca/clientes/${encodeURIComponent(id)}.json`);
-    return JSON.parse(JSON.stringify(m).replace(/"\.\.\/(logos|fuentes)\//g, '"/marcablanca/$1/'));
+    return JSON.parse(JSON.stringify(m).replace(/"\.\.\/(logos|fuentes|escenas)\//g, '"/marcablanca/$1/'));
   }
 }
 
@@ -66,6 +66,13 @@ function aplicarVariables(m){
   const tc = document.querySelector('meta[name=theme-color]'); if (tc && c.primario) tc.content = c.primario;
 }
 
+/** Escena ilustrada de la piel (fondos.escena): vector propio de /marcablanca/escenas/, como portada del libro. */
+function escenaHtml(m){
+  const e = m.fondos?.escena;
+  if (!e || typeof e.svg !== 'string' || !/^\/marcablanca\/escenas\/[a-z0-9-]+\.svg$/.test(e.svg)) return '';
+  return `<figure class="escena"><img src="${esc(e.svg)}" alt="${esc(e.alt || m.nombre)}" width="1600" height="900" loading="eager" decoding="async"><figcaption>Escena de la piel · ${esc(e.alt || '')} · ilustración vectorial original</figcaption></figure>`;
+}
+
 function muestra(nombre, hex, sobre, fondo, grande){
   if (!esHex(hex)) return '';
   const [r, g, b] = rgb(hex);
@@ -101,6 +108,7 @@ async function pintar(m){
       <div class="chips"><span class="chip">${esc(m.sector || '')}</span>${['primario','secundario','acento'].filter((k) => esHex(c[k])).map((k) => `<span class="chip"><i style="background:${c[k]}"></i>${NOMBRES[k]} ${c[k].toUpperCase()}</span>`).join('')}</div></div>
     <div class="cara positivo">${L}</div>
   </header>
+${escenaHtml(m)}
 
   <section class="bloque" id="logo"><div class="cab"><span class="n">01</span><h2>Logo y zona de protección</h2><span class="nota">${esc(m.logo?.alt || '')}</span></div>
     <div class="rejilla r2">

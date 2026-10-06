@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="t81 d81">
+<title id="t81">Piel 81 · sombrero de ala y látigo ante la portada de un templo en el desierto</title>
+<desc id="d81">Atardecer de arena con el sol bajo, una portada de templo excavada en la roca, dunas y, en primer plano sobre una piedra, un sombrero de ala ancha y un látigo enrollado. Ilustración vectorial original de Admira para la piel de ejemplo 81: sin fotogramas, carteles, logotipos, títulos ni personajes de terceros.</desc>
+<defs><linearGradient id="c81" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#17110A"/><stop offset=".42" stop-color="#4a2a12"/><stop offset=".72" stop-color="#D27B43"/><stop offset="1" stop-color="#E0A84F"/></linearGradient>
+<radialGradient id="s81"><stop offset="0" stop-color="#FFE9B8"/><stop offset=".35" stop-color="#F6C46E"/><stop offset="1" stop-color="#E0A84F" stop-opacity="0"/></radialGradient>
+<linearGradient id="r81" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9a6634"/><stop offset=".6" stop-color="#5e3a1a"/><stop offset="1" stop-color="#2e1c0c"/></linearGradient>
+<linearGradient id="f81" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c58a4c"/><stop offset="1" stop-color="#8a5a2e"/></linearGradient>
+<linearGradient id="h81" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7b5129"/><stop offset="1" stop-color="#4a2f15"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#c81)"/>
+<circle cx="1090" cy="560" r="330" fill="url(#s81)" opacity=".8"/>
+<circle cx="1090" cy="560" r="110" fill="#FFE3A3" opacity=".9"/>
+<g fill="#2a1a0b" opacity=".55"><path d="M260 210 l14 8 l14 -8 l-14 4z"/><path d="M330 180 l11 6 l11 -6 l-11 3z"/><path d="M420 230 l9 5 l9 -5 l-9 3z"/></g>
+<path d="M0 600 Q200 520 420 560 T820 540 L820 650 H0Z" fill="#a8703a" opacity=".7"/>
+<path d="M800 660 L840 330 Q880 262 970 250 L1390 238 Q1470 246 1500 310 L1560 660 Z" fill="url(#r81)"/>
+<path d="M870 330 L900 300 M1460 300 L1500 340 M900 520 L940 500 M1480 520 L1520 560" stroke="#2e1c0c" stroke-width="4" opacity=".6"/>
+<path d="M975 392 L1185 318 L1395 392 Z" fill="url(#f81)"/>
+<path d="M1040 380 L1185 330 L1330 380 Z" fill="#2e1c0c" opacity=".35"/>
+<rect x="965" y="392" width="440" height="26" fill="#d39a5a"/>
+<rect x="965" y="418" width="440" height="8" fill="#5e3a1a" opacity=".6"/>
+<g fill="url(#f81)"><rect x="985" y="426" width="34" height="214"/><rect x="1065" y="426" width="34" height="214"/><rect x="1271" y="426" width="34" height="214"/><rect x="1351" y="426" width="34" height="214"/></g>
+<g fill="#5e3a1a" opacity=".45"><rect x="1009" y="426" width="10" height="214"/><rect x="1089" y="426" width="10" height="214"/><rect x="1295" y="426" width="10" height="214"/><rect x="1375" y="426" width="10" height="214"/></g>
+<path d="M1128 640 V492 Q1185 436 1242 492 V640 Z" fill="#0d0804"/>
+<path d="M1150 640 V505 Q1185 470 1220 505 V640 Z" fill="#1e1208" opacity=".7"/>
+<rect x="955" y="640" width="460" height="14" fill="#b07a42"/><rect x="935" y="654" width="500" height="14" fill="#8f5f31"/>
+<path d="M0 660 Q300 600 620 650 T1200 668 T1600 640 V900 H0Z" fill="#b27a3c"/>
+<path d="M0 735 Q380 668 780 735 T1600 712 V900H0Z" fill="#7a4e24"/>
+<path d="M0 815 Q440 760 920 812 T1600 800 V900H0Z" fill="#3a2410"/>
+<g transform="translate(-115 -370) scale(1.35)"><path d="M120 860 Q190 760 330 752 Q480 748 560 860 Z" fill="#24160a"/>
+<path d="M150 860 Q210 790 320 784" stroke="#5e3a1a" stroke-width="5" fill="none" opacity=".6"/>
+<path d="M200 760 Q330 712 462 760 Q488 772 452 782 Q330 806 210 782 Q176 772 200 760Z" fill="url(#h81)"/>
+<path d="M258 760 Q256 680 296 662 Q330 678 364 662 Q404 680 402 760 Q330 776 258 760Z" fill="#7d532a"/>
+<path d="M296 662 Q330 704 364 662" fill="none" stroke="#3d2610" stroke-width="6" stroke-linecap="round"/>
+<path d="M262 732 Q330 748 398 732 L401 760 Q330 776 259 760Z" fill="#26160a"/>
+<path d="M276 690 Q300 676 320 690" stroke="#a87a48" stroke-width="3" fill="none" opacity=".6"/>
+<path d="M470 830 L536 806" stroke="#1a0f06" stroke-width="18" stroke-linecap="round"/>
+<path d="M540 806 C600 778 700 770 740 800 C780 832 700 862 640 842 C580 822 640 780 720 784" fill="none" stroke="#1f1208" stroke-width="9" stroke-linecap="round"/>
+<path d="M720 784 C800 790 860 830 930 812 C1000 794 1030 760 1100 772" fill="none" stroke="#1f1208" stroke-width="6" stroke-linecap="round"/>
+<path d="M1100 772 C1160 782 1190 812 1250 800" fill="none" stroke="#1f1208" stroke-width="3" stroke-linecap="round"/></g>
+<g fill="#FFE3A3" opacity=".35"><circle cx="700" cy="610" r="2"/><circle cx="760" cy="580" r="1.5"/><circle cx="640" cy="560" r="1.8"/><circle cx="880" cy="600" r="1.4"/></g>
+</svg>

@@ -113,6 +113,11 @@
     "velo": {
       "color": "#FF4433",
       "alfaMax": 0.16
+    },
+    "escena": {
+      "svg": "../escenas/84.svg",
+      "alt": "Ojo rojo encendido en una cabeza metálica de robot sobre la ciudad de noche",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {

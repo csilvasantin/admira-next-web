@@ -281,3 +281,17 @@
     var(--mb-fondo)!important;
 }
 :root[data-mb-marca="83"][data-mb-plataforma="store"] header.yk-head{border-bottom:2px solid var(--mb-secundario)!important;box-shadow:0 4px 18px color-mix(in srgb,var(--mb-primario) 25%,transparent)}
+
+/* ── Escenas ilustradas de las pieles 81–89 (06-10-2026 · Carlos, parte 2) ──
+   Cada piel trae su escena propia (marcablanca/escenas/<id>.svg, vectores originales de Admira: sin
+   fotogramas, carteles, logos ni personajes). marcablanca.js la expone como --mb-escena y marca la raíz
+   con data-mb-escena; aquí la home la pone de fondo tras el terminal, sin desenfoque y en lugar del
+   fondo del robot (fotos, vídeo en reposo y vídeo de arranque). El terminal no cambia: su ventana es opaca (superficie de la piel),
+   así que el texto sigue ≥ 7:1 (test/marca-cine.test.mjs y test/escenas-cine.test.mjs). */
+:root[data-mb-escena][data-mb-plataforma="store"] .wallpaper{
+  background-color:var(--mb-fondo)!important;background-image:var(--mb-escena)!important;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+  filter:none!important;transform:none!important;
+}
+:root[data-mb-escena][data-mb-plataforma="store"] .wallpaper :is(.wallpaper-blur,.wallpaper-sharp,.wallpaper-video,.boot-video){display:none!important}
+:root[data-mb-escena][data-mb-plataforma="store"] .wallpaper::after{background:color-mix(in srgb,var(--mb-fondo) 30%,transparent)!important}

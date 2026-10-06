@@ -16,7 +16,7 @@
   'use strict';
   if (w.MarcaBlanca && w.MarcaBlanca.version) return;
 
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
   var script = d.currentScript;
   var BASE = (script && script.src) ? new URL('.', script.src).href : new URL('/marcablanca/', w.location.href).href;
   var NATIVO = { studio: 'oscuro', store: 'oscuro', app: 'oscuro', yokup: 'claro' };
@@ -58,6 +58,8 @@
     if (m.logo && m.logo.svg) m.logo = fusionar(m.logo, { svg: absoluta(m.logo.svg, desde) });
     if (m.logo && m.logo.imagen) m.logo = fusionar(m.logo, { imagen: absoluta(m.logo.imagen, desde) });
     if (m.favicon) m.favicon = absoluta(m.favicon, desde);
+    // Escena ilustrada de la piel (fondos.escena.svg): misma resolución que el logo.
+    if (m.fondos && m.fondos.escena && m.fondos.escena.svg) m.fondos = fusionar(m.fondos, { escena: fusionar(m.fondos.escena, { svg: absoluta(m.fondos.escena.svg, desde) }) });
     if (m.tipografia && m.tipografia.fuentes) {
       m.tipografia = fusionar(m.tipografia, { fuentes: m.tipografia.fuentes.map(function (f) { return fusionar(f, { url: absoluta(f.url, desde) }); }) });
     }
@@ -152,6 +154,10 @@
     Object.keys(r).forEach(function (k) { v['--mb-radio-' + kebab(k)] = r[k]; });
     var s = m.sombras || {};
     Object.keys(s).forEach(function (k) { v['--mb-sombra-' + kebab(k)] = s[k]; });
+    // --mb-escena: la ilustración propia de la piel como imagen CSS (home, fondo de página). Solo
+    // URLs http(s) o de la misma web, sin comillas ni paréntesis: nunca se inyecta CSS.
+    var escena = m.fondos && m.fondos.escena && m.fondos.escena.svg;
+    if (typeof escena === 'string' && /^(https?:\/\/|\/)[^"'()\s\\]+$/.test(escena)) v['--mb-escena'] = 'url("' + escena + '")';
     return v;
   }
 
@@ -283,6 +289,7 @@
       objetivo.setAttribute('data-mb-modo', modo);
       if (plataforma) objetivo.setAttribute('data-mb-plataforma', plataforma);
       if (m.ejemplo) objetivo.setAttribute('data-mb-ejemplo', ''); else objetivo.removeAttribute('data-mb-ejemplo');
+      if (vars['--mb-escena']) objetivo.setAttribute('data-mb-escena', ''); else objetivo.removeAttribute('data-mb-escena');
       if (esRaiz && o.favicon !== false) { ponerFavicon(m.favicon); ponerThemeColor(vars['--mb-fondo']); }
       pintarTextos(objetivo, m);
       return Promise.all([cargarFuentes(m), o.logos === false ? null : pintarLogos(objetivo, m)]).then(function () {

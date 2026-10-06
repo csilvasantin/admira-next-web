@@ -113,6 +113,11 @@
     "velo": {
       "color": "#4D9FFF",
       "alfaMax": 0.14
+    },
+    "escena": {
+      "svg": "../escenas/87.svg",
+      "alt": "Visor de un casco policial cromado con una línea de HUD",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {
