@@ -6,6 +6,11 @@
     "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
     "Contenido común de marca · desconexiones temporales por local, próximamente"
   ],
+  "v.06.10.2026.r26.19:39": [
+    "«Conecta con AdmiraNext» ya funciona desde el backoffice de admira.biz y de clearchannel.tv (antes 403)",
+    "Lista los proyectos y locales autorizados para montar circuitos de demo",
+    "Sigue siendo de solo lectura: token de 10 minutos ligado al dominio que lo pidió"
+  ],
   "v.06.10.2026.r25.13:03": [
     "⌘ Experto cerrado por defecto en toda la suite: quien entra por primera vez no lo ve; aparece solo con el ⌘ de cada web (o su atajo)",
     "admiranext.com y admira.live: como mucho el asa de una línea «› /help» abajo, nunca el Experto abierto",
