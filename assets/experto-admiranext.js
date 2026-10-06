@@ -9,6 +9,10 @@
  *  · Home y páginas sin armazón (<script> propio): la piel monta su CLI anclado abajo (modo propio),
  *    y el terminal de la home reenvía /marca y /idioma al Experto.
  *
+ * Idioma persistente (06-10-2026): /idioma o /language en una página guardan admiranext_expert_lang y
+ * la siguiente página que se abra (con armazón o la home) arranca en ese idioma. Los cambios hechos con
+ * los botones propios de una página (ESP/ENG de la home, EN/ES de /impacto…) también se guardan.
+ *
  * /marca <id>: marca blanca del catálogo único (assets/marca-blanca.js, la misma lógica y la misma
  * clave sessionStorage «mb:marca» que las plataformas). /idioma guarda admiranext_expert_lang (experto.js).
  * Cache-busting: STAMP viaja en el ?v= de experto.js/.css y marca-blanca.js; al cambiar cualquiera, súbelo. */
@@ -18,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261006-experto-admiranext-1';
+  var STAMP = '20261006-experto-idioma-1';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -99,6 +103,35 @@
   // La ficha del Experto lee el cliente de AdmiraMarca: se repinta al cambiar la marca.
   d.addEventListener('admira:marca', function () { if (G.AdmiraExperto && G.AdmiraExperto.paint) G.AdmiraExperto.paint(); });
 
+  // ── Idioma guardado: se reaplica al cargar cualquier página ─────────────────
+  var CLAVE_IDIOMA = 'admiranext_expert_lang', CLAVE_HOME = 'admiranext_lang';
+  var norm = function (l) { l = String(l || '').slice(0, 2).toLowerCase(); return l === 'en' || l === 'es' ? l : ''; };
+  function idiomaGuardado() {
+    try { return norm(localStorage.getItem(CLAVE_IDIOMA)) || norm(localStorage.getItem(CLAVE_HOME)); } catch (e) { return ''; }
+  }
+  function guardarIdioma(l) {
+    if (!(l = norm(l))) return;
+    try { localStorage.setItem(CLAVE_IDIOMA, l); localStorage.setItem(CLAVE_HOME, l); } catch (e) { /* sin almacenamiento */ }
+  }
+  var idiomaInicial = norm(d.documentElement.lang) || 'es';
+  var idiomaQuerido = idiomaGuardado();
+  // Antes de pintar la ficha: html.lang ya en el idioma guardado (la piel y el CLI hablan en él).
+  if (idiomaQuerido && idiomaQuerido !== idiomaInicial) d.documentElement.lang = idiomaQuerido;
+  // Con la piel cargada: si la página traía otro idioma, se aplica entero (la piel llama a
+  // setLanguage/setLang de la página si los tiene: home, /businessplan, /impacto…). Después, cualquier
+  // cambio de idioma (Experto o botón propio de la página) queda guardado para la siguiente página.
+  function sincronizarIdioma(X) {
+    if (idiomaQuerido && idiomaQuerido !== idiomaInicial && X && X.setLanguage) {
+      try { X.setLanguage(idiomaQuerido); } catch (e) { /* la página no deja */ }
+    } else if (idiomaQuerido && typeof G.setLang === 'function' && norm(G.currentLang) && norm(G.currentLang) !== idiomaQuerido) {
+      try { G.setLang(idiomaQuerido); } catch (e) { /* la home no deja */ }
+    }
+    try {
+      new MutationObserver(function () { guardarIdioma(d.documentElement.lang); })
+        .observe(d.documentElement, {attributes: true, attributeFilter: ['lang']});
+    } catch (e) { /* sin observador */ }
+  }
+
   // ── Carga de la piel ─────────────────────────────────────────────────────
   function hoja() {
     if (d.querySelector('link[data-ax-experto-css]')) return;
@@ -157,6 +190,7 @@
       extras: '', chrome: '', dock: 'off', toggle: ''
     }, function (X) {
       marcaReal(X);
+      sincronizarIdioma(X);
       var F = G.AdmiraFrame, out = rail.querySelector('.yk-cli-out');
       if (!F || !F.verbo || !X.list) return;
       // El CLI del armazón delega en la piel los verbos que no tiene (la página manda si ya los tiene).
@@ -184,6 +218,7 @@
     }
     piel({engine: ENGINE, pata: 'admiranext.com', cli: 'admiranext.com', mount: '#axAdmiranextExperto', 'mount-body': '.ax-host-bd'}, function (X) {
       marcaReal(X);
+      sincronizarIdioma(X);
       // El terminal de la home (#cmdInput) reenvía /marca y /idioma (/language, typos y pegados) al Experto.
       d.addEventListener('keydown', function (e) {
         var t = e.target;
@@ -208,5 +243,5 @@
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', arrancar, {once: true});
   else arrancar();
-  G.AdmiraExpertoAdmiranext = {stamp: STAMP, marca: runMarca, cargarMarca: cargarMarca};
+  G.AdmiraExpertoAdmiranext = {stamp: STAMP, marca: runMarca, cargarMarca: cargarMarca, idiomaGuardado: idiomaGuardado};
 })(window);

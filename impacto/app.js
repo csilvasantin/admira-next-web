@@ -287,5 +287,12 @@
     applyLanguage();
   });
 
+  // ⌘ Experto (/idioma, /language) y el idioma guardado de admiranext.com (assets/experto-admiranext.js) llaman aquí.
+  window.setLanguage = (next) => {
+    language = next === 'en' ? 'en' : 'es';
+    localStorage.setItem('impact-language', language);
+    applyLanguage();
+  };
+
   applyLanguage();
 })();

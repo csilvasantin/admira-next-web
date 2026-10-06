@@ -213,6 +213,9 @@
     if (pre) pre.textContent = lines().join('\n');
     var hi = panel && panel.querySelector('.ax-hello');
     if (hi) hi.textContent = helloText();
+    // El título sigue al idioma en vivo (antes solo se fijaba al montar la piel).
+    var ti = panel && panel.querySelector('.ax-title');
+    if (ti) ti.textContent = '⌘ ' + T('EXPERTO', 'EXPERT') + ' · CLI';
     var xb = panel && panel.querySelector('.ax-extras-btn');
     if (xb) xb.textContent = (panel.classList.contains('ax-extras-on') ? '－ ' : '＋ ') + extrasLabel();
   }
