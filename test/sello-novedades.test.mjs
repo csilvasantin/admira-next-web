@@ -71,3 +71,31 @@ test('las páginas sin marco cuadrático conservan su versión', () => {
 test('hidden vence al display propio de ambos sellos generados', () => {
   assert.match(SRC, /#admira-sello-chip\[hidden\],#admira-sello-options\[hidden\],\.ax-sello-outside\{display:none!important\}/);
 });
+
+test('a native footer stays empty until its own Options opener writes the version', () => {
+  const intervals=[];
+  const element=()=>{
+    const classes=new Set(),children=[]; let value='';
+    return {nodeType:1,isConnected:true,tagName:'SPAN',id:'',style:{},children,
+      classList:{add:(c)=>classes.add(c),remove:(c)=>classes.delete(c),contains:(c)=>classes.has(c),toggle:(c,on)=>on?classes.add(c):classes.delete(c)},
+      get textContent(){return value+children.map(c=>c.textContent).join('');},
+      set textContent(v){value=v;children.length=0;},
+      getAttribute:()=>null,hasAttribute:()=>false,setAttribute(){},addEventListener(){},closest:()=>null,
+      appendChild:(child)=>children.push(child),querySelector:()=>children.find(c=>c.className==='axs-nuevo')||null,
+      getBoundingClientRect:()=>({left:8,right:160,top:260,bottom:290,width:152,height:30})};
+  };
+  const native=element(),panel=element(); native.parentElement=panel;native.offsetParent=panel;panel.contains=(el)=>el===native;
+  const doc={readyState:'complete',body:element(),head:{appendChild(){}},documentElement:element(),currentScript:{dataset:{}},
+    querySelector:(selector)=>selector.includes('meta[name="admiranext-version"]')?{getAttribute:()=> 'v.06.10.2026.r1.07:40'}:selector.startsWith('[data-admira-options]')?panel:null,
+    querySelectorAll:()=>[native],getElementById:()=>null,createElement:element,addEventListener(){}};
+  const style=()=>({display:'block',visibility:'visible',opacity:'1',position:'static'});
+  const win={document:doc,location:{search:'',pathname:'/'},innerWidth:400,innerHeight:300,getComputedStyle:style,addEventListener(){}};win.top=win;
+  const ctx=vm.createContext({window:win,document:doc,location:win.location,getComputedStyle:style,
+    fetch:()=>Promise.resolve({ok:false}),setTimeout:()=>0,clearTimeout(){},setInterval:(fn)=>intervals.push(fn),
+    localStorage:{getItem:()=>null,setItem(){}}});
+  vm.runInContext(SRC,ctx);
+  assert.equal(native.textContent,'','the news marker must not block the native empty-footer guard');
+  if(!native.textContent)native.textContent='v.06.10.2026.r1.07:40';
+  intervals[1]();
+  assert.equal(native.textContent,'v.06.10.2026.r1.07:40NUEVO');
+});

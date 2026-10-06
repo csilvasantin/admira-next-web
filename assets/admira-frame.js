@@ -726,3 +726,14 @@
   };
   if (typeof CustomEvent === 'function' && doc.dispatchEvent) doc.dispatchEvent(new CustomEvent('admira-frame:ready'));
 })();
+
+// Shared release stamp follows the Options panel, including the first update notice.
+(function () {
+  try { if (window.self !== window.top) return; } catch (e) { return; }
+  if (document.querySelector('script[data-admira-sello-loader]')) return;
+  var script = document.createElement('script');
+  script.src = '/assets/sello-novedades.js?v=20261006-options-sello-3';
+  script.defer = true;
+  script.setAttribute('data-admira-sello-loader', '');
+  (document.head || document.documentElement).appendChild(script);
+})();

@@ -15,5 +15,10 @@
     "La versión se mantiene al pie de Opciones y desaparece al plegarlo",
     "Una novedad permite un solo aviso inicial por navegador",
     "Compatible con sellos nativos que se rellenan al abrir Opciones"
+  ],
+  "v.06.10.2026.r5.07:44": [
+    "La versión queda al pie de Opciones y desaparece al plegarlo",
+    "Aviso inicial de novedad una sola vez por navegador",
+    "Marco común de AdmiraNeXT y sellos anteriores de la suite compatibles"
   ]
 }

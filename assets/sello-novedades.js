@@ -41,7 +41,7 @@
   var script = document.currentScript || {};
   var ds = script.dataset || {};
   var VERSION_URL = ds.versionUrl || '/version.json';
-  var TARGET = ds.target || '.rail-ver,.qm-version,[data-yk-version],[data-admira-sello],[data-release-signature]';
+  var TARGET = ds.target || '.rail-ver,.qm-version,.release-signature,.admira-version,[data-yk-version],[data-yk-sello],[data-admira-sello],[data-release-signature]';
   var OPTIONS = ds.options || '[data-admira-options],#xpace-side-left,#xsOptions,.quad-left,.rail-left,.yk-rail-left,#admRail,aside.admrail,.adm-opciones,.options-panel,nav[aria-label="Opciones"],aside[aria-label="Opciones"],nav[aria-label="Options"],aside[aria-label="Options"]';
   var POS = /^(bl|br|tl|tr)$/.test(ds.pos || '') ? ds.pos : 'bl';
   var FLOATING = ds.floating !== 'off';
@@ -348,6 +348,7 @@
     [panel, document.body, document.documentElement].filter(Boolean).forEach(function (el) {
       if (watched.indexOf(el) >= 0) return;
       watched.push(el);
+      if (el === panel) el.addEventListener('transitionend', paint);
       new MutationObserver(function () {
         if (repaintPending) return;
         repaintPending = true;
