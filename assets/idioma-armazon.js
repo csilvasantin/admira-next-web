@@ -81,5 +81,69 @@
   ];
 
   A.anadir(dicc, reglas);
+
+  // /organigrama
+  var diccOrg = {
+    'La mesa de ADmiraNeXT': 'The ADmiraNeXT table',
+    'Tres niveles: responde · dirige · ejecuta. Jobs, cinco patas, DeepAgents y agentes en vivo.': 'Three levels: accountable · directs · executes. Jobs, five legs, DeepAgents and live agents.',
+    'Responsabilidad': 'Accountability', 'Dirección': 'Direction', 'Ejecución': 'Execution',
+    'El Consejo responde de la mesa; cada consejero, de su pata.': 'The Council is accountable for the table; each counsellor, for their leg.',
+    'Un DeepAgent dirige cada pata (nombre y motor en la carta).': 'A DeepAgent directs each leg (name and engine on the card).',
+    'Los agentes ejecutan el trabajo de su pata.': 'Agents carry out the work of their leg.',
+    'El DeepAgent se puede cambiar o reforzar según la carga o si se queda sin tokens u horas. Latido: verde < 10 min · ámbar < 30 min · rojo sin señal reciente (Yokup / flota).':
+      'The DeepAgent can be swapped or reinforced depending on load or if it runs out of tokens or hours. Heartbeat: green < 10 min · amber < 30 min · red no recent signal (Yokup / fleet).',
+    'Consejero · une las cinco patas': 'Counsellor · joins the five legs', 'Consejero': 'Counsellor', 'Consejera': 'Counsellor',
+    'DeepAgent que lo dirige': 'DeepAgent in charge', 'Escena viva': 'Live scene',
+    'Árbol compactado al cargar: solo Jobs. Clic en un nodo para descompactar el siguiente nivel (Jobs → patas → DeepAgents → agentes). Arrastra una caja para recolocarla: las flechas la siguen en vivo y su rama se recoloca con muelle suave. Arrastra el fondo para mover la vista · rueda o +/− · R recolocar · P presentador · Esc · Enter/Espacio · Alt+flechas mueve la caja enfocada.':
+      'Tree collapsed on load: only Jobs. Click a node to expand the next level (Jobs → legs → DeepAgents → agents). Drag a box to move it: the arrows follow live and its branch settles with a soft spring. Drag the background to pan · wheel or +/− · R re-arrange · P presenter · Esc · Enter/Space · Alt+arrows moves the focused box.',
+    'Organigrama interactivo': 'Interactive org chart', 'Controles del organigrama': 'Org chart controls',
+    'Centrar': 'Center', 'Recolocar': 'Re-arrange', 'Devolver las cajas a su sitio (R)': 'Put the boxes back in place (R)',
+    'Modo presentador': 'Presenter mode', 'Presentador': 'Presenter', 'Salir presentador': 'Exit presenter',
+    'Latido: cargando flota…': 'Heartbeat: loading fleet…', 'Mesa · une las cinco patas': 'Table · joins the five legs',
+    'Motor:': 'Engine:', 'Orquesta las cinco patas': 'Orchestrates the five legs', 'Agente': 'Agent',
+    'Agentes de emisión y PoP': 'Broadcast and PoP agents', 'Agentes de creación': 'Creation agents',
+    'Agentes de distribución': 'Distribution agents', 'Agentes de instalaciones': 'Installation agents',
+    'Agentes de retail media': 'Retail media agents', 'Emisión · PoP · player': 'Broadcast · PoP · player',
+    'Contenido · adaptación': 'Content · adaptation', 'Stock · visualización': 'Stock · visualization',
+    'Instalaciones · mantenimiento': 'Installations · maintenance', 'Organigrama de ADmiraNeXT': 'ADmiraNeXT org chart',
+    'Latido flota · sin lectura de Yokup (reintento)': 'Fleet heartbeat · no reading from Yokup (retrying)',
+    'sin señal': 'no signal'
+  };
+  var reglasOrg = [
+    [/^Agentes de (\S+)$/, 'Agents of $1'],
+    [/^Dirige (\S+) bajo (\S+)\.$/, 'Directs $1 under $2.'],
+    [/^Ejecuta bajo (\S+)$/, 'Works under $1'],
+    [/^Latido flota · (\d+) vivos · (\d+) tibios · (\d+) sin señal · (.+)$/, 'Fleet heartbeat · $1 alive · $2 lukewarm · $3 no signal · $4'],
+    [/^hace (\d+) ?(s|min|h|d)$/, '$1 $2 ago'],
+    [/^ahora$/, 'now']
+  ];
+
+  // /proyectos
+  var diccProy = {
+    'AdmiraNeXT · definición': 'AdmiraNeXT · definition',
+    'El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.':
+      'The live census lives in Yokup. Here you see the model (what a project is, which xpacio, how it comes in) and the current inventory, without deleting anything. Click a census header to sort.',
+    'Enlaces de la página': 'Page links', 'Hueco: yokup.com/proyectos no es el censo': 'Gap: yokup.com/proyectos is not the census',
+    'Hoy': 'Today', 'sirve una landing comercial (Clear Channel). El censo de la flota es': 'serves a commercial landing page (Clear Channel). The fleet census is',
+    'Las misiones se ven en': 'Missions are shown at', 'y el principal del día en': 'and the main project of the day at',
+    'Modelo canónico': 'Canonical model', 'Agente (silicio)': 'Agent (silicon)',
+    'Persona + apellido de máquina (': 'Person + machine surname (', 'El alta de trabajo lleva': 'Each work check-in carries',
+    'del censo. Si falta, Yokup hereda el principal del día — y se trabaja en el proyecto equivocado.': 'from the census. If missing, Yokup inherits the main project of the day — and work lands on the wrong project.',
+    'Principal del día:': 'Main project of the day:', 'con id + nombre + slug. Se ve en /equipo.': 'with id + name + slug. Shown at /equipo.',
+    'Obligatorios:': 'Required:', 'slug), nombre, xpacio (AdmiraNeXT o Yokup), responsable. Puertas norma 24:': 'slug), name, xpacio (AdmiraNeXT or Yokup), owner. Rule 24 doors:',
+    'humanos) y': 'humans) and', 'agentes). No se borra el censo: se añade o se retitula.': 'agents). The census is never deleted: entries are added or renamed.',
+    'Censo vivo': 'Live census', 'cargando…': 'loading…', 'Leyendo api.yokup.com/projects': 'Reading api.yokup.com/projects',
+    'Número de proyecto: único en todo el ecosistema Admira': 'Project number: unique across the whole Admira ecosystem',
+    'Nombre': 'Name', 'Volver a leer el censo': 'Read the census again', 'proyectos': 'projects', 'Esta página': 'This page',
+    'no se borra nada desde aquí.': 'nothing is deleted from here.',
+    'Nº pendiente: api.yokup.com/projects aún no publica el número de proyecto.': 'No. pending: api.yokup.com/projects does not publish the project number yet.'
+  };
+  var reglasProy = [
+    [/^Censo del (.+)$/, 'Census of $1'],
+    [/^No se pudo leer el censo: ([\s\S]*)$/, 'Could not read the census: $1']
+  ];
+
+  A.anadir(diccOrg, reglasOrg);
+  A.anadir(diccProy, reglasProy);
   if (A.aplicar) A.aplicar();
 })(window);
