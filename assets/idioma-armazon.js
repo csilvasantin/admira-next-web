@@ -26,7 +26,7 @@
 
   var dicc = {
     // Comunes
-    'Todos': 'All', 'Todo': 'All', 'Proyecto': 'Project', 'Cliente': 'Client', 'Idea': 'Idea', 'General': 'General',
+    'Todos': 'All', 'Todo': 'All', 'Créame demo': 'Make me a demo', 'Proyecto': 'Project', 'Cliente': 'Client', 'Idea': 'Idea', 'General': 'General',
     'Anterior': 'Previous', 'Siguiente': 'Next', 'Día': 'Day', 'Semana': 'Week', 'Mes': 'Month', 'Trimestre': 'Quarter', 'Año': 'Year',
     'NUEVO': 'NEW', 'Cargando…': 'Loading…', 'Cerrar': 'Close', 'Buscar': 'Search', 'Filtro': 'Filter', 'Filtro ·': 'Filter ·',
     'Estados': 'States', 'Hub MCP': 'MCP hub',
@@ -184,7 +184,7 @@
     '¿Qué métrica única deberíamos perseguir el próximo año?': 'Which single metric should we chase next year?',
     '¿Vale la pena entrar en hospitales públicos o nos centramos en retail?': 'Is it worth entering public hospitals or do we focus on retail?',
     'Preguntar al consejero': 'Ask the counsellor', 'Preguntar a todo el Consejo': 'Ask the whole Council',
-    'El Consejo razona con contexto real de ADmiraNeXT (RaaS de robots Unitree/Agibot en España, IoT con IA, XpaceOS · OmniPublicity). Las respuestas son orientativas, generadas por IA en la persona de cada asesor.':
+    'El Consejo razona con contexto real de ADmiraNeXT (RaaS de robots Unitree/Agibot en España, IoT con IA, XpaceOS · OmniPublicity). Las respuestas son orientativas, generadas por IA en la persona de cada asesor':
       'The Council reasons with real ADmiraNeXT context (Unitree/Agibot robot RaaS in Spain, AI IoT, XpaceOS · OmniPublicity). Answers are indicative, AI-generated in the persona of each advisor',
     'Versión interactiva completa en admira.live': 'Full interactive version at admira.live', 'Consejo en vivo': 'Live Council',
     'Plantea una decisión de AdmiraNext… (p. ej. ¿Cómo priorizamos el alquiler de robots en España este trimestre?)':

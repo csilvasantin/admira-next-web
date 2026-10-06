@@ -84,5 +84,8 @@
     "Organigrama: el consejero que está trabajando se pinta en verde en vez de azul (caja, avatar, motor y la flecha que le llega).",
     "También su DeepAgent y el agente concreto que hace el trabajo; al pasar el ratón se lee qué está haciendo.",
     "El latido de la flota cuenta cuántos consejeros están trabajando ahora."
+  ],
+  "v.06.10.2026.r19.10:38": [
+    "/idioma ENG: el pie de /consejo (aviso de IA) y «Créame demo» del mapa del sitio también pasan a inglés."
   ]
 }
