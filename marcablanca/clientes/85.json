@@ -1,0 +1,174 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "85",
+  "nombre": "Cine 85",
+  "nombreCorto": "85",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1985 · viajes en el tiempo",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico a las comedias de viajes en el tiempo de 1985. Noche violeta, llamarada naranja y amarilla, chispa eléctrica azul y verde de pantalla digital. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 85 (o /85) en el Experto.",
+  "logo": {
+    "svg": "../logos/85.svg",
+    "alt": "Cine 85 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/85-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Manrope, 'Arial Black', -apple-system, 'Segoe UI', sans-serif",
+    "texto": "'DM Sans', -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "pesoTitulos": 800,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "-0.01em",
+    "fuentes": [
+      {
+        "familia": "Manrope",
+        "url": "../fuentes/manrope.woff2",
+        "peso": "200 800"
+      },
+      {
+        "familia": "DM Sans",
+        "url": "../fuentes/dmsans.woff2",
+        "peso": "100 1000"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "6px",
+    "md": "12px",
+    "lg": "20px",
+    "boton": "10px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.4)",
+    "md": "0 0 20px rgba(255,122,0,.22), 0 8px 24px rgba(0,0,0,.45)",
+    "lg": "0 0 48px rgba(56,217,255,.18), 0 24px 60px rgba(0,0,0,.55)"
+  },
+  "tono": {
+    "voz": "Optimista, rápido y con chispa: cuenta atrás, fechas exactas y ganas de llegar a tiempo.",
+    "tratamiento": "tú",
+    "si": [
+      "fechas y horas exactas",
+      "energía y humor",
+      "verbos de movimiento"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "Llega a tiempo",
+      "vacio": "Nada pendiente en esta línea temporal.",
+      "error": "Se cortó la corriente. Volvemos en un segundo.",
+      "exito": "¡Llegaste a tiempo!"
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#A84300",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#6B4E00",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#005E85",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#FFF7EA",
+      "fondoAlt": "#FCEBD0",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#F7E6CC",
+      "borde": "#E2C9A3",
+      "texto": "#1B1230",
+      "textoSuave": "#4E4366",
+      "textoTenue": "#6E6386",
+      "ok": "#1E7B45",
+      "aviso": "#8A5A00",
+      "error": "#B3261E",
+      "info": "#005E85"
+    },
+    "oscuro": {
+      "primario": "#FF7A00",
+      "primarioTexto": "#0F0B1A",
+      "secundario": "#FFD23F",
+      "secundarioTexto": "#0F0B1A",
+      "acento": "#38D9FF",
+      "acentoTexto": "#0F0B1A",
+      "fondo": "#0F0B1A",
+      "fondoAlt": "#171127",
+      "superficie": "#1E1633",
+      "superficieAlt": "#281E42",
+      "borde": "#3E3160",
+      "texto": "#FFF4E0",
+      "textoSuave": "#D6C7AE",
+      "textoTenue": "#A99CC4",
+      "ok": "#39FF88",
+      "aviso": "#FFB000",
+      "error": "#FF5A4E",
+      "info": "#38D9FF"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css): horizonte de llamarada naranja y chispa azul de baja opacidad sobre la noche violeta.",
+    "oscuro": "radial-gradient(90% 55% at 50% 115%, rgba(255,122,0,.22), transparent 65%), radial-gradient(60% 40% at 85% -5%, rgba(56,217,255,.14), transparent 70%), #0F0B1A",
+    "velo": {
+      "color": "#FF7A00",
+      "alfaMax": 0.22
+    }
+  },
+  "demo": {
+    "titular": "Llega a tiempo",
+    "producto": "Oferta con cuenta atrás",
+    "cta": "Llega a tiempo",
+    "prompt": "Cartel vertical retro de 1985: noche violeta, horizonte con llamarada naranja y amarilla, chispa eléctrica azul y reloj digital verde; sin personajes, vehículos reconocibles, logos ni fotogramas",
+    "circuito": "Circuito 85 · 21 relojes de escaparate",
+    "puntos": 21,
+    "tipoEspacio": "Tiendas de barrio",
+    "tiendas": [
+      {
+        "nombre": "85 · Plaza del Reloj",
+        "dir": "Plaza del Reloj, 1 · Barcelona"
+      },
+      {
+        "nombre": "85 · Avenida",
+        "dir": "Avenida Central, 85 · Barcelona"
+      },
+      {
+        "nombre": "85 · Estación",
+        "dir": "Calle de la Estación, 21 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · cuenta atrás",
+      "Pantalla mostrador · reloj digital",
+      "Caja · oferta del día"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8501",
+        "equipo": "Reloj de escaparate",
+        "tienda": "85 · Plaza del Reloj",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8502",
+        "equipo": "Player de mostrador",
+        "tienda": "85 · Avenida",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8503",
+        "equipo": "Hilo musical",
+        "tienda": "85 · Estación",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

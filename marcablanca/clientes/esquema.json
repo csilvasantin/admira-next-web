@@ -454,6 +454,10 @@
           "description": "true = semilla del repo: la API no la sobrescribe."
         }
       }
+    },
+    "fondos": {
+      "type": "object",
+      "description": "Opcional. Fondos decorativos de una piel (degradados, barridos) que pinta assets/marca-blanca.css; velo.color/velo.alfaMax permiten comprobar que el texto sigue ≥ 4,5:1 sobre el fondo con el velo encima."
     }
   }
 }

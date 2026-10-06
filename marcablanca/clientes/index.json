@@ -70,6 +70,18 @@
       "nombre": "Frescaria Supermercados",
       "ejemplo": true,
       "sector": "Supermercados"
+    },
+    {
+      "id": "84",
+      "nombre": "Cine 84",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1984 · ciencia ficción"
+    },
+    {
+      "id": "85",
+      "nombre": "Cine 85",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1985 · viajes en el tiempo"
     }
   ],
   "dominios": {

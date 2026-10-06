@@ -1,0 +1,174 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "84",
+  "nombre": "Cine 84",
+  "nombreCorto": "84",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1984 · ciencia ficción",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico a la ciencia ficción de 1984. Acero frío, negro de madrugada y rojo infrarrojo de HUD, con líneas de barrido. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 84 (o /84) en el Experto.",
+  "logo": {
+    "svg": "../logos/84.svg",
+    "alt": "Cine 84 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/84-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Oswald, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "pesoTitulos": 700,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "0.08em",
+    "fuentes": [
+      {
+        "familia": "Oswald",
+        "url": "../fuentes/oswald.woff2",
+        "peso": "200 700"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "100 900"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "2px",
+    "md": "4px",
+    "lg": "6px",
+    "boton": "2px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 0 0 1px rgba(255,68,51,.18)",
+    "md": "0 0 18px rgba(255,68,51,.18), 0 8px 24px rgba(0,0,0,.5)",
+    "lg": "0 0 40px rgba(255,68,51,.22), 0 24px 60px rgba(0,0,0,.6)"
+  },
+  "tono": {
+    "voz": "Seco, preciso y nocturno: frases cortas, datos exactos y ni una palabra de más.",
+    "tratamiento": "tú",
+    "si": [
+      "frases cortas",
+      "cifras exactas",
+      "verbos de acción"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "Objetivo fijado",
+      "vacio": "Sin objetivos en el radar.",
+      "error": "Fallo de sistema. Reintentando.",
+      "exito": "Misión cumplida."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#B3120B",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#3B4552",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#8F0E09",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#F1F3F6",
+      "fondoAlt": "#E4E8ED",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#EDF0F3",
+      "borde": "#C3CAD3",
+      "texto": "#0B0E12",
+      "textoSuave": "#3B4552",
+      "textoTenue": "#5B6573",
+      "ok": "#1D7A46",
+      "aviso": "#8A5A00",
+      "error": "#B3120B",
+      "info": "#1F5F99"
+    },
+    "oscuro": {
+      "primario": "#FF4433",
+      "primarioTexto": "#07090C",
+      "secundario": "#9AA7B4",
+      "secundarioTexto": "#07090C",
+      "acento": "#FF6B57",
+      "acentoTexto": "#07090C",
+      "fondo": "#07090C",
+      "fondoAlt": "#0D1117",
+      "superficie": "#11161D",
+      "superficieAlt": "#1A212B",
+      "borde": "#2A3340",
+      "texto": "#E6EDF3",
+      "textoSuave": "#A9B4C0",
+      "textoTenue": "#7D8896",
+      "ok": "#3DDC84",
+      "aviso": "#FFB020",
+      "error": "#FF4D4F",
+      "info": "#5AC8FA"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css): barrido horizontal y resplandor infrarrojo de baja opacidad sobre el fondo.",
+    "oscuro": "repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px), radial-gradient(120% 70% at 50% -10%, rgba(255,68,51,.16), transparent 60%), #07090C",
+    "velo": {
+      "color": "#FF4433",
+      "alfaMax": 0.16
+    }
+  },
+  "demo": {
+    "titular": "Vuelve cada noche",
+    "producto": "Turno de noche · HUD de tienda",
+    "cta": "Objetivo fijado",
+    "prompt": "Cartel vertical de ciencia ficción ochentera: negro azulado, acero cepillado y rojo infrarrojo, líneas de barrido y tipografía condensada; sin personajes, logos ni fotogramas",
+    "circuito": "Circuito 84 · 24 pantallas nocturnas",
+    "puntos": 24,
+    "tipoEspacio": "Tiendas 24 h",
+    "tiendas": [
+      {
+        "nombre": "84 · Nave 1",
+        "dir": "Polígono Norte, 1 · Barcelona"
+      },
+      {
+        "nombre": "84 · Nave 2",
+        "dir": "Polígono Norte, 2 · Barcelona"
+      },
+      {
+        "nombre": "84 · Nave 3",
+        "dir": "Polígono Norte, 3 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · HUD de ofertas",
+      "Pantalla mostrador · escaneo",
+      "Caja · cuenta atrás"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8401",
+        "equipo": "Pantalla escaparate",
+        "tienda": "84 · Nave 1",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8402",
+        "equipo": "Player de mostrador",
+        "tienda": "84 · Nave 2",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8403",
+        "equipo": "Hilo musical",
+        "tienda": "84 · Nave 3",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
