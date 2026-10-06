@@ -30,5 +30,11 @@
     "Versión al pie visible de Opciones; al plegarlo desaparece",
     "Un único aviso inicial por novedad y navegador",
     "El pie queda sobre Experto minimizado o ampliado en todos los marcos"
+  ],
+  "v.06.10.2026.r8.08:05": [
+    "Versión al pie visible de Opciones; al plegarlo desaparece",
+    "Un único aviso inicial por novedad y navegador",
+    "El pie queda sobre Experto minimizado o ampliado",
+    "El cargador compartido deja de conservar copias antiguas en caché"
   ]
 }

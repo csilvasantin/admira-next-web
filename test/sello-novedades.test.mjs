@@ -113,3 +113,10 @@ test('the footer stays above Expert docks without adding a gap when the rail alr
  assert.equal(inset(720,[400]),320,'expanded dock');
  assert.equal(inset(651,[651]),0,'the native rail already stops above Expert');
 });
+
+test('the mutable shared loader uses no-store rather than Cloudflare browser TTL',()=>{
+ const headers=fs.readFileSync(new URL('../_headers',import.meta.url),'utf8');
+ const block=headers.split('/assets/sello-novedades.js')[1].split('\n/')[0];
+ assert.match(block,/Cache-Control: no-store/);
+ assert.doesNotMatch(block,/max-age=/);
+});

@@ -406,3 +406,5 @@ Contrato / Contract: `version-options`; cargador compartido / shared loader `htt
 Tutorial ES: ☰ Opciones → sello al pie → pasar el ratón → plegar Opciones. EN: ☰ Options → bottom stamp → hover → collapse Options.
 
 ES: El sello permanece en el pie visible de Opciones, por encima de la barra de Experto minimizada o ampliada, sin desplazar el contenido central. EN: The stamp stays in the visible Options footer, above the minimized or expanded Expert bar, without moving the main content.
+
+ES: El cargador compartido usa Cache-Control: no-store para evitar el mínimo de cuatro horas de caché de navegador. Las pestañas que ya cargaron una copia anterior requieren recarga completa. EN: The shared loader uses Cache-Control: no-store to avoid the four-hour browser-cache minimum. Tabs that already loaded an earlier copy require a hard reload.
