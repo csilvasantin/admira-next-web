@@ -164,7 +164,7 @@
       'marca blanca del catálogo de admiranext.com/marcablanca (p. ej. /marca 365); off vuelve a Admira',
       'white label from the admiranext.com/marcablanca catalogue (e.g. /marca 365); off returns to Admira'
     ], run: function (a, log) { return runMarca(a, escribirEn(log)); }});
-    // Atajos de las pieles de cine (FLT-101666 a y b): /84…/89 son /marca 84…/marca 89.
+    // Atajos de las pieles de cine (FLT-101666 a, b y #5256): /81…/89 son /marca 81…/marca 89.
     PIELES_CINE.forEach(function (p) {
       X.verb({name: p.id, alias: [], args: '', desc: [
         'atajo de /marca ' + p.id + ': piel de cine ' + p.anio + ' (' + p.es + '); /marca off vuelve a Admira',
@@ -173,6 +173,9 @@
     });
   }
   var PIELES_CINE = [
+    {id: '81', anio: '1981', es: 'arena, cuero y mapas antiguos', en: 'sand, leather and old maps'},
+    {id: '82', anio: '1982', es: 'neón magenta y cian bajo la lluvia', en: 'magenta and cyan neon in the rain'},
+    {id: '83', anio: '1983', es: 'noche de barrio, luna y rojo cálido', en: 'suburban night, moon and warm red'},
     {id: '84', anio: '1984', es: 'acero, negro y rojo infrarrojo', en: 'steel, black and infrared red'},
     {id: '85', anio: '1985', es: 'noche violeta, llamarada naranja y chispa azul', en: 'violet night, orange flame and blue spark'},
     {id: '86', anio: '1986', es: 'atardecer de aviación y dorado de aviador', en: 'aviation sunset and aviator gold'},
@@ -244,7 +247,7 @@
         if (e.key !== 'Enter' || !t || t.id !== 'cmdInput') return;
         var v = String(t.value || '').trim();
         var esIdioma = X.parseLangCommand && X.parseLangCommand(v);
-        var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/8[4-9]$/.test(v);
+        var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/8[1-9]$/.test(v);
         if (!esIdioma && !esMarca) return;
         e.preventDefault();
         e.stopImmediatePropagation();

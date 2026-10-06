@@ -1,0 +1,174 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "82",
+  "nombre": "Cine 82",
+  "nombreCorto": "82",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1982 · neón bajo la lluvia",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico a la ciencia ficción noir de 1982. Asfalto mojado casi negro, neón magenta y cian reflejado en la lluvia y ámbar de farola de sodio. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 82 (o /82) en el Experto.",
+  "logo": {
+    "svg": "../logos/82.svg",
+    "alt": "Cine 82 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/82-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Manrope, 'Arial Black', -apple-system, 'Segoe UI', sans-serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "pesoTitulos": 600,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "0.2em",
+    "fuentes": [
+      {
+        "familia": "Manrope",
+        "url": "../fuentes/manrope.woff2",
+        "peso": "200 800"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "100 900"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "2px",
+    "md": "4px",
+    "lg": "8px",
+    "boton": "2px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 0 0 1px rgba(255,61,184,.2)",
+    "md": "0 0 20px rgba(255,61,184,.2), 0 8px 24px rgba(0,0,0,.55)",
+    "lg": "0 0 48px rgba(45,226,230,.18), 0 24px 60px rgba(0,0,0,.65)"
+  },
+  "tono": {
+    "voz": "Nocturno y lacónico: frases cortas bajo la lluvia, luces de neón y ciudad que nunca duerme.",
+    "tratamiento": "tú",
+    "si": [
+      "frases cortas",
+      "luz y lluvia",
+      "verbos de ciudad"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "Entra en la noche",
+      "vacio": "Calle vacía. Solo lluvia.",
+      "error": "Interferencia en la señal. Reintentando.",
+      "exito": "Conexión establecida."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#A3006B",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#006B75",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#8A4B00",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#F1F2F7",
+      "fondoAlt": "#E4E6EF",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#ECEEF5",
+      "borde": "#C4C8D8",
+      "texto": "#0B0C14",
+      "textoSuave": "#383D52",
+      "textoTenue": "#5A5F75",
+      "ok": "#1D7A46",
+      "aviso": "#8A5A00",
+      "error": "#B3261E",
+      "info": "#006B75"
+    },
+    "oscuro": {
+      "primario": "#FF3DB8",
+      "primarioTexto": "#07080D",
+      "secundario": "#2DE2E6",
+      "secundarioTexto": "#07080D",
+      "acento": "#FFB347",
+      "acentoTexto": "#07080D",
+      "fondo": "#07080D",
+      "fondoAlt": "#0C0E15",
+      "superficie": "#11131C",
+      "superficieAlt": "#191B27",
+      "borde": "#2C2F42",
+      "texto": "#E9ECF5",
+      "textoSuave": "#B3B8CC",
+      "textoTenue": "#8389A3",
+      "ok": "#3DDC97",
+      "aviso": "#FFB347",
+      "error": "#FF5C7C",
+      "info": "#2DE2E6"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css) de baja opacidad sobre el fondo.",
+    "oscuro": "repeating-linear-gradient(100deg, rgba(45,226,230,.035) 0 1px, transparent 1px 9px), radial-gradient(60% 45% at 10% 100%, rgba(255,61,184,.16), transparent 70%), radial-gradient(50% 40% at 95% 0%, rgba(45,226,230,.12), transparent 70%), #07080D",
+    "velo": {
+      "color": "#FF3DB8",
+      "alfaMax": 0.16
+    }
+  },
+  "demo": {
+    "titular": "Entra en la noche",
+    "producto": "Ofertas de medianoche",
+    "cta": "Entra en la noche",
+    "prompt": "Cartel vertical de ciencia ficción noir de 1982: calle mojada de noche, reflejos de neón magenta y cian, lluvia fina y farolas ámbar; sin personajes, rascacielos reconocibles, logos ni fotogramas",
+    "circuito": "Circuito 82 · 64 pantallas bajo la lluvia",
+    "puntos": 64,
+    "tipoEspacio": "Tiendas de noche",
+    "tiendas": [
+      {
+        "nombre": "82 · Distrito Neón",
+        "dir": "Calle de los Neones, 82 · Barcelona"
+      },
+      {
+        "nombre": "82 · Mercado Nocturno",
+        "dir": "Plaza Nocturna, 2 · Barcelona"
+      },
+      {
+        "nombre": "82 · Azotea",
+        "dir": "Avenida Alta, 19 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · neón bajo la lluvia",
+      "Pantalla mostrador · reflejos",
+      "Caja · ámbar de farola"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8201",
+        "equipo": "Pantalla escaparate",
+        "tienda": "82 · Distrito Neón",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8202",
+        "equipo": "Player de mostrador",
+        "tienda": "82 · Mercado Nocturno",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8203",
+        "equipo": "Hilo musical",
+        "tienda": "82 · Azotea",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

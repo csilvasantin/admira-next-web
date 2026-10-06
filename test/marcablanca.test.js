@@ -23,12 +23,12 @@ function contraste(a, b) {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-test('el índice declara Admira por defecto, tres clientes de ejemplo y las seis pieles de cine (84–89)', async () => {
+test('el índice declara Admira por defecto, tres clientes de ejemplo y las nueve pieles de cine (81–89)', async () => {
   const indice = await json('clientes/index.json');
   assert.equal(indice.porDefecto, 'admira');
   assert.deepEqual(Object.keys(indice.plataformas), ['studio', 'store', 'app', 'yokup']);
   const ejemplos = indice.clientes.filter((c) => c.ejemplo).map((c) => c.id);
-  assert.deepEqual(ejemplos, ['lumbre', 'brumelle', 'frescaria', '84', '85', '86', '87', '88', '89']);
+  assert.deepEqual(ejemplos, ['lumbre', 'brumelle', 'frescaria', '81', '82', '83', '84', '85', '86', '87', '88', '89']);
   for (const [dominio, id] of Object.entries(indice.dominios)) {
     assert.ok(indice.clientes.some((c) => c.id === id), `${dominio} apunta a un cliente que no existe`);
   }

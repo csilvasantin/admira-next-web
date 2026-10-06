@@ -219,13 +219,13 @@
   border-bottom:1px solid var(--mb-acento)!important;box-shadow:0 1px 0 #000,0 3px 0 color-mix(in srgb,var(--mb-acento) 40%,transparent);
 }
 
-/* ── Terminal de la home con las pieles de cine 84–89 (06-10-2026 · FLT-101666 b) ──
+/* ── Terminal de la home con las pieles de cine 81–89 (06-10-2026 · FLT-101666 b y #5256) ──
    La ventana del terminal (assets/app.css) seguía con su azul marino (#252540) y el texto tenue gris
    violeta (#8888aa, ≈ 4,6:1): se leía, pero con poco contraste. Con una piel de cine la ventana toma la
    superficie de la piel y el texto (normal, tenue y apagado) su texto y texto suave: ≥ 7:1 (AAA),
    comprobado en test/marca-cine.test.mjs. Se declara en body y en la ventana para ganar también a
    los temas propios de la home (.theme-light, .theme-glass, .theme-retro). */
-:root:is([data-mb-marca="84"],[data-mb-marca="85"],[data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] :is(body,.terminal-window){
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"],[data-mb-marca="84"],[data-mb-marca="85"],[data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] :is(body,.terminal-window){
   --bg:var(--mb-fondo);
   --bg-window:var(--mb-superficie);
   --bg-darker:var(--mb-fondo-alt);
@@ -237,6 +237,47 @@
   --accent:var(--mbx-brand);
   --accent-bright:var(--mbx-accent);
 }
-:root:is([data-mb-marca="84"],[data-mb-marca="85"],[data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] .terminal-window{
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"],[data-mb-marca="84"],[data-mb-marca="85"],[data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] .terminal-window{
   background:var(--mb-superficie);color:var(--mb-texto);border-color:var(--mb-borde);font-family:var(--mb-fuente-mono);
 }
+
+/* ── Pieles de cine 81–83 (06-10-2026 · FLT-101666, ampliación #5256): /marca 81…83 (o /81…/83 en el Experto) ── */
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"])[data-mb-plataforma="store"] body{background-attachment:fixed!important;font-family:var(--mb-fuente-texto)}
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"])[data-mb-plataforma="store"] :is(h1,h2,h3){font-family:var(--mb-fuente-titulos);text-transform:var(--mb-titulos-transform);letter-spacing:var(--mb-titulos-tracking)}
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"])[data-mb-plataforma="store"] .mb-bar-logo{color:var(--mbx-ink)}
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"])[data-mb-plataforma="store"] :focus-visible{outline:2px solid var(--mbx-brand);outline-offset:2px}
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"])[data-mb-plataforma="store"] :is(input,textarea){caret-color:var(--mbx-brand)}
+:root:is([data-mb-marca="81"],[data-mb-marca="82"],[data-mb-marca="83"])[data-mb-plataforma="store"] :is(.eyebrow,.hero .kicker){font-family:var(--mb-fuente-etiquetas);letter-spacing:.14em}
+
+/* 81 · aventura en el desierto de 1981: curvas de nivel de mapa antiguo y arena al atardecer */
+:root[data-mb-marca="81"][data-mb-plataforma="store"] body,
+:root[data-mb-marca="81"][data-mb-plataforma="store"] body[data-yk-frame]{
+  background:
+    repeating-radial-gradient(circle at 18% 28%,rgba(224,168,79,.05) 0 1px,transparent 1px 22px),
+    radial-gradient(90% 50% at 50% 110%,rgba(224,168,79,.16),transparent 70%),
+    var(--mb-fondo)!important;
+}
+:root[data-mb-marca="81"][data-mb-plataforma="store"] header.yk-head{border-bottom:2px solid var(--mb-secundario)!important;box-shadow:0 3px 0 color-mix(in srgb,var(--mb-primario) 45%,transparent)}
+
+/* 82 · neón bajo la lluvia de 1982: trazos de lluvia, magenta y cian sobre asfalto mojado */
+:root[data-mb-marca="82"][data-mb-plataforma="store"] body,
+:root[data-mb-marca="82"][data-mb-plataforma="store"] body[data-yk-frame]{
+  background:
+    repeating-linear-gradient(100deg,rgba(45,226,230,.035) 0 1px,transparent 1px 9px),
+    radial-gradient(60% 45% at 10% 100%,rgba(255,61,184,.16),transparent 70%),
+    radial-gradient(50% 40% at 95% 0%,rgba(45,226,230,.12),transparent 70%),
+    var(--mb-fondo)!important;
+}
+:root[data-mb-marca="82"][data-mb-plataforma="store"] header.yk-head{border-bottom:1px solid var(--mb-primario)!important;box-shadow:0 0 16px color-mix(in srgb,var(--mb-primario) 40%,transparent),0 2px 0 color-mix(in srgb,var(--mb-secundario) 50%,transparent)}
+
+/* 83 · noche de barrio de 1983: luna grande, estrellas y resplandor rojo cálido */
+:root[data-mb-marca="83"][data-mb-plataforma="store"] body,
+:root[data-mb-marca="83"][data-mb-plataforma="store"] body[data-yk-frame]{
+  background:
+    radial-gradient(circle at 82% 14%,rgba(255,230,168,.16) 0 70px,rgba(255,230,168,.05) 71px 140px,transparent 141px),
+    radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 60% 12%,rgba(255,255,255,.4),transparent),
+    radial-gradient(70% 40% at 50% 110%,rgba(255,106,77,.14),transparent 70%),
+    var(--mb-fondo)!important;
+}
+:root[data-mb-marca="83"][data-mb-plataforma="store"] header.yk-head{border-bottom:2px solid var(--mb-secundario)!important;box-shadow:0 4px 18px color-mix(in srgb,var(--mb-primario) 25%,transparent)}
