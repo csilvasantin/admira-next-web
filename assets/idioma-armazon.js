@@ -145,5 +145,55 @@
 
   A.anadir(diccOrg, reglasOrg);
   A.anadir(diccProy, reglasProy);
+
+  // /flota (Agentes)
+  var diccFlota = {
+    'AdmiraNeXT · Gestión de proyectos': 'AdmiraNeXT · Project management', 'Agentes: marcador y misiones': 'Agents: scoreboard and missions',
+    'Refrescar': 'Refresh', 'Refrescar ahora': 'Refresh now', 'Quién está trabajando': 'Who is working', 'Marcador del día': 'Today\'s scoreboard',
+    'Misiones vivas': 'Live missions', 'Yokup · marcador ↗': 'Yokup · scoreboard ↗', 'Yokup · misiones ↗': 'Yokup · missions ↗',
+    'Agente': 'Agent', 'Total': 'Total', 'Misiones': 'Missions', 'Ventanas': 'Windows', 'Máquina': 'Machine', 'Trabajo': 'Work', 'Estado': 'Status',
+    'Última señal': 'Last signal', 'Ref': 'Ref', 'Asunto': 'Subject', 'Hoy no puntúa nadie todavía.': 'Nobody has scored today yet.',
+    'Contados trabajando': 'Counted as working', 'Sesiones abiertas': 'Open sessions', 'Con trabajo asignado': 'With assigned work',
+    'sin motivo': 'no reason', 'Yokup no ve a nadie con trabajo asignado ahora mismo.': 'Yokup sees nobody with assigned work right now.',
+    'No hay misiones vivas.': 'There are no live missions.', 'Nadie figura trabajando': 'Nobody is listed as working',
+    'No he podido leer Yokup entero:': 'I could not read all of Yokup:', 'Lo que se ve abajo puede estar incompleto.': 'What you see below may be incomplete.',
+    'se refresca solo cada 30 s': 'refreshes itself every 30 s', 'rancio': 'stale'
+  };
+  var reglasFlota = [
+    [/^modo (.+)$/, 'mode $1'],
+    [/^ejecuta (\S+)$/, 'run by $1'],
+    [/^(\d+) vivas$/, '$1 live'],
+    [/^Datos de api\.yokup\.com · actualizado a las (\S+)$/, 'Data from api.yokup.com · updated at $1'],
+    [/^y sin embargo hay (\d+) sesión\(es\) abierta\(s\)\. Yokup ve los procesos, pero no puede atarlos a una misión o tarea\. Motivos que declara: ([\s\S]*)$/,
+      'and yet there are $1 open session(s). Yokup sees the processes but cannot tie them to a mission or task. Declared reasons: $2'],
+    [/^(\d+) trabajo\(s\) con estado$/, '$1 job(s) with status'],
+    [/^: hay misión o tarea asignada, pero nadie ha mandado señal de avance reciente\.$/, ': a mission or task is assigned, but nobody has sent a recent progress signal.']
+  ];
+
+  // /consejo
+  var diccConsejo = {
+    'El Consejo de ADmiraNeXT': 'The ADmiraNeXT Council', 'El Consejo': 'The Council',
+    'Ocho asesores legendarios deliberan sobre las decisiones': 'Eight legendary advisors deliberate on the', 'reales': 'real',
+    'de la empresa: Robot-as-a-Service, IoT con inteligencia artificial y XpaceOS. Elige un consejero (o pregunta a todo el Consejo) y plantéale una decisión de negocio.':
+      'decisions of the company: Robot-as-a-Service, AI-powered IoT and XpaceOS. Pick a counsellor (or ask the whole Council) and put a business decision to them.',
+    'Leyendas': 'Legends', 'Coetáneos': 'Contemporaries',
+    '¿Cuál debe ser nuestra prioridad estratégica este trimestre?': 'What should our strategic priority be this quarter?',
+    '¿Cómo escalamos el alquiler de robots en España sin quemar caja?': 'How do we scale robot rental in Spain without burning cash?',
+    '¿Qué métrica única deberíamos perseguir el próximo año?': 'Which single metric should we chase next year?',
+    '¿Vale la pena entrar en hospitales públicos o nos centramos en retail?': 'Is it worth entering public hospitals or do we focus on retail?',
+    'Preguntar al consejero': 'Ask the counsellor', 'Preguntar a todo el Consejo': 'Ask the whole Council',
+    'El Consejo razona con contexto real de ADmiraNeXT (RaaS de robots Unitree/Agibot en España, IoT con IA, XpaceOS · OmniPublicity). Las respuestas son orientativas, generadas por IA en la persona de cada asesor.':
+      'The Council reasons with real ADmiraNeXT context (Unitree/Agibot robot RaaS in Spain, AI IoT, XpaceOS · OmniPublicity). Answers are indicative, AI-generated in the persona of each advisor',
+    'Versión interactiva completa en admira.live': 'Full interactive version at admira.live', 'Consejo en vivo': 'Live Council',
+    'Plantea una decisión de AdmiraNext… (p. ej. ¿Cómo priorizamos el alquiler de robots en España este trimestre?)':
+      'Put an AdmiraNext decision… (e.g. How do we prioritise robot rental in Spain this quarter?)',
+    'Cómic': 'Comic', 'pensando…': 'thinking…', 'sin respuesta': 'no response', 'no se pudo contactar al Consejo': 'could not reach the Council'
+  };
+  var reglasConsejo = [
+    [/^Consejero: (.+) · (\w+)$/, 'Counsellor: $1 · $2']
+  ];
+
+  A.anadir(diccFlota, reglasFlota);
+  A.anadir(diccConsejo, reglasConsejo);
   if (A.aplicar) A.aplicar();
 })(window);
