@@ -46,3 +46,28 @@ test('placeTip encaja el popover en el viewport', () => {
   assert.equal(r2.top, 270 - 120 - 8);
   assert.equal(r2.left, 12);
 });
+
+function policy() {
+  const doc = { readyState: 'loading', currentScript: {dataset:{}}, querySelector:()=>null, addEventListener(){} };
+  const win = {document:doc,location:{search:'',pathname:'/'}}; win.top=win;
+  const ctx=vm.createContext({window:win, document:doc, location:win.location}); vm.runInContext(SRC,ctx);
+  return win.AdmiraSello._floatingPolicy;
+}
+test('Opciones abierto muestra su pie y nunca duplica la versión flotante', () => {
+  assert.equal(policy()(true,true,true,false),false);
+});
+test('Opciones plegado oculta la versión después del primer aviso', () => {
+  assert.equal(policy()(true,false,false,false),false);
+});
+test('novedad sin reconocer permite un primer aviso; leerlo y cerrarlo lo oculta', () => {
+  const show=policy();
+  assert.equal(show(true,false,true,false),true);
+  assert.equal(show(true,false,false,true),true);
+  assert.equal(show(true,false,false,false),false);
+});
+test('las páginas sin marco cuadrático conservan su versión', () => {
+  assert.equal(policy()(false,false,false,false),true);
+});
+test('hidden vence al display propio de ambos sellos generados', () => {
+  assert.match(SRC, /#admira-sello-chip\[hidden\],#admira-sello-options\[hidden\],\.ax-sello-outside\{display:none!important\}/);
+});

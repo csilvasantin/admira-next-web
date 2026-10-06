@@ -394,3 +394,13 @@ node --check assets/presites-generator.js
 node --check assets/presites-studio.js
 node --test test/presites.test.js
 ```
+
+## Versión en Opciones / Version in Options
+
+ES: La versión aparece al pie del menú lateral Opciones y desaparece al plegarlo. En la primera visita con una novedad sin reconocer se permite un único aviso fuera del menú; abrir Opciones o leer y cerrar el aviso lo reconoce en este navegador y dominio. Una actualización posterior permite un nuevo primer aviso. Pasar sobre el sello abre las novedades; una versión pendiente conserva la acción Recargar. Se mantienen los enlaces de ayuda del sello nativo. Las páginas de emisión, kioscos e iframes conservan sus exclusiones.
+
+EN: The version appears at the bottom of the Options side panel and disappears when it is collapsed. The first visit with unacknowledged news allows a single notice outside the panel; opening Options or reading and closing the notice acknowledges it in this browser and domain. A later update allows a new first notice. Hovering over the stamp opens release notes; a pending version retains the Reload action. Native stamp help links are preserved. Broadcasting pages, kiosks and iframes retain their exclusions.
+
+Contrato / Contract: `version-options`; cargador compartido / shared loader `https://www.admiranext.com/assets/sello-novedades.js`; versión propia / site version `/version.json`. Se reutilizan / reused: `.qm-version`, `.rail-ver`, `[data-yk-version]`, `[data-admira-sello]`, `[data-release-signature]`. Panel explícito / explicit panel: `data-options` en el script / on the script. Aviso reconocido / acknowledged notice: `admira-sello:aviso-visto`; lectura de novedades / news read: `admira-sello:visto`. No añade herramientas MCP / No additional MCP tools.
+
+Tutorial ES: ☰ Opciones → sello al pie → pasar el ratón → plegar Opciones. EN: ☰ Options → bottom stamp → hover → collapse Options.

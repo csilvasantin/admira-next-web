@@ -14,8 +14,10 @@
  *
  * Sello: si la página ya tiene uno (.rail-ver, [data-admira-sello], [data-release-signature])
  * se MEJORA ese, no se duplica. Si no hay ninguno visible, se pinta un rectángulo pequeño
- * fijo abajo a la izquierda (metaestilo cuadrado AdmiraNeXT: esquinas rectas, mono, cian),
- * levantado por encima de la barra «⌘ EXPERTO» si está anclada abajo.
+ * al pie de Opciones en todas las interfaces cuadráticas. Al plegar Opciones desaparece.
+ * Sólo se muestra fuera del menú el primer aviso de una novedad no reconocida; al abrir
+ * Opciones o leer el aviso deja de flotar. El popover de novedades conserva su anclaje
+ * a body para no quedar recortado por el panel. Sin interfaz cuadrática se conserva el sello flotante.
  *
  * NUEVO: si la versión publicada no es la última que este visitante vio en este sitio
  * (localStorage «admira-sello:visto»), el sello se resalta con «NUEVO». Se da por vista al
@@ -39,10 +41,12 @@
   var script = document.currentScript || {};
   var ds = script.dataset || {};
   var VERSION_URL = ds.versionUrl || '/version.json';
-  var TARGET = ds.target || '.rail-ver,[data-admira-sello],[data-release-signature]';
+  var TARGET = ds.target || '.rail-ver,.qm-version,[data-yk-version],[data-admira-sello],[data-release-signature]';
+  var OPTIONS = ds.options || '[data-admira-options],#xpace-side-left,#xsOptions,.quad-left,.rail-left,.yk-rail-left,#admRail,aside.admrail,.adm-opciones,.options-panel,nav[aria-label="Opciones"],aside[aria-label="Opciones"],nav[aria-label="Options"],aside[aria-label="Options"]';
   var POS = /^(bl|br|tl|tr)$/.test(ds.pos || '') ? ds.pos : 'bl';
   var FLOATING = ds.floating !== 'off';
   var KEY = 'admira-sello:visto';
+  var NOTICE_KEY = 'admira-sello:aviso-visto';
   var POLL_MS = 180000;
   var Z = 2147482000;
   var TIP_W = 300;
@@ -62,7 +66,7 @@
   }
   if (off()) return;
 
-  var state = { data: null, loaded: '', fresh: '', seals: [], chip: null, tip: null, anchor: null, open: false, pinned: false, hideT: 0 };
+  var state = { data: null, loaded: '', fresh: '', seals: [], chip: null, tip: null, anchor: null, open: false, pinned: false, hideT: 0, options: null, railSeal: null };
 
   function store(k, v) { try { if (v == null) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } return v; }
 
@@ -101,6 +105,10 @@
       '#admira-sello-chip{position:fixed;z-index:' + (Z - 1) + ';display:inline-flex;align-items:center;gap:6px;margin:0;padding:5px 8px;',
       'border:1px solid rgba(80,200,255,.45);border-radius:0;background:rgba(10,12,18,.92);color:#d8e9f5;cursor:help;',
       'box-shadow:3px 3px 0 rgba(0,0,0,.45);max-width:calc(100vw - 24px);white-space:nowrap;-webkit-tap-highlight-color:transparent}',
+      '#admira-sello-chip[hidden],#admira-sello-options[hidden],.ax-sello-outside{display:none!important}',
+      '.ax-sello-options{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal;flex-shrink:0}',
+      '.ax-sello-options-foot{position:sticky;bottom:0;margin-top:auto;flex-shrink:0}',
+      '#admira-sello-options{display:block;position:sticky;bottom:0;margin-top:auto;padding:8px;flex:none;border:1px solid #50c8ff;border-radius:0;background:#0a0c12;color:#d8e9f5;text-align:left;font:600 10px/1.4 ui-monospace,Menlo,monospace;cursor:help}',
       '#admira-sello-chip:hover,#admira-sello-chip:focus-visible{border-color:var(--axs-c);color:#fff;outline:none}',
       '#admira-sello-chip .axs-v{overflow:hidden;text-overflow:ellipsis}',
       '.ax-sello-up{cursor:help}',
@@ -134,10 +142,16 @@
     if (!el || !el.isConnected) return false;
     var r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) return false;
+    for (var parent = el; parent && parent.nodeType === 1; parent = parent.parentElement) {
+      if (parent.hidden || parent.inert || parent.getAttribute('aria-hidden') === 'true' || parent.classList.contains('is-collapsed')) return false;
+      var ancestorStyle = root.getComputedStyle ? getComputedStyle(parent) : null;
+      if (ancestorStyle && (ancestorStyle.display === 'none' || ancestorStyle.visibility === 'hidden' || Number(ancestorStyle.opacity) === 0)) return false;
+    }
     var cs = root.getComputedStyle ? getComputedStyle(el) : null;
     if (cs && (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) === 0)) return false;
     var vw = root.innerWidth || 0, vh = root.innerHeight || 0;
-    if (r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh + 2000) return false;
+    if (r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh) return false;
+    if (Math.min(r.right, vw) - Math.max(r.left, 0) < Math.min(16, r.width / 2)) return false;
     // ¿Lo tapa un panel plegado (fuera de pantalla por transform)?
     return !!el.offsetParent || (cs && cs.position === 'fixed');
   }
@@ -147,6 +161,7 @@
   function markSeen() {
     var v = state.fresh || state.loaded;
     if (!v) return;
+    store(NOTICE_KEY, v);
     if (state.fresh && state.fresh !== state.loaded) return; // hay otra más nueva sin cargar: que siga avisando
     store(KEY, v);
     state.seenPending = true; // el NUEVO se apaga al cerrar el popover, no mientras se lee
@@ -281,6 +296,7 @@
       state.tip.setAttribute('aria-hidden', 'true');
       state.open = false; state.pinned = false;
       if (state.seenPending) { state.seenPending = false; applyNew(isNew(state.fresh || state.loaded) || (state.fresh !== state.loaded)); }
+      paint();
     }, now ? 0 : 120);
   }
 
@@ -302,13 +318,60 @@
     el.addEventListener('keydown', function (e) { if (e.key === 'Escape') hide(true); });
   }
 
+  // Existing footers keep their native click handlers and help links.
+  // Only the release stamp is affected; the rest of the panel keeps its style.
+  function optionsSeal(panel, candidates) {
+    var inside = candidates.filter(function (el) { return panel.contains(el); });
+    if (inside.length) {
+      if (state.railSeal) state.railSeal.hidden = true;
+      return inside;
+    }
+    if (!state.railSeal || !state.railSeal.isConnected) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.id = 'admira-sello-options'; b.className = 'ax-sello ax-sello-options';
+      b.innerHTML = '<span class="axs-v"></span><span class="axs-nuevo">NUEVO</span>';
+      panel.appendChild(b); bind(b); state.railSeal = b;
+    }
+    if (state.railSeal.parentElement !== panel) panel.appendChild(state.railSeal);
+    state.railSeal.hidden = false;
+    state.railSeal.querySelector('.axs-v').textContent = label();
+    return [state.railSeal];
+  }
+
+  function floatingPolicy(hasOptions, visibleSeal, unseenNotice, openNotice) {
+    return !visibleSeal && (!hasOptions || unseenNotice || openNotice);
+  }
+
+  var watched = [], repaintPending = false;
+  function watchPanels(panel) {
+    if (!root.MutationObserver) return;
+    [panel, document.body, document.documentElement].filter(Boolean).forEach(function (el) {
+      if (watched.indexOf(el) >= 0) return;
+      watched.push(el);
+      new MutationObserver(function () {
+        if (repaintPending) return;
+        repaintPending = true;
+        setTimeout(function () { repaintPending = false; paint(); }, 0);
+      }).observe(el, {attributes:true, attributeFilter:['class','hidden','inert','aria-hidden','style']});
+    });
+  }
+
   function paint() {
     css();
     var d = state.data || {};
     var v = label();
     var tt = titleText();
-    state.seals = Array.prototype.slice.call(document.querySelectorAll(TARGET)).filter(function (el) { return el.id !== 'admira-sello-chip' && !/^(SCRIPT|META|LINK|STYLE|HTML|BODY|HEAD)$/.test(el.tagName); });
+    var candidates = Array.prototype.slice.call(document.querySelectorAll(TARGET)).filter(function (el) { return el.id !== 'admira-sello-chip' && !/^(SCRIPT|META|LINK|STYLE|HTML|BODY|HEAD)$/.test(el.tagName); });
+    state.options = document.querySelector(OPTIONS);
+    state.seals = state.options ? optionsSeal(state.options, candidates) : candidates;
+    candidates.forEach(function (el) { el.classList.toggle('ax-sello-outside', !!state.options && !state.options.contains(el)); });
+    if (state.options) watchPanels(state.options);
     state.seals.forEach(function (el) {
+      el.classList.toggle('ax-sello-options', !!state.options);
+      if (state.options) {
+        var foot = el.closest('.rail-options-meta,.rail-meta,.yk-rail-foot') || el;
+        if (state.options.contains(foot)) foot.classList.add('ax-sello-options-foot');
+      }
       el.classList.add('ax-sello-up');
       el.setAttribute('title', tt);
       el.setAttribute('aria-label', 'Sello ' + tt);
@@ -320,7 +383,12 @@
       bind(el);
     });
     var anyVisible = state.seals.some(visible);
-    if (FLOATING && !anyVisible) {
+    var noticeVersion = state.fresh || state.loaded;
+    var pending = isNew(noticeVersion) || (state.fresh && state.loaded && state.fresh !== state.loaded);
+    if (state.options && anyVisible && noticeVersion) store(NOTICE_KEY, noticeVersion);
+    var unseenNotice = !!noticeVersion && pending && store(NOTICE_KEY) !== noticeVersion;
+    var openNotice = state.open && state.anchor === state.chip;
+    if (FLOATING && floatingPolicy(!!state.options, anyVisible, unseenNotice, openNotice)) {
       var c = ensureChip();
       c.querySelector('.axs-v').textContent = v;
       c.setAttribute('title', tt);
@@ -329,9 +397,11 @@
       placeChip();
     } else if (state.chip) {
       state.chip.hidden = true;
+      if (state.open && state.anchor === state.chip) hide(true);
     }
     if (!state.open) applyNew(isNew(state.fresh || state.loaded) || (state.fresh && state.loaded && state.fresh !== state.loaded));
-    if (state.open) { fillTip(); placeTip(state.anchor, state.tip); }
+    if (state.open && !visible(state.anchor)) hide(true);
+    else if (state.open) { fillTip(); placeTip(state.anchor, state.tip); }
     root.__admiraSelloData = d;
   }
 
@@ -380,7 +450,8 @@
     close: function () { hide(true); },
     refresh: function () { return refresh(false); },
     seen: markSeen,
-    _placeTip: placeTip
+    _placeTip: placeTip,
+    _floatingPolicy: floatingPolicy
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

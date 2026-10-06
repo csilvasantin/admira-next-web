@@ -311,5 +311,23 @@
       "auth": "Google",
       "help": "https://www.admira.studio/"
     }
-  ]
+  ],
+  "version_options": {
+    "id": "version-options",
+    "loader": "https://www.admiranext.com/assets/sello-novedades.js",
+    "version_source": "/version.json",
+    "panel_override": "data-options on the loader script",
+    "native_stamps": [
+      ".qm-version",
+      ".rail-ver",
+      "[data-yk-version]",
+      "[data-admira-sello]",
+      "[data-release-signature]"
+    ],
+    "notice_storage": "admira-sello:aviso-visto",
+    "news_storage": "admira-sello:visto",
+    "scope": "Shared quadratic interface; browser presentation only, no new MCP tools",
+    "es": "La versión aparece al pie del menú lateral Opciones y desaparece al plegarlo. En la primera visita con una novedad sin reconocer se permite un único aviso fuera del menú; abrir Opciones o leer y cerrar el aviso lo reconoce en este navegador y dominio. Una actualización posterior permite un nuevo primer aviso. Pasar sobre el sello abre las novedades; una versión pendiente conserva la acción Recargar. Se mantienen los enlaces de ayuda del sello nativo. Las páginas de emisión, kioscos e iframes conservan sus exclusiones.",
+    "en": "The version appears at the bottom of the Options side panel and disappears when it is collapsed. The first visit with unacknowledged news allows a single notice outside the panel; opening Options or reading and closing the notice acknowledges it in this browser and domain. A later update allows a new first notice. Hovering over the stamp opens release notes; a pending version retains the Reload action. Native stamp help links are preserved. Broadcasting pages, kiosks and iframes retain their exclusions."
+  }
 }
