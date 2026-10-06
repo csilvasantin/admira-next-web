@@ -82,6 +82,30 @@
       "nombre": "Cine 85",
       "ejemplo": true,
       "sector": "Piel de cine · año 1985 · viajes en el tiempo"
+    },
+    {
+      "id": "86",
+      "nombre": "Cine 86",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1986 · aviación"
+    },
+    {
+      "id": "87",
+      "nombre": "Cine 87",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1987 · ciencia ficción policial"
+    },
+    {
+      "id": "88",
+      "nombre": "Cine 88",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1988 · cine negro y dibujos animados"
+    },
+    {
+      "id": "89",
+      "nombre": "Cine 89",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1989 · gótico urbano"
     }
   ],
   "dominios": {

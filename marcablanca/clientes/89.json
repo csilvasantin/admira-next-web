@@ -1,0 +1,179 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "89",
+  "nombre": "Cine 89",
+  "nombreCorto": "89",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1989 · gótico urbano",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico al cine gótico urbano de 1989. Negro de medianoche, arquitectura art déco, haz de reflector amarillo sobre las nubes y latón envejecido. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 89 (o /89) en el Experto.",
+  "logo": {
+    "svg": "../logos/89.svg",
+    "alt": "Cine 89 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/89-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Fraunces, Georgia, 'Times New Roman', serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Oswald, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif",
+    "pesoTitulos": 700,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "0.14em",
+    "fuentes": [
+      {
+        "familia": "Fraunces",
+        "url": "../fuentes/fraunces.woff2",
+        "peso": "100 900"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "100 900"
+      },
+      {
+        "familia": "Oswald",
+        "url": "../fuentes/oswald.woff2",
+        "peso": "200 700"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "0px",
+    "md": "2px",
+    "lg": "4px",
+    "boton": "0px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.6)",
+    "md": "0 0 24px rgba(255,204,26,.12), 0 8px 24px rgba(0,0,0,.6)",
+    "lg": "0 0 60px rgba(255,204,26,.16), 0 24px 60px rgba(0,0,0,.7)"
+  },
+  "tono": {
+    "voz": "Sobrio, nocturno y teatral: pocas palabras, mucha sombra y una luz que aparece cuando hace falta.",
+    "tratamiento": "tú",
+    "si": [
+      "frases breves",
+      "contrastes luz y sombra",
+      "verbos de vigilancia"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "Enciende el reflector",
+      "vacio": "La ciudad duerme tranquila.",
+      "error": "Apagón. Restableciendo la luz.",
+      "exito": "Luz encendida."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#1A1A1F",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#4A4B57",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#7A5C00",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#F4F2EC",
+      "fondoAlt": "#E9E6DD",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#EFECE4",
+      "borde": "#CFCABD",
+      "texto": "#0B0B0E",
+      "textoSuave": "#3C3B40",
+      "textoTenue": "#5D5B60",
+      "ok": "#1D7A46",
+      "aviso": "#8A5A00",
+      "error": "#B3261E",
+      "info": "#1F5F99"
+    },
+    "oscuro": {
+      "primario": "#FFCC1A",
+      "primarioTexto": "#050506",
+      "secundario": "#8C8FA3",
+      "secundarioTexto": "#050506",
+      "acento": "#C9A227",
+      "acentoTexto": "#050506",
+      "fondo": "#050506",
+      "fondoAlt": "#0B0B0E",
+      "superficie": "#111115",
+      "superficieAlt": "#19191F",
+      "borde": "#2C2C35",
+      "texto": "#EDEAE2",
+      "textoSuave": "#B3AFA6",
+      "textoTenue": "#858179",
+      "ok": "#4CD48A",
+      "aviso": "#FFB020",
+      "error": "#FF6B6F",
+      "info": "#8AB4F8"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css) de baja opacidad sobre el fondo.",
+    "oscuro": "radial-gradient(28% 22% at 50% 6%, rgba(255,204,26,.16), transparent 70%), conic-gradient(from 168deg at 50% 100%, transparent 0deg, rgba(255,204,26,.05) 12deg, transparent 24deg), repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 64px), #050506",
+    "velo": {
+      "color": "#FFCC1A",
+      "alfaMax": 0.16
+    }
+  },
+  "demo": {
+    "titular": "Enciende el reflector",
+    "producto": "La oferta de medianoche",
+    "cta": "Enciende el reflector",
+    "prompt": "Cartel vertical gótico de 1989: rascacielos art déco negros, nubes bajas y un haz de reflector amarillo vacío sobre ellas, latón envejecido; sin personajes, emblemas, siluetas de animales, logos ni fotogramas",
+    "circuito": "Circuito 89 · 40 pantallas nocturnas",
+    "puntos": 40,
+    "tipoEspacio": "Tiendas de centro urbano",
+    "tiendas": [
+      {
+        "nombre": "89 · Torre Norte",
+        "dir": "Avenida de las Torres, 89 · Barcelona"
+      },
+      {
+        "nombre": "89 · Catedral",
+        "dir": "Plaza de la Catedral, 1 · Barcelona"
+      },
+      {
+        "nombre": "89 · Muelle",
+        "dir": "Muelle Viejo, 9 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · haz de reflector",
+      "Pantalla mostrador · skyline déco",
+      "Caja · medianoche"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8901",
+        "equipo": "Pantalla escaparate",
+        "tienda": "89 · Torre Norte",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8902",
+        "equipo": "Player de mostrador",
+        "tienda": "89 · Catedral",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8903",
+        "equipo": "Hilo musical",
+        "tienda": "89 · Muelle",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

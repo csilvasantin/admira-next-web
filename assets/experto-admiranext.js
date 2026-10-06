@@ -164,7 +164,7 @@
       'marca blanca del catálogo de admiranext.com/marcablanca (p. ej. /marca 365); off vuelve a Admira',
       'white label from the admiranext.com/marcablanca catalogue (e.g. /marca 365); off returns to Admira'
     ], run: function (a, log) { return runMarca(a, escribirEn(log)); }});
-    // Atajos de las pieles de cine (FLT-101666 a): /84 y /85 son /marca 84 y /marca 85.
+    // Atajos de las pieles de cine (FLT-101666 a y b): /84…/89 son /marca 84…/marca 89.
     PIELES_CINE.forEach(function (p) {
       X.verb({name: p.id, alias: [], args: '', desc: [
         'atajo de /marca ' + p.id + ': piel de cine ' + p.anio + ' (' + p.es + '); /marca off vuelve a Admira',
@@ -174,7 +174,11 @@
   }
   var PIELES_CINE = [
     {id: '84', anio: '1984', es: 'acero, negro y rojo infrarrojo', en: 'steel, black and infrared red'},
-    {id: '85', anio: '1985', es: 'noche violeta, llamarada naranja y chispa azul', en: 'violet night, orange flame and blue spark'}
+    {id: '85', anio: '1985', es: 'noche violeta, llamarada naranja y chispa azul', en: 'violet night, orange flame and blue spark'},
+    {id: '86', anio: '1986', es: 'atardecer de aviación y dorado de aviador', en: 'aviation sunset and aviator gold'},
+    {id: '87', anio: '1987', es: 'cromo, azul patrulla y HUD', en: 'chrome, patrol blue and HUD'},
+    {id: '88', anio: '1988', es: 'cine negro con rojo de dibujo animado', en: 'noir with cartoon red'},
+    {id: '89', anio: '1989', es: 'negro gótico y amarillo de reflector', en: 'gothic black and searchlight yellow'}
   ];
   function escribirEn(log) {
     return function (t, cls) {
@@ -240,7 +244,7 @@
         if (e.key !== 'Enter' || !t || t.id !== 'cmdInput') return;
         var v = String(t.value || '').trim();
         var esIdioma = X.parseLangCommand && X.parseLangCommand(v);
-        var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/(84|85)$/.test(v);
+        var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/8[4-9]$/.test(v);
         if (!esIdioma && !esMarca) return;
         e.preventDefault();
         e.stopImmediatePropagation();

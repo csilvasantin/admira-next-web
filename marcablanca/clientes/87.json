@@ -1,0 +1,174 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "87",
+  "nombre": "Cine 87",
+  "nombreCorto": "87",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1987 · ciencia ficción policial",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico a la ciencia ficción policial de 1987. Cromo pulido, azul patrulla y retícula de HUD cian sobre negro azulado. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 87 (o /87) en el Experto.",
+  "logo": {
+    "svg": "../logos/87.svg",
+    "alt": "Cine 87 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/87-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "'DM Sans', -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "pesoTitulos": 700,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "0.06em",
+    "fuentes": [
+      {
+        "familia": "DM Sans",
+        "url": "../fuentes/dmsans.woff2",
+        "peso": "100 1000"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "100 900"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "2px",
+    "md": "6px",
+    "lg": "10px",
+    "boton": "3px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 0 0 1px rgba(77,159,255,.2)",
+    "md": "0 0 18px rgba(77,159,255,.2), 0 8px 24px rgba(0,0,0,.5)",
+    "lg": "0 0 40px rgba(92,225,230,.18), 0 24px 60px rgba(0,0,0,.6)"
+  },
+  "tono": {
+    "voz": "Procedimental y exacto: directrices numeradas, estado del sistema y respuesta inmediata.",
+    "tratamiento": "tú",
+    "si": [
+      "listas numeradas",
+      "estados del sistema",
+      "verbos imperativos"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "Activar protocolo",
+      "vacio": "Sector despejado.",
+      "error": "Error de sistema. Diagnóstico en curso.",
+      "exito": "Protocolo completado."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#0B4FA8",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#3A4658",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#00687A",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#EEF2F7",
+      "fondoAlt": "#E1E7EF",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#EAEFF5",
+      "borde": "#BFCAD8",
+      "texto": "#0A1220",
+      "textoSuave": "#34425A",
+      "textoTenue": "#56647A",
+      "ok": "#1D7A46",
+      "aviso": "#8A5A00",
+      "error": "#B3261E",
+      "info": "#0B4FA8"
+    },
+    "oscuro": {
+      "primario": "#4D9FFF",
+      "primarioTexto": "#080C14",
+      "secundario": "#C3CCD8",
+      "secundarioTexto": "#080C14",
+      "acento": "#5CE1E6",
+      "acentoTexto": "#080C14",
+      "fondo": "#080C14",
+      "fondoAlt": "#0E1420",
+      "superficie": "#131B2A",
+      "superficieAlt": "#1B2537",
+      "borde": "#2E3B52",
+      "texto": "#E8EEF6",
+      "textoSuave": "#AEB9C8",
+      "textoTenue": "#8190A5",
+      "ok": "#3DDC84",
+      "aviso": "#FFC24B",
+      "error": "#FF6B6F",
+      "info": "#5CE1E6"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css) de baja opacidad sobre el fondo.",
+    "oscuro": "linear-gradient(rgba(92,225,230,.05) 1px, transparent 1px) 0 0 / 32px 32px, linear-gradient(90deg, rgba(92,225,230,.05) 1px, transparent 1px) 0 0 / 32px 32px, radial-gradient(100% 60% at 50% 0%, rgba(77,159,255,.14), transparent 65%), #080C14",
+    "velo": {
+      "color": "#4D9FFF",
+      "alfaMax": 0.14
+    }
+  },
+  "demo": {
+    "titular": "Servir y proteger tu tienda",
+    "producto": "Vigilancia de pantallas 24 h",
+    "cta": "Activar protocolo",
+    "prompt": "Cartel vertical de ciencia ficción ochentera: cromo pulido, azul patrulla, retícula de HUD cian y tipografía técnica; sin personajes, armaduras reconocibles, logos ni fotogramas",
+    "circuito": "Circuito 87 · 30 pantallas de distrito",
+    "puntos": 30,
+    "tipoEspacio": "Tiendas urbanas",
+    "tiendas": [
+      {
+        "nombre": "87 · Distrito 1",
+        "dir": "Calle Mayor, 1 · Barcelona"
+      },
+      {
+        "nombre": "87 · Distrito 2",
+        "dir": "Calle Mayor, 87 · Barcelona"
+      },
+      {
+        "nombre": "87 · Comisaría Centro",
+        "dir": "Plaza Central, 7 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · escaneo HUD",
+      "Pantalla mostrador · directrices",
+      "Caja · estado del sistema"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8701",
+        "equipo": "Pantalla escaparate",
+        "tienda": "87 · Distrito 1",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8702",
+        "equipo": "Player de mostrador",
+        "tienda": "87 · Distrito 2",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8703",
+        "equipo": "Hilo musical",
+        "tienda": "87 · Comisaría Centro",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
