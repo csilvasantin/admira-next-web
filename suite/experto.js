@@ -339,10 +339,11 @@
     out(log, T('En esta consola, /cli ayudante es el avatar. /avatar good, /avatar better o /avatar best elige la cara.', 'On this console, /cli helper is the avatar. /avatar good, /avatar better or /avatar best picks the face.'), 'err');
   }});
 
-  function execute(text, log) {
+  // opts.echo === false: quien llama ya pintó la orden (p. ej. el CLI del armazón de admiranext.com).
+  function execute(text, log, opts) {
     var t = String(text || '').trim();
     if (!t) return;
-    out(log, '› ' + t, 'cmd');
+    if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
     if (handleLangCommand(t, log)) return;
     var parts = t.replace(/^\//, '').split(/\s+/), name = (parts.shift() || '').toLowerCase();
     var v = verbs.filter(function (x) { return x.name === name || (x.alias || []).indexOf(name) >= 0; })[0];
@@ -606,6 +607,11 @@
     close: function () { setOpen(false, true); },
     toggle: function () { setOpen(!isOpen(), true); },
     isOpen: isOpen,
+    // admiranext.com (06-10-2026): el CLI del armazón (admira-frame.js) delega en estos verbos.
+    // Añadidos compatibles: las cinco patas no los usan.
+    list: function () { return verbs.map(function (v) { return {name: v.name, alias: (v.alias || []).slice(), args: v.args || '', desc: (v.desc || []).slice()}; }); },
+    has: function (n) { n = String(n || '').replace(/^\//, '').toLowerCase(); return verbs.some(function (v) { return v.name === n || (v.alias || []).indexOf(n) >= 0; }); },
+    exec: function (t, log, opts) { log = log || (panel && panel.querySelector('.ax-cli-out')); if (log) return execute(t, log, opts); },
     parseLangCommand: parseLangCommand,
     normalizeLangToken: normalizeLangToken,
     setLanguage: applyLang

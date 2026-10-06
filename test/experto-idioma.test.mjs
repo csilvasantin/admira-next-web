@@ -92,3 +92,18 @@ test('applyLang guarda admiranext_expert_lang y navega con PixeriaIdioma.url', (
   assert.equal(storage.getItem('admiranext_expert_lang'), 'en');
   assert.deepEqual(fuimos, ['/stock.html?cliente=altadis&lang=es'], 'si la pata dice que ya estás, no se navega');
 });
+
+test('list/has/exec: el CLI del armazón de admiranext.com delega en los verbos de la piel', () => {
+  const { api } = withLang('es');
+  const nombres = api.list().map((v) => v.name);
+  for (const n of ['marca', 'idioma', 'estado', 'version']) assert.ok(nombres.includes(n), n);
+  assert.ok(api.has('/language') && api.has('idioma') && !api.has('nada'));
+  const items = [];
+  const log = { children: items, appendChild(li) { items.push(li); }, removeChild() { items.shift(); }, get firstChild() { return items[0]; }, scrollTop: 0, scrollHeight: 0 };
+  api.exec('/version', log, { echo: false });
+  assert.ok(items.length > 0);
+  assert.ok(!items.some((li) => String(li.textContent).startsWith('› ')), 'sin eco cuando echo:false');
+  items.length = 0;
+  api.exec('/version', log);
+  assert.equal(items[0].textContent, '› /version');
+});
