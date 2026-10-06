@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="theme-color" content="#0a0703" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="v.06.10.2026.r31.22:03" />
+  <meta name="admiranext-version" content="v.06.10.2026.r32.22:50" />
   <link rel="alternate" type="text/plain" href="/mcp/llms.txt" title="MCP · llms.txt" />
   <link rel="alternate" type="application/json" href="/mcp/manifest.json" title="MCP · manifest" />
   <link rel="manifest" href="site.webmanifest" />
@@ -475,7 +475,9 @@
       // distintas, que es la peor manera de mentir. Y la guardia de la regla 07 solo mira
       // el <footer>, así que a éste no lo veía nadie. Ahora sale del mismo sitio que el
       // verificador y no puede volver a divergir.
-      (function () {
+      // Desde el 06-10-2026 la versión solo se enseña con sesión: sello-sesion.js llama a
+      // AdmiraSelloArranque cuando /api/sello confirma usuario registrado.
+      window.AdmiraSelloArranque = function () {
         var meta = document.querySelector('meta[name="admiranext-version"]');
         var sello = (meta && meta.content ? meta.content : '').match(/v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}/);
         if (!sello) return;
@@ -483,7 +485,7 @@
           var d = window.I18N[lang];
           if (d && d['boot.l14']) d['boot.l14'] = d['boot.l14'].replace(/\s*v\.[\d.r:]+$/, '') + ' ' + sello[0];
         });
-      })();
+      };
 
       window.applyLang = function () {
         document.documentElement.lang = window.currentLang;
@@ -515,11 +517,12 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=20261006-avatar-nube-1" defer></script>
+  <script src="assets/app.js?v=20261006-zona-protegida-1" defer></script>
   <script defer src="/assets/experto-admiranext.js?v=20261006-experto-cerrado-1"></script>
   <script src="/assets/avatar.js?v=20261006-avatar-nube-1" defer></script>
-  <!-- Sello de versión con novedades (06-10-2026): el mismo cargador que usa toda la suite -->
-  <script defer src="/assets/sello-novedades.js?v=20261006-options-sello-5" data-admira-sello-loader></script>
+  <!-- Sello de versión con novedades: SOLO con sesión (06-10-2026). La portada pública no lo enseña;
+       sello-sesion.js pregunta a /api/sello y solo entonces carga el cargador común de la suite. -->
+  <script defer src="/assets/sello-sesion.js?v=20261006-zona-protegida-1"></script>
 </head>
 <body data-route="">
 <div class="wallpaper" id="wallpaper">
@@ -551,9 +554,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <button type="button" data-entry-best data-i18n="classic.best.label">Platform</button>
     <button type="button" data-entry-robots data-i18n="classic.better.label">Robots</button>
     <button type="button" data-entry-about data-i18n="classic.good.label">About us</button>
-    <a href="/libro-de-estilo">Style book</a>
-    <a href="/flota">Agentes</a>
-    <a href="/organigrama">Organigrama</a>
+    <!-- Style book, Agentes y Organigrama viven en la zona protegida (/webmaster#zona-protegida), 06-10-2026 -->
     <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Contact</button>
   </div>
 </nav>

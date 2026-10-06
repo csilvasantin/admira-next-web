@@ -498,7 +498,8 @@
     var movidos = mudar(lado, r);
     if (modoCabecera && !movidos && !(lado === 'left' && grupo.length)) r.appendChild(texto('p', 'yk-empty', '— sin opciones en esta página'));
     var pie = el('div', 'yk-rail-foot');
-    var piePlaca = texto('span', '', 'ADmiraNeXT · ' + (selloMeta() || '2026'));
+    // Sin sesión el pie dice solo la marca (06-10-2026): la versión es para usuarios registrados.
+    var piePlaca = texto('span', '', 'ADmiraNeXT');
     piePlaca.setAttribute('data-yk-sello', '');
     pie.appendChild(piePlaca);
     r.appendChild(pie);
@@ -516,6 +517,23 @@
   }
   function selloVivo() {
     if (typeof G.fetch !== 'function') return;
+    // Solo con sesión válida (06-10-2026): sin ella el pie no enseña versión ni se pide el manifiesto.
+    sesionSello().then(function (conSesion) {
+      if (!conSesion) return;
+      var m = selloMeta();
+      if (m) doc.querySelectorAll('[data-yk-sello]').forEach(function (n) { n.textContent = 'ADmiraNeXT · ' + m; });
+      selloManifiesto();
+    });
+  }
+  function sesionSello() {
+    if (G.__admiraSesionSello) return G.__admiraSesionSello;
+    G.__admiraSesionSello = G.fetch('/api/sello', {credentials: 'same-origin', cache: 'no-store'})
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { return !!(d && d.sesion === true); })
+      .catch(function () { return false; });
+    return G.__admiraSesionSello;
+  }
+  function selloManifiesto() {
     G.fetch('/version.json', {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
       var v = d && String(d.version || d.sello || '').match(/v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}/);
       if (!v) return;
@@ -963,13 +981,15 @@
 })();
 
 // Shared release stamp follows the Options panel, including the first update notice.
+// Desde el 06-10-2026 SOLO con sesión: sello-sesion.js pregunta a /api/sello y únicamente
+// entonces carga /assets/sello-novedades.js. La parte pública no enseña sello ni novedades.
 (function () {
   try { if (window.self !== window.top) return; } catch (e) { return; }
-  if (document.querySelector('script[data-admira-sello-loader]')) return;
+  if (document.querySelector('script[data-admira-sello-loader]') || document.querySelector('script[data-admira-sello-sesion]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/sello-novedades.js?v=20261006-options-sello-5';
+  script.src = '/assets/sello-sesion.js?v=20261006-zona-protegida-1';
   script.defer = true;
-  script.setAttribute('data-admira-sello-loader', '');
+  script.setAttribute('data-admira-sello-sesion', '');
   (document.head || document.documentElement).appendChild(script);
 })();
 

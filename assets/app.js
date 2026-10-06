@@ -84,7 +84,7 @@
     { id: 'webmaster',      url: '/webmaster',      es: 'Webmaster · versiones',        en: 'Webmaster · versions',     alias: ['webmaster', 'versiones', 'versions'] },
     { id: 'proyectos',      url: '/proyectos/',     es: 'Proyectos',                    en: 'Projects',                 alias: ['proyectos', 'projects'] },
     { id: 'usuarios',       url: '/usuarios',       es: 'Gestión de usuarios',          en: 'User management',          alias: ['usuarios', 'users'] },
-    { id: 'flota',          url: '/flota',          es: 'Flota',                        en: 'Fleet',                    alias: ['flota', 'fleet'] },
+    { id: 'flota',          url: '/flota',          es: 'Agentes · zona protegida',     en: 'Agents · protected area',  alias: ['flota', 'fleet', 'agentes', 'agents'] },
     { id: 'marcablanca',    url: '/marcablanca/',   es: 'Marca blanca y propuestas',    en: 'White label and proposals', alias: ['marcablanca', 'marca-blanca', 'whitelabel', 'white-label', 'propuestas', 'proposals'] },
     { id: 'presupuestos',   url: '/presupuestos/',  es: 'Generador de presupuestos',    en: 'Budget generator',         alias: ['presupuestos', 'budgets', 'budget'] },
     { id: 'studio',         url: 'https://www.admira.studio/', es: 'Admira.Studio · crea',        en: 'Admira.Studio · creates',        alias: ['studio', 'admira.studio'] },
@@ -1694,6 +1694,7 @@
       { text: 'Libro de estilo · ADmiraNeXT', cls: 'heading' },
       { text: '' },
       { text: '  Quiénes somos y cómo nos gustan las cosas.', cls: 'accent' },
+      { text: '  Zona protegida: se abre tras el acceso interno.', cls: 'dim' },
       { text: '' },
       { text: '  → /libro-de-estilo', cls: 'green' },
     ];

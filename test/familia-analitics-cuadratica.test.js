@@ -39,7 +39,7 @@ const ADOPTADAS = {
   'usuarios.html': {ruta: '/usuarios', acceso: 'privado'},
   'xpace/manage.html': {ruta: '/xpace/manage', acceso: 'privado'},
   'proyectos/index.html': {ruta: '/proyectos/', acceso: 'publico'},
-  'flota.html': {ruta: '/flota', acceso: 'publico'},
+  'flota.html': {ruta: '/flota', acceso: 'privado'}, // zona protegida desde el 06-10-2026 (functions/flota.js)
   // Carlos (3-oct-2026): «que Presentaciones lleve también la barra de la intranet».
   'presentaciones/generador.html': {ruta: '/presentaciones/', acceso: 'privado', funcion: 'functions/presentaciones/generador.js'},
   'presentaciones/index.html': {ruta: '/presentaciones/galeria', acceso: 'privado', actual: '/presentaciones/', funcion: 'functions/presentaciones/galeria.js'},
@@ -62,13 +62,14 @@ const ADOPTADAS = {
   'telegram/index.html': {ruta: '/telegram/', acceso: 'publico', actual: null, auto: true},
   'presentar.html': {ruta: '/presentar', acceso: 'publico', actual: null, auto: true},
   'consejo/index.html': {ruta: '/consejo/', acceso: 'publico', actual: null, auto: true},
-  'organigrama.html': {ruta: '/organigrama', acceso: 'publico', actual: null, auto: true},
+  'organigrama.html': {ruta: '/organigrama', acceso: 'privado', actual: null, auto: true}, // zona protegida desde el 06-10-2026
   'roadmap.html': {ruta: '/roadmap', acceso: 'publico', actual: '/roadmap', auto: true}
 };
 
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que
 // ya no se detecta (o que ya adopta la barra) también hace fallar el test.
 const EXCEPCIONES = {
+  'libro-de-estilo.html': 'Style Book: zona protegida desde el 06-10-2026 (destino de la puerta de login), pero es el libro de estilo con su propia maqueta editorial y no lleva la barra del grupo.',
   '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.'
 };
 
