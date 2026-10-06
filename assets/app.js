@@ -239,7 +239,7 @@
 
   // ============ AVATAR DIGITAL ============
   // Interruptor por usuario del avatar de digitalavatar.ai (assets/avatar.js).
-  // /avatar good|better|best abre el calvo, la chica o Neo. /avatar sin nivel dice
+  // /avatar good|better|best abre a Admirito (la nube), la chica o Neo. /avatar sin nivel dice
   // el estado. /avatarON lo muestra y /avatarOFF lo oculta. La elección se guarda
   // en este navegador y gana al interruptor del proyecto (/webmaster).
   function cmdAvatar(text) {
@@ -250,7 +250,7 @@
     return [{ text: '  ' + msg, cls: /desactivado|off|apagado/i.test(msg) ? 'dim' : 'green' }];
   }
   const AVATAR_COMMANDS = {
-    '/avatar':        { desc: '/avatar good (calvo 3D) · /avatar better (chica, gafas) · /avatar best (Neo; si el render está apagado, la chica). Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta.', fn: () => cmdAvatar('/avatar') },
+    '/avatar':        { desc: '/avatar good (Admirito, la nube animada) · /avatar better (chica, gafas) · /avatar best (Neo; si el render está apagado, la chica). Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta.', fn: () => cmdAvatar('/avatar') },
     '/avataron':      { desc: 'Avatar digital: mostrar', fn: () => cmdAvatar('/avatarON') },
     '/avataroff':     { desc: 'Avatar digital: ocultar', fn: () => cmdAvatar('/avatarOFF') },
     '/avatardigital': { desc: 'Alias de /avatar (estado; good, better o best abren el nivel)', fn: () => cmdAvatar('/avatar') },

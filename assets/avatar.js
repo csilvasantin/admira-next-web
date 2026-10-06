@@ -4,7 +4,8 @@
  * La cara y la voz no se copian: el panel abre la demo viva de digitalavatar.ai
  * (micro, texto, ElevenLabs por brain.digitalavatar.ai, cortar, estados).
  *
- *   /avatar good    el calvo — cara 3D facecap.glb, 52 blendshapes (better.html)
+ *   /avatar good    Admirito — la nube animada, 2D ligera con lip-sync y vida propia (nube.html)
+ *                   (el calvo 3D, better.html, queda como etapa del museo de digitalavatar.ai)
  *   /avatar better  la chica — Ready Player Me con gafas (best.html)
  *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html)
  *   /avatar         estado y las tres opciones
@@ -33,7 +34,7 @@
   var FLAGS_URL = ORIGIN + '/api/avatar/flags';
   var CENTRAL_BRAIN = ORIGIN + '/api/avatar-ask';
   var LEVELS = {
-    good: 'https://digitalavatar.ai/better.html?dock=1',
+    good: 'https://digitalavatar.ai/nube.html?dock=1',
     better: 'https://digitalavatar.ai/best.html?dock=1&kiosk=0',
     best: 'https://digitalavatar.ai/metahuman.html?dock=1'
   };
@@ -96,12 +97,12 @@
   function message(kind, en) {
     if (kind === 'on') return en ? 'Digital avatar on' : 'Avatar digital activado';
     if (kind === 'off') return en ? 'Digital avatar off' : 'Avatar digital desactivado';
-    if (kind === 'good') return en ? 'Avatar good: the bald 3D face (facecap, 52 blendshapes).' : 'Avatar good: el calvo, cara 3D (facecap, 52 blendshapes).';
+    if (kind === 'good') return en ? 'Avatar good: Admirito, the animated cloud (moves its lips and lives on its own).' : 'Avatar good: Admirito, la nube animada (mueve los labios y hace cosas sola).';
     if (kind === 'better') return en ? 'Avatar better: the web girl (Ready Player Me, glasses).' : 'Avatar better: la chica web (Ready Player Me, gafas).';
     if (kind === 'best') return en ? 'Avatar best: Neo, MetaHuman.' : 'Avatar best: Neo, MetaHuman.';
     if (kind === 'status') return en
-      ? 'Digital avatar. /avatar good · bald 3D face. /avatar better · web girl with glasses. /avatar best · Neo, MetaHuman. /avatarON shows it, /avatarOFF hides it.'
-      : 'Avatar digital. /avatar good · el calvo (cara 3D). /avatar better · la chica web con gafas. /avatar best · Neo, MetaHuman. /avatarON lo muestra, /avatarOFF lo oculta.';
+      ? 'Digital avatar. /avatar good · Admirito, the animated cloud. /avatar better · web girl with glasses. /avatar best · Neo, MetaHuman. /avatarON shows it, /avatarOFF hides it.'
+      : 'Avatar digital. /avatar good · Admirito, la nube animada. /avatar better · la chica web con gafas. /avatar best · Neo, MetaHuman. /avatarON lo muestra, /avatarOFF lo oculta.';
     if (kind === 'mascota-on') return en ? 'Admirito shown. /avatarDigital or /admirito hides it again.' : 'Admirito visible. /avatarDigital o /admirito lo vuelve a ocultar.';
     if (kind === 'mascota-off') return en ? 'Admirito hidden. /avatarDigital or /admirito shows it again.' : 'Admirito oculto. /avatarDigital o /admirito lo vuelve a mostrar.';
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
