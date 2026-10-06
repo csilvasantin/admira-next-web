@@ -70,5 +70,9 @@
     "Dos pieles de cine en el Experto: /marca 84 (o /84) · ciencia ficción de 1984: acero, negro y rojo infrarrojo con líneas de barrido; /marca 85 (o /85) · viajes en el tiempo de 1985: noche violeta, llamarada naranja y chispa azul.",
     "Estética propia (paleta, tipografía y fondos), contraste AA ≥ 4,5:1 comprobado en las pruebas; /marca off vuelve a Admira.",
     "Libro de estilo de cada piel: /marcablanca/estilo?marca=84 y ?marca=85 (ahora con 200 directo y la marca nombrada en el HTML)."
+  ],
+  "v.06.10.2026.r16.10:31": [
+    "/idioma ENG ya traduce también /flota (Agentes: marcador, misiones, avisos y tablas) y /consejo (presentación, ejemplos de preguntas, botones y aviso de IA).",
+    "Las frases largas partidas en varias líneas y los placeholders de los cuadros de texto también cambian de idioma."
   ]
 }
