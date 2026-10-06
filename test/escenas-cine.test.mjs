@@ -54,7 +54,12 @@ test('cada piel 81–89 tiene su escena: SVG propio, accesible, ligero y sin mat
     assert.ok(existsSync(new URL(ruta, ROOT)), ruta);
     const svg = leer(ruta);
     assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 1600 900"/, 'vector 16:9');
-    assert.match(svg, /preserveAspectRatio="xMidYMid slice"/, 'cubre el fondo sin deformarse');
+    // Abierta sola escala a la ventana: solo viewBox (sin width/height fijos) y meet, con el fondo de la
+    // piel en las bandas; de fondo CSS (cover) o en el <img> 16:9 del libro la caja ya es 16:9.
+    const raiz = svg.slice(0, svg.indexOf('>'));
+    assert.doesNotMatch(raiz, /\s(width|height)="/, `${id}: sin tamaño fijo en la raíz`);
+    assert.match(raiz, /preserveAspectRatio="xMidYMid meet"/, 'entera y sin deformarse');
+    assert.match(raiz, new RegExp(`style="background-color:${marca(id).colores.oscuro.fondo}"`, 'i'), 'bandas con el fondo de la piel');
     assert.match(svg, /role="img"/);
     const titulo = svg.match(/<title[^>]*>([^<]+)<\/title>/)?.[1] || '';
     assert.match(titulo, new RegExp(`^Piel ${id} · `), 'título accesible');
@@ -146,6 +151,24 @@ test('libro de estilo: la escena sale bajo la portada de /marcablanca/estilo?mar
 });
 
 const TIPOS = {'.svg': 'image/svg+xml', '.json': 'application/json', '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css'};
+// Contraste WCAG 2.x
+const lum = (hex) => { const v = hex.replace('#', '').match(/../g).map((x) => parseInt(x, 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+const contraste = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+
+test('libro de estilo: el pie de la escena se lee (≥ 7:1 sobre su barra) en las 9 pieles', () => {
+  const css = leer('marcablanca/estilo/estilo.css');
+  const regla = css.match(/\.escena figcaption\{([^}]*)\}/)?.[1] || '';
+  const fondo = regla.match(/--escena-pie-fondo:(#[0-9a-f]{6})/i)?.[1], texto = regla.match(/--escena-pie-texto:(#[0-9a-f]{6})/i)?.[1];
+  assert.ok(fondo && texto, 'barra y texto con colores propios');
+  assert.match(regla, /background:var\(--escena-pie-fondo\)/);
+  assert.match(regla, /color:var\(--escena-pie-texto\)/, 'no hereda el texto (oscuro) de la piel');
+  assert.match(regla, /opacity:1/, 'sin opacidad que rebaje el contraste');
+  assert.doesNotMatch(regla, /var\(--(t|ts|tt|p|f|fa|sup)\)/, 'nada de la paleta de la piel: el mismo pie para todas');
+  const r = contraste(texto, fondo);
+  for (const id of PIELES) assert.ok(r >= 7, `${id}: ${r.toFixed(2)}:1`);
+  assert.match(leer('marcablanca/estilo/index.html'), /estilo\.css\?v=20261006-escenas-pie/, 'sello nuevo de la hoja');
+});
+
 test('cada escena se sirve con 200 e image/svg+xml (servidor estático local del repo)', async () => {
   const srv = createServer(async (req, res) => {
     const ruta = decodeURIComponent(new URL(req.url, 'http://x').pathname);

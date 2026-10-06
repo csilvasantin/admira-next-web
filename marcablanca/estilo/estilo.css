@@ -85,6 +85,9 @@ footer.pie-libro{color:var(--tt);font-size:12px;padding:24px 0;text-align:center
 @media (max-width:900px){.portada,.r2,.r3,.r4,.r5{grid-template-columns:1fr}.paleta{grid-template-columns:repeat(2,1fr)}}
 
 /* Escena ilustrada de la piel (fondos.escena · 06-10-2026) bajo la portada */
-.escena{margin:0 0 28px;border:1px solid var(--bd,rgba(127,127,127,.3));border-radius:14px;overflow:hidden;background:#000}
+.escena{margin:0 0 28px;border:1px solid var(--bd,rgba(127,127,127,.3));border-radius:14px;overflow:hidden;background:#0B0B0E}
 .escena img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
-.escena figcaption{padding:10px 14px;font-size:13px;opacity:.8}
+/* Pie de la escena: barra propia oscura con texto claro, sin opacidad ni color heredado de la piel
+   (antes heredaba el texto oscuro del libro sobre la barra negra: ilegible). #F4F1EA sobre #0B0B0E ≈ 17:1,
+   igual en las 9 pieles (test/escenas-cine.test.mjs exige ≥ 7:1). */
+.escena figcaption{--escena-pie-fondo:#0B0B0E;--escena-pie-texto:#F4F1EA;margin:0;padding:10px 14px;font-size:13px;line-height:1.45;background:var(--escena-pie-fondo);color:var(--escena-pie-texto);opacity:1}
