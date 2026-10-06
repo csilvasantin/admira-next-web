@@ -1,6 +1,6 @@
 {
-  "version": "v.06.10.2026.r11.08:31",
-  "deployer": "GrokBotMacMini",
-  "machine": "MacMini",
-  "signature": "GrokBotMacMini · MacMini"
+  "version": "v.06.10.2026.r12.09:25",
+  "deployer": "GrokBotBox",
+  "machine": "Box",
+  "signature": "GrokBotBox · Box"
 }
