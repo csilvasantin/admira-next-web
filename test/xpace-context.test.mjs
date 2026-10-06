@@ -48,3 +48,17 @@ test('connection grant cannot be forged from client origin or reused after expir
  assert.equal((await connect({request:req('/api/xpace/connect','POST',{cookie:a.cookie,origin:'https://www.admiranext.com','X-Admira-CSRF':a.csrf},{origin,state}),env})).status,410);
 });
 test('central logout revokes existing read access as well as clearing cookies',async()=>{const {onRequestPost:logout}=await import('../functions/webmaster/logout.js'),env=await setup(),a=await auth(env),access=await issueAccess(env,a.me,origin);const response=await logout({request:req('/webmaster/logout','POST',{cookie:a.cookie,origin:'https://www.admiranext.com','X-Admira-CSRF':a.csrf}),env});assert.equal(response.status,200);assert.equal((await context({request:api(access.token),env})).status,401);});
+
+test('admira.biz y clearchannel.tv (mismo backoffice que admira.app) pueden enlazar y leer, y solo con su propio token',async()=>{
+ const {CLIENT_ORIGINS}=await import('../functions/_xpace-registry.js');
+ for(const o of ['https://www.admira.biz','https://admira.biz','https://www.clearchannel.tv','https://clearchannel.tv'])assert.ok(CLIENT_ORIGINS.has(o),o);
+ for(const o of ['https://admira.biz.evil.test','http://www.admira.biz','https://xadmira.biz','https://clearchannel.tv.evil.test'])assert.equal(CLIENT_ORIGINS.has(o),false,o);
+ for(const client of ['https://www.admira.biz','https://www.clearchannel.tv']){
+  const env=await setup(),u=await user(env,'biz-'+client.length+'@test.com',['commercial:starbucks']);
+  const access=await issueAccess(env,u,client);
+  const ok=await context({request:api(access.token,client),env});assert.equal(ok.status,200,client);
+  // El token queda ligado a su origen: desde otro cliente no vale.
+  assert.equal((await context({request:api(access.token,'https://www.admira.store'),env})).status,401,client);
+  const pre=options({request:req('/api/xpace/link','OPTIONS',{origin:client})});assert.equal(pre.status,204);assert.equal(pre.headers.get('access-control-allow-credentials'),null);
+ }
+});
