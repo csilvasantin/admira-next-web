@@ -40,8 +40,8 @@ test('verbos nuevos y alias antiguos', () => {
   assert.equal(A.decide('/avatares'), null);
 });
 
-test('good es el calvo, better la chica y best Neo', () => {
-  assert.equal(A.LEVELS.good, 'https://digitalavatar.ai/better.html?dock=1');
+test('good es la nube Admirito, better la chica y best Neo', () => {
+  assert.equal(A.LEVELS.good, 'https://digitalavatar.ai/nube.html?dock=1');
   assert.equal(A.LEVELS.better, 'https://digitalavatar.ai/best.html?dock=1&kiosk=0');
   assert.equal(A.LEVELS.best, 'https://digitalavatar.ai/metahuman.html?dock=1');
   assert.match(A.message('status', false), /good/);
@@ -109,10 +109,10 @@ test('el encendido automático no guarda la elección del usuario', () => {
 
 test('levelUrl: el panel abre la cara con el contexto del cliente y tier = nivel', () => {
   assert.equal(A.levelUrl('good', {loc: 'alsea-sbux-021', lang: 'es-ES', brand: 'admira', sector: 'cafeteria', x: 'no'}),
-    'https://digitalavatar.ai/better.html?dock=1&loc=alsea-sbux-021&lang=es&sector=cafeteria&tier=good');
+    'https://digitalavatar.ai/nube.html?dock=1&loc=alsea-sbux-021&lang=es&sector=cafeteria&tier=good');
   assert.equal(A.levelUrl('best', {brand: 'lumbre', site: 'Lumbre Gràcia'}),
     'https://digitalavatar.ai/metahuman.html?dock=1&brand=lumbre&site=Lumbre%20Gr%C3%A0cia&tier=best');
-  assert.equal(A.levelUrl('nope', {}), 'https://digitalavatar.ai/better.html?dock=1&tier=good');
+  assert.equal(A.levelUrl('nope', {}), 'https://digitalavatar.ai/nube.html?dock=1&tier=good');
   assert.deepEqual(JSON.parse(JSON.stringify(A.cleanContext({lang: 'EN', brand: 'off', city: '  Barcelona '}))), {lang: 'en', city: 'Barcelona'});
 });
 
