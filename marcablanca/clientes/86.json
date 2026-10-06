@@ -1,0 +1,174 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "86",
+  "nombre": "Cine 86",
+  "nombreCorto": "86",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1986 · aviación",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico al cine de aviación de 1986. Cielo de atardecer sobre la pista, azul marino de crepúsculo, dorado de gafas de aviador y coral de horizonte. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 86 (o /86) en el Experto.",
+  "logo": {
+    "svg": "../logos/86.svg",
+    "alt": "Cine 86 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/86-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Manrope, 'Arial Black', -apple-system, 'Segoe UI', sans-serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "pesoTitulos": 800,
+    "transformTitulos": "uppercase",
+    "trackingTitulos": "0.12em",
+    "fuentes": [
+      {
+        "familia": "Manrope",
+        "url": "../fuentes/manrope.woff2",
+        "peso": "200 800"
+      },
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "100 900"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "4px",
+    "md": "8px",
+    "lg": "14px",
+    "boton": "4px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.4)",
+    "md": "0 0 18px rgba(242,179,61,.18), 0 8px 24px rgba(0,0,0,.45)",
+    "lg": "0 0 40px rgba(255,122,77,.2), 0 24px 60px rgba(0,0,0,.55)"
+  },
+  "tono": {
+    "voz": "Seguro, veloz y con oficio: órdenes claras, altitud y rumbo, cero dudas.",
+    "tratamiento": "tú",
+    "si": [
+      "verbos de velocidad",
+      "rumbo y hora exactos",
+      "frases cortas"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "Despega ya",
+      "vacio": "Cielo despejado: nada pendiente.",
+      "error": "Turbulencias. Volvemos a intentarlo.",
+      "exito": "Aterrizaje perfecto."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#8A5A00",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#A8401E",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#1F5F99",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#FBF6EC",
+      "fondoAlt": "#F2E8D6",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#F5EEE2",
+      "borde": "#DCCDB2",
+      "texto": "#0E1726",
+      "textoSuave": "#3D4A60",
+      "textoTenue": "#5E6A7E",
+      "ok": "#1D7A46",
+      "aviso": "#8A5A00",
+      "error": "#B3261E",
+      "info": "#1F5F99"
+    },
+    "oscuro": {
+      "primario": "#F2B33D",
+      "primarioTexto": "#0B1220",
+      "secundario": "#FF7A4D",
+      "secundarioTexto": "#0B1220",
+      "acento": "#7FB8E6",
+      "acentoTexto": "#0B1220",
+      "fondo": "#0B1220",
+      "fondoAlt": "#111A2C",
+      "superficie": "#16213A",
+      "superficieAlt": "#1E2B48",
+      "borde": "#33456B",
+      "texto": "#F4EEE2",
+      "textoSuave": "#C9C2B4",
+      "textoTenue": "#9AA3B5",
+      "ok": "#4CD48A",
+      "aviso": "#FFB020",
+      "error": "#FF6B6B",
+      "info": "#7FB8E6"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css) de baja opacidad sobre el fondo.",
+    "oscuro": "linear-gradient(180deg, transparent 55%, rgba(255,122,77,.16) 85%, rgba(242,179,61,.20)), #0B1220",
+    "velo": {
+      "color": "#FF7A4D",
+      "alfaMax": 0.2
+    }
+  },
+  "demo": {
+    "titular": "Despega ya",
+    "producto": "Ofertas a toda velocidad",
+    "cta": "Despega ya",
+    "prompt": "Cartel vertical de aviación ochentera: cielo de atardecer naranja sobre azul marino, siluetas genéricas de reactores lejanos y dorado de gafas de aviador; sin personajes, insignias reales, logos ni fotogramas",
+    "circuito": "Circuito 86 · 18 pantallas de terminal",
+    "puntos": 18,
+    "tipoEspacio": "Tiendas de aeropuerto",
+    "tiendas": [
+      {
+        "nombre": "86 · Puerta A",
+        "dir": "Terminal 1, puerta A · Barcelona"
+      },
+      {
+        "nombre": "86 · Puerta B",
+        "dir": "Terminal 1, puerta B · Barcelona"
+      },
+      {
+        "nombre": "86 · Hangar",
+        "dir": "Zona de carga, 6 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · atardecer en pista",
+      "Pantalla mostrador · panel de vuelos",
+      "Caja · tarjeta de embarque"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8601",
+        "equipo": "Pantalla escaparate",
+        "tienda": "86 · Puerta A",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8602",
+        "equipo": "Player de mostrador",
+        "tienda": "86 · Puerta B",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8603",
+        "equipo": "Hilo musical",
+        "tienda": "86 · Hangar",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}

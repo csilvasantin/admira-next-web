@@ -74,5 +74,10 @@
   "v.06.10.2026.r16.10:31": [
     "/idioma ENG ya traduce también /flota (Agentes: marcador, misiones, avisos y tablas) y /consejo (presentación, ejemplos de preguntas, botones y aviso de IA).",
     "Las frases largas partidas en varias líneas y los placeholders de los cuadros de texto también cambian de idioma."
+  ],
+  "v.06.10.2026.r17.10:34": [
+    "Cuatro pieles de cine más en el Experto: /marca 86 (o /86) · aviación de 1986, atardecer y dorado de aviador; /marca 87 (o /87) · ciencia ficción policial de 1987, cromo, azul patrulla y HUD.",
+    "/marca 88 (o /88) · cine negro y animación de 1988, sepia, persianas y rojo de dibujo; /marca 89 (o /89) · gótico urbano de 1989, negro y amarillo de reflector.",
+    "Con cualquier piel de cine (84–89) el terminal de la home toma la superficie y el texto de la piel: texto tenue ≥ 7:1 (antes 4,3:1). /marca off vuelve a Admira; libro de estilo en /marcablanca/estilo?marca=86…89."
   ]
 }

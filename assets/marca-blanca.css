@@ -111,7 +111,7 @@
 /* ── Pieles de cine (06-10-2026 · FLT-101666 a): /marca 84 y /marca 85 (o /84 y /85 en el Experto) ──
    Estética propia y genérica (paleta, tipografía, fondos): sin logos, fotogramas ni títulos de terceros.
    Los velos son de baja opacidad: el texto de la marca sigue ≥ 4,5:1 sobre el fondo con el velo encima
-   (test/marca-cine-84-85.test.mjs lo calcula con fondos.velo de cada JSON). */
+   (test/marca-cine.test.mjs lo calcula con fondos.velo de cada JSON). */
 
 /* 84 · ciencia ficción de 1984: acero frío, negro de madrugada, rojo infrarrojo y líneas de barrido */
 :root[data-mb-marca="84"][data-mb-plataforma="store"] body,
@@ -158,3 +158,85 @@
 :root[data-mb-marca="85"][data-mb-plataforma="store"] :focus-visible{outline:2px solid var(--mb-acento);outline-offset:2px}
 :root[data-mb-marca="85"][data-mb-plataforma="store"] .eyebrow,
 :root[data-mb-marca="85"][data-mb-plataforma="store"] .hero .kicker{font-family:var(--mb-fuente-etiquetas);letter-spacing:.14em}
+
+/* ── Pieles de cine 86–89 (06-10-2026 · FLT-101666 b): /marca 86…89 (o /86…/89 en el Experto) ── */
+/* Comunes: fondo de la piel, titulares con su tipografía y foco visible con el color de marca */
+:root:is([data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] body{
+  background-attachment:fixed!important;font-family:var(--mb-fuente-texto);
+}
+:root:is([data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] :is(h1,h2,h3){
+  font-family:var(--mb-fuente-titulos);text-transform:var(--mb-titulos-transform);letter-spacing:var(--mb-titulos-tracking);
+}
+:root:is([data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] .mb-bar-logo{color:var(--mbx-ink)}
+:root:is([data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] :focus-visible{outline:2px solid var(--mbx-brand);outline-offset:2px}
+:root:is([data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] :is(input,textarea){caret-color:var(--mbx-brand)}
+:root:is([data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] :is(.eyebrow,.hero .kicker){font-family:var(--mb-fuente-etiquetas);letter-spacing:.14em}
+
+/* 86 · aviación de 1986: atardecer sobre la pista, azul marino de crepúsculo y dorado de aviador */
+:root[data-mb-marca="86"][data-mb-plataforma="store"] body,
+:root[data-mb-marca="86"][data-mb-plataforma="store"] body[data-yk-frame]{
+  background:linear-gradient(180deg,transparent 55%,rgba(255,122,77,.16) 85%,rgba(242,179,61,.20)),var(--mb-fondo)!important;
+}
+:root[data-mb-marca="86"][data-mb-plataforma="store"] header.yk-head{
+  border-bottom:0!important;box-shadow:0 2px 0 var(--mb-primario),0 4px 0 color-mix(in srgb,var(--mb-secundario) 60%,transparent);
+}
+
+/* 87 · ciencia ficción policial de 1987: cromo, azul patrulla y retícula de HUD */
+:root[data-mb-marca="87"][data-mb-plataforma="store"] body,
+:root[data-mb-marca="87"][data-mb-plataforma="store"] body[data-yk-frame]{
+  background:
+    linear-gradient(rgba(92,225,230,.05) 1px,transparent 1px) 0 0/32px 32px,
+    linear-gradient(90deg,rgba(92,225,230,.05) 1px,transparent 1px) 0 0/32px 32px,
+    radial-gradient(100% 60% at 50% 0%,rgba(77,159,255,.14),transparent 65%),
+    var(--mb-fondo)!important;
+}
+:root[data-mb-marca="87"][data-mb-plataforma="store"] header.yk-head{
+  border-bottom:1px solid var(--mb-secundario)!important;
+  background-image:linear-gradient(180deg,color-mix(in srgb,var(--mb-secundario) 10%,transparent),transparent)!important;
+}
+
+/* 88 · cine negro y animación de 1988: persianas de luz, sepia y rojo de dibujo animado */
+:root[data-mb-marca="88"][data-mb-plataforma="store"] body,
+:root[data-mb-marca="88"][data-mb-plataforma="store"] body[data-yk-frame]{
+  background:
+    repeating-linear-gradient(115deg,rgba(255,240,220,.035) 0 18px,transparent 18px 44px),
+    radial-gradient(70% 55% at 30% 20%,rgba(255,92,92,.14),transparent 70%),
+    var(--mb-fondo)!important;
+}
+:root[data-mb-marca="88"][data-mb-plataforma="store"] header.yk-head{border-bottom:3px solid var(--mb-primario)!important;box-shadow:0 4px 0 rgba(0,0,0,.55)}
+:root[data-mb-marca="88"][data-mb-plataforma="store"] :is(.btn-primary,button.primary,a.cta:not(.secondary)){box-shadow:3px 3px 0 rgba(0,0,0,.6)}
+
+/* 89 · gótico urbano de 1989: negro de medianoche, haz de reflector amarillo y líneas déco */
+:root[data-mb-marca="89"][data-mb-plataforma="store"] body,
+:root[data-mb-marca="89"][data-mb-plataforma="store"] body[data-yk-frame]{
+  background:
+    radial-gradient(28% 22% at 50% 6%,rgba(255,204,26,.16),transparent 70%),
+    conic-gradient(from 168deg at 50% 100%,transparent 0deg,rgba(255,204,26,.05) 12deg,transparent 24deg),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 1px,transparent 1px 64px),
+    var(--mb-fondo)!important;
+}
+:root[data-mb-marca="89"][data-mb-plataforma="store"] header.yk-head{
+  border-bottom:1px solid var(--mb-acento)!important;box-shadow:0 1px 0 #000,0 3px 0 color-mix(in srgb,var(--mb-acento) 40%,transparent);
+}
+
+/* ── Terminal de la home con las pieles de cine 84–89 (06-10-2026 · FLT-101666 b) ──
+   La ventana del terminal (assets/app.css) seguía con su azul marino (#252540) y el texto tenue gris
+   violeta (#8888aa, ≈ 4,6:1): se leía, pero con poco contraste. Con una piel de cine la ventana toma la
+   superficie de la piel y el texto (normal, tenue y apagado) su texto y texto suave: ≥ 7:1 (AAA),
+   comprobado en test/marca-cine.test.mjs. Se declara en body y en la ventana para ganar también a
+   los temas propios de la home (.theme-light, .theme-glass, .theme-retro). */
+:root:is([data-mb-marca="84"],[data-mb-marca="85"],[data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] :is(body,.terminal-window){
+  --bg:var(--mb-fondo);
+  --bg-window:var(--mb-superficie);
+  --bg-darker:var(--mb-fondo-alt);
+  --border:var(--mb-borde);
+  --border-dashed:var(--mb-borde);
+  --text:var(--mb-texto);
+  --text-dim:var(--mb-texto-suave);
+  --text-muted:var(--mb-texto-suave);
+  --accent:var(--mbx-brand);
+  --accent-bright:var(--mbx-accent);
+}
+:root:is([data-mb-marca="84"],[data-mb-marca="85"],[data-mb-marca="86"],[data-mb-marca="87"],[data-mb-marca="88"],[data-mb-marca="89"])[data-mb-plataforma="store"] .terminal-window{
+  background:var(--mb-superficie);color:var(--mb-texto);border-color:var(--mb-borde);font-family:var(--mb-fuente-mono);
+}

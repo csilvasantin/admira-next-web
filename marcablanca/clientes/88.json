@@ -1,0 +1,174 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "88",
+  "nombre": "Cine 88",
+  "nombreCorto": "88",
+  "ejemplo": true,
+  "sector": "Piel de cine · año 1988 · cine negro y dibujos animados",
+  "descripcion": "Piel temática de ejemplo, marca ficticia (no es un cliente): homenaje genérico al cruce de cine negro y animación de 1988. Sepia de despacho, persianas de luz y sombra, rojo de dibujo animado y crema de foco de estudio. Paleta, tipografía y fondos propios; sin logos, fotogramas ni material de terceros. Se activa con /marca 88 (o /88) en el Experto.",
+  "logo": {
+    "svg": "../logos/88.svg",
+    "alt": "Cine 88 (piel temática de ejemplo)"
+  },
+  "favicon": "../logos/88-favicon.svg",
+  "modo": "oscuro",
+  "tipografia": {
+    "titulos": "Fraunces, Georgia, 'Times New Roman', serif",
+    "texto": "Nunito, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Nunito, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "pesoTitulos": 800,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.01em",
+    "fuentes": [
+      {
+        "familia": "Fraunces",
+        "url": "../fuentes/fraunces.woff2",
+        "peso": "100 900"
+      },
+      {
+        "familia": "Nunito",
+        "url": "../fuentes/nunito.woff2",
+        "peso": "400 900"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "8px",
+    "md": "16px",
+    "lg": "26px",
+    "boton": "999px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "2px 2px 0 rgba(0,0,0,.6)",
+    "md": "4px 4px 0 rgba(0,0,0,.55), 0 8px 24px rgba(0,0,0,.4)",
+    "lg": "6px 6px 0 rgba(255,92,92,.35), 0 24px 60px rgba(0,0,0,.55)"
+  },
+  "tono": {
+    "voz": "Detective con chispa: frases de gabardina que acaban en guiño y un poco de exageración de dibujo.",
+    "tratamiento": "tú",
+    "si": [
+      "humor visual",
+      "frases con ritmo",
+      "onomatopeyas propias"
+    ],
+    "no": [
+      "citas de películas",
+      "nombres de personajes",
+      "logos o carteles de terceros"
+    ],
+    "frases": {
+      "cta": "¡Entra en escena!",
+      "vacio": "Caso cerrado: no queda nada.",
+      "error": "¡Pataplof! Algo se rompió. Lo arreglamos.",
+      "exito": "¡Tachán! Hecho."
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#B3261E",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#7A4E00",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#A33F00",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#FFF6EC",
+      "fondoAlt": "#FBE9D7",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#F7E7D6",
+      "borde": "#E3C9AE",
+      "texto": "#1E1410",
+      "textoSuave": "#4F3B30",
+      "textoTenue": "#6E5A4E",
+      "ok": "#1D7A46",
+      "aviso": "#8A5A00",
+      "error": "#B3261E",
+      "info": "#1F5F99"
+    },
+    "oscuro": {
+      "primario": "#FF5C5C",
+      "primarioTexto": "#14100E",
+      "secundario": "#F5C26B",
+      "secundarioTexto": "#14100E",
+      "acento": "#FF8A3D",
+      "acentoTexto": "#14100E",
+      "fondo": "#14100E",
+      "fondoAlt": "#1C1714",
+      "superficie": "#241D19",
+      "superficieAlt": "#2E2520",
+      "borde": "#4A3C33",
+      "texto": "#FBF1E3",
+      "textoSuave": "#D9C8B2",
+      "textoTenue": "#A8968A",
+      "ok": "#5BD98E",
+      "aviso": "#FFB648",
+      "error": "#FF6E6E",
+      "info": "#8AB8FF"
+    }
+  },
+  "fondos": {
+    "nota": "Fondos de la piel (assets/marca-blanca.css) de baja opacidad sobre el fondo.",
+    "oscuro": "repeating-linear-gradient(115deg, rgba(255,240,220,.035) 0 18px, transparent 18px 44px), radial-gradient(70% 55% at 30% 20%, rgba(255,92,92,.14), transparent 70%), #14100E",
+    "velo": {
+      "color": "#FF5C5C",
+      "alfaMax": 0.14
+    }
+  },
+  "demo": {
+    "titular": "¡Entra en escena!",
+    "producto": "Ofertas de película",
+    "cta": "¡Entra en escena!",
+    "prompt": "Cartel vertical que mezcla cine negro de 1940 y dibujo animado: despacho sepia, sombras de persiana, una mancha roja de dibujo y onomatopeyas propias; sin personajes, animales ni figuras reconocibles, logos ni fotogramas",
+    "circuito": "Circuito 88 · 12 pantallas de barrio",
+    "puntos": 12,
+    "tipoEspacio": "Cafeterías y quioscos",
+    "tiendas": [
+      {
+        "nombre": "88 · Despacho",
+        "dir": "Calle del Detective, 8 · Barcelona"
+      },
+      {
+        "nombre": "88 · Estudio",
+        "dir": "Calle de los Estudios, 88 · Barcelona"
+      },
+      {
+        "nombre": "88 · Cabaret",
+        "dir": "Paseo del Teatro, 3 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · foco de estudio",
+      "Pantalla mostrador · viñeta",
+      "Caja · ¡tachán!"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-8801",
+        "equipo": "Pantalla escaparate",
+        "tienda": "88 · Despacho",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-8802",
+        "equipo": "Player de mostrador",
+        "tienda": "88 · Estudio",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-8803",
+        "equipo": "Hilo musical",
+        "tienda": "88 · Cabaret",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
