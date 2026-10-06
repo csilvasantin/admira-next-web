@@ -2,7 +2,9 @@
 // Pestañas por hash (#ayuda · #formulario · #rapida), búsqueda de establecimientos
 // (localizador oficial guardado en /demo/data o OpenStreetMap), plan en seco con el
 // mismo módulo que usa la API (plan-completa.mjs) y envío a /api/demo con modo:"completa".
-import { construirPlan, slug, MINIMOS } from '/demo/plan-completa.mjs?v=20261006-completa';
+// v2: altavoz con 2 playlists (hilo continuo + locuciones TPV), marca blanca real (/marca <id>),
+// contenido común de marca y desconexiones temporales preparadas (apagadas).
+import { construirPlan, slug, MINIMOS } from '/demo/plan-completa.mjs?v=20261006-completa-v2';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -34,9 +36,9 @@ function aviso(texto, tipo = '') { estado.textContent = texto; estado.className 
 
 const syncColor = () => { $('c_colorHex').textContent = ($('c_color').value || '').toUpperCase(); };
 $('c_color').addEventListener('input', syncColor);
-form.querySelectorAll('input[name="marca_modo"]').forEach((r) => r.addEventListener('change', () => {
-  $('c_marca_id').hidden = form.querySelector('input[name="marca_modo"]:checked')?.value !== 'blanca';
-}));
+// Marca blanca: siempre la del cliente. El comando se ve en vivo según el nombre.
+const syncMarca = () => { $('c_marca_cmd').textContent = `/marca ${slug($('c_cliente').value) || '<cliente>'}`; };
+$('c_cliente').addEventListener('input', syncMarca);
 const syncSim = () => {
   const sim = $('c_simulacion').checked;
   $('c_enviar').textContent = sim ? 'Guardar simulación' : 'Encolar demo completa (REAL)';
@@ -135,14 +137,13 @@ async function buscar({ silencioso = false } = {}) {
 $('c_buscar').addEventListener('click', () => buscar());
 
 function leer() {
-  const marcaModo = form.querySelector('input[name="marca_modo"]:checked')?.value || 'cliente';
   return {
     modo: 'completa',
     cliente: $('c_cliente').value.trim(),
     website: $('c_website').value.trim(),
     color: ($('c_color').value || '').toUpperCase(),
     franquicia: $('c_franquicia').checked,
-    marca: { modo: marcaModo, id: marcaModo === 'blanca' ? $('c_marca_id').value.trim() : '' },
+    marca: { modo: 'marca-blanca-cliente' },
     ciudad: { nombre: $('c_ciudad').value.trim(), pais: $('c_pais').value },
     n_establecimientos: Number($('c_n').value) || MINIMOS.establecimientos,
     establecimientos: encontrados.filter((e) => e.usar).map(({ usar, manual, ...e }) => e),
@@ -153,26 +154,32 @@ function leer() {
     contenidos_por_playlist: Number($('c_contenidos').value) || MINIMOS.contenidos,
     cierre: $('c_cierre').value || '21:00',
     fuente_contenido: form.querySelector('input[name="fuente"]:checked')?.value || 'pixeria',
-    contenidos_compartidos: $('c_compartidos').checked,
+    contenidos_compartidos: true,
+    desconexiones: [],   // próximamente (la opción del formulario está apagada)
     simulacion: $('c_simulacion').checked,
     notas: $('c_notas').value.trim(),
   };
 }
 
-const BADGE = { LISTO: 'listo', PARCIAL: 'parcial', FALTA: 'falta' };
+const BADGE = { LISTO: 'listo', PARCIAL: 'parcial', FALTA: 'falta', PROXIMAMENTE: 'pro' };
+const plTxt = (x) => `<code>${esc(x.playlist)}</code>${x.reproduccion === 'bajo_demanda' ? ' <i class="chip tpv">TPV · bajo demanda</i>' : ''} (${x.contenidos.length})`;
 function pintarPlan(plan) {
   ultimoPlan = plan;
   $('c_resultado').hidden = false;
   $('c_plan_titulo').textContent = `${plan.cliente.nombre} · ${plan.ciudad.nombre} (${plan.ciudad.pais}) · ${plan.simulacion ? 'SIMULACIÓN' : 'REAL'}`;
   const t = plan.totales;
-  $('c_kpis').innerHTML = [['establecimientos', t.establecimientos], ['gemelos', t.gemelos], ['equipos ITIL', t.equipos], ['playlists', t.playlists], ['huecos', t.huecos_contenido], ['piezas únicas', t.piezas_unicas]]
+  $('c_kpis').innerHTML = [['locales', t.establecimientos], ['gemelos', t.gemelos], ['equipos ITIL', t.equipos], ['playlists', t.playlists],
+    ['bajo demanda TPV', t.playlists_bajo_demanda], ['huecos', t.huecos_contenido], ['piezas de marca', t.piezas_unicas], ['plataformas /marca', t.plataformas_marca], ['desconexiones', t.desconexiones]]
     .map(([k, v]) => `<div class="kpi"><b>${v}</b><span>${k}</span></div>`).join('');
+  const mb = plan.marca_blanca;
+  $('c_marca_plan').innerHTML = mb ? `Marca blanca <b>${esc(mb.nombre)}</b> (real) · <code>${esc(mb.comando)}</code> → ${mb.plataformas.map((x) => esc(x.nombre)).join(' · ')}`
+    + ` <i class="estado-hoy ${BADGE[mb.estado_hoy] || ''}" title="${esc(mb.falta)}">${esc(mb.estado_hoy)}</i>` : '';
   $('c_tabla_pasos').querySelector('tbody').innerHTML = plan.pasos.map((p) => `<tr><td>${p.n}</td><td><i class="chip">${esc(p.componente)}</i></td>
     <td><b>${esc(p.titulo)}</b><br><small>${esc(p.accion)}</small></td>
     <td><i class="estado-hoy ${BADGE[p.estado_hoy] || ''}" title="${esc(p.falta)}">${esc(p.estado_hoy)}</i></td></tr>`).join('');
   $('c_tabla_nombres').querySelector('tbody').innerHTML = plan.establecimientos.map((e) => `<tr><td><b>${esc(e.nombre)}</b><br><small>${esc(e.direccion)} · ${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}</small></td>
     <td><code>${esc(e.id)}</code></td>
-    <td>${e.equipos.map((q) => `<code>${esc(q.itil_code)}</code> → ${q.playlist ? `<code>${esc(q.playlist)}</code> (${q.contenidos.length})` : '<small>sin playlist</small>'}`).join('<br>')}</td></tr>`).join('');
+    <td>${e.equipos.map((q) => `<code>${esc(q.itil_code)}</code> → ${q.playlists.length ? q.playlists.map(plTxt).join(' + ') : '<small>sin playlist</small>'}`).join('<br>')}</td></tr>`).join('');
   $('c_json').textContent = JSON.stringify(plan, null, 2);
   $('c_descargar').disabled = false;
 }
@@ -180,7 +187,7 @@ function pintarPlan(plan) {
 $('c_plan').addEventListener('click', () => {
   const plan = construirPlan(leer());
   pintarPlan(plan);
-  if (plan.valido) aviso(`Plan listo (sin enviar): ${plan.totales.equipos} equipos, ${plan.totales.playlists} playlists, ${plan.totales.huecos_contenido} huecos.`, 'ok');
+  if (plan.valido) aviso(`Plan listo (sin enviar): ${plan.totales.equipos} equipos, ${plan.totales.playlists} playlists (${plan.totales.playlists_bajo_demanda} bajo demanda TPV), ${plan.totales.huecos_contenido} huecos, marca ${plan.marca_blanca.comando}.`, 'ok');
   else aviso(plan.errores.join(' '), 'err');
   $('c_resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
@@ -219,6 +226,7 @@ form.addEventListener('submit', async (ev) => {
 async function rellenar365() {
   $('c_cliente').value = '365';
   $('c_website').value = 'https://365obrador.com/';
+  syncMarca();
   $('c_color').value = '#1D1D1B'; syncColor();
   $('c_franquicia').checked = true;
   $('c_ciudad').value = 'Barcelona';
@@ -238,7 +246,7 @@ for (const id of ['btn365', 'irForm365']) {
   $(id)?.addEventListener('click', (ev) => { ev.preventDefault(); location.hash = '#formulario'; rellenar365(); });
 }
 
-syncColor(); syncSim();
+syncColor(); syncSim(); syncMarca();
 if (!$('c_cliente').value) rellenar365().then(() => {
   if (new URLSearchParams(location.search).get('plan') === '1') $('c_plan').click();
 });
