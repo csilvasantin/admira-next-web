@@ -6,7 +6,7 @@
 <title>Webmaster · AdmiraNeXT — versiones y puntos de retorno</title>
 <meta name="description" content="Qué versión está viva en cada proyecto de Admira y AdmiraNeXT, cómo se publica y cómo se vuelve atrás.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.04.10.2026.r3.14:00">
+<meta name="admiranext-version" content="v.06.10.2026.r32.22:50">
 <link rel="icon" href="/favicon.ico">
 <style>
   :root{
@@ -43,6 +43,14 @@
 
   h2.sec{font-family:var(--mono);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
     color:var(--neon);margin:44px 0 14px;font-weight:700}
+
+  /* zona protegida (06-10-2026): páginas internas que salieron de la navegación pública */
+  .zona{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0 0 8px}
+  .zona a{display:block;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:14px 16px;
+    color:var(--ink);text-decoration:none}
+  .zona a:hover,.zona a:focus-visible{border-color:var(--neon)}
+  .zona b{display:block;font-family:var(--mono);color:var(--neon);font-size:.95rem;margin-bottom:4px}
+  .zona span{color:var(--dim);font-size:.86rem}
 
   /* aviso */
   .alert{border:1px solid rgba(255,143,122,.5);background:rgba(255,143,122,.07);
@@ -222,7 +230,8 @@
 <div class="yk-slots" hidden>
 <div data-yk-slot="right" data-yk-label="Sesión"><p class="yk-note" id="identityLabel">sesión…</p><button id="logoutButton" type="button" class="yk-danger">Salir</button></div>
 <div data-yk-slot="right" data-yk-label="Ordenar la tabla"><button type="button" data-wm-sort="proyecto">Por proyecto</button><button type="button" data-wm-sort="releases">Por producción (releases)</button><button type="button" data-wm-sort="responsable">Por responsable</button><button type="button" data-wm-sort="norma">Por norma</button></div>
-<div data-yk-slot="right" data-yk-label="Ir a"><a href="#vivo">Lo que está vivo</a><a href="#norma">Norma de versionado</a><a href="#canones">Cañones cargados</a><a href="#retornos">Puntos de retorno</a><a href="#como-retorno">Cómo se deja un retorno</a></div>
+<div data-yk-slot="left" data-yk-label="Zona protegida"><a href="/libro-de-estilo">Style Book</a><a href="/flota">Agentes</a><a href="/organigrama">Organigrama</a></div>
+<div data-yk-slot="right" data-yk-label="Ir a"><a href="#zona-protegida">Zona protegida</a><a href="#vivo">Lo que está vivo</a><a href="#norma">Norma de versionado</a><a href="#canones">Cañones cargados</a><a href="#retornos">Puntos de retorno</a><a href="#como-retorno">Cómo se deja un retorno</a></div>
 </div>
 
 <div class="wrap" data-yk-main>
@@ -243,6 +252,15 @@
   </header>
 
   <main>
+    <h2 class="sec" id="zona-protegida">Zona protegida</h2>
+    <nav class="zona" aria-label="Zona protegida">
+      <a href="/libro-de-estilo"><b>Style Book</b><span>Libro de estilo: quiénes somos y cómo nos gustan las cosas</span></a>
+      <a href="/flota"><b>Agentes</b><span>Marcador y misiones de los agentes</span></a>
+      <a href="/organigrama"><b>Organigrama</b><span>Organigrama de ADmiraNeXT</span></a>
+    </nav>
+    <p style="color:var(--dim);font-size:.86rem;margin:0">Fuera de la navegación pública de la portada y con
+      la misma sesión que esta página: sin acceso interno, sus direcciones piden identificarse.</p>
+
     <h2 class="sec" id="vivo">Lo que está vivo ahora mismo</h2>
     <div id="resumen" class="resumen" hidden></div>
     <div class="tbl">
@@ -371,7 +389,7 @@
     <div class="meta">
       Datos verificados el 2 de agosto de 2026 · se actualiza al publicar<br>
       <a href="/mandamientos">Mandamientos</a> · <a href="/normativa">Normativa</a><br>
-      <span style="opacity:.8">v.04.10.2026.r3.14:00</span>
+      <span style="opacity:.8">v.06.10.2026.r32.22:50</span>
     </div>
   </footer>
 </div>

@@ -47,17 +47,19 @@ test('el organigrama nombra a los seis consejeros, su pata y el DeepAgent que di
   ]) assert.ok(html.includes(`href="${href}"`), href);
 });
 
-test('el organigrama está en el menú de la casa y en la portada', async () => {
+test('el organigrama está en el menú de la casa y en la zona protegida, no en la portada pública', async () => {
   const [frame, portada, mapa] = await Promise.all([
     leer('assets/admira-frame.js'),
     leer('index.html'),
     leer('sitemap.xml')
   ]);
   assert.match(frame, /\['\/organigrama', 'Organigrama'\]/);
-  assert.match(portada, /<a href="\/organigrama">Organigrama<\/a>/);
+  // Carlos, 06-10-2026: sale de la navegación pública de la portada y vive en la zona protegida.
+  assert.doesNotMatch(portada.match(/<nav class="entry-nav"[\s\S]*?<\/nav>/)[0], /href="\/organigrama"/);
+  assert.match(await leer('webmaster.html'), /id="zona-protegida"[\s\S]*?<a href="\/organigrama">/);
   const barra = 'Agentes</a><a href="/organigrama">Organigrama</a>';
   for (const rel of ['usuarios.html', 'presentaciones/index.html', 'presentaciones/generador.html', 'flota.html']) {
     assert.ok((await leer(rel)).includes(barra), rel);
   }
-  assert.match(mapa, /https:\/\/www\.admiranext\.com\/organigrama/);
+  assert.doesNotMatch(mapa, /https:\/\/www\.admiranext\.com\/organigrama</, 'privada: fuera del sitemap');
 });

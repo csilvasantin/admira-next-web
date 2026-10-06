@@ -6,6 +6,11 @@
     "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
     "Contenido común de marca · desconexiones temporales por local, próximamente"
   ],
+  "v.06.10.2026.r32.22:50": [
+    "La portada solo enseña Platform, Robots, About us y Contact",
+    "Style Book, Agentes y Organigrama pasan a la zona protegida (/webmaster): sin sesión, sus direcciones piden identificarse",
+    "El sello de versión y sus novedades solo se ven con sesión de usuario registrado; la parte pública ya no los muestra"
+  ],
   "v.06.10.2026.r31.22:03": [
     "El avatar good ya es Admirito: la nube de la casa, animada, que mueve los labios al hablar",
     "En reposo hace cosas sola (parpadea, mira, salta, se duerme) y se pone contenta si la tocas",
