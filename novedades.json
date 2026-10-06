@@ -36,5 +36,11 @@
     "Un único aviso inicial por novedad y navegador",
     "El pie queda sobre Experto minimizado o ampliado",
     "El cargador compartido deja de conservar copias antiguas en caché"
+  ],
+  "v.06.10.2026.r9.08:09": [
+    "RoadMap espectacular: Gantt SVG por pata con estados, línea de HOY y banda del corte",
+    "% hecho por pata con anillos, contadores animados y flujos AdmiraNeXT → patas",
+    "Raíl mensual clicable y fichas de detalle al pasar el ratón",
+    "Modo presentador con P: recorre las patas (←/→, Espacio, Esc)"
   ]
 }
