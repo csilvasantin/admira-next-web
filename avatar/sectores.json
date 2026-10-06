@@ -1,6 +1,6 @@
 {
   "_como": "Catálogo de sectores del avatar digital (digitalavatar.ai). Lo lee brain.digitalavatar.ai (POST /metahuman/ask y GET /metahuman/profile) con caché de 5 min. Las reglas fijas de tabaco/vapeo (Ley 28/2005) y «no inventes productos ni precios» viven en el código del cerebro y no se pueden quitar desde aquí; legal.rules SE SUMA. {lugar} = nombre del punto o el genérico del sector. Niveles: good = persona + chips + reglas; better = + tono de marca + datos del punto; best = + datos en vivo + historial. Horario: sin datos todavía.",
-  "version": "2026-10-06.2",
+  "version": "2026-10-06.3",
   "updatedBy": "GrokBot · MacMini",
   "sectors": {
     "estanco": {
@@ -134,13 +134,13 @@
           "¿Qué café me recomiendas?",
           "¿Tenéis bebidas sin lactosa?",
           "¿Qué hay para comer?",
-          "¿Hay wifi?"
+          "¿Qué bebida fría me recomiendas?"
         ],
         "en": [
           "Which coffee do you recommend?",
           "Do you have dairy-free drinks?",
           "What is there to eat?",
-          "Is there Wi-Fi?"
+          "Which iced drink do you recommend?"
         ]
       },
       "idle": {
@@ -519,13 +519,13 @@
           "¿Qué periódicos tenéis?",
           "¿Hay revistas de cocina?",
           "¿Tenéis coleccionables?",
-          "¿Me guardáis el periódico?"
+          "¿Hay prensa internacional?"
         ],
         "en": [
           "Which newspapers do you have?",
           "Any cooking magazines?",
           "Do you have collectibles?",
-          "Can you save me a paper?"
+          "Do you have international press?"
         ]
       },
       "idle": {

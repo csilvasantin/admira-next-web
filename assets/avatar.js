@@ -9,8 +9,11 @@
  *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html)
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
- *   AdmiraAvatar.setContext({loc, lang, sector, brand, site, city})  contexto del cliente
+ *   AdmiraAvatar.setContext({loc, lang, sector, brand, site, city, tier})  contexto del cliente
+ *     (tier = nivel que pide la página; /avatar <nivel> del usuario manda en su pestaña)
  *     (la cara lo recibe en la URL y por postMessage; ver levelUrl).
+ *   window 'admira-avatar:open' (cancelable, detail {level, context}): antes de abrir el panel;
+ *     preventDefault() lo deja cerrado (la página muestra su propio avatar en escena)
  *
  * Precedencia (de más a menos fuerte):
  *   1. Elección del usuario en este sitio y navegador: localStorage
@@ -154,6 +157,12 @@
     }
     return out;
   }
+  // Nivel de la cara: elección explícita del usuario en esta pestaña (/avatar good|better|best)
+  // > nivel que pide la página (p. ej. el gemelo: Good 8 bits → good, Better 16 → better,
+  // Best 32 y Matrix 64 → best) > último nivel guardado > good.
+  function pickLevel(explicit, page, stored) {
+    return LEVELS[explicit] ? explicit : LEVELS[page] ? page : LEVELS[stored] ? stored : 'good';
+  }
   function levelUrl(level, ctx) {
     var lv = LEVELS[level] ? level : 'good';
     var c = cleanContext(ctx), q = [];
@@ -163,7 +172,7 @@
   }
 
   var api = {decide: decide, resolve: resolve, legacyValue: legacyValue, message: message,
-    clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl,
+    clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl, pickLevel: pickLevel,
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
@@ -238,6 +247,14 @@
     var v = get(LEVEL_KEY);
     return LEVELS[v] ? v : 'good';
   }
+  var CHOICE_KEY = 'admira-avatar:nivel-elegido';   // sessionStorage: solo /avatar <nivel>
+  function explicitLevel() { var s = session(); try { var v = s && s.getItem(CHOICE_KEY); return LEVELS[v] ? v : ''; } catch (_) { return ''; } }
+  function pageTier() {
+    var t = CTX.tier;
+    if (!LEVELS[t]) { var g = root.AdmiraAvatarContext; t = g && typeof g === 'object' ? g.tier : ''; }
+    return LEVELS[t] ? t : '';
+  }
+  function currentLevel() { return pickLevel(explicitLevel(), pageTier(), get(LEVEL_KEY)); }
   var resizing = null;
   function viewBox() {
     var top = 64;
@@ -355,7 +372,10 @@
     fitPanel();
     bindResize(wrap.querySelector('#da-suite-resize'));
     wrap.querySelector('#da-suite-frame').addEventListener('load', postContext);
-    wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { openLevel(storedLevel()); });
+    wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { requestOpen(currentLevel()); });
+    // El idioma de la página manda: si cambia, la cara recibe el nuevo (chips e idioma de respuesta).
+    try { new MutationObserver(postContext).observe(doc.documentElement, {attributes: true, attributeFilter: ['lang']}); } catch (_) {}
+    root.addEventListener('storage', function (e) { if (e && e.key === 'admiranext_expert_lang') postContext(); });
     wrap.querySelector('#da-suite-x').addEventListener('click', function () { wrap.classList.remove('open'); });
     return wrap;
   }
@@ -384,12 +404,15 @@
   function postContext() {
     var n = node(), frame = n && n.querySelector('#da-suite-frame');
     if (!frame || !frame.contentWindow || !frame.getAttribute('src')) return;
-    var msg = context(); msg.type = 'da-context'; msg.tier = openedLevel || storedLevel();
+    var msg = context(); msg.type = 'da-context'; msg.tier = openedLevel || currentLevel();
     try { frame.contentWindow.postMessage(msg, DA_ORIGIN); } catch (_) {}
   }
   function setContext(partial) {
-    if (partial && typeof partial === 'object') for (var k in partial) if (Object.prototype.hasOwnProperty.call(partial, k) && CTX_KEYS.indexOf(k) >= 0) CTX[k] = partial[k];
-    postContext();
+    if (partial && typeof partial === 'object') for (var k in partial) if (Object.prototype.hasOwnProperty.call(partial, k) && (CTX_KEYS.indexOf(k) >= 0 || k === 'tier')) CTX[k] = partial[k];
+    // Si la página cambia de nivel (p. ej. el gemelo pasa a Matrix) y el usuario no eligió uno,
+    // el panel abierto cambia de cara; si no, el contexto viaja por postMessage.
+    var lv = currentLevel();
+    if (visible() && openedLevel && lv !== openedLevel) openLevel(lv); else postContext();
     return context();
   }
   function openLevel(level) {
@@ -400,16 +423,30 @@
     if (!frame.getAttribute('src') || openedLevel !== lv) { openedLevel = lv; frame.setAttribute('src', levelUrl(lv, context())); }
     else postContext();
     var label = wrap.querySelector('#da-suite-label');
-    if (label) label.textContent = level;
+    if (label) label.textContent = lv;
     wrap.style.display = '';
     wrap.classList.add('open');
     applyLift();
   }
+  // Antes de abrir el panel por orden del usuario se emite 'admira-avatar:open' (cancelable) en
+  // window: una página con su propio avatar en escena (p. ej. el gemelo en Matrix, que lo proyecta
+  // en la pared) puede llevarlo allí con preventDefault() y el panel no se abre.
+  function requestOpen(level) {
+    var lv = LEVELS[level] ? level : 'good';
+    try {
+      if (typeof root.CustomEvent === 'function' && root.dispatchEvent) {
+        var ev = new root.CustomEvent('admira-avatar:open', {cancelable: true, detail: {level: lv, context: context()}});
+        if (!root.dispatchEvent(ev)) { var n = node(); if (n) { n.style.display = ''; n.classList.remove('open'); } return false; }
+      }
+    } catch (_) {}
+    openLevel(lv);
+    return true;
+  }
   function show(open, level) {
-    var lv = LEVELS[level] ? level : storedLevel();
-    set(LEVEL_KEY, lv);
+    var lv = LEVELS[level] ? level : currentLevel();
+    if (LEVELS[level]) set(LEVEL_KEY, lv);
     ensureDock();
-    if (open) openLevel(lv);
+    if (open) requestOpen(lv);
     else {
       var n = node();
       if (n) { n.style.display = ''; n.classList.remove('open'); }
@@ -455,7 +492,7 @@
     var english = en();
     if (mode === 'bad') return message('bad', english);
     if (mode === 'status') {
-      var now = storedLevel();
+      var now = currentLevel();
       var seen = visible() ? (english ? 'open' : 'abierto') : (english ? 'hidden' : 'oculto');
       return message('status', english) + (english ? ' Now: ' : ' Ahora: ') + now + ' · ' + seen + '.';
     }
@@ -466,6 +503,7 @@
     }
     if (LEVELS[mode]) {
       set(LEVEL_KEY, mode);
+      var ss = session(); try { if (ss) ss.setItem(CHOICE_KEY, mode); } catch (_) {}
       set(KEY, 'on');
       show(true, mode);
       return message(mode, english);
@@ -478,7 +516,7 @@
     }
     var on = mode === 'toggle' ? !visible() : mode === 'on';
     set(KEY, on ? 'on' : 'off');
-    if (on) show(true, storedLevel()); else hide();
+    if (on) show(true); else hide();
     return message(on ? 'on' : 'off', english);
   }
   function handle(text) {
@@ -486,7 +524,7 @@
     return Promise.resolve(out == null ? message('bad', en()) : out);
   }
   function state() {
-    return {override: override(), visible: visible(), present: present(), level: storedLevel(), host: host, brain: brainUrl(), context: context()};
+    return {override: override(), visible: visible(), present: present(), level: currentLevel(), host: host, brain: brainUrl(), context: context()};
   }
 
   root.AdmiraAvatar = {run: run, handle: handle, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
