@@ -135,19 +135,23 @@
   }
   // «☰ OPCIONES», «○ Página pública», «— sin opciones…»: el adorno de delante se conserva.
   function traduceTexto(orig) {
-    var m = String(orig == null ? '' : orig).match(/^([^A-Za-z\u00C0-\u024F0-9]*)([\s\S]*?)(\s*)$/);
+    var m = String(orig == null ? '' : orig).match(/^([^A-Za-z\u00C0-\u024F0-9¿¡]*)([\s\S]*?)(\s*)$/);
     if (!m || !m[2]) return null;
-    var t = traducirFrase(m[2]), fin = '';
+    // El HTML parte las frases largas en varias líneas: se buscan con los espacios normalizados.
+    var core = m[2].replace(/\s+/g, ' ');
+    var t = traducirFrase(core), fin = '';
     // «La mesa que une las cinco patas.»: el cierre (punto, comillas…) también se conserva.
     if (t == null) {
-      var c = m[2].match(/^([\s\S]*?[^.»"”:…!?\s])([\s.»"”:…!?·]+)$/);
+      var c = core.match(/^([\s\S]*?[^.»"”:…!?\s])([\s.»"”:…!?·]+)$/);
       if (c) { t = traducirFrase(c[1]); fin = c[2]; }
     }
-    return t == null || t + fin === m[2] ? null : m[1] + t + fin + m[3];
+    return t == null || t + fin === core ? null : m[1] + t + fin + m[3];
   }
   var originales = typeof WeakMap === 'function' ? new WeakMap() : null;
   var ATRS_DICC = ['aria-label', 'title', 'placeholder'];
   var FUERA = '.yk-cli-out, .ax-cli-out, .ax-engine, script, style, textarea, [contenteditable], [data-yk-no-traducir]';
+  // Los atributos (placeholder de un textarea, title…) sí se traducen aunque el texto de dentro no.
+  var FUERA_ATR = '.yk-cli-out, .ax-cli-out, .ax-engine, script, style, [contenteditable], [data-yk-no-traducir]';
   function traducirTextoNodo(n, en) {
     var padre = n.parentNode;
     if (!padre || (padre.closest && padre.closest(FUERA))) return;
@@ -178,11 +182,12 @@
   function traducirZona(zona, en) {
     if (!zona || !originales || !doc.createTreeWalker) return;
     if (zona.nodeType === 3) { traducirTextoNodo(zona, en); return; }
-    if (zona.nodeType !== 1 || (zona.closest && zona.closest(FUERA))) return;
+    if (zona.nodeType !== 1) return;
+    if (zona.closest && zona.closest(FUERA)) { if (!zona.closest(FUERA_ATR)) traducirAtributos(zona, en); return; }
     var paseo = doc.createTreeWalker(zona, 4, null), n;
     while ((n = paseo.nextNode())) traducirTextoNodo(n, en);
     var nodos = [zona].concat(Array.prototype.slice.call(zona.querySelectorAll ? zona.querySelectorAll('[aria-label],[title],[placeholder]') : []));
-    nodos.forEach(function (e) { if (!(e.closest && e.closest(FUERA))) traducirAtributos(e, en); });
+    nodos.forEach(function (e) { if (!(e.closest && e.closest(FUERA_ATR))) traducirAtributos(e, en); });
   }
   var zonasIdioma = [];
   var idiomaPintado = false;   // el HTML nace en castellano: no hay nada que traducir hasta que pidan inglés
@@ -196,7 +201,7 @@
         try {
           lista.forEach(function (r) {
             if (r.type === 'characterData') traducirZona(r.target, true);
-            else if (r.type === 'attributes') { if (r.target.closest && !r.target.closest(FUERA)) traducirAtributos(r.target, true); }
+            else if (r.type === 'attributes') { if (r.target.closest && !r.target.closest(FUERA_ATR)) traducirAtributos(r.target, true); }
             else Array.prototype.forEach.call(r.addedNodes || [], function (x) { traducirZona(x, true); });
           });
         } catch (e) { /* una traducción fallida no rompe la página */ }
@@ -214,7 +219,7 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261006-idioma-paginas-2';
+  var IDIOMA_STAMP = '20261006-idioma-paginas-3';
   function aplicarIdioma(forzar) {
     var en = enIngles();
     if (!forzar && idiomaPintado === en) return;
@@ -924,7 +929,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-paginas-2';
+  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-paginas-3';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
