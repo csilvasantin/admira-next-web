@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoadMap · ADmiraNeXT</title>
-<meta name="description" content="Borrador del RoadMap de ADmiraNeXT, por día, semana, mes, trimestre y año.">
+<meta name="description" content="RoadMap de ADmiraNeXT: Gantt por pata, % hecho, raíl mensual y corte por día, semana, mes, trimestre y año.">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -55,6 +55,122 @@
   .bloque > h2{margin:28px 0 14px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
   footer{margin-top:36px;color:var(--yk-dim,#6c7a90);font-size:12px}
   footer a{color:var(--yk-mut,#92a0b4)}
+  /* ── RoadMap espectacular (06-10-2026): escena Galaxia cyan/teal como /organigrama ── */
+  .rm-show{position:relative;margin:0 0 30px;border:1px solid var(--yk-line,#253042);border-radius:16px;overflow:hidden;isolation:isolate;
+    background:radial-gradient(ellipse at 50% 0%,rgba(74,227,209,.10),transparent 58%),rgba(5,9,16,.92)}
+  #rm-matrix{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.34}
+  .rm-show-in{position:relative;z-index:1;padding:18px 18px 22px}
+  .rm-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 16px}
+  .rm-toolbar button,.rm-rail button,.rm-legend button{font:inherit;cursor:pointer}
+  .rm-toolbar button{padding:6px 12px;border:1px solid var(--yk-line2,#314057);border-radius:999px;background:rgba(8,13,23,.8);color:var(--yk-ink,#f2f6fc);font-size:12px;letter-spacing:.06em}
+  .rm-toolbar button:hover,.rm-toolbar button:focus-visible{border-color:#4ae3d1;outline:none;box-shadow:0 0 0 1px rgba(74,227,209,.35)}
+  .rm-live{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
+  .rm-live i{width:8px;height:8px;border-radius:50%;background:#6c7a90}
+  .rm-live.is-ok i{background:#4ae3d1;box-shadow:0 0 10px rgba(74,227,209,.85);animation:rmBeat 1.4s ease-in-out infinite}
+  .rm-live.is-bad i{background:#ff6b7a}
+  .rm-filtro-activo{margin-left:auto;padding:4px 10px;border:1px dashed rgba(120,243,255,.45);border-radius:999px;font-size:11px;color:#78f3ff}
+  .rm-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:0 0 18px}
+  .rm-kpi{padding:12px 12px 10px;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(8,13,23,.78)}
+  .rm-kpi b{display:block;font-size:clamp(22px,3.2vw,34px);line-height:1;font-weight:700;color:#f2f6fc;font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(120,243,255,.25)}
+  .rm-kpi span{display:block;margin-top:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
+  .rm-kpi.is-hecho b{color:#4ae3d1}.rm-kpi.is-en_curso b{color:#78f3ff}.rm-kpi.is-confirmado b{color:#5ec8ff}.rm-kpi.is-propuesta b{color:#b8c7da}
+  .rm-kpi.is-total{border-color:rgba(74,227,209,.45)}
+  .rm-constel{position:relative;margin:0 0 20px}
+  .rm-flows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}
+  .rm-flows path{fill:none;stroke:#4ae3d1;stroke-width:2;opacity:.7;stroke-dasharray:5 9;animation:rmFlow 1.6s linear infinite}
+  .rm-flows path.is-spot{stroke-width:3.4;opacity:1}
+  .rm-flows circle{fill:#78f3ff;filter:drop-shadow(0 0 6px #78f3ff)}
+  .rm-mesa{position:relative;z-index:1;display:flex;justify-content:center;margin:0 0 46px}
+  .rm-patas5{position:relative;z-index:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .rm-pata{position:relative;display:flex;flex-direction:column;gap:8px;min-width:0;padding:14px;border:1px solid var(--yk-line,#253042);border-radius:14px;background:rgba(8,13,23,.88);cursor:pointer;text-align:left;color:inherit;font:inherit;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease,opacity .25s ease}
+  .rm-mesa .rm-pata{width:min(100%,420px);border-color:rgba(74,227,209,.6);box-shadow:0 0 30px rgba(74,227,209,.12)}
+  .rm-pata:hover,.rm-pata:focus-visible,.rm-pata.is-spot{transform:translateY(-3px);border-color:#4ae3d1;box-shadow:0 0 0 1px rgba(74,227,209,.35),0 0 28px rgba(74,227,209,.2);outline:none}
+  .rm-pata.is-dim{opacity:.38}
+  .rm-pata-top{display:flex;align-items:center;gap:12px}
+  .rm-ring{flex:none;width:58px;height:58px}
+  .rm-ring circle{fill:none;stroke-width:6}
+  .rm-ring .bg{stroke:rgba(120,243,255,.12)}
+  .rm-ring .fg{stroke:url(#rmRingGrad);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 1.3s cubic-bezier(.2,.8,.2,1)}
+  .rm-ring text{fill:#f2f6fc;font:700 13px ui-monospace,Menlo,monospace;text-anchor:middle;dominant-baseline:central}
+  .rm-pata-nom{display:block;font-size:13px;font-weight:700;color:#78f3ff;word-break:break-word}
+  .rm-pata-claim{display:block;font-size:11px;line-height:1.35;color:var(--yk-mut,#92a0b4)}
+  .rm-stack{display:flex;height:7px;border-radius:99px;overflow:hidden;background:rgba(120,243,255,.08)}
+  .rm-stack i{display:block;height:100%;width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+  .rm-chips{display:flex;flex-wrap:wrap;gap:5px}
+  .rm-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border:1px solid var(--yk-line2,#314057);border-radius:999px;font-size:10px;letter-spacing:.04em;color:var(--yk-ink,#f2f6fc);white-space:nowrap}
+  .rm-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,#78f3ff)}
+  .rm-chip.is-propuesta::before{background:transparent;border:1px dashed var(--c)}
+  .rm-rail{display:flex;gap:8px;margin:0 0 12px;overflow-x:auto;padding-bottom:4px}
+  .rm-rail button{flex:1 0 110px;display:flex;flex-direction:column;gap:5px;padding:9px 12px;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(8,13,23,.8);color:var(--yk-mut,#92a0b4);text-align:left;transition:border-color .2s,color .2s,background .2s}
+  .rm-rail button b{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--yk-ink,#f2f6fc)}
+  .rm-rail button small{font-size:10px;letter-spacing:.06em}
+  .rm-rail button .bar{display:block;height:3px;border-radius:9px;background:rgba(120,243,255,.12);overflow:hidden}
+  .rm-rail button .bar i{display:block;height:100%;background:linear-gradient(90deg,#4ae3d1,#78f3ff)}
+  .rm-rail button:hover,.rm-rail button:focus-visible{border-color:#4ae3d1;outline:none}
+  .rm-rail button[aria-pressed="true"]{border-color:#78f3ff;background:rgba(74,227,209,.12);color:#78f3ff;box-shadow:0 0 18px rgba(120,243,255,.15)}
+  .rm-rail button.is-now b::after{content:" ●";color:#4ae3d1}
+  .rm-legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+  .rm-legend button{border:1px solid var(--yk-line2,#314057);border-radius:999px;background:transparent;padding:4px 10px;color:var(--yk-ink,#f2f6fc);font-size:11px;display:inline-flex;align-items:center;gap:6px}
+  .rm-legend button::before{content:"";width:9px;height:9px;border-radius:3px;background:var(--c)}
+  .rm-legend button.is-propuesta::before{background:transparent;border:1.5px dashed var(--c)}
+  .rm-legend button[aria-pressed="false"]{opacity:.35;text-decoration:line-through}
+  .rm-legend .rm-hint{margin-left:auto;font-size:11px;color:var(--yk-dim,#6c7a90)}
+  .rm-gantt-wrap{position:relative;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(4,8,15,.72);overflow-x:auto;overflow-y:hidden}
+  #rm-gantt{display:block;max-width:none}
+  #rm-gantt .grid line{stroke:rgba(120,243,255,.08)}
+  #rm-gantt .grid line.is-month{stroke:rgba(120,243,255,.22)}
+  #rm-gantt .mes{fill:#92a0b4;font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase}
+  #rm-gantt .dia{fill:#6c7a90;font:9px ui-monospace,Menlo,monospace}
+  #rm-gantt .lane-bg{fill:rgba(16,23,36,.45)}
+  #rm-gantt .lane-bg.alt{fill:rgba(16,23,36,.18)}
+  #rm-gantt .lane-bgw.is-spot .lane-bg{fill:rgba(74,227,209,.10)}
+  #rm-gantt .lane.is-dim{opacity:.3}
+  #rm-gantt .grid{pointer-events:none}
+  #rm-gantt .lane-nom{fill:#78f3ff;font:700 12px ui-monospace,Menlo,monospace}
+  #rm-gantt .lane-pct{fill:#92a0b4;font:10px ui-monospace,Menlo,monospace}
+  #rm-gantt .hito{cursor:pointer;outline:none}
+  #rm-gantt .hito .b{transform-box:fill-box;transform-origin:left center;animation:rmGrow .9s cubic-bezier(.2,.8,.2,1) both}
+  #rm-gantt .hito text{fill:#dbe6f3;font:10.5px ui-monospace,Menlo,monospace;pointer-events:none}
+  #rm-gantt .hito:hover .b,#rm-gantt .hito:focus .b,#rm-gantt .hito.is-pin .b{filter:drop-shadow(0 0 7px rgba(120,243,255,.9))}
+  #rm-gantt .hito:hover text,#rm-gantt .hito:focus text{fill:#fff}
+  #rm-gantt .hito text.in{fill:#f2f6fc;paint-order:stroke;stroke:rgba(5,9,16,.9);stroke-width:3px;font-weight:700}
+  #rm-gantt .hito.is-en_curso .b{animation:rmGrow .9s cubic-bezier(.2,.8,.2,1) both,rmPulse 2.2s ease-in-out 1s infinite}
+  #rm-gantt .hoy line{stroke:#4ae3d1;stroke-width:1.5;stroke-dasharray:3 4}
+  #rm-gantt .hoy circle{fill:#4ae3d1;animation:rmBeat 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  #rm-gantt .hoy text{fill:#4ae3d1;font:700 10px ui-monospace,Menlo,monospace;letter-spacing:.12em}
+  #rm-gantt .corte rect{fill:rgba(120,243,255,.05);stroke:rgba(120,243,255,.35);stroke-dasharray:2 5}
+  #rm-gantt .corte text{fill:rgba(120,243,255,.75);font:9px ui-monospace,Menlo,monospace;letter-spacing:.14em}
+  .rm-vacio{padding:26px;text-align:center;color:var(--yk-mut,#92a0b4);font-size:13px}
+  .rm-card{position:fixed;z-index:2147483100;width:min(340px,calc(100vw - 24px));padding:14px 14px 12px;border:1px solid rgba(120,243,255,.5);border-radius:14px;
+    background:rgba(7,12,21,.96);box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 26px rgba(74,227,209,.18);color:#f2f6fc;font-size:12px;line-height:1.45;
+    pointer-events:none;opacity:0;transform:translateY(6px) scale(.98);transition:opacity .16s ease,transform .16s ease}
+  .rm-card.is-on{opacity:1;transform:none}
+  .rm-card.is-pin{pointer-events:auto}
+  .rm-card h3{margin:6px 0 8px;font-size:14px;line-height:1.3}
+  .rm-card dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0}
+  .rm-card dt{color:var(--yk-dim,#6c7a90);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding-top:1px}
+  .rm-card dd{margin:0;word-break:break-word}
+  .rm-card .rm-prog{height:4px;margin:10px 0 2px;border-radius:9px;background:rgba(120,243,255,.12);overflow:hidden}
+  .rm-card .rm-prog i{display:block;height:100%;background:linear-gradient(90deg,#4ae3d1,#78f3ff)}
+  .rm-card small{color:var(--yk-dim,#6c7a90);font-size:10px}
+  .rm-caption{display:none}
+  .hito.is-hecho strong::before,.hito.is-en_curso strong::before,.hito.is-confirmado strong::before,.hito.is-propuesta strong::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--c);vertical-align:1px}
+  .hito.is-hecho{--c:#4ae3d1}.hito.is-en_curso{--c:#78f3ff}.hito.is-confirmado{--c:#5ec8ff}.hito.is-propuesta{--c:#b8c7da}
+  .hito.is-propuesta strong::before{background:transparent;border:1px dashed var(--c)}
+  .corte-h{margin:0 0 12px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
+  /* Presentador (P): la escena llena la pantalla y recorre las patas */
+  body.is-presenter .yk-head,body.is-presenter footer,body.is-presenter h1,body.is-presenter .aviso,body.is-presenter .lede,body.is-presenter #corte,body.is-presenter .corte-h{display:none!important}
+  body.is-presenter main{padding:8px 0 12px}
+  body.is-presenter .rm-show{min-height:calc(100vh - 24px);margin:0}
+  body.is-presenter .rm-caption{display:block;margin:0 0 14px;font-size:clamp(18px,2.6vw,30px);font-weight:700;color:#f2f6fc;letter-spacing:-.01em;min-height:1.3em}
+  body.is-presenter .rm-caption em{font-style:normal;color:#4ae3d1}
+  @keyframes rmBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+  @keyframes rmFlow{to{stroke-dashoffset:-28}}
+  @keyframes rmGrow{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+  @keyframes rmPulse{0%,100%{opacity:1}50%{opacity:.62}}
+  @media (max-width:1100px){.rm-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.rm-patas5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media (max-width:720px){.rm-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rm-patas5{grid-template-columns:1fr 1fr}.rm-mesa{margin-bottom:22px}.rm-flows{display:none}}
+  @media (prefers-reduced-motion:reduce){.rm-flows path,#rm-gantt .hito .b,#rm-gantt .hoy circle,.rm-live.is-ok i{animation:none!important}.rm-ring .fg,.rm-stack i{transition:none}}
   @media (max-width:1100px){.patas{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:720px){.patas{grid-template-columns:1fr}}
 </style>
@@ -65,7 +181,30 @@
 <main data-yk-main>
   <h1>RoadMap</h1>
   <p class="aviso" role="note">Borrador para validar por Carlos</p>
-  <p class="lede">Día, semana, mes, trimestre o año; proyecto, cliente e idea se filtran desde ☰ Opciones. Los hitos salen de <a href="/api/roadmap">/api/roadmap</a>. Si el periodo no tiene ninguno, queda por definir.</p>
+  <p class="lede">Gantt por pata, % hecho y raíl mensual en vivo desde <a href="/api/roadmap">/api/roadmap</a>; debajo, el corte por día, semana, mes, trimestre o año. Proyecto, cliente e idea se filtran desde ☰ Opciones. Si el periodo no tiene ningún hito, queda por definir. <kbd>P</kbd> abre el modo presentador.</p>
+  <section class="rm-show" id="rm-show" aria-label="Panorama del RoadMap">
+    <canvas id="rm-matrix" aria-hidden="true"></canvas>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="rmRingGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#78f3ff"/><stop offset="100%" stop-color="#4ae3d1"/></linearGradient></defs></svg>
+    <div class="rm-show-in">
+      <p class="rm-caption" id="rm-caption" aria-live="polite"></p>
+      <div class="rm-toolbar">
+        <span class="rm-live" id="rm-live"><i></i><span> leyendo /api/roadmap…</span></span>
+        <button type="button" id="rm-presenter" title="Modo presentador (P) · ←/→ cambia de pata · Espacio pausa · Esc sale">Presentador (P)</button>
+        <span class="rm-filtro-activo" id="rm-filtro-activo" hidden></span>
+      </div>
+      <div class="rm-kpis" id="rm-kpis" aria-label="Contadores del RoadMap"></div>
+      <div class="rm-constel" id="rm-constel">
+        <svg class="rm-flows" id="rm-flows" aria-hidden="true"></svg>
+        <div class="rm-mesa" id="rm-mesa"></div>
+        <div class="rm-patas5" id="rm-patas5"></div>
+      </div>
+      <nav class="rm-rail" id="rm-rail" aria-label="Meses del RoadMap"></nav>
+      <div class="rm-legend" id="rm-legend" aria-label="Estados"></div>
+      <div class="rm-gantt-wrap" id="rm-gantt-wrap"><p class="rm-vacio">Cargando el Gantt…</p></div>
+    </div>
+  </section>
+  <div class="rm-card" id="rm-card" role="tooltip" hidden></div>
+  <h2 class="corte-h">Corte por periodo</h2>
   <div id="corte"><!--CORTE--></div>
 
   <footer>
@@ -73,5 +212,6 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261006-options-sello-5"></script>
+<script defer src="/assets/roadmap-show.js?v=20261006-roadmap-1"></script>
 </body>
 </html>

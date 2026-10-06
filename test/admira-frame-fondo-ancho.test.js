@@ -53,7 +53,9 @@ const ANCHO = {
   'presentaciones/index.html': 'main.wrap',
   'xpace/manage.html': 'main',
   'mcp/index.html': 'main',
-  'mcp/generador.html': 'main'
+  'mcp/generador.html': 'main',
+  'organigrama.html': 'main',
+  'roadmap.html': 'main'
 };
 // Páginas con la barra del sitio que conservan su ancho de lectura, con su motivo.
 const LECTURA = 'Página de lectura (doctrina, ayuda o informe): conserva su medida de línea de 60-90 caracteres; el encargo del ancho común es para las categorías de la intranet.';

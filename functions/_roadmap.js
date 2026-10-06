@@ -239,7 +239,7 @@ export function htmlCorte(corte) {
   const grupos = corte.columnas || corte.soluciones;
   const cartas = grupos.map((s) => {
     const cuerpo = s.hitos.length
-      ? `<ol class="hitos">${s.hitos.map((h) => `<li class="hito"><strong>${esc(h.titulo)}</strong><span>${esc(h.inicio)} → ${esc(h.fin)}</span><span>${esc(h.estado)} · ${esc(h.responsable)}${h.cliente ? ` · ${esc(h.cliente)}` : ' · General'} · ${esc(h.idea)}</span><cite>Fuente: ${esc(h.fuente)}</cite></li>`).join('')}</ol>`
+      ? `<ol class="hitos">${s.hitos.map((h) => `<li class="hito is-${esc(h.estado)}" data-estado="${esc(h.estado)}"><strong>${esc(h.titulo)}</strong><span>${esc(h.inicio)} → ${esc(h.fin)}</span><span>${esc(h.estado)} · ${esc(h.responsable)}${h.cliente ? ` · ${esc(h.cliente)}` : ' · General'} · ${esc(h.idea)}</span><cite>Fuente: ${esc(h.fuente)}</cite></li>`).join('')}</ol>`
       : '<p class="vacio">Por definir con Carlos</p>';
     return `<article class="carta" id="${esc(s.id)}" data-hitos="${s.hitos.length}"><span class="rol">${esc(s.nombre)}</span><h2>${esc(s.claim)}</h2>${cuerpo}</article>`;
   });
@@ -247,5 +247,10 @@ export function htmlCorte(corte) {
   const patas = porSolucion ? cartas.slice(0, 5).join('') : cartas.join('');
   const mesa = porSolucion ? `<div class="mesa">${cartas[5] || ''}</div>` : '';
   const clase = porSolucion ? 'patas' : 'patas eje';
-  return `${filtros}<nav class="vistas" aria-label="Escala del RoadMap">${vistas}</nav><p class="periodo"><a href="${esc(enlace(corte, { desde: corte.anterior }))}" rel="prev">Anterior</a><strong>${esc(corte.etiqueta)}</strong><a href="${esc(enlace(corte, { desde: corte.siguiente }))}" rel="next">Siguiente</a></p><div class="${clase}">${patas}</div>${mesa}`;
+  // Datos del corte para la escena (assets/roadmap-show.js): filtros, periodo y patas.
+  // La escena pide /api/roadmap y aplica los mismos filtros que este corte.
+  const ideaSel = IDEAS.find((i) => i.id === corte.idea);
+  const patasJson = JSON.stringify(SOLUCIONES.map(({ id, nombre, claim }) => ({ id, nombre, claim })));
+  const meta = `<span class="rm-meta" hidden data-vista="${esc(corte.vista)}" data-desde="${esc(corte.desde)}" data-hasta="${esc(corte.hasta)}" data-etiqueta="${esc(corte.etiqueta)}" data-proyecto="${esc(corte.proyecto || 'todos')}" data-cliente="${esc(corte.cliente || 'todos')}" data-idea="${esc(corte.idea || 'todos')}" data-idea-nombre="${esc(ideaSel ? ideaSel.nombre : '')}" data-patas="${esc(patasJson)}"></span>`;
+  return `${meta}${filtros}<nav class="vistas" aria-label="Escala del RoadMap">${vistas}</nav><p class="periodo"><a href="${esc(enlace(corte, { desde: corte.anterior }))}" rel="prev">Anterior</a><strong>${esc(corte.etiqueta)}</strong><a href="${esc(enlace(corte, { desde: corte.siguiente }))}" rel="next">Siguiente</a></p><div class="${clase}">${patas}</div>${mesa}`;
 }
