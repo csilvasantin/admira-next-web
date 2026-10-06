@@ -42,5 +42,11 @@
     "% hecho por pata con anillos, contadores animados y flujos AdmiraNeXT → patas",
     "Raíl mensual clicable y fichas de detalle al pasar el ratón",
     "Modo presentador con P: recorre las patas (←/→, Espacio, Esc)"
+  ],
+  "v.06.10.2026.r10.08:23": [
+    "⌘ Modo Experto también en admiranext.com: el raíl ⌘ EXPERTO · CLI de cada página (y la home) usa la piel de la suite.",
+    "/marca <id>|off|lista funciona aquí como en las plataformas (mismo catálogo y misma marca recordada en la pestaña).",
+    "/idioma y /language ESP|ENG (con typos y pegados como /idiomaESP) en el CLI.",
+    "Nueva marca en el catálogo: 365 Obrador (/marca 365), con su logo oficial."
   ]
 }
