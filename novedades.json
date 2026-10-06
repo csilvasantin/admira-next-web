@@ -57,5 +57,9 @@
   "v.06.10.2026.r12.09:25": [
     "⌘ Experto: /idioma ENG (o /language) ya traduce al momento la barra del sitio, los paneles ☰ Opciones, ▤ Avanzado y ⌘ Experto y el CLI en todas las páginas con armazón; /idioma ESP vuelve al castellano.",
     "/help del CLI del armazón sale en el idioma activo; el idioma se sigue recordando al cambiar de página."
+  ],
+  "v.06.10.2026.r13.10:16": [
+    "/idioma ENG ya traduce también el contenido de las páginas con armazón (empieza por /roadmap): KPIs, patas, chips, leyenda, Gantt y presentador; /idioma ESP vuelve al castellano.",
+    "El CLI del armazón ya no duplica el saludo en dos idiomas; los datos de la API siguen en su idioma original."
   ]
 }
