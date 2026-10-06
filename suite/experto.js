@@ -240,6 +240,34 @@
   var marcaSel = null;
   try { marcaSel = JSON.parse(sessionStorage.getItem('ax-experto-marca') || 'null'); } catch (_) {}
   function verb(v) { verbs = verbs.filter(function (x) { return x.name !== v.name; }); verbs.push(v); }
+  // ─── Verbos bilingües (Carlos, 06-10-2026 10:58) ───
+  // Cada verbo vale en castellano y en inglés (/marca = /brand, /ayuda = /help, /limpiar = /clear…).
+  // Usar la forma castellana pone la web en castellano y la inglesa en inglés, con el mismo applyLang
+  // de /idioma. Lo que se escribe igual en los dos idiomas (/version, /avatar, /cli…) y los atajos
+  // /81…/89 no tocan el idioma. Forma compacta: /marca84 = /marca 84, /brandoff = /brand off.
+  // /idioma y /language siguen con su contrato propio (sin argumento alternan; con ESP|ENG fijan).
+  var PARES_ES_EN = [['ayuda', 'help'], ['marca', 'brand'], ['ir', 'go'], ['estado', 'status'], ['limpiar', 'clear']];
+  var COMPACTO = /^(marca|brand)(off|[a-z0-9][a-z0-9_-]*)$/;
+  function idiomaDeVerbo(name) {
+    for (var i = 0; i < PARES_ES_EN.length; i++) {
+      if (PARES_ES_EN[i][0] === name) return 'es';
+      if (PARES_ES_EN[i][1] === name) return 'en';
+    }
+    return null;
+  }
+  function parDe(name) {
+    for (var i = 0; i < PARES_ES_EN.length; i++) {
+      if (PARES_ES_EN[i][0] === name) return PARES_ES_EN[i][1];
+      if (PARES_ES_EN[i][1] === name) return PARES_ES_EN[i][0];
+    }
+    return '';
+  }
+  function findVerb(name) { return verbs.filter(function (x) { return x.name === name || (x.alias || []).indexOf(name) >= 0; })[0]; }
+  // «/marca84» → {name: 'marca', parts: ['84']}; null si no es forma compacta de un verbo conocido.
+  function compacto(name) {
+    var m = COMPACTO.exec(name);
+    return m && findVerb(m[1]) ? {name: m[1], arg: m[2]} : null;
+  }
   function out(log, text, cls) {
     String(text).split('\n').forEach(function (line) {
       var li = document.createElement('li');
@@ -256,11 +284,14 @@
     return items;
   }
   verb({name: 'help', alias: ['?', 'ayuda'], desc: ['esta lista', 'this list'], run: function (a, log) {
-    out(log, verbs.map(function (v) { return '/' + v.name + (v.args ? ' ' + v.args : '') + ' — ' + T(v.desc[0], v.desc[1]); }).join('\n'));
+    out(log, verbs.map(function (v) { var par = parDe(v.name); return '/' + v.name + (par ? ' · /' + par : '') + (v.args ? ' ' + v.args : '') + ' — ' + T(v.desc[0], v.desc[1]); }).join('\n') +
+      '\n' + T('Cada verbo vale en castellano o en inglés: el castellano pone la web en castellano y el inglés en inglés. /marca84 = /marca 84.',
+        'Every verb works in Spanish or English: the Spanish one switches the site to Spanish, the English one to English. /brand84 = /brand 84.'));
   }});
-  verb({name: 'marca', args: '<id>|off|lista', desc: ['marca blanca del catálogo de admiranext.com (cliente de la ficha)', 'white label from the admiranext.com catalogue'], run: function (a, log) {
+  verb({name: 'marca', alias: ['brand', 'marcablanca'], args: '<id>|off|lista', desc: ['marca blanca del catálogo de admiranext.com (cliente de la ficha)', 'white label from the admiranext.com catalogue'], run: function (a, log) {
     var id = (a[0] || '').toLowerCase();
     var M = root.AdmiraMarca;
+    if (id === 'list') id = 'lista';
     if (M && typeof M.activar === 'function' && id && id !== 'lista') {
       if (id === 'off') { M.desactivar(); out(log, T('Vuelves a la identidad de serie.', 'Back to the default identity.')); paint(); return; }
       out(log, T('Aplicando la marca ', 'Applying brand ') + id + '…');
@@ -279,14 +310,14 @@
       out(log, T('Marca ', 'Brand ') + c.nombre + ' (' + c.id + T(') activa en la ficha de esta pestaña; /marca off vuelve a Admira.', ') active in this tab\'s card; /marca off returns to Admira.'));
     }).catch(function () { out(log, T('El catálogo de marcas no responde.', 'The brand catalogue is not answering.'), 'err'); });
   }});
-  verb({name: 'ir', args: '<sección>', desc: ['abre una sección de esta web (sin argumento: lista)', 'open a section of this site (no argument: list)'], run: function (a, log) {
+  verb({name: 'ir', alias: ['go'], args: '<sección>', desc: ['abre una sección de esta web (sin argumento: lista)', 'open a section of this site (no argument: list)'], run: function (a, log) {
     var items = navItems(), k = (a[0] || '').toLowerCase();
     if (!k) { out(log, items.length ? items.map(function (i) { return (i.k || '?') + ' → ' + i.h; }).join('\n') : T('Esta página no publica secciones.', 'This page lists no sections.')); return; }
     var hit = items.filter(function (i) { return (i.k || '').toLowerCase() === k || (i.t || '').toLowerCase() === k; })[0];
     if (!hit) { out(log, T('Sección desconocida: ', 'Unknown section: ') + k + T(' · /ir para la lista', ' · /ir for the list'), 'err'); return; }
     out(log, T('Abriendo ', 'Opening ') + hit.h + '…'); setTimeout(function () { location.assign(hit.h); }, 250);
   }});
-  verb({name: 'estado', desc: ['ficha del motor en el registro', 'engine card into the log'], run: function (a, log) { out(log, lines().join('\n')); }});
+  verb({name: 'estado', alias: ['status'], desc: ['ficha del motor en el registro', 'engine card into the log'], run: function (a, log) { out(log, lines().join('\n')); }});
   verb({name: 'version', desc: ['sello de la release', 'release stamp'], run: function (a, log) { out(log, readVersion()); }});
   verb({name: 'idioma', alias: ['language', 'languague'], args: '[ESP|ENG|es|en]', desc: ['idioma de la ficha y del CLI (sin arg: alterna)', 'language of the card and CLI (no arg: toggle)'], run: function (a, log) {
     var joined = (a && a.length) ? a.join(' ') : '';
@@ -349,9 +380,22 @@
     if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
     if (handleLangCommand(t, log)) return;
     var parts = t.replace(/^\//, '').split(/\s+/), name = (parts.shift() || '').toLowerCase();
-    var v = verbs.filter(function (x) { return x.name === name || (x.alias || []).indexOf(name) >= 0; })[0];
+    var v = findVerb(name), c = v ? null : compacto(name);
+    if (c) { name = c.name; parts.unshift(c.arg); v = findVerb(name); }
     if (!v) { out(log, T('Verbo desconocido: /', 'Unknown verb: /') + name + T(' · escribe /help', ' · type /help'), 'err'); return; }
-    try { return v.run(parts, log); } catch (e) { out(log, String(e && e.message || e), 'err'); }
+    // El idioma del verbo pasa a ser el de la web, cuando la orden ya ha hecho lo suyo.
+    var idioma = idiomaDeVerbo(name);
+    var cambiaIdioma = function () {
+      if (!idioma || idioma === lang()) return;
+      applyLang(idioma);
+      out(log, langMessage(idioma));
+    };
+    try {
+      var r = v.run(parts, log);
+      if (r && typeof r.then === 'function') return r.then(function (x) { cambiaIdioma(); return x; }, function (e) { cambiaIdioma(); throw e; });
+      cambiaIdioma();
+      return r;
+    } catch (e) { out(log, String(e && e.message || e), 'err'); }
   }
 
   function build() {
@@ -390,8 +434,11 @@
       else if (e.key === 'ArrowDown' && hist.length) { e.preventDefault(); cur = Math.min(hist.length, cur + 1); input.value = hist[cur] || ''; }
       else if (e.key === 'Tab' && input.value.trim()) {
         var pre = input.value.trim().replace(/^\//, '').toLowerCase();
-        var m = verbs.filter(function (v) { return v.name.indexOf(pre) === 0; });
-        if (m.length === 1) { e.preventDefault(); input.value = '/' + m[0].name + ' '; }
+        // Autocompleta nombres y alias (castellano e inglés): gana la forma que se está escribiendo.
+        var cand = [];
+        verbs.forEach(function (v) { [v.name].concat(v.alias || []).forEach(function (n) { if (n.indexOf(pre) === 0 && /^[a-z0-9]/.test(n)) cand.push({v: v, n: n}); }); });
+        var distintos = cand.filter(function (x, i) { return cand.findIndex(function (y) { return y.v === x.v; }) === i; });
+        if (distintos.length === 1) { e.preventDefault(); input.value = '/' + distintos[0].n + ' '; }
       }
     });
     cfg.panel = cfg.mount; cfg.header = '.ax-own-hd'; cfg.title = '.ax-own-title'; cfg.body = '.ax-own-body';
@@ -527,11 +574,15 @@
     log.classList.add('ax-cli-out');
     form.classList.add('ax-cli-form');
     input.classList.add('ax-cli-input');
-    input.setAttribute('placeholder', '/help');
-    // Algunas patas reescriben el placeholder al traducir: en la piel de la suite siempre es /help.
+    // Algunas patas reescriben el placeholder al traducir: en la piel de la suite es /ayuda en castellano y
+    // /help en inglés (06-10-2026: el verbo sugerido no cambia el idioma de la web al escribirlo).
+    var pista = function () { return T('/ayuda', '/help'); };
+    input.setAttribute('placeholder', pista());
     try {
-      new MutationObserver(function () { if (input.getAttribute('placeholder') !== '/help') input.setAttribute('placeholder', '/help'); })
+      new MutationObserver(function () { if (input.getAttribute('placeholder') !== pista()) input.setAttribute('placeholder', pista()); })
         .observe(input, {attributes: true, attributeFilter: ['placeholder']});
+      new MutationObserver(function () { if (input.getAttribute('placeholder') !== pista()) input.setAttribute('placeholder', pista()); })
+        .observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
     } catch (_) {}
     if (!form.querySelector('.ax-cli-prompt')) {
       var prompt = document.createElement('label');
@@ -614,6 +665,8 @@
     // Añadidos compatibles: las cinco patas no los usan.
     list: function () { return verbs.map(function (v) { return {name: v.name, alias: (v.alias || []).slice(), args: v.args || '', desc: (v.desc || []).slice()}; }); },
     has: function (n) { n = String(n || '').replace(/^\//, '').toLowerCase(); return verbs.some(function (v) { return v.name === n || (v.alias || []).indexOf(n) >= 0; }); },
+    idiomaDeVerbo: idiomaDeVerbo,
+    pares: function () { return PARES_ES_EN.map(function (p) { return p.slice(); }); },
     exec: function (t, log, opts) { log = log || (panel && panel.querySelector('.ax-cli-out')); if (log) return execute(t, log, opts); },
     parseLangCommand: parseLangCommand,
     normalizeLangToken: normalizeLangToken,

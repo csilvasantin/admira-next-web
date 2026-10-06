@@ -219,7 +219,7 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261006-idioma-paginas-5';
+  var IDIOMA_STAMP = '20261006-cli-bilingue-1';
   function aplicarIdioma(forzar) {
     var en = enIngles();
     if (!forzar && idiomaPintado === en) return;
@@ -760,11 +760,52 @@
     }
     return null;
   }
+  // Verbos bilingües (Carlos, 06-10-2026 10:58): cada verbo del CLI vale en castellano y en inglés.
+  // Al registrar un verbo se le añade su pareja como alias (si nadie más la usa). Escribir la forma
+  // castellana pone la web en castellano y la inglesa en inglés; lo que se escribe igual en los dos
+  // idiomas (/json, /manifest…) no toca el idioma. Forma compacta: /marca84 = /marca 84.
+  var PARES_ES_EN = [
+    ['ayuda', 'help'], ['limpiar', 'clear'], ['ir', 'go'], ['seccion', 'section'], ['arriba', 'top'],
+    ['marca', 'brand'], ['estado', 'status'], ['buscar', 'search'], ['refrescar', 'refresh'], ['actualizar', 'update'],
+    ['misiones', 'missions'], ['copiar', 'copy'], ['generador', 'generator'], ['fecha', 'date'], ['pestana', 'tab'],
+    ['vista', 'view'], ['censo', 'census'], ['cuenta', 'count'], ['rol', 'role'], ['ordenar', 'sort'],
+    ['proyectos', 'projects'], ['proyecto', 'project'], ['sesion', 'session'], ['locales', 'venues'], ['galeria', 'gallery'],
+    ['validar', 'validate'], ['accesos', 'access'], ['ahora', 'now'], ['audiencia', 'audience'], ['globo', 'globe'],
+    ['periodo', 'period'], ['sitio', 'site'], ['datos', 'data'], ['alta', 'signup'], ['catalogo', 'catalog'], ['directo', 'live']
+  ];
+  var COMPACTO = /^(marca|brand)(off|[a-z0-9][a-z0-9_-]*)$/;
+  function parDe(n) {
+    for (var i = 0; i < PARES_ES_EN.length; i++) {
+      if (PARES_ES_EN[i][0] === n) return PARES_ES_EN[i][1];
+      if (PARES_ES_EN[i][1] === n) return PARES_ES_EN[i][0];
+    }
+    return '';
+  }
+  function idiomaDeVerbo(n) {
+    for (var i = 0; i < PARES_ES_EN.length; i++) {
+      if (PARES_ES_EN[i][0] === n) return 'es';
+      if (PARES_ES_EN[i][1] === n) return 'en';
+    }
+    return null;
+  }
   function verbo(def) {
     if (!def || !def.id || typeof def.run !== 'function') return;
     var id = normal(def.id);
     verbos = verbos.filter(function (v) { return v.id !== id; });
-    verbos.push({id: id, aliases: (def.aliases || []).map(normal), uso: def.uso || '', ayuda: def.ayuda || '', ayudaEn: def.ayudaEn || '', run: def.run});
+    var aliases = (def.aliases || []).map(normal);
+    [id].concat(aliases).forEach(function (n) {
+      var par = parDe(n);
+      if (par && par !== id && aliases.indexOf(par) < 0 && !buscarVerbo(par)) aliases.push(par);
+    });
+    verbos.push({id: id, aliases: aliases, uso: def.uso || '', ayuda: def.ayuda || '', ayudaEn: def.ayudaEn || '', run: def.run, piel: !!def.piel});
+  }
+  function ponerIdioma(l) {
+    if (!l || (enIngles() ? 'en' : 'es') === l) return;
+    var X = G.AdmiraExperto;
+    if (X && typeof X.setLanguage === 'function') X.setLanguage(l);
+    else if (typeof G.AdmiraSetLanguage === 'function') G.AdmiraSetLanguage(l);
+    else root.setAttribute('lang', l);
+    imprimir(l === 'en' ? 'Language: English' : 'Idioma: español');
   }
   function imprimir(linea, tipo) {
     if (!cli) return;
@@ -784,10 +825,15 @@
     imprimir('› ' + limpio, 'cmd');
     var partes = limpio.replace(/^\//, '').split(/\s+/);
     var v = buscarVerbo(partes[0]);
+    var c = v ? null : COMPACTO.exec(normal(partes[0]));
+    if (c && buscarVerbo(c[1])) { partes.splice(0, 1, c[1], c[2]); limpio = '/' + partes.join(' '); v = buscarVerbo(c[1]); }
     if (!v) { imprimir(T('Verbo desconocido: /', 'Unknown verb: /') + partes[0] + T(' · escribe /help', ' · type /help'), 'err'); return; }
+    // Si el verbo lo atiende la piel ⌘ Experto, ella cambia el idioma; si no, el armazón.
+    var idioma = v.piel ? null : idiomaDeVerbo(normal(partes[0]));
     try {
       var r = v.run(partes.slice(1), ctx, limpio);
-      if (r && typeof r.then === 'function') r.then(null, function (e) { imprimir('Error: ' + (e && e.message || e), 'err'); });
+      if (r && typeof r.then === 'function') r.then(function () { ponerIdioma(idioma); }, function (e) { imprimir('Error: ' + (e && e.message || e), 'err'); });
+      else ponerIdioma(idioma);
     } catch (e) { imprimir('Error: ' + (e && e.message || e), 'err'); }
   }
 
@@ -854,10 +900,15 @@
       else if (e.key === 'ArrowDown' && historial.length) { e.preventDefault(); cursor = Math.min(historial.length, cursor + 1); input.value = historial[cursor] || ''; }
       else if (e.key === 'Tab' && input.value.trim() && input.value.indexOf(' ') < 0) {
         var pre = normal(input.value);
-        var cand = verbos.filter(function (v) { return v.id.indexOf(pre) === 0; });
+        // Nombres y alias (castellano e inglés): gana la forma que se está escribiendo.
+        var cand = [];
+        verbos.forEach(function (v) {
+          var n = [v.id].concat(v.aliases).filter(function (x) { return x.indexOf(pre) === 0 && /^[a-z0-9]/.test(x); })[0];
+          if (n) cand.push({v: v, n: n});
+        });
         if (cand.length) e.preventDefault();
-        if (cand.length === 1) input.value = '/' + cand[0].id + ' ';
-        else if (cand.length > 1) imprimir(cand.map(function (v) { return '/' + v.id; }).join('  '));
+        if (cand.length === 1) input.value = '/' + cand[0].n + ' ';
+        else if (cand.length > 1) imprimir(cand.map(function (x) { return '/' + x.n; }).join('  '));
       }
     });
     imprimir(T('CLI de ', 'CLI of ') + (doc.title || 'AdmiraNeXT') + T(' · escribe /help', ' · type /help'));
@@ -929,7 +980,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-paginas-5';
+  script.src = '/assets/experto-admiranext.js?v=20261006-cli-bilingue-1';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
