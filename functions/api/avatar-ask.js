@@ -80,16 +80,15 @@ export async function onRequest(context, fetchImpl = fetch) {
   const question = String(body.question || '').trim().slice(0, 500);
   const lang = String(body.lang || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
   if (!question) return json({text: lang === 'en' ? 'Ask a question.' : 'Escribe una pregunta.'}, 200, origin);
-  const grounded = (lang === 'en'
-    ? 'You are the AdmiraNeXT avatar. Answer in English, in 2 to 4 sentences. Use ONLY this sheet. If it is not in the sheet, say it is not in the sheet. Do not invent figures, prices or clients.\n\nSHEET:\n'
-    : 'Eres el avatar de AdmiraNeXT. Responde en español, en 2 a 4 frases. Usa SOLO esta ficha. Si no consta, di que no consta en la ficha. No inventes cifras, precios ni clientes.\n\nFICHA:\n')
-    + SHEET.es.join('\n') + '\n' + SHEET.en.join('\n') + '\n\nPREGUNTA:\n' + question;
+  // La ficha viaja en `context` (hasta 2000 caracteres) y la pregunta sola en `question`
+  // (el cerebro corta la pregunta a 500: antes la ficha iba delante y la pregunta se perdía).
+  const sheetContext = SHEET[lang].join('\n').slice(0, 2000);
   const sheet = sheetAnswer(question, lang);
   try {
     const r = await fetchImpl(BRAIN, {
       method: 'POST',
       headers: {'content-type': 'application/json'},
-      body: JSON.stringify({question: grounded, lang, room: 'xtanco', persona: 'neo'}),
+      body: JSON.stringify({question, lang, context: sheetContext, strict: true, persona: 'admiranext', sector: 'generic', tier: 'good', voice: false}),
     });
     const data = await r.json().catch(() => ({}));
     const text = String((data && (data.text || data.answer)) || '').trim();

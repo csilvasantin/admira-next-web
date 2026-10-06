@@ -28,3 +28,14 @@ test('no lleva claves ni reenvía audio', () => {
   const src = readFileSync(new URL('../functions/api/avatar-ask.js', import.meta.url), 'utf8');
   assert.doesNotMatch(src, /XAI_API_KEY|env\.[A-Z_]*KEY|audioBase64/);
 });
+
+test('la pregunta viaja entera en question y la ficha en context (sin audio)', async () => {
+  let sent = null;
+  const spy = async (url, init) => { sent = JSON.parse(init.body); return new Response(JSON.stringify({answer: 'Yokup (yokup.com) es la bandeja.'})); };
+  await onRequest(req('https://www.admiranext.com', 'POST', {question: '¿Qué es yokup?', lang: 'es'}), spy);
+  assert.equal(sent.question, '¿Qué es yokup?');
+  assert.match(sent.context, /Yokup \(yokup\.com\)/);
+  assert.ok(sent.context.length <= 2000);
+  assert.equal(sent.strict, true);
+  assert.equal(sent.voice, false);
+});

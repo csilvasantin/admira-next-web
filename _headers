@@ -26,6 +26,11 @@
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=300
 
+# Catálogo de sectores del avatar (6-oct-2026): lo lee brain.digitalavatar.ai y cualquier cara.
+/avatar/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300
+
 # Sello de versión con novedades (06-10-2026): cargador común de toda la suite; cada sitio
 # lo pide con su ?v= y lee SU propio /version.json. Sin cookies ni datos personales.
 /assets/sello-novedades.js

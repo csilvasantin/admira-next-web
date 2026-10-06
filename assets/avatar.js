@@ -9,6 +9,8 @@
  *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html)
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
+ *   AdmiraAvatar.setContext({loc, lang, sector, brand, site, city})  contexto del cliente
+ *     (la cara lo recibe en la URL y por postMessage; ver levelUrl).
  *
  * Precedencia (de más a menos fuerte):
  *   1. Elección del usuario en este sitio y navegador: localStorage
@@ -134,8 +136,34 @@
     return clampPanelSize((start && start.w || 0) - dx, (start && start.h || 0) - dy, view);
   }
 
+  // ─── Contexto del cliente (avatar por sector · 6-oct-2026 · GrokBot · MacMini) ───
+  // El panel abre la cara con ?loc, lang, sector, brand, site, city y tier (= nivel:
+  // good, better o best). digitalavatar.ai/assets/da-context.js lo lee y lo manda al
+  // cerebro; los cambios posteriores viajan por postMessage {type:'da-context'}.
+  var CTX_KEYS = ['loc', 'lang', 'sector', 'brand', 'site', 'city'];
+  function cleanContext(ctx) {
+    var out = {};
+    ctx = ctx || {};
+    for (var i = 0; i < CTX_KEYS.length; i++) {
+      var k = CTX_KEYS[i], v = ctx[k];
+      if (v == null) continue;
+      v = String(v).replace(/\s+/g, ' ').trim().slice(0, 120);
+      if (k === 'lang') v = /^en/i.test(v) ? 'en' : /^es/i.test(v) ? 'es' : '';
+      if (k === 'brand' && /^(admira|off|none)$/i.test(v)) v = '';
+      if (v) out[k] = v;
+    }
+    return out;
+  }
+  function levelUrl(level, ctx) {
+    var lv = LEVELS[level] ? level : 'good';
+    var c = cleanContext(ctx), q = [];
+    for (var i = 0; i < CTX_KEYS.length; i++) if (c[CTX_KEYS[i]]) q.push(CTX_KEYS[i] + '=' + encodeURIComponent(c[CTX_KEYS[i]]));
+    q.push('tier=' + lv);
+    return LEVELS[lv] + '&' + q.join('&');
+  }
+
   var api = {decide: decide, resolve: resolve, legacyValue: legacyValue, message: message,
-    clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag,
+    clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl,
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
@@ -326,15 +354,51 @@
     }
     fitPanel();
     bindResize(wrap.querySelector('#da-suite-resize'));
+    wrap.querySelector('#da-suite-frame').addEventListener('load', postContext);
     wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { openLevel(storedLevel()); });
     wrap.querySelector('#da-suite-x').addEventListener('click', function () { wrap.classList.remove('open'); });
     return wrap;
   }
+  var DA_ORIGIN = 'https://digitalavatar.ai';
+  var CTX = {};
+  var openedLevel = '';
+  // Por defecto: ?loc de la página, idioma de ⌘ Experto (admiranext_expert_lang) o del
+  // documento, marca blanca de la pestaña (mb:marca), data-loc/data-sector del script y
+  // window.AdmiraAvatarContext. setContext() manda sobre todo eso.
+  function defaultContext() {
+    var c = {};
+    try { var q = new URLSearchParams(root.location.search); if (q.get('loc')) c.loc = q.get('loc'); } catch (_) {}
+    c.lang = get('admiranext_expert_lang') || String(doc.documentElement.lang || '').slice(0, 2);
+    var s = session(); try { var m = s && s.getItem('mb:marca'); if (m) c.brand = m; } catch (_) {}
+    if (data.loc) c.loc = data.loc;
+    if (data.sector) c.sector = data.sector;
+    var g = root.AdmiraAvatarContext;
+    if (g && typeof g === 'object') for (var k in g) if (Object.prototype.hasOwnProperty.call(g, k)) c[k] = g[k];
+    return c;
+  }
+  function context() {
+    var c = defaultContext();
+    for (var k in CTX) if (Object.prototype.hasOwnProperty.call(CTX, k)) { if (CTX[k] == null || CTX[k] === '') delete c[k]; else c[k] = CTX[k]; }
+    return cleanContext(c);
+  }
+  function postContext() {
+    var n = node(), frame = n && n.querySelector('#da-suite-frame');
+    if (!frame || !frame.contentWindow || !frame.getAttribute('src')) return;
+    var msg = context(); msg.type = 'da-context'; msg.tier = openedLevel || storedLevel();
+    try { frame.contentWindow.postMessage(msg, DA_ORIGIN); } catch (_) {}
+  }
+  function setContext(partial) {
+    if (partial && typeof partial === 'object') for (var k in partial) if (Object.prototype.hasOwnProperty.call(partial, k) && CTX_KEYS.indexOf(k) >= 0) CTX[k] = partial[k];
+    postContext();
+    return context();
+  }
   function openLevel(level) {
     var wrap = ensureDock();
     var frame = wrap.querySelector('#da-suite-frame');
-    var url = LEVELS[level] || LEVELS.good;
-    if (frame.getAttribute('src') !== url) frame.setAttribute('src', url);
+    var lv = LEVELS[level] ? level : 'good';
+    // Cambiar de nivel recarga la cara; con el mismo nivel, el contexto viaja por postMessage.
+    if (!frame.getAttribute('src') || openedLevel !== lv) { openedLevel = lv; frame.setAttribute('src', levelUrl(lv, context())); }
+    else postContext();
     var label = wrap.querySelector('#da-suite-label');
     if (label) label.textContent = level;
     wrap.style.display = '';
@@ -355,7 +419,7 @@
   }
   function hide() {
     var n = node();
-    if (n) { n.classList.remove('open'); n.style.display = 'none'; var frame = n.querySelector('iframe'); if (frame) frame.removeAttribute('src'); }
+    if (n) { n.classList.remove('open'); n.style.display = 'none'; var frame = n.querySelector('iframe'); if (frame) frame.removeAttribute('src'); openedLevel = ''; }
     try { if (root.speechSynthesis) root.speechSynthesis.cancel(); } catch (_) {}
   }
 
@@ -422,10 +486,10 @@
     return Promise.resolve(out == null ? message('bad', en()) : out);
   }
   function state() {
-    return {override: override(), visible: visible(), present: present(), level: storedLevel(), host: host, brain: brainUrl()};
+    return {override: override(), visible: visible(), present: present(), level: storedLevel(), host: host, brain: brainUrl(), context: context()};
   }
 
-  root.AdmiraAvatar = {run: run, handle: handle, decide: decide, show: show, hide: hide, state: state,
+  root.AdmiraAvatar = {run: run, handle: handle, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },
