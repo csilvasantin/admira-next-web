@@ -39,7 +39,7 @@ function textTree(node) {
   return [node.textContent, ...node.children.flatMap(textTree)].filter(Boolean).join(' ');
 }
 
-function fixture(manifests, meta = 'AdmiraNeXT v.08.08.2026.r1.12:26') {
+function fixture(manifests, meta = 'AdmiraNeXT v.08.08.2026.r1.12:26', sesion = true) {
   const head = new Element('head');
   const body = new Element('body');
   const metaNode = new Element('meta');
@@ -64,6 +64,7 @@ function fixture(manifests, meta = 'AdmiraNeXT v.08.08.2026.r1.12:26') {
     isNaN,
     Promise,
     fetch: async (url) => {
+      if (String(url).includes('/api/sello')) return response({ok: true, sesion});
       if (String(url).includes('version.json')) return manifests[Math.min(index++, manifests.length - 1)];
       return response(null, {etag: 'asset-a'});
     }
@@ -204,4 +205,16 @@ test('estar al día se resuelve antes de montar nada, y lo anómalo sí se dice'
     'con una release nueva se despliega solo: ahí SÍ debe interrumpir');
   assert.doesNotMatch(js, /removeAttribute/,
     'el verificador se monta también sobre un DOM mínimo: no ampliar la superficie que necesita');
+});
+
+test('sin sesión no se enseña ningún aviso de versión, ni siquiera con release nueva (06-10-2026)', async () => {
+  // Carlos: en la parte pública de admiranext.com no se ven versiones ni firmas. El aviso solo
+  // existe para usuarios registrados (/api/sello → sesion:true).
+  const vieja = response({version: 'v.08.08.2026.r1.12:26', deployedAt: '2026-08-08T10:26:00Z', gitShort: '2d6226b'});
+  const nueva = response({version: 'v.08.08.2026.r2.13:40', deployedAt: '2026-08-08T11:40:00Z', gitShort: 'abcdef1'});
+  const {context, body} = fixture([vieja, nueva], undefined, false);
+  await context.window.AdmiraVersionWatch.ready;
+  await context.window.AdmiraVersionWatch.check();
+  assert.equal(body.children.length, 0, 'el anónimo no ve el aviso');
+  assert.equal(textTree(body), '');
 });

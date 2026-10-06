@@ -53,11 +53,11 @@ test('el organigrama está en el menú de la casa y en la zona protegida, no en 
     leer('index.html'),
     leer('sitemap.xml')
   ]);
-  assert.match(frame, /\['\/organigrama', 'Organigrama'\]/);
+  assert.match(frame, /\['\/organigrama', 'Organigrama', 'interno'\]/, 'en el mapa del sitio, como entrada interna');
   // Carlos, 06-10-2026: sale de la navegación pública de la portada y vive en la zona protegida.
   assert.doesNotMatch(portada.match(/<nav class="entry-nav"[\s\S]*?<\/nav>/)[0], /href="\/organigrama"/);
   assert.match(await leer('webmaster.html'), /id="zona-protegida"[\s\S]*?<a href="\/organigrama">/);
-  const barra = 'Agentes</a><a href="/organigrama">Organigrama</a>';
+  const barra = 'Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a>';
   for (const rel of ['usuarios.html', 'presentaciones/index.html', 'presentaciones/generador.html', 'flota.html']) {
     assert.ok((await leer(rel)).includes(barra), rel);
   }

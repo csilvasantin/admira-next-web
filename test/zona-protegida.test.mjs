@@ -165,3 +165,66 @@ test('sello-sesion.js: anónimo → ni cargador ni versión; con sesión → car
   assert.equal(dentro.arranque, 1);
   assert.equal(dentro.classList.on['admira-con-sesion'], true);
 });
+
+// ── Restos (06-10-2026): nada interno para el anónimo ──────────────────────────
+import { onRequest as versionJson } from '../functions/version.json.js';
+import { onRequest as novedadesJson } from '../functions/novedades.json.js';
+
+const FIRMA = {version: 'v.01.01.2026.r1.00:00', signature: 'GrokBot · MacMini', git: 'abc', gitFull: 'abc', deployedAt: '2026-10-06T21:00:00Z', novedades: ['uno', 'dos', 'tres']};
+const servirFirma = async () => new Response(JSON.stringify(FIRMA), {headers: {'content-type': 'application/json', etag: '"x"'}});
+
+test('/version.json: el anónimo recibe firma y número de novedades, no su texto; con sesión, completo', async () => {
+  const env = await setup();
+  const anon = await versionJson({request: new Request('https://www.admiranext.com/version.json?sha=abc'), env, next: servirFirma});
+  assert.equal(anon.status, 200);
+  const a = await anon.json();
+  assert.equal(a.version, FIRMA.version); assert.equal(a.gitFull, 'abc'); assert.equal(a.signature, FIRMA.signature);
+  assert.equal(a.novedades, undefined, 'sin el texto de las novedades');
+  assert.equal(a.novedadesCount, 3, 'pero con su número para la verificación del deploy');
+  assert.equal(anon.headers.get('cache-control'), 'no-store');
+  const c = await cookie(env, 'csilva@admira.com');
+  const dentro = await (await versionJson({request: new Request('https://www.admiranext.com/version.json', {headers: {cookie: c}}), env, next: servirFirma})).json();
+  assert.deepEqual(dentro.novedades, FIRMA.novedades);
+  const sinFichero = await versionJson({request: new Request('https://www.admiranext.com/version.json'), env, next: async () => new Response('no', {status: 404})});
+  assert.equal(sinFichero.status, 404);
+});
+
+test('/novedades.json no sale sin sesión', async () => {
+  const env = await setup();
+  let servida = false;
+  const next = async () => { servida = true; return new Response('{"default":["x"]}'); };
+  const anon = await novedadesJson({request: new Request('https://www.admiranext.com/novedades.json'), env, next});
+  assert.equal(anon.status, 401); assert.equal(servida, false);
+  const c = await cookie(env, 'csilva@admira.com');
+  const dentro = await novedadesJson({request: new Request('https://www.admiranext.com/novedades.json', {headers: {cookie: c}}), env, next});
+  assert.equal(dentro.status, 200);
+});
+
+test('la verificación del deploy acepta el contador de novedades del version.json anónimo', async () => {
+  const wf = await read('../.github/workflows/deploy-cloudflare.yml');
+  assert.match(wf, /novedadesCount/);
+  assert.match(wf, /version\.json en producción no trae novedades/, 'una release sin novedades sigue siendo rojo');
+});
+
+test('los pies públicos no llevan sello en el HTML: hueco vacío que se rellena solo con sesión', async () => {
+  const PUBLICAS = ['academia.html', 'consejero.html', 'creditos/index.html', 'filosofia.html', 'informes/handon-contenidos-2026-09-14.html', 'mandamientos.html', 'marcablanca/index.html', 'marcablanca/propuesta/index.html', 'mcp/generador.html', 'mcp/index.html', 'normativa.html', 'presentar.html'];
+  for (const rel of PUBLICAS) {
+    const html = await read('../' + rel);
+    const pies = (html.match(/<footer[\s\S]*?<\/footer>/gi) || []).join('');
+    assert.doesNotMatch(pies, /v\.\d{2}\.\d{2}\.\d{4}\.r\d+/, `${rel}: sin sello escrito en el pie`);
+    assert.match(pies, /data-admira-sello-pie[^>]*hidden/, `${rel}: hueco del sello, oculto de partida`);
+  }
+  const frame = await read('../assets/admira-frame.js');
+  assert.match(frame, /\[data-admira-sello-pie\]/);
+  const css = await read('../assets/admira-frame.css');
+  assert.match(css, /html:not\(\.admira-con-sesion\) \[data-yk-interno\]\{ display: none !important \}/);
+});
+
+test('⌘ Experto: en admiranext.com la versión es «solo con sesión» para el anónimo; el resto de la suite no cambia', async () => {
+  const suite = await read('../suite/experto.js');
+  assert.match(suite, /dataset\.versionOculta === '1'\) return T\('solo con sesión'/);
+  const ax = await read('../assets/experto-admiranext.js');
+  assert.match(ax, /d\.documentElement\.dataset\.versionOculta = '1';/);
+  assert.match(ax, /\/api\/sello/);
+  assert.ok(ax.indexOf("dataset.versionOculta = '1'") < ax.indexOf("fetch('/version.json'"), 'se oculta antes de pedir nada');
+});

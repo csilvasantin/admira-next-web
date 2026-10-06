@@ -120,10 +120,14 @@ jobs:
             printf '%s\n' "$FIRMA"
             exit 1
           fi
-          NOVS="$(printf '%s' "$FIRMA" | jq -r 'if (.novedades | type) == "array" then (.novedades | length) else 0 end')"
+          # Desde el 06-10-2026 el version.json ANÓNIMO no trae el texto de las novedades
+          # (functions/version.json.js: solo con sesión), sino su número en novedadesCount.
+          # Se acepta cualquiera de las dos formas: el texto (con sesión o deploy antiguo) o
+          # el contador. Lo que sigue siendo rojo es una release publicada sin novedades.
+          NOVS="$(printf '%s' "$FIRMA" | jq -r 'if (.novedades | type) == "array" then (.novedades | length) elif (.novedadesCount | type) == "number" then .novedadesCount else 0 end')"
           if [ "$NOVS" = "0" ]; then
             echo "::error::version.json en producción no trae novedades."
             printf '%s\n' "$FIRMA"
             exit 1
           fi
-          echo "✓ firma publicada: $(printf '%s' "$FIRMA" | jq -r '.version + " · " + .signature + " · " + (.novedades | length | tostring) + " novedades"')"
+          echo "✓ firma publicada: $(printf '%s' "$FIRMA" | jq -r '.version + " · " + .signature') · ${NOVS} novedades"

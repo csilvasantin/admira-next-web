@@ -75,6 +75,10 @@ const EXCEPCIONES = {
 
 const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/organigrama', '/roadmap', '/presentaciones/', '/xpace/manage'];
 const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/organigrama', '/roadmap', '/presentaciones/'];
+// Entradas INTERNAS (06-10-2026): el marcado de la barra sigue siendo idéntico en todas las páginas,
+// pero estas llevan data-yk-interno y el visitante anónimo no las ve (admira-frame.css las esconde
+// sin .admira-con-sesion y admira-frame.js las quita del DOM si /api/sello dice que no hay sesión).
+const NAV_INTERNOS = ['/usuarios', '/webmaster', '/analitics', '/flota', '/organigrama', '/presentaciones/', '/xpace/manage'];
 const GLIFOS = {ykOptionsToggle: '☰', ykAdvancedToggle: '▤', ykExpertToggle: '⌘'};
 
 const leer = (rel) => readFile(path.join(ROOT, rel), 'utf8');
@@ -124,7 +128,8 @@ async function familia() {
   for (const [, ruta] of linea.matchAll(/path === '([^']+)'/g)) await apuntar(ruta, 'destino de la puerta de login');
   // 2) Functions que sirven el HTML estático tras exigir sesión (no las APIs).
   for (const rel of await archivos('functions', '.js')) {
-    if (rel.startsWith('functions/api/') || path.basename(rel).startsWith('_') && !rel.endsWith('_middleware.js')) continue;
+    // (/version.json y /novedades.json sirven datos, no una página: 06-10-2026)
+    if (rel.startsWith('functions/api/') || /\.json\.js$/.test(rel) || path.basename(rel).startsWith('_') && !rel.endsWith('_middleware.js')) continue;
     const fuente = await leer(rel);
     if (!/exigirRol|sesionCompleta/.test(fuente) || !/next\(\)/.test(fuente)) continue;
     const ruta = '/' + rel.replace(/^functions\//, '').replace(/\/?_middleware\.js$/, '').replace(/\.js$/, '');
@@ -200,6 +205,8 @@ for (const [rel, {ruta, acceso, actual}] of Object.entries(ADOPTADAS)) {
     assert.deepEqual(hrefs, NAV_GRUPO, 'la navegación del grupo es la misma en todas las páginas');
     const enBarra = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => !/data-yk-rail-only/.test(m[1] + m[3])).map((m) => m[2]);
     assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes · Organigrama · RoadMap · Presentaciones; el resto, en ☰');
+    const internos = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => /\bdata-yk-interno\b/.test(m[1] + m[3])).map((m) => m[2]);
+    assert.deepEqual(internos, NAV_INTERNOS, 'las entradas internas van marcadas igual en todas las páginas (data-yk-interno): sin sesión no se ven');
     if (actual === null) {
       // Página fuera de la navegación del grupo: la barra es la misma, sin nada marcado.
       assert.equal((cab.match(/aria-current="page"/g) || []).length, 0, 'ninguna página del grupo marcada: ésta no es del grupo');
@@ -421,7 +428,7 @@ test('Presentaciones lleva la MISMA cabecera que el resto de la intranet', async
   for (const rel of ['presentaciones/generador.html', 'presentaciones/index.html']) {
     const cab = cabeceraDe(await servida(rel));
     assert.equal(sinMarca(cab), modelo, `${rel}: la cabecera es la de /analitics (salvo el enlace marcado)`);
-    assert.match(cab, /<a href="\/presentaciones\/" aria-current="page">Presentaciones<\/a>/, `${rel}: marca Presentaciones`);
+    assert.match(cab, /<a href="\/presentaciones\/" aria-current="page"( data-yk-interno)?>Presentaciones<\/a>/, `${rel}: marca Presentaciones`);
     assert.doesNotMatch(cab, /GENERADOR|data-yk-slot|yk-page/, `${rel}: sin rótulo ni pestañas propias en la barra`);
   }
   // Y la de /proyectos/ es la misma salvo el acceso: aquella es pública y lo dice.

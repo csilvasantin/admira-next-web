@@ -11,7 +11,8 @@ const lista = hitos();
 
 test('RoadMap sigue en el menú y comienza directamente con la visualización', () => {
   const nav = proyectos.match(/<nav aria-label="Navegación del grupo">[\s\S]*?<\/nav>/)[0];
-  assert.match(nav, /<a href="\/organigrama">Organigrama<\/a><a href="\/roadmap">RoadMap<\/a><a href="\/presentaciones\/">Presentaciones<\/a>/);
+  // Organigrama y Presentaciones son entradas internas (data-yk-interno, 06-10-2026); RoadMap es pública.
+  assert.match(nav, /<a href="\/organigrama" data-yk-interno>Organigrama<\/a><a href="\/roadmap">RoadMap<\/a><a href="\/presentaciones\/" data-yk-interno>Presentaciones<\/a>/);
   assert.match(html, /<h1>RoadMap<\/h1>\s*<section class="rm-show"/);
   assert.doesNotMatch(html, /<p class="(?:aviso|lede)"/);
   assert.match(html, /<!--CORTE-->/);
