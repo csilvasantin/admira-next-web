@@ -375,7 +375,9 @@
       el.classList.add('ax-sello-up');
       el.setAttribute('title', tt);
       el.setAttribute('aria-label', 'Sello ' + tt);
-      if (!el.querySelector('.axs-nuevo')) {
+      // Some native panels fill the version only when first opened. Keep them empty
+      // until then so NUEVO cannot block their own initialisation.
+      if (el.textContent.trim() && !el.querySelector('.axs-nuevo')) {
         var n = document.createElement('span'); n.className = 'axs-nuevo'; n.textContent = 'NUEVO';
         n.style.marginLeft = '6px';
         el.appendChild(n);
