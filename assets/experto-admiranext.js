@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261006-idioma-armazon-1';
+  var STAMP = '20261006-idioma-paginas-1';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -192,6 +192,9 @@
       marcaReal(X);
       sincronizarIdioma(X);
       var F = G.AdmiraFrame, out = rail.querySelector('.yk-cli-out');
+      // Un solo saludo: el de la piel (sigue al idioma); el del armazón sobra.
+      var hola = out && out.querySelector('.yk-cli-hola');
+      if (hola && out.querySelector('.ax-hello')) hola.parentNode.removeChild(hola);
       if (!F || !F.verbo || !X.list) return;
       // El CLI del armazón delega en la piel los verbos que no tiene (la página manda si ya los tiene).
       X.list().forEach(function (v) {

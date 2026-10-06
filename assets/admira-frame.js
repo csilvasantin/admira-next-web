@@ -104,52 +104,132 @@
     'Normativa': 'Rules', 'Filosofía': 'Philosophy', 'Flota': 'Fleet', 'Presupuestos': 'Budgets',
     'Créditos': 'Credits', 'Impacto': 'Impact', 'Marca blanca': 'White label', 'Informes': 'Reports'
   };
+  // Página entera (06-10-2026 10:11, Carlos: «sigo sin ver el cambio de idioma»): además del
+  // armazón se traduce el TEXTO FIJO de cada página (títulos, contadores, botones, chips,
+  // leyendas, rótulos de las patas…), lo que la página pinte por JS después incluido. El
+  // diccionario de páginas vive en /assets/idioma-armazon.js y sólo se descarga cuando
+  // alguien pide inglés. Los datos escritos en castellano (títulos de hitos…) se quedan.
+  var EXTRA = {dicc: {}, reglas: []};
+  function tiene(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+  function buscar(core) {
+    if (tiene(DICC, core)) return DICC[core];
+    if (tiene(EXTRA.dicc, core)) return EXTRA.dicc[core];
+    for (var i = 0; i < EXTRA.reglas.length; i++) {
+      var r = EXTRA.reglas[i], m = core.match(r[0]);
+      if (m) return typeof r[1] === 'function' ? r[1](m, traducirFrase) : core.replace(r[0], r[1]);
+    }
+    return null;
+  }
+  // Una frase «a · b · c» se traduce por trozos si no está entera en el diccionario.
+  function traducirFrase(core) {
+    var t = buscar(core);
+    if (t != null) return t;
+    if (core.indexOf(' · ') < 0) return null;
+    var cambio = false;
+    var partes = core.split(' · ').map(function (p) {
+      var q = buscar(p);
+      if (q != null && q !== p) { cambio = true; return q; }
+      return p;
+    });
+    return cambio ? partes.join(' · ') : null;
+  }
   // «☰ OPCIONES», «○ Página pública», «— sin opciones…»: el adorno de delante se conserva.
   function traduceTexto(orig) {
     var m = String(orig == null ? '' : orig).match(/^([^A-Za-z\u00C0-\u024F0-9]*)([\s\S]*?)(\s*)$/);
-    if (!m || !m[2] || !Object.prototype.hasOwnProperty.call(DICC, m[2])) return null;
-    return m[1] + DICC[m[2]] + m[3];
+    if (!m || !m[2]) return null;
+    var t = traducirFrase(m[2]);
+    return t == null || t === m[2] ? null : m[1] + t + m[3];
   }
   var originales = typeof WeakMap === 'function' ? new WeakMap() : null;
-  var ATRS_DICC = ['aria-label', 'title'];
+  var ATRS_DICC = ['aria-label', 'title', 'placeholder'];
+  var FUERA = '.yk-cli-out, .ax-cli-out, .ax-engine, script, style, textarea, [contenteditable], [data-yk-no-traducir]';
+  function traducirTextoNodo(n, en) {
+    var padre = n.parentNode;
+    if (!padre || (padre.closest && padre.closest(FUERA))) return;
+    var reg = originales.get(n), actual = n.nodeValue;
+    // La página reescribió el nodo (no es ni el original ni nuestra traducción): manda lo nuevo.
+    if (reg && actual !== reg.o && actual !== reg.t) reg = null;
+    var orig = reg ? reg.o : actual;
+    var trad = reg ? reg.t : traduceTexto(orig);
+    if (trad == null) return;
+    if (!reg) originales.set(n, {o: orig, t: trad});
+    var quiero = en ? trad : orig;
+    if (actual !== quiero) n.nodeValue = quiero;
+  }
+  function traducirAtributos(e, en) {
+    ATRS_DICC.forEach(function (a) {
+      if (!e.hasAttribute || !e.hasAttribute(a)) return;
+      var ko = 'data-yk-es-' + a, kt = 'data-yk-en-' + a, actual = e.getAttribute(a);
+      var orig = e.getAttribute(ko), trad = e.getAttribute(kt);
+      if (orig == null || (actual !== orig && actual !== trad)) {
+        orig = actual; trad = traduceTexto(orig);
+        if (trad == null) { e.removeAttribute(ko); e.removeAttribute(kt); return; }
+        e.setAttribute(ko, orig); e.setAttribute(kt, trad);
+      }
+      var quiero = en ? trad : orig;
+      if (actual !== quiero) e.setAttribute(a, quiero);
+    });
+  }
   function traducirZona(zona, en) {
     if (!zona || !originales || !doc.createTreeWalker) return;
+    if (zona.nodeType === 3) { traducirTextoNodo(zona, en); return; }
+    if (zona.nodeType !== 1 || (zona.closest && zona.closest(FUERA))) return;
     var paseo = doc.createTreeWalker(zona, 4, null), n;
-    while ((n = paseo.nextNode())) {
-      var padre = n.parentNode;
-      if (!padre || (padre.closest && padre.closest('.yk-cli-out, .ax-cli-out, .ax-engine, script, style'))) continue;
-      var orig = originales.has(n) ? originales.get(n) : n.nodeValue;
-      var trad = traduceTexto(orig);
-      if (trad == null) continue;
-      if (!originales.has(n)) originales.set(n, orig);
-      var quiero = en ? trad : orig;
-      if (n.nodeValue !== quiero) n.nodeValue = quiero;
-    }
-    var nodos = [zona].concat(Array.prototype.slice.call(zona.querySelectorAll ? zona.querySelectorAll('[aria-label],[title]') : []));
-    nodos.forEach(function (e) {
-      ATRS_DICC.forEach(function (a) {
-        if (!e.hasAttribute || !e.hasAttribute(a)) return;
-        var clave = 'data-yk-es-' + a;
-        var orig = e.hasAttribute(clave) ? e.getAttribute(clave) : e.getAttribute(a);
-        var trad = traduceTexto(orig);
-        if (trad == null) return;
-        if (!e.hasAttribute(clave)) e.setAttribute(clave, orig);
-        var quiero = en ? trad : orig;
-        if (e.getAttribute(a) !== quiero) e.setAttribute(a, quiero);
-      });
-    });
+    while ((n = paseo.nextNode())) traducirTextoNodo(n, en);
+    var nodos = [zona].concat(Array.prototype.slice.call(zona.querySelectorAll ? zona.querySelectorAll('[aria-label],[title],[placeholder]') : []));
+    nodos.forEach(function (e) { if (!(e.closest && e.closest(FUERA))) traducirAtributos(e, en); });
   }
   var zonasIdioma = [];
   var idiomaPintado = false;   // el HTML nace en castellano: no hay nada que traducir hasta que pidan inglés
+  var vigia = null, diccPedido = false;
+  // Lo que la página pinte o repinte en inglés también se traduce (contadores, Gantt, fichas…).
+  function vigilar(en) {
+    if (typeof MutationObserver !== 'function' || !body) return;
+    if (!vigia) {
+      vigia = new MutationObserver(function (lista) {
+        if (!enIngles()) return;
+        try {
+          lista.forEach(function (r) {
+            if (r.type === 'characterData') traducirZona(r.target, true);
+            else if (r.type === 'attributes') { if (r.target.closest && !r.target.closest(FUERA)) traducirAtributos(r.target, true); }
+            else Array.prototype.forEach.call(r.addedNodes || [], function (x) { traducirZona(x, true); });
+          });
+        } catch (e) { /* una traducción fallida no rompe la página */ }
+      });
+    }
+    if (en) vigia.observe(body, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATRS_DICC});
+    else vigia.disconnect();
+  }
+  function pedirDiccionario() {
+    if (diccPedido || !doc.createElement) return;
+    diccPedido = true;
+    var s = doc.createElement('script');
+    s.src = '/assets/idioma-armazon.js?v=' + IDIOMA_STAMP;
+    s.async = true;
+    s.onload = function () { if (enIngles()) aplicarIdioma(true); };
+    (doc.head || root).appendChild(s);
+  }
+  var IDIOMA_STAMP = '20261006-idioma-paginas-1';
   function aplicarIdioma(forzar) {
     var en = enIngles();
     if (!forzar && idiomaPintado === en) return;
     idiomaPintado = en;
+    if (en) pedirDiccionario();
     // Traducir nunca puede tumbar el armazón: si algo falla, se queda como estaba.
     try { zonasIdioma.forEach(function (z) { traducirZona(z, en); }); } catch (e) { /* sigue en el idioma anterior */ }
+    try { vigilar(en); } catch (e) { /* sin vigía: se traduce lo que hay */ }
     // La cabecera cambia de ancho: que vuelva a medir y a plegar su navegación.
     try { if (typeof G.dispatchEvent === 'function' && typeof Event === 'function') G.dispatchEvent(new Event('resize')); } catch (e) { /* nada */ }
   }
+  // /assets/idioma-armazon.js añade aquí su diccionario y sus reglas ([RegExp, reemplazo|función]).
+  G.AdmiraIdiomaArmazon = {
+    anadir: function (dicc, reglas) {
+      Object.keys(dicc || {}).forEach(function (k) { EXTRA.dicc[k] = dicc[k]; });
+      (reglas || []).forEach(function (r) { if (r && r[0] instanceof RegExp) EXTRA.reglas.push(r); });
+    },
+    traducir: function (texto) { var t = traduceTexto(texto); return t == null ? String(texto) : t; },
+    aplicar: function () { aplicarIdioma(true); }
+  };
 
   // Cada lado del marco tiene UN icono en la barra y UN cajón, y los dos dicen su
   // nombre: el icono declara con aria-controls qué cajón abre y el cajón lleva ese
@@ -771,6 +851,9 @@
       }
     });
     imprimir(T('CLI de ', 'CLI of ') + (doc.title || 'AdmiraNeXT') + T(' · escribe /help', ' · type /help'));
+    // El saludo del armazón se marca: con la piel ⌘ Experto (que trae el suyo) se retira y no
+    // quedan dos saludos, uno en cada idioma.
+    if (salida.lastChild && salida.lastChild.classList) salida.lastChild.classList.add('yk-cli-hola');
   }
 
   if (modoAuto) {
@@ -799,7 +882,8 @@
 
   // Idioma: zonas del armazón (cabecera o barra, los tres paneles y sus tiradores) y
   // cambio en vivo de <html lang>. Ver «Idioma del armazón» arriba.
-  zonasIdioma = [bar, railIzq, railDer, hayAbajo ? railAbajo : null].concat(LADOS.map(function (l) { return tiradores[l]; })).filter(Boolean);
+  // Desde el 6-oct 10:11 la zona es la página entera (armazón + contenido propio).
+  zonasIdioma = [body];
   aplicarIdioma(false);
   try {
     new MutationObserver(function () { aplicarIdioma(false); }).observe(root, {attributes: true, attributeFilter: ['lang']});
@@ -835,7 +919,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-armazon-1';
+  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-paginas-1';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
