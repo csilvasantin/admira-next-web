@@ -72,6 +72,24 @@
       "sector": "Supermercados"
     },
     {
+      "id": "81",
+      "nombre": "Cine 81",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1981 · aventura en el desierto"
+    },
+    {
+      "id": "82",
+      "nombre": "Cine 82",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1982 · neón bajo la lluvia"
+    },
+    {
+      "id": "83",
+      "nombre": "Cine 83",
+      "ejemplo": true,
+      "sector": "Piel de cine · año 1983 · noche de barrio"
+    },
+    {
       "id": "84",
       "nombre": "Cine 84",
       "ejemplo": true,
