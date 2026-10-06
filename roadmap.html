@@ -22,8 +22,6 @@
   a:hover{color:var(--yk-hi,#7ff3e4)}
   main{padding:28px 0 72px}
   h1{margin:0 0 12px;font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em}
-  .lede{margin:0 0 22px;max-width:68ch;color:var(--yk-mut,#92a0b4)}
-  .aviso{margin:0 0 22px;padding:14px 16px;border:1px solid var(--yk-brand,#4ae3d1);border-radius:12px;background:rgba(74,227,209,.08);color:var(--yk-ink,#f2f6fc);font-size:14px}
   .vistas{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
   .vistas a{padding:6px 10px;border:1px solid var(--yk-line,#253042);border-radius:999px;color:var(--yk-mut,#92a0b4);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
   .vistas a[aria-current="true"]{border-color:var(--yk-brand,#4ae3d1);color:var(--yk-ink,#f2f6fc)}
@@ -159,7 +157,7 @@
   .hito.is-propuesta strong::before{background:transparent;border:1px dashed var(--c)}
   .corte-h{margin:0 0 12px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
   /* Presentador (P): la escena llena la pantalla y recorre las patas */
-  body.is-presenter .yk-head,body.is-presenter footer,body.is-presenter h1,body.is-presenter .aviso,body.is-presenter .lede,body.is-presenter #corte,body.is-presenter .corte-h{display:none!important}
+  body.is-presenter .yk-head,body.is-presenter footer,body.is-presenter h1,body.is-presenter #corte,body.is-presenter .corte-h{display:none!important}
   body.is-presenter main{padding:8px 0 12px}
   body.is-presenter .rm-show{min-height:calc(100vh - 24px);margin:0}
   body.is-presenter .rm-caption{display:block;margin:0 0 14px;font-size:clamp(18px,2.6vw,30px);font-weight:700;color:#f2f6fc;letter-spacing:-.01em;min-height:1.3em}
@@ -180,8 +178,6 @@
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin>Usuarios</a><a href="/webmaster">Webmaster</a><a href="/analitics" data-yk-admin>Analitics</a><a href="/flota">Agentes</a><a href="/organigrama">Organigrama</a><a href="/roadmap" aria-current="page">RoadMap</a><a href="/presentaciones/">Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 <main data-yk-main>
   <h1>RoadMap</h1>
-  <p class="aviso" role="note">Borrador para validar por Carlos</p>
-  <p class="lede">Gantt por pata, % hecho y raíl mensual en vivo desde <a href="/api/roadmap">/api/roadmap</a>; debajo, el corte por día, semana, mes, trimestre o año. Proyecto, cliente e idea se filtran desde ☰ Opciones. Si el periodo no tiene ningún hito, queda por definir. <kbd>P</kbd> abre el modo presentador.</p>
   <section class="rm-show" id="rm-show" aria-label="Panorama del RoadMap">
     <canvas id="rm-matrix" aria-hidden="true"></canvas>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="rmRingGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#78f3ff"/><stop offset="100%" stop-color="#4ae3d1"/></linearGradient></defs></svg>

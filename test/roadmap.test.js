@@ -9,10 +9,11 @@ const html = await readFile(new URL('../roadmap.html', import.meta.url), 'utf8')
 const proyectos = await readFile(new URL('../proyectos/index.html', import.meta.url), 'utf8');
 const lista = hitos();
 
-test('RoadMap sigue en el menú y el aviso de borrador', () => {
+test('RoadMap sigue en el menú y comienza directamente con la visualización', () => {
   const nav = proyectos.match(/<nav aria-label="Navegación del grupo">[\s\S]*?<\/nav>/)[0];
   assert.match(nav, /<a href="\/organigrama">Organigrama<\/a><a href="\/roadmap">RoadMap<\/a><a href="\/presentaciones\/">Presentaciones<\/a>/);
-  assert.match(html, /Borrador para validar por Carlos/);
+  assert.match(html, /<h1>RoadMap<\/h1>\s*<section class="rm-show"/);
+  assert.doesNotMatch(html, /<p class="(?:aviso|lede)"/);
   assert.match(html, /<!--CORTE-->/);
 });
 
@@ -123,7 +124,8 @@ test('la página pinta el corte de la URL', async () => {
   const env = { ASSETS: { fetch: async () => new Response(html) } };
   const r = await pagina({ request: new Request('https://www.admiranext.com/roadmap?vista=mes&desde=2026-10-01'), env });
   const texto = await r.text();
-  assert.match(texto, /Borrador para validar por Carlos/);
+  assert.match(texto, /<h1>RoadMap<\/h1>\s*<section class="rm-show"/);
+  assert.doesNotMatch(texto, /<p class="(?:aviso|lede)"/);
   assert.match(texto, /octubre de 2026/);
   assert.match(texto, /Steve Wozniak/);
   assert.match(texto, /Walt Disney/);
