@@ -1000,3 +1000,8 @@ body[data-yk-frame="cabecera"] [data-yk-main]{
   min-width: 0 !important; max-width: none !important; margin-left: auto !important; margin-right: auto !important;
   padding-left: 0 !important; padding-right: 0 !important;
 }
+
+/* Entradas internas (06-10-2026): sin sesión no se ven (Usuarios, Webmaster, Analitics, Agentes,
+ * Organigrama, Presentaciones, Proyectos y locales). admira-frame.js pone .admira-con-sesion en
+ * <html> cuando /api/sello confirma sesión y, si no la hay, además las quita del DOM. */
+html:not(.admira-con-sesion) [data-yk-interno]{ display: none !important }

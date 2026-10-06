@@ -6,6 +6,12 @@
     "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
     "Contenido común de marca · desconexiones temporales por local, próximamente"
   ],
+  "v.06.10.2026.r33.22:46": [
+    "Sin sesión, la barra del grupo solo enseña las páginas públicas: Webmaster, Usuarios, Analitics, Agentes, Organigrama y Presentaciones, solo para usuarios registrados",
+    "Los pies de las páginas públicas y el ⌘ Experto (/version) ya no enseñan versión al visitante anónimo",
+    "/version.json anónimo queda en firma y commit; las novedades (y /novedades.json) solo con sesión",
+    "El sello se estampa a la hora real de publicación"
+  ],
   "v.06.10.2026.r32.22:50": [
     "La portada solo enseña Platform, Robots, About us y Contact",
     "Style Book, Agentes y Organigrama pasan a la zona protegida (/webmaster): sin sesión, sus direcciones piden identificarse",

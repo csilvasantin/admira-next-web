@@ -95,10 +95,24 @@
   }
   if (quiereMarca()) cargarMarca();
   // La ficha del motor muestra la versión publicada (/version.json), no la meta de cada página,
-  // que puede llevar el sello de su última edición.
+  // que puede llevar el sello de su última edición. Desde el 06-10-2026 SOLO con sesión: el
+  // anónimo ve «solo con sesión» en la ficha y en /version (data-version-oculta, suite/experto.js).
+  d.documentElement.dataset.versionOculta = '1';
   try {
-    fetch('/version.json', {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) { if (j && j.version) d.documentElement.dataset.version = j.version; }).catch(function () {});
+    if (!G.__admiraSesionSello) {
+      G.__admiraSesionSello = fetch('/api/sello', {credentials: 'same-origin', cache: 'no-store'})
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { return !!(j && j.sesion === true); })
+        .catch(function () { return false; });
+    }
+    G.__admiraSesionSello.then(function (conSesion) {
+      if (!conSesion) return;
+      return fetch('/version.json', {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          if (j && j.version) d.documentElement.dataset.version = j.version;
+          delete d.documentElement.dataset.versionOculta;
+        });
+    }).catch(function () {});
   } catch (e) { /* sin fetch */ }
   // La ficha del Experto lee el cliente de AdmiraMarca: se repinta al cambiar la marca.
   d.addEventListener('admira:marca', function () { if (G.AdmiraExperto && G.AdmiraExperto.paint) G.AdmiraExperto.paint(); });

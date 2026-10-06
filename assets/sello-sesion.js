@@ -12,7 +12,8 @@
  */
 (function (root) {
   'use strict';
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || root.__admiraSelloSesion) return;
+  root.__admiraSelloSesion = true;
   var SELLO_SRC = '/assets/sello-novedades.js?v=20261006-options-sello-5';
 
   function preguntar() {
@@ -31,6 +32,12 @@
     document.documentElement.classList.toggle('admira-con-sesion', conSesion);
     if (!conSesion) return;
     if (typeof root.AdmiraSelloArranque === 'function') { try { root.AdmiraSelloArranque(); } catch (e) {} }
+    // Pies con hueco de sello (data-admira-sello-pie): se rellenan con el <meta>, solo con sesión.
+    try {
+      var m = document.querySelector('meta[name="admiranext-version"]');
+      var v = m && String(m.getAttribute('content') || '').match(/v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}/);
+      if (v) Array.prototype.forEach.call(document.querySelectorAll('[data-admira-sello-pie]'), function (n) { n.textContent = (n.getAttribute('data-prefijo') || '') + v[0]; n.hidden = false; });
+    } catch (e) {}
     try { if (root.self !== root.top) return; } catch (e) { return; }
     if (document.querySelector('script[data-admira-sello-loader]')) return;
     var s = document.createElement('script');

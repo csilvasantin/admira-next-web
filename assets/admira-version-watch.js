@@ -234,7 +234,21 @@
     return b;
   }
 
+  // SOLO CON SESIÓN (06-10-2026): el aviso enseña versión, fecha, firma y commit; en la parte
+  // pública de admiranext.com no se enseña nada de eso. /api/sello dice si hay usuario registrado
+  // (mismo resultado compartido con el armazón y el sello: window.__admiraSesionSello).
+  var sesionOk = false;
+  function conSesion() {
+    if (window.__admiraSesionSello) return window.__admiraSesionSello;
+    window.__admiraSesionSello = fetch("/api/sello", { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) { return r && r.ok ? r.json() : null; })
+      .then(function (d) { return !!(d && d.sesion === true); })
+      .catch(function () { return false; });
+    return window.__admiraSesionSello;
+  }
+
   function pinta(estado, actual, disponible, nota) {
+    if (!sesionOk) { retiraPanel(); return; }
     if (estado === "current") { retiraPanel(); return; }
     aseguraPanel();
     panel.setAttribute("data-state", estado);
@@ -350,8 +364,8 @@
     if (comprobando) return;
     comprobando = true;
     if (accion) { accion.disabled = true; accion.textContent = "Comprobando…"; }
-    return Promise.all([consultaManifest(), consultaHuella()])
-      .then(function (resultados) { procesa(resultados[0], resultados[1]); })
+    return Promise.all([consultaManifest(), consultaHuella(), conSesion()])
+      .then(function (resultados) { sesionOk = resultados[2] === true; procesa(resultados[0], resultados[1]); })
       .finally(function () {
         comprobando = false;
         if (!accion) return;

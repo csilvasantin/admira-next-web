@@ -345,9 +345,9 @@
   // «Ir a» sus secciones (los <h2> del contenido), y ⌘ el CLI con /ir, /seccion y
   // /arriba. Lo que la página declare en data-yk-slot va DELANTE de lo automático.
   var SITIO = Array.isArray(G.ADMIRA_FRAME_SITIO) ? G.ADMIRA_FRAME_SITIO : [
-    {grupo: 'La casa', enlaces: [['/consejo/', 'El Consejo'], ['/organigrama', 'Organigrama'], ['/academia', 'Academia'], ['/mandamientos', 'Mandamientos'], ['/normativa', 'Normativa'], ['/filosofia', 'Filosofía'], ['/help/', '/help']]},
-    {grupo: 'Operación', enlaces: [['/proyectos/', 'Proyectos'], ['/flota', 'Flota'], ['/status', 'Status'], ['/mcp/', 'Hub MCP'], ['/telegram/', 'Telegram']]},
-    {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/demo/', 'Créame demo'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
+    {grupo: 'La casa', enlaces: [['/consejo/', 'El Consejo'], ['/organigrama', 'Organigrama', 'interno'], ['/academia', 'Academia'], ['/mandamientos', 'Mandamientos'], ['/normativa', 'Normativa'], ['/filosofia', 'Filosofía'], ['/help/', '/help']]},
+    {grupo: 'Operación', enlaces: [['/proyectos/', 'Proyectos'], ['/flota', 'Agentes', 'interno'], ['/status', 'Status'], ['/mcp/', 'Hub MCP'], ['/telegram/', 'Telegram']]},
+    {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones', 'interno'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/demo/', 'Créame demo'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
   ];
   // Desde el 3-oct-2026 el modo automático también va con la CABECERA del grupo
   // (<body data-yk-frame="cabecera" data-yk-auto="on">): Carlos, «la barra superior
@@ -368,7 +368,7 @@
     izqAuto.setAttribute('data-yk-slot', 'left');
     var rutasGrupo = grupo.map(function (a) { return ruta(a.getAttribute('href')); });
     grupo.forEach(function (a, i) {
-      sitioPlano.push({href: a.getAttribute('href'), nombre: String(a.textContent || '').trim(), clave: rutasGrupo[i].replace(/^\//, '').split('/').pop() || 'inicio'});
+      sitioPlano.push({href: a.getAttribute('href'), nombre: String(a.textContent || '').trim(), clave: rutasGrupo[i].replace(/^\//, '').split('/').pop() || 'inicio', interno: esInterno(a)});
     });
     SITIO.forEach(function (g) {
       var enlaces = g.enlaces.filter(function (par) { return rutasGrupo.indexOf(ruta(par[0])) < 0; });
@@ -379,9 +379,10 @@
       enlaces.forEach(function (par) {
         var a = texto('a', 'yk-auto-act', par[1]);
         a.href = par[0];
+        if (par[2] === 'interno') a.setAttribute('data-yk-interno', '');
         if (ruta(par[0]) === aquí) a.setAttribute('aria-current', 'page');
         lista.appendChild(a);
-        sitioPlano.push({href: par[0], nombre: par[1], clave: ruta(par[0]).replace(/^\//, '').split('/').pop() || 'inicio'});
+        sitioPlano.push({href: par[0], nombre: par[1], clave: ruta(par[0]).replace(/^\//, '').split('/').pop() || 'inicio', interno: par[2] === 'interno'});
       });
       izqAuto.appendChild(lista);
     });
@@ -519,11 +520,28 @@
     if (typeof G.fetch !== 'function') return;
     // Solo con sesión válida (06-10-2026): sin ella el pie no enseña versión ni se pide el manifiesto.
     sesionSello().then(function (conSesion) {
+      aplicarSesion(conSesion);
       if (!conSesion) return;
       var m = selloMeta();
       if (m) doc.querySelectorAll('[data-yk-sello]').forEach(function (n) { n.textContent = 'ADmiraNeXT · ' + m; });
+      // El sello del pie de cada página tampoco va en el HTML público: se escribe aquí, con sesión.
+      if (m) doc.querySelectorAll('[data-admira-sello-pie]').forEach(function (n) { n.textContent = (n.getAttribute('data-prefijo') || '') + m; n.hidden = false; });
       selloManifiesto();
     });
+  }
+  // ── Entradas INTERNAS (06-10-2026): el visitante anónimo no las ve ───────────
+  // Carlos: en la parte pública no se enseña nada interno. Los enlaces con data-yk-interno
+  // (Usuarios, Webmaster, Analitics, Agentes, Organigrama, Presentaciones, Proyectos y
+  // locales) los esconde admira-frame.css mientras <html> no lleve .admira-con-sesion; si
+  // /api/sello dice que no hay sesión, además se QUITAN del DOM (cabecera, ☰ y mapa).
+  var sesionActiva = false;
+  function esInterno(a) { return !!(a && a.hasAttribute && a.hasAttribute('data-yk-interno')); }
+  function visibleConSesion(a) { return !esInterno(a) || sesionActiva; }
+  function aplicarSesion(conSesion) {
+    sesionActiva = !!conSesion;
+    root.classList.toggle('admira-con-sesion', sesionActiva);
+    if (sesionActiva) return;
+    doc.querySelectorAll('[data-yk-interno]').forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
   }
   function sesionSello() {
     if (G.__admiraSesionSello) return G.__admiraSesionSello;
@@ -866,11 +884,13 @@
   verbo({id: 'limpiar', aliases: ['clear', 'cls'], ayuda: 'Vacía la salida del CLI', ayudaEn: 'Clears the CLI output', run: function () { ctx.limpiar(); }});
   if (grupo.length) {
     var clavesGrupo = grupo.map(function (a) { return ruta(a.getAttribute('href')).replace(/^\//, '').split('/').pop(); });
-    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre una página del grupo: ' + clavesGrupo.join(', '), ayudaEn: 'Opens a page of the group: ' + clavesGrupo.join(', '), run: function (args) {
+    // La ayuda solo nombra las páginas públicas: las internas existen para quien tiene sesión.
+    var clavesPublicas = clavesGrupo.filter(function (c, i) { return !esInterno(grupo[i]); });
+    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre una página del grupo: ' + clavesPublicas.join(', '), ayudaEn: 'Opens a page of the group: ' + clavesPublicas.join(', '), run: function (args) {
       var buscado = normal(args.join(' '));
-      if (!buscado) { imprimir('Uso: /ir <página> · ' + clavesGrupo.join(', '), 'err'); return; }
+      if (!buscado) { imprimir('Uso: /ir <página> · ' + clavesGrupo.filter(function (c, i) { return visibleConSesion(grupo[i]); }).join(', '), 'err'); return; }
       var destino = grupo.filter(function (a, i) {
-        return clavesGrupo[i].indexOf(buscado) === 0 || normal(a.textContent).indexOf(buscado) === 0;
+        return visibleConSesion(a) && (clavesGrupo[i].indexOf(buscado) === 0 || normal(a.textContent).indexOf(buscado) === 0);
       })[0];
       if (!destino) { imprimir('No hay ninguna página «' + buscado + '» en el grupo', 'err'); return; }
       if (destino.hidden) { imprimir(destino.textContent + ' requiere un administrador', 'err'); return; }
@@ -936,10 +956,12 @@
   }
 
   if (modoAuto) {
-    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre otra página de admiranext.com: ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), ayudaEn: 'Opens another admiranext.com page: ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), run: function (args) {
+    var sitioPublico = function () { return sitioPlano.filter(function (p) { return !p.interno || sesionActiva; }); };
+    var clavesSitio = sitioPlano.filter(function (p) { return !p.interno; }).map(function (p) { return p.clave; }).join(', ');
+    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre otra página de admiranext.com: ' + clavesSitio, ayudaEn: 'Opens another admiranext.com page: ' + clavesSitio, run: function (args) {
       var q = normal(args.join(' '));
-      if (!q) { imprimir('Uso: /ir <página> · ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), 'err'); return; }
-      var d = sitioPlano.filter(function (p) { return p.clave.indexOf(q) === 0 || normal(p.nombre).indexOf(q) === 0; })[0];
+      if (!q) { imprimir('Uso: /ir <página> · ' + sitioPublico().map(function (p) { return p.clave; }).join(', '), 'err'); return; }
+      var d = sitioPublico().filter(function (p) { return p.clave.indexOf(q) === 0 || normal(p.nombre).indexOf(q) === 0; })[0];
       if (!d) { imprimir('No hay ninguna página «' + q + '»', 'err'); return; }
       imprimir('Abriendo ' + d.nombre + '…');
       location.href = d.href;

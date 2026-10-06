@@ -198,6 +198,10 @@
     return T('de serie (Admira)', 'default (Admira)');
   }
   function readVersion() {
+    // Opt-in por sitio (admiranext.com, 06-10-2026): con <html data-version-oculta="1"> la versión
+    // solo se enseña a usuarios con sesión; el anónimo recibe una respuesta neutra. Sin el atributo
+    // (el resto de la suite) nada cambia.
+    if (document.documentElement.dataset.versionOculta === '1') return T('solo con sesión', 'signed-in users only');
     var v = document.documentElement.dataset.version;
     var meta = document.querySelector('meta[name="admiranext-version"]');
     if (!v && meta && !/__/.test(meta.content)) v = meta.content;
@@ -649,10 +653,10 @@
       setTimeout(paint, 2500);
     }, true);
     document.addEventListener('admira:marca', paint);
-    try { new MutationObserver(paint).observe(document.documentElement, {attributes: true, attributeFilter: ['lang', 'data-version']}); } catch (_) {}
+    try { new MutationObserver(paint).observe(document.documentElement, {attributes: true, attributeFilter: ['lang', 'data-version', 'data-version-oculta']}); } catch (_) {}
     paint();
     dock(hd, form);
-    if (readVersion() === '—' && cfg.versionUrl) {
+    if (readVersion() === '—' && cfg.versionUrl && document.documentElement.dataset.versionOculta !== '1') {
       fetch(cfg.versionUrl, {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) { if (j && j.version) { version = j.version; paint(); } }).catch(function () {});
     }

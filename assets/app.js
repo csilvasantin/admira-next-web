@@ -79,12 +79,12 @@
   // lleva directamente a ella en la misma pestaña. Única fuente de verdad: el
   // listado de /help y el salto salen de esta tabla.
   const SALTOS = [
-    { id: 'analitics',      url: '/analitics',      es: 'Analítica del grupo',          en: 'Group analytics',          alias: ['analitics', 'analytics', 'analitica', 'analiticas', 'estadisticas', 'stats'] },
-    { id: 'presentaciones', url: '/presentaciones/', es: 'Generador de presentaciones', en: 'Presentation generator',   alias: ['presentaciones', 'presentacion', 'presentations', 'presentation', 'presentar', 'slides'] },
-    { id: 'webmaster',      url: '/webmaster',      es: 'Webmaster · versiones',        en: 'Webmaster · versions',     alias: ['webmaster', 'versiones', 'versions'] },
+    { id: 'analitics',      url: '/analitics',      es: 'Analítica del grupo',          en: 'Group analytics',          alias: ['analitics', 'analytics', 'analitica', 'analiticas', 'estadisticas', 'stats'], interno: true },
+    { id: 'presentaciones', url: '/presentaciones/', es: 'Generador de presentaciones', en: 'Presentation generator',   alias: ['presentaciones', 'presentacion', 'presentations', 'presentation', 'presentar', 'slides'], interno: true },
+    { id: 'webmaster',      url: '/webmaster',      es: 'Webmaster · versiones',        en: 'Webmaster · versions',     alias: ['webmaster', 'versiones', 'versions'], interno: true },
     { id: 'proyectos',      url: '/proyectos/',     es: 'Proyectos',                    en: 'Projects',                 alias: ['proyectos', 'projects'] },
-    { id: 'usuarios',       url: '/usuarios',       es: 'Gestión de usuarios',          en: 'User management',          alias: ['usuarios', 'users'] },
-    { id: 'flota',          url: '/flota',          es: 'Agentes · zona protegida',     en: 'Agents · protected area',  alias: ['flota', 'fleet', 'agentes', 'agents'] },
+    { id: 'usuarios',       url: '/usuarios',       es: 'Gestión de usuarios',          en: 'User management',          alias: ['usuarios', 'users'], interno: true },
+    { id: 'flota',          url: '/flota',          es: 'Agentes · zona protegida',     en: 'Agents · protected area',  alias: ['flota', 'fleet', 'agentes', 'agents'], interno: true },
     { id: 'marcablanca',    url: '/marcablanca/',   es: 'Marca blanca y propuestas',    en: 'White label and proposals', alias: ['marcablanca', 'marca-blanca', 'whitelabel', 'white-label', 'propuestas', 'proposals'] },
     { id: 'presupuestos',   url: '/presupuestos/',  es: 'Generador de presupuestos',    en: 'Budget generator',         alias: ['presupuestos', 'budgets', 'budget'] },
     { id: 'studio',         url: 'https://www.admira.studio/', es: 'Admira.Studio · crea',        en: 'Admira.Studio · creates',        alias: ['studio', 'admira.studio'] },
@@ -864,7 +864,11 @@
     lines.push({ text: '' });
     const isEnHelp = window.currentLang === 'en';
     lines.push({ html: `  <span class="cmd-desc" style="${sectionStyle}">${isEnHelp ? 'Jump straight to' : 'Saltar directamente a'}</span>` });
+    // Las herramientas internas solo se listan con sesión (06-10-2026); el salto sigue funcionando y
+    // la propia página pide el acceso interno.
+    const conSesionHelp = document.documentElement.classList.contains('admira-con-sesion');
     SALTOS.forEach(function (s) {
+      if (s.interno && !conSesionHelp) return;
       lines.push({ html: `  <span class="cmd-name">${escapeHtml(s.id)}</span> <span class="cmd-desc">${escapeHtml(isEnHelp ? s.en : s.es)}</span>` });
     });
     lines.push({ text: '' });
