@@ -61,5 +61,9 @@
   "v.06.10.2026.r13.10:16": [
     "/idioma ENG ya traduce también el contenido de las páginas con armazón (empieza por /roadmap): KPIs, patas, chips, leyenda, Gantt y presentador; /idioma ESP vuelve al castellano.",
     "El CLI del armazón ya no duplica el saludo en dos idiomas; los datos de la API siguen en su idioma original."
+  ],
+  "v.06.10.2026.r14.10:21": [
+    "/idioma ENG ya traduce también /organigrama (niveles, cartas de las cinco patas, controles, latido de la flota) y /proyectos (definición, modelo canónico y cabeceras del censo).",
+    "Los nombres y datos del censo de Yokup siguen tal cual; /idioma ESP vuelve al castellano."
   ]
 }

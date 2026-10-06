@@ -137,8 +137,13 @@
   function traduceTexto(orig) {
     var m = String(orig == null ? '' : orig).match(/^([^A-Za-z\u00C0-\u024F0-9]*)([\s\S]*?)(\s*)$/);
     if (!m || !m[2]) return null;
-    var t = traducirFrase(m[2]);
-    return t == null || t === m[2] ? null : m[1] + t + m[3];
+    var t = traducirFrase(m[2]), fin = '';
+    // «La mesa que une las cinco patas.»: el cierre (punto, comillas…) también se conserva.
+    if (t == null) {
+      var c = m[2].match(/^([\s\S]*?[^.»"”:…!?\s])([\s.»"”:…!?·]+)$/);
+      if (c) { t = traducirFrase(c[1]); fin = c[2]; }
+    }
+    return t == null || t + fin === m[2] ? null : m[1] + t + fin + m[3];
   }
   var originales = typeof WeakMap === 'function' ? new WeakMap() : null;
   var ATRS_DICC = ['aria-label', 'title', 'placeholder'];
@@ -209,7 +214,7 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261006-idioma-paginas-1';
+  var IDIOMA_STAMP = '20261006-idioma-paginas-2';
   function aplicarIdioma(forzar) {
     var en = enIngles();
     if (!forzar && idiomaPintado === en) return;
@@ -919,7 +924,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-paginas-1';
+  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-paginas-2';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
