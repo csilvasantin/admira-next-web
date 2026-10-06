@@ -19,9 +19,15 @@
  *   se guarda como «simulacion»; sin simulación, como «pendiente_completa». Así
  *   procesar_cola.py (que solo lee ?estado=pendiente) no la ejecuta con la cadena clásica.
  *   El futuro procesador v2 lee GET ?estado=pendiente_completa (clave de máquina).
+ *
+ * v2 (06-10-2026, decisiones de Carlos): esquema admiranext.demo-completa/2. 3 equipos
+ * físicos por local (1 altavoz con 2 playlists: hilomusical continuo + locuciones bajo
+ * demanda desde el TPV; pantallas vertical y horizontal) = 4 playlists. Marca blanca
+ * siempre con la marca real del cliente (`/marca <id>`). desconexiones[] por local
+ * preparado y vacío (próximamente). Sigue sin escribir en producción: solo guarda la cola.
  */
 import { limitarFrecuencia } from '../_limite-frecuencia.js';
-import { construirPlan, legacyPayload } from '../../demo/plan-completa.mjs';
+import { construirPlan, legacyPayload, SCHEMA, MINIMOS } from '../../demo/plan-completa.mjs';
 
 const TIPOS = new Set(['demostore', 'estanco', 'cafeteria', 'other']);
 const CIUDADES_OK = new Set(['london','newyork','barcelona','madrid','paris','milano','lisboa','valencia','mexico']);
@@ -167,8 +173,11 @@ export async function onRequestGet(context) {
     endpoint: '/api/demo',
     modos: ['clasica', 'completa'],
     completa: {
-      schema: 'admiranext.demo-completa/1',
-      minimos: { establecimientos: 4, dispositivos: 4, contenidos_por_playlist: 3 },
+      schema: SCHEMA,
+      minimos: { establecimientos: MINIMOS.establecimientos, dispositivos: MINIMOS.dispositivos, playlists_por_local: MINIMOS.playlists, contenidos_por_playlist: MINIMOS.contenidos },
+      equipos: 'altavoz (hilomusical continuo + locuciones bajo demanda TPV) · pantalla vertical · pantalla horizontal',
+      marca: 'siempre la marca real del cliente como marca blanca · /marca <cliente> · admiranext.com/marcablanca',
+      desconexiones: 'próximamente (desconexiones[] por local, vacío)',
       estados: ['simulacion', 'pendiente_completa'],
       nota: 'Una demo completa nunca entra como «pendiente»: procesar_cola.py no la ejecuta.',
     },
@@ -351,11 +360,12 @@ async function encolarCompleta(context, body) {
     simulacion: plan.simulacion,
     franquicia: plan.cliente.franquicia,
     marca: plan.cliente.marca,
+    marca_comando: plan.marca_blanca.comando,
     ciudad: plan.ciudad,
     xpacio_subtipo: plan.xpacio.subtipo,
     establecimientos: plan.establecimientos.map((e) => ({
       id: e.id, slug: e.slug, nombre: e.nombre, direccion: e.direccion, cp: e.cp,
-      lat: e.lat, lng: e.lng, fuente_url: e.fuente_url,
+      lat: e.lat, lng: e.lng, fuente_url: e.fuente_url, desconexiones: e.desconexiones,
     })),
     dispositivos: plan.establecimientos[0]?.equipos.map((q) => q.dispositivo) || [],
     contenidos_por_playlist: plan.contenido.por_playlist,
@@ -383,6 +393,7 @@ async function encolarCompleta(context, body) {
       : 'Demo completa en cola (pendiente_completa). La ejecuta el procesador v2 del Mac Mini; procesar_cola.py clásico no la toca.',
     notify: aviso.ok ? 'hook' : 'kv-only',
     solicitud: publico(solicitud),
+    avisos: plan.avisos,
     plan,
   }, 201);
 }
