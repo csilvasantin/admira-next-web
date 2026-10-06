@@ -48,5 +48,10 @@
     "/marca <id>|off|lista funciona aquí como en las plataformas (mismo catálogo y misma marca recordada en la pestaña).",
     "/idioma y /language ESP|ENG (con typos y pegados como /idiomaESP) en el CLI.",
     "Nueva marca en el catálogo: 365 Obrador (/marca 365), con su logo oficial."
+  ],
+  "v.06.10.2026.r11.08:31": [
+    "El idioma del ⌘ Experto se recuerda: si cambias a ENG con /language en una página, la siguiente que abras (y la home) ya sale en ENG.",
+    "Funciona igual con /idioma, typos y pegados (/idiomaESP), y con los botones de idioma propios de la home y de /impacto.",
+    "El título del panel (⌘ EXPERTO / EXPERT) cambia de idioma al momento."
   ]
 }
