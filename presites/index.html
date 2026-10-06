@@ -5,7 +5,7 @@
   <title>Generador de Presites · ADmiraNeXT</title>
   <meta name="description" content="Intros audiovisuales que convierten la entrada a un site, presentación o app en un acontecimiento.">
   <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/presites-workspace.css?v=20260723-2">
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261006-escenas-1">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261006-experto-cerrado-1">
 </head>
 <body data-yk-title="PRESITES" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on"><div class="ps-shell">
   <div class="yk-auto-blk" data-yk-slot="left"><div class="yk-auto-hd">Presites</div><nav class="yk-auto-list" aria-label="Presites"><a class="yk-auto-act" href="/presites/generador/">Nueva intro</a><a class="yk-auto-act" href="/presentaciones/">Presentaciones</a></nav></div>
@@ -19,5 +19,5 @@
   </main>
 </div><script>
 (async()=>{const list=document.getElementById('presiteList');try{const response=await fetch('/presites/api/sites',{headers:{accept:'application/json'},cache:'no-store'}),data=await response.json();if(!response.ok)throw new Error(data.error||'No se pudo cargar');if(!data.sites.length){list.innerHTML='<a class="ps-product" href="/presites/generador/"><span class="tag">Primer fotograma</span><h2>Crea tu primera intro</h2><p>Define el destino, la estética y cinco beats de montaje.</p><span class="go">Press Start →</span></a>';return}list.innerHTML='';data.sites.forEach(site=>{const a=document.createElement('a');a.className='ps-product';a.href='/presites/'+encodeURIComponent(site.slug)+'/';a.innerHTML='<span class="tag"></span><h2></h2><p></p><div class="meta"><span></span><span></span><span></span></div><span class="go">Abrir storyboard →</span>';a.querySelector('.tag').textContent=site.status==='review-ready'?'Revisión preparada':'Borrador';a.querySelector('h2').textContent=site.displayName;a.querySelector('p').textContent='Intro audiovisual previa a '+({presentation:'una presentación',site:'un site',app:'una app'}[site.destinationType]||'la experiencia')+'.';const meta=a.querySelectorAll('.meta span');meta[0].textContent=(site.language||'es').toUpperCase();meta[1].textContent=(site.style||'arcade').toUpperCase();meta[2].textContent=(site.duration||18)+' S';list.appendChild(a)})}catch(error){list.innerHTML='';const card=document.createElement('div');card.className='ps-product';card.innerHTML='<span class="tag">Workspace</span><h2>Biblioteca no disponible</h2><p></p>';card.querySelector('p').textContent=String(error.message||error);list.appendChild(card)}})();
-</script><script defer src="/assets/admira-frame.js?v=20261006-escenas-1"></script>
+</script><script defer src="/assets/admira-frame.js?v=20261006-experto-cerrado-1"></script>
 </body></html>

@@ -19,13 +19,18 @@
  *   data-version-url="/version.json"
  * data-move-log: lleva el registro de la pata a la columna del CLI. data-toggle="": sin botones ⌘ genéricos.
  * Modo propio (patas sin CLI): data-mount="#af-panel-bottom" data-mount-body=".af-bd" [data-extras-label="vista"].
- * Minimizado por defecto (Carlos, 4-oct-2026 23:08 y 23:11): el panel queda anclado abajo y en la
- * primera visita solo se ve la orden «› /help» de una línea (se puede escribir) con un asa encima.
- * El asa, el ▾ de la cabecera y el botón ⌘ de la pata (data-toggle, con los de la suite por defecto)
- * despliegan/pliegan; una orden lanzada en minimizado lo despliega. La elección se recuerda por
- * dominio (localStorage «ax-experto-abierto») y la página reserva abajo el alto minimizado
- * (div.ax-dock-spacer al final del body, --ax-dock-pad). data-dock="off" lo desactiva.
- * data-min="hide": cerrado no deja ni la línea; se oculta del todo y se recuerda por pestaña.
+ * CERRADO POR DEFECTO (Carlos, 6-oct-2026): quien entra por primera vez (sin almacenamiento ni
+ * parámetros) nunca ve el modo Experto; solo aparece al abrirlo a propósito (botón ⌘ de la pata,
+ * data-toggle con los de la suite por defecto, su atajo o AdmiraExperto.open()).
+ *   data-min="hide" (por defecto): cerrado = oculto del todo, sin la línea.
+ *   data-min="line": cerrado = asa de una línea «› /help» anclada abajo (admiranext.com, admira.live);
+ *     el asa y el ▾ despliegan/pliegan y una orden lanzada en la línea lo despliega. La página reserva
+ *     abajo ese alto (div.ax-dock-spacer al final del body, --ax-dock-pad).
+ *   Modo propio sin ⌘ de la pata (data-mount + data-toggle=""): sin otra forma de abrirlo, se queda
+ *     la línea aunque no lo pida (compatibilidad con admira.live antes de data-min="line").
+ * Abierto se recuerda SOLO en la pestaña (sessionStorage «ax-experto-abierto»): nunca se reabre solo en
+ * otra visita. La clave antigua de localStorage (4-oct, reabría el Experto en cada visita) se borra.
+ * data-dock="off" desactiva el anclaje (lo gobierna la pata).
  * API: window.AdmiraExperto = {paint(), setState(texto), lines(), set(clave, valor), verb({name, args, desc:[es,en], run(args, log)}), run(texto),
  *      open(), close(), toggle(), isOpen()}.
  */
@@ -59,14 +64,18 @@
     // a la columna del CLI, encima de la orden, como en digitalavatar.ai.
     moveLog: ds.moveLog != null,
     dock: ds.dock !== 'off',
-    // data-min="hide" (Pixeria, Carlos 5-oct-2026): cerrado = oculto del todo, sin la línea «› /help»;
-    // el ⌘ de la pata lo muestra completo u oculta, y el estado se recuerda en la pestaña (sessionStorage).
-    minHide: ds.min === 'hide',
+    // Cerrado = oculto del todo (Carlos 6-oct-2026: el Experto, apagado por defecto en toda la suite).
+    // data-min="line" deja la línea «› /help»; un modo propio sin ⌘ de la pata (data-mount + data-toggle="")
+    // también, porque si no no habría forma de abrirlo. data-min="hide" sigue valiendo (Pixeria, biz).
+    minHide: ds.min === 'hide' || (ds.min !== 'line' && !(ds.mount && ds.toggle === '')),
     // Botones ⌘ propios de cada pata: biz/clearchannel, admira.tv, admira.app/yokup, pixeria/studio, store.
     toggle: ds.toggle == null ? '#header-expert-toggle,#af-ico-bottom,.yk-ico-exp,.pf-ico[title^="Expert"],.pix-nav-icon-expert,#xsExpertToggle' : ds.toggle
   };
   var DOCK_KEY = 'ax-experto-abierto';
-  function dockStore() { try { return cfg.minHide ? root.sessionStorage : root.localStorage; } catch (_) { return null; } }
+  // Abierto/cerrado solo en la pestaña: en una visita nueva el Experto siempre empieza cerrado.
+  function dockStore() { try { return root.sessionStorage; } catch (_) { return null; } }
+  // Hasta el 6-oct-2026 las patas con línea lo guardaban en localStorage y lo reabrían en cada visita.
+  try { root.localStorage.removeItem(DOCK_KEY); } catch (_) {}
   // Sin data-engine, el nombre sale de la pata: admira.biz → «ADMIRA BIZ ENGINE».
   cfg.engine = ds.engine || (cfg.pata.replace(/\.pages\.dev$/, '').split('.').slice(-2).join(' ').toUpperCase() + ' ENGINE');
   var state = '', version = '', extra = {}, panel = null;
