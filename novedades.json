@@ -20,5 +20,10 @@
     "La versión queda al pie de Opciones y desaparece al plegarlo",
     "Aviso inicial de novedad una sola vez por navegador",
     "Marco común de AdmiraNeXT y sellos anteriores de la suite compatibles"
+  ],
+  "v.06.10.2026.r6.07:47": [
+    "La versión queda al pie de Opciones y desaparece al plegarlo",
+    "Primer aviso de novedad una sola vez por navegador",
+    "Versión completa incluso si el panel se inicia antes de cargar su sello"
   ]
 }

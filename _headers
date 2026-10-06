@@ -30,7 +30,7 @@
 # lo pide con su ?v= y lee SU propio /version.json. Sin cookies ni datos personales.
 /assets/sello-novedades.js
   Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=300
+  Cache-Control: public, max-age=0, must-revalidate
 
 # ⌘ EXPERTO · CLI compartido (look digitalavatar.ai): lo cargan studio, store, app, tv y biz.
 /suite/*

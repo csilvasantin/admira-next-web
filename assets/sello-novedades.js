@@ -376,6 +376,7 @@
       el.classList.add('ax-sello-up');
       el.setAttribute('title', tt);
       el.setAttribute('aria-label', 'Sello ' + tt);
+      if (el.classList.contains('qm-version') && el.textContent.trim() && state.loaded && !/v\.\d{2}\.\d{2}\.\d{4}\.r\d+/.test(el.textContent)) el.textContent = label();
       // Some native panels fill the version only when first opened. Keep them empty
       // until then so NUEVO cannot block their own initialisation.
       if (el.textContent.trim() && !el.querySelector('.axs-nuevo')) {

@@ -84,7 +84,7 @@ test('a native footer stays empty until its own Options opener writes the versio
       appendChild:(child)=>children.push(child),querySelector:()=>children.find(c=>c.className==='axs-nuevo')||null,
       getBoundingClientRect:()=>({left:8,right:160,top:260,bottom:290,width:152,height:30})};
   };
-  const native=element(),panel=element(); native.parentElement=panel;native.offsetParent=panel;panel.contains=(el)=>el===native;
+  const native=element(),panel=element(); native.classList.add('qm-version'); native.parentElement=panel;native.offsetParent=panel;panel.contains=(el)=>el===native;
   const doc={readyState:'complete',body:element(),head:{appendChild(){}},documentElement:element(),currentScript:{dataset:{}},
     querySelector:(selector)=>selector.includes('meta[name="admiranext-version"]')?{getAttribute:()=> 'v.06.10.2026.r1.07:40'}:selector.startsWith('[data-admira-options]')?panel:null,
     querySelectorAll:()=>[native],getElementById:()=>null,createElement:element,addEventListener(){}};
@@ -98,4 +98,7 @@ test('a native footer stays empty until its own Options opener writes the versio
   if(!native.textContent)native.textContent='v.06.10.2026.r1.07:40';
   intervals[1]();
   assert.equal(native.textContent,'v.06.10.2026.r1.07:40NUEVO');
+  native.textContent='❔'; // Native layout measured before its version script loaded.
+  intervals[1]();
+  assert.equal(native.textContent,'v.06.10.2026.r1.07:40NUEVO','replace a placeholder with the verified site version');
 });
