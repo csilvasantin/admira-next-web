@@ -48,6 +48,12 @@
       "sector": "Estancos · Japan Tobacco International"
     },
     {
+      "id": "365",
+      "nombre": "365 Obrador",
+      "ejemplo": false,
+      "sector": "Panaderías · franquicia 365 Obrador (Barcelona)"
+    },
+    {
       "id": "lumbre",
       "nombre": "Lumbre Café",
       "ejemplo": true,

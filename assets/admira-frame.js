@@ -721,6 +721,7 @@
     ejecutar: ejecutar,
     abrir: function (lado, valor) { abrir(lado, valor !== false); },
     abierto: abierto,
+    tiene: function (nombre) { return !!buscarVerbo(nombre); },
     tamano: function (lado, px) { if (VAR_TAM[lado]) aplicarTam(lado, px == null ? null : Number(px), true); },
     glifos: GLIFOS
   };
@@ -735,5 +736,18 @@
   script.src = '/assets/sello-novedades.js?v=20261006-options-sello-5';
   script.defer = true;
   script.setAttribute('data-admira-sello-loader', '');
+  (document.head || document.documentElement).appendChild(script);
+})();
+
+// ⌘ EXPERTO de la suite también en admiranext.com (06-10-2026): la piel /suite/experto.js reviste el
+// raíl «⌘ EXPERTO · CLI» y el CLI gana /marca, /idioma (/language), /estado, /version, /avatar…
+// Ver assets/experto-admiranext.js (allí va el sello de caché de experto.js/.css y marca-blanca.js).
+(function () {
+  try { if (window.self !== window.top) return; } catch (e) { return; }
+  if (document.querySelector('script[data-ax-admiranext-loader]')) return;
+  var script = document.createElement('script');
+  script.src = '/assets/experto-admiranext.js?v=20261006-experto-admiranext-1';
+  script.defer = true;
+  script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
 })();

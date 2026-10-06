@@ -58,7 +58,7 @@ test('la API pública lista las semillas aunque KV esté vacío o caído, con el
     assert.equal(res.headers.get('access-control-allow-origin'), '*', 'cualquier web de la Galaxia la lee');
     const body = await res.json();
     assert.equal(body.porDefecto, 'admira');
-    assert.deepEqual(body.clientes.map(c => c.id), ['admira', 'altadis', 'jti', 'lumbre', 'brumelle', 'frescaria']);
+    assert.deepEqual(body.clientes.map(c => c.id), ['admira', 'altadis', 'jti', '365', 'lumbre', 'brumelle', 'frescaria']);
     assert.deepEqual(body.clientes.filter(c => c.catalogo.tipo === 'ejemplo').map(c => c.id), ['lumbre', 'brumelle', 'frescaria']);
     assert.equal(body.clientes[0].catalogo.tipo, 'real');
     assert.ok(body.clientes.every(c => c.catalogo.origen === 'semilla' && c.catalogo.protegida));

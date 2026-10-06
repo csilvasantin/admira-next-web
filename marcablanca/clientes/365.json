@@ -1,0 +1,153 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "365",
+  "nombre": "365 Obrador",
+  "nombreCorto": "365",
+  "ejemplo": false,
+  "sector": "Panaderías · franquicia 365 Obrador (Barcelona)",
+  "descripcion": "Marca blanca de 365 Obrador, cadena de panaderías y cafeterías de Barcelona. Logo oficial de 365obrador.com (vectorizado del PNG publicado en la web); identidad monocroma negro/blanco. Primera marca de demo de AdmiraNeXT (/marca 365).",
+  "logo": {
+    "svg": "../logos/365.svg",
+    "alt": "365 Obrador"
+  },
+  "favicon": "../logos/365-favicon.png",
+  "modo": "claro",
+  "tipografia": {
+    "titulos": "Nunito, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "texto": "Nunito, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Nunito, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "pesoTitulos": 800,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.01em",
+    "fuentes": [
+      {
+        "familia": "Nunito",
+        "url": "../fuentes/nunito.woff2",
+        "peso": "400 900"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "8px",
+    "md": "14px",
+    "lg": "22px",
+    "boton": "999px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.08)",
+    "md": "0 8px 24px rgba(0,0,0,.12)",
+    "lg": "0 24px 60px rgba(0,0,0,.18)"
+  },
+  "tono": {
+    "voz": "Cercano, de barrio y de obrador: pan, café y bollería de cada día.",
+    "tratamiento": "tú",
+    "si": [],
+    "no": [],
+    "frases": {
+      "cta": "Ven a por él",
+      "vacio": "Todo en orden por aquí.",
+      "error": "Algo ha fallado. Lo estamos arreglando.",
+      "exito": "¡Listo!"
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#111111",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#3A3A3A",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#111111",
+      "acentoTexto": "#FFFFFF",
+      "fondo": "#FFFFFF",
+      "fondoAlt": "#F5F5F4",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#EFEFEE",
+      "borde": "#DADAD8",
+      "texto": "#111111",
+      "textoSuave": "#555555",
+      "textoTenue": "#8A8A88",
+      "ok": "#2F7D4F",
+      "aviso": "#B7791F",
+      "error": "#C0392B",
+      "info": "#2B6CB0"
+    },
+    "oscuro": {
+      "primario": "#F5F5F4",
+      "primarioTexto": "#111111",
+      "secundario": "#8A8A88",
+      "secundarioTexto": "#111111",
+      "acento": "#FFFFFF",
+      "acentoTexto": "#111111",
+      "fondo": "#0E0E0E",
+      "fondoAlt": "#161616",
+      "superficie": "#1B1B1B",
+      "superficieAlt": "#242424",
+      "borde": "#353535",
+      "texto": "#F5F5F4",
+      "textoSuave": "#B5B5B3",
+      "textoTenue": "#80807E",
+      "ok": "#6FCF97",
+      "aviso": "#F2C94C",
+      "error": "#EB5757",
+      "info": "#56CCF2"
+    }
+  },
+  "demo": {
+    "titular": "365, también en pantalla",
+    "producto": "Pan y bollería del día",
+    "cta": "Ven a por él",
+    "prompt": "Cartel vertical de 365 Obrador para panadería: negro sobre blanco, producto de obrador protagonista, titular corto y llamada a la acción",
+    "circuito": "Circuito 365 · 102 obradores en Barcelona",
+    "puntos": 102,
+    "tipoEspacio": "Panaderías",
+    "tiendas": [
+      {
+        "nombre": "365 · Plaça de Tetuan",
+        "dir": "Plaça de Tetuan, 3 · Barcelona"
+      },
+      {
+        "nombre": "365 · Universitat",
+        "dir": "Ronda de la Universitat, 7 · Barcelona"
+      },
+      {
+        "nombre": "365 · Sagrada Família",
+        "dir": "Plaça de la Sagrada Família, 20 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "escaparate",
+      "mostrador",
+      "caja"
+    ],
+    "piezas": [
+      "Escaparate · pan del día",
+      "Pantalla mostrador · bollería",
+      "Caja · desayuno"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-3651",
+        "equipo": "Pantalla escaparate",
+        "tienda": "365 · Plaça de Tetuan",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-3652",
+        "equipo": "Hilo musical",
+        "tienda": "365 · Universitat",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-3653",
+        "equipo": "Player de mostrador",
+        "tienda": "365 · Sagrada Família",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
