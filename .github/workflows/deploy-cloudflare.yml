@@ -57,14 +57,21 @@ jobs:
             echo "::error::release-signature.json declara «$declared» y la portada «$release»: la firma no corresponde a lo que se publica."
             exit 1
           fi
-          jq -n \
+          # El deploy local copia novedades.json al sello. Este flujo corre después
+          # y es el que queda en producción, así que tiene que copiarlas también.
+          novedades='[]'
+          if [ -f novedades.json ]; then
+            novedades="$(jq -c --arg v "$release" '(if type=="object" then (.[$v] // .default // .novedades // []) elif type=="array" then . else [] end) | if type=="array" then . else [] end | map(tostring) | map(select(length>0)) | .[0:4]' novedades.json 2>/dev/null || echo '[]')"
+          fi
+          [ -n "$novedades" ] || novedades='[]'
+          jq -n --argjson novedades "$novedades" \
             --arg version "$release" \
             --arg deployedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             --arg deployer "$(jq -r '.deployer // .agent' release-signature.json)" \
             --arg machine "$(jq -r '.machine' release-signature.json)" \
             --arg signature "$(jq -r '.signature' release-signature.json)" \
             --arg git "$GITHUB_SHA" \
-            '{version:$version,deployedAt:$deployedAt,deployer:$deployer,machine:$machine,signature:$signature,git:$git,gitShort:($git[0:7]),gitFull:$git,dirty:false}' \
+            '{version:$version,deployedAt:$deployedAt,deployer:$deployer,machine:$machine,signature:$signature,git:$git,gitShort:($git[0:7]),gitFull:$git,dirty:false,novedades:$novedades}' \
             > "$TMP/version.json"
 
           npx --yes wrangler@latest pages deploy "$TMP" --project-name admiranext --branch main
@@ -113,4 +120,10 @@ jobs:
             printf '%s\n' "$FIRMA"
             exit 1
           fi
-          echo "✓ firma publicada: $(printf '%s' "$FIRMA" | jq -r '.version + " · " + .signature')"
+          NOVS="$(printf '%s' "$FIRMA" | jq -r 'if (.novedades | type) == "array" then (.novedades | length) else 0 end')"
+          if [ "$NOVS" = "0" ]; then
+            echo "::error::version.json en producción no trae novedades."
+            printf '%s\n' "$FIRMA"
+            exit 1
+          fi
+          echo "✓ firma publicada: $(printf '%s' "$FIRMA" | jq -r '.version + " · " + .signature + " · " + (.novedades | length | tostring) + " novedades"')"
