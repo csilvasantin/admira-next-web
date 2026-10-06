@@ -115,3 +115,11 @@ test('levelUrl: el panel abre la cara con el contexto del cliente y tier = nivel
   assert.equal(A.levelUrl('nope', {}), 'https://digitalavatar.ai/better.html?dock=1&tier=good');
   assert.deepEqual(JSON.parse(JSON.stringify(A.cleanContext({lang: 'EN', brand: 'off', city: '  Barcelona '}))), {lang: 'en', city: 'Barcelona'});
 });
+
+test('pickLevel: /avatar <nivel> de la pestaña > nivel de la página (Matrix → best) > guardado > good', () => {
+  assert.equal(A.pickLevel('', 'best', 'good'), 'best', 'el gemelo en Matrix no cae a good');
+  assert.equal(A.pickLevel('good', 'best', 'better'), 'good', 'la elección explícita manda');
+  assert.equal(A.pickLevel('', '', 'better'), 'better');
+  assert.equal(A.pickLevel('', 'matrix', 'nope'), 'good');
+  assert.equal(A.pickLevel(), 'good');
+});
