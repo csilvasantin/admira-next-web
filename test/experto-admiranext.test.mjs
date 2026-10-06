@@ -63,3 +63,14 @@ test('365 Obrador es marca real del catálogo con su logo oficial, monocroma', (
   const indice = JSON.parse(leer('marcablanca/clientes/index.json'));
   assert.ok(indice.clientes.some((c) => c.id === '365' && c.ejemplo === false));
 });
+
+test('el idioma guardado (admiranext_expert_lang) se reaplica al abrir cualquier página', () => {
+  const js = leer('assets/experto-admiranext.js');
+  assert.match(js, /CLAVE_IDIOMA = 'admiranext_expert_lang'/);
+  assert.match(js, /CLAVE_HOME = 'admiranext_lang'/, 'la home y las páginas con armazón comparten idioma');
+  assert.match(js, /d\.documentElement\.lang = idiomaQuerido/, 'html.lang antes de pintar la ficha');
+  assert.match(js, /X\.setLanguage\(idiomaQuerido\)/, 'la piel aplica el idioma entero (hooks de la página)');
+  assert.match(js, /attributeFilter: \['lang'\]/, 'los cambios con botones propios también se guardan');
+  assert.equal((js.match(/^\s+sincronizarIdioma\(X\);$/gm) || []).length, 2, 'armazón y modo propio');
+  assert.match(leer('impacto/app.js'), /window\.setLanguage = /, '/impacto expone su cambio de idioma');
+});
