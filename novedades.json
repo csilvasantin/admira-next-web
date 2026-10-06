@@ -65,5 +65,10 @@
   "v.06.10.2026.r14.10:21": [
     "/idioma ENG ya traduce también /organigrama (niveles, cartas de las cinco patas, controles, latido de la flota) y /proyectos (definición, modelo canónico y cabeceras del censo).",
     "Los nombres y datos del censo de Yokup siguen tal cual; /idioma ESP vuelve al castellano."
+  ],
+  "v.06.10.2026.r15.10:27": [
+    "Dos pieles de cine en el Experto: /marca 84 (o /84) · ciencia ficción de 1984: acero, negro y rojo infrarrojo con líneas de barrido; /marca 85 (o /85) · viajes en el tiempo de 1985: noche violeta, llamarada naranja y chispa azul.",
+    "Estética propia (paleta, tipografía y fondos), contraste AA ≥ 4,5:1 comprobado en las pruebas; /marca off vuelve a Admira.",
+    "Libro de estilo de cada piel: /marcablanca/estilo?marca=84 y ?marca=85 (ahora con 200 directo y la marca nombrada en el HTML)."
   ]
 }
