@@ -50,9 +50,9 @@ async function estatico(env, request, ruta){
     return r.ok ? await r.json() : null;
   } catch (_) { return null; }
 }
-/** «../logos/x.svg» → «/marcablanca/logos/x.svg»: la semilla servida desde la API no depende de su ruta. */
+/** «../logos/x.svg» (y fuentes/, escenas/) → «/marcablanca/logos/x.svg»: la semilla servida desde la API no depende de su ruta. */
 export function absolutizarSemilla(valor){
-  if (typeof valor === 'string') return valor.replace(/^\.\.\/(logos|fuentes)\//, '/marcablanca/$1/');
+  if (typeof valor === 'string') return valor.replace(/^\.\.\/(logos|fuentes|escenas)\//, '/marcablanca/$1/');
   if (Array.isArray(valor)) return valor.map(absolutizarSemilla);
   if (valor && typeof valor === 'object') { const r = {}; for (const k of Object.keys(valor)) r[k] = absolutizarSemilla(valor[k]); return r; }
   return valor;

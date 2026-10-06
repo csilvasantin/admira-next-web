@@ -171,7 +171,7 @@
   const doc = document, html = doc.documentElement;
   const script = doc.currentScript;
   // Los ajustes propios viajan con el mismo sello (?v=) que este fichero.
-  const LOCAL_CSS = '/assets/marca-blanca.css?v=20261006-cine-81-83';
+  const LOCAL_CSS = '/assets/marca-blanca.css?v=20261006-escenas-1';
   const session = (() => { try { return root.sessionStorage; } catch (_) { return null; } })();
   const store = {
     get: k => { try { return session && session.getItem(k); } catch (_) { return null; } },
@@ -236,7 +236,7 @@
     if (!loaderPromise) {
       loaderPromise = timeout(new Promise((resolve, reject) => {
         const s = doc.createElement('script');
-        s.src = BASE + 'marcablanca.js';
+        s.src = BASE + 'marcablanca.js?v=20261006-escenas-1';
         s.async = true;
         s.setAttribute('data-mb-plataforma', PLATAFORMA);
         s.setAttribute('data-mb-modo', modo || 'marca');
@@ -440,7 +440,7 @@
       if (prop.startsWith('--mb-') || prop.startsWith('--mbx-')) html.style.removeProperty(prop);
     }
     html.style.removeProperty('color-scheme');
-    for (const a of ['data-mb-marca', 'data-mb-modo', 'data-mb-plataforma', 'data-mb-ejemplo']) html.removeAttribute(a);
+    for (const a of ['data-mb-marca', 'data-mb-modo', 'data-mb-plataforma', 'data-mb-ejemplo', 'data-mb-escena']) html.removeAttribute(a);
   }
 
   /**

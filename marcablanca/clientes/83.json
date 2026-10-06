@@ -113,6 +113,11 @@
     "velo": {
       "color": "#FFE6A8",
       "alfaMax": 0.16
+    },
+    "escena": {
+      "svg": "../escenas/83.svg",
+      "alt": "Bicicleta con cesta cruzando la luna llena sobre los pinos",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {

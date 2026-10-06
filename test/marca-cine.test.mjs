@@ -185,7 +185,7 @@ test('las pieles tienen sus detalles CSS propios (fondo, titulares, foco) solo c
     assert.match(css, new RegExp(`\\[data-mb-marca="${id}"\\][^{]*:focus-visible`));
   }
   const ver = leer('assets/marca-blanca.js').match(/marca-blanca\.css\?v=([^']+)'/)[1];
-  assert.equal(ver, '20261006-cine-81-83', 'sello nuevo para la hoja con las pieles');
+  assert.equal(ver, '20261006-escenas-1', 'sello nuevo para la hoja con las pieles y sus escenas');
 });
 
 test('la API del catálogo sirve 81–89 y /marcablanca/estilo?marca= los nombra con 200 y sin salto 308', async () => {

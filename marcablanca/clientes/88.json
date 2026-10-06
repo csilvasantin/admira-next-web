@@ -113,6 +113,11 @@
     "velo": {
       "color": "#FF5C5C",
       "alfaMax": 0.14
+    },
+    "escena": {
+      "svg": "../escenas/88.svg",
+      "alt": "Guante blanco de dibujo animado y farola de cine negro en una ciudad de los años 40",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): fondo de la home de admiranext.com tras el terminal, portada del libro de estilo y fondo de página de admira.live."
     }
   },
   "demo": {

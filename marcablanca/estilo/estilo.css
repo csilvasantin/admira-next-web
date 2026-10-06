@@ -83,3 +83,8 @@ section.bloque{background:var(--sup);border:1px solid var(--b);border-radius:var
 .indice a small{display:block;color:#777}
 footer.pie-libro{color:var(--tt);font-size:12px;padding:24px 0;text-align:center}
 @media (max-width:900px){.portada,.r2,.r3,.r4,.r5{grid-template-columns:1fr}.paleta{grid-template-columns:repeat(2,1fr)}}
+
+/* Escena ilustrada de la piel (fondos.escena · 06-10-2026) bajo la portada */
+.escena{margin:0 0 28px;border:1px solid var(--bd,rgba(127,127,127,.3));border-radius:14px;overflow:hidden;background:#000}
+.escena img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.escena figcaption{padding:10px 14px;font-size:13px;opacity:.8}
