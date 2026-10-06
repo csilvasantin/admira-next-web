@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261006-escenas-1';
+  var STAMP = '20261006-experto-cerrado-1';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -238,7 +238,7 @@
       host.innerHTML = '<div class="ax-host-bd"></div>';
       d.body.appendChild(host);
     }
-    piel({engine: ENGINE, pata: 'admiranext.com', cli: 'admiranext.com', mount: '#axAdmiranextExperto', 'mount-body': '.ax-host-bd'}, function (X) {
+    piel({engine: ENGINE, pata: 'admiranext.com', cli: 'admiranext.com', mount: '#axAdmiranextExperto', 'mount-body': '.ax-host-bd', min: 'line'}, function (X) {
       marcaReal(X);
       sincronizarIdioma(X);
       // El terminal de la home (#cmdInput) reenvía /marca y /idioma (/language, typos y pegados) al Experto.
