@@ -76,7 +76,7 @@ test('a native footer stays empty until its own Options opener writes the versio
   const intervals=[];
   const element=()=>{
     const classes=new Set(),children=[]; let value='';
-    return {nodeType:1,isConnected:true,tagName:'SPAN',id:'',style:{},children,
+    return {nodeType:1,isConnected:true,tagName:'SPAN',id:'',style:{getPropertyValue:()=>'',setProperty(){}},children,
       classList:{add:(c)=>classes.add(c),remove:(c)=>classes.delete(c),contains:(c)=>classes.has(c),toggle:(c,on)=>on?classes.add(c):classes.delete(c)},
       get textContent(){return value+children.map(c=>c.textContent).join('');},
       set textContent(v){value=v;children.length=0;},
@@ -87,7 +87,7 @@ test('a native footer stays empty until its own Options opener writes the versio
   const native=element(),panel=element(); native.classList.add('qm-version'); native.parentElement=panel;native.offsetParent=panel;panel.contains=(el)=>el===native;
   const doc={readyState:'complete',body:element(),head:{appendChild(){}},documentElement:element(),currentScript:{dataset:{}},
     querySelector:(selector)=>selector.includes('meta[name="admiranext-version"]')?{getAttribute:()=> 'v.06.10.2026.r1.07:40'}:selector.startsWith('[data-admira-options]')?panel:null,
-    querySelectorAll:()=>[native],getElementById:()=>null,createElement:element,addEventListener(){}};
+    querySelectorAll:(selector)=>selector.startsWith('.ax-experto')?[]:[native],getElementById:()=>null,createElement:element,addEventListener(){}};
   const style=()=>({display:'block',visibility:'visible',opacity:'1',position:'static'});
   const win={document:doc,location:{search:'',pathname:'/'},innerWidth:400,innerHeight:300,getComputedStyle:style,addEventListener(){}};win.top=win;
   const ctx=vm.createContext({window:win,document:doc,location:win.location,getComputedStyle:style,
@@ -101,4 +101,15 @@ test('a native footer stays empty until its own Options opener writes the versio
   native.textContent='❔'; // Native layout measured before its version script loaded.
   intervals[1]();
   assert.equal(native.textContent,'v.06.10.2026.r1.07:40NUEVO','replace a placeholder with the verified site version');
+});
+
+test('the footer stays above Expert docks without adding a gap when the rail already stops there',()=>{
+ const doc={readyState:'loading',currentScript:{dataset:{}},querySelector:()=>null,addEventListener(){}};
+ const win={document:doc,location:{search:'',pathname:'/'}};win.top=win;
+ vm.runInContext(SRC,vm.createContext({window:win,document:doc,location:win.location}));
+ const inset=win.AdmiraSello._footerInset;
+ assert.equal(inset(720,[]),0,'Expert fully hidden');
+ assert.equal(inset(720,[651]),69,'visible minimized dock');
+ assert.equal(inset(720,[400]),320,'expanded dock');
+ assert.equal(inset(651,[651]),0,'the native rail already stops above Expert');
 });

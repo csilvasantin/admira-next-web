@@ -25,5 +25,10 @@
     "La versión queda al pie de Opciones y desaparece al plegarlo",
     "Primer aviso de novedad una sola vez por navegador",
     "Versión completa incluso si el panel se inicia antes de cargar su sello"
+  ],
+  "v.06.10.2026.r7.08:00": [
+    "Versión al pie visible de Opciones; al plegarlo desaparece",
+    "Un único aviso inicial por novedad y navegador",
+    "El pie queda sobre Experto minimizado o ampliado en todos los marcos"
   ]
 }

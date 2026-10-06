@@ -404,3 +404,5 @@ EN: The version appears at the bottom of the Options side panel and disappears w
 Contrato / Contract: `version-options`; cargador compartido / shared loader `https://www.admiranext.com/assets/sello-novedades.js`; versión propia / site version `/version.json`. Se reutilizan / reused: `.qm-version`, `.rail-ver`, `[data-yk-version]`, `[data-admira-sello]`, `[data-release-signature]`. Panel explícito / explicit panel: `data-options` en el script / on the script. Aviso reconocido / acknowledged notice: `admira-sello:aviso-visto`; lectura de novedades / news read: `admira-sello:visto`. No añade herramientas MCP / No additional MCP tools.
 
 Tutorial ES: ☰ Opciones → sello al pie → pasar el ratón → plegar Opciones. EN: ☰ Options → bottom stamp → hover → collapse Options.
+
+ES: El sello permanece en el pie visible de Opciones, por encima de la barra de Experto minimizada o ampliada, sin desplazar el contenido central. EN: The stamp stays in the visible Options footer, above the minimized or expanded Expert bar, without moving the main content.

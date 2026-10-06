@@ -107,8 +107,8 @@
       'box-shadow:3px 3px 0 rgba(0,0,0,.45);max-width:calc(100vw - 24px);white-space:nowrap;-webkit-tap-highlight-color:transparent}',
       '#admira-sello-chip[hidden],#admira-sello-options[hidden],.ax-sello-outside{display:none!important}',
       '.ax-sello-options{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal;flex-shrink:0}',
-      '.ax-sello-options-foot{position:sticky;bottom:0;margin-top:auto;flex-shrink:0}',
-      '#admira-sello-options{display:block;position:sticky;bottom:0;margin-top:auto;padding:8px;flex:none;border:1px solid #50c8ff;border-radius:0;background:#0a0c12;color:#d8e9f5;text-align:left;font:600 10px/1.4 ui-monospace,Menlo,monospace;cursor:help}',
+      '.ax-sello-options-foot{position:sticky;bottom:var(--axs-options-inset,0px);margin-top:auto;flex-shrink:0}',
+      '#admira-sello-options{display:block;position:sticky;bottom:var(--axs-options-inset,0px);margin-top:auto;padding:8px;flex:none;border:1px solid #50c8ff;border-radius:0;background:#0a0c12;color:#d8e9f5;text-align:left;font:600 10px/1.4 ui-monospace,Menlo,monospace;cursor:help}',
       '#admira-sello-chip:hover,#admira-sello-chip:focus-visible{border-color:var(--axs-c);color:#fff;outline:none}',
       '#admira-sello-chip .axs-v{overflow:hidden;text-overflow:ellipsis}',
       '.ax-sello-up{cursor:help}',
@@ -342,6 +342,23 @@
     return !visibleSeal && (!hasOptions || unseenNotice || openNotice);
   }
 
+  function footerInset(panelBottom, expertTops) {
+    return Math.max(0, panelBottom - Math.min.apply(Math, [panelBottom].concat(expertTops)));
+  }
+
+  function fitOptionsFooter(panel) {
+    var bottom = panel.getBoundingClientRect().bottom, vh = root.innerHeight || 0;
+    var experts = document.querySelectorAll('.ax-experto.ax-dock,.quad-bottom,.yk-rail-bottom,#telegramDock,#expert-panel');
+    var tops = Array.prototype.map.call(experts, function (el) {
+      var r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      // Shared minimized docks can remain visible even when the native panel has hidden=true.
+      if (r.height < 2 || r.width < Math.min(200, (root.innerWidth || 0) / 2) || r.top >= vh || r.bottom < vh - 4 || cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return null;
+      return r.top;
+    }).filter(function (top) { return top !== null; });
+    var inset = Math.ceil(footerInset(bottom, tops)) + 'px';
+    if (panel.style.getPropertyValue('--axs-options-inset') !== inset) panel.style.setProperty('--axs-options-inset', inset);
+  }
+
   var watched = [], repaintPending = false;
   function watchPanels(panel) {
     if (!root.MutationObserver) return;
@@ -366,7 +383,7 @@
     state.options = document.querySelector(OPTIONS);
     state.seals = state.options ? optionsSeal(state.options, candidates) : candidates;
     candidates.forEach(function (el) { el.classList.toggle('ax-sello-outside', !!state.options && !state.options.contains(el)); });
-    if (state.options) watchPanels(state.options);
+    if (state.options) { watchPanels(state.options); fitOptionsFooter(state.options); }
     state.seals.forEach(function (el) {
       el.classList.toggle('ax-sello-options', !!state.options);
       if (state.options) {
@@ -455,7 +472,8 @@
     refresh: function () { return refresh(false); },
     seen: markSeen,
     _placeTip: placeTip,
-    _floatingPolicy: floatingPolicy
+    _floatingPolicy: floatingPolicy,
+    _footerInset: footerInset
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
