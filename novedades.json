@@ -1,8 +1,9 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
   "default": [
-    "Demo completa en /demo: ayuda con los 7 pasos y diagrama de los 5 componentes",
-    "Formulario con franquicia, ≥4 locales reales, 4 equipos y 3 contenidos por playlist",
-    "Simulación (dry-run) activada por defecto · ejemplo 365 Barcelona"
+    "Demo completa v2: 1 altavoz con hilo musical continuo y locuciones disparadas desde el TPV",
+    "3 equipos y 4 playlists por local · 365 Barcelona: 12 equipos ITIL y 16 playlists",
+    "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
+    "Contenido común de marca · desconexiones temporales por local, próximamente"
   ]
 }
