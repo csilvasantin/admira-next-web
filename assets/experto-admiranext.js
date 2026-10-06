@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261006-experto-idioma-1';
+  var STAMP = '20261006-idioma-armazon-1';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -199,7 +199,7 @@
         if (v.name !== 'marca' && F.tiene && F.tiene(v.name)) return;
         F.verbo({
           id: v.name, aliases: v.alias || [], uso: v.args || '',
-          ayuda: (lang() === 'en' ? v.desc[1] : v.desc[0]) + ' · ⌘ Experto',
+          ayuda: v.desc[0] + ' · ⌘ Experto', ayudaEn: (v.desc[1] || v.desc[0]) + ' · ⌘ Expert',
           run: function (args, ctx, limpio) { return X.exec(limpio || ('/' + v.name + (args.length ? ' ' + args.join(' ') : '')), out, {echo: false}); }
         });
       });

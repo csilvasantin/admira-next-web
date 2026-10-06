@@ -71,6 +71,86 @@
     return n;
   }
 
+  // ── Idioma del armazón (06-10-2026) ────────────────────────────────────────
+  // Carlos: «el cambio de idioma en modo experto en las webs satélites no funciona».
+  // /idioma ENG (o /language) cambiaba <html lang>, pero el armazón —☰ ▤ ⌘, la
+  // navegación común de la cabecera, los paneles y el CLI— seguía en castellano y
+  // parecía que la orden no hacía nada. El castellano sigue siendo el texto del HTML;
+  // el armazón traduce lo suyo y la cabecera común con este diccionario, y sigue en
+  // vivo cada cambio de <html lang> (piel ⌘ Experto, botones propios, idioma
+  // guardado). Lo que una página quiera traducir de lo suyo va en data-en /
+  // data-en-title / data-en-placeholder / data-en-aria-label (mismo contrato que
+  // admira.live, admira-idioma.js).
+  function enIngles() { return /^en/i.test(root.getAttribute && root.getAttribute('lang') || ''); }
+  function T(es, en) { return enIngles() ? en : es; }
+  var DICC = {
+    'OPCIONES': 'OPTIONS', 'AVANZADO': 'ADVANCED', 'EXPERTO': 'EXPERT', 'EXPERTO · CLI': 'EXPERT · CLI',
+    'NIVEL EXPERTO': 'EXPERT LEVEL', 'Nivel experto': 'Expert level',
+    'Opciones': 'Options', 'Avanzado': 'Advanced', 'Experto': 'Expert',
+    'Redimensionar Opciones': 'Resize Options', 'Redimensionar Avanzado': 'Resize Advanced',
+    'Redimensionar Experto': 'Resize Expert', 'Redimensionar Nivel experto': 'Resize Expert level',
+    'Arrastra para cambiar el tamaño · doble clic: tamaño por defecto': 'Drag to resize · double click: default size',
+    'Navegación del grupo': 'Group navigation', 'Secciones': 'Sections',
+    'sin opciones en esta página': 'no options on this page', 'esta página no tiene secciones': 'this page has no sections',
+    'Acciones': 'Actions', 'Ir a': 'Go to', 'ADmiraNeXT, inicio': 'ADmiraNeXT, home', 'ADmiraNeXT · Inicio': 'ADmiraNeXT · Home',
+    'Orden para el CLI': 'CLI command',
+    // Cabecera común del grupo (la misma en todas las páginas con armazón)
+    'Proyectos': 'Projects', 'Usuarios': 'Users', 'Agentes': 'Agents', 'Organigrama': 'Org chart',
+    'Presentaciones': 'Presentations', 'Proyectos y locales': 'Projects and venues',
+    'Página pública': 'Public page', 'Acceso privado': 'Private access',
+    // Mapa del sitio (modo automático)
+    'La casa': 'The house', 'Operación': 'Operations', 'Estudio': 'Studio',
+    'El Consejo': 'The Council', 'Academia': 'Academy', 'Mandamientos': 'Commandments',
+    'Normativa': 'Rules', 'Filosofía': 'Philosophy', 'Flota': 'Fleet', 'Presupuestos': 'Budgets',
+    'Créditos': 'Credits', 'Impacto': 'Impact', 'Marca blanca': 'White label', 'Informes': 'Reports'
+  };
+  // «☰ OPCIONES», «○ Página pública», «— sin opciones…»: el adorno de delante se conserva.
+  function traduceTexto(orig) {
+    var m = String(orig == null ? '' : orig).match(/^([^A-Za-z\u00C0-\u024F0-9]*)([\s\S]*?)(\s*)$/);
+    if (!m || !m[2] || !Object.prototype.hasOwnProperty.call(DICC, m[2])) return null;
+    return m[1] + DICC[m[2]] + m[3];
+  }
+  var originales = typeof WeakMap === 'function' ? new WeakMap() : null;
+  var ATRS_DICC = ['aria-label', 'title'];
+  function traducirZona(zona, en) {
+    if (!zona || !originales || !doc.createTreeWalker) return;
+    var paseo = doc.createTreeWalker(zona, 4, null), n;
+    while ((n = paseo.nextNode())) {
+      var padre = n.parentNode;
+      if (!padre || (padre.closest && padre.closest('.yk-cli-out, .ax-cli-out, .ax-engine, script, style'))) continue;
+      var orig = originales.has(n) ? originales.get(n) : n.nodeValue;
+      var trad = traduceTexto(orig);
+      if (trad == null) continue;
+      if (!originales.has(n)) originales.set(n, orig);
+      var quiero = en ? trad : orig;
+      if (n.nodeValue !== quiero) n.nodeValue = quiero;
+    }
+    var nodos = [zona].concat(Array.prototype.slice.call(zona.querySelectorAll ? zona.querySelectorAll('[aria-label],[title]') : []));
+    nodos.forEach(function (e) {
+      ATRS_DICC.forEach(function (a) {
+        if (!e.hasAttribute || !e.hasAttribute(a)) return;
+        var clave = 'data-yk-es-' + a;
+        var orig = e.hasAttribute(clave) ? e.getAttribute(clave) : e.getAttribute(a);
+        var trad = traduceTexto(orig);
+        if (trad == null) return;
+        if (!e.hasAttribute(clave)) e.setAttribute(clave, orig);
+        var quiero = en ? trad : orig;
+        if (e.getAttribute(a) !== quiero) e.setAttribute(a, quiero);
+      });
+    });
+  }
+  var zonasIdioma = [];
+  var idiomaPintado = false;   // el HTML nace en castellano: no hay nada que traducir hasta que pidan inglés
+  function aplicarIdioma(forzar) {
+    var en = enIngles();
+    if (!forzar && idiomaPintado === en) return;
+    idiomaPintado = en;
+    // Traducir nunca puede tumbar el armazón: si algo falla, se queda como estaba.
+    try { zonasIdioma.forEach(function (z) { traducirZona(z, en); }); } catch (e) { /* sigue en el idioma anterior */ }
+    // La cabecera cambia de ancho: que vuelva a medir y a plegar su navegación.
+    try { if (typeof G.dispatchEvent === 'function' && typeof Event === 'function') G.dispatchEvent(new Event('resize')); } catch (e) { /* nada */ }
+  }
+
   // Cada lado del marco tiene UN icono en la barra y UN cajón, y los dos dicen su
   // nombre: el icono declara con aria-controls qué cajón abre y el cajón lleva ese
   // mismo id. Sin ese par, un lector de pantalla ve tres botones sueltos y tres
@@ -594,7 +674,7 @@
     if (!def || !def.id || typeof def.run !== 'function') return;
     var id = normal(def.id);
     verbos = verbos.filter(function (v) { return v.id !== id; });
-    verbos.push({id: id, aliases: (def.aliases || []).map(normal), uso: def.uso || '', ayuda: def.ayuda || '', run: def.run});
+    verbos.push({id: id, aliases: (def.aliases || []).map(normal), uso: def.uso || '', ayuda: def.ayuda || '', ayudaEn: def.ayudaEn || '', run: def.run});
   }
   function imprimir(linea, tipo) {
     if (!cli) return;
@@ -614,7 +694,7 @@
     imprimir('› ' + limpio, 'cmd');
     var partes = limpio.replace(/^\//, '').split(/\s+/);
     var v = buscarVerbo(partes[0]);
-    if (!v) { imprimir('Verbo desconocido: /' + partes[0] + ' · escribe /help', 'err'); return; }
+    if (!v) { imprimir(T('Verbo desconocido: /', 'Unknown verb: /') + partes[0] + T(' · escribe /help', ' · type /help'), 'err'); return; }
     try {
       var r = v.run(partes.slice(1), ctx, limpio);
       if (r && typeof r.then === 'function') r.then(null, function (e) { imprimir('Error: ' + (e && e.message || e), 'err'); });
@@ -623,16 +703,16 @@
 
   // Verbos comunes. /help se genera del registro: un verbo nuevo aparece en la
   // ayuda sin tocarla.
-  verbo({id: 'help', aliases: ['ayuda', '?'], ayuda: 'Lista los verbos de esta página', run: function () {
+  verbo({id: 'help', aliases: ['ayuda', '?'], ayuda: 'Lista los verbos de esta página', ayudaEn: 'Lists the verbs of this page', run: function () {
     verbos.slice().sort(function (a, b) { return a.id < b.id ? -1 : 1; }).forEach(function (v) {
-      imprimir('/' + v.id + (v.uso ? ' ' + v.uso : '') + ' — ' + v.ayuda +
+      imprimir('/' + v.id + (v.uso ? ' ' + v.uso : '') + ' — ' + ((enIngles() && v.ayudaEn) || v.ayuda) +
         (v.aliases.length ? ' (alias: ' + v.aliases.map(function (a) { return '/' + a; }).join(' ') + ')' : ''));
     });
   }});
-  verbo({id: 'limpiar', aliases: ['clear', 'cls'], ayuda: 'Vacía la salida del CLI', run: function () { ctx.limpiar(); }});
+  verbo({id: 'limpiar', aliases: ['clear', 'cls'], ayuda: 'Vacía la salida del CLI', ayudaEn: 'Clears the CLI output', run: function () { ctx.limpiar(); }});
   if (grupo.length) {
     var clavesGrupo = grupo.map(function (a) { return ruta(a.getAttribute('href')).replace(/^\//, '').split('/').pop(); });
-    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre una página del grupo: ' + clavesGrupo.join(', '), run: function (args) {
+    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre una página del grupo: ' + clavesGrupo.join(', '), ayudaEn: 'Opens a page of the group: ' + clavesGrupo.join(', '), run: function (args) {
       var buscado = normal(args.join(' '));
       if (!buscado) { imprimir('Uso: /ir <página> · ' + clavesGrupo.join(', '), 'err'); return; }
       var destino = grupo.filter(function (a, i) {
@@ -690,11 +770,11 @@
         else if (cand.length > 1) imprimir(cand.map(function (v) { return '/' + v.id; }).join('  '));
       }
     });
-    imprimir('CLI de ' + (doc.title || 'AdmiraNeXT') + ' · escribe /help');
+    imprimir(T('CLI de ', 'CLI of ') + (doc.title || 'AdmiraNeXT') + T(' · escribe /help', ' · type /help'));
   }
 
   if (modoAuto) {
-    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre otra página de admiranext.com: ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), run: function (args) {
+    verbo({id: 'ir', aliases: ['go'], uso: '<página>', ayuda: 'Abre otra página de admiranext.com: ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), ayudaEn: 'Opens another admiranext.com page: ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), run: function (args) {
       var q = normal(args.join(' '));
       if (!q) { imprimir('Uso: /ir <página> · ' + sitioPlano.map(function (p) { return p.clave; }).join(', '), 'err'); return; }
       var d = sitioPlano.filter(function (p) { return p.clave.indexOf(q) === 0 || normal(p.nombre).indexOf(q) === 0; })[0];
@@ -702,7 +782,7 @@
       imprimir('Abriendo ' + d.nombre + '…');
       location.href = d.href;
     }});
-    verbo({id: 'seccion', aliases: ['s'], uso: '<n|texto>', ayuda: 'Salta a una sección de la página (los <h2> del contenido)', run: function (args) {
+    verbo({id: 'seccion', aliases: ['s'], uso: '<n|texto>', ayuda: 'Salta a una sección de la página (los <h2> del contenido)', ayudaEn: 'Jumps to a section of the page (the <h2> of the content)', run: function (args) {
       construirIrA();
       var q = normal(args.join(' '));
       var s = secciones.filter(function (x, i) { return q && (String(i + 1) === q || normal(x.titulo).indexOf(q) >= 0); })[0];
@@ -713,15 +793,24 @@
       irA(s.nodo);
       imprimir('→ ' + s.titulo);
     }});
-    verbo({id: 'arriba', aliases: ['top'], ayuda: 'Vuelve al principio de la página', run: function () { if (G.scrollTo) G.scrollTo({top: 0, behavior: 'smooth'}); }});
+    verbo({id: 'arriba', aliases: ['top'], ayuda: 'Vuelve al principio de la página', ayudaEn: 'Back to the top of the page', run: function () { if (G.scrollTo) G.scrollTo({top: 0, behavior: 'smooth'}); }});
   }
   (Array.isArray(G.ADMIRA_FRAME_VERBS) ? G.ADMIRA_FRAME_VERBS : []).forEach(verbo);
+
+  // Idioma: zonas del armazón (cabecera o barra, los tres paneles y sus tiradores) y
+  // cambio en vivo de <html lang>. Ver «Idioma del armazón» arriba.
+  zonasIdioma = [bar, railIzq, railDer, hayAbajo ? railAbajo : null].concat(LADOS.map(function (l) { return tiradores[l]; })).filter(Boolean);
+  aplicarIdioma(false);
+  try {
+    new MutationObserver(function () { aplicarIdioma(false); }).observe(root, {attributes: true, attributeFilter: ['lang']});
+  } catch (e) { /* sin observador: el idioma se aplica al cargar */ }
   G.AdmiraFrame = {
     verbo: verbo,
     ejecutar: ejecutar,
     abrir: function (lado, valor) { abrir(lado, valor !== false); },
     abierto: abierto,
     tiene: function (nombre) { return !!buscarVerbo(nombre); },
+    idioma: function () { aplicarIdioma(true); return enIngles() ? 'en' : 'es'; },
     tamano: function (lado, px) { if (VAR_TAM[lado]) aplicarTam(lado, px == null ? null : Number(px), true); },
     glifos: GLIFOS
   };
@@ -746,7 +835,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261006-experto-idioma-1';
+  script.src = '/assets/experto-admiranext.js?v=20261006-idioma-armazon-1';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);

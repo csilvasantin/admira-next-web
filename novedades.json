@@ -53,5 +53,9 @@
     "El idioma del ⌘ Experto se recuerda: si cambias a ENG con /language en una página, la siguiente que abras (y la home) ya sale en ENG.",
     "Funciona igual con /idioma, typos y pegados (/idiomaESP), y con los botones de idioma propios de la home y de /impacto.",
     "El título del panel (⌘ EXPERTO / EXPERT) cambia de idioma al momento."
+  ],
+  "v.06.10.2026.r12.09:25": [
+    "⌘ Experto: /idioma ENG (o /language) ya traduce al momento la barra del sitio, los paneles ☰ Opciones, ▤ Avanzado y ⌘ Experto y el CLI en todas las páginas con armazón; /idioma ESP vuelve al castellano.",
+    "/help del CLI del armazón sale en el idioma activo; el idioma se sigue recordando al cambiar de página."
   ]
 }
