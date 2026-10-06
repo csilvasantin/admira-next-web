@@ -6,6 +6,11 @@
     "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
     "Contenido común de marca · desconexiones temporales por local, próximamente"
   ],
+  "v.06.10.2026.r22.11:10": [
+    "⌘ Experto bilingüe: /marca = /brand, /ayuda = /help, /estado = /status, /limpiar = /clear, /ir = /go (y las parejas de los CLI de cada página: /buscar = /search, /seccion = /section…)",
+    "Formas compactas /marca84, /brand84, /marcaoff, /brandoff; el verbo en castellano pone la web en castellano y el inglés en inglés (los atajos /81…/89 no tocan el idioma)",
+    "El CLI sugiere /ayuda en castellano y /help en inglés"
+  ],
   "v.06.10.2026.r3.07:38": [
     "La versión vuelve al pie de Opciones y se oculta al plegarlo",
     "Aviso inicial de novedad una vez por versión y navegador",

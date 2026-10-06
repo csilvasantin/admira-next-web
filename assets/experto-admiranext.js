@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261006-idioma-paginas-5';
+  var STAMP = '20261006-cli-bilingue-1';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -220,7 +220,7 @@
         if (/^(help|limpiar|ir)$/.test(v.name)) return;
         if (v.name !== 'marca' && F.tiene && F.tiene(v.name)) return;
         F.verbo({
-          id: v.name, aliases: v.alias || [], uso: v.args || '',
+          id: v.name, aliases: v.alias || [], uso: v.args || '', piel: true,
           ayuda: v.desc[0] + ' · ⌘ Experto', ayudaEn: (v.desc[1] || v.desc[0]) + ' · ⌘ Expert',
           run: function (args, ctx, limpio) { return X.exec(limpio || ('/' + v.name + (args.length ? ' ' + args.join(' ') : '')), out, {echo: false}); }
         });
@@ -247,7 +247,8 @@
         if (e.key !== 'Enter' || !t || t.id !== 'cmdInput') return;
         var v = String(t.value || '').trim();
         var esIdioma = X.parseLangCommand && X.parseLangCommand(v);
-        var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/8[1-9]$/.test(v);
+        // /marca, /brand y sus formas compactas (/marca84, /brand84, /marcaoff, /brandoff).
+        var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/?(marca|brand)(off|[a-z0-9][a-z0-9_-]*)$/i.test(v) && !/^\/?marcador/i.test(v) || /^\/8[1-9]$/.test(v);
         if (!esIdioma && !esMarca) return;
         e.preventDefault();
         e.stopImmediatePropagation();
