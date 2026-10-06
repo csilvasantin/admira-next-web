@@ -23,9 +23,12 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(por('biz').length, 7);
   assert.equal(por('admiranext').length, 5);
   assert.equal(por('studio').length, 7);
-  assert.equal(por('store').length, 4);
+  // e6727cc (5-oct) sumó los hitos Q4 de store: 4 de Jobs + 7 de Jensen/Walt.
+  assert.equal(por('store').length, 11);
   assert.equal(por('tv').length, 4);
-  assert.ok(por('store').every((h) => h.responsable === 'Jensen Huang (propuesta de Jobs)' && h.estado === 'hecho' && h.fuente.startsWith('xpaceos ')));
+  const deJobs = por('store').filter((h) => h.responsable === 'Jensen Huang (propuesta de Jobs)');
+  assert.equal(deJobs.length, 4);
+  assert.ok(deJobs.every((h) => h.estado === 'hecho' && h.fuente.startsWith('xpaceos ')));
   assert.ok(por('tv').every((h) => h.responsable === 'Elon Musk (propuesta de Jobs)' && h.estado === 'hecho'));
   assert.ok(por('studio').every((h) => h.responsable === 'George Lucas'));
   assert.equal(por('studio').find((h) => h.id === 'studio-mcp-cliente-activo-xpaceos').cliente, undefined);
@@ -36,7 +39,7 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(superusuario.estado, 'confirmado');
   assert.equal(superusuario.inicio, '2026-10-05');
   assert.equal(superusuario.fin, '2026-10-09');
-  assert.equal(lista.filter((h) => h.estado === 'propuesta').length, 5);
+  assert.equal(lista.filter((h) => h.estado === 'propuesta').length, 7);
   const ideas = new Set(lista.map((h) => h.idea));
   assert.equal(ideas.size, IDEAS.length);
   assert.ok(lista.every((h) => IDEAS.some((i) => i.nombre === h.idea)));
@@ -67,7 +70,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   assert.equal(tri.soluciones.find((s) => s.id === 'app').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 7);
   assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 5);
-  assert.equal(tri.soluciones.find((s) => s.id === 'store').hitos.length, 4);
+  assert.equal(tri.soluciones.find((s) => s.id === 'store').hitos.length, 11);
   assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 0);
 
   const ano = cortar(lista, 'ano', '2026-10-05');
@@ -87,7 +90,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
 test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   const plano = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap') });
   assert.equal(plano.headers.get('access-control-allow-origin'), '*');
-  assert.equal((await plano.json()).length, 35);
+  assert.equal((await plano.json()).length, lista.length);
   const corte = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?vista=semana&desde=2026-10-05') });
   const body = await corte.json();
   assert.equal(body.vista, 'semana');
@@ -95,7 +98,7 @@ test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   const store = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?proyecto=store&vista=mes&desde=2026-10-01') });
   const cuerpoStore = await store.json();
   assert.equal(cuerpoStore.agrupar, 'solucion');
-  assert.equal(cuerpoStore.soluciones.find((s) => s.id === 'store').hitos.length, 4);
+  assert.equal(cuerpoStore.soluciones.find((s) => s.id === 'store').hitos.length, 11);
   assert.equal(cuerpoStore.soluciones.find((s) => s.id === 'studio').hitos.length, 0);
   const altadis = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?cliente=altadis&vista=trimestre&desde=2026-10-01') });
   const cuerpoAltadis = await altadis.json();
@@ -142,4 +145,28 @@ test('la página pinta el corte de la URL', async () => {
   assert.match(corteHtml, /proyecto=studio&amp;cliente=altadis&amp;idea=contenidos-pixeria/);
   assert.match(corteHtml, /Gemelos 9 estancos BCN/);
   assert.equal((corteHtml.match(/JTI global/g) || []).length, 0);
+});
+
+test('RoadMap espectacular: escena, meta del corte y estados', async () => {
+  assert.match(html, /id="rm-show"/);
+  assert.match(html, /id="rm-matrix"/);
+  assert.match(html, /id="rm-gantt-wrap"/);
+  assert.match(html, /id="rm-rail"/);
+  assert.match(html, /id="rm-presenter"/);
+  assert.match(html, /\/assets\/roadmap-show\.js\?v=/);
+  assert.match(html, /#78f3ff/);
+  assert.match(html, /#4ae3d1/);
+  const js = await readFile(new URL('../assets/roadmap-show.js', import.meta.url), 'utf8');
+  assert.match(js, /fetch\('\/api\/roadmap'/);
+  assert.match(js, /e\.key === 'p' \|\| e\.key === 'P'/);
+  const corte = htmlCorte(cortar(lista, 'trimestre', '2026-10-01', new Date(), { idea: 'contenidos-pixeria' }));
+  const meta = corte.match(/<span class="rm-meta" hidden ([^>]*)><\/span>/);
+  assert.ok(meta, 'el corte publica sus datos para la escena');
+  assert.match(meta[1], /data-vista="trimestre"/);
+  assert.match(meta[1], /data-desde="2026-10-01"/);
+  assert.match(meta[1], /data-hasta="2026-12-31"/);
+  assert.match(meta[1], /data-idea="contenidos-pixeria"/);
+  assert.match(meta[1], /data-idea-nombre="Contenidos y Pixeria"/);
+  assert.match(meta[1], /data-patas="\[\{&quot;id&quot;:&quot;studio&quot;/);
+  assert.match(corte, /<li class="hito is-(hecho|en_curso|confirmado|propuesta)" data-estado="/);
 });
