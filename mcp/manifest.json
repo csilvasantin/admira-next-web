@@ -310,6 +310,29 @@
       "endpoint": "federado desde admiranext.com/mcp (tras login)",
       "auth": "Google",
       "help": "https://www.admira.studio/"
+    },
+    {
+      "name": "ainimation-mcp",
+      "producto": "Autoría de Xperiencias interactivas · AInimation Studio (Director, Admingo, quioscos)",
+      "endpoint": "https://mcp-ainimation.admira.store/mcp",
+      "transport": "streamable-http",
+      "auth": "lectura abierta · xperiencia_publicar con clave de flota",
+      "llms": "https://www.ainimation.studio/mcp/llms.txt",
+      "help": "https://www.ainimation.studio/help/",
+      "salud": "https://mcp-ainimation.admira.store/salud",
+      "tools": [
+        "listar_xperiencias",
+        "plantillas",
+        "crear_proyecto",
+        "validar_admingo",
+        "compilar_admingo",
+        "publicar_xperiencia",
+        "menu_validar",
+        "enviar_a_admiratv",
+        "fijar_en_totem",
+        "marca_aplicar",
+        "xperiencia_publicar"
+      ]
     }
   ],
   "version_options": {
