@@ -192,5 +192,9 @@
   "v.07.10.2026.r8.10:39": [
     "Presentaciones: la vinculación explícita del proyecto de demos tiene prioridad sobre coincidencias por nombre o marca.",
     "El texto libre del contexto no bloquea el alta: se conservan identificadores válidos y se usa la marca del cliente como respaldo."
+  ],
+  "v.07.10.2026.r9.10:42": [
+    "/demo de admira.studio: las muestras de locución, música, imagen, vídeo y formatos se cargan desde www.pixeria.com, donde están publicadas (en admira.studio daban 404).",
+    "Si el manifiesto publicado aún apunta a admira.studio, Experto, el avatar y /subdemos corrigen las direcciones al cargarlo."
   ]
 }
