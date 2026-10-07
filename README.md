@@ -408,3 +408,14 @@ Tutorial ES: ☰ Opciones → sello al pie → pasar el ratón → plegar Opcion
 ES: El sello permanece en el pie visible de Opciones, por encima de la barra de Experto minimizada o ampliada, sin desplazar el contenido central. EN: The stamp stays in the visible Options footer, above the minimized or expanded Expert bar, without moving the main content.
 
 ES: El cargador compartido usa Cache-Control: no-store para evitar el mínimo de cuatro horas de caché de navegador. Las pestañas que ya cargaron una copia anterior requieren recarga completa. EN: The shared loader uses Cache-Control: no-store to avoid the four-hour browser-cache minimum. Tabs that already loaded an earlier copy require a hard reload.
+
+
+## Introducción corporativa y demos de la propuesta
+
+Las nuevas presentaciones incluyen por defecto el deck corporativo de Admira. El clásico agrupa la documentación en «Quiénes somos», «Qué hacemos» y «Qué proponemos»; este último contiene las soluciones personalizadas y su recorrido de demos. Una apertura elegida expresamente (o vacía) se respeta, también al regenerar.
+
+`PUT /presentaciones/api/generate` y el MCP `create_presentation` aceptan `demoProject: {id,nombre,nota,demos,contexto:{marca,loc,project,circuito},propuestas}`. Son las claves del editor `/subdemos`, con los aliases anteriores de Studio migrados. El generador toma automáticamente un proyecto único de `ax-subdemos` que coincida por `presentation_id`, id o nombre. Si no hay selección, incorpora las soluciones del catálogo y las cinco subdemos de Studio para el cliente actual. El servidor valida y guarda una copia de la documentación; los cambios posteriores del editor no alteran una presentación guardada.
+
+Los enlaces del anexo usan la marca y contexto del cliente. El contexto de demostración Starbucks solo se aplica al proyecto Alsea · Starbucks: otro cliente no hereda sus parámetros ni su inventario. Mostrar la presentación o exportarla a PDF no dispara generación de medios ni publica contenidos en Stock. Las etiquetas y enlaces cambian de idioma; el texto personalizado conserva su idioma de origen. Los demás entregables reciben en su fuente la misma introducción y documentación de demos.
+
+La entrada reutilizable de Alsea está en `presentaciones/plantillas/alsea-starbucks.json`: introducción corporativa corta, propuesta de piloto, Biz, Store y las cinco funciones de Studio. No contiene contraseña; el generador crea la de la nueva presentación. Antes de usarla, consultar el censo y conservar una presentación existente cuando corresponda.

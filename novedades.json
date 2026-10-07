@@ -180,5 +180,9 @@
     "La cabecera del avatar es una pastilla: AVATAR · Admirito, HUMAN · Luna, METAHUMAN · Neo",
     "Pulsa la pastilla para subir de categoría (vuelve a avatar tras metahuman); desliza o usa ←/→ para subir o bajar",
     "La elección se guarda igual que /avatar y el cambio funde el panel; /avatar avatar|human|metahuman sigue funcionando"
+  ],
+  "v.07.10.2026.r6.10:30": [
+    "Presentaciones: introducción clásica de Admira y demos personalizadas anexadas automáticamente en Qué proponemos.",
+    "Selección de subdemos guardada con cada presentación; contexto de marca, proyecto, local y circuito aislado por cliente."
   ]
 }

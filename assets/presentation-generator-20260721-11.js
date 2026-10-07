@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  window.__ADMIRA_GENERATOR_VERSION__='20261001-campos';
+  window.__ADMIRA_GENERATOR_VERSION__='20261007-demo-documentation';
   document.querySelector('.output-panel')?.remove();
   const form=document.getElementById('generator'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result');
   const display=document.getElementById('displayName'),slug=document.getElementById('slug'),website=document.getElementById('website'),passwordInput=document.getElementById('password'); let slugTouched=false,inspirationAnalysis=null,currentGeneration=null,currentGenerationUrl='',currentClient='',currentImageSet=null;
@@ -315,6 +315,11 @@
       // Desde el 25-09 la API rechaza campos desconocidos y el alta desde la UI fallaba con
       // «Campos desconocidos: language, output» (visto en la prueba real con la clave de máquina).
       delete data.language;delete data.output; data.inspiration=inspirationAnalysis;const presite=selectedPresite();data.presiteSlug=presite?.slug||'';data.presite=presite?{slug:presite.slug}:null;
+      // La selección del editor se anexa automáticamente; queda guardada con el deck.
+      const {proyectoParaPresentacion}=await import('/subdemos/presentacion.mjs?v=20261007-docs-1');
+      let projects=[];try{projects=JSON.parse(localStorage.getItem('ax-subdemos')||'{}').proyectos||[]}catch(_){}
+      const selectedDemoProject=proyectoParaPresentacion(projects,data);
+      if(selectedDemoProject)data.demoProject=selectedDemoProject;
       const body=await createPresentation(data, Boolean(improveMode)); if(!body){message('No se ha modificado la presentación existente.');return}
       window.dispatchEvent(new CustomEvent('admira:presentation-created',{detail:body}));
       const absolute=new URL(body.url,location.origin).href; document.getElementById('resultUrl').textContent=absolute; document.getElementById('resultPassword').textContent=body.password||'Contraseña actual conservada';

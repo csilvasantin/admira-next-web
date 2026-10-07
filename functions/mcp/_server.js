@@ -194,6 +194,7 @@ export const TOOLS = [
   { name: 'get_presentation', description: 'Contenido vivo de una presentación (láminas, idiomas, secuencia).', inputSchema: { type: 'object', properties: { client: { type: 'string', description: 'slug de la presentación' } }, required: ['client'] } },
   { name: 'create_presentation', description: 'Reserva el slug y arranca el alta. Devuelve jobId y slug al momento, sin esperar a la traducción. Sigue con generation_status hasta saved o failed. Antes: list_presentations. Un cliente = un slug.', inputSchema: { type: 'object', properties: {
     displayName: { type: 'string' }, slug: { type: 'string' }, website: { type: 'string' },
+    demoProject: {type: 'object', description: 'Proyecto subdemos {id,nombre,nota,demos,contexto,propuestas}: se anexa automáticamente a Qué proponemos.'},
     marca: { type: 'string', description: 'Id del catálogo GET /marcablanca/api/marcas. Modo prospect con esa marca. No junto con prospectUrl.' },
     prospectUrl: { type: 'string', description: 'https:// de la web del cliente. Se analiza con /marcablanca y se guarda en el catálogo como propuesta no oficial (marca:<id>, logo en R2). No junto con marca.' },
     inspirationUrl: { type: 'string', description: 'URL de la web de referencia a emular en look & feel (paleta, tipografía, modo). Pídela al crear una web.' }, heroDevice: { type: 'string', enum: ['none','pocket'], description: 'Portada de la salida web: "pocket" abre el deck con un dispositivo retro dot-matrix (Game Boy) al estilo voicebenchmarks.' }, problem: { type: 'string' }, audience: { type: 'string' }, objective: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' },
@@ -335,7 +336,7 @@ export async function callTool(ctx, name, args = {}){
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
       assertDemoVideoUrl(a);
       const body = {};
-      const allowed = ['displayName', 'slug', 'website', 'marca', 'prospectUrl', 'inspirationUrl', 'heroDevice', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'beforeLength', 'beforeQuality', 'afterDeck', 'insertDeck', 'inserts', 'insert', 'structure', 'slides', 'footer', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo', 'closingTitle', 'closingAction'];
+      const allowed = ['displayName', 'slug', 'website', 'demoProject', 'marca', 'prospectUrl', 'inspirationUrl', 'heroDevice', 'problem', 'audience', 'objective', 'title', 'summary', 'languages', 'outputs', 'password', 'overwrite', 'embeds', 'beforeDeck', 'beforeLength', 'beforeQuality', 'afterDeck', 'insertDeck', 'inserts', 'insert', 'structure', 'slides', 'footer', 'primaryColor', 'accentColor', 'slideMedia', 'exampleVideoUrl', 'includeExampleVideo', 'videoUrl', 'videoSlide', 'demoVideo', 'requireExampleVideo', 'closingTitle', 'closingAction'];
       const unknown = Object.keys(a).filter(key => !allowed.includes(key));
       if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
       for (const key of allowed) if (a[key] !== undefined) body[key] = a[key];

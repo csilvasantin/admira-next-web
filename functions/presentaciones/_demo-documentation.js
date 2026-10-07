@@ -1,0 +1,10 @@
+import {normalizarDemoProject, documentacionDemos} from '../../subdemos/presentacion.mjs';
+export {normalizarDemoProject, documentacionDemos};
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function demoDocumentationSlides(project, idioma = 'es', overrideMarca = '') {
+  const labels = {es: {section:'Qué proponemos', for:'Soluciones para', open:'Abrir demostración', command:'Experto o avatar'}, ca: {section:'Què proposem', for:'Solucions per a', open:'Obrir demostració', command:'Expert o avatar'}, en: {section:'What we propose', for:'Solutions for', open:'Open demonstration', command:'Expert or avatar'}};
+  const label = labels[idioma] || labels.es;
+  const localized = Object.fromEntries(Object.keys(labels).map(lang => [lang, documentacionDemos(project, lang, overrideMarca)]));
+  const attrs = key => 'data-demo-text ' + Object.entries(labels).map(([lang, value]) => `data-demo-text-${lang}="${esc(value[key])}"`).join(' ');
+  return localized[idioma in labels ? idioma : 'es'].map((item, index) => `<section class="slide demo-documentation" data-segment="proposal" data-section="proposal" data-slide-key="demo-${esc(item.clave.replace('/', '-'))}" data-demo-key="${esc(item.clave)}"><div class="inner"><span class="eyebrow"><span ${attrs('section')}>${esc(label.section)}</span> · ${esc(project.nombre)}</span><h2>${esc(item.titulo)}</h2><p class="message">${esc(item.propuesta)}</p><p class="detail"><span ${attrs('for')}>${esc(label.for)}</span> ${esc(project.nombre)}${project.nota ? ' · ' + esc(project.nota) : ''}</p><p class="detail"><a href="${esc(item.url)}" data-demo-link ${Object.keys(labels).map(lang => `data-demo-href-${lang}="${esc(localized[lang][index].url)}"`).join(' ')} ${attrs('open')} target="_blank" rel="noopener noreferrer">${esc(label.open)}</a></p>${item.cmd ? `<p class="detail"><span ${attrs('command')}>${esc(label.command)}</span>: <code>${esc(item.cmd)}</code></p>` : ''}</div></section>`).join('');
+}
