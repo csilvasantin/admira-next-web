@@ -638,12 +638,68 @@
     root.location.assign(url);
     return true;
   }
+  // Requests are scoped to the owned frame window; re-delivery returns the
+  // original confirmation rather than running a control (for example next) twice.
+  var demoRequests = new WeakMap();
+  function demoReply(source, payload) {
+    try { source.postMessage(payload, DA_ORIGIN); } catch (_) {}
+  }
+  function demoState(X) {
+    var raw = X && typeof X.demoEstado === 'function' ? X.demoEstado() : null;
+    if (!raw || typeof raw !== 'object') return null;
+    var safe = {};
+    ['activo', 'pausado', 'demo', 'fase', 'fases', 'numero', 'total'].forEach(function (key) {
+      if (typeof raw[key] === 'boolean' || (typeof raw[key] === 'number' && Number.isFinite(raw[key]))) safe[key] = raw[key];
+      else if (typeof raw[key] === 'string') safe[key] = raw[key].slice(0, 200);
+    });
+    return safe;
+  }
   root.addEventListener('message', function (ev) {
-    var d = ev && ev.data;
-    if (!d || typeof d !== 'object' || d.type !== 'da-demo' || ev.origin !== DA_ORIGIN) return;
-    var X = root.AdmiraExperto;
-    if (typeof d.texto === 'string' && X && typeof X.demo === 'function' && X.demo(d.texto)) return;
-    openDemo(d.id);
+    var d = ev && ev.data, frame = doc.getElementById('da-suite-frame');
+    if (!d || typeof d !== 'object' || d.type !== 'da-demo' || ev.origin !== DA_ORIGIN || !frame || ev.source !== frame.contentWindow) return;
+    var requested = Object.prototype.hasOwnProperty.call(d, 'requestId');
+    if (requested && (typeof d.requestId !== 'string' || !/^[a-zA-Z0-9_.:-]{1,128}$/.test(d.requestId))) return;
+    var text = typeof d.texto === 'string' ? d.texto.trim() : '';
+    var id = typeof d.id === 'string' && /^[a-zA-Z0-9-]{1,64}$/.test(d.id) ? d.id : '';
+    if (!text && id) text = '/demo ' + id;
+    var valid = /^\/?demo(?:\s|$)/i.test(text) && text.length <= 200 && !/[\r\n]/.test(text);
+    var cache, existing;
+    if (requested) {
+      cache = demoRequests.get(ev.source);
+      if (!cache) { cache = new Map(); demoRequests.set(ev.source, cache); }
+      existing = cache.get(d.requestId);
+      if (existing) {
+        if (existing.text !== text) { demoReply(ev.source, {type: 'da-demo-result', requestId: d.requestId, ok: false, message: 'Request identifier already used for another command.'}); return; }
+        existing.promise.then(function (ack) { demoReply(ev.source, ack); }); return;
+      }
+      if (cache.size >= 128) {
+        // Do not evict confirmed IDs: an old duplicate must never execute again.
+        demoReply(ev.source, {type: 'da-demo-result', requestId: d.requestId, ok: false, message: 'Command limit reached. Reload the avatar before sending more commands.'}); return;
+      }
+    }
+    var entry = {text: text};
+    entry.promise = Promise.resolve().then(function () {
+      if (!valid) return {ok: false, message: 'Invalid demo command.'};
+      var X = root.AdmiraExperto, log = doc.createElement('div');
+      if (X && typeof X.demo === 'function') {
+        return Promise.resolve(typeof X.listo === 'function' ? X.listo() : null).then(function () { return X.demo(text, log); }).then(function (result) {
+          var message = (log.textContent || '').trim().slice(0, 4000), error = !!log.querySelector('.err');
+          var ok = !error && (result != null || !!message);
+          if (!ok && !error && id) ok = openDemo(id);
+          var ack = {ok: ok, message: message || (ok ? 'Demo command completed.' : 'Demo command was not handled.'), estado: demoState(X)};
+          if (result != null) {
+            try { var encoded = JSON.stringify(result); if (encoded.length <= 8192) ack.result = JSON.parse(encoded); } catch (_) {}
+          }
+          return ack;
+        });
+      }
+      var opened = !!id && openDemo(id);
+      return {ok: opened, message: opened ? 'Opening demo.' : 'Local demo engine unavailable.'};
+    }).catch(function () { return {ok: false, message: 'Demo command failed.'}; }).then(function (ack) {
+      if (requested) { ack.type = 'da-demo-result'; ack.requestId = d.requestId; }
+      return ack;
+    });
+    if (requested) { cache.set(d.requestId, entry); entry.promise.then(function (ack) { demoReply(ev.source, ack); }); }
   });
 
   root.AdmiraAvatar = {run: run, handle: handle, demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
