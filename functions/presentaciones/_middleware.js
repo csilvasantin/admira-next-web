@@ -497,6 +497,10 @@ export async function onRequest(context){
   const trackView = request.method === 'GET' && shouldIdentify(request, parts) && !isInternalArea && !isGallery;
   const viewer = identity || (viaMachine ? MACHINE_IDENTITY : null);
   if (trackView && viewer) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity:viewer, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || (second === 'english' ? 'en' : '')}));
+  const downloadType=response.headers.get('content-type')||'';
+  if (request.method==='GET' && second==='offline' && response.ok && ['application/zip','application/pdf'].includes(downloadType.split(';')[0].trim())) {
+    context.waitUntil(writeAccessEvent(env, request, {type:'offline_download',client:seg,presentation:clientTitle,identity:viewer,access:accessLevel,path:url.pathname,target:downloadType.startsWith('application/pdf')?'pdf':'zip'}));
+  }
   const isAudienceOutput = isPresentationMode && url.searchParams.get('audience') === '1';
   if (isPresentationExtraPage) return withBridge(response);
   return withBridge(await injectTelemetry(response, {

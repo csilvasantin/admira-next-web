@@ -107,7 +107,7 @@ test('PUT captura catálogo propio y GET mantiene el snapshot aunque cambie el c
   const beforeCatalog = JSON.stringify(GLOBALES), env = environment();
   const catalogo = [{version: 1, plataforma: 'store', subdemos: [{id: 'promo-local', nombre: 'Promoción Norte', desc: 'Caso preparado', url: 'https://www.admira.store/promo', cmd: '/demo 1', caso: {producto: 'Café'}, guion: [{accion: 'di', texto: 'Oferta propia'}]}]}];
   const custom = {id: 'campaign', demos: ['store/promo-local', 'studio/voz'], catalogo, documentacion: [{clave: 'store/promo-local', titulo: 'Inventada', url: 'javascript:alert(1)'}]};
-  const response = await request(env, 'PUT', {demoProject: custom});
+  const response = await request(env, 'PUT', {demoProject: custom, expectedUpdatedAt:updatedAt});
   assert.equal(response.status, 200, await response.clone().text());
   const captured = (await response.json()).demoProject;
   const promotion = captured.documentacion.find(d => d.clave === 'store/promo-local');
@@ -142,13 +142,32 @@ test('revisión esperada obsoleta devuelve 409 sin modificar KV ni crear histori
   assert.deepEqual(allValues(env), before);
 });
 
+test('PUT exige revisión explícita y detecta una edición intercalada durante el backup', async () => {
+  const missing=environment();
+  assert.equal((await request(missing,'PUT',{demoProject:project()})).status,400);
+  assert.deepEqual(missing.PRESENTATION_IDEAS.writes,[]);
+  const env=environment(),kv=env.PRESENTATION_IDEAS,before=await read(env);
+  const edited={...before,updatedAt:'2026-10-07T08:31:00.000Z',theme:{primary:'#445566'},customField:{humanEdit:true}};
+  const put=kv.put.bind(kv);let inserted=false;
+  kv.put=async(key,value)=>{
+    await put(key,value);
+    if(!inserted && key.startsWith('version:'+client+':')) {inserted=true;kv.values.set('presentation:'+client,JSON.stringify(edited));}
+  };
+  const response=await request(env,'PUT',{demoProject:project(),expectedUpdatedAt:updatedAt});
+  assert.equal(response.status,409);
+  assert.deepEqual(await read(env),edited,'la edición intercalada permanece intacta');
+  assert.equal(kv.writes.filter(w=>w.key==='presentation:'+client).length,0);
+  assert.equal(kv.writes.filter(w=>w.key.startsWith('version:'+client+':')).length,1,'solo el backup previo');
+});
+
 test('selección, catálogo, JSON y contrato de entrada inválidos fallan antes de cualquier escritura', async () => {
   const invalid = [null, [], {}, {demoProject: []}, {demoProject: {demos: ['store/not-found']}}, {demoProject: project(), overwrite: true},
     {demoProject: project(), expectedUpdatedAt: 123}, {demoProject: project(), expectedUpdatedAt: 'x'.repeat(81)},
     {demoProject: {demos: ['studio/voz'], contexto: []}},
     ...['http://unsafe.test/demo', 'javascript:alert(1)', 'https://user:password@unsafe.test/demo'].map(url => ({demoProject: {demos: ['store/promo-local'], catalogo: [{plataforma: 'store', subdemos: [{id: 'promo-local', nombre: 'Unsafe', url}]}]}})),
     {demoProject: {demos: ['studio/voz'], catalogo: [{plataforma: 'unknown', subdemos: []}]}}];
-  for (const payload of invalid) {
+  for (const input of invalid) {
+    const payload=input && typeof input==='object' && !Array.isArray(input) ? {expectedUpdatedAt:updatedAt,...input}:input;
     const env = environment(), before = allValues(env);
     const response = await request(env, 'PUT', payload);
     assert.equal(response.status, 400, JSON.stringify(payload));
@@ -212,5 +231,23 @@ test('middleware allows a signed client to read its demo snapshot and blocks cha
     assert.equal(reached,method==='GET');
     if(method==='GET') assert.equal((await response.json()).demoProject.id,'old');
     assert.deepEqual(env.PRESENTATION_IDEAS.writes,[]);
+  }
+});
+
+test('offline downloads record identity and format only after an authorized successful ZIP/PDF response', async () => {
+  const machine='amk_'+'D'.repeat(43);
+  for(const [format,status,authorized] of [['zip',200,true],['pdf',200,true],['zip',404,true],['pdf',200,false]]) {
+    const env={...environment(),PRES_MACHINE_KEY:machine,PRES_SIGNING_KEY:'download-gate-test-key'},pending=[];
+    const response=await gate({env,data:{},request:new Request(origin+'/presentaciones/'+client+'/offline?format='+format,{headers:{Accept:'application/'+format,...(authorized?{'X-Admira-Machine-Key':machine}:{})}}),waitUntil:p=>pending.push(p),next:async()=>new Response('FILE',{status,headers:{'content-type':'application/'+format}})});
+    await Promise.all(pending);
+    assert.equal(response.status,authorized?status:401);
+    const events=env.PRESENTATION_IDEAS.writes.filter(w=>w.key.startsWith('access:event:')&&w.value.type==='offline_download');
+    assert.equal(events.length,authorized&&status===200?1:0);
+    if(events.length) {
+      assert.equal(events[0].value.client,client);
+      assert.equal(events[0].value.target,format);
+      assert.equal(events[0].value.email,'machine@admiranext.com');
+      assert.equal(events[0].value.path,'/presentaciones/'+client+'/offline');
+    }
   }
 });

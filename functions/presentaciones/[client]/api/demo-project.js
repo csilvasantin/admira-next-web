@@ -23,14 +23,17 @@ export async function onRequest(context) {
   if (new TextEncoder().encode(text).byteLength > MAX_BYTES) return json({error:'Catálogo demasiado grande.'}, 413);
   let body;
   try { body = JSON.parse(text); } catch (_) { return json({error:'JSON no válido.'}, 400); }
-  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !['demoProject','expectedUpdatedAt'].includes(key)) || !Object.hasOwn(body,'demoProject')) return json({error:'Envía demoProject y, opcionalmente, expectedUpdatedAt.'}, 400);
-  if (body.expectedUpdatedAt !== undefined && (typeof body.expectedUpdatedAt !== 'string' || body.expectedUpdatedAt.length > 80)) return json({error:'expectedUpdatedAt no válido.'}, 400);
-  if (body.expectedUpdatedAt !== undefined && body.expectedUpdatedAt !== (presentation.updatedAt || '')) return json({error:'La presentación ha cambiado. Recarga antes de actualizar.', updatedAt:presentation.updatedAt || ''}, 409);
+  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => !['demoProject','expectedUpdatedAt'].includes(key)) || !Object.hasOwn(body,'demoProject')) return json({error:'Envía demoProject y expectedUpdatedAt.'}, 400);
+  if (typeof body.expectedUpdatedAt !== 'string' || body.expectedUpdatedAt.length > 80) return json({error:'expectedUpdatedAt es obligatorio y debe ser una cadena válida.'}, 400);
+  if (body.expectedUpdatedAt !== (presentation.updatedAt || '')) return json({error:'La presentación ha cambiado. Recarga antes de actualizar.', updatedAt:presentation.updatedAt || ''}, 409);
   let demoProject;
   try { demoProject = normalizarDemoProject(body.demoProject, {slug:client,displayName:presentation.displayName,marca:presentation.prospect?.marca}); }
   catch (error) { return json({error:error.message || 'Proyecto de demos no válido.'}, 400); }
   await captureVersion(context.env, client, 'copia antes de actualizar el catálogo de demos');
-  const updated = {...presentation, demoProject, updatedAt:new Date().toISOString()};
+  // KV has no atomic compare-and-set; reread after the backup to catch intervening edits.
+  const current = await context.env.PRESENTATION_IDEAS.get(key, {type:'json'});
+  if (!current || body.expectedUpdatedAt !== (current.updatedAt || '')) return json({error:'La presentación ha cambiado. Recarga antes de actualizar.', updatedAt:current?.updatedAt || ''}, 409);
+  const updated = {...current, demoProject, updatedAt:new Date().toISOString()};
   await context.env.PRESENTATION_IDEAS.put(key, JSON.stringify(updated));
   await captureVersion(context.env, client, 'catálogo de demos actualizado', {presentation:updated});
   return json({ok:true,demoProject,updatedAt:updated.updatedAt});

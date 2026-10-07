@@ -3,6 +3,8 @@
 const fs=require('node:fs/promises'),path=require('node:path'),crypto=require('node:crypto');
 const {execFileSync}=require('node:child_process');
 const {pathToFileURL}=require('node:url');
+const {homedir}=require('node:os');
+const {existsSync}=require('node:fs');
 const {chromium}=require('playwright');
 const args=Object.fromEntries(process.argv.slice(2).reduce((a,v,i,list)=>v.startsWith('--')?[...a,[v.slice(2),list[i+1]]]:a,[]));
 const client=args.client||'alsea-starbucks';
@@ -14,7 +16,7 @@ let key='';const assets=new Map();let totalBytes=0;
 async function bytes(url){
   const u=new URL(url);if(u.protocol!=='https:'||u.username||u.password)throw Error('Recurso no válido: '+u.pathname);
   const headers={'User-Agent':'Mozilla/5.0'};
-  if(u.origin==='https://www.admiranext.com'&&u.pathname.startsWith('/presentaciones/')){if(!key)key=execFileSync('/Users/csilvasantin/Claude/admira-vault/vault-get.sh',['ADMIRANEXT_PRESENTACIONES_MACHINE_KEY'],{encoding:'utf8'}).trim();headers['X-Admira-Machine-Key']=key;}
+  if(u.origin==='https://www.admiranext.com'&&u.pathname.startsWith('/presentaciones/')){if(!key)key=process.env.ADMIRANEXT_PRESENTACIONES_MACHINE_KEY||execFileSync(args['vault-get']||process.env.ADMIRA_VAULT_GET||path.join(homedir(),'Claude/admira-vault/vault-get.sh'),['ADMIRANEXT_PRESENTACIONES_MACHINE_KEY'],{encoding:'utf8'}).trim();headers['X-Admira-Machine-Key']=key;}
   const r=await fetch(url,{headers,redirect:'error',signal:AbortSignal.timeout(45000)});
   if(!r.ok)throw Error('Recurso '+u.pathname+': HTTP '+r.status);
   const b=Buffer.from(await r.arrayBuffer());totalBytes+=b.length;if(totalBytes>180*1024*1024)throw Error('Paquete demasiado grande');return b;
@@ -36,7 +38,8 @@ async function cssLocal(css, cssBase=base){
   const project=args.project?JSON.parse(await fs.readFile(args.project,'utf8')):JSON.parse((await bytes('https://www.admiranext.com/presentaciones/'+client+'/api/demo-project')).toString()).demoProject;
   if(!project?.documentacion?.length)throw Error('El proyecto no contiene documentación capturada');
   const source=args.source?await fs.readFile(args.source,'utf8'):(await bytes(base)).toString();
-  const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+  const executablePath=args.chrome||process.env.ADMIRA_CHROME_PATH||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':undefined);
+  const browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
   try{
     const page=await browser.newPage({viewport:{width:1280,height:720}});
     const extracted=await page.evaluate(html=>{
@@ -83,7 +86,8 @@ async function cssLocal(css, cssBase=base){
     await page.pdf({path:path.join(out,'presentacion.pdf'),printBackground:true,preferCSSPageSize:true,displayHeaderFooter:false});
     // Chromium resuelve los enlaces relativos como file://. El PDF enviado debe enlazar
     // a la presentación privada online y nunca contener rutas del ordenador que lo creó.
-    const python=args.python||'/Users/csilvasantin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3';
+    const bundledPython=path.join(homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3');
+    const python=args.python||process.env.ADMIRA_PYTHON_PATH||(existsSync(bundledPython)?bundledPython:'python3');
     execFileSync(python,['-c',`from pypdf import PdfReader,PdfWriter
 from pypdf.generic import TextStringObject
 from urllib.parse import urlparse
@@ -100,7 +104,8 @@ for page in w.pages:
 with open(p+'.tmp','wb') as f:w.write(f)
 os.replace(p+'.tmp',p)
 `,path.join(out,'presentacion.pdf'),client]);
-    const manifest={client,createdAt:new Date().toISOString(),slides:extracted.slides.length,subdemos:snapshot.documentacion.filter(d=>d.clave.includes('/')).length,media:[...assets].map(([url,file])=>({url,file})),format:'carpeta HTML autónoma y PDF'};
+    const media=await Promise.all([...assets.values()].map(async file=>{const b=await fs.readFile(path.join(out,file));return {file,bytes:b.length,sha256:crypto.createHash('sha256').update(b).digest('hex')};}));
+    const manifest={client,createdAt:new Date().toISOString(),slides:extracted.slides.length,subdemos:snapshot.documentacion.filter(d=>d.clave.includes('/')).length,media,format:'carpeta HTML autónoma y PDF'};
     await fs.writeFile(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2));
     execFileSync('python3',['-c',"import zipfile,pathlib,sys; p=pathlib.Path(sys.argv[1]); z=zipfile.ZipFile(sys.argv[2],'w',zipfile.ZIP_DEFLATED); [z.write(f,arcname=p.name+'/'+str(f.relative_to(p))) for f in sorted(p.rglob('*')) if f.is_file()]; z.close()",out,out+'.zip']);
     console.log(JSON.stringify({output:out,zip:out+'.zip',slides:manifest.slides,subdemos:manifest.subdemos,assets:assets.size,downloadedBytes:totalBytes}));
