@@ -242,6 +242,8 @@ async function markFailed(job,tasks,error){
 async function processNext(browser){
   const queue=await api('GET');if(!queue.jobs?.length)return false;
   const page=await browser.newPage();page.setDefaultTimeout(45000);
+  // En headless el agente de usuario se anuncia como «HeadlessChrome»; Google lo trata peor. Se presenta como Chrome normal.
+  await page.setUserAgent((await browser.userAgent()).replace('HeadlessChrome','Chrome'));
   let job=null,tasks=[];
   try{
     // La sesión se valida antes de reclamar la cola: una autenticación caducada
@@ -375,17 +377,26 @@ async function waitAndPublish(page,job,tasks,clientLogo){
 
 await fs.mkdir(DOWNLOADS,{recursive:true});
 const chrome='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const browser=await puppeteer.launch({headless:false,pipe:true,userDataDir:PROFILE,executablePath:await fs.access(chrome).then(()=>chrome).catch(()=>undefined),// La ventana tiene que nacer DONDE ESTA CARLOS (norma 02-09-2026): en macOS se abria
+// OCULTO POR DEFECTO (Carlos, 7-oct-2026). El productor trabajaba con una ventana de Chrome visible que
+// acababa siendo «el Chrome» del Mac: Carlos abría ahí Google Meet y, como macOS atribuye la cámara al
+// proceso de fondo que lanza este navegador, sus videollamadas se quedaban sin imagen. Ahora la cola se
+// procesa en headless y sólo --setup (el login, que necesita a una persona) abre ventana.
+// NOTEBOOKLM_VISIBLE=1 vuelve a la ventana visible para depurar.
+const VISIBLE=setup||process.env.NOTEBOOKLM_VISIBLE==='1';
+const browser=await puppeteer.launch({headless:!VISIBLE,pipe:true,userDataDir:PROFILE,executablePath:await fs.access(chrome).then(()=>chrome).catch(()=>undefined),// La ventana tiene que nacer DONDE ESTA CARLOS (norma 02-09-2026): en macOS se abria
 // en el Space del proceso que la lanzo, que casi nunca es el suyo, y una ventana que no
 // se ve es una ventana que no existe — el login quedaba esperando a nadie.
-  args:['--no-first-run','--disable-session-crashed-bubble','--window-position=60,60','--window-size=1500,980'],defaultViewport:{width:1500,height:980}});
+  args:['--no-first-run','--disable-session-crashed-bubble',...(VISIBLE?['--window-position=60,60']:[]),'--window-size=1500,980'],defaultViewport:{width:1500,height:980}});
+// Si el navegador muere (o alguien lo cierra), el proceso sale y launchd lo relanza: antes seguía
+// sondeando la cola con un navegador muerto y no producía nada.
+browser.on('disconnected',()=>{console.error(new Date().toISOString(),'Chrome se ha cerrado: salgo para que launchd me relance.');process.exit(1);});
 if(setup){
   const page=await browser.newPage();await page.goto('https://notebook.google.com/');
   console.log(`Accede como ${ACCOUNT}; la ventana se cerrará sola cuando la sesión quede validada.`);
   // Techo de 10 min (FLT-100780 b): antes esperaba para siempre a un login que nadie hacía.
   const limite=Date.now()+SETUP_TIMEOUT_MS;let valid=false;while(!valid&&Date.now()<limite){await sleep(2000);valid=await page.evaluate(email=>[...document.querySelectorAll('[aria-label]')].some(el=>(el.getAttribute('aria-label')||'').includes(email)),ACCOUNT).catch(()=>false);}
   if(valid)console.log(`Sesión validada: ${ACCOUNT}`);else{console.error(`Login no completado en ${SETUP_TIMEOUT_MS/60000} min: vuelve a ejecutar --setup y entra como ${ACCOUNT}.`);process.exitCode=1;}
-  await browser.close();
+  browser.removeAllListeners('disconnected');await browser.close();
 }else{
-  try{do{const worked=await processNext(browser).catch(error=>{console.error(new Date().toISOString(),error.message);return false});if(once)break;if(!worked)await sleep(POLL_MS);}while(true);}finally{await browser.close();}
+  try{do{const worked=await processNext(browser).catch(error=>{console.error(new Date().toISOString(),error.message);return false});if(once)break;if(!worked)await sleep(POLL_MS);}while(true);}finally{browser.removeAllListeners('disconnected');await browser.close();}
 }
