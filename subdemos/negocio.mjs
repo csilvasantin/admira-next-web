@@ -8,7 +8,9 @@ export const MANIFIESTOS_NEGOCIO = [
     "activacion": {
       "hosts": [
         "admira.store",
-        "www.admira.store"
+        "www.admira.store",
+        "xpaceos.com",
+        "www.xpaceos.com"
       ]
     },
     "subdemos": [
@@ -219,8 +221,8 @@ export const MANIFIESTOS_NEGOCIO = [
         "url": "https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es&demo=tpv#tpv",
         "cmd": "/demo 5",
         "aliases": [
-          "tpv",
           "caja",
+          "tpv",
           "venta"
         ],
         "duracion": 60,

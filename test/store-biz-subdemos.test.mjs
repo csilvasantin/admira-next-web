@@ -19,6 +19,8 @@ test('manifiestos publicados, fallback y catálogo describen las mismas cinco fu
     const aliases = m.subdemos.flatMap(d => d.aliases);
     assert.equal(new Set(aliases).size, aliases.length, 'ningún alias selecciona dos funciones');
   }
+  assert.deepEqual(manifests[0].subdemos[4].aliases, ['caja', 'tpv', 'venta']);
+  for (const host of ['xpaceos.com', 'www.xpaceos.com']) assert.ok(manifests[0].activacion.hosts.includes(host));
 });
 
 test('cada recorrido abre el ensayo correspondiente y conserva datos sin acciones de alta real', () => {

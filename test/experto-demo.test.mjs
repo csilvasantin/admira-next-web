@@ -108,7 +108,8 @@ test('Store importado vacío: permanece vacío sin resucitar el fallback ni núm
   for (let repeat = 0; repeat < 2; repeat++) {
     await api.listo();
     assert.deepEqual(snap(api.parseDemo('/demo help')), {lista: true, local: true});
-    for (const arg of ['1', '5', 'voz', 'tpv']) assert.deepEqual(snap(api.parseDemo('/demo ' + arg)), {desconocida: arg});
+    for (const arg of ['1', '5', 'voz']) assert.deepEqual(snap(api.parseDemo('/demo ' + arg)), {desconocida: arg});
+    assert.equal(api.parseDemo('/demo tpv'), null, 'el comando nativo no depende del catálogo local');
     assert.equal(api.parseDemo('/demo studio').id, 'studio');
     const lines = [];
     api.exec('/demo help', {appendChild: li => lines.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0});
@@ -214,9 +215,13 @@ for (const plataforma of ['store', 'biz']) {
       for (const [i, demo] of negocio.subdemos.entries()) {
         for (const command of [demo.cmd, ...demo.aliases.map(a => '/demo ' + a)]) {
           const parsed = api.parseDemo(command);
-          assert.equal(parsed.id, plataforma + '/' + demo.id);
-          assert.equal(parsed.i, i);
-          assert.equal(parsed.local, true);
+          if (plataforma === 'store' && command === '/demo tpv') {
+            assert.equal(parsed, null, 'tpv se delega al motor físico');
+          } else {
+            assert.equal(parsed.id, plataforma + '/' + demo.id);
+            assert.equal(parsed.i, i);
+            assert.equal(parsed.local, true);
+          }
           const resolved = api.resolverDemo(command, negocio, host);
           assert.equal(resolved.clave, plataforma + '/' + demo.id);
           assert.equal(resolved.modo, 'recorrido');
@@ -226,10 +231,12 @@ for (const plataforma of ['store', 'biz']) {
         assert.equal(api.parseDemo('/demo ' + other).id, other);
       }
       if (plataforma === 'store') {
-        for (const native of ['off', 'stop', 'estado', 'status', 'tpv off', 'tpv stop', 'tpv estado', 'tpv status']) {
+        for (const native of ['tpv', 'off', 'stop', 'estado', 'status', 'tpv off', 'tpv stop', 'tpv estado', 'tpv status']) {
           assert.equal(api.parseDemo('/demo ' + native), null, 'el control nativo del TPV sigue disponible: ' + native);
         }
-        assert.match(api.parseDemo('/demo tpv').url, /[?&]demo=tpv#tpv$/);
+        assert.equal(api.parseDemo('/demo 5').id, 'store/tpv');
+        assert.equal(api.parseDemo('/demo caja').id, 'store/tpv');
+        assert.match(api.parseDemo('/demo caja').url, /[?&]demo=tpv#tpv$/);
       }
       for (const arg of ['0', '6', '01', '1 extra', 'toString']) {
         assert.deepEqual(snap(api.parseDemo('/demo ' + arg)), {desconocida: arg.toLowerCase()});
@@ -254,6 +261,21 @@ for (const plataforma of ['store', 'biz']) {
     assert.deepEqual(navigation, []);
   });
 }
+
+test('XpaceOS con y sin www ofrece los cinco recorridos Store y conserva el TPV físico', () => {
+  for (const host of ['xpaceos.com', 'www.xpaceos.com']) {
+    const {api} = withLang('es', host);
+    assert.equal(api.plataforma(), 'store');
+    assert.deepEqual(snap(api.parseDemo('/demo help')), {lista: true, local: true});
+    assert.deepEqual([1, 2, 3, 4, 5].map(n => api.parseDemo('/demo ' + n).id), ['store/voz', 'store/musica', 'store/imagenes', 'store/video', 'store/tpv']);
+    assert.equal(api.parseDemo('/demo tpv'), null);
+    assert.equal(api.parseDemo('/demo caja').id, 'store/tpv');
+    const lines = [];
+    api.exec('/demo help', {appendChild: li => lines.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0});
+    assert.match(lines.join('\n'), /\/demo 5 · \/demo caja — Gestión del TPV/);
+    assert.doesNotMatch(lines.join('\n'), /\/demo 5 · \/demo tpv/);
+  }
+});
 
 test('/demo help en admira.studio lista solo las cinco de Studio; el texto común devuelve qué se enseña', () => {
   const { api } = withLang('es', 'www.admira.studio');
