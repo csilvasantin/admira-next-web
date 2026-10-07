@@ -62,6 +62,17 @@ async function deck(env, slug='client', query='') {
 }
 const saved = (env, key='presentation:client') => env.PRESENTATION_IDEAS.get(key,{type:'json'});
 
+test('display expands abbreviated chapter headings without changing stored chapter IDs or ideas', async () => {
+  const ideas={hero:{title:'Client'},objective:'Objective',skeleton:[{id:'crear',title:'Create',product:'Studio',chapter:'contenid',enabled:true},{id:'activar',title:'Activate',product:'Store',chapter:'experien',enabled:true}],closing:{title:'Close'},languages:['es']};
+  const env=environment({'presentation:client':{displayName:'Client',outputs:['website'],languages:['es'],theme:{},sequence:{before:null}},'ideas:client':ideas});
+  const html=await deck(env);
+  assert.match(html,/data-chapter="contenid"/);
+  assert.match(html,/Studio · CONTENIDOS<\/span>/);
+  assert.match(html,/data-chapter="experien"/);
+  assert.match(html,/Store · EXPERIENCIA<\/span>/);
+  assert.deepEqual(await saved(env,'ideas:client'),ideas);
+});
+
 test('project selection requires one unique id, name or presentation_id match', () => {
   const first={id:'campaign-one',nombre:'Café Norte',presentation_id:'client',demos:['studio/voz']};
   const second={id:'campaign-two',nombre:'Café Sur',demos:['studio/video']};
