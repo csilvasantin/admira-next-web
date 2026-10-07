@@ -40,7 +40,7 @@
 # ⌘ EXPERTO · CLI compartido (look digitalavatar.ai): lo cargan studio, store, app, tv y biz.
 /suite/*
   Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=300, must-revalidate
+  Cache-Control: no-store
 
 /demo
   Cache-Control: no-store

@@ -1,8 +1,9 @@
 // Snapshot de un proyecto de demos para anexarlo a su presentación, también desde API/MCP.
-import {GLOBALES, PROYECTOS_INICIALES, RENOMBRADAS, guion} from './catalogo.mjs';
+import {GLOBALES, PROYECTOS_INICIALES, RENOMBRADAS, guion, ANTERIORES} from './catalogo.mjs';
+import {normalizarCatalogo, guionDeCatalogo} from './editor-catalogo.mjs';
 const slug = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const texto = (value, max) => String(value || '').trim().slice(0, max);
-const validas = new Set(GLOBALES.flatMap(g => [g.id, ...g.subdemos.map(s => g.id + '/' + s.id)]));
+const validas = new Set(GLOBALES.flatMap(g => [g.id, ...[...g.subdemos,...(ANTERIORES[g.id]||[])].map(s => g.id + '/' + s.id)]));
 const basicas = ['biz', 'store', 'studio', ...GLOBALES.find(g => g.id === 'studio').subdemos.map(s => 'studio/' + s.id)];
 const alsea = {
   marca: 'starbucks', loc: 'alsea-sbux-021', project: 'starbucks', circuito: 'alsea_starbucks'
@@ -35,7 +36,13 @@ export function normalizarDemoProject(raw, cliente = {}) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) throw new Error('demoProject debe ser un proyecto de subdemos.');
   if (!Array.isArray(source.demos) || source.demos.length > 40 || source.demos.some(d => typeof d !== 'string')) throw new Error('demoProject.demos debe ser una lista de claves (máximo 40).');
   const demos = [...new Set(source.demos.map(d => RENOMBRADAS[d] || d))];
-  if (demos.some(d => !validas.has(d))) throw new Error('demoProject contiene una demo desconocida.');
+  const catalogo=normalizarCatalogo(source.catalogo);
+  const custom=new Set(catalogo.flatMap(m=>m.subdemos.map(s=>m.plataforma+'/'+s.id)));
+  if (demos.some(d => {
+    if (!validas.has(d)&&!custom.has(d)) return true;
+    const [platform,id]=d.split('/'), supplied=catalogo.find(m=>m.plataforma===platform);
+    return id && supplied && !supplied.subdemos.some(s=>s.id===id) && !(ANTERIORES[platform]||[]).some(s=>s.id===id);
+  })) throw new Error('demoProject contiene una demo desconocida o eliminada del catálogo.');
   const knownAlsea = source.id === 'alsea-starbucks';
   const inputContext = source.contexto ?? (knownAlsea ? alsea : {});
   if (!inputContext || typeof inputContext !== 'object' || Array.isArray(inputContext)) throw new Error('demoProject.contexto debe ser un objeto.');
@@ -53,7 +60,7 @@ export function normalizarDemoProject(raw, cliente = {}) {
     if (typeof inputProposals[key] === 'string') propuestas[key] = texto(inputProposals[key], 600);
   }
   return {version: 1, id: slug(source.id) || slug(cliente.slug || name), nombre: texto(source.nombre, 120) || name,
-    nota: texto(source.nota, 400), demos, contexto, propuestas, documentacion: structuredClone(guion(demos))};
+    nota: texto(source.nota, 400), demos, contexto, propuestas, ...(catalogo.length?{catalogo}:{}), documentacion: structuredClone(guionDeCatalogo(demos,GLOBALES,catalogo,ANTERIORES))};
 }
 
 export function documentacionDemos(project, idioma = 'es', overrideMarca = '') {

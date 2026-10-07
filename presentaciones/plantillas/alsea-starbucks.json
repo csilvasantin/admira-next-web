@@ -84,6 +84,10 @@
       "biz/iot",
       "biz/itil",
       "store",
+      "store/voz",
+      "store/musica",
+      "store/imagenes",
+      "store/video",
       "store/tpv",
       "studio",
       "studio/voz",
@@ -101,10 +105,10 @@
     "propuestas": {
       "biz": "Organizar el proyecto de demostración Starbucks, su circuito, el gemelo y los elementos que se gestionan.",
       "biz/proyecto": "Crear el proyecto que agrupa la configuración de la demostración Starbucks.",
-      "biz/circuito": "Asociar el proyecto al circuito de demostración alsea_starbucks.",
-      "biz/gemelo": "Revisar la ubicación y el gemelo alsea-sbux-021 que representa el local piloto.",
-      "biz/iot": "Registrar las pantallas y players que se van a controlar desde el gemelo.",
-      "biz/itil": "Relacionar los elementos del local con sus referencias de gestión y mantenimiento.",
+      "biz/circuito": "Preparar el circuito de demostración con puntos DooH y el vuelo de campaña.",
+      "biz/gemelo": "Relacionar el gemelo alsea-sbux-021 con zonas y soportes de Retail Media.",
+      "biz/iot": "Preparar el alta de pantallas, altavoces, cámaras y tótems asociados al gemelo.",
+      "biz/itil": "Relacionar cada dispositivo con su CI, servicio y ubicación en el inventario ITIL.",
       "store": "Mostrar el gemelo de Starbucks y la distribución de contenidos de la campaña.",
       "store/tpv": "Seleccionar un producto en el TPV y comprobar las reacciones del espacio en la demostración.",
       "studio": "Preparar los contenidos de una campaña de café y bollería para el local de demostración.",
@@ -112,7 +116,11 @@
       "studio/musica": "Elegir un ambiente musical para acompañar la campaña en la cafetería.",
       "studio/imagen": "Crear una creatividad de café para mostrar el producto en pantalla.",
       "studio/video": "Transformar una imagen de café en un clip con movimiento para la campaña.",
-      "studio/adaptar": "Comparar la misma pieza en horizontal, vertical, cuadrado y barra para sus pantallas."
+      "studio/adaptar": "Comparar la misma pieza en horizontal, vertical, cuadrado y barra para sus pantallas.",
+      "store/voz": "Asignar la locución de campaña a entrada y caja y revisar su programación.",
+      "store/musica": "Organizar el hilo musical por zonas y franjas del local de demostración.",
+      "store/imagenes": "Gestionar la creatividad de café dentro de la playlist y sus pantallas.",
+      "store/video": "Asignar los clips de campaña a la playlist de la pantalla de pared."
     }
   },
   "footer": {

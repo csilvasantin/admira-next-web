@@ -1,3 +1,4 @@
+import {MANIFIESTOS_NEGOCIO} from './negocio.mjs?v=20261007-store-biz-1';
 // Catálogo de demos (Carlos, 7-oct-2026, demo Alsea · Starbucks).
 // Demos globales = plataformas (las mismas ids que /demo del ⌘ Experto, suite/experto.js).
 // Subdemos = funcionalidades dentro de cada una: URL que se abre y, si hace falta, la orden de Experto.
@@ -31,9 +32,13 @@ export const GLOBALES = [
   ]}
 ];
 
+// Conservar guiones ya guardados sin convertir funciones antiguas en otras distintas.
+export const ANTERIORES = {store: GLOBALES.find(g => g.id === 'store').subdemos.filter(s => s.id !== 'tpv')};
+for (const m of MANIFIESTOS_NEGOCIO) GLOBALES.find(g => g.id === m.plataforma).subdemos = structuredClone(m.subdemos);
+
 export const PROYECTOS_INICIALES = [
   {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021',
-    contexto: {marca: 'starbucks', loc: 'alsea-sbux-021', project: 'starbucks', circuito: 'alsea_starbucks'}, demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
+    contexto: {marca: 'starbucks', loc: 'alsea-sbux-021', project: 'starbucks', circuito: 'alsea_starbucks'}, demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/voz', 'store/musica', 'store/imagenes', 'store/video', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
 ];
 
 // 'store' = demo global; 'store/tpv' = subdemo. Devuelve {global, sub|null} o null.
@@ -42,7 +47,7 @@ export function resolver(clave) {
   const global = GLOBALES.find((x) => x.id === g);
   if (!global) return null;
   if (!s) return {global, sub: null};
-  const sub = global.subdemos.find((x) => x.id === s);
+  const sub = [...global.subdemos, ...(ANTERIORES[global.id] || [])].find((x) => x.id === s);
   return sub ? {global, sub} : null;
 }
 
@@ -54,7 +59,7 @@ export function guion(demos) {
   const pasos = [];
   for (const g of GLOBALES) {
     if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id, steps: [], guion: [], muestra: null});
-    for (const s of g.subdemos) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || [], guion: s.guion || [], muestra: s.muestra || null});
+    for (const s of [...g.subdemos, ...(ANTERIORES[g.id] || []).filter(old => !g.subdemos.some(current => current.id === old.id))]) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || [], guion: s.guion || [], muestra: s.muestra || null, ensayo_url: s.ensayo_url || '', caso: s.caso || null});
   }
   return pasos;
 }
@@ -74,7 +79,7 @@ export function proyectoLimpio(p) {
 export function guionTexto(proyecto) {
   const pasos = guion(proyecto.demos), c = proyecto.contexto || {};
   const cab = [proyecto.presentation_id ? 'Presentación: ' + proyecto.presentation_id : '', CONTEXTO.filter((k) => c[k]).map((k) => k + ' ' + c[k]).join(' · ')].filter(Boolean);
-  return [proyecto.nombre + ' · guion de demo', ...cab, ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.muestra && p.muestra.url ? '\n   Muestra: ' + p.muestra.url : '') +
+  return [proyecto.nombre + ' · guion de demo', ...cab, ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.muestra && p.muestra.url ? '\n   Muestra: ' + p.muestra.url : '') + (p.ensayo_url ? '\n   Ensayo: ' + p.ensayo_url : '') +
     [...(p.steps || []), ...(p.guion || [])].map((x) => '\n   - ' + pasoTexto(x)).join(''))].join('\n');
 }
 // Un paso puede ser texto o un objeto del manifiesto ({accion, selector, texto} del guion de Trinity).
@@ -90,11 +95,11 @@ export function pasoTexto(x) {
 // guion:[{selector, accion, texto}], steps}]} (contrato de Trinity, pixeria demo/studio.subdemos.json). steps, muestra, guion
 // y variantes se conservan como objetos; ejecucion_real_opcional se guarda como dato y nunca se ejecuta desde aquí.
 // Sustituye las subdemos de esa plataforma. Devuelve la plataforma aplicada o lanza Error.
-export const MANIFIESTOS = ['studio'];
+export const MANIFIESTOS = ['studio', 'store', 'biz'];
 export function aplicarManifiesto(m) {
   const g = m && GLOBALES.find((x) => x.id === m.plataforma);
   if (!g) throw new Error('plataforma desconocida');
-  if (!Array.isArray(m.subdemos) || !m.subdemos.length) throw new Error('sin subdemos');
+  if (!Array.isArray(m.subdemos) || m.subdemos.length > 40) throw new Error('lista de subdemos no válida');
   const subs = m.subdemos.map((x) => {
     if (!x || !/^[a-z0-9-]{1,40}$/.test(x.id) || !x.nombre || !/^https:\/\//.test(x.url || '')) throw new Error('subdemo no válida: ' + (x && x.id));
     // Los recursos de muestra viven en www.pixeria.com; en www.admira.studio/assets/demos/ dan 404 (7-oct-2026).

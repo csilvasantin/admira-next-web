@@ -200,5 +200,9 @@
   "v.07.10.2026.r9.10:42": [
     "/demo de admira.studio: las muestras de locución, música, imagen, vídeo y formatos se cargan desde www.pixeria.com, donde están publicadas (en admira.studio daban 404).",
     "Si el manifiesto publicado aún apunta a admira.studio, Experto, el avatar y /subdemos corrigen las direcciones al cargarlo."
+  ],
+  "v.07.10.2026.r11.11:00": [
+    "Cinco subdemos Store y cinco Biz con guion, muestras, casos de ensayo y comandos locales en Experto y avatar.",
+    "El editor permite añadir, editar y quitar subdemos; exporta los catálogos y los anexa a las presentaciones."
   ]
 }

@@ -9,8 +9,8 @@ test('para empezar tres plataformas: biz, store y studio', () => {
   assert.deepEqual(GLOBALES[0].subdemos.map((s) => s.letra + ':' + s.id), ['a:proyecto', 'b:circuito', 'c:gemelo', 'd:iot', 'e:itil']);
   for (const g of GLOBALES) { assert.ok(g.subdemos.length); for (const s of g.subdemos) assert.match(s.url, /^https:\/\//); }
 });
-test('subdemos: alta en admira.biz, tpv y digital signage', () => {
-  assert.equal(resolver('store/tpv').sub.cmd, '/demo tpv');
+test('subdemos: alta en admira.biz, tpv y digital signage anterior conservado', () => {
+  assert.equal(resolver('store/tpv').sub.cmd, '/demo 5');
   assert.ok(resolver('store/signage').sub);
   assert.ok(resolver('biz/itil').sub);
   assert.equal(resolver('tv/audiencia'), null);
@@ -20,10 +20,10 @@ test('subdemos: alta en admira.biz, tpv y digital signage', () => {
 test('guion en orden del catálogo y en texto', () => {
   const pasos = guion(['studio', 'store/tpv', 'biz/gemelo', 'biz']);
   assert.deepEqual(pasos.map((p) => p.clave), ['biz', 'biz/gemelo', 'store/tpv', 'studio']);
-  assert.equal(pasos[1].titulo, 'admira.biz · c. Alta de gemelo digital');
+  assert.equal(pasos[1].titulo, 'admira.biz · c. Dar de alta gemelos digitales · Retail Media');
   const t = guionTexto(PROYECTOS_INICIALES[0]);
   assert.match(t, /^Alsea · Starbucks · guion de demo/);
-  assert.match(t, /Experto: \/demo tpv/);
+  assert.match(t, /Experto: \/demo 5/);
 });
 
 test('admira.studio: a locución, b música, c imagen, d vídeo, e adaptar formatos; manifiesto publicado igual', () => {

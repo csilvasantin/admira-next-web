@@ -258,3 +258,21 @@ test('MCP retains the selected project object in its asynchronous creation reque
   assert.equal(new URL(calls[0].url).pathname,'/presentaciones/api/jobs');assert.equal(calls[0].method,'POST');
   assert.deepEqual(calls[0].body.demoProject,project);
 });
+
+test('API stores a custom validated catalog and renders its captured documentation without global mutation', async () => {
+  const before=JSON.stringify(GLOBALES),env=environment();
+  const catalogo=[{version:1,plataforma:'store',subdemos:[{id:'promo-local',nombre:'Promoción local',desc:'Recorrido propio',url:'https://www.admira.store/promo',aliases:['promo'],caso:{local:'Ejemplo'}}]}];
+  const response=await put(env,{demoProject:{id:'client',demos:['store/promo-local'],catalogo}});
+  assert.equal(response.status,201,await response.clone().text());
+  const config=await saved(env);assert.equal(config.demoProject.documentacion[0].clave,'store/promo-local');
+  assert.equal(config.demoProject.documentacion[0].caso.local,'Ejemplo');assert.deepEqual(config.demoProject.catalogo,catalogo);
+  const html=await deck(env);assert.match(html,/Promoción local/);assert.match(html,/data-demo-key="store\/promo-local"/);assert.match(html,/https:\/\/www.admira.store\/promo\?marca=client/);
+  assert.equal(JSON.stringify(GLOBALES),before);
+  const other=environment(),rejected=await put(other,{demoProject:{demos:['store/promo-local']}});
+  assert.equal(rejected.status,400);assert.equal(other.PRESENTATION_IDEAS.values.size,0);
+});
+
+test('API rejects unsafe custom catalog URL before storing presentation', async () => {
+  const env=environment(),response=await put(env,{demoProject:{demos:['store/promo-local'],catalogo:[{plataforma:'store',subdemos:[{id:'promo-local',nombre:'Bad',url:'javascript:alert(1)'}]}]}});
+  assert.equal(response.status,400);assert.equal(env.PRESENTATION_IDEAS.values.size,0);
+});
