@@ -22,16 +22,17 @@ export const GLOBALES = [
     {id: 'avatar', nombre: 'Avatar digital', desc: 'Admirito atiende en la pared de ladrillo', url: STORE, cmd: '/avatar digital good'},
     {id: 'resumen', nombre: 'Resumen del día', desc: 'Balance de la jornada del gemelo', url: STORE, cmd: '/resumen dia on'}
   ]},
-  {id: 'studio', nombre: 'admira.studio', desc: 'Creatividad y contenidos con IA', url: 'https://www.admira.studio/anonimizador', subdemos: [
-    {id: 'anonimizador', nombre: 'Anonimizador', desc: 'Visitante → personaje 8, 16 y 32 bits listo para el gemelo', url: 'https://www.admira.studio/anonimizador'},
-    {id: 'imagenes', nombre: 'Imágenes IA', desc: 'Generación de imágenes de marca', url: 'https://www.admira.studio/imagenes.html'},
-    {id: 'musica', nombre: 'Música', desc: 'Hilo musical y catálogo de pistas', url: 'https://www.admira.studio/musica.html'},
-    {id: 'megafonia', nombre: 'Megafonía', desc: 'Locuciones para tienda', url: 'https://www.admira.studio/megafonia/'}
+  {id: 'studio', nombre: 'admira.studio', desc: 'Contenidos con IA: locución, música, imagen, vídeo y formatos', url: 'https://www.admira.studio/', subdemos: [
+    {id: 'locucion', letra: 'a', nombre: 'Locución', desc: 'Locuciones y megafonía para la tienda', url: 'https://www.admira.studio/megafonia/'},
+    {id: 'musica', letra: 'b', nombre: 'Música', desc: 'Hilo musical y catálogo de pistas', url: 'https://www.admira.studio/musica.html'},
+    {id: 'imagen', letra: 'c', nombre: 'Imagen', desc: 'Imágenes de marca generadas con IA', url: 'https://www.admira.studio/imagenes.html'},
+    {id: 'video', letra: 'd', nombre: 'Vídeo', desc: 'Vídeos de marca generados con IA', url: 'https://www.admira.studio/video.html'},
+    {id: 'formatos', letra: 'e', nombre: 'Adaptar formatos', desc: 'Un contenido, todos los formatos de pantalla', url: 'https://www.admira.studio/adaptaciones/'}
   ]}
 ];
 
 export const PROYECTOS_INICIALES = [
-  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021', demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio']}
+  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021', demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/locucion', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/formatos']}
 ];
 
 // 'store' = demo global; 'store/tpv' = subdemo. Devuelve {global, sub|null} o null.
@@ -49,13 +50,35 @@ export function guion(demos) {
   const set = new Set(demos || []);
   const pasos = [];
   for (const g of GLOBALES) {
-    if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id});
-    for (const s of g.subdemos) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || ''});
+    if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id, steps: []});
+    for (const s of g.subdemos) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || []});
   }
   return pasos;
 }
 
 export function guionTexto(proyecto) {
   const pasos = guion(proyecto.demos);
-  return [proyecto.nombre + ' · guion de demo', ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : ''))].join('\n');
+  return [proyecto.nombre + ' · guion de demo', ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.steps || []).map((x) => '\n   - ' + x).join(''))].join('\n');
+}
+
+// Manifiesto por plataforma (<plataforma>.subdemos.json, 7-oct-2026):
+// {version, plataforma, subdemos:[{id, letra, nombre, desc, url, cmd?, steps?, muestra?}]}.
+// Sustituye las subdemos de esa plataforma. Devuelve la plataforma aplicada o lanza Error.
+export const MANIFIESTOS = ['studio'];
+export function aplicarManifiesto(m) {
+  const g = m && GLOBALES.find((x) => x.id === m.plataforma);
+  if (!g) throw new Error('plataforma desconocida');
+  if (!Array.isArray(m.subdemos) || !m.subdemos.length) throw new Error('sin subdemos');
+  const subs = m.subdemos.map((x) => {
+    if (!x || !/^[a-z0-9-]{1,40}$/.test(x.id) || !x.nombre || !/^https:\/\//.test(x.url || '')) throw new Error('subdemo no válida: ' + (x && x.id));
+    const s = {id: x.id, nombre: String(x.nombre), desc: String(x.desc || ''), url: x.url};
+    if (x.letra) s.letra = String(x.letra);
+    if (x.cmd) s.cmd = String(x.cmd);
+    if (Array.isArray(x.steps)) s.steps = x.steps.map(String);
+    if (x.muestra) s.muestra = String(x.muestra);
+    return s;
+  });
+  if (new Set(subs.map((x) => x.id)).size !== subs.length) throw new Error('ids repetidos');
+  g.subdemos = subs;
+  return g.id;
 }

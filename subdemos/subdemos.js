@@ -1,8 +1,9 @@
 // /subdemos: escoger proyectos y qué demos (globales y subdemos) se enseñan en cada uno.
 // Se guarda en este navegador (localStorage «ax-subdemos»); Exportar/Importar lo mueve a otro.
-import {GLOBALES, PROYECTOS_INICIALES, guion, guionTexto} from './catalogo.mjs?v=20261007-subdemos-1';
+import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto} from './catalogo.mjs?v=20261007-subdemos-2';
 
 const KEY = 'ax-subdemos';
+const KEY_MANIF = 'ax-subdemos-manifiestos'; // manifiestos importados a mano en este navegador
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 const slug = (t) => String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'proyecto';
@@ -34,7 +35,7 @@ function pintarGuion() {
   const p = activo(), pasos = guion(p.demos);
   $('#guion-titulo').textContent = p.nombre + (p.nota ? ' · ' + p.nota : '');
   $('#guion').innerHTML = pasos.length ? pasos.map((s) => `
-    <li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.titulo)}</a> <span>${esc(s.desc)}</span>${s.cmd ? ` <code>${esc(s.cmd)}</code>` : ''}</li>`).join('')
+    <li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.titulo)}</a> <span>${esc(s.desc)}</span>${s.cmd ? ` <code>${esc(s.cmd)}</code>` : ''}${s.steps.length ? `<ol class="pasos">${s.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}</li>`).join('')
     : '<li class="vacio">Marca demos arriba para montar el guion.</li>';
   $('#borrar').disabled = estado.proyectos.length < 2;
 }
@@ -70,8 +71,28 @@ $('#exportar').addEventListener('click', () => {
 });
 $('#importar').addEventListener('change', async (e) => {
   const f = e.target.files[0]; if (!f) return;
-  try { const j = JSON.parse(await f.text()); if (!Array.isArray(j.proyectos) || !j.proyectos.length) throw 0; estado = j; guardar(); pintar(); aviso('Importado.'); }
-  catch (_) { aviso('Archivo no válido.'); }
+  try {
+    const j = JSON.parse(await f.text());
+    if (j && j.plataforma && Array.isArray(j.subdemos)) {
+      // Manifiesto de plataforma: cambia el catálogo de subdemos de esa plataforma.
+      const id = aplicarManifiesto(j);
+      const guardados = manifiestosGuardados(); guardados[id] = j;
+      try { localStorage.setItem(KEY_MANIF, JSON.stringify(guardados)); } catch (_) {}
+      pintar(); aviso('Subdemos de ' + id + ' cargadas.');
+    } else {
+      if (!Array.isArray(j.proyectos) || !j.proyectos.length) throw 0;
+      estado = j; guardar(); pintar(); aviso('Importado.');
+    }
+  } catch (err) { aviso('Archivo no válido' + (err && err.message ? ': ' + err.message : '.')); }
   e.target.value = '';
 });
+function manifiestosGuardados() { try { return JSON.parse(localStorage.getItem(KEY_MANIF) || '{}') || {}; } catch (_) { return {}; } }
+// Manifiestos publicados (/subdemos/<plataforma>.subdemos.json) y, encima, los importados aquí.
+async function cargarManifiestos() {
+  await Promise.all(MANIFIESTOS.map(async (id) => {
+    try { const r = await fetch('/subdemos/' + id + '.subdemos.json', {cache: 'no-store'}); if (r.ok) aplicarManifiesto(await r.json()); } catch (_) {}
+  }));
+  for (const m of Object.values(manifiestosGuardados())) { try { aplicarManifiesto(m); } catch (_) {} }
+}
 pintar();
+cargarManifiestos().then(pintar);
