@@ -188,5 +188,9 @@
   "v.07.10.2026.r6.10:30": [
     "Presentaciones: introducción clásica de Admira y demos personalizadas anexadas automáticamente en Qué proponemos.",
     "Selección de subdemos guardada con cada presentación; contexto de marca, proyecto, local y circuito aislado por cliente."
+  ],
+  "v.07.10.2026.r8.10:39": [
+    "Presentaciones: la vinculación explícita del proyecto de demos tiene prioridad sobre coincidencias por nombre o marca.",
+    "El texto libre del contexto no bloquea el alta: se conservan identificadores válidos y se usa la marca del cliente como respaldo."
   ]
 }

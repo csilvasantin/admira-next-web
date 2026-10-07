@@ -58,6 +58,35 @@ test('project selection requires one unique id, name or presentation_id match', 
   assert.equal(proyectoParaPresentacion([first,{...second,presentation_id:'client'}],{slug:'client'}),null);
 });
 
+test('explicit presentation binding wins over incidental id, name and brand matches', () => {
+  const linked={id:'campaign-one',nombre:'Pilot',presentation_id:'alsea',demos:['studio/voz']};
+  const byId={id:'alsea',nombre:'Another pilot',demos:['studio/musica']};
+  const byName={id:'campaign-two',nombre:'Alsea',demos:['studio/video']};
+  const byBrand={id:'starbucks',nombre:'Brand campaign',presentation_id:'starbucks',demos:['store']};
+  assert.equal(proyectoParaPresentacion([byId,byName,byBrand,linked],{slug:'alsea',displayName:'Alsea',marca:'starbucks'}),linked);
+  assert.equal(proyectoParaPresentacion([linked,{...byName,presentation_id:'alsea'},byId],{slug:'alsea'}),null);
+  assert.equal(proyectoParaPresentacion([linked,byId],{displayName:'ALSEA'}),linked);
+  assert.equal(proyectoParaPresentacion([byName],{slug:'another',displayName:'Alsea'}),byName);
+  assert.equal(proyectoParaPresentacion([byId,byName],{slug:'alsea'}),null);
+});
+
+test('free text context is discarded without inventing IDs and preserves valid fields', () => {
+  const project=normalizarDemoProject({demos:['store/tpv','biz/itil'],contexto:{marca:'Alsea Starbucks',loc:'Local 021',project:'starbucks',circuito:'alsea_starbucks'}},{slug:'alsea',marca:'starbucks'});
+  assert.deepEqual(project.contexto,{marca:'starbucks',project:'starbucks',circuito:'alsea_starbucks'});
+  for(const item of documentacionDemos(project)) {
+    const url=new URL(item.url);
+    assert.equal(url.searchParams.get('marca'),'starbucks');
+    assert.equal(url.searchParams.has('loc'),false);
+    assert.equal(url.searchParams.get('project'),'starbucks');
+  }
+  for(const invalid of ['../private','Alsea Starbucks','café','x'.repeat(81)]) {
+    const context=Object.fromEntries(['marca','loc','project','circuito'].map(k=>[k,invalid]));
+    const result=normalizarDemoProject({demos:['studio'],contexto:context},{slug:'client',marca:'client-brand'});
+    assert.deepEqual(result.contexto,{marca:'client-brand'});
+  }
+  assert.deepEqual(normalizarDemoProject({demos:['studio'],contexto:{marca:'  north-brand  ',loc:'location_21'}},{slug:'client'}).contexto,{marca:'north-brand',loc:'location_21'});
+});
+
 test('normalization snapshots selection, migrates old keys and rejects invalid input', () => {
   const raw={id:'campaign',nombre:'Café Norte',demos:['studio/locucion','studio/voz','studio/formatos'],contexto:{marca:'norte'},propuestas:{'studio/voz':'Aviso de tienda'}};
   const project=normalizarDemoProject(raw,{slug:'norte',displayName:'Café Norte'});
@@ -65,7 +94,7 @@ test('normalization snapshots selection, migrates old keys and rejects invalid i
   raw.demos.length=0;raw.contexto.marca='other';raw.propuestas['studio/voz']='Changed';
   assert.equal(project.contexto.marca,'norte');assert.equal(project.propuestas['studio/voz'],'Aviso de tienda');
   assert.equal(project.demos.length,2);
-  for(const value of [null,[],{demos:'studio'},{demos:['unknown']},{demos:[{}]},{demos:['studio'],contexto:{marca:'../../other'}},{demos:['studio'],propuestas:[]}]) {
+  for(const value of [null,[],{demos:'studio'},{demos:['unknown']},{demos:[{}]},{demos:['studio'],contexto:[]},{demos:['studio'],propuestas:[]}]) {
     assert.throws(()=>normalizarDemoProject(value,{slug:'norte'}));
   }
 });
@@ -159,8 +188,23 @@ test('explicit no-opening survives regeneration and existing selected project is
   }
 });
 
+test('API tolerates editor free text context and falls back to resolved client brand', async () => {
+  const env=environment();
+  const response=await put(env,{displayName:'Lumbre Café',slug:'lumbre-cafe',prospect:{activo:true,marca:'lumbre'},demoProject:{id:'lumbre-campaign',demos:['store/tpv','studio/voz'],contexto:{marca:'Alsea Starbucks',loc:'Local 021',project:'../private',circuito:'circuit_demo'}}});
+  assert.equal(response.status,201,await response.clone().text());
+  const config=await saved(env,'presentation:lumbre-cafe');
+  assert.deepEqual(config.demoProject.contexto,{marca:'lumbre',circuito:'circuit_demo'});
+  for(const item of documentacionDemos(config.demoProject)) {
+    const url=new URL(item.url);
+    assert.equal(url.searchParams.get('marca'),'lumbre');
+    assert.equal(url.searchParams.get('circuit'),'circuit_demo');
+    assert.equal(url.searchParams.has('loc'),false);assert.equal(url.searchParams.has('project'),false);
+    assert.doesNotMatch(item.url,/starbucks|private|Local/i);
+  }
+});
+
 test('API rejects invalid projects before persistence and retains the closed input contract', async () => {
-  for(const extra of [{demoProject:{demos:['studio/missing']}},{demoProject:[]},{demoProject:{demos:['studio'],contexto:{loc:'../private'}}},{demoProjects:[]}]) {
+  for(const extra of [{demoProject:{demos:['studio/missing']}},{demoProject:[]},{demoProject:{demos:['studio'],contexto:[]}},{demoProjects:[]}]) {
     const env=environment();const response=await put(env,extra);assert.equal(response.status,400);
     assert.equal(env.PRESENTATION_IDEAS.values.size,0);
   }
