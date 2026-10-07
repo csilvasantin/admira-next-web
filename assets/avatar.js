@@ -6,7 +6,7 @@
  *
  *   /avatar good    Admirito — la nube animada, 2D ligera con lip-sync y vida propia (nube.html)
  *                   (el calvo 3D, better.html, queda como etapa del museo de digitalavatar.ai)
- *   /avatar better  Alex — anfitriona web Ready Player Me (best.html)
+ *   /avatar better  Luna — anfitriona web Ready Player Me (best.html)
  *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html)
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
@@ -38,6 +38,9 @@
     better: 'https://digitalavatar.ai/best.html?dock=1&kiosk=0',
     best: 'https://digitalavatar.ai/metahuman.html?dock=1'
   };
+  // Categorías públicas (Carlos, 7-oct-2026): avatar = good (Admirito), human = better (Luna),
+  // metahuman = best (Neo). good/better/best siguen como alias.
+  var CATEGORY_LEVEL = { avatar: 'good', human: 'better', metahuman: 'best', admirito: 'good', luna: 'better', neo: 'best' };
   var KEY = 'admira-avatar:override';
   var LEVEL_KEY = 'admira-avatar:nivel';
   var SIZE_KEY = 'admira-avatar:size';
@@ -78,6 +81,7 @@
     if (ON.test(arg)) return 'on';
     if (OFF.test(arg)) return 'off';
     if (RESET.test(arg)) return 'reset';
+    arg = CATEGORY_LEVEL[arg] || arg;
     if (verb !== 'cli' && LEVELS[arg]) return arg;
     return 'bad';
   }
@@ -97,19 +101,19 @@
   function message(kind, en) {
     if (kind === 'on') return en ? 'Digital avatar on' : 'Avatar digital activado';
     if (kind === 'off') return en ? 'Digital avatar off' : 'Avatar digital desactivado';
-    if (kind === 'good') return en ? 'Avatar good: Admirito, the animated cloud (moves its lips and lives on its own).' : 'Avatar good: Admirito, la nube animada (mueve los labios y hace cosas sola).';
-    if (kind === 'better') return en ? 'Avatar better: Alex, the web host (Ready Player Me).' : 'Avatar better: Alex, la anfitriona web (Ready Player Me).';
-    if (kind === 'best') return en ? 'Avatar best: Neo, MetaHuman.' : 'Avatar best: Neo, MetaHuman.';
+    if (kind === 'good') return en ? 'Avatar: Admirito, the animated cloud (moves its lips and lives on its own).' : 'Avatar: Admirito, la nube animada (mueve los labios y hace cosas sola).';
+    if (kind === 'better') return en ? 'Human: Luna, the web host (Ready Player Me).' : 'Human: Luna, la anfitriona web (Ready Player Me).';
+    if (kind === 'best') return en ? 'Metahuman: Neo, MetaHuman.' : 'Metahuman: Neo, MetaHuman.';
     if (kind === 'status') return en
-      ? 'Digital avatar. /avatar good · Admirito, the animated cloud. /avatar better · Alex, the web host. /avatar best · Neo, MetaHuman. /avatarON shows it, /avatarOFF hides it.'
-      : 'Avatar digital. /avatar good · Admirito, la nube animada. /avatar better · Alex, la anfitriona web. /avatar best · Neo, MetaHuman. /avatarON lo muestra, /avatarOFF lo oculta.';
+      ? 'Digital avatar. /avatar avatar · Admirito, the animated cloud. /avatar human · Luna, the web host. /avatar metahuman · Neo, MetaHuman (good, better and best still work). /avatarON shows it, /avatarOFF hides it.'
+      : 'Avatar digital. /avatar avatar · Admirito, la nube animada. /avatar human · Luna, la anfitriona web. /avatar metahuman · Neo, MetaHuman (good, better y best siguen valiendo). /avatarON lo muestra, /avatarOFF lo oculta.';
     if (kind === 'mascota-on') return en ? 'Admirito shown. /avatarDigital or /admirito hides it again.' : 'Admirito visible. /avatarDigital o /admirito lo vuelve a ocultar.';
     if (kind === 'mascota-off') return en ? 'Admirito hidden. /avatarDigital or /admirito shows it again.' : 'Admirito oculto. /avatarDigital o /admirito lo vuelve a mostrar.';
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
     if (kind === 'reset-off') return en ? 'Digital avatar follows the project switch (off)' : 'El avatar sigue el interruptor del proyecto (apagado)';
     return en
-      ? 'Use /avatar good, /avatar better or /avatar best. /avatar alone shows the status. /avatarON and /avatarOFF show or hide it.'
-      : 'Usa /avatar good, /avatar better o /avatar best. /avatar solo muestra el estado. /avatarON y /avatarOFF lo muestran o lo ocultan.';
+      ? 'Use /avatar avatar, /avatar human or /avatar metahuman. /avatar alone shows the status. /avatarON and /avatarOFF show or hide it.'
+      : 'Usa /avatar avatar, /avatar human o /avatar metahuman. /avatar solo muestra el estado. /avatarON y /avatarOFF lo muestran o lo ocultan.';
   }
 
   // El asa está arriba a la izquierda y el panel sigue anclado abajo a la
@@ -164,13 +168,13 @@
   function pickLevel(explicit, page, stored) {
     return LEVELS[explicit] ? explicit : LEVELS[page] ? page : LEVELS[stored] ? stored : 'good';
   }
-  var TIER_AVATAR = { good: 'admirito', better: 'alex', best: 'neo' };
+  var TIER_AVATAR = { good: 'admirito', better: 'luna', best: 'neo' };
   function levelUrl(level, ctx) {
     var lv = LEVELS[level] ? level : 'good';
     var c = cleanContext(ctx), q = [];
     for (var i = 0; i < CTX_KEYS.length; i++) if (c[CTX_KEYS[i]]) q.push(CTX_KEYS[i] + '=' + encodeURIComponent(c[CTX_KEYS[i]]));
     q.push('tier=' + lv);
-    q.push('avatar=' + (TIER_AVATAR[lv] || 'alex'));
+    q.push('avatar=' + (TIER_AVATAR[lv] || 'luna'));
     return LEVELS[lv] + '&' + q.join('&');
   }
 
@@ -255,6 +259,7 @@
   function pageTier() {
     var t = CTX.tier;
     if (!LEVELS[t]) { var g = root.AdmiraAvatarContext; t = g && typeof g === 'object' ? g.tier : ''; }
+    t = CATEGORY_LEVEL[t] || t;
     return LEVELS[t] ? t : '';
   }
   function currentLevel() { return pickLevel(explicitLevel(), pageTier(), get(LEVEL_KEY)); }
