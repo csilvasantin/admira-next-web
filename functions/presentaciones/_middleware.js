@@ -9,6 +9,7 @@ import {allowedBy, generatorAccess, makeSessionToken, readSession} from './_dire
 import {loginLockout, noteLoginAttempt, lockoutMessage} from './_login-rate.js';
 import {agentSessionFromRequest} from './_agent-token.js';
 import {MACHINE_IDENTITY, machineSessionFromRequest} from './_machine-key.js';
+import {sesionCompleta, buscarUsuarioIdentidad, cookieDeSesion, auditar} from '../_webmaster-gate.js';
 
 const MAXAGE = 60 * 60 * 24 * 30;
 // La lista de correos autorizados ya NO vive aquí: manda el directorio de /usuarios
@@ -269,13 +270,42 @@ export async function onRequest(context){
   if (!signKey || (!expected && !dynamicVerifier && !master && !generic)) return htmlResponse(loginPage(title, cleanPath, 'Acceso no disponible por ahora.'), 503);
 
   const cookies = readCookies(request);
-  const [masterValid, editorValid, directorySession, clientValid, identity] = await Promise.all([
+  let [masterValid, editorValid, directorySession, clientValid, identity] = await Promise.all([
     validToken(signKey, '_master', cookies.pres_master),
     editor ? validToken(signKey, '_editor', cookies.pres_editor) : false,
     readSession(env, signKey, cookies.pres_owner),
     validToken(signKey, cookieSlug, cookies[cookieName]),
     readIdentity(request, signKey)
   ]);
+  // UNA SOLA SESIÓN (Carlos, 07-10-2026 · «que no me pida otra vez nombre, correo y
+  // contraseña si ya estoy dentro»). Si el navegador trae la sesión de AdmiraNeXT
+  // (__Host-an_session: la de /webmaster, /usuarios, /flota… validada con Google contra
+  // AUTH_DB, revocable por session_version) y el directorio le da el generador, se entra
+  // directo: se acuña aquí pres_owner + identidad (30 días) y se registra el acceso
+  // (shared_session_login) con identidad, fecha, presentación, IP y ruta. Quien no la
+  // tenga sigue viendo la puerta de contraseña de siempre.
+  const bridgeCookies = [];
+  if (!directorySession && !masterValid && !editorValid && env.WEBMASTER_SIGNING_KEY) {
+    const shared = await sesionCompleta(request, env);
+    const sharedAccess = shared ? await generatorAccess(env, {email:shared.email, name:shared.display_name}) : null;
+    if (sharedAccess) {
+      const sharedIdentity = cleanIdentity({name:sharedAccess.name, email:sharedAccess.email, visitorId:identity?.visitorId});
+      const [ownerToken, identityToken] = await Promise.all([
+        makeSessionToken(signKey, sharedAccess, MAXAGE),
+        makeIdentityToken(signKey, sharedIdentity, MAXAGE)
+      ]);
+      bridgeCookies.push(`pres_owner=${ownerToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`, identityCookie(identityToken, MAXAGE));
+      directorySession = {level:sharedAccess.level, email:sharedAccess.email, name:sharedAccess.name};
+      if (!identity) identity = sharedIdentity;
+      context.waitUntil(writeAccessEvent(env, request, {type:'shared_session_login', client:seg || '_gallery', presentation:title, identity:identity, access:sharedAccess.level, path:url.pathname}));
+    }
+  }
+  const withBridge = (response) => {
+    if (!bridgeCookies.length) return response;
+    const headers = new Headers(response.headers);
+    bridgeCookies.forEach((cookie) => headers.append('Set-Cookie', cookie));
+    return new Response(response.body, {status:response.status, statusText:response.statusText, headers});
+  };
   if (trustedGeneratorIdentity && !directorySession) {
     const ownerIdentity = cleanIdentity({
       name:accessDirectory.name,
@@ -361,6 +391,21 @@ export async function onRequest(context){
       const headers = new Headers({Location:cleanPath, 'cache-control':'no-store'});
       headers.append('Set-Cookie', `pres_owner=${accessToken}; Path=/presentaciones; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Lax`);
       headers.append('Set-Cookie', identityCookie(identityToken, MAXAGE));
+      // Y al revés: entrar aquí con Google abre también la sesión común de AdmiraNeXT
+      // (la misma que emitiría /webmaster para esa cuenta), para que /webmaster, /flota,
+      // /usuarios… no vuelvan a pedir login. Solo si el directorio la tiene activa.
+      if (env.WEBMASTER_SIGNING_KEY && env.AUTH_DB && googleIdentity.sub) {
+        try {
+          const user = await buscarUsuarioIdentidad(env, googleIdentity);
+          if (user && user.status === 'active') {
+            const now = Date.now();
+            await env.AUTH_DB.prepare('UPDATE admiranext_users SET google_sub=COALESCE(google_sub,?),last_login_at=?,last_login_ip=?,last_login_ua=?,updated_at=? WHERE email=? AND (google_sub IS NULL OR google_sub=?)')
+              .bind(googleIdentity.sub, now, request.headers.get('CF-Connecting-IP') || '', String(request.headers.get('User-Agent') || '').slice(0,300), now, user.email, googleIdentity.sub).run();
+            await auditar(env, googleIdentity.email, user.email, 'login_success', `${user.role} · presentaciones`);
+            headers.append('Set-Cookie', await cookieDeSesion(env, user));
+          }
+        } catch (_) {}
+      }
       context.waitUntil(writeAccessEvent(env, request, {type:'google_directory_login', client:seg || '_gallery', presentation:title, identity:googleSessionIdentity, access:googleAccess.level, path:url.pathname}));
       return new Response(null, {status:303, headers});
     }
@@ -451,8 +496,8 @@ export async function onRequest(context){
   const viewer = identity || (viaMachine ? MACHINE_IDENTITY : null);
   if (trackView && viewer) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity:viewer, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || (second === 'english' ? 'en' : '')}));
   const isAudienceOutput = isPresentationMode && url.searchParams.get('audience') === '1';
-  return injectTelemetry(response, {
+  return withBridge(await injectTelemetry(response, {
     inlineEditor: isPresentationMode && !isAudienceOutput && (masterValid || editorValid),
     qualityLevels: isPresentationMode && !isAudienceOutput
-  });
+  }));
 }
