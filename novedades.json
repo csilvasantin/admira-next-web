@@ -6,6 +6,10 @@
     "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
     "Contenido común de marca · desconexiones temporales por local, próximamente"
   ],
+  "v.07.10.2026.r12.11:22": [
+    "Las métricas del avatar viven ahora en digitalavatar.ai/metricas con la misma sesión de AdmiraNeXT: /avatar-metricas solo te identifica y te lleva allí",
+    "Filtros por avatar (Admirito, Luna, Neo), marca y plataforma; Starbucks solo cuenta el uso en sus demos"
+  ],
   "v.07.10.2026.r10.10:57": [
     "Métricas del avatar digital en /avatar-metricas (y digitalavatar.ai/metricas): conversaciones, duración, preguntas más frecuentes, temas, idioma, avatar y plataforma, filtrables por marca (Starbucks) y periodo",
     "Detrás de tu sesión de AdmiraNeXT; sin IP ni datos personales"
