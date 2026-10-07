@@ -23,16 +23,16 @@ export const GLOBALES = [
     {id: 'resumen', nombre: 'Resumen del día', desc: 'Balance de la jornada del gemelo', url: STORE, cmd: '/resumen dia on'}
   ]},
   {id: 'studio', nombre: 'admira.studio', desc: 'Contenidos con IA: locución, música, imagen, vídeo y formatos', url: 'https://www.admira.studio/', subdemos: [
-    {id: 'locucion', letra: 'a', nombre: 'Locución', desc: 'Locuciones y megafonía para la tienda', url: 'https://www.admira.studio/megafonia/'},
-    {id: 'musica', letra: 'b', nombre: 'Música', desc: 'Hilo musical y catálogo de pistas', url: 'https://www.admira.studio/musica.html'},
-    {id: 'imagen', letra: 'c', nombre: 'Imagen', desc: 'Imágenes de marca generadas con IA', url: 'https://www.admira.studio/imagenes.html'},
-    {id: 'video', letra: 'd', nombre: 'Vídeo', desc: 'Vídeos de marca generados con IA', url: 'https://www.admira.studio/video.html'},
-    {id: 'formatos', letra: 'e', nombre: 'Adaptar formatos', desc: 'Un contenido, todos los formatos de pantalla', url: 'https://www.admira.studio/adaptaciones/'}
+    {id: 'voz', letra: 'a', nombre: 'Crear locución', desc: 'De un guion breve a una voz lista para escuchar.', url: 'https://www.admira.studio/audio.html', cmd: '/demo 1', aliases: ['locucion', 'voz']},
+    {id: 'musica', letra: 'b', nombre: 'Crear música', desc: 'Del ambiente de una marca a su hilo musical.', url: 'https://www.admira.studio/musica.html', cmd: '/demo 2', aliases: ['musica']},
+    {id: 'imagen', letra: 'c', nombre: 'Crear imagen', desc: 'Del briefing a una creatividad visual.', url: 'https://www.admira.studio/imagenes.html', cmd: '/demo 3', aliases: ['imagen']},
+    {id: 'video', letra: 'd', nombre: 'Crear vídeo', desc: 'De una imagen al movimiento de un clip.', url: 'https://www.admira.studio/video.html', cmd: '/demo 4', aliases: ['video']},
+    {id: 'adaptar', letra: 'e', nombre: 'Adaptar formatos', desc: 'Una misma pieza en horizontal, vertical, cuadrado y barra.', url: 'https://www.admira.studio/adaptaciones/', cmd: '/demo 5', aliases: ['adaptar', 'formatos', 'adaptacion']}
   ]}
 ];
 
 export const PROYECTOS_INICIALES = [
-  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021', demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/locucion', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/formatos']}
+  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021', demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
 ];
 
 // 'store' = demo global; 'store/tpv' = subdemo. Devuelve {global, sub|null} o null.
@@ -46,23 +46,35 @@ export function resolver(clave) {
 }
 
 // Guion de un proyecto en el orden del catálogo (plataformas y dentro sus subdemos).
+// Ids anteriores de Studio (antes del pack de Trinity) que pueden seguir guardados en un navegador.
+export const RENOMBRADAS = {'studio/locucion': 'studio/voz', 'studio/formatos': 'studio/adaptar'};
 export function guion(demos) {
-  const set = new Set(demos || []);
+  const set = new Set((demos || []).map((d) => RENOMBRADAS[d] || d));
   const pasos = [];
   for (const g of GLOBALES) {
     if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id, steps: []});
-    for (const s of g.subdemos) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || []});
+    for (const s of g.subdemos) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || [], guion: s.guion || [], muestra: s.muestra || null});
   }
   return pasos;
 }
 
 export function guionTexto(proyecto) {
   const pasos = guion(proyecto.demos);
-  return [proyecto.nombre + ' · guion de demo', ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.steps || []).map((x) => '\n   - ' + x).join(''))].join('\n');
+  return [proyecto.nombre + ' · guion de demo', ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.muestra && p.muestra.url ? '\n   Muestra: ' + p.muestra.url : '') +
+    [...(p.steps || []), ...(p.guion || [])].map((x) => '\n   - ' + pasoTexto(x)).join(''))].join('\n');
+}
+// Un paso puede ser texto o un objeto del manifiesto ({accion, selector, texto} del guion de Trinity).
+export function pasoTexto(x) {
+  if (x == null) return '';
+  if (typeof x !== 'object') return String(x);
+  const t = x.texto || x.text || x.descripcion || x.titulo || '';
+  return (x.accion ? x.accion + ': ' : '') + (t || JSON.stringify(x));
 }
 
 // Manifiesto por plataforma (<plataforma>.subdemos.json, 7-oct-2026):
-// {version, plataforma, subdemos:[{id, letra, nombre, desc, url, cmd?, steps?, muestra?}]}.
+// {version, plataforma, default_mode, activacion, subdemos:[{id, letra, nombre, desc, url, cmd, aliases, muestra:{tipo, url, variantes},
+// guion:[{selector, accion, texto}], steps}]} (contrato de Trinity, pixeria demo/studio.subdemos.json). steps, muestra, guion
+// y variantes se conservan como objetos; ejecucion_real_opcional se guarda como dato y nunca se ejecuta desde aquí.
 // Sustituye las subdemos de esa plataforma. Devuelve la plataforma aplicada o lanza Error.
 export const MANIFIESTOS = ['studio'];
 export function aplicarManifiesto(m) {
@@ -71,11 +83,14 @@ export function aplicarManifiesto(m) {
   if (!Array.isArray(m.subdemos) || !m.subdemos.length) throw new Error('sin subdemos');
   const subs = m.subdemos.map((x) => {
     if (!x || !/^[a-z0-9-]{1,40}$/.test(x.id) || !x.nombre || !/^https:\/\//.test(x.url || '')) throw new Error('subdemo no válida: ' + (x && x.id));
-    const s = {id: x.id, nombre: String(x.nombre), desc: String(x.desc || ''), url: x.url};
+    const s = JSON.parse(JSON.stringify(x));
+    Object.assign(s, {id: x.id, nombre: String(x.nombre), desc: String(x.desc || ''), url: x.url});
     if (x.letra) s.letra = String(x.letra);
     if (x.cmd) s.cmd = String(x.cmd);
-    if (Array.isArray(x.steps)) s.steps = x.steps.map(String);
-    if (x.muestra) s.muestra = String(x.muestra);
+    if (!Array.isArray(s.steps)) delete s.steps;
+    if (!Array.isArray(s.guion)) delete s.guion;
+    if (!Array.isArray(s.aliases)) delete s.aliases;
+    if (s.muestra && (typeof s.muestra !== 'object' || !/^https:\/\//.test(s.muestra.url || ''))) delete s.muestra;
     return s;
   });
   if (new Set(subs.map((x) => x.id)).size !== subs.length) throw new Error('ids repetidos');

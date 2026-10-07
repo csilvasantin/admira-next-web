@@ -28,7 +28,7 @@ test('guion en orden del catálogo y en texto', () => {
 
 test('admira.studio: a locución, b música, c imagen, d vídeo, e adaptar formatos; manifiesto publicado igual', () => {
   const studio = GLOBALES.find((g) => g.id === 'studio');
-  assert.deepEqual(studio.subdemos.map((s) => s.letra + ':' + s.id), ['a:locucion', 'b:musica', 'c:imagen', 'd:video', 'e:formatos']);
+  assert.deepEqual(studio.subdemos.map((s) => s.letra + ':' + s.id), ['a:voz', 'b:musica', 'c:imagen', 'd:video', 'e:adaptar']);
   assert.ok(MANIFIESTOS.includes('studio'));
   const m = JSON.parse(readFileSync(new URL('../subdemos/studio.subdemos.json', import.meta.url), 'utf8'));
   assert.equal(m.plataforma, 'studio');
@@ -42,5 +42,28 @@ test('aplicarManifiesto sustituye las subdemos con steps y rechaza lo inválido'
     assert.throws(() => aplicarManifiesto({plataforma: 'nada', subdemos: []}));
     assert.throws(() => aplicarManifiesto({plataforma: 'studio', subdemos: [{id: 'y', nombre: 'Y', url: 'javascript:alert(1)'}]}));
     assert.equal(studio.subdemos[0].id, 'x');
+  } finally { studio.subdemos = antes; }
+});
+
+test('aplicarManifiesto conserva objetos del pack de Trinity (steps, muestra, guion, variantes, alias)', () => {
+  const studio = GLOBALES.find((g) => g.id === 'studio'), antes = studio.subdemos;
+  try {
+    const m = JSON.parse(readFileSync(new URL('../subdemos/studio.subdemos.json', import.meta.url), 'utf8'));
+    m.subdemos[0].steps = [{accion: 'di', texto: 'hola'}];
+    assert.equal(aplicarManifiesto(m), 'studio');
+    const [voz, , , , adaptar] = studio.subdemos;
+    assert.deepEqual(voz.steps, [{accion: 'di', texto: 'hola'}]);
+    assert.equal(typeof voz.muestra, 'object');
+    assert.equal(voz.muestra.url, m.subdemos[0].muestra.url);
+    assert.deepEqual(voz.guion, m.subdemos[0].guion);
+    assert.deepEqual(voz.aliases, ['locucion', 'voz']);
+    assert.equal(adaptar.muestra.variantes.length, m.subdemos[4].muestra.variantes.length);
+    assert.equal(typeof adaptar.muestra.variantes[0], 'object');
+    const txt = guionTexto({nombre: 'P', demos: ['studio/voz']});
+    assert.match(txt, /- di: hola/);
+    assert.doesNotMatch(txt, /\[object Object\]/);
+    assert.match(txt, /Muestra: https:\/\/www\.admira\.studio\/assets\/demos\/studio-v1\//);
+    // Ids antiguos guardados en un navegador siguen apuntando a la subdemo nueva.
+    assert.deepEqual(guion(['studio/locucion', 'studio/formatos']).map((p) => p.clave), ['studio/voz', 'studio/adaptar']);
   } finally { studio.subdemos = antes; }
 });

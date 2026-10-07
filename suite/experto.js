@@ -348,10 +348,10 @@
   // El avatar digital (assets/avatar.js + digitalavatar.ai) usa este mismo catálogo: AdmiraExperto.demos().
   // Lo que no es una solución (/demo tpv, /demo off…) sigue siendo de la pata.
   var DEMOS = [
-    {id: 'studio', alias: ['pixeria', 'contenido', 'contenidos', 'creatividad', 'anonimizador'], nombre: 'admira.studio',
+    {id: 'studio', alias: ['pixeria', 'contenido', 'contenidos', 'creatividad'], nombre: 'admira.studio',
       hosts: /(^|\.)(admira\.studio|pixeria\.com)$/,
-      desc: ['Creatividad con IA: el anonimizador convierte a un visitante en personaje 8, 16 y 32 bits listo para el gemelo', 'AI creativity: the anonymizer turns a visitor into an 8, 16 and 32-bit character ready for the twin'],
-      url: ['https://www.admira.studio/anonimizador', 'https://www.admira.studio/en/anonimizador.html']},
+      desc: ['Contenidos con IA: locución, música, imagen, vídeo y adaptación de formatos', 'AI content: voiceover, music, image, video and format adaptation'],
+      url: ['https://www.admira.studio/']},
     {id: 'store', alias: ['tienda', 'xpace', 'xpaceos', 'gemelo', 'twin'], nombre: 'admira.store',
       hosts: /(^|\.)(admira\.store|xpaceos\.com)$/,
       desc: ['Gemelo digital del Starbucks de Alsea en Matrix: arranca /demo tpv, un muffin a caja que dispara música y pantallas', 'Digital twin of the Alsea Starbucks in Matrix: starts /demo tpv, a muffin to the register that triggers music and screens'],
@@ -372,16 +372,75 @@
   ];
   function demoUrl(d) { return d.url[lang() === 'en' && d.url[1] ? 1 : 0]; }
   function demoActual() { for (var i = 0; i < DEMOS.length; i++) if (DEMOS[i].hosts.test(host)) return i; return -1; }
-  // null = no es de la suite (lo resuelve la pata); {lista:true} | {demo, i}.
+  function norm(t) { return String(t == null ? '' : t).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+  // ─── Subdemos locales de la plataforma (encargos de Trinity del 7-oct-2026: activar /demo en admira.studio) ───
+  // En los hosts de una plataforma con manifiesto, /demo 1…5 y sus alias son LOCALES de esa plataforma
+  // (admira.studio y pixeria.com = studio: 1 voz/locución, 2 música, 3 imagen, 4 vídeo, 5 adaptar), y
+  // /demo help lista solo esas. Los nombres de las cinco soluciones (/demo store…) siguen valiendo.
+  // Manifiesto {version, plataforma, activacion:{hosts}, default_mode, subdemos:[{id, letra, nombre, desc, url,
+  // aliases, muestra:{tipo, url, poster, variantes:[{formato, url}]}, guion, steps}]} (pixeria demo/studio.subdemos.json);
+  // contrato de resolución = pixeria demo/studio-comandos.mjs. Sin manifiesto publicado, este catálogo fijo.
+  var LOCALES = {
+    studio: {manifiestos: ['/demo/studio.subdemos.json', 'https://www.admira.studio/demo/studio.subdemos.json', 'https://www.admiranext.com/subdemos/studio.subdemos.json'],
+      m: {"version":1,"plataforma":"studio","nombre":"Admira Studio / Pixeria","default_mode":"muestra","activacion":{"hosts":["admira.studio","www.admira.studio","pixeria.com","www.pixeria.com"]},"subdemos":[{"id":"voz","letra":"a","nombre":"Crear locución","desc":"De un guion breve a una voz lista para escuchar.","url":"https://www.admira.studio/audio.html","mirror_url":"https://www.pixeria.com/audio.html","cmd":"/demo 1","aliases":["locucion","voz"],"muestra":{"tipo":"audio","url":"https://www.admira.studio/assets/demos/studio-v1/locucion-es.mp3","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"musica","letra":"b","nombre":"Crear música","desc":"Del ambiente de una marca a su hilo musical.","url":"https://www.admira.studio/musica.html","mirror_url":"https://www.pixeria.com/musica.html","cmd":"/demo 2","aliases":["musica"],"muestra":{"tipo":"audio","url":"https://www.admira.studio/assets/demos/studio-v1/musica-cafe.mp3","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"imagen","letra":"c","nombre":"Crear imagen","desc":"Del briefing a una creatividad visual.","url":"https://www.admira.studio/imagenes.html","mirror_url":"https://www.pixeria.com/imagenes.html","cmd":"/demo 3","aliases":["imagen"],"muestra":{"tipo":"image","url":"https://www.admira.studio/assets/demos/studio-v1/imagen-cafe.jpg","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"video","letra":"d","nombre":"Crear vídeo","desc":"De una imagen al movimiento de un clip.","url":"https://www.admira.studio/video.html","mirror_url":"https://www.pixeria.com/video.html","cmd":"/demo 4","aliases":["video"],"muestra":{"tipo":"video","url":"https://www.admira.studio/assets/demos/studio-v1/video-fuente.mp4","poster":"https://www.admira.studio/assets/demos/studio-v1/video-fuente.jpg","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"adaptar","letra":"e","nombre":"Adaptar formatos","desc":"Una misma pieza en horizontal, vertical, cuadrado y barra.","url":"https://www.admira.studio/adaptaciones/","mirror_url":"https://www.pixeria.com/adaptaciones/","cmd":"/demo 5","aliases":["adaptar","formatos","adaptacion"],"muestra":{"tipo":"video","url":"https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.mp4","poster":"https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.jpg","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[{"nombre":"horizontal","formato":"1920x1080","url":"https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.mp4","poster":"https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.jpg"},{"nombre":"vertical","formato":"1080x1920","url":"https://www.admira.studio/assets/demos/studio-v1/adaptado-vertical.mp4","poster":"https://www.admira.studio/assets/demos/studio-v1/adaptado-vertical.jpg"},{"nombre":"cuadrado","formato":"1080x1080","url":"https://www.admira.studio/assets/demos/studio-v1/adaptado-cuadrado.mp4","poster":"https://www.admira.studio/assets/demos/studio-v1/adaptado-cuadrado.jpg"},{"nombre":"barra","formato":"1920x540","url":"https://www.admira.studio/assets/demos/studio-v1/adaptado-barra.mp4","poster":"https://www.admira.studio/assets/demos/studio-v1/adaptado-barra.jpg"}]}}]}}
+  };
+  // Copia literal de resolverDemo (pixeria demo/studio-comandos.mjs, Trinity): test/experto-demo.test.mjs
+  // pasa su batería de verificar-studio-comandos.mjs contra esta copia para que no diverjan.
+  function normalizar(value) { return String(value == null ? '' : value).trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  function resolverDemo(texto, manifest, hostname) {
+    var command = normalizar(texto);
+    if (!/^\/demo(?:\s|$)/.test(command)) return {tipo: 'no_demo'};
+    if (manifest.activacion.hosts.indexOf(String(hostname).toLowerCase()) < 0) return {tipo: 'otra_plataforma'};
+    var arg = command.slice(5).trim();
+    var opciones = manifest.subdemos.map(function (demo, index) {
+      return {numero: index + 1, id: demo.id, nombre: demo.nombre, comando: demo.cmd, alias: '/demo ' + demo.aliases[0]};
+    });
+    if (!arg || arg === 'help') return {tipo: 'ayuda', plataforma: manifest.plataforma, opciones: opciones};
+    var demo = null;
+    manifest.subdemos.forEach(function (item, index) {
+      if (!demo && (arg === String(index + 1) || item.aliases.some(function (alias) { return normalizar(alias) === arg; }))) demo = item;
+    });
+    if (!demo) return {tipo: 'desconocido', mensaje: 'Demo desconocida. Escribe /demo help.', opciones: opciones};
+    return {tipo: 'demo', plataforma: manifest.plataforma, clave: manifest.plataforma + '/' + demo.id, modo: manifest.default_mode, demo: demo};
+  }
+  var plataforma = null;
+  Object.keys(LOCALES).forEach(function (k) { if (LOCALES[k].m.activacion.hosts.indexOf(String(location.hostname).toLowerCase()) >= 0) plataforma = k; });
+  function localM() { return plataforma ? LOCALES[plataforma].m : null; }
+  function valido(j) { return j && j.plataforma === plataforma && j.activacion && j.activacion.hosts && j.subdemos && j.subdemos.length && j.subdemos.every(function (d) { return d.id && d.aliases && d.aliases.length; }); }
+  function cargarLocal() {
+    if (!plataforma || typeof fetch !== 'function') return Promise.resolve(null);
+    var urls = LOCALES[plataforma].manifiestos.slice();
+    var next = function () {
+      var u = urls.shift();
+      if (!u) return null;
+      return fetch(u, {cache: 'no-store'}).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+        .then(function (j) { if (valido(j)) { LOCALES[plataforma].m = j; return j; } return next(); });
+    };
+    return next();
+  }
+  var localListo = cargarLocal();
+  // pixeria.com es espejo de admira.studio: sus subdemos abren en el mismo host.
+  function subUrl(d) { return /(^|\.)pixeria\.com$/.test(host) && d.mirror_url ? d.mirror_url : d.url; }
+
+  // null = no es de la suite (lo resuelve la pata); {lista} | {local:true, lista} | {local:true, sub, n} | {local:true, desconocida} | {demo, i}.
+  // En una plataforma con manifiesto manda resolverDemo (números y alias locales); los nombres de las cinco
+  // soluciones (/demo store, /demo biz…) siguen abriendo las otras plataformas.
   function parseDemo(text) {
     var m = /^\/?demo(?:\s+(.*))?$/i.exec(String(text == null ? '' : text).trim());
     if (!m) return null;
-    var arg = String(m[1] || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^admira\./, '');
+    var arg = norm(m[1]).replace(/^admira\./, ''), L = localM();
+    if (L) {
+      var r = resolverDemo('/demo ' + (/^(ayuda|\?|lista|list)$/.test(arg) ? 'help' : arg), L, location.hostname);
+      if (r.tipo === 'ayuda') return {local: true, lista: true};
+      if (r.tipo === 'demo') return {local: true, sub: r.demo, n: L.subdemos.indexOf(r.demo) + 1, clave: r.clave, modo: r.modo};
+    }
     if (!arg || /^(lista|list|soluciones|solutions)$/.test(arg)) return {lista: true};
     var i = -1;
     if (/^(siguiente|next|sig)$/.test(arg)) i = (demoActual() + 1) % DEMOS.length;
-    else if (/^[1-5]$/.test(arg)) i = +arg - 1;
+    else if (!L && /^[1-5]$/.test(arg)) i = +arg - 1;
     else DEMOS.forEach(function (d, k) { if (i < 0 && (d.id === arg || d.alias.indexOf(arg) >= 0)) i = k; });
+    if (i < 0 && L) return {local: true, desconocida: arg};
     return i < 0 ? null : {demo: DEMOS[i], i: i};
   }
   function demoLista() {
@@ -389,15 +448,91 @@
       DEMOS.map(function (d, k) { return (k + 1) + ' /demo ' + d.id + ' · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]); }).join('\n') +
       '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".');
   }
-  function demoRun(p, log) {
-    if (p.lista) { out(log, demoLista()); return; }
-    var d = p.demo, url = demoUrl(d);
-    out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/5 · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]));
-    out(log, T('Abriendo ', 'Opening ') + url + '…');
-    try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: d.id, url: url}})); } catch (_) {}
-    setTimeout(function () { location.assign(url); }, 600);
+  function localLista() {
+    var L = localM();
+    return T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
+      L.subdemos.map(function (d, k) { return '/demo ' + (k + 1) + ' · /demo ' + d.aliases[0] + ' — ' + d.nombre + (d.desc ? ': ' + d.desc : ''); }).join('\n') +
+      '\n' + T('Modo muestra: se enseña el resultado preparado, sin generar ni publicar. /demo store, /demo biz… abren las otras plataformas.',
+        'Sample mode: shows the prepared result, without generating or publishing. /demo store, /demo biz… open the other platforms.');
   }
-  verb({name: 'demo', args: '[studio|store|tv|app|biz|1-5|siguiente]', desc: ['enseña una de las cinco soluciones (sin argumento: lista)', 'show one of the five solutions (no argument: list)'], run: function (a, log) {
+  // Modo muestra (default_mode): panel con el resultado preparado y enlace a la página de la función.
+  function abs(u) { try { return new URL(u, location.href).href; } catch (_) { return u; } }
+  function mediaEl(tipo, url, poster) {
+    var el = document.createElement(tipo === 'audio' ? 'audio' : tipo === 'image' ? 'img' : 'video');
+    el.src = abs(url);
+    if (el.tagName === 'IMG') el.alt = '';
+    else { el.controls = true; el.preload = 'metadata'; if (poster) el.poster = abs(poster); }
+    return el;
+  }
+  function cerrarMuestra() { var o = document.getElementById('ax-demo-muestra'); if (o) o.parentNode.removeChild(o); }
+  function mostrarMuestra(d, n) {
+    cerrarMuestra();
+    var o = document.createElement('div');
+    o.id = 'ax-demo-muestra';
+    o.setAttribute('role', 'dialog');
+    o.setAttribute('aria-label', d.nombre);
+    o.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(5,4,12,.82);display:flex;align-items:center;justify-content:center;padding:16px';
+    var c = document.createElement('div');
+    c.style.cssText = 'background:#14111f;color:#eee;border:1px solid #3b3358;max-width:960px;width:100%;max-height:92vh;overflow:auto;padding:18px 20px;font:14px/1.5 system-ui,sans-serif';
+    var h = document.createElement('h2'); h.style.cssText = 'margin:0 0 4px;font-size:20px'; h.textContent = (d.letra ? d.letra + '. ' : n + '. ') + d.nombre;
+    var p = document.createElement('p'); p.style.cssText = 'margin:0 0 12px;color:#b9b0cf'; p.textContent = d.desc || '';
+    c.appendChild(h); c.appendChild(p);
+    var mu = d.muestra;
+    if (mu && mu.url) {
+      var vs = (mu.variantes || []).filter(function (v) { return v && v.url; });
+      if (vs.length) {
+        var g = document.createElement('div'); g.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px';
+        vs.forEach(function (v) {
+          var f = document.createElement('figure'); f.style.margin = '0';
+          var el = mediaEl(mu.tipo, v.url, v.poster); el.style.cssText = 'width:100%;max-height:260px;object-fit:contain;background:#000';
+          var cap = document.createElement('figcaption'); cap.style.cssText = 'font-size:12px;color:#b9b0cf'; cap.textContent = (v.nombre || '') + (v.formato ? ' · ' + v.formato : '');
+          f.appendChild(el); f.appendChild(cap); g.appendChild(f);
+        });
+        c.appendChild(g);
+      } else {
+        var el = mediaEl(mu.tipo, mu.url, mu.poster); el.style.cssText = 'width:100%;max-height:60vh;object-fit:contain;background:#000;display:block';
+        c.appendChild(el);
+      }
+      if (mu.descripcion) { var q = document.createElement('p'); q.style.cssText = 'font-size:12px;color:#8f86a8;margin:8px 0 0'; q.textContent = mu.descripcion; c.appendChild(q); }
+    }
+    var bar = document.createElement('p'); bar.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0';
+    var a = document.createElement('a'); a.href = abs(subUrl(d)); a.textContent = T('Abrir la función →', 'Open the feature →'); a.style.cssText = 'color:#ff8dbf';
+    var x = document.createElement('button'); x.type = 'button'; x.textContent = T('Cerrar', 'Close'); x.onclick = cerrarMuestra;
+    bar.appendChild(a); bar.appendChild(x); c.appendChild(bar);
+    o.appendChild(c);
+    o.addEventListener('click', function (e) { if (e.target === o) cerrarMuestra(); });
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { cerrarMuestra(); document.removeEventListener('keydown', esc); } });
+    document.body.appendChild(o);
+    var first = c.querySelector('audio,video');
+    if (first) { try { var pr = first.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (_) {} }
+  }
+  // Devuelve {id, nombre, desc} de lo que se enseña (lo usa el avatar para presentarlo) o null.
+  function demoRun(p, log) {
+    if (p.lista) { out(log, p.local ? localLista() : demoLista()); return null; }
+    if (p.desconocida != null) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + p.desconocida + T('. Escribe /demo help.', '. Type /demo help.') + '\n' + localLista(), 'err'); return null; }
+    if (p.local) {
+      var d = p.sub, modo = p.modo || 'muestra';
+      out(log, 'Demo ' + p.n + ' · ' + d.nombre + (d.desc ? ' — ' + d.desc : ''));
+      try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: p.clave, url: abs(subUrl(d)), modo: modo}})); } catch (_) {}
+      if (modo === 'muestra' && d.muestra && d.muestra.url) { out(log, T('Modo muestra: resultado preparado, sin generar ni publicar.', 'Sample mode: prepared result, nothing generated or published.')); mostrarMuestra(d, p.n); }
+      else { out(log, T('Abriendo ', 'Opening ') + abs(subUrl(d)) + '…'); setTimeout(function () { location.assign(abs(subUrl(d))); }, 600); }
+      return {id: p.clave, nombre: d.nombre, desc: d.desc || ''};
+    }
+    var g = p.demo, url = demoUrl(g);
+    out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/5 · ' + g.nombre + ' — ' + T(g.desc[0], g.desc[1]));
+    out(log, T('Abriendo ', 'Opening ') + url + '…');
+    try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: g.id, url: url}})); } catch (_) {}
+    setTimeout(function () { location.assign(url); }, 600);
+    return {id: g.id, nombre: g.nombre, desc: T(g.desc[0], g.desc[1])};
+  }
+  // Punto de entrada común para Experto y avatar: texto «/demo …» → lo ejecuta y devuelve qué enseña.
+  function demoTexto(text, log) {
+    var p = parseDemo(text);
+    if (!p) return null;
+    log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
+    return demoRun(p, log);
+  }
+  verb({name: 'demo', args: '[help|1-5|nombre|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo (en esta plataforma, sus subdemos; sin argumento: lista)', 'show a demo (on this platform, its subdemos; no argument: list)'], run: function (a, log) {
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     demoRun(p, log);
@@ -406,7 +541,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261007-pill-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261007-demo-1';
   function avatarApi() {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
     var tag = document.querySelector('script[data-admira-avatar]');
@@ -758,7 +893,8 @@
     parseLangCommand: parseLangCommand,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); return p && (p.lista ? {lista: true} : {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}); },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
     normalizeLangToken: normalizeLangToken,
     setLanguage: applyLang
   };
