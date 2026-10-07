@@ -54,6 +54,12 @@
       "sector": "Panaderías · franquicia 365 Obrador (Barcelona)"
     },
     {
+      "id": "starbucks",
+      "nombre": "Starbucks",
+      "ejemplo": false,
+      "sector": "Cafeterías · Alsea Starbucks ES+MX"
+    },
+    {
       "id": "lumbre",
       "nombre": "Lumbre Café",
       "ejemplo": true,
