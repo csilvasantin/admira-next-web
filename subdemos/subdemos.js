@@ -26,7 +26,7 @@ function pintarCatalogo() {
       <legend><label><input type="checkbox" data-clave="${g.id}"${sel.has(g.id) ? ' checked' : ''}> <b>${i + 1} · ${esc(g.nombre)}</b></label> <span>${esc(g.desc)}</span> <code>/demo ${g.id}</code></legend>
       <div class="subs">${g.subdemos.map((s) => `
         <label class="sub"><input type="checkbox" data-clave="${g.id}/${s.id}"${sel.has(g.id + '/' + s.id) ? ' checked' : ''}>
-          <span><b>${esc(s.nombre)}</b> ${esc(s.desc)}${s.cmd ? ` <code>${esc(s.cmd)}</code>` : ''}</span></label>`).join('')}
+          <span><b>${s.letra ? s.letra + '. ' : ''}${esc(s.nombre)}</b> ${esc(s.desc)}${s.cmd ? ` <code>${esc(s.cmd)}</code>` : ''}</span></label>`).join('')}
       </div>
     </fieldset>`).join('');
 }
