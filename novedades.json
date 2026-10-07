@@ -162,5 +162,10 @@
     "Good = Admirito, Better = Alex, Best = Neo: el panel pasa avatar= en la URL de cada cara",
     "«¿Quién eres?» responde distinto en cada nivel; los hechos entrenados no se mezclan",
     "Train de hechos: POST brain…/metahuman/train con Bearer ADMIN_TOKEN (bóveda)"
+  ],
+  "v.07.10.2026.r2.07:04": [
+    "Las categorías del avatar se llaman avatar, human y metahuman: Admirito, Luna y Neo",
+    "Alex pasa a llamarse Luna en el panel y en la ayuda del ⌘ Experto",
+    "/avatar avatar|human|metahuman; good, better y best siguen como alias"
   ]
 }

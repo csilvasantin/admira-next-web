@@ -40,7 +40,7 @@ test('verbos nuevos y alias antiguos', () => {
   assert.equal(A.decide('/avatares'), null);
 });
 
-test('good es la nube Admirito, better la chica y best Neo', () => {
+test('avatar/good es Admirito, human/better Luna y metahuman/best Neo', () => {
   assert.equal(A.LEVELS.good, 'https://digitalavatar.ai/nube.html?dock=1');
   assert.equal(A.LEVELS.better, 'https://digitalavatar.ai/best.html?dock=1&kiosk=0');
   assert.equal(A.LEVELS.best, 'https://digitalavatar.ai/metahuman.html?dock=1');
@@ -48,6 +48,11 @@ test('good es la nube Admirito, better la chica y best Neo', () => {
   assert.match(A.message('status', false), /better/);
   assert.match(A.message('status', false), /best/);
   assert.match(A.message('best', false), /MetaHuman/);
+  assert.equal(A.decide('/avatar human'), 'better');
+  assert.equal(A.decide('/avatar metahuman'), 'best');
+  assert.equal(A.decide('/avatar avatar'), 'good');
+  assert.match(A.message('better', false), /Luna/);
+  assert.doesNotMatch(A.message('status', false), /Alex|chica/);
   assert.doesNotMatch(A.message('best', false), /chica|apagado/);
   assert.match(A.message('status', false), /Neo, MetaHuman/);
   assert.doesNotMatch(A.message('status', false), /apagado/);

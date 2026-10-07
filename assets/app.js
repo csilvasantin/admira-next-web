@@ -239,7 +239,7 @@
 
   // ============ AVATAR DIGITAL ============
   // Interruptor por usuario del avatar de digitalavatar.ai (assets/avatar.js).
-  // /avatar good|better|best abre a Admirito (la nube), la chica o Neo. /avatar sin nivel dice
+  // /avatar avatar|human|metahuman (alias good|better|best) abre a Admirito, Luna o Neo. /avatar sin nivel dice
   // el estado. /avatarON lo muestra y /avatarOFF lo oculta. La elección se guarda
   // en este navegador y gana al interruptor del proyecto (/webmaster).
   function cmdAvatar(text) {
@@ -250,11 +250,11 @@
     return [{ text: '  ' + msg, cls: /desactivado|off|apagado/i.test(msg) ? 'dim' : 'green' }];
   }
   const AVATAR_COMMANDS = {
-    '/avatar':        { desc: '/avatar good (Admirito, la nube animada) · /avatar better (chica, gafas) · /avatar best (Neo; si el render está apagado, la chica). Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta.', fn: () => cmdAvatar('/avatar') },
+    '/avatar':        { desc: '/avatar avatar (Admirito, la nube animada) · /avatar human (Luna, anfitriona web) · /avatar metahuman (Neo; si el render está apagado, Luna). good/better/best siguen de alias. Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta.', fn: () => cmdAvatar('/avatar') },
     '/avataron':      { desc: 'Avatar digital: mostrar', fn: () => cmdAvatar('/avatarON') },
     '/avataroff':     { desc: 'Avatar digital: ocultar', fn: () => cmdAvatar('/avatarOFF') },
-    '/avatardigital': { desc: 'Alias de /avatar (estado; good, better o best abren el nivel)', fn: () => cmdAvatar('/avatar') },
-    '/digitalavatar': { desc: 'Alias de /avatar (estado; good, better o best abren el nivel)', fn: () => cmdAvatar('/avatar') },
+    '/avatardigital': { desc: 'Alias de /avatar (estado; avatar, human o metahuman abren la categoría)', fn: () => cmdAvatar('/avatar') },
+    '/digitalavatar': { desc: 'Alias de /avatar (estado; avatar, human o metahuman abren la categoría)', fn: () => cmdAvatar('/avatar') },
   };
   Object.assign(INFO_COMMANDS, AVATAR_COMMANDS);
 
@@ -266,11 +266,11 @@
   // devuelve data.desc (Spanish original).
   const DESC_EN = {
     '/help':         'List all available commands',
-    '/avatar':        '/avatar good (bald 3D face) · /avatar better (girl, glasses) · /avatar best (Neo; the girl if render is off). Alone, the status. /avatarON shows it and /avatarOFF hides it.',
+    '/avatar':        '/avatar avatar (Admirito, the cloud) · /avatar human (Luna, web host) · /avatar metahuman (Neo; Luna if render is off). good/better/best kept as aliases. Alone, the status. /avatarON shows it and /avatarOFF hides it.',
     '/avataron':      'Digital avatar: show',
     '/avataroff':     'Digital avatar: hide',
-    '/avatardigital': 'Alias of /avatar (status; good, better or best open that level)',
-    '/digitalavatar': 'Alias of /avatar (status; good, better or best open that level)',
+    '/avatardigital': 'Alias of /avatar (status; avatar, human or metahuman open that category)',
+    '/digitalavatar': 'Alias of /avatar (status; avatar, human or metahuman open that category)',
     '/classic':      'Open the classic web',
     '/robots':       'Initial robot catalog',
     '/identidad':    'Visual identity manual',

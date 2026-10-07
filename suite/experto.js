@@ -344,7 +344,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261006-avatar-nube-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261007-luna-1';
   function avatarApi() {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
     var tag = document.querySelector('script[data-admira-avatar]');
@@ -369,9 +369,9 @@
       return Promise.resolve(A.handle(text)).then(function (msg) { if (msg) out(log, String(msg)); });
     });
   }
-  verb({name: 'avatar', args: '[good|better|best]', desc: [
-    'good abre a Admirito, la nube animada (mueve los labios y hace cosas sola) · better abre la chica (Ready Player Me, gafas) · best abre a Neo (MetaHuman; si el host de render está apagado, cae a la chica). Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta. /avatar reset vuelve al interruptor del proyecto',
-    'good opens the bald 3D face (facecap, 52 blendshapes) · better opens the web girl (Ready Player Me, glasses) · best opens Neo (MetaHuman; if the render host is off, the girl takes over). Alone, the status. /avatarON shows it and /avatarOFF hides it. /avatar reset follows the project switch'
+  verb({name: 'avatar', args: '[avatar|human|metahuman]', desc: [
+    'avatar abre a Admirito, la nube animada (mueve los labios y hace cosas sola) · human abre a Luna, la anfitriona web (Ready Player Me) · metahuman abre a Neo (MetaHuman; si el host de render está apagado, cae a Luna). good/better/best siguen como alias. Sin nivel, el estado. /avatarON lo muestra y /avatarOFF lo oculta. /avatar reset vuelve al interruptor del proyecto',
+    'avatar opens Admirito, the animated cloud · human opens Luna, the web host (Ready Player Me) · metahuman opens Neo (MetaHuman; if the render host is off, Luna takes over). good/better/best kept as aliases. Alone, the status. /avatarON shows it and /avatarOFF hides it. /avatar reset follows the project switch'
   ], run: function (a, log) { return avatarRun('/avatar' + (a.length ? ' ' + a.join(' ') : ''), log); }});
   verb({name: 'avataron', desc: ['muestra el avatar digital y lo recuerda', 'show the digital avatar and remember it'], run: function (a, log) { return avatarRun('/avatarON', log); }});
   verb({name: 'avataroff', desc: ['oculta el avatar digital y lo recuerda', 'hide the digital avatar and remember it'], run: function (a, log) { return avatarRun('/avatarOFF', log); }});
