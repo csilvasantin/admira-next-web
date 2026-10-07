@@ -1,0 +1,148 @@
+{
+  "$esquema": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
+  "id": "starbucks",
+  "nombre": "Starbucks",
+  "nombreCorto": "Starbucks",
+  "ejemplo": false,
+  "sector": "Cafeterías · Alsea Starbucks ES+MX",
+  "descripcion": "Marca blanca de Starbucks (cliente global, circuito Alsea). Logotipo: wordmark neutro de texto (no el logo oficial de la sirena); verde de la casa #00704A.",
+  "logo": {
+    "svg": "../logos/starbucks.svg",
+    "alt": "Starbucks"
+  },
+  "favicon": "../logos/starbucks-favicon.svg",
+  "modo": "claro",
+  "tipografia": {
+    "titulos": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "texto": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "etiquetas": "Inter, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "pesoTitulos": 800,
+    "transformTitulos": "none",
+    "trackingTitulos": "-0.02em",
+    "fuentes": [
+      {
+        "familia": "Inter",
+        "url": "../fuentes/inter.woff2",
+        "peso": "400 800"
+      }
+    ]
+  },
+  "radios": {
+    "sm": "6px",
+    "md": "10px",
+    "lg": "16px",
+    "boton": "10px",
+    "pill": "999px"
+  },
+  "sombras": {
+    "sm": "0 1px 2px rgba(0,0,0,.08)",
+    "md": "0 8px 24px rgba(0,0,0,.12)",
+    "lg": "0 24px 60px rgba(0,0,0,.18)"
+  },
+  "tono": {
+    "voz": "Cálido, cercano y de cafetería de barrio.",
+    "tratamiento": "tú",
+    "si": [],
+    "no": [],
+    "frases": {
+      "cta": "Pide aquí",
+      "vacio": "Aún no has elegido nada.",
+      "error": "Algo ha fallado. Pide en barra, por favor.",
+      "exito": "¡Tu pedido está en marcha!"
+    }
+  },
+  "colores": {
+    "claro": {
+      "primario": "#00704A",
+      "primarioTexto": "#FFFFFF",
+      "secundario": "#1E3932",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#CBA258",
+      "acentoTexto": "#1E1A12",
+      "fondo": "#FFFFFF",
+      "fondoAlt": "#F2F0EB",
+      "superficie": "#FFFFFF",
+      "superficieAlt": "#EDEBE6",
+      "borde": "#D9D6CF",
+      "texto": "#1E2A25",
+      "textoSuave": "#55605B",
+      "textoTenue": "#8A928E",
+      "ok": "#2F7D4F",
+      "aviso": "#B7791F",
+      "error": "#C0392B",
+      "info": "#2B6CB0"
+    },
+    "oscuro": {
+      "primario": "#00A862",
+      "primarioTexto": "#04170F",
+      "secundario": "#2E5248",
+      "secundarioTexto": "#FFFFFF",
+      "acento": "#D4B072",
+      "acentoTexto": "#1E1A12",
+      "fondo": "#0F1F1A",
+      "fondoAlt": "#15291F",
+      "superficie": "#1A2E27",
+      "superficieAlt": "#223A31",
+      "borde": "#2F4A40",
+      "texto": "#F2F5F3",
+      "textoSuave": "#B3C1BB",
+      "textoTenue": "#83938C",
+      "ok": "#6FCF97",
+      "aviso": "#F2C94C",
+      "error": "#EB5757",
+      "info": "#56CCF2"
+    }
+  },
+  "demo": {
+    "titular": "Starbucks, también en pantalla",
+    "producto": "Bebidas de temporada",
+    "cta": "Pide aquí",
+    "prompt": "Cartel vertical de cafetería Starbucks: verde de marca, bebida de temporada, titular corto",
+    "circuito": "Circuito Alsea Starbucks",
+    "puntos": 36,
+    "superficies": 148,
+    "imprDia": "84.200",
+    "cpm": "7,10 €",
+    "tipoEspacio": "Cafeterías",
+    "tiendas": [
+      {
+        "nombre": "Starbucks · Paseo de Gracia 103",
+        "dir": "Passeig de Gràcia 103 · Barcelona"
+      }
+    ],
+    "superficiesTipo": [
+      "tótem",
+      "mostrador",
+      "pared"
+    ],
+    "piezas": [
+      "Tótem · quiosco de pedido",
+      "TPV · publicidad local",
+      "Pared · 6 pantallas"
+    ],
+    "incidencias": [
+      {
+        "id": "INC-4A21",
+        "equipo": "Pantalla escaparate",
+        "tienda": "Starbucks · Paseo de Gracia 103",
+        "prioridad": "Alta",
+        "estado": "abierta"
+      },
+      {
+        "id": "INC-4A17",
+        "equipo": "Hilo musical",
+        "tienda": "Starbucks · Paseo de Gracia 103",
+        "prioridad": "Media",
+        "estado": "curso"
+      },
+      {
+        "id": "INC-4A09",
+        "equipo": "Player de mostrador",
+        "tienda": "Starbucks · Paseo de Gracia 103",
+        "prioridad": "Baja",
+        "estado": "resuelta"
+      }
+    ]
+  }
+}
