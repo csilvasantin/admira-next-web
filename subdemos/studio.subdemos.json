@@ -3,39 +3,44 @@
   "plataforma": "studio",
   "subdemos": [
     {
-      "id": "locucion",
+      "id": "voz",
       "letra": "a",
       "nombre": "Locución",
       "desc": "Locuciones y megafonía para la tienda",
-      "url": "https://www.admira.studio/megafonia/"
+      "url": "https://www.admira.studio/audio.html",
+      "cmd": "/demo 1"
     },
     {
       "id": "musica",
       "letra": "b",
       "nombre": "Música",
       "desc": "Hilo musical y catálogo de pistas",
-      "url": "https://www.admira.studio/musica.html"
+      "url": "https://www.admira.studio/musica.html",
+      "cmd": "/demo 2"
     },
     {
       "id": "imagen",
       "letra": "c",
       "nombre": "Imagen",
       "desc": "Imágenes de marca generadas con IA",
-      "url": "https://www.admira.studio/imagenes.html"
+      "url": "https://www.admira.studio/imagenes.html",
+      "cmd": "/demo 3"
     },
     {
       "id": "video",
       "letra": "d",
       "nombre": "Vídeo",
       "desc": "Vídeos de marca generados con IA",
-      "url": "https://www.admira.studio/video.html"
+      "url": "https://www.admira.studio/video.html",
+      "cmd": "/demo 4"
     },
     {
-      "id": "formatos",
+      "id": "adaptar",
       "letra": "e",
       "nombre": "Adaptar formatos",
       "desc": "Un contenido, todos los formatos de pantalla",
-      "url": "https://www.admira.studio/adaptaciones/"
+      "url": "https://www.admira.studio/adaptaciones/",
+      "cmd": "/demo 5"
     }
   ]
 }

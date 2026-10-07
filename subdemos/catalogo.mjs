@@ -23,21 +23,24 @@ export const GLOBALES = [
     {id: 'resumen', nombre: 'Resumen del día', desc: 'Balance de la jornada del gemelo', url: STORE, cmd: '/resumen dia on'}
   ]},
   {id: 'studio', nombre: 'admira.studio', desc: 'Contenidos con IA: locución, música, imagen, vídeo y formatos', url: 'https://www.admira.studio/', subdemos: [
-    {id: 'locucion', letra: 'a', nombre: 'Locución', desc: 'Locuciones y megafonía para la tienda', url: 'https://www.admira.studio/megafonia/'},
-    {id: 'musica', letra: 'b', nombre: 'Música', desc: 'Hilo musical y catálogo de pistas', url: 'https://www.admira.studio/musica.html'},
-    {id: 'imagen', letra: 'c', nombre: 'Imagen', desc: 'Imágenes de marca generadas con IA', url: 'https://www.admira.studio/imagenes.html'},
-    {id: 'video', letra: 'd', nombre: 'Vídeo', desc: 'Vídeos de marca generados con IA', url: 'https://www.admira.studio/video.html'},
-    {id: 'formatos', letra: 'e', nombre: 'Adaptar formatos', desc: 'Un contenido, todos los formatos de pantalla', url: 'https://www.admira.studio/adaptaciones/'}
+    {id: 'voz', letra: 'a', nombre: 'Locución', desc: 'Locuciones y megafonía para la tienda', url: 'https://www.admira.studio/audio.html', cmd: '/demo 1'},
+    {id: 'musica', letra: 'b', nombre: 'Música', desc: 'Hilo musical y catálogo de pistas', url: 'https://www.admira.studio/musica.html', cmd: '/demo 2'},
+    {id: 'imagen', letra: 'c', nombre: 'Imagen', desc: 'Imágenes de marca generadas con IA', url: 'https://www.admira.studio/imagenes.html', cmd: '/demo 3'},
+    {id: 'video', letra: 'd', nombre: 'Vídeo', desc: 'Vídeos de marca generados con IA', url: 'https://www.admira.studio/video.html', cmd: '/demo 4'},
+    {id: 'adaptar', letra: 'e', nombre: 'Adaptar formatos', desc: 'Un contenido, todos los formatos de pantalla', url: 'https://www.admira.studio/adaptaciones/', cmd: '/demo 5'}
   ]}
 ];
 
 export const PROYECTOS_INICIALES = [
-  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021', demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/locucion', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/formatos']}
+  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021', demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
 ];
 
 // 'store' = demo global; 'store/tpv' = subdemo. Devuelve {global, sub|null} o null.
+// Ids anteriores de admira.studio (7-oct-2026): los proyectos guardados con ellos siguen valiendo.
+const CLAVE_ANTERIOR = {'studio/locucion': 'studio/voz', 'studio/formatos': 'studio/adaptar'};
+export const claveActual = (clave) => CLAVE_ANTERIOR[clave] || clave;
 export function resolver(clave) {
-  const [g, s] = String(clave || '').split('/');
+  const [g, s] = claveActual(String(clave || '')).split('/');
   const global = GLOBALES.find((x) => x.id === g);
   if (!global) return null;
   if (!s) return {global, sub: null};
@@ -47,7 +50,7 @@ export function resolver(clave) {
 
 // Guion de un proyecto en el orden del catálogo (plataformas y dentro sus subdemos).
 export function guion(demos) {
-  const set = new Set(demos || []);
+  const set = new Set((demos || []).map(claveActual));
   const pasos = [];
   for (const g of GLOBALES) {
     if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id, steps: []});
@@ -58,13 +61,22 @@ export function guion(demos) {
 
 export function guionTexto(proyecto) {
   const pasos = guion(proyecto.demos);
-  return [proyecto.nombre + ' · guion de demo', ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.steps || []).map((x) => '\n   - ' + x).join(''))].join('\n');
+  return [proyecto.nombre + ' · guion de demo', ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.steps || []).map((x) => '\n   - ' + pasoTexto(x)).join(''))].join('\n');
 }
 
 // Manifiesto por plataforma (<plataforma>.subdemos.json, 7-oct-2026):
 // {version, plataforma, subdemos:[{id, letra, nombre, desc, url, cmd?, steps?, muestra?}]}.
 // Sustituye las subdemos de esa plataforma. Devuelve la plataforma aplicada o lanza Error.
 export const MANIFIESTOS = ['studio'];
+const clon = (v) => JSON.parse(JSON.stringify(v));
+// Un paso en una línea legible, sea texto o {tool, args, page, selector}.
+export function pasoTexto(p) {
+  if (typeof p === 'string') return p;
+  if (!p || typeof p !== 'object') return '';
+  const t = p.text || p.texto || '';
+  const llamada = p.tool ? p.tool + (p.args && Object.keys(p.args).length ? ' ' + JSON.stringify(p.args) : '') : '';
+  return [t, llamada, p.page ? '(' + p.page + ')' : ''].filter(Boolean).join(' · ');
+}
 export function aplicarManifiesto(m) {
   const g = m && GLOBALES.find((x) => x.id === m.plataforma);
   if (!g) throw new Error('plataforma desconocida');
@@ -74,8 +86,13 @@ export function aplicarManifiesto(m) {
     const s = {id: x.id, nombre: String(x.nombre), desc: String(x.desc || ''), url: x.url};
     if (x.letra) s.letra = String(x.letra);
     if (x.cmd) s.cmd = String(x.cmd);
-    if (Array.isArray(x.steps)) s.steps = x.steps.map(String);
-    if (x.muestra) s.muestra = String(x.muestra);
+    // Los pasos y la muestra llegan como texto o como objeto ({tool, args, page} · {tipo, url,
+    // variantes}); se conservan tal cual. Pasarlos por String() los dejaba en «[object Object]».
+    if (Array.isArray(x.steps)) s.steps = x.steps.filter((p) => typeof p === 'string' || (p && typeof p === 'object')).map((p) => (typeof p === 'string' ? p : clon(p)));
+    if (x.muestra) s.muestra = typeof x.muestra === 'object' ? clon(x.muestra) : String(x.muestra);
+    if (x.guion) s.guion = typeof x.guion === 'object' ? clon(x.guion) : String(x.guion);
+    if (Array.isArray(x.aliases)) s.aliases = x.aliases.map(String);
+    if (Number(x.duracion) > 0) s.duracion = Number(x.duracion);
     return s;
   });
   if (new Set(subs.map((x) => x.id)).size !== subs.length) throw new Error('ids repetidos');

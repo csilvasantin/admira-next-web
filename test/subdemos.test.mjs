@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, resolver, guion, guionTexto} from '../subdemos/catalogo.mjs';
+import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, resolver, guion, guionTexto, pasoTexto} from '../subdemos/catalogo.mjs';
 
 test('para empezar tres plataformas: biz, store y studio', () => {
   assert.deepEqual(GLOBALES.map((g) => g.id), ['biz', 'store', 'studio']);
@@ -28,7 +28,7 @@ test('guion en orden del catálogo y en texto', () => {
 
 test('admira.studio: a locución, b música, c imagen, d vídeo, e adaptar formatos; manifiesto publicado igual', () => {
   const studio = GLOBALES.find((g) => g.id === 'studio');
-  assert.deepEqual(studio.subdemos.map((s) => s.letra + ':' + s.id), ['a:locucion', 'b:musica', 'c:imagen', 'd:video', 'e:formatos']);
+  assert.deepEqual(studio.subdemos.map((s) => s.letra + ':' + s.id), ['a:voz', 'b:musica', 'c:imagen', 'd:video', 'e:adaptar']);
   assert.ok(MANIFIESTOS.includes('studio'));
   const m = JSON.parse(readFileSync(new URL('../subdemos/studio.subdemos.json', import.meta.url), 'utf8'));
   assert.equal(m.plataforma, 'studio');
@@ -43,4 +43,28 @@ test('aplicarManifiesto sustituye las subdemos con steps y rechaza lo inválido'
     assert.throws(() => aplicarManifiesto({plataforma: 'studio', subdemos: [{id: 'y', nombre: 'Y', url: 'javascript:alert(1)'}]}));
     assert.equal(studio.subdemos[0].id, 'x');
   } finally { studio.subdemos = antes; }
+});
+
+test('aplicarManifiesto conserva pasos y muestra como objetos (pack de pixeria)', () => {
+  const studio = GLOBALES.find((g) => g.id === 'studio'), antes = studio.subdemos;
+  try {
+    const paso = {tool: 'demo_muestra', args: {id: 'music'}, page: '/musica.html'};
+    const muestra = {tipo: 'video', url: 'https://www.admira.studio/a.mp4', variantes: [{nombre: 'vertical', url: 'https://www.admira.studio/v.mp4'}]};
+    aplicarManifiesto({version: 1, plataforma: 'studio', subdemos: [{id: 'musica', letra: 'b', nombre: 'Crear música', desc: 'd', url: 'https://www.admira.studio/musica.html', cmd: '/demo 2', aliases: ['musica', 'música'], duracion: 60, guion: {titulo: 'g'}, steps: [paso, 'a mano'], muestra}]});
+    const s = studio.subdemos[0];
+    assert.deepEqual(s.steps, [paso, 'a mano']);
+    assert.deepEqual(s.muestra, muestra);
+    assert.notEqual(s.muestra, muestra); // copia, no la referencia del fichero
+    assert.deepEqual(s.guion, {titulo: 'g'});
+    assert.equal(s.duracion, 60);
+    const t = guionTexto({nombre: 'P', demos: ['studio/musica']});
+    assert.doesNotMatch(t, /object Object/);
+    assert.match(t, /- demo_muestra \{"id":"music"\} · \(\/musica\.html\)\n   - a mano/);
+    assert.equal(pasoTexto({text: 'Escucha', tool: 'demo_muestra', args: {}}), 'Escucha · demo_muestra');
+  } finally { studio.subdemos = antes; }
+});
+test('los proyectos guardados con los ids anteriores de admira.studio siguen resolviendo', () => {
+  assert.equal(resolver('studio/locucion').sub.id, 'voz');
+  assert.equal(resolver('studio/formatos').sub.id, 'adaptar');
+  assert.deepEqual(guion(['studio/locucion', 'studio/formatos']).map((p) => p.clave), ['studio/voz', 'studio/adaptar']);
 });

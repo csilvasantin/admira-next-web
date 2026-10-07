@@ -370,19 +370,56 @@
       desc: ['Comercialización: retail media y campañas de marca sobre las pantallas de la red', 'Monetisation: retail media and brand campaigns across the network screens'],
       url: ['https://www.admira.biz/']}
   ];
+  // ─── Subdemos LOCALES de la plataforma (Carlos, 7-oct-2026) ───
+  // Dentro de una plataforma, /demo 1…N y /demo <nombre> son SUS subdemos, no las cinco soluciones:
+  // en admira.studio y pixeria.com (la misma plataforma), /demo 2 es música, no admira.store.
+  // /demo help lista solo las de la plataforma. Las soluciones siguen entrando por nombre
+  // (/demo store) y /demo soluciones las lista. Mismos ids, alias y orden que el manifiesto
+  // demo/studio.subdemos.json del repo pixeria; por defecto se enseñan muestras, nunca se genera.
+  var SUBDEMOS = {
+    studio: [
+      {id: 'voz', alias: ['locucion', 'locuciones', 'megafonia', 'voice'], nombre: ['Crear locución', 'Create voice-over'], path: '/audio.html'},
+      {id: 'musica', alias: ['music', 'cancion'], nombre: ['Crear música', 'Create music'], path: '/musica.html'},
+      {id: 'imagen', alias: ['imagenes', 'image'], nombre: ['Crear imagen', 'Create image'], path: '/imagenes.html'},
+      {id: 'video', alias: ['videos', 'clip'], nombre: ['Crear vídeo', 'Create video'], path: '/video.html'},
+      {id: 'adaptar', alias: ['formatos', 'adaptacion', 'adaptaciones', 'adapt'], nombre: ['Adaptar formatos', 'Adapt formats'], path: '/adaptaciones/'}
+    ]
+  };
+  function subdemosLocales() { var i = demoActual(); return i < 0 ? null : (SUBDEMOS[DEMOS[i].id] || null); }
+  // La subdemo se abre en el host en el que estás (pixeria.com sigue en pixeria.com).
+  function subUrl(sub) { return location.origin + sub.path; }
   function demoUrl(d) { return d.url[lang() === 'en' && d.url[1] ? 1 : 0]; }
   function demoActual() { for (var i = 0; i < DEMOS.length; i++) if (DEMOS[i].hosts.test(host)) return i; return -1; }
-  // null = no es de la suite (lo resuelve la pata); {lista:true} | {demo, i}.
+  // null = no es de la suite (lo resuelve la pata); {lista:true} | {demo, i};
+  // en una plataforma con subdemos, además {ayuda, plat, subs} | {sub, i, plat} | {desconocida, plat, subs}.
   function parseDemo(text) {
     var m = /^\/?demo(?:\s+(.*))?$/i.exec(String(text == null ? '' : text).trim());
     if (!m) return null;
     var arg = String(m[1] || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^admira\./, '');
-    if (!arg || /^(lista|list|soluciones|solutions)$/.test(arg)) return {lista: true};
+    var subs = subdemosLocales(), plat = subs ? DEMOS[demoActual()].id : '';
+    if (/^(soluciones|solutions)$/.test(arg)) return {lista: true};
+    if (subs) {
+      if (!arg || /^(help|ayuda|lista|list)$/.test(arg)) return {ayuda: true, plat: plat, subs: subs};
+      var k = /^[0-9]+$/.test(arg) ? +arg - 1 : -1;
+      if (k < 0) subs.forEach(function (x, n) { if (k < 0 && (x.id === arg || x.alias.indexOf(arg) >= 0)) k = n; });
+      if (k >= 0 && k < subs.length) return {sub: subs[k], i: k, plat: plat};
+      if (/^[0-9]+$/.test(arg)) return {desconocida: true, plat: plat, subs: subs};
+    }
+    if (!arg || /^(lista|list)$/.test(arg)) return {lista: true};
     var i = -1;
     if (/^(siguiente|next|sig)$/.test(arg)) i = (demoActual() + 1) % DEMOS.length;
     else if (/^[1-5]$/.test(arg)) i = +arg - 1;
     else DEMOS.forEach(function (d, k) { if (i < 0 && (d.id === arg || d.alias.indexOf(arg) >= 0)) i = k; });
-    return i < 0 ? null : {demo: DEMOS[i], i: i};
+    if (i >= 0) return {demo: DEMOS[i], i: i};
+    // En una plataforma con subdemos lo desconocido se dice aquí; stop/off siguen siendo de la pata.
+    if (subs && !/^(stop|parar|off|on)$/.test(arg)) return {desconocida: true, plat: plat, subs: subs};
+    return null;
+  }
+  function subLista(p) {
+    return T('Demos de admira.' + p.plat + ':', 'admira.' + p.plat + ' demos:') + '\n' +
+      p.subs.map(function (x, n) { return (n + 1) + ' /demo ' + (x.alias[0] === 'locucion' ? 'locucion' : x.id) + ' · ' + T(x.nombre[0], x.nombre[1]); }).join('\n') +
+      '\n' + T('/demo 1…' + p.subs.length + ' o /demo <nombre>. Se enseñan muestras: no se genera nada. Otras soluciones: /demo soluciones.',
+        '/demo 1…' + p.subs.length + ' or /demo <name>. Samples only: nothing is generated. Other solutions: /demo solutions.');
   }
   function demoLista() {
     return T('Demos · las cinco soluciones:', 'Demos · the five solutions:') + '\n' +
@@ -390,6 +427,18 @@
       '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".');
   }
   function demoRun(p, log) {
+    if (p.ayuda) { out(log, subLista(p)); return; }
+    if (p.desconocida) { out(log, T('Demo desconocida. Escribe /demo help.', 'Unknown demo. Type /demo help.') + '\n' + subLista(p), 'err'); return; }
+    if (p.sub) {
+      var su = subUrl(p.sub), clave = p.plat + '/' + p.sub.id;
+      out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/' + SUBDEMOS[p.plat].length + ' · ' + T(p.sub.nombre[0], p.sub.nombre[1]) + T(' — muestra', ' — sample'));
+      try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: clave, url: su, modo: 'muestra'}})); } catch (_) {}
+      // Ya en su página no se recarga: quien escuche admira:demo enseña la muestra.
+      if (location.pathname.replace(/index\.html$/, '') === p.sub.path) return;
+      out(log, T('Abriendo ', 'Opening ') + su + '…');
+      setTimeout(function () { location.assign(su); }, 600);
+      return;
+    }
     if (p.lista) { out(log, demoLista()); return; }
     var d = p.demo, url = demoUrl(d);
     out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/5 · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]));
@@ -397,7 +446,7 @@
     try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: d.id, url: url}})); } catch (_) {}
     setTimeout(function () { location.assign(url); }, 600);
   }
-  verb({name: 'demo', args: '[studio|store|tv|app|biz|1-5|siguiente]', desc: ['enseña una de las cinco soluciones (sin argumento: lista)', 'show one of the five solutions (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: '[help|1-5|nombre|soluciones|siguiente]', desc: ['enseña una demo: dentro de una plataforma, sus subdemos (/demo help las lista); /demo soluciones, las cinco soluciones', 'show a demo: inside a platform, its own demos (/demo help lists them); /demo solutions, the five solutions'], run: function (a, log) {
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     demoRun(p, log);
@@ -758,7 +807,18 @@
     parseLangCommand: parseLangCommand,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); return p && (p.lista ? {lista: true} : {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}); },
+    parseDemo: function (t) {
+      var p = parseDemo(t);
+      if (!p) return p;
+      if (p.lista) return {lista: true};
+      if (p.ayuda || p.desconocida) {
+        var o = {plataforma: p.plat, opciones: p.subs.map(function (x, n) { return {numero: n + 1, id: x.id, nombre: T(x.nombre[0], x.nombre[1]), comando: '/demo ' + (n + 1), alias: x.alias.slice()}; })};
+        o[p.ayuda ? 'ayuda' : 'desconocida'] = true;
+        return o;
+      }
+      if (p.sub) return {id: p.plat + '/' + p.sub.id, plataforma: p.plat, sub: p.sub.id, i: p.i, url: subUrl(p.sub), modo: 'muestra'};
+      return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)};
+    },
     normalizeLangToken: normalizeLangToken,
     setLanguage: applyLang
   };

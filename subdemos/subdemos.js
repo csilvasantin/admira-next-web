@@ -1,6 +1,6 @@
 // /subdemos: escoger proyectos y qué demos (globales y subdemos) se enseñan en cada uno.
 // Se guarda en este navegador (localStorage «ax-subdemos»); Exportar/Importar lo mueve a otro.
-import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto} from './catalogo.mjs?v=20261007-subdemos-2';
+import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto, pasoTexto} from './catalogo.mjs?v=20261007-subdemos-3';
 
 const KEY = 'ax-subdemos';
 const KEY_MANIF = 'ax-subdemos-manifiestos'; // manifiestos importados a mano en este navegador
@@ -35,7 +35,7 @@ function pintarGuion() {
   const p = activo(), pasos = guion(p.demos);
   $('#guion-titulo').textContent = p.nombre + (p.nota ? ' · ' + p.nota : '');
   $('#guion').innerHTML = pasos.length ? pasos.map((s) => `
-    <li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.titulo)}</a> <span>${esc(s.desc)}</span>${s.cmd ? ` <code>${esc(s.cmd)}</code>` : ''}${s.steps.length ? `<ol class="pasos">${s.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}</li>`).join('')
+    <li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.titulo)}</a> <span>${esc(s.desc)}</span>${s.cmd ? ` <code>${esc(s.cmd)}</code>` : ''}${s.steps.length ? `<ol class="pasos">${s.steps.map((x) => `<li>${esc(pasoTexto(x))}</li>`).join('')}</ol>` : ''}</li>`).join('')
     : '<li class="vacio">Marca demos arriba para montar el guion.</li>';
   $('#borrar').disabled = estado.proyectos.length < 2;
 }
