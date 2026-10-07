@@ -245,5 +245,10 @@
   "v.07.10.2026.r19.13:37": [
     "Demo remota en pantalla completa: los datos de circuito, gemelo, IoT e ITIL aprovechan el espacio del escenario",
     "Los casos agrupados se distribuyen en columnas sin el recorte de altura anterior; controles y progreso siguen visibles"
+  ],
+  "v.07.10.2026.r20.13:47": [
+    "Las muestras privadas de la propia presentación conservan el acceso del origen actual, también en la vista local autorizada",
+    "Los errores de reproducción identifican la demo y distinguen permisos de fallos de acceso o formato",
+    "La oferta final para preparar el vídeo se lee también fuera de pantalla completa"
   ]
 }
