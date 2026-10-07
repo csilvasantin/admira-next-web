@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" class="yk-framed">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subdemos · AdmiraNeXT — proyectos y demos</title>
+<meta name="description" content="Escoge proyectos y qué demos se enseñan en cada uno: las cinco demos globales (studio, store, tv, app, biz) y sus subdemos por funcionalidad (TPV, digital signage, audiencia…).">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="canonical" href="https://www.admiranext.com/subdemos">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="preload" href="/assets/fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261006-experto-cerrado-1">
+<link rel="stylesheet" href="/demo/demo.css?v=20261006-completa-v2">
+<link rel="stylesheet" href="/subdemos/subdemos.css?v=20261007-subdemos-1">
+</head>
+<body data-yk-title="SUBDEMOS" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
+
+<section data-yk-slot="left" hidden>
+  <div class="yk-auto-blk">
+    <a href="/demo/">Demo completa</a>
+    <a href="/subdemos/">Subdemos · proyectos</a>
+    <a href="/marcablanca/">Marca blanca</a>
+    <a href="/presentaciones/">Presentaciones</a>
+  </div>
+</section>
+
+<div class="horizonte" aria-hidden="true"><div class="sol"></div><div class="suelo"></div></div>
+
+<main class="demo-wrap">
+  <div class="win">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="path"><b>~/AdmiraNeXT</b>/subdemos</span>
+      <span class="tb-meta"><a href="/demo/">← /demo</a></span>
+    </div>
+    <div class="content">
+      <header class="hero">
+        <div class="term"><span class="pr">$</span> /demo store tpv <span class="ok">→ guion por proyecto</span></div>
+        <div class="kicker">Demos globales y subdemos</div>
+        <h1>Qué enseñamos en cada proyecto</h1>
+        <p class="lede">Cinco <b>demos globales</b>, una por plataforma (studio, store, tv, app y biz), y dentro de cada una sus <b>subdemos</b> por funcionalidad: TPV, digital signage, audiencia… Escoge el proyecto, marca las demos y sale el guion con su enlace y la orden de ⌘ Experto. En Experto o en el avatar, <code>/demo &lt;plataforma&gt;</code> abre la demo global.</p>
+      </header>
+
+      <section aria-labelledby="h-proy">
+        <h2 id="h-proy">Proyectos</h2>
+        <div id="proyectos" class="proyectos"></div>
+        <form id="nuevo" class="nuevo">
+          <input id="nuevo-nombre" type="text" placeholder="Nuevo proyecto (p. ej. 365 · Barcelona)" aria-label="Nombre del proyecto" maxlength="80">
+          <button class="btn" type="submit">+ Añadir</button>
+          <button class="btn" type="button" id="borrar">Quitar el activo</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="h-cat">
+        <h2 id="h-cat">Demos</h2>
+        <div id="catalogo"></div>
+      </section>
+
+      <section aria-labelledby="h-guion" class="guion-wrap">
+        <h2 id="h-guion">Guion · <span id="guion-titulo"></span></h2>
+        <ol id="guion" class="guion"></ol>
+        <p class="acciones">
+          <button class="btn primario" type="button" id="empezar">Empezar →</button>
+          <button class="btn" type="button" id="copiar">Copiar guion</button>
+          <button class="btn" type="button" id="exportar">Exportar</button>
+          <label class="btn">Importar <input id="importar" type="file" accept="application/json" hidden></label>
+        </p>
+        <p id="estado" class="estado" role="status" aria-live="polite"></p>
+        <p class="nota">Se guarda en este navegador. Exportar/Importar lo pasa a otro equipo.</p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="/subdemos/subdemos.js?v=20261007-subdemos-1"></script>
+<script defer src="/assets/admira-frame.js?v=20261006-experto-cerrado-1"></script>
+</body>
+</html>
