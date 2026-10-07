@@ -178,7 +178,22 @@
     return LEVELS[lv] + '&' + q.join('&');
   }
 
-  var api = {decide: decide, resolve: resolve, legacyValue: legacyValue, message: message,
+  // Pastilla de categoría (Carlos, 7-oct-2026): pulsar sube avatar → human → metahuman → avatar;
+  // deslizar/→ sube uno, deslizar/← baja uno (también cíclico).
+  var CYCLE = ['good', 'better', 'best'];
+  var CATEGORY_NAME = {good: ['AVATAR', 'Admirito'], better: ['HUMAN', 'Luna'], best: ['METAHUMAN', 'Neo']};
+  function nextLevel(level, dir) {
+    var i = CYCLE.indexOf(LEVELS[level] ? level : 'good');
+    if (i < 0) i = 0;
+    var n = CYCLE.length;
+    return CYCLE[((i + (dir < 0 ? -1 : 1)) % n + n) % n];
+  }
+  function categoryLabel(level) {
+    var c = CATEGORY_NAME[level] || CATEGORY_NAME.good;
+    return c[0] + ' · ' + c[1];
+  }
+
+  var api = {decide: decide, nextLevel: nextLevel, categoryLabel: categoryLabel, resolve: resolve, legacyValue: legacyValue, message: message,
     clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl, pickLevel: pickLevel,
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -348,7 +363,7 @@
     wrap.setAttribute('style', 'position:fixed;right:16px;bottom:20px;z-index:25;font-family:ui-monospace,SFMono-Regular,Menlo,monospace');
     wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;padding:0;border-radius:50%;border:0;background:transparent;cursor:pointer">' + NUBE + '</button>'
       + '<div id="da-suite-panel" style="position:relative;box-sizing:border-box;background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px 8px 48px;color:#dff8ff;font-size:11px;letter-spacing:.12em;text-transform:uppercase"><span id="da-suite-label">Avatar</span><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px 6px 48px;color:#dff8ff;font-size:11px;letter-spacing:.12em"><button type="button" id="da-suite-label" class="da-pill"><span class="da-pill-txt">AVATAR · Admirito</span><span class="da-pill-chev" aria-hidden="true">›</span></button><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
       + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;min-height:0;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>'
       + '<button type="button" id="da-suite-resize" aria-label="' + (en() ? 'Resize avatar' : 'Redimensionar el avatar') + '"></button></div>';
     doc.body.appendChild(wrap);
@@ -374,7 +389,12 @@
         + '#da-suite-frame{position:relative;z-index:1}'
         + '#da-suite-resize{position:absolute;left:0;top:0;width:44px;height:44px;padding:0;border:0;background:transparent;cursor:nwse-resize;touch-action:none;z-index:6}'
         + '#da-suite-resize:before{content:"";position:absolute;left:8px;top:8px;width:14px;height:14px;border-left:2px solid rgba(120,243,255,.9);border-top:2px solid rgba(120,243,255,.9)}'
-        + '#da-suite.da-resizing{z-index:2147483646 !important}';
+        + '#da-suite.da-resizing{z-index:2147483646 !important}'
+        + '.da-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid rgba(120,243,255,.45);background:rgba(120,243,255,.08);color:#dff8ff;font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;cursor:pointer;touch-action:pan-y;user-select:none;transition:background .15s,border-color .15s}'
+        + '.da-pill:hover,.da-pill:focus-visible{background:rgba(120,243,255,.18);border-color:#78f3ff;outline:none}'
+        + '.da-pill-chev{font-size:14px;opacity:.75;transition:transform .2s}.da-pill:hover .da-pill-chev{transform:translateX(2px)}'
+        + '#da-suite-frame{transition:opacity .22s ease}#da-suite.da-fading #da-suite-frame{opacity:0}'
+        + '@media (prefers-reduced-motion:reduce){#da-suite-frame{transition:none}}';
       (doc.head || doc.documentElement).appendChild(style);
     }
     fitPanel();
@@ -385,7 +405,53 @@
     try { new MutationObserver(postContext).observe(doc.documentElement, {attributes: true, attributeFilter: ['lang']}); } catch (_) {}
     root.addEventListener('storage', function (e) { if (e && e.key === 'admiranext_expert_lang') postContext(); });
     wrap.querySelector('#da-suite-x').addEventListener('click', function () { wrap.classList.remove('open'); });
+    bindPill(wrap.querySelector('#da-suite-label'));
     return wrap;
+  }
+  function paintPill(lv) {
+    var pill = doc.getElementById('da-suite-label');
+    if (!pill) return;
+    var txt = pill.querySelector('.da-pill-txt');
+    if (txt) txt.textContent = categoryLabel(lv);
+    var tip = en() ? 'Tap to change avatar (swipe or ←/→)' : 'Pulsa para cambiar de avatar (desliza o ←/→)';
+    pill.title = tip;
+    pill.setAttribute('aria-label', categoryLabel(lv) + ' — ' + tip);
+  }
+  // Elección por la pastilla = misma memoria que /avatar <categoría> (localStorage + pestaña).
+  function chooseLevel(lv) {
+    if (!LEVELS[lv]) return;
+    set(LEVEL_KEY, lv);
+    var ss = session(); try { if (ss) ss.setItem(CHOICE_KEY, lv); } catch (_) {}
+    set(KEY, 'on');
+    var wrap = node();
+    if (!wrap || !visible()) { show(true, lv); return; }
+    paintPill(lv);
+    wrap.classList.add('da-fading');
+    root.setTimeout(function () {
+      openLevel(lv);
+      var frame = wrap.querySelector('#da-suite-frame');
+      var done = function () { wrap.classList.remove('da-fading'); };
+      if (frame) frame.addEventListener('load', done, {once: true});
+      root.setTimeout(done, 1500);
+    }, 200);
+  }
+  function stepLevel(dir) { chooseLevel(nextLevel(openedLevel || currentLevel(), dir)); }
+  function bindPill(pill) {
+    if (!pill) return;
+    var start = null, swiped = false;
+    pill.addEventListener('pointerdown', function (e) { start = {x: e.clientX, y: e.clientY}; swiped = false; });
+    pill.addEventListener('pointerup', function (e) {
+      if (!start) return;
+      var dx = e.clientX - start.x, dy = e.clientY - start.y;
+      start = null;
+      if (Math.abs(dx) > 24 && Math.abs(dx) > Math.abs(dy)) { swiped = true; stepLevel(dx > 0 ? 1 : -1); }
+    });
+    pill.addEventListener('pointercancel', function () { start = null; });
+    pill.addEventListener('click', function (e) { e.preventDefault(); if (swiped) { swiped = false; return; } stepLevel(1); });
+    pill.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); stepLevel(1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); stepLevel(-1); }
+    });
   }
   var DA_ORIGIN = 'https://digitalavatar.ai';
   var CTX = {};
@@ -430,8 +496,7 @@
     // Cambiar de nivel recarga la cara; con el mismo nivel, el contexto viaja por postMessage.
     if (!frame.getAttribute('src') || openedLevel !== lv) { openedLevel = lv; frame.setAttribute('src', levelUrl(lv, context())); }
     else postContext();
-    var label = wrap.querySelector('#da-suite-label');
-    if (label) label.textContent = lv;
+    paintPill(lv);
     wrap.style.display = '';
     wrap.classList.add('open');
     applyLift();
@@ -502,7 +567,7 @@
     if (mode === 'status') {
       var now = currentLevel();
       var seen = visible() ? (english ? 'open' : 'abierto') : (english ? 'hidden' : 'oculto');
-      return message('status', english) + (english ? ' Now: ' : ' Ahora: ') + now + ' · ' + seen + '.';
+      return message('status', english) + (english ? ' Now: ' : ' Ahora: ') + categoryLabel(now) + ' · ' + seen + '.';
     }
     if (mode === 'reset') {
       set(KEY, null);
@@ -535,7 +600,7 @@
     return {override: override(), visible: visible(), present: present(), level: currentLevel(), host: host, brain: brainUrl(), context: context()};
   }
 
-  root.AdmiraAvatar = {run: run, handle: handle, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
+  root.AdmiraAvatar = {run: run, handle: handle, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },

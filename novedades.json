@@ -167,5 +167,10 @@
     "Las categorías del avatar se llaman avatar, human y metahuman: Admirito, Luna y Neo",
     "Alex pasa a llamarse Luna en el panel y en la ayuda del ⌘ Experto",
     "/avatar avatar|human|metahuman; good, better y best siguen como alias"
+  ],
+  "v.07.10.2026.r3.07:35": [
+    "La cabecera del avatar es una pastilla: AVATAR · Admirito, HUMAN · Luna, METAHUMAN · Neo",
+    "Pulsa la pastilla para subir de categoría (vuelve a avatar tras metahuman); desliza o usa ←/→ para subir o bajar",
+    "La elección se guarda igual que /avatar y el cambio funde el panel; /avatar avatar|human|metahuman sigue funcionando"
   ]
 }

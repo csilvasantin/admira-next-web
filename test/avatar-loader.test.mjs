@@ -128,3 +128,14 @@ test('pickLevel: /avatar <nivel> de la pestaña > nivel de la página (Matrix �
   assert.equal(A.pickLevel('', 'matrix', 'nope'), 'good');
   assert.equal(A.pickLevel(), 'good');
 });
+
+test('pastilla: avatar → human → metahuman → avatar y al revés', () => {
+  assert.equal(A.nextLevel('good', 1), 'better');
+  assert.equal(A.nextLevel('better', 1), 'best');
+  assert.equal(A.nextLevel('best', 1), 'good');
+  assert.equal(A.nextLevel('good', -1), 'best');
+  assert.equal(A.nextLevel('nope', 1), 'better');
+  assert.equal(A.categoryLabel('better'), 'HUMAN · Luna');
+  assert.equal(A.categoryLabel('best'), 'METAHUMAN · Neo');
+  assert.equal(A.categoryLabel('good'), 'AVATAR · Admirito');
+});
