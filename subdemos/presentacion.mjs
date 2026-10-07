@@ -17,8 +17,12 @@ const propuestasAlsea = {
 };
 
 export function proyectoParaPresentacion(proyectos, {slug: id, displayName, marca} = {}) {
+  const presentationId = slug(id || displayName);
+  const explicit = (proyectos || []).filter(p => presentationId && presentationId === slug(p.presentation_id));
+  // La vinculación expresa gana al nombre; dos vínculos siguen siendo ambiguos.
+  if (explicit.length) return explicit.length === 1 ? explicit[0] : null;
   const candidates = [id, displayName, marca].map(slug).filter(Boolean);
-  const matches = (proyectos || []).filter(p => candidates.some(c => c === slug(p.presentation_id || '') || c === slug(p.id) || c === slug(p.nombre)));
+  const matches = (proyectos || []).filter(p => candidates.some(c => c === slug(p.id) || c === slug(p.nombre)));
   // No elegir silenciosamente un proyecto si dos presentaciones comparten marca.
   return matches.length === 1 ? matches[0] : null;
 }
@@ -37,9 +41,9 @@ export function normalizarDemoProject(raw, cliente = {}) {
   if (!inputContext || typeof inputContext !== 'object' || Array.isArray(inputContext)) throw new Error('demoProject.contexto debe ser un objeto.');
   const contexto = {};
   for (const key of ['marca', 'loc', 'project', 'circuito']) {
-    const value = texto(inputContext[key], 80);
-    if (value && !/^[a-zA-Z0-9_-]+$/.test(value)) throw new Error('Contexto de demo no válido: ' + key);
-    if (value) contexto[key] = value;
+    const value = String(inputContext[key] || '').trim();
+    // El editor admite texto libre: omitirlo, nunca convertirlo en un id distinto.
+    if (value && value.length <= 80 && /^[a-zA-Z0-9_-]+$/.test(value)) contexto[key] = value;
   }
   contexto.marca ||= slug(cliente.marca || cliente.slug || name);
   const inputProposals = source.propuestas ?? (knownAlsea ? propuestasAlsea : {});
