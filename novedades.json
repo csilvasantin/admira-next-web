@@ -236,5 +236,10 @@
   "v.07.10.2026.r17.12:46": [
     "El avatar confirma los comandos locales de demo con el resultado y estado reales del motor, después de cargar su catálogo.",
     "Los reenvíos de una misma petición no repiten el comando; se valida el iframe propio y se conserva el canal anterior."
+  ],
+  "v.07.10.2026.r18.13:24": [
+    "Demo remota en /demo: muestra y narra toda la presentación del cliente, con sus ensayos en cada función",
+    "Voz preparada privada verificada contra el texto actual, con pausa, reanudar y detener",
+    "La grabación se propone al completar el recorrido; nunca se inicia automáticamente"
   ]
 }
