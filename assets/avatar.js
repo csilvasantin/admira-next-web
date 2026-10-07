@@ -6,7 +6,7 @@
  *
  *   /avatar good    Admirito — la nube animada, 2D ligera con lip-sync y vida propia (nube.html)
  *                   (el calvo 3D, better.html, queda como etapa del museo de digitalavatar.ai)
- *   /avatar better  la chica — Ready Player Me con gafas (best.html)
+ *   /avatar better  Alex — anfitriona web Ready Player Me (best.html)
  *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html)
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
@@ -98,11 +98,11 @@
     if (kind === 'on') return en ? 'Digital avatar on' : 'Avatar digital activado';
     if (kind === 'off') return en ? 'Digital avatar off' : 'Avatar digital desactivado';
     if (kind === 'good') return en ? 'Avatar good: Admirito, the animated cloud (moves its lips and lives on its own).' : 'Avatar good: Admirito, la nube animada (mueve los labios y hace cosas sola).';
-    if (kind === 'better') return en ? 'Avatar better: the web girl (Ready Player Me, glasses).' : 'Avatar better: la chica web (Ready Player Me, gafas).';
+    if (kind === 'better') return en ? 'Avatar better: Alex, the web host (Ready Player Me).' : 'Avatar better: Alex, la anfitriona web (Ready Player Me).';
     if (kind === 'best') return en ? 'Avatar best: Neo, MetaHuman.' : 'Avatar best: Neo, MetaHuman.';
     if (kind === 'status') return en
-      ? 'Digital avatar. /avatar good · Admirito, the animated cloud. /avatar better · web girl with glasses. /avatar best · Neo, MetaHuman. /avatarON shows it, /avatarOFF hides it.'
-      : 'Avatar digital. /avatar good · Admirito, la nube animada. /avatar better · la chica web con gafas. /avatar best · Neo, MetaHuman. /avatarON lo muestra, /avatarOFF lo oculta.';
+      ? 'Digital avatar. /avatar good · Admirito, the animated cloud. /avatar better · Alex, the web host. /avatar best · Neo, MetaHuman. /avatarON shows it, /avatarOFF hides it.'
+      : 'Avatar digital. /avatar good · Admirito, la nube animada. /avatar better · Alex, la anfitriona web. /avatar best · Neo, MetaHuman. /avatarON lo muestra, /avatarOFF lo oculta.';
     if (kind === 'mascota-on') return en ? 'Admirito shown. /avatarDigital or /admirito hides it again.' : 'Admirito visible. /avatarDigital o /admirito lo vuelve a ocultar.';
     if (kind === 'mascota-off') return en ? 'Admirito hidden. /avatarDigital or /admirito shows it again.' : 'Admirito oculto. /avatarDigital o /admirito lo vuelve a mostrar.';
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
@@ -164,11 +164,13 @@
   function pickLevel(explicit, page, stored) {
     return LEVELS[explicit] ? explicit : LEVELS[page] ? page : LEVELS[stored] ? stored : 'good';
   }
+  var TIER_AVATAR = { good: 'admirito', better: 'alex', best: 'neo' };
   function levelUrl(level, ctx) {
     var lv = LEVELS[level] ? level : 'good';
     var c = cleanContext(ctx), q = [];
     for (var i = 0; i < CTX_KEYS.length; i++) if (c[CTX_KEYS[i]]) q.push(CTX_KEYS[i] + '=' + encodeURIComponent(c[CTX_KEYS[i]]));
     q.push('tier=' + lv);
+    q.push('avatar=' + (TIER_AVATAR[lv] || 'alex'));
     return LEVELS[lv] + '&' + q.join('&');
   }
 
