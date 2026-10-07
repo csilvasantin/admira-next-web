@@ -70,6 +70,7 @@ const ADOPTADAS = {
 // ya no se detecta (o que ya adopta la barra) también hace fallar el test.
 const EXCEPCIONES = {
   'libro-de-estilo.html': 'Style Book: zona protegida desde el 06-10-2026 (destino de la puerta de login), pero es el libro de estilo con su propia maqueta editorial y no lleva la barra del grupo.',
+  '/avatar-metricas': 'Panel de métricas del avatar para clientes (Starbucks): lo genera en el edge functions/avatar-metricas.js con maqueta de marca clara para enseñarlo al cliente, sin la barra interna del grupo.',
   '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.'
 };
 

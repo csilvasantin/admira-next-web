@@ -303,7 +303,7 @@ export function returnToSeguro(value) {
   const path = String(value || '');
   // /github (zona militarizada, 06-09-2026) vuelve a su sitio tras el login, como /usuarios.
   // Zona protegida (06-10-2026): Style Book, Agentes y Organigrama también vuelven a su página.
-  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' ? path : safeConnection(path) || '/webmaster';
+  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/avatar-metricas' ? path : safeConnection(path) || '/webmaster';
 }
 
 export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {
