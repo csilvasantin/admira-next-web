@@ -5,7 +5,6 @@ const {execFileSync}=require('node:child_process');
 const {pathToFileURL}=require('node:url');
 const {homedir}=require('node:os');
 const {existsSync}=require('node:fs');
-const {chromium}=require('playwright');
 const {collectStylesheets,inlineStylesheets}=require('./_presentation-offline-styles.cjs');
 const args=Object.fromEntries(process.argv.slice(2).reduce((a,v,i,list)=>v.startsWith('--')?[...a,[v.slice(2),list[i+1]]]:a,[]));
 const client=args.client||'alsea-starbucks';
@@ -14,10 +13,15 @@ const repo=path.resolve(__dirname,'..'),out=path.resolve(args.output||path.join(
 const base='https://www.admiranext.com/presentaciones/'+client+'/presentacion?audience=1&lang=es&quality=good';
 const date=new Intl.DateTimeFormat('es-ES',{timeZone:'Europe/Madrid',day:'numeric',month:'long',year:'numeric'}).format(new Date());
 let key='';const assets=new Map();let totalBytes=0;
+function presentationResourceAuth(url,client){
+  const u=url instanceof URL?url:new URL(url);if(!['https://www.admiranext.com','https://admiranext.com'].includes(u.origin)||!u.pathname.startsWith('/presentaciones/'))return false;
+  if(!/^[a-z0-9][a-z0-9-]{1,62}$/.test(client)||!u.pathname.startsWith('/presentaciones/'+client+'/')||/%(?:2f|5c)/i.test(u.pathname))throw Error('Recurso privado de otro cliente o ruta no válida.');
+  return true;
+}
 async function bytes(url){
   const u=new URL(url);if(u.protocol!=='https:'||u.username||u.password)throw Error('Recurso no válido: '+u.pathname);
   const headers={'User-Agent':'Mozilla/5.0'};
-  if(u.origin==='https://www.admiranext.com'&&u.pathname.startsWith('/presentaciones/')){if(!key)key=process.env.ADMIRANEXT_PRESENTACIONES_MACHINE_KEY||execFileSync(args['vault-get']||process.env.ADMIRA_VAULT_GET||path.join(homedir(),'Claude/admira-vault/vault-get.sh'),['ADMIRANEXT_PRESENTACIONES_MACHINE_KEY'],{encoding:'utf8'}).trim();headers['X-Admira-Machine-Key']=key;}
+  if(presentationResourceAuth(u,client)){if(!key)key=process.env.ADMIRANEXT_PRESENTACIONES_MACHINE_KEY||execFileSync(args['vault-get']||process.env.ADMIRA_VAULT_GET||path.join(homedir(),'Claude/admira-vault/vault-get.sh'),['ADMIRANEXT_PRESENTACIONES_MACHINE_KEY'],{encoding:'utf8'}).trim();headers['X-Admira-Machine-Key']=key;}
   const r=await fetch(url,{headers,redirect:'error',signal:AbortSignal.timeout(45000)});
   if(!r.ok)throw Error('Recurso '+u.pathname+': HTTP '+r.status);
   const b=Buffer.from(await r.arrayBuffer());totalBytes+=b.length;if(totalBytes>180*1024*1024)throw Error('Paquete demasiado grande');return b;
@@ -34,7 +38,14 @@ async function cssLocal(css, cssBase=base){
   const matches=[...css.matchAll(/url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/gi)];
   for(const match of matches){const value=match[2];if(value.startsWith('data:')||value.startsWith('#'))continue;const mapped=await local(new URL(value,cssBase).href);css=css.replaceAll(match[0],'url("'+mapped+'")');}return css;
 }
-(async()=>{
+async function localizeDemoMedia(documentacion,resolve,videoPorDemo){
+  async function walk(value){if(!value||typeof value!=='object')return;for(const [key,item] of Object.entries(value)){if((key==='url'||key==='poster')&&typeof item==='string'&&item)value[key]=await resolve(item);else if(item&&typeof item==='object')await walk(item);}}
+  for(const demo of documentacion){demo.video=videoPorDemo(demo);await walk(demo.muestra);await walk(demo.video);}
+}
+module.exports={localizeDemoMedia,presentationResourceAuth};
+if(require.main===module)(async()=>{
+  const {chromium}=require('playwright');
+
   await fs.mkdir(path.join(out,'media'),{recursive:true});
   const project=args.project?JSON.parse(await fs.readFile(args.project,'utf8')):JSON.parse((await bytes('https://www.admiranext.com/presentaciones/'+client+'/api/demo-project')).toString()).demoProject;
   if(!project?.documentacion?.length)throw Error('El proyecto no contiene documentación capturada');
@@ -84,11 +95,12 @@ async function cssLocal(css, cssBase=base){
     await fs.writeFile(path.join(out,'presentacion.html'),html);
     await fs.writeFile(path.join(out,'presentacion.js'),`(function(){const slides=[...document.querySelectorAll('[data-offline-slide]')],select=document.getElementById('offline-select');let at=0;function go(i){at=Math.max(0,Math.min(slides.length-1,i));slides[at].scrollIntoView();select.value=at;}select.addEventListener('change',()=>go(Number(select.value)));document.getElementById('offline-pdf').addEventListener('click',()=>print());document.addEventListener('keydown',e=>{if(/input|select|textarea/i.test(e.target.tagName))return;if(['ArrowDown','PageDown','ArrowRight'].includes(e.key)){e.preventDefault();go(at+1);}if(['ArrowUp','PageUp','ArrowLeft'].includes(e.key)){e.preventDefault();go(at-1);}});const observer=new IntersectionObserver(es=>es.filter(e=>e.isIntersecting).forEach(e=>{at=slides.indexOf(e.target);select.value=at;}),{threshold:.5});slides.forEach(s=>observer.observe(s));})();`);
     const snapshot=structuredClone(project);
-    for(const d of snapshot.documentacion){const m=d.muestra;if(m){m.url=await local(m.url);if(m.poster)m.poster=await local(m.poster);for(const v of m.variantes||[]){v.url=await local(v.url);if(v.poster)v.poster=await local(v.poster);}}}
+    const {videoPorDemo}=await import(pathToFileURL(path.join(repo,'subdemos/retail-videos.mjs')));
+    await localizeDemoMedia(snapshot.documentacion,local,videoPorDemo);
     const {demoGlobalHTML}=await import(pathToFileURL(path.join(repo,'subdemos/demo-player.mjs')));
     await fs.writeFile(path.join(out,'index.html'),demoGlobalHTML(snapshot,{offline:true,presentation:'presentacion.html',css:'demo-player.css',js:'demo-player.js'}));
     await Promise.all(['demo-player.js','demo-player.css'].map(f=>fs.copyFile(path.join(repo,'subdemos',f),path.join(out,f))));
-    await fs.writeFile(path.join(out,'LEEME.txt'),project.nombre+' — '+date+'\n\n1. Descomprime la carpeta completa.\n2. Abre index.html en el navegador del ordenador.\n3. Presentación abre el deck. Demo global contiene las '+snapshot.documentacion.filter(d=>d.clave.includes('/')).length+' funciones.\n4. Iniciar recorrido completo presenta automáticamente Biz → Studio → Store (5, 8 o 12 minutos). Espacio pausa/reanuda; Escape detiene. Activa Escuchar las muestras para oírlas. Audio y vídeo también tienen controles manuales.\n5. presentacion.pdf es la copia de lectura para móvil o correo.\n\nNo hace falta instalar nada, arrancar un servidor ni iniciar sesión para esta copia. Mantén media/ junto a los HTML.\nLos recorridos y resultados son muestras preparadas, no crean ni publican recursos reales. Abrir función online requiere conexión y acceso autorizado.\n');
+    await fs.writeFile(path.join(out,'LEEME.txt'),project.nombre+' — '+date+'\n\n1. Descomprime la carpeta completa.\n2. Abre index.html en el navegador del ordenador.\n3. Presentación abre el deck. Demo global contiene las '+snapshot.documentacion.filter(d=>d.clave.includes('/')).length+' funciones.\n4. Iniciar recorrido completo presenta automáticamente Biz → Studio → Store con ritmo Ágil, Normal o Pausado; la duración total depende de los vídeos. Espacio pausa/reanuda; Escape detiene. Los vídeos tienen sonido por defecto al iniciar y cada función espera su final real. Escuchar los vídeos y Silenciar todo actúan durante la reproducción. Las muestras originales conservan controles manuales.\n5. presentacion.pdf es la copia de lectura para móvil o correo.\n\nNo hace falta instalar nada, arrancar un servidor ni iniciar sesión para esta copia. Mantén media/ junto a los HTML.\nLos recorridos y resultados son muestras preparadas, no crean ni publican recursos reales. Abrir función online requiere conexión y acceso autorizado.\n');
     await page.goto(pathToFileURL(path.join(out,'presentacion.html')).href,{waitUntil:'load'});
     await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].filter(i=>i.src).map(i=>i.complete?Promise.resolve():new Promise((r,j)=>{i.onload=r;i.onerror=()=>j(Error('Imagen no disponible'));})));});
     await page.pdf({path:path.join(out,'presentacion.pdf'),printBackground:true,preferCSSPageSize:true,displayHeaderFooter:false});
@@ -113,7 +125,7 @@ with open(p+'.tmp','wb') as f:w.write(f)
 os.replace(p+'.tmp',p)
 `,path.join(out,'presentacion.pdf'),client]);
     const media=await Promise.all([...assets.values()].map(async file=>{const b=await fs.readFile(path.join(out,file));return {file,bytes:b.length,sha256:crypto.createHash('sha256').update(b).digest('hex')};}));
-    const manifest={client,createdAt:new Date().toISOString(),slides:extracted.slides.length,subdemos:snapshot.documentacion.filter(d=>d.clave.includes('/')).length,media,format:'carpeta HTML autónoma y PDF',autonomous:{order:['biz','studio','store'],durations:[5,8,12],defaultMinutes:8,voice:false}};
+    const manifest={client,createdAt:new Date().toISOString(),slides:extracted.slides.length,subdemos:snapshot.documentacion.filter(d=>d.clave.includes('/')).length,media,format:'carpeta HTML autónoma y PDF',autonomous:{order:['biz','studio','store'],rhythms:['agil','normal','pausado'],defaultRhythm:'normal',readingWeights:[5,8,12],voice:false,video:true,soundByDefault:true,completion:'native-ended'}};
     await fs.writeFile(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2));
     execFileSync('python3',['-c',"import zipfile,pathlib,sys; p=pathlib.Path(sys.argv[1]); z=zipfile.ZipFile(sys.argv[2],'w',zipfile.ZIP_DEFLATED); [z.write(f,arcname=p.name+'/'+str(f.relative_to(p))) for f in sorted(p.rglob('*')) if f.is_file()]; z.close()",out,out+'.zip']);
     console.log(JSON.stringify({output:out,zip:out+'.zip',slides:manifest.slides,subdemos:manifest.subdemos,assets:assets.size,downloadedBytes:totalBytes}));

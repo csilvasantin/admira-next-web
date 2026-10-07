@@ -250,5 +250,10 @@
     "Las muestras privadas de la propia presentación conservan el acceso del origen actual, también en la vista local autorizada",
     "Los errores de reproducción identifican la demo y distinguen permisos de fallos de acceso o formato",
     "La oferta final para preparar el vídeo se lee también fuera de pantalla completa"
+  ],
+  "v.07.10.2026.r21.14:17": [
+    "Las quince funciones de Biz, Studio y Store incorporan vídeos propios con voz y sonido; el recorrido espera al final real de cada clip",
+    "Narración, sonido de los vídeos y silencio global se controlan durante la presentación, sin mezclar las voces",
+    "El editor conserva vídeos personalizados y muestras originales; los ensayos y la copia sin conexión muestran los vídeos completos"
   ]
 }

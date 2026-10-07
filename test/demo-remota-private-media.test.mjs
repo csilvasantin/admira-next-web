@@ -4,23 +4,26 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {clientSlug,extractPresentationSlides,buildRemotePlan,hashNarrationText} from '../demo/remote-plan.mjs';
 import {createRemoteRunner} from '../demo/remote-runner.mjs';
+import {videoPorDemo} from '../subdemos/retail-videos.mjs';
 const source=readFileSync(new URL('../demo/remota.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'');
 function harness(origin='http://localhost:8788'){
  const nodes=new Map(),requests=[];
  class Element {
-  constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.dataset={};this.listeners={};this.textContent='';this.hidden=true;this.disabled=false;this.plays=0;}
+  constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.dataset={};this.listeners={};this.textContent='';this.hidden=true;this.disabled=false;this.plays=0;this.classList={add(){},remove(){},contains(){return false;}};}
   addEventListener(type,fn){this.listeners[type]=fn;}
   append(...children){this.children.push(...children);}
   replaceChildren(...children){this.children=children;}
-  querySelectorAll(){return[];}
+  querySelectorAll(selector){const tags=selector.split(',').map(s=>s.trim().toUpperCase());return this.children.flatMap(child=>[...(tags.includes(child.tagName)?[child]:[]),...child.querySelectorAll(selector)]);}
   scrollIntoView(){}
   pause(){}
   load(){}
   removeAttribute(){}
+  setAttribute(name,value){this[name]=value;}
+  getAttribute(name){return this[name];}
   play(){this.plays++;return Promise.resolve();}
  }
  const get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
- const context={document:{getElementById:get,createElement:tag=>new Element(tag),querySelectorAll:()=>[],querySelector:()=>null,addEventListener(){}},location:{origin,href:origin+'/demo/#remota',hash:'#remota'},URL,Audio:Element,Option:Element,setTimeout,clearTimeout,clientSlug,extractPresentationSlides,buildRemotePlan,hashNarrationText,createRemoteRunner,
+ const context={document:{getElementById:get,createElement:tag=>new Element(tag),querySelectorAll:selector=>[...new Set(['remote-sample','remote-original-sample'].filter(id=>selector.includes('#'+id)).flatMap(id=>get(id).querySelectorAll('audio,video')))],querySelector:()=>null,addEventListener(){}},localStorage:{getItem(){return null;},setItem(){}},location:{origin,href:origin+'/demo/#remota',hash:'#remota'},URL,Audio:Element,Option:Element,setTimeout,clearTimeout,clientSlug,extractPresentationSlides,buildRemotePlan,hashNarrationText,createRemoteRunner,videoPorDemo,
   fetch:(...args)=>{requests.push(args);throw Error('Tests must not access media or providers');},addEventListener(){}};
  context.window=context;vm.createContext(context);vm.runInContext(source,context);vm.runInContext("client='alsea-starbucks'",context);
  return{get,requests,context,run:code=>vm.runInContext(code,context),safe:value=>{context.value=value;return vm.runInContext('safeURL(value)',context);},warning:()=>get('remote-warnings').textContent,Element};
@@ -55,6 +58,16 @@ test('sample and variants keep their demo label, route private sources through c
  const h=harness();h.run("addMedia({tipo:'video',url:'https://www.admiranext.com/presentaciones/alsea-starbucks/media/master.mp4',variantes:[{nombre:'Vertical',url:'/presentaciones/alsea-starbucks/media/vertical.webm'},{nombre:'Other client',url:'https://www.admiranext.com/presentaciones/other-client/media/master.mp4'}]}, {titulo:'Video preparado',clave:'studio/video'})");
  const media=h.get('remote-sample').children;assert.equal(media.length,2);assert.equal(media[0].src,'/presentaciones/alsea-starbucks/media/master.mp4');assert.equal(media[1].src,'/presentaciones/alsea-starbucks/media/vertical.webm');
  assert.equal(media[0].dataset.remoteLabel,'Video preparado (studio/video)');assert.match(media[1].dataset.remoteLabel,/Vertical/);assert.ok(media.every(el=>el.controls&&el.muted));assert.equal(h.requests.length,0);
+});
+test('persistent function video and poster retain own-client gate and reject a later invalid source',()=>{
+ const h=harness();assert.equal(h.run("prepareVideo({titulo:'Prepared function',clave:'store/custom',video:{url:'https://www.admiranext.com/presentaciones/alsea-starbucks/media/reel.mp4?download=1',poster:'https://www.admiranext.com/presentaciones/alsea-starbucks/media/reel.jpg',audio:true}})"),true);
+ const clip=h.get('remote-video');assert.equal(clip.src,'/presentaciones/alsea-starbucks/media/reel.mp4');assert.equal(clip.poster,'/presentaciones/alsea-starbucks/media/reel.jpg');assert.equal(clip.dataset.remoteLabel,'Prepared function (store/custom)');assert.equal(clip.dataset.hasAudio,'true');assert.equal(clip.muted,false);assert.equal(h.requests.length,0);
+ assert.equal(h.run("prepareVideo({titulo:'Other function',clave:'store/custom2',video:{url:'https://www.admiranext.com/presentaciones/other/media/reel.mp4',audio:true}})"),false);
+ assert.equal(h.run('videoReadyKey'),'');
+});
+test('remote global mute covers original manual media and native controls cannot bypass it',()=>{
+ const h=harness();h.run("addMedia({tipo:'audio',url:'https://www.pixeria.com/prepared.mp3'}, {titulo:'Original prepared audio',clave:'store/custom'}, $('remote-original-sample'))");const original=h.get('remote-original-sample').children[0];original.muted=false;
+ h.get('remote-mute').listeners.click();assert.equal(original.muted,true);original.muted=false;original.listeners.volumechange();assert.equal(original.muted,true);h.get('remote-mute').listeners.click();original.muted=false;original.listeners.volumechange();assert.equal(original.muted,false,'manual original sound can be enabled after global mute is disabled');assert.equal(h.requests.length,0);
 });
 async function rejectedPlay(name,mediaCode){
  const h=harness(),el=new h.Element('video');el.dataset.remoteLabel='Video preparado (studio/video) · Vertical';el.ended=false;if(mediaCode)el.error={code:mediaCode};el.play=()=>{el.plays++;return Promise.reject(Object.assign(new Error('test'),{name}));};h.context.el=el;h.run('playSample(el)');await Promise.resolve();await Promise.resolve();return{h,el};

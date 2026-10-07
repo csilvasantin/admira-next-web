@@ -1,6 +1,7 @@
 // Snapshot de un proyecto de demos para anexarlo a su presentación, también desde API/MCP.
 import {GLOBALES, PROYECTOS_INICIALES, RENOMBRADAS, guion, ANTERIORES} from './catalogo.mjs';
 import {normalizarCatalogo, guionDeCatalogo} from './editor-catalogo.mjs';
+import {videoPorDemo} from './retail-videos.mjs?v=20261007-retail-video-1';
 const slug = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const texto = (value, max) => String(value || '').trim().slice(0, max);
 const validas = new Set(GLOBALES.flatMap(g => [g.id, ...[...g.subdemos,...(ANTERIORES[g.id]||[])].map(s => g.id + '/' + s.id)]));
@@ -76,6 +77,6 @@ export function documentacionDemos(project, idioma = 'es', overrideMarca = '') {
       if (contexto[key]) url.searchParams.set(key === 'circuito' ? 'circuit' : key, contexto[key]);
     }
     if (url.pathname.startsWith('/inventario/starbucks/')) url.pathname = url.pathname.replace('/inventario/starbucks/', '/inventario/' + encodeURIComponent(overrideMarca || contexto.marca) + '/');
-    return {...item, url: url.href, propuesta: project.propuestas[item.clave] || item.desc};
+    return {...item, video:videoPorDemo(item), url: url.href, propuesta: project.propuestas[item.clave] || item.desc};
   });
 }

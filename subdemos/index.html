@@ -68,8 +68,11 @@
             <label class="wide">Descripción <textarea id="sub-desc" maxlength="1000"></textarea></label>
             <label class="wide">URL de la función <input id="sub-url" type="url" required maxlength="2048" placeholder="https://"></label>
             <label class="wide">Comando opcional <input id="sub-cmd" maxlength="200" placeholder="/demo store promocion"></label>
+            <label class="wide">Vídeo preparado opcional <input id="sub-video-url" type="url" maxlength="2048" placeholder="https://"></label>
+            <label class="wide">Póster del vídeo opcional <input id="sub-video-poster" type="url" maxlength="2048" placeholder="https://"></label>
+            <label class="wide"><input id="sub-video-audio" type="checkbox"> El vídeo incluye audio preparado</label>
           </div>
-          <p>El ID se mantiene al editar. Las muestras, aliases, pasos y casos existentes se conservan. Los cambios se guardan en este navegador; Exportar permite llevarlos a otro equipo.</p>
+          <p>El ID se mantiene al editar. Las muestras, aliases, pasos y casos existentes se conservan. El vídeo es un archivo preparado: este editor no genera ni sube medios. Vaciar su URL elimina la definición opcional. Los cambios se guardan en este navegador; Exportar permite llevarlos a otro equipo.</p>
           <p id="sub-error" role="alert"></p>
           <button class="btn primario" type="submit">Guardar subdemo</button>
           <button class="btn" id="sub-cancelar" type="button">Cancelar</button>
@@ -99,7 +102,7 @@
   </div>
 </main>
 
-<script type="module" src="/subdemos/subdemos.js?v=20261007-editor-1"></script>
+<script type="module" src="/subdemos/subdemos.js?v=20261007-retail-video-1"></script>
 <script defer src="/assets/admira-frame.js?v=20261007-demo-autopilot-1"></script>
 </body>
 </html>

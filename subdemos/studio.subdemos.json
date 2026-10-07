@@ -82,7 +82,18 @@
       "aliases": [
         "locucion",
         "voz"
-      ]
+      ],
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-voz.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-voz.jpg",
+        "duracion": 30,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
+      }
     },
     {
       "id": "musica",
@@ -158,7 +169,18 @@
       },
       "aliases": [
         "musica"
-      ]
+      ],
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-musica.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-musica.jpg",
+        "duracion": 29,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
+      }
     },
     {
       "id": "imagen",
@@ -230,7 +252,18 @@
       },
       "aliases": [
         "imagen"
-      ]
+      ],
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-imagen.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-imagen.jpg",
+        "duracion": 24,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
+      }
     },
     {
       "id": "video",
@@ -317,7 +350,18 @@
       },
       "aliases": [
         "video"
-      ]
+      ],
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-video.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-video.jpg",
+        "duracion": 26,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
+      }
     },
     {
       "id": "adaptar",
@@ -470,7 +514,18 @@
         "adaptar",
         "formatos",
         "adaptacion"
-      ]
+      ],
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-adaptar.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-adaptar.jpg",
+        "duracion": 27,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
+      }
     }
   ],
   "activacion": {
