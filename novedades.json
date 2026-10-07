@@ -208,5 +208,14 @@
   "v.07.10.2026.r11.11:00": [
     "Cinco subdemos Store y cinco Biz con guion, muestras, casos de ensayo y comandos locales en Experto y avatar.",
     "El editor permite añadir, editar y quitar subdemos; exporta los catálogos y los anexa a las presentaciones."
+  ],
+  "v.07.10.2026.r12.11:25": [
+    "Presentación de Alsea con demo global guiada de quince funciones de Biz, Studio y Store",
+    "Descarga privada de paquete offline HTML con muestras de audio, imagen y vídeo, además de presentación PDF"
+  ],
+  "v.07.10.2026.r13.11:34": [
+    "Alsea: presentación de 38 diapositivas y demo global de las 15 funciones de Biz, Studio y Store",
+    "ZIP autónomo con imágenes, audio y vídeo locales, y PDF para enviar a quienes no asistan",
+    "Descargas privadas con registro de acceso; el catálogo de demos se actualiza con copia previa y revisión obligatoria"
   ]
 }

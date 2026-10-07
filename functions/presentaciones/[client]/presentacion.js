@@ -174,7 +174,7 @@ export async function onRequestGet(context){
   // Ojo: NO se toca baseBlocks, porque de ahi sale locales.es y lo dejariamos en ingles.
   // Los ids y los minutos siguen viniendo del esqueleto base; solo se sustituye el texto.
   const idiomaInicial=languages[0]||'es';
-  const demoDocumentation=config.demoProject?demoDocumentationSlides(config.demoProject,idiomaInicial,new URL(context.request?.url||'https://admiranext.local/').searchParams.get('marca')||''):'';
+  const demoDocumentation=config.demoProject?demoDocumentationSlides(config.demoProject,idiomaInicial,new URL(context.request?.url||'https://admiranext.local/').searchParams.get('marca')||'',client):'';
   const traduccionInicial=idiomaInicial==='es'?null:(ideas.translations||{})[idiomaInicial];
   const enIdiomaInicial=(bloque,indice)=>{
     if(!traduccionInicial)return bloque;
@@ -310,7 +310,9 @@ export async function onRequestGet(context){
     const roleAttr=item.role?` data-role="${esc(item.role)}"`:'';
     const chapterAttr=item.chapter?` data-chapter="${esc(item.chapter)}"`:'';
     const maqueta=maquetaDe(item);
-    const productEyebrow=item.product?`<span class="eyebrow">${esc(item.product)}${item.chapter?` · ${esc(String(item.chapter).toUpperCase())}`:''}</span>`:'';
+    const chapterKey=String(item.chapter||'').toLowerCase();
+    const chapterLabel=chapterKey==='contenid'?'CONTENIDOS':chapterKey==='experien'?'EXPERIENCIA':String(item.chapter||'').toUpperCase();
+    const productEyebrow=item.product?`<span class="eyebrow">${esc(item.product)}${item.chapter?` · ${esc(chapterLabel)}`:''}</span>`:'';
     return `<section class="slide"${presenterSeconds(item)}${mediaFor(key)?' data-slide-media':''} data-slide-key="${esc(key)}" data-segment="proposal" data-section="proposal" data-image-index="${index+2}" data-block="${index}" data-block-id="${esc(item.id||`idea-${index+1}`)}"${actAttr}${roleAttr}${chapterAttr}${maqueta?` data-mb-maqueta="${maqueta}"`:''}${imageAttr(index+2)}${bestVideoAttr(key)}>${mediaFor(key)}<figure class="best-figure" aria-hidden="true"><img alt="" loading="lazy"><video class="best-figure-video" playsinline muted loop preload="metadata" hidden></video></figure><div class="inner"><span class="num">${String(index+1).padStart(2,'0')}</span>${productEyebrow}<h2 data-edit-field="skeleton.title">${esc(item.title)}</h2><p class="message" data-edit-field="skeleton.message">${esc(item.message)}</p><p class="detail" data-edit-field="skeleton.detail">${esc(item.detail)}</p></div>${maqueta?`<figure class="pm-figura" aria-label="Maqueta">${maquetaHtml(prospectBrand,maqueta)}</figure>`:''}${foot(`${index+1}/${baseBlocks.length}`)}</section>${insertAfter(item.id)}`;
   }).join('');
   const coverInsert=insertAfter('cover');

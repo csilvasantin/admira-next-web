@@ -191,6 +191,7 @@ export async function onRequest(context){
   const third = (parts[2] || '').replace(/\.html$/i, '').toLowerCase();
   const isIdeasEditor = !isGallery && second === 'ideas';
   const isIdeasApi = !isGallery && second === 'api' && third === 'ideas';
+  const isDemoProjectApi = !isGallery && second === 'api' && third === 'demo-project';
   const isGenerationApi = !isGallery && second === 'api' && third === 'generation';
   const isCompatibilityApi = !isGallery && second === 'api' && third === 'compatibility';
   const isRoomDeviceLabApi = !isGallery && second === 'api' && third === 'room-device-lab';
@@ -201,7 +202,8 @@ export async function onRequest(context){
   const isDeckAssets = !isGallery && second === 'deck';
   const isBrandAssets = !isGallery && second === 'brand';
   const isPresentationMode = !isGallery && second === 'presentacion';
-  const isIdeasWrite = isIdeasApi && request.method !== 'GET';
+  const isPresentationExtraPage = !isGallery && ['demo','offline'].includes(second);
+  const isIdeasWrite = (isIdeasApi || isDemoProjectApi) && request.method !== 'GET';
   const isGeneratorPage = isGallery;
   const isGalleryPage = first === 'galeria' && parts.length === 1;
   const isPublicSourceBriefApi = first === 'api' && second === 'source-brief';
@@ -345,7 +347,7 @@ export async function onRequest(context){
     context.waitUntil(writeAccessEvent(env, request, {type:'machine_key_failed', client:seg || '_generator', presentation:title, access:'denied', path:url.pathname}));
   }
   const session = directorySession || agentSession || machineSession;
-  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode);
+  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isDemoProjectApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode || isPresentationExtraPage);
   // FLT-100781: Admin (owner) entra a /control/ con Google; editor/viewer siguen fuera.
   const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
   const directoryAllowed = Boolean(session) && allowedBy(session.level, {ownerAllowed, editorAllowed, internalArea:isInternalArea, ownerOnly:isControlArea});
@@ -495,7 +497,12 @@ export async function onRequest(context){
   const trackView = request.method === 'GET' && shouldIdentify(request, parts) && !isInternalArea && !isGallery;
   const viewer = identity || (viaMachine ? MACHINE_IDENTITY : null);
   if (trackView && viewer) context.waitUntil(writeAccessEvent(env, request, {type:'page_view', client:seg, presentation:clientTitle, identity:viewer, access:accessLevel, path:url.pathname, language:url.searchParams.get('lang') || (second === 'english' ? 'en' : '')}));
+  const downloadType=response.headers.get('content-type')||'';
+  if (request.method==='GET' && second==='offline' && response.ok && ['application/zip','application/pdf'].includes(downloadType.split(';')[0].trim())) {
+    context.waitUntil(writeAccessEvent(env, request, {type:'offline_download',client:seg,presentation:clientTitle,identity:viewer,access:accessLevel,path:url.pathname,target:downloadType.startsWith('application/pdf')?'pdf':'zip'}));
+  }
   const isAudienceOutput = isPresentationMode && url.searchParams.get('audience') === '1';
+  if (isPresentationExtraPage) return withBridge(response);
   return withBridge(await injectTelemetry(response, {
     inlineEditor: isPresentationMode && !isAudienceOutput && (masterValid || editorValid),
     qualityLevels: isPresentationMode && !isAudienceOutput

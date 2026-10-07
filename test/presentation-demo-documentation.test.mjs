@@ -11,6 +11,19 @@ import {DEFAULT_BEFORE_DECK} from '../functions/presentaciones/_deck-library.js'
 import {TOOLS, callTool} from '../functions/mcp/_server.js';
 
 const origin = 'https://www.admiranext.test';
+test('package links use the actual protected presentation slug without adding or changing slides', () => {
+  const project=normalizarDemoProject({id:'client-demo',nombre:'Client',demos:['studio/voz'],contexto:{marca:'client'}},{slug:'client',displayName:'Client'});
+  const standalone=demoDocumentationSlides(project);
+  assert.doesNotMatch(standalone,/data-demo-package-links/);
+  const linked=demoDocumentationSlides(project,'en','','client');
+  assert.equal((linked.match(/<section /g)||[]).length,1);
+  assert.match(linked,/href="\/presentaciones\/client\/demo"/);
+  assert.match(linked,/href="\/presentaciones\/client\/offline\?format=zip"/);
+  assert.match(linked,/href="\/presentaciones\/client\/offline\?format=pdf"/);
+  assert.match(linked,/data-demo-text-es="Ver demo global"/);
+  assert.match(linked,/>View the full demo<\/a>/);
+  assert.doesNotMatch(demoDocumentationSlides(project,'es','','../other'),/data-demo-package-links/);
+});
 const root = new URL('../', import.meta.url);
 let realFetch, networkCalls;
 beforeEach(() => {
@@ -48,6 +61,17 @@ async function deck(env, slug='client', query='') {
   return (await render({env,params:{client:slug},request:new Request(origin+'/presentaciones/'+slug+'/presentacion'+query),next(){throw new Error('Unexpected legacy fallback');}})).text();
 }
 const saved = (env, key='presentation:client') => env.PRESENTATION_IDEAS.get(key,{type:'json'});
+
+test('display expands abbreviated chapter headings without changing stored chapter IDs or ideas', async () => {
+  const ideas={hero:{title:'Client'},objective:'Objective',skeleton:[{id:'crear',title:'Create',product:'Studio',chapter:'contenid',enabled:true},{id:'activar',title:'Activate',product:'Store',chapter:'experien',enabled:true}],closing:{title:'Close'},languages:['es']};
+  const env=environment({'presentation:client':{displayName:'Client',outputs:['website'],languages:['es'],theme:{},sequence:{before:null}},'ideas:client':ideas});
+  const html=await deck(env);
+  assert.match(html,/data-chapter="contenid"/);
+  assert.match(html,/Studio · CONTENIDOS<\/span>/);
+  assert.match(html,/data-chapter="experien"/);
+  assert.match(html,/Store · EXPERIENCIA<\/span>/);
+  assert.deepEqual(await saved(env,'ideas:client'),ideas);
+});
 
 test('project selection requires one unique id, name or presentation_id match', () => {
   const first={id:'campaign-one',nombre:'Café Norte',presentation_id:'client',demos:['studio/voz']};
