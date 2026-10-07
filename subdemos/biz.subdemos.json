@@ -50,6 +50,17 @@
         "responsable": "Equipo de demostración",
         "circuito": "demo-alsea-dooh",
         "estado": "Ficha de ejemplo preparada"
+      },
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-proyecto.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-proyecto.jpg",
+        "duracion": 26,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
       }
     },
     {
@@ -112,6 +123,17 @@
           "pieza_segundos": 15,
           "frecuencia": "Una inserción por bloque de ejemplo"
         }
+      },
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-circuito.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-circuito.jpg",
+        "duracion": 25,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
       }
     },
     {
@@ -170,6 +192,17 @@
             "soporte": "Tótem"
           }
         ]
+      },
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-gemelo.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-gemelo.jpg",
+        "duracion": 26,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
       }
     },
     {
@@ -236,6 +269,17 @@
             "control": "Contenido e interacción"
           }
         ]
+      },
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-iot.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-iot.jpg",
+        "duracion": 27,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
       }
     },
     {
@@ -295,6 +339,17 @@
         ],
         "relacion": "Dispositivo → gemelo → servicio",
         "estado": "Inventario de ejemplo preparado"
+      },
+      "video": {
+        "version": 1,
+        "tipo": "video",
+        "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-itil.mp4",
+        "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-itil.jpg",
+        "duracion": 26,
+        "audio": true,
+        "idioma": "es",
+        "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+        "fuente": "ensayo-local"
       }
     }
   ],

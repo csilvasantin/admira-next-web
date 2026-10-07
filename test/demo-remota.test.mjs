@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import {normalizeNarrationText,clientSlug,visibleSlideText,extractPresentationSlides,buildRemotePlan,hashNarrationText} from '../demo/remote-plan.mjs';
 import {createRemoteRunner} from '../demo/remote-runner.mjs';
 import {normalizarDemoProject} from '../subdemos/presentacion.mjs';
+import {videoPorDemo} from '../subdemos/retail-videos.mjs';
 
 // Public saved catalogue, never a copy of a client's private presentation.
 const studio=JSON.parse(readFileSync(new URL('../subdemos/studio.subdemos.json',import.meta.url),'utf8'));
@@ -107,18 +108,19 @@ test('narration error stops progression until explicit fallback; failed voice ca
  h.finish();h.finish();assert.equal(h.offers,1,'explicit full fallback may complete the full plan');
 });
 
-function controller({status=200,body={demoProject:project},deckReady=false,audioMap={segments:[]},slideInput=fixture(),clock=null}={}){
- const nodes=new Map(),calls=[],audios=[];let speeches=0;
- const get=id=>{if(!nodes.has(id))nodes.set(id,{value:'',hidden:true,disabled:false,textContent:'',listeners:{},addEventListener(n,fn){this.listeners[n]=fn;},replaceChildren(){},scrollIntoView(){},querySelectorAll(){return[];}});return nodes.get(id);};
+function controller({status=200,body={demoProject:project},deckReady=false,audioMap={segments:[]},slideInput=fixture(),clock=null,savedSound=null}={}){
+ const nodes=new Map(),calls=[],audios=[],storage=new Map();let speeches=0;
+ if(savedSound)storage.set('admira-demo-audio-v1',JSON.stringify(savedSound));
+ const get=id=>{if(!nodes.has(id)){const classes=new Set();nodes.set(id,{value:'',hidden:true,disabled:false,textContent:'',checked:false,dataset:{},attributes:{},children:[],listeners:{},plays:0,pauses:0,ended:false,currentTime:0,classList:{add:k=>classes.add(k),remove:k=>classes.delete(k),contains:k=>classes.has(k)},addEventListener(n,fn){this.listeners[n]=fn;},replaceChildren(...items){this.children=items;},append(...items){this.children.push(...items);},setAttribute(k,v){this.attributes[k]=v;},getAttribute(k){return this[k]??this.attributes[k];},removeAttribute(k){delete this[k];delete this.attributes[k];},scrollIntoView(){},querySelectorAll(){return[];},play(){this.plays++;this.paused=false;return Promise.resolve();},pause(){this.pauses++;this.paused=true;},load(){}});}return nodes.get(id);};
  get('remote-client').value='alsea-starbucks';get('remote-start').disabled=true;
  const slides=slideInput.map(s=>{const node=new Node('section','',{'class':'slide',...(s.demoKey?{'data-demo-key':s.demoKey}:{})},[new Node('h2',s.text)]);node.scrollIntoView=()=>{};return node;});
  const frame=get('remote-deck');frame.contentDocument={querySelector:()=>deckReady?slides[0]:null,querySelectorAll:selector=>deckReady&&selector==='.slide'?slides:[]};
  Object.defineProperty(frame,'src',{set(){queueMicrotask(()=>frame.onload?.());}});
  class AudioSpy {constructor(){this.paused=true;this.plays=0;this.pauses=0;this.loads=0;audios.push(this);}pause(){this.paused=true;this.pauses++;}load(){this.loads++;}removeAttribute(name){delete this[name];}addEventListener(){}play(){this.paused=false;this.plays++;return Promise.resolve();}}
- const context={document:{getElementById:get,querySelector:()=>null,querySelectorAll:()=>[],addEventListener(){}},location:{href:'https://www.admiranext.test/demo/#remota',origin:'https://www.admiranext.test',hash:'#remota'},clientSlug,extractPresentationSlides,buildRemotePlan,hashNarrationText,createRemoteRunner,URL,Audio:AudioSpy,Option:function(){},setTimeout:clock?.setTimeout||setTimeout,clearTimeout:clock?.clearTimeout||clearTimeout,...(clock?{Date:class extends Date {static now(){return clock.now();}}}:{}),
+ const context={document:{getElementById:get,querySelector:()=>null,querySelectorAll:()=>[],addEventListener(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},location:{href:'https://www.admiranext.test/demo/#remota',origin:'https://www.admiranext.test',hash:'#remota'},clientSlug,extractPresentationSlides,buildRemotePlan,hashNarrationText,createRemoteRunner,videoPorDemo,URL,Audio:AudioSpy,Option:function(){},setTimeout:clock?.setTimeout||setTimeout,clearTimeout:clock?.clearTimeout||clearTimeout,...(clock?{Date:class extends Date {static now(){return clock.now();}}}:{}),
   fetch:async(url,options)=>{calls.push({url,options});return{ok:status>=200&&status<300,status,json:async()=>url.includes('/remote-audio')?audioMap:body};},addEventListener(){},speechSynthesis:{cancel(){},getVoices(){return[];},speak(){speeches++;}},SpeechSynthesisUtterance:function(){}};
  context.window=context;vm.createContext(context);const source=readFileSync(new URL('../demo/remota.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'');vm.runInContext(source,context);
- return{get,calls,audios,get speeches(){return speeches;},click:id=>get(id).listeners.click?.()};
+ return{get,calls,audios,storage,run:code=>vm.runInContext(code,context),get speeches(){return speeches;},click:id=>get(id).listeners.click?.(),change:id=>get(id).listeners.change?.()};
 }
 
 for(const status of [401,403,503])test('protected API '+status+' never makes an iframe load a successful ready state',async()=>{
@@ -167,6 +169,67 @@ test('mismatched prepared text hash never plays the audio or falsely announces n
  const c=controller({deckReady:true,audioMap:{segments:[{id:'s001',textHash:'0'.repeat(64),duration:2,url:'https://www.admiranext.test/presentaciones/alsea-starbucks/remote-audio?segment=s001'}]}});
  try{
   await c.click('remote-load');assert.match(c.get('remote-warnings').textContent,/no coincide/);c.click('remote-start');assert.equal(c.audios[0].plays,0);assert.equal(c.get('remote-record').hidden,true);assert.equal(c.get('remote-fallback').hidden,false);
+ }finally{c.click('remote-stop');}
+});
+const preparedVideo={version:1,tipo:'video',url:'https://www.admiranext.com/assets/demos/suite-v1/store-voz.mp4',poster:'https://www.admiranext.com/assets/demos/suite-v1/store-voz.jpg',audio:true,idioma:'es',descripcion:'Generic prepared function',fuente:'ensayo-local'};
+async function retailController({demos=[{clave:'store/custom',titulo:'Generic function',guion:[{texto:'Generic first phase'},{texto:'Generic final phase'}],video:preparedVideo}],savedSound=null}={}){
+ const saved={documentacion:demos},slides=[...demos.map(d=>({text:'Generic function slide '+d.clave,demoKey:d.clave})),{text:'Generic closing'}],segments=buildRemotePlan(slides,saved),clock=fakeClock();
+ const entries=await Promise.all(segments.map(async segment=>({id:segment.id,textHash:await hashNarrationText(segment.text),duration:5,url:'https://www.admiranext.test/presentaciones/alsea-starbucks/remote-audio?segment='+segment.id})));
+ const c=controller({body:{demoProject:saved},deckReady:true,slideInput:slides,audioMap:{segments:entries},clock,savedSound});await c.click('remote-load');return{...c,clock,segments,entries,state:()=>c.run('runner.snapshot().state'),index:()=>c.run('runner.snapshot().index'),start:async()=>{c.click('remote-start');await Promise.resolve();},voiceEnd:()=>c.audios[0].onended?.(),videoEnd:()=>{c.get('remote-video').ended=true;c.get('remote-video').onended?.();}};
+}
+test('remote final phase narrates first and waits for actual persistent clip ended before closing or completion',async()=>{
+ const c=await retailController();try{
+  const clip=c.get('remote-video');assert.equal(clip.plays,0);assert.equal(c.audios.length,1);await c.start();assert.equal(clip.plays,1,'Start primes the one persistent video');assert.equal(clip.paused,true);
+  c.voiceEnd();assert.equal(c.index(),1);assert.equal(clip.plays,1);c.voiceEnd();assert.equal(c.index(),2);assert.equal(clip.plays,1,'earlier rehearsal phases never play the function reel');assert.equal(c.get('remote-demo').classList.contains('video-playing'),false);
+  const finalVoiceEnd=c.audios[0].onended;c.voiceEnd();assert.equal(c.index(),2);assert.equal(clip.plays,2);assert.equal(clip.hidden,false);assert.equal(clip.muted,false);assert.equal(c.get('remote-record').hidden,true);assert.equal(c.get('remote-demo').classList.contains('video-playing'),true);
+  finalVoiceEnd();assert.equal(clip.plays,2,'duplicate narration end does not restart the reel');c.clock.tick(60000);assert.equal(c.index(),2,'clock duration cannot complete a playing clip');
+  const clipEnded=clip.onended;c.videoEnd();assert.equal(c.index(),3);assert.equal(c.audios[0].src,c.entries[3].url);clipEnded();finalVoiceEnd();assert.equal(c.index(),3,'duplicate old events cannot skip the closing');assert.equal(c.get('remote-demo').classList.contains('video-playing'),false);
+  assert.equal(c.get('remote-record').hidden,true);c.voiceEnd();assert.equal(c.state(),'complete');assert.equal(c.get('remote-record').hidden,false);assert.equal(c.audios.length,1);
+ }finally{c.click('remote-stop');}
+});
+test('clip pause preserves position, paused ended cannot advance, and stop/restart rejects stale video callbacks',async()=>{
+ const c=await retailController();try{
+  await c.start();c.voiceEnd();c.voiceEnd();c.voiceEnd();const clip=c.get('remote-video'),ended=clip.onended,error=clip.onerror;clip.currentTime=13;
+  c.click('remote-pause');assert.equal(clip.paused,true);ended();assert.equal(c.state(),'paused');assert.equal(c.index(),2);c.clock.tick(10000);assert.equal(c.index(),2);
+  c.click('remote-pause');assert.equal(clip.currentTime,13);assert.equal(clip.paused,false);assert.equal(clip.plays,3);
+  c.click('remote-stop');ended();error();assert.equal(c.state(),'idle');assert.equal(c.get('remote-record').hidden,true);assert.equal(c.get('remote-demo').classList.contains('video-playing'),false);
+  await c.start();ended();error();assert.equal(c.state(),'running');assert.equal(c.index(),0);assert.equal(c.get('remote-record').hidden,true);
+ }finally{c.click('remote-stop');}
+});
+test('sound settings independently mute narration and clips, persist across players and enforce native mute',async()=>{
+ const c=await retailController({savedSound:{narration:false,samples:true,muted:false}});try{
+  await c.start();const voice=c.audios[0],clip=c.get('remote-video');assert.equal(voice.muted,true);assert.equal(clip.muted,false);assert.equal(c.get('remote-narration').checked,false);assert.equal(c.get('remote-sound').checked,true);
+  c.click('remote-mute');assert.equal(voice.muted,true);assert.equal(clip.muted,true);assert.equal(c.get('remote-mute').attributes['aria-pressed'],'true');clip.muted=false;clip.listeners.volumechange();assert.equal(clip.muted,true);
+  c.click('remote-mute');assert.equal(voice.muted,true);assert.equal(clip.muted,false);c.get('remote-sound').checked=false;c.change('remote-sound');assert.equal(clip.muted,true);
+  const saved=JSON.parse(c.storage.get('admira-demo-audio-v1'));assert.deepEqual(saved,{narration:false,samples:false,muted:false});const reload=controller({savedSound:saved});assert.equal(reload.get('remote-sound').checked,false);assert.equal(reload.audios[0].muted,true);
+  c.run("demoVideo.dataset.hasAudio='false'");c.get('remote-sound').checked=true;c.change('remote-sound');assert.equal(clip.muted,true,'video audio:false remains silent');
+ }finally{c.click('remote-stop');}
+});
+test('invalid second video clears the primed source and fails locally rather than replaying or completing a previous function',async()=>{
+ const demos=[{clave:'store/first',titulo:'Generic first',guion:[{texto:'Generic phase'}],video:preparedVideo},{clave:'store/second',titulo:'Generic second',guion:[{texto:'Generic phase'}],video:{...preparedVideo,url:'javascript:alert(1)'}}];
+ const c=await retailController({demos});try{
+  await c.start();c.voiceEnd();c.voiceEnd();c.videoEnd();assert.equal(c.index(),2);c.get('remote-video').ended=false;c.voiceEnd();assert.equal(c.get('remote-video').src,undefined);c.voiceEnd();assert.equal(c.state(),'error');assert.equal(c.index(),3);assert.match(c.get('remote-status').textContent,/ruta no válida/);assert.equal(c.get('remote-record').hidden,true);assert.equal(c.get('remote-fallback').textContent,'Reintentar fase y vídeo');
+ }finally{c.click('remote-stop');}
+});
+test('duplicate narration end preserves clip watchdog; video failure never advances or offers recording',async()=>{
+ const c=await retailController();try{
+  await c.start();c.voiceEnd();c.voiceEnd();const ended=c.audios[0].onended;c.voiceEnd();ended();c.clock.tick(330000);assert.equal(c.state(),'error');assert.equal(c.index(),2);assert.match(c.get('remote-status').textContent,/Vídeo de .*no ha terminado/);assert.equal(c.get('remote-record').hidden,true);
+ }finally{c.click('remote-stop');}
+});
+for(const reason of ['NotAllowedError','NotSupportedError'])test('prepared clip '+reason+' blocks the function and requires explicit retry without recording',async()=>{
+ const c=await retailController();try{
+  await c.start();c.voiceEnd();c.voiceEnd();const clip=c.get('remote-video');clip.play=()=>Promise.reject(Object.assign(new Error('test'),{name:reason}));c.voiceEnd();await Promise.resolve();await Promise.resolve();
+  assert.equal(c.state(),'error');assert.equal(c.index(),2);assert.equal(c.get('remote-record').hidden,true);assert.equal(c.get('remote-fallback').textContent,'Reintentar fase y vídeo');
+  assert.match(c.get('remote-status').textContent,reason==='NotAllowedError'?/autorizar el sonido/:/acceso o formato/);
+  const index=c.index();c.clock.tick(600000);assert.equal(c.index(),index);assert.equal(c.state(),'error');
+ }finally{c.click('remote-stop');}
+});
+test('a stale Start prime promise cannot pause, rewind or mute a clip from a restarted run',async()=>{
+ const c=await retailController();try{
+  const clip=c.get('remote-video'),play=clip.play.bind(clip);let resolveOld;
+  clip.play=()=>{clip.plays++;clip.paused=false;clip.play=play;return new Promise(resolve=>{resolveOld=resolve;});};
+  await c.start();c.click('remote-stop');await c.start();c.voiceEnd();c.voiceEnd();c.voiceEnd();clip.currentTime=17;const pauses=clip.pauses;
+  resolveOld();await Promise.resolve();await Promise.resolve();assert.equal(clip.pauses,pauses);assert.equal(clip.currentTime,17);assert.equal(clip.paused,false);assert.equal(c.index(),2);
  }finally{c.click('remote-stop');}
 });
 test('recording intent is an explicit button, never a POST, provider generation or form submission',()=>{

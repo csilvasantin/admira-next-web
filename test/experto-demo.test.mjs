@@ -13,9 +13,9 @@ const snap = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
 
 function withLang(initial, hostname = 'www.admiranext.com', savedManifests = null, clock = null, mockedFetch = null) {
   const makeElement = tag => {
-    const el = {tagName:String(tag).toUpperCase(),children:[],attrs:{},style:{},textContent:'',paused:true,
+    const el = {tagName:String(tag).toUpperCase(),children:[],attrs:{},style:{},textContent:'',paused:true,ended:false,listeners:{},
       classList:{add(){},contains:()=>false,toggle(){},remove(){}},setAttribute(k,v){this.attrs[k]=String(v);},getAttribute(k){return this.attrs[k] ?? null;},removeAttribute(k){delete this.attrs[k];},
-      appendChild(child){child.parentNode=this;this.children.push(child);},removeChild(child){this.children=this.children.filter(c=>c!==child);child.parentNode=null;},insertBefore(){},addEventListener(){},
+      appendChild(child){if(child.parentNode)child.parentNode.removeChild(child);child.parentNode=this;this.children.push(child);},removeChild(child){this.children=this.children.filter(c=>c!==child);child.parentNode=null;},insertBefore(){},addEventListener(type,fn){this.listeners[type]=fn;},load(){this.ended=false;this.loads=(this.loads||0)+1;},
       play(){this.plays=(this.plays||0)+1;this.paused=false;return Promise.resolve();},pause(){this.paused=true;},
       querySelectorAll(selector){const tags=selector.split(',').map(t=>t.trim().toUpperCase()),all=[];const walk=node=>node.children.forEach(c=>{if(tags.includes(c.tagName))all.push(c);walk(c);});walk(this);return all;},
       querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
@@ -346,17 +346,16 @@ for (const [platform,host] of [['store','www.admira.store'],['biz','www.admira.b
     const navigation=[];location.assign=url=>navigation.push(url);
     const lines=[],log={appendChild:li=>lines.push(li.textContent),children:[]};
     assert.deepEqual(snap(api.parseDemo('/demo auto')),{auto:true,local:true});
-    api.demo('/demo auto',log);assert.equal(api.demoEstado().total,5);assert.equal(api.demoEstado().fase,1);
+    api.demo('/demo auto',log);await Promise.resolve();assert.equal(api.demoEstado().total,5);assert.equal(api.demoEstado().fase,1);
     const firstModal=sandbox.document.getElementById('ax-demo-muestra');assert.ok(firstModal);assert.equal(firstModal.querySelectorAll('audio,video').every(el=>el.paused),true,'media does not play in preparation phase');
     clock.advance(1000);api.demo('/demo pausa',log);const paused=snap(api.demoEstado());clock.advance(120000);assert.deepEqual(snap(api.demoEstado()),paused);
     api.demo('/demo reanudar',log);const interval=Math.max(1800,Math.min(30000,(Number(canonical.subdemos[0].duracion)||40)*1000/canonical.subdemos[0].guion.length));
     clock.advance(interval-1001);assert.equal(api.demoEstado().fase,1);clock.advance(1);assert.equal(api.demoEstado().fase,2,'resume preserves remaining phase time');
-    const media=firstModal.querySelectorAll('audio,video');assert.equal(media.every(el=>el.muted),true,'default keeps samples silent while the presenter speaks');
-    if(platform==='store')assert.equal(media.every(el=>!el.paused),true,'Store listening/result phase starts silent playback');
+    const media=firstModal.querySelectorAll('audio,video'),clip=media.find(el=>el.src===canonical.subdemos[0].video.url),originals=media.filter(el=>el!==clip);assert.ok(clip);assert.equal(originals.every(el=>el.muted&&el.paused),true,'original samples remain manual and initially silent');assert.equal(clip.muted,false,'prepared function video sound is enabled by default');assert.equal(clip.paused,true,'clip does not start before final phase');
     if(platform==='studio'){
-      assert.equal(media.every(el=>el.paused),true,'Studio does not reveal a generated sample early');
+      assert.equal(media.every(el=>el.paused),true,'Studio does not play media early');
       while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente',log);
-      assert.equal(media.every(el=>!el.paused),true,'Studio reveals its prepared result in the final phase');
+      assert.equal(clip.paused,false,'Studio plays the prepared function reel at the final phase');assert.equal(originals.every(el=>el.paused),true,'original results remain manual');
     }
     const keys=new Set([api.demoEstado().demo]);
     while(api.demoEstado().activo){api.demo('/demo siguiente',log);keys.add(api.demoEstado().demo);}
@@ -380,9 +379,61 @@ test('paused next crosses demo boundary without restarting, and an empty custom 
 test('listening unmutes only the first adaptation variant and remains selected across pause/resume',()=>{
   const clock=rehearsalClock(),{api,sandbox}=withLang('es','www.admira.studio',null,clock);
   api.demo('/demo 5');while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente');
-  const modal=sandbox.document.getElementById('ax-demo-muestra'),media=modal.querySelectorAll('video'),sound=modal.querySelector('input');
+  const modal=sandbox.document.getElementById('ax-demo-muestra'),media=modal.querySelectorAll('video').filter(el=>!/assets\/demos\/suite-v1\//.test(el.src)),sound=modal.querySelector('input');
   assert.equal(media.length,4);assert.equal(media.every(el=>el.muted),true);
   sound.checked=true;sound.onchange();assert.deepEqual(media.map(el=>el.muted),[false,true,true,true]);
   api.demo('/demo pausa');api.demo('/demo reanudar');assert.equal(sound.checked,true);assert.deepEqual(media.map(el=>el.muted),[false,true,true,true]);
   sound.checked=false;sound.onchange();assert.equal(media.every(el=>el.muted),true);api.demo('/demo stop');
+});
+
+for(const platform of ['store','biz','studio'])test(platform+': all five native function clips reuse one element and actual ended owns final advance',async()=>{
+ const m=JSON.parse(readFileSync(join(dir,'../subdemos/'+platform+'.subdemos.json'),'utf8')),clock=rehearsalClock(),{api,sandbox}=withLang('es','www.admira.'+platform,{[platform]:m},clock);
+ const modal=()=>sandbox.document.getElementById('ax-demo-muestra'),movie=()=>modal().querySelectorAll('video').find(el=>/assets\/demos\/suite-v1\//.test(el.src));api.demo('/demo auto');await Promise.resolve();const persistent=movie();assert.ok(persistent);assert.equal(persistent.paused,true);
+ const ids=[];for(let i=0;i<5;i++){
+  const d=m.subdemos[i],interval=Math.max(1800,Math.min(30000,(Number(d.duracion)||40)*1000/d.guion.length));assert.equal(movie(),persistent);assert.equal(movie().src,d.video.url);ids.push(api.demoEstado().demo);
+  clock.advance(interval*(d.guion.length-1)+1);assert.equal(api.demoEstado().fase,d.guion.length);assert.equal(persistent.paused,false);assert.equal(persistent.muted,false);
+  const ended=persistent.onended;clock.advance(120000);assert.equal(api.demoEstado().numero,i+1,'timer does not complete unfinished video');assert.equal(api.demoEstado().activo,true);
+  persistent.ended=true;ended();if(i<4){assert.equal(api.demoEstado().numero,i+2);assert.equal(persistent.ended,false);ended();assert.equal(api.demoEstado().numero,i+2,'old video callback cannot skip new function');}else{assert.equal(api.demoEstado().activo,false);ended();assert.equal(api.demoEstado().numero,5);}
+ }
+ assert.deepEqual(ids,m.subdemos.map(d=>platform+'/'+d.id));assert.equal(clock.pending(),0);api.demo('/demo stop');if(platform==='store')assert.equal(api.parseDemo('/demo tpv'),null);
+});
+test('native video pause/resume retains position, stop rejects stale errors and mute persists without playing original samples',async()=>{
+ const m=JSON.parse(readFileSync(join(dir,'../subdemos/store.subdemos.json'),'utf8')),clock=rehearsalClock(),{api,sandbox,storage}=withLang('es','www.admira.store',{store:m},clock);
+ api.demo('/demo auto');await Promise.resolve();while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente');const modal=sandbox.document.getElementById('ax-demo-muestra'),media=modal.querySelectorAll('audio,video'),clip=media.find(el=>el.src===m.subdemos[0].video.url),ended=clip.onended,error=clip.onerror;clip.currentTime=11;
+ api.demo('/demo pausa');assert.equal(clip.paused,true);clip.ended=true;ended();assert.equal(api.demoEstado().numero,1);assert.equal(api.demoEstado().pausado,true);clip.ended=false;api.demo('/demo reanudar');assert.equal(clip.currentTime,11);assert.equal(clip.paused,false);
+ const mute=modal.querySelectorAll('button').find(el=>el.textContent==='Silenciar todo');mute.onclick();assert.equal(clip.muted,true);assert.equal(JSON.parse(storage.getItem('admira-demo-audio-v1')).muted,true);clip.muted=false;clip.onvolumechange();assert.equal(clip.muted,true);
+ assert.equal(media.filter(el=>el!==clip).every(el=>el.paused),true);api.demo('/demo stop');ended();error();assert.deepEqual(snap(api.demoEstado()),{activo:false});api.demo('/demo auto');await Promise.resolve();ended();error();assert.equal(api.demoEstado().numero,1);assert.equal(api.demoEstado().fase,1);api.demo('/demo stop');
+});
+test('native invalid video and format failure stay incomplete and offer explicit retry',async()=>{
+ const canonical=JSON.parse(readFileSync(join(dir,'../subdemos/store.subdemos.json'),'utf8'));
+ for(const invalid of [false,true]){
+  const m=structuredClone(canonical);if(invalid)m.subdemos[0].video.url='javascript:alert(1)';const clock=rehearsalClock(),{api,sandbox}=withLang('es','www.admira.store',{store:m},clock);api.demo('/demo auto');await Promise.resolve();
+  while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente');const modal=sandbox.document.getElementById('ax-demo-muestra');if(!invalid)modal.querySelectorAll('video').find(el=>el.src===m.subdemos[0].video.url).onerror();
+  assert.equal(api.demoEstado().activo,true);assert.equal(api.demoEstado().pausado,true);clock.advance(600000);assert.equal(api.demoEstado().numero,1);const paragraphs=modal.querySelectorAll('p').map(el=>el.textContent).join(' ');assert.match(paragraphs,invalid?/no válido/:/acceso o el formato/);api.demo('/demo stop');
+ }
+});
+test('native persistent prime promise cannot rewind or pause a later active clip',async()=>{
+ const m=JSON.parse(readFileSync(join(dir,'../subdemos/store.subdemos.json'),'utf8')),clock=rehearsalClock(),{api,sandbox}=withLang('es','www.admira.store',{store:m},clock),create=sandbox.document.createElement;let resolvePrime;
+ sandbox.document.createElement=tag=>{const el=create(tag);if(tag==='video'&&!resolvePrime){const play=el.play.bind(el);el.play=()=>{el.play=play;el.paused=false;return new Promise(resolve=>{resolvePrime=resolve;});};}return el;};
+ api.demo('/demo auto');while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente');const clip=sandbox.document.getElementById('ax-demo-muestra').querySelectorAll('video').find(el=>el.src===m.subdemos[0].video.url);clip.currentTime=14;resolvePrime();await Promise.resolve();assert.equal(clip.currentTime,14);assert.equal(clip.paused,false);api.demo('/demo stop');
+});
+test('persistent video replaces previous sound guard so a silent function cannot mute the next audible function',async()=>{
+ const m=JSON.parse(readFileSync(join(dir,'../subdemos/store.subdemos.json'),'utf8'));m.subdemos[0].video.audio=false;const {api,sandbox}=withLang('es','www.admira.store',{store:m},rehearsalClock());api.demo('/demo auto');await Promise.resolve();const clip=sandbox.document.getElementById('ax-demo-muestra').querySelectorAll('video').find(el=>el.src===m.subdemos[0].video.url);assert.equal(clip.muted,true);
+ while(api.demoEstado().numero===1)api.demo('/demo siguiente');assert.equal(clip.src,m.subdemos[1].video.url);clip.onvolumechange();assert.equal(clip.muted,false);api.demo('/demo stop');
+});
+for(const platform of ['store','biz','studio'])test(platform+': legacy local and fetched catalogs keep each canonical reel without changing saved rehearsal text',async()=>{
+ const canonical=JSON.parse(readFileSync(join(dir,'../subdemos/'+platform+'.subdemos.json'),'utf8')),legacy=structuredClone(canonical);legacy.subdemos.forEach((d,i)=>{if(i%2)d.video=null;else delete d.video;});const before=JSON.stringify(legacy);
+ for(const local of [true,false]){
+  const {api,storage}=withLang('es','www.admira.'+platform,local?{[platform]:legacy}:null,rehearsalClock(),async()=>({ok:true,json:async()=>structuredClone(legacy)}));await api.listo();const actual=snap(api.subdemos());assert.equal(actual.subdemos.length,5);
+  actual.subdemos.forEach((d,i)=>{assert.deepEqual(d.video,canonical.subdemos[i].video);assert.deepEqual(d.guion,legacy.subdemos[i].guion);assert.deepEqual(d.muestra,legacy.subdemos[i].muestra);});if(local)assert.equal(JSON.stringify(JSON.parse(storage.getItem('ax-subdemos-manifiestos'))[platform]),before);
+ }assert.equal(JSON.stringify(legacy),before);
+});
+test('native catalog keeps explicit video overrides and never lends a core reel to an unknown function',async()=>{
+ const m=JSON.parse(readFileSync(join(dir,'../subdemos/store.subdemos.json'),'utf8')),custom=structuredClone(m);custom.subdemos[0].video.url='https://www.pixeria.com/prepared/custom.mp4';custom.subdemos[1].video.url='javascript:alert(1)';custom.subdemos[2].video=false;custom.subdemos.push({id:'unknown',nombre:'Unknown prepared function',url:'https://www.admira.store/unknown',aliases:['unknown'],guion:[{texto:'Generic phase'}]});
+ const {api}=withLang('es','www.admira.store',{store:custom},rehearsalClock());await api.listo();const actual=snap(api.subdemos());assert.deepEqual(actual.subdemos[0].video,custom.subdemos[0].video);assert.deepEqual(actual.subdemos[1].video,custom.subdemos[1].video);assert.equal(actual.subdemos[2].video,false);assert.equal(actual.subdemos.at(-1).video,undefined);
+ api.demo('/demo 3');while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente');assert.equal(api.demoEstado().pausado,true,'unsupported explicit override remains blocked instead of borrowing canonical media');api.demo('/demo stop');
+});
+test('native prime waits for successful play before pausing and resets, while an old resolved prime cannot touch a restarted run',async()=>{
+ const m=JSON.parse(readFileSync(join(dir,'../subdemos/store.subdemos.json'),'utf8')),clock=rehearsalClock(),{api,sandbox}=withLang('es','www.admira.store',{store:m},clock),create=sandbox.document.createElement;let resolvePrime;
+ sandbox.document.createElement=tag=>{const el=create(tag);if(tag==='video'&&!resolvePrime){const play=el.play.bind(el);el.play=()=>{el.play=play;el.paused=false;return new Promise(resolve=>{resolvePrime=resolve;});};}return el;};api.demo('/demo auto');const clip=sandbox.document.getElementById('ax-demo-muestra').querySelectorAll('video').find(el=>el.src===m.subdemos[0].video.url);assert.equal(clip.paused,false,'pending priming playback must not be aborted by immediate pause');assert.equal(clip.volume,0);clip.currentTime=1;resolvePrime();await Promise.resolve();assert.equal(clip.paused,true);assert.equal(clip.currentTime,0);assert.equal(clip.volume,1);api.demo('/demo stop');
 });

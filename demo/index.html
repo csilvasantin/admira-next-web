@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261007-demo-autopilot-1">
 <link rel="stylesheet" href="/demo/demo.css?v=20261006-completa-v2">
-<link rel="stylesheet" href="/demo/remota.css?v=20261007-remote-private-media-3">
+<link rel="stylesheet" href="/demo/remota.css?v=20261007-retail-video-1">
 </head>
 <body data-yk-title="DEMO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
 
@@ -77,13 +77,14 @@
         <p>Quiénes somos, qué hacemos y qué proponemos: todas las diapositivas de tu presentación y sus demos, de principio a fin. Pulsa Iniciar y mírala mientras avanza sola.</p>
         <div class="remote-options"><label>Presentación<input id="remote-client" value="alsea-starbucks" autocomplete="off" pattern="[a-z0-9-]+"></label><label>Idioma<select id="remote-lang"><option value="es">Español</option></select></label></div>
         <div class="remote-actions"><button type="button" class="btn" id="remote-load">Cargar presentación</button><button type="button" class="btn primario" id="remote-start" disabled>▶ Iniciar presentación narrada</button><button type="button" class="btn" id="remote-pause" disabled>Pausar</button><button type="button" class="btn" id="remote-next" disabled>Siguiente</button><button type="button" class="btn" id="remote-stop" disabled>Detener</button><button type="button" class="btn" id="remote-fullscreen">Pantalla completa</button></div>
+        <div class="remote-audio-controls"><label><input id="remote-narration" type="checkbox" checked> Narración</label><label><input id="remote-sound" type="checkbox" checked> Sonido de los clips</label><button type="button" class="btn" id="remote-mute" aria-pressed="false">Silenciar todo</button></div>
         <p class="remote-status" id="remote-status" role="status" aria-live="polite">Carga la presentación con tu sesión autorizada.</p><progress class="remote-progress" id="remote-progress" max="100" value="0" aria-label="Progreso de la presentación"></progress>
         <p id="remote-warnings" class="remote-status" role="status"></p>
         <p id="remote-caption" class="remote-caption"></p>
-        <div class="remote-stage"><iframe id="remote-deck" title="Presentación completa del cliente" referrerpolicy="same-origin" hidden></iframe><article class="remote-demo" id="remote-demo" hidden><p id="remote-phase-count"></p><h3 id="remote-demo-title"></h3><p id="remote-phase" class="remote-phase"></p><div id="remote-sample" class="remote-sample"></div><div id="remote-case" class="remote-case" hidden></div><p>Ensayo con datos y muestras preparados. No genera, vende ni emite contenido.</p></article></div>
+        <div class="remote-stage"><iframe id="remote-deck" title="Presentación completa del cliente" referrerpolicy="same-origin" hidden></iframe><article class="remote-demo" id="remote-demo" hidden><p id="remote-phase-count"></p><h3 id="remote-demo-title"></h3><p id="remote-phase" class="remote-phase"></p><div id="remote-sample" class="remote-sample"><video id="remote-video" controls playsinline preload="metadata" hidden></video></div><details id="remote-original" hidden><summary>Muestra original · reproducción manual con el recorrido detenido</summary><div id="remote-original-sample" class="remote-sample"></div></details><div id="remote-case" class="remote-case" hidden></div><p>Ensayo con datos y muestras preparados. No genera, vende ni emite contenido.</p></article></div>
         <button type="button" class="btn" id="remote-fallback" hidden>Continuar sin voz con avance temporizado</button>
-        <p class="remote-help">La voz preparada se reproduce cuando coincide con el texto actual; en otras presentaciones se usa la voz disponible del navegador. Si no hay voz, verás el error antes de elegir continuar sin ella. Pausa y Detener cancelan la narración. Las muestras se mantienen sin sonido.</p>
-        <details class="remote-help"><summary>English help</summary><p>Remote Demo shows the entire authenticated presentation and its saved rehearsals. Start once to watch it advance with narration. Prepared audio is checked against the current text. Pause, resume and stop control narration. If speech is unavailable, an explicit timed fallback is offered. Recording is offered only after the full presentation; no video is recorded automatically.</p></details>
+        <p class="remote-help">La voz preparada se reproduce cuando coincide con el texto actual; en otras presentaciones se usa la voz disponible del navegador. Si no hay voz, verás el error antes de elegir continuar sin ella. Pausa y Detener cancelan la narración. Cada función incluye su vídeo preparado. Primero termina la narración del paso; después se reproduce el clip con sonido y se espera su final. Puedes silenciar la narración, los clips o todo el audio sin detener el recorrido.</p>
+        <details class="remote-help"><summary>English help</summary><p>Remote Demo shows the entire authenticated presentation and its saved rehearsals. Start once to watch it advance with narration. Prepared narration is checked against the current text. Each function has its own prepared video, played after the final phase narration and completed before advancing. Narration, clip sound and global mute have independent controls. Pause, resume and stop control narration and video. If speech is unavailable, an explicit timed fallback is offered. Recording is offered only after the full presentation; no video is recorded automatically.</p></details>
         <aside id="remote-record" class="remote-record" hidden><h3>¿Quieres grabar esta presentación en vídeo para enviarla como respaldo?</h3><p>La presentación ha terminado. La grabación necesita tu aceptación y se preparará en un paso posterior.</p><button type="button" class="btn" id="remote-record-intent">Sí, quiero preparar el vídeo</button><p id="remote-record-status" role="status"></p></aside>
       </section>
 
@@ -518,6 +519,6 @@
 <script src="/demo/demo.js?v=20261005-demo" defer></script>
 <script type="module" src="/demo/completa.js?v=20261007-remote-1"></script>
 <script defer src="/assets/admira-frame.js?v=20261007-demo-autopilot-1"></script>
-<script type="module" src="/demo/remota.js?v=20261007-remote-private-media-3"></script>
+<script type="module" src="/demo/remota.js?v=20261007-retail-video-1"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 // Se guarda en este navegador (localStorage «ax-subdemos»); Exportar/Importar lo mueve a otro.
 import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto, pasoTexto, proyectoLimpio, CONTEXTO, ANTERIORES} from './catalogo.mjs?v=20261007-subdemos-5';
 
-import {normalizarCatalogo, catalogoActual, guardarSubdemo, borrarSubdemo} from './editor-catalogo.mjs';
+import {normalizarCatalogo, catalogoActual, guardarSubdemo, borrarSubdemo} from './editor-catalogo.mjs?v=20261007-retail-video-1';
 
 const KEY = 'ax-subdemos';
 const KEY_MANIF = 'ax-subdemos-manifiestos'; // manifiestos importados a mano en este navegador
@@ -41,6 +41,7 @@ function editarSubdemo(platform,id='') {
   editingSub=id?{platform,id,entry}:null;
   $('#sub-plataforma').value=platform;$('#sub-plataforma').disabled=Boolean(id);
   for(const key of ['id','letra','nombre','desc','url','cmd'])$('#sub-'+key).value=entry?.[key]||'';
+  $('#sub-video-url').value=entry?.video?.url||'';$('#sub-video-poster').value=entry?.video?.poster||'';$('#sub-video-audio').checked=entry?.video?.audio===true;
   $('#sub-id').readOnly=Boolean(id);
   $('#editor-subdemo').hidden=false;$('#sub-error').textContent='';$('#sub-nombre').focus();
 }
@@ -60,6 +61,12 @@ $('#editor-subdemo').addEventListener('submit',e=>{
   e.preventDefault();
   try{const platform=$('#sub-plataforma').value,entry={...(editingSub?.entry||{})};
     for(const key of ['id','letra','nombre','desc','url','cmd'])entry[key]=$('#sub-'+key).value.trim();
+    const videoURL=$('#sub-video-url').value.trim(),poster=$('#sub-video-poster').value.trim();
+    if(poster&&!videoURL)throw Error('Añade la URL del vídeo antes del póster.');
+    if(videoURL){
+      entry.video={version:1,tipo:'video',idioma:'es',descripcion:entry.desc||entry.nombre,fuente:'ensayo-local',...(entry.video||{}),url:videoURL,audio:$('#sub-video-audio').checked===true};
+      if(poster)entry.video.poster=poster;else delete entry.video.poster;
+    }else if(entry.video!==null)delete entry.video;
     entry.aliases ||= [entry.id];
     const next=guardarSubdemo(catalogoEditor(),platform,entry,editingSub?.id||'');persistirCatalogo(next,platform);cerrarEditor();pintar();aviso('Subdemo guardada en este navegador.');
   }catch(err){$('#sub-error').textContent=err.message;}

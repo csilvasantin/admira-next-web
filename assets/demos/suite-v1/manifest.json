@@ -1,0 +1,323 @@
+{
+  "version": 1,
+  "label": "Ensayos preparados de la Suite Admira",
+  "font": "Inter · misma fuente de la presentación Alsea",
+  "audio": "Voz Mónica es-ES y muestras locales preparadas; ninguna ejecución productiva",
+  "clips": [
+    {
+      "key": "biz-proyecto",
+      "duracion": 26.0,
+      "bytes": 569883,
+      "sha256": "ae675cdc3e9b97c7a98f6d95a1a27e196d8af0871bd78edbbac0623f5c7872a4",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "Organiza el proyecto retail desde una ficha común. En este ensayo, el proyecto conecta el circuito, los locales y sus dispositivos. Los equipos comparten una estructura para planificar contenidos y operaciones. Esta es la base del recorrido: un proyecto, múltiples espacios y una misma Suite Admira.",
+      "source": "native-prepared-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-proyecto.mp4"
+    },
+    {
+      "key": "biz-circuito",
+      "duracion": 25.0,
+      "bytes": 523242,
+      "sha256": "6eab22862d2302ae4a81e322145603a26730c0c9489f3d5706c5c46dc17c481f",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "El circuito reúne la pantalla de entrada, el escaparate y el tótem. El vuelo define fechas, franjas e inserciones de la campaña. En este ejemplo preparado, el mismo contenido acompaña al cliente en distintos momentos de su visita. La red y el calendario quedan relacionados dentro del proyecto.",
+      "source": "native-prepared-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-circuito.mp4"
+    },
+    {
+      "key": "biz-gemelo",
+      "duracion": 26.0,
+      "bytes": 591034,
+      "sha256": "83393b6e17233df1d7a6c7cafebf3f50cb3b8fa256215ea5dc5d66a09fc1d497",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "El gemelo digital relaciona las zonas de la tienda con sus superficies de comunicación. Entrada, caja y sala tienen sus propios puntos de Retail Media. La representación permite entender dónde aparece cada contenido y cómo se conecta con el espacio. Este ensayo utiliza un local piloto y datos de ejemplo.",
+      "source": "native-prepared-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-gemelo.mp4"
+    },
+    {
+      "key": "biz-iot",
+      "duracion": 27.0,
+      "bytes": 614753,
+      "sha256": "cc64b630f344d4adc30391f029406427a7460c7e8cb253de1b1cf077c225ab8f",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "Pantallas, altavoces, cámaras y tótems se incorporan al espacio digital. Cada dispositivo tiene una identidad, una ubicación y una función de control. Esta muestra explica la relación entre los equipos y la tienda; no muestra telemetría en directo. La Suite reúne contenido, audio y dispositivos dentro de un mismo contexto.",
+      "source": "native-prepared-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-iot.mp4"
+    },
+    {
+      "key": "biz-itil",
+      "duracion": 26.0,
+      "bytes": 581339,
+      "sha256": "5a9d646d2479809a568ab419e5babf11720cd3a1a849f7590779e691c876f5b4",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "El inventario tecnológico conecta cada dispositivo con su elemento de configuración, su gemelo digital y el servicio de Retail Media. Los equipos de operaciones pueden seguir esas relaciones para entender qué servicio depende de cada activo. Este es un inventario de ejemplo preparado para explicar el recorrido completo.",
+      "source": "native-prepared-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-itil.mp4"
+    },
+    {
+      "key": "store-voz",
+      "duracion": 32.0,
+      "bytes": 1071978,
+      "sha256": "9635f81a168ec1d3b1fca56a13efccdc2dcbbc6f88817ce3b174ca7dc5e822a1",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "La locución se programa para una franja y unas zonas concretas. En este ensayo de cafetería, entrada y caja reciben el mensaje de desayuno, con el volumen definido en la programación. Primero organizamos el contenido; después escuchamos una muestra preparada del resultado. La reproducción de esta presentación puede silenciarse en cualquier momento.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/store-voz.mp4"
+    },
+    {
+      "key": "store-musica",
+      "duracion": 27.0,
+      "bytes": 923225,
+      "sha256": "acd547fe6eb5c0bccad3b16fc1d34b5737f32350359c41609ddb8fd83c01d0e0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "El hilo musical acompaña la experiencia de la tienda. La programación de ejemplo asigna el ambiente de cafetería a sala y terraza, con una franja y un volumen propios. Cuando entra una locución, la regla contempla atenuar temporalmente la música. Escucha ahora un fragmento de la pista preparada.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/store-musica.mp4"
+    },
+    {
+      "key": "store-imagenes",
+      "duracion": 26.0,
+      "bytes": 633845,
+      "sha256": "984076ad0aaa18c5819cec1512b0dff897d238af26fb0f7ae2b16c8232aad866",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "La creatividad de café se incorpora a la campaña de desayuno y a la pantalla de entrada. La lista establece su orden y su franja de reproducción. El ensayo muestra cómo una imagen preparada pasa de ser un archivo a formar parte de la comunicación del espacio. La programación de esta muestra no publica en pantallas reales.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/store-imagenes.mp4"
+    },
+    {
+      "key": "store-video",
+      "duracion": 25.0,
+      "bytes": 1203659,
+      "sha256": "b3faf63e8ba90a75bab64dd37d6cecb98e46199173309aca7724a9552c1c6be5",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "El vídeo de café ocupa la segunda posición de la campaña de desayuno. La programación lo dirige a la pantalla de pared y lo integra en el bucle de la lista. Observa el contenido en movimiento dentro de la representación de la tienda. Este ensayo utiliza un clip preparado y no emite a dispositivos físicos.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/store-video.mp4"
+    },
+    {
+      "key": "store-tpv",
+      "duracion": 30.0,
+      "bytes": 1139304,
+      "sha256": "3e839f7fc2cf7bba2b634e416632fb3e2fa030b6c8c580ddb2259bbd810f01a0",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "La selección de un muffin en el TPV sirve de disparador para una campaña asociada. El ensayo conecta el evento con caja, pantalla de pared y altavoces. A continuación verás la grabación preparada: el producto llega a la caja y aparece en la cesta. Es una simulación local, sin venta ni emisión a una tienda real.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/store-tpv.mp4"
+    },
+    {
+      "key": "studio-voz",
+      "duracion": 30.0,
+      "bytes": 1018451,
+      "sha256": "ca81191fcda23ed954393b8c330b10f2d340cd710bd8b21239208ab9e76ee7fe",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "La creación de una locución comienza con un mensaje y una intención. El ejemplo utiliza español, una voz adulta cálida y un tono cercano para una cafetería. El recorrido muestra el texto, la preparación de la voz y el resultado. Ahora escuchamos la locución de muestra, lista para explicar cómo se incorpora después a Store.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-voz.mp4"
+    },
+    {
+      "key": "studio-musica",
+      "duracion": 29.0,
+      "bytes": 991797,
+      "sha256": "eb2f0fb4118bee2d067a4efba89f0f8e4762576b45dce11ef95040632bb326e6",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "El brief musical describe el ambiente que necesita el espacio. Para esta cafetería buscamos una pista que acompañe la visita y permita convivir con los mensajes de voz. El ensayo recorre la preparación y la escucha del resultado. A continuación suena un fragmento preparado para la demostración, sin generar ni contratar música durante el recorrido.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-musica.mp4"
+    },
+    {
+      "key": "studio-imagen",
+      "duracion": 24.0,
+      "bytes": 548118,
+      "sha256": "2beaeb12aebe72da80d920a06db2dee2b69dc3871580c7861bdcaf3ad09b3b71",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "La creación de imagen parte del brief de la campaña: café, bollería y una pausa en la visita. El recorrido muestra cómo se prepara una creatividad y cómo se revisa su resultado antes de llevarla a los canales del espacio. La imagen que ves es una muestra preparada para este ensayo de la Suite Admira.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-imagen.mp4"
+    },
+    {
+      "key": "studio-video",
+      "duracion": 26.0,
+      "bytes": 1301375,
+      "sha256": "1a79eae78b80797918ed302bcefc1cc916f4011722f124968e1cbcb2f354d3b4",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "El vídeo añade movimiento a la creatividad de café. La demostración parte de una imagen preparada y muestra el resultado audiovisual para la campaña. Observa el cambio entre la composición y el clip en movimiento. Este recorrido utiliza muestras existentes: no realiza generación ni publicación durante la presentación.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-video.mp4"
+    },
+    {
+      "key": "studio-adaptar",
+      "duracion": 27.0,
+      "bytes": 1240671,
+      "sha256": "f2491e8bbcd3de8d8696cbeb7c011e73ba988a6900350fcaa3490c6cfe71f146",
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "narracion": "Una campaña necesita convivir con pantallas de formas diferentes. La Suite prepara versiones horizontales, verticales, cuadradas y de barra. Aquí ves cuatro archivos reales de muestra, cada uno con su propia proporción y encaje. El contenido conserva su intención visual mientras se adapta a los puntos de comunicación del espacio.",
+      "source": "official-rehearsal-ui",
+      "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-adaptar.mp4"
+    }
+  ]
+}

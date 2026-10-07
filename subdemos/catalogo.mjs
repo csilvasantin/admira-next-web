@@ -1,4 +1,5 @@
-import {MANIFIESTOS_NEGOCIO} from './negocio.mjs?v=20261007-store-biz-1';
+import {videoPorDemo} from './retail-videos.mjs?v=20261007-retail-video-1';
+import {MANIFIESTOS_NEGOCIO} from './negocio.mjs?v=20261007-retail-video-1';
 // Catálogo de demos (Carlos, 7-oct-2026, demo Alsea · Starbucks).
 // Demos globales = plataformas (las mismas ids que /demo del ⌘ Experto, suite/experto.js).
 // Subdemos = funcionalidades dentro de cada una: URL que se abre y, si hace falta, la orden de Experto.
@@ -59,7 +60,7 @@ export function guion(demos) {
   const pasos = [];
   for (const g of GLOBALES) {
     if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id, steps: [], guion: [], muestra: null});
-    for (const s of [...g.subdemos, ...(ANTERIORES[g.id] || []).filter(old => !g.subdemos.some(current => current.id === old.id))]) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || [], guion: s.guion || [], muestra: s.muestra || null, ensayo_url: s.ensayo_url || '', caso: s.caso || null});
+    for (const s of [...g.subdemos, ...(ANTERIORES[g.id] || []).filter(old => !g.subdemos.some(current => current.id === old.id))]) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || [], guion: s.guion || [], muestra: s.muestra || null, video:videoPorDemo({clave:g.id+'/'+s.id,video:s.video}), ensayo_url: s.ensayo_url || '', caso: s.caso || null});
   }
   return pasos;
 }

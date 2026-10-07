@@ -62,6 +62,17 @@ export const MANIFIESTOS_NEGOCIO = [
           "tipo": "audio",
           "url": "https://www.pixeria.com/assets/demos/studio-v1/locucion-es.mp3",
           "descripcion": "Locución preparada para el ensayo; programación de ejemplo."
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/store-voz.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/store-voz.jpg",
+          "duracion": 32,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -112,6 +123,17 @@ export const MANIFIESTOS_NEGOCIO = [
           "tipo": "audio",
           "url": "https://www.pixeria.com/assets/demos/studio-v1/musica-cafe.mp3",
           "descripcion": "Pista preparada para ilustrar la gestión del hilo musical."
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/store-musica.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/store-musica.jpg",
+          "duracion": 27,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -161,6 +183,17 @@ export const MANIFIESTOS_NEGOCIO = [
           "tipo": "image",
           "url": "https://www.pixeria.com/assets/demos/studio-v1/imagen-cafe.jpg",
           "descripcion": "Creatividad preparada para el ensayo de gestión."
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/store-imagenes.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/store-imagenes.jpg",
+          "duracion": 26,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -211,6 +244,17 @@ export const MANIFIESTOS_NEGOCIO = [
           "url": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.mp4",
           "poster": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.jpg",
           "descripcion": "Clip preparado para el ensayo de gestión."
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/store-video.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/store-video.jpg",
+          "duracion": 25,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -256,6 +300,17 @@ export const MANIFIESTOS_NEGOCIO = [
             "Pantalla de pared",
             "Altavoces"
           ]
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/store-tpv.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/store-tpv.jpg",
+          "duracion": 30,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       }
     ],
@@ -313,6 +368,17 @@ export const MANIFIESTOS_NEGOCIO = [
           "responsable": "Equipo de demostración",
           "circuito": "demo-alsea-dooh",
           "estado": "Ficha de ejemplo preparada"
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-proyecto.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-proyecto.jpg",
+          "duracion": 26,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -375,6 +441,17 @@ export const MANIFIESTOS_NEGOCIO = [
             "pieza_segundos": 15,
             "frecuencia": "Una inserción por bloque de ejemplo"
           }
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-circuito.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-circuito.jpg",
+          "duracion": 25,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -433,6 +510,17 @@ export const MANIFIESTOS_NEGOCIO = [
               "soporte": "Tótem"
             }
           ]
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-gemelo.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-gemelo.jpg",
+          "duracion": 26,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -499,6 +587,17 @@ export const MANIFIESTOS_NEGOCIO = [
               "control": "Contenido e interacción"
             }
           ]
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-iot.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-iot.jpg",
+          "duracion": 27,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       },
       {
@@ -558,6 +657,17 @@ export const MANIFIESTOS_NEGOCIO = [
           ],
           "relacion": "Dispositivo → gemelo → servicio",
           "estado": "Inventario de ejemplo preparado"
+        },
+        "video": {
+          "version": 1,
+          "tipo": "video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/biz-itil.mp4",
+          "poster": "https://www.admiranext.com/assets/demos/suite-v1/biz-itil.jpg",
+          "duracion": 26,
+          "audio": true,
+          "idioma": "es",
+          "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+          "fuente": "ensayo-local"
         }
       }
     ],
