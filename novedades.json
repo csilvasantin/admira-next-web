@@ -241,5 +241,9 @@
     "Demo remota en /demo: muestra y narra toda la presentación del cliente, con sus ensayos en cada función",
     "Voz preparada privada verificada contra el texto actual, con pausa, reanudar y detener",
     "La grabación se propone al completar el recorrido; nunca se inicia automáticamente"
+  ],
+  "v.07.10.2026.r19.13:37": [
+    "Demo remota en pantalla completa: los datos de circuito, gemelo, IoT e ITIL aprovechan el espacio del escenario",
+    "Los casos agrupados se distribuyen en columnas sin el recorte de altura anterior; controles y progreso siguen visibles"
   ]
 }
