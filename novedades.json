@@ -157,5 +157,10 @@
   ],
   "v.06.10.2026.r21.10:40": [
     "/idioma ENG: en /organigrama también el nuevo contador «N trabajando» del latido y el «Trabajando · …» de cada consejero."
+  ],
+  "v.07.10.2026.r1.06:54": [
+    "Good = Admirito, Better = Alex, Best = Neo: el panel pasa avatar= en la URL de cada cara",
+    "«¿Quién eres?» responde distinto en cada nivel; los hechos entrenados no se mezclan",
+    "Train de hechos: POST brain…/metahuman/train con Bearer ADMIN_TOKEN (bóveda)"
   ]
 }

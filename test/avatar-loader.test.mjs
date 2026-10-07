@@ -109,10 +109,10 @@ test('el encendido automático no guarda la elección del usuario', () => {
 
 test('levelUrl: el panel abre la cara con el contexto del cliente y tier = nivel', () => {
   assert.equal(A.levelUrl('good', {loc: 'alsea-sbux-021', lang: 'es-ES', brand: 'admira', sector: 'cafeteria', x: 'no'}),
-    'https://digitalavatar.ai/nube.html?dock=1&loc=alsea-sbux-021&lang=es&sector=cafeteria&tier=good');
+    'https://digitalavatar.ai/nube.html?dock=1&loc=alsea-sbux-021&lang=es&sector=cafeteria&tier=good&avatar=admirito');
   assert.equal(A.levelUrl('best', {brand: 'lumbre', site: 'Lumbre Gràcia'}),
-    'https://digitalavatar.ai/metahuman.html?dock=1&brand=lumbre&site=Lumbre%20Gr%C3%A0cia&tier=best');
-  assert.equal(A.levelUrl('nope', {}), 'https://digitalavatar.ai/nube.html?dock=1&tier=good');
+    'https://digitalavatar.ai/metahuman.html?dock=1&brand=lumbre&site=Lumbre%20Gr%C3%A0cia&tier=best&avatar=neo');
+  assert.equal(A.levelUrl('nope', {}), 'https://digitalavatar.ai/nube.html?dock=1&tier=good&avatar=admirito');
   assert.deepEqual(JSON.parse(JSON.stringify(A.cleanContext({lang: 'EN', brand: 'off', city: '  Barcelona '}))), {lang: 'en', city: 'Barcelona'});
 });
 
