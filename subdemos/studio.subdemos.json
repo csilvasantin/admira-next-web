@@ -20,7 +20,7 @@
       "steps": [],
       "muestra": {
         "tipo": "audio",
-        "url": "https://www.admira.studio/assets/demos/studio-v1/locucion-es.mp3",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/locucion-es.mp3",
         "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
         "variantes": []
       },
@@ -104,7 +104,7 @@
       ],
       "muestra": {
         "tipo": "audio",
-        "url": "https://www.admira.studio/assets/demos/studio-v1/musica-cafe.mp3",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/musica-cafe.mp3",
         "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
         "variantes": []
       },
@@ -180,7 +180,7 @@
       ],
       "muestra": {
         "tipo": "image",
-        "url": "https://www.admira.studio/assets/demos/studio-v1/imagen-cafe.jpg",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/imagen-cafe.jpg",
         "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
         "variantes": []
       },
@@ -252,10 +252,10 @@
       ],
       "muestra": {
         "tipo": "video",
-        "url": "https://www.admira.studio/assets/demos/studio-v1/video-fuente.mp4",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.mp4",
         "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
         "variantes": [],
-        "poster": "https://www.admira.studio/assets/demos/studio-v1/video-fuente.jpg"
+        "poster": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.jpg"
       },
       "guion": [
         {
@@ -346,12 +346,12 @@
       ],
       "muestra": {
         "tipo": "video",
-        "url": "https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.mp4",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.mp4",
         "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
         "variantes": [
           {
             "nombre": "horizontal",
-            "url": "https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.mp4",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.mp4",
             "ancho": 1920,
             "alto": 1080,
             "encaje": "recortar",
@@ -361,11 +361,11 @@
             "bytes": 1725926,
             "sha256": "8abb6aa02bdfbe673c1ae678c7521a4138e3d913ea79a7dfd68157c6563e3881",
             "formato": "1920x1080",
-            "poster": "https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.jpg"
+            "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.jpg"
           },
           {
             "nombre": "vertical",
-            "url": "https://www.admira.studio/assets/demos/studio-v1/adaptado-vertical.mp4",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-vertical.mp4",
             "ancho": 1080,
             "alto": 1920,
             "encaje": "recortar",
@@ -375,11 +375,11 @@
             "bytes": 1999117,
             "sha256": "fed4b18cc3f03e40e97d44a9278a0ac958d80f525dcc766c39590dce4e7b1f2e",
             "formato": "1080x1920",
-            "poster": "https://www.admira.studio/assets/demos/studio-v1/adaptado-vertical.jpg"
+            "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-vertical.jpg"
           },
           {
             "nombre": "cuadrado",
-            "url": "https://www.admira.studio/assets/demos/studio-v1/adaptado-cuadrado.mp4",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-cuadrado.mp4",
             "ancho": 1080,
             "alto": 1080,
             "encaje": "recortar",
@@ -389,11 +389,11 @@
             "bytes": 1150973,
             "sha256": "1caefb82c748f507a179ca1292b7b74eadef37d88bdeaf389effdc5aeaa18e9c",
             "formato": "1080x1080",
-            "poster": "https://www.admira.studio/assets/demos/studio-v1/adaptado-cuadrado.jpg"
+            "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-cuadrado.jpg"
           },
           {
             "nombre": "barra",
-            "url": "https://www.admira.studio/assets/demos/studio-v1/adaptado-barra.mp4",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-barra.mp4",
             "ancho": 1920,
             "alto": 540,
             "encaje": "contener",
@@ -403,10 +403,10 @@
             "bytes": 560382,
             "sha256": "18b9545ab7c9b0d9c4ea3f237c41a21f7d0ec8fe2e954865518f86a5b4258983",
             "formato": "1920x540",
-            "poster": "https://www.admira.studio/assets/demos/studio-v1/adaptado-barra.jpg"
+            "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-barra.jpg"
           }
         ],
-        "poster": "https://www.admira.studio/assets/demos/studio-v1/adaptado-horizontal.jpg"
+        "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.jpg"
       },
       "guion": [
         {
