@@ -62,7 +62,7 @@ test('aplicarManifiesto conserva objetos del pack de Trinity (steps, muestra, gu
     const txt = guionTexto({nombre: 'P', demos: ['studio/voz']});
     assert.match(txt, /- di: hola/);
     assert.doesNotMatch(txt, /\[object Object\]/);
-    assert.match(txt, /Muestra: https:\/\/www\.admira\.studio\/assets\/demos\/studio-v1\//);
+    assert.match(txt, /Muestra: https:\/\/www\.pixeria\.com\/assets\/demos\/studio-v1\//);
     // Ids antiguos guardados en un navegador siguen apuntando a la subdemo nueva.
     assert.deepEqual(guion(['studio/locucion', 'studio/formatos']).map((p) => p.clave), ['studio/voz', 'studio/adaptar']);
   } finally { studio.subdemos = antes; }

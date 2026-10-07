@@ -183,6 +183,24 @@ test('manifiesto incorporado = pack de Trinity (ids, alias, muestra como objeto)
     assert.deepEqual(snap(d.aliases), t.aliases);
     assert.equal(typeof d.muestra, 'object');
     assert.equal(d.muestra.url, t.muestra.url);
+    assert.match(d.muestra.url, /^https:\/\/www\.pixeria\.com\/assets\/demos\/studio-v1\//);
     assert.equal(d.muestra.variantes.length, t.muestra.variantes.length);
   });
+});
+
+test('manifiesto publicado con muestras en admira.studio: se reescriben a www.pixeria.com (allí dan 404)', async () => {
+  const pub = JSON.parse(JSON.stringify(manifest).replaceAll('https://www.pixeria.com/assets/demos/', 'https://www.admira.studio/assets/demos/'));
+  const h = withLang('es', 'www.admira.studio');
+  h.sandbox.fetch = undefined;
+  const { api } = (() => {
+    const src2 = src.replace("typeof fetch !== 'function'", "false");
+    const sb = h.sandbox; sb.fetch = async () => ({ ok: true, json: async () => JSON.parse(JSON.stringify(pub)) });
+    vm.runInNewContext(src2, sb, { filename: 'experto.js' });
+    return { api: sb.AdmiraExperto };
+  })();
+  await api.listo();
+  const m = api.subdemos();
+  const urls = m.subdemos.flatMap((d) => [d.muestra.url, d.muestra.poster, ...(d.muestra.variantes || []).flatMap((v) => [v.url, v.poster])]).filter(Boolean);
+  assert.ok(urls.length >= 10);
+  assert.ok(urls.every((u) => !/admira\.studio\/assets\/demos/.test(u)), urls.join('\n'));
 });

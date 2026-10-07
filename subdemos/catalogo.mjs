@@ -97,7 +97,8 @@ export function aplicarManifiesto(m) {
   if (!Array.isArray(m.subdemos) || !m.subdemos.length) throw new Error('sin subdemos');
   const subs = m.subdemos.map((x) => {
     if (!x || !/^[a-z0-9-]{1,40}$/.test(x.id) || !x.nombre || !/^https:\/\//.test(x.url || '')) throw new Error('subdemo no válida: ' + (x && x.id));
-    const s = JSON.parse(JSON.stringify(x));
+    // Los recursos de muestra viven en www.pixeria.com; en www.admira.studio/assets/demos/ dan 404 (7-oct-2026).
+    const s = JSON.parse(JSON.stringify(x).replace(/https:\/\/(www\.)?admira\.studio\/assets\/demos\//g, 'https://www.pixeria.com/assets/demos/'));
     Object.assign(s, {id: x.id, nombre: String(x.nombre), desc: String(x.desc || ''), url: x.url});
     if (x.letra) s.letra = String(x.letra);
     if (x.cmd) s.cmd = String(x.cmd);
