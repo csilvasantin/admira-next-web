@@ -6,6 +6,10 @@
     "Marca blanca siempre con la marca real del cliente: /marca 365 en las 5 plataformas",
     "Contenido común de marca · desconexiones temporales por local, próximamente"
   ],
+  "v.07.10.2026.r10.10:57": [
+    "Métricas del avatar digital en /avatar-metricas (y digitalavatar.ai/metricas): conversaciones, duración, preguntas más frecuentes, temas, idioma, avatar y plataforma, filtrables por marca (Starbucks) y periodo",
+    "Detrás de tu sesión de AdmiraNeXT; sin IP ni datos personales"
+  ],
   "v.07.10.2026.r7.10:34": [
     "Una sola sesión: si ya entraste en AdmiraNeXT (Webmaster, Usuarios, Agentes…) con Google, el Generador de presentaciones te deja pasar directo, sin nombre, correo ni contraseña",
     "Y al revés: entrar en Presentaciones con Google abre también la sesión común; se recuerda 30 días y el registro de accesos (identidad, fecha, presentación, IP) sigue igual"
@@ -197,7 +201,7 @@
     "/demo de admira.studio: las muestras de locución, música, imagen, vídeo y formatos se cargan desde www.pixeria.com, donde están publicadas (en admira.studio daban 404).",
     "Si el manifiesto publicado aún apunta a admira.studio, Experto, el avatar y /subdemos corrigen las direcciones al cargarlo."
   ],
-  "v.07.10.2026.r10.10:57": [
+  "v.07.10.2026.r11.11:00": [
     "Cinco subdemos Store y cinco Biz con guion, muestras, casos de ensayo y comandos locales en Experto y avatar.",
     "El editor permite añadir, editar y quitar subdemos; exporta los catálogos y los anexa a las presentaciones."
   ]
