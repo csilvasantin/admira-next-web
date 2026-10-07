@@ -6,6 +6,7 @@ const {pathToFileURL}=require('node:url');
 const {homedir}=require('node:os');
 const {existsSync}=require('node:fs');
 const {chromium}=require('playwright');
+const {collectStylesheets,inlineStylesheets}=require('./_presentation-offline-styles.cjs');
 const args=Object.fromEntries(process.argv.slice(2).reduce((a,v,i,list)=>v.startsWith('--')?[...a,[v.slice(2),list[i+1]]]:a,[]));
 const client=args.client||'alsea-starbucks';
 if(!/^[a-z0-9][a-z0-9-]{1,62}$/.test(client))throw Error('Cliente no válido');
@@ -42,6 +43,7 @@ async function cssLocal(css, cssBase=base){
   const browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
   try{
     const page=await browser.newPage({viewport:{width:1280,height:720}});
+    const stylesheets=await page.evaluate(collectStylesheets,source);
     const extracted=await page.evaluate(html=>{
       const doc=new DOMParser().parseFromString(html,'text/html');
       const slides=[...doc.querySelectorAll('.slide')];if(!slides.length)throw Error('No hay diapositivas en el origen');
@@ -53,14 +55,20 @@ async function cssLocal(css, cssBase=base){
         for(const img of s.querySelectorAll('img'))img.loading='eager';
         const image=s.getAttribute('data-image-es');if(image)s.style.setProperty('--slide-image','url("'+image+'")');
         for(const a of s.querySelectorAll('[data-demo-link]')){const k=s.getAttribute('data-demo-key'),first={biz:'biz/proyecto',studio:'studio/voz',store:'store/voz'};if(k){a.href='index.html#'+encodeURIComponent(first[k]||k);a.textContent='Ver esta función sin conexión';a.removeAttribute('target');}}
-        for(const a of s.querySelectorAll('[data-demo-package-links] a')){if(a.getAttribute('href').includes('format=zip'))a.remove();else{a.href=a.getAttribute('href').includes('format=pdf')?'presentacion.pdf':'index.html';a.removeAttribute('target');}}
+        for(const group of s.querySelectorAll('[data-demo-package-links]')){
+          const links=[...group.querySelectorAll('a')].filter(a=>!a.getAttribute('href').includes('format=zip'));
+          group.replaceChildren();
+          for(const [i,a] of links.entries()){
+            a.href=a.getAttribute('href').includes('format=pdf')?'presentacion.pdf':'index.html';a.removeAttribute('target');
+            if(i)group.append(doc.createTextNode(' · '));
+            group.append(a);
+          }
+        }
       }
       const attributes=[...doc.documentElement.attributes].filter(a=>['lang','dir','class','style'].includes(a.name)||a.name.startsWith('data-')).map(a=>[a.name,a.value]);
-      return {attributes,styles:[...doc.querySelectorAll('style')].map(s=>s.textContent),links:[...doc.querySelectorAll('link[rel="stylesheet"]')].map(s=>s.getAttribute('href')).filter(x=>x&&!x.includes('fonts.googleapis.com')),slides:slides.map(s=>s.outerHTML),title:doc.title,quality:doc.documentElement.dataset.quality||'good'};
+      return {attributes,slides:slides.map(s=>s.outerHTML),title:doc.title,quality:doc.documentElement.dataset.quality||'good'};
     },source);
-    let styles=extracted.styles.join('\n');
-    for(const href of extracted.links){styles+='\n'+await cssLocal((await bytes(new URL(href,base).href)).toString(),new URL(href,base).href);}
-    styles=await cssLocal(styles);
+    const styles=await inlineStylesheets(stylesheets,{base,read:async url=>(await bytes(url)).toString(),localize:cssLocal});
     let slides=extracted.slides.join('\n');
     const active=[...slides.matchAll(/\b(src|poster)="([^"]+)"/g)];
     for(const match of active){const value=match[2].replaceAll('&amp;','&');if(!value||value.startsWith('data:'))continue;slides=slides.replaceAll(match[0],match[1]+'="'+await local(value)+'"');}
