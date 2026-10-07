@@ -33,7 +33,7 @@ export const GLOBALES = [
 
 export const PROYECTOS_INICIALES = [
   {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021',
-    contexto: {marca: 'starbucks', loc: 'alsea-sbux-021', circuito: 'alsea_starbucks'}, demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
+    contexto: {marca: 'starbucks', loc: 'alsea-sbux-021', project: 'starbucks', circuito: 'alsea_starbucks'}, demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
 ];
 
 // 'store' = demo global; 'store/tpv' = subdemo. Devuelve {global, sub|null} o null.
@@ -60,8 +60,8 @@ export function guion(demos) {
 }
 
 // Proyecto = {id, nombre, nota, demos} y, opcionales (encargo 5312 de Trinity: anexar las demos a la presentación
-// del cliente en Quiénes somos · Qué hacemos · Qué proponemos), presentation_id y contexto {marca, loc, circuito}.
-export const CONTEXTO = ['marca', 'loc', 'circuito'];
+// del cliente en Quiénes somos · Qué hacemos · Qué proponemos), presentation_id y contexto {marca, loc, project, circuito} (nombres exactos que lee el generador de Trinity).
+export const CONTEXTO = ['marca', 'loc', 'project', 'circuito'];
 export function proyectoLimpio(p) {
   const q = {id: String(p.id), nombre: String(p.nombre), nota: String(p.nota || ''), demos: Array.isArray(p.demos) ? p.demos.map(String) : []};
   const pid = String(p.presentation_id || '').trim();

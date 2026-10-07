@@ -1,6 +1,6 @@
 // /subdemos: escoger proyectos y qué demos (globales y subdemos) se enseñan en cada uno.
 // Se guarda en este navegador (localStorage «ax-subdemos»); Exportar/Importar lo mueve a otro.
-import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto, pasoTexto, proyectoLimpio, CONTEXTO} from './catalogo.mjs?v=20261007-subdemos-4';
+import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto, pasoTexto, proyectoLimpio, CONTEXTO} from './catalogo.mjs?v=20261007-subdemos-5';
 
 const KEY = 'ax-subdemos';
 const KEY_MANIF = 'ax-subdemos-manifiestos'; // manifiestos importados a mano en este navegador

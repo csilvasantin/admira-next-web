@@ -70,10 +70,10 @@ test('aplicarManifiesto conserva objetos del pack de Trinity (steps, muestra, gu
 
 test('proyecto: presentation_id y contexto {marca, loc, circuito} opcionales', () => {
   const alsea = PROYECTOS_INICIALES[0];
-  assert.deepEqual(alsea.contexto, {marca: 'starbucks', loc: 'alsea-sbux-021', circuito: 'alsea_starbucks'});
+  assert.deepEqual(alsea.contexto, {marca: 'starbucks', loc: 'alsea-sbux-021', project: 'starbucks', circuito: 'alsea_starbucks'});
   assert.equal(alsea.presentation_id, undefined);
   assert.deepEqual(proyectoLimpio({id: 'x', nombre: 'X', demos: ['biz']}), {id: 'x', nombre: 'X', nota: '', demos: ['biz']});
   const p = proyectoLimpio({id: 'x', nombre: 'X', demos: [], presentation_id: ' alsea-2026 ', contexto: {marca: 'starbucks', loc: '', otro: 'no'}});
   assert.deepEqual(p, {id: 'x', nombre: 'X', nota: '', demos: [], presentation_id: 'alsea-2026', contexto: {marca: 'starbucks'}});
-  assert.match(guionTexto({...alsea, presentation_id: 'alsea-2026'}), /^Alsea · Starbucks · guion de demo\nPresentación: alsea-2026\nmarca starbucks · loc alsea-sbux-021 · circuito alsea_starbucks\n1\./);
+  assert.match(guionTexto({...alsea, presentation_id: 'alsea-2026'}), /^Alsea · Starbucks · guion de demo\nPresentación: alsea-2026\nmarca starbucks · loc alsea-sbux-021 · project starbucks · circuito alsea_starbucks\n1\./);
 });
