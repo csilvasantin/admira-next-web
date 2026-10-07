@@ -4,7 +4,7 @@ import { persistBrandLogo } from '../_brand.js';
 import { createPresentationPassword, ensureHttpsUrl } from '../_defaults.js';
 import { normalizeEmbeds } from '../_embeds.js';
 import {captureVersion} from '../_versions.js';
-import {normalizeSequence,DEFAULT_BEFORE_DECK} from '../_deck-library.js';
+import {normalizeSequence,DEFAULT_BEFORE_DECK,getDeckPack} from '../_deck-library.js';
 import {normalizarDemoProject,documentacionDemos} from '../_demo-documentation.js';
 import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
@@ -392,7 +392,9 @@ export async function onRequestPut(context){
     await applyTranslations();
   }
   const demoSource=documentacionDemos(demoProject).map(item=>`${item.titulo}\n${item.propuesta}\n${item.url}${item.cmd?'\nExperto/avatar: '+item.cmd:''}`).join('\n\n');
-  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)+prospectSource(prospect)+'\n\nQUÉ PROPONEMOS · DEMOS PERSONALIZADAS\n'+demoSource});
+  const corporatePack=sequence.beforeKind==='pack'?getDeckPack(sequence.before,slug,{length:sequence.beforeLength}):null;
+  const corporateSource=corporatePack?'\n\nINTRODUCCIÓN CORPORATIVA · QUIÉNES SOMOS Y QUÉ HACEMOS\n'+corporatePack.slides.map(slide=>slide.titles.es+(slide.details.es?'\n'+slide.details.es:'')).join('\n\n')+'\nFuente: '+corporatePack.sourceUrl:'';
+  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)+corporateSource+prospectSource(prospect)+'\n\nQUÉ PROPONEMOS · DEMOS PERSONALIZADAS\n'+demoSource});
   const compatibilityFeatures=['css-layout','interactive-controls','custom-fonts'];
   for(const entry of slideMedia){
     if(entry.type==='animation')compatibilityFeatures.push('animation');
