@@ -4,7 +4,8 @@ import { persistBrandLogo } from '../_brand.js';
 import { createPresentationPassword, ensureHttpsUrl } from '../_defaults.js';
 import { normalizeEmbeds } from '../_embeds.js';
 import {captureVersion} from '../_versions.js';
-import {normalizeSequence} from '../_deck-library.js';
+import {normalizeSequence,DEFAULT_BEFORE_DECK} from '../_deck-library.js';
+import {normalizarDemoProject,documentacionDemos} from '../_demo-documentation.js';
 import {presiteOpeningInput,publicPresiteOpening} from '../_presite-opening.js';
 import {presiteKey} from '../../presites/_presite.js';
 import {normalizeSlideMedia,ensureExampleVideo} from '../_slide-media.js';
@@ -30,7 +31,7 @@ export const GENERATE_ALLOWED_KEYS = new Set([
   'exampleVideoUrl','includeExampleVideo','videoUrl','videoSlide','demoVideo',
   'requireExampleVideo','terminology','sourceTraceability','presite','presiteSlug',
   'structure','slides','footer','closingTitle','closingAction','prospect',
-  'marca','prospectUrl'
+  'marca','prospectUrl','demoProject'
 ]);
 
 export function assertKnownGenerateFields(raw={}){
@@ -222,10 +223,14 @@ export async function onRequestPut(context){
   let sequence;
   try{
     sequence=normalizeSequence({
-      before:raw.beforeDeck,beforeLength:raw.beforeLength,beforeQuality:raw.beforeQuality,
-      after:raw.afterDeck,insertDeck:raw.insertDeck??raw.inserts??raw.insert
+      before:raw.beforeDeck===undefined?(existing?.sequence?.before??(existing?.sequence?null:DEFAULT_BEFORE_DECK)):raw.beforeDeck,
+      beforeLength:raw.beforeLength??existing?.sequence?.beforeLength,beforeQuality:raw.beforeQuality??existing?.sequence?.beforeQuality,
+      after:raw.afterDeck??existing?.sequence?.after,insertDeck:raw.insertDeck??raw.inserts??raw.insert??existing?.sequence?.inserts
     });
   }catch(error){return json({error:error.message},400)}
+  let demoProject;
+  try{demoProject=normalizarDemoProject(raw.demoProject===undefined?existing?.demoProject:raw.demoProject,{slug,displayName,marca:raw.marca||existing?.prospect?.marca})}
+  catch(error){return json({error:error.message},400)}
   // before/after/insert por slug de otra presentación: deben existir en KV.
   for(const [role,ref,kind] of [['beforeDeck',sequence.before,sequence.beforeKind],['afterDeck',sequence.after,sequence.afterKind]]){
     if(ref&&kind==='presentation'){
@@ -312,6 +317,7 @@ export async function onRequestPut(context){
   try{
     ({prospect,brand:prospectLogo,catalogo:prospectCatalogo}=await resolveProspect({env:context.env,request:context.request,raw:prospectRaw,existing,slug,displayName,website:input.website,inspiration:brandAnalysis||inspiration}));
   }catch(error){return json({error:error.message||'La marca del prospect no es válida.'},400)}
+  demoProject=normalizarDemoProject(raw.demoProject===undefined?existing?.demoProject:raw.demoProject,{slug,displayName,marca:prospect?.marca||raw.marca});
   cronometra('prospect');
   // El logo de la web oficial: obligatorio sin prospect; con prospect, el del prospect manda y
   // el oficial sólo se intenta si no hay otro (y su ausencia ya no tumba el alta).
@@ -385,7 +391,8 @@ export async function onRequestPut(context){
   }else{
     await applyTranslations();
   }
-  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)+prospectSource(prospect)});
+  const demoSource=documentacionDemos(demoProject).map(item=>`${item.titulo}\n${item.propuesta}\n${item.url}${item.cmd?'\nExperto/avatar: '+item.cmd:''}`).join('\n\n');
+  const generation=buildGeneration({client:slug,displayName,outputs,languages,sourceText:buildSource(ideas)+prospectSource(prospect)+'\n\nQUÉ PROPONEMOS · DEMOS PERSONALIZADAS\n'+demoSource});
   const compatibilityFeatures=['css-layout','interactive-controls','custom-fonts'];
   for(const entry of slideMedia){
     if(entry.type==='animation')compatibilityFeatures.push('animation');
@@ -405,7 +412,7 @@ export async function onRequestPut(context){
   });
   const roomDeviceLab=createRoomDeviceLab({features:compatibilityFeatures});
   const presentation={
-    schemaVersion:12,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,structure:structure?{id:structure.id,slideCodes:structure.slides.map(item=>item.code)}:null,footer,prospect,
+    schemaVersion:13,slug,displayName,website:input.website,inspirationUrl:input.inspirationUrl,inspirationSource:input.requestedInspirationUrl?'explicit':'client-website',inspiration,brand:input.brand,problem:input.problem,audience:input.audience,outputs,languages,terminology,slideMedia,sourceTraceability,compatibilityLab,roomDeviceLab,presite,sequence,demoProject,structure:structure?{id:structure.id,slideCodes:structure.slides.map(item=>item.code)}:null,footer,prospect,
     theme:prospect?prospectTheme(prospect.cliente,input.heroDevice||'none'):{primary:input.primaryColor,accent:input.accentColor,background:inspiration?.background||'#f3f6f9',surface:inspiration?.surface||'#ffffff',text:inspiration?.text||'#142238',mode:inspiration?.mode||'light',fontStyle:inspiration?.fontStyle||'grotesk',radius:inspiration?.radius??10,radiusStyle:inspiration?.radiusStyle||'soft',density:inspiration?.density||'balanced',layout:inspiration?.layout||'editorial',profile:inspiration?.profile||'structured',heroDevice:input.heroDevice||'none'},
     passwordVerifier,
     ...authorFields(context.data?.presentationAccess,existing),
@@ -450,5 +457,5 @@ export async function onRequestPut(context){
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':ideas.narrativeSource==='admiranext-structure'?'admiranext-structure':'template';
   const narrativeFallback=narrativeSource==='xai'||narrativeSource==='admiranext-structure'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,prospect:publicProspect(presentation.prospect),...(catalogoMarca?{catalogo:catalogoMarca}:{}),narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,prospect:publicProspect(presentation.prospect),...(catalogoMarca?{catalogo:catalogoMarca}:{}),narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,demoProject:presentation.demoProject,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }
