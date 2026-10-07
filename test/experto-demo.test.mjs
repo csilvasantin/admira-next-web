@@ -11,7 +11,17 @@ const dir = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(dir, '../suite/experto.js'), 'utf8');
 const snap = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
 
-function withLang(initial, hostname = 'www.admiranext.com', savedManifests = null) {
+function withLang(initial, hostname = 'www.admiranext.com', savedManifests = null, clock = null, mockedFetch = null) {
+  const makeElement = tag => {
+    const el = {tagName:String(tag).toUpperCase(),children:[],attrs:{},style:{},textContent:'',paused:true,
+      classList:{add(){},contains:()=>false,toggle(){},remove(){}},setAttribute(k,v){this.attrs[k]=String(v);},getAttribute(k){return this.attrs[k] ?? null;},removeAttribute(k){delete this.attrs[k];},
+      appendChild(child){child.parentNode=this;this.children.push(child);},removeChild(child){this.children=this.children.filter(c=>c!==child);child.parentNode=null;},insertBefore(){},addEventListener(){},
+      play(){this.plays=(this.plays||0)+1;this.paused=false;return Promise.resolve();},pause(){this.paused=true;},
+      querySelectorAll(selector){const tags=selector.split(',').map(t=>t.trim().toUpperCase()),all=[];const walk=node=>node.children.forEach(c=>{if(tags.includes(c.tagName))all.push(c);walk(c);});walk(this);return all;},
+      querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
+    };return el;
+  };
+  const body=makeElement('body'),head=makeElement('head');
   const documentElement = { lang: initial, dataset: {}, setAttribute() {}, getAttribute() { return null; }, classList: { contains: () => false, add() {}, toggle() {} } };
   const document = {
     documentElement,
@@ -19,17 +29,11 @@ function withLang(initial, hostname = 'www.admiranext.com', savedManifests = nul
     readyState: 'complete',
     querySelector: () => null,
     querySelectorAll: () => [],
-    getElementById: () => null,
-    createElement: (tag) => ({
-      tagName: String(tag).toUpperCase(),
-      classList: { add() {}, contains: () => false, toggle() {} },
-      setAttribute() {}, getAttribute: () => null, appendChild() {}, style: {},
-      addEventListener() {}, querySelector: () => null, querySelectorAll: () => [],
-      textContent: '', children: [], insertBefore() {}, removeAttribute() {},
-    }),
+    getElementById: id => {const find=node=>node.id===id?node:node.children.map(find).find(Boolean);return find(body)||find(head)||null;},
+    createElement: makeElement,
     addEventListener() {},
-    head: { appendChild() {} },
-    body: { appendChild() {} },
+    removeEventListener() {},
+    head,body,
     dispatchEvent() {},
   };
   const location = { hostname, host: hostname, href: 'https://' + hostname + '/', pathname: '/', search: '', hash: '', origin: 'https://' + hostname, assign() {} };
@@ -42,13 +46,14 @@ function withLang(initial, hostname = 'www.admiranext.com', savedManifests = nul
     MutationObserver: class { observe() {} disconnect() {} },
     CustomEvent: class CustomEvent { constructor(t, i) { this.type = t; this.detail = i && i.detail; } },
     Event: class Event { constructor(t) { this.type = t; } },
-    URL, fetch: async () => ({ ok: false, json: async () => ({}) }),
-    setTimeout, clearTimeout,
+    URL, fetch: mockedFetch || (async () => ({ ok: false, json: async () => ({}) })),
+    setTimeout:clock?.setTimeout || ((fn,ms)=>{const timer=setTimeout(fn,ms);timer.unref();return timer;}), clearTimeout:clock?.clearTimeout || clearTimeout,
+    Date:clock ? class extends Date {static now(){return clock.now();}} : Date,
   };
   const sandbox = {
     ...root, window: null, globalThis: null, document, location,
     localStorage: storage, sessionStorage: storage, URL,
-    fetch: root.fetch, setTimeout, clearTimeout,
+    fetch: root.fetch, setTimeout:root.setTimeout, clearTimeout:root.clearTimeout,
     MutationObserver: root.MutationObserver, CustomEvent: root.CustomEvent, Event: root.Event,
   };
   sandbox.window = sandbox;
@@ -321,4 +326,63 @@ test('manifiesto publicado con muestras en admira.studio: se reescriben a www.pi
   const urls = m.subdemos.flatMap((d) => [d.muestra.url, d.muestra.poster, ...(d.muestra.variantes || []).flatMap((v) => [v.url, v.poster])]).filter(Boolean);
   assert.ok(urls.length >= 10);
   assert.ok(urls.every((u) => !/admira\.studio\/assets\/demos/.test(u)), urls.join('\n'));
+});
+
+function rehearsalClock() {
+  let now=0,id=0;const pending=new Map(),cancelled=[];
+  return {now:()=>now,setTimeout:(fn,ms)=>{const key=++id;pending.set(key,{fn,at:now+ms});return key;},clearTimeout:key=>{if(pending.has(key))cancelled.push(pending.get(key).fn);pending.delete(key);},
+    advance(ms){const end=now+ms;let count=0;for(;;){const due=[...pending.entries()].filter(([,t])=>t.at<=end).sort((a,b)=>a[1].at-b[1].at)[0];if(!due)break;assert.ok(++count<1000,'finite rehearsal');now=due[1].at;pending.delete(due[0]);due[1].fn();}now=end;},
+    flushCancelled(){cancelled.splice(0).forEach(fn=>fn());},pending:()=>pending.size};
+}
+
+for (const [platform,host] of [['store','www.admira.store'],['biz','www.admira.biz'],['studio','www.admira.studio']]) {
+  test(platform+': native auto walks all five, pauses with remaining time, stops stale callbacks and keeps backend untouched', async()=>{
+    const canonical=JSON.parse(readFileSync(join(dir,'../subdemos/'+platform+'.subdemos.json'),'utf8'));
+    const clock=rehearsalClock(),requests=[];
+    const {api,sandbox,location}=withLang('es',host,null,clock,async(url,options)=>{requests.push({url,options});return {ok:true,json:async()=>structuredClone(canonical)};});
+    await api.listo();
+    assert.equal(requests.length,1);assert.equal(requests[0].url,'https://www.admiranext.com/subdemos/'+platform+'.subdemos.json');assert.equal(requests[0].options.cache,'no-store');
+    assert.ok(api.subdemos().subdemos.every(d=>d.guion.length>1),'full manifest scripts load on each native host');
+    const navigation=[];location.assign=url=>navigation.push(url);
+    const lines=[],log={appendChild:li=>lines.push(li.textContent),children:[]};
+    assert.deepEqual(snap(api.parseDemo('/demo auto')),{auto:true,local:true});
+    api.demo('/demo auto',log);assert.equal(api.demoEstado().total,5);assert.equal(api.demoEstado().fase,1);
+    const firstModal=sandbox.document.getElementById('ax-demo-muestra');assert.ok(firstModal);assert.equal(firstModal.querySelectorAll('audio,video').every(el=>el.paused),true,'media does not play in preparation phase');
+    clock.advance(1000);api.demo('/demo pausa',log);const paused=snap(api.demoEstado());clock.advance(120000);assert.deepEqual(snap(api.demoEstado()),paused);
+    api.demo('/demo reanudar',log);const interval=Math.max(1800,Math.min(30000,(Number(canonical.subdemos[0].duracion)||40)*1000/canonical.subdemos[0].guion.length));
+    clock.advance(interval-1001);assert.equal(api.demoEstado().fase,1);clock.advance(1);assert.equal(api.demoEstado().fase,2,'resume preserves remaining phase time');
+    const media=firstModal.querySelectorAll('audio,video');assert.equal(media.every(el=>el.muted),true,'default keeps samples silent while the presenter speaks');
+    if(platform==='store')assert.equal(media.every(el=>!el.paused),true,'Store listening/result phase starts silent playback');
+    if(platform==='studio'){
+      assert.equal(media.every(el=>el.paused),true,'Studio does not reveal a generated sample early');
+      while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente',log);
+      assert.equal(media.every(el=>!el.paused),true,'Studio reveals its prepared result in the final phase');
+    }
+    const keys=new Set([api.demoEstado().demo]);
+    while(api.demoEstado().activo){api.demo('/demo siguiente',log);keys.add(api.demoEstado().demo);}
+    assert.deepEqual([...keys],canonical.subdemos.map(d=>platform+'/'+d.id));assert.equal(api.demoEstado().numero,5);assert.equal(clock.pending(),0);
+    assert.equal(sandbox.document.getElementById('ax-demo-muestra').querySelectorAll('audio,video').every(el=>el.paused),true,'completion stops media');
+    api.demo('/demo todas',log);api.demo('/demo stop',log);clock.flushCancelled();clock.advance(600000);assert.deepEqual(snap(api.demoEstado()),{activo:false});assert.equal(sandbox.document.getElementById('ax-demo-muestra'),null);
+    assert.equal(requests.length,1,'rehearsal adds no network calls');assert.deepEqual(navigation,[]);
+    if(platform==='store'){assert.equal(api.parseDemo('/demo tpv'),null);assert.equal(api.parseDemo('/demo stop'),null,'inactive stop returns to native TPV');assert.equal(api.parseDemo('/demo estado'),null);}
+  });
+}
+
+test('paused next crosses demo boundary without restarting, and an empty custom catalog stays empty',()=>{
+  const clock=rehearsalClock(),{api}=withLang('es','www.admira.store',null,clock);
+  api.demo('/demo auto');api.demo('/demo pausa');for(let i=0;i<4;i++)api.demo('/demo siguiente');
+  assert.equal(api.demoEstado().numero,2);assert.equal(api.demoEstado().pausado,true);assert.equal(api.demoEstado().fase,1);
+  clock.advance(600000);assert.equal(api.demoEstado().fase,1);api.demo('/demo resume');clock.advance(14999);assert.equal(api.demoEstado().fase,1);clock.advance(1);assert.equal(api.demoEstado().fase,2);api.demo('/demo stop');
+  const empty=withLang('es','www.admira.biz',{biz:{version:1,plataforma:'biz',subdemos:[]}},rehearsalClock()).api;
+  assert.equal(empty.demo('/demo auto'),null);assert.deepEqual(snap(empty.demoEstado()),{activo:false});
+});
+
+test('listening unmutes only the first adaptation variant and remains selected across pause/resume',()=>{
+  const clock=rehearsalClock(),{api,sandbox}=withLang('es','www.admira.studio',null,clock);
+  api.demo('/demo 5');while(api.demoEstado().fase<api.demoEstado().fases)api.demo('/demo siguiente');
+  const modal=sandbox.document.getElementById('ax-demo-muestra'),media=modal.querySelectorAll('video'),sound=modal.querySelector('input');
+  assert.equal(media.length,4);assert.equal(media.every(el=>el.muted),true);
+  sound.checked=true;sound.onchange();assert.deepEqual(media.map(el=>el.muted),[false,true,true,true]);
+  api.demo('/demo pausa');api.demo('/demo reanudar');assert.equal(sound.checked,true);assert.deepEqual(media.map(el=>el.muted),[false,true,true,true]);
+  sound.checked=false;sound.onchange();assert.equal(media.every(el=>el.muted),true);api.demo('/demo stop');
 });

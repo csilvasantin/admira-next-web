@@ -385,7 +385,7 @@
     // Store/Biz: copia de los manifiestos publicados, también disponible sin red.
     store: {manifiestos: ['https://www.admiranext.com/subdemos/store.subdemos.json'], m: {"version":1,"plataforma":"store","nombre":"admira.store","default_mode":"recorrido","activacion":{"hosts":["admira.store","www.admira.store","xpaceos.com","www.xpaceos.com"]},"subdemos":[{"id":"voz","letra":"a","nombre":"Gestión de locuciones","desc":"Seleccionar una locución, asignarla a una zona y preparar su horario.","url":"https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es","cmd":"/demo 1","aliases":["locucion","locuciones","voz"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=voz","guion":[{"accion":"di","texto":"Abrir el local de demostración y su gestión de audio."},{"accion":"señala","texto":"Seleccionar la locución preparada de café y bollería; escucharla."},{"accion":"señala","texto":"Asignar entrada y caja, volumen 65 y horario de desayuno."},{"accion":"señala","texto":"Revisar la programación y el resultado antes de activarlo."}],"steps":[],"caso":{"local":"alsea-sbux-021","contenido":"Locución de desayuno","destinos":["Entrada","Caja"],"volumen":65,"horario":"08:00–11:00","estado":"Programación de ejemplo preparada"},"muestra":{"tipo":"audio","url":"https://www.pixeria.com/assets/demos/studio-v1/locucion-es.mp3","descripcion":"Locución preparada para el ensayo; programación de ejemplo."}},{"id":"musica","letra":"b","nombre":"Gestión de música","desc":"Seleccionar la playlist del local, zonas, volumen y franjas horarias.","url":"https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es","cmd":"/demo 2","aliases":["musica","playlist","hilo musical"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=musica","guion":[{"accion":"di","texto":"Abrir la gestión del hilo musical del local."},{"accion":"señala","texto":"Escuchar el ambiente musical preparado y seleccionarlo."},{"accion":"señala","texto":"Asignar sala y terraza, volumen 45 y la franja de tarde."},{"accion":"señala","texto":"Revisar cómo conviven música y locución en la programación."}],"steps":[],"caso":{"local":"alsea-sbux-021","playlist":"Ambiente de cafetería","destinos":["Sala","Terraza"],"volumen":45,"horario":"16:00–20:00","prioridad":"La locución atenúa temporalmente la música"},"muestra":{"tipo":"audio","url":"https://www.pixeria.com/assets/demos/studio-v1/musica-cafe.mp3","descripcion":"Pista preparada para ilustrar la gestión del hilo musical."}},{"id":"imagenes","letra":"c","nombre":"Gestión de imágenes","desc":"Seleccionar creatividades, organizarlas en playlist y asignar pantallas.","url":"https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es","cmd":"/demo 3","aliases":["imagen","imagenes","creatividades"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=imagenes","guion":[{"accion":"di","texto":"Abrir la gestión de contenidos visuales del local."},{"accion":"señala","texto":"Seleccionar la creatividad de café preparada."},{"accion":"señala","texto":"Asignarla a la pantalla de entrada y fijar su orden en la playlist."},{"accion":"señala","texto":"Revisar el calendario y la vista previa de la pantalla."}],"steps":[],"caso":{"local":"alsea-sbux-021","contenido":"Creatividad de café","destinos":["Pantalla de entrada"],"playlist":"Campaña de desayuno","orden":1,"horario":"08:00–11:00"},"muestra":{"tipo":"image","url":"https://www.pixeria.com/assets/demos/studio-v1/imagen-cafe.jpg","descripcion":"Creatividad preparada para el ensayo de gestión."}},{"id":"video","letra":"d","nombre":"Gestión de vídeo","desc":"Ordenar clips en playlist, asignar destinos y comprobar su reproducción.","url":"https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es","cmd":"/demo 4","aliases":["video","videos","clip"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=video","guion":[{"accion":"di","texto":"Abrir la playlist de vídeo del local."},{"accion":"señala","texto":"Previsualizar el clip preparado de la campaña."},{"accion":"señala","texto":"Asignarlo a la pantalla de pared y colocarlo después de la imagen."},{"accion":"señala","texto":"Revisar la reproducción y la programación por destino."}],"steps":[],"caso":{"local":"alsea-sbux-021","contenido":"Clip de campaña de café","destinos":["Pantalla de pared"],"playlist":"Campaña de desayuno","orden":2,"reproduccion":"Bucle dentro de la playlist"},"muestra":{"tipo":"video","url":"https://www.pixeria.com/assets/demos/studio-v1/video-fuente.mp4","poster":"https://www.pixeria.com/assets/demos/studio-v1/video-fuente.jpg","descripcion":"Clip preparado para el ensayo de gestión."}},{"id":"tpv","letra":"e","nombre":"Gestión del TPV","desc":"Seleccionar un producto y enseñar su relación con audio, pantallas y reglas del local.","url":"https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es&demo=tpv#tpv","cmd":"/demo 5","aliases":["caja","tpv","venta"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=tpv","guion":[{"accion":"di","texto":"Abrir el TPV del gemelo de demostración."},{"accion":"señala","texto":"Seleccionar un muffin para mostrar la operación en caja."},{"accion":"señala","texto":"Revisar la regla que relaciona el producto con su campaña."},{"accion":"señala","texto":"Comprobar los destinos de audio y vídeo asociados en este ensayo."}],"steps":[],"caso":{"local":"alsea-sbux-021","producto":"Muffin","evento":"Selección de producto en TPV","regla":"Si se selecciona el muffin, mostrar la campaña asociada","destinos":["Caja","Pantalla de pared","Altavoces"]}}],"nota":"Recorridos preparados con datos de demostración. El ensayo conserva cambios solo en esta sesión; el alta o la activación real se revisa en la plataforma."}},
     biz: {manifiestos: ['https://www.admiranext.com/subdemos/biz.subdemos.json'], m: {"version":1,"plataforma":"biz","nombre":"admira.biz","default_mode":"recorrido","activacion":{"hosts":["admira.biz","www.admira.biz","clearchannel.tv","www.clearchannel.tv"]},"subdemos":[{"id":"proyecto","letra":"a","nombre":"Dar de alta un proyecto","desc":"Definir el identificador, nombre, responsable y circuito del proyecto.","url":"https://www.admiranext.com/xpace/manage","cmd":"/demo 1","aliases":["proyecto","alta proyecto"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=proyecto","guion":[{"accion":"di","texto":"Abrir la gestión de proyectos y preparar un alta de demostración."},{"accion":"señala","texto":"Definir un identificador estable y un nombre reconocible."},{"accion":"señala","texto":"Relacionar el proyecto con su circuito y revisar su responsable."},{"accion":"señala","texto":"Validar los datos preparados antes de dar el alta real."}],"steps":[],"caso":{"id":"demo-alsea-retail","nombre":"Alsea · Retail Media","responsable":"Equipo de demostración","circuito":"demo-alsea-dooh","estado":"Ficha de ejemplo preparada"}},{"id":"circuito","letra":"b","nombre":"Dar de alta un circuito DooH","desc":"Agrupar puntos DooH y definir el vuelo de la campaña con fechas, franjas y frecuencia.","url":"https://www.admiranext.com/xpace/manage","cmd":"/demo 2","aliases":["circuito","dooh","vuelo"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=circuito","guion":[{"accion":"di","texto":"Preparar el circuito vinculado al proyecto de demostración."},{"accion":"señala","texto":"Añadir sus diferentes puntos DooH: entrada, escaparate y tótem."},{"accion":"señala","texto":"Definir el vuelo: inicio y fin, franjas, duración de pieza y frecuencia."},{"accion":"señala","texto":"Revisar cobertura por punto y el calendario del vuelo de ejemplo."}],"steps":[],"caso":{"id":"demo-alsea-dooh","proyecto":"demo-alsea-retail","puntos":[{"id":"dooh-entrada","tipo":"Pantalla de entrada"},{"id":"dooh-escaparate","tipo":"Pantalla de escaparate"},{"id":"dooh-totem","tipo":"Tótem"}],"vuelo":{"inicio":"2026-11-01","fin":"2026-11-14","franjas":["08:00–11:00","16:00–20:00"],"pieza_segundos":15,"frecuencia":"Una inserción por bloque de ejemplo"}}},{"id":"gemelo","letra":"c","nombre":"Dar de alta gemelos digitales · Retail Media","desc":"Representar el local, sus zonas y el inventario de soportes de Retail Media.","url":"https://www.admira.biz/backoffice.html","cmd":"/demo 3","aliases":["gemelo","gemelos","retailmedia","retail media"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=gemelo","guion":[{"accion":"di","texto":"Preparar la ficha del local y su relación con el proyecto."},{"accion":"señala","texto":"Definir las zonas comerciales y sus soportes de Retail Media."},{"accion":"señala","texto":"Asociar el gemelo digital a la ubicación de demostración."},{"accion":"señala","texto":"Revisar qué soportes del gemelo se pueden incluir en una campaña."}],"steps":[],"caso":{"gemelo":"alsea-sbux-021","proyecto":"demo-alsea-retail","zonas":["Entrada","Caja","Sala"],"retail_media":[{"zona":"Entrada","soporte":"Pantalla"},{"zona":"Caja","soporte":"Pantalla TPV"},{"zona":"Sala","soporte":"Tótem"}]}},{"id":"iot","letra":"d","nombre":"Dar de alta dispositivos IoT","desc":"Relacionar pantallas, altavoces, cámaras y tótems con el gemelo y sus controles.","url":"https://www.admira.biz/backoffice.html","cmd":"/demo 4","aliases":["iot","dispositivos","pantallas","altavoces","camaras","totem"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=iot","guion":[{"accion":"di","texto":"Preparar el alta de dispositivos del gemelo."},{"accion":"señala","texto":"Identificar pantalla, altavoz, cámara y tótem con IDs únicos."},{"accion":"señala","texto":"Asignar zona, tipo de dispositivo y control previsto."},{"accion":"señala","texto":"Revisar conectividad, estado y relación con el inventario tecnológico."}],"steps":[],"caso":{"gemelo":"alsea-sbux-021","dispositivos":[{"id":"demo-screen-01","tipo":"Pantalla","zona":"Entrada","control":"Contenido y estado"},{"id":"demo-speaker-01","tipo":"Altavoz","zona":"Sala","control":"Audio y volumen"},{"id":"demo-camera-01","tipo":"Cámara","zona":"Entrada","control":"Estado y disponibilidad"},{"id":"demo-totem-01","tipo":"Tótem","zona":"Sala","control":"Contenido e interacción"}]}},{"id":"itil","letra":"e","nombre":"Integrar en el inventario tecnológico · ITIL","desc":"Registrar los dispositivos como elementos de configuración y relacionar ubicación, servicio y mantenimiento.","url":"https://www.xpaceos.com/inventario/starbucks/?view=references","cmd":"/demo 5","aliases":["itil","inventario","tecnologia"],"duracion":60,"ensayo_url":"https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=itil","guion":[{"accion":"di","texto":"Abrir el inventario tecnológico de la ubicación."},{"accion":"señala","texto":"Preparar una referencia de configuración para cada dispositivo del gemelo."},{"accion":"señala","texto":"Relacionar servicio, responsable y dependencias entre los elementos."},{"accion":"señala","texto":"Revisar estado y vínculo con mantenimiento e incidencias."}],"steps":[],"caso":{"servicio":"Retail Media · local piloto","ubicacion":"alsea-sbux-021","responsable":"Equipo de operaciones de demostración","elementos":[{"ci":"CI-DEMO-SCREEN-01","dispositivo":"demo-screen-01"},{"ci":"CI-DEMO-SPEAKER-01","dispositivo":"demo-speaker-01"},{"ci":"CI-DEMO-CAMERA-01","dispositivo":"demo-camera-01"},{"ci":"CI-DEMO-TOTEM-01","dispositivo":"demo-totem-01"}],"relacion":"Dispositivo → gemelo → servicio","estado":"Inventario de ejemplo preparado"}}],"nota":"Recorridos preparados con datos de demostración. El ensayo conserva cambios solo en esta sesión; el alta o la activación real se revisa en la plataforma."}},
-    studio: {manifiestos: ['/demo/studio.subdemos.json', 'https://www.admira.studio/demo/studio.subdemos.json', 'https://www.admiranext.com/subdemos/studio.subdemos.json'],
+    studio: {manifiestos: ['https://www.admiranext.com/subdemos/studio.subdemos.json', 'https://www.pixeria.com/demo/studio.subdemos.json'],
       m: {"version":1,"plataforma":"studio","nombre":"Admira Studio / Pixeria","default_mode":"muestra","activacion":{"hosts":["admira.studio","www.admira.studio","pixeria.com","www.pixeria.com"]},"subdemos":[{"id":"voz","letra":"a","nombre":"Crear locución","desc":"De un guion breve a una voz lista para escuchar.","url":"https://www.admira.studio/audio.html","mirror_url":"https://www.pixeria.com/audio.html","cmd":"/demo 1","aliases":["locucion","voz"],"muestra":{"tipo":"audio","url":"https://www.pixeria.com/assets/demos/studio-v1/locucion-es.mp3","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"musica","letra":"b","nombre":"Crear música","desc":"Del ambiente de una marca a su hilo musical.","url":"https://www.admira.studio/musica.html","mirror_url":"https://www.pixeria.com/musica.html","cmd":"/demo 2","aliases":["musica"],"muestra":{"tipo":"audio","url":"https://www.pixeria.com/assets/demos/studio-v1/musica-cafe.mp3","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"imagen","letra":"c","nombre":"Crear imagen","desc":"Del briefing a una creatividad visual.","url":"https://www.admira.studio/imagenes.html","mirror_url":"https://www.pixeria.com/imagenes.html","cmd":"/demo 3","aliases":["imagen"],"muestra":{"tipo":"image","url":"https://www.pixeria.com/assets/demos/studio-v1/imagen-cafe.jpg","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"video","letra":"d","nombre":"Crear vídeo","desc":"De una imagen al movimiento de un clip.","url":"https://www.admira.studio/video.html","mirror_url":"https://www.pixeria.com/video.html","cmd":"/demo 4","aliases":["video"],"muestra":{"tipo":"video","url":"https://www.pixeria.com/assets/demos/studio-v1/video-fuente.mp4","poster":"https://www.pixeria.com/assets/demos/studio-v1/video-fuente.jpg","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[]}},{"id":"adaptar","letra":"e","nombre":"Adaptar formatos","desc":"Una misma pieza en horizontal, vertical, cuadrado y barra.","url":"https://www.admira.studio/adaptaciones/","mirror_url":"https://www.pixeria.com/adaptaciones/","cmd":"/demo 5","aliases":["adaptar","formatos","adaptacion"],"muestra":{"tipo":"video","url":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.mp4","poster":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.jpg","descripcion":"Resultado preparado; este ensayo no realiza generación ni publicación.","variantes":[{"nombre":"horizontal","formato":"1920x1080","url":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.mp4","poster":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.jpg"},{"nombre":"vertical","formato":"1080x1920","url":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-vertical.mp4","poster":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-vertical.jpg"},{"nombre":"cuadrado","formato":"1080x1080","url":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-cuadrado.mp4","poster":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-cuadrado.jpg"},{"nombre":"barra","formato":"1920x540","url":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-barra.mp4","poster":"https://www.pixeria.com/assets/demos/studio-v1/adaptado-barra.jpg"}]}}]}}
   };
   // Copia literal de resolverDemo (pixeria demo/studio-comandos.mjs, Trinity): test/experto-demo.test.mjs
@@ -441,10 +441,14 @@
   // null = no es de la suite (lo resuelve la pata); {lista} | {local:true, lista} | {local:true, sub, n} | {local:true, desconocida} | {demo, i}.
   // En una plataforma con manifiesto manda resolverDemo (números y alias locales); los nombres de las cinco
   // soluciones (/demo store, /demo biz…) siguen abriendo las otras plataformas.
+  var recorrido = null, recorridoTimer = null;
   function parseDemo(text) {
     var m = /^\/?demo(?:\s+(.*))?$/i.exec(String(text == null ? '' : text).trim());
     if (!m) return null;
     var arg = norm(m[1]).replace(/^admira\./, ''), L = localM();
+    if (L && /^(auto|todas|todos|all)$/.test(arg)) return {local: true, auto: true};
+    if (L && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
+      (plataforma !== 'store' || (recorrido && recorrido.activo) || !/^(stop|off|estado|status)$/.test(arg))) return {control: arg};
     // Controles del recorrido TPV nativo: los sigue atendiendo el gemelo.
     if (plataforma === 'store' && /^(tpv|off|stop|estado|status|tpv (off|stop|estado|status))$/.test(arg)) return null;
     if (L) {
@@ -470,7 +474,9 @@
     return T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
       L.subdemos.map(function (d, k) { return '/demo ' + (k + 1) + ' · /demo ' + d.aliases[0] + ' — ' + d.nombre + (d.desc ? ': ' + d.desc : ''); }).join('\n') +
       '\n' + T('Recorridos y muestras preparados. /demo store, /demo biz… abren las otras plataformas.',
-        'Prepared walkthroughs and samples. /demo store, /demo biz… open the other platforms.');
+        'Prepared walkthroughs and samples. /demo store, /demo biz… open the other platforms.') +
+      '\n' + T('/demo auto encadena todas; /demo pausa, reanudar, siguiente y stop controlan el ensayo.',
+        '/demo auto runs all; /demo pause, resume, next and stop control the rehearsal.');
   }
   // Modo muestra (default_mode): panel con el resultado preparado y enlace a la página de la función.
   function abs(u) { try { return new URL(u, location.href).href; } catch (_) { return u; } }
@@ -478,12 +484,51 @@
     var el = document.createElement(tipo === 'audio' ? 'audio' : tipo === 'image' ? 'img' : 'video');
     el.src = abs(url);
     if (el.tagName === 'IMG') el.alt = '';
-    else { el.controls = true; el.preload = 'metadata'; if (poster) el.poster = abs(poster); }
+    else { el.controls = true; el.preload = 'metadata'; el.muted = true; el.playsInline = true; if (poster) el.poster = abs(poster); }
     return el;
   }
-  function cerrarMuestra() { var o = document.getElementById('ax-demo-muestra'); if (o) o.parentNode.removeChild(o); }
-  function mostrarMuestra(d, n) {
+  function retirarMuestra() { var o = document.getElementById('ax-demo-muestra'); if (o) { o.querySelectorAll('audio,video').forEach(function (el) { try { el.pause(); } catch (_) {} }); o.parentNode.removeChild(o); } }
+  function cerrarMuestra() {
+    clearTimeout(recorridoTimer); recorridoTimer = null;
+    if (recorrido && recorrido.esc) document.removeEventListener('keydown', recorrido.esc);
+    recorrido = null; retirarMuestra();
+  }
+  function estadoRecorrido() {
+    return recorrido ? {activo: recorrido.activo, pausado: recorrido.pausado, demo: plataforma + '/' + recorrido.d.id,
+      fase: recorrido.fase + 1, fases: recorrido.pasos.length, numero: recorrido.indice + 1, total: recorrido.cola.length} : {activo: false};
+  }
+  function programarRecorrido(ms) {
+    clearTimeout(recorridoTimer);
+    var r = recorrido; if (!r || !r.activo || r.pausado) return;
+    r.restante = ms; r.plazo = Date.now() + ms;
+    recorridoTimer = setTimeout(function () { if (recorrido === r && r.activo && !r.pausado) avanzarRecorrido(); }, ms);
+  }
+  function avanzarRecorrido() {
+    var r = recorrido; if (!r || !r.activo) return;
+    clearTimeout(recorridoTimer);
+    if (r.fase + 1 < r.pasos.length) { r.fase++; r.restante = r.intervalo; r.pintar(); if (!r.pausado) programarRecorrido(r.intervalo); }
+    else if (r.indice + 1 < r.cola.length) { mostrarMuestra(r.cola[r.indice + 1], r.indice + 2, r.cola, r.indice + 1, r.pausado); }
+    else { r.activo = false; r.pausado = false; r.media.forEach(function (el) { try { el.pause(); } catch (_) {} }); r.pintar(); }
+  }
+  function controlarRecorrido(control) {
+    var r = recorrido;
+    if (/^(stop|off|parar)$/.test(control)) { cerrarMuestra(); return estadoRecorrido(); }
+    if (!r || !r.activo) return estadoRecorrido();
+    if (/^(pausa|pause)$/.test(control) && !r.pausado) {
+      r.restante = Math.max(0, r.plazo - Date.now()); r.pausado = true; clearTimeout(recorridoTimer);
+      r.media.forEach(function (el) { try { el.pause(); } catch (_) {} }); r.pintar();
+    } else if (/^(reanudar|resume|continuar)$/.test(control) && r.pausado) {
+      r.pausado = false; r.pintar(); programarRecorrido(r.restante);
+    } else if (/^(siguiente|next)$/.test(control)) avanzarRecorrido();
+    return estadoRecorrido();
+  }
+  function mostrarMuestra(d, n, cola, indice, pausado) {
     cerrarMuestra();
+    var pasos = Array.isArray(d.guion) && d.guion.length ? d.guion.map(function (p) { return typeof p === 'string' ? p : (p.texto || p.text || ''); }) :
+      [d.desc || d.nombre, T('Preparar el caso de demostración.', 'Prepare the demonstration case.'), T('Mostrar el resultado preparado.', 'Show the prepared result.'), T('Revisar el resultado sin generar ni publicar.', 'Review the result without generating or publishing.')];
+    var r = recorrido = {d: d, cola: cola || [d], indice: indice || 0, fase: 0, pasos: pasos, activo: true, pausado: Boolean(pausado), media: [],
+      intervalo: Math.max(1800, Math.min(30000, (Number(d.duracion) || 40) * 1000 / pasos.length))};
+    r.restante = r.intervalo;
     var o = document.createElement('div');
     o.id = 'ax-demo-muestra';
     o.setAttribute('role', 'dialog');
@@ -494,11 +539,21 @@
     var h = document.createElement('h2'); h.style.cssText = 'margin:0 0 4px;font-size:20px'; h.textContent = (d.letra ? d.letra + '. ' : n + '. ') + d.nombre;
     var p = document.createElement('p'); p.style.cssText = 'margin:0 0 12px;color:#b9b0cf'; p.textContent = d.desc || '';
     c.appendChild(h); c.appendChild(p);
-    if (Array.isArray(d.guion) && d.guion.length) {
-      var ol = document.createElement('ol');
-      d.guion.forEach(function (paso) { var li = document.createElement('li'); li.textContent = typeof paso === 'string' ? paso : (paso.texto || paso.text || ''); ol.appendChild(li); });
-      c.appendChild(ol);
+    var status = document.createElement('p'); status.setAttribute('data-demo-status', ''); c.appendChild(status);
+    var phase = document.createElement('p'); phase.setAttribute('data-demo-phase', ''); phase.style.cssText = 'font-size:22px;line-height:1.4'; c.appendChild(phase);
+    var warning = document.createElement('p'); warning.textContent = T('Ensayo con datos preparados: no crea altas, ventas ni emisiones reales.', 'Prepared-data rehearsal: no real registrations, sales or broadcasts.'); warning.style.cssText = 'font-size:12px;color:#b9b0cf'; c.appendChild(warning);
+    if (d.caso && typeof d.caso === 'object') {
+      var data = document.createElement('dl'); data.setAttribute('data-demo-case', '');
+      function textoCaso(value, depth) {
+        if (depth > 6) return T('Datos de ejemplo', 'Example data');
+        if (Array.isArray(value)) return value.map(function (v) { return textoCaso(v, depth + 1); }).join('\n');
+        if (value && typeof value === 'object') return Object.keys(value).map(function (k) { return k.replace(/_/g, ' ') + ': ' + textoCaso(value[k], depth + 1); }).join(' · ');
+        return String(value == null ? '' : value);
+      }
+      Object.keys(d.caso).forEach(function (key) { var term = document.createElement('dt'), value = document.createElement('dd'); term.textContent = key.replace(/_/g, ' '); term.style.fontWeight = '700'; value.textContent = textoCaso(d.caso[key], 0); value.style.cssText = 'margin:4px 0 10px;white-space:pre-wrap;overflow-wrap:anywhere;color:#b9b0cf'; data.appendChild(term); data.appendChild(value); });
+      c.appendChild(data);
     }
+    var results = document.createElement('div'); results.setAttribute('data-demo-result', ''); results.hidden = true; c.appendChild(results);
     var mu = d.muestra;
     if (mu && mu.url) {
       var vs = (mu.variantes || []).filter(function (v) { return v && v.url; });
@@ -510,28 +565,45 @@
           var cap = document.createElement('figcaption'); cap.style.cssText = 'font-size:12px;color:#b9b0cf'; cap.textContent = (v.nombre || '') + (v.formato ? ' · ' + v.formato : '');
           f.appendChild(el); f.appendChild(cap); g.appendChild(f);
         });
-        c.appendChild(g);
+        results.appendChild(g);
       } else {
         var el = mediaEl(mu.tipo, mu.url, mu.poster); el.style.cssText = 'width:100%;max-height:60vh;object-fit:contain;background:#000;display:block';
-        c.appendChild(el);
+        results.appendChild(el);
       }
-      if (mu.descripcion) { var q = document.createElement('p'); q.style.cssText = 'font-size:12px;color:#8f86a8;margin:8px 0 0'; q.textContent = mu.descripcion; c.appendChild(q); }
+      if (mu.descripcion) { var q = document.createElement('p'); q.style.cssText = 'font-size:12px;color:#8f86a8;margin:8px 0 0'; q.textContent = mu.descripcion; results.appendChild(q); }
     }
     var bar = document.createElement('p'); bar.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0';
     var a = document.createElement('a'); a.href = abs(subUrl(d)); a.textContent = T('Abrir la función →', 'Open the feature →'); a.style.cssText = 'color:#ff8dbf';
     var x = document.createElement('button'); x.type = 'button'; x.textContent = T('Cerrar', 'Close'); x.onclick = cerrarMuestra;
+    var pause = document.createElement('button'); pause.type = 'button'; pause.setAttribute('data-demo-pause', ''); pause.onclick = function () { controlarRecorrido(r.pausado ? 'resume' : 'pause'); };
+    var next = document.createElement('button'); next.type = 'button'; next.textContent = T('Siguiente fase', 'Next phase'); next.onclick = function () { controlarRecorrido('next'); };
+    var stop = document.createElement('button'); stop.type = 'button'; stop.textContent = T('Detener', 'Stop'); stop.onclick = cerrarMuestra;
+    bar.appendChild(pause); bar.appendChild(next); bar.appendChild(stop);
+    if (mu && mu.url && mu.tipo !== 'image') {
+      var soundLabel = document.createElement('label'), sound = document.createElement('input'); sound.type = 'checkbox'; sound.setAttribute('data-demo-sound', '');
+      sound.onchange = function () { r.media.forEach(function (el, index) { el.muted = !sound.checked || index > 0; }); };
+      var soundText = document.createElement('span'); soundText.textContent = T(' Escuchar la muestra', ' Listen to the sample'); soundLabel.appendChild(sound); soundLabel.appendChild(soundText); bar.appendChild(soundLabel);
+    }
     bar.appendChild(a);
     if (d.ensayo_url && /^https:\/\//.test(d.ensayo_url)) { var ensayo = document.createElement('a'); ensayo.href = d.ensayo_url; ensayo.textContent = T('Ensayar paso a paso →', 'Rehearse step by step →'); ensayo.style.cssText = 'color:#ff8dbf'; bar.appendChild(ensayo); }
     bar.appendChild(x); c.appendChild(bar);
     o.appendChild(c);
     o.addEventListener('click', function (e) { if (e.target === o) cerrarMuestra(); });
-    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { cerrarMuestra(); document.removeEventListener('keydown', esc); } });
+    r.esc = function (e) { if (e.key === 'Escape') cerrarMuestra(); }; document.addEventListener('keydown', r.esc);
     document.body.appendChild(o);
-    var first = c.querySelector('audio,video');
-    if (first) { try { var pr = first.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (_) {} }
+    r.media = Array.prototype.slice.call(c.querySelectorAll('audio,video'));
+    r.pintar = function () {
+      status.textContent = T('Demo ', 'Demo ') + (r.indice + 1) + '/' + r.cola.length + ' · ' + (r.activo ? (r.pausado ? T('En pausa', 'Paused') : T('Fase ', 'Phase ') + (r.fase + 1) + '/' + r.pasos.length) : T('Ensayo completado', 'Rehearsal complete'));
+      phase.textContent = r.pasos[r.fase]; results.hidden = r.fase < (plataforma === 'studio' ? r.pasos.length - 1 : 1);
+      pause.textContent = r.pausado ? T('Reanudar', 'Resume') : T('Pausa', 'Pause'); pause.disabled = next.disabled = !r.activo;
+      r.media.forEach(function (el) { if (r.activo && !r.pausado && !results.hidden) { try { var play = el.play(); if (play && play.catch) play.catch(function () {}); } catch (_) {} } else { try { el.pause(); } catch (_) {} } });
+    };
+    r.pintar(); if (!r.pausado) programarRecorrido(r.intervalo);
   }
   // Devuelve {id, nombre, desc} de lo que se enseña (lo usa el avatar para presentarlo) o null.
   function demoRun(p, log) {
+    if (p.control) { var state = controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
+    if (p.auto) { var L = localM(); if (!L.subdemos.length) { out(log, T('No hay subdemos en este catálogo.', 'No subdemos in this catalog.')); return null; } mostrarMuestra(L.subdemos[0], 1, L.subdemos, 0); return estadoRecorrido(); }
     if (p.lista) { out(log, p.local ? localLista() : demoLista()); return null; }
     if (p.desconocida != null) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + p.desconocida + T('. Escribe /demo help.', '. Type /demo help.') + '\n' + localLista(), 'err'); return null; }
     if (p.local) {
@@ -543,6 +615,7 @@
       return {id: p.clave, nombre: d.nombre, desc: d.desc || ''};
     }
     var g = p.demo, url = demoUrl(g);
+    cerrarMuestra();
     out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/5 · ' + g.nombre + ' — ' + T(g.desc[0], g.desc[1]));
     out(log, T('Abriendo ', 'Opening ') + url + '…');
     try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: g.id, url: url}})); } catch (_) {}
@@ -556,7 +629,7 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return demoRun(p, log);
   }
-  verb({name: 'demo', args: '[help|número|nombre|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo (en esta plataforma, sus subdemos; sin argumento: lista)', 'show a demo (on this platform, its subdemos; no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: '[help|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     demoRun(p, log);
@@ -917,7 +990,8 @@
     parseLangCommand: parseLangCommand,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    demoEstado: estadoRecorrido,
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
     normalizeLangToken: normalizeLangToken,
     setLanguage: applyLang
