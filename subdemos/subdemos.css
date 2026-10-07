@@ -25,3 +25,6 @@ code{font:400 13px var(--f-texto);color:var(--n-yellow)}
 .datos{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;font-size:12px;color:var(--text-dim)}
 .datos label{display:flex;flex-direction:column;gap:2px;flex:1 1 140px;min-width:0}
 .datos input{font:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--border,#3b3358);background:transparent;color:inherit;width:100%;box-sizing:border-box}
+
+.sub-editor{min-width:0}.sub-tools{display:flex;gap:6px;margin:5px 0 9px}.sub-tools button{font:inherit;font-size:12px;cursor:pointer;background:transparent;color:var(--text);border:1px solid var(--border);padding:3px 7px}
+.editor-subdemo{border:1px solid var(--n-cyan);padding:16px;margin:14px 0}.editor-subdemo[hidden]{display:none!important}.editor-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.editor-fields label{display:flex;flex-direction:column;gap:4px;font-size:13px;min-width:0}.editor-fields .wide{grid-column:1/-1}.editor-fields input,.editor-fields textarea,.editor-fields select{width:100%;box-sizing:border-box;background:#1a1a30;color:var(--text);border:1px solid var(--border);font:inherit;padding:7px}.editor-subdemo p{font-size:12px;color:var(--text-dim)}#sub-error{color:var(--n-pink)}@media(max-width:520px){.editor-fields{grid-template-columns:1fr}}

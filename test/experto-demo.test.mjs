@@ -11,7 +11,7 @@ const dir = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(dir, '../suite/experto.js'), 'utf8');
 const snap = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
 
-function withLang(initial, hostname = 'www.admiranext.com') {
+function withLang(initial, hostname = 'www.admiranext.com', savedManifests = null) {
   const documentElement = { lang: initial, dataset: {}, setAttribute() {}, getAttribute() { return null; }, classList: { contains: () => false, add() {}, toggle() {} } };
   const document = {
     documentElement,
@@ -34,6 +34,7 @@ function withLang(initial, hostname = 'www.admiranext.com') {
   };
   const location = { hostname, host: hostname, href: 'https://' + hostname + '/', pathname: '/', search: '', hash: '', origin: 'https://' + hostname, assign() {} };
   const storage = { _m: {}, getItem(k) { return k in this._m ? this._m[k] : null; }, setItem(k, v) { this._m[k] = String(v); }, removeItem(k) { delete this._m[k]; } };
+  if (savedManifests) storage.setItem('ax-subdemos-manifiestos', JSON.stringify(savedManifests));
   const root = {
     document, location,
     localStorage: storage, sessionStorage: storage,
@@ -74,6 +75,47 @@ test('parseDemo: lista, soluciones, alias, números y siguiente', () => {
   assert.equal(api.parseDemo('/demo off'), null);
   assert.equal(api.parseDemo('/demos'), null);
   assert.match(api.parseDemo('/demo store').url, /admira-xp\/.*loc=alsea-sbux-021.*demo=tpv/);
+});
+
+test('Store importado desde editor: manifiesto mínimo mantiene activación y solo sus funciones personalizadas', async () => {
+  const canonical = JSON.parse(readFileSync(join(dir, '../subdemos/store.subdemos.json'), 'utf8'));
+  const original = JSON.stringify(canonical);
+  const imported = {version: 1, plataforma: 'store', subdemos: [{id: 'promocion', nombre: 'Promoción personalizada', url: 'https://www.admira.store/admira-xp/?demo=promocion'}]};
+  const {api, storage} = withLang('es', 'www.admira.store', {store: imported});
+  await api.listo();
+  assert.equal(api.plataforma(), 'store');
+  assert.deepEqual(snap(api.subdemos().activacion.hosts), canonical.activacion.hosts);
+  assert.equal(api.subdemos().default_mode, 'recorrido');
+  assert.deepEqual(snap(api.subdemos().subdemos.map(d => d.id)), ['promocion']);
+  assert.equal(api.parseDemo('/demo 1').id, 'store/promocion');
+  assert.equal(api.parseDemo('/demo promocion').id, 'store/promocion');
+  assert.deepEqual(snap(api.parseDemo('/demo 2')), {desconocida: '2'});
+  assert.deepEqual(snap(api.parseDemo('/demo voz')), {desconocida: 'voz'});
+  const lines = [];
+  api.exec('/demo help', {appendChild: li => lines.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0});
+  assert.match(lines.join('\n'), /\/demo 1 · \/demo promocion — Promoción personalizada/);
+  assert.doesNotMatch(lines.join('\n'), /Gestión de locuciones|Gestión del TPV/);
+  assert.deepEqual(JSON.parse(storage.getItem('ax-subdemos-manifiestos')), {store: imported}, 'no añade metadatos ni alias al objeto guardado');
+  assert.equal(JSON.stringify(canonical), original);
+  assert.deepEqual(snap(withLang('es', 'www.admira.store').api.subdemos()), canonical, 'una sesión sin override conserva el catálogo publicado');
+});
+
+test('Store importado vacío: permanece vacío sin resucitar el fallback ni números globales', async () => {
+  const imported = {version: 1, plataforma: 'store', subdemos: []};
+  const {api, storage} = withLang('es', 'admira.store', {store: imported});
+  await api.listo();
+  assert.deepEqual(snap(api.subdemos().subdemos), []);
+  for (let repeat = 0; repeat < 2; repeat++) {
+    await api.listo();
+    assert.deepEqual(snap(api.parseDemo('/demo help')), {lista: true, local: true});
+    for (const arg of ['1', '5', 'voz', 'tpv']) assert.deepEqual(snap(api.parseDemo('/demo ' + arg)), {desconocida: arg});
+    assert.equal(api.parseDemo('/demo studio').id, 'studio');
+    const lines = [];
+    api.exec('/demo help', {appendChild: li => lines.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0});
+    assert.match(lines.join('\n'), /Demos de admira\.store/);
+    assert.doesNotMatch(lines.join('\n'), /\/demo [1-5] ·/);
+  }
+  assert.deepEqual(JSON.parse(storage.getItem('ax-subdemos-manifiestos')), {store: imported});
 });
 
 test('demos: cinco soluciones en orden y URL en inglés', () => {
@@ -154,10 +196,64 @@ test('admira.studio y pixeria.com: /demo 1…5 son locales, help solo lista Stud
   const pix = withLang('es', 'pixeria.com').api;
   assert.equal(pix.parseDemo('/demo 1').url, 'https://www.pixeria.com/audio.html');
   assert.equal(withLang('es', 'www.admira.studio').api.parseDemo('/demo 1').url, 'https://www.admira.studio/audio.html');
-  // Fuera de Studio, los números siguen siendo las cinco soluciones.
+  // En las plataformas sin manifiesto, los números siguen siendo las cinco soluciones.
   assert.equal(withLang('es', 'www.admira.tv').api.plataforma(), null);
   assert.equal(withLang('es', 'www.admira.tv').api.parseDemo('/demo 1').id, 'studio');
 });
+
+for (const plataforma of ['store', 'biz']) {
+  const negocio = JSON.parse(readFileSync(join(dir, '../subdemos/' + plataforma + '.subdemos.json'), 'utf8'));
+  test(plataforma + ': números y alias locales, ayuda y salida a otras plataformas', () => {
+    for (const host of negocio.activacion.hosts) {
+      const {api} = withLang('es', host);
+      assert.equal(api.plataforma(), plataforma);
+      assert.deepEqual(snap(api.subdemos()), negocio, 'fallback incorporado igual al manifiesto');
+      for (const arg of ['', 'help', 'ayuda', '?', 'lista', 'list']) {
+        assert.deepEqual(snap(api.parseDemo('/demo ' + arg)), {lista: true, local: true});
+      }
+      for (const [i, demo] of negocio.subdemos.entries()) {
+        for (const command of [demo.cmd, ...demo.aliases.map(a => '/demo ' + a)]) {
+          const parsed = api.parseDemo(command);
+          assert.equal(parsed.id, plataforma + '/' + demo.id);
+          assert.equal(parsed.i, i);
+          assert.equal(parsed.local, true);
+          const resolved = api.resolverDemo(command, negocio, host);
+          assert.equal(resolved.clave, plataforma + '/' + demo.id);
+          assert.equal(resolved.modo, 'recorrido');
+        }
+      }
+      for (const other of ['studio', 'store', 'biz', 'tv', 'app']) {
+        assert.equal(api.parseDemo('/demo ' + other).id, other);
+      }
+      if (plataforma === 'store') {
+        for (const native of ['off', 'stop', 'estado', 'status', 'tpv off', 'tpv stop', 'tpv estado', 'tpv status']) {
+          assert.equal(api.parseDemo('/demo ' + native), null, 'el control nativo del TPV sigue disponible: ' + native);
+        }
+        assert.match(api.parseDemo('/demo tpv').url, /[?&]demo=tpv#tpv$/);
+      }
+      for (const arg of ['0', '6', '01', '1 extra', 'toString']) {
+        assert.deepEqual(snap(api.parseDemo('/demo ' + arg)), {desconocida: arg.toLowerCase()});
+      }
+      assert.equal(api.resolverDemo('/demo 1', negocio, host + '.ejemplo.com').tipo, 'otra_plataforma');
+    }
+  });
+  test(plataforma + ': ayuda explica solo sus recorridos y demo muestra sin navegar', () => {
+    const {api, location} = withLang('es', negocio.activacion.hosts[0]);
+    const lines = [];
+    const log = {appendChild: li => lines.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0};
+    const navigation = [];
+    location.assign = u => navigation.push(u);
+    api.exec('/demo help', log);
+    assert.match(lines.join('\n'), new RegExp('Demos de admira\\.' + plataforma));
+    for (const [i, d] of negocio.subdemos.entries()) {
+      assert.ok(lines.join('\n').includes('/demo ' + (i + 1) + ' · /demo ' + d.aliases[0] + ' — ' + d.nombre));
+    }
+    const result = api.demo('/demo 5', log);
+    assert.equal(result.id, plataforma + '/' + negocio.subdemos[4].id);
+    assert.ok(lines.some(l => l.includes('Recorrido preparado')));
+    assert.deepEqual(navigation, []);
+  });
+}
 
 test('/demo help en admira.studio lista solo las cinco de Studio; el texto común devuelve qué se enseña', () => {
   const { api } = withLang('es', 'www.admira.studio');

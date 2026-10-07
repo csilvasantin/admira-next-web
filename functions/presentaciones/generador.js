@@ -14,7 +14,7 @@ export async function onRequestGet(context){
   // que la del HTML a propósito — cuando eran dos, el mismo fichero de 51 KB se
   // podía servir bajo dos URLs distintas y la consola del generador enseñaba una
   // versión que no era la que corría. (NeoMBP16 · MacBook Pro 16, 4-ago-2026.)
-  html=html.replace('/assets/presentation-generator.js"','/assets/presentation-generator-20260721-11.js?v=20261007-demo-documentation"');
+  html=html.replace('/assets/presentation-generator.js"','/assets/presentation-generator-20260721-11.js?v=20261007-store-biz-editor-1"');
   // BARRA DE LA INTRANET (Carlos, 3-oct-2026: «que Presentaciones lleve también la barra
   // de la intranet»). El HTML trae la cabecera del grupo (<body data-yk-frame="cabecera">,
   // la de /proyectos/) y declara sus data-yk-slot; el script cuadrático rellena ▤ y

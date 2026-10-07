@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "plataforma": "biz",
+  "nombre": "admira.biz",
+  "default_mode": "recorrido",
+  "activacion": {
+    "hosts": [
+      "admira.biz",
+      "www.admira.biz",
+      "clearchannel.tv",
+      "www.clearchannel.tv"
+    ]
+  },
+  "subdemos": [
+    {
+      "id": "proyecto",
+      "letra": "a",
+      "nombre": "Dar de alta un proyecto",
+      "desc": "Definir el identificador, nombre, responsable y circuito del proyecto.",
+      "url": "https://www.admiranext.com/xpace/manage",
+      "cmd": "/demo 1",
+      "aliases": [
+        "proyecto",
+        "alta proyecto"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=proyecto",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Abrir la gestión de proyectos y preparar un alta de demostración."
+        },
+        {
+          "accion": "señala",
+          "texto": "Definir un identificador estable y un nombre reconocible."
+        },
+        {
+          "accion": "señala",
+          "texto": "Relacionar el proyecto con su circuito y revisar su responsable."
+        },
+        {
+          "accion": "señala",
+          "texto": "Validar los datos preparados antes de dar el alta real."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "id": "demo-alsea-retail",
+        "nombre": "Alsea · Retail Media",
+        "responsable": "Equipo de demostración",
+        "circuito": "demo-alsea-dooh",
+        "estado": "Ficha de ejemplo preparada"
+      }
+    },
+    {
+      "id": "circuito",
+      "letra": "b",
+      "nombre": "Dar de alta un circuito DooH",
+      "desc": "Agrupar puntos DooH y definir el vuelo de la campaña con fechas, franjas y frecuencia.",
+      "url": "https://www.admiranext.com/xpace/manage",
+      "cmd": "/demo 2",
+      "aliases": [
+        "circuito",
+        "dooh",
+        "vuelo"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=circuito",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Preparar el circuito vinculado al proyecto de demostración."
+        },
+        {
+          "accion": "señala",
+          "texto": "Añadir sus diferentes puntos DooH: entrada, escaparate y tótem."
+        },
+        {
+          "accion": "señala",
+          "texto": "Definir el vuelo: inicio y fin, franjas, duración de pieza y frecuencia."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar cobertura por punto y el calendario del vuelo de ejemplo."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "id": "demo-alsea-dooh",
+        "proyecto": "demo-alsea-retail",
+        "puntos": [
+          {
+            "id": "dooh-entrada",
+            "tipo": "Pantalla de entrada"
+          },
+          {
+            "id": "dooh-escaparate",
+            "tipo": "Pantalla de escaparate"
+          },
+          {
+            "id": "dooh-totem",
+            "tipo": "Tótem"
+          }
+        ],
+        "vuelo": {
+          "inicio": "2026-11-01",
+          "fin": "2026-11-14",
+          "franjas": [
+            "08:00–11:00",
+            "16:00–20:00"
+          ],
+          "pieza_segundos": 15,
+          "frecuencia": "Una inserción por bloque de ejemplo"
+        }
+      }
+    },
+    {
+      "id": "gemelo",
+      "letra": "c",
+      "nombre": "Dar de alta gemelos digitales · Retail Media",
+      "desc": "Representar el local, sus zonas y el inventario de soportes de Retail Media.",
+      "url": "https://www.admira.biz/backoffice.html",
+      "cmd": "/demo 3",
+      "aliases": [
+        "gemelo",
+        "gemelos",
+        "retailmedia",
+        "retail media"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=gemelo",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Preparar la ficha del local y su relación con el proyecto."
+        },
+        {
+          "accion": "señala",
+          "texto": "Definir las zonas comerciales y sus soportes de Retail Media."
+        },
+        {
+          "accion": "señala",
+          "texto": "Asociar el gemelo digital a la ubicación de demostración."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar qué soportes del gemelo se pueden incluir en una campaña."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "gemelo": "alsea-sbux-021",
+        "proyecto": "demo-alsea-retail",
+        "zonas": [
+          "Entrada",
+          "Caja",
+          "Sala"
+        ],
+        "retail_media": [
+          {
+            "zona": "Entrada",
+            "soporte": "Pantalla"
+          },
+          {
+            "zona": "Caja",
+            "soporte": "Pantalla TPV"
+          },
+          {
+            "zona": "Sala",
+            "soporte": "Tótem"
+          }
+        ]
+      }
+    },
+    {
+      "id": "iot",
+      "letra": "d",
+      "nombre": "Dar de alta dispositivos IoT",
+      "desc": "Relacionar pantallas, altavoces, cámaras y tótems con el gemelo y sus controles.",
+      "url": "https://www.admira.biz/backoffice.html",
+      "cmd": "/demo 4",
+      "aliases": [
+        "iot",
+        "dispositivos",
+        "pantallas",
+        "altavoces",
+        "camaras",
+        "totem"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=iot",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Preparar el alta de dispositivos del gemelo."
+        },
+        {
+          "accion": "señala",
+          "texto": "Identificar pantalla, altavoz, cámara y tótem con IDs únicos."
+        },
+        {
+          "accion": "señala",
+          "texto": "Asignar zona, tipo de dispositivo y control previsto."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar conectividad, estado y relación con el inventario tecnológico."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "gemelo": "alsea-sbux-021",
+        "dispositivos": [
+          {
+            "id": "demo-screen-01",
+            "tipo": "Pantalla",
+            "zona": "Entrada",
+            "control": "Contenido y estado"
+          },
+          {
+            "id": "demo-speaker-01",
+            "tipo": "Altavoz",
+            "zona": "Sala",
+            "control": "Audio y volumen"
+          },
+          {
+            "id": "demo-camera-01",
+            "tipo": "Cámara",
+            "zona": "Entrada",
+            "control": "Estado y disponibilidad"
+          },
+          {
+            "id": "demo-totem-01",
+            "tipo": "Tótem",
+            "zona": "Sala",
+            "control": "Contenido e interacción"
+          }
+        ]
+      }
+    },
+    {
+      "id": "itil",
+      "letra": "e",
+      "nombre": "Integrar en el inventario tecnológico · ITIL",
+      "desc": "Registrar los dispositivos como elementos de configuración y relacionar ubicación, servicio y mantenimiento.",
+      "url": "https://www.xpaceos.com/inventario/starbucks/?view=references",
+      "cmd": "/demo 5",
+      "aliases": [
+        "itil",
+        "inventario",
+        "tecnologia"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=biz&demo=itil",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Abrir el inventario tecnológico de la ubicación."
+        },
+        {
+          "accion": "señala",
+          "texto": "Preparar una referencia de configuración para cada dispositivo del gemelo."
+        },
+        {
+          "accion": "señala",
+          "texto": "Relacionar servicio, responsable y dependencias entre los elementos."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar estado y vínculo con mantenimiento e incidencias."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "servicio": "Retail Media · local piloto",
+        "ubicacion": "alsea-sbux-021",
+        "responsable": "Equipo de operaciones de demostración",
+        "elementos": [
+          {
+            "ci": "CI-DEMO-SCREEN-01",
+            "dispositivo": "demo-screen-01"
+          },
+          {
+            "ci": "CI-DEMO-SPEAKER-01",
+            "dispositivo": "demo-speaker-01"
+          },
+          {
+            "ci": "CI-DEMO-CAMERA-01",
+            "dispositivo": "demo-camera-01"
+          },
+          {
+            "ci": "CI-DEMO-TOTEM-01",
+            "dispositivo": "demo-totem-01"
+          }
+        ],
+        "relacion": "Dispositivo → gemelo → servicio",
+        "estado": "Inventario de ejemplo preparado"
+      }
+    }
+  ],
+  "nota": "Recorridos preparados con datos de demostración. El ensayo conserva cambios solo en esta sesión; el alta o la activación real se revisa en la plataforma."
+}

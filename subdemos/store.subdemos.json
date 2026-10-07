@@ -1,0 +1,259 @@
+{
+  "version": 1,
+  "plataforma": "store",
+  "nombre": "admira.store",
+  "default_mode": "recorrido",
+  "activacion": {
+    "hosts": [
+      "admira.store",
+      "www.admira.store"
+    ]
+  },
+  "subdemos": [
+    {
+      "id": "voz",
+      "letra": "a",
+      "nombre": "Gestión de locuciones",
+      "desc": "Seleccionar una locución, asignarla a una zona y preparar su horario.",
+      "url": "https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es",
+      "cmd": "/demo 1",
+      "aliases": [
+        "locucion",
+        "locuciones",
+        "voz"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=voz",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Abrir el local de demostración y su gestión de audio."
+        },
+        {
+          "accion": "señala",
+          "texto": "Seleccionar la locución preparada de café y bollería; escucharla."
+        },
+        {
+          "accion": "señala",
+          "texto": "Asignar entrada y caja, volumen 65 y horario de desayuno."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar la programación y el resultado antes de activarlo."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "local": "alsea-sbux-021",
+        "contenido": "Locución de desayuno",
+        "destinos": [
+          "Entrada",
+          "Caja"
+        ],
+        "volumen": 65,
+        "horario": "08:00–11:00",
+        "estado": "Programación de ejemplo preparada"
+      },
+      "muestra": {
+        "tipo": "audio",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/locucion-es.mp3",
+        "descripcion": "Locución preparada para el ensayo; programación de ejemplo."
+      }
+    },
+    {
+      "id": "musica",
+      "letra": "b",
+      "nombre": "Gestión de música",
+      "desc": "Seleccionar la playlist del local, zonas, volumen y franjas horarias.",
+      "url": "https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es",
+      "cmd": "/demo 2",
+      "aliases": [
+        "musica",
+        "playlist",
+        "hilo musical"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=musica",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Abrir la gestión del hilo musical del local."
+        },
+        {
+          "accion": "señala",
+          "texto": "Escuchar el ambiente musical preparado y seleccionarlo."
+        },
+        {
+          "accion": "señala",
+          "texto": "Asignar sala y terraza, volumen 45 y la franja de tarde."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar cómo conviven música y locución en la programación."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "local": "alsea-sbux-021",
+        "playlist": "Ambiente de cafetería",
+        "destinos": [
+          "Sala",
+          "Terraza"
+        ],
+        "volumen": 45,
+        "horario": "16:00–20:00",
+        "prioridad": "La locución atenúa temporalmente la música"
+      },
+      "muestra": {
+        "tipo": "audio",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/musica-cafe.mp3",
+        "descripcion": "Pista preparada para ilustrar la gestión del hilo musical."
+      }
+    },
+    {
+      "id": "imagenes",
+      "letra": "c",
+      "nombre": "Gestión de imágenes",
+      "desc": "Seleccionar creatividades, organizarlas en playlist y asignar pantallas.",
+      "url": "https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es",
+      "cmd": "/demo 3",
+      "aliases": [
+        "imagen",
+        "imagenes",
+        "creatividades"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=imagenes",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Abrir la gestión de contenidos visuales del local."
+        },
+        {
+          "accion": "señala",
+          "texto": "Seleccionar la creatividad de café preparada."
+        },
+        {
+          "accion": "señala",
+          "texto": "Asignarla a la pantalla de entrada y fijar su orden en la playlist."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar el calendario y la vista previa de la pantalla."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "local": "alsea-sbux-021",
+        "contenido": "Creatividad de café",
+        "destinos": [
+          "Pantalla de entrada"
+        ],
+        "playlist": "Campaña de desayuno",
+        "orden": 1,
+        "horario": "08:00–11:00"
+      },
+      "muestra": {
+        "tipo": "image",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/imagen-cafe.jpg",
+        "descripcion": "Creatividad preparada para el ensayo de gestión."
+      }
+    },
+    {
+      "id": "video",
+      "letra": "d",
+      "nombre": "Gestión de vídeo",
+      "desc": "Ordenar clips en playlist, asignar destinos y comprobar su reproducción.",
+      "url": "https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es",
+      "cmd": "/demo 4",
+      "aliases": [
+        "video",
+        "videos",
+        "clip"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=video",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Abrir la playlist de vídeo del local."
+        },
+        {
+          "accion": "señala",
+          "texto": "Previsualizar el clip preparado de la campaña."
+        },
+        {
+          "accion": "señala",
+          "texto": "Asignarlo a la pantalla de pared y colocarlo después de la imagen."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar la reproducción y la programación por destino."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "local": "alsea-sbux-021",
+        "contenido": "Clip de campaña de café",
+        "destinos": [
+          "Pantalla de pared"
+        ],
+        "playlist": "Campaña de desayuno",
+        "orden": 2,
+        "reproduccion": "Bucle dentro de la playlist"
+      },
+      "muestra": {
+        "tipo": "video",
+        "url": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.mp4",
+        "poster": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.jpg",
+        "descripcion": "Clip preparado para el ensayo de gestión."
+      }
+    },
+    {
+      "id": "tpv",
+      "letra": "e",
+      "nombre": "Gestión del TPV",
+      "desc": "Seleccionar un producto y enseñar su relación con audio, pantallas y reglas del local.",
+      "url": "https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es&demo=tpv#tpv",
+      "cmd": "/demo 5",
+      "aliases": [
+        "tpv",
+        "caja",
+        "venta"
+      ],
+      "duracion": 60,
+      "ensayo_url": "https://www.admiranext.com/subdemos/ensayo.html?plataforma=store&demo=tpv",
+      "guion": [
+        {
+          "accion": "di",
+          "texto": "Abrir el TPV del gemelo de demostración."
+        },
+        {
+          "accion": "señala",
+          "texto": "Seleccionar un muffin para mostrar la operación en caja."
+        },
+        {
+          "accion": "señala",
+          "texto": "Revisar la regla que relaciona el producto con su campaña."
+        },
+        {
+          "accion": "señala",
+          "texto": "Comprobar los destinos de audio y vídeo asociados en este ensayo."
+        }
+      ],
+      "steps": [],
+      "caso": {
+        "local": "alsea-sbux-021",
+        "producto": "Muffin",
+        "evento": "Selección de producto en TPV",
+        "regla": "Si se selecciona el muffin, mostrar la campaña asociada",
+        "destinos": [
+          "Caja",
+          "Pantalla de pared",
+          "Altavoces"
+        ]
+      }
+    }
+  ],
+  "nota": "Recorridos preparados con datos de demostración. El ensayo conserva cambios solo en esta sesión; el alta o la activación real se revisa en la plataforma."
+}

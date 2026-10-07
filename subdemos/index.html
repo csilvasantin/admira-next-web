@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261006-experto-cerrado-1">
 <link rel="stylesheet" href="/demo/demo.css?v=20261006-completa-v2">
-<link rel="stylesheet" href="/subdemos/subdemos.css?v=20261007-subdemos-2">
+<link rel="stylesheet" href="/subdemos/subdemos.css?v=20261007-editor-1">
 </head>
 <body data-yk-title="SUBDEMOS" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
 
@@ -42,7 +42,7 @@
         <div class="term"><span class="pr">$</span> /demo store tpv <span class="ok">→ guion por proyecto</span></div>
         <div class="kicker">Demos globales y subdemos</div>
         <h1>Qué enseñamos en cada proyecto</h1>
-        <p class="lede">Para empezar, tres <b>demos globales</b>, una por plataforma (admira.biz, admira.store y admira.studio), y dentro de cada una sus <b>subdemos</b> por funcionalidad: alta de proyecto, circuito, gemelo, IoT e ITIL en admira.biz; TPV o digital signage en admira.store… Escoge el proyecto, marca las demos y sale el guion con su enlace y la orden de ⌘ Experto. En Experto o en el avatar, <code>/demo &lt;plataforma&gt;</code> abre la demo global.</p>
+        <p class="lede">Prepara las demos de cada proyecto: <b>Store</b> gestiona locuciones, música, imágenes, vídeo y TPV; <b>Biz</b> organiza proyectos, circuitos DooH y vuelos, gemelos Retail Media, dispositivos IoT e inventario ITIL; <b>Studio</b> crea los contenidos. Marca las que quieres enseñar y ensaya su recorrido. Puedes añadir, editar y quitar subdemos con los botones del catálogo.</p>
       </header>
 
       <section aria-labelledby="h-proy">
@@ -58,6 +58,22 @@
       <section aria-labelledby="h-cat">
         <h2 id="h-cat">Demos</h2>
         <div id="catalogo"></div>
+        <form id="editor-subdemo" class="editor-subdemo" hidden aria-label="Editar definición de subdemo">
+          <h3>Añadir o editar subdemo</h3>
+          <div class="editor-fields">
+            <label>Plataforma <select id="sub-plataforma"><option value="biz">admira.biz</option><option value="store">admira.store</option><option value="studio">admira.studio</option></select></label>
+            <label>ID estable <input id="sub-id" required pattern="[a-z0-9-]{1,40}" maxlength="40" placeholder="promocion"></label>
+            <label>Letra <input id="sub-letra" maxlength="4" placeholder="a"></label>
+            <label>Nombre <input id="sub-nombre" required maxlength="160"></label>
+            <label class="wide">Descripción <textarea id="sub-desc" maxlength="1000"></textarea></label>
+            <label class="wide">URL de la función <input id="sub-url" type="url" required maxlength="2048" placeholder="https://"></label>
+            <label class="wide">Comando opcional <input id="sub-cmd" maxlength="200" placeholder="/demo store promocion"></label>
+          </div>
+          <p>El ID se mantiene al editar. Las muestras, aliases, pasos y casos existentes se conservan. Los cambios se guardan en este navegador; Exportar permite llevarlos a otro equipo.</p>
+          <p id="sub-error" role="alert"></p>
+          <button class="btn primario" type="submit">Guardar subdemo</button>
+          <button class="btn" id="sub-cancelar" type="button">Cancelar</button>
+        </form>
       </section>
 
       <section aria-labelledby="h-guion" class="guion-wrap">
@@ -77,13 +93,13 @@
           <label class="btn">Importar (guion o manifiesto) <input id="importar" type="file" accept="application/json" hidden></label>
         </p>
         <p id="estado" class="estado" role="status" aria-live="polite"></p>
-        <p class="nota">Se guarda en este navegador. Exportar/Importar lo pasa a otro equipo. Importar también acepta un manifiesto de plataforma (p. ej. <a href="/subdemos/studio.subdemos.json">studio.subdemos.json</a>) para cambiar sus subdemos.</p>
+        <p class="nota">Se guarda en este navegador. Exportar/Importar lleva a otro equipo tanto los proyectos como las definiciones de subdemos editadas. Importar también acepta un manifiesto de plataforma (p. ej. <a href="/subdemos/studio.subdemos.json">studio.subdemos.json</a>) para cambiar sus subdemos.</p>
       </section>
     </div>
   </div>
 </main>
 
-<script type="module" src="/subdemos/subdemos.js?v=20261007-subdemos-5"></script>
+<script type="module" src="/subdemos/subdemos.js?v=20261007-editor-1"></script>
 <script defer src="/assets/admira-frame.js?v=20261006-experto-cerrado-1"></script>
 </body>
 </html>
