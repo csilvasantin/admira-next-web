@@ -51,7 +51,7 @@ test('bounded plain-text log and serializable result; legacy execution and navig
   const q=setup({demo(text,log){log.textContent='<script>text only</script>'+ 'x'.repeat(6000);return {id:'studio/voz'};}});
   q.send({type:'da-demo',texto:'/demo 1',requestId:'bounded'});await flush();assert.equal(q.responses[0].data.message.length,4000);assert.equal(q.responses[0].data.result.id,'studio/voz');
   q.send({type:'da-demo',texto:'/demo 1'});await flush();assert.equal(q.responses.length,1);
-  const fallback=setup(null);fallback.send({type:'da-demo',id:'studio'});await flush();assert.deepEqual(fallback.navigation,['https://www.admira.studio/']);assert.equal(fallback.responses.length,0);
+  const fallback=setup(null);fallback.send({type:'da-demo',id:'studio'});await flush();assert.equal(fallback.navigation.length,1);assert.equal(new URL(fallback.navigation[0]).origin,'https://www.admira.studio');assert.equal(new URL(fallback.navigation[0]).searchParams.get('ax_demo'),'studio');assert.ok(new URL(fallback.navigation[0]).searchParams.get('ax_run'));assert.equal(fallback.responses.length,0);
 });
 test('unavailable local engine fails honestly and replay cache stays bounded',async()=>{
   const missing=setup(null);missing.send({type:'da-demo',texto:'/demo auto',requestId:'missing'});await flush();assert.equal(missing.responses[0].data.ok,false);assert.match(missing.responses[0].data.message,/unavailable/);

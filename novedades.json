@@ -255,5 +255,10 @@
     "Las quince funciones de Biz, Studio y Store incorporan vídeos propios con voz y sonido; el recorrido espera al final real de cada clip",
     "Narración, sonido de los vídeos y silencio global se controlan durante la presentación, sin mezclar las voces",
     "El editor conserva vídeos personalizados y muestras originales; los ensayos y la copia sin conexión muestran los vídeos completos"
+  ],
+  "v.07.10.2026.r22.15:18": [
+    "La demo en vivo abre Studio, Store, TV, Biz y App con un cursor que maneja controles reales dentro de cada web",
+    "Studio conserva los controles al cambiar de herramienta; Pausar, Reanudar y Devolver control permiten seguir o detener el recorrido",
+    "El ensayo muestra vídeos preparados sin generar, comprar ni emitir; App conserva el acceso autorizado al inventario"
   ]
 }

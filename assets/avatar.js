@@ -625,12 +625,59 @@
     studio: 'https://www.admira.studio/',
     store: 'https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es&demo=tpv#tpv',
     tv: 'https://admira.tv/adcelerate/demo/?view=human&site=starbucks',
-    app: 'https://www.yokup.com/retailer?marca=starbucks',
+    app: 'https://www.admira.app/retailer?marca=starbucks',
     biz: 'https://www.admira.biz/'
   };
+  var NATIVE_HOSTS = {
+    studio: ['admira.studio', 'pixeria.com'], store: ['admira.store', 'xpaceos.com'],
+    tv: ['admira.tv'], biz: ['admira.biz', 'clearchannel.tv'], app: ['admira.app', 'yokup.com']
+  };
+  function nativeHost(id, hostname) {
+    return !!NATIVE_HOSTS[id] && NATIVE_HOSTS[id].indexOf(String(hostname || '').toLowerCase().replace(/^www\./, '')) !== -1;
+  }
   function demoUrl(id) {
+    id = String(id || '').toLowerCase();
+    if (!NATIVE_HOSTS[id]) return '';
     var X = root.AdmiraExperto, p = X && typeof X.parseDemo === 'function' ? X.parseDemo('/demo ' + id) : null;
-    return (p && p.url) || DEMO_URL[String(id || '').toLowerCase()] || '';
+    try {
+      var url = new URL((p && p.url) || DEMO_URL[id]);
+      if (url.protocol !== 'https:' || url.username || url.password || !nativeHost(id, url.hostname)) return '';
+      if (id === 'store') {
+        if (url.searchParams.get('demo') === 'tpv') url.searchParams.delete('demo');
+        if (url.hash === '#tpv') url.hash = '';
+      }
+      var language = en() ? 'en' : 'es';
+      try { var requestedLanguage = new URL(root.location.href).searchParams.get('lang'); if (/^(es|en)$/.test(requestedLanguage || '')) language = requestedLanguage; } catch (_) {}
+      url.searchParams.set('lang', language);
+      url.searchParams.set('ax_demo', id);
+      url.searchParams.set('ax_run', root.crypto && typeof root.crypto.randomUUID === 'function' ? root.crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
+      return url.href;
+    } catch (_) { return ''; }
+  }
+  // Native URL activation is independent of opening the avatar. Never bootstrap
+  // from localhost previews, unrelated hosts or user supplied script URLs.
+  function bootNativeDemo() {
+    var url, id;
+    try { url = new URL(root.location.href); id = url.searchParams.get('ax_demo'); } catch (_) { return; }
+    if (url.protocol !== 'https:' || !nativeHost(id, url.hostname)) return;
+    if (root.AdmiraExperto || root.__admiraNativeDemoLoading) return;
+    root.__admiraNativeDemoLoading = new Promise(function (resolve, reject) {
+      var script = doc.querySelector('script[data-admira-demo-engine]') || doc.querySelector('script[src^="https://www.admiranext.com/suite/experto.js"]'), created = false;
+      if (!script) {
+        script = doc.createElement('script');
+        script.src = ORIGIN + '/suite/experto.js?v=20261007-native-demo-control-1';
+        script.defer = true; script.dataset.admiraDemoEngine = '1'; script.dataset.pata = id;
+        created = true;
+      }
+      if (root.AdmiraExperto) { resolve(root.AdmiraExperto); return; }
+      var timer = root.setTimeout(function () { reject(new Error('Native demo engine did not load.')); }, 15000);
+      script.addEventListener('load', function () { root.clearTimeout(timer); root.AdmiraExperto ? resolve(root.AdmiraExperto) : reject(new Error('Native demo engine unavailable.')); }, {once: true});
+      script.addEventListener('error', function () { root.clearTimeout(timer); reject(new Error('Native demo engine failed to load.')); }, {once: true});
+      if (created) (doc.head || doc.body || doc.documentElement).appendChild(script);
+    });
+    root.__admiraNativeDemoLoading.catch(function () {
+      if (root.console && typeof root.console.warn === 'function') root.console.warn('Native demo engine unavailable. Reload the platform to retry.');
+    });
   }
   function openDemo(id) {
     var url = demoUrl(id);
@@ -709,6 +756,7 @@
     hide: function () { set(KEY, 'off'); hide(); }, storedOn: function () { return override() === 'on'; }};
 
   function boot() {
+    bootNativeDemo();
     var o = override();
     if (o === 'on') { show(false); return; }
     if (o === 'off') return;

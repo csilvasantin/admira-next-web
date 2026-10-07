@@ -364,13 +364,21 @@
     {id: 'app', alias: ['yokup', 'operaciones', 'itil', 'incidencias', 'retailer'], nombre: 'admira.app · Yokup',
       hosts: /(^|\.)(admira\.app|yokup\.com)$/,
       desc: ['Operación de la red Starbucks: equipos, incidencias ITIL y estado de cada tienda', 'Starbucks network operations: equipment, ITIL incidents and each store\'s status'],
-      url: ['https://www.yokup.com/retailer?marca=starbucks']},
+      url: ['https://www.admira.app/retailer?marca=starbucks']},
     {id: 'biz', alias: ['negocio', 'clearchannel', 'retailmedia', 'comercial'], nombre: 'admira.biz',
       hosts: /(^|\.)(admira\.biz|clearchannel\.tv)$/,
       desc: ['Comercialización: retail media y campañas de marca sobre las pantallas de la red', 'Monetisation: retail media and brand campaigns across the network screens'],
       url: ['https://www.admira.biz/']}
   ];
   function demoUrl(d) { return d.url[lang() === 'en' && d.url[1] ? 1 : 0]; }
+  function demoLaunchUrl(d) {
+    var u = new URL(demoUrl(d));
+    u.searchParams.set('lang',lang());
+    u.searchParams.set('ax_demo', d.id);
+    u.searchParams.set('ax_run', Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9));
+    if (d.id === 'store') { if(u.searchParams.get('demo')==='tpv')u.searchParams.delete('demo');if(u.hash==='#tpv')u.hash=''; } // The native TPV routine must not compete with the controlled walkthrough.
+    return u.href;
+  }
   function demoActual() { for (var i = 0; i < DEMOS.length; i++) if (DEMOS[i].hosts.test(host)) return i; return -1; }
   function norm(t) { return String(t == null ? '' : t).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
@@ -451,8 +459,8 @@
     if (!m) return null;
     var arg = norm(m[1]).replace(/^admira\./, ''), L = localM();
     if (L && /^(auto|todas|todos|all)$/.test(arg)) return {local: true, auto: true};
-    if (L && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
-      (plataforma !== 'store' || (recorrido && recorrido.activo) || !/^(stop|off|estado|status)$/.test(arg))) return {control: arg};
+    if ((L || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo)) && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
+      (plataforma !== 'store' || (recorrido && recorrido.activo) || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) || !/^(stop|off|estado|status)$/.test(arg))) return {control: arg};
     // Controles del recorrido TPV nativo: los sigue atendiendo el gemelo.
     if (plataforma === 'store' && /^(tpv|off|stop|estado|status|tpv (off|stop|estado|status))$/.test(arg)) return null;
     if (L) {
@@ -536,6 +544,7 @@
     return estadoRecorrido();
   }
   function mostrarMuestra(d, n, cola, indice, pausado) {
+    if (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) root.AdmiraDemoControl.control('stop');
     cerrarMuestra();
     var pasos = Array.isArray(d.guion) && d.guion.length ? d.guion.map(function (p) { return typeof p === 'string' ? p : (p.texto || p.text || ''); }) :
       [d.desc || d.nombre, T('Preparar el caso de demostración.', 'Prepare the demonstration case.'), T('Mostrar el resultado preparado.', 'Show the prepared result.'), T('Revisar el resultado sin generar ni publicar.', 'Review the result without generating or publishing.')];
@@ -641,7 +650,7 @@
   }
   // Devuelve {id, nombre, desc} de lo que se enseña (lo usa el avatar para presentarlo) o null.
   function demoRun(p, log) {
-    if (p.control) { var state = controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
+    if (p.control) { var native = root.AdmiraDemoControl; var nativeControl = {pausa:'pause',pause:'pause',reanudar:'resume',resume:'resume',continuar:'resume',parar:'stop',stop:'stop',off:'stop',siguiente:'next',next:'next'}[p.control]; var state = native && native.state().activo ? (nativeControl ? native.control(nativeControl) : native.state()) : controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
     if (p.auto) { var L = localM(); if (!L.subdemos.length) { out(log, T('No hay subdemos en este catálogo.', 'No subdemos in this catalog.')); return null; } mostrarMuestra(L.subdemos[0], 1, L.subdemos, 0); return estadoRecorrido(); }
     if (p.lista) { out(log, p.local ? localLista() : demoLista()); return null; }
     if (p.desconocida != null) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + p.desconocida + T('. Escribe /demo help.', '. Type /demo help.') + '\n' + localLista(), 'err'); return null; }
@@ -653,7 +662,8 @@
       else { out(log, T('Abriendo ', 'Opening ') + abs(subUrl(d)) + '…'); setTimeout(function () { location.assign(abs(subUrl(d))); }, 600); }
       return {id: p.clave, nombre: d.nombre, desc: d.desc || ''};
     }
-    var g = p.demo, url = demoUrl(g);
+    var g = p.demo, url = demoLaunchUrl(g);
+    if (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) root.AdmiraDemoControl.control('stop');
     cerrarMuestra();
     out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/5 · ' + g.nombre + ' — ' + T(g.desc[0], g.desc[1]));
     out(log, T('Abriendo ', 'Opening ') + url + '…');
@@ -1030,13 +1040,25 @@
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
     parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
-    demoEstado: estadoRecorrido,
+    demoEstado: function () { return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
+    demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
     normalizeLangToken: normalizeLangToken,
     setLanguage: applyLang
   };
 
+  function bootNativeDemo() {
+    var id; try { id = new URLSearchParams(location.search).get('ax_demo'); } catch (_) { return; }
+    if (!/^(studio|store|tv|biz|app)$/.test(id || '') || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
+    var loader = document.createElement('script');
+    var base;try { base = new URL(script.src || 'https://www.admiranext.com/suite/experto.js'); } catch (_) { base = new URL('https://www.admiranext.com/suite/experto.js'); }
+    loader.src = new URL('/suite/demo-control.js?v=20261007-native-demo-control-1',base.origin).href;
+    loader.setAttribute('data-admira-native-control','');
+    loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
+    document.head.appendChild(loader);
+  }
   function boot() {
+    bootNativeDemo();
     if (apply()) return;
     var mo = new MutationObserver(function () { if (apply()) mo.disconnect(); });
     mo.observe(document.documentElement, {childList: true, subtree: true});

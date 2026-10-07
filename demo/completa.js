@@ -10,7 +10,7 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // ─── pestañas ────────────────────────────────────────────────────────────────
-const PANELES = ['ayuda', 'formulario', 'rapida', 'remota'];
+const PANELES = ['ayuda', 'formulario', 'rapida', 'remota', 'en-vivo'];
 function mostrar(id) {
   const actual = PANELES.includes(id) ? id : 'ayuda';
   for (const p of PANELES) {
