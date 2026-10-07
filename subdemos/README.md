@@ -15,3 +15,32 @@ Las fechas, ubicaciones, IDs y dispositivos del ensayo son datos preparados. El 
 Los manifiestos canónicos están en `/subdemos/store.subdemos.json` y `/subdemos/biz.subdemos.json`. `negocio.mjs` y la copia de `suite/experto.js` mantienen el mismo catálogo para disponibilidad sin red. La validación compara sus definiciones, casos y guiones. Las seis antiguas definiciones Store siguen resolviéndose para guiones guardados, separadas de las cinco nuevas.
 
 El editor `/subdemos/` permite añadir, editar y quitar una definición individual, y seleccionar qué se enseña en cada proyecto. Guarda cambios en este navegador; Exportar incluye proyectos y manifiestos, e Importar los lleva a otro. No publica esos cambios en todos los navegadores. Al generar una presentación desde ese editor, el catálogo editado se envía como `demoProject.catalogo`, se valida y se captura con la presentación. Las definiciones desconocidas sin catálogo válido se rechazan.
+
+## Demo global y entrega sin conexión
+
+Cada presentación con `demoProject` puede abrir su recorrido guiado privado en
+`/presentaciones/<cliente>/demo`. Lee la instantánea capturada en la presentación,
+conserva el contexto del proyecto y reproduce muestras sin generar ni publicar.
+
+`/presentaciones/<cliente>/api/demo-project` permite consultar esa instantánea y
+actualizarla con PUT de editor, sin reconstruir las diapositivas. Admite
+`expectedUpdatedAt` para detectar una edición posterior.
+
+El empaquetador `scripts/build-presentation-offline.cjs` requiere Node, Playwright
+y la clave de máquina del generador (resuelta en memoria). Ejemplo:
+
+```sh
+node scripts/build-presentation-offline.cjs --client alsea-starbucks --output /ruta/alsea-starbucks-offline
+```
+
+Produce una carpeta autónoma, un ZIP y un PDF. Extraer el ZIP y abrir `index.html`
+en el navegador del ordenador. La presentación, las quince funciones seleccionadas
+y sus muestras están dentro. No hay servidor, sesión, generación ni escritura remota.
+Las funciones online mantienen sus enlaces explícitos y requieren red y autorización.
+La copia tiene fecha y cliente y se comparte como material de reunión.
+
+La descarga privada `/presentaciones/<cliente>/offline?format=zip` (o `pdf`) sirve
+el archivo R2 `presentations/<cliente>/offline/paquete.zip` (o `.pdf`). El
+empaquetador no publica automáticamente. Si cambia el material, se vuelve a
+empaquetar y verificar antes de reemplazar la entrega. No se publican los ZIP,
+PDF o backups del cliente como archivos estáticos en Git.

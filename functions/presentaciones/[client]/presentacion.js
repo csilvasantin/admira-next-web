@@ -174,7 +174,7 @@ export async function onRequestGet(context){
   // Ojo: NO se toca baseBlocks, porque de ahi sale locales.es y lo dejariamos en ingles.
   // Los ids y los minutos siguen viniendo del esqueleto base; solo se sustituye el texto.
   const idiomaInicial=languages[0]||'es';
-  const demoDocumentation=config.demoProject?demoDocumentationSlides(config.demoProject,idiomaInicial,new URL(context.request?.url||'https://admiranext.local/').searchParams.get('marca')||''):'';
+  const demoDocumentation=config.demoProject?demoDocumentationSlides(config.demoProject,idiomaInicial,new URL(context.request?.url||'https://admiranext.local/').searchParams.get('marca')||'',client):'';
   const traduccionInicial=idiomaInicial==='es'?null:(ideas.translations||{})[idiomaInicial];
   const enIdiomaInicial=(bloque,indice)=>{
     if(!traduccionInicial)return bloque;
