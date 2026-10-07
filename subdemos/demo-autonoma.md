@@ -18,3 +18,9 @@ En el Experto, `/demo help` lista las cinco funciones locales. `/demo 1`…`/dem
 En Store, `/demo tpv` conserva la demostración del muffin en el gemelo. Sus órdenes `/demo estado`, `/demo off` y `/demo stop` siguen atendiendo el TPV cuando no está activo un ensayo del catálogo. `/demo 5` o `/demo caja` corresponde a la gestión del TPV del catálogo.
 
 Los recorridos del catálogo muestran datos y resultados preparados. No ejecutan altas, generación, ventas ni publicación a dispositivos. Las operaciones reales se realizan en la plataforma con conexión y sesión autorizada.
+
+## Confirmación de comandos desde el avatar
+
+El iframe propio de `https://digitalavatar.ai` puede enviar `{type:"da-demo", texto:"/demo auto", requestId:"da-demo-..."}`. La página espera el catálogo, ejecuta el motor una vez y responde al mismo iframe/origen con `{type:"da-demo-result", requestId, ok, message, estado, result?}`. `message` es texto, nunca HTML. La ayuda se confirma por su registro aunque el motor devuelva `null`; los controles muestran el estado real, incluido `{activo:false}` si no hay recorrido.
+
+Los mensajes anteriores sin `requestId` siguen funcionando. Los identificadores repetidos reciben la misma confirmación; reutilizarlos con otro comando se rechaza. El registro por iframe conserva hasta 128 identificadores y rechaza nuevas peticiones al alcanzar el límite, sin expulsar los anteriores ni repetirlos. Recargar la página inicia una sesión nueva. El canal específico de Store responde desde su propio puente; esta validación central corresponde al iframe flotante `#da-suite-frame`.

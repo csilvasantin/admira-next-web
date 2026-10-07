@@ -232,5 +232,9 @@
     "Demo global autónoma: Biz → Studio → Store con 15 funciones, duración de 5, 8 o 12 minutos y copia offline",
     "Pausa, reanudar y detener en los ensayos locales; /demo auto encadena las cinco funciones de cada plataforma",
     "Muestras sin sonido por defecto para acompañar al ponente; catálogo Studio central corrige rutas antiguas"
+  ],
+  "v.07.10.2026.r17.12:46": [
+    "El avatar confirma los comandos locales de demo con el resultado y estado reales del motor, después de cargar su catálogo.",
+    "Los reenvíos de una misma petición no repiten el comando; se valida el iframe propio y se conserva el canal anterior."
   ]
 }
