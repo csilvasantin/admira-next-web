@@ -202,7 +202,7 @@ export async function onRequest(context){
   const isDeckAssets = !isGallery && second === 'deck';
   const isBrandAssets = !isGallery && second === 'brand';
   const isPresentationMode = !isGallery && second === 'presentacion';
-  const isPresentationExtraPage = !isGallery && ['demo','offline'].includes(second);
+  const isPresentationExtraPage = !isGallery && ['demo','offline','remote-audio'].includes(second);
   const isIdeasWrite = (isIdeasApi || isDemoProjectApi) && request.method !== 'GET';
   const isGeneratorPage = isGallery;
   const isGalleryPage = first === 'galeria' && parts.length === 1;
