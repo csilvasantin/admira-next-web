@@ -222,5 +222,10 @@
     "Presentaciones: un metaestilo común para la introducción, las propuestas y las demos, con tipografía de cliente y numeración continua",
     "Exportación offline: conserva el orden de los estilos para mantener la marca y los colores del PDF",
     "Alsea: paleta verde y clara coherente, títulos sin texto antiguo superpuesto y pies legibles"
+  ],
+  "v.07.10.2026.r15.12:24": [
+    "Presentaciones: un idioma cuya «traducción» es copia del castellano ya no se ofrece",
+    "Alsea · Starbucks: desaparece el botón EN y ?lang=en muestra la presentación entera en castellano, sin mezcla",
+    "Los idiomas sin traducir o a medias siguen viéndose incompletos, como antes"
   ]
 }

@@ -6,6 +6,7 @@ function fontStack(style){ return style==='serif'?'Georgia,"Times New Roman",ser
 import {getDeckPack} from '../_deck-library.js';
 import {normalizeSlideMedia} from '../_slide-media.js';
 import {withMetaStyle} from '../_meta-style.js';
+import {idiomasOfrecidos} from '../_idiomas-reales.js';
 import {demoDocumentationSlides} from '../_demo-documentation.js';
 import {resolveRenderBrand,prospectHead,maquetaHtml,galaxiaSlide,plataformaDeBloque,coverLockup,PROSPECT_LANGUAGE_SCRIPT} from '../_prospect.js';
 
@@ -166,7 +167,8 @@ export async function onRequestGet(context){
   const radius=Math.max(0,Math.min(32,Number(config.theme?.radius)||10)),shape=config.theme?.radiusStyle==='rounded'?'50%':`${Math.max(2,radius)}px`,density=option(config.theme?.density,['compact','balanced','airy'],'balanced');
   const slidePad=density==='airy'?'11vh 9vw':density==='compact'?'7vh 6vw':'9vh 7vw';
   const name=esc(config.displayName); const logo=config.brand?.logoUrl===`/presentaciones/${client}/brand/logo`?esc(config.brand.logoUrl):''; const baseBlocks=(ideas.skeleton||[]).filter(item=>item.enabled!==false).map(visibleBlock);
-  const languages=(Array.isArray(config.languages)&&config.languages.length?config.languages:ideas.languages)||['es'];
+  // Se retira el idioma cuya «traducción» es copia del castellano: ver _idiomas-reales.js (mezcla de idiomas en Alsea, 07-10-2026).
+  const languages=idiomasOfrecidos((Array.isArray(config.languages)&&config.languages.length?config.languages:ideas.languages)||['es'],ideas);
   // EL DECK NACE EN SU IDIOMA, NO EN CASTELLANO Y LUEGO CORREGIDO (Neo · MBP14, 02-09-2026).
   // El HTML se pintaba siempre con el contenido base —que por convencion del modelo ES el
   // castellano— y el idioma real lo aplicaba el script al cargar. Mientras NVIDIA fue solo
