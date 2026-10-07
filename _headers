@@ -48,5 +48,11 @@
   Cache-Control: no-store
 /demo/*
   Cache-Control: no-store
+/subdemos/
+  Cache-Control: no-store
+/subdemos/*
+  Cache-Control: no-store
+/subdemos/*.json
+  Access-Control-Allow-Origin: *
 /api/demo
   Cache-Control: no-store
