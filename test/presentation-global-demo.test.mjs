@@ -202,3 +202,34 @@ test('middleware protege recorrido y offline con la sesión del cliente, tambié
     assert.equal(await response.text(), 'PRIVATE CONTENT');
   }
 });
+
+test('director recorre Biz → Studio → Store, conserva pausa y finaliza sin solicitudes externas', () => {
+  let clock = 0, serial = 0; const timers = new Map();
+  const nodes = new Map(); const get = id => {if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
+  get('auto-duration').value='5';
+  get('demo-data').textContent=JSON.stringify({demos:[
+    {clave:'store/tpv',titulo:'TPV',guion:['Caja','Resultado'],muestra:{tipo:'video',url:'media/1234567890abcdef.webm'}},
+    {clave:'studio/voz',titulo:'Voz',guion:['Guion','Escuchar'],muestra:{tipo:'audio',url:'media/1234567890abcdef.mp3'}},
+    {clave:'biz/proyecto',titulo:'Proyecto',guion:['Proyecto','Circuito']}
+  ]});
+  let plays = 0; Element.prototype.play=function(){this.paused=false;plays++;return Promise.resolve();};
+  const events={},requests=[];
+  const document={getElementById:get,createElement:tag=>new Element(tag),addEventListener:(name,fn)=>events[name]=fn,
+    querySelectorAll:()=>[...nodes.values()].flatMap(descendants).filter(el=>['AUDIO','VIDEO'].includes(el.tagName))};
+  const sandbox={document,location:{hash:''},history:{replaceState(){}},URL,encodeURIComponent,decodeURIComponent,console,
+    Date:{now:()=>clock},setTimeout:(fn,ms)=>{const id=++serial;timers.set(id,{fn,at:clock+ms});return id;},clearTimeout:id=>timers.delete(id),fetch:(...a)=>requests.push(a)};
+  sandbox.window=sandbox;vm.runInNewContext(playerSource,sandbox);
+  const click=id=>get(id).listeners.click();
+  const advance=ms=>{const target=clock+ms;while(true){const next=[...timers].sort((a,b)=>a[1].at-b[1].at)[0];if(!next||next[1].at>target)break;clock=next[1].at;timers.delete(next[0]);next[1].fn();}clock=target;};
+  click('auto-start');assert.equal(get('demo-title').textContent,'Proyecto');advance(20000);const progress=get('auto-progress').value;
+  click('auto-pause');advance(70000);assert.equal(get('demo-title').textContent,'Proyecto');assert.equal(get('auto-progress').value,progress);
+  click('auto-pause');advance(30000);assert.equal(get('instruction').textContent,'Circuito');
+  advance(50000);assert.equal(get('demo-title').textContent,'Voz');assert.equal(plays,0,'muestra espera su fase de escucha');
+  advance(50000);assert.ok(plays>0);assert.ok(document.querySelectorAll().every(el=>el.muted));
+  click('auto-pause');assert.ok(document.querySelectorAll().every(el=>el.paused));click('auto-pause');
+  advance(50000);assert.equal(get('demo-title').textContent,'TPV');advance(100000);
+  assert.match(get('auto-status').textContent,/Recorrido completo/);assert.equal(get('auto-progress').value,100);assert.equal(timers.size,0);
+  click('auto-start');advance(10000);click('auto-stop');advance(300000);assert.match(get('auto-status').textContent,/Detenido/);assert.equal(timers.size,0);
+  click('auto-start');document.hidden=true;events.visibilitychange();assert.match(get('auto-status').textContent,/pausa/);assert.deepEqual(requests,[]);
+  delete Element.prototype.play;
+});

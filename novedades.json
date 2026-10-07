@@ -227,5 +227,10 @@
     "Presentaciones: un idioma cuya «traducción» es copia del castellano ya no se ofrece",
     "Alsea · Starbucks: desaparece el botón EN y ?lang=en muestra la presentación entera en castellano, sin mezcla",
     "Los idiomas sin traducir o a medias siguen viéndose incompletos, como antes"
+  ],
+  "v.07.10.2026.r16.12:28": [
+    "Demo global autónoma: Biz → Studio → Store con 15 funciones, duración de 5, 8 o 12 minutos y copia offline",
+    "Pausa, reanudar y detener en los ensayos locales; /demo auto encadena las cinco funciones de cada plataforma",
+    "Muestras sin sonido por defecto para acompañar al ponente; catálogo Studio central corrige rutas antiguas"
   ]
 }
