@@ -1,6 +1,6 @@
 // /subdemos: escoger proyectos y qué demos (globales y subdemos) se enseñan en cada uno.
 // Se guarda en este navegador (localStorage «ax-subdemos»); Exportar/Importar lo mueve a otro.
-import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto, pasoTexto} from './catalogo.mjs?v=20261007-subdemos-3';
+import {GLOBALES, PROYECTOS_INICIALES, MANIFIESTOS, aplicarManifiesto, guion, guionTexto, pasoTexto, proyectoLimpio, CONTEXTO} from './catalogo.mjs?v=20261007-subdemos-4';
 
 const KEY = 'ax-subdemos';
 const KEY_MANIF = 'ax-subdemos-manifiestos'; // manifiestos importados a mano en este navegador
@@ -9,9 +9,10 @@ const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({'&': '&amp;', '<': '&lt
 const slug = (t) => String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'proyecto';
 
 function cargar() {
-  try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && Array.isArray(j.proyectos) && j.proyectos.length) return j; } catch (_) {}
+  try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && Array.isArray(j.proyectos) && j.proyectos.length) return limpio(j); } catch (_) {}
   return {proyectos: structuredClone(PROYECTOS_INICIALES), activo: PROYECTOS_INICIALES[0].id};
 }
+function limpio(j) { const proyectos = j.proyectos.map(proyectoLimpio); return {proyectos, activo: proyectos.some((p) => p.id === j.activo) ? j.activo : proyectos[0].id}; }
 let estado = cargar();
 function guardar() { try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch (_) {} }
 const activo = () => estado.proyectos.find((p) => p.id === estado.activo) || estado.proyectos[0];
@@ -38,6 +39,8 @@ function pintarGuion() {
     <li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.titulo)}</a> <span>${esc(s.desc)}</span>${s.cmd ? ` <code>${esc(s.cmd)}</code>` : ''}${s.muestra && s.muestra.url ? ` <a class="muestra" href="${esc(s.muestra.url)}" target="_blank" rel="noopener">muestra</a>` : ''}${s.steps.length + s.guion.length ? `<ol class="pasos">${[...s.steps, ...s.guion].map((x) => `<li>${esc(pasoTexto(x))}</li>`).join('')}</ol>` : ''}</li>`).join('')
     : '<li class="vacio">Marca demos arriba para montar el guion.</li>';
   $('#borrar').disabled = estado.proyectos.length < 2;
+  $('#d-presentation').value = p.presentation_id || '';
+  for (const k of CONTEXTO) $('#d-' + k).value = (p.contexto && p.contexto[k]) || '';
 }
 function pintar() { pintarProyectos(); pintarCatalogo(); pintarGuion(); }
 function aviso(t) { $('#estado').textContent = t; setTimeout(() => { if ($('#estado').textContent === t) $('#estado').textContent = ''; }, 2500); }
@@ -49,6 +52,15 @@ $('#catalogo').addEventListener('change', (e) => {
   if (e.target.checked) set.add(c); else set.delete(c);
   p.demos = [...set]; guardar(); pintarProyectos(); pintarGuion();
 });
+$('#datos').addEventListener('input', () => {
+  const p = activo(), c = {};
+  for (const k of CONTEXTO) c[k] = $('#d-' + k).value;
+  Object.assign(p, proyectoLimpio({...p, presentation_id: $('#d-presentation').value, contexto: c}));
+  if (!p.presentation_id) delete p.presentation_id;
+  if (!proyectoLimpio(p).contexto) delete p.contexto;
+  guardar();
+});
+$('#datos').addEventListener('submit', (e) => e.preventDefault());
 $('#nuevo').addEventListener('submit', (e) => {
   e.preventDefault();
   const nombre = $('#nuevo-nombre').value.trim(); if (!nombre) return;
@@ -81,7 +93,7 @@ $('#importar').addEventListener('change', async (e) => {
       pintar(); aviso('Subdemos de ' + id + ' cargadas.');
     } else {
       if (!Array.isArray(j.proyectos) || !j.proyectos.length) throw 0;
-      estado = j; guardar(); pintar(); aviso('Importado.');
+      estado = limpio(j); guardar(); pintar(); aviso('Importado.');
     }
   } catch (err) { aviso('Archivo no válido' + (err && err.message ? ': ' + err.message : '.')); }
   e.target.value = '';

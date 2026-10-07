@@ -21,3 +21,7 @@ code{font:400 13px var(--f-texto);color:var(--n-yellow)}
 @media (max-width:520px){.subs{grid-template-columns:1fr}}
 .guion .muestra{font-size:12px;color:var(--accent,#ff8dbf)}
 .guion .pasos{margin:4px 0 6px;padding-left:20px;font-size:12px;color:var(--text-dim)}
+
+.datos{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;font-size:12px;color:var(--text-dim)}
+.datos label{display:flex;flex-direction:column;gap:2px;flex:1 1 140px;min-width:0}
+.datos input{font:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--border,#3b3358);background:transparent;color:inherit;width:100%;box-sizing:border-box}

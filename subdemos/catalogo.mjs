@@ -32,7 +32,8 @@ export const GLOBALES = [
 ];
 
 export const PROYECTOS_INICIALES = [
-  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021', demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
+  {id: 'alsea-starbucks', nombre: 'Alsea · Starbucks', nota: 'España y México · gemelo alsea-sbux-021',
+    contexto: {marca: 'starbucks', loc: 'alsea-sbux-021', circuito: 'alsea_starbucks'}, demos: ['biz', 'biz/proyecto', 'biz/circuito', 'biz/gemelo', 'biz/iot', 'biz/itil', 'store', 'store/tpv', 'studio', 'studio/voz', 'studio/musica', 'studio/imagen', 'studio/video', 'studio/adaptar']}
 ];
 
 // 'store' = demo global; 'store/tpv' = subdemo. Devuelve {global, sub|null} o null.
@@ -52,15 +53,28 @@ export function guion(demos) {
   const set = new Set((demos || []).map((d) => RENOMBRADAS[d] || d));
   const pasos = [];
   for (const g of GLOBALES) {
-    if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id, steps: []});
+    if (set.has(g.id)) pasos.push({clave: g.id, titulo: g.nombre, desc: g.desc, url: g.url, cmd: '/demo ' + g.id, steps: [], guion: [], muestra: null});
     for (const s of g.subdemos) if (set.has(g.id + '/' + s.id)) pasos.push({clave: g.id + '/' + s.id, titulo: g.nombre + ' · ' + (s.letra ? s.letra + '. ' : '') + s.nombre, desc: s.desc, url: s.url, cmd: s.cmd || '', steps: s.steps || [], guion: s.guion || [], muestra: s.muestra || null});
   }
   return pasos;
 }
 
+// Proyecto = {id, nombre, nota, demos} y, opcionales (encargo 5312 de Trinity: anexar las demos a la presentación
+// del cliente en Quiénes somos · Qué hacemos · Qué proponemos), presentation_id y contexto {marca, loc, circuito}.
+export const CONTEXTO = ['marca', 'loc', 'circuito'];
+export function proyectoLimpio(p) {
+  const q = {id: String(p.id), nombre: String(p.nombre), nota: String(p.nota || ''), demos: Array.isArray(p.demos) ? p.demos.map(String) : []};
+  const pid = String(p.presentation_id || '').trim();
+  if (pid) q.presentation_id = pid.slice(0, 200);
+  const c = {};
+  for (const k of CONTEXTO) { const v = String((p.contexto && p.contexto[k]) || '').trim(); if (v) c[k] = v.slice(0, 80); }
+  if (Object.keys(c).length) q.contexto = c;
+  return q;
+}
 export function guionTexto(proyecto) {
-  const pasos = guion(proyecto.demos);
-  return [proyecto.nombre + ' · guion de demo', ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.muestra && p.muestra.url ? '\n   Muestra: ' + p.muestra.url : '') +
+  const pasos = guion(proyecto.demos), c = proyecto.contexto || {};
+  const cab = [proyecto.presentation_id ? 'Presentación: ' + proyecto.presentation_id : '', CONTEXTO.filter((k) => c[k]).map((k) => k + ' ' + c[k]).join(' · ')].filter(Boolean);
+  return [proyecto.nombre + ' · guion de demo', ...cab, ...pasos.map((p, i) => (i + 1) + '. ' + p.titulo + ' — ' + p.desc + '\n   ' + p.url + (p.cmd ? '\n   Experto: ' + p.cmd : '') + (p.muestra && p.muestra.url ? '\n   Muestra: ' + p.muestra.url : '') +
     [...(p.steps || []), ...(p.guion || [])].map((x) => '\n   - ' + pasoTexto(x)).join(''))].join('\n');
 }
 // Un paso puede ser texto o un objeto del manifiesto ({accion, selector, texto} del guion de Trinity).
