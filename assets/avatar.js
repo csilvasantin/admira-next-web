@@ -674,7 +674,7 @@
       }
       if (cache.size >= 128) {
         // Do not evict confirmed IDs: an old duplicate must never execute again.
-        demoReply(ev.source, {type: 'da-demo-result', requestId: d.requestId, ok: false, message: 'Command limit reached. Reload the avatar before sending more commands.'}); return;
+        demoReply(ev.source, {type: 'da-demo-result', requestId: d.requestId, ok: false, message: 'Command limit reached. Reload the page before sending more commands.'}); return;
       }
     }
     var entry = {text: text};
