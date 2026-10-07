@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Demo completa · AdmiraNeXT — ayuda y formulario</title>
 <meta name="description" content="Demo completa AdmiraNeXT: una marca franquicia con su marca blanca real, 4 establecimientos reales, gemelos digitales, 3 equipos IoT y 4 playlists por local (hilo musical, locuciones desde el TPV, pantalla vertical y horizontal) y contenidos de marca de Pixeria. Ayuda paso a paso y formulario con simulación (dry-run).">
-<meta name="admiranext-version" content="v.07.10.2026.r20.13:47">
+<meta name="admiranext-version" content="v.07.10.2026.r22.15:18">
 <meta name="theme-color" content="#1a1a2e">
 <link rel="canonical" href="https://www.admiranext.com/demo">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261007-demo-autopilot-1">
 <link rel="stylesheet" href="/demo/demo.css?v=20261006-completa-v2">
 <link rel="stylesheet" href="/demo/remota.css?v=20261007-retail-video-1">
+<link rel="stylesheet" href="/demo/native.css?v=20261007-native-demo-control-1">
 </head>
 <body data-yk-title="DEMO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
 
@@ -30,6 +31,7 @@
   <div class="yk-auto-blk">
     <a href="/demo/#ayuda">Ayuda · demo completa</a>
     <a href="/demo/#formulario">Formulario · demo completa</a>
+    <a href="/demo/#en-vivo">Demo en vivo · cinco plataformas</a>
     <a href="/demo/#remota">Demo remota · presentación narrada</a>
     <a href="/demo/#rapida">Demo rápida (clásica)</a>
     <a href="/subdemos/">Subdemos · proyectos y demos</a>
@@ -67,10 +69,25 @@
         <nav class="tabs" role="tablist" aria-label="Secciones de la demo">
           <a href="#ayuda" role="tab" id="tab-ayuda" aria-controls="ayuda" class="tab">① Ayuda</a>
           <a href="#formulario" role="tab" id="tab-formulario" aria-controls="formulario" class="tab">② Formulario</a>
+          <a href="#en-vivo" role="tab" id="tab-en-vivo" aria-controls="en-vivo" class="tab">Demo en vivo · plataformas</a>
           <a href="#remota" role="tab" id="tab-remota" aria-controls="remota" class="tab">Demo remota · ver presentación</a>
           <a href="#rapida" role="tab" id="tab-rapida" aria-controls="rapida" class="tab tab-sec">Demo rápida (clásica)</a>
         </nav>
       </header>
+
+      <section id="en-vivo" class="panel native-panel" role="tabpanel" aria-labelledby="tab-en-vivo" hidden>
+        <h2 class="sec">Demo en vivo · elige una plataforma</h2>
+        <p>Abre la web real y observa cómo el recorrido señala y maneja sus controles con un cursor visible dentro de la página. Conserva tu sesión habitual; si la plataforma pide acceso, inicia sesión y continúa.</p>
+        <div class="native-platforms">
+          <a class="native-platform" data-native-demo="studio" href="https://www.admira.studio/?lang=es&amp;ax_demo=studio"><strong>Studio</strong><span>Crear contenidos</span><code>/demo studio</code></a>
+          <a class="native-platform" data-native-demo="store" href="https://www.admira.store/admira-xp/?marca=starbucks&amp;loc=alsea-sbux-021&amp;project=starbucks&amp;circuit=alsea_starbucks&amp;lang=es&amp;ax_demo=store"><strong>Store</strong><span>Gestionar la experiencia de tienda</span><code>/demo store</code></a>
+          <a class="native-platform" data-native-demo="tv" href="https://admira.tv/adcelerate/demo/?view=human&amp;site=starbucks&amp;lang=es&amp;ax_demo=tv"><strong>TV</strong><span>Explorar vistas y pantallas</span><code>/demo tv</code></a>
+          <a class="native-platform" data-native-demo="biz" href="https://www.admira.biz/?lang=es&amp;ax_demo=biz"><strong>Biz</strong><span>Explorar proyectos y circuitos</span><code>/demo biz</code></a>
+          <a class="native-platform" data-native-demo="app" href="https://www.admira.app/retailer?marca=starbucks&amp;lang=es&amp;ax_demo=app"><strong>App</strong><span>Explorar el portal de equipos</span><code>/demo app</code></a>
+        </div>
+        <p class="hint">Pausar, Reanudar, Siguiente y Devolver control manejan el recorrido. Puedes silenciar su voz. El ensayo evita generar contenido de pago, ventas, publicación y emisión física. El cursor pertenece a esta web y no controla el ratón del ordenador.</p>
+        <details><summary>English help · live platform tours</summary><p>Choose a platform to open its real website in this tab. A visible page cursor points to and operates safe interface controls. Your normal platform login still applies. Pause, Resume, Next, Return control and Mute control the tour. It does not generate paid content, sell, publish or send content to physical screens. The page cursor does not control your operating system mouse.</p></details>
+      </section>
 
       <section id="remota" class="panel remote-panel" role="tabpanel" aria-labelledby="tab-remota" hidden>
         <h2 class="sec">Demo remota · presentación completa narrada</h2>
@@ -516,8 +533,18 @@
   </div>
 </main>
 
+<script>
+// A fresh run identifier prevents a finished tour from resuming on relaunch.
+document.querySelectorAll('[data-native-demo]').forEach(function (link) {
+  link.addEventListener('click', function () {
+    var url = new URL(link.href);
+    url.searchParams.set('ax_run', window.crypto && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
+    link.href = url.href;
+  });
+});
+</script>
 <script src="/demo/demo.js?v=20261005-demo" defer></script>
-<script type="module" src="/demo/completa.js?v=20261007-remote-1"></script>
+<script type="module" src="/demo/completa.js?v=20261007-native-demo-control-1"></script>
 <script defer src="/assets/admira-frame.js?v=20261007-demo-autopilot-1"></script>
 <script type="module" src="/demo/remota.js?v=20261007-retail-video-1"></script>
 </body>
