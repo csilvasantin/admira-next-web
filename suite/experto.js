@@ -32,6 +32,7 @@
  * otra visita. La clave antigua de localStorage (4-oct, reabría el Experto en cada visita) se borra.
  * data-dock="off" desactiva el anclaje (lo gobierna la pata).
  * API: window.AdmiraExperto = {paint(), setState(texto), lines(), set(clave, valor), verb({name, args, desc:[es,en], run(args, log)}), run(texto),
+ *      demos(), parseDemo(texto)  ← /demo de las cinco soluciones (studio, store, tv, app, biz),
  *      open(), close(), toggle(), isOpen()}.
  */
 (function (root) {
@@ -341,6 +342,67 @@
   }});
   verb({name: 'limpiar', alias: ['clear', 'cls'], desc: ['vacía el registro', 'clear the log'], run: function (a, log) { log.textContent = ''; hello(log); }});
 
+  // ─── /demo · las cinco soluciones (Carlos, 7-oct-2026, demo Alsea · Starbucks España y México) ───
+  // Mismo patrón que /demo tpv de admira.store: una orden encarga que se enseñe una funcionalidad.
+  // /demo lista las cinco; /demo <solución|1-5> abre su demo; /demo siguiente salta a la siguiente.
+  // El avatar digital (assets/avatar.js + digitalavatar.ai) usa este mismo catálogo: AdmiraExperto.demos().
+  // Lo que no es una solución (/demo tpv, /demo off…) sigue siendo de la pata.
+  var DEMOS = [
+    {id: 'studio', alias: ['pixeria', 'contenido', 'contenidos', 'creatividad', 'anonimizador'], nombre: 'admira.studio',
+      hosts: /(^|\.)(admira\.studio|pixeria\.com)$/,
+      desc: ['Creatividad con IA: el anonimizador convierte a un visitante en personaje 8, 16 y 32 bits listo para el gemelo', 'AI creativity: the anonymizer turns a visitor into an 8, 16 and 32-bit character ready for the twin'],
+      url: ['https://www.admira.studio/anonimizador', 'https://www.admira.studio/en/anonimizador.html']},
+    {id: 'store', alias: ['tienda', 'xpace', 'xpaceos', 'gemelo', 'twin'], nombre: 'admira.store',
+      hosts: /(^|\.)(admira\.store|xpaceos\.com)$/,
+      desc: ['Gemelo digital del Starbucks de Alsea en Matrix: arranca /demo tpv, un muffin a caja que dispara música y pantallas', 'Digital twin of the Alsea Starbucks in Matrix: starts /demo tpv, a muffin to the register that triggers music and screens'],
+      url: ['https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es&demo=tpv#tpv',
+        'https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=en&demo=tpv#tpv']},
+    {id: 'tv', alias: ['canal', 'adcelerate', 'calle', 'videoanalytics'], nombre: 'admira.tv',
+      hosts: /(^|\.)admira\.tv$/,
+      desc: ['Starbucks Passeig de Gràcia 103 desde la calle: el halo de la fachada entra en Matrix', 'Starbucks Passeig de Gràcia 103 from the street: the entrance halo opens Matrix'],
+      url: ['https://admira.tv/adcelerate/demo/?view=human&site=starbucks']},
+    {id: 'app', alias: ['yokup', 'operaciones', 'itil', 'incidencias', 'retailer'], nombre: 'admira.app · Yokup',
+      hosts: /(^|\.)(admira\.app|yokup\.com)$/,
+      desc: ['Operación de la red Starbucks: equipos, incidencias ITIL y estado de cada tienda', 'Starbucks network operations: equipment, ITIL incidents and each store\'s status'],
+      url: ['https://www.yokup.com/retailer?marca=starbucks']},
+    {id: 'biz', alias: ['negocio', 'clearchannel', 'retailmedia', 'comercial'], nombre: 'admira.biz',
+      hosts: /(^|\.)(admira\.biz|clearchannel\.tv)$/,
+      desc: ['Comercialización: retail media y campañas de marca sobre las pantallas de la red', 'Monetisation: retail media and brand campaigns across the network screens'],
+      url: ['https://www.admira.biz/']}
+  ];
+  function demoUrl(d) { return d.url[lang() === 'en' && d.url[1] ? 1 : 0]; }
+  function demoActual() { for (var i = 0; i < DEMOS.length; i++) if (DEMOS[i].hosts.test(host)) return i; return -1; }
+  // null = no es de la suite (lo resuelve la pata); {lista:true} | {demo, i}.
+  function parseDemo(text) {
+    var m = /^\/?demo(?:\s+(.*))?$/i.exec(String(text == null ? '' : text).trim());
+    if (!m) return null;
+    var arg = String(m[1] || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^admira\./, '');
+    if (!arg || /^(lista|list|soluciones|solutions)$/.test(arg)) return {lista: true};
+    var i = -1;
+    if (/^(siguiente|next|sig)$/.test(arg)) i = (demoActual() + 1) % DEMOS.length;
+    else if (/^[1-5]$/.test(arg)) i = +arg - 1;
+    else DEMOS.forEach(function (d, k) { if (i < 0 && (d.id === arg || d.alias.indexOf(arg) >= 0)) i = k; });
+    return i < 0 ? null : {demo: DEMOS[i], i: i};
+  }
+  function demoLista() {
+    return T('Demos · las cinco soluciones:', 'Demos · the five solutions:') + '\n' +
+      DEMOS.map(function (d, k) { return (k + 1) + ' /demo ' + d.id + ' · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]); }).join('\n') +
+      '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".');
+  }
+  function demoRun(p, log) {
+    if (p.lista) { out(log, demoLista()); return; }
+    var d = p.demo, url = demoUrl(d);
+    out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/5 · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]));
+    out(log, T('Abriendo ', 'Opening ') + url + '…');
+    try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: d.id, url: url}})); } catch (_) {}
+    setTimeout(function () { location.assign(url); }, 600);
+  }
+  verb({name: 'demo', args: '[studio|store|tv|app|biz|1-5|siguiente]', desc: ['enseña una de las cinco soluciones (sin argumento: lista)', 'show one of the five solutions (no argument: list)'], run: function (a, log) {
+    var p = parseDemo('/demo ' + a.join(' '));
+    if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
+    demoRun(p, log);
+  }});
+
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
@@ -646,6 +708,18 @@
       state = '';
       paint();
     }, true);
+    // /demo de la suite (las cinco soluciones) en cualquier pata con la piel; el resto de /demo es de la pata.
+    form.addEventListener('submit', function (e) {
+      var val = (input && input.value != null) ? String(input.value).trim() : '';
+      var p = val.charAt(0) === '/' ? parseDemo(val) : null;
+      if (!p) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      input.value = '';
+      if (!isOpen()) setOpen(true, false);
+      out(log, '› ' + val, 'cmd');
+      demoRun(p, log);
+    }, true);
     // La ficha se repinta tras cada orden (/marca cambia el cliente) y al cambiar marca o idioma.
     form.addEventListener('submit', function () {
       state = T('ejecutando…', 'running…'); paint();
@@ -682,6 +756,9 @@
     pares: function () { return PARES_ES_EN.map(function (p) { return p.slice(); }); },
     exec: function (t, log, opts) { log = log || (panel && panel.querySelector('.ax-cli-out')); if (log) return execute(t, log, opts); },
     parseLangCommand: parseLangCommand,
+    // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
+    demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
+    parseDemo: function (t) { var p = parseDemo(t); return p && (p.lista ? {lista: true} : {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}); },
     normalizeLangToken: normalizeLangToken,
     setLanguage: applyLang
   };

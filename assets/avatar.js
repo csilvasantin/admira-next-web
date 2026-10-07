@@ -600,7 +600,34 @@
     return {override: override(), visible: visible(), present: present(), level: currentLevel(), host: host, brain: brainUrl(), context: context()};
   }
 
-  root.AdmiraAvatar = {run: run, handle: handle, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
+  // ─── /demo desde el avatar (Carlos, 7-oct-2026, demo Alsea) ───
+  // La cara (digitalavatar.ai) presenta la solución y, al acabar de hablar, manda
+  // {type:'da-demo', id}. Aquí se abre su demo con el mismo catálogo del ⌘ Experto
+  // (AdmiraExperto.parseDemo, suite/experto.js); sin Experto en la página, estas URL.
+  var DEMO_URL = {
+    studio: 'https://www.admira.studio/anonimizador',
+    store: 'https://www.admira.store/admira-xp/?marca=starbucks&loc=alsea-sbux-021&project=starbucks&circuit=alsea_starbucks&lang=es&demo=tpv#tpv',
+    tv: 'https://admira.tv/adcelerate/demo/?view=human&site=starbucks',
+    app: 'https://www.yokup.com/retailer?marca=starbucks',
+    biz: 'https://www.admira.biz/'
+  };
+  function demoUrl(id) {
+    var X = root.AdmiraExperto, p = X && typeof X.parseDemo === 'function' ? X.parseDemo('/demo ' + id) : null;
+    return (p && p.url) || DEMO_URL[String(id || '').toLowerCase()] || '';
+  }
+  function openDemo(id) {
+    var url = demoUrl(id);
+    if (!url) return false;
+    root.location.assign(url);
+    return true;
+  }
+  root.addEventListener('message', function (ev) {
+    var d = ev && ev.data;
+    if (!d || typeof d !== 'object' || d.type !== 'da-demo' || ev.origin !== DA_ORIGIN) return;
+    openDemo(d.id);
+  });
+
+  root.AdmiraAvatar = {run: run, handle: handle, demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },
