@@ -23,3 +23,12 @@ EN: In Options connect with AdmiraNext, choose your project and one of its venue
 Public simulator assets remain public. This API restricts registry/context data and does not transform previously published rendering assets into private resources. Quality/language/browser layout remain local. Routes use canonical project/circuit IDs and explicit venue URLs; the extra venue query parameter identifies the selected registry entry; loc remains the renderer location ID.
 
 Clients: https://www.admira.store/admira-xp/ · https://www.xpaceos.com/admira-xp/ · https://www.admira.app/backoffice.html
+
+
+## Sneakers Store · /demo global
+
+ES: Proyecto sneakers-store, circuito sneakerstore, local sneakers-store-santa-rosa-19. La asociación acepta exclusivamente https://www.admira.store/xpacios/sneakerstore/?project=sneakers-store&circuit=sneakerstore&loc=sneakers-store-santa-rosa-19. /demo global abre https://www.admira.biz/demo/ con el idioma actual. La guía prepara una playlist compartida y abre la nueva categoría SneakerStore; cámara IEU manual, sin control físico.
+
+EN: Project sneakers-store, circuit sneakerstore, venue sneakers-store-santa-rosa-19. The association accepts the canonical SneakerStore path with matching project and venue. /demo global opens the bilingual guide with current language. Shared playlist and new SneakerStore category; manual IEU camera, no physical device control.
+
+Contract: https://www.admira.store/xpacios/sneakerstore/contract.json

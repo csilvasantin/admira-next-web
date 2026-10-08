@@ -260,5 +260,10 @@
     "La demo en vivo abre Studio, Store, TV, Biz y App con un cursor que maneja controles reales dentro de cada web",
     "Studio conserva los controles al cambiar de herramienta; Pausar, Reanudar y Devolver control permiten seguir o detener el recorrido",
     "El ensayo muestra vídeos preparados sin generar, comprar ni emitir; App conserva el acceso autorizado al inventario"
+  ],
+  "v.08.10.2026.r1.22:21": [
+    "/demo global: guía Sneakers Store desde las cinco soluciones.",
+    "Proyecto y local Santa Rosa 19 asociados al gemelo SneakerStore.",
+    "Mantiene las demos anteriores y la validación de acceso central."
   ]
 }

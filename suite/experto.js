@@ -458,6 +458,7 @@
     var m = /^\/?demo(?:\s+(.*))?$/i.exec(String(text == null ? '' : text).trim());
     if (!m) return null;
     var arg = norm(m[1]).replace(/^admira\./, ''), L = localM();
+    if(arg==='global')return {global:true};
     if (L && /^(auto|todas|todos|all)$/.test(arg)) return {local: true, auto: true};
     if ((L || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo)) && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
       (plataforma !== 'store' || (recorrido && recorrido.activo) || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) || !/^(stop|off|estado|status)$/.test(arg))) return {control: arg};
@@ -477,7 +478,7 @@
     return i < 0 ? null : {demo: DEMOS[i], i: i};
   }
   function demoLista() {
-    return T('Demos · las cinco soluciones:', 'Demos · the five solutions:') + '\n' +
+    return T('/demo global · Sneakers Store: proyecto → Xpacio → Pixeria → gemelo → cámara\nDemos · las cinco soluciones:', '/demo global · Sneakers Store: project → Xpace → Pixeria → twin → camera\nDemos · the five solutions:') + '\n' +
       DEMOS.map(function (d, k) { return (k + 1) + ' /demo ' + d.id + ' · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]); }).join('\n') +
       '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".');
   }
@@ -650,6 +651,7 @@
   }
   // Devuelve {id, nombre, desc} de lo que se enseña (lo usa el avatar para presentarlo) o null.
   function demoRun(p, log) {
+    if(p.global){var globalUrl='https://www.admira.biz/demo/?lang='+T('es','en');out(log,T('Abriendo demo global · Sneakers Store…','Opening global demo · Sneakers Store…'));location.assign(globalUrl);return {id:'global',url:globalUrl};}
     if (p.control) { var native = root.AdmiraDemoControl; var nativeControl = {pausa:'pause',pause:'pause',reanudar:'resume',resume:'resume',continuar:'resume',parar:'stop',stop:'stop',off:'stop',siguiente:'next',next:'next'}[p.control]; var state = native && native.state().activo ? (nativeControl ? native.control(nativeControl) : native.state()) : controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
     if (p.auto) { var L = localM(); if (!L.subdemos.length) { out(log, T('No hay subdemos en este catálogo.', 'No subdemos in this catalog.')); return null; } mostrarMuestra(L.subdemos[0], 1, L.subdemos, 0); return estadoRecorrido(); }
     if (p.lista) { out(log, p.local ? localLista() : demoLista()); return null; }
@@ -678,7 +680,7 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return demoRun(p, log);
   }
-  verb({name: 'demo', args: '[help|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: '[global|help|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     demoRun(p, log);
@@ -1039,7 +1041,7 @@
     parseLangCommand: parseLangCommand,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
     demoEstado: function () { return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
