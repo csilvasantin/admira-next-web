@@ -1,5 +1,11 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.09.10.2026.r10.13:05": [
+    "En el móvil, las tablas de Proyectos, Arquitectura, RoadMap y Normativa se desplazan en horizontal. La columna Nº del censo se queda a la vista.",
+    "El menú de Marca blanca ya no se corta, y las rejillas de Business Plan y TikTok pasan a varias líneas.",
+    "La página que no existe es ligera y lleva el marco. /clientes lista el censo en español y en inglés.",
+    "Volver atrás: etiqueta retorno/pre-movil-5435-20261009, sello v.09.10.2026.r9.12:30"
+  ],
   "v.09.10.2026.r9.12:30": [
     "El login de /organigrama y /flota admite el estilo de accounts.google.com. El origen del botón sigue pendiente de la consola de Google.",
     "admira.biz es DooH y Retail Media; admira.app es instalaciones y mantenimiento.",

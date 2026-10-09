@@ -24,7 +24,7 @@
   body{ color:var(--ink); font-family:var(--sans);
     -webkit-font-smoothing:antialiased; line-height:1.6; overflow-x:hidden;
   }
-  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 20px}
+  .wrap{position:relative;z-index:1;max-width:min(1080px,100%);margin:0 auto;padding:0 20px;min-width:0}
 
   /* ── cabecera tipo terminal ── */
   header{padding:64px 0 40px;text-align:center}
@@ -63,7 +63,7 @@
   /* ── reglas ── */
   main{padding:8px 0 40px}
   .art{
-    position:relative;display:grid;grid-template-columns:88px minmax(0,1fr);gap:22px;
+    position:relative;display:grid;grid-template-columns:88px minmax(0,1fr);gap:22px;min-width:0;max-width:100%;
     padding:26px 24px;margin:14px 0;border:1px solid var(--line);border-radius:14px;
     background:var(--panel);backdrop-filter:blur(10px);
     opacity:0;transform:translateY(22px);
@@ -98,7 +98,9 @@
     border-radius:0 8px 8px 0;margin:16px 0;overflow-x:auto;
   }
   /* tablas: nunca desbordan la página — scrollan dentro de su caja */
-  .tbl{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:10px}
+  .art>div{min-width:0;max-width:100%}
+  .art>div:has(table),.tbl{overflow-x:auto;max-width:100%;min-width:0;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+  .tbl{margin-top:16px;border:1px solid var(--line);border-radius:10px}
   table{width:100%;border-collapse:collapse;font:12.5px/1.45 var(--mono);min-width:420px}
   th{text-align:left;color:var(--dim);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
     border-bottom:1px solid var(--line);padding:10px 12px;white-space:nowrap}
@@ -125,7 +127,7 @@
     .art{opacity:1;transform:none;transition:none}
   }
 </style>
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-auditoria-5434">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-movil-5435">
 </head>
 <body data-yk-frame="cabecera" data-yk-auto="on">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
@@ -1162,6 +1164,6 @@
 </div>
 
   <script src="/assets/admira-version-watch.js?build=06092026-1" defer></script>
-<script defer src="/assets/admira-frame.js?v=20261009-auditoria-5434"></script>
+<script defer src="/assets/admira-frame.js?v=20261009-movil-5435"></script>
 </body>
 </html>

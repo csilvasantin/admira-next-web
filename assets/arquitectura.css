@@ -62,9 +62,11 @@ h2{margin:44px 0 14px;font-size:20px}
 .pieza .sub{color:#92a0b4;font-size:12px;margin:0 0 6px}
 .pieza p{margin:0}
 .pieza .v{margin-top:8px;color:#6c7a90;font-size:11px}
-.arq-tabla-wrap{overflow-x:auto}
-.arq-tabla{width:100%;border-collapse:collapse;font-size:12px}
-.arq-tabla th,.arq-tabla td{padding:7px 8px;border-bottom:1px solid #1d2838;text-align:left;vertical-align:top}
+.arq-tabla-wrap{overflow-x:auto;max-width:100%;min-width:0;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.arq-tabla{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px}
+.arq-tabla th,.arq-tabla td{padding:7px 8px;border-bottom:1px solid #1d2838;text-align:left;vertical-align:top;white-space:nowrap}
+.arq-tabla th:first-child,.arq-tabla td:first-child{position:sticky;left:0;z-index:1;background:#0b111b}
+.arq-tabla td.ev{white-space:normal;min-width:180px}
 .arq-tabla th{color:#92a0b4;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:11px}
 .arq-tabla td.ev{color:#92a0b4;word-break:break-word}
 .est{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;white-space:nowrap}

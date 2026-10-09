@@ -54,7 +54,7 @@
   footer{margin-top:36px;color:var(--yk-dim,#6c7a90);font-size:12px}
   footer a{color:var(--yk-mut,#92a0b4)}
   /* ── RoadMap espectacular (06-10-2026): escena Galaxia cyan/teal como /organigrama ── */
-  .rm-show{position:relative;margin:0 0 30px;border:1px solid var(--yk-line,#253042);border-radius:16px;overflow:hidden;isolation:isolate;
+  .rm-show{position:relative;margin:0 0 30px;border:1px solid var(--yk-line,#253042);border-radius:16px;overflow:hidden;isolation:isolate;min-width:0;max-width:100%;
     background:radial-gradient(ellipse at 50% 0%,rgba(74,227,209,.10),transparent 58%),rgba(5,9,16,.92)}
   #rm-matrix{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.34}
   .rm-show-in{position:relative;z-index:1;padding:18px 18px 22px}
@@ -113,7 +113,8 @@
   .rm-legend button.is-propuesta::before{background:transparent;border:1.5px dashed var(--c)}
   .rm-legend button[aria-pressed="false"]{opacity:.35;text-decoration:line-through}
   .rm-legend .rm-hint{margin-left:auto;font-size:11px;color:var(--yk-dim,#6c7a90)}
-  .rm-gantt-wrap{position:relative;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(4,8,15,.72);overflow-x:auto;overflow-y:hidden}
+  .rm-show-in{min-width:0;max-width:100%}
+  .rm-gantt-wrap{position:relative;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(4,8,15,.72);overflow-x:auto;overflow-y:hidden;width:100%;max-width:100%;min-width:0;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
   #rm-gantt{display:block;max-width:none}
   #rm-gantt .grid line{stroke:rgba(120,243,255,.08)}
   #rm-gantt .grid line.is-month{stroke:rgba(120,243,255,.22)}
@@ -167,12 +168,12 @@
   @keyframes rmGrow{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
   @keyframes rmPulse{0%,100%{opacity:1}50%{opacity:.62}}
   @media (max-width:1100px){.rm-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.rm-patas5{grid-template-columns:repeat(3,minmax(0,1fr))}}
-  @media (max-width:720px){.rm-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rm-patas5{grid-template-columns:1fr 1fr}.rm-mesa{margin-bottom:22px}.rm-flows{display:none}}
+  @media (max-width:720px){.rm-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rm-patas5{grid-template-columns:1fr 1fr}.rm-mesa{margin-bottom:22px}.rm-flows{display:none}.rm-pata-top{flex-wrap:wrap;min-width:0}}
   @media (prefers-reduced-motion:reduce){.rm-flows path,#rm-gantt .hito .b,#rm-gantt .hoy circle,.rm-live.is-ok i{animation:none!important}.rm-ring .fg,.rm-stack i{transition:none}}
   @media (max-width:1100px){.patas{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:720px){.patas{grid-template-columns:1fr}}
 </style>
-<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-auditoria-5434">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-movil-5435">
 </head>
 <body data-yk-frame="cabecera" data-yk-auto="on">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap" aria-current="page">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
@@ -207,7 +208,7 @@
     <a href="/">admiranext.com</a> · RoadMap · borrador para validar por Carlos
   </footer>
 </main>
-<script defer src="/assets/admira-frame.js?v=20261009-auditoria-5434"></script>
+<script defer src="/assets/admira-frame.js?v=20261009-movil-5435"></script>
 <script defer src="/assets/roadmap-show.js?v=20261006-roadmap-1"></script>
 </body>
 </html>

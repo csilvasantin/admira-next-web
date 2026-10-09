@@ -143,6 +143,9 @@
 .mb-tabla tr:hover td { background: var(--mb-primario-suave); }
 
 .mb-nav { display: flex; align-items: center; gap: 1.2em; font-family: var(--mb-fuente-etiquetas); }
+@media (max-width:700px){
+  .mb-nav { flex-wrap: wrap; max-width: 100%; }
+}
 .mb-nav a { color: var(--mb-texto-suave); text-decoration: none; }
 .mb-nav a[aria-current], .mb-nav a:hover { color: var(--mb-texto); }
 
