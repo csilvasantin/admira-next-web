@@ -58,6 +58,7 @@ button { cursor: pointer; }
 #buscar, #paso-form input, #paso-form select, #dialogo input, #dialogo select { width: 100%; }
 .sitio { margin: 10px 0; padding-left: 8px; border-left: 3px solid var(--yk-line); }
 .sitio h3 { display: block; margin: 0 0 6px; font-size: 15px; text-transform: lowercase; }
+:root[data-mb-marca] .editor-pagina .sitio h3 { text-transform: lowercase; }
 .sitio ul { list-style: none; margin: 0; padding: 0; }
 .sitio li, #lista-macros button, #lista-pasos button {
   display: block;
@@ -208,9 +209,14 @@ dialog::backdrop { background: color-mix(in srgb, var(--yk-bg2) 72%, transparent
 html:not(.yk-open-bottom) #ykExpertRail {
   transform: none;
   height: auto;
-  min-height: 0;
+  min-height: 64px;
+  max-height: none;
   padding: 8px 16px calc(10px + env(safe-area-inset-bottom));
-  overflow: hidden;
+  overflow: visible;
+}
+html:not(.yk-open-bottom) #ykExpertRail :is(.yk-cli-form, .ax-cli-form) {
+  flex: none;
+  min-height: 40px;
 }
 html:not(.yk-open-bottom) #ykExpertRail :is(.yk-rail-navhd, .ax-engine-slot, .yk-cli-out, .ax-extras-btn, .ax-fold) {
   display: none;
