@@ -906,7 +906,27 @@
     return {ok: !!mismo, fase: fase2, lang: lang()};
   }
   function updatesDemoUrl(l) { return 'https://www.admiranext.com/demo/pixeria-novedades/?run=1&lang=' + (l === 'en' ? 'en' : 'es'); }
-  function urlMacro(plan, index, runId, langForzado) {
+  function planViaje(plan) {
+    if (!plan || plan.kind !== 'macro' || typeof btoa !== 'function') return '';
+    var ctx = plan.context || {};
+    var copia = {kind:'macro', id:plan.id, version:plan.version, title:plan.title || null, context:{}, items:(plan.items || []).map(function (item) {
+      var sub = item.subdemo || {};
+      var limpio = {};
+      ['id','slug','title','steps','aliases'].forEach(function (k) { if (sub[k] != null) limpio[k] = sub[k]; });
+      return {ref:item.ref, subdemo:limpio};
+    })};
+    if (plan.slug) copia.slug = plan.slug;
+    ['lang','marca','project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) copia.context[k] = ctx[k]; });
+    if (plan.transition && Number(plan.transition.seconds) >= 3) copia.transition = {seconds:Number(plan.transition.seconds)};
+    var json = '';
+    try { json = JSON.stringify(copia); } catch (_) { return ''; }
+    if (!json || json.length > 12000 || /token|secret|csrf|password/i.test(json)) return '';
+    try {
+      var b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      return b64 && b64.length <= 16000 ? b64 : '';
+    } catch (_) { return ''; }
+  }
+  function urlMacro(plan, index, runId, langForzado, fin) {
     var hogares = {biz:'https://www.admira.biz/', app:'https://www.admira.app/retailer', store:'https://www.admira.store/', studio:'https://www.admira.studio/', tv:'https://www.admira.tv/'};
     var gemelos = {biz:['admira.biz','clearchannel.tv'], app:['admira.app','yokup.com'], store:['admira.store','xpaceos.com'], studio:['admira.studio','pixeria.com'], tv:['admira.tv']};
     var item = plan.items[index];
@@ -933,6 +953,9 @@
     var marcaPlan = marcaPagina || (typeof ctx.marca === 'string' ? ctx.marca : '');
     if (marcaPlan && marcaPlan.length <= 80) url.searchParams.set('marca', marcaPlan);
     url.searchParams.set('lang', idioma);
+    if (Number.isInteger(fin) && fin > index && fin < plan.items.length) url.searchParams.set('ax_fin', String(fin));
+    var viaje = planViaje(plan);
+    if (viaje) url.searchParams.set('ax_plan', viaje);
     return url.href;
   }
   function listarCatalogo(log) {
@@ -959,7 +982,7 @@
       if (plan.kind === 'macro' && plan.items && plan.items.length) {
         var i = index == null ? 0 : index;
         if (i < 0 || i >= plan.items.length) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + nombre, 'err'); return; }
-        destino = urlMacro(plan, i, runId, lang());
+        destino = urlMacro(plan, i, runId, lang(), pieza ? i + 1 : null);
       } else {
         var site = plan.site || plan.id;
         var hogares = {biz:'https://www.admira.biz/', app:'https://www.admira.app/retailer', store:'https://www.admira.store/', studio:'https://www.admira.studio/', tv:'https://www.admira.tv/'};

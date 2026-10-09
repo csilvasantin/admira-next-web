@@ -914,6 +914,77 @@
     return false;
   }
   function macroAvisoMuro() { return macroFrase('admira.app pide iniciar sesión. El recorrido no se queda esperando: los pasos de esta web quedan pendientes.', 'admira.app is asking you to sign in. The walk does not wait: this site\'s steps stay pending.'); }
+  function macroOrigen() {
+    var tag = D.querySelector('script[data-admira-native-control]');
+    if (tag && tag.src) { try { return new URL(tag.src).origin; } catch (_) {} }
+    return 'https://www.admiranext.com';
+  }
+  function macroPlanDe(cuerpo) {
+    if (!cuerpo || typeof cuerpo !== 'object') return null;
+    if (cuerpo.plan && cuerpo.plan.kind === 'macro') return cuerpo.plan;
+    if (cuerpo.kind === 'macro') return cuerpo;
+    return null;
+  }
+  function macroPlanValido(plan) {
+    return !!(plan && plan.kind === 'macro' && /^[a-z0-9-]{1,40}$/.test(String(plan.id || '')) && Array.isArray(plan.items) && plan.items.length);
+  }
+  function macroDecodificar(bruto) {
+    var texto = String(bruto || '');
+    if (!texto || texto.length > 16000 || typeof atob !== 'function') return null;
+    try {
+      var b64 = texto.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var json = decodeURIComponent(escape(atob(b64)));
+      if (!json || json.length > 14000 || /token|secret|csrf|password/i.test(json)) return null;
+      var plan = JSON.parse(json);
+      if (!macroPlanValido(plan)) return null;
+      var pedido = String(query.get('ax_demo') || '').replace(/^macro:/, '');
+      if (plan.id !== pedido) return null;
+      plan.items.forEach(function (item) { if (item && item.subdemo) delete item.subdemo.url; });
+      return plan;
+    } catch (_) { return null; }
+  }
+  function macroCodificar(plan) {
+    if (!macroPlanValido(plan) || typeof btoa !== 'function') return '';
+    var ctx = plan.context || {};
+    var copia = {kind:'macro', id:plan.id, version:plan.version, title:plan.title || null, context:{}, items:(plan.items || []).map(function (item) {
+      var sub = item.subdemo || {};
+      var limpio = {};
+      ['id','slug','title','steps','aliases'].forEach(function (k) { if (sub[k] != null) limpio[k] = sub[k]; });
+      return {ref:item.ref, subdemo:limpio};
+    })};
+    if (plan.slug) copia.slug = plan.slug;
+    ['lang','marca','project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) copia.context[k] = ctx[k]; });
+    if (plan.transition && Number(plan.transition.seconds) >= 3) copia.transition = {seconds:Number(plan.transition.seconds)};
+    var json = '';
+    try { json = JSON.stringify(copia); } catch (_) { return ''; }
+    if (!json || json.length > 12000 || /token|secret|csrf|password/i.test(json)) return '';
+    try {
+      var b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      return b64 && b64.length <= 16000 ? b64 : '';
+    } catch (_) { return ''; }
+  }
+  async function macroPedir(url) {
+    try {
+      var respuesta = await fetch(url, {cache:'no-store', credentials:'omit'});
+      if (!respuesta || !respuesta.ok) return null;
+      var plan = macroPlanDe(await respuesta.json());
+      return macroPlanValido(plan) ? plan : null;
+    } catch (_) { return null; }
+  }
+  async function macroLeer(id) {
+    var origen = macroOrigen();
+    var nombre = encodeURIComponent(id);
+    var plan = await macroPedir(origen + '/api/demos/resolver?nombre=' + nombre);
+    if (!plan) plan = await macroPedir(origen + '/api/demos/' + nombre);
+    if (!plan && origen !== 'https://www.admiranext.com') {
+      plan = await macroPedir('https://www.admiranext.com/api/demos/resolver?nombre=' + nombre);
+      if (!plan) plan = await macroPedir('https://www.admiranext.com/api/demos/' + nombre);
+    }
+    if (!plan) plan = macroDecodificar(query.get('ax_plan'));
+    if (plan && plan.id !== id) return null;
+    return plan;
+  }
   function macroUrl(plan, index, runId) {
     var hogares = {biz:'https://www.admira.biz/', app:'https://www.admira.app/retailer', store:'https://www.admira.store/', studio:'https://www.admira.studio/', tv:'https://www.admira.tv/'};
     var gemelos = {biz:['admira.biz','clearchannel.tv'], app:['admira.app','yokup.com'], store:['admira.store','xpaceos.com'], studio:['admira.studio','pixeria.com'], tv:['admira.tv']};
@@ -936,10 +1007,13 @@
     url.searchParams.set('ax_v', String(plan.version));
     ['marca','project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) url.searchParams.set(k, ctx[k]); });
     url.searchParams.set('lang', macroState.lang === 'en' ? 'en' : 'es');
+    if (Number.isInteger(macroState.fin) && macroState.fin > index && macroState.fin < plan.items.length) url.searchParams.set('ax_fin', String(macroState.fin));
+    var viaje = query.get('ax_plan') || macroCodificar(plan);
+    if (viaje && viaje.length <= 16000) url.searchParams.set('ax_plan', viaje);
     return url.href;
   }
   function macroCopiar(url) {
-    ['ax_demo','ax_run','ax_i','ax_v','marca','project','circuit','lang'].forEach(function (k) { if (query.get(k)) url.searchParams.set(k, query.get(k)); });
+    ['ax_demo','ax_run','ax_i','ax_fin','ax_v','ax_plan','marca','project','circuit','lang'].forEach(function (k) { if (query.get(k)) url.searchParams.set(k, query.get(k)); });
     return url;
   }
   function macroMismoPath(a, b) {
@@ -1231,7 +1305,10 @@
     if (!macroState.activo) return;
     var indice = Number(query.get('ax_i') || '0');
     if (!Number.isInteger(indice) || indice < 0 || indice >= plan.items.length) indice = 0;
-    while (macroState.activo && indice < plan.items.length) {
+    var fin = Number(query.get('ax_fin'));
+    if (!Number.isInteger(fin) || fin <= indice || fin > plan.items.length) fin = plan.items.length;
+    macroState.fin = fin;
+    while (macroState.activo && indice < fin) {
       var item = plan.items[indice];
       var site = String(item.ref || '').split('/')[0];
       if (!macroEnSitio(site)) {
@@ -1263,7 +1340,7 @@
       }
       macroRestaurar();
       indice++;
-      if (macroState.activo && indice < plan.items.length && macroEnSitio(String(plan.items[indice].ref || '').split('/')[0])) {
+      if (macroState.activo && indice < fin && macroEnSitio(String(plan.items[indice].ref || '').split('/')[0])) {
         try {
           var siguiente = new URL(location.href);
           siguiente.searchParams.set('ax_i', String(indice));
@@ -1281,11 +1358,7 @@
     macroState.activo = true;
     macroPanelCrear();
     macroPintar(macroFrase('Leyendo el plan…', 'Reading the plan…'));
-    var plan = null;
-    try {
-      var respuesta = await fetch('https://www.admiranext.com/api/demos/' + encodeURIComponent(id), {cache:'no-store', credentials:'omit'});
-      plan = respuesta && respuesta.ok ? await respuesta.json() : null;
-    } catch (_) { plan = null; }
+    var plan = await macroLeer(id);
     if (!macroState.activo) return;
     if (!plan || plan.kind !== 'macro' || !Array.isArray(plan.items) || !plan.items.length) {
       macroState.activo = false;
