@@ -201,6 +201,107 @@
     [/^Consejero: (.+) · (\w+)$/, 'Counsellor: $1 · $2']
   ];
 
+  // /normativa (09-10-2026): la prosa va en data-en por bloque (ver admira-frame.js, traducirBloques).
+  // Aquí solo lo que queda suelto entre etiquetas: las tres máximas de cabecera y el pie.
+  var diccNormativa = {
+    'Ningún agente existe sin el apellido de su máquina': 'No agent exists without the surname of its machine',
+    'Todo trabajo comparte una única secuencia diaria': 'All work shares a single daily sequence',
+    'Nadie trabaja sin haberse introducido': 'Nobody works without having introduced themselves',
+    'Fuente canónica →': 'Canonical source →',
+    'Contrato operativo del equipo de silicio de': 'Operating contract of the silicon team of',
+    'La normativa crece aquí, numerada y verificable · fuente única de identidad': 'The rules grow here, numbered and verifiable · single source of identity',
+    'Ver también': 'See also',
+    'espejo operativo en': 'operational mirror at'
+  };
+  A.anadir(diccNormativa, []);
+  // Títulos de las normas: el armazón los copia a su índice (☰ Opciones), fuera de los bloques data-en.
+  var titulosNormativa = {
+    "El nombre único es el identificador; el equipo acompaña": "The unique name is the identifier; the machine goes alongside",
+    "Diccionario único de equipos": "Single dictionary of machines",
+    "Los nombres antiguos se leen; no se propagan": "Old names are read; they are not propagated",
+    "Todo trabajo dice en qué equipo se hizo": "All work states which machine it was done on",
+    "Una referencia para todo el trabajo": "One reference for all work",
+    "La doctrina que crece se renumera y se anuncia": "Doctrine that grows is renumbered and announced",
+    "Una sola forma de decir la versión": "One single way to state the version",
+    "Todo cambio se firma por su responsable y su equipo": "Every change is signed by whoever is responsible and their machine",
+    "Cada cambio publicado, una versión nueva": "Every published change, a new version",
+    "OnIdle horario: tres acciones cuando el equipo está desatendido": "Hourly OnIdle: three actions when the team is unattended",
+    "Modo rápido siempre puesto": "Fast mode always on",
+    "El proyecto acompaña al agente responsable": "The project accompanies the responsible agent",
+    "Siempre la última versión — y su autor": "Always the latest version — and its author",
+    "Lo que se decide y lo que se hace se da de alta, siempre": "What is decided and what is done is always registered",
+    "Tu identidad se comprueba en tu sesión, no se copia del censo": "Your identity is checked in your session, not copied from the census",
+    "A un consejero se le enseña con guiones, no con vídeos": "An adviser is taught with scripts, not with videos",
+    "Cada cierre declara sus puntos y el total verificado": "Every closure declares its points and the verified total",
+    "Introducirse: el día empieza dándose de alta": "Introducing yourself: the day starts by signing up",
+    "Dos Xpacios, un origen y responsabilidades distintas": "Two Xpacios, one origin and distinct responsibilities",
+    "App de escritorio solo donde hay un humano; el resto, CLI": "Desktop app only where there is a human; everything else, CLI",
+    "Tarea, mision u objetivo — y todo encargo declara lo que produjo": "Task, mission or objective — and every order declares what it produced",
+    "El cierre son tres líneas, y son las mismas corras donde corras": "The close-out is three lines, and they are the same wherever you run",
+    "Cositas: delegar es obligatorio y el cierre declara el contexto gastado": "Cositas: delegation is mandatory and the close-out declares the context spent",
+    "Cada proyecto abre dos puertas: /help para el carbono y /mcp para el silicio": "Every project opens two doors: /help for carbon and /mcp for silicon",
+    "El aviso de recarga dice la versión, no que hay una versión": "The reload notice states the version, not that there is a version",
+    "Todo agente tiene un proyecto principal, y se declara donde se mira": "Every agent has a main project, and declares it where people look",
+    "El alta y el cierre son la misma obligación, y alcanzan a todos": "Registration and closing are the same obligation, and they apply to everyone",
+    "Todos entran en todos los proyectos; uno responde, todos cuidan": "Everyone enters every project; one answers for it, everyone looks after it",
+    "Sesión corta; contexto largo es basura cara": "Short session; long context is expensive garbage",
+    "La misión y el encargo no comparten número": "Mission and order do not share a number"
+  };
+  A.anadir(titulosNormativa, []);
+  // Títulos de /help, /mcp y /telegram: el armazón los copia a su índice, fuera de los bloques data-en.
+  var titulosAyuda = {
+    "/help del equipo Matrix": "/help for the Matrix team",
+    "Comandos Dentro De Telegram": "Commands inside Telegram",
+    "CLI de AgoraMatrix": "AgoraMatrix CLI",
+    "Invocar agentes": "Invoking agents",
+    "Miembros De AgoraMatrix": "AgoraMatrix members",
+    "Comandos De Terminal Para Agentes": "Terminal commands for agents",
+    "Protocolos Operativos": "Operating protocols",
+    "Cuando Carlos da una orden por Telegram": "When Carlos gives an order via Telegram",
+    "Cuando un agente termina una accion": "When an agent finishes an action",
+    "Frase de confirmacion de escucha": "Listening confirmation phrase",
+    "Usuarios y proyectos": "Users and projects",
+    "Las 4 patas: el sistema operativo del retail": "The 4 legs: the operating system of retail",
+    "La matriz de la empresa agéntica": "The parent site of the agentic company",
+    "Páginas para humanos y agentes": "Pages for humans and agents",
+    "Presentar": "Present",
+    "Generador de Presentaciones · MCP vivo + ayuda": "Presentation Generator · Live MCP + help",
+    "Generador de créditos": "Credits generator",
+    "Generador de presupuestos": "Quote generator",
+    "Narrativa de Impacto": "Impact Narrative",
+    "Los 14 Mandamientos": "The 14 Commandments",
+    "Filosofía del equipo": "Team philosophy",
+    "Normativa operativa": "Operating rules",
+    "Colgada aquí": "Posted here",
+    "Los MCP de la suite, uno por producto": "The suite's MCPs, one per product",
+    "Una clave por persona y equipo, válida en toda la suite": "One key per person and machine, valid across the whole suite",
+    "De un mensajea una misión real": "From a messageto a real mission",
+    "Grupo AgoraMatrix": "AgoraMatrix group",
+    "Qué puedes hacer": "What you can do",
+    "Encargar una misión": "Order a mission",
+    "Elegir agente o equipo": "Choose an agent or machine",
+    "Adjuntar contexto": "Attach context",
+    "Seguir el progreso": "Follow progress",
+    "Recibir el resultado": "Receive the result",
+    "Auditar en YOKUP": "Audit in YOKUP",
+    "Cómo funciona": "How it works",
+    "Mensaje + archivos": "Message + files",
+    "Identidad, presencia y carga": "Identity, presence and load",
+    "Una ejecución, un responsable": "One execution, one owner",
+    "Progreso y prueba": "Progress and proof",
+    "Resultado + informe": "Result + report",
+    "Habla como quieras": "Speak however you like",
+    "Estados que verás": "Statuses you will see",
+    "Dos vistas, una verdad": "Two views, one truth"
+  };
+  A.anadir(titulosAyuda, []);
+  // Rótulos sueltos de /mcp y /telegram que no viven en un bloque (enlaces de la cabecera, estado de la conexión).
+  A.anadir({
+    'Abrir llms.txt': 'Open llms.txt', 'Abrir manifest.json': 'Open manifest.json', 'Para agentes': 'For agents',
+    'MCP del generador': 'Generator MCP', 'Consejo MCP (admira.live) ↗': 'Council MCP (admira.live) ↗',
+    'Ver cómo funciona': 'See how it works', 'sin conexión · reintentando': 'offline · retrying',
+    'sin conexión': 'offline', 'reintentando': 'retrying', 'conectando…': 'connecting…', 'conectando': 'connecting', 'en vivo': 'live'
+  }, []);
   A.anadir(diccFlota, reglasFlota);
   A.anadir(diccConsejo, reglasConsejo);
   if (A.aplicar) A.aplicar();

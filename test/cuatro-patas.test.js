@@ -51,7 +51,8 @@ test("la capa MCP entrega las 4 patas a los agentes y explica la trilogía", () 
     if (equivale) assert.ok(llms.includes(equivale) && hub.includes(equivale), `falta ${equivale} en llms.txt o el hub`);
   }
   assert.doesNotMatch(hub, /patas en la trilogía/);
-  assert.match(hub, /<strong>4<\/strong><span>patas del sistema operativo del retail/);
+  // El <span> puede llevar atributos (data-en con su versión inglesa, 9-oct-2026).
+  assert.match(hub, /<strong>4<\/strong><span[^>]*>patas del sistema operativo del retail/);
   assert.match(llms, /trilogía corporativa/);
   const patas = manifest.cuatro_patas?.patas ?? [];
   assert.deepEqual(patas.map((p) => p.dominio), PATAS.map((p) => `https://www.${p.dominio}`));
