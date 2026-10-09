@@ -83,6 +83,30 @@ test('hoy walks five checked steps and does not copy a secret into the verdict',
   assert.equal(f.api.state().activo,false);
   assert.equal(f.document.getElementById('admira-native-demo'),null);
 });
+test('page demos stay on admiranext, open their page and list real checks',()=>{
+  assert.equal(fixture({platform:'proyectos',host:'evil.example',path:'/proyectos/'}).api,undefined);
+  const home=fixture({platform:'proyectos',host:'www.admiranext.com',path:'/'});
+  assert.equal(home.api,undefined);
+  assert.match(home.assigned[0],/\/proyectos\/\?/);
+  assert.equal(new URL(home.assigned[0]).searchParams.get('ax_demo'),'proyectos');
+  const ids={
+    proyectos:['/proyectos/','columna,censo,orden,numero'],
+    idioma:['/','texto,espanol,ingles,vuelta'],
+    marcas:['/marcablanca/','portada,catalogo,piel84,apagada'],
+    roadmap:['/roadmap','titulo,gantt,hitos,idioma'],
+  };
+  for (const [id,[path,want]] of Object.entries(ids)) {
+    const f=fixture({platform:id,host:'www.admiranext.com',path,lang:'es'});
+    assert.equal(f.api.state().demo,id);
+    assert.equal([...f.api.steps()].map(s=>s.id).join(','),want);
+    f.api.control('stop');
+    assert.equal(f.document.getElementById('admira-native-demo'),null);
+  }
+  const en=fixture({platform:'marcas',host:'www.admiranext.com',path:'/marcablanca/',lang:'en'});
+  assert.match(en.api.steps()[2].text,/\/brand 84/);
+  const html=fixture({platform:'roadmap',host:'127.0.0.1',path:'/roadmap.html'});
+  assert.equal(html.api.state().demo,'roadmap');
+});
 test('native engine rejects a foreign host, wrong platform and embedded frame',()=>{
   for(const host of ['evil.example','admira.store.evil.example','www.admira.biz'])assert.equal(fixture({host}).api,undefined);
   assert.equal(fixture({platform:'unknown'}).api,undefined);

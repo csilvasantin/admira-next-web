@@ -12,6 +12,7 @@
   var preview = /^(localhost|127\.0\.0\.1)$/.test(host) && query.get('ax_preview')===platform;
   if (!hosts[platform] || (hosts[platform].indexOf(host)<0&&!preview)) {
     if (platform === 'hoy') arrancarFuncionHoy();
+    else if (platform === 'proyectos' || platform === 'idioma' || platform === 'marcas' || platform === 'roadmap') arrancarFuncionPagina(platform);
     return;
   }
   function enAhora(){ return (D.documentElement.lang || query.get('lang') || '').slice(0,2)==='en'; }
@@ -451,6 +452,397 @@
       await uno(4, pasoAgente);
       if(!state.active) return;
       state.active=false; guardar(); pintar();
+    })();
+  }
+
+  // /demo proyectos|idioma|marcas|roadmap (y el verbo inglés). Misma pieza de panel que /demo hoy.
+  // Cada paso comprueba algo de la página y el resumen se queda en bien, mal o pendiente.
+  function arrancarFuncionPagina(id) {
+    if (host !== 'admiranext.com' && !/^(localhost|127\.0\.0\.1)$/.test(host)) return;
+    var EN = (query.get('lang') || D.documentElement.lang || '').slice(0,2)==='en';
+    var T = function(a,b){return EN?b:a;};
+    var runId = query.get('ax_run') || id;
+    var planes = {
+      proyectos: [
+        {id:'columna', es:'Columna Nº del censo', en:'Census Nº column'},
+        {id:'censo', es:'Filas leídas de la API', en:'Rows read from the API'},
+        {id:'orden', es:'Ordenar por Nº', en:'Sort by Nº'},
+        {id:'numero', es:'Un Nº o la nota de pendiente', en:'A number or the pending note'}
+      ],
+      idioma: [
+        {id:'texto', es:'La portada tiene texto traducible', en:'The homepage has translatable text'},
+        {id:'espanol', es:'Pasa a español', en:'Switches to Spanish'},
+        {id:'ingles', es:'Pasa a inglés', en:'Switches to English'},
+        {id:'vuelta', es:'Vuelve al idioma del recorrido', en:'Returns to the walkthrough language'}
+      ],
+      marcas: [
+        {id:'portada', es:'Portada de marca blanca', en:'White-label homepage'},
+        {id:'catalogo', es:'Pieles de cine 81 a 89', en:'Cinema skins 81 to 89'},
+        {id:'piel84', es:'Aplicar /marca 84', en:'Apply /brand 84'},
+        {id:'apagada', es:'Quitar la piel', en:'Turn the skin off'}
+      ],
+      roadmap: [
+        {id:'titulo', es:'Título RoadMap', en:'RoadMap title'},
+        {id:'gantt', es:'El Gantt se desplaza en horizontal', en:'The Gantt scrolls sideways'},
+        {id:'hitos', es:'Hitos de /api/roadmap', en:'Milestones from /api/roadmap'},
+        {id:'idioma', es:'El corte pasa a inglés', en:'The cut switches to English'}
+      ]
+    };
+    var plan = planes[id];
+    if (!plan) return;
+    function limpioPath(){
+      var p = location.pathname || '/';
+      p = p.replace(/\/index\.html$/i, '/').replace(/\.html$/i, '');
+      if (p.length > 1) p = p.replace(/\/$/, '');
+      return p || '/';
+    }
+    var quiere = {proyectos:'/proyectos', idioma:'/', marcas:'/marcablanca', roadmap:'/roadmap'}[id];
+    var destino = {proyectos:'/proyectos/', idioma:'/', marcas:'/marcablanca/', roadmap:'/roadmap'}[id];
+    if (limpioPath() !== quiere) {
+      var u = new URL(destino, location.href);
+      u.searchParams.set('ax_demo', id);
+      u.searchParams.set('ax_run', runId);
+      u.searchParams.set('lang', EN ? 'en' : 'es');
+      location.assign(u.href);
+      return;
+    }
+    function ahora(){ return (G.performance && typeof G.performance.now==='function') ? G.performance.now() : Date.now(); }
+    function limpiar(s){ return String(s||'').replace(/bearer\s+\S+/ig,'').replace(/\b(token|clave|secret|password)\b\s*[:=]\s*\S+/ig,'').replace(/\s+/g,' ').trim().slice(0,220); }
+    var hechos = plan.map(function(){ return ''; });
+    var notas = plan.map(function(){ return ''; });
+    var state = {active:true, paused:false, muted:false, index:0, adelantar:false, error:''}, timer=0, pointer=null, panel=null, resumen=null, statusEl=null, caption=null, pauseBtn, muteBtn;
+    function pintar(){
+      if (!panel) return;
+      panel.dataset.state = state.active ? (state.paused ? 'paused' : 'running') : 'complete';
+      var hechoTxt = function(e){ return e==='bien'?T('bien','ok'):e==='mal'?T('mal','fail'):e==='pendiente'?T('pendiente','pending'):'—'; };
+      statusEl.textContent = T('Paso ','Step ') + Math.min(state.index+1, plan.length) + '/' + plan.length + ' · ' + (state.active ? (state.paused ? T('En pausa','Paused') : T('Comprobando','Checking')) : T('Resumen','Summary'));
+      resumen.textContent = '';
+      plan.forEach(function(p,i){
+        var li = D.createElement('li');
+        li.dataset.estado = hechos[i] || '';
+        li.textContent = (i+1) + '. ' + T(p.es, p.en) + ' · ' + hechoTxt(hechos[i]) + (notas[i] ? ' · ' + notas[i] : '');
+        resumen.appendChild(li);
+      });
+      caption.textContent = plan[state.index] ? T(plan[state.index].es, plan[state.index].en) : '';
+      pauseBtn.textContent = state.paused ? T('Reanudar','Resume') : T('Pausar','Pause');
+      pauseBtn.disabled = !state.active;
+      muteBtn.textContent = state.muted ? T('Activar sonido','Enable sound') : T('Silenciar demo','Mute demo');
+    }
+    function esperar(ms){
+      return new Promise(function(resolve){
+        var left = ms;
+        function tick(){
+          if (!state.active) return resolve(false);
+          if (state.adelantar) return resolve(true);
+          if (state.paused) { timer = setTimeout(tick, 200); return; }
+          if (left <= 0) return resolve(true);
+          var slice = Math.min(200, left); left -= slice; timer = setTimeout(tick, slice);
+        }
+        tick();
+      });
+    }
+    async function buscar(sel, ms){
+      var limite = ahora() + ms;
+      while (ahora() < limite) {
+        var el = D.querySelector(sel);
+        if (el || state.adelantar || !state.active) return el || null;
+        if (!await esperar(250)) return null;
+      }
+      return D.querySelector(sel);
+    }
+    function apuntar(el){
+      if (!el || !pointer || typeof el.getBoundingClientRect !== 'function') return;
+      try { el.scrollIntoView({block:'center', inline:'nearest'}); } catch (_) {}
+      try { el.classList.add('admira-demo-target'); } catch (_) {}
+      var r = el.getBoundingClientRect();
+      pointer.hidden = false;
+      pointer.style.left = Math.max(4, r.left + r.width / 2) + 'px';
+      pointer.style.top = Math.max(4, r.top + r.height / 2) + 'px';
+    }
+    function textoDe(el){ return ((el && el.textContent) || '').replace(/\s+/g,' ').trim(); }
+    async function pasoColumna(){
+      var th = await buscar('th[data-col="num"]', 4000);
+      if (!th) return {estado:'mal', detalle:T('No está la columna Nº.','The Nº column is missing.')};
+      apuntar(th);
+      var rotulo = textoDe(th.querySelector('button') || th);
+      return /Nº|N\.º|No\b/.test(rotulo)
+        ? {estado:'bien', detalle:rotulo}
+        : {estado:'mal', detalle:rotulo || T('El botón no dice Nº.','The button does not say Nº.')};
+    }
+    async function pasoCenso(){
+      var limite = ahora() + 8000;
+      while (ahora() < limite && state.active) {
+        var st = D.getElementById('status');
+        var tx = textoDe(st);
+        if (/No se pudo leer/.test(tx)) return {estado:'pendiente', detalle:limpiar(tx)};
+        var n = D.querySelectorAll('#rows tr').length;
+        if (tx && !/Leyendo/.test(tx) && n > 0) {
+          apuntar(D.querySelector('#rows tr') || st);
+          return {estado:'bien', detalle:n + T(' filas',' rows')};
+        }
+        if (!await esperar(300)) return {estado:'mal', detalle:''};
+      }
+      var fallo = textoDe(D.getElementById('status'));
+      if (/No se pudo leer/.test(fallo)) return {estado:'pendiente', detalle:limpiar(fallo)};
+      return {estado:'mal', detalle:T('El censo no llegó.','The census did not arrive.')};
+    }
+    async function pasoOrden(){
+      var th = D.querySelector('th[data-col="num"]');
+      var btn = th && th.querySelector('button');
+      if (!th) return {estado:'mal', detalle:T('No está la columna Nº.','The Nº column is missing.')};
+      apuntar(btn || th);
+      try { (btn || th).click(); } catch (_) {}
+      await esperar(200);
+      var sort = th.getAttribute('aria-sort') || '';
+      return sort === 'ascending'
+        ? {estado:'bien', detalle:'aria-sort=ascending'}
+        : {estado:'mal', detalle:'aria-sort=' + (sort || '—')};
+    }
+    async function pasoNumero(){
+      var celdas = D.querySelectorAll('#rows td.num');
+      var alguno = false;
+      for (var i = 0; i < celdas.length; i++) if (/^\d+$/.test(textoDe(celdas[i]))) alguno = true;
+      var nota = /Nº pendiente/.test(textoDe(D.getElementById('status')));
+      if (alguno) return {estado:'bien', detalle:T('Hay un número de proyecto.','A project number is present.')};
+      if (nota) return {estado:'bien', detalle:T('Nº pendiente: la API no publica el número.','Nº pending: the API does not publish the number.')};
+      if (!celdas.length) return {estado:'pendiente', detalle:T('Sin filas que numerar.','No rows to number.')};
+      return {estado:'mal', detalle:T('Ni número ni nota de pendiente.','Neither a number nor a pending note.')};
+    }
+    function frasePortada(){
+      var nodo = D.querySelector('[data-i18n="manifesto.who.value"]') || D.querySelector('[data-i18n="boot.l1"]') || D.querySelector('[data-i18n]');
+      return textoDe(nodo);
+    }
+    function ponerPortada(l){
+      try { if (typeof G.setLang === 'function') G.setLang(l); } catch (_) {}
+      try { D.documentElement.lang = l; D.documentElement.setAttribute('lang', l); } catch (_) {}
+    }
+    async function pasoTextoIdioma(){
+      var limite = ahora() + 8000;
+      while (ahora() < limite && state.active) {
+        var nodo = D.querySelector('[data-i18n]');
+        if (nodo && typeof G.setLang === 'function') { apuntar(nodo); return {estado:'bien', detalle:T('Texto con idioma.','Text with a language.')}; }
+        if (!await esperar(250)) return {estado:'mal', detalle:''};
+      }
+      return {estado:'mal', detalle:T('La portada no expone el idioma.','The homepage does not expose the language.')};
+    }
+    async function esperarFrase(re){
+      var limite = ahora() + 4000;
+      var frase = '';
+      while (ahora() < limite && state.active) {
+        frase = frasePortada();
+        if (re.test(frase)) return frase;
+        if (!await esperar(200)) return frase;
+      }
+      return frasePortada();
+    }
+    async function pasoEspanol(){
+      ponerPortada('es');
+      apuntar(D.querySelector('[data-i18n="manifesto.who.value"]') || D.querySelector('h1') || D.body);
+      var frase = await esperarFrase(/Conectan|Iniciando sistema|Manifiesto|Quiénes/i);
+      return /Conectan|Iniciando sistema|Manifiesto|Quiénes/i.test(frase)
+        ? {estado:'bien', detalle:limpiar(frase)}
+        : {estado:'mal', detalle:limpiar(frase) || T('No apareció el español.','Spanish did not appear.')};
+    }
+    async function pasoIngles(){
+      ponerPortada('en');
+      apuntar(D.querySelector('[data-i18n="manifesto.who.value"]') || D.querySelector('h1') || D.body);
+      var frase = await esperarFrase(/connect to the Internet|Booting portfolio|Manifesto|\bWho\b/i);
+      return /connect to the Internet|Booting portfolio|Manifesto|\bWho\b/i.test(frase)
+        ? {estado:'bien', detalle:limpiar(frase)}
+        : {estado:'mal', detalle:limpiar(frase) || T('No apareció el inglés.','English did not appear.')};
+    }
+    async function pasoVuelta(){
+      var destinoLang = EN ? 'en' : 'es';
+      ponerPortada(destinoLang);
+      var re = destinoLang === 'en' ? /connect to the Internet|Booting portfolio|Manifesto|\bWho\b/i : /Conectan|Iniciando sistema|Manifiesto|Quiénes/i;
+      var frase = await esperarFrase(re);
+      return re.test(frase)
+        ? {estado:'bien', detalle:destinoLang + ' · ' + limpiar(frase)}
+        : {estado:'mal', detalle:limpiar(frase) || destinoLang};
+    }
+    async function pasoPortadaMarca(){
+      var h1 = await buscar('h1', 4000);
+      if (!h1) return {estado:'mal', detalle:T('No hay título.','There is no title.')};
+      apuntar(h1);
+      return {estado:'bien', detalle:limpiar(textoDe(h1))};
+    }
+    async function pasoCatalogo(){
+      var j = null, status = 0;
+      try {
+        var r = await fetch('/marcablanca/clientes/index.json', {headers:{accept:'application/json'}});
+        status = r.status;
+        j = r.ok ? await r.json() : null;
+      } catch (_) { j = null; }
+      var lista = j && (j.clientes || j);
+      var ids = {};
+      if (Array.isArray(lista)) lista.forEach(function(x){ if (x && x.id != null) ids[String(x.id)] = true; });
+      var faltan = [];
+      for (var n = 81; n <= 89; n++) if (!ids[String(n)]) faltan.push(String(n));
+      if (!faltan.length) return {estado:'bien', detalle:'81–89'};
+      if (!status || status >= 500) return {estado:'pendiente', detalle:T('El catálogo no respondió.','The catalog did not respond.') + ' ' + status};
+      return {estado:'mal', detalle:T('Faltan ','Missing ') + faltan.join(',')};
+    }
+    function asegurarMarca(){
+      if (G.AdmiraMarca && typeof G.AdmiraMarca.activar === 'function') return Promise.resolve(G.AdmiraMarca);
+      return new Promise(function(resolve){
+        var s = D.createElement('script');
+        var listo = false;
+        function fin(){ if (listo) return; listo = true; resolve(G.AdmiraMarca || null); }
+        s.src = '/assets/marca-blanca.js?v=20261009-demo-5446';
+        s.onload = fin; s.onerror = fin;
+        (D.head || D.documentElement).appendChild(s);
+        setTimeout(fin, 8000);
+      });
+    }
+    async function pasoPiel(){
+      var api = await asegurarMarca();
+      if (!api) return {estado:'pendiente', detalle:T('El cargador de marca no llegó.','The brand loader did not arrive.')};
+      var r = null;
+      try { r = await api.activar('84'); } catch (e) { r = {ok:false, reason:limpiar(e && e.message)}; }
+      var guardada = '';
+      try { guardada = G.sessionStorage.getItem('mb:marca') || ''; } catch (_) {}
+      var actual = '';
+      try { actual = (api.actual && api.actual() && api.actual().id) || ''; } catch (_) {}
+      if (r && r.ok && (guardada === '84' || actual === '84' || r.id === '84')) {
+        apuntar(D.querySelector('h1') || D.body);
+        return {estado:'bien', detalle:'/marca 84 · ' + (r.nombre || '84')};
+      }
+      if (r && (r.reason === 'network' || r.reason === 'unknown')) return {estado:'pendiente', detalle:T('La API de marcas no aplicó el 84 (','The brand API did not apply 84 (') + r.reason + ').'};
+      return {estado:'mal', detalle:limpiar((r && (r.reason || r.id)) || T('Sin piel.','No skin.'))};
+    }
+    async function pasoApagada(){
+      var api = G.AdmiraMarca;
+      if (api && typeof api.desactivar === 'function') { try { api.desactivar(); } catch (_) {} }
+      else { try { G.sessionStorage.removeItem('mb:marca'); } catch (_) {} }
+      var guardada = 'x';
+      try { guardada = G.sessionStorage.getItem('mb:marca'); } catch (_) { guardada = null; }
+      var queda = '';
+      try { queda = api && api.actual && api.actual() ? api.actual().id : ''; } catch (_) {}
+      if (!guardada && !queda) return {estado:'bien', detalle:T('Sin piel activa.','No active skin.')};
+      return {estado:'mal', detalle:T('Siguió la piel ','The skin stayed ') + (guardada || queda)};
+    }
+    async function pasoTitulo(){
+      var h1 = await buscar('h1', 4000);
+      var tx = textoDe(h1);
+      if (/RoadMap/i.test(tx)) { apuntar(h1); return {estado:'bien', detalle:tx}; }
+      return {estado:'mal', detalle:tx || T('No está el título.','The title is missing.')};
+    }
+    async function pasoGantt(){
+      var wrap = await buscar('.rm-gantt-wrap', 4000);
+      if (!wrap) return {estado:'mal', detalle:T('No está el Gantt.','The Gantt is missing.')};
+      apuntar(wrap);
+      var ox = '';
+      try { ox = (G.getComputedStyle(wrap).overflowX || G.getComputedStyle(wrap).overflow || ''); } catch (_) {}
+      return /auto|scroll|overlay/.test(ox)
+        ? {estado:'bien', detalle:'overflow-x:' + ox}
+        : {estado:'mal', detalle:'overflow-x:' + (ox || '—')};
+    }
+    async function pasoHitos(){
+      var limite = ahora() + 8000;
+      while (ahora() < limite && state.active) {
+        var live = textoDe(D.getElementById('rm-live'));
+        if (D.getElementById('rm-gantt') || /\/api\/roadmap · \d+/.test(live)) {
+          apuntar(D.getElementById('rm-gantt') || D.getElementById('rm-live'));
+          return {estado:'bien', detalle:limpiar(live) || 'gantt'};
+        }
+        if (/no responde|No se pudo leer/.test(live) || /No se pudo leer/.test(textoDe(D.getElementById('rm-gantt-wrap')))) {
+          return {estado:'pendiente', detalle:limpiar(live || textoDe(D.getElementById('rm-gantt-wrap')))};
+        }
+        if (!await esperar(300)) return {estado:'mal', detalle:''};
+      }
+      return {estado:'mal', detalle:T('El Gantt no se asentó.','The Gantt did not settle.')};
+    }
+    function ponerArmazon(l){
+      try {
+        if (G.AdmiraExperto && typeof G.AdmiraExperto.setLanguage === 'function') G.AdmiraExperto.setLanguage(l);
+        else { D.documentElement.lang = l; D.documentElement.setAttribute('lang', l); }
+      } catch (_) { try { D.documentElement.setAttribute('lang', l); } catch (e) {} }
+    }
+    async function pasoIdiomaRoad(){
+      ponerArmazon('en');
+      var limite = ahora() + 5000;
+      var tx = '';
+      while (ahora() < limite && state.active) {
+        tx = textoDe(D.querySelector('h2.corte-h')) + ' ' + textoDe(D.getElementById('rm-live'));
+        if (/Cut by period|reading \/api\/roadmap/.test(tx)) {
+          apuntar(D.querySelector('h2.corte-h') || D.getElementById('rm-live'));
+          return {estado:'bien', detalle:limpiar(tx)};
+        }
+        if (!await esperar(250)) return {estado:'mal', detalle:''};
+      }
+      return {estado:'mal', detalle:limpiar(tx) || T('El corte no pasó a inglés.','The cut did not switch to English.')};
+    }
+    var acciones = {
+      proyectos: [pasoColumna, pasoCenso, pasoOrden, pasoNumero],
+      idioma: [pasoTextoIdioma, pasoEspanol, pasoIngles, pasoVuelta],
+      marcas: [pasoPortadaMarca, pasoCatalogo, pasoPiel, pasoApagada],
+      roadmap: [pasoTitulo, pasoGantt, pasoHitos, pasoIdiomaRoad]
+    };
+    async function uno(i, fn){
+      if (!state.active) return;
+      state.index = i; state.error = ''; pintar();
+      var t0 = ahora(), r;
+      try { r = await fn(); } catch (e) { r = {estado:'mal', detalle:limpiar(e && e.message)}; }
+      if (!state.active) return;
+      if (!r || (r.estado !== 'bien' && r.estado !== 'mal' && r.estado !== 'pendiente')) r = {estado:'mal', detalle:''};
+      hechos[i] = r.estado; notas[i] = limpiar(r.detalle || ''); pintar();
+      var queda = 2200 - (ahora() - t0);
+      if (queda > 0) await esperar(queda);
+      state.adelantar = false;
+    }
+    function cerrar(){
+      state.active = false; state.paused = false; clearTimeout(timer);
+      if (panel) panel.remove(); if (pointer) pointer.remove();
+    }
+    function control(c){
+      if (c === 'stop' || c === 'parar' || c === 'off') { cerrar(); return getState(); }
+      if (c === 'mute') { state.muted = !state.muted; pintar(); return getState(); }
+      if (!state.active) return getState();
+      if (c === 'pause' || c === 'pausa') { state.paused = true; pintar(); }
+      if (c === 'resume' || c === 'reanudar' || c === 'continuar') { state.paused = false; pintar(); }
+      if (c === 'next' || c === 'siguiente') { state.adelantar = true; state.paused = false; pintar(); }
+      return getState();
+    }
+    function getState(){ return {activo:state.active, pausado:state.paused, demo:id, fase:Math.min(state.index+1, plan.length), fases:plan.length, numero:1, total:1, error:state.error, control:'interfaz'}; }
+    var style = D.createElement('style');
+    style.textContent = '#admira-native-demo{position:fixed;z-index:2147483200;left:14px;right:14px;bottom:14px;background:#10201c;color:#f1f5ef;border:1px solid #9bd6bc;border-radius:12px;padding:12px 16px;box-shadow:0 8px 40px #0008;font:14px/1.45 system-ui;max-height:40vh;overflow:auto}#admira-native-demo p,#admira-native-demo li{margin:3px 0}#admira-native-demo strong{color:#a4dfc3}#admira-native-demo button{background:#223c32;color:#fff;border:1px solid #759d88;border-radius:6px;padding:7px 12px;margin:3px 5px 0 0;font:inherit;cursor:pointer}#admira-native-demo button:disabled{opacity:.5}#admira-demo-resumen{margin:6px 0 8px;padding-left:1.2em}#admira-demo-resumen li[data-estado="bien"]{color:#9be4ba}#admira-demo-resumen li[data-estado="mal"]{color:#ffb4b4}#admira-demo-resumen li[data-estado="pendiente"]{color:#f0d48a}#admira-demo-pointer{position:fixed;z-index:2147483199;pointer-events:none;width:27px;height:34px;transition:left .55s ease,top .55s ease}.admira-demo-target{outline:3px solid #9be4ba!important;outline-offset:5px!important}';
+    D.head.appendChild(style);
+    panel = D.createElement('section');
+    panel.id = 'admira-native-demo';
+    panel.setAttribute('data-yk-no-traducir', '');
+    panel.setAttribute('role','region');
+    panel.setAttribute('aria-label', T('Demostración de la página','Page walkthrough'));
+    var titulos = {
+      proyectos: ['EN VIVO · PROYECTOS','LIVE · PROJECTS'],
+      idioma: ['EN VIVO · IDIOMA','LIVE · LANGUAGE'],
+      marcas: ['EN VIVO · MARCAS','LIVE · BRANDS'],
+      roadmap: ['EN VIVO · ROADMAP','LIVE · ROADMAP']
+    };
+    var title = D.createElement('strong');
+    title.textContent = T(titulos[id][0], titulos[id][1]);
+    statusEl = D.createElement('p'); statusEl.setAttribute('aria-live','polite');
+    resumen = D.createElement('ol'); resumen.id = 'admira-demo-resumen';
+    caption = D.createElement('p');
+    var bar = D.createElement('div');
+    function button(label, fn){ var b = D.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = fn; bar.appendChild(b); return b; }
+    pauseBtn = button(T('Pausar','Pause'), function(){ control(state.paused ? 'resume' : 'pause'); });
+    muteBtn = button(T('Silenciar demo','Mute demo'), function(){ control('mute'); });
+    button(T('Siguiente','Next'), function(){ control('next'); });
+    button(T('Devolver control','Return control'), function(){ control('stop'); });
+    panel.appendChild(title); panel.appendChild(statusEl); panel.appendChild(resumen); panel.appendChild(caption); panel.appendChild(bar);
+    pointer = D.createElement('div'); pointer.id = 'admira-demo-pointer'; pointer.setAttribute('aria-hidden','true'); pointer.hidden = true;
+    pointer.innerHTML = '<svg viewBox="0 0 27 34" xmlns="http://www.w3.org/2000/svg"><path d="M2 2v26l7-7 6 11 5-3-6-10h10Z" fill="#a8edc6" stroke="#10201c" stroke-width="2"/></svg>';
+    D.body.appendChild(pointer); D.body.appendChild(panel);
+    D.addEventListener('keydown', function(e){ if (e.key === 'Escape' && state.active) control('pause'); });
+    G.AdmiraDemoControl = {control:control, state:getState, steps:function(){ return plan.map(function(s){ return {id:s.id, action:'comprobar', text:T(s.es, s.en)}; }); }};
+    pintar();
+    void (async function correr(){
+      var fns = acciones[id];
+      for (var i = 0; i < fns.length; i++) {
+        await uno(i, fns[i]);
+        if (!state.active) return;
+      }
+      state.active = false; pintar();
     })();
   }
 })(window);

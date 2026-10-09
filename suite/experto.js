@@ -516,7 +516,17 @@
     // /demo <funcionalidad>: hoy (castellano) y today (pone la web en inglés). El resto de nombres
     // desconocidos sigue siendo de la pata. Los pasos viven en suite/demo-control.js.
     if (arg === 'hoy' || arg === 'today') return {funcion: 'hoy', lang: arg === 'today' ? 'en' : 'es'};
-    if (arg === 'idioma' || arg === 'language') return {idiomaDemo: true};
+    // /demo <página> (encargo #5446). El verbo inglés abre el mismo recorrido en inglés.
+    // /demo idioma, si ya hay una demo en curso, sigue cambiando el idioma sin perder el paso.
+    var FUNCION_PAGINA = {proyectos:'proyectos', projects:'proyectos', marcas:'marcas', brands:'marcas', roadmap:'roadmap'};
+    if (FUNCION_PAGINA[arg]) {
+      var langPagina = (arg === 'projects' || arg === 'brands' || (arg === 'roadmap' && lang() === 'en')) ? 'en' : 'es';
+      return {funcion: FUNCION_PAGINA[arg], lang: langPagina};
+    }
+    if (arg === 'idioma' || arg === 'language') {
+      if (demoEnCurso()) return {idiomaDemo: true};
+      return {funcion: 'idioma', lang: arg === 'language' ? 'en' : 'es'};
+    }
     if(arg==='global')return {global:true};
     if (L && /^(auto|todas|todos|all)$/.test(arg)) return {local: true, auto: true};
     if ((L || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo)) && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
@@ -543,7 +553,9 @@
       '\n' + T('/demo hoy recorre lo de hoy y resume bien, mal o pendiente. /demo today lo hace en inglés.',
         '/demo hoy walks through today and marks each step. /demo today does it in English.') +
       '\n' + T('/demo idioma abre la demo 1 y cambia de idioma sin perder el paso.',
-        '/demo idioma opens demo 1 and changes language without losing the step.');
+        '/demo idioma opens demo 1 and changes language without losing the step.') +
+      '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
+        '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.');
   }
   function localLista() {
     var L = localM();
@@ -554,7 +566,9 @@
       '\n' + T('/demo auto encadena todas; /demo pausa, reanudar, siguiente y stop controlan el ensayo.',
         '/demo auto runs all; /demo pause, resume, next and stop control the rehearsal.') +
       '\n' + T('/demo hoy recorre lo de hoy y resume bien, mal o pendiente. /demo today lo hace en inglés.',
-        '/demo hoy walks through today and marks each step. /demo today does it in English.');
+        '/demo hoy walks through today and marks each step. /demo today does it in English.') +
+      '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
+        '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.');
   }
   // Modo muestra (default_mode): panel con el resultado preparado y enlace a la página de la función.
   function abs(u) { try { return new URL(u, location.href).href; } catch (_) { return u; } }
@@ -719,8 +733,12 @@
   }
   // Devuelve {id, nombre, desc} de lo que se enseña (lo usa el avatar para presentarlo) o null.
   function funcionDemoUrl(id, l) {
-    var base = /(^|\.)admiranext\.com$/i.test(location.hostname) ? '/arquitectura' : 'https://www.admiranext.com/arquitectura';
-    var u; try { u = new URL(base, location.href); } catch (_) { u = new URL('https://www.admiranext.com/arquitectura'); }
+    var rutas = {hoy:'/arquitectura', proyectos:'/proyectos/', idioma:'/', marcas:'/marcablanca/', roadmap:'/roadmap'};
+    var path = rutas[id] || '/arquitectura';
+    var hostAhora = location.hostname || '';
+    var aqui = /(^|\.)admiranext\.com$/i.test(hostAhora) || /^(localhost|127\.0\.0\.1)$/i.test(hostAhora);
+    var base = aqui ? path : ('https://www.admiranext.com' + path);
+    var u; try { u = new URL(base, location.href); } catch (_) { u = new URL('https://www.admiranext.com' + path); }
     u.searchParams.set('lang', l === 'en' ? 'en' : 'es');
     u.searchParams.set('ax_demo', id || 'hoy');
     u.searchParams.set('ax_run', Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9));
@@ -778,7 +796,9 @@
     if (p.funcion) {
       applyLang(p.lang);
       var furl = funcionDemoUrl(p.funcion, p.lang);
-      out(log, p.lang === 'en' ? 'Demo today · the walkthrough runs in English.' : 'Demo hoy · el recorrido comprueba cada paso.');
+      var enNombre = {hoy:'today', proyectos:'projects', idioma:'language', marcas:'brands', roadmap:'roadmap'};
+      var etiqueta = p.lang === 'en' ? (enNombre[p.funcion] || p.funcion) : (p.funcion === 'hoy' ? 'hoy' : p.funcion);
+      out(log, p.lang === 'en' ? ('Demo ' + etiqueta + ' · the walkthrough runs in English.') : ('Demo ' + etiqueta + ' · el recorrido comprueba cada paso.'));
       out(log, (p.lang === 'en' ? 'Opening ' : 'Abriendo ') + furl);
       setTimeout(function () { location.assign(furl); }, 600);
       return {id: p.funcion, lang: p.lang, url: furl};
@@ -811,7 +831,7 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return demoRun(p, log);
   }
-  verb({name: 'demo', args: '[global|help|hoy|today|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: '[global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     demoRun(p, log);
@@ -1195,10 +1215,10 @@
 
   function bootNativeDemo() {
     var id; try { id = new URLSearchParams(location.search).get('ax_demo'); } catch (_) { return; }
-    if (!/^(studio|store|tv|biz|app|hoy)$/.test(id || '') || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
+    if (!/^(studio|store|tv|biz|app|hoy|proyectos|idioma|marcas|roadmap)$/.test(id || '') || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
     var loader = document.createElement('script');
     var base;try { base = new URL(script.src || 'https://www.admiranext.com/suite/experto.js'); } catch (_) { base = new URL('https://www.admiranext.com/suite/experto.js'); }
-    loader.src = new URL('/suite/demo-control.js?v=20261009-idioma-demo-1',base.origin).href;
+    loader.src = new URL('/suite/demo-control.js?v=20261009-demo-5446',base.origin).href;
     loader.setAttribute('data-admira-native-control','');
     loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
     document.head.appendChild(loader);
