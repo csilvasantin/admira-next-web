@@ -1,0 +1,1191 @@
+{
+ "nombre": "Organigrama tecnológico de AdmiraNeXT",
+ "actualizado": "2026-10-09",
+ "metodo": "Análisis del código (git log desde 2026-10-06) y de los endpoints vivos; solo se dibujan relaciones con evidencia; las dudosas van marcadas.",
+ "nodos": [
+  {
+   "id": "admiranext",
+   "tipo": "hub",
+   "x": 500,
+   "y": 320,
+   "dominio": "admiranext.com",
+   "alias": [],
+   "consejero": "Steve Jobs",
+   "repo": "csilvasantin/admira-next-web",
+   "despliegue": "GitHub Action → Cloudflare Pages «admiranext»",
+   "version_url": "https://www.admiranext.com/version.json",
+   "url": "https://www.admiranext.com/",
+   "es": {
+    "nombre": "ADmiraNeXT · el hub",
+    "rol": "La mesa que une las cinco patas: define los clientes (globales) y qué patas ve cada uno, publica el marco común y las demos.",
+    "modulos": [
+     "Portada-terminal",
+     "Proyectos",
+     "Agentes (flota)",
+     "Organigrama",
+     "RoadMap",
+     "Presentaciones",
+     "Hub MCP",
+     "Demo global",
+     "Marca blanca"
+    ],
+    "expone": [
+     "/api/clientes (censo canónico de clientes y patas)",
+     "/api/proyectos · /api/roadmap · /api/sello",
+     "/mcp (generador de presentaciones)",
+     "Scripts comunes: avatar.js, sello-novedades.js, live-presence.js",
+     "/marcablanca/* (tokens, logos y fuentes)"
+    ],
+    "consume": [
+     "api.yokup.com/projects (números de proyecto)",
+     "Stock de Pixeria (binding PIXERIA_STOCK → pixer-eleven)",
+     "admira-whitelist (lista de acceso del login)",
+     "Cloudflare D1, R2 y KV propios"
+    ],
+    "cambios": [
+     "Demo global Sneakers Store compartida (8-oct)",
+     "Recorridos nativos en vivo por las cinco patas (7-oct)",
+     "Vídeos con audio para las quince demos de retail (7-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "ADmiraNeXT · the hub",
+    "rol": "The table that joins the five legs: defines the (global) clients and which legs each one sees, publishes the common frame and the demos.",
+    "modulos": [
+     "Terminal home page",
+     "Projects",
+     "Agents (fleet)",
+     "Org chart",
+     "RoadMap",
+     "Presentations",
+     "MCP hub",
+     "Global demo",
+     "White label"
+    ],
+    "expone": [
+     "/api/clientes (canonical census of clients and legs)",
+     "/api/proyectos · /api/roadmap · /api/sello",
+     "/mcp (presentation generator)",
+     "Shared scripts: avatar.js, sello-novedades.js, live-presence.js",
+     "/marcablanca/* (tokens, logos and fonts)"
+    ],
+    "consume": [
+     "api.yokup.com/projects (project numbers)",
+     "Pixeria Stock (PIXERIA_STOCK binding → pixer-eleven)",
+     "admira-whitelist (login access list)",
+     "Its own Cloudflare D1, R2 and KV"
+    ],
+    "cambios": [
+     "Shared Sneakers Store global demo (8 Oct)",
+     "Live native walkthroughs across the five legs (7 Oct)",
+     "Audible videos for the fifteen retail demos (7 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "studio",
+   "tipo": "pata",
+   "x": 190,
+   "y": 195,
+   "dominio": "admira.studio",
+   "alias": [
+    "pixeria.com"
+   ],
+   "consejero": "George Lucas",
+   "repo": "csilvasantin/pixeria → espejo csilvasantin/admira-studio",
+   "despliegue": "deploy.sh (wrangler) → Cloudflare Pages",
+   "version_url": "https://admira.studio/version.json",
+   "url": "https://www.admira.studio/",
+   "es": {
+    "nombre": "admira.studio = Pixeria",
+    "rol": "Creación y adaptación de contenidos: crea piezas, las adapta a cada formato de pantalla y las guarda en el Stock.",
+    "modulos": [
+     "Adaptador",
+     "Stock",
+     "Crear campaña",
+     "Ideas",
+     "Imágenes",
+     "Audio e hilo musical",
+     "Avatar",
+     "Gemelo por formato",
+     "Calendario"
+    ],
+    "expone": [
+     "/stock-upload/* y /stock-publish (subida al Stock)",
+     "MCP mcp-pixeria.admira.store (worker pixeria-mcp)"
+    ],
+    "consume": [
+     "api.admira.store (Stock, imagen, voz, vídeo IA)",
+     "admiranext.com/api/clientes (vista por cliente)",
+     "api.yokup.com/projects (lista de proyectos)",
+     "admira.tv/api/playlist (programa players, con clave)"
+    ],
+    "cambios": [
+     "Subida al Stock por partes para MP4 de más de 8 MB (9-oct)",
+     "«Programar players» en modo real (8-oct)",
+     "Vista por cliente desde la identidad central (7-oct)",
+     "Studio Altadis IA y aplicaciones en estancos (7-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "admira.studio = Pixeria",
+    "rol": "Content creation and adaptation: creates pieces, adapts them to every screen format and stores them in the Stock.",
+    "modulos": [
+     "Adapter",
+     "Stock",
+     "Create campaign",
+     "Ideas",
+     "Images",
+     "Audio and music thread",
+     "Avatar",
+     "Twin by format",
+     "Calendar"
+    ],
+    "expone": [
+     "/stock-upload/* and /stock-publish (upload to the Stock)",
+     "MCP mcp-pixeria.admira.store (pixeria-mcp worker)"
+    ],
+    "consume": [
+     "api.admira.store (Stock, image, voice, AI video)",
+     "admiranext.com/api/clientes (per-client view)",
+     "api.yokup.com/projects (project list)",
+     "admira.tv/api/playlist (schedules players, with a key)"
+    ],
+    "cambios": [
+     "Multipart upload to the Stock for MP4 over 8 MB (9 Oct)",
+     "“Schedule players” in real mode (8 Oct)",
+     "Per-client view from the central identity (7 Oct)",
+     "Studio Altadis AI and tobacconist applications (7 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "store",
+   "tipo": "pata",
+   "x": 810,
+   "y": 195,
+   "dominio": "admira.store",
+   "alias": [
+    "xpaceos.com"
+   ],
+   "consejero": "Jensen Huang",
+   "repo": "csilvasantin/xpaceos → espejo csilvasantin/admira-store",
+   "despliegue": "GitHub Action → Cloudflare Pages «admira-store» (xpaceos.com en GitHub Pages)",
+   "version_url": "https://www.admira.store/version.json",
+   "url": "https://www.admira.store/",
+   "es": {
+    "nombre": "admira.store = XpaceOS",
+    "rol": "Distribución, gestión y visualización: el gemelo digital de la tienda, sus pantallas, inventario y playlists.",
+    "modulos": [
+     "Gemelo digital (Xpacios, Hiperreal)",
+     "SneakerStore",
+     "Inventario",
+     "Control",
+     "Backoffice",
+     "CPM",
+     "Leads",
+     "Ayuda y CLI"
+    ],
+    "expone": [
+     "MCP mcp.admira.store (worker xpaceos-mcp, D1 xpaceos-matrix)",
+     "Mapa de la galaxia MCP (/mcp/galaxia.json)"
+    ],
+    "consume": [
+     "api.admira.store (pantallas, parrilla, signage/now, Stock)",
+     "xpl.admira.store (playlists)",
+     "admiranext.com/api/clientes",
+     "api.yokup.com (proyectos)",
+     "mcp.admira.live (coordinación)"
+    ],
+    "cambios": [
+     "Neo: muffin 3D hiperreal y «Cojo una taza» (9-oct)",
+     "Contrato SneakerStore publicado para el espejo (8-oct)",
+     "Portada abre el gemelo en Hiperreal (8-oct)",
+     "Gente ON por defecto (8-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "admira.store = XpaceOS",
+    "rol": "Distribution, management and visualisation: the store digital twin, its screens, inventory and playlists.",
+    "modulos": [
+     "Digital twin (Xpaces, Hyperreal)",
+     "SneakerStore",
+     "Inventory",
+     "Control",
+     "Back office",
+     "CPM",
+     "Leads",
+     "Help and CLI"
+    ],
+    "expone": [
+     "MCP mcp.admira.store (xpaceos-mcp worker, D1 xpaceos-matrix)",
+     "MCP galaxy map (/mcp/galaxia.json)"
+    ],
+    "consume": [
+     "api.admira.store (screens, grid, signage/now, Stock)",
+     "xpl.admira.store (playlists)",
+     "admiranext.com/api/clientes",
+     "api.yokup.com (projects)",
+     "mcp.admira.live (coordination)"
+    ],
+    "cambios": [
+     "Neo: hyperreal 3D muffin and “I take a cup” (9 Oct)",
+     "SneakerStore contract published for the mirror (8 Oct)",
+     "Home opens the twin in Hyperreal (8 Oct)",
+     "People ON by default (8 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "tv",
+   "tipo": "pata",
+   "x": 890,
+   "y": 390,
+   "dominio": "admira.tv",
+   "alias": [],
+   "consejero": "Elon Musk",
+   "repo": "csilvasantin/admira-tv",
+   "despliegue": "deploy.sh (wrangler) → Cloudflare Pages",
+   "version_url": "https://admira.tv/version.json",
+   "url": "https://admira.tv/",
+   "es": {
+    "nombre": "admira.tv",
+    "rol": "Reproducción, emisión y proof of play: decide qué suena en cada pantalla y deja constancia de lo emitido.",
+    "modulos": [
+     "Canal (player web)",
+     "Programación (modelo único de playlists)",
+     "Emisión y proof of play",
+     "Audiencia",
+     "Players virtuales",
+     "Player Android (APK)",
+     "Mando"
+    ],
+    "expone": [
+     "/api/playlist · /api/playout · /api/emision · /api/programacion · /api/virtual-players",
+     "MCP mcp-tv.admira.store (worker admira-tv-mcp)",
+     "/player/admira-player.apk"
+    ],
+    "consume": [
+     "api.admira.store (signage/now, Stock)",
+     "stock.admira.store (medios)",
+     "fleet.yokup.com",
+     "Scripts comunes de admiranext.com"
+    ],
+    "cambios": [
+     "Modelo único: D1 admira-programacion conectada (9-oct)",
+     "Importador del legado de playlists E5 (8-oct)",
+     "Demos Xtore con el armazón cuadrático (8-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "admira.tv",
+    "rol": "Playback, broadcast and proof of play: decides what plays on each screen and records what was aired.",
+    "modulos": [
+     "Channel (web player)",
+     "Scheduling (single playlist model)",
+     "Broadcast and proof of play",
+     "Audience",
+     "Virtual players",
+     "Android player (APK)",
+     "Remote"
+    ],
+    "expone": [
+     "/api/playlist · /api/playout · /api/emision · /api/programacion · /api/virtual-players",
+     "MCP mcp-tv.admira.store (admira-tv-mcp worker)",
+     "/player/admira-player.apk"
+    ],
+    "consume": [
+     "api.admira.store (signage/now, Stock)",
+     "stock.admira.store (media)",
+     "fleet.yokup.com",
+     "Shared admiranext.com scripts"
+    ],
+    "cambios": [
+     "Single model: D1 admira-programacion connected (9 Oct)",
+     "Legacy playlist importer E5 (8 Oct)",
+     "Xtore demos with the quadratic frame (8 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "biz",
+   "tipo": "pata",
+   "x": 730,
+   "y": 610,
+   "dominio": "admira.biz",
+   "alias": [
+    "clearchannel.tv"
+   ],
+   "consejero": "Walt Disney",
+   "repo": "csilvasantin/clearchannel-tv",
+   "despliegue": "deploy.sh (wrangler) → Cloudflare Pages «clearchannel-tv»",
+   "version_url": "https://admira.biz/version.json",
+   "url": "https://admira.biz/",
+   "es": {
+    "nombre": "admira.biz = ClearChannel.tv",
+    "rol": "Nuevos ingresos con DooH y Retail Media: mapa de espacios comerciales, circuitos y pedidos de campaña.",
+    "modulos": [
+     "Mapa de espacios comerciales",
+     "Circuitos DooH",
+     "Pedidos (D1 clearchannel-orders)",
+     "Demo global Sneakers Store",
+     "Tutorial de tienda real"
+    ],
+    "expone": [
+     "admira.biz/mcp (servido por el worker yokup-site-gate)",
+     "api.admira.biz → worker yokup-rtc"
+    ],
+    "consume": [
+     "api.admira.store y xpl.admira.store (pantallas y playlists)",
+     "admira.tv/api/playlist (demos)",
+     "admiranext.com/api/clientes y /api/demo",
+     "data.yokup.com (ITIL)"
+    ],
+    "cambios": [
+     "Demo global Sneakers Store con playlist compartida (8-oct)",
+     "Playlists por formato y validación Pixeria (8-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "admira.biz = ClearChannel.tv",
+    "rol": "New revenue with DooH and Retail Media: map of commercial spaces, circuits and campaign orders.",
+    "modulos": [
+     "Map of commercial spaces",
+     "DooH circuits",
+     "Orders (D1 clearchannel-orders)",
+     "Sneakers Store global demo",
+     "Real store tutorial"
+    ],
+    "expone": [
+     "admira.biz/mcp (served by the yokup-site-gate worker)",
+     "api.admira.biz → yokup-rtc worker"
+    ],
+    "consume": [
+     "api.admira.store and xpl.admira.store (screens and playlists)",
+     "admira.tv/api/playlist (demos)",
+     "admiranext.com/api/clientes and /api/demo",
+     "data.yokup.com (ITIL)"
+    ],
+    "cambios": [
+     "Sneakers Store global demo with shared playlist (8 Oct)",
+     "Playlists by format and Pixeria validation (8 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "app",
+   "tipo": "pata",
+   "x": 270,
+   "y": 610,
+   "dominio": "admira.app",
+   "alias": [
+    "yokup.com"
+   ],
+   "consejero": "Steve Wozniak",
+   "repo": "csilvasantin/tool (yokup-site, api, yokup-rtc)",
+   "despliegue": "wrangler (Pages + Workers) desde los Mac de la flota",
+   "version_url": "https://admira.app/version.json",
+   "url": "https://admira.app/",
+   "es": {
+    "nombre": "admira.app = Yokup",
+    "rol": "Instalaciones, mantenimiento y gestión: incidencias, instaladores, comercios y misiones con trazabilidad ITIL.",
+    "modulos": [
+     "Mi comercio (/retailer)",
+     "Instalador",
+     "Incidencias ITIL",
+     "Equipo y misiones",
+     "Informe de misión PDF"
+    ],
+    "expone": [
+     "api.yokup.com = api.admira.app (worker yokup-rtc: helpdesk, tiempo real, /projects)",
+     "data.yokup.com = data.admira.app (worker yokup-api, D1 yokup-db)",
+     "yokup.com/mcp (worker yokup-site-gate)"
+    ],
+    "consume": [
+     "bot.yokup.com (Telegram, por service binding)",
+     "admira-fleet y admira-navegadores (bindings)",
+     "live-presence.js de admiranext.com"
+    ],
+    "cambios": [
+     "Informe de misión PDF por correo y Telegram (7-oct)",
+     "Cerrar incidencias desde Mi comercio (7-oct)",
+     "«Continuar con Google» sin origin_mismatch (6-oct)",
+     "Superusuario «Abrir como» (6-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "admira.app = Yokup",
+    "rol": "Installation, maintenance and management: incidents, installers, retailers and missions with ITIL traceability.",
+    "modulos": [
+     "My store (/retailer)",
+     "Installer",
+     "ITIL incidents",
+     "Team and missions",
+     "Mission report PDF"
+    ],
+    "expone": [
+     "api.yokup.com = api.admira.app (yokup-rtc worker: helpdesk, realtime, /projects)",
+     "data.yokup.com = data.admira.app (yokup-api worker, D1 yokup-db)",
+     "yokup.com/mcp (yokup-site-gate worker)"
+    ],
+    "consume": [
+     "bot.yokup.com (Telegram, via service binding)",
+     "admira-fleet and admira-navegadores (bindings)",
+     "live-presence.js from admiranext.com"
+    ],
+    "cambios": [
+     "Mission report PDF by email and Telegram (7 Oct)",
+     "Close incidents from My store (7 Oct)",
+     "“Continue with Google” without origin_mismatch (6 Oct)",
+     "Superuser “Open as” (6 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "live",
+   "tipo": "control",
+   "x": 500,
+   "y": 60,
+   "dominio": "admira.live",
+   "alias": [],
+   "consejero": "Consejo (todos)",
+   "repo": "csilvasantin/32.-ConsejoAdmiraNextGame (+ mcp/server)",
+   "despliegue": "deploy.sh → Cloudflare Pages «admira-live»; MCP con wrangler",
+   "version_url": "https://www.admira.live/version.json",
+   "url": "https://www.admira.live/",
+   "es": {
+    "nombre": "admira.live · control",
+    "rol": "La capa de control: el Consejo en vivo, la flota de agentes, sus encargos, consumos y el MCP de coordinación.",
+    "modulos": [
+     "Consejo",
+     "Control",
+     "Fleet",
+     "Vista previa",
+     "Players",
+     "Telegram",
+     "Hackeo",
+     "Consumos",
+     "Highscore"
+    ],
+    "expone": [
+     "MCP mcp.admira.live (worker admira-live-mcp)",
+     "api.admira.live → worker yokup-rtc"
+    ],
+    "consume": [
+     "bot.yokup.com (presencia, encargos y Telegram)",
+     "api.yokup.com/projects",
+     "api.admira.store",
+     "Enlaces a todas las patas"
+    ],
+    "cambios": [
+     "Consumos: lecturas del plan a las 00:00 y 12:00 (9-oct)",
+     "Hackeo: pausa real, ×1000 y código real de los proyectos (7-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "admira.live · control",
+    "rol": "The control layer: the live Council, the agent fleet, their assignments, consumption and the coordination MCP.",
+    "modulos": [
+     "Council",
+     "Control",
+     "Fleet",
+     "Preview",
+     "Players",
+     "Telegram",
+     "Hacking",
+     "Consumption",
+     "Highscore"
+    ],
+    "expone": [
+     "MCP mcp.admira.live (admira-live-mcp worker)",
+     "api.admira.live → yokup-rtc worker"
+    ],
+    "consume": [
+     "bot.yokup.com (presence, assignments and Telegram)",
+     "api.yokup.com/projects",
+     "api.admira.store",
+     "Links to every leg"
+    ],
+    "cambios": [
+     "Consumption: plan readings at 00:00 and 12:00 (9 Oct)",
+     "Hacking: real pause, ×1000 and the projects’ real code (7 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "pixer",
+   "tipo": "servicio",
+   "x": 105,
+   "y": 390,
+   "dominio": "api.admira.store",
+   "alias": [],
+   "consejero": "—",
+   "repo": "csilvasantin/pixer-worker",
+   "despliegue": "wrangler → worker «pixer-eleven»",
+   "version_url": "https://api.admira.store/healthz",
+   "url": "https://api.admira.store/healthz",
+   "es": {
+    "nombre": "API de medios y Stock",
+    "rol": "El motor compartido de medios: Stock (R2 pixer-stock), imagen, voz, vídeo IA y estado de pantallas.",
+    "modulos": [],
+    "expone": [
+     "/stock/* · /imagen · /tts · /xai/* · /signage/* · /grid/*"
+    ],
+    "consume": [
+     "xAI, ElevenLabs, Gemini (claves en secretos de Cloudflare)",
+     "Telegram (avisos)"
+    ],
+    "cambios": [
+     "Subida por partes con verificación de tamaño (9-oct)"
+    ]
+   },
+   "en": {
+    "nombre": "Media and Stock API",
+    "rol": "The shared media engine: Stock (R2 pixer-stock), image, voice, AI video and screen status.",
+    "modulos": [],
+    "expone": [
+     "/stock/* · /imagen · /tts · /xai/* · /signage/* · /grid/*"
+    ],
+    "consume": [
+     "xAI, ElevenLabs, Gemini (keys in Cloudflare secrets)",
+     "Telegram (alerts)"
+    ],
+    "cambios": [
+     "Multipart upload with size check (9 Oct)"
+    ]
+   }
+  },
+  {
+   "id": "yokup",
+   "tipo": "servicio",
+   "x": 150,
+   "y": 735,
+   "dominio": "api.yokup.com",
+   "alias": [],
+   "consejero": "—",
+   "repo": "csilvasantin/tool (api, yokup-rtc)",
+   "despliegue": "wrangler → workers yokup-rtc y yokup-api",
+   "version_url": "",
+   "url": "https://api.yokup.com/projects",
+   "es": {
+    "nombre": "Yokup: proyectos e ITIL",
+    "rol": "El censo de proyectos (número de proyecto) y las incidencias/misiones que usan todas las patas.",
+    "modulos": [],
+    "expone": [
+     "GET /projects (público)",
+     "POST /projects/principal",
+     "/api/itil/*"
+    ],
+    "consume": [
+     "D1 yokup-db y yokup-tickets",
+     "Email Routing de admira.live"
+    ],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "Yokup: projects and ITIL",
+    "rol": "The project census (project number) and the incidents/missions every leg uses.",
+    "modulos": [],
+    "expone": [
+     "GET /projects (public)",
+     "POST /projects/principal",
+     "/api/itil/*"
+    ],
+    "consume": [
+     "D1 yokup-db and yokup-tickets",
+     "admira.live Email Routing"
+    ],
+    "cambios": []
+   }
+  },
+  {
+   "id": "clientes",
+   "tipo": "servicio",
+   "x": 500,
+   "y": 490,
+   "dominio": "admiranext.com/api/clientes",
+   "alias": [],
+   "consejero": "—",
+   "repo": "csilvasantin/admira-next-web",
+   "despliegue": "Function de Cloudflare Pages",
+   "version_url": "",
+   "url": "https://www.admiranext.com/api/clientes",
+   "es": {
+    "nombre": "Censo de clientes",
+    "rol": "Lista canónica de clientes y qué patas puede usar cada uno (Admira, Starbucks, Altadis, JTI son globales).",
+    "modulos": [],
+    "expone": [
+     "GET /api/clientes (CORS abierto)"
+    ],
+    "consume": [
+     "D1 del hub"
+    ],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "Client census",
+    "rol": "Canonical list of clients and which legs each can use (Admira, Starbucks, Altadis, JTI are global).",
+    "modulos": [],
+    "expone": [
+     "GET /api/clientes (open CORS)"
+    ],
+    "consume": [
+     "Hub D1"
+    ],
+    "cambios": []
+   }
+  },
+  {
+   "id": "telegram",
+   "tipo": "servicio",
+   "x": 400,
+   "y": 735,
+   "dominio": "bot.yokup.com",
+   "alias": [],
+   "consejero": "—",
+   "repo": "csilvasantin/admira-telegram",
+   "despliegue": "wrangler → worker admira-telegram",
+   "version_url": "",
+   "url": "https://www.admiranext.com/telegram/",
+   "es": {
+    "nombre": "Telegram y encargos",
+    "rol": "Bot de Telegram, presencia de los agentes y bandeja de encargos.",
+    "modulos": [],
+    "expone": [
+     "/api/presence · bandeja de encargos"
+    ],
+    "consume": [
+     "API de Telegram"
+    ],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "Telegram and assignments",
+    "rol": "Telegram bot, agent presence and the assignments inbox.",
+    "modulos": [],
+    "expone": [
+     "/api/presence · assignments inbox"
+    ],
+    "consume": [
+     "Telegram API"
+    ],
+    "cambios": []
+   }
+  },
+  {
+   "id": "mcp",
+   "tipo": "servicio",
+   "x": 850,
+   "y": 60,
+   "dominio": "mcp.*",
+   "alias": [],
+   "consejero": "—",
+   "repo": "varios",
+   "despliegue": "workers MCP en Cloudflare",
+   "version_url": "https://mcp.admira.live/",
+   "url": "https://www.admiranext.com/mcp/",
+   "es": {
+    "nombre": "Galaxia MCP",
+    "rol": "Las puertas para agentes de IA: una por pata y una de coordinación.",
+    "modulos": [],
+    "expone": [
+     "mcp.admira.live · mcp.admira.store · mcp-pixeria.admira.store · mcp-tv.admira.store · yokup.com/mcp · admiranext.com/mcp"
+    ],
+    "consume": [
+     "Clave de flota para escribir"
+    ],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "MCP galaxy",
+    "rol": "The doors for AI agents: one per leg and one for coordination.",
+    "modulos": [],
+    "expone": [
+     "mcp.admira.live · mcp.admira.store · mcp-pixeria.admira.store · mcp-tv.admira.store · yokup.com/mcp · admiranext.com/mcp"
+    ],
+    "consume": [
+     "Fleet key to write"
+    ],
+    "cambios": []
+   }
+  },
+  {
+   "id": "players",
+   "tipo": "dispositivo",
+   "x": 870,
+   "y": 735,
+   "dominio": "players",
+   "alias": [],
+   "consejero": "—",
+   "repo": "csilvasantin/admira-player · admira-signage-app · admiranext-player-ios",
+   "despliegue": "APK servido desde admira.tv",
+   "version_url": "",
+   "url": "https://admira.tv/",
+   "es": {
+    "nombre": "Players y pantallas",
+    "rol": "Los dispositivos que reproducen: player Android, iOS, web y players virtuales.",
+    "modulos": [],
+    "expone": [],
+    "consume": [
+     "admira.tv (playlist y emisión)",
+     "api.admira.store (signage)"
+    ],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "Players and screens",
+    "rol": "The playback devices: Android, iOS and web players and virtual players.",
+    "modulos": [],
+    "expone": [],
+    "consume": [
+     "admira.tv (playlist and broadcast)",
+     "api.admira.store (signage)"
+    ],
+    "cambios": []
+   }
+  },
+  {
+   "id": "acceso",
+   "tipo": "servicio",
+   "x": 105,
+   "y": 520,
+   "dominio": "whitelist",
+   "alias": [],
+   "consejero": "—",
+   "repo": "csilvasantin/admira-whitelist",
+   "despliegue": "wrangler → worker admira-whitelist",
+   "version_url": "",
+   "url": "",
+   "es": {
+    "nombre": "Acceso (Google + lista blanca)",
+    "rol": "Cada web tiene su puerta con Google; la lista de quién entra vive en el worker admira-whitelist.",
+    "modulos": [],
+    "expone": [
+     "Lista de correos autorizados"
+    ],
+    "consume": [
+     "Google (FedCM/OAuth)"
+    ],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "Access (Google + allow list)",
+    "rol": "Each site has its own Google gate; the list of who gets in lives in the admira-whitelist worker.",
+    "modulos": [],
+    "expone": [
+     "List of authorised emails"
+    ],
+    "consume": [
+     "Google (FedCM/OAuth)"
+    ],
+    "cambios": []
+   }
+  },
+  {
+   "id": "cloudflare",
+   "tipo": "infra",
+   "x": 0,
+   "y": 0,
+   "dominio": "Cloudflare",
+   "alias": [],
+   "consejero": "—",
+   "repo": "—",
+   "despliegue": "—",
+   "version_url": "",
+   "url": "",
+   "es": {
+    "nombre": "Cloudflare",
+    "rol": "Donde vive todo: Pages (las webs), 48 Workers (APIs y MCP), D1, R2, KV, Durable Objects y Email Routing.",
+    "modulos": [],
+    "expone": [],
+    "consume": [],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "Cloudflare",
+    "rol": "Where everything lives: Pages (the websites), 48 Workers (APIs and MCP), D1, R2, KV, Durable Objects and Email Routing.",
+    "modulos": [],
+    "expone": [],
+    "consume": [],
+    "cambios": []
+   }
+  },
+  {
+   "id": "github",
+   "tipo": "infra",
+   "x": 0,
+   "y": 0,
+   "dominio": "GitHub · csilvasantin",
+   "alias": [],
+   "consejero": "—",
+   "repo": "—",
+   "despliegue": "—",
+   "version_url": "",
+   "url": "https://github.com/csilvasantin",
+   "es": {
+    "nombre": "GitHub",
+    "rol": "El código de todo: un repo por web y por worker; Actions despliega admiranext.com y admira.store y copia cada día XpaceOS en admira.store.",
+    "modulos": [],
+    "expone": [],
+    "consume": [],
+    "cambios": []
+   },
+   "en": {
+    "nombre": "GitHub",
+    "rol": "The code of everything: one repo per site and per worker; Actions deploys admiranext.com and admira.store and copies XpaceOS into admira.store daily.",
+    "modulos": [],
+    "expone": [],
+    "consume": [],
+    "cambios": []
+   }
+  }
+ ],
+ "aristas": [
+  {
+   "de": "studio",
+   "a": "clientes",
+   "es": "lee clientes",
+   "en": "reads clients",
+   "evidencia": "admira-studio/assets/cliente-activo.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "store",
+   "a": "clientes",
+   "es": "lee clientes",
+   "en": "reads clients",
+   "evidencia": "xpaceos/assets/xpace-cliente.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "biz",
+   "a": "clientes",
+   "es": "lee clientes",
+   "en": "reads clients",
+   "evidencia": "clearchannel-tv/cliente-segmento.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "admiranext",
+   "a": "clientes",
+   "es": "publica el censo",
+   "en": "publishes the census",
+   "evidencia": "functions/api/clientes.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "admiranext",
+   "a": "yokup",
+   "es": "lee proyectos",
+   "en": "reads projects",
+   "evidencia": "functions/api/proyectos.js, functions/_project-access.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "studio",
+   "a": "yokup",
+   "es": "lee proyectos",
+   "en": "reads projects",
+   "evidencia": "admira-studio/adaptaciones/proyectos-core.mjs",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "live",
+   "a": "yokup",
+   "es": "marca el proyecto principal",
+   "en": "sets the main project",
+   "evidencia": "32.-ConsejoAdmiraNextGame/yk-frame.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "app",
+   "a": "yokup",
+   "es": "es su web (mismo repo)",
+   "en": "is its website (same repo)",
+   "evidencia": "csilvasantin/tool: yokup-site + api + yokup-rtc",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "biz",
+   "a": "yokup",
+   "es": "ITIL de los Xpacios",
+   "en": "Xpace ITIL",
+   "evidencia": "clearchannel-tv/tools/crear-demo (data.yokup.com/api/itil)",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "studio",
+   "a": "pixer",
+   "es": "Stock, imagen, voz, IA",
+   "en": "Stock, image, voice, AI",
+   "evidencia": "~250 llamadas a api.admira.store en pixeria/admira-studio",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "store",
+   "a": "pixer",
+   "es": "pantallas, parrilla, Stock",
+   "en": "screens, grid, Stock",
+   "evidencia": "~230 llamadas a api.admira.store en xpaceos",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "tv",
+   "a": "pixer",
+   "es": "signage/now, medios",
+   "en": "signage/now, media",
+   "evidencia": "admira-tv: ~250 llamadas a api.admira.store",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "biz",
+   "a": "pixer",
+   "es": "pantallas y medios",
+   "en": "screens and media",
+   "evidencia": "clearchannel-tv: ~120 llamadas a api.admira.store",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "admiranext",
+   "a": "pixer",
+   "es": "vídeos al Stock",
+   "en": "videos to the Stock",
+   "evidencia": "wrangler.jsonc: binding PIXERIA_STOCK → pixer-eleven",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "studio",
+   "a": "tv",
+   "es": "programa players",
+   "en": "schedules players",
+   "evidencia": "admira-studio/functions/players-programar.js (POST admira.tv/api/playlist con clave)",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "biz",
+   "a": "tv",
+   "es": "playlist de demos",
+   "en": "demo playlist",
+   "evidencia": "clearchannel-tv/tools/crear-demo/demo_completa.py",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "biz",
+   "a": "store",
+   "es": "playlists (xpl)",
+   "en": "playlists (xpl)",
+   "evidencia": "clearchannel-tv: xpl.admira.store/playlists",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "tv",
+   "a": "players",
+   "es": "emite a los players",
+   "en": "broadcasts to players",
+   "evidencia": "admira-tv/functions/api/playlist.js, /player/admira-player.apk",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "live",
+   "a": "telegram",
+   "es": "presencia y encargos",
+   "en": "presence and assignments",
+   "evidencia": "32.-ConsejoAdmiraNextGame/mcp/server/src/flota.js, telegram.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "app",
+   "a": "telegram",
+   "es": "avisos (binding)",
+   "en": "alerts (binding)",
+   "evidencia": "tool/yokup-rtc/wrangler.toml: TELEGRAM → admira-telegram",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "pixer",
+   "a": "telegram",
+   "es": "avisos directos a la API de Telegram",
+   "en": "direct alerts to the Telegram API",
+   "evidencia": "pixer-worker: api.telegram.org",
+   "seguro": false,
+   "tipo": "datos"
+  },
+  {
+   "de": "live",
+   "a": "mcp",
+   "es": "coordina la galaxia",
+   "en": "coordinates the galaxy",
+   "evidencia": "xpaceos/mcp/galaxia.json: coordination_endpoint mcp.admira.live",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "store",
+   "a": "mcp",
+   "es": "MCP de operación",
+   "en": "operations MCP",
+   "evidencia": "xpaceos-mcp: mcp.admira.store",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "studio",
+   "a": "mcp",
+   "es": "MCP de creación",
+   "en": "creation MCP",
+   "evidencia": "pixeria-mcp: mcp-pixeria.admira.store",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "tv",
+   "a": "mcp",
+   "es": "MCP de emisión",
+   "en": "broadcast MCP",
+   "evidencia": "admira-tv-mcp: mcp-tv.admira.store",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "admiranext",
+   "a": "mcp",
+   "es": "hub MCP y generador",
+   "en": "MCP hub and generator",
+   "evidencia": "admira-next-web/mcp/manifest.json",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "admiranext",
+   "a": "acceso",
+   "es": "login con lista blanca",
+   "en": "login with allow list",
+   "evidencia": "admira-next-web/auth-gate.js → admira-whitelist",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "live",
+   "a": "acceso",
+   "es": "lista blanca (probable)",
+   "en": "allow list (probable)",
+   "evidencia": "referencias a whitelist.admira.store en admira.live",
+   "seguro": false,
+   "tipo": "datos"
+  },
+  {
+   "de": "studio",
+   "a": "acceso",
+   "es": "lista blanca (probable)",
+   "en": "allow list (probable)",
+   "evidencia": "referencias a whitelist.admira.store en pixeria",
+   "seguro": false,
+   "tipo": "datos"
+  },
+  {
+   "de": "studio",
+   "a": "admiranext",
+   "es": "scripts comunes (avatar, sello)",
+   "en": "shared scripts (avatar, seal)",
+   "evidencia": "admiranext.com/assets/avatar.js y sello-novedades.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "store",
+   "a": "admiranext",
+   "es": "scripts comunes (avatar, sello)",
+   "en": "shared scripts (avatar, seal)",
+   "evidencia": "admiranext.com/assets/avatar.js en xpaceos",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "tv",
+   "a": "admiranext",
+   "es": "armazón y sello",
+   "en": "frame and seal",
+   "evidencia": "admira-tv/admira-frame.js (copia) + sello-novedades.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "biz",
+   "a": "admiranext",
+   "es": "sello, presencia, demo",
+   "en": "seal, presence, demo",
+   "evidencia": "clearchannel-tv: sello-novedades.js, live-presence.js, /api/demo",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "app",
+   "a": "admiranext",
+   "es": "presencia en vivo",
+   "en": "live presence",
+   "evidencia": "tool/yokup-site/functions/_middleware.js inyecta live-presence.js",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "live",
+   "a": "admiranext",
+   "es": "enlaza y comparte marco",
+   "en": "links and shares frame",
+   "evidencia": "admira.live HTML: enlaces a admiranext.com",
+   "seguro": true,
+   "tipo": "datos"
+  },
+  {
+   "de": "studio",
+   "a": "store",
+   "es": "enlaces y gemelo",
+   "en": "links and twin",
+   "evidencia": "~110 referencias a xpaceos.com en pixeria",
+   "seguro": false,
+   "tipo": "datos"
+  }
+ ],
+ "dudas": [
+  {
+   "es": "stock.admira.store: sirve los medios del Stock, pero no hemos encontrado en el código qué worker lo atiende (el bucket R2 pixer-stock es de pixer-eleven).",
+   "en": "stock.admira.store: it serves the Stock media, but the code does not show which worker answers it (the R2 bucket pixer-stock belongs to pixer-eleven)."
+  },
+  {
+   "es": "La lista blanca (whitelist.admira.store) se cita en admira.live, Pixeria y admira.tv; sólo en admiranext.com está claro que la usa el login.",
+   "en": "The allow list (whitelist.admira.store) is mentioned in admira.live, Pixeria and admira.tv; only on admiranext.com is it clear the login uses it."
+  },
+  {
+   "es": "xpaceos/mcp/galaxia.json todavía describe admira.app como «audiencia × emisión en preproducción», pero en vivo admira.app es la misma web que yokup.com (instalaciones y mantenimiento).",
+   "en": "xpaceos/mcp/galaxia.json still describes admira.app as “audience × broadcast in pre-production”, but live admira.app is the same site as yokup.com (installation and maintenance)."
+  },
+  {
+   "es": "pixer-eleven avisa por Telegram llamando directamente a la API de Telegram, no a través de bot.yokup.com.",
+   "en": "pixer-eleven sends Telegram alerts by calling the Telegram API directly, not through bot.yokup.com."
+  },
+  {
+   "es": "Los players iOS y Android: el APK se sirve desde admira.tv; no hemos revisado el código del player para confirmar qué API llama primero.",
+   "en": "The iOS and Android players: the APK is served from admira.tv; we have not reviewed the player code to confirm which API it calls first."
+  }
+ ]
+}

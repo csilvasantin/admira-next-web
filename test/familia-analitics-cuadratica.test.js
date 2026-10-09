@@ -63,7 +63,9 @@ const ADOPTADAS = {
   'presentar.html': {ruta: '/presentar', acceso: 'publico', actual: null, auto: true},
   'consejo/index.html': {ruta: '/consejo/', acceso: 'publico', actual: null, auto: true},
   'organigrama.html': {ruta: '/organigrama', acceso: 'privado', actual: null, auto: true}, // zona protegida desde el 06-10-2026
-  'roadmap.html': {ruta: '/roadmap', acceso: 'publico', actual: '/roadmap', auto: true}
+  'roadmap.html': {ruta: '/roadmap', acceso: 'publico', actual: '/roadmap', auto: true},
+  // Organigrama tecnológico (9-oct-2026): pública, para que cualquiera entienda cómo se relacionan las webs.
+  'arquitectura.html': {ruta: '/arquitectura', acceso: 'publico', actual: null, auto: true}
 };
 
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que

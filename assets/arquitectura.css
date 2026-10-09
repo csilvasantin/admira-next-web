@@ -1,0 +1,76 @@
+/* /arquitectura — organigrama tecnológico (9-oct-2026). Sin dependencias. */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;color:var(--yk-ink,#f2f6fc);font-family:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,monospace;line-height:1.55}
+a{color:var(--yk-brand,#4ae3d1);text-decoration:none}
+a:hover{color:var(--yk-hi,#7ff3e4)}
+main{padding:28px 0 72px}
+h1{margin:0 0 10px;font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em}
+h2{margin:44px 0 14px;font-size:20px}
+.arq-lead{max-width:860px;margin:0 0 16px;color:#c3cdda;font-size:15px}
+.arq-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:0 0 14px;font-size:12px;color:#92a0b4}
+.arq-chk{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.arq-json{padding:4px 10px;border:1px solid #253042;border-radius:999px}
+.arq-estado.ok::before{content:"● ";color:#33ff99}
+.arq-escena{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.arq-diagrama{border:1px solid #25344b;border-radius:14px;background:rgba(16,23,36,.55);padding:6px}
+#arq-svg{display:block;width:100%;height:auto;font-family:inherit}
+.arq-ficha{position:sticky;top:calc(var(--yk-bar-h,76px) + 12px);min-height:240px;max-height:calc(100vh - var(--yk-bar-h,76px) - 30px);overflow:auto;border:1px solid #25344b;border-radius:14px;background:#101724;padding:16px;font-size:13px}
+.arq-pista{color:#92a0b4;margin:0}
+.arq-ficha h3{margin:0 0 4px;font-size:18px}
+.arq-ficha .dom{color:#92a0b4;font-size:12px;margin:0 0 10px}
+.arq-ficha .rol{margin:0 0 12px;color:#dfe6ef}
+.arq-ficha dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12px}
+.arq-ficha dt{color:#92a0b4}
+.arq-ficha dd{margin:0;word-break:break-word}
+.arq-ficha h4{margin:14px 0 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#63e6d5}
+.arq-ficha ul{margin:0;padding-left:18px}
+.arq-ficha li{margin:0 0 3px}
+.arq-ficha .cerrar{float:right;background:none;border:1px solid #314057;color:#92a0b4;border-radius:8px;cursor:pointer;font:inherit;font-size:12px;padding:2px 8px}
+.arq-ficha .ver{display:inline-block;margin-top:12px}
+/* SVG */
+.nodo{cursor:pointer}
+.nodo rect{fill:#0d1420;stroke-width:2}
+.nodo .t1{font-size:15px;font-weight:700;fill:#f2f6fc}
+.nodo .t2{font-size:12px;fill:#a9b6c8}
+.nodo .t3{font-size:11px;fill:#6c7a90}
+.nodo:hover rect,.nodo.sel rect,.nodo:focus rect{fill:#13203a}
+.nodo:focus{outline:none}
+.nodo:focus-visible rect{stroke-dasharray:4 3}
+.arista path{fill:none;stroke:#3a4c66;stroke-width:1.6;transition:stroke .15s,opacity .15s}
+.arista.dudosa path{stroke-dasharray:6 5}
+.arista text{font-size:11px;fill:#cfe;paint-order:stroke;stroke:#070b12;stroke-width:4px;opacity:0;pointer-events:none;transition:opacity .15s}
+#arq-svg.etiquetas .arista text{opacity:.9}
+#arq-svg.foco .arista{opacity:.12}
+#arq-svg.foco .arista.on{opacity:1}
+#arq-svg.foco .arista.on path{stroke:#4ae3d1;stroke-width:2.4}
+#arq-svg.foco .arista.on text{opacity:1}
+#arq-svg.foco .nodo{opacity:.35}
+#arq-svg.foco .nodo.on{opacity:1}
+#arq-svg.sin-dudosas .arista.dudosa{display:none}
+.infra rect{fill:#0b111b;stroke:#314057;stroke-width:1.5}
+.infra text{font-size:14px;fill:#c3cdda}
+/* Leyenda, piezas, tabla */
+.arq-leyenda{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:8px 22px;font-size:13px}
+.arq-leyenda li{display:flex;gap:10px;align-items:flex-start}
+.lg{flex:0 0 22px;height:14px;margin-top:3px;border-radius:4px;border:2px solid}
+.lg.hub{border-color:#4ae3d1}.lg.pata{border-color:#FF3366;box-shadow:inset 0 0 0 2px #FFCC00}.lg.control{border-color:#b388ff}.lg.servicio{border-color:#7d8ba1}.lg.infra{border-color:#314057;background:#0b111b}
+.lg.flecha{border:0;border-top:2px solid #4ae3d1;height:0;margin-top:10px}
+.lg.dudosa{border:0;border-top:2px dashed #7d8ba1;height:0;margin-top:10px}
+.arq-piezas{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.pieza{border:1px solid #25344b;border-left:4px solid var(--c,#4ae3d1);border-radius:12px;background:rgba(16,23,36,.6);padding:12px 14px;font-size:13px;cursor:pointer}
+.pieza h3{margin:0 0 2px;font-size:15px}
+.pieza .sub{color:#92a0b4;font-size:12px;margin:0 0 6px}
+.pieza p{margin:0}
+.pieza .v{margin-top:8px;color:#6c7a90;font-size:11px}
+.arq-tabla-wrap{overflow-x:auto}
+.arq-tabla{width:100%;border-collapse:collapse;font-size:12px}
+.arq-tabla th,.arq-tabla td{padding:7px 8px;border-bottom:1px solid #1d2838;text-align:left;vertical-align:top}
+.arq-tabla th{color:#92a0b4;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:11px}
+.arq-tabla td.ev{color:#92a0b4;word-break:break-word}
+.est{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;white-space:nowrap}
+.est.ok{background:rgba(51,255,153,.12);color:#33ff99}.est.duda{background:rgba(255,204,0,.12);color:#FFCC00}
+.arq-cambios,.arq-dudas{margin:0;padding-left:20px;font-size:13px}
+.arq-cambios li,.arq-dudas li{margin:0 0 5px}
+.arq-cambios b{color:var(--c,#4ae3d1)}
+.arq-pie{margin-top:48px;color:#6c7a90;font-size:12px}
+@media (max-width:1100px){.arq-escena{grid-template-columns:1fr}.arq-ficha{position:static;max-height:none}}

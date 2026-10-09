@@ -95,7 +95,7 @@
     'Acciones': 'Actions', 'Ir a': 'Go to', 'ADmiraNeXT, inicio': 'ADmiraNeXT, home', 'ADmiraNeXT · Inicio': 'ADmiraNeXT · Home',
     'Orden para el CLI': 'CLI command',
     // Cabecera común del grupo (la misma en todas las páginas con armazón)
-    'Proyectos': 'Projects', 'Usuarios': 'Users', 'Agentes': 'Agents', 'Organigrama': 'Org chart',
+    'Proyectos': 'Projects', 'Usuarios': 'Users', 'Agentes': 'Agents', 'Organigrama': 'Org chart', 'Organigrama tecnológico': 'Technology org chart',
     'Presentaciones': 'Presentations', 'Proyectos y locales': 'Projects and venues',
     'Página pública': 'Public page', 'Acceso privado': 'Private access',
     // Mapa del sitio (modo automático)
@@ -345,7 +345,7 @@
   // «Ir a» sus secciones (los <h2> del contenido), y ⌘ el CLI con /ir, /seccion y
   // /arriba. Lo que la página declare en data-yk-slot va DELANTE de lo automático.
   var SITIO = Array.isArray(G.ADMIRA_FRAME_SITIO) ? G.ADMIRA_FRAME_SITIO : [
-    {grupo: 'La casa', enlaces: [['/consejo/', 'El Consejo'], ['/organigrama', 'Organigrama', 'interno'], ['/academia', 'Academia'], ['/mandamientos', 'Mandamientos'], ['/normativa', 'Normativa'], ['/filosofia', 'Filosofía'], ['/help/', '/help']]},
+    {grupo: 'La casa', enlaces: [['/consejo/', 'El Consejo'], ['/organigrama', 'Organigrama', 'interno'], ['/arquitectura', 'Organigrama tecnológico'], ['/academia', 'Academia'], ['/mandamientos', 'Mandamientos'], ['/normativa', 'Normativa'], ['/filosofia', 'Filosofía'], ['/help/', '/help']]},
     {grupo: 'Operación', enlaces: [['/proyectos/', 'Proyectos'], ['/flota', 'Agentes', 'interno'], ['/status', 'Status'], ['/mcp/', 'Hub MCP'], ['/telegram/', 'Telegram']]},
     {grupo: 'Estudio', enlaces: [['/presentaciones/galeria', 'Presentaciones', 'interno'], ['/presites/', 'Presites'], ['/tiktok/', 'TikTok'], ['/presupuestos/', 'Presupuestos'], ['/creditos/', 'Créditos'], ['/impacto/', 'Impacto'], ['/marcablanca/', 'Marca blanca'], ['/demo/', 'Créame demo'], ['/informes/', 'Informes'], ['/signage-benchmarks', 'Benchmarks']]}
   ];

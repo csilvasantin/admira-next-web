@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organigrama tecnológico · ADmiraNeXT</title>
+<meta name="description" content="Cómo se relacionan admiranext.com, admira.studio, admira.store, admira.tv, admira.app, admira.biz y admira.live: quién da qué datos a quién.">
+<meta name="admiranext-version" content="v.09.10.2026.r1.06:03">
+<meta name="theme-color" content="#070b12">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" type="application/json" href="/api/arquitectura" title="Organigrama tecnológico · JSON">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Organigrama tecnológico · ADmiraNeXT">
+<meta property="og:description" content="El hub, las cinco patas, la capa de control y los servicios compartidos, con sus flujos de datos.">
+<meta property="og:image" content="/og-image.jpg">
+<meta property="og:url" content="https://www.admiranext.com/arquitectura">
+<link rel="stylesheet" href="/assets/arquitectura.css?v=20261009-arq-1">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261007-demo-autopilot-1">
+</head>
+<body data-yk-frame="cabecera" data-yk-auto="on">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
+<main data-yk-main data-yk-no-traducir id="arq">
+  <h1 data-t="titulo">Organigrama tecnológico</h1>
+  <p class="arq-lead" data-t="lead">Cómo se hablan las webs de Admira: admiranext.com es el hub, cinco patas hacen el trabajo, admira.live lo controla y unos pocos servicios compartidos llevan los datos de un sitio a otro.</p>
+  <div class="arq-toolbar">
+    <span class="arq-estado" id="arq-estado" aria-live="polite" data-t="cargando">Cargando datos…</span>
+    <label class="arq-chk"><input type="checkbox" id="arq-etiquetas"> <span data-t="verEtiquetas">Ver todas las etiquetas</span></label>
+    <label class="arq-chk"><input type="checkbox" id="arq-dudosas" checked> <span data-t="verDudosas">Mostrar relaciones por confirmar</span></label>
+    <a class="arq-json" href="/api/arquitectura" data-t="json">Datos en JSON</a>
+  </div>
+  <section class="arq-escena" aria-label="Diagrama">
+    <div class="arq-diagrama"><svg id="arq-svg" viewBox="0 0 1000 860" role="img" aria-labelledby="arq-svg-t"><title id="arq-svg-t" data-t="svgTitulo">Diagrama de relaciones entre las plataformas de Admira</title></svg></div>
+    <aside class="arq-ficha" id="arq-ficha" aria-live="polite"><p class="arq-pista" data-t="pista">Pasa el ratón por una caja para ver sus flechas. Haz clic para abrir su ficha.</p></aside>
+  </section>
+
+  <h2 id="leer" data-t="hLeer">Cómo leer esto</h2>
+  <ul class="arq-leyenda" id="arq-leyenda">
+    <li><i class="lg hub"></i><span data-t="lgHub">El centro (cian) es admiranext.com: define los clientes y publica lo común.</span></li>
+    <li><i class="lg pata"></i><span data-t="lgPata">Las cinco cajas de color son las patas: cada una hace un trabajo (crear, gestionar, emitir, mantener, vender).</span></li>
+    <li><i class="lg control"></i><span data-t="lgControl">Arriba, admira.live: la capa de control, donde el Consejo y la flota de agentes ven y coordinan todo.</span></li>
+    <li><i class="lg servicio"></i><span data-t="lgServicio">Las cajas grises son servicios compartidos: los usan varias patas a la vez.</span></li>
+    <li><i class="lg flecha"></i><span data-t="lgFlecha">Una flecha va de quien pide a quien responde; la etiqueta dice qué viaja.</span></li>
+    <li><i class="lg dudosa"></i><span data-t="lgDudosa">Una flecha discontinua está por confirmar: hay pistas en el código, pero no una prueba clara.</span></li>
+    <li><i class="lg infra"></i><span data-t="lgInfra">Abajo, el suelo: Cloudflare aloja todo y GitHub guarda el código.</span></li>
+  </ul>
+
+  <h2 id="piezas" data-t="hPiezas">Las siete piezas</h2>
+  <div class="arq-piezas" id="arq-piezas"></div>
+
+  <h2 id="relaciones" data-t="hRelaciones">Tabla de relaciones</h2>
+  <div class="arq-tabla-wrap"><table class="arq-tabla" id="arq-tabla"><thead><tr><th data-t="thDe">De</th><th data-t="thA">A</th><th data-t="thQue">Qué viaja</th><th data-t="thEvidencia">Evidencia</th><th data-t="thEstado">Estado</th></tr></thead><tbody></tbody></table></div>
+
+  <h2 id="cambios" data-t="hCambios">Cambios de los últimos días</h2>
+  <ul class="arq-cambios" id="arq-cambios"></ul>
+
+  <h2 id="dudas" data-t="hDudas">Por confirmar</h2>
+  <ul class="arq-dudas" id="arq-dudas"></ul>
+
+  <footer class="arq-pie"><a href="/">admiranext.com</a> · <span data-t="pie">Organigrama tecnológico · análisis del código y de las webs en vivo, 9 de octubre de 2026</span> · <a href="/organigrama" data-t="pieOrg">Organigrama de personas</a></footer>
+</main>
+<script defer src="/assets/arquitectura.js?v=20261009-arq-1"></script>
+<script defer src="/assets/admira-frame.js?v=20261007-demo-autopilot-1"></script>
+</body>
+</html>
