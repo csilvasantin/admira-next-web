@@ -1,45 +1,61 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ADmiraNeXT</title>
-    <script>
-      (function () {
-        var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-        if (path === 'consumos') {
-          window.location.replace('https://www.yokup.com/consumos');
-          return;
-        }
-        var map = {
-          about: '/about',
-          work: '/work',
-          clients: '/clients',
-          skills: '/skills',
-          contact: '/contact',
-          social: '/social',
-          philosophy: '/philosophy',
-          testimonials: '/testimonials',
-          awards: '/awards',
-          privacy: '/privacy',
-          articles: '/articles',
-          classic: '/classic',
-          robots: '/robots',
-          identidad: '/identidad',
-          identity: '/identidad',
-          branding: '/identidad',
-          intranet: '/intranet',
-          plataforma: '/plataforma'
-        };
-        if (map[path]) {
-          try { sessionStorage.setItem('autoCommand', map[path]); } catch (e) {}
-        }
-        window.location.replace('/');
-      })();
-    </script>
-  </head>
-  <body>
-    <p>Redirecting to ADmiraNeXT...</p>
-    <script src="/assets/admira-version-watch.js?build=06092026-1" defer></script>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>No encontrada · AdmiraNeXT</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Esta dirección no corresponde a una página de AdmiraNeXT.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;color:#eef6ff;font-family:system-ui,-apple-system,sans-serif;line-height:1.5}
+  main{padding:48px 0 72px}
+  .eyebrow{font:700 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#63e6d5}
+  h1{margin:8px 0 12px;font-size:clamp(32px,8vw,56px);letter-spacing:-.03em}
+  p{margin:0;max-width:42rem;color:#8ea0b8}
+</style>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-idioma-en-1">
+<script defer src="/assets/admira-frame.js?v=20261009-idioma-en-1"></script>
+<script>
+  (function () {
+    var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+    if (path === 'consumos') {
+      window.location.replace('https://www.yokup.com/consumos');
+      return;
+    }
+    var map = {
+      about: '/about',
+      work: '/work',
+      clients: '/clients',
+      skills: '/skills',
+      contact: '/contact',
+      social: '/social',
+      philosophy: '/philosophy',
+      testimonials: '/testimonials',
+      awards: '/awards',
+      privacy: '/privacy',
+      articles: '/articles',
+      classic: '/classic',
+      robots: '/robots',
+      identidad: '/identidad',
+      identity: '/identidad',
+      branding: '/identidad',
+      intranet: '/intranet',
+      plataforma: '/plataforma'
+    };
+    if (map[path]) {
+      try { sessionStorage.setItem('autoCommand', map[path]); } catch (e) {}
+      window.location.replace('/');
+    }
+  })();
+</script>
+</head>
+<body data-yk-frame="cabecera" data-yk-auto="on" data-yk-ligera="404">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
+<main data-yk-main>
+  <p class="eyebrow">404</p>
+  <h1>Esta página no está</h1>
+  <p>La dirección no corresponde a una página de AdmiraNeXT. La marca de arriba vuelve al inicio.</p>
+</main>
 </body>
 </html>

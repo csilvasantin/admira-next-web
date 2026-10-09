@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261009-idioma-ayuda-1';
+  var STAMP = '20261009-idioma-en-1';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -261,21 +261,70 @@
         return 'mal';
       });
     }
-    decirDemo('Uso: /demo login | patas | portada', ctx);
+    if (cual === 'tablas') cual = 'movil';
+    if (cual === 'movil') {
+      return Promise.all([
+        fetch('/proyectos/', {credentials: 'same-origin'}).then(function (r) { return r.text(); }),
+        fetch('/normativa', {credentials: 'same-origin'}).then(function (r) { return r.text(); }),
+        fetch('/roadmap', {credentials: 'same-origin'}).then(function (r) { return r.text(); })
+      ]).then(function (paginas) {
+        var censo = /touch-action:\s*pan-x/.test(paginas[0]) && /position:\s*sticky/.test(paginas[0]);
+        var norma = /:has\(table\)/.test(paginas[1]) && /touch-action:\s*pan-x/.test(paginas[1]);
+        var gantt = /rm-gantt-wrap\{[^}]*touch-action:\s*pan-x/.test(paginas[2]);
+        var ok = censo && norma && gantt;
+        decirDemo(ok ? 'movil · bien · censo, normativa y Gantt se desplazan' : 'movil · mal · falta el desplazamiento horizontal', ctx);
+        return ok ? 'bien' : 'mal';
+      }).catch(function () {
+        decirDemo('movil · mal · no se pudieron leer las páginas', ctx);
+        return 'mal';
+      });
+    }
+    if (cual === '404') {
+      return fetch('/no-existe-5435', {credentials: 'same-origin'}).then(function (r) {
+        return r.text().then(function (html) {
+          var marco = /admira-frame\.js/.test(html) && /data-yk-frame="cabecera"/.test(html);
+          var ligera = !/portada\.mp4|bannerAdmiraNext/.test(html);
+          var alias = /if\s*\(\s*map\[path\]\s*\)/.test(html);
+          var ok = r.status === 404 && marco && ligera && alias;
+          decirDemo(ok ? '404 · bien · marco cuadrático, sin la portada' : '404 · mal · HTTP ' + r.status, ctx);
+          return ok ? 'bien' : 'mal';
+        });
+      }).catch(function () {
+        decirDemo('404 · mal · no se pudo leer una dirección ausente', ctx);
+        return 'mal';
+      });
+    }
+    if (cual === 'clientes') {
+      return Promise.all([
+        fetch('/clientes/', {credentials: 'same-origin'}).then(function (r) { return r.text().then(function (t) { return {status: r.status, t: t}; }); }),
+        fetch('/api/clientes', {credentials: 'same-origin'}).then(function (r) { return r.json().then(function (j) { return {status: r.status, j: j}; }, function () { return {status: r.status, j: null}; }); })
+      ]).then(function (par) {
+        var page = par[0], api = par[1];
+        var labels = /Clientes/.test(page.t) && /Clients/.test(page.t);
+        var lista = Array.isArray(api.j) && api.j.length > 0 && api.j.every(function (c) { return c && c.nombre; });
+        var ok = page.status === 200 && api.status === 200 && labels && lista && /\/api\/clientes/.test(page.t);
+        decirDemo(ok ? 'clientes · bien · ' + api.j.length + ' en ESP y ENG' : 'clientes · mal · página ' + page.status + ' api ' + api.status, ctx);
+        return ok ? 'bien' : 'mal';
+      }).catch(function () {
+        decirDemo('clientes · mal · no se pudo leer el censo', ctx);
+        return 'mal';
+      });
+    }
+    decirDemo('Uso: /demo login | patas | portada | movil | 404 | clientes', ctx);
     return Promise.resolve('mal');
   }
   function registrarDemo(F, X) {
     if (!F || !F.verbo || (F.tiene && F.tiene('demo'))) return;
     F.verbo({
-      id: 'demo', aliases: ['demostracion'], uso: 'login | patas | portada',
-      ayuda: 'Cierra la pieza: login, patas o portada. El resto de /demo sigue en el motor.',
-      ayudaEn: 'Close the piece: login, legs or homepage. Other /demo commands stay with the engine.',
+      id: 'demo', aliases: ['demostracion'], uso: 'login | patas | portada | movil | 404 | clientes',
+      ayuda: 'Cierra la pieza: login, patas, portada, movil, 404 o clientes. El resto de /demo sigue en el motor.',
+      ayudaEn: 'Close the piece: login, legs, homepage, mobile, 404 or clients. Other /demo commands stay with the engine.',
       run: function (args, ctx, limpio) {
         var cual = String((args && args[0]) || '').toLowerCase();
-        if (/^(login|patas|portada|verja)$/.test(cual)) return mostrarDemo(cual, ctx);
+        if (/^(login|patas|portada|verja|movil|tablas|404|clientes)$/.test(cual)) return mostrarDemo(cual, ctx);
         var out = d.querySelector('#ykExpertRail .yk-cli-out');
         if (X && X.exec) return X.exec(limpio || ('/demo' + (args && args.length ? ' ' + args.join(' ') : '')), out, {echo: false});
-        decirDemo('Uso: /demo login | patas | portada', ctx);
+        decirDemo('Uso: /demo login | patas | portada | movil | 404 | clientes', ctx);
       }
     });
   }
@@ -295,7 +344,7 @@
       t.value = '';
       if (esDemo) {
         var cualDemo = v.replace(/^\/?demo\s*/i, '').split(/\s+/)[0] || '';
-        if (/^(login|patas|portada|verja)$/i.test(cualDemo)) { mostrarDemo(cualDemo); return; }
+        if (/^(login|patas|portada|verja|movil|tablas|404|clientes)$/i.test(cualDemo)) { mostrarDemo(cualDemo); return; }
       }
       if (X && X.open) X.open();
       if (X && X.run) X.run(v);
@@ -358,6 +407,7 @@
   }
 
   function arrancar() {
+    if (d.body && d.body.getAttribute('data-yk-ligera') === '404') return;
     var rail = d.getElementById('ykExpertRail');
     if (rail && rail.querySelector('.yk-cli-form')) conArmazon(rail);
     else if (!d.querySelector('script[src*="admira-frame.js"]') || d.body.hasAttribute('data-ax-propio')) sinArmazon();
