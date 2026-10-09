@@ -270,5 +270,8 @@
     "/arquitectura: organigrama tecnológico de admiranext.com, las cinco patas, admira.live y los servicios compartidos, con fichas, tabla de relaciones y versiones vivas (ES/EN).",
     "/api/arquitectura: los mismos datos en JSON, con CORS abierto, para que otras webs los reutilicen.",
     "Enlace desde /organigrama y desde el mapa del sitio (☰)."
+  ],
+  "v.09.10.2026.r2.06:06": [
+    "/arquitectura: la caja de acceso del diagrama ya no se sale de su marco (rótulo corto ES/EN)."
   ]
 }
