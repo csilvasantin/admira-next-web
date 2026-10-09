@@ -4,12 +4,16 @@
  */
 (function (G) {
   'use strict';
-  if (G.AdmiraDemoControl || G.top !== G.self) return;
+  if (G.AdmiraDemoControl) return;
   var D = document, query = new URLSearchParams(location.search), platform = query.get('ax_demo');
+  if (G.top !== G.self) return;
   var hosts = {studio:['admira.studio','pixeria.com'],store:['admira.store','xpaceos.com'],tv:['admira.tv'],biz:['admira.biz','clearchannel.tv'],app:['admira.app','yokup.com']};
   var host = location.hostname.replace(/^www\./,''), EN = (query.get('lang') || D.documentElement.lang || '').slice(0,2)==='en';
   var preview = /^(localhost|127\.0\.0\.1)$/.test(host) && query.get('ax_preview')===platform;
-  if (!hosts[platform] || (hosts[platform].indexOf(host)<0&&!preview)) return;
+  if (!hosts[platform] || (hosts[platform].indexOf(host)<0&&!preview)) {
+    if (platform === 'hoy') arrancarFuncionHoy();
+    return;
+  }
   var T = function(a,b){return EN?b:a;}, steps = [], run = query.get('ax_run') || 'direct', key='admira-native-demo-v1:'+platform;
   function add(action, selector, text, value, path) { steps.push({action:action,selector:selector || '',text:text,value:value,path:path || ''}); }
   function point(s,t,p){add('point',s,t,null,p);} function click(s,t,p){add('click',s,t,null,p);} function fill(s,v,t,p){add('fill',s,t,v,p);} function select(s,v,t,p){add('select',s,t,v,p);}
@@ -151,4 +155,258 @@
   D.addEventListener('keydown',function(e){if(e.key==='Escape'&&state.active)control('pause');});
   G.AdmiraDemoControl={control:control,state:getState,steps:function(){return steps.map(function(s){return Object.assign({},s);});}};
   paint();persist();if(state.active&&!state.paused)execute();
+
+  // /demo hoy · /demo today. Misma pieza de panel (Pausar, Silenciar demo, Siguiente, Devolver control).
+  // Cada funcionalidad futura es una lista de pasos {id, es, en, donde}. El motor apunta, comprueba
+  // y al final deja bien / mal / pendiente. No lleva claves ni las copia de una respuesta.
+  function arrancarFuncionHoy() {
+    var permitidos = ['admiranext.com','admira.biz','clearchannel.tv','admira.store','xpaceos.com'];
+    if (permitidos.indexOf(host) < 0 && !/^(localhost|127\.0\.0\.1)$/.test(host)) return;
+    var EN = (query.get('lang') || D.documentElement.lang || '').slice(0,2)==='en';
+    var T = function(a,b){return EN?b:a;};
+    var runId = query.get('ax_run') || 'hoy';
+    var paso = query.get('ax_paso') || '';
+    var plan = [
+      {id:'caja', es:'Caja, flechas y datos JSON', en:'Box, arrows and JSON data', action:'comprobar'},
+      {id:'idioma', es:'Idioma del organigrama', en:'Org chart language', action:'comprobar'},
+      {id:'idioma-pata', es:'Idioma en admira.biz', en:'Language on admira.biz', action:'comprobar'},
+      {id:'architecture', es:'/architecture llega en inglés', en:'/architecture lands in English', action:'comprobar'},
+      {id:'agentes', es:'Entrada de agentes', en:'Agent entry', action:'comprobar'}
+    ];
+    function ahora(){ return (G.performance && typeof G.performance.now==='function') ? G.performance.now() : Date.now(); }
+    function leerHechos(s){
+      var out=['','','','','']; s=String(s||''); if(!/^[bmp-]{0,5}$/.test(s)) return out;
+      for(var i=0;i<5;i++){ var c=s.charAt(i); out[i]=c==='b'?'bien':c==='m'?'mal':c==='p'?'pendiente':''; }
+      return out;
+    }
+    function codificar(arr){ return arr.map(function(x){ return x==='bien'?'b':x==='mal'?'m':x==='pendiente'?'p':'-'; }).join(''); }
+    function limpiar(s){ return String(s||'').replace(/bearer\s+\S+/ig,'').replace(/\b(token|clave|secret|password)\b\s*[:=]\s*\S+/ig,'').replace(/\s+/g,' ').trim().slice(0,220); }
+    function valorarIdioma(muestras, estricto){
+      muestras=(muestras||[]).filter(Boolean);
+      if(muestras.length<2) return {estado:'mal', detalle:T('No hubo dos idiomas.','Fewer than two languages.')};
+      function campo(k){ return muestras.map(function(m){ return String(m[k]||'').replace(/\s+/g,' ').trim(); }); }
+      function cambia(arr){ for(var i=1;i<arr.length;i++) if(arr[i]&&arr[i-1]&&arr[i]!==arr[i-1]) return true; return false; }
+      var titulos=campo('titulo'), cuerpos=campo('cuerpo'), docs=campo('tituloDoc');
+      var todo=titulos.concat(cuerpos, docs).join(' ');
+      if(estricto){
+        var par=/Organigrama tecnológico/.test(todo) && /Technology org chart/.test(todo);
+        var ok=par && cambia(docs.length?docs:titulos) && cambia(cuerpos);
+        return {estado:ok?'bien':'mal', detalle:T(ok?'Título y cuerpo en los dos idiomas.':'El título o el cuerpo no cambiaron.', ok?'Title and body in both languages.':'The title or the body did not change.')};
+      }
+      var ok2=cambia(titulos) && cambia(cuerpos);
+      return {estado:ok2?'bien':'mal', detalle:T(ok2?'El título visible y el cuerpo cambian.':'El título visible o el cuerpo no cambiaron.', ok2?'The visible title and the body change.':'The visible title or the body did not change.')};
+    }
+    function valorarAgente(status, j){
+      var nombre=j && typeof j.nombre==='string' && /^[A-Za-z0-9._-]{2,40}$/.test(j.nombre) ? j.nombre : '';
+      if(j && j.sesion && nombre && status===200) return {estado:'bien', detalle:'200 · '+nombre};
+      if(j && j.desplegado) return {estado:'pendiente', detalle:T('Desplegado. Esta página no tiene sesión de agente; no se muestra ninguna clave.','Deployed. This page has no agent session; no key is shown.')};
+      if(status===404 || (j && j.desplegado===false)) return {estado:'pendiente', detalle:T('La entrada de agentes no está desplegada.','Agent entry is not deployed.')};
+      return {estado:'pendiente', detalle:T('Sin respuesta del estado de agentes.','No agent-status response.')};
+    }
+    var hechos=leerHechos(query.get('ax_hechos')), notas=['','','','',''];
+    try{
+      var guardado=JSON.parse(G.sessionStorage.getItem('admira-funcion-hoy:'+runId)||'null');
+      if(guardado){ for(var g=0;g<5;g++){ if(!hechos[g] && guardado.hechos && guardado.hechos[g]) hechos[g]=guardado.hechos[g]; if(guardado.notas && guardado.notas[g]) notas[g]=limpiar(guardado.notas[g]); } }
+    }catch(_){}
+    function guardar(){ try{ G.sessionStorage.setItem('admira-funcion-hoy:'+runId, JSON.stringify({hechos:hechos, notas:notas})); }catch(_){} }
+    function pathDe(){ return (location.pathname||'/').replace(/\/$/,'')||'/'; }
+    function sitioActual(){
+      var path=pathDe();
+      if((host==='admiranext.com' || /^(localhost|127\.0\.0\.1)$/.test(host)) && path==='/arquitectura') return 'arq';
+      if(host==='admira.biz' || host==='clearchannel.tv') return 'biz';
+      if(host==='admira.store' || host==='xpaceos.com') return 'store';
+      return 'otra';
+    }
+    function salir(url, extra){
+      var u=new URL(url, location.href);
+      u.searchParams.set('ax_demo','hoy'); u.searchParams.set('ax_run', runId); u.searchParams.set('ax_hechos', codificar(hechos));
+      if(!u.searchParams.get('lang')) u.searchParams.set('lang', EN?'en':'es');
+      Object.keys(extra||{}).forEach(function(k){ u.searchParams.set(k, extra[k]); });
+      guardar(); location.assign(u.href);
+    }
+    if(sitioActual()==='otra'){
+      if(host==='admiranext.com' || /^(localhost|127\.0\.0\.1)$/.test(host)) salir((location.origin||'')+'/arquitectura', {});
+      return;
+    }
+    var state={active:true, paused:false, muted:false, voice:true, index:0, adelantar:false, error:'', puente:null}, timer=0, pointer=null, panel=null, resumen=null, statusEl=null, caption=null, pauseBtn, muteBtn;
+    function pintar(){
+      if(!panel) return;
+      panel.dataset.state=state.active?(state.paused?'paused':'running'):'complete';
+      var hechoTxt=function(e){ return e==='bien'?T('bien','ok'):e==='mal'?T('mal','fail'):e==='pendiente'?T('pendiente','pending'):'—'; };
+      statusEl.textContent=T('Paso ','Step ')+Math.min(state.index+1,5)+'/5 · '+(state.active?(state.paused?T('En pausa','Paused'):T('Comprobando','Checking')):T('Resumen','Summary'));
+      resumen.textContent='';
+      plan.forEach(function(p,i){
+        var li=D.createElement('li'); li.dataset.estado=hechos[i]||'';
+        li.textContent=(i+1)+'. '+T(p.es,p.en)+' · '+hechoTxt(hechos[i])+(notas[i]?' · '+notas[i]:'');
+        resumen.appendChild(li);
+      });
+      caption.textContent=plan[state.index]?T(plan[state.index].es, plan[state.index].en):'';
+      pauseBtn.textContent=state.paused?T('Reanudar','Resume'):T('Pausar','Pause');
+      pauseBtn.disabled=!state.active;
+      muteBtn.textContent=state.muted?T('Activar sonido','Enable sound'):T('Silenciar demo','Mute demo');
+    }
+    function esperar(ms){
+      return new Promise(function(resolve){
+        var left=ms;
+        function tick(){
+          if(!state.active) return resolve(false);
+          if(state.adelantar) return resolve(true);
+          if(state.paused){ timer=setTimeout(tick, 200); return; }
+          if(left<=0) return resolve(true);
+          var slice=Math.min(200, left); left-=slice; timer=setTimeout(tick, slice);
+        }
+        tick();
+      });
+    }
+    async function buscar(sel, ms){
+      var limite=ahora()+ms;
+      while(ahora()<limite){
+        var el=D.querySelector(sel);
+        if(el || state.adelantar || !state.active) return el||null;
+        if(!await esperar(250)) return null;
+      }
+      return D.querySelector(sel);
+    }
+    function apuntar(el){
+      if(!el || !pointer || typeof el.getBoundingClientRect!=='function') return;
+      try{ el.scrollIntoView({block:'center', inline:'nearest'}); }catch(_){}
+      try{ el.classList.add('admira-demo-target'); }catch(_){}
+      var r=el.getBoundingClientRect();
+      pointer.hidden=false;
+      pointer.style.left=Math.max(4, r.left+r.width/2)+'px';
+      pointer.style.top=Math.max(4, r.top+r.height/2)+'px';
+    }
+    function aplicar(l, estricto){
+      if(!estricto && typeof G.setLang==='function'){ try{ G.setLang(l); }catch(_){} }
+      if(G.AdmiraExperto && typeof G.AdmiraExperto.setLanguage==='function'){ try{ G.AdmiraExperto.setLanguage(l); }catch(_){} }
+      else { try{ D.documentElement.lang=l; D.documentElement.setAttribute('lang', l); }catch(_){} }
+    }
+    function leerMuestra(){
+      var h1=D.querySelector('h1'), lead=D.querySelector('[data-t="lead"]');
+      var titulo=((h1&&h1.textContent)||D.title||'').replace(/\s+/g,' ').trim();
+      var cuerpo=lead&&lead.textContent ? lead.textContent.replace(/\s+/g,' ').trim() : '';
+      if(!cuerpo){
+        var nodes=D.querySelectorAll('[data-i18n]');
+        for(var i=0;i<nodes.length;i++){ var tx=(nodes[i].textContent||'').replace(/\s+/g,' ').trim(); if(tx && tx!==titulo){ cuerpo=tx; break; } }
+      }
+      if(!cuerpo){ var p=D.querySelector('main p'); if(p && p!==h1) cuerpo=(p.textContent||'').replace(/\s+/g,' ').trim(); }
+      return {titulo:titulo, tituloDoc:(D.title||'').replace(/\s+/g,' ').trim(), cuerpo:cuerpo};
+    }
+    async function pasoCaja(){
+      var nodo=await buscar('#arq-svg .nodo:not(.infra)', 8000);
+      if(!nodo) return {estado:'mal', detalle:T('No aparece ninguna caja.','No box appeared.')};
+      apuntar(nodo);
+      try{ nodo.dispatchEvent(new Event('mouseenter')); }catch(_){}
+      await esperar(600);
+      var flechas=!!D.querySelector('.arista.on');
+      try{ nodo.dispatchEvent(new Event('click')); }catch(_){}
+      await esperar(500);
+      var ficha=D.getElementById('arq-ficha');
+      var abierta=!!(ficha && ficha.querySelector('h3'));
+      var enlace=D.querySelector('a.arq-json');
+      if(enlace) apuntar(enlace);
+      var codigo=0;
+      try{ var r=await fetch('/api/arquitectura',{headers:{accept:'application/json'}}); codigo=r&&r.status||0; }catch(_){ codigo=0; }
+      var href=enlace?(enlace.getAttribute('href')||''):'';
+      var ok=flechas && abierta && /\/api\/arquitectura(?:$|\?)/.test(href) && codigo===200;
+      return {estado:ok?'bien':'mal', detalle:T('Flechas '+(flechas?'sí':'no')+' · ficha '+(abierta?'abierta':'cerrada')+' · JSON '+codigo, 'Arrows '+(flechas?'yes':'no')+' · card '+(abierta?'open':'closed')+' · JSON '+codigo)};
+    }
+    async function pasoIdioma(estricto){
+      var orden=EN?['en','es','en']:['es','en','es'], muestras=[];
+      for(var i=0;i<orden.length;i++){
+        if(!state.active) return {estado:'mal', detalle:''};
+        if(state.adelantar && muestras.length>=2) break;
+        aplicar(orden[i], estricto);
+        apuntar(D.querySelector('h1')||D.querySelector('main')||D.body);
+        if(!await esperar(800)) return {estado:'mal', detalle:''};
+        muestras.push(leerMuestra());
+      }
+      return valorarIdioma(muestras, estricto);
+    }
+    async function pasoPuente(){
+      var href='https://www.admiranext.com/arquitectura?lang=en';
+      try{ if(G.AdmiraExperto && typeof G.AdmiraExperto.arquitecturaUrl==='function') href=G.AdmiraExperto.arquitecturaUrl('en'); }catch(_){}
+      var u; try{ u=new URL(href, location.href); }catch(_){ return {estado:'mal', detalle:T('URL no válida.','Invalid URL.')}; }
+      var ok=u.protocol==='https:' && u.hostname==='www.admiranext.com' && u.pathname.replace(/\/$/,'')==='/arquitectura' && u.searchParams.get('lang')==='en';
+      state.puente=ok?u:null;
+      return {estado:ok?'bien':'mal', detalle:ok?'/arquitectura?lang=en':T('No llega al organigrama en inglés.','It does not reach the org chart in English.')};
+    }
+    async function pasoAgente(){
+      apuntar(D.querySelector('a.arq-json')||D.querySelector('h1')||D.body);
+      var j=null, status=0;
+      try{
+        var r=await fetch('/api/agente-entrada',{headers:{accept:'application/json'}, cache:'no-store'});
+        status=r.status; j=await r.json();
+      }catch(_){ j=null; }
+      if(j && typeof j==='object'){ Object.keys(j).forEach(function(k){ if(!/^(ok|desplegado|sesion|nombre)$/.test(k)) delete j[k]; }); }
+      return valorarAgente(status, j);
+    }
+    async function uno(i, fn){
+      if(!state.active) return;
+      state.index=i; state.error=''; pintar();
+      var t0=ahora(), r;
+      try{ r=await fn(); }catch(e){ r={estado:'mal', detalle:limpiar(e&&e.message)}; }
+      if(!state.active) return;
+      if(!r || (r.estado!=='bien' && r.estado!=='mal' && r.estado!=='pendiente')) r={estado:'mal', detalle:''};
+      hechos[i]=r.estado; notas[i]=limpiar(r.detalle||''); guardar(); pintar();
+      var queda=12000-(ahora()-t0);
+      if(queda>0) await esperar(queda);
+      state.adelantar=false;
+    }
+    function cerrar(){
+      state.active=false; state.paused=false; clearTimeout(timer);
+      if(panel) panel.remove(); if(pointer) pointer.remove();
+      try{ G.sessionStorage.removeItem('admira-funcion-hoy:'+runId); }catch(_){}
+    }
+    function control(c){
+      if(c==='stop'||c==='parar'||c==='off'){ cerrar(); return getState(); }
+      if(c==='mute'){ state.muted=!state.muted; if(state.muted && G.speechSynthesis){ try{ G.speechSynthesis.cancel(); }catch(_){} } pintar(); return getState(); }
+      if(!state.active) return getState();
+      if(c==='pause'||c==='pausa'){ state.paused=true; pintar(); }
+      if(c==='resume'||c==='reanudar'||c==='continuar'){ state.paused=false; pintar(); }
+      if(c==='next'||c==='siguiente'){ state.adelantar=true; state.paused=false; pintar(); }
+      return getState();
+    }
+    function getState(){ return {activo:state.active, pausado:state.paused, demo:'hoy', fase:Math.min(state.index+1,5), fases:5, numero:1, total:1, error:state.error, control:'interfaz'}; }
+    var style=D.createElement('style');
+    style.textContent='#admira-native-demo{position:fixed;z-index:2147483200;left:14px;right:14px;bottom:14px;background:#10201c;color:#f1f5ef;border:1px solid #9bd6bc;border-radius:12px;padding:12px 16px;box-shadow:0 8px 40px #0008;font:14px/1.45 system-ui;max-height:40vh;overflow:auto}#admira-native-demo p,#admira-native-demo li{margin:3px 0}#admira-native-demo strong{color:#a4dfc3}#admira-native-demo button{background:#223c32;color:#fff;border:1px solid #759d88;border-radius:6px;padding:7px 12px;margin:3px 5px 0 0;font:inherit;cursor:pointer}#admira-native-demo button:disabled{opacity:.5}#admira-demo-resumen{margin:6px 0 8px;padding-left:1.2em}#admira-demo-resumen li[data-estado="bien"]{color:#9be4ba}#admira-demo-resumen li[data-estado="mal"]{color:#ffb4b4}#admira-demo-resumen li[data-estado="pendiente"]{color:#f0d48a}#admira-demo-pointer{position:fixed;z-index:2147483199;pointer-events:none;width:27px;height:34px;transition:left .55s ease,top .55s ease}.admira-demo-target{outline:3px solid #9be4ba!important;outline-offset:5px!important}';
+    D.head.appendChild(style);
+    panel=D.createElement('section'); panel.id='admira-native-demo'; panel.setAttribute('role','region'); panel.setAttribute('aria-label',T('Demostración de hoy','Today\'s walkthrough'));
+    var title=D.createElement('strong'); title.textContent=T('EN VIVO · HOY','LIVE · TODAY');
+    statusEl=D.createElement('p'); statusEl.setAttribute('aria-live','polite');
+    resumen=D.createElement('ol'); resumen.id='admira-demo-resumen';
+    caption=D.createElement('p');
+    var bar=D.createElement('div');
+    function button(label, fn){ var b=D.createElement('button'); b.type='button'; b.textContent=label; b.onclick=fn; bar.appendChild(b); return b; }
+    pauseBtn=button(T('Pausar','Pause'), function(){ control(state.paused?'resume':'pause'); });
+    muteBtn=button(T('Silenciar demo','Mute demo'), function(){ control('mute'); });
+    button(T('Siguiente','Next'), function(){ control('next'); });
+    button(T('Devolver control','Return control'), function(){ control('stop'); });
+    panel.appendChild(title); panel.appendChild(statusEl); panel.appendChild(resumen); panel.appendChild(caption); panel.appendChild(bar);
+    pointer=D.createElement('div'); pointer.id='admira-demo-pointer'; pointer.setAttribute('aria-hidden','true'); pointer.hidden=true;
+    pointer.innerHTML='<svg viewBox="0 0 27 34" xmlns="http://www.w3.org/2000/svg"><path d="M2 2v26l7-7 6 11 5-3-6-10h10Z" fill="#a8edc6" stroke="#10201c" stroke-width="2"/></svg>';
+    D.body.appendChild(pointer); D.body.appendChild(panel);
+    D.addEventListener('keydown', function(e){ if(e.key==='Escape' && state.active) control('pause'); });
+    G.AdmiraDemoControl={control:control, state:getState, steps:function(){ return plan.map(function(s){ return {id:s.id, action:s.action, text:T(s.es,s.en)}; }); }, valorarIdioma:valorarIdioma, valorarAgente:valorarAgente};
+    pintar();
+    void (async function correr(){
+      var sitio=sitioActual();
+      if(sitio==='arq' && paso!=='agente'){
+        await uno(0, pasoCaja); await uno(1, function(){ return pasoIdioma(true); });
+        if(state.active) salir('https://www.admira.biz/', {ax_paso:'pata', lang:EN?'en':'es'});
+        return;
+      }
+      if(sitio==='biz' || sitio==='store'){
+        await uno(2, function(){ return pasoIdioma(false); });
+        await uno(3, pasoPuente);
+        if(state.active && state.puente) salir(state.puente.href, {ax_paso:'agente', ax_desde:sitio, lang:'en'});
+        else if(state.active){ state.active=false; pintar(); }
+        return;
+      }
+      if(!hechos[3]) hechos[3]=(query.get('lang')==='en' && (query.get('ax_desde')==='biz' || query.get('ax_desde')==='store'))?'bien':'mal';
+      await uno(4, pasoAgente);
+      if(!state.active) return;
+      state.active=false; guardar(); pintar();
+    })();
+  }
 })(window);

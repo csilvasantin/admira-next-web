@@ -439,3 +439,39 @@ test('native prime waits for successful play before pausing and resets, while an
 });
 
 test('/demo global has a distinct destination on each platform while old demos remain available',()=>{for(const host of ['www.admira.store','www.admira.biz','www.pixeria.com','www.admira.tv','www.admiranext.com']){const {api}=withLang('es',host);assert.deepEqual(snap(api.parseDemo('/demo global')),{id:'global',url:'https://www.admira.biz/demo/'});assert.equal(api.parseDemo('/demo tv').id,'tv');}});
+
+test('/demo hoy y /demo today abren el organigrama sin pisar las demos de la pata', async () => {
+  for (const host of ['www.admiranext.com', 'www.admira.biz', 'www.admira.store', 'www.xpaceos.com']) {
+    const es = withLang('es', host);
+    const hoy = es.api.parseDemo('/demo hoy');
+    assert.equal(hoy.id, 'hoy');
+    assert.equal(hoy.lang, 'es');
+    assert.equal(hoy.funcion, 'hoy');
+    const url = new URL(hoy.url);
+    assert.equal(url.hostname, 'www.admiranext.com');
+    assert.equal(url.pathname, '/arquitectura');
+    assert.equal(url.searchParams.get('ax_demo'), 'hoy');
+    assert.equal(url.searchParams.get('lang'), 'es');
+    if (host === 'www.admira.store' || host === 'www.xpaceos.com') assert.equal(es.api.parseDemo('/demo tpv'), null);
+    if (host === 'www.admiranext.com') assert.equal(es.api.parseDemo('/demo off'), null);
+    const en = withLang('en', host);
+    const today = en.api.parseDemo('/demo today');
+    assert.equal(today.lang, 'en');
+    assert.equal(new URL(today.url).searchParams.get('lang'), 'en');
+    assert.equal(en.api.parseDemo('/demo store').id, 'store');
+  }
+  const { api, location, documentElement } = withLang('es', 'www.admiranext.com');
+  let went = '';
+  location.assign = (u) => { went = u; };
+  const lines = [];
+  api.exec('/demo today', { appendChild: (li) => lines.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0 });
+  assert.equal(documentElement.lang, 'en');
+  await new Promise((r) => setTimeout(r, 700));
+  const dest = new URL(went);
+  assert.equal(dest.pathname, '/arquitectura');
+  assert.equal(dest.searchParams.get('lang'), 'en');
+  assert.equal(dest.searchParams.get('ax_demo'), 'hoy');
+  assert.match(lines.join('\n'), /Demo today/);
+  const biz = withLang('es', 'www.admira.biz');
+  assert.equal(biz.api.arquitecturaUrl('en'), 'https://www.admiranext.com/arquitectura?lang=en');
+});

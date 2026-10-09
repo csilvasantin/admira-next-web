@@ -656,16 +656,21 @@
   }
   // Native URL activation is independent of opening the avatar. Never bootstrap
   // from localhost previews, unrelated hosts or user supplied script URLs.
+  function funcionDemoHost(hostname) {
+    var h = String(hostname || '').toLowerCase().replace(/^www\./, '');
+    return ['admiranext.com','admira.biz','clearchannel.tv','admira.store','xpaceos.com','admira.studio','pixeria.com','admira.tv','admira.app','yokup.com'].indexOf(h) !== -1;
+  }
   function bootNativeDemo() {
     var url, id;
     try { url = new URL(root.location.href); id = url.searchParams.get('ax_demo'); } catch (_) { return; }
-    if (url.protocol !== 'https:' || !nativeHost(id, url.hostname)) return;
+    var funcion = id === 'hoy';
+    if (url.protocol !== 'https:' || !(funcion ? funcionDemoHost(url.hostname) : nativeHost(id, url.hostname))) return;
     if (root.AdmiraExperto || root.__admiraNativeDemoLoading) return;
     root.__admiraNativeDemoLoading = new Promise(function (resolve, reject) {
       var script = doc.querySelector('script[data-admira-demo-engine]') || doc.querySelector('script[src^="https://www.admiranext.com/suite/experto.js"]'), created = false;
       if (!script) {
         script = doc.createElement('script');
-        script.src = ORIGIN + '/suite/experto.js?v=20261007-native-demo-control-1';
+        script.src = ORIGIN + '/suite/experto.js?v=20261009-demo-hoy-1';
         script.defer = true; script.dataset.admiraDemoEngine = '1'; script.dataset.pata = id;
         created = true;
       }

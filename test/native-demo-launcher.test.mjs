@@ -33,12 +33,19 @@ test('all five native launch links have a fresh run and no TPV auto start',()=>{
 test('native boot runs without avatar, from only the matching vertical hosts',async()=>{
  for(const [id,host] of [['studio','www.admira.studio'],['store','www.admira.store'],['tv','admira.tv'],['biz','www.admira.biz'],['app','www.admira.app'],['app','www.yokup.com']]){
   const q=fixture(`https://${host}/?ax_demo=${id}`);q.boot();
-  assert.equal(q.scripts.length,1);assert.equal(q.script.dataset.pata,id);assert.equal(q.script.dataset.admiraDemoEngine,'1');assert.equal(q.script.src,'https://www.admiranext.com/suite/experto.js?v=20261007-native-demo-control-1');
+  assert.equal(q.scripts.length,1);assert.equal(q.script.dataset.pata,id);assert.equal(q.script.dataset.admiraDemoEngine,'1');assert.equal(q.script.src,'https://www.admiranext.com/suite/experto.js?v=20261009-demo-hoy-1');
   q.window.AdmiraExperto={demo(){}};q.script.events.load();assert.equal(await q.window.__admiraNativeDemoLoading,q.window.AdmiraExperto);assert.equal(q.timers.size,0);
  }
 });
+test('hoy boots on admiranext and the suite legs',()=>{
+ for(const href of ['https://www.admiranext.com/arquitectura?ax_demo=hoy','https://www.admira.biz/?ax_demo=hoy','https://www.xpaceos.com/?ax_demo=hoy']){
+  const q=fixture(href);q.boot();
+  assert.equal(q.scripts.length,1,href);assert.equal(q.script.dataset.pata,'hoy');
+  assert.equal(q.script.src,'https://www.admiranext.com/suite/experto.js?v=20261009-demo-hoy-1');
+ }
+});
 test('foreign hosts, unrelated verticals and localhost cannot bootstrap',()=>{
- for(const href of ['https://www.clearchannel.tv/?ax_demo=app','https://evil.example/?ax_demo=store','http://localhost:8770/?ax_demo=studio','https://www.admiranext.com/demo?ax_demo=studio','https://www.admira.biz/?ax_demo=store','https://www.admira.studio/?ax_demo=auto','https://www.admira.store/']){
+ for(const href of ['https://www.clearchannel.tv/?ax_demo=app','https://evil.example/?ax_demo=store','https://evil.example/?ax_demo=hoy','http://localhost:8770/?ax_demo=studio','https://www.admiranext.com/demo?ax_demo=studio','https://www.admira.biz/?ax_demo=store','https://www.admira.studio/?ax_demo=auto','https://www.admira.store/']){
   const q=fixture(href);q.boot();assert.equal(q.scripts.length,0);assert.equal(q.window.__admiraNativeDemoLoading,undefined);
  }
 });

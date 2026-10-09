@@ -49,6 +49,34 @@ function fixture({platform='store',host='www.admira.store',path='/',run='new-run
 function paused(platform='store',options={}){return fixture({platform,saved:{run:'new-run',index:0,active:true,paused:true},...options});}
 function at(index,options={}){return paused('store',{saved:{run:'new-run',index,active:true,paused:true},...options});}
 
+test('hoy walks five checked steps and does not copy a secret into the verdict',()=>{
+  assert.equal(fixture({platform:'hoy',host:'evil.example',path:'/arquitectura'}).api,undefined);
+  assert.equal(fixture({platform:'store',host:'www.admira.biz'}).api,undefined);
+  const home=fixture({platform:'hoy',host:'www.admiranext.com',path:'/'});
+  assert.equal(home.api,undefined);
+  assert.match(home.assigned[0], /\/arquitectura\?/);
+  assert.equal(new URL(home.assigned[0]).searchParams.get('ax_demo'),'hoy');
+  const f=fixture({platform:'hoy',host:'www.admiranext.com',path:'/arquitectura',run:'hoy-1'});
+  assert.equal(f.api.state().demo,'hoy');
+  assert.equal([...f.api.steps()].map(s=>s.id).join(','),'caja,idioma,idioma-pata,architecture,agentes');
+  assert.equal(f.api.valorarIdioma([
+    {titulo:'Organigrama tecnológico',tituloDoc:'Organigrama tecnológico · ADmiraNeXT',cuerpo:'Cómo se hablan las webs'},
+    {titulo:'Technology org chart',tituloDoc:'Technology org chart · ADmiraNeXT',cuerpo:'How the Admira websites talk'},
+    {titulo:'Organigrama tecnológico',tituloDoc:'Organigrama tecnológico · ADmiraNeXT',cuerpo:'Cómo se hablan las webs'}
+  ],true).estado,'bien');
+  assert.equal(f.api.valorarIdioma([
+    {titulo:'Organigrama tecnológico',tituloDoc:'Organigrama tecnológico',cuerpo:'igual'},
+    {titulo:'Organigrama tecnológico',tituloDoc:'Organigrama tecnológico',cuerpo:'igual'}
+  ],true).estado,'mal');
+  const pendiente=f.api.valorarAgente(200,{ok:true,desplegado:true,sesion:false,nombre:null,token:'no-se-copia'});
+  assert.equal(pendiente.estado,'pendiente');
+  assert.doesNotMatch(pendiente.detalle,/no-se-copia/);
+  assert.equal(f.api.valorarAgente(404,{desplegado:false}).estado,'pendiente');
+  assert.match(f.api.valorarAgente(200,{sesion:true,nombre:'SmithMacMini',desplegado:true}).detalle,/200 · SmithMacMini/);
+  f.api.control('stop');
+  assert.equal(f.api.state().activo,false);
+  assert.equal(f.document.getElementById('admira-native-demo'),null);
+});
 test('native engine rejects a foreign host, wrong platform and embedded frame',()=>{
   for(const host of ['evil.example','admira.store.evil.example','www.admira.biz'])assert.equal(fixture({host}).api,undefined);
   assert.equal(fixture({platform:'unknown'}).api,undefined);
