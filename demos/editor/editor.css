@@ -27,7 +27,6 @@
   max-height: calc(100dvh - var(--yk-bar-h, 46px) - 160px);
   overflow: auto;
 }
-.biblioteca { padding-bottom: calc(12px + var(--editor-rail, 72px)); }
 .biblioteca, .escenario, .pasos, .inspector, #reproductor, dialog {
   background: var(--yk-bg);
   border: 1px solid var(--yk-line2);
@@ -35,6 +34,7 @@
   border-radius: 14px;
   padding: 12px;
 }
+.biblioteca { padding-bottom: calc(12px + var(--editor-rail, 72px)); }
 .editor-pagina :is(button, select, input:not([type="checkbox"])) {
   font: inherit;
   color: var(--yk-ink);
