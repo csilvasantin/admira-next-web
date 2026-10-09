@@ -1292,7 +1292,7 @@
     if ((!nativo && !macro) || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
     var loader = document.createElement('script');
     var base;try { base = new URL(script.src || 'https://www.admiranext.com/suite/experto.js'); } catch (_) { base = new URL('https://www.admiranext.com/suite/experto.js'); }
-    loader.src = new URL('/suite/demo-control.js?v=20261009-macro-5462',base.origin).href;
+    loader.src = new URL('/suite/demo-control.js?v=20261009-marca-5463',base.origin).href;
     loader.setAttribute('data-admira-native-control','');
     loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
     document.head.appendChild(loader);

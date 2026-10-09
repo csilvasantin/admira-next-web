@@ -83,3 +83,34 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
   }
   .barra { align-items: stretch; }
 }
+
+/* Marca blanca (encargo #5463). Sin marca, el editor sigue con su piel.
+   Con /marca o /brand, los paneles usan los mismos tokens que el resto de la Suite. */
+:root[data-mb-marca] .editor-pagina {
+  color: var(--mbx-ink, #f4f1ea);
+  font-family: var(--mb-fuente-texto, "Chakra Petch"), system-ui, sans-serif;
+}
+:root[data-mb-marca] .editor-pagina :is(h1, h2, h3) {
+  font-family: var(--mb-fuente-titulos, inherit);
+  letter-spacing: var(--mb-titulos-tracking, normal);
+}
+:root[data-mb-marca] :is(.biblioteca, .escenario, .pasos, .inspector, #reproductor, dialog) {
+  background: var(--mb-superficie, #14111c);
+  border-color: var(--mb-borde, #3b3358);
+  color: var(--mbx-ink, #f4f1ea);
+}
+:root[data-mb-marca] .editor-pagina :is(button, input, select, .sitio li, .tarjeta, .salto, #soltar) {
+  background: var(--mb-fondo, #221c30);
+  border-color: var(--mb-borde, #5c5478);
+  color: var(--mbx-ink, #f4f1ea);
+}
+:root[data-mb-marca] .editor-pagina :is(button, input, select):focus-visible,
+:root[data-mb-marca] .sel {
+  outline-color: var(--mbx-brand, #FFCC00);
+  border-color: var(--mbx-brand, #FFCC00) !important;
+}
+:root[data-mb-marca] :is(#atajo, #aviso, #resumen, .tarjeta small, .tarjeta em, .vacio, #soltar) {
+  color: var(--mbx-mut, #c9c2b2);
+}
+:root[data-mb-marca] .salto { color: var(--mbx-brand, #FFCC00); }
+:root[data-mb-marca] #reproductor { border-color: var(--mbx-brand, #9bd6bc); }
