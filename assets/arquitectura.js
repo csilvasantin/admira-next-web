@@ -130,7 +130,7 @@
       var t1 = svg('text', {x: n.x, y: y + 23, 'text-anchor': 'middle', class: 't1', fill: PRINCIPALES.indexOf(n.id) >= 0 ? c : '#dfe6ef'});
       t1.textContent = n.dominio; g.appendChild(t1);
       var t2 = svg('text', {x: n.x, y: y + 40, 'text-anchor': 'middle', class: 't2'});
-      t2.textContent = PRINCIPALES.indexOf(n.id) >= 0 ? (n.alias.length ? '= ' + n.alias.join(' · ') : TXT[lang()].tipo[n.tipo]) : tx.nombre;
+      t2.textContent = PRINCIPALES.indexOf(n.id) >= 0 ? (n.alias.length ? '= ' + n.alias.join(' · ') : TXT[lang()].tipo[n.tipo]) : (tx.corto || tx.nombre);
       g.appendChild(t2);
       var t3 = svg('text', {x: n.x, y: y + 55, 'text-anchor': 'middle', class: 't3'});
       t3.textContent = version(n) || (n.consejero && n.consejero !== '—' ? n.consejero : '');

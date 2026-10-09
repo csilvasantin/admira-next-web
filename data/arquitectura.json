@@ -766,7 +766,8 @@
     "consume": [
      "Google (FedCM/OAuth)"
     ],
-    "cambios": []
+    "cambios": [],
+    "corto": "Acceso con Google"
    },
    "en": {
     "nombre": "Access (Google + allow list)",
@@ -778,7 +779,8 @@
     "consume": [
      "Google (FedCM/OAuth)"
     ],
-    "cambios": []
+    "cambios": [],
+    "corto": "Google sign-in"
    }
   },
   {
