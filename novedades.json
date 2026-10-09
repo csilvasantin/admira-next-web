@@ -307,5 +307,10 @@
   ],
   "v.09.10.2026.r5.06:35": [
     "⌘ Experto: /idioma y /language avisan también con admira:languagechange, así xpaceos.com (y las patas con xpace-lang.js) traducen toda la página, no solo la barra."
+  ],
+  "v.09.10.2026.r10.12:59": [
+    "/normativa completa en inglés: las 30 normas, sus tablas y fórmulas cambian con /idioma ENG y vuelven con /idioma ESP",
+    "El armazón aplica bloques data-en: un párrafo entero con su versión inglesa, sin trocearlo por negritas y código",
+    "Prueba automática: falla si más del 10 % del texto visible de una página traducida queda sin versión inglesa"
   ]
 }

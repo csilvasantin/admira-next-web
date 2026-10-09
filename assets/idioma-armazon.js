@@ -201,6 +201,53 @@
     [/^Consejero: (.+) · (\w+)$/, 'Counsellor: $1 · $2']
   ];
 
+  // /normativa (09-10-2026): la prosa va en data-en por bloque (ver admira-frame.js, traducirBloques).
+  // Aquí solo lo que queda suelto entre etiquetas: las tres máximas de cabecera y el pie.
+  var diccNormativa = {
+    'Ningún agente existe sin el apellido de su máquina': 'No agent exists without the surname of its machine',
+    'Todo trabajo comparte una única secuencia diaria': 'All work shares a single daily sequence',
+    'Nadie trabaja sin haberse introducido': 'Nobody works without having introduced themselves',
+    'Fuente canónica →': 'Canonical source →',
+    'Contrato operativo del equipo de silicio de': 'Operating contract of the silicon team of',
+    'La normativa crece aquí, numerada y verificable · fuente única de identidad': 'The rules grow here, numbered and verifiable · single source of identity',
+    'Ver también': 'See also',
+    'espejo operativo en': 'operational mirror at'
+  };
+  A.anadir(diccNormativa, []);
+  // Títulos de las normas: el armazón los copia a su índice (☰ Opciones), fuera de los bloques data-en.
+  var titulosNormativa = {
+    "El nombre único es el identificador; el equipo acompaña": "The unique name is the identifier; the machine goes alongside",
+    "Diccionario único de equipos": "Single dictionary of machines",
+    "Los nombres antiguos se leen; no se propagan": "Old names are read; they are not propagated",
+    "Todo trabajo dice en qué equipo se hizo": "All work states which machine it was done on",
+    "Una referencia para todo el trabajo": "One reference for all work",
+    "La doctrina que crece se renumera y se anuncia": "Doctrine that grows is renumbered and announced",
+    "Una sola forma de decir la versión": "One single way to state the version",
+    "Todo cambio se firma por su responsable y su equipo": "Every change is signed by whoever is responsible and their machine",
+    "Cada cambio publicado, una versión nueva": "Every published change, a new version",
+    "OnIdle horario: tres acciones cuando el equipo está desatendido": "Hourly OnIdle: three actions when the team is unattended",
+    "Modo rápido siempre puesto": "Fast mode always on",
+    "El proyecto acompaña al agente responsable": "The project accompanies the responsible agent",
+    "Siempre la última versión — y su autor": "Always the latest version — and its author",
+    "Lo que se decide y lo que se hace se da de alta, siempre": "What is decided and what is done is always registered",
+    "Tu identidad se comprueba en tu sesión, no se copia del censo": "Your identity is checked in your session, not copied from the census",
+    "A un consejero se le enseña con guiones, no con vídeos": "An adviser is taught with scripts, not with videos",
+    "Cada cierre declara sus puntos y el total verificado": "Every closure declares its points and the verified total",
+    "Introducirse: el día empieza dándose de alta": "Introducing yourself: the day starts by signing up",
+    "Dos Xpacios, un origen y responsabilidades distintas": "Two Xpacios, one origin and distinct responsibilities",
+    "App de escritorio solo donde hay un humano; el resto, CLI": "Desktop app only where there is a human; everything else, CLI",
+    "Tarea, mision u objetivo — y todo encargo declara lo que produjo": "Task, mission or objective — and every order declares what it produced",
+    "El cierre son tres líneas, y son las mismas corras donde corras": "The close-out is three lines, and they are the same wherever you run",
+    "Cositas: delegar es obligatorio y el cierre declara el contexto gastado": "Cositas: delegation is mandatory and the close-out declares the context spent",
+    "Cada proyecto abre dos puertas: /help para el carbono y /mcp para el silicio": "Every project opens two doors: /help for carbon and /mcp for silicon",
+    "El aviso de recarga dice la versión, no que hay una versión": "The reload notice states the version, not that there is a version",
+    "Todo agente tiene un proyecto principal, y se declara donde se mira": "Every agent has a main project, and declares it where people look",
+    "El alta y el cierre son la misma obligación, y alcanzan a todos": "Registration and closing are the same obligation, and they apply to everyone",
+    "Todos entran en todos los proyectos; uno responde, todos cuidan": "Everyone enters every project; one answers for it, everyone looks after it",
+    "Sesión corta; contexto largo es basura cara": "Short session; long context is expensive garbage",
+    "La misión y el encargo no comparten número": "Mission and order do not share a number"
+  };
+  A.anadir(titulosNormativa, []);
   A.anadir(diccFlota, reglasFlota);
   A.anadir(diccConsejo, reglasConsejo);
   if (A.aplicar) A.aplicar();

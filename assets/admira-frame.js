@@ -149,7 +149,8 @@
   }
   var originales = typeof WeakMap === 'function' ? new WeakMap() : null;
   var ATRS_DICC = ['aria-label', 'title', 'placeholder'];
-  var FUERA = '.yk-cli-out, .ax-cli-out, .ax-engine, script, style, textarea, [contenteditable], [data-yk-no-traducir]';
+  // [data-en]: el bloque trae su propia versión inglesa entera (ver traducirBloques); el diccionario no entra.
+  var FUERA = '.yk-cli-out, .ax-cli-out, .ax-engine, script, style, textarea, [contenteditable], [data-yk-no-traducir], [data-en]';
   // Los atributos (placeholder de un textarea, title…) sí se traducen aunque el texto de dentro no.
   var FUERA_ATR = '.yk-cli-out, .ax-cli-out, .ax-engine, script, style, [contenteditable], [data-yk-no-traducir]';
   function traducirTextoNodo(n, en) {
@@ -202,7 +203,7 @@
           lista.forEach(function (r) {
             if (r.type === 'characterData') traducirZona(r.target, true);
             else if (r.type === 'attributes') { if (r.target.closest && !r.target.closest(FUERA_ATR)) traducirAtributos(r.target, true); }
-            else Array.prototype.forEach.call(r.addedNodes || [], function (x) { traducirZona(x, true); });
+            else Array.prototype.forEach.call(r.addedNodes || [], function (x) { traducirBloques(x, true); traducirZona(x, true); });
           });
         } catch (e) { /* una traducción fallida no rompe la página */ }
       });
@@ -219,18 +220,59 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261009-auditoria-5434';
+  var IDIOMA_STAMP = '20261009-idioma-normativa-1';
   function aplicarIdioma(forzar) {
     var en = enIngles();
     if (!forzar && idiomaPintado === en) return;
     idiomaPintado = en;
     if (en) pedirDiccionario();
     // Traducir nunca puede tumbar el armazón: si algo falla, se queda como estaba.
+    try { traducirBloques(body, en); } catch (e) { /* el bloque se queda en el idioma anterior */ }
     try { zonasIdioma.forEach(function (z) { traducirZona(z, en); }); } catch (e) { /* sigue en el idioma anterior */ }
     try { vigilar(en); } catch (e) { /* sin vigía: se traduce lo que hay */ }
     // La cabecera cambia de ancho: que vuelva a medir y a plegar su navegación.
     try { if (typeof G.dispatchEvent === 'function' && typeof Event === 'function') G.dispatchEvent(new Event('resize')); } catch (e) { /* nada */ }
   }
+  // BLOQUES CON data-en (09-10-2026 · traducción completa de /normativa). El diccionario traduce
+  // nodos de texto sueltos, y eso no sirve para la prosa: un párrafo con negritas y código dentro
+  // son seis nodos, y traducidos uno a uno salía «Los Commandments fijan…». Un bloque (p, td, h2…)
+  // puede traer su versión inglesa ENTERA en data-en, con su HTML: al pedir inglés se pone, y al
+  // volver a castellano se repone el original. data-en-title, data-en-placeholder y
+  // data-en-aria-label hacen lo mismo con esos atributos. Es el contrato que ya anunciaba la
+  // cabecera de este fichero y que usa admira.live.
+  var bloquesEs = typeof WeakMap === 'function' ? new WeakMap() : null;
+  var ATRS_BLOQUE = ['title', 'placeholder', 'aria-label'];
+  var NO_BLOQUE = 'script, style, textarea, [contenteditable], [data-yk-no-traducir]';
+  function traducirBloque(e, en) {
+    if (!e.getAttribute || (e.parentNode && e.parentNode.closest && e.parentNode.closest(NO_BLOQUE))) return;
+    var reg = bloquesEs.get(e);
+    if (e.hasAttribute('data-en')) {
+      var actual = e.innerHTML;
+      // La página reescribió el bloque (no es ni el original ni nuestra traducción): manda lo nuevo.
+      if (reg && reg.en != null && actual !== reg.es && actual !== reg.en) reg = null;
+      if (en) {
+        if (!reg) { reg = {es: actual, en: null, atr: {}}; bloquesEs.set(e, reg); }
+        if (reg.en == null || actual !== reg.en) { e.innerHTML = e.getAttribute('data-en'); reg.en = e.innerHTML; }
+      } else if (reg && reg.en != null && actual === reg.en) e.innerHTML = reg.es;
+    }
+    ATRS_BLOQUE.forEach(function (a) {
+      var t = e.getAttribute('data-en-' + a);
+      if (t == null) return;
+      if (!reg) { reg = {es: null, en: null, atr: {}}; bloquesEs.set(e, reg); }
+      var ahora = e.getAttribute(a);
+      if (en) { if (ahora !== t) { reg.atr[a] = ahora; e.setAttribute(a, t); } }
+      else if (ahora === t && Object.prototype.hasOwnProperty.call(reg.atr, a)) {
+        if (reg.atr[a] == null) e.removeAttribute(a); else e.setAttribute(a, reg.atr[a]);
+      }
+    });
+  }
+  var SEL_BLOQUE = '[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label]';
+  function traducirBloques(zona, en) {
+    if (!bloquesEs || !zona || zona.nodeType !== 1 || !zona.querySelectorAll) return;
+    if (zona.matches && zona.matches(SEL_BLOQUE)) traducirBloque(zona, en);
+    Array.prototype.forEach.call(zona.querySelectorAll(SEL_BLOQUE), function (e) { traducirBloque(e, en); });
+  }
+
   // /assets/idioma-armazon.js añade aquí su diccionario y sus reglas ([RegExp, reemplazo|función]).
   G.AdmiraIdiomaArmazon = {
     anadir: function (dicc, reglas) {
@@ -1022,7 +1064,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261009-auditoria-5434';
+  script.src = '/assets/experto-admiranext.js?v=20261009-idioma-normativa-1';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
