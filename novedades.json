@@ -265,5 +265,10 @@
     "/demo global: guía Sneakers Store desde las cinco soluciones.",
     "Proyecto y local Santa Rosa 19 asociados al gemelo SneakerStore.",
     "Mantiene las demos anteriores y la validación de acceso central."
+  ],
+  "v.09.10.2026.r1.06:03": [
+    "/arquitectura: organigrama tecnológico de admiranext.com, las cinco patas, admira.live y los servicios compartidos, con fichas, tabla de relaciones y versiones vivas (ES/EN).",
+    "/api/arquitectura: los mismos datos en JSON, con CORS abierto, para que otras webs los reutilicen.",
+    "Enlace desde /organigrama y desde el mapa del sitio (☰)."
   ]
 }
