@@ -1,5 +1,7 @@
 // Esquema admira.demo/2. Parte de las reglas de editor-catalogo.mjs
 // (id estable, URL https, sin ejecutar pasos) y no admite JavaScript libre.
+import { slugValido } from './nombres-demo.mjs';
+
 export const ESQUEMA = 'admira.demo/2';
 export const SITIOS = ['biz', 'store', 'studio', 'app', 'tv'];
 export const OPS = ['navigate', 'say', 'point', 'click', 'open', 'close', 'fill', 'select', 'video', 'audio', 'wait', 'cli', 'check', 'native'];
@@ -58,9 +60,13 @@ export function comandoPermitido(command) {
   if (texto === '/demo' || texto === '/help' || texto === '/idioma' || texto === '/language') return true;
   const partes = texto.split(/\s+/);
   if (partes.length === 2 && partes[0] === '/demos' && (partes[1] === 'editar' || partes[1] === 'edit')) return true;
+  const slugSuelto = (valor) => /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(valor || '') && !['ayuda', 'editar', 'edit', 'pausa', 'pause', 'reanudar', 'resume', 'continuar', 'parar', 'stop', 'off', 'auto', 'todas', 'todos', 'all', 'estado', 'status', 'siguiente', 'next', 'sig', 'global', 'soluciones', 'solutions', 'pixeria', 'yokup', 'demos'].includes(valor);
+  if (partes.length === 3 && partes[0] === '/demo' && slugSuelto(partes[1]) && slugSuelto(partes[2])) return true;
   if (partes.length !== 2 || partes[0] !== '/demo') return false;
   const arg = partes[1];
-  return VERBOS.includes(arg) || /^[1-9]\d?$/.test(arg) || /^(biz|store|studio|app|tv)\/[a-z0-9-]{1,40}$/.test(arg) || /^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(arg);
+  if (VERBOS.includes(arg) || arg === 'ayuda' || /^[1-9]\d?$/.test(arg) || /^(biz|store|studio|app|tv)\/[a-z0-9-]{1,40}$/.test(arg)) return true;
+  if (slugSuelto(arg)) return true;
+  return /^[a-z][a-z0-9-]*\.[a-z][a-z0-9-]*$/.test(arg);
 }
 
 export { urlDePieza } from './macro-url.mjs';
@@ -165,7 +171,7 @@ export function validarPaso(raw) {
 
 function validarSubdemo(raw, site) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fallo('Subdemo no válida');
-  const claves = ['id', 'n', 'title', 'url', 'mode', 'steps', 'aliases'];
+  const claves = ['id', 'n', 'title', 'url', 'mode', 'steps', 'aliases', 'slug'];
   if (Object.keys(raw).some((key) => !claves.includes(key))) fallo('La subdemo lleva un campo desconocido');
   if (!idOk(raw.id)) fallo('ID: usa minúsculas, números y guiones (máximo 40)');
   if (!Number.isInteger(raw.n) || raw.n < 1 || raw.n > 40) fallo('El número de la subdemo no es válido');
@@ -182,6 +188,10 @@ function validarSubdemo(raw, site) {
   if (raw.aliases !== undefined) {
     if (!Array.isArray(raw.aliases) || raw.aliases.length > 20 || raw.aliases.some((alias) => typeof alias !== 'string' || !alias.trim() || alias.length > 80)) fallo('Aliases no válidos');
     sub.aliases = raw.aliases.map((alias) => alias.trim());
+  }
+  if (raw.slug !== undefined) {
+    if (!slugValido(raw.slug)) fallo('Nombre de comando no válido');
+    sub.slug = raw.slug;
   }
   if (new URL(sub.url).protocol !== 'https:') fallo(site + '/' + sub.id + ': la subdemo se abre por https');
   return sub;
@@ -224,7 +234,7 @@ export function validar(raw) {
 }
 
 function validarMacro(raw) {
-  const claves = ['schema', 'kind', 'id', 'title', 'context', 'transition', 'items', 'status', 'version'];
+  const claves = ['schema', 'kind', 'id', 'title', 'context', 'transition', 'items', 'status', 'version', 'slug', 'aliases'];
   if (Object.keys(raw).some((key) => !claves.includes(key))) fallo('La macro lleva un campo desconocido');
   if (!idOk(raw.id)) fallo('ID de macro no válido');
   if (!['draft', 'published', 'deleted'].includes(raw.status)) fallo('La macro está en borrador o publicada');
@@ -241,7 +251,7 @@ function validarMacro(raw) {
     if (!item || Object.keys(item).some((key) => key !== 'ref') || !/^(biz|store|studio|app|tv)\/[a-z0-9-]{1,40}$/.test(item.ref || '')) fallo('La pieza cita sitio/subdemo');
     return { ref: item.ref };
   });
-  return {
+  const macro = {
     schema: ESQUEMA,
     kind: 'macro',
     id: raw.id,
@@ -252,6 +262,18 @@ function validarMacro(raw) {
     status: raw.status,
     version: raw.version,
   };
+  if (raw.slug !== undefined) {
+    if (!slugValido(raw.slug)) fallo('Nombre de comando no válido');
+    macro.slug = raw.slug;
+  }
+  if (raw.aliases !== undefined) {
+    if (!Array.isArray(raw.aliases) || raw.aliases.length > 20) fallo('Aliases no válidos');
+    const aliases = raw.aliases.map((alias) => String(alias || '').trim().toLowerCase());
+    if (aliases.some((alias) => !slugValido(alias)) || new Set(aliases).size !== aliases.length) fallo('Aliases no válidos');
+    if (macro.slug && aliases.includes(macro.slug)) fallo('El alias repite el nombre');
+    macro.aliases = aliases;
+  }
+  return macro;
 }
 
 function guionAPaso(fila) {

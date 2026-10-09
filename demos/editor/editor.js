@@ -1,8 +1,8 @@
 import {
-  OPS, SITIOS, agregarSubdemo, anotar, colorDe, coincide, crearHistorial, demoNueva, deshacer,
+  OPS, SITIOS, aSlug, agregarSubdemo, anotar, choque, colorDe, coincide, comandoDe, crearHistorial, demoNueva, deshacer,
   documentoMacro, duplicarMacro, duplicarSubdemo, duracionDe, filasMacro, letra, localizar,
-  lineaEstado, macroVacia, moverItem, pasoVacio, quitarItem, quitarSubdemo, resumenMacro, selectoresConocidos,
-  sitioDe, t, textoDuracion, urlDePieza,
+  lineaEstado, macroVacia, moverItem, pasoVacio, quitarItem, quitarSubdemo, renombrarComando, resumenMacro, selectoresConocidos,
+  sitioDe, slugValido, t, textoDuracion, urlDePieza,
 } from './modelo.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -111,6 +111,96 @@ function aviso(texto) {
   $('aviso').textContent = texto || '';
 }
 
+function anotarEnExperto(doc) {
+  const api = window.AdmiraExperto;
+  if (api && typeof api.anotarNombres === 'function') api.anotarNombres([doc.slug, ...(doc.aliases || [])]);
+}
+
+function abrirCampoSlug(chip, actual, aplicar) {
+  if (!chip || document.querySelector('.slug-input')) return;
+  const input = document.createElement('input');
+  input.className = 'slug-input';
+  input.value = actual || '';
+  input.maxLength = 40;
+  input.spellcheck = false;
+  input.setAttribute('aria-label', t(estado.lang, 'slug'));
+  const fijo = chip.id === 'pastilla';
+  if (fijo) {
+    chip.hidden = true;
+    chip.after(input);
+  } else chip.replaceWith(input);
+  input.focus();
+  input.select();
+  let cerrado = false;
+  const cerrar = (guardar) => {
+    if (cerrado) return;
+    cerrado = true;
+    if (fijo) {
+      input.remove();
+      chip.hidden = false;
+    }
+    if (guardar) aplicar(input.value);
+    else pintar();
+  };
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); cerrar(true); }
+    if (event.key === 'Escape') { event.preventDefault(); cerrar(false); }
+  });
+  input.addEventListener('blur', () => cerrar(true));
+}
+
+function abrirSlugMacro(id) {
+  const macro = (id && estado.macros.find((item) => item.id === id)) || estado.macro;
+  if (!macro) return;
+  const fila = id
+    ? [...document.querySelectorAll('#lista-macros button')].find((boton) => boton.querySelector('.slug') && boton.classList.contains('sel'))
+    : null;
+  const chip = (fila && fila.querySelector('.slug')) || $('pastilla');
+  abrirCampoSlug(chip, comandoDe(macro) || aSlug(macro.title && macro.title.es), (valor) => confirmarSlugMacro(macro, valor));
+}
+
+function confirmarSlugMacro(macro, valor) {
+  const propuesta = renombrarComando(macro.slug || macro.id ? macro : { ...macro, id: aSlug(valor) }, valor);
+  if (!propuesta.ok || !slugValido(aSlug(valor))) { aviso(t(estado.lang, 'slugOcupado')); pintar(); return; }
+  const doc = { ...propuesta.doc, kind: 'macro', id: macro.id || propuesta.doc.slug };
+  if (choque(estado.demos.concat(estado.macros), doc)) { aviso(t(estado.lang, 'slugOcupado')); pintar(); return; }
+  const enLista = estado.macros.find((item) => item.id === macro.id);
+  tocar(() => {
+    if (!estado.macro.id) estado.macro.id = doc.id;
+    estado.macro.slug = doc.slug;
+    estado.macro.aliases = doc.aliases || [];
+    estado.macro.status = 'draft';
+    if (enLista && enLista !== estado.macro) {
+      enLista.slug = doc.slug;
+      enLista.aliases = doc.aliases || [];
+    }
+  });
+  anotarEnExperto(doc);
+}
+
+function abrirSlugSub(ref) {
+  const { demo, sub } = localizar(estado.demos, ref);
+  if (!demo || !sub) return;
+  const chip = document.querySelector('#arbol li.sel .slug');
+  abrirCampoSlug(chip, comandoDe(sub), (valor) => confirmarSlugSub(demo, sub, valor));
+}
+
+function confirmarSlugSub(demo, sub, valor) {
+  const propuesta = renombrarComando(sub, valor);
+  if (!propuesta.ok) { aviso(t(estado.lang, 'slugOcupado')); pintar(); return; }
+  const copia = {
+    ...demo,
+    kind: 'demo',
+    subdemos: demo.subdemos.map((item) => (item.id === sub.id ? propuesta.doc : item)),
+  };
+  if (choque(estado.demos.concat(estado.macros), copia)) { aviso(t(estado.lang, 'slugOcupado')); pintar(); return; }
+  tocar(() => {
+    Object.assign(sub, propuesta.doc);
+    estado.sucios.add(demo.id);
+  });
+  anotarEnExperto(propuesta.doc);
+}
+
 function pintarBiblioteca() {
   const arbol = $('arbol');
   arbol.replaceChildren();
@@ -136,8 +226,31 @@ function pintarBiblioteca() {
         const marca = document.createElement('b');
         marca.textContent = letra(sub.n);
         const nombre = document.createElement('span');
+        nombre.className = 'titulo-demo';
         nombre.textContent = titulo(sub.title);
-        li.append(marca, nombre);
+        const chip = document.createElement('small');
+        chip.className = 'slug';
+        chip.textContent = comandoDe(sub);
+        chip.addEventListener('click', (event) => {
+          event.stopPropagation();
+          estado.ref = li.dataset.ref;
+          estado.paso = -1;
+          pintar();
+          abrirSlugSub(li.dataset.ref);
+        });
+        nombre.addEventListener('click', (event) => {
+          event.stopPropagation();
+          estado.ref = li.dataset.ref;
+          estado.paso = -1;
+          pintar();
+          abrirSlugSub(li.dataset.ref);
+        });
+        nombre.addEventListener('dblclick', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          abrirSlugSub(li.dataset.ref);
+        });
+        li.append(marca, nombre, chip);
         li.addEventListener('dragstart', (event) => {
           event.dataTransfer.setData('text/plain', 'ref:' + li.dataset.ref);
           event.dataTransfer.effectAllowed = 'copy';
@@ -168,8 +281,34 @@ function pintarBiblioteca() {
     if (!coincide([titulo(macro.title), macro.id], estado.consulta)) continue;
     const boton = document.createElement('button');
     boton.type = 'button';
-    boton.textContent = titulo(macro.title);
     boton.className = estado.macro.id === macro.id ? 'sel' : '';
+    const nombre = document.createElement('span');
+    nombre.className = 'titulo-demo';
+    nombre.textContent = titulo(macro.title);
+    const chip = document.createElement('small');
+    chip.className = 'slug';
+    chip.textContent = comandoDe(macro);
+    nombre.addEventListener('click', (event) => {
+      event.stopPropagation();
+      cargarMacro(macro);
+      abrirSlugMacro(macro.id);
+    });
+    nombre.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      abrirSlugMacro(macro.id);
+    });
+    chip.addEventListener('click', (event) => {
+      event.stopPropagation();
+      cargarMacro(macro);
+      abrirSlugMacro(macro.id);
+    });
+    boton.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+      cargarMacro(macro);
+      abrirSlugMacro(macro.id);
+    });
+    boton.append(nombre, chip);
     boton.addEventListener('click', () => cargarMacro(macro));
     macros.append(boton);
     macrosVisibles += 1;
@@ -236,9 +375,21 @@ function pintarFila() {
     guia.textContent = t(estado.lang, 'guiaMacro');
     soltar.append(guia);
   }
-  const datos = resumenMacro(estado.macro.items, estado.demos, estado.macro.status, estado.lang);
+  const datos = resumenMacro(estado.macro.items, estado.demos, estado.macro.status, estado.lang, comandoDe(estado.macro));
   $('resumen').textContent = lineaEstado(datos, estado.lang);
   $('pastilla').textContent = datos.comando;
+  let nota = $('alias-nota');
+  if (!nota) {
+    nota = document.createElement('p');
+    nota.id = 'alias-nota';
+    nota.className = 'alias-nota';
+    $('pastilla').after(nota);
+  }
+  nota.textContent = estado.macro.aliases && estado.macro.aliases.length
+    ? t(estado.lang, 'alias') + ' ' + estado.macro.aliases.join(', ')
+    : '';
+  $('pastilla').onclick = () => abrirSlugMacro(estado.macro.id);
+  $('pastilla').ondblclick = () => abrirSlugMacro(estado.macro.id);
 }
 
 function pintarPasos() {
