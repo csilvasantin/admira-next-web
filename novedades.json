@@ -337,5 +337,10 @@
   ],
   "v.09.10.2026.r5.06:35": [
     "⌘ Experto: /idioma y /language avisan también con admira:languagechange, así xpaceos.com (y las patas con xpace-lang.js) traducen toda la página, no solo la barra."
+  ],
+  "v.09.10.2026.r15.15:04": [
+    "Demo Pixeria novedades: ocho capítulos y vídeo narrado en español e inglés hasta el gemelo 360.",
+    "Comando /demo pixeria novedades disponible desde Experto, con pausa, avance y reanudación.",
+    "Entrada temporal editable y eliminable desde el editor de demos; otras demos y campañas se conservan."
   ]
 }
