@@ -280,5 +280,8 @@
   ],
   "v.09.10.2026.r4.06:26": [
     "⌘ Experto: al alternar con /idioma o /language, el ?lang= de la URL se actualiza también, así recargar la página mantiene el idioma elegido."
+  ],
+  "v.09.10.2026.r5.06:35": [
+    "⌘ Experto: /idioma y /language avisan también con admira:languagechange, así xpaceos.com (y las patas con xpace-lang.js) traducen toda la página, no solo la barra."
   ]
 }
