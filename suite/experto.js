@@ -168,6 +168,9 @@
     } catch (_) {}
     try { document.dispatchEvent(new CustomEvent('admiranext:lang', {detail: {lang: l}})); } catch (_) {}
     try { root.dispatchEvent(new CustomEvent('admiranext:lang', {detail: {lang: l}})); } catch (_) {}
+    // Contrato de idioma de las patas con contenido bilingüe propio (xpaceos/admira.store:
+    // assets/xpace-lang.js escucha admira:languagechange en window y repinta la página).
+    try { root.dispatchEvent(new CustomEvent('admira:languagechange', {detail: {lang: l, source: 'admira-experto'}})); } catch (_) {}
     paint();
     return l;
   }
