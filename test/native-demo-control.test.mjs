@@ -68,6 +68,12 @@ test('hoy walks five checked steps and does not copy a secret into the verdict',
     {titulo:'Organigrama tecnológico',tituloDoc:'Organigrama tecnológico',cuerpo:'igual'},
     {titulo:'Organigrama tecnológico',tituloDoc:'Organigrama tecnológico',cuerpo:'igual'}
   ],true).estado,'mal');
+  const pata=f.api.valorarIdioma([
+    {titulo:'Retail Media en el mundo real',tituloDoc:'Mapa de espacios comerciales | admira.biz',cuerpo:'Login · Modo avanzado'},
+    {titulo:'Retail Media in the real world',tituloDoc:'Mapa de espacios comerciales | admira.biz',cuerpo:'Login · Advanced mode'}
+  ],false);
+  assert.equal(pata.estado,'bien');
+  assert.match(pata.detalle,/pestaña se queda/);
   const pendiente=f.api.valorarAgente(200,{ok:true,desplegado:true,sesion:false,nombre:null,token:'no-se-copia'});
   assert.equal(pendiente.estado,'pendiente');
   assert.doesNotMatch(pendiente.detalle,/no-se-copia/);
