@@ -1,5 +1,11 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.09.10.2026.r13.13:44": [
+    "/neo58: prueba en vivo de Neo en Unreal 5.8, con la boca movida por el audio y voz Good o Best.",
+    "Detrás de la zona desmilitarizada: solo entra quien tiene sesión del directorio de AdmiraNeXT.",
+    "Sin sesión no sale la página, ni el vídeo, ni se acepta una frase; la dirección directa del Mac pide clave.",
+    "Volver atrás: etiqueta retorno/pre-neo58-20261009, sello v.09.10.2026.r12.13:32"
+  ],
   "v.09.10.2026.r12.13:32": [
     "/normativa, /help, /mcp y /telegram pasan a inglés con /idioma y vuelven a español.",
     "Cada bloque lleva su versión inglesa entera. El código y los comandos se quedan como están.",

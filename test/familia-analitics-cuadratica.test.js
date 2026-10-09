@@ -76,7 +76,8 @@ const ADOPTADAS = {
 const EXCEPCIONES = {
   'libro-de-estilo.html': 'Style Book: zona protegida desde el 06-10-2026 (destino de la puerta de login), pero es el libro de estilo con su propia maqueta editorial y no lleva la barra del grupo.',
   '/avatar-metricas': 'Panel de métricas del avatar para clientes (Starbucks): lo genera en el edge functions/avatar-metricas.js con maqueta de marca clara para enseñarlo al cliente, sin la barra interna del grupo.',
-  '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.'
+  '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.',
+  '/neo58/': 'Prueba en vivo de Neo (09-10-2026): la página no es del sitio, la sirve un Mac a través de functions/neo58 tras exigir sesión; es un banco de pruebas temporal a pantalla completa y no lleva la barra del grupo.'
 };
 
 const NAV_GRUPO = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flota', '/organigrama', '/roadmap', '/presentaciones/', '/xpace/manage'];
