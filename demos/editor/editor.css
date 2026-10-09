@@ -1,0 +1,85 @@
+.editor-pagina {
+  color: #f4f1ea;
+  font: 16px/1.4 "Chakra Petch", system-ui, sans-serif;
+  padding: 12px;
+}
+.barra, .acciones, .mas { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.barra { justify-content: space-between; margin-bottom: 12px; }
+.barra h1, .biblioteca h2, .inspector h2 { margin: 0; font-size: 1.15rem; }
+#atajo, #aviso, #resumen { margin: 0; color: #c9c2b2; }
+#aviso:empty { display: none; }
+.editor {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 300px;
+  grid-template-areas: "lib stage insp" "lib steps insp";
+  gap: 12px;
+  align-items: start;
+}
+.biblioteca { grid-area: lib; }
+.escenario { grid-area: stage; min-width: 0; }
+.pasos { grid-area: steps; }
+.inspector { grid-area: insp; }
+.biblioteca, .escenario, .pasos, .inspector, #reproductor {
+  background: #14111c;
+  border: 1px solid #3b3358;
+  padding: 12px;
+}
+button, input, select {
+  font: inherit;
+  color: #f4f1ea;
+  background: #221c30;
+  border: 1px solid #5c5478;
+  min-height: 44px;
+  padding: 8px 10px;
+}
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #FFCC00; outline-offset: 2px; }
+#buscar, #paso-form input, #paso-form select, #dialogo input, #dialogo select { width: 100%; box-sizing: border-box; }
+.sitio { margin: 10px 0; }
+.sitio h3 { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; font-size: 1rem; }
+.sitio ul { list-style: none; margin: 0; padding: 0; }
+.sitio li, #lista-macros button, #lista-pasos button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
+}
+.sitio li { padding: 8px 10px; background: #221c30; border: 1px solid #5c5478; cursor: grab; }
+.punto { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; }
+.sel { border-color: #FFCC00 !important; }
+#fila { display: flex; gap: 8px; overflow-x: auto; min-height: 148px; padding-bottom: 8px; }
+.tarjeta, .salto, #soltar {
+  min-width: 168px;
+  min-height: 120px;
+  box-sizing: border-box;
+  background: #221c30;
+  border: 1px solid #5c5478;
+  padding: 10px;
+}
+.tarjeta { position: relative; cursor: grab; }
+.tarjeta small, .tarjeta em { display: block; color: #c9c2b2; }
+.tarjeta .quitar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-height: 36px;
+  min-width: 36px;
+}
+.salto { border-style: dashed; color: #FFCC00; display: grid; place-items: center; }
+#soltar { border-style: dashed; display: grid; place-items: center; margin-top: 8px; color: #c9c2b2; }
+.vacio { color: #c9c2b2; }
+#paso-form label, #dialogo label, .voz { display: grid; gap: 4px; margin: 8px 0; }
+.linea { display: flex; gap: 8px; }
+.linea input { flex: 1; }
+#lista-macros { display: grid; gap: 4px; margin-bottom: 8px; }
+#reproductor { position: fixed; left: 12px; right: 12px; bottom: 12px; display: flex; justify-content: space-between; gap: 12px; z-index: 5; }
+#reproductor[hidden] { display: none; }
+dialog { color: #f4f1ea; background: #14111c; border: 1px solid #FFCC00; width: min(440px, calc(100% - 24px)); }
+dialog::backdrop { background: rgba(0, 0, 0, .62); }
+@media (max-width: 800px) {
+  .editor {
+    grid-template-columns: 1fr;
+    grid-template-areas: "lib" "stage" "steps" "insp";
+  }
+  .barra { align-items: stretch; }
+}

@@ -362,7 +362,7 @@
     "command_en": "/demo pixeria updates",
     "url": "https://www.admiranext.com/demo/pixeria-novedades/",
     "guide": "https://www.admiranext.com/demo/pixeria-novedades/README.md",
-    "editor": "https://www.admiranext.com/subdemos/",
+    "editor": "https://www.admiranext.com/demos/editor/",
     "mode": "prepared",
     "generation": false,
     "delete": "Explicitly delete the Studio entry in this browser; keep other definitions and campaign assets."

@@ -534,3 +534,19 @@ test('/demo proyectos, idioma, marcas y roadmap abren su página y /demo help la
   pata.api.exec('/demo help', { appendChild: (li) => helpPata.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0 });
   assert.match(helpPata.join('\n'), /\/demo proyectos/);
 });
+
+test('/demo editor abre el editor de demos en admiranext.com', () => {
+  const ctx = withLang('es', 'www.admiranext.com');
+  const p = ctx.api.parseDemo('/demo editor');
+  assert.equal(p.funcion, 'editor');
+  assert.equal(p.lang, 'es');
+  const u = new URL(p.url);
+  assert.equal(u.hostname, 'www.admiranext.com');
+  assert.equal(u.pathname, '/demos/editor/');
+  assert.equal(u.searchParams.get('ax_demo'), 'editor');
+  const en = withLang('en', 'www.admira.biz');
+  const desde = en.api.parseDemo('/demo editor');
+  assert.equal(desde.funcion, 'editor');
+  assert.equal(desde.lang, 'en');
+  assert.equal(new URL(desde.url).pathname, '/demos/editor/');
+});

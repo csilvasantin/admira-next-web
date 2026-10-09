@@ -525,6 +525,7 @@
       var langPagina = (arg === 'projects' || arg === 'brands' || (arg === 'roadmap' && lang() === 'en')) ? 'en' : 'es';
       return {funcion: FUNCION_PAGINA[arg], lang: langPagina};
     }
+    if (arg === 'editor') return {funcion: 'editor', lang: lang()};
     if (arg === 'idioma' || arg === 'language') {
       if (demoEnCurso()) return {idiomaDemo: true};
       return {funcion: 'idioma', lang: arg === 'language' ? 'en' : 'es'};
@@ -557,7 +558,8 @@
       '\n' + T('/demo idioma abre la demo 1 y cambia de idioma sin perder el paso.',
         '/demo idioma opens demo 1 and changes language without losing the step.') +
       '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
-        '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.');
+        '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.') +
+      '\n' + T('/demo editor abre el editor de demos.', '/demo editor opens the demo editor.');
   }
   function localLista() {
     var L = localM();
@@ -570,7 +572,8 @@
       '\n' + T('/demo hoy recorre lo de hoy y resume bien, mal o pendiente. /demo today lo hace en inglés.',
         '/demo hoy walks through today and marks each step. /demo today does it in English.') +
       '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
-        '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.');
+        '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.') +
+      '\n' + T('/demo editor abre el editor de demos.', '/demo editor opens the demo editor.');
   }
   // Modo muestra (default_mode): panel con el resultado preparado y enlace a la página de la función.
   function abs(u) { try { return new URL(u, location.href).href; } catch (_) { return u; } }
@@ -735,7 +738,7 @@
   }
   // Devuelve {id, nombre, desc} de lo que se enseña (lo usa el avatar para presentarlo) o null.
   function funcionDemoUrl(id, l) {
-    var rutas = {hoy:'/arquitectura', proyectos:'/proyectos/', idioma:'/', marcas:'/marcablanca/', roadmap:'/roadmap'};
+    var rutas = {hoy:'/arquitectura', proyectos:'/proyectos/', idioma:'/', marcas:'/marcablanca/', roadmap:'/roadmap', editor:'/demos/editor/'};
     var path = rutas[id] || '/arquitectura';
     var hostAhora = location.hostname || '';
     var aqui = /(^|\.)admiranext\.com$/i.test(hostAhora) || /^(localhost|127\.0\.0\.1)$/i.test(hostAhora);
@@ -836,7 +839,7 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return demoRun(p, log);
   }
-  verb({name: 'demo', args: '[global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: '[global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     demoRun(p, log);
