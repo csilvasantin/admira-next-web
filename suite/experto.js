@@ -1127,7 +1127,7 @@
     if (!/^(studio|store|tv|biz|app|hoy)$/.test(id || '') || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
     var loader = document.createElement('script');
     var base;try { base = new URL(script.src || 'https://www.admiranext.com/suite/experto.js'); } catch (_) { base = new URL('https://www.admiranext.com/suite/experto.js'); }
-    loader.src = new URL('/suite/demo-control.js?v=20261009-demo-hoy-1',base.origin).href;
+    loader.src = new URL('/suite/demo-control.js?v=20261009-demo-hoy-2',base.origin).href;
     loader.setAttribute('data-admira-native-control','');
     loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
     document.head.appendChild(loader);

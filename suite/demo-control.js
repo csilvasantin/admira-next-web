@@ -194,7 +194,9 @@
         return {estado:ok?'bien':'mal', detalle:T(ok?'Título y cuerpo en los dos idiomas.':'El título o el cuerpo no cambiaron.', ok?'Title and body in both languages.':'The title or the body did not change.')};
       }
       var ok2=cambia(titulos) && cambia(cuerpos);
-      return {estado:ok2?'bien':'mal', detalle:T(ok2?'El título visible y el cuerpo cambian.':'El título visible o el cuerpo no cambiaron.', ok2?'The visible title and the body change.':'The visible title or the body did not change.')};
+      var base=T(ok2?'El título visible y el cuerpo cambian.':'El título visible o el cuerpo no cambiaron.', ok2?'The visible title and the body change.':'The visible title or the body did not change.');
+      if(ok2 && docs.some(Boolean) && !cambia(docs)) base+=T(' El título de la pestaña se queda.',' The tab title stays.');
+      return {estado:ok2?'bien':'mal', detalle:base};
     }
     function valorarAgente(status, j){
       var nombre=j && typeof j.nombre==='string' && /^[A-Za-z0-9._-]{2,40}$/.test(j.nombre) ? j.nombre : '';
@@ -286,8 +288,12 @@
       var titulo=((h1&&h1.textContent)||D.title||'').replace(/\s+/g,' ').trim();
       var cuerpo=lead&&lead.textContent ? lead.textContent.replace(/\s+/g,' ').trim() : '';
       if(!cuerpo){
-        var nodes=D.querySelectorAll('[data-i18n]');
-        for(var i=0;i<nodes.length;i++){ var tx=(nodes[i].textContent||'').replace(/\s+/g,' ').trim(); if(tx && tx!==titulo){ cuerpo=tx; break; } }
+        var parts=[], nodes=D.querySelectorAll('[data-i18n]');
+        for(var i=0;i<nodes.length && parts.length<12;i++){
+          var tx=(nodes[i].textContent||'').replace(/\s+/g,' ').trim();
+          if(tx && tx!==titulo) parts.push(tx);
+        }
+        cuerpo=parts.join(' · ');
       }
       if(!cuerpo){ var p=D.querySelector('main p'); if(p && p!==h1) cuerpo=(p.textContent||'').replace(/\s+/g,' ').trim(); }
       return {titulo:titulo, tituloDoc:(D.title||'').replace(/\s+/g,' ').trim(), cuerpo:cuerpo};
