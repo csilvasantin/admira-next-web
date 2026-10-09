@@ -1,4 +1,5 @@
 // Modelo del editor de demos. No toca la red ni el DOM: lo usa la página y las pruebas.
+export { aSlug, reservado, slugValido, renombrarComando, choque, comandoDe, RESERVADOS } from '../../subdemos/nombres-demo.mjs';
 export const ESQUEMA = 'admira.demo/2';
 export const SITIOS = [
   { id: 'biz', color: '#FF3366', es: 'admira.biz', en: 'admira.biz' },
@@ -47,6 +48,9 @@ export const TEXTO = {
     duracion: 'duración',
     estado: 'estado',
     comando: 'comando',
+    slug: 'Nombre de comando',
+    slugOcupado: 'Ese nombre ya existe o está reservado.',
+    alias: 'También responde a',
     borrador: 'borrador',
     publicada: 'publicada',
     salto: 'Siguiente tramo',
@@ -100,6 +104,9 @@ export const TEXTO = {
     duracion: 'duration',
     estado: 'status',
     comando: 'command',
+    slug: 'Command name',
+    slugOcupado: 'That name already exists or is reserved.',
+    alias: 'Also answers to',
     borrador: 'draft',
     publicada: 'published',
     salto: 'Next segment',
@@ -203,7 +210,7 @@ export function quitarItem(items, index) {
   return items.filter((_, posicion) => posicion !== index);
 }
 
-export function resumenMacro(items, demos, status, lang) {
+export function resumenMacro(items, demos, status, lang, slug) {
   const sitios = new Set(items.map((item) => sitioDe(item.ref)));
   const duracion = items.reduce((sum, item) => {
     const { demo, sub } = localizar(demos, item.ref);
@@ -214,7 +221,7 @@ export function resumenMacro(items, demos, status, lang) {
     sitios: sitios.size,
     duracion,
     estado: status === 'published' ? t(lang, 'publicada') : t(lang, 'borrador'),
-    comando: items.map((item) => '/demo ' + item.ref).join(' · ') || '/demo editor',
+    comando: slug ? '/demo ' + slug : (items.map((item) => '/demo ' + item.ref).join(' · ') || '/demo editor'),
   };
 }
 
@@ -258,7 +265,7 @@ export function macroVacia(id) {
 }
 
 export function documentoMacro(macro) {
-  return {
+  const doc = {
     schema: ESQUEMA,
     kind: 'macro',
     id: macro.id,
@@ -269,6 +276,9 @@ export function documentoMacro(macro) {
     status: 'draft',
     version: macro.version || 1,
   };
+  if (macro.slug) doc.slug = macro.slug;
+  if (Array.isArray(macro.aliases) && macro.aliases.length) doc.aliases = macro.aliases.slice();
+  return doc;
 }
 
 export function pasoVacio(op) {
@@ -319,6 +329,8 @@ export function quitarSubdemo(demo, id) {
 export function duplicarMacro(macro, id) {
   const copia = clon(macro);
   copia.id = id;
+  copia.slug = id;
+  copia.aliases = [];
   copia.version = 1;
   copia.status = 'draft';
   copia.title = { es: macro.title.es + ' copia', en: macro.title.en + ' copy' };

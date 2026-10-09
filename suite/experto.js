@@ -503,6 +503,84 @@
     return next();
   }
   var localListo = cargarLocal();
+  var nombresCatalogo = Object.create(null);
+  function origenCatalogo() {
+    var h = '';
+    try { h = String(location.hostname || ''); } catch (_) { h = ''; }
+    if (/(^|\.)admiranext\.com$/i.test(h) || /\.admiranext\.pages\.dev$/i.test(h) || h === 'localhost' || h === '127.0.0.1') {
+      try { return location.origin; } catch (_) {}
+    }
+    return 'https://www.admiranext.com';
+  }
+  function anotarNombres(lista) {
+    (lista || []).forEach(function (n) {
+      n = norm(n);
+      if (/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(n) && !reservadoDemo(n)) nombresCatalogo[n] = true;
+    });
+  }
+  function reservadoDemo(token) {
+    return /^(hoy|today|editor|editar|edit|list|lista|help|ayuda|proyectos|projects|marcas|brands|roadmap|idioma|language|global|auto|todas|todos|all|pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next|sig|soluciones|solutions|studio|store|tv|app|biz|pixeria|yokup|demos)$/.test(token);
+  }
+  function tokenSlug(token) {
+    return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(token) && token.length <= 40 && !reservadoDemo(token);
+  }
+  function tokenCatalogo(token) {
+    if (!tokenSlug(token)) return false;
+    if (/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(token)) return true;
+    return !!nombresCatalogo[token];
+  }
+  function formaCatalogo(arg) {
+    if (!arg) return null;
+    var partes = arg.split(' ');
+    if (partes.length === 2 && tokenCatalogo(partes[0]) && tokenSlug(partes[1])) return {catalogo: partes[0], pieza: partes[1]};
+    if (partes.length === 1 && arg.indexOf('.') > 0) {
+      var dot = arg.split('.');
+      if (dot.length === 2 && tokenCatalogo(dot[0]) && tokenSlug(dot[1])) return {catalogo: dot[0], pieza: dot[1]};
+      return null;
+    }
+    if (partes.length === 1 && tokenCatalogo(arg)) return {catalogo: arg};
+    return null;
+  }
+  function recogerNombres(j) {
+    var lista = [];
+    ((j && j.macros) || []).forEach(function (d) {
+      lista.push(d.slug || d.id);
+      (d.aliases || []).forEach(function (a) { lista.push(a); });
+      (d.items || []).forEach(function (item) {
+        var sub = item.subdemo || {};
+        if (sub.slug) lista.push(sub.slug);
+        if (sub.id) lista.push(sub.id);
+        var cola = String(item.ref || '').split('/')[1];
+        if (cola) lista.push(cola);
+      });
+    });
+    ((j && j.demos) || []).forEach(function (d) {
+      (d.subdemos || []).forEach(function (sub) {
+        if (sub.slug) lista.push(sub.slug);
+        if (sub.id) lista.push(sub.id);
+      });
+    });
+    ((j && j.nombres) || []).forEach(function (n) { lista.push(n); });
+    anotarNombres(lista);
+  }
+  var nombresPedidos = false;
+  function cargarNombres() {
+    if (nombresPedidos || typeof fetch !== 'function') return;
+    nombresPedidos = true;
+    fetch(origenCatalogo() + '/api/demos', {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j) recogerNombres(j); }).catch(function () {});
+  }
+  function completarNombreDemo(e) {
+    if (!e || e.key !== 'Tab' || !e.target || e.target.value == null) return;
+    var m = /^\/demo\s+(\S*)$/i.exec(String(e.target.value).trim());
+    if (!m) return;
+    var pref = norm(m[1]);
+    var hits = Object.keys(nombresCatalogo).filter(function (n) { return !pref || n.indexOf(pref) === 0; }).sort();
+    if (!hits.length) return;
+    if (hits.length === 1) { e.preventDefault(); e.target.value = '/demo ' + hits[0] + ' '; return; }
+    var comun = hits[0];
+    hits.forEach(function (n) { while (comun && n.indexOf(comun) !== 0) comun = comun.slice(0, -1); });
+    if (comun && comun.length > pref.length) { e.preventDefault(); e.target.value = '/demo ' + comun; }
+  }
   // pixeria.com es espejo de admira.studio: sus subdemos abren en el mismo host.
   function subUrl(d) { return /(^|\.)pixeria\.com$/.test(host) && d.mirror_url ? d.mirror_url : d.url; }
 
@@ -542,12 +620,13 @@
       if (r.tipo === 'ayuda') return {local: true, lista: true, catalogoLista: pideCatalogo};
       if (r.tipo === 'demo') return {local: true, sub: r.demo, n: L.subdemos.indexOf(r.demo) + 1, clave: r.clave, modo: r.modo};
     }
-    if (!arg || /^(lista|list|soluciones|solutions)$/.test(arg)) return {lista: true, catalogoLista: /^(lista|list)$/.test(arg)};
+    if (!arg || /^(lista|list|soluciones|solutions)$/.test(arg)) return {lista: true, catalogoLista: !arg || /^(lista|list)$/.test(arg)};
     var i = -1;
     if (/^(siguiente|next|sig)$/.test(arg)) i = (demoActual() + 1) % DEMOS.length;
     else if (!L && /^[1-5]$/.test(arg)) i = +arg - 1;
     else DEMOS.forEach(function (d, k) { if (i < 0 && (d.id === arg || d.alias.indexOf(arg) >= 0)) i = k; });
-    if (i < 0 && /^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(arg)) return {catalogo: arg};
+    var forma = i < 0 ? formaCatalogo(arg) : null;
+    if (forma) return forma;
     if (i < 0 && L) return {local: true, desconocida: arg};
     return i < 0 ? null : {demo: DEMOS[i], i: i};
   }
@@ -562,7 +641,8 @@
       '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
         '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.') +
       '\n' + T('/demo editor abre el editor de demos. /demos editar y /demos edit también.', '/demo editor opens the demo editor. /demos editar and /demos edit do too.') +
-      '\n' + T('/demo lista muestra las demos y las macros. /demo alsea-biz-app recorre biz y luego app.', '/demo list shows the demos and the macros. /demo alsea-biz-app walks biz and then app.');
+      '\n' + T('/demo lista muestra las demos y las macros. /demo alsea-biz-app recorre biz y luego app.', '/demo list shows the demos and the macros. /demo alsea-biz-app walks biz and then app.') +
+      '\n' + T('/demo <nombre> recorre esa macro. /demo <nombre> <subdemo> o /demo <nombre>.<subdemo> abre solo esa pieza. Tab completa el nombre.', '/demo <name> runs that macro. /demo <name> <subdemo> or /demo <name>.<subdemo> opens just that piece. Tab completes the name.');
   }
   function localLista() {
     var L = localM();
@@ -577,7 +657,8 @@
       '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
         '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.') +
       '\n' + T('/demo editor abre el editor de demos. /demos editar y /demos edit también.', '/demo editor opens the demo editor. /demos editar and /demos edit do too.') +
-      '\n' + T('/demo lista muestra las demos y las macros. /demo alsea-biz-app recorre biz y luego app.', '/demo list shows the demos and the macros. /demo alsea-biz-app walks biz and then app.');
+      '\n' + T('/demo lista muestra las demos y las macros. /demo alsea-biz-app recorre biz y luego app.', '/demo list shows the demos and the macros. /demo alsea-biz-app walks biz and then app.') +
+      '\n' + T('/demo <nombre> recorre esa macro. /demo <nombre> <subdemo> o /demo <nombre>.<subdemo> abre solo esa pieza. Tab completa el nombre.', '/demo <name> runs that macro. /demo <name> <subdemo> or /demo <name>.<subdemo> opens just that piece. Tab completes the name.');
   }
   // Modo muestra (default_mode): panel con el resultado preparado y enlace a la página de la función.
   function abs(u) { try { return new URL(u, location.href).href; } catch (_) { return u; } }
@@ -847,36 +928,68 @@
     url.searchParams.set('ax_run', String(runId || 'run'));
     url.searchParams.set('ax_i', String(index));
     url.searchParams.set('ax_v', String(plan.version));
-    ['marca','project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) url.searchParams.set(k, ctx[k]); });
+    ['project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) url.searchParams.set(k, ctx[k]); });
+    var marcaPagina = marcaDeEditor();
+    var marcaPlan = marcaPagina || (typeof ctx.marca === 'string' ? ctx.marca : '');
+    if (marcaPlan && marcaPlan.length <= 80) url.searchParams.set('marca', marcaPlan);
     url.searchParams.set('lang', idioma);
     return url.href;
   }
   function listarCatalogo(log) {
-    fetch('https://www.admiranext.com/api/demos', {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    fetch(origenCatalogo() + '/api/demos', {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       if (!j) { out(log, T('No pude leer el catálogo de demos.', 'I could not read the demo catalog.'), 'err'); return; }
+      recogerNombres(j);
       function titulo(doc) { var tx = doc && doc.title; if (!tx) return (doc && doc.id) || ''; return lang() === 'en' ? (tx.en || tx.es || '') : (tx.es || tx.en || ''); }
       var demos = (j.demos || []).map(function (d) { return '/demo ' + d.id + ' · ' + titulo(d); });
-      var macros = (j.macros || []).map(function (d) { return '/demo ' + d.id + ' · ' + titulo(d); });
+      var macros = (j.macros || []).map(function (d) {
+        var nombre = d.slug || d.id;
+        var alias = (d.aliases || []).filter(Boolean).join(', ');
+        return '/demo ' + nombre + ' · ' + titulo(d) + (alias ? ' · ' + alias : '');
+      });
       out(log, T('Demos publicadas:', 'Published demos:') + '\n' + (demos.join('\n') || '—') + '\n' + T('Macros:', 'Macros:') + '\n' + (macros.join('\n') || '—'));
     }).catch(function () { out(log, T('No pude leer el catálogo de demos.', 'I could not read the demo catalog.'), 'err'); });
   }
-  function lanzarCatalogo(id, log) {
+  function lanzarCatalogo(id, log, pieza) {
     var runId = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-    fetch('https://www.admiranext.com/api/demos/' + encodeURIComponent(id), {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (plan) {
-      if (!plan || (plan.kind !== 'macro' && plan.kind !== 'demo')) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + id, 'err'); return; }
+    var base = origenCatalogo();
+    var nombre = pieza ? (id + '.' + pieza) : id;
+    var aplicar = function (plan, index) {
+      if (!plan || (plan.kind !== 'macro' && plan.kind !== 'demo')) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + nombre, 'err'); return; }
       var destino;
-      if (plan.kind === 'macro' && plan.items && plan.items.length) destino = urlMacro(plan, 0, runId, lang());
-      else {
+      if (plan.kind === 'macro' && plan.items && plan.items.length) {
+        var i = index == null ? 0 : index;
+        if (i < 0 || i >= plan.items.length) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + nombre, 'err'); return; }
+        destino = urlMacro(plan, i, runId, lang());
+      } else {
         var site = plan.site || plan.id;
         var hogares = {biz:'https://www.admira.biz/', app:'https://www.admira.app/retailer', store:'https://www.admira.store/', studio:'https://www.admira.studio/', tv:'https://www.admira.tv/'};
         destino = new URL(hogares[site] || 'https://www.admiranext.com/demo/');
         destino.searchParams.set('ax_demo', site);
         destino.searchParams.set('ax_run', runId);
         destino.searchParams.set('lang', lang() === 'en' ? 'en' : 'es');
+        var marcaPieza = marcaDeEditor();
+        if (marcaPieza) destino.searchParams.set('marca', marcaPieza);
         destino = destino.href;
       }
       out(log, T('Abriendo ', 'Opening ') + destino);
       setTimeout(function () { location.assign(destino); }, 600);
+    };
+    fetch(base + '/api/demos/resolver?nombre=' + encodeURIComponent(nombre), {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (res) {
+      if (res && res.tipo === 'ambiguo') { out(log, T('Hay más de una demo con ese nombre. Escribe /demo lista.', 'More than one demo uses that name. Type /demo list.'), 'err'); return; }
+      if (res && res.tipo === 'reservado') { out(log, T('Ese nombre está reservado.', 'That name is reserved.'), 'err'); return; }
+      if (res && res.plan) { aplicar(res.plan, res.tipo === 'pieza' ? res.index : 0); return null; }
+      return fetch(base + '/api/demos/' + encodeURIComponent(id), {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (plan) {
+        var index = 0;
+        if (pieza && plan && plan.items) {
+          index = -1;
+          plan.items.forEach(function (item, n) {
+            var cola = String(item.ref || '').split('/')[1];
+            var sub = item.subdemo || {};
+            if (index < 0 && (cola === pieza || sub.id === pieza || sub.slug === pieza)) index = n;
+          });
+        }
+        aplicar(plan, index);
+      });
     }).catch(function () { out(log, T('No pude leer el plan.', 'I could not read the plan.'), 'err'); });
   }
   function demoRun(p, log) {
@@ -896,7 +1009,7 @@
     if (p.control && root.PixeriaUpdatesDemo) { var updateAction={pausa:'pause',reanudar:'resume',continuar:'resume',parar:'stop',off:'stop',siguiente:'next'}[p.control] || p.control; var updateState=root.PixeriaUpdatesDemo.control(updateAction); out(log,JSON.stringify(updateState)); return updateState; }
     if (p.control) { var native = root.AdmiraDemoControl; var nativeControl = {pausa:'pause',pause:'pause',reanudar:'resume',resume:'resume',continuar:'resume',parar:'stop',stop:'stop',off:'stop',siguiente:'next',next:'next'}[p.control]; var state = native && native.state().activo ? (nativeControl ? native.control(nativeControl) : native.state()) : controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
     if (p.auto) { var L = localM(); if (!L.subdemos.length) { out(log, T('No hay subdemos en este catálogo.', 'No subdemos in this catalog.')); return null; } mostrarMuestra(L.subdemos[0], 1, L.subdemos, 0); return estadoRecorrido(); }
-    if (p.catalogo) { lanzarCatalogo(p.catalogo, log); return {id: p.catalogo}; }
+    if (p.catalogo) { lanzarCatalogo(p.catalogo, log, p.pieza); return {id: p.catalogo, pieza: p.pieza || ''}; }
     if (p.lista) { out(log, p.local ? localLista() : demoLista()); if (p.catalogoLista) listarCatalogo(log); return null; }
     if (p.desconocida != null) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + p.desconocida + T('. Escribe /demo help.', '. Type /demo help.') + '\n' + localLista(), 'err'); return null; }
     if (p.local) {
@@ -1128,6 +1241,7 @@
     var input = panel && panel.querySelector(cfg.input);
     var log = panel && panel.querySelector(cfg.log);
     if (!panel || !form || !input || !log) return false;
+    cargarNombres();
     if (panel.classList.contains('ax-experto')) return true;
     document.documentElement.setAttribute('data-ax-experto', 'on');
     panel.classList.add('ax-experto');
@@ -1302,10 +1416,10 @@
     parseArquitectura: parseArquitectura, arquitecturaUrl: arquitecturaUrl,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) return {catalogo: p.catalogo, id: p.catalogo}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) { var cat = {catalogo: p.catalogo, id: p.catalogo}; if (p.pieza) cat.pieza = p.pieza; return cat; } if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
     demoEstado: function () { if(root.PixeriaUpdatesDemo) return root.PixeriaUpdatesDemo.state(); return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
-    demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
+    demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo, anotarNombres: anotarNombres,
     normalizeLangToken: normalizeLangToken,
     setLanguage: applyLang
   };
@@ -1323,6 +1437,7 @@
     document.head.appendChild(loader);
   }
   function boot() {
+    try { document.addEventListener('keydown', completarNombreDemo, true); } catch (_) {}
     bootNativeDemo();
     if (apply()) return;
     var mo = new MutationObserver(function () { if (apply()) mo.disconnect(); });

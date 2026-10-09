@@ -1,0 +1,30 @@
+{
+  "schema": "admira.demo/2",
+  "kind": "macro",
+  "id": "gira-carlos",
+  "slug": "gira-carlos",
+  "aliases": ["gira"],
+  "title": {
+    "es": "Gira",
+    "en": "Tour"
+  },
+  "context": {
+    "marca": "admira",
+    "project": "gira",
+    "circuit": "gira",
+    "lang": "es"
+  },
+  "transition": {
+    "card": "Siguiente tramo",
+    "seconds": 3
+  },
+  "items": [
+    { "ref": "biz/proyecto" },
+    { "ref": "biz/circuito" },
+    { "ref": "biz/gemelo" },
+    { "ref": "app/establecimientos" },
+    { "ref": "app/inventario" }
+  ],
+  "status": "published",
+  "version": 1
+}
