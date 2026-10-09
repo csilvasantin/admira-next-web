@@ -1,0 +1,208 @@
+{
+  "schema": "admira.demo/2",
+  "kind": "demo",
+  "site": "app",
+  "id": "app",
+  "title": {
+    "es": "admira.app",
+    "en": "admira.app"
+  },
+  "mode": "recorrido",
+  "version": 1,
+  "status": "published",
+  "subdemos": [
+    {
+      "id": "establecimientos",
+      "n": 1,
+      "title": {
+        "es": "Establecimientos",
+        "en": "Locations"
+      },
+      "url": "https://www.admira.app/retailer",
+      "mode": "recorrido",
+      "steps": [
+        {
+          "op": "point",
+          "text": {
+            "es": "Este es el portal del comercio: establecimientos, equipos e incidencias autorizados.",
+            "en": "This is the retailer portal: authorized locations, devices and incidents."
+          },
+          "path": "/retailer",
+          "selector": "#workspace"
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "Revisamos los establecimientos vinculados a la cuenta.",
+            "en": "We review the locations linked to the account."
+          },
+          "path": "/retailer",
+          "selector": ".retailer-locations"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Buscamos los establecimientos de la demostración. Si tu cuenta no los tiene, la búsqueda lo muestra.",
+            "en": "We search for the demonstration locations. If your account does not contain them, the search shows that."
+          },
+          "path": "/retailer",
+          "selector": "#site-search",
+          "value": "Starbucks"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Volvemos a mostrar todos tus establecimientos.",
+            "en": "We return to all your locations."
+          },
+          "path": "/retailer",
+          "selector": "#site-search",
+          "value": ""
+        }
+      ],
+      "aliases": [
+        "establecimientos",
+        "locales"
+      ]
+    },
+    {
+      "id": "inventario",
+      "n": 2,
+      "title": {
+        "es": "Inventario",
+        "en": "Inventory"
+      },
+      "url": "https://www.admira.app/retailer",
+      "mode": "recorrido",
+      "steps": [
+        {
+          "op": "select",
+          "text": {
+            "es": "El inventario permite filtrar los equipos por establecimiento.",
+            "en": "The inventory lets us filter equipment by location."
+          },
+          "path": "/retailer",
+          "selector": "#site-filter",
+          "value": ""
+        },
+        {
+          "op": "select",
+          "text": {
+            "es": "Revisamos los equipos con mantenimiento pendiente.",
+            "en": "We review devices with pending maintenance."
+          },
+          "path": "/retailer",
+          "selector": "#device-state",
+          "value": "maintenance"
+        },
+        {
+          "op": "select",
+          "text": {
+            "es": "Volvemos al inventario completo autorizado.",
+            "en": "We return to the complete authorized inventory."
+          },
+          "path": "/retailer",
+          "selector": "#device-state",
+          "value": ""
+        }
+      ],
+      "aliases": [
+        "inventario",
+        "equipos"
+      ]
+    },
+    {
+      "id": "incidencias",
+      "n": 3,
+      "title": {
+        "es": "Incidencias",
+        "en": "Incidents"
+      },
+      "url": "https://www.admira.app/retailer",
+      "mode": "recorrido",
+      "steps": [
+        {
+          "op": "click",
+          "text": {
+            "es": "Consultamos las incidencias en curso.",
+            "en": "We review ongoing incidents."
+          },
+          "path": "/retailer",
+          "selector": "[data-filter=\"active\"]"
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "Aquí se sigue el estado de cada intervención.",
+            "en": "Intervention status is tracked here."
+          },
+          "path": "/retailer",
+          "selector": ".status-filters"
+        },
+        {
+          "op": "click",
+          "text": {
+            "es": "Consultamos las intervenciones pendientes de valoración.",
+            "en": "We review interventions awaiting a rating."
+          },
+          "path": "/retailer",
+          "selector": "[data-filter=\"rate\"]"
+        },
+        {
+          "op": "click",
+          "text": {
+            "es": "Recuperamos la vista de todas las incidencias.",
+            "en": "We return to all incidents."
+          },
+          "path": "/retailer",
+          "selector": "[data-filter=\"all\"]"
+        },
+        {
+          "op": "click",
+          "text": {
+            "es": "Actualizamos la consulta de estado.",
+            "en": "We refresh the status query."
+          },
+          "path": "/retailer",
+          "selector": "#refresh"
+        }
+      ],
+      "aliases": [
+        "incidencias"
+      ]
+    },
+    {
+      "id": "itil",
+      "n": 4,
+      "title": {
+        "es": "ITIL",
+        "en": "ITIL"
+      },
+      "url": "https://www.admira.app/retailer",
+      "mode": "recorrido",
+      "steps": [
+        {
+          "op": "point",
+          "text": {
+            "es": "El inventario ITIL relaciona grupos, posiciones y códigos de los equipos.",
+            "en": "The ITIL inventory links device groups, positions and codes."
+          },
+          "path": "/retailer",
+          "selector": "#itil"
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "La operación conecta el equipo de cada tienda con su mantenimiento.",
+            "en": "Operations connect each store device to its maintenance."
+          },
+          "path": "/retailer",
+          "selector": ".itil-controls"
+        }
+      ],
+      "aliases": [
+        "itil"
+      ]
+    }
+  ]
+}

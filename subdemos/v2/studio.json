@@ -1,0 +1,901 @@
+{
+  "schema": "admira.demo/2",
+  "kind": "demo",
+  "site": "studio",
+  "id": "studio",
+  "title": {
+    "es": "Admira Studio / Pixeria",
+    "en": "Admira Studio / Pixeria"
+  },
+  "mode": "muestra",
+  "version": 1,
+  "status": "published",
+  "subdemos": [
+    {
+      "id": "voz",
+      "n": 1,
+      "title": {
+        "es": "Crear locución",
+        "en": "Create a voiceover"
+      },
+      "url": "https://www.admira.studio/audio.html",
+      "mode": "muestra",
+      "steps": [
+        {
+          "op": "fill",
+          "text": {
+            "es": "Prepararemos el mensaje de bienvenida de la cafetería.",
+            "en": "We will prepare the coffee shop welcome message."
+          },
+          "path": "/audio",
+          "selector": "#proj-cliente",
+          "value": "Alsea · Starbucks · demostración"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Definimos la identidad de la voz.",
+            "en": "We define the voice identity."
+          },
+          "path": "/audio",
+          "selector": "#a-personaje",
+          "value": "Voz adulta cálida y cercana"
+        },
+        {
+          "op": "select",
+          "text": {
+            "es": "Elegimos el idioma de la locución.",
+            "en": "We choose the voiceover language."
+          },
+          "path": "/audio",
+          "selector": "#a-idioma",
+          "value": "Espanol (ES)"
+        },
+        {
+          "op": "select",
+          "text": {
+            "es": "Elegimos un tono cercano al cliente.",
+            "en": "We choose a warm tone."
+          },
+          "path": "/audio",
+          "selector": "#a-tono",
+          "value": "Cercano"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Escribimos el texto que escucharía el cliente en tienda.",
+            "en": "We write the message the customer would hear in store."
+          },
+          "path": "/audio",
+          "selector": "#a-guion",
+          "value": "Bienvenidos a nuestra cafetería. Haz una pausa y disfruta de un café recién hecho."
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "Este botón genera una locución nueva. En este recorrido escuchamos una ya preparada.",
+            "en": "This button generates a new voiceover. Here we play a prepared one."
+          },
+          "path": "/audio",
+          "selector": "#playOutput"
+        },
+        {
+          "op": "video",
+          "text": {
+            "es": "Veamos el resultado preparado de esta función.",
+            "en": "Let us see the prepared result of this feature."
+          },
+          "path": "/audio",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-voz.mp4"
+        }
+      ],
+      "aliases": [
+        "locucion",
+        "voz"
+      ]
+    },
+    {
+      "id": "musica",
+      "n": 2,
+      "title": {
+        "es": "Crear música",
+        "en": "Create music"
+      },
+      "url": "https://www.admira.studio/musica.html",
+      "mode": "muestra",
+      "steps": [
+        {
+          "op": "select",
+          "text": {
+            "es": "Para el ambiente de tienda elegimos un loop instrumental.",
+            "en": "For the store atmosphere we choose an instrumental loop."
+          },
+          "path": "/musica",
+          "selector": "#m-versiones",
+          "value": "Loop instrumental ~15s"
+        },
+        {
+          "op": "select",
+          "text": {
+            "es": "Escogemos el estilo musical.",
+            "en": "We choose the musical style."
+          },
+          "path": "/musica",
+          "selector": "#m-style",
+          "value": "blues"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Damos nombre a la pieza.",
+            "en": "We name the piece."
+          },
+          "path": "/musica",
+          "selector": "#m-titulo",
+          "value": "Una pausa con café"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Describimos instrumentos y ambiente, sin letra cantada.",
+            "en": "We describe the instruments and atmosphere, without sung lyrics."
+          },
+          "path": "/musica",
+          "selector": "#m-letra",
+          "value": "[Instrumental]\nPiano cálido, guitarra suave y contrabajo. Sin voz."
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "Aquí se solicita la música. Escuchemos la muestra preparada.",
+            "en": "Music is requested here. Let us hear the prepared sample."
+          },
+          "path": "/musica",
+          "selector": "#playOutput"
+        },
+        {
+          "op": "video",
+          "text": {
+            "es": "Veamos el resultado preparado de esta función.",
+            "en": "Let us see the prepared result of this feature."
+          },
+          "path": "/musica",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-musica.mp4"
+        }
+      ],
+      "aliases": [
+        "musica"
+      ]
+    },
+    {
+      "id": "imagen",
+      "n": 3,
+      "title": {
+        "es": "Crear imagen",
+        "en": "Create an image"
+      },
+      "url": "https://www.admira.studio/imagenes.html",
+      "mode": "muestra",
+      "steps": [
+        {
+          "op": "fill",
+          "text": {
+            "es": "La creatividad conserva el contexto del proyecto.",
+            "en": "The creative retains the project context."
+          },
+          "path": "/imagenes",
+          "selector": "#proj-cliente",
+          "value": "Alsea · Starbucks · demostración"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Describimos producto, luz y composición.",
+            "en": "We describe the product, light and composition."
+          },
+          "path": "/imagenes",
+          "selector": "#i-prompt",
+          "value": "Fotografía publicitaria de café humeante en una taza de cerámica, barra de madera, luz cálida de mañana, fondo de cafetería desenfocado, sin texto."
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "Aquí comienza la creación de imagen; ahora vemos el resultado preparado.",
+            "en": "Image creation starts here; we now show the prepared result."
+          },
+          "path": "/imagenes",
+          "selector": "#playOutput"
+        },
+        {
+          "op": "video",
+          "text": {
+            "es": "Veamos el resultado preparado de esta función.",
+            "en": "Let us see the prepared result of this feature."
+          },
+          "path": "/imagenes",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-imagen.mp4"
+        }
+      ],
+      "aliases": [
+        "imagen"
+      ]
+    },
+    {
+      "id": "video",
+      "n": 4,
+      "title": {
+        "es": "Crear vídeo",
+        "en": "Create a video"
+      },
+      "url": "https://www.admira.studio/video.html",
+      "mode": "muestra",
+      "steps": [
+        {
+          "op": "fill",
+          "text": {
+            "es": "Partimos de una imagen preparada de la biblioteca.",
+            "en": "We start with a prepared library image."
+          },
+          "path": "/video",
+          "selector": "#clip-stock",
+          "value": "1791230658801-jnv969"
+        },
+        {
+          "op": "fill",
+          "text": {
+            "es": "Definimos el movimiento sin cambiar el producto.",
+            "en": "We define motion without changing the product."
+          },
+          "path": "/video",
+          "selector": "#clip-prompt",
+          "value": "La cámara se acerca lentamente al café y el vapor asciende suavemente. Conserva la taza y el fondo, sin texto."
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "Este control solicita el clip. Veamos el movimiento del ejemplo preparado.",
+            "en": "This control requests the clip. Let us see the prepared example in motion."
+          },
+          "path": "/video",
+          "selector": "#clip-one"
+        },
+        {
+          "op": "video",
+          "text": {
+            "es": "Veamos el resultado preparado de esta función.",
+            "en": "Let us see the prepared result of this feature."
+          },
+          "path": "/video",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-video.mp4"
+        }
+      ],
+      "aliases": [
+        "video"
+      ]
+    },
+    {
+      "id": "adaptar",
+      "n": 5,
+      "title": {
+        "es": "Adaptar formatos",
+        "en": "Adapt formats"
+      },
+      "url": "https://www.admira.studio/adaptaciones/",
+      "mode": "muestra",
+      "steps": [
+        {
+          "op": "click",
+          "text": {
+            "es": "Abrimos la biblioteca para elegir un contenido existente.",
+            "en": "We open the library to choose existing content."
+          },
+          "path": "/adaptaciones/",
+          "selector": "#stock-pick"
+        },
+        {
+          "op": "select",
+          "text": {
+            "es": "Elegimos el anuncio de café de la demostración.",
+            "en": "We choose the coffee ad prepared for this demonstration."
+          },
+          "path": "/adaptaciones/",
+          "selector": "#stock-list li[role=\"option\"]",
+          "value": "Un anuncio elegante de café recién hecho"
+        },
+        {
+          "op": "click",
+          "text": {
+            "es": "Abrimos los formatos de salida de esta pieza.",
+            "en": "We open the output formats for this content."
+          },
+          "path": "/adaptaciones/",
+          "selector": "#btn-adaptar"
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "La misma pieza se adapta a pantallas horizontales, verticales y otros tamaños.",
+            "en": "The same content adapts to landscape, portrait and other screen sizes."
+          },
+          "path": "/adaptaciones/",
+          "selector": "#grid"
+        },
+        {
+          "op": "point",
+          "text": {
+            "es": "La exportación produciría los archivos. Comparemos las cuatro variantes ya preparadas.",
+            "en": "Export would produce the files. Let us compare the four prepared variants."
+          },
+          "path": "/adaptaciones/",
+          "selector": "#export-all"
+        },
+        {
+          "op": "video",
+          "text": {
+            "es": "Veamos el resultado preparado de esta función.",
+            "en": "Let us see the prepared result of this feature."
+          },
+          "path": "/adaptaciones/",
+          "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-adaptar.mp4"
+        }
+      ],
+      "aliases": [
+        "adaptar",
+        "formatos",
+        "adaptacion"
+      ]
+    }
+  ],
+  "legacy": {
+    "manifest": {
+      "version": 1,
+      "plataforma": "studio",
+      "nombre": "Admira Studio / Pixeria",
+      "release": "v.07.10.2026.r1.10:00",
+      "estado": "preparado_para_incorporar",
+      "duracion_total": 300,
+      "default_mode": "muestra",
+      "asset_resolution": "URLs HTTPS de producción; los recursos nuevos se activan al incorporar y publicar el pack.",
+      "subdemos": [
+        {
+          "id": "voz",
+          "letra": "a",
+          "nombre": "Crear locución",
+          "desc": "De un guion breve a una voz lista para escuchar.",
+          "url": "https://www.admira.studio/audio.html",
+          "mirror_url": "https://www.pixeria.com/audio.html",
+          "cmd": "/demo 1",
+          "duracion": 60,
+          "steps": [],
+          "muestra": {
+            "tipo": "audio",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/locucion-es.mp3",
+            "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
+            "variantes": []
+          },
+          "guion": [
+            {
+              "selector": "",
+              "accion": "di",
+              "texto": "Escribe el mensaje de tu tienda y elige idioma, voz y tono."
+            },
+            {
+              "selector": "#proj-cliente",
+              "accion": "escribe",
+              "texto": "Cafetería Demo · café y bollería"
+            },
+            {
+              "selector": "#a-personaje",
+              "accion": "escribe",
+              "texto": "Voz adulta cálida y cercana"
+            },
+            {
+              "selector": "#a-idioma",
+              "accion": "elige",
+              "texto": "Espanol (ES)"
+            },
+            {
+              "selector": "#a-tono",
+              "accion": "elige",
+              "texto": "Cercano"
+            },
+            {
+              "selector": "#a-guion",
+              "accion": "escribe",
+              "texto": "Bienvenidos a nuestra cafetería. Haz una pausa y disfruta de un café recién hecho. Pregunta por la combinación de café y bollería. Te esperamos."
+            },
+            {
+              "selector": "#playOutput",
+              "accion": "señala",
+              "texto": "Aquí se crea la locución. Escuchamos la muestra preparada en castellano."
+            }
+          ],
+          "ejecucion_real_opcional": {
+            "tool": "crear_locucion",
+            "args": {
+              "text": "Bienvenidos a nuestra cafetería. Haz una pausa y disfruta de un café recién hecho. Pregunta por la combinación de café y bollería. Te esperamos.",
+              "provider": "free",
+              "language_code": "es"
+            },
+            "requires_auth": true,
+            "provider_credit": false
+          },
+          "verificacion": {
+            "require_media": true,
+            "checks": [
+              "recurso reproducible",
+              "sin generación durante el ensayo",
+              "sin publicación durante el ensayo"
+            ]
+          },
+          "aliases": [
+            "locucion",
+            "voz"
+          ],
+          "video": {
+            "version": 1,
+            "tipo": "video",
+            "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-voz.mp4",
+            "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-voz.jpg",
+            "duracion": 30,
+            "audio": true,
+            "idioma": "es",
+            "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+            "fuente": "ensayo-local"
+          }
+        },
+        {
+          "id": "musica",
+          "letra": "b",
+          "nombre": "Crear música",
+          "desc": "Del ambiente de una marca a su hilo musical.",
+          "url": "https://www.admira.studio/musica.html",
+          "mirror_url": "https://www.pixeria.com/musica.html",
+          "cmd": "/demo 2",
+          "duracion": 60,
+          "steps": [
+            {
+              "tool": "demo_muestra",
+              "args": {
+                "id": "music"
+              },
+              "page": "/musica.html"
+            }
+          ],
+          "muestra": {
+            "tipo": "audio",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/musica-cafe.mp3",
+            "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
+            "variantes": []
+          },
+          "guion": [
+            {
+              "selector": "",
+              "accion": "di",
+              "texto": "Define el ambiente, el estilo y el formato de la música."
+            },
+            {
+              "selector": "#m-versiones",
+              "accion": "elige",
+              "texto": "Loop instrumental ~15s"
+            },
+            {
+              "selector": "#m-style",
+              "accion": "elige",
+              "texto": "Blues"
+            },
+            {
+              "selector": "#m-titulo",
+              "accion": "escribe",
+              "texto": "Una pausa con café"
+            },
+            {
+              "selector": "#m-letra",
+              "accion": "escribe",
+              "texto": "[Instrumental]\nPiano cálido, guitarra suave y contrabajo. Sin voz."
+            },
+            {
+              "selector": "#playOutput",
+              "accion": "señala",
+              "texto": "Aquí se genera música nueva. Escuchamos una pieza de cafetería ya preparada."
+            }
+          ],
+          "ejecucion_real_opcional": {
+            "tool": "crear_musica",
+            "args": {
+              "prompt": "Música instrumental cálida para una cafetería: blues suave, piano, guitarra y contrabajo, ritmo relajado, sin voz ni letra."
+            },
+            "requires_auth": true,
+            "provider_credit": true
+          },
+          "verificacion": {
+            "require_media": true,
+            "checks": [
+              "recurso reproducible",
+              "sin generación durante el ensayo",
+              "sin publicación durante el ensayo"
+            ]
+          },
+          "aliases": [
+            "musica"
+          ],
+          "video": {
+            "version": 1,
+            "tipo": "video",
+            "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-musica.mp4",
+            "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-musica.jpg",
+            "duracion": 29,
+            "audio": true,
+            "idioma": "es",
+            "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+            "fuente": "ensayo-local"
+          }
+        },
+        {
+          "id": "imagen",
+          "letra": "c",
+          "nombre": "Crear imagen",
+          "desc": "Del briefing a una creatividad visual.",
+          "url": "https://www.admira.studio/imagenes.html",
+          "mirror_url": "https://www.pixeria.com/imagenes.html",
+          "cmd": "/demo 3",
+          "duracion": 60,
+          "steps": [
+            {
+              "tool": "demo_muestra",
+              "args": {
+                "id": "image"
+              },
+              "page": "/imagenes.html"
+            }
+          ],
+          "muestra": {
+            "tipo": "image",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/imagen-cafe.jpg",
+            "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
+            "variantes": []
+          },
+          "guion": [
+            {
+              "selector": "",
+              "accion": "di",
+              "texto": "Describe producto, escenario, estilo e iluminación."
+            },
+            {
+              "selector": "#proj-cliente",
+              "accion": "escribe",
+              "texto": "Cafetería Demo · café y bollería"
+            },
+            {
+              "selector": "#i-prompt",
+              "accion": "escribe",
+              "texto": "Fotografía publicitaria de un café humeante en una taza de cerámica sobre una barra de madera, luz cálida de la mañana, fondo de cafetería desenfocado, sin texto y con el producto centrado."
+            },
+            {
+              "selector": "#playOutput",
+              "accion": "señala",
+              "texto": "Aquí se crea una imagen nueva. Mostramos una creatividad de café preparada."
+            },
+            {
+              "selector": "#imageStage",
+              "accion": "señala",
+              "texto": "Revisa el encuadre y el producto antes de descargar o publicar."
+            }
+          ],
+          "ejecucion_real_opcional": {
+            "tool": "crear_imagen",
+            "args": {
+              "prompt": "Fotografía publicitaria de un café humeante en una taza de cerámica sobre una barra de madera, luz cálida de la mañana, fondo de cafetería desenfocado, sin texto y con el producto centrado.",
+              "aspect_ratio": "16:9"
+            },
+            "requires_auth": true,
+            "provider_credit": true
+          },
+          "verificacion": {
+            "require_media": true,
+            "checks": [
+              "recurso reproducible",
+              "sin generación durante el ensayo",
+              "sin publicación durante el ensayo"
+            ]
+          },
+          "aliases": [
+            "imagen"
+          ],
+          "video": {
+            "version": 1,
+            "tipo": "video",
+            "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-imagen.mp4",
+            "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-imagen.jpg",
+            "duracion": 24,
+            "audio": true,
+            "idioma": "es",
+            "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+            "fuente": "ensayo-local"
+          }
+        },
+        {
+          "id": "video",
+          "letra": "d",
+          "nombre": "Crear vídeo",
+          "desc": "De una imagen al movimiento de un clip.",
+          "url": "https://www.admira.studio/video.html",
+          "mirror_url": "https://www.pixeria.com/video.html",
+          "cmd": "/demo 4",
+          "duracion": 60,
+          "steps": [
+            {
+              "tool": "demo_muestra",
+              "args": {
+                "id": "video"
+              },
+              "page": "/video.html"
+            }
+          ],
+          "muestra": {
+            "tipo": "video",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.mp4",
+            "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
+            "variantes": [],
+            "poster": "https://www.pixeria.com/assets/demos/studio-v1/video-fuente.jpg"
+          },
+          "guion": [
+            {
+              "selector": "",
+              "accion": "di",
+              "texto": "Partimos de una imagen y describimos el movimiento que queremos."
+            },
+            {
+              "selector": "#clip-stock",
+              "accion": "escribe",
+              "texto": "1791230658801-jnv969"
+            },
+            {
+              "selector": "#clip-prompt",
+              "accion": "escribe",
+              "texto": "La cámara se acerca lentamente al café, el vapor asciende suavemente y la luz de la mañana cambia de forma sutil. Conserva la taza y el fondo, sin texto ni cambios de producto."
+            },
+            {
+              "selector": "#clip-one",
+              "accion": "señala",
+              "texto": "Aquí se solicita un clip nuevo de cinco segundos. Esta demo reproduce un vídeo de café ya preparado, de unos ocho segundos."
+            },
+            {
+              "selector": "#clip-status",
+              "accion": "señala",
+              "texto": "Durante una generación real, esperamos a que termine."
+            },
+            {
+              "selector": "",
+              "accion": "di",
+              "texto": "Revisa el movimiento, el producto y la luz en el resultado preparado."
+            }
+          ],
+          "ejecucion_real_opcional": {
+            "tool": "clip_desde_imagen",
+            "args": {
+              "prompt": "La cámara se acerca lentamente al café, el vapor asciende suavemente y la luz de la mañana cambia de forma sutil. Conserva la taza y el fondo, sin texto ni cambios de producto.",
+              "stock_id": "1791230658801-jnv969",
+              "aspect_ratio": "16:9"
+            },
+            "requires_auth": true,
+            "provider_credit": true,
+            "result": "async",
+            "poll": {
+              "tool": "clip_estado",
+              "args": {
+                "request_id": "$result.request_id"
+              }
+            },
+            "persists_to_library": true
+          },
+          "verificacion": {
+            "require_media": true,
+            "checks": [
+              "recurso reproducible",
+              "sin generación durante el ensayo",
+              "sin publicación durante el ensayo"
+            ]
+          },
+          "aliases": [
+            "video"
+          ],
+          "video": {
+            "version": 1,
+            "tipo": "video",
+            "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-video.mp4",
+            "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-video.jpg",
+            "duracion": 26,
+            "audio": true,
+            "idioma": "es",
+            "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+            "fuente": "ensayo-local"
+          }
+        },
+        {
+          "id": "adaptar",
+          "letra": "e",
+          "nombre": "Adaptar formatos",
+          "desc": "Una misma pieza en horizontal, vertical, cuadrado y barra.",
+          "url": "https://www.admira.studio/adaptaciones/",
+          "mirror_url": "https://www.pixeria.com/adaptaciones/",
+          "cmd": "/demo 5",
+          "duracion": 60,
+          "steps": [
+            {
+              "tool": "adaptacion_plan",
+              "args": {
+                "source": {
+                  "ancho": 1280,
+                  "alto": 720,
+                  "fps": 24
+                },
+                "formato": "9:16",
+                "compatibilidad": "fhd"
+              },
+              "page": "/adaptaciones/",
+              "selector": "#size-categories"
+            }
+          ],
+          "muestra": {
+            "tipo": "video",
+            "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.mp4",
+            "descripcion": "Resultado preparado; este ensayo no realiza generación ni publicación.",
+            "variantes": [
+              {
+                "nombre": "horizontal",
+                "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.mp4",
+                "ancho": 1920,
+                "alto": 1080,
+                "encaje": "recortar",
+                "duracion": 8.057007,
+                "fps": "30/1",
+                "codec": "h264",
+                "bytes": 1725926,
+                "sha256": "8abb6aa02bdfbe673c1ae678c7521a4138e3d913ea79a7dfd68157c6563e3881",
+                "formato": "1920x1080",
+                "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.jpg"
+              },
+              {
+                "nombre": "vertical",
+                "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-vertical.mp4",
+                "ancho": 1080,
+                "alto": 1920,
+                "encaje": "recortar",
+                "duracion": 8.057007,
+                "fps": "30/1",
+                "codec": "h264",
+                "bytes": 1999117,
+                "sha256": "fed4b18cc3f03e40e97d44a9278a0ac958d80f525dcc766c39590dce4e7b1f2e",
+                "formato": "1080x1920",
+                "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-vertical.jpg"
+              },
+              {
+                "nombre": "cuadrado",
+                "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-cuadrado.mp4",
+                "ancho": 1080,
+                "alto": 1080,
+                "encaje": "recortar",
+                "duracion": 8.057007,
+                "fps": "30/1",
+                "codec": "h264",
+                "bytes": 1150973,
+                "sha256": "1caefb82c748f507a179ca1292b7b74eadef37d88bdeaf389effdc5aeaa18e9c",
+                "formato": "1080x1080",
+                "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-cuadrado.jpg"
+              },
+              {
+                "nombre": "barra",
+                "url": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-barra.mp4",
+                "ancho": 1920,
+                "alto": 540,
+                "encaje": "contener",
+                "duracion": 8.057007,
+                "fps": "30/1",
+                "codec": "h264",
+                "bytes": 560382,
+                "sha256": "18b9545ab7c9b0d9c4ea3f237c41a21f7d0ec8fe2e954865518f86a5b4258983",
+                "formato": "1920x540",
+                "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-barra.jpg"
+              }
+            ],
+            "poster": "https://www.pixeria.com/assets/demos/studio-v1/adaptado-horizontal.jpg"
+          },
+          "guion": [
+            {
+              "selector": "",
+              "accion": "di",
+              "texto": "Elige una pieza existente y comprueba su ficha técnica."
+            },
+            {
+              "selector": "#stock-pick",
+              "accion": "señala",
+              "texto": "Selecciona el vídeo de café de la biblioteca."
+            },
+            {
+              "selector": "#src-select",
+              "accion": "elige",
+              "texto": "Un anuncio elegante de café recién hecho"
+            },
+            {
+              "selector": "",
+              "accion": "espera",
+              "texto": "3"
+            },
+            {
+              "selector": "#btn-adaptar",
+              "accion": "clic",
+              "texto": "Abrimos los formatos de salida."
+            },
+            {
+              "selector": "#size-categories",
+              "accion": "señala",
+              "texto": "Elige horizontal, vertical, cuadrado o barra. Ajusta el encuadre para proteger el producto."
+            },
+            {
+              "selector": "#export-all",
+              "accion": "señala",
+              "texto": "El adaptador exporta archivos reales en el navegador. Aquí comparamos los cuatro archivos preparados y comprobados."
+            },
+            {
+              "selector": "",
+              "accion": "di",
+              "texto": "Horizontal 1920 por 1080; vertical 1080 por 1920; cuadrado 1080 por 1080; barra 1920 por 540. El vertical y el cuadrado recortan; la barra conserva la imagen completa con bandas laterales."
+            }
+          ],
+          "ejecucion_real_opcional": {
+            "execution": "browser_ffmpeg",
+            "page": "/adaptaciones/",
+            "source": "/assets/demos/studio-v1/video-fuente.mp4",
+            "provider_credit": false,
+            "publishes_to_stock": true,
+            "note": "La exportación de la interfaz actual puede guardar el resultado en Stock. El ensayo del pack solo reproduce archivos ya exportados y no activa ese botón."
+          },
+          "verificacion": {
+            "require_media": true,
+            "checks": [
+              "recurso reproducible",
+              "sin generación durante el ensayo",
+              "sin publicación durante el ensayo"
+            ]
+          },
+          "aliases": [
+            "adaptar",
+            "formatos",
+            "adaptacion"
+          ],
+          "video": {
+            "version": 1,
+            "tipo": "video",
+            "url": "https://www.admiranext.com/assets/demos/suite-v1/studio-adaptar.mp4",
+            "poster": "https://www.admiranext.com/assets/demos/suite-v1/studio-adaptar.jpg",
+            "duracion": 27,
+            "audio": true,
+            "idioma": "es",
+            "descripcion": "Ensayo preparado de esta función. No realiza altas, generación ni publicación.",
+            "fuente": "ensayo-local"
+          }
+        }
+      ],
+      "activacion": {
+        "comando": "/demo",
+        "entradas": [
+          "experto",
+          "avatar"
+        ],
+        "help": "/demo help",
+        "alcance": "plataforma_actual",
+        "hosts": [
+          "admira.studio",
+          "www.admira.studio",
+          "pixeria.com",
+          "www.pixeria.com"
+        ],
+        "normalizacion": "minúsculas, espacios exteriores y tildes",
+        "modo": "muestra",
+        "nota": "Contrato preparado para incorporar al motor de Neo; el pack no instala el motor."
+      }
+    }
+  }
+}
