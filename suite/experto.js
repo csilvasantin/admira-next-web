@@ -416,7 +416,7 @@
       hosts: /(^|\.)admira\.tv$/,
       desc: ['Starbucks Passeig de Gràcia 103 desde la calle: el halo de la fachada entra en Matrix', 'Starbucks Passeig de Gràcia 103 from the street: the entrance halo opens Matrix'],
       url: ['https://admira.tv/adcelerate/demo/?view=human&site=starbucks']},
-    {id: 'app', alias: ['yokup', 'operaciones', 'itil', 'incidencias', 'retailer'], nombre: 'admira.app · Yokup',
+    {id: 'app', alias: ['yokup', 'operaciones', 'itil', 'incidencias', 'retailer'], nombre: 'admira.app',
       hosts: /(^|\.)(admira\.app|yokup\.com)$/,
       desc: ['Operación de la red Starbucks: equipos, incidencias ITIL y estado de cada tienda', 'Starbucks network operations: equipment, ITIL incidents and each store\'s status'],
       url: ['https://www.admira.app/retailer?marca=starbucks']},

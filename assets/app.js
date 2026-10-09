@@ -646,11 +646,13 @@
       if (step.append) {
         const span = document.createElement('span');
         if (step.cls) span.className = step.cls;
+        span.setAttribute('data-i18n', step.key);
         span.textContent = text;
         bootText.appendChild(span);
       } else {
         const div = document.createElement('div');
         if (step.cls) div.className = step.cls;
+        div.setAttribute('data-i18n', step.key);
         div.textContent = text;
         bootText.appendChild(div);
       }
@@ -2637,6 +2639,29 @@
   function executeCommand(input) {
     const raw = input.trim().toLowerCase();
     if (!raw) return;
+
+    // /idioma en la portada: el cuerpo con data-i18n cambia aquí aunque el Experto no tenga su propio registro.
+    if (/^\/?(?:idioma|language|languague)(?:[\s_-]|$)/.test(raw)) {
+      var argLang = raw.replace(/^\/?(?:idioma|language|languague)[\s_-]*/, '');
+      var nextLang = window.currentLang === 'en' ? 'es' : 'en';
+      if (/^(en|eng|english|ingles)$/.test(argLang)) nextLang = 'en';
+      else if (/^(es|esp|spa|spanish|espanol|castellano)$/.test(argLang)) nextLang = 'es';
+      else if (argLang) {
+        const blockBad = document.createElement('div');
+        blockBad.className = 'output-block';
+        blockBad.innerHTML = '<div class="output-line">  Usa /idioma o /language. Con ESP o ENG lo fija.</div>';
+        outputArea.appendChild(blockBad);
+        return;
+      }
+      if (typeof window.setLang === 'function') window.setLang(nextLang);
+      const blockLang = document.createElement('div');
+      blockLang.className = 'output-block';
+      blockLang.innerHTML = '<div class="cmd-echo"><span class="prompt-symbol">&gt;</span> ' + escapeHtml(input.trim()) + '</div>' +
+        '<div class="output-line">  ' + (nextLang === 'en' ? 'Language: English' : 'Idioma: español') + '</div>';
+      outputArea.appendChild(blockLang);
+      if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+      return;
+    }
 
     // /avatar good|better|best no coinciden con la clave exacta del mapa.
     if (/^\/(?:avatar(?:on|off|digital)?|digitalavatar)(?:\s|$)/.test(raw) || /^\/cli\s+(?:ayudante|helper)\b/.test(raw)) {

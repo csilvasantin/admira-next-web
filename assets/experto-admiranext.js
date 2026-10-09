@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261009-movil-5435';
+  var STAMP = '20261009-reapertura-5440';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -328,6 +328,17 @@
       }
     });
   }
+  function anotarPortada(texto) {
+    var area = d.getElementById('outputArea');
+    if (!area || !texto) return;
+    var block = d.createElement('div');
+    block.className = 'output-block';
+    var line = d.createElement('div');
+    line.className = 'output-line';
+    line.textContent = '  ' + texto;
+    block.appendChild(line);
+    area.appendChild(block);
+  }
   function engancharTerminal(X) {
     if (d.body.dataset.axTerminalDemo) return;
     d.body.dataset.axTerminalDemo = '1';
@@ -345,6 +356,14 @@
       if (esDemo) {
         var cualDemo = v.replace(/^\/?demo\s*/i, '').split(/\s+/)[0] || '';
         if (/^(login|patas|portada|verja|movil|tablas|404|clientes)$/i.test(cualDemo)) { mostrarDemo(cualDemo); return; }
+      }
+      if (esIdioma) {
+        var parsed = X && X.parseLangCommand ? X.parseLangCommand(v) : null;
+        var logIdioma = d.querySelector('#ykExpertRail .yk-cli-out') || d.querySelector('.ax-cli-out');
+        if (X && X.exec && logIdioma) X.exec(v, logIdioma);
+        else if (parsed && parsed.ok && X && X.setLanguage) X.setLanguage(parsed.lang);
+        anotarPortada(parsed && parsed.ok ? (parsed.lang === 'en' ? 'Language: English' : 'Idioma: español') : 'Usa /idioma o /language. Con ESP o ENG lo fija.');
+        return;
       }
       if (X && X.open) X.open();
       if (X && X.run) X.run(v);

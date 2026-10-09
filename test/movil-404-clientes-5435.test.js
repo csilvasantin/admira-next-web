@@ -39,15 +39,15 @@ test('marca blanca, business plan y tiktok parten en varias líneas', async () =
   assert.match(tiktok, /\.reference-strip\{grid-auto-flow:row;grid-template-columns:1fr 1fr/);
   assert.match(tiktok, /\.package-timeline\{grid-template-columns:1fr\}/);
   const pagina = await leer('marcablanca/index.html');
-  assert.match(pagina, /maquetas\.css\?v=20261009-movil-5435/);
-  assert.match(pagina, /demo\.css\?v=20261009-movil-5435/);
+  assert.match(pagina, /maquetas\.css\?v=20261009-reapertura-5440/);
+  assert.match(pagina, /demo\.css\?v=20261009-reapertura-5440/);
 });
 
 test('la 404 lleva el marco, conserva los alias y no carga la portada', async () => {
   const html = await leer('404.html');
   assert.match(html, /<body data-yk-frame="cabecera" data-yk-auto="on" data-yk-ligera="404">/);
-  assert.match(html, /admira-frame\.css\?v=20261009-movil-5435/);
-  assert.match(html, /admira-frame\.js\?v=20261009-movil-5435/);
+  assert.match(html, /admira-frame\.css\?v=20261009-reapertura-5440/);
+  assert.match(html, /admira-frame\.js\?v=20261009-reapertura-5440/);
   assert.match(html, /if \(path === 'consumos'\)/);
   assert.match(html, /if \(map\[path\]\) \{\s*try \{ sessionStorage\.setItem\('autoCommand'/);
   assert.equal((html.match(/location\.replace\('\/'\)/g) || []).length, 1);
@@ -76,6 +76,6 @@ test('/demo cierra movil, 404 y clientes sin robar el resto', async () => {
   assert.match(js, /if \(cual === 'clientes'\)/);
   assert.match(js, /Uso: \/demo login \| patas \| portada \| movil \| 404 \| clientes/);
   const frame = await leer('assets/admira-frame.js');
-  assert.match(frame, /experto-admiranext\.js\?v=20261009-movil-5435/);
-  assert.ok((frame.match(/20261009-movil-5435/g) || []).length >= 2);
+  assert.match(frame, /experto-admiranext\.js\?v=20261009-reapertura-5440/);
+  assert.ok((frame.match(/20261009-reapertura-5440/g) || []).length >= 2);
 });

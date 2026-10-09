@@ -69,6 +69,25 @@
   var PRINCIPALES = ['admiranext', 'studio', 'store', 'tv', 'app', 'biz', 'live'];
 
   function lang() { return /^en/i.test(root.getAttribute('lang') || '') ? 'en' : 'es'; }
+  // El alias histórico no es la equivalencia de hoy: yokup.com fue el sitio anterior de admira.app.
+  function rotuloPrincipal(n) {
+    if (n.id === 'app') return lang() === 'en'
+      ? 'installation and maintenance (formerly yokup.com)'
+      : 'instalaciones y mantenimiento (antes yokup.com)';
+    if (n.id === 'biz') return lang() === 'en'
+      ? 'DooH and Retail Media (formerly clearchannel.tv)'
+      : 'DooH y Retail Media (antes clearchannel.tv)';
+    if (n.alias.length) return '= ' + n.alias.join(' · ');
+    return TXT[lang()].tipo[n.tipo];
+  }
+  function aliasFicha(n) {
+    if (!n.alias || !n.alias.length) return '';
+    if (n.id === 'app' || n.id === 'biz') {
+      var label = lang() === 'en' ? 'Formerly' : 'Antes';
+      return '<dt>' + esc(label) + '</dt><dd>' + esc(n.alias.join(' · ')) + '</dd>';
+    }
+    return '<dt>' + esc(t('alias')) + '</dt><dd>' + esc(n.alias.join(' · ')) + '</dd>';
+  }
   function t(k) { return TXT[lang()][k]; }
   function $(s) { return doc.querySelector(s); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
@@ -130,7 +149,11 @@
       var t1 = svg('text', {x: n.x, y: y + 23, 'text-anchor': 'middle', class: 't1', fill: PRINCIPALES.indexOf(n.id) >= 0 ? c : '#dfe6ef'});
       t1.textContent = n.dominio; g.appendChild(t1);
       var t2 = svg('text', {x: n.x, y: y + 40, 'text-anchor': 'middle', class: 't2'});
-      t2.textContent = PRINCIPALES.indexOf(n.id) >= 0 ? (n.alias.length ? '= ' + n.alias.join(' · ') : TXT[lang()].tipo[n.tipo]) : (tx.corto || tx.nombre);
+      t2.textContent = PRINCIPALES.indexOf(n.id) >= 0 ? rotuloPrincipal(n) : (tx.corto || tx.nombre);
+      if (n.id === 'app' || n.id === 'biz') {
+        t2.setAttribute('textLength', String(W - 12));
+        t2.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+      }
       g.appendChild(t2);
       var t3 = svg('text', {x: n.x, y: y + 55, 'text-anchor': 'middle', class: 't3'});
       t3.textContent = version(n) || (n.consejero && n.consejero !== '—' ? n.consejero : '');
@@ -179,7 +202,7 @@
       '<h3 style="color:' + color(n) + '">' + esc(tx.nombre) + '</h3>' +
       '<p class="dom">' + esc(n.dominio) + ' · ' + esc(TXT[lang()].tipo[n.tipo]) + '</p>' +
       '<p class="rol">' + esc(tx.rol) + '</p><dl>' +
-      (n.alias.length ? '<dt>' + esc(t('alias')) + '</dt><dd>' + esc(n.alias.join(' · ')) + '</dd>' : '') +
+      aliasFicha(n) +
       (n.consejero && n.consejero !== '—' ? '<dt>' + esc(t('consejero')) + '</dt><dd>' + esc(n.consejero) + '</dd>' : '') +
       (n.repo && n.repo !== '—' ? '<dt>' + esc(t('repo')) + '</dt><dd>' + esc(n.repo) + '</dd>' : '') +
       (n.despliegue && n.despliegue !== '—' ? '<dt>' + esc(t('despliegue')) + '</dt><dd>' + esc(n.despliegue) + '</dd>' : '') +
