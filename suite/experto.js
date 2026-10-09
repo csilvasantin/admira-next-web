@@ -157,6 +157,15 @@
         }
       }
     } catch (_) {}
+    // Si la URL trae ?lang= (p. ej. al llegar desde /arquitectura en otra pata), lo alineamos para que
+    // recargar no devuelva el idioma anterior.
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.has('lang') && u.searchParams.get('lang') !== l) {
+        u.searchParams.set('lang', l);
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      }
+    } catch (_) {}
     try { document.dispatchEvent(new CustomEvent('admiranext:lang', {detail: {lang: l}})); } catch (_) {}
     try { root.dispatchEvent(new CustomEvent('admiranext:lang', {detail: {lang: l}})); } catch (_) {}
     paint();

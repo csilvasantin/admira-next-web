@@ -277,5 +277,8 @@
   "v.09.10.2026.r3.06:16": [
     "⌘ Experto: /arquitectura (castellano) y /architecture (inglés) abren el organigrama tecnológico desde cualquier página de admiranext.com y desde cualquier web de la Suite con la piel compartida.",
     "?lang=en|es en la URL fija el idioma de admiranext.com al llegar desde otra web (el localStorage no cruza de dominio)."
+  ],
+  "v.09.10.2026.r4.06:26": [
+    "⌘ Experto: al alternar con /idioma o /language, el ?lang= de la URL se actualiza también, así recargar la página mantiene el idioma elegido."
   ]
 }
