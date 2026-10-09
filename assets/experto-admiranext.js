@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261009-demo-hoy-2';
+  var STAMP = '20261009-auditoria-5434';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;
@@ -213,6 +213,95 @@
     };
   }
 
+  // ── /demo login | patas | portada (encargo 5434): cada pieza se cierra aquí ──
+  function decirDemo(linea, ctx) {
+    if (ctx && ctx.imprimir) { ctx.imprimir(linea); return; }
+    var out = d.querySelector('#ykExpertRail .yk-cli-out') || d.querySelector('#axAdmiranextExperto .ax-host-bd');
+    if (!out) return;
+    var li = d.createElement('div');
+    li.textContent = linea;
+    out.appendChild(li);
+  }
+  function mostrarDemo(cual, ctx) {
+    cual = String(cual || '').toLowerCase().replace(/^\/+/, '');
+    if (cual === 'verja') cual = 'login';
+    if (cual === 'login') {
+      return fetch('/organigrama', {credentials: 'same-origin'}).then(function (r) {
+        var csp = r.headers.get('content-security-policy') || '';
+        var ok = /style-src[^;]*https:\/\/accounts\.google\.com/.test(csp);
+        decirDemo('login · HTTP ' + r.status + ' · la CSP ' + (ok ? 'admite el estilo de accounts.google.com' : 'sigue sin el estilo de accounts.google.com'), ctx);
+        decirDemo('El origen del botón (client ID) no se puede autorizar desde esta página. Si la consola de Google no tiene https://www.admiranext.com, el botón sigue en 400. Pendiente de Carlos.', ctx);
+        return ok ? 'bien' : 'mal';
+      }).catch(function () {
+        decirDemo('login · mal · no se pudo leer /organigrama', ctx);
+        return 'mal';
+      });
+    }
+    if (cual === 'patas') {
+      return fetch('/filosofia', {credentials: 'same-origin'}).then(function (r) { return r.text(); }).then(function (html) {
+        var malo = /admira\.app\s*=\s*[^<]{0,40}clearchannel/i.test(html) || /admira\.app\s*=\s*[^<]{0,40}yokup\.com/i.test(html);
+        var ok = /DooH y Retail Media/.test(html) && /instalaciones y mantenimiento/.test(html) && !malo;
+        decirDemo(ok ? 'patas · bien · DooH en admira.biz, instalaciones en admira.app' : 'patas · mal · /filosofia no cuadra con el mapa', ctx);
+        return ok ? 'bien' : 'mal';
+      }).catch(function () {
+        decirDemo('patas · mal · no se pudo leer /filosofia', ctx);
+        return 'mal';
+      });
+    }
+    if (cual === 'portada') {
+      return fetch('/', {credentials: 'same-origin'}).then(function (r) { return r.text(); }).then(function (html) {
+        var videos = (html.match(/<video\b/gi) || []).length;
+        var pesados = /bannerAdmiraNext|fondo-prehome|Product Rocket|Resolving 12 case/i.test(html);
+        var frame = /admira-frame\.js/.test(html) && /data-yk-cli="on"/.test(html);
+        var ok = videos <= 1 && !pesados && frame;
+        decirDemo(ok ? 'portada · bien · un vídeo, sin el texto ajeno, con armazón' : 'portada · mal · vídeos ' + videos, ctx);
+        return ok ? 'bien' : 'mal';
+      }).catch(function () {
+        decirDemo('portada · mal · no se pudo leer la portada', ctx);
+        return 'mal';
+      });
+    }
+    decirDemo('Uso: /demo login | patas | portada', ctx);
+    return Promise.resolve('mal');
+  }
+  function registrarDemo(F, X) {
+    if (!F || !F.verbo || (F.tiene && F.tiene('demo'))) return;
+    F.verbo({
+      id: 'demo', aliases: ['demostracion'], uso: 'login | patas | portada',
+      ayuda: 'Cierra la pieza: login, patas o portada. El resto de /demo sigue en el motor.',
+      ayudaEn: 'Close the piece: login, legs or homepage. Other /demo commands stay with the engine.',
+      run: function (args, ctx, limpio) {
+        var cual = String((args && args[0]) || '').toLowerCase();
+        if (/^(login|patas|portada|verja)$/.test(cual)) return mostrarDemo(cual, ctx);
+        var out = d.querySelector('#ykExpertRail .yk-cli-out');
+        if (X && X.exec) return X.exec(limpio || ('/demo' + (args && args.length ? ' ' + args.join(' ') : '')), out, {echo: false});
+        decirDemo('Uso: /demo login | patas | portada', ctx);
+      }
+    });
+  }
+  function engancharTerminal(X) {
+    if (d.body.dataset.axTerminalDemo) return;
+    d.body.dataset.axTerminalDemo = '1';
+    d.addEventListener('keydown', function (e) {
+      var t = e.target;
+      if (e.key !== 'Enter' || !t || t.id !== 'cmdInput') return;
+      var v = String(t.value || '').trim();
+      var esDemo = /^\/?demo(\s|$)/i.test(v);
+      var esIdioma = X && X.parseLangCommand && X.parseLangCommand(v);
+      var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/?(marca|brand)(off|[a-z0-9][a-z0-9_-]*)$/i.test(v) && !/^\/?marcador/i.test(v) || /^\/8[1-9]$/.test(v);
+      if (!esIdioma && !esMarca && !esDemo) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      t.value = '';
+      if (esDemo) {
+        var cualDemo = v.replace(/^\/?demo\s*/i, '').split(/\s+/)[0] || '';
+        if (/^(login|patas|portada|verja)$/i.test(cualDemo)) { mostrarDemo(cualDemo); return; }
+      }
+      if (X && X.open) X.open();
+      if (X && X.run) X.run(v);
+    }, true);
+  }
+
   // ── Páginas con el armazón: piel sobre el raíl «⌘ EXPERTO · CLI» ──────────
   function conArmazon(rail) {
     var hd = rail.querySelector('.yk-rail-navhd');
@@ -234,6 +323,8 @@
       // Un solo saludo: el de la piel (sigue al idioma); el del armazón sobra.
       var hola = out && out.querySelector('.yk-cli-hola');
       if (hola && out.querySelector('.ax-hello')) hola.parentNode.removeChild(hola);
+      engancharTerminal(X);
+      registrarDemo(F, X);
       if (!F || !F.verbo || !X.list) return;
       // El CLI del armazón delega en la piel los verbos que no tiene (la página manda si ya los tiene).
       X.list().forEach(function (v) {
@@ -261,21 +352,8 @@
     piel({engine: ENGINE, pata: 'admiranext.com', cli: 'admiranext.com', mount: '#axAdmiranextExperto', 'mount-body': '.ax-host-bd', min: 'line'}, function (X) {
       marcaReal(X);
       sincronizarIdioma(X);
-      // El terminal de la home (#cmdInput) reenvía /marca y /idioma (/language, typos y pegados) al Experto.
-      d.addEventListener('keydown', function (e) {
-        var t = e.target;
-        if (e.key !== 'Enter' || !t || t.id !== 'cmdInput') return;
-        var v = String(t.value || '').trim();
-        var esIdioma = X.parseLangCommand && X.parseLangCommand(v);
-        // /marca, /brand y sus formas compactas (/marca84, /brand84, /marcaoff, /brandoff).
-        var esMarca = /^\/?(marca|brand|marcablanca)(\s|$)/i.test(v) || /^\/?(marca|brand)(off|[a-z0-9][a-z0-9_-]*)$/i.test(v) && !/^\/?marcador/i.test(v) || /^\/8[1-9]$/.test(v);
-        if (!esIdioma && !esMarca) return;
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        t.value = '';
-        if (X.open) X.open();
-        X.run(v);
-      }, true);
+      registrarDemo(G.AdmiraFrame, X);
+      engancharTerminal(X);
     });
   }
 

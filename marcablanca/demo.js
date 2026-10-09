@@ -9,8 +9,8 @@
   var PLATAFORMAS = [
     { id: 'studio', nombre: 'Admira.Studio', verbo: 'crea', dominio: 'admira.studio', ruta: '/crear' },
     { id: 'store', nombre: 'Admira.store', verbo: 'distribuye', dominio: 'admira.store', ruta: '/gemelos' },
-    { id: 'app', nombre: 'Admira.app', verbo: 'comercializa', dominio: 'admira.app', ruta: '/' },
-    { id: 'yokup', nombre: 'yokup.com', verbo: 'mantiene', dominio: 'yokup.com', ruta: '/incidencias' }
+    { id: 'app', nombre: 'Admira.biz', verbo: 'comercializa', dominio: 'admira.biz', ruta: '/' },
+    { id: 'yokup', nombre: 'Admira.app', verbo: 'mantiene', dominio: 'admira.app', ruta: '/incidencias' }
   ];
   var CLIENTES = ['lumbre', 'brumelle', 'frescaria', 'admira'];
   var ID_VALIDO = /^[a-z0-9][a-z0-9-]{0,40}$/;

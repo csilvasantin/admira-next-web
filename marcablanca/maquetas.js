@@ -1,5 +1,6 @@
 /* maquetas.js · v1.1.0 · Galaxia Admira
- Maquetas de las cuatro webs (Studio crea · Store distribuye · App comercializa · Yokup mantiene)
+ Maquetas de las cuatro webs (Studio crea · Store distribuye · Biz comercializa · App mantiene).
+ Los id internos `app` y `yokup` son los tokens del cargador; el dominio visible es el de la pata.
  pintadas SOLO con tokens --mb-* y componentes de marcablanca.css. Las usan /marcablanca (demo) y
  las presentaciones con prospect (el servidor las pinta con la marca del destinatario).
    import { pintar, PLATAFORMAS } from '/marcablanca/maquetas.js';
@@ -10,8 +11,8 @@ var N = 0;
 var PLATAFORMAS = [
   { id: 'studio', nombre: 'Admira.Studio', verbo: 'crea', dominio: 'admira.studio', ruta: '/crear' },
   { id: 'store', nombre: 'Admira.store', verbo: 'distribuye', dominio: 'admira.store', ruta: '/gemelos' },
-  { id: 'app', nombre: 'Admira.app', verbo: 'comercializa', dominio: 'admira.app', ruta: '/' },
-  { id: 'yokup', nombre: 'yokup.com', verbo: 'mantiene', dominio: 'yokup.com', ruta: '/incidencias' }
+  { id: 'app', nombre: 'Admira.biz', verbo: 'comercializa', dominio: 'admira.biz', ruta: '/' },
+  { id: 'yokup', nombre: 'Admira.app', verbo: 'mantiene', dominio: 'admira.app', ruta: '/incidencias' }
 ];
 
 var ESTADOS = { abierta: ['error', 'Abierta'], curso: ['aviso', 'En curso'], resuelta: ['ok', 'Resuelta'] };
@@ -88,7 +89,7 @@ function store(m) {
     '</div></div>';
 }
 
-/* ── App · comercializa ────────────────────────────────────────────────── */
+/* ── Token app · maqueta de campaña (DooH, admira.biz) ─────────────────── */
 function mapa() {
   var calles = [
     'M-10 120 C 120 90, 220 160, 360 120 S 560 60, 700 110',

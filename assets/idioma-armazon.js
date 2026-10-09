@@ -130,8 +130,9 @@
     'AdmiraNeXT · definición': 'AdmiraNeXT · definition',
     'El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.':
       'The live census lives in Yokup. Here you see the model (what a project is, which xpacio, how it comes in) and the current inventory, without deleting anything. Click a census header to sort.',
-    'Enlaces de la página': 'Page links', 'Hueco: yokup.com/proyectos no es el censo': 'Gap: yokup.com/proyectos is not the census',
-    'Hoy': 'Today', 'sirve una landing comercial (Clear Channel). El censo de la flota es': 'serves a commercial landing page (Clear Channel). The fleet census is',
+    'Enlaces de la página': 'Page links', 'El censo de la flota está en esta página': 'The fleet census is on this page',
+    'El censo se lee con': 'The census is read with',
+    '. admira.biz es DooH y Retail Media (antes clearchannel.tv). admira.app es instalaciones y mantenimiento. Las misiones se ven en': '. admira.biz is DooH and Retail Media (formerly clearchannel.tv). admira.app is installation and maintenance. Missions are shown at',
     'Las misiones se ven en': 'Missions are shown at', 'y el principal del día en': 'and the main project of the day at',
     'Modelo canónico': 'Canonical model', 'Agente (silicio)': 'Agent (silicon)',
     'Persona + apellido de máquina (': 'Person + machine surname (', 'El alta de trabajo lleva': 'Each work check-in carries',

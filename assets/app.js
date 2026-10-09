@@ -620,7 +620,10 @@
     // Marca body como "booting" para que el wallpaper muestre el banner video
     document.body.classList.add('booting');
     const bootVideo = document.getElementById('bootVideo');
-    if (bootVideo) { try { const p = bootVideo.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    if (bootVideo) {
+      if (!bootVideo.getAttribute('src')) bootVideo.src = 'assets/portada.mp4';
+      try { const p = bootVideo.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+    }
 
     if (isDeepLink) {
       // Skip boot animation for deep links — go straight to terminal
@@ -1793,8 +1796,7 @@
       { text: 'Responsable del tratamiento de datos', cls: 'heading' },
       { text: '' },
       { text: '  ADmiraNeXT' },
-      { text: '  Product Rocket (productrocket.ro)' },
-      { text: '  Str. Trei Fantani 6A, Iasi, Rumania' },
+      { text: '  Barcelona, España' },
       { text: '  ' + _e },
       { text: '' },
       { text: '  → /contact para ver todas las opciones de contacto', cls: 'dim' },

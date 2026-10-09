@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://www.admiranext.com/marcablanca/clientes/esquema.json",
   "title": "Cliente de marca blanca · Galaxia Admira",
-  "description": "Tokens de marca de un cliente para Admira.Studio, Admira.store, Admira.app y yokup.com. Los colores de cada modo se convierten en --mb-<clave-en-kebab> (primarioTexto → --mb-primario-texto).",
+  "description": "Tokens de marca de un cliente para Admira.Studio, Admira.store, Admira.biz y Admira.app. Los colores de cada modo se convierten en --mb-<clave-en-kebab> (primarioTexto → --mb-primario-texto).",
   "type": "object",
   "required": [
     "id",

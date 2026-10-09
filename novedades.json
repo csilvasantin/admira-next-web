@@ -1,5 +1,11 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.09.10.2026.r9.12:30": [
+    "El login de /organigrama y /flota admite el estilo de accounts.google.com. El origen del botón sigue pendiente de la consola de Google.",
+    "admira.biz es DooH y Retail Media; admira.app es instalaciones y mantenimiento.",
+    "La portada deja un solo vídeo ligero, con cartel, y el armazón (Opciones, Avanzado, Experto). /demo login, /demo patas y /demo portada.",
+    "Volver atrás: etiqueta retorno/pre-auditoria-5434-20261009, sello v.09.10.2026.r8.08:45"
+  ],
   "v.09.10.2026.r8.08:45": [
     "/idioma durante una demo se queda en el mismo paso y en el otro idioma, sin saltar a /en/",
     "/demo idioma abre la demo 1 y comprueba que el paso no se pierde",
