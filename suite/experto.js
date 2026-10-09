@@ -741,6 +741,27 @@
     r.pintar(); if (!r.pausado) programarRecorrido(r.intervalo);
   }
   // Devuelve {id, nombre, desc} de lo que se enseña (lo usa el avatar para presentarlo) o null.
+  function marcaDeEditor() {
+    var re = /^[a-z0-9][a-z0-9-]{0,40}$/;
+    function limpia(v) {
+      v = String(v || '').trim().toLowerCase();
+      return re.test(v) ? v : '';
+    }
+    try {
+      var deUrl = limpia(new URL(location.href).searchParams.get('marca'));
+      if (deUrl) return deUrl;
+    } catch (_) {}
+    try {
+      var attr = document.documentElement && document.documentElement.getAttribute && document.documentElement.getAttribute('data-mb-marca');
+      var deHtml = limpia(attr);
+      if (deHtml) return deHtml;
+    } catch (_) {}
+    try {
+      var deSesion = limpia(sessionStorage.getItem('mb:marca'));
+      if (deSesion) return deSesion;
+    } catch (_) {}
+    return '';
+  }
   function funcionDemoUrl(id, l) {
     var rutas = {hoy:'/arquitectura', proyectos:'/proyectos/', idioma:'/', marcas:'/marcablanca/', roadmap:'/roadmap', editor:'/demos/editor/'};
     var path = rutas[id] || '/arquitectura';
@@ -749,6 +770,10 @@
     var base = aqui ? path : ('https://www.admiranext.com' + path);
     var u; try { u = new URL(base, location.href); } catch (_) { u = new URL('https://www.admiranext.com' + path); }
     u.searchParams.set('lang', l === 'en' ? 'en' : 'es');
+    if (id === 'editor') {
+      var marcaEditor = marcaDeEditor();
+      if (marcaEditor) u.searchParams.set('marca', marcaEditor);
+    }
     u.searchParams.set('ax_demo', id || 'hoy');
     u.searchParams.set('ax_run', Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9));
     return u.href;

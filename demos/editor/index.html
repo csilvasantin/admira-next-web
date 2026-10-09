@@ -1,50 +1,57 @@
 <!DOCTYPE html>
-<html lang="es" class="yk-framed">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Editor de demos · AdmiraNeXT</title>
 <meta name="description" content="Editor de demos: biblioteca por sitio, macrodemo arrastrable, pasos y publicación. Español e inglés.">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="theme-color" content="#070b12">
 <link rel="canonical" href="https://www.admiranext.com/demos/editor/">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
+<link rel="stylesheet" href="/demos/editor/editor.css?v=20261009-editor-5473b">
+<style>:root{--editor-publicar:#33FF99;--editor-publicar-ink:#070b12}</style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
-<link rel="stylesheet" href="/demos/editor/editor.css?v=20261009-marca-5463">
+<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
 </head>
-<body data-yk-title="EDITOR" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
+<body data-yk-frame="cabecera" data-yk-auto="on" data-yk-cli="on" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 
 <section data-yk-slot="left" hidden>
   <div class="yk-auto-blk">
-    <a href="/demo/">Demo completa</a>
-    <a href="/api/demos">Catálogo admira.demo/2</a>
-    <a href="/demos/editor/">Editor de demos</a>
+    <a href="/demo/" data-en="Full demo">Demo completa</a>
+    <a href="/api/demos" data-en="admira.demo/2 catalog">Catálogo admira.demo/2</a>
+    <a href="/demos/editor/" data-en="Demo editor">Editor de demos</a>
   </div>
 </section>
 <section data-yk-slot="right" hidden>
   <div class="yk-auto-blk">
-    <p>Guardar deja un borrador. Publicar lo enseña. Borrar pide confirmación. Deshacer: Ctrl+Z.</p>
+    <p data-en="Save keeps a draft. Publish shows it. Delete asks for confirmation. Undo: Ctrl+Z.">Guardar deja un borrador. Publicar lo enseña. Borrar pide confirmación. Deshacer: Ctrl+Z.</p>
   </div>
 </section>
 
-<main class="editor-pagina">
+<main class="editor-pagina" data-yk-main>
   <header class="barra">
     <div>
       <h1 id="titulo">Editor de demos</h1>
-      <p id="atajo">Deshacer con Ctrl+Z</p>
     </div>
     <p id="aviso" role="status"></p>
     <div class="acciones">
       <button type="button" id="guardar">Guardar borrador</button>
       <button type="button" id="publicar">Publicar</button>
       <button type="button" id="ejecutar">Ejecutar macrodemo</button>
-      <button type="button" id="deshacer">Deshacer</button>
-      <button type="button" id="idioma-barra" aria-label="Idioma">EN</button>
+      <button type="button" id="mas-acciones" class="mas-acciones" aria-expanded="false" aria-controls="guardar ejecutar" aria-label="Más acciones">⋯</button>
     </div>
   </header>
 
-  <div class="editor">
-    <aside class="biblioteca">
+  <div class="pestanas" role="tablist" aria-label="Paneles">
+    <button type="button" role="tab" id="tab-biblioteca" aria-selected="false" aria-controls="panel-biblioteca">Biblioteca</button>
+    <button type="button" role="tab" id="tab-macro" aria-selected="true" aria-controls="panel-macro">Macro</button>
+    <button type="button" role="tab" id="tab-inspector" aria-selected="false" aria-controls="inspector">Inspector</button>
+  </div>
+
+  <div class="editor" data-panel="macro">
+    <aside class="biblioteca" id="panel-biblioteca">
       <h2 id="h-biblioteca">Biblioteca</h2>
       <input id="buscar" type="search" placeholder="Buscar demos, subdemos o macros" aria-label="Buscar demos, subdemos o macros">
       <div id="arbol"></div>
@@ -59,26 +66,34 @@
       </div>
     </aside>
 
-    <section class="escenario" aria-label="Macrodemo">
-      <div id="macrodemo">
-        <div id="fila"></div>
-        <div id="soltar">Soltar aquí</div>
-        <p id="resumen"></p>
-      </div>
-    </section>
+    <div class="centro" id="panel-macro">
+      <section class="escenario" aria-label="Macrodemo" data-en-aria-label="Macro demo">
+        <h2 id="h-macro">Macro</h2>
+        <div class="estado-fila">
+          <p id="resumen">Borrador · 0 piezas · 0 sitios · 0 s</p>
+          <p id="pastilla" class="pastilla">/demo editor</p>
+        </div>
+        <div id="macrodemo">
+          <div id="fila"></div>
+          <div id="soltar"><strong>Soltar aquí</strong><span class="guia">Ejemplo: biz×3 + app×2, tres piezas de admira.biz y dos de admira.app.</span></div>
+        </div>
+      </section>
 
-    <section class="pasos" aria-label="Pasos">
-      <div id="lista-pasos"></div>
-      <button type="button" id="anadir-paso">+ Añadir paso</button>
-    </section>
+      <section class="pasos" aria-label="Pasos" data-en-aria-label="Steps">
+        <h2 id="h-pasos">Pasos</h2>
+        <div id="lista-pasos"></div>
+        <button type="button" id="anadir-paso">+ Añadir paso</button>
+      </section>
+    </div>
 
     <aside class="inspector" id="inspector">
-      <form id="paso-form"></form>
-      <label class="voz"><input type="checkbox" id="voz" checked> <span id="voz-texto">Voz al probar</span></label>
+      <h2 id="h-inspector">Inspector</h2>
+      <form id="paso-form"><p class="guia" data-vacio="inspector">Elige un paso para editarlo</p></form>
+      <label class="voz"><input type="checkbox" id="voz" role="switch" checked aria-checked="true"> <span id="voz-texto">Voz al probar</span></label>
       <div class="mas">
-        <button type="button" id="probar">Probar paso</button>
-        <button type="button" id="desde">Desde aquí</button>
-        <button type="button" id="borrar-paso">Borrar</button>
+        <button type="button" id="probar" disabled>Probar paso</button>
+        <button type="button" id="desde" disabled>Desde aquí</button>
+        <button type="button" id="borrar-paso" disabled>Borrar</button>
       </div>
     </aside>
   </div>
@@ -100,7 +115,6 @@
   <button type="button" id="reproductor-parar">Parar</button>
 </div>
 
-<script type="module" src="/demos/editor/editor.js?v=20261009-editor-5462"></script>
-<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+<script type="module" src="/demos/editor/editor.js?v=20261009-editor-5473"></script>
 </body>
 </html>

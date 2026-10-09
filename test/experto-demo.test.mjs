@@ -549,4 +549,14 @@ test('/demo editor abre el editor de demos en admiranext.com', () => {
   assert.equal(desde.funcion, 'editor');
   assert.equal(desde.lang, 'en');
   assert.equal(new URL(desde.url).pathname, '/demos/editor/');
+  assert.equal(u.searchParams.get('lang'), 'es');
+  assert.equal(u.searchParams.get('marca'), null);
+  ctx.storage.setItem('mb:marca', 'lumbre');
+  const conMarca = new URL(ctx.api.parseDemo('/demo editor').url);
+  assert.equal(conMarca.searchParams.get('marca'), 'lumbre');
+  assert.equal(conMarca.searchParams.get('lang'), 'es');
+  ctx.storage.setItem('mb:marca', '84');
+  assert.equal(new URL(ctx.api.parseDemo('/demo editor').url).searchParams.get('marca'), '84');
+  const enMarca = new URL(en.api.parseDemo('/demo editor').url);
+  assert.equal(enMarca.searchParams.get('lang'), 'en');
 });

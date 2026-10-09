@@ -1,116 +1,242 @@
+/* Editor de demos. Solo tokens --yk-* (el marco y la marca blanca los rellenan).
+   Tipografía de /arquitectura: --yk-mono. Sin hex sueltos. */
+.editor-pagina, .editor-pagina *, .editor-pagina *::before, .editor-pagina *::after { box-sizing: border-box; }
 .editor-pagina {
-  color: #f4f1ea;
-  font: 16px/1.4 "Chakra Petch", system-ui, sans-serif;
-  padding: 12px;
+  color: var(--yk-ink);
+  font: 16px/1.45 var(--yk-mono);
+  padding: 12px 0 88px;
 }
-.barra, .acciones, .mas { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.barra { justify-content: space-between; margin-bottom: 12px; }
-.barra h1, .biblioteca h2, .inspector h2 { margin: 0; font-size: 1.15rem; }
-#atajo, #aviso, #resumen { margin: 0; color: #c9c2b2; }
+.barra, .acciones, .mas, .pestanas { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.barra { justify-content: space-between; margin-bottom: 16px; }
+.editor-pagina h1 { margin: 0; font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; }
+.biblioteca h2, .inspector h2, .escenario h2, .pasos h2 { margin: 0 0 8px; font-size: 16px; }
+#atajo, #aviso, #resumen, .guia, .tarjeta small, .tarjeta em { margin: 0; color: var(--yk-mut); }
 #aviso:empty { display: none; }
 .editor {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 300px;
-  grid-template-areas: "lib stage insp" "lib steps insp";
-  gap: 12px;
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  gap: 16px;
   align-items: start;
 }
-.biblioteca { grid-area: lib; }
-.escenario { grid-area: stage; min-width: 0; }
-.pasos { grid-area: steps; }
-.inspector { grid-area: insp; }
-.biblioteca, .escenario, .pasos, .inspector, #reproductor {
-  background: #14111c;
-  border: 1px solid #3b3358;
+.biblioteca { grid-column: 1; width: 100%; }
+.centro { grid-column: 2; min-width: 0; display: grid; gap: 16px; align-content: start; }
+.inspector { grid-column: 3; width: 100%; }
+.biblioteca, .centro, .inspector {
+  position: sticky;
+  top: calc(var(--yk-bar-h, 46px) + 8px);
+  max-height: calc(100dvh - var(--yk-bar-h, 46px) - 160px);
+  overflow: auto;
+}
+.biblioteca, .escenario, .pasos, .inspector, #reproductor, dialog {
+  background: var(--yk-bg);
+  border: 1px solid var(--yk-line2);
+  color: var(--yk-ink);
+  border-radius: 14px;
   padding: 12px;
 }
-button, input, select {
+.biblioteca { padding-bottom: calc(12px + var(--editor-rail, 72px)); }
+.editor-pagina :is(button, select, input:not([type="checkbox"])) {
   font: inherit;
-  color: #f4f1ea;
-  background: #221c30;
-  border: 1px solid #5c5478;
+  color: var(--yk-ink);
+  background: var(--yk-bg2);
+  border: 1px solid var(--yk-line2);
+  border-radius: 12px;
   min-height: 44px;
   padding: 8px 10px;
+  max-width: 100%;
 }
 button { cursor: pointer; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #FFCC00; outline-offset: 2px; }
-#buscar, #paso-form input, #paso-form select, #dialogo input, #dialogo select { width: 100%; box-sizing: border-box; }
-.sitio { margin: 10px 0; }
-.sitio h3 { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; font-size: 1rem; }
+#guardar, #ejecutar { background: transparent; }
+#publicar {
+  background: var(--editor-publicar, var(--yk-brand));
+  color: var(--editor-publicar-ink, var(--yk-bg2));
+  border-color: var(--editor-publicar, var(--yk-brand));
+  font-weight: 700;
+}
+:root[data-mb-marca="84"] #publicar {
+  background: var(--yk-brand);
+  color: var(--yk-bg2);
+  border-color: var(--yk-brand);
+}
+.editor-pagina button:disabled { opacity: 0.45; cursor: not-allowed; }
+.mas-acciones, .pestanas { display: none; }
+.editor-pagina :is(button, input, select):focus-visible { outline: 2px solid var(--yk-brand); outline-offset: 2px; }
+#buscar, #paso-form input, #paso-form select, #dialogo input, #dialogo select { width: 100%; }
+.sitio { margin: 10px 0; padding-left: 8px; border-left: 3px solid var(--yk-line); }
+.sitio h3 { display: block; margin: 0 0 6px; font-size: 15px; text-transform: lowercase; }
+:root[data-mb-marca] .editor-pagina .sitio h3 { text-transform: lowercase; }
 .sitio ul { list-style: none; margin: 0; padding: 0; }
 .sitio li, #lista-macros button, #lista-pasos button {
   display: block;
   width: 100%;
   text-align: left;
   margin: 4px 0;
+  overflow: hidden;
 }
-.sitio li { padding: 8px 10px; background: #221c30; border: 1px solid #5c5478; cursor: grab; }
-.punto { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; }
-.sel { border-color: #FFCC00 !important; }
+.sitio li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  min-height: 36px;
+  padding: 6px 10px;
+  background: var(--yk-bg2);
+  border: 1px solid var(--yk-line2);
+  border-radius: 12px;
+  cursor: grab;
+}
+.sitio li b { flex: none; }
+.sitio li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.punto { width: 12px; height: 12px; border-radius: 12px; display: inline-block; flex: none; }
+.sel { border-color: var(--yk-brand) !important; }
+.estado-fila { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+#resumen { margin: 0; }
+.pastilla {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 10px;
+  border: 1px solid var(--yk-line2);
+  border-radius: 999px;
+  color: var(--yk-brand);
+  background: var(--yk-bg2);
+  font-size: 13px;
+}
 #fila { display: flex; gap: 8px; overflow-x: auto; min-height: 148px; padding-bottom: 8px; }
+#fila:empty { display: none; min-height: 0; padding: 0; }
 .tarjeta, .salto, #soltar {
   min-width: 168px;
+  max-width: 220px;
   min-height: 120px;
-  box-sizing: border-box;
-  background: #221c30;
-  border: 1px solid #5c5478;
+  background: var(--yk-bg2);
+  border: 1px solid var(--yk-line2);
+  border-radius: 14px;
   padding: 10px;
 }
 .tarjeta { position: relative; cursor: grab; }
-.tarjeta small, .tarjeta em { display: block; color: #c9c2b2; }
+.tarjeta small, .tarjeta em, .tarjeta strong { display: block; overflow-wrap: anywhere; }
 .tarjeta .quitar {
   position: absolute;
   top: 4px;
   right: 4px;
   min-height: 36px;
   min-width: 36px;
+  padding: 0;
 }
-.salto { border-style: dashed; color: #FFCC00; display: grid; place-items: center; }
-#soltar { border-style: dashed; display: grid; place-items: center; margin-top: 8px; color: #c9c2b2; }
-.vacio { color: #c9c2b2; }
-#paso-form label, #dialogo label, .voz { display: grid; gap: 4px; margin: 8px 0; }
-.linea { display: flex; gap: 8px; }
-.linea input { flex: 1; }
+.salto { border-style: dashed; color: var(--yk-brand); display: grid; place-items: center; }
+#soltar {
+  border-style: dashed;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+  margin-top: 8px;
+  color: var(--yk-mut);
+  width: 100%;
+  max-width: none;
+}
+#soltar .guia { margin: 0; max-width: 42rem; }
+.guia { margin: 8px 0; }
+#paso-form label, #dialogo label { display: grid; gap: 4px; margin: 8px 0; }
+.voz { display: flex; align-items: center; gap: 10px; margin: 8px 0; cursor: pointer; }
+.voz input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 44px;
+  height: 26px;
+  min-height: 26px;
+  min-width: 44px;
+  padding: 0;
+  margin: 0;
+  flex: none;
+  border-radius: 999px;
+  background: var(--yk-bg2);
+  border: 1px solid var(--yk-line2);
+  position: relative;
+}
+.voz input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--yk-ink);
+}
+.voz input[type="checkbox"]:checked { background: var(--yk-brand); border-color: var(--yk-brand); }
+.voz input[type="checkbox"]:checked::after { left: 20px; background: var(--yk-bg2); }
+.linea { display: flex; gap: 8px; min-width: 0; }
+.linea input { flex: 1; min-width: 0; }
 #lista-macros { display: grid; gap: 4px; margin-bottom: 8px; }
-#reproductor { position: fixed; left: 12px; right: 12px; bottom: 12px; display: flex; justify-content: space-between; gap: 12px; z-index: 5; }
+#reproductor { position: fixed; left: 16px; right: 16px; bottom: 12px; display: flex; justify-content: space-between; gap: 12px; z-index: 5; }
 #reproductor[hidden] { display: none; }
-dialog { color: #f4f1ea; background: #14111c; border: 1px solid #FFCC00; width: min(440px, calc(100% - 24px)); }
-dialog::backdrop { background: rgba(0, 0, 0, .62); }
+dialog { width: min(440px, calc(100% - 24px)); }
+dialog::backdrop { background: color-mix(in srgb, var(--yk-bg2) 72%, transparent); }
 @media (max-width: 800px) {
-  .editor {
-    grid-template-columns: 1fr;
-    grid-template-areas: "lib" "stage" "steps" "insp";
+  .editor { grid-template-columns: minmax(0, 1fr); }
+  .biblioteca, .centro, .inspector {
+    grid-column: 1;
+    position: static;
+    width: auto;
+    max-height: none;
+    overflow: visible;
   }
   .barra { align-items: stretch; }
+  .acciones { flex-wrap: nowrap; position: relative; }
+  .mas-acciones { display: inline-flex; min-width: 44px; justify-content: center; }
+  .acciones:not(.abierto) #guardar,
+  .acciones:not(.abierto) #ejecutar { display: none; }
+  .acciones.abierto #guardar,
+  .acciones.abierto #ejecutar {
+    display: inline-flex;
+    position: absolute;
+    right: 0;
+    z-index: 5;
+    width: max-content;
+  }
+  .acciones.abierto #guardar { top: calc(100% + 6px); }
+  .acciones.abierto #ejecutar { top: calc(100% + 54px); }
+  .pestanas { display: flex; margin-bottom: 12px; }
+  .pestanas button { flex: 1; }
+  .pestanas button[aria-selected="true"] {
+    background: var(--yk-brand);
+    color: var(--yk-bg2);
+    border-color: var(--yk-brand);
+  }
+  .editor[data-panel="biblioteca"] :is(.centro, .inspector),
+  .editor[data-panel="macro"] :is(.biblioteca, .inspector),
+  .editor[data-panel="inspector"] :is(.biblioteca, .centro) { display: none; }
+  .editor-pagina h1 { font-size: 28px; }
 }
 
-/* Marca blanca (encargo #5463). Sin marca, el editor sigue con su piel.
-   Con /marca o /brand, los paneles usan los mismos tokens que el resto de la Suite. */
-:root[data-mb-marca] .editor-pagina {
-  color: var(--mbx-ink, #f4f1ea);
-  font-family: var(--mb-fuente-texto, "Chakra Petch"), system-ui, sans-serif;
+html:not(.yk-open-bottom) #ykExpertRail {
+  transform: none;
+  height: auto;
+  min-height: 64px;
+  max-height: none;
+  padding: 8px 16px calc(10px + env(safe-area-inset-bottom));
+  overflow: visible;
 }
-:root[data-mb-marca] .editor-pagina :is(h1, h2, h3) {
-  font-family: var(--mb-fuente-titulos, inherit);
-  letter-spacing: var(--mb-titulos-tracking, normal);
+html:not(.yk-open-bottom) #ykExpertRail :is(.yk-cli-form, .ax-cli-form) {
+  flex: none;
+  min-height: 40px;
 }
+html:not(.yk-open-bottom) #ykExpertRail :is(.yk-rail-navhd, .ax-engine-slot, .yk-cli-out, .ax-extras-btn, .ax-fold) {
+  display: none;
+}
+html:not(.yk-open-bottom) #ykExpertRail :is(.yk-cli, .yk-expert, .ax-body, .ax-cli) {
+  display: flex;
+  flex: none;
+  min-height: 0;
+  overflow: visible;
+}
+
+/* Con marca, los mismos tokens: marca-blanca.css los reescribe en --yk-*. */
 :root[data-mb-marca] :is(.biblioteca, .escenario, .pasos, .inspector, #reproductor, dialog) {
-  background: var(--mb-superficie, #14111c);
-  border-color: var(--mb-borde, #3b3358);
-  color: var(--mbx-ink, #f4f1ea);
+  background: var(--yk-bg);
+  border-color: var(--yk-line);
+  color: var(--yk-ink);
 }
-:root[data-mb-marca] .editor-pagina :is(button, input, select, .sitio li, .tarjeta, .salto, #soltar) {
-  background: var(--mb-fondo, #221c30);
-  border-color: var(--mb-borde, #5c5478);
-  color: var(--mbx-ink, #f4f1ea);
-}
-:root[data-mb-marca] .editor-pagina :is(button, input, select):focus-visible,
-:root[data-mb-marca] .sel {
-  outline-color: var(--mbx-brand, #FFCC00);
-  border-color: var(--mbx-brand, #FFCC00) !important;
-}
-:root[data-mb-marca] :is(#atajo, #aviso, #resumen, .tarjeta small, .tarjeta em, .vacio, #soltar) {
-  color: var(--mbx-mut, #c9c2b2);
-}
-:root[data-mb-marca] .salto { color: var(--mbx-brand, #FFCC00); }
-:root[data-mb-marca] #reproductor { border-color: var(--mbx-brand, #9bd6bc); }

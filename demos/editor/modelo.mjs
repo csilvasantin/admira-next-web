@@ -1,11 +1,11 @@
 // Modelo del editor de demos. No toca la red ni el DOM: lo usa la página y las pruebas.
 export const ESQUEMA = 'admira.demo/2';
 export const SITIOS = [
-  { id: 'biz', color: '#FFCC00', es: 'admira.biz', en: 'admira.biz' },
-  { id: 'app', color: '#7ce8d8', es: 'admira.app', en: 'admira.app' },
-  { id: 'store', color: '#33FF99', es: 'admira.store', en: 'admira.store' },
-  { id: 'studio', color: '#FF33CC', es: 'Admira Studio', en: 'Admira Studio' },
-  { id: 'tv', color: '#FF3366', es: 'admira.tv', en: 'admira.tv' },
+  { id: 'biz', color: '#FF3366', es: 'admira.biz', en: 'admira.biz' },
+  { id: 'app', color: '#FFFFFF', es: 'admira.app', en: 'admira.app' },
+  { id: 'store', color: '#FFCC00', es: 'admira.store', en: 'admira.store' },
+  { id: 'studio', color: '#FF33CC', es: 'admira.studio', en: 'admira.studio' },
+  { id: 'tv', color: '#33FF99', es: 'admira.tv', en: 'admira.tv' },
 ];
 export const OPS = ['navigate', 'say', 'point', 'click', 'open', 'close', 'fill', 'select', 'video', 'audio', 'wait', 'cli', 'check', 'native'];
 export { urlDePieza } from '../../subdemos/macro-url.mjs';
@@ -26,6 +26,13 @@ export const TEXTO = {
     duplicar: 'Duplicar',
     borrar: 'Borrar',
     soltar: 'Soltar aquí',
+    macroTitulo: 'Macro',
+    pasos: 'Pasos',
+    inspector: 'Inspector',
+    eligePaso: 'Elige un paso para editarlo',
+    piezas: 'piezas',
+    buscarCorto: 'Buscar…',
+    masAcciones: 'Más acciones',
     anadir: '+ Añadir paso',
     probar: 'Probar paso',
     desde: 'Desde aquí',
@@ -44,6 +51,11 @@ export const TEXTO = {
     publicada: 'publicada',
     salto: 'Siguiente tramo',
     vacio: 'Arrastra una subdemo desde la biblioteca.',
+    guiaMacro: 'Ejemplo: biz×3 + app×2, tres piezas de admira.biz y dos de admira.app.',
+    sinSubdemo: 'Sin subdemo. Elige una en la biblioteca o en la macro para ver sus pasos.',
+    sinPaso: 'Sin pasos. Pulsa «+ Añadir paso» para crear el primero.',
+    sinSubdemos: '{sitio} no tiene subdemos. Crea la primera con + Subdemo.',
+    sinResultados: 'Ningún resultado para «{q}». Prueba el sitio (biz, app, tv) o el nombre de la subdemo.',
     sinPasos: 'Elige una subdemo para ver sus pasos.',
     confirmar: '¿Seguro que quieres borrarlo?',
     cancelar: 'Cancelar',
@@ -67,6 +79,13 @@ export const TEXTO = {
     duplicar: 'Duplicate',
     borrar: 'Delete',
     soltar: 'Drop here',
+    macroTitulo: 'Macro',
+    pasos: 'Steps',
+    inspector: 'Inspector',
+    eligePaso: 'Choose a step to edit it',
+    piezas: 'pieces',
+    buscarCorto: 'Search…',
+    masAcciones: 'More actions',
     anadir: '+ Add step',
     probar: 'Try step',
     desde: 'From here',
@@ -85,6 +104,11 @@ export const TEXTO = {
     publicada: 'published',
     salto: 'Next segment',
     vacio: 'Drag a subdemo from the library.',
+    guiaMacro: 'Example: biz×3 + app×2, three admira.biz pieces and two admira.app pieces.',
+    sinSubdemo: 'No subdemo. Choose one in the library or in the macro to see its steps.',
+    sinPaso: 'No steps. Press “+ Add step” to create the first one.',
+    sinSubdemos: '{sitio} has no subdemos. Create the first one with + Subdemo.',
+    sinResultados: 'No results for “{q}”. Try the site (biz, app, tv) or the subdemo name.',
     sinPasos: 'Choose a subdemo to see its steps.',
     confirmar: 'Delete this? This cannot be undone from the screen.',
     cancelar: 'Cancel',
@@ -110,7 +134,16 @@ export function sitioDe(ref) {
 }
 
 export function colorDe(site) {
-  return SITIOS.find((item) => item.id === site)?.color || '#9aa';
+  return SITIOS.find((item) => item.id === site)?.color || '#FFFFFF';
+}
+
+export function lineaEstado(resumen, lang) {
+  const crudo = String(resumen?.estado || '');
+  const estado = crudo ? crudo.charAt(0).toUpperCase() + crudo.slice(1) : '';
+  const segundos = Math.max(0, Math.round(Number(resumen?.duracion) || 0));
+  return estado + ' · ' + (resumen?.elementos || 0) + ' ' + t(lang, 'piezas')
+    + ' · ' + (resumen?.sitios || 0) + ' ' + t(lang, 'sitios')
+    + ' · ' + segundos + ' s';
 }
 
 export function duracionDe(demo, sub) {

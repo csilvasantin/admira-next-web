@@ -92,13 +92,18 @@ test('la biblioteca monta biz×3 + app×2, salta de sitio, reordena, deshace y m
 test('la página lleva el marco cuadrático, los dos idiomas y sustituye a /subdemos/', () => {
   const html = leer('../demos/editor/index.html');
   const js = leer('../demos/editor/editor.js');
-  assert.match(html, /class="yk-framed"/);
+  assert.match(html, /data-yk-frame="cabecera"/);
+  assert.match(html, /data-yk-head/);
+  assert.match(html, /data-yk-main/);
+  assert.match(html, /role="switch"/);
+  assert.doesNotMatch(html, /class="yk-framed"/);
+  assert.doesNotMatch(html, /data-yk-title=/);
   assert.match(html, /data-yk-rail-left="OPCIONES"/);
   assert.match(html, /data-yk-rail-right="AVANZADO"/);
   assert.match(html, /data-yk-cli="on"/);
   assert.match(html, /admira-frame\.js\?v=20261009-demo-5446/);
   assert.match(html, /admira-frame\.css\?v=20261009-demo-5446/);
-  for (const id of ['titulo', 'guardar', 'publicar', 'ejecutar', 'deshacer', 'buscar', 'arbol', 'h-biblioteca', 'h-macros', 'lista-macros', 'mas-demo', 'mas-sub', 'mas-macro', 'duplicar', 'borrar', 'fila', 'soltar', 'resumen', 'lista-pasos', 'anadir-paso', 'paso-form', 'probar', 'desde', 'borrar-paso', 'voz', 'dialogo', 'idioma-barra']) {
+  for (const id of ['titulo', 'guardar', 'publicar', 'ejecutar', 'mas-acciones', 'buscar', 'arbol', 'h-biblioteca', 'h-macro', 'h-pasos', 'h-inspector', 'h-macros', 'lista-macros', 'mas-demo', 'mas-sub', 'mas-macro', 'duplicar', 'borrar', 'fila', 'soltar', 'resumen', 'pastilla', 'lista-pasos', 'anadir-paso', 'paso-form', 'probar', 'desde', 'borrar-paso', 'voz', 'dialogo', 'tab-biblioteca', 'tab-macro', 'tab-inspector']) {
     assert.match(html, new RegExp('id="' + id + '"'), id);
   }
   assert.match(html, /Guardar borrador/);
@@ -112,6 +117,8 @@ test('la página lleva el marco cuadrático, los dos idiomas y sustituye a /subd
   assert.match(leer('../demo/index.html'), /\/demo editor/);
   assert.match(leer('../suite/experto.js'), /editor:'\/demos\/editor\/'/);
   assert.doesNotMatch(html, /name="admiranext-version"/);
+  assert.doesNotMatch(html, /id="idioma-barra"/);
+  assert.doesNotMatch(html, /id="deshacer"/);
 });
 
 test('un editor guarda, publica y borra la macro y crea una subdemo; sin sesión recibe 403', async () => {
