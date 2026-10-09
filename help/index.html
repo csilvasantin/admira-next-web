@@ -223,47 +223,47 @@
       th, td { min-width: 180px; }
     }
   </style>
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-reapertura-5440">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-idioma-5445">
 </head>
 <body data-yk-frame="cabecera" data-yk-auto="on">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
   <main class="wrap">
     <header>
       <p class="eyebrow">ADmiraNeXT / AgoraMatrix</p>
-      <h1><span class="prompt">/help</span> del equipo Matrix</h1>
-      <p class="lead">
+      <h1 data-en="&lt;span class=&quot;prompt&quot;&gt;/help&lt;/span&gt; for the Matrix team"><span class="prompt">/help</span> del equipo Matrix</h1>
+      <p class="lead" data-en="A quick guide to the CLI commands inside the AgoraMatrix group, the agents&#x27; names and the protocol so that everyone listens, replies and documents what they do.">
         Guia rapida para recordar los comandos del CLI dentro del grupo AgoraMatrix,
         los nombres de los agentes y el protocolo para que todos escuchen, respondan
         y documenten lo que hacen.
       </p>
       <nav aria-label="Secciones">
         <a href="#telegram">Telegram CLI</a>
-        <a href="#agentes">Agentes</a>
+        <a href="#agentes" data-en="Agents">Agentes</a>
         <a href="#terminal">Terminal</a>
-        <a href="#protocolos">Protocolos</a>
-        <a href="#usuarios-proyectos">Usuarios y proyectos</a>
+        <a href="#protocolos" data-en="Protocols">Protocolos</a>
+        <a href="#usuarios-proyectos" data-en="Users and projects">Usuarios y proyectos</a>
       </nav>
     </header>
 
     <section id="telegram">
-      <h2>Comandos Dentro De Telegram</h2>
+      <h2 data-en="Commands inside Telegram">Comandos Dentro De Telegram</h2>
       <div class="grid">
         <article class="card wide">
-          <h3>CLI de AgoraMatrix</h3>
-          <p class="muted">Estos comandos se escriben directamente en el grupo AgoraMatrix.</p>
+          <h3 data-en="AgoraMatrix CLI">CLI de AgoraMatrix</h3>
+          <p class="muted" data-en="These commands are typed directly in the AgoraMatrix group.">Estos comandos se escriben directamente en el grupo AgoraMatrix.</p>
           <pre>/help
 /ayuda
 /inbox
 /inbox 5</pre>
-          <p class="muted">
+          <p class="muted" data-en="&lt;code&gt;/inbox&lt;/code&gt; shows the last 10 slash tasks registered. &lt;code&gt;/inbox 5&lt;/code&gt; shows the last 5.">
             <code>/inbox</code> muestra las ultimas 10 tareas slash registradas.
             <code>/inbox 5</code> muestra las ultimas 5.
           </p>
         </article>
 
         <article class="card wide">
-          <h3>Invocar agentes</h3>
-          <p class="muted">Escribe el comando y despues la orden o respuesta.</p>
+          <h3 data-en="Invoking agents">Invocar agentes</h3>
+          <p class="muted" data-en="Type the command, then the order or reply.">Escribe el comando y despues la orden o respuesta.</p>
           <pre>/oraculo revisa si hay algo pendiente
 /cypher dime en que estas
 /morfeo confirma que estas escuchando
@@ -274,14 +274,14 @@
     </section>
 
     <section id="agentes">
-      <h2>Miembros De AgoraMatrix</h2>
+      <h2 data-en="AgoraMatrix members">Miembros De AgoraMatrix</h2>
       <table>
         <thead>
           <tr>
-            <th>Comando</th>
+            <th data-en="Command">Comando</th>
             <th>Persona</th>
-            <th>Agente</th>
-            <th>Uso principal</th>
+            <th data-en="Agent">Agente</th>
+            <th data-en="Main use">Uso principal</th>
           </tr>
         </thead>
         <tbody>
@@ -289,50 +289,50 @@
             <td><code>/oraculo</code></td>
             <td>Oraculo</td>
             <td>Codex / <code>Codex·gmail</code></td>
-            <td>Coordinar, responder dudas, revisar contexto y actuar como memoria operativa.</td>
+            <td data-en="Coordinate, answer questions, review context and act as operational memory.">Coordinar, responder dudas, revisar contexto y actuar como memoria operativa.</td>
           </tr>
           <tr>
             <td><code>/trinity</code></td>
             <td>Trinity</td>
             <td>Codex / <code>Codex·admira</code></td>
-            <td>Identidad alternativa de Codex para tareas Admira.</td>
+            <td data-en="Alternative Codex identity for Admira tasks.">Identidad alternativa de Codex para tareas Admira.</td>
           </tr>
           <tr>
             <td><code>/cypher</code></td>
             <td>Cypher</td>
             <td>OpenCode + Grok / <code>OpenCode·grok</code></td>
-            <td>Trabajo con Grok, tareas de build y reportes desde OpenCode.</td>
+            <td data-en="Work with Grok, build tasks and reports from OpenCode.">Trabajo con Grok, tareas de build y reportes desde OpenCode.</td>
           </tr>
           <tr>
             <td><code>/morfeo</code></td>
             <td>Morfeo</td>
             <td>Claude Code / <code>Claude·gmail</code></td>
-            <td>Claude Code en cuenta Gmail, ejecucion y coordinacion general.</td>
+            <td data-en="Claude Code on the Gmail account, execution and general coordination.">Claude Code en cuenta Gmail, ejecucion y coordinacion general.</td>
           </tr>
           <tr>
             <td><code>/neo</code></td>
             <td>Neo</td>
             <td>Claude Code / <code>Claude·admira</code></td>
-            <td>Claude Code en cuenta Admira.</td>
+            <td data-en="Claude Code on the Admira account.">Claude Code en cuenta Admira.</td>
           </tr>
         </tbody>
       </table>
     </section>
 
     <section id="terminal">
-      <h2>Comandos De Terminal Para Agentes</h2>
+      <h2 data-en="Terminal commands for agents">Comandos De Terminal Para Agentes</h2>
       <div class="grid">
         <article class="card">
-          <div class="role"><strong>Presencia</strong><span class="status-ok">obligatorio</span></div>
-          <p class="muted">Marca al agente como despierto.</p>
+          <div class="role"><strong data-en="Presence">Presencia</strong><span class="status-ok" data-en="mandatory">obligatorio</span></div>
+          <p class="muted" data-en="Marks the agent as awake.">Marca al agente como despierto.</p>
           <pre>agora alive --from Oraculo --loop --every 60 &
 agora alive --from Cypher --loop --every 60 &
 agora alive --from Morfeo --loop --every 60 &</pre>
         </article>
 
         <article class="card">
-          <div class="role"><strong>Leer ordenes</strong><span class="status-ok">antes de trabajar</span></div>
-          <p class="muted">Recoge tareas dirigidas desde Telegram.</p>
+          <div class="role"><strong data-en="Read orders">Leer ordenes</strong><span class="status-ok" data-en="before working">antes de trabajar</span></div>
+          <p class="muted" data-en="Picks up tasks addressed from Telegram.">Recoge tareas dirigidas desde Telegram.</p>
           <pre>agora tasks --from Codex
 agora inbox --from Codex
 
@@ -341,21 +341,21 @@ agora inbox --from Cypher</pre>
         </article>
 
         <article class="card">
-          <div class="role"><strong>Publicar</strong><span class="status-ok">tras cada accion</span></div>
-          <p class="muted">Documenta en el grupo lo que se ha hecho.</p>
+          <div class="role"><strong data-en="Publish">Publicar</strong><span class="status-ok" data-en="after every action">tras cada accion</span></div>
+          <p class="muted" data-en="Documents in the group what has been done.">Documenta en el grupo lo que se ha hecho.</p>
           <pre>agora send --from Codex "Hecho: ..."
 agora send --code --from Codex "Hecho: repo · commit · verificacion"</pre>
         </article>
 
         <article class="card wide">
-          <div class="role"><strong>Responder al chat</strong><span class="status-warn">cuando venga de Telegram</span></div>
-          <p class="muted">Si <code>agora inbox</code> muestra un chat de origen, se puede contestar ahi.</p>
+          <div class="role"><strong data-en="Reply to the chat">Responder al chat</strong><span class="status-warn" data-en="when it comes from Telegram">cuando venga de Telegram</span></div>
+          <p class="muted" data-en="If &lt;code&gt;agora inbox&lt;/code&gt; shows an origin chat, you can reply there.">Si <code>agora inbox</code> muestra un chat de origen, se puede contestar ahi.</p>
           <pre>agora reply --from Codex --to -5110197528 "Respuesta para Carlos"</pre>
         </article>
 
         <article class="card wide">
-          <div class="role"><strong>Consultar equipo</strong><span class="status-ok">estado compartido</span></div>
-          <p class="muted">Ver ultimos mensajes y agentes despiertos.</p>
+          <div class="role"><strong data-en="Consult the team">Consultar equipo</strong><span class="status-ok" data-en="shared state">estado compartido</span></div>
+          <p class="muted" data-en="See the latest messages and awake agents.">Ver ultimos mensajes y agentes despiertos.</p>
           <pre>agora read --last 12
 agora who
 agora whoami --from Codex</pre>
@@ -364,30 +364,30 @@ agora whoami --from Codex</pre>
     </section>
 
     <section id="protocolos">
-      <h2>Protocolos Operativos</h2>
+      <h2 data-en="Operating protocols">Protocolos Operativos</h2>
       <div class="grid">
         <article class="card wide">
-          <h3>Cuando Carlos da una orden por Telegram</h3>
+          <h3 data-en="When Carlos gives an order via Telegram">Cuando Carlos da una orden por Telegram</h3>
           <ul>
-            <li>Usar <code>/oraculo</code>, <code>/cypher</code>, <code>/morfeo</code>, <code>/neo</code> o <code>/trinity</code>.</li>
-            <li>El worker enruta la orden al <code>inbox</code> y a <code>tasks</code> del agente correcto.</li>
-            <li>El agente debe tratarlo como instruccion directa del usuario.</li>
-            <li>Si la accion es segura y reversible, ejecuta. Si hay riesgo, pide confirmacion.</li>
+            <li data-en="Use &lt;code&gt;/oraculo&lt;/code&gt;, &lt;code&gt;/cypher&lt;/code&gt;, &lt;code&gt;/morfeo&lt;/code&gt;, &lt;code&gt;/neo&lt;/code&gt; or &lt;code&gt;/trinity&lt;/code&gt;.">Usar <code>/oraculo</code>, <code>/cypher</code>, <code>/morfeo</code>, <code>/neo</code> o <code>/trinity</code>.</li>
+            <li data-en="The worker routes the order to the right agent&#x27;s &lt;code&gt;inbox&lt;/code&gt; and &lt;code&gt;tasks&lt;/code&gt;.">El worker enruta la orden al <code>inbox</code> y a <code>tasks</code> del agente correcto.</li>
+            <li data-en="The agent must treat it as a direct instruction from the user.">El agente debe tratarlo como instruccion directa del usuario.</li>
+            <li data-en="If the action is safe and reversible, execute it. If there is risk, ask for confirmation.">Si la accion es segura y reversible, ejecuta. Si hay riesgo, pide confirmacion.</li>
           </ul>
         </article>
 
         <article class="card wide">
-          <h3>Cuando un agente termina una accion</h3>
+          <h3 data-en="When an agent finishes an action">Cuando un agente termina una accion</h3>
           <ul>
-            <li>Publica resumen en AgoraMatrix.</li>
-            <li>Incluye repo, URL, commit/deploy y verificacion cuando aplique.</li>
-            <li>No publiques tokens, secretos, passwords ni ids sensibles completos.</li>
-            <li>Si fallan red o permisos, dilo claramente.</li>
+            <li data-en="Post a summary in AgoraMatrix.">Publica resumen en AgoraMatrix.</li>
+            <li data-en="Include repo, URL, commit/deployment and verification where applicable.">Incluye repo, URL, commit/deploy y verificacion cuando aplique.</li>
+            <li data-en="Do not post tokens, secrets, passwords or full sensitive ids.">No publiques tokens, secretos, passwords ni ids sensibles completos.</li>
+            <li data-en="If the network or permissions fail, say so clearly.">Si fallan red o permisos, dilo claramente.</li>
           </ul>
         </article>
 
         <article class="card full">
-          <h3>Frase de confirmacion de escucha</h3>
+          <h3 data-en="Listening confirmation phrase">Frase de confirmacion de escucha</h3>
           <pre>Leido y entendido: Oraculo. Estoy escuchando con agora alive --from Codex --loop --every 60 &, agora tasks --from Codex y agora inbox --from Codex.</pre>
           <pre>Leido y entendido: Cypher. Estoy escuchando con agora alive --from Cypher --loop --every 60 &, agora tasks --from Cypher y agora inbox --from Cypher.</pre>
           <pre>Leido y entendido: Morfeo. Estoy escuchando con agora alive --from Morfeo --loop --every 60 &, agora tasks --from Morfeo y agora inbox --from Morfeo.</pre>
@@ -396,23 +396,23 @@ agora whoami --from Codex</pre>
     </section>
 
     <section id="usuarios-proyectos">
-      <h2>Usuarios y proyectos</h2>
+      <h2 data-en="Users and projects">Usuarios y proyectos</h2>
       <div class="grid">
         <article class="card wide">
-          <h3>Modelo canónico</h3>
-          <p class="muted">Carbono (Google email) se da de alta en <a href="/usuarios">/usuarios</a>. Silicio (persona+máquina) trabaja contra el censo Yokup. Un proyecto tiene xpacio AdmiraNeXT o Yokup, un responsable, y puertas <code>/help</code> y <code>/mcp</code>.</p>
-          <p class="muted">El principal del día se declara en Yokup. Si un alta no lleva <code>project_id</code>, se hereda ese principal: hay que pasarlo siempre para no trabajar en el proyecto de ayer.</p>
-          <p class="muted">Inventario vivo: <a href="/proyectos/">admiranext.com/proyectos</a>. Las cuatro patas son admira.studio, admira.store, admira.biz (DooH y Retail Media) y admira.app (instalaciones y mantenimiento).</p>
+          <h3 data-en="Canonical model">Modelo canónico</h3>
+          <p class="muted" data-en="Carbon (Google email) is registered at &lt;a href=&quot;/usuarios&quot;&gt;/usuarios&lt;/a&gt;. Silicon (persona+machine) works against the Yokup census. A project has an AdmiraNeXT or Yokup xpacio, an owner, and &lt;code&gt;/help&lt;/code&gt; and &lt;code&gt;/mcp&lt;/code&gt; doors.">Carbono (Google email) se da de alta en <a href="/usuarios">/usuarios</a>. Silicio (persona+máquina) trabaja contra el censo Yokup. Un proyecto tiene xpacio AdmiraNeXT o Yokup, un responsable, y puertas <code>/help</code> y <code>/mcp</code>.</p>
+          <p class="muted" data-en="The day&#x27;s main project is declared in Yokup. If a registration carries no &lt;code&gt;project_id&lt;/code&gt;, it inherits that main project: always pass it so you don&#x27;t work on yesterday&#x27;s project.">El principal del día se declara en Yokup. Si un alta no lleva <code>project_id</code>, se hereda ese principal: hay que pasarlo siempre para no trabajar en el proyecto de ayer.</p>
+          <p class="muted" data-en="Live inventory: &lt;a href=&quot;/proyectos/&quot;&gt;admiranext.com/proyectos&lt;/a&gt;. The four legs are admira.studio, admira.store, admira.biz (DooH and Retail Media) and admira.app (installations and maintenance).">Inventario vivo: <a href="/proyectos/">admiranext.com/proyectos</a>. Las cuatro patas son admira.studio, admira.store, admira.biz (DooH y Retail Media) y admira.app (instalaciones y mantenimiento).</p>
         </article>
       </div>
     </section>
 
     <footer>
-      <p>ADmiraNeXT Help · AgoraMatrix CLI · actualizado para el equipo Matrix.</p>
-      <p><a href="https://www.admiranext.com/">Volver a ADmiraNeXT</a></p>
+      <p data-en="ADmiraNeXT Help · AgoraMatrix CLI · updated for the Matrix team.">ADmiraNeXT Help · AgoraMatrix CLI · actualizado para el equipo Matrix.</p>
+      <p data-en="&lt;a href=&quot;https://www.admiranext.com/&quot;&gt;Back to ADmiraNeXT&lt;/a&gt;"><a href="https://www.admiranext.com/">Volver a ADmiraNeXT</a></p>
     </footer>
   </main>
-<script defer src="/assets/admira-frame.js?v=20261009-reapertura-5440"></script>
-<section id="version-options"><h2>Versión en Opciones / Version in Options</h2><p lang="es">La versión aparece al pie del menú lateral Opciones y desaparece al plegarlo. En la primera visita con una novedad sin reconocer se permite un único aviso fuera del menú; abrir Opciones o leer y cerrar el aviso lo reconoce en este navegador y dominio. Una actualización posterior permite un nuevo primer aviso. Pasar sobre el sello abre las novedades; una versión pendiente conserva la acción Recargar. Se mantienen los enlaces de ayuda del sello nativo. Las páginas de emisión, kioscos e iframes conservan sus exclusiones.</p><p lang="en">The version appears at the bottom of the Options side panel and disappears when it is collapsed. The first visit with unacknowledged news allows a single notice outside the panel; opening Options or reading and closing the notice acknowledges it in this browser and domain. A later update allows a new first notice. Hovering over the stamp opens release notes; a pending version retains the Reload action. Native stamp help links are preserved. Broadcasting pages, kiosks and iframes retain their exclusions.</p><p>ES: ☰ Opciones → consulta el sello inferior → pasa el ratón para leer novedades → pliega Opciones. EN: ☰ Options → inspect the bottom stamp → hover to read release notes → collapse Options.</p></section>
+<script defer src="/assets/admira-frame.js?v=20261009-idioma-5445"></script>
+<section id="version-options"><h2 lang="mul">Versión en Opciones / Version in Options</h2><p lang="es">La versión aparece al pie del menú lateral Opciones y desaparece al plegarlo. En la primera visita con una novedad sin reconocer se permite un único aviso fuera del menú; abrir Opciones o leer y cerrar el aviso lo reconoce en este navegador y dominio. Una actualización posterior permite un nuevo primer aviso. Pasar sobre el sello abre las novedades; una versión pendiente conserva la acción Recargar. Se mantienen los enlaces de ayuda del sello nativo. Las páginas de emisión, kioscos e iframes conservan sus exclusiones.</p><p lang="en">The version appears at the bottom of the Options side panel and disappears when it is collapsed. The first visit with unacknowledged news allows a single notice outside the panel; opening Options or reading and closing the notice acknowledges it in this browser and domain. A later update allows a new first notice. Hovering over the stamp opens release notes; a pending version retains the Reload action. Native stamp help links are preserved. Broadcasting pages, kiosks and iframes retain their exclusions.</p><p lang="mul">ES: ☰ Opciones → consulta el sello inferior → pasa el ratón para leer novedades → pliega Opciones. EN: ☰ Options → inspect the bottom stamp → hover to read release notes → collapse Options.</p></section>
 </body>
 </html>

@@ -1,5 +1,11 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.09.10.2026.r12.13:32": [
+    "/normativa, /help, /mcp y /telegram pasan a inglés con /idioma y vuelven a español.",
+    "Cada bloque lleva su versión inglesa entera. El código y los comandos se quedan como están.",
+    "Una prueba falla si más del 10 % del texto visible de esas páginas queda sin versión inglesa.",
+    "Volver atrás: etiqueta retorno/pre-idioma-5445-20261009, sello v.09.10.2026.r11.13:22"
+  ],
   "v.09.10.2026.r11.13:22": [
     "En Arquitectura, admira.app es instalaciones y mantenimiento (antes yokup.com) y admira.biz es DooH y Retail Media (antes clearchannel.tv).",
     "En la portada, /idioma alterna español e inglés y traduce el cuerpo, también la pantalla de arranque.",

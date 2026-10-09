@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="telegram.css?v=260731-2">
   <link rel="stylesheet" href="telegram-live.css?v=260731-2">
   <link rel="stylesheet" href="telegram-media.css?v=260731-1">
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-reapertura-5440">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-idioma-5445">
 </head>
 <body data-yk-frame="cabecera" data-yk-auto="on">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
@@ -25,86 +25,86 @@
 
     <section class="hero">
       <p class="prompt">$ admiranext telegram --explain</p>
-      <p class="eyebrow">CENTRO DE MANDO CONVERSACIONAL</p>
-      <h1>De un mensaje<br>a una misión real.</h1>
-      <p class="lead">Telegram no es solo un chat. Es la puerta de entrada a AgoraMatrix: identifica el agente disponible, entrega texto e imágenes, sigue el trabajo y devuelve el resultado con trazabilidad en YOKUP.</p>
+      <p class="eyebrow" data-en="CONVERSATIONAL COMMAND CENTRE">CENTRO DE MANDO CONVERSACIONAL</p>
+      <h1 data-en="From a message&lt;br&gt;to a real mission.">De un mensaje<br>a una misión real.</h1>
+      <p class="lead" data-en="Telegram is not just a chat. It is the front door to AgoraMatrix: it identifies the available agent, delivers text and images, follows the work and returns the result with traceability in YOKUP.">Telegram no es solo un chat. Es la puerta de entrada a AgoraMatrix: identifica el agente disponible, entrega texto e imágenes, sigue el trabajo y devuelve el resultado con trazabilidad en YOKUP.</p>
       <nav class="actions" aria-label="Acciones principales">
         <a href="#como-funciona">Ver cómo funciona <span>↓</span></a>
-        <a class="ghost" href="https://www.admira.live/telegram" target="_blank" rel="noopener">Abrir Telegram en vivo ↗</a>
+        <a class="ghost" href="https://www.admira.live/telegram" target="_blank" rel="noopener" data-en="Open Telegram live ↗">Abrir Telegram en vivo ↗</a>
       </nav>
       <div class="signal" aria-label="Flujo del sistema">
-        <span>TELEGRAM</span><b>→</b><span>AGORAMATRIX</span><b>→</b><span>AGENTE</span><b>→</b><span>YOKUP</span><b>→</b><span>RESULTADO</span>
+        <span>TELEGRAM</span><b>→</b><span>AGORAMATRIX</span><b>→</b><span data-en="AGENT">AGENTE</span><b>→</b><span>YOKUP</span><b>→</b><span data-en="RESULT">RESULTADO</span>
       </div>
     </section>
 
     <section class="section webtg" id="agoramatrix">
-      <div class="section-head"><span>01</span><div><p>TELEGRAM WEB · EN VIVO</p><h2>Grupo AgoraMatrix</h2></div></div>
-      <p class="lead small">Lee la conversación operativa y crea una misión sin salir de esta página. El mensaje aparece en Telegram, entra en la bandeja del agente y se sincroniza con YOKUP.</p>
+      <div class="section-head"><span>01</span><div><p data-en="TELEGRAM WEB · LIVE">TELEGRAM WEB · EN VIVO</p><h2 data-en="AgoraMatrix group">Grupo AgoraMatrix</h2></div></div>
+      <p class="lead small" data-en="Read the operational conversation and create a mission without leaving this page. The message appears in Telegram, lands in the agent&#x27;s inbox and syncs with YOKUP.">Lee la conversación operativa y crea una misión sin salir de esta página. El mensaje aparece en Telegram, entra en la bandeja del agente y se sincroniza con YOKUP.</p>
       <div class="tg-shell">
-        <div class="tg-top"><div><b>AgoraMatrix</b><small id="tgStatus">conectando…</small></div><a href="https://www.admira.live/telegram" target="_blank" rel="noopener">abrir completo ↗</a></div>
-        <div class="tg-feed" id="tgFeed" aria-live="polite"><p class="tg-loading">Cargando conversación…</p></div>
+        <div class="tg-top"><div><b>AgoraMatrix</b><small id="tgStatus" data-en="connecting…">conectando…</small></div><a href="https://www.admira.live/telegram" target="_blank" rel="noopener" data-en="open full ↗">abrir completo ↗</a></div>
+        <div class="tg-feed" id="tgFeed" aria-live="polite"><p class="tg-loading" data-en="Loading conversation…">Cargando conversación…</p></div>
         <form class="tg-compose" id="missionForm">
           <div class="tg-fields">
-            <label>DESTINO<select id="missionTarget" aria-label="Destino de la misión"><option value="auto|macbookair16plata">⚡ Automático · Air16</option><option value="Oraculo|macbookair16plata">OráculoAir16 · Codex</option><option value="Morfeo|macbookair16plata">MorfeoAir16 · Claude</option><option value="auto|">⚡ Automático · toda la flota</option></select></label>
-            <label>IMAGEN<input id="missionImage" type="file" accept="image/png,image/jpeg,image/webp"><span id="fileName">opcional · máx. 5 MB</span></label>
+            <label>DESTINO<select id="missionTarget" aria-label="Destino de la misión"><option value="auto|macbookair16plata" data-en="⚡ Automatic · Air16">⚡ Automático · Air16</option><option value="Oraculo|macbookair16plata">OráculoAir16 · Codex</option><option value="Morfeo|macbookair16plata">MorfeoAir16 · Claude</option><option value="auto|" data-en="⚡ Automatic · whole fleet">⚡ Automático · toda la flota</option></select></label>
+            <label>IMAGEN<input id="missionImage" type="file" accept="image/png,image/jpeg,image/webp"><span id="fileName" data-en="optional · max. 5 MB">opcional · máx. 5 MB</span></label>
           </div>
           <label class="tg-prompt">MISIÓN<textarea id="missionText" maxlength="4000" rows="4" required placeholder="Describe el resultado que quieres obtener…"></textarea></label>
-          <div class="tg-sendrow"><span id="missionFeedback">Texto e imagen viajarán juntos.</span><button type="submit" id="missionSend">ENVIAR MISIÓN ↗</button></div>
+          <div class="tg-sendrow"><span id="missionFeedback" data-en="Text and image will travel together.">Texto e imagen viajarán juntos.</span><button type="submit" id="missionSend" data-en="SEND MISSION ↗">ENVIAR MISIÓN ↗</button></div>
         </form>
       </div>
     </section>
 
     <section class="section" id="que-puedes-hacer">
-      <div class="section-head"><span>02</span><div><p>CAPACIDADES</p><h2>Qué puedes hacer</h2></div></div>
+      <div class="section-head"><span>02</span><div><p data-en="CAPABILITIES">CAPACIDADES</p><h2 data-en="What you can do">Qué puedes hacer</h2></div></div>
       <div class="cards">
-        <article><span class="icon">/01</span><h3>Encargar una misión</h3><p>Escribe el objetivo en lenguaje natural. El encargo queda registrado y visible desde el primer segundo.</p></article>
-        <article><span class="icon">/02</span><h3>Elegir agente o equipo</h3><p>Dirige el trabajo a una identidad exacta, a un ordenador o deja que AgoraMatrix elija según disponibilidad y carga.</p></article>
-        <article><span class="icon">/03</span><h3>Adjuntar contexto</h3><p>Envía texto, una imagen o ambas cosas. El material viaja unido a la misión y llega al agente que la ejecutará.</p></article>
-        <article><span class="icon">/04</span><h3>Seguir el progreso</h3><p>Recibe confirmación, reclamación, avances, porcentaje y capturas sin abandonar Telegram.</p></article>
-        <article><span class="icon">/05</span><h3>Recibir el resultado</h3><p>El informe final, la prueba visual y la identidad real del ejecutor vuelven al mismo canal.</p></article>
-        <article><span class="icon">/06</span><h3>Auditar en YOKUP</h3><p>Cada misión tiene un gemelo operativo: estado, agente, equipo, tiempos, tareas, captura e informe.</p></article>
+        <article><span class="icon">/01</span><h3 data-en="Order a mission">Encargar una misión</h3><p data-en="Write the goal in natural language. The order is logged and visible from the very first second.">Escribe el objetivo en lenguaje natural. El encargo queda registrado y visible desde el primer segundo.</p></article>
+        <article><span class="icon">/02</span><h3 data-en="Choose an agent or machine">Elegir agente o equipo</h3><p data-en="Direct the work to an exact identity, to a computer, or let AgoraMatrix choose based on availability and load.">Dirige el trabajo a una identidad exacta, a un ordenador o deja que AgoraMatrix elija según disponibilidad y carga.</p></article>
+        <article><span class="icon">/03</span><h3 data-en="Attach context">Adjuntar contexto</h3><p data-en="Send text, an image or both. The material travels with the mission and reaches the agent who will carry it out.">Envía texto, una imagen o ambas cosas. El material viaja unido a la misión y llega al agente que la ejecutará.</p></article>
+        <article><span class="icon">/04</span><h3 data-en="Follow progress">Seguir el progreso</h3><p data-en="Receive confirmation, claim, updates, percentage and screenshots without leaving Telegram.">Recibe confirmación, reclamación, avances, porcentaje y capturas sin abandonar Telegram.</p></article>
+        <article><span class="icon">/05</span><h3 data-en="Receive the result">Recibir el resultado</h3><p data-en="The final report, the visual proof and the real identity of the executor come back to the same channel.">El informe final, la prueba visual y la identidad real del ejecutor vuelven al mismo canal.</p></article>
+        <article><span class="icon">/06</span><h3 data-en="Audit in YOKUP">Auditar en YOKUP</h3><p data-en="Every mission has an operational twin: status, agent, machine, timings, tasks, screenshot and report.">Cada misión tiene un gemelo operativo: estado, agente, equipo, tiempos, tareas, captura e informe.</p></article>
       </div>
     </section>
 
     <section class="section" id="como-funciona">
-      <div class="section-head"><span>03</span><div><p>FLUJO REAL</p><h2>Cómo funciona</h2></div></div>
+      <div class="section-head"><span>03</span><div><p data-en="REAL FLOW">FLUJO REAL</p><h2 data-en="How it works">Cómo funciona</h2></div></div>
       <ol class="timeline">
-        <li><b>1</b><div><small>TÚ ESCRIBES</small><h3>Mensaje + archivos</h3><p>La orden puede nombrar un agente, un ordenador o simplemente describir el trabajo.</p></div><code>/OraculoAir16 dibuja un narval en ASCII</code></li>
-        <li><b>2</b><div><small>AGORAMATRIX DECIDE</small><h3>Identidad, presencia y carga</h3><p>Comprueba quién está operativo, respeta la pareja Claude/Codex y evita entregar dos veces la misma misión.</p></div><code>route → Oraculo · MacBookAir16plata</code></li>
-        <li><b>3</b><div><small>EL AGENTE RECLAMA</small><h3>Una ejecución, un responsable</h3><p>El primer claim válido bloquea el encargo. Telegram confirma qué identidad y qué equipo lo han tomado.</p></div><code>CLAIM #1034 · OraculoAir16</code></li>
-        <li><b>4</b><div><small>TRABAJO VISIBLE</small><h3>Progreso y prueba</h3><p>Los avances y pantallazos se reflejan simultáneamente en Telegram y en la misión de YOKUP.</p></div><code>PROGRESO · 60% · captura recibida</code></li>
-        <li><b>5</b><div><small>CIERRE TRAZABLE</small><h3>Resultado + informe</h3><p>Solo se considera finalizada cuando existe informe y prueba. El resultado se entrega en Telegram y queda archivado.</p></div><code>RESULTADO FINAL · informe + imagen</code></li>
+        <li><b>1</b><div><small data-en="YOU WRITE">TÚ ESCRIBES</small><h3 data-en="Message + files">Mensaje + archivos</h3><p data-en="The order can name an agent, a computer, or simply describe the work.">La orden puede nombrar un agente, un ordenador o simplemente describir el trabajo.</p></div><code>/OraculoAir16 dibuja un narval en ASCII</code></li>
+        <li><b>2</b><div><small data-en="AGORAMATRIX DECIDES">AGORAMATRIX DECIDE</small><h3 data-en="Identity, presence and load">Identidad, presencia y carga</h3><p data-en="It checks who is operational, respects the Claude/Codex pairing and avoids delivering the same mission twice.">Comprueba quién está operativo, respeta la pareja Claude/Codex y evita entregar dos veces la misma misión.</p></div><code>route → Oraculo · MacBookAir16plata</code></li>
+        <li><b>3</b><div><small data-en="THE AGENT CLAIMS IT">EL AGENTE RECLAMA</small><h3 data-en="One execution, one owner">Una ejecución, un responsable</h3><p data-en="The first valid claim locks the order. Telegram confirms which identity and which machine took it.">El primer claim válido bloquea el encargo. Telegram confirma qué identidad y qué equipo lo han tomado.</p></div><code>CLAIM #1034 · OraculoAir16</code></li>
+        <li><b>4</b><div><small data-en="VISIBLE WORK">TRABAJO VISIBLE</small><h3 data-en="Progress and proof">Progreso y prueba</h3><p data-en="Updates and screenshots are reflected simultaneously in Telegram and in the YOKUP mission.">Los avances y pantallazos se reflejan simultáneamente en Telegram y en la misión de YOKUP.</p></div><code>PROGRESO · 60% · captura recibida</code></li>
+        <li><b>5</b><div><small data-en="TRACEABLE CLOSE">CIERRE TRAZABLE</small><h3 data-en="Result + report">Resultado + informe</h3><p data-en="It only counts as finished once a report and proof exist. The result is delivered in Telegram and archived.">Solo se considera finalizada cuando existe informe y prueba. El resultado se entrega en Telegram y queda archivado.</p></div><code>RESULTADO FINAL · informe + imagen</code></li>
       </ol>
     </section>
 
     <section class="section commands">
-      <div class="section-head"><span>04</span><div><p>FORMAS DE ENCARGAR</p><h2>Habla como quieras</h2></div></div>
+      <div class="section-head"><span>04</span><div><p data-en="WAYS TO ORDER">FORMAS DE ENCARGAR</p><h2 data-en="Speak however you like">Habla como quieras</h2></div></div>
       <div class="command-grid">
-        <div><small>AGENTE EXACTO</small><code>/OraculoAir16 revisa esta captura</code><p>Va a Codex en el Air16 si está operativo.</p></div>
-        <div><small>OTRO RUNTIME</small><code>/MorfeoAir16 compara estos datos</code><p>Va a Claude en el mismo ordenador.</p></div>
-        <div><small>POR ORDENADOR</small><code>/MacBookAir16plata crea el informe</code><p>AgoraMatrix elige allí al agente activo con menor carga.</p></div>
-        <div><small>AUTOMÁTICO</small><code>Crea dos vegetales en ASCII</code><p>El orquestador decide el mejor destino disponible.</p></div>
+        <div><small data-en="EXACT AGENT">AGENTE EXACTO</small><code>/OraculoAir16 revisa esta captura</code><p data-en="Goes to Codex on the Air16 if it is operational.">Va a Codex en el Air16 si está operativo.</p></div>
+        <div><small data-en="OTHER RUNTIME">OTRO RUNTIME</small><code>/MorfeoAir16 compara estos datos</code><p data-en="Goes to Claude on the same computer.">Va a Claude en el mismo ordenador.</p></div>
+        <div><small data-en="PER COMPUTER">POR ORDENADOR</small><code>/MacBookAir16plata crea el informe</code><p data-en="AgoraMatrix picks the active agent with the lowest load there.">AgoraMatrix elige allí al agente activo con menor carga.</p></div>
+        <div><small data-en="AUTOMATIC">AUTOMÁTICO</small><code>Crea dos vegetales en ASCII</code><p data-en="The orchestrator decides the best available destination.">El orquestador decide el mejor destino disponible.</p></div>
       </div>
-      <p class="note"><b>También puedes adjuntar una imagen.</b> El texto de la misión y la imagen se entregan juntos; no tienes que volver a explicar el contexto.</p>
+      <p class="note" data-en="&lt;b&gt;You can also attach an image.&lt;/b&gt; The mission text and the image are delivered together; you don&#x27;t have to explain the context again."><b>También puedes adjuntar una imagen.</b> El texto de la misión y la imagen se entregan juntos; no tienes que volver a explicar el contexto.</p>
     </section>
 
     <section class="section states">
-      <div class="section-head"><span>05</span><div><p>TRAZABILIDAD</p><h2>Estados que verás</h2></div></div>
-      <div class="state-row"><i class="pending"></i><b>Pendiente</b><span>La misión existe y espera ser tomada.</span></div>
-      <div class="state-row"><i class="course"></i><b>En curso</b><span>Un agente real la ha reclamado y está trabajando.</span></div>
-      <div class="state-row"><i class="late"></i><b>No concluida</b><span>Ha superado 30 minutos sin cierre válido. Se avisa una sola vez.</span></div>
-      <div class="state-row"><i class="done"></i><b>Finalizada</b><span>Existe resultado, informe y prueba visual.</span></div>
-      <aside><strong>Regla de los 30 minutos</strong><p>«No concluida» es una categoría de seguimiento, no una cancelación. El agente puede continuar y finalizar después; lo importante es que el retraso deje de ser invisible.</p></aside>
+      <div class="section-head"><span>05</span><div><p data-en="TRACEABILITY">TRAZABILIDAD</p><h2 data-en="Statuses you will see">Estados que verás</h2></div></div>
+      <div class="state-row"><i class="pending"></i><b data-en="Pending">Pendiente</b><span data-en="The mission exists and is waiting to be picked up.">La misión existe y espera ser tomada.</span></div>
+      <div class="state-row"><i class="course"></i><b data-en="In progress">En curso</b><span data-en="A real agent has claimed it and is working on it.">Un agente real la ha reclamado y está trabajando.</span></div>
+      <div class="state-row"><i class="late"></i><b data-en="Not completed">No concluida</b><span data-en="It has gone over 30 minutes without a valid close. A single alert is sent.">Ha superado 30 minutos sin cierre válido. Se avisa una sola vez.</span></div>
+      <div class="state-row"><i class="done"></i><b data-en="Finished">Finalizada</b><span data-en="A result, report and visual proof exist.">Existe resultado, informe y prueba visual.</span></div>
+      <aside><strong data-en="30-minute rule">Regla de los 30 minutos</strong><p data-en="“Not concluded” is a tracking category, not a cancellation. The agent can continue and finish later; what matters is that the delay stops being invisible.">«No concluida» es una categoría de seguimiento, no una cancelación. El agente puede continuar y finalizar después; lo importante es que el retraso deje de ser invisible.</p></aside>
     </section>
 
     <section class="section split">
-      <div><div class="section-head"><span>06</span><div><p>TELEGRAM + YOKUP</p><h2>Dos vistas, una verdad</h2></div></div><p class="lead small">Telegram es la conversación y YOKUP es la memoria operativa. Puedes trabajar solo desde Telegram y abrir YOKUP cuando necesites planificación, auditoría o comparación.</p></div>
-      <div class="compare"><p><b>Telegram</b><span>Encargo inmediato</span><span>Alertas y progreso</span><span>Capturas y resultado</span><span>Conversación natural</span></p><p><b>YOKUP</b><span>Plan a·b·c</span><span>Estado de toda la flota</span><span>Histórico e informes</span><span>Tiempos y responsables</span></p></div>
+      <div><div class="section-head"><span>06</span><div><p>TELEGRAM + YOKUP</p><h2 data-en="Two views, one truth">Dos vistas, una verdad</h2></div></div><p class="lead small" data-en="Telegram is the conversation and YOKUP is the operational memory. You can work from Telegram alone and open YOKUP when you need planning, audit or comparison.">Telegram es la conversación y YOKUP es la memoria operativa. Puedes trabajar solo desde Telegram y abrir YOKUP cuando necesites planificación, auditoría o comparación.</p></div>
+      <div class="compare"><p data-en="&lt;b&gt;Telegram&lt;/b&gt;&lt;span&gt;Immediate order&lt;/span&gt;&lt;span&gt;Alerts and progress&lt;/span&gt;&lt;span&gt;Screenshots and result&lt;/span&gt;&lt;span&gt;Natural conversation&lt;/span&gt;"><b>Telegram</b><span>Encargo inmediato</span><span>Alertas y progreso</span><span>Capturas y resultado</span><span>Conversación natural</span></p><p data-en="&lt;b&gt;YOKUP&lt;/b&gt;&lt;span&gt;Plan a·b·c&lt;/span&gt;&lt;span&gt;Status of the whole fleet&lt;/span&gt;&lt;span&gt;History and reports&lt;/span&gt;&lt;span&gt;Timings and owners&lt;/span&gt;"><b>YOKUP</b><span>Plan a·b·c</span><span>Estado de toda la flota</span><span>Histórico e informes</span><span>Tiempos y responsables</span></p></div>
     </section>
 
-    <footer><p><span class="cursor">_</span> La misión empieza donde ya estás.</p><a href="https://www.admira.live/telegram" target="_blank" rel="noopener">ABRIR TELEGRAM EN VIVO ↗</a><small>AdmiraNeXT · AgoraMatrix · Barcelona</small></footer>
+    <footer><p data-en="&lt;span class=&quot;cursor&quot;&gt;_&lt;/span&gt; The mission starts where you already are."><span class="cursor">_</span> La misión empieza donde ya estás.</p><a href="https://www.admira.live/telegram" target="_blank" rel="noopener" data-en="OPEN TELEGRAM LIVE ↗">ABRIR TELEGRAM EN VIVO ↗</a><small>AdmiraNeXT · AgoraMatrix · Barcelona</small></footer>
   </main>
   <script src="telegram.js?v=260731-2"></script>
-<script defer src="/assets/admira-frame.js?v=20261009-reapertura-5440"></script>
+<script defer src="/assets/admira-frame.js?v=20261009-idioma-5445"></script>
 </body>
 </html>
