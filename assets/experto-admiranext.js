@@ -22,7 +22,7 @@
   G.__axAdmiranext = true;
   try { if (G.self !== G.top) return; } catch (e) { return; }
   var d = document;
-  var STAMP = '20261009-idioma-5445';
+  var STAMP = '20261009-demo-5446';
   var EXPERTO_JS = '/suite/experto.js?v=' + STAMP;
   var EXPERTO_CSS = '/suite/experto.css?v=' + STAMP;
   var MARCA_JS = '/assets/marca-blanca.js?v=' + STAMP;

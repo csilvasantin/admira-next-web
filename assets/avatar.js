@@ -670,7 +670,7 @@
       var script = doc.querySelector('script[data-admira-demo-engine]') || doc.querySelector('script[src^="https://www.admiranext.com/suite/experto.js"]'), created = false;
       if (!script) {
         script = doc.createElement('script');
-        script.src = ORIGIN + '/suite/experto.js?v=20261009-demo-hoy-2';
+        script.src = ORIGIN + '/suite/experto.js?v=20261009-demo-5446';
         script.defer = true; script.dataset.admiraDemoEngine = '1'; script.dataset.pata = id;
         created = true;
       }

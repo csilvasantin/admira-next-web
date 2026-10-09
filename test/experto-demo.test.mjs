@@ -52,7 +52,7 @@ function withLang(initial, hostname = 'www.admiranext.com', savedManifests = nul
   };
   const sandbox = {
     ...root, window: null, globalThis: null, document, location,
-    localStorage: storage, sessionStorage: storage, URL,
+    localStorage: storage, sessionStorage: storage, URL, URLSearchParams,
     fetch: root.fetch, setTimeout:root.setTimeout, clearTimeout:root.clearTimeout,
     MutationObserver: root.MutationObserver, CustomEvent: root.CustomEvent, Event: root.Event,
   };
@@ -474,4 +474,49 @@ test('/demo hoy y /demo today abren el organigrama sin pisar las demos de la pat
   assert.match(lines.join('\n'), /Demo today/);
   const biz = withLang('es', 'www.admira.biz');
   assert.equal(biz.api.arquitecturaUrl('en'), 'https://www.admiranext.com/arquitectura?lang=en');
+});
+
+test('/demo proyectos, idioma, marcas y roadmap abren su página y /demo help las nombra', () => {
+  const casos = [
+    ['/demo proyectos', 'proyectos', 'es', '/proyectos/'],
+    ['/demo projects', 'proyectos', 'en', '/proyectos/'],
+    ['/demo idioma', 'idioma', 'es', '/'],
+    ['/demo language', 'idioma', 'en', '/'],
+    ['/demo marcas', 'marcas', 'es', '/marcablanca/'],
+    ['/demo brands', 'marcas', 'en', '/marcablanca/'],
+    ['/demo roadmap', 'roadmap', 'es', '/roadmap'],
+  ];
+  for (const [cmd, id, idioma, path] of casos) {
+    const ctx = withLang('es', 'www.admiranext.com');
+    const p = ctx.api.parseDemo(cmd);
+    assert.equal(p.funcion, id, cmd);
+    assert.equal(p.lang, idioma, cmd);
+    const u = new URL(p.url);
+    assert.equal(u.hostname, 'www.admiranext.com', cmd);
+    assert.equal(u.pathname, path, cmd);
+    assert.equal(u.searchParams.get('ax_demo'), id, cmd);
+    assert.equal(u.searchParams.get('lang'), idioma, cmd);
+  }
+  const enPage = withLang('en', 'www.admiranext.com');
+  const road = enPage.api.parseDemo('/demo roadmap');
+  assert.equal(road.lang, 'en');
+  assert.equal(new URL(road.url).pathname, '/roadmap');
+  const viva = withLang('es', 'www.admiranext.com');
+  viva.location.search = '?ax_demo=hoy';
+  assert.deepEqual(snap(viva.api.parseDemo('/demo idioma')), {idiomaDemo: true});
+  assert.deepEqual(snap(viva.api.parseDemo('/demo language')), {idiomaDemo: true});
+  const lines = [];
+  const log = { appendChild: (li) => lines.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0 };
+  withLang('es', 'www.admiranext.com').api.exec('/demo help', log);
+  const help = lines.join('\n');
+  for (const nombre of ['/demo proyectos', '/demo idioma', '/demo marcas', '/demo roadmap', '/demo projects', '/demo language', '/demo brands']) {
+    assert.match(help, new RegExp(nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  const pata = withLang('es', 'www.admira.biz');
+  const desdePata = pata.api.parseDemo('/demo proyectos');
+  assert.equal(desdePata.funcion, 'proyectos');
+  assert.equal(new URL(desdePata.url).hostname, 'www.admiranext.com');
+  const helpPata = [];
+  pata.api.exec('/demo help', { appendChild: (li) => helpPata.push(li.textContent), children: [], scrollTop: 0, scrollHeight: 0 });
+  assert.match(helpPata.join('\n'), /\/demo proyectos/);
 });
