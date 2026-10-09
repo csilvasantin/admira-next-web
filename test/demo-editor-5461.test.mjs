@@ -92,7 +92,12 @@ test('la biblioteca monta biz×3 + app×2, salta de sitio, reordena, deshace y m
 test('la página lleva el marco cuadrático, los dos idiomas y sustituye a /subdemos/', () => {
   const html = leer('../demos/editor/index.html');
   const js = leer('../demos/editor/editor.js');
-  assert.match(html, /class="yk-framed"/);
+  assert.match(html, /data-yk-frame="cabecera"/);
+  assert.match(html, /data-yk-head/);
+  assert.match(html, /data-yk-main/);
+  assert.match(html, /role="switch"/);
+  assert.doesNotMatch(html, /class="yk-framed"/);
+  assert.doesNotMatch(html, /data-yk-title=/);
   assert.match(html, /data-yk-rail-left="OPCIONES"/);
   assert.match(html, /data-yk-rail-right="AVANZADO"/);
   assert.match(html, /data-yk-cli="on"/);

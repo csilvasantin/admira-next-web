@@ -1,33 +1,35 @@
 <!DOCTYPE html>
-<html lang="es" class="yk-framed">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Editor de demos · AdmiraNeXT</title>
 <meta name="description" content="Editor de demos: biblioteca por sitio, macrodemo arrastrable, pasos y publicación. Español e inglés.">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="theme-color" content="#070b12">
 <link rel="canonical" href="https://www.admiranext.com/demos/editor/">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
+<link rel="stylesheet" href="/demos/editor/editor.css?v=20261009-editor-5466">
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
-<link rel="stylesheet" href="/demos/editor/editor.css?v=20261009-marca-5463">
+<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
 </head>
-<body data-yk-title="EDITOR" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
+<body data-yk-frame="cabecera" data-yk-auto="on" data-yk-cli="on" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
 
 <section data-yk-slot="left" hidden>
   <div class="yk-auto-blk">
-    <a href="/demo/">Demo completa</a>
-    <a href="/api/demos">Catálogo admira.demo/2</a>
-    <a href="/demos/editor/">Editor de demos</a>
+    <a href="/demo/" data-en="Full demo">Demo completa</a>
+    <a href="/api/demos" data-en="admira.demo/2 catalog">Catálogo admira.demo/2</a>
+    <a href="/demos/editor/" data-en="Demo editor">Editor de demos</a>
   </div>
 </section>
 <section data-yk-slot="right" hidden>
   <div class="yk-auto-blk">
-    <p>Guardar deja un borrador. Publicar lo enseña. Borrar pide confirmación. Deshacer: Ctrl+Z.</p>
+    <p data-en="Save keeps a draft. Publish shows it. Delete asks for confirmation. Undo: Ctrl+Z.">Guardar deja un borrador. Publicar lo enseña. Borrar pide confirmación. Deshacer: Ctrl+Z.</p>
   </div>
 </section>
 
-<main class="editor-pagina">
+<main class="editor-pagina" data-yk-main>
   <header class="barra">
     <div>
       <h1 id="titulo">Editor de demos</h1>
@@ -39,7 +41,7 @@
       <button type="button" id="publicar">Publicar</button>
       <button type="button" id="ejecutar">Ejecutar macrodemo</button>
       <button type="button" id="deshacer">Deshacer</button>
-      <button type="button" id="idioma-barra" aria-label="Idioma">EN</button>
+      <button type="button" id="idioma-barra" aria-label="Idioma" data-en-aria-label="Language">EN</button>
     </div>
   </header>
 
@@ -59,22 +61,24 @@
       </div>
     </aside>
 
-    <section class="escenario" aria-label="Macrodemo">
-      <div id="macrodemo">
-        <div id="fila"></div>
-        <div id="soltar">Soltar aquí</div>
-        <p id="resumen"></p>
-      </div>
-    </section>
+    <div class="centro">
+      <section class="escenario" aria-label="Macrodemo" data-en-aria-label="Macro demo">
+        <div id="macrodemo">
+          <div id="fila"></div>
+          <div id="soltar">Soltar aquí</div>
+          <p id="resumen"></p>
+        </div>
+      </section>
 
-    <section class="pasos" aria-label="Pasos">
-      <div id="lista-pasos"></div>
-      <button type="button" id="anadir-paso">+ Añadir paso</button>
-    </section>
+      <section class="pasos" aria-label="Pasos" data-en-aria-label="Steps">
+        <div id="lista-pasos"></div>
+        <button type="button" id="anadir-paso">+ Añadir paso</button>
+      </section>
+    </div>
 
     <aside class="inspector" id="inspector">
       <form id="paso-form"></form>
-      <label class="voz"><input type="checkbox" id="voz" checked> <span id="voz-texto">Voz al probar</span></label>
+      <label class="voz"><input type="checkbox" id="voz" role="switch" checked aria-checked="true"> <span id="voz-texto">Voz al probar</span></label>
       <div class="mas">
         <button type="button" id="probar">Probar paso</button>
         <button type="button" id="desde">Desde aquí</button>
@@ -100,7 +104,6 @@
   <button type="button" id="reproductor-parar">Parar</button>
 </div>
 
-<script type="module" src="/demos/editor/editor.js?v=20261009-editor-5462"></script>
-<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+<script type="module" src="/demos/editor/editor.js?v=20261009-editor-5466"></script>
 </body>
 </html>

@@ -83,6 +83,7 @@ function aplicarIdioma() {
   $('desde').textContent = t(estado.lang, 'desde');
   $('borrar-paso').textContent = t(estado.lang, 'borrar');
   $('voz-texto').textContent = t(estado.lang, 'voz');
+  $('voz').setAttribute('aria-checked', $('voz').checked ? 'true' : 'false');
   $('idioma-barra').textContent = estado.lang === 'en' ? 'ES' : 'EN';
   $('reproductor-parar').textContent = t(estado.lang, 'parar');
   document.title = t(estado.lang, 'titulo') + ' · AdmiraNeXT';
@@ -95,6 +96,7 @@ function aviso(texto) {
 function pintarBiblioteca() {
   const arbol = $('arbol');
   arbol.replaceChildren();
+  let piezas = 0;
   for (const sitio of SITIOS) {
     const demos = estado.demos.filter((demo) => demo.site === sitio.id && demo.status !== 'deleted');
     const bloque = document.createElement('section');
@@ -105,6 +107,7 @@ function pintarBiblioteca() {
     punto.style.background = sitio.color;
     cabeza.append(punto, document.createTextNode(sitio[estado.lang]));
     bloque.append(cabeza);
+    bloque.style.borderLeftColor = sitio.color;
     const lista = document.createElement('ul');
     for (const demo of demos) {
       for (const sub of demo.subdemos) {
@@ -114,6 +117,7 @@ function pintarBiblioteca() {
         li.draggable = true;
         li.dataset.ref = demo.site + '/' + sub.id;
         li.className = estado.ref === li.dataset.ref ? 'sel' : '';
+        li.style.borderColor = sitio.color;
         const marca = document.createElement('b');
         marca.textContent = letra(sub.n);
         li.append(marca, document.createTextNode(' ' + titulo(sub.title)));
@@ -127,14 +131,22 @@ function pintarBiblioteca() {
           pintar();
         });
         lista.append(li);
+        piezas += 1;
       }
     }
     if (!lista.childElementCount && estado.consulta) continue;
-    bloque.append(lista);
+    if (!lista.childElementCount) {
+      const guia = document.createElement('p');
+      guia.className = 'guia';
+      guia.dataset.vacio = 'sitio';
+      guia.textContent = t(estado.lang, 'sinSubdemos').replace('{sitio}', sitio[estado.lang]);
+      bloque.append(guia);
+    } else bloque.append(lista);
     arbol.append(bloque);
   }
   const macros = $('lista-macros');
   macros.replaceChildren();
+  let macrosVisibles = 0;
   for (const macro of estado.macros) {
     if (!coincide([titulo(macro.title), macro.id], estado.consulta)) continue;
     const boton = document.createElement('button');
@@ -143,6 +155,14 @@ function pintarBiblioteca() {
     boton.className = estado.macro.id === macro.id ? 'sel' : '';
     boton.addEventListener('click', () => cargarMacro(macro));
     macros.append(boton);
+    macrosVisibles += 1;
+  }
+  if (estado.consulta.trim() && piezas === 0 && macrosVisibles === 0) {
+    const guia = document.createElement('p');
+    guia.className = 'guia';
+    guia.dataset.vacio = 'busqueda';
+    guia.textContent = t(estado.lang, 'sinResultados').replace('{q}', estado.consulta.trim());
+    arbol.append(guia);
   }
 }
 
@@ -152,8 +172,9 @@ function pintarFila() {
   const filas = filasMacro(estado.macro.items, estado.macro.transition, estado.lang);
   if (!filas.length) {
     const vacio = document.createElement('p');
-    vacio.className = 'vacio';
-    vacio.textContent = t(estado.lang, 'vacio');
+    vacio.className = 'guia';
+    vacio.dataset.vacio = 'macro';
+    vacio.textContent = t(estado.lang, 'guiaMacro');
     fila.append(vacio);
   }
   for (const filaItem of filas) {
@@ -171,6 +192,7 @@ function pintarFila() {
     card.dataset.index = String(filaItem.index);
     const site = sitioDe(filaItem.ref);
     card.innerHTML = '<button type="button" class="quitar" aria-label="×">×</button><i class="punto"></i><small></small><strong></strong><em></em>';
+    card.style.borderColor = colorDe(site);
     card.querySelector('.punto').style.background = colorDe(site);
     card.querySelector('small').textContent = site + ' · ' + (sub ? letra(sub.n) : '·');
     card.querySelector('strong').textContent = sub ? titulo(sub.title) : filaItem.ref;
@@ -207,10 +229,19 @@ function pintarPasos() {
   const { sub } = piezaActual();
   if (!sub) {
     const p = document.createElement('p');
-    p.textContent = t(estado.lang, 'sinPasos');
+    p.className = 'guia';
+    p.dataset.vacio = 'subdemo';
+    p.textContent = t(estado.lang, 'sinSubdemo');
     lista.append(p);
     $('paso-form').replaceChildren();
     return;
+  }
+  if (!sub.steps.length) {
+    const p = document.createElement('p');
+    p.className = 'guia';
+    p.dataset.vacio = 'paso';
+    p.textContent = t(estado.lang, 'sinPaso');
+    lista.append(p);
   }
   sub.steps.forEach((step, index) => {
     const boton = document.createElement('button');
@@ -724,7 +755,10 @@ $('soltar').addEventListener('drop', (event) => {
   event.preventDefault();
   soltar(event.dataTransfer.getData('text/plain'), estado.macro.items.length);
 });
-$('voz').addEventListener('change', () => { estado.voz = $('voz').checked; });
+$('voz').addEventListener('change', () => {
+  estado.voz = $('voz').checked;
+  $('voz').setAttribute('aria-checked', $('voz').checked ? 'true' : 'false');
+});
 $('reproductor-parar').addEventListener('click', () => { estado.parar = true; $('reproductor').hidden = true; window.speechSynthesis?.cancel(); });
 window.addEventListener('keydown', tecla);
 window.setLanguage = (lang) => { estado.lang = String(lang).startsWith('en') ? 'en' : 'es'; pintar(); };
