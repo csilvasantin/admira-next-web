@@ -126,6 +126,9 @@
     try {
       var q = norm(new URLSearchParams(location.search).get('lang'));
       if (q) { guardarIdioma(q); return q; }
+      // ?marca= no cambia el idioma (encargo 5473): no se hereda una preferencia guardada.
+      var marca = new URLSearchParams(location.search).get('marca');
+      if (marca != null && String(marca).trim()) return '';
     } catch (e) { /* sin URLSearchParams */ }
     try { return norm(localStorage.getItem(CLAVE_IDIOMA)) || norm(localStorage.getItem(CLAVE_HOME)); } catch (e) { return ''; }
   }

@@ -6,7 +6,16 @@ import {
 } from './modelo.mjs';
 
 const $ = (id) => document.getElementById(id);
-const langInicial = () => (new URLSearchParams(location.search).get('lang') || document.documentElement.lang || 'es').slice(0, 2) === 'en' ? 'en' : 'es';
+const paramsIdioma = new URLSearchParams(location.search);
+const marcaSinIdioma = !(paramsIdioma.get('lang') || '').trim() && (paramsIdioma.get('marca') || '').trim();
+let idiomaExplicito = !marcaSinIdioma;
+const langInicial = () => {
+  const pedido = (paramsIdioma.get('lang') || '').trim();
+  if (pedido) return pedido.slice(0, 2) === 'en' ? 'en' : 'es';
+  if (marcaSinIdioma) return 'es';
+  return (document.documentElement.lang || 'es').slice(0, 2) === 'en' ? 'en' : 'es';
+};
+if (marcaSinIdioma) document.documentElement.lang = 'es';
 
 const estado = {
   lang: langInicial(),
@@ -757,6 +766,7 @@ window.addEventListener('resize', () => {
     $('buscar').placeholder = busca;
     $('buscar').setAttribute('aria-label', busca);
   }
+  margenBiblioteca();
 });
 $('mas-demo').addEventListener('click', () => altaDemo());
 $('mas-sub').addEventListener('click', () => altaSubdemo());
@@ -802,10 +812,41 @@ $('voz').addEventListener('change', () => {
 });
 $('reproductor-parar').addEventListener('click', () => { estado.parar = true; $('reproductor').hidden = true; window.speechSynthesis?.cancel(); });
 window.addEventListener('keydown', tecla);
-window.setLanguage = (lang) => { estado.lang = String(lang).startsWith('en') ? 'en' : 'es'; pintar(); };
+window.setLanguage = (lang) => {
+  if (marcaSinIdioma && !idiomaExplicito) return;
+  estado.lang = String(lang).startsWith('en') ? 'en' : 'es';
+  pintar();
+};
+
+function margenBiblioteca() {
+  const biblioteca = document.querySelector('.biblioteca');
+  const rail = document.getElementById('ykExpertRail');
+  if (!biblioteca || !rail || document.documentElement.classList.contains('yk-open-bottom')) return;
+  const alto = Math.ceil(rail.getBoundingClientRect().height);
+  if (alto > 0) biblioteca.style.setProperty('--editor-rail', `${alto}px`);
+}
+function permitirIdioma() {
+  if (!marcaSinIdioma) return;
+  const input = document.getElementById('ykCliInput');
+  if (!input || !input.form || input.form.dataset.idiomaMarca) return;
+  input.form.dataset.idiomaMarca = '1';
+  input.form.addEventListener('submit', () => {
+    const verbo = (input.value || '').trim().replace(/^\//, '').toLowerCase().split(/\s+/)[0] || '';
+    if (/^(idioma|language|languague|brand|marca|help|ayuda|clear|limpiar|status|estado|go|ir)/.test(verbo)) {
+      idiomaExplicito = true;
+    }
+  }, true);
+}
+function guardarIdiomaDeMarca() {
+  if (!marcaSinIdioma || idiomaExplicito || document.documentElement.lang === 'es') return;
+  document.documentElement.lang = 'es';
+}
 
 function lineaExperto() {
   const rail = document.getElementById('ykExpertRail');
+  guardarIdiomaDeMarca();
+  margenBiblioteca();
+  permitirIdioma();
   if (!rail || document.documentElement.classList.contains('yk-open-bottom')) return;
   rail.inert = false;
   rail.setAttribute('aria-hidden', 'false');

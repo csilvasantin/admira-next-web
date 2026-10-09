@@ -47,7 +47,8 @@ test('el fondo del marco es oscuro y el texto del editor aguanta AA', () => {
   assert.ok(contraste(fondoBoton, marca) >= 4.5, 'Publicar: texto oscuro sobre la marca');
   assert.match(css, /color:\s*var\(--yk-ink\)/);
   assert.match(css, /background:\s*var\(--yk-bg\)/);
-  assert.match(css, /#publicar\s*\{[^}]*background:\s*var\(--yk-brand\)/);
+  assert.match(css, /#publicar\s*\{[^}]*background:\s*var\(--editor-publicar,\s*var\(--yk-brand\)\)/);
+  assert.match(css, /data-mb-marca="84"[^{]*\{[^}]*background:\s*var\(--yk-brand\)/);
   assert.doesNotMatch(css, /#[0-9a-fA-F]{3,8}/, 'editor.css no lleva hex sueltos');
   assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ''), /Chakra/);
   assert.match(css, /font:\s*16px\/1\.45\s*var\(--yk-mono\)/);

@@ -27,6 +27,7 @@
   max-height: calc(100dvh - var(--yk-bar-h, 46px) - 160px);
   overflow: auto;
 }
+.biblioteca { padding-bottom: calc(12px + var(--editor-rail, 72px)); }
 .biblioteca, .escenario, .pasos, .inspector, #reproductor, dialog {
   background: var(--yk-bg);
   border: 1px solid var(--yk-line2);
@@ -47,10 +48,15 @@
 button { cursor: pointer; }
 #guardar, #ejecutar { background: transparent; }
 #publicar {
+  background: var(--editor-publicar, var(--yk-brand));
+  color: var(--editor-publicar-ink, var(--yk-bg2));
+  border-color: var(--editor-publicar, var(--yk-brand));
+  font-weight: 700;
+}
+:root[data-mb-marca="84"] #publicar {
   background: var(--yk-brand);
   color: var(--yk-bg2);
   border-color: var(--yk-brand);
-  font-weight: 700;
 }
 .editor-pagina button:disabled { opacity: 0.45; cursor: not-allowed; }
 .mas-acciones, .pestanas { display: none; }
