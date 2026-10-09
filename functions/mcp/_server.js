@@ -572,6 +572,10 @@ export async function handleRpc(ctx, msg){
     case 'tools/list': return rpcResult(id, { tools: TOOLS });
     case 'tools/call': {
       const name = params && params.name;
+      // This prepared-tour guide is also a public static document; it exposes no user data or execution.
+      if (!ctx.access && name === 'help' && params?.arguments?.tema === 'novedades') {
+        return rpcResult(id, {content:[{type:'text',text:HELP_TOPICS.novedades}],isError:false});
+      }
       if (!ctx.access) return rpcResult(id, { content: [{ type: 'text', text: 'Falta un token MCP válido. Cabecera Authorization: Bearer anmcp_… (lo crea un admin en /usuarios → Tokens MCP). Sin token solo funcionan initialize, tools/list y help.' }], isError: name !== 'help' });
       try {
         const out = await callTool(ctx, name, (params && params.arguments) || {});

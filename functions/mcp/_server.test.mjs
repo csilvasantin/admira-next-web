@@ -245,6 +245,6 @@ test('tokens: formato anmcp_, hash estable y cabecera Bearer', async () => {
 
 
 test('public MCP help documents prepared Pixeria updates and explicit local removal',async()=>{
- const anon={access:{level:null}}, response=await handleRpc(anon,{jsonrpc:'2.0',id:900,method:'tools/call',params:{name:'help',arguments:{tema:'novedades'}}});
+ const anon={access:null,fetchImpl:async()=>{throw Error('public guide must not execute APIs');}}, response=await handleRpc(anon,{jsonrpc:'2.0',id:900,method:'tools/call',params:{name:'help',arguments:{tema:'novedades'}}});
  const text=response.result.content[0].text;assert.match(text,/demo pixeria novedades/);assert.match(text,/demo pixeria updates/);assert.match(text,/No generation is executed/);assert.match(text,/this browser/);assert.match(text,/studio.subdemos.json/);
 });
