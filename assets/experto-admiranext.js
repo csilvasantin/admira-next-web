@@ -121,6 +121,12 @@
   var CLAVE_IDIOMA = 'admiranext_expert_lang', CLAVE_HOME = 'admiranext_lang';
   var norm = function (l) { l = String(l || '').slice(0, 2).toLowerCase(); return l === 'en' || l === 'es' ? l : ''; };
   function idiomaGuardado() {
+    // ?lang=en|es (9-oct-2026): /arquitectura · /architecture desde otra web de la Suite trae el idioma
+    // en la URL (el localStorage no cruza de dominio). Manda sobre lo guardado y se guarda.
+    try {
+      var q = norm(new URLSearchParams(location.search).get('lang'));
+      if (q) { guardarIdioma(q); return q; }
+    } catch (e) { /* sin URLSearchParams */ }
     try { return norm(localStorage.getItem(CLAVE_IDIOMA)) || norm(localStorage.getItem(CLAVE_HOME)); } catch (e) { return ''; }
   }
   function guardarIdioma(l) {
