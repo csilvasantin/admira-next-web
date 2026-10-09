@@ -312,5 +312,10 @@
     "/normativa completa en inglés: las 30 normas, sus tablas y fórmulas cambian con /idioma ENG y vuelven con /idioma ESP",
     "El armazón aplica bloques data-en: un párrafo entero con su versión inglesa, sin trocearlo por negritas y código",
     "Prueba automática: falla si más del 10 % del texto visible de una página traducida queda sin versión inglesa"
+  ],
+  "v.09.10.2026.r11.13:07": [
+    "/help, /mcp y /telegram completas en inglés con /idioma ENG, y de vuelta con /idioma ESP",
+    "Los ejemplos de terminal y de código se dejan como están: no son texto en un idioma",
+    "La prueba automática de traducción cubre ya cuatro páginas"
   ]
 }

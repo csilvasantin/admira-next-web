@@ -248,6 +248,60 @@
     "La misión y el encargo no comparten número": "Mission and order do not share a number"
   };
   A.anadir(titulosNormativa, []);
+  // Títulos de /help, /mcp y /telegram: el armazón los copia a su índice, fuera de los bloques data-en.
+  var titulosAyuda = {
+    "/help del equipo Matrix": "/help for the Matrix team",
+    "Comandos Dentro De Telegram": "Commands inside Telegram",
+    "CLI de AgoraMatrix": "AgoraMatrix CLI",
+    "Invocar agentes": "Invoking agents",
+    "Miembros De AgoraMatrix": "AgoraMatrix members",
+    "Comandos De Terminal Para Agentes": "Terminal commands for agents",
+    "Protocolos Operativos": "Operating protocols",
+    "Cuando Carlos da una orden por Telegram": "When Carlos gives an order via Telegram",
+    "Cuando un agente termina una accion": "When an agent finishes an action",
+    "Frase de confirmacion de escucha": "Listening confirmation phrase",
+    "Usuarios y proyectos": "Users and projects",
+    "Las 4 patas: el sistema operativo del retail": "The 4 legs: the operating system of retail",
+    "La matriz de la empresa agéntica": "The parent site of the agentic company",
+    "Páginas para humanos y agentes": "Pages for humans and agents",
+    "Presentar": "Present",
+    "Generador de Presentaciones · MCP vivo + ayuda": "Presentation Generator · Live MCP + help",
+    "Generador de créditos": "Credits generator",
+    "Generador de presupuestos": "Quote generator",
+    "Narrativa de Impacto": "Impact Narrative",
+    "Los 14 Mandamientos": "The 14 Commandments",
+    "Filosofía del equipo": "Team philosophy",
+    "Normativa operativa": "Operating rules",
+    "Colgada aquí": "Posted here",
+    "Los MCP de la suite, uno por producto": "The suite's MCPs, one per product",
+    "Una clave por persona y equipo, válida en toda la suite": "One key per person and machine, valid across the whole suite",
+    "De un mensajea una misión real": "From a messageto a real mission",
+    "Grupo AgoraMatrix": "AgoraMatrix group",
+    "Qué puedes hacer": "What you can do",
+    "Encargar una misión": "Order a mission",
+    "Elegir agente o equipo": "Choose an agent or machine",
+    "Adjuntar contexto": "Attach context",
+    "Seguir el progreso": "Follow progress",
+    "Recibir el resultado": "Receive the result",
+    "Auditar en YOKUP": "Audit in YOKUP",
+    "Cómo funciona": "How it works",
+    "Mensaje + archivos": "Message + files",
+    "Identidad, presencia y carga": "Identity, presence and load",
+    "Una ejecución, un responsable": "One execution, one owner",
+    "Progreso y prueba": "Progress and proof",
+    "Resultado + informe": "Result + report",
+    "Habla como quieras": "Speak however you like",
+    "Estados que verás": "Statuses you will see",
+    "Dos vistas, una verdad": "Two views, one truth"
+  };
+  A.anadir(titulosAyuda, []);
+  // Rótulos sueltos de /mcp y /telegram que no viven en un bloque (enlaces de la cabecera, estado de la conexión).
+  A.anadir({
+    'Abrir llms.txt': 'Open llms.txt', 'Abrir manifest.json': 'Open manifest.json', 'Para agentes': 'For agents',
+    'MCP del generador': 'Generator MCP', 'Consejo MCP (admira.live) ↗': 'Council MCP (admira.live) ↗',
+    'Ver cómo funciona': 'See how it works', 'sin conexión · reintentando': 'offline · retrying',
+    'sin conexión': 'offline', 'reintentando': 'retrying', 'conectando…': 'connecting…', 'conectando': 'connecting', 'en vivo': 'live'
+  }, []);
   A.anadir(diccFlota, reglasFlota);
   A.anadir(diccConsejo, reglasConsejo);
   if (A.aplicar) A.aplicar();

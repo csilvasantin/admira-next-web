@@ -4,17 +4,21 @@
 // quedan fuera de un bloque con data-en (la versión inglesa entera del bloque, que el armazón
 // pone al pedir inglés; ver traducirBloques en assets/admira-frame.js). Lo que el diccionario
 // traduce por nodos sueltos NO se descuenta aquí: la cifra es, por tanto, un techo.
+// No cuentan los ejemplos de código y de terminal (pre, code, kbd, samp) ni los párrafos que la
+// página ya trae en los dos idiomas a la vez (marcados con lang="es" / lang="en").
 // Al traducir una página nueva, añádela a PAGINAS.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const leer = (ruta) => readFileSync(new URL('../' + ruta, import.meta.url), 'utf8');
-const PAGINAS = ['normativa.html'];
+const PAGINAS = ['normativa.html', 'help/index.html', 'mcp/index.html', 'telegram/index.html'];
 const MAX_SIN_CAMBIAR = 0.10;
 
 const VACIOS = new Set(['br', 'img', 'hr', 'input', 'meta', 'link', 'source', 'wbr', 'col', 'area', 'base', 'embed', 'track', 'param']);
 const INVISIBLES = new Set(['script', 'style', 'svg', 'template', 'noscript', 'head', 'title', 'textarea']);
+// No es texto en un idioma: ejemplos de código y de terminal. No cuenta ni como total ni como traducido.
+const CODIGO = new Set(['pre', 'code', 'kbd', 'samp']);
 // Una sola pasada: «&amp;lt;» es «&lt;» (un nivel), no «<». Las demás entidades (&rarr;, &middot;…) se dejan
 // como están: aparecen igual en el original y en la traducción.
 const ENT = {amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'", nbsp: ' '};
@@ -31,7 +35,7 @@ function medir(html) {
   let total = 0, traducidas = 0, anidados = 0, m;
   while ((m = re.exec(cuerpo))) {
     if (m[5] != null) {
-      if (pila.some((n) => n.invisible || n.armazon)) continue;
+      if (pila.some((n) => n.invisible || n.armazon || n.codigo || n.bilingue)) continue;
       const n = letras(entidades(m[5]));
       total += n;
       const bloque = [...pila].reverse().find((x) => x.en != null);
@@ -51,7 +55,7 @@ function medir(html) {
     if (VACIOS.has(tag) || /\/\s*$/.test(m[4])) continue;
     const en = (m[4].match(/\sdata-en="([^"]*)"/) || [])[1];
     if (en != null && pila.some((x) => x.en != null)) anidados++;
-    pila.push({tag, invisible: INVISIBLES.has(tag), armazon: /\sdata-yk-head\b/.test(m[4]), en: en == null ? null : entidades(en), dentro: re.lastIndex});
+    pila.push({tag, invisible: INVISIBLES.has(tag), codigo: CODIGO.has(tag), bilingue: /\slang=/.test(m[4]), armazon: /\sdata-yk-head\b/.test(m[4]), en: en == null ? null : entidades(en), dentro: re.lastIndex});
   }
   return {total, traducidas, anidados, bloques};
 }
@@ -90,6 +94,7 @@ test('el armazón aplica los bloques data-en y el diccionario no entra en ellos'
 test('medir(): un bloque sin data-en cuenta como texto sin traducir', () => {
   const r = medir('<body><main><p data-en="Hello &lt;b&gt;world&lt;/b&gt;">Hola <b>mundo</b></p><p>Adios mundo cruel</p><script>var texto = "no cuenta";</script></main></body>');
   assert.equal(r.total, 9 + 15);
+  assert.equal(medir('<body><p>Hola <code>mundo</code></p><pre>mundo cruel</pre><p lang="en">Hello</p></body>').total, 4);
   assert.equal(r.traducidas, 9);
   assert.equal(r.bloques.length, 1);
   assert.equal(r.bloques[0].en, 'Hello <b>world</b>');

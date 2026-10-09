@@ -220,7 +220,7 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261009-idioma-normativa-1';
+  var IDIOMA_STAMP = '20261009-idioma-ayuda-1';
   function aplicarIdioma(forzar) {
     var en = enIngles();
     if (!forzar && idiomaPintado === en) return;
@@ -1064,7 +1064,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261009-idioma-normativa-1';
+  script.src = '/assets/experto-admiranext.js?v=20261009-idioma-ayuda-1';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
