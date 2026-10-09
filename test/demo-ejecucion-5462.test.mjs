@@ -167,3 +167,53 @@ test('si admira.app pide sesión, la macro avisa y resume bien, mal y pendiente'
   assert.match(panel.children.map((child) => child.textContent).join('\n'), /pendiente/);
   assert.match(panel.children.map((child) => child.textContent).join('\n'), /bien/);
 });
+
+test('el reproductor aplica la marca del contexto y el editor la viste', async () => {
+  assert.equal(macro.context.marca, 'starbucks');
+  assert.match(readFileSync(join(dir, '../demos/editor/editor.css'), 'utf8'), /:root\[data-mb-marca\] :is\(\.biblioteca/);
+  assert.match(experto, /demo-control\.js\?v=20261009-marca-5463/);
+  const plan = {
+    ...macro,
+    context: { ...macro.context, marca: 'jti' },
+    items: [{ ref: 'app/establecimientos', subdemo: { id: 'establecimientos', steps: [{ op: 'check', text: { es: 'Portal', en: 'Portal' } }] } }],
+  };
+  const llamadas = [];
+  const asignadas = [];
+  const body = { id: '', hidden: false, textContent: 'Portal de la tienda', innerText: 'Portal de la tienda', children: [], appendChild(child) { this.children.push(child); child.parentNode = this; }, removeChild() {} };
+  const nodes = [body];
+  const document = {
+    documentElement: { lang: 'es' },
+    head: { appendChild() {} },
+    body,
+    readyState: 'complete',
+    createElement() {
+      const el = { children: [], style: {}, attrs: {}, dataset: {}, textContent: '', hidden: false, isConnected: true, classList: { add() {}, remove() {} }, setAttribute(k, v) { this.attrs[k] = String(v); if (k === 'id') this.id = String(v); }, getAttribute(k) { return this.attrs[k]; }, appendChild(child) { this.children.push(child); }, remove() { this.isConnected = false; } };
+      nodes.push(el);
+      return el;
+    },
+    getElementById(id) { return nodes.find((nodo) => nodo.id === id && nodo.isConnected !== false) || null; },
+    querySelector() { return null; },
+    querySelectorAll() { return []; },
+    addEventListener() {},
+  };
+  const location = new URL('https://www.admiranext.com/demos/editor/?ax_demo=macro:alsea-biz-app&ax_run=run-1&ax_i=0&ax_v=1&lang=es');
+  location.assign = (href) => { asignadas.push(String(href)); };
+  const G = {
+    document, location, URL, URLSearchParams, history: { replaceState() {} },
+    sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    fetch: async () => ({ ok: true, json: async () => plan }),
+    setTimeout: (fn) => { fn(); return 0; }, clearTimeout() {},
+    addEventListener() {},
+    AdmiraMarca: { activar: async (id) => { llamadas.push(id); return { ok: true, id, nombre: 'JTI' }; } },
+  };
+  G.self = G; G.top = G; G.window = G; G.globalThis = G;
+  vm.runInNewContext(motor, G, { filename: 'demo-control.js' });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.deepEqual(llamadas, ['jti']);
+  const estado = G.AdmiraDemoMacro.state();
+  assert.match(estado.aviso, /JTI/);
+  assert.equal(asignadas.length, 1);
+  const salto = new URL(asignadas[0]);
+  assert.equal(salto.searchParams.get('marca'), 'jti');
+  assert.equal(salto.origin, 'https://www.admira.app');
+});

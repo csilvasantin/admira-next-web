@@ -527,7 +527,7 @@ function cargarReproductor() {
   if (window.AdmiraDemoMacro) return Promise.resolve(window.AdmiraDemoMacro);
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = '/suite/demo-control.js?v=20261009-macro-5462';
+    script.src = '/suite/demo-control.js?v=20261009-marca-5463';
     const fallo = () => reject(new Error(estado.lang === 'en' ? 'The player did not load.' : 'No se pudo cargar el reproductor.'));
     script.onload = () => (window.AdmiraDemoMacro ? resolve(window.AdmiraDemoMacro) : fallo());
     script.onerror = fallo;
