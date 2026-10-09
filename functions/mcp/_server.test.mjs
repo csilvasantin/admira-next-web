@@ -171,7 +171,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.8.0');
+  assert.equal(init.result.serverInfo.version, '1.8.1');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');
@@ -241,4 +241,10 @@ test('tokens: formato anmcp_, hash estable y cabecera Bearer', async () => {
   assert.equal(await sha256Hex('a'), 'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb');
   assert.equal(bearerOf({ headers: { get: () => 'Bearer ' + t } }), t);
   assert.equal(bearerOf({ headers: { get: () => '' } }), '');
+});
+
+
+test('public MCP help documents prepared Pixeria updates and explicit local removal',async()=>{
+ const anon={access:{level:null}}, response=await handleRpc(anon,{jsonrpc:'2.0',id:900,method:'tools/call',params:{name:'help',arguments:{tema:'novedades'}}});
+ const text=response.result.content[0].text;assert.match(text,/demo pixeria novedades/);assert.match(text,/demo pixeria updates/);assert.match(text,/No generation is executed/);assert.match(text,/this browser/);assert.match(text,/studio.subdemos.json/);
 });

@@ -1,0 +1,162 @@
+{
+  "id": "pixeria-novedades-20261009",
+  "date": "2026-10-09",
+  "author": "TrinityMBP16",
+  "pixeria_release": "v.09.10.2026.r23.13:50",
+  "studio_release": "v.09.10.2026.r24.13:57",
+  "mode": "prepared",
+  "chapters": [
+    {
+      "id": "previos",
+      "image": "previos.jpg",
+      "url": "https://admira.studio/creador/?demo=creador&mode=full&lang=es&seed=0165a35180d54346ba3c9774bd4882d5",
+      "es": {
+        "title": "Una campaña, dos previos",
+        "text": "Creador muestra horizontal 1920×1080 y vertical 1080×1920 desde las mismas capas. Cambia la composición y compara ambos sin pedir otra imagen a la IA.",
+        "voice": "Estas son las novedades de Pixeria que Trinity ha publicado hoy. Empezamos en Creador: la campaña Urban Flow se muestra a la vez en horizontal y vertical. Ambos previos parten de las mismas capas. Puedes comparar la composición sin solicitar otra generación de inteligencia artificial."
+      },
+      "en": {
+        "title": "One campaign, two previews",
+        "text": "Creator shows horizontal 1920×1080 and vertical 1080×1920 from the same layers. Compare both layouts without requesting another AI image.",
+        "voice": "These are the Pixeria improvements Trinity published today. Creator now shows Urban Flow in landscape and portrait at the same time. Both previews use the same layers, so comparing layouts does not request another AI image."
+      },
+      "seconds": {
+        "es": 17,
+        "en": 15
+      }
+    },
+    {
+      "id": "admirito",
+      "image": "analisis.jpg",
+      "url": "https://www.pixeria.com/docs/campanas-instalacion.md",
+      "es": {
+        "title": "Admirito acompaña el trabajo real",
+        "text": "Dibuja y borra junto al previo mientras la IA analiza, recrea o genera. Se retira al terminar o cancelar y respeta el movimiento reducido. Captura de la prueba; el recorrido reproduce material preparado.",
+        "voice": "Admirito acompaña los trabajos reales de análisis, recreación y generación junto al previo. Su indicador termina cuando el trabajo termina o se cancela, y respeta la preferencia de movimiento reducido. Esta demo muestra capturas de la prueba; al reproducirla no se inicia una nueva generación."
+      },
+      "en": {
+        "title": "Admirito follows real work",
+        "text": "It draws and erases beside the preview during AI analysis, recreation or generation, then clears on completion or cancellation. Reduced motion is respected. This tour replays prepared material.",
+        "voice": "Admirito follows real analysis, recreation and generation work beside the preview. It clears when the job completes or is cancelled, and respects reduced motion. This tour replays captured material and does not start a new generation."
+      },
+      "seconds": {
+        "es": 18,
+        "en": 16
+      }
+    },
+    {
+      "id": "clasico",
+      "image": "clasico.jpg",
+      "url": "https://www.pixeria.com/adaptaciones/?lang=es",
+      "es": {
+        "title": "Primero Clásico, después formatos especiales",
+        "text": "Paso 1 transforma horizontal ↔ vertical y presenta original y resultado antes de los ajustes. Paso 2 reúne los formatos propios del proyecto. URBAN FLOW se ha recreado en vertical y queda pendiente de aprobación.",
+        "voice": "El Adaptador separa ahora dos pasos. Primero, Clásico: pasar de horizontal a vertical, o al revés, y comparar el original con el resultado. Después, los formatos especiales del proyecto. En esta prueba se recreó Urban Flow en vertical. El resultado queda pendiente de revisión y aprobación."
+      },
+      "en": {
+        "title": "Classic first, special formats next",
+        "text": "Step 1 converts landscape ↔ portrait, showing source and result before settings. Step 2 contains project-specific formats. The recreated URBAN FLOW portrait remains pending approval.",
+        "voice": "The Adapter now has two separate steps. Classic converts landscape to portrait or back, with the original and result shown first. Project-specific formats follow in step two. The recreated Urban Flow portrait in this test remains pending review and approval."
+      },
+      "seconds": {
+        "es": 19,
+        "en": 17
+      }
+    },
+    {
+      "id": "revision",
+      "image": "revision.jpg",
+      "url": "https://www.pixeria.com/docs/adaptador.md#anuncios-reales",
+      "es": {
+        "title": "Conservar producto, texto y arte final",
+        "text": "La IA reconstruye el espacio que falta y recompone el texto completo. Revisa OCR, tipografía y producto antes de Aprobar pieza. Los resultados incompatibles quedan bloqueados; se exige el arte final sin marcos o pantallas exteriores.",
+        "voice": "Al recrear una imagen, el Adaptador reconstruye el espacio que falta y recompone el texto completo. Hay que revisar la lectura, la tipografía y el producto antes de aprobar cada pieza. Un resultado incompatible queda bloqueado. La entrega debe ser el arte final, sin una pantalla o un marco exterior dentro del archivo."
+      },
+      "en": {
+        "title": "Preserve product, copy and final artwork",
+        "text": "AI recreates missing surroundings and recomposes complete copy. Review OCR, typography and product before approval. Incompatible results are blocked. Final artwork must exclude external screens or frames.",
+        "voice": "The Adapter recreates missing surroundings and recomposes complete copy. Review the extracted text, typography and product before approving each piece. Incompatible results are blocked. The delivered file must contain final artwork without an external screen or frame."
+      },
+      "seconds": {
+        "es": 19,
+        "en": 18
+      }
+    },
+    {
+      "id": "stock",
+      "image": "arte-final.png",
+      "url": "https://www.pixeria.com/stock.html",
+      "es": {
+        "title": "Stock conserva la composición",
+        "text": "Los PNG aprobados pueden guardar marca, titular, precio, CTA y posiciones junto al archivo. El Adaptador recupera la copia cuando el contrato completo coincide con ese archivo; con recursos antiguos o incompletos vuelve al OCR.",
+        "voice": "La publicación de un PNG aprobado en Stock conserva también su composición: marca, titular, precio, llamada a la acción y posiciones. El Adaptador puede recuperar ese texto cuando el contrato completo corresponde al archivo. Para recursos antiguos o incompletos utiliza el análisis de texto. Esta imagen es el arte final ya guardado de Urban Flow."
+      },
+      "en": {
+        "title": "Stock preserves the composition",
+        "text": "Approved PNGs can carry brand, headline, price, CTA and positions. The Adapter restores copy only when the full contract matches the file. Legacy or incomplete assets use OCR.",
+        "voice": "An approved PNG published to Stock also preserves its composition: brand, headline, price, call to action and positions. The Adapter restores copy when the complete contract matches the file. Legacy or incomplete assets use text analysis. This image is the previously saved Urban Flow artwork."
+      },
+      "seconds": {
+        "es": 21,
+        "en": 21
+      }
+    },
+    {
+      "id": "audio",
+      "image": "musica.jpg",
+      "url": "https://www.pixeria.com/musica.html?lang=es",
+      "es": {
+        "title": "Proveedores de voz y música claros",
+        "text": "Los selectores de música de la web usan Suno. Eleven Music sigue pendiente. Voz ofrece Google TTS o ElevenLabs; la voz local del navegador no entrega un MP3 grabado. Las muestras no prueban emisión física.",
+        "voice": "La interfaz aclara quién genera cada medio. Los selectores de música de la web usan Suno; Eleven Music sigue siendo una propuesta pendiente. Para voz se ofrece Google TTS o ElevenLabs. La voz local del navegador no entrega un archivo MP3 grabado. Escuchar una muestra no demuestra que esté sonando en una tienda física."
+      },
+      "en": {
+        "title": "Clear voice and music providers",
+        "text": "Website music selectors use Suno. Eleven Music is still pending. Voice offers Google TTS or ElevenLabs; browser speech does not produce a recorded MP3. Samples do not prove physical playback.",
+        "voice": "The interface now names the actual providers. Website music selectors use Suno, while Eleven Music remains a pending proposal. Voice offers Google TTS or ElevenLabs. Browser speech does not produce a recorded MP3. Playing a sample does not prove playback in a physical store."
+      },
+      "seconds": {
+        "es": 19,
+        "en": 20
+      }
+    },
+    {
+      "id": "mcp",
+      "image": "mcp.jpg",
+      "url": "https://www.pixeria.com/mcp/?lang=es",
+      "es": {
+        "title": "Ayuda y MCP contrastados con el servidor",
+        "text": "La ayuda bilingüe distingue consultar, planificar, generar y publicar. El catálogo MCP se consulta al abrir la página y muestra autenticación, efectos y crédito. Los proveedores de la web y del MCP pueden ser distintos.",
+        "voice": "La ayuda y los tutoriales están actualizados en castellano e inglés. El catálogo MCP se contrasta con el servidor al abrir la página y diferencia consultas, planes, generación y publicación. También indica autenticación y crédito. Los proveedores de la web y del servidor MCP pueden ser distintos, por eso cada contrato se consulta por separado."
+      },
+      "en": {
+        "title": "Help and MCP checked against the server",
+        "text": "Bilingual help distinguishes queries, plans, generation and publication. The live MCP catalogue lists authentication, effects and credit. Website and MCP providers may differ.",
+        "voice": "Help and tutorials are available in Spanish and English. The MCP catalogue checks the live server when the page opens, distinguishing queries, plans, generation and publication, with authentication and credit information. Website and MCP providers may differ, so their contracts are checked separately."
+      },
+      "seconds": {
+        "es": 21,
+        "en": 21
+      }
+    },
+    {
+      "id": "gemelo",
+      "image": "gemelo.jpg",
+      "url": "https://www.admira.store/xpacios/sneakerstore/?creator=0165a35180d54346ba3c9774bd4882d5&mode=full&image=1791529066396-et2aj9&video=1791529118319-rehw9p&lang=es&scene=entrada",
+      "es": {
+        "title": "De la creatividad al gemelo 360",
+        "text": "El recorrido termina con URBAN FLOW en Sneaker Xtore: imagen, vídeo y composiciones ya generadas. Abre el gemelo para recorrer la tienda. La demo se conserva en el editor hasta que la elimines desde la sección de demos.",
+        "voice": "Terminamos en el gemelo de Sneaker Xtore, con la imagen, el vídeo y las composiciones que ya generamos para Urban Flow. Puedes abrir el gemelo y recorrer la tienda. Esta demostración quedará en el editor de AdmiraNeXT hasta que quieras eliminarla desde la sección de demos. La simulación no programa pantallas físicas."
+      },
+      "en": {
+        "title": "From artwork to the 360 twin",
+        "text": "Finish with URBAN FLOW in Sneaker Xtore, using its existing image, video and layouts. Open the twin to explore the store. The demo stays in the editor until you delete it from the demos section.",
+        "voice": "We finish in the Sneaker Xtore digital twin with the existing Urban Flow image, video and layouts. Open the twin to explore the store. This demo stays in the AdmiraNeXT editor until you delete it from the demos section. The simulation does not schedule physical screens."
+      },
+      "seconds": {
+        "es": 19,
+        "en": 17
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": "pixeria-novedades-20261009",
+  "letra": "f",
+  "nombre": "Pixeria · novedades · 09.10.2026",
+  "desc": "Mejoras de Trinity: Creador, Admirito, Adaptador, Stock, audio y MCP hasta el gemelo 360. Recorrido preparado; eliminar cuando Carlos quiera.",
+  "url": "https://www.admiranext.com/demo/pixeria-novedades/?lang=es",
+  "cmd": "/demo pixeria novedades",
+  "aliases": [
+    "pixeria novedades",
+    "studio novedades",
+    "pixeria updates",
+    "pixeria news"
+  ],
+  "duracion": 153.04644,
+  "ensayo_url": "https://www.admiranext.com/demo/pixeria-novedades/?lang=es",
+  "guion": [
+    {
+      "accion": "di",
+      "texto": "Una campaña, dos previos: Creador muestra horizontal 1920×1080 y vertical 1080×1920 desde las mismas capas. Cambia la composición y compara ambos sin pedir otra imagen a la IA."
+    },
+    {
+      "accion": "di",
+      "texto": "Admirito acompaña el trabajo real: Dibuja y borra junto al previo mientras la IA analiza, recrea o genera. Se retira al terminar o cancelar y respeta el movimiento reducido. Captura de la prueba; el recorrido reproduce material preparado."
+    },
+    {
+      "accion": "di",
+      "texto": "Primero Clásico, después formatos especiales: Paso 1 transforma horizontal ↔ vertical y presenta original y resultado antes de los ajustes. Paso 2 reúne los formatos propios del proyecto. URBAN FLOW se ha recreado en vertical y queda pendiente de aprobación."
+    },
+    {
+      "accion": "di",
+      "texto": "Conservar producto, texto y arte final: La IA reconstruye el espacio que falta y recompone el texto completo. Revisa OCR, tipografía y producto antes de Aprobar pieza. Los resultados incompatibles quedan bloqueados; se exige el arte final sin marcos o pantallas exteriores."
+    },
+    {
+      "accion": "di",
+      "texto": "Stock conserva la composición: Los PNG aprobados pueden guardar marca, titular, precio, CTA y posiciones junto al archivo. El Adaptador recupera la copia cuando el contrato completo coincide con ese archivo; con recursos antiguos o incompletos vuelve al OCR."
+    },
+    {
+      "accion": "di",
+      "texto": "Proveedores de voz y música claros: Los selectores de música de la web usan Suno. Eleven Music sigue pendiente. Voz ofrece Google TTS o ElevenLabs; la voz local del navegador no entrega un MP3 grabado. Las muestras no prueban emisión física."
+    },
+    {
+      "accion": "di",
+      "texto": "Ayuda y MCP contrastados con el servidor: La ayuda bilingüe distingue consultar, planificar, generar y publicar. El catálogo MCP se consulta al abrir la página y muestra autenticación, efectos y crédito. Los proveedores de la web y del MCP pueden ser distintos."
+    },
+    {
+      "accion": "di",
+      "texto": "De la creatividad al gemelo 360: El recorrido termina con URBAN FLOW en Sneaker Xtore: imagen, vídeo y composiciones ya generadas. Abre el gemelo para recorrer la tienda. La demo se conserva en el editor hasta que la elimines desde la sección de demos."
+    }
+  ],
+  "muestra": {
+    "tipo": "video",
+    "url": "https://www.admiranext.com/demo/pixeria-novedades/media/pixeria-novedades-es.mp4",
+    "poster": "https://www.admiranext.com/demo/pixeria-novedades/media/previos.jpg",
+    "descripcion": "Recorrido narrado preparado. No ejecuta generación ni publicación.",
+    "variantes": [
+      {
+        "nombre": "English",
+        "url": "https://www.admiranext.com/demo/pixeria-novedades/media/pixeria-novedades-en.mp4"
+      }
+    ]
+  },
+  "video": {
+    "version": 1,
+    "tipo": "video",
+    "url": "https://www.admiranext.com/demo/pixeria-novedades/media/pixeria-novedades-es.mp4",
+    "poster": "https://www.admiranext.com/demo/pixeria-novedades/media/previos.jpg",
+    "duracion": 153.04644,
+    "audio": true,
+    "idioma": "es",
+    "descripcion": "Recorrido preparado de las mejoras de Trinity del 9 de octubre de 2026. Incluye capturas reales y campaña existente.",
+    "fuente": "ensayo-local"
+  },
+  "temporary": true,
+  "delete_policy": "Only when Carlos explicitly deletes the editor entry; browser-local."
+}

@@ -17,7 +17,7 @@ import { FLEET_EXAMPLE_VIDEO, exampleVideoEntry, ensureExampleVideo, wantsExampl
 import { leerAtajoMarca } from '../presentaciones/_marca-atajo.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.8.0' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.8.1' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -33,7 +33,7 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - Ayuda para humanos: ${SITE}/mcp/generador
 
 ## Tools
-- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo · estructura · propuesta).
+- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo · novedades · estructura · propuesta).
 - list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
@@ -81,6 +81,14 @@ UI humana: /presentaciones/galeria (Registro vivo) y /presentaciones/?improve=<s
 5. Cierra con yokup_informe pegando la URL+pass de la sala (el generador es el informe completo).`;
 
 const HELP_TOPICS = {
+  novedades: `Pixeria · novedades / Pixeria updates (2026-10-09)
+ES: /demo pixeria novedades abre ocho capítulos preparados con narración opcional y vídeo completo hasta el gemelo 360. No ejecuta generación. Se conserva en el editor hasta que Carlos quiera eliminarla. Eliminar la entrada Studio retira sólo esa definición y sus referencias de este navegador; no borra la campaña ni publica una baja global.
+EN: /demo pixeria updates opens eight prepared chapters with optional narration and a full video through the 360 twin. No generation is executed. Keep it in the editor until Carlos deletes it. Removing the Studio entry removes only that definition and its project references in this browser, not the campaign or public assets.
+Guide/tutorial: https://www.admiranext.com/demo/pixeria-novedades/README.md
+Demo: https://www.admiranext.com/demo/pixeria-novedades/
+Manifest: https://www.admiranext.com/demo/pixeria-novedades/studio.subdemos.json
+Editor: https://www.admiranext.com/subdemos/
+Export first to preserve custom definitions; merge the extra entry before importing into an already customized catalog. No new MCP tool or credentials.`,
   crear: `create_presentation — campos:
 - Antes: list_presentations (censo). Un cliente = un slug. Si ya existe, usa overwrite:true para mejorar in situ (no crees otro).
 - displayName (obligatorio): nombre del cliente. slug (opcional): identificador de URL.
@@ -187,7 +195,7 @@ Cada acto: portada + capítulos a, b y c (5 min).
 };
 
 export const TOOLS = [
-  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo, estructura, propuesta.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo · estructura · propuesta' } } } },
+  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo, novedades, estructura, propuesta.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo · novedades · estructura · propuesta' } } } },
   { name: 'list_presentations', description: 'Catálogo / censo vivo (slug, displayName, website, languages, outputs, passwordSet, versionCount, updatedAt…). Consulta antes de crear o mejorar.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_catalog', description: 'Alias de list_presentations: el catálogo es el gesto principal. Mismos campos.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },

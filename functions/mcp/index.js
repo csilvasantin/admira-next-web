@@ -23,7 +23,7 @@ export async function onRequest(context){
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (request.method === 'GET') {
     if (/application\/json/i.test(request.headers.get('Accept') || '') && !/text\/html/i.test(request.headers.get('Accept') || '')) {
-      return withCors(Response.json({ ok: true, server: SERVER_INFO, endpoint: `${SITE}/mcp`, help: `${SITE}/mcp/generador`, tools: TOOLS.map(t => t.name), auth: 'Authorization: Bearer anmcp_… (token de /usuarios → Tokens MCP)' }, { headers: { 'cache-control': 'no-store' } }));
+      return withCors(Response.json({ ok: true, server: SERVER_INFO, endpoint: `${SITE}/mcp`, help: `${SITE}/mcp/generador`, demoUpdates: { id:'pixeria-novedades-20261009', mode:'prepared', command:'/demo pixeria novedades', guide:`${SITE}/demo/pixeria-novedades/README.md`, manifest:`${SITE}/demo/pixeria-novedades/studio.subdemos.json`, editor:`${SITE}/subdemos/`, generation:false, deletion:'browser-local on explicit request' }, tools: TOOLS.map(t => t.name), auth: 'Authorization: Bearer anmcp_… (token de /usuarios → Tokens MCP)' }, { headers: { 'cache-control': 'no-store' } }));
     }
     return next();
   }

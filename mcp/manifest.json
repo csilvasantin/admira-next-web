@@ -355,5 +355,16 @@
     "scope": "Shared quadratic interface; browser presentation only, no new MCP tools",
     "es": "La versión aparece al pie del menú lateral Opciones y desaparece al plegarlo. En la primera visita con una novedad sin reconocer se permite un único aviso fuera del menú; abrir Opciones o leer y cerrar el aviso lo reconoce en este navegador y dominio. Una actualización posterior permite un nuevo primer aviso. Pasar sobre el sello abre las novedades; una versión pendiente conserva la acción Recargar. Se mantienen los enlaces de ayuda del sello nativo. Las páginas de emisión, kioscos e iframes conservan sus exclusiones.",
     "en": "The version appears at the bottom of the Options side panel and disappears when it is collapsed. The first visit with unacknowledged news allows a single notice outside the panel; opening Options or reading and closing the notice acknowledges it in this browser and domain. A later update allows a new first notice. Hovering over the stamp opens release notes; a pending version retains the Reload action. Native stamp help links are preserved. Broadcasting pages, kiosks and iframes retain their exclusions."
+  },
+  "demo_pixeria_updates": {
+    "id": "studio/pixeria-novedades-20261009",
+    "command_es": "/demo pixeria novedades",
+    "command_en": "/demo pixeria updates",
+    "url": "https://www.admiranext.com/demo/pixeria-novedades/",
+    "guide": "https://www.admiranext.com/demo/pixeria-novedades/README.md",
+    "editor": "https://www.admiranext.com/subdemos/",
+    "mode": "prepared",
+    "generation": false,
+    "delete": "Explicitly delete the Studio entry in this browser; keep other definitions and campaign assets."
   }
 }

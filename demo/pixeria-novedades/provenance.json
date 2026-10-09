@@ -1,0 +1,148 @@
+{
+  "date": "2026-10-09",
+  "pixeria_release": "v.09.10.2026.r23.13:50",
+  "studio_release": "v.09.10.2026.r24.13:57",
+  "capture": "Native browser screenshots; prepared tour, not a live screen recording",
+  "narration": {
+    "es": "macOS Mónica, locally recorded",
+    "en": "macOS Samantha, locally recorded"
+  },
+  "campaign": {
+    "seed": "0165a35180d54346ba3c9774bd4882d5",
+    "image": "1791529066396-et2aj9",
+    "video": "1791529118319-rehw9p"
+  },
+  "adapter_result": "One OCR and portrait recreation executed; pending approval, no export or Stock publication",
+  "media": [
+    {
+      "file": "admirito-en.mp3",
+      "bytes": 163988,
+      "sha256": "8f3dd2381560347b88f31bd4b5d5cbd3ee90980fe2bd0a83071ea2de048a77ac"
+    },
+    {
+      "file": "admirito-es.mp3",
+      "bytes": 189066,
+      "sha256": "4c37aaccc0a357cb57947998e3c5c4b9fdb4edb250eaffe129de33f5d10c3f7a"
+    },
+    {
+      "file": "analisis.jpg",
+      "bytes": 101905,
+      "sha256": "9a2fd1d55bf47ef7a0997b6dd788a8439a32090623a40a99a91fe7ee4ddbffef"
+    },
+    {
+      "file": "arte-final.png",
+      "bytes": 2325217,
+      "sha256": "01b8d89fb3a074d6b678237dfe695d9729cba104ea3097377634c9b5dcc0e6cc"
+    },
+    {
+      "file": "audio-en.mp3",
+      "bytes": 207874,
+      "sha256": "833c8ed3a7736bfd119490e2af84d96a1ec2d9115199a5d252593494c39b4d75"
+    },
+    {
+      "file": "audio-es.mp3",
+      "bytes": 200664,
+      "sha256": "68e4960f11233de591ca30e03ffdbcfd3e47f50f46459fb7f9c983e937f6910d"
+    },
+    {
+      "file": "clasico-en.mp3",
+      "bytes": 179662,
+      "sha256": "b6e34e74d3096b475a6547b17b3f8798b779bf9b1135c42ddd7ecccb6a471843"
+    },
+    {
+      "file": "clasico-es.mp3",
+      "bytes": 198783,
+      "sha256": "5c0f9e7218da6bd559d84a22dcf5127dae6e0c075c841b81978d7bf888f200a0"
+    },
+    {
+      "file": "clasico.jpg",
+      "bytes": 103809,
+      "sha256": "8228964fdb112719e52f07d4aa7adff9664e88ab42e0dc673e4729f5666b35bf"
+    },
+    {
+      "file": "gemelo-en.mp3",
+      "bytes": 180602,
+      "sha256": "0a113bd48aa32ed9977f420dac009589ed30052085eb87906f16c7f3c5a123ae"
+    },
+    {
+      "file": "gemelo-es.mp3",
+      "bytes": 196275,
+      "sha256": "47f2ddeebd468b0b3201f44a5e5094bad15b4c2c9ffe3175bead6179b789e3b7"
+    },
+    {
+      "file": "gemelo.jpg",
+      "bytes": 141683,
+      "sha256": "538e622a1e1d9ba5c790169c6078bc5cd2c939bf86c0d982408ecd0fdcfa6f12"
+    },
+    {
+      "file": "mcp-en.mp3",
+      "bytes": 220726,
+      "sha256": "d8825d415043220362ff9d4dcaa9b0820666d6c9379301d049c6755cab26e656"
+    },
+    {
+      "file": "mcp-es.mp3",
+      "bytes": 228563,
+      "sha256": "5c1ecaa45fd938b1e501c0321ea0ca848b6314cca01d04ffa36fec72baea075d"
+    },
+    {
+      "file": "mcp.jpg",
+      "bytes": 65201,
+      "sha256": "841795da4cfed9227335e125b0fd3428908d5343049bcee733d41b656b51d13d"
+    },
+    {
+      "file": "musica.jpg",
+      "bytes": 101308,
+      "sha256": "1fb2504d0696a2e96c56044bac0db72e7d4a174d42723a3469b6868f0d79cf6e"
+    },
+    {
+      "file": "pixeria-novedades-en.mp4",
+      "bytes": 2627156,
+      "sha256": "7bad21e17d5c97305de01e6fab729c73420834ecd9df2dd9b7c4e02fd5ff94a9"
+    },
+    {
+      "file": "pixeria-novedades-es.mp4",
+      "bytes": 2660550,
+      "sha256": "0777edf855a242384351716d362195b245ea1026dc5637d381483976d8901474"
+    },
+    {
+      "file": "previos-en.mp3",
+      "bytes": 155211,
+      "sha256": "f8f68c74baa4148fc95603637768bd23a2ca634d4e00647cae8c919c4ec4e0f1"
+    },
+    {
+      "file": "previos-es.mp3",
+      "bytes": 178408,
+      "sha256": "d8064888fe9bfb83b3fba1e7ff3a7e0de2c2c9e44a9f1750afada70e263c9cb5"
+    },
+    {
+      "file": "previos.jpg",
+      "bytes": 122790,
+      "sha256": "6ffcabc86ce539194ec145a145f6766cc781a5f37a3a64060b31ca70016e78a2"
+    },
+    {
+      "file": "revision-en.mp3",
+      "bytes": 190633,
+      "sha256": "a6a072500c82a38b51b2b13f49b75d4ab49223882b8ac2a68768b8ec5f101939"
+    },
+    {
+      "file": "revision-es.mp3",
+      "bytes": 201291,
+      "sha256": "85298e4f59c7cb0398fccb8f10ad748cda5085d20935c525f4ce73f7a079b264"
+    },
+    {
+      "file": "revision.jpg",
+      "bytes": 98568,
+      "sha256": "ad857538771e6a3a59069e1cf69014b14adf8bb2b9a08a9023189735983798d1"
+    },
+    {
+      "file": "stock-en.mp3",
+      "bytes": 225115,
+      "sha256": "ed862c1ab0a4d130db3b74005c8eed9070b8edb6c34df20e03d52b19fc87150f"
+    },
+    {
+      "file": "stock-es.mp3",
+      "bytes": 228876,
+      "sha256": "abfa9217f63f702de9fc25516268659da481907da3e46aa29a17719bad398625"
+    }
+  ]
+}

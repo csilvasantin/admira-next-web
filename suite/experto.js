@@ -122,6 +122,7 @@
   // Una demo en curso (overlay de /demo 1 o recorrido ?ax_demo=) no puede
   // recargar: location.assign a /en/ tiraba el paso y la dejaba inactiva.
   function demoEnCurso() {
+    if(root.PixeriaUpdatesDemo) return true;
     try { if (recorrido && recorrido.activo) return true; } catch (_) {}
     try {
       var n = root.AdmiraDemoControl && root.AdmiraDemoControl.state && root.AdmiraDemoControl.state();
@@ -516,6 +517,7 @@
     // /demo <funcionalidad>: hoy (castellano) y today (pone la web en inglés). El resto de nombres
     // desconocidos sigue siendo de la pata. Los pasos viven en suite/demo-control.js.
     if (arg === 'hoy' || arg === 'today') return {funcion: 'hoy', lang: arg === 'today' ? 'en' : 'es'};
+    if (/^(pixeria|studio) (novedades|updates|news)$/.test(arg)) return {updates: true, lang: /(?:updates|news)$/.test(arg) ? 'en' : 'es'};
     // /demo <página> (encargo #5446). El verbo inglés abre el mismo recorrido en inglés.
     // /demo idioma, si ya hay una demo en curso, sigue cambiando el idioma sin perder el paso.
     var FUNCION_PAGINA = {proyectos:'proyectos', projects:'proyectos', marcas:'marcas', brands:'marcas', roadmap:'roadmap'};
@@ -529,7 +531,7 @@
     }
     if(arg==='global')return {global:true};
     if (L && /^(auto|todas|todos|all)$/.test(arg)) return {local: true, auto: true};
-    if ((L || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo)) && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
+    if ((root.PixeriaUpdatesDemo || L || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo)) && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
       (plataforma !== 'store' || (recorrido && recorrido.activo) || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) || !/^(stop|off|estado|status)$/.test(arg))) return {control: arg};
     // Controles del recorrido TPV nativo: los sigue atendiendo el gemelo.
     if (plataforma === 'store' && /^(tpv|off|stop|estado|status|tpv (off|stop|estado|status))$/.test(arg)) return null;
@@ -547,7 +549,7 @@
     return i < 0 ? null : {demo: DEMOS[i], i: i};
   }
   function demoLista() {
-    return T('/demo global · Sneakers Store: proyecto → Xpacio → Pixeria → gemelo → cámara\nDemos · las cinco soluciones:', '/demo global · Sneakers Store: project → Xpace → Pixeria → twin → camera\nDemos · the five solutions:') + '\n' +
+    return T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('/demo global · Sneakers Store: proyecto → Xpacio → Pixeria → gemelo → cámara\nDemos · las cinco soluciones:', '/demo global · Sneakers Store: project → Xpace → Pixeria → twin → camera\nDemos · the five solutions:') + '\n' +
       DEMOS.map(function (d, k) { return (k + 1) + ' /demo ' + d.id + ' · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]); }).join('\n') +
       '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".') +
       '\n' + T('/demo hoy recorre lo de hoy y resume bien, mal o pendiente. /demo today lo hace en inglés.',
@@ -559,7 +561,7 @@
   }
   function localLista() {
     var L = localM();
-    return T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
+    return T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
       L.subdemos.map(function (d, k) { return '/demo ' + (k + 1) + ' · /demo ' + d.aliases[0] + ' — ' + d.nombre + (d.desc ? ': ' + d.desc : ''); }).join('\n') +
       '\n' + T('Recorridos y muestras preparados. /demo store, /demo biz… abren las otras plataformas.',
         'Prepared walkthroughs and samples. /demo store, /demo biz… open the other platforms.') +
@@ -790,7 +792,9 @@
     out(log, (mismo ? T('bien', 'ok') : T('mal', 'bad')) + ' · ' + T('paso ', 'step ') + String(fase2 == null ? '—' : fase2) + ' · ' + destino + (frase ? ' · ' + frase : ''));
     return {ok: !!mismo, fase: fase2, lang: lang()};
   }
+  function updatesDemoUrl(l) { return 'https://www.admiranext.com/demo/pixeria-novedades/?run=1&lang=' + (l === 'en' ? 'en' : 'es'); }
   function demoRun(p, log) {
+    if (p.updates) { var updatesUrl=updatesDemoUrl(p.lang); out(log,T('Abriendo Pixeria · novedades, recorrido preparado…','Opening Pixeria updates, prepared tour…')); location.assign(updatesUrl); return {id:'pixeria-novedades-20261009',url:updatesUrl}; }
     if (p.idiomaDemo) return demoIdioma(log);
     if(p.global){var globalUrl='https://www.admira.biz/demo/?lang='+T('es','en');out(log,T('Abriendo demo global · Sneakers Store…','Opening global demo · Sneakers Store…'));location.assign(globalUrl);return {id:'global',url:globalUrl};}
     if (p.funcion) {
@@ -803,6 +807,7 @@
       setTimeout(function () { location.assign(furl); }, 600);
       return {id: p.funcion, lang: p.lang, url: furl};
     }
+    if (p.control && root.PixeriaUpdatesDemo) { var updateAction={pausa:'pause',reanudar:'resume',continuar:'resume',parar:'stop',off:'stop',siguiente:'next'}[p.control] || p.control; var updateState=root.PixeriaUpdatesDemo.control(updateAction); out(log,JSON.stringify(updateState)); return updateState; }
     if (p.control) { var native = root.AdmiraDemoControl; var nativeControl = {pausa:'pause',pause:'pause',reanudar:'resume',resume:'resume',continuar:'resume',parar:'stop',stop:'stop',off:'stop',siguiente:'next',next:'next'}[p.control]; var state = native && native.state().activo ? (nativeControl ? native.control(nativeControl) : native.state()) : controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
     if (p.auto) { var L = localM(); if (!L.subdemos.length) { out(log, T('No hay subdemos en este catálogo.', 'No subdemos in this catalog.')); return null; } mostrarMuestra(L.subdemos[0], 1, L.subdemos, 0); return estadoRecorrido(); }
     if (p.lista) { out(log, p.local ? localLista() : demoLista()); return null; }
@@ -1205,8 +1210,8 @@
     parseArquitectura: parseArquitectura, arquitecturaUrl: arquitecturaUrl,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
-    demoEstado: function () { return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    demoEstado: function () { if(root.PixeriaUpdatesDemo) return root.PixeriaUpdatesDemo.state(); return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
     normalizeLangToken: normalizeLangToken,

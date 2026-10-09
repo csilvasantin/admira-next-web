@@ -44,3 +44,12 @@ el archivo R2 `presentations/<cliente>/offline/paquete.zip` (o `.pdf`). El
 empaquetador no publica automáticamente. Si cambia el material, se vuelve a
 empaquetar y verificar antes de reemplazar la entrega. No se publican los ZIP,
 PDF o backups del cliente como archivos estáticos en Git.
+
+
+## Pixeria · novedades / Pixeria updates (2026-10-09)
+ES: `/demo pixeria novedades` abre el recorrido preparado de ocho capítulos con narración y vídeo hasta el gemelo 360. La demo queda en el editor hasta que Carlos quiera eliminarla. Eliminar la entrada Studio sólo retira la definición y sus referencias en este navegador; otras demos, borradores y la campaña se conservan. Exportar primero permite recuperarla.
+EN: `/demo pixeria updates` opens the prepared eight-chapter narrated tour and video through the 360 twin. The demo stays in the editor until Carlos deletes it. Deleting the Studio entry removes only that definition and its references in this browser; other demos, drafts and the campaign remain. Export first for recovery.
+Demo: https://www.admiranext.com/demo/pixeria-novedades/
+Guide/tutorial ES/EN: https://www.admiranext.com/demo/pixeria-novedades/README.md
+Manifest: https://www.admiranext.com/demo/pixeria-novedades/studio.subdemos.json
+MCP: existing `help {tema:"novedades"}`. Public GET /mcp (Accept application/json) returns demoUpdates metadata. No generation or new credentials.

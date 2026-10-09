@@ -62,6 +62,20 @@ function withLang(initial, hostname = 'www.admiranext.com', savedManifests = nul
   return { api: sandbox.AdmiraExperto, documentElement, setLang: sandbox.AdmiraSetLanguage, sandbox, storage, location };
 }
 
+test('Pixeria novedades se abre en ES/EN sin desplazar las cinco demos existentes', () => {
+  for (const hostname of ['www.admiranext.com','www.pixeria.com','admira.studio','www.admira.store']) {
+    const {api} = withLang('es', hostname);
+    const es=api.parseDemo('/demo pixeria novedades'), en=api.parseDemo('/demo pixeria updates');
+    assert.equal(es.id,'pixeria-novedades-20261009');
+    assert.equal(new URL(es.url).pathname,'/demo/pixeria-novedades/');
+    assert.equal(new URL(es.url).searchParams.get('lang'),'es');
+    assert.equal(new URL(en.url).searchParams.get('lang'),'en');
+    assert.equal(api.parseDemo('/demo studio novedades').id,es.id);
+    assert.equal(api.parseDemo('/demo pixeria').id,'studio');
+    assert.notEqual(api.parseDemo('/demo 1').id,es.id);
+  }
+});
+
 
 // /demo de las cinco soluciones (Carlos, 7-oct-2026, demo Alsea · Starbucks).
 test('parseDemo: lista, soluciones, alias, números y siguiente', () => {

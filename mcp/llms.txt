@@ -156,3 +156,12 @@ Tutorial ES: ☰ Opciones → sello al pie → pasar el ratón → plegar Opcion
 ES: El sello permanece en el pie visible de Opciones, por encima de la barra de Experto minimizada o ampliada, sin desplazar el contenido central. EN: The stamp stays in the visible Options footer, above the minimized or expanded Expert bar, without moving the main content.
 
 ES: El cargador compartido usa Cache-Control: no-store para evitar el mínimo de cuatro horas de caché de navegador. Las pestañas que ya cargaron una copia anterior requieren recarga completa. EN: The shared loader uses Cache-Control: no-store to avoid the four-hour browser-cache minimum. Tabs that already loaded an earlier copy require a hard reload.
+
+
+## Pixeria · novedades / Pixeria updates (2026-10-09)
+ES: `/demo pixeria novedades` abre el recorrido preparado de ocho capítulos con narración y vídeo hasta el gemelo 360. La demo queda en el editor hasta que Carlos quiera eliminarla. Eliminar la entrada Studio sólo retira la definición y sus referencias en este navegador; otras demos, borradores y la campaña se conservan. Exportar primero permite recuperarla.
+EN: `/demo pixeria updates` opens the prepared eight-chapter narrated tour and video through the 360 twin. The demo stays in the editor until Carlos deletes it. Deleting the Studio entry removes only that definition and its references in this browser; other demos, drafts and the campaign remain. Export first for recovery.
+Demo: https://www.admiranext.com/demo/pixeria-novedades/
+Guide/tutorial ES/EN: https://www.admiranext.com/demo/pixeria-novedades/README.md
+Manifest: https://www.admiranext.com/demo/pixeria-novedades/studio.subdemos.json
+MCP: existing `help {tema:"novedades"}`. Public GET /mcp (Accept application/json) returns demoUpdates metadata. No generation or new credentials.
