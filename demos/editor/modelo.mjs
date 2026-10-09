@@ -8,6 +8,7 @@ export const SITIOS = [
   { id: 'tv', color: '#FF3366', es: 'admira.tv', en: 'admira.tv' },
 ];
 export const OPS = ['navigate', 'say', 'point', 'click', 'open', 'close', 'fill', 'select', 'video', 'audio', 'wait', 'cli', 'check', 'native'];
+export { urlDePieza } from '../../subdemos/macro-url.mjs';
 
 export const TEXTO = {
   es: {
@@ -148,7 +149,7 @@ export function filasMacro(items, transition, lang) {
       filas.push({
         kind: 'salto',
         card: transition?.card || t(lang, 'salto'),
-        seconds: Number(transition?.seconds ?? 2),
+        seconds: Number(transition?.seconds ?? 3),
       });
     }
     filas.push({ kind: 'pieza', index, ref: item.ref });
@@ -216,7 +217,7 @@ export function macroVacia(id) {
     id: id || '',
     title: { es: 'Nueva macro', en: 'New macro' },
     context: { marca: 'admira', project: id || 'macro', circuit: id || 'macro', lang: 'es' },
-    transition: { card: 'Siguiente tramo', seconds: 2 },
+    transition: { card: 'Siguiente tramo', seconds: 3 },
     items: [],
     status: 'draft',
     version: 1,

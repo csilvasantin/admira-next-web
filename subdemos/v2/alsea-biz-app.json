@@ -1,0 +1,28 @@
+{
+  "schema": "admira.demo/2",
+  "kind": "macro",
+  "id": "alsea-biz-app",
+  "title": {
+    "es": "Alsea · biz y app",
+    "en": "Alsea · biz and app"
+  },
+  "context": {
+    "marca": "alsea",
+    "project": "starbucks",
+    "circuit": "alsea_starbucks",
+    "lang": "es"
+  },
+  "transition": {
+    "card": "Siguiente tramo",
+    "seconds": 3
+  },
+  "items": [
+    { "ref": "biz/proyecto" },
+    { "ref": "biz/circuito" },
+    { "ref": "biz/gemelo" },
+    { "ref": "app/establecimientos" },
+    { "ref": "app/inventario" }
+  ],
+  "status": "published",
+  "version": 1
+}

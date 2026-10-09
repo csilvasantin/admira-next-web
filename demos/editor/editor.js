@@ -2,7 +2,7 @@ import {
   OPS, SITIOS, agregarSubdemo, anotar, colorDe, coincide, crearHistorial, demoNueva, deshacer,
   documentoMacro, duplicarMacro, duplicarSubdemo, duracionDe, filasMacro, letra, localizar,
   macroVacia, moverItem, pasoVacio, quitarItem, quitarSubdemo, resumenMacro, selectoresConocidos,
-  sitioDe, t, textoDuracion,
+  sitioDe, t, textoDuracion, urlDePieza,
 } from './modelo.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -516,24 +516,41 @@ async function reproducir(steps, desde) {
   if (!estado.parar) $('reproductor').hidden = true;
 }
 
+function planEjecutable() {
+  return {
+    ...estado.macro,
+    items: estado.macro.items.map((item) => ({ ref: item.ref, subdemo: localizar(estado.demos, item.ref).sub })),
+  };
+}
+
+function cargarReproductor() {
+  if (window.AdmiraDemoMacro) return Promise.resolve(window.AdmiraDemoMacro);
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = '/suite/demo-control.js?v=20261009-macro-5462';
+    const fallo = () => reject(new Error(estado.lang === 'en' ? 'The player did not load.' : 'No se pudo cargar el reproductor.'));
+    script.onload = () => (window.AdmiraDemoMacro ? resolve(window.AdmiraDemoMacro) : fallo());
+    script.onerror = fallo;
+    document.head.appendChild(script);
+  });
+}
+
 async function ejecutarMacro() {
-  estado.parar = false;
-  $('reproductor').hidden = false;
-  let anterior = '';
-  for (const item of estado.macro.items) {
-    if (estado.parar) break;
-    const site = sitioDe(item.ref);
-    if (anterior && anterior !== site) {
-      $('reproductor-texto').textContent = (estado.macro.transition.card || t(estado.lang, 'salto'));
-      await dormir(Math.min(Number(estado.macro.transition.seconds) || 0, 4) * 1000);
-    }
-    anterior = site;
-    const { sub } = localizar(estado.demos, item.ref);
-    if (!sub) continue;
-    $('reproductor-texto').textContent = site + ' · ' + titulo(sub.title);
-    await reproducir(sub.steps, 0);
+  if (!estado.macro.id || estado.macro.status !== 'published') {
+    aviso(estado.lang === 'en' ? 'Publish the macro before running it.' : 'Publica la macro antes de ejecutarla.');
+    return;
   }
-  $('reproductor').hidden = true;
+  const run = Date.now().toString(36);
+  location.assign(urlDePieza(planEjecutable(), 0, run, estado.lang));
+}
+
+async function probarPasos(steps, desde) {
+  try {
+    const reproductor = await cargarReproductor();
+    reproductor.probar(steps, { desde, lang: estado.lang });
+  } catch (error) {
+    aviso(error.message);
+  }
 }
 
 function reemplazarDemo(demo) {
@@ -686,12 +703,12 @@ $('anadir-paso').addEventListener('click', () => {
 $('probar').addEventListener('click', () => {
   const { sub } = piezaActual();
   if (!sub || estado.paso < 0) return;
-  reproducir([sub.steps[estado.paso]], 0);
+  probarPasos([sub.steps[estado.paso]], 0);
 });
 $('desde').addEventListener('click', () => {
   const { sub } = piezaActual();
   if (!sub) return;
-  reproducir(sub.steps, Math.max(0, estado.paso));
+  probarPasos(sub.steps, Math.max(0, estado.paso));
 });
 $('borrar-paso').addEventListener('click', () => {
   const { demo, sub } = piezaActual();

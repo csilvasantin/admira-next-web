@@ -1,5 +1,11 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.09.10.2026.r19.17:32": [
+    "/demo lista muestra las demos y las macros. /demo alsea-biz-app recorre tres tramos en admira.biz y dos en admira.app.",
+    "Entre sitios sale una tarjeta de 3 segundos. La dirección lleva el plan y el contexto, nunca una clave.",
+    "Si admira.app pide sesión, el recorrido avisa y cierra con el resumen: bien, mal y pendiente.",
+    "Volver atrás: etiqueta retorno/pre-demo-ejecucion-5462-20261009, sello v.09.10.2026.r18.17:02"
+  ],
   "v.09.10.2026.r18.17:02": [
     "En /demos/editor se monta una macro arrastrando subdemos, en español y en inglés.",
     "Se reordena, se guarda, se publica y se borra. Entre dos sitios aparece la tarjeta de salto.",
