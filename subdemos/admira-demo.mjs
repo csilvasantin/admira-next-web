@@ -1,7 +1,7 @@
 // Esquema admira.demo/2. Parte de las reglas de editor-catalogo.mjs
 // (id estable, URL https, sin ejecutar pasos) y no admite JavaScript libre.
 export const ESQUEMA = 'admira.demo/2';
-export const SITIOS = ['biz', 'store', 'studio', 'app'];
+export const SITIOS = ['biz', 'store', 'studio', 'app', 'tv'];
 export const OPS = ['navigate', 'say', 'point', 'click', 'open', 'close', 'fill', 'select', 'video', 'audio', 'wait', 'cli', 'check', 'native'];
 const MODOS = ['recorrido', 'ensayo', 'video', 'muestra'];
 const CAMPOS = {
@@ -26,6 +26,7 @@ const TITULOS = {
   store: 'admira.store',
   studio: 'Admira Studio / Pixeria',
   app: 'admira.app',
+  tv: 'admira.tv',
   'biz/proyecto': 'Register a project',
   'biz/circuito': 'Register a DooH circuit',
   'biz/gemelo': 'Register digital twins · Retail Media',
@@ -190,7 +191,7 @@ export function validar(raw) {
   if (raw.kind !== 'demo') fallo('El documento es una demo o una macro');
   const claves = ['schema', 'kind', 'site', 'id', 'title', 'mode', 'version', 'status', 'subdemos', 'legacy'];
   if (Object.keys(raw).some((key) => !claves.includes(key))) fallo('La demo lleva un campo desconocido');
-  if (!SITIOS.includes(raw.site) || raw.id !== raw.site) fallo('La demo pertenece a biz, store, studio o app');
+  if (!SITIOS.includes(raw.site) || !idOk(raw.id)) fallo('La demo pertenece a biz, store, studio, app o tv');
   if (!MODOS.includes(raw.mode)) fallo('Modo de demo no válido');
   if (!Number.isInteger(raw.version) || raw.version < 1) fallo('Versión de demo no válida');
   if (!['draft', 'published', 'deleted'].includes(raw.status)) fallo('Estado de demo no válido');
@@ -234,7 +235,7 @@ function validarMacro(raw) {
   if (Object.keys(transition).some((key) => !['card', 'seconds'].includes(key))) fallo('Transición no válida');
   if (!Array.isArray(raw.items) || raw.items.length < 1 || raw.items.length > 40) fallo('La macro no tiene piezas');
   const items = raw.items.map((item) => {
-    if (!item || Object.keys(item).some((key) => key !== 'ref') || !/^(biz|store|studio|app)\/[a-z0-9-]{1,40}$/.test(item.ref || '')) fallo('La pieza cita sitio/subdemo');
+    if (!item || Object.keys(item).some((key) => key !== 'ref') || !/^(biz|store|studio|app|tv)\/[a-z0-9-]{1,40}$/.test(item.ref || '')) fallo('La pieza cita sitio/subdemo');
     return { ref: item.ref };
   });
   return {
@@ -306,8 +307,14 @@ export function resolverMacro(macro, demos) {
     ...doc,
     items: doc.items.map((item) => {
       const [site, id] = item.ref.split('/');
-      const demo = demos.find((entrada) => entrada.kind === 'demo' && entrada.status === 'published' && entrada.site === site);
-      const subdemo = demo?.subdemos.find((sub) => sub.id === id) || null;
+      const candidatos = demos
+        .filter((entrada) => entrada.kind === 'demo' && entrada.status === 'published' && entrada.site === site)
+        .sort((a, b) => (a.id === a.site ? 0 : 1) - (b.id === b.site ? 0 : 1));
+      let subdemo = null;
+      for (const demo of candidatos) {
+        subdemo = demo.subdemos.find((sub) => sub.id === id) || null;
+        if (subdemo) break;
+      }
       return { ref: item.ref, subdemo };
     }),
   };

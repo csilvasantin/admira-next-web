@@ -1,108 +1,14 @@
 <!DOCTYPE html>
-<html lang="es" class="yk-framed">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Subdemos · AdmiraNeXT — proyectos y demos</title>
-<meta name="description" content="Escoge proyectos y qué demos se enseñan en cada uno: las demos globales por plataforma (biz, store, studio) y sus subdemos por funcionalidad (TPV, digital signage, audiencia…).">
-<meta name="theme-color" content="#1a1a2e">
-<link rel="canonical" href="https://www.admiranext.com/subdemos">
-<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-<link rel="shortcut icon" href="/favicon.ico">
-<link rel="preload" href="/assets/fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
-<link rel="stylesheet" href="/demo/demo.css?v=20261006-completa-v2">
-<link rel="stylesheet" href="/subdemos/subdemos.css?v=20261007-editor-1">
+<meta http-equiv="refresh" content="0; url=/demos/editor/">
+<link rel="canonical" href="https://www.admiranext.com/demos/editor/">
+<title>Editor de demos</title>
+<script>location.replace('/demos/editor/');</script>
 </head>
-<body data-yk-title="SUBDEMOS" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
-
-<section data-yk-slot="left" hidden>
-  <div class="yk-auto-blk">
-    <a href="/demo/">Demo completa</a>
-    <a href="/subdemos/">Subdemos · proyectos</a>
-    <a href="/marcablanca/">Marca blanca</a>
-    <a href="/presentaciones/">Presentaciones</a>
-  </div>
-</section>
-
-<div class="horizonte" aria-hidden="true"><div class="sol"></div><div class="suelo"></div></div>
-
-<main class="demo-wrap">
-  <div class="win">
-    <div class="titlebar">
-      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-      <span class="path"><b>~/AdmiraNeXT</b>/subdemos</span>
-      <span class="tb-meta"><a href="/demo/">← /demo</a></span>
-    </div>
-    <div class="content">
-      <header class="hero">
-        <div class="term"><span class="pr">$</span> /demo store tpv <span class="ok">→ guion por proyecto</span></div>
-        <div class="kicker">Demos globales y subdemos</div>
-        <h1>Qué enseñamos en cada proyecto</h1>
-        <p class="lede">Prepara las demos de cada proyecto: <b>Store</b> gestiona locuciones, música, imágenes, vídeo y TPV; <b>Biz</b> organiza proyectos, circuitos DooH y vuelos, gemelos Retail Media, dispositivos IoT e inventario ITIL; <b>Studio</b> crea los contenidos. Marca las que quieres enseñar y ensaya su recorrido. Puedes añadir, editar y quitar subdemos con los botones del catálogo.</p>
-      </header>
-
-      <section aria-labelledby="h-proy">
-        <h2 id="h-proy">Proyectos</h2>
-        <div id="proyectos" class="proyectos"></div>
-        <form id="nuevo" class="nuevo">
-          <input id="nuevo-nombre" type="text" placeholder="Nuevo proyecto (p. ej. 365 · Barcelona)" aria-label="Nombre del proyecto" maxlength="80">
-          <button class="btn" type="submit">+ Añadir</button>
-          <button class="btn" type="button" id="borrar">Quitar el activo</button>
-        </form>
-      </section>
-
-      <section aria-labelledby="h-cat">
-        <h2 id="h-cat">Demos</h2>
-        <div id="catalogo"></div>
-        <form id="editor-subdemo" class="editor-subdemo" hidden aria-label="Editar definición de subdemo">
-          <h3>Añadir o editar subdemo</h3>
-          <div class="editor-fields">
-            <label>Plataforma <select id="sub-plataforma"><option value="biz">admira.biz</option><option value="store">admira.store</option><option value="studio">admira.studio</option></select></label>
-            <label>ID estable <input id="sub-id" required pattern="[a-z0-9-]{1,40}" maxlength="40" placeholder="promocion"></label>
-            <label>Letra <input id="sub-letra" maxlength="4" placeholder="a"></label>
-            <label>Nombre <input id="sub-nombre" required maxlength="160"></label>
-            <label class="wide">Descripción <textarea id="sub-desc" maxlength="1000"></textarea></label>
-            <label class="wide">URL de la función <input id="sub-url" type="url" required maxlength="2048" placeholder="https://"></label>
-            <label class="wide">Comando opcional <input id="sub-cmd" maxlength="200" placeholder="/demo store promocion"></label>
-            <label class="wide">Vídeo preparado opcional <input id="sub-video-url" type="url" maxlength="2048" placeholder="https://"></label>
-            <label class="wide">Póster del vídeo opcional <input id="sub-video-poster" type="url" maxlength="2048" placeholder="https://"></label>
-            <label class="wide"><input id="sub-video-audio" type="checkbox"> El vídeo incluye audio preparado</label>
-          </div>
-          <p>El ID se mantiene al editar. Las muestras, aliases, pasos y casos existentes se conservan. El vídeo es un archivo preparado: este editor no genera ni sube medios. Vaciar su URL elimina la definición opcional. Los cambios se guardan en este navegador; Exportar permite llevarlos a otro equipo.</p>
-          <p id="sub-error" role="alert"></p>
-          <button class="btn primario" type="submit">Guardar subdemo</button>
-          <button class="btn" id="sub-cancelar" type="button">Cancelar</button>
-        </form>
-      </section>
-
-      <section aria-labelledby="h-guion" class="guion-wrap">
-        <h2 id="h-guion">Guion · <span id="guion-titulo"></span></h2>
-        <form id="datos" class="datos" aria-label="Datos opcionales del proyecto">
-          <label>Presentación <input id="d-presentation" type="text" maxlength="200" placeholder="id o URL (opcional)"></label>
-          <label>Marca <input id="d-marca" type="text" maxlength="80" placeholder="starbucks"></label>
-          <label>Local <input id="d-loc" type="text" maxlength="80" placeholder="alsea-sbux-021"></label>
-          <label>Proyecto <input id="d-project" type="text" maxlength="80" placeholder="starbucks"></label>
-          <label>Circuito <input id="d-circuito" type="text" maxlength="80" placeholder="alsea_starbucks"></label>
-        </form>
-        <ol id="guion" class="guion"></ol>
-        <p class="acciones">
-          <button class="btn primario" type="button" id="empezar">Empezar →</button>
-          <button class="btn" type="button" id="copiar">Copiar guion</button>
-          <button class="btn" type="button" id="exportar">Exportar</button>
-          <label class="btn">Importar (guion o manifiesto) <input id="importar" type="file" accept="application/json" hidden></label>
-        </p>
-        <p id="estado" class="estado" role="status" aria-live="polite"></p>
-        <p class="nota">Se guarda en este navegador. Exportar/Importar lleva a otro equipo tanto los proyectos como las definiciones de subdemos editadas. Importar también acepta un manifiesto de plataforma (p. ej. <a href="/subdemos/studio.subdemos.json">studio.subdemos.json</a>) para cambiar sus subdemos.</p>
-      </section>
-    </div>
-  </div>
-</main>
-
-<script type="module" src="/subdemos/subdemos.js?v=20261007-retail-video-1"></script>
-<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+<body>
+<p><a href="/demos/editor/">Editor de demos</a></p>
 </body>
 </html>

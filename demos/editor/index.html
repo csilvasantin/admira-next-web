@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es" class="yk-framed">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de demos · AdmiraNeXT</title>
+<meta name="description" content="Editor de demos: biblioteca por sitio, macrodemo arrastrable, pasos y publicación. Español e inglés.">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="canonical" href="https://www.admiranext.com/demos/editor/">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
+<link rel="stylesheet" href="/demos/editor/editor.css?v=20261009-editor-5461">
+</head>
+<body data-yk-title="EDITOR" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on" data-yk-cli="on">
+
+<section data-yk-slot="left" hidden>
+  <div class="yk-auto-blk">
+    <a href="/demo/">Demo completa</a>
+    <a href="/api/demos">Catálogo admira.demo/2</a>
+    <a href="/demos/editor/">Editor de demos</a>
+  </div>
+</section>
+<section data-yk-slot="right" hidden>
+  <div class="yk-auto-blk">
+    <p>Guardar deja un borrador. Publicar lo enseña. Borrar pide confirmación. Deshacer: Ctrl+Z.</p>
+  </div>
+</section>
+
+<main class="editor-pagina">
+  <header class="barra">
+    <div>
+      <h1 id="titulo">Editor de demos</h1>
+      <p id="atajo">Deshacer con Ctrl+Z</p>
+    </div>
+    <p id="aviso" role="status"></p>
+    <div class="acciones">
+      <button type="button" id="guardar">Guardar borrador</button>
+      <button type="button" id="publicar">Publicar</button>
+      <button type="button" id="ejecutar">Ejecutar macrodemo</button>
+      <button type="button" id="deshacer">Deshacer</button>
+      <button type="button" id="idioma-barra" aria-label="Idioma">EN</button>
+    </div>
+  </header>
+
+  <div class="editor">
+    <aside class="biblioteca">
+      <h2 id="h-biblioteca">Biblioteca</h2>
+      <input id="buscar" type="search" placeholder="Buscar demos, subdemos o macros" aria-label="Buscar demos, subdemos o macros">
+      <div id="arbol"></div>
+      <h2 id="h-macros">Macrodemos</h2>
+      <div id="lista-macros"></div>
+      <div class="mas">
+        <button type="button" id="mas-demo">+ Demo</button>
+        <button type="button" id="mas-sub">+ Subdemo</button>
+        <button type="button" id="mas-macro">+ Macro</button>
+        <button type="button" id="duplicar">Duplicar</button>
+        <button type="button" id="borrar">Borrar</button>
+      </div>
+    </aside>
+
+    <section class="escenario" aria-label="Macrodemo">
+      <div id="macrodemo">
+        <div id="fila"></div>
+        <div id="soltar">Soltar aquí</div>
+        <p id="resumen"></p>
+      </div>
+    </section>
+
+    <section class="pasos" aria-label="Pasos">
+      <div id="lista-pasos"></div>
+      <button type="button" id="anadir-paso">+ Añadir paso</button>
+    </section>
+
+    <aside class="inspector" id="inspector">
+      <form id="paso-form"></form>
+      <label class="voz"><input type="checkbox" id="voz" checked> <span id="voz-texto">Voz al probar</span></label>
+      <div class="mas">
+        <button type="button" id="probar">Probar paso</button>
+        <button type="button" id="desde">Desde aquí</button>
+        <button type="button" id="borrar-paso">Borrar</button>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<dialog id="dialogo">
+  <form method="dialog" id="dialogo-form">
+    <h2 id="dialogo-titulo"></h2>
+    <div id="dialogo-campos"></div>
+    <div class="mas">
+      <button type="submit" id="dialogo-ok" value="ok">Aceptar</button>
+      <button type="submit" id="dialogo-cancel" value="cancel">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="reproductor" hidden>
+  <p id="reproductor-texto"></p>
+  <button type="button" id="reproductor-parar">Parar</button>
+</div>
+
+<script type="module" src="/demos/editor/editor.js?v=20261009-editor-5461"></script>
+<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+</body>
+</html>
