@@ -1,5 +1,11 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.09.10.2026.r17.16:29": [
+    "El catálogo de demos se lee en /api/demos: biz, store, studio y app, esquema admira.demo/2.",
+    "admira.app queda en establecimientos, inventario, incidencias e ITIL. En /demo hay un enlace a ese catálogo.",
+    "Un editor crea y publica una macro (playlist) por la API; sin ese rol la escritura responde 403.",
+    "Volver atrás: etiqueta retorno/pre-demo-datos-5460-20261009, sello v.09.10.2026.r16.15:08"
+  ],
   "v.09.10.2026.r14.14:04": [
     "/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página en español y en inglés.",
     "Cada paso comprueba algo de la página y el panel se queda con el resumen: bien o mal.",
