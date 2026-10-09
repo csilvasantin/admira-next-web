@@ -251,5 +251,5 @@ html:not(.yk-open-bottom) #ykExpertRail :is(.yk-cli, .yk-expert, .ax-body, .ax-c
   border: 1px solid var(--yk-line2);
   border-radius: 8px;
 }
-.alias-nota { margin: 0; font-size: 12px; color: var(--yk-ink); }
+.alias-nota { margin: 0; flex-basis: 100%; font-size: 12px; color: var(--yk-ink); }
 #lista-macros button { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; text-align: left; }
