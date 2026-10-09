@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clientes · AdmiraNeXT</title>
+<meta name="description" content="Censo público de clientes de AdmiraNeXT, leído de /api/clientes, en español y en inglés.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;color:#eef6ff;font-family:system-ui,-apple-system,sans-serif;line-height:1.5}
+  main{padding:32px 0 72px;min-width:0;max-width:100%}
+  .eyebrow{font:700 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#63e6d5}
+  h1{margin:6px 0 10px;font-size:clamp(28px,5vw,46px)}
+  .lede{color:#8ea0b8;max-width:42rem}
+  .langs{display:flex;gap:8px;margin:16px 0}
+  .langs button{font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#eef6ff;background:#121c2c;border:1px solid #25344b;border-radius:10px;padding:8px 12px;cursor:pointer}
+  .langs button[aria-pressed="true"]{border-color:#63e6d5;color:#63e6d5}
+  .estado{font:600 12px/1.5 ui-monospace,Menlo,monospace;color:#8ea0b8}
+  .hoja{overflow-x:auto;max-width:100%;min-width:0;border:1px solid #25344b;border-radius:10px;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+  table{width:max-content;min-width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #25344b;white-space:nowrap}
+  th{font:700 11px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#8ea0b8}
+  th:first-child,td:first-child{position:sticky;left:0;background:#0d1522}
+</style>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-movil-5435">
+<script defer src="/assets/admira-frame.js?v=20261009-movil-5435"></script>
+</head>
+<body data-yk-frame="cabecera" data-yk-auto="on">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
+<main data-yk-main>
+  <p class="eyebrow" id="cli-kicker">AdmiraNeXT · censo</p>
+  <h1 id="cli-titulo">Clientes</h1>
+  <p class="lede" id="cli-lede">Lista pública leída de /api/clientes. Los nombres salen del censo; las etiquetas cambian con ESP y ENG.</p>
+  <div class="langs">
+    <button type="button" id="cli-es" aria-pressed="true">ESP</button>
+    <button type="button" id="cli-en" aria-pressed="false">ENG</button>
+  </div>
+  <p class="estado" id="cli-estado" role="status"></p>
+  <div class="hoja">
+    <table id="cli-tabla">
+      <thead><tr><th></th><th></th><th></th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+<script>
+(function () {
+  var CLAVE = 'admiranext_expert_lang';
+  var I18N = {
+    es: {
+      kicker: 'AdmiraNeXT · censo',
+      titulo: 'Clientes',
+      lede: 'Lista pública leída de /api/clientes. Los nombres salen del censo; las etiquetas cambian con ESP y ENG.',
+      cols: ['Cliente', 'Patas', 'Global', 'Origen'],
+      si: 'Sí', no: 'No',
+      vacio: 'El censo no ha devuelto clientes.',
+      error: 'No se pudo leer /api/clientes.',
+      cuenta: function (n) { return n + ' clientes'; }
+    },
+    en: {
+      kicker: 'AdmiraNeXT · census',
+      titulo: 'Clients',
+      lede: 'Public list read from /api/clientes. Names come from the census; ESP and ENG switch the labels.',
+      cols: ['Client', 'Legs', 'Global', 'Origin'],
+      si: 'Yes', no: 'No',
+      vacio: 'The census returned no clients.',
+      error: 'Could not read /api/clientes.',
+      cuenta: function (n) { return n + ' clients'; }
+    }
+  };
+  var filas = [];
+  function idioma() {
+    var guardado = '';
+    try { guardado = localStorage.getItem(CLAVE) || ''; } catch (e) {}
+    return String(guardado || document.documentElement.lang || 'es').slice(0, 2) === 'en' ? 'en' : 'es';
+  }
+  function pintar(lang) {
+    var t = I18N[lang] || I18N.es;
+    document.documentElement.lang = lang;
+    document.getElementById('cli-kicker').textContent = t.kicker;
+    document.getElementById('cli-titulo').textContent = t.titulo;
+    document.getElementById('cli-lede').textContent = t.lede;
+    document.getElementById('cli-es').setAttribute('aria-pressed', lang === 'es' ? 'true' : 'false');
+    document.getElementById('cli-en').setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
+    var ths = document.querySelectorAll('#cli-tabla thead th');
+    t.cols.forEach(function (c, i) { if (ths[i]) ths[i].textContent = c; });
+    var tb = document.querySelector('#cli-tabla tbody');
+    tb.textContent = '';
+    filas.forEach(function (c) {
+      var tr = document.createElement('tr');
+      [c.nombre || c.id, (c.patas || []).join(', '), c.global ? t.si : t.no, c.origen || ''].forEach(function (valor) {
+        var td = document.createElement('td');
+        td.textContent = valor;
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    var estado = document.getElementById('cli-estado');
+    if (estado.dataset.error === '1') estado.textContent = t.error;
+    else if (!filas.length) estado.textContent = t.vacio;
+    else estado.textContent = t.cuenta(filas.length);
+  }
+  function elegir(lang) {
+    try { localStorage.setItem(CLAVE, lang); } catch (e) {}
+    pintar(lang);
+  }
+  document.getElementById('cli-es').addEventListener('click', function () { elegir('es'); });
+  document.getElementById('cli-en').addEventListener('click', function () { elegir('en'); });
+  pintar(idioma());
+  fetch('/api/clientes', {credentials: 'same-origin'}).then(function (r) {
+    if (!r.ok) throw new Error(String(r.status));
+    return r.json();
+  }).then(function (lista) {
+    filas = Array.isArray(lista) ? lista : [];
+    pintar(idioma());
+  }).catch(function () {
+    document.getElementById('cli-estado').dataset.error = '1';
+    pintar(idioma());
+  });
+})();
+</script>
+</body>
+</html>

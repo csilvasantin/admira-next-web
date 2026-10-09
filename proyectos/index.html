@@ -10,13 +10,13 @@
 <style>
 :root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
 *{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:system-ui,-apple-system,sans-serif;line-height:1.55}
-.shell{padding:32px 0 72px}
+.shell{padding:32px 0 72px;min-width:0;max-width:100%}
 .eyebrow{font:700 12px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
 h1{margin:6px 0 10px;font-size:clamp(28px,5vw,46px)}h2{margin:0 0 10px;font-size:1.15rem}
 .lede,.meta{color:var(--dim)}.meta{font:600 12px/1.5 var(--mono)}
 nav{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 8px}nav a,a.btn{border:1px solid var(--line);background:#121c2c;color:var(--ink);padding:8px 12px;border-radius:10px;text-decoration:none;font:700 12px var(--mono)}
 nav a:hover,a.btn:hover{border-color:var(--cyan)}
-.panel{background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}
+.panel{background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0;min-width:0;max-width:100%}
 .warn{border-color:#5a4a26;background:#1a1610;color:var(--warn)}
 table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font:700 11px var(--mono);color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
@@ -29,13 +29,16 @@ code{font-family:var(--mono);font-size:.92em}
 .counts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.counts span{font:700 11px var(--mono);padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
 .counts b{color:var(--ink)}
 /* Censo vivo como hoja de cálculo (Carlos, 4-oct-2026): filas compactas, cabecera fija y orden por columna. */
-.hoja{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:10px}
+.hoja{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:10px;max-width:100%;min-width:0;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 .hoja table{font-size:13px}
 .hoja th,.hoja td{padding:5px 8px;vertical-align:middle;white-space:nowrap}
 .hoja td:nth-child(3){white-space:normal;min-width:220px}
 .hoja tbody tr:nth-child(even){background:rgba(255,255,255,.025)}
 .hoja tbody tr:hover{background:rgba(99,230,213,.07)}
 .hoja thead th{position:sticky;top:0;z-index:1;background:#0d1522;border-bottom:1px solid var(--line);padding:0}
+.hoja th:first-child,.hoja td:first-child{position:sticky;left:0;z-index:2;background:#0d1522}
+.hoja thead th:first-child{z-index:3}
+.hoja tbody tr:nth-child(even) td:first-child{background:#10192a}
 .hoja th button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;padding:7px 8px;cursor:pointer;font:700 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .hoja th button:hover,.hoja th button:focus-visible{color:var(--ink)}
 .hoja th button::after{content:"↕";opacity:.35;font-size:10px}
@@ -44,10 +47,10 @@ code{font-family:var(--mono);font-size:.92em}
 .hoja th[aria-sort="descending"] button::after{content:"▼";opacity:1}
 .hoja td.num{font-family:var(--mono);text-align:right;color:var(--dim)}
 .hoja .meta{display:inline;margin-left:6px;font-size:11px}
-@media(max-width:760px){.hoja{max-height:none}.hoja th,.hoja td{white-space:normal}}
+@media(max-width:760px){.hoja{max-height:none}.hoja th,.hoja td{white-space:nowrap}.hoja td:nth-child(3){white-space:normal;min-width:220px}}
 </style>
-<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-auditoria-5434">
-<script defer src="/assets/admira-frame.js?v=20261009-auditoria-5434"></script>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-movil-5435">
+<script defer src="/assets/admira-frame.js?v=20261009-movil-5435"></script>
 </head>
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/" aria-current="page">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>

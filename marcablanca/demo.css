@@ -102,6 +102,10 @@ h1{font-size:clamp(30px,5.4vw,52px); line-height:1.05; font-weight:700; letter-s
 footer{text-align:center; padding:6px 20px 40px; font-size:11px; color:var(--text-muted)} footer .sep{margin:0 8px; opacity:.5}
 
 .st-nav, .so-nav, .yk-nav, .st-cta, .so-cta, .so-lang, .yk-pill, .mk-plat, .ap-login{white-space:nowrap; flex-shrink:0}
+@media (max-width:700px){
+  .st-nav, .so-nav, .yk-nav, .mb-nav{flex-wrap:wrap;white-space:normal;max-width:100%}
+  .st-nav a, .so-nav a, .yk-nav a, .mb-nav a, .st-cta, .so-cta{flex-shrink:1;white-space:normal}
+}
 .st-nav, .so-nav{gap:11px}
 
 /* «Tu marca · introduce una URL» + propuesta (FLT-101330 b) */

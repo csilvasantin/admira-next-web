@@ -65,7 +65,10 @@ const ADOPTADAS = {
   'organigrama.html': {ruta: '/organigrama', acceso: 'privado', actual: null, auto: true}, // zona protegida desde el 06-10-2026
   'roadmap.html': {ruta: '/roadmap', acceso: 'publico', actual: '/roadmap', auto: true},
   // Organigrama tecnológico (9-oct-2026): pública, para que cualquiera entienda cómo se relacionan las webs.
-  'arquitectura.html': {ruta: '/arquitectura', acceso: 'publico', actual: null, auto: true}
+  'arquitectura.html': {ruta: '/arquitectura', acceso: 'publico', actual: null, auto: true},
+  // Encargo 5435: la 404 ligera y el censo de clientes llevan la misma barra pública.
+  '404.html': {ruta: '/404.html', acceso: 'publico', actual: null, auto: true},
+  'clientes/index.html': {ruta: '/clientes/', acceso: 'publico', actual: null, auto: true}
 };
 
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que

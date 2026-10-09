@@ -79,8 +79,19 @@
     .cover,.pillar,th,.kpi{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   }
   @media(max-width:900px){ .app{grid-template-columns:1fr;} .form{height:auto;position:static;} .planwrap{height:auto;} }
+  @media(max-width:700px){
+    html,body{overflow-x:clip;}
+    .pillars,.kpis,.row{flex-wrap:wrap;}
+    .pillar,.kpi{flex:1 1 140px;min-width:0;}
+    .planwrap{overflow-x:clip;padding:16px 12px 48px;}
+    .paper,.body,.cover,.sec{max-width:100%;}
+    .body{padding:18px 14px 24px;}
+    .cover{padding:22px 16px;}
+    .cover h1{font-size:28px;letter-spacing:0;}
+    .sec:has(table){overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;}
+  }
 </style>
-  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-auditoria-5434">
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-movil-5435">
 </head>
 <body data-yk-title="BUSINESS PLAN" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on">
 <div class="app">
@@ -463,6 +474,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("reset").addEventListener("click",()=>{ if(confirm("Reset → Base?")){ localStorage.removeItem(KEY); state=Object.assign({},DEFAULTS); paintUI(); render(); }});
 });
 </script>
-<script defer src="/assets/admira-frame.js?v=20261009-auditoria-5434"></script>
+<script defer src="/assets/admira-frame.js?v=20261009-movil-5435"></script>
 </body>
 </html>
