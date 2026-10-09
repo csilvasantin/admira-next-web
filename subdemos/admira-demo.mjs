@@ -20,7 +20,7 @@ const CAMPOS = {
   check: ['selector', 'expect', 'text', 'path'],
   native: ['id', 'text', 'path'],
 };
-const VERBOS = ['help', 'hoy', 'today', 'proyectos', 'projects', 'idioma', 'language', 'marcas', 'brands', 'roadmap', 'biz', 'store', 'studio', 'app', 'tv', 'editor'];
+const VERBOS = ['help', 'hoy', 'today', 'proyectos', 'projects', 'idioma', 'language', 'marcas', 'brands', 'roadmap', 'biz', 'store', 'studio', 'app', 'tv', 'editor', 'lista', 'list'];
 const TITULOS = {
   biz: 'admira.biz',
   store: 'admira.store',
@@ -57,10 +57,13 @@ export function comandoPermitido(command) {
   if (!texto.startsWith('/') || /[;&|`$<>(){}]/.test(texto) || /javascript:/i.test(texto) || /\n/.test(texto)) return false;
   if (texto === '/demo' || texto === '/help' || texto === '/idioma' || texto === '/language') return true;
   const partes = texto.split(/\s+/);
+  if (partes.length === 2 && partes[0] === '/demos' && (partes[1] === 'editar' || partes[1] === 'edit')) return true;
   if (partes.length !== 2 || partes[0] !== '/demo') return false;
   const arg = partes[1];
-  return VERBOS.includes(arg) || /^[1-9]\d?$/.test(arg) || /^(biz|store|studio|app|tv)\/[a-z0-9-]{1,40}$/.test(arg);
+  return VERBOS.includes(arg) || /^[1-9]\d?$/.test(arg) || /^(biz|store|studio|app|tv)\/[a-z0-9-]{1,40}$/.test(arg) || /^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(arg);
 }
+
+export { urlDePieza } from './macro-url.mjs';
 
 function texto(value, etiqueta) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fallo(etiqueta + ': falta el texto en español y en inglés');

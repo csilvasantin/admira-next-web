@@ -4,9 +4,12 @@
  */
 (function (G) {
   'use strict';
-  if (G.AdmiraDemoControl) return;
   var D = document, query = new URLSearchParams(location.search), platform = query.get('ax_demo');
   if (G.top !== G.self) return;
+  var macroState = {activo:false, pausado:false, muted:false, voice:true, saltar:false, aviso:'', puntos:[], timer:0, originals:[], run:'', lang:'es', panel:null, status:null, resumen:null, caption:null, pauseBtn:null, muteBtn:null};
+  if (!G.AdmiraDemoMacro) macroInstalar();
+  if (platform && String(platform).indexOf('macro:') === 0) { void macroArrancar(String(platform).slice(6)); return; }
+  if (G.AdmiraDemoControl) return;
   var hosts = {studio:['admira.studio','pixeria.com'],store:['admira.store','xpaceos.com'],tv:['admira.tv'],biz:['admira.biz','clearchannel.tv'],app:['admira.app','yokup.com']};
   var host = location.hostname.replace(/^www\./,''), EN = (query.get('lang') || D.documentElement.lang || '').slice(0,2)==='en';
   var preview = /^(localhost|127\.0\.0\.1)$/.test(host) && query.get('ax_preview')===platform;
@@ -844,5 +847,409 @@
       }
       state.active = false; pintar();
     })();
+  }
+
+  function macroEn() { return macroState.lang === 'en'; }
+  function macroFrase(es, en) { return macroEn() ? en : es; }
+  function macroInstalar() {
+    G.AdmiraDemoMacro = {
+      probar: function (steps, opts) { return macroProbar(steps, opts || {}); },
+      state: function () { return macroEstado(); },
+      control: function (c) { return macroControl(c); }
+    };
+  }
+  function macroEstado() {
+    return {activo:macroState.activo, pausado:macroState.pausado, demo:platform && String(platform).indexOf('macro:')===0 ? platform : 'macro', aviso:macroState.aviso, puntos:macroState.puntos.map(function (p) { return {ref:p.ref, n:p.n, estado:p.estado, detalle:p.detalle}; }), resumen:macroState.resumen ? macroState.resumen.textContent : '', fase:macroState.puntos.length, fases:macroState.puntos.length, numero:1, total:1, error:macroState.aviso, control:'interfaz'};
+  }
+  function macroClave() { return 'admira-macro-v1:' + (macroState.run || 'run'); }
+  function macroGuardar() { try { G.sessionStorage.setItem(macroClave(), JSON.stringify(macroState.puntos)); } catch (_) {} }
+  function macroCargar() {
+    try {
+      var guardado = JSON.parse(G.sessionStorage.getItem(macroClave()) || '[]');
+      if (Array.isArray(guardado)) macroState.puntos = guardado.filter(function (p) { return p && (p.estado === 'bien' || p.estado === 'mal' || p.estado === 'pendiente'); });
+    } catch (_) {}
+  }
+  function macroPunto(ref, n, estado, detalle) {
+    var row = {ref:ref, n:n, estado:estado, detalle:String(detalle || '').replace(/\s+/g, ' ').slice(0, 180)};
+    var i = macroState.puntos.findIndex(function (p) { return p.ref === ref && p.n === n; });
+    if (i >= 0) macroState.puntos[i] = row; else macroState.puntos.push(row);
+    macroGuardar();
+  }
+  function macroEsperar(ms) {
+    return new Promise(function (resolve) {
+      var left = ms;
+      function tick() {
+        if (!macroState.activo) return resolve(false);
+        if (macroState.saltar) return resolve('next');
+        if (macroState.pausado) { macroState.timer = setTimeout(tick, 150); return; }
+        if (left <= 0) return resolve(true);
+        var slice = Math.min(150, left); left -= slice; macroState.timer = setTimeout(tick, slice);
+      }
+      tick();
+    });
+  }
+  function macroRestaurar() {
+    macroState.originals.forEach(function (o) {
+      if (o.el && o.el.isConnected !== false && o.el.value === o.written) {
+        o.el.value = o.value;
+        try { o.el.dispatchEvent(new Event('input', {bubbles:true})); o.el.dispatchEvent(new Event('change', {bubbles:true})); } catch (_) {}
+      }
+    });
+    macroState.originals = [];
+  }
+  function macroHost() { return String(location.hostname || '').replace(/^www\./, ''); }
+  function macroEnSitio(site) {
+    var map = {biz:['admira.biz','clearchannel.tv'], app:['admira.app','yokup.com'], store:['admira.store','xpaceos.com'], studio:['admira.studio','pixeria.com'], tv:['admira.tv']};
+    return (map[site] || []).indexOf(macroHost()) >= 0;
+  }
+  function macroMuro() {
+    if (macroHost() !== 'admira.app' && macroHost() !== 'yokup.com') return false;
+    var ws = D.querySelector('#workspace');
+    if (ws && ws.hidden) return true;
+    if (!ws) {
+      var texto = '';
+      try { texto = String((D.body && (D.body.innerText || D.body.textContent)) || '').slice(0, 2500); } catch (_) {}
+      if (/iniciar sesión|inicia sesión|sign in|log in|accede/i.test(texto)) return true;
+    }
+    return false;
+  }
+  function macroAvisoMuro() { return macroFrase('admira.app pide iniciar sesión. El recorrido no se queda esperando: los pasos de esta web quedan pendientes.', 'admira.app is asking you to sign in. The walk does not wait: this site\'s steps stay pending.'); }
+  function macroUrl(plan, index, runId) {
+    var hogares = {biz:'https://www.admira.biz/', app:'https://www.admira.app/retailer', store:'https://www.admira.store/', studio:'https://www.admira.studio/', tv:'https://www.admira.tv/'};
+    var gemelos = {biz:['admira.biz','clearchannel.tv'], app:['admira.app','yokup.com'], store:['admira.store','xpaceos.com'], studio:['admira.studio','pixeria.com'], tv:['admira.tv']};
+    var item = plan.items[index];
+    var site = String(item.ref || '').split('/')[0];
+    var base = hogares[site] || 'https://www.admiranext.com/demo/';
+    var subUrl = item.subdemo && item.subdemo.url;
+    if (typeof subUrl === 'string') {
+      try {
+        var parsed = new URL(subUrl);
+        if ((gemelos[site] || []).indexOf(parsed.hostname.replace(/^www\./, '')) >= 0 && !parsed.username && !parsed.password) base = parsed.origin + parsed.pathname;
+      } catch (_) {}
+    }
+    var url = new URL(base);
+    url.search = ''; url.hash = ''; url.username = ''; url.password = '';
+    var ctx = plan.context || {};
+    url.searchParams.set('ax_demo', 'macro:' + plan.id);
+    url.searchParams.set('ax_run', String(runId || macroState.run || 'run'));
+    url.searchParams.set('ax_i', String(index));
+    url.searchParams.set('ax_v', String(plan.version));
+    ['marca','project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) url.searchParams.set(k, ctx[k]); });
+    url.searchParams.set('lang', macroState.lang === 'en' ? 'en' : 'es');
+    return url.href;
+  }
+  function macroCopiar(url) {
+    ['ax_demo','ax_run','ax_i','ax_v','marca','project','circuit','lang'].forEach(function (k) { if (query.get(k)) url.searchParams.set(k, query.get(k)); });
+    return url;
+  }
+  function macroMismoPath(a, b) {
+    function norm(p) { return String(p || '').replace(/\/$/, '') || '/'; }
+    return norm(a) === norm(b);
+  }
+  function macroVisible(el) {
+    if (!el || el.isConnected === false || el.hidden) return false;
+    try { var r = el.getBoundingClientRect(); if (r && (r.width === 0 || r.height === 0)) return false; } catch (_) {}
+    return true;
+  }
+  function macroTexto(step) {
+    var tx = step && step.text;
+    if (!tx) return step && step.op || '';
+    if (typeof tx === 'string') return tx;
+    return macroEn() ? (tx.en || tx.es || '') : (tx.es || tx.en || '');
+  }
+  function macroComando(command) {
+    var texto = String(command || '').trim();
+    if (!texto.startsWith('/') || /[;&|`$<>(){}]/.test(texto) || /javascript:/i.test(texto) || /\n/.test(texto)) return false;
+    if (texto === '/demo' || texto === '/help' || texto === '/idioma' || texto === '/language') return true;
+    var partes = texto.split(/\s+/);
+    if (partes.length === 2 && partes[0] === '/demos' && (partes[1] === 'editar' || partes[1] === 'edit')) return true;
+    if (partes.length !== 2 || partes[0] !== '/demo') return false;
+    var arg = partes[1];
+    var verbos = ['help','hoy','today','proyectos','projects','idioma','language','marcas','brands','roadmap','biz','store','studio','app','tv','editor','lista','list'];
+    return verbos.indexOf(arg) >= 0 || /^[1-9]\d?$/.test(arg) || /^(biz|store|studio|app|tv)\/[a-z0-9-]{1,40}$/.test(arg) || /^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(arg);
+  }
+  function macroPintar(caption) {
+    if (!macroState.panel) return;
+    var bien = macroState.puntos.filter(function (p) { return p.estado === 'bien'; }).length;
+    var mal = macroState.puntos.filter(function (p) { return p.estado === 'mal'; }).length;
+    var pend = macroState.puntos.filter(function (p) { return p.estado === 'pendiente'; }).length;
+    macroState.panel.dataset.state = macroState.activo ? (macroState.pausado ? 'paused' : 'running') : 'complete';
+    macroState.status.textContent = (macroState.aviso ? macroState.aviso + ' · ' : '') + bien + ' ' + macroFrase('bien', 'ok') + ' · ' + mal + ' ' + macroFrase('mal', 'fail') + ' · ' + pend + ' ' + macroFrase('pendiente', 'pending');
+    macroState.resumen.textContent = '';
+    macroState.puntos.forEach(function (p, i) {
+      var li = D.createElement('li');
+      li.dataset.estado = p.estado;
+      li.textContent = (i + 1) + '. ' + p.ref + ' · ' + macroFrase(p.estado === 'bien' ? 'bien' : p.estado === 'mal' ? 'mal' : 'pendiente', p.estado === 'bien' ? 'ok' : p.estado === 'mal' ? 'fail' : 'pending') + (p.detalle ? ' · ' + p.detalle : '');
+      macroState.resumen.appendChild(li);
+    });
+    if (caption != null && macroState.caption) macroState.caption.textContent = caption;
+    if (macroState.pauseBtn) { macroState.pauseBtn.textContent = macroState.pausado ? macroFrase('Reanudar', 'Resume') : macroFrase('Pausar', 'Pause'); macroState.pauseBtn.disabled = !macroState.activo; }
+    if (macroState.muteBtn) { macroState.muteBtn.textContent = macroState.muted ? macroFrase('Activar sonido', 'Enable sound') : macroFrase('Silenciar demo', 'Mute demo'); }
+  }
+  function macroPanelCrear() {
+    var viejo = D.getElementById('admira-native-demo');
+    if (viejo) viejo.remove();
+    if (!D.getElementById('admira-macro-style')) {
+      var style = D.createElement('style');
+      style.id = 'admira-macro-style';
+      style.textContent = '#admira-native-demo{position:fixed;z-index:2147483200;left:14px;right:14px;bottom:14px;background:#10201c;color:#f1f5ef;border:1px solid #9bd6bc;border-radius:12px;padding:12px 16px;box-shadow:0 8px 40px #0008;font:14px/1.45 system-ui;max-height:40vh;overflow:auto}#admira-native-demo p,#admira-native-demo li{margin:3px 0}#admira-native-demo strong{color:#a4dfc3}#admira-native-demo button{background:#223c32;color:#fff;border:1px solid #759d88;border-radius:6px;padding:7px 12px;margin:3px 5px 0 0;font:inherit;cursor:pointer}#admira-native-demo button:disabled{opacity:.5}#admira-demo-resumen{margin:6px 0 8px;padding-left:1.2em}#admira-demo-resumen li[data-estado="bien"]{color:#9be4ba}#admira-demo-resumen li[data-estado="mal"]{color:#ffb4b4}#admira-demo-resumen li[data-estado="pendiente"]{color:#f0d48a}#admira-demo-pointer{position:fixed;z-index:2147483199;pointer-events:none;width:27px;height:34px}.admira-demo-target{outline:3px solid #9be4ba!important;outline-offset:5px!important}#admira-macro-salto{position:fixed;inset:0;z-index:2147483300;background:#10201c;color:#f4f7f2;display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;font:600 28px/1.35 system-ui,sans-serif}';
+      (D.head || D.documentElement).appendChild(style);
+    }
+    var panel = D.createElement('section');
+    panel.id = 'admira-native-demo';
+    panel.setAttribute('role', 'region');
+    panel.setAttribute('aria-label', macroFrase('Demostración', 'Walkthrough'));
+    var title = D.createElement('strong');
+    title.textContent = macroFrase('EN VIVO · MACRO', 'LIVE · MACRO');
+    var status = D.createElement('p'); status.setAttribute('aria-live', 'polite');
+    var resumen = D.createElement('ol'); resumen.id = 'admira-demo-resumen';
+    var caption = D.createElement('p'); caption.setAttribute('data-demo-phase', '');
+    var bar = D.createElement('div');
+    function boton(label, fn) { var b = D.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = fn; bar.appendChild(b); return b; }
+    var pauseBtn = boton(macroFrase('Pausar', 'Pause'), function () { macroControl(macroState.pausado ? 'resume' : 'pause'); });
+    var muteBtn = boton(macroFrase('Silenciar demo', 'Mute demo'), function () { macroControl('mute'); });
+    boton(macroFrase('Siguiente', 'Next'), function () { macroControl('next'); });
+    boton(macroFrase('Parar', 'Stop'), function () { macroControl('stop'); });
+    panel.appendChild(title); panel.appendChild(status); panel.appendChild(resumen); panel.appendChild(caption); panel.appendChild(bar);
+    if (D.body) D.body.appendChild(panel);
+    macroState.panel = panel; macroState.status = status; macroState.resumen = resumen; macroState.caption = caption; macroState.pauseBtn = pauseBtn; macroState.muteBtn = muteBtn;
+    if (!G.AdmiraDemoControl) G.AdmiraDemoControl = {control:macroControl, state:macroEstado, steps:function () { return macroState.puntos.map(function (p) { return {action:'macro', text:p.detalle || p.ref}; }); }};
+    macroPintar('');
+  }
+  function macroControl(c) {
+    if (c === 'stop' || c === 'parar' || c === 'off') {
+      macroState.activo = false; macroState.pausado = false; macroState.saltar = false; clearTimeout(macroState.timer);
+      macroRestaurar();
+      try { G.sessionStorage.removeItem(macroClave()); } catch (_) {}
+      try { var u = new URL(location.href); ['ax_demo','ax_run','ax_i','ax_v'].forEach(function (k) { u.searchParams.delete(k); }); if (G.history && G.history.replaceState) G.history.replaceState(null, '', u.href); } catch (_) {}
+      var card = D.getElementById('admira-macro-salto'); if (card) card.remove();
+      if (macroState.panel) macroState.panel.remove();
+      macroState.panel = null;
+      return macroEstado();
+    }
+    if (c === 'mute') { macroState.muted = !macroState.muted; if (macroState.muted && G.speechSynthesis) { try { G.speechSynthesis.cancel(); } catch (_) {} } macroPintar(); return macroEstado(); }
+    if (!macroState.activo) return macroEstado();
+    if (c === 'pause' || c === 'pausa') { macroState.pausado = true; macroPintar(); }
+    if (c === 'resume' || c === 'reanudar' || c === 'continuar') { macroState.pausado = false; macroState.aviso = ''; macroPintar(); }
+    if (c === 'next' || c === 'siguiente') { macroState.saltar = true; macroState.pausado = false; }
+    return macroEstado();
+  }
+  async function macroTarjeta(plan, site) {
+    var ms = Math.round(Number(plan.transition && plan.transition.seconds) * 1000);
+    if (!Number.isFinite(ms) || ms < 3000) ms = 3000;
+    if (ms > 8000) ms = 8000;
+    var card = D.createElement('div');
+    card.id = 'admira-macro-salto';
+    card.setAttribute('role', 'status');
+    card.textContent = (macroEn() ? 'Next leg' : ((plan.transition && plan.transition.card) || 'Siguiente tramo')) + ' · ' + site;
+    if (D.body) D.body.appendChild(card);
+    var ok = await macroEsperar(ms);
+    if (card.parentNode) card.remove();
+    return ok;
+  }
+  async function macroHablar(texto) {
+    if (!macroState.voice || macroState.muted || !G.speechSynthesis || !G.SpeechSynthesisUtterance) return macroEsperar(450);
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish(valor) { if (done) return; done = true; resolve(valor); }
+      try {
+        var frase = new G.SpeechSynthesisUtterance(String(texto || ''));
+        frase.lang = macroEn() ? 'en-GB' : 'es-ES';
+        frase.onend = function () { finish(macroState.activo && !macroState.saltar); };
+        frase.onerror = function () { finish(macroState.activo && !macroState.saltar); };
+        G.speechSynthesis.speak(frase);
+      } catch (_) { finish(true); }
+      macroState.timer = setTimeout(function () { try { G.speechSynthesis.cancel(); } catch (_) {} finish(macroState.saltar ? 'next' : macroState.activo); }, Math.min(6000, Math.max(900, String(texto || '').length * 45)));
+    });
+  }
+  async function macroBuscar(step) {
+    if (!step.selector) return D.body || true;
+    var limite = Date.now() + 8000;
+    while (Date.now() < limite) {
+      if (macroMuro()) { var err = new Error('muro'); err.muro = true; throw err; }
+      var list = D.querySelectorAll(step.selector);
+      for (var i = 0; i < list.length; i++) if (macroVisible(list[i])) return list[i];
+      var espera = await macroEsperar(200);
+      if (espera !== true) return espera;
+    }
+    return null;
+  }
+  function macroApuntar(el) {
+    if (!el || !el.classList) return;
+    try { el.scrollIntoView({block:'center', inline:'nearest'}); } catch (_) {}
+    try { el.classList.add('admira-demo-target'); } catch (_) {}
+  }
+  async function macroPaso(step) {
+    if (step.op === 'wait') {
+      var ok = await macroEsperar(Math.min(30, Math.max(0.2, Number(step.seconds) || 1)) * 1000);
+      if (ok === 'next') return {estado:'pendiente', detalle:macroFrase('paso saltado', 'step skipped')};
+      if (!ok) return null;
+      return {estado:'bien', detalle:macroTexto(step)};
+    }
+    if (step.op === 'cli') {
+      if (!macroComando(step.command)) return {estado:'mal', detalle:macroFrase('comando no permitido', 'command not allowed')};
+      if (G.AdmiraExperto && typeof G.AdmiraExperto.exec === 'function') {
+        try { G.AdmiraExperto.exec(step.command, {appendChild:function(){}, children:[], removeChild:function(){}, scrollTop:0, scrollHeight:0}); } catch (e) { return {estado:'mal', detalle:String(e && e.message || e).slice(0, 160)}; }
+        return {estado:'bien', detalle:step.command};
+      }
+      return {estado:'pendiente', detalle:macroFrase('esta página no tiene el CLI', 'this page has no CLI')};
+    }
+    if (step.op === 'check') {
+      var nodo = step.selector ? D.querySelector(step.selector) : (D.body || null);
+      var tx = nodo ? String(nodo.textContent || '') : '';
+      var coincide = !step.selector || !!nodo;
+      if (step.expect) coincide = coincide && tx.toLowerCase().indexOf(String(step.expect).toLowerCase()) >= 0;
+      return {estado:coincide ? 'bien' : 'mal', detalle:macroTexto(step) || (coincide ? macroFrase('comprobado', 'checked') : macroFrase('no coincide', 'does not match'))};
+    }
+    if (step.op === 'native') return {estado:'pendiente', detalle:macroFrase('el recorrido nativo va aparte', 'the native walk is separate')};
+    if (step.op === 'navigate') {
+      try {
+        var dest = new URL(step.url, location.href);
+        if (dest.origin !== location.origin) return {estado:'pendiente', detalle:macroFrase('el salto de web lo hace la macro', 'the macro makes the site jump')};
+        if (!macroMismoPath(location.pathname, dest.pathname)) { macroCopiar(dest); location.assign(dest.href); return {estado:'navegar'}; }
+      } catch (_) { return {estado:'mal', detalle:'URL'}; }
+      return {estado:'bien', detalle:macroTexto(step)};
+    }
+    if (step.op === 'say') { await macroHablar(macroTexto(step)); return macroState.saltar ? {estado:'pendiente', detalle:macroFrase('paso saltado', 'step skipped')} : {estado:'bien', detalle:macroTexto(step)}; }
+    if (step.path && String(step.path).charAt(0) === '/' && !macroMismoPath(location.pathname, step.path)) {
+      var ruta = macroCopiar(new URL(step.path, location.origin));
+      location.assign(ruta.href);
+      return {estado:'navegar'};
+    }
+    if (step.op === 'video' || step.op === 'audio') {
+      var media = D.createElement(step.op === 'audio' ? 'audio' : 'video');
+      media.src = step.url; media.muted = true; media.playsInline = true;
+      if (D.body) D.body.appendChild(media);
+      try { var play = media.play && media.play(); if (play && play.catch) play.catch(function () {}); } catch (_) {}
+      var fin = await macroEsperar(step.op === 'audio' ? 2500 : 8000);
+      try { media.pause(); media.remove(); } catch (_) {}
+      if (fin === 'next') return {estado:'pendiente', detalle:macroFrase('paso saltado', 'step skipped')};
+      if (!fin) return null;
+      return {estado:step.url ? 'bien' : 'mal', detalle:macroTexto(step)};
+    }
+    var el = await macroBuscar(step);
+    if (el === 'next') return {estado:'pendiente', detalle:macroFrase('paso saltado', 'step skipped')};
+    if (el === false || el == null) return el === false ? null : {estado:'mal', detalle:macroFrase('no está el control ', 'the control is missing ') + (step.selector || '')};
+    if (el === true) el = D.body;
+    macroApuntar(el);
+    if ((step.op === 'fill' || step.op === 'select') && el && 'value' in el) {
+      var rec = macroState.originals.find(function (o) { return o.el === el; });
+      if (!rec) { rec = {el:el, value:el.value, written:el.value}; macroState.originals.push(rec); }
+      if (step.op === 'select' && el.options && el.options.length) {
+        var match = Array.prototype.slice.call(el.options).find(function (o) { return o.value === step.value || String(o.textContent || '').trim() === step.value; });
+        if (!match) return {estado:'mal', detalle:macroFrase('opción no disponible', 'option unavailable')};
+        el.value = match.value;
+      } else el.value = step.value == null ? '' : String(step.value);
+      rec.written = el.value;
+      try { el.dispatchEvent(new Event('input', {bubbles:true})); el.dispatchEvent(new Event('change', {bubbles:true})); } catch (_) {}
+    }
+    if (step.op === 'click' || step.op === 'open' || step.op === 'close') { try { el.click(); } catch (_) {} }
+    var dicho = await macroHablar(macroTexto(step));
+    if (dicho === 'next' || macroState.saltar) return {estado:'pendiente', detalle:macroFrase('paso saltado', 'step skipped')};
+    if (!macroState.activo) return null;
+    return {estado:'bien', detalle:macroTexto(step)};
+  }
+  async function macroCorrerLista(steps, ref) {
+    macroPanelCrear();
+    for (var n = 0; n < steps.length && macroState.activo; n++) {
+      macroState.saltar = false;
+      macroPintar(macroTexto(steps[n]));
+      var resultado;
+      try { resultado = await macroPaso(steps[n]); } catch (e) {
+        if (e && e.muro) { macroState.aviso = macroAvisoMuro(); for (var k = n; k < steps.length; k++) macroPunto(ref, k, 'pendiente', macroState.aviso); break; }
+        resultado = {estado:'mal', detalle:String(e && e.message || e).slice(0, 160)};
+      }
+      if (!resultado || !macroState.activo) return;
+      if (resultado.estado === 'navegar') return;
+      macroPunto(ref, n, resultado.estado, resultado.detalle);
+    }
+    macroRestaurar();
+    macroState.activo = false;
+    macroPintar(macroFrase('Resumen', 'Summary'));
+  }
+  async function macroCorrer(plan) {
+    macroState.run = query.get('ax_run') || ('m' + Date.now().toString(36));
+    macroState.lang = ((query.get('lang') || (D.documentElement && D.documentElement.lang) || (plan.context && plan.context.lang) || 'es').slice(0, 2) === 'en') ? 'en' : 'es';
+    if (query.get('ax_v') && String(plan.version) !== String(query.get('ax_v'))) macroState.aviso = macroFrase('El plan publicado es otra versión. Sigo con esa.', 'The published plan is another version. Continuing with it.');
+    macroCargar();
+    macroState.activo = true;
+    macroPanelCrear();
+    var indice = Number(query.get('ax_i') || '0');
+    if (!Number.isInteger(indice) || indice < 0 || indice >= plan.items.length) indice = 0;
+    while (macroState.activo && indice < plan.items.length) {
+      var item = plan.items[indice];
+      var site = String(item.ref || '').split('/')[0];
+      if (!macroEnSitio(site)) {
+        if (indice > 0) { var tarjeta = await macroTarjeta(plan, site); if (!tarjeta || !macroState.activo) return; }
+        macroGuardar();
+        location.assign(macroUrl(plan, indice, macroState.run));
+        return;
+      }
+      if (macroMuro()) {
+        macroState.aviso = macroAvisoMuro();
+        var pasosMuro = (item.subdemo && item.subdemo.steps) || [];
+        if (!pasosMuro.length) macroPunto(item.ref, 0, 'pendiente', macroState.aviso);
+        for (var s = 0; s < pasosMuro.length; s++) macroPunto(item.ref, s, 'pendiente', macroState.aviso);
+        indice++;
+        continue;
+      }
+      var steps = (item.subdemo && item.subdemo.steps) || [];
+      for (var n = 0; n < steps.length && macroState.activo; n++) {
+        macroState.saltar = false;
+        macroPintar(macroTexto(steps[n]));
+        var resultado;
+        try { resultado = await macroPaso(steps[n]); } catch (e) {
+          if (e && e.muro) { macroState.aviso = macroAvisoMuro(); for (var k = n; k < steps.length; k++) macroPunto(item.ref, k, 'pendiente', macroState.aviso); n = steps.length; break; }
+          resultado = {estado:'mal', detalle:String(e && e.message || e).slice(0, 160)};
+        }
+        if (!resultado || !macroState.activo) return;
+        if (resultado.estado === 'navegar') { macroGuardar(); return; }
+        macroPunto(item.ref, n, resultado.estado, resultado.detalle);
+      }
+      macroRestaurar();
+      indice++;
+      if (macroState.activo && indice < plan.items.length && macroEnSitio(String(plan.items[indice].ref || '').split('/')[0])) {
+        try {
+          var siguiente = new URL(location.href);
+          siguiente.searchParams.set('ax_i', String(indice));
+          if (G.history && G.history.replaceState) G.history.replaceState(null, '', siguiente.href);
+          query = new URLSearchParams(siguiente.search);
+        } catch (_) {}
+      }
+    }
+    macroState.activo = false;
+    macroPintar(macroFrase('Resumen', 'Summary'));
+  }
+  async function macroArrancar(id) {
+    if (!/^[a-z0-9-]{1,40}$/.test(id)) return;
+    macroState.lang = ((query.get('lang') || (D.documentElement && D.documentElement.lang) || 'es').slice(0, 2) === 'en') ? 'en' : 'es';
+    macroState.activo = true;
+    macroPanelCrear();
+    macroPintar(macroFrase('Leyendo el plan…', 'Reading the plan…'));
+    var plan = null;
+    try {
+      var respuesta = await fetch('https://www.admiranext.com/api/demos/' + encodeURIComponent(id), {cache:'no-store', credentials:'omit'});
+      plan = respuesta && respuesta.ok ? await respuesta.json() : null;
+    } catch (_) { plan = null; }
+    if (!macroState.activo) return;
+    if (!plan || plan.kind !== 'macro' || !Array.isArray(plan.items) || !plan.items.length) {
+      macroState.activo = false;
+      macroState.aviso = macroFrase('No puedo leer el plan de esta macro.', 'I cannot read this macro plan.');
+      macroPintar('');
+      return;
+    }
+    await macroCorrer(plan);
+  }
+  function macroProbar(steps, opts) {
+    if (macroState.activo) return macroEstado();
+    macroState.lang = opts.lang === 'en' ? 'en' : 'es';
+    macroState.run = 'editor';
+    macroState.puntos = [];
+    macroState.aviso = '';
+    macroState.activo = true;
+    var desde = Math.max(0, Number(opts.desde) || 0);
+    var lista = Array.isArray(steps) ? steps.slice(desde) : [];
+    void macroCorrerLista(lista, 'editor');
+    return macroEstado();
   }
 })(window);

@@ -537,15 +537,17 @@
     // Controles del recorrido TPV nativo: los sigue atendiendo el gemelo.
     if (plataforma === 'store' && /^(tpv|off|stop|estado|status|tpv (off|stop|estado|status))$/.test(arg)) return null;
     if (L) {
+      var pideCatalogo = /^(lista|list)$/.test(arg);
       var r = resolverDemo('/demo ' + (/^(ayuda|\?|lista|list)$/.test(arg) ? 'help' : arg), L, location.hostname);
-      if (r.tipo === 'ayuda') return {local: true, lista: true};
+      if (r.tipo === 'ayuda') return {local: true, lista: true, catalogoLista: pideCatalogo};
       if (r.tipo === 'demo') return {local: true, sub: r.demo, n: L.subdemos.indexOf(r.demo) + 1, clave: r.clave, modo: r.modo};
     }
-    if (!arg || /^(lista|list|soluciones|solutions)$/.test(arg)) return {lista: true};
+    if (!arg || /^(lista|list|soluciones|solutions)$/.test(arg)) return {lista: true, catalogoLista: /^(lista|list)$/.test(arg)};
     var i = -1;
     if (/^(siguiente|next|sig)$/.test(arg)) i = (demoActual() + 1) % DEMOS.length;
     else if (!L && /^[1-5]$/.test(arg)) i = +arg - 1;
     else DEMOS.forEach(function (d, k) { if (i < 0 && (d.id === arg || d.alias.indexOf(arg) >= 0)) i = k; });
+    if (i < 0 && /^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(arg)) return {catalogo: arg};
     if (i < 0 && L) return {local: true, desconocida: arg};
     return i < 0 ? null : {demo: DEMOS[i], i: i};
   }
@@ -559,7 +561,8 @@
         '/demo idioma opens demo 1 and changes language without losing the step.') +
       '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
         '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.') +
-      '\n' + T('/demo editor abre el editor de demos.', '/demo editor opens the demo editor.');
+      '\n' + T('/demo editor abre el editor de demos. /demos editar y /demos edit también.', '/demo editor opens the demo editor. /demos editar and /demos edit do too.') +
+      '\n' + T('/demo lista muestra las demos y las macros. /demo alsea-biz-app recorre biz y luego app.', '/demo list shows the demos and the macros. /demo alsea-biz-app walks biz and then app.');
   }
   function localLista() {
     var L = localM();
@@ -573,7 +576,8 @@
         '/demo hoy walks through today and marks each step. /demo today does it in English.') +
       '\n' + T('/demo proyectos, /demo idioma, /demo marcas y /demo roadmap recorren esa página y resumen bien o mal. En inglés: /demo projects, /demo language, /demo brands y /demo roadmap.',
         '/demo projects, /demo language, /demo brands and /demo roadmap walk that page and mark each step ok or fail. In Spanish: /demo proyectos, /demo idioma, /demo marcas y /demo roadmap.') +
-      '\n' + T('/demo editor abre el editor de demos.', '/demo editor opens the demo editor.');
+      '\n' + T('/demo editor abre el editor de demos. /demos editar y /demos edit también.', '/demo editor opens the demo editor. /demos editar and /demos edit do too.') +
+      '\n' + T('/demo lista muestra las demos y las macros. /demo alsea-biz-app recorre biz y luego app.', '/demo list shows the demos and the macros. /demo alsea-biz-app walks biz and then app.');
   }
   // Modo muestra (default_mode): panel con el resultado preparado y enlace a la página de la función.
   function abs(u) { try { return new URL(u, location.href).href; } catch (_) { return u; } }
@@ -796,6 +800,60 @@
     return {ok: !!mismo, fase: fase2, lang: lang()};
   }
   function updatesDemoUrl(l) { return 'https://www.admiranext.com/demo/pixeria-novedades/?run=1&lang=' + (l === 'en' ? 'en' : 'es'); }
+  function urlMacro(plan, index, runId, langForzado) {
+    var hogares = {biz:'https://www.admira.biz/', app:'https://www.admira.app/retailer', store:'https://www.admira.store/', studio:'https://www.admira.studio/', tv:'https://www.admira.tv/'};
+    var gemelos = {biz:['admira.biz','clearchannel.tv'], app:['admira.app','yokup.com'], store:['admira.store','xpaceos.com'], studio:['admira.studio','pixeria.com'], tv:['admira.tv']};
+    var item = plan.items[index];
+    var site = String(item.ref || '').split('/')[0];
+    var base = hogares[site] || 'https://www.admiranext.com/demo/';
+    var subUrl = item.subdemo && item.subdemo.url;
+    if (typeof subUrl === 'string') {
+      try {
+        var parsed = new URL(subUrl);
+        var hostPieza = parsed.hostname.replace(/^www\./, '');
+        if ((gemelos[site] || []).indexOf(hostPieza) >= 0 && !parsed.username && !parsed.password) base = parsed.origin + parsed.pathname;
+      } catch (_) {}
+    }
+    var url = new URL(base);
+    url.search = ''; url.hash = ''; url.username = ''; url.password = '';
+    var ctx = plan.context || {};
+    var idioma = langForzado === 'en' || langForzado === 'es' ? langForzado : (ctx.lang === 'en' ? 'en' : 'es');
+    url.searchParams.set('ax_demo', 'macro:' + plan.id);
+    url.searchParams.set('ax_run', String(runId || 'run'));
+    url.searchParams.set('ax_i', String(index));
+    url.searchParams.set('ax_v', String(plan.version));
+    ['marca','project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) url.searchParams.set(k, ctx[k]); });
+    url.searchParams.set('lang', idioma);
+    return url.href;
+  }
+  function listarCatalogo(log) {
+    fetch('https://www.admiranext.com/api/demos', {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (!j) { out(log, T('No pude leer el catálogo de demos.', 'I could not read the demo catalog.'), 'err'); return; }
+      function titulo(doc) { var tx = doc && doc.title; if (!tx) return (doc && doc.id) || ''; return lang() === 'en' ? (tx.en || tx.es || '') : (tx.es || tx.en || ''); }
+      var demos = (j.demos || []).map(function (d) { return '/demo ' + d.id + ' · ' + titulo(d); });
+      var macros = (j.macros || []).map(function (d) { return '/demo ' + d.id + ' · ' + titulo(d); });
+      out(log, T('Demos publicadas:', 'Published demos:') + '\n' + (demos.join('\n') || '—') + '\n' + T('Macros:', 'Macros:') + '\n' + (macros.join('\n') || '—'));
+    }).catch(function () { out(log, T('No pude leer el catálogo de demos.', 'I could not read the demo catalog.'), 'err'); });
+  }
+  function lanzarCatalogo(id, log) {
+    var runId = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    fetch('https://www.admiranext.com/api/demos/' + encodeURIComponent(id), {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (plan) {
+      if (!plan || (plan.kind !== 'macro' && plan.kind !== 'demo')) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + id, 'err'); return; }
+      var destino;
+      if (plan.kind === 'macro' && plan.items && plan.items.length) destino = urlMacro(plan, 0, runId, lang());
+      else {
+        var site = plan.site || plan.id;
+        var hogares = {biz:'https://www.admira.biz/', app:'https://www.admira.app/retailer', store:'https://www.admira.store/', studio:'https://www.admira.studio/', tv:'https://www.admira.tv/'};
+        destino = new URL(hogares[site] || 'https://www.admiranext.com/demo/');
+        destino.searchParams.set('ax_demo', site);
+        destino.searchParams.set('ax_run', runId);
+        destino.searchParams.set('lang', lang() === 'en' ? 'en' : 'es');
+        destino = destino.href;
+      }
+      out(log, T('Abriendo ', 'Opening ') + destino);
+      setTimeout(function () { location.assign(destino); }, 600);
+    }).catch(function () { out(log, T('No pude leer el plan.', 'I could not read the plan.'), 'err'); });
+  }
   function demoRun(p, log) {
     if (p.updates) { var updatesUrl=updatesDemoUrl(p.lang); out(log,T('Abriendo Pixeria · novedades, recorrido preparado…','Opening Pixeria updates, prepared tour…')); location.assign(updatesUrl); return {id:'pixeria-novedades-20261009',url:updatesUrl}; }
     if (p.idiomaDemo) return demoIdioma(log);
@@ -813,7 +871,8 @@
     if (p.control && root.PixeriaUpdatesDemo) { var updateAction={pausa:'pause',reanudar:'resume',continuar:'resume',parar:'stop',off:'stop',siguiente:'next'}[p.control] || p.control; var updateState=root.PixeriaUpdatesDemo.control(updateAction); out(log,JSON.stringify(updateState)); return updateState; }
     if (p.control) { var native = root.AdmiraDemoControl; var nativeControl = {pausa:'pause',pause:'pause',reanudar:'resume',resume:'resume',continuar:'resume',parar:'stop',stop:'stop',off:'stop',siguiente:'next',next:'next'}[p.control]; var state = native && native.state().activo ? (nativeControl ? native.control(nativeControl) : native.state()) : controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
     if (p.auto) { var L = localM(); if (!L.subdemos.length) { out(log, T('No hay subdemos en este catálogo.', 'No subdemos in this catalog.')); return null; } mostrarMuestra(L.subdemos[0], 1, L.subdemos, 0); return estadoRecorrido(); }
-    if (p.lista) { out(log, p.local ? localLista() : demoLista()); return null; }
+    if (p.catalogo) { lanzarCatalogo(p.catalogo, log); return {id: p.catalogo}; }
+    if (p.lista) { out(log, p.local ? localLista() : demoLista()); if (p.catalogoLista) listarCatalogo(log); return null; }
     if (p.desconocida != null) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + p.desconocida + T('. Escribe /demo help.', '. Type /demo help.') + '\n' + localLista(), 'err'); return null; }
     if (p.local) {
       var d = p.sub, modo = p.modo || 'muestra';
@@ -843,6 +902,11 @@
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     demoRun(p, log);
+  }});
+  verb({name: 'demos', args: 'editar|edit', desc: ['abre el editor de demos', 'opens the demo editor'], run: function (a, log) {
+    var arg = norm(a.join(' '));
+    if (arg !== 'editar' && arg !== 'edit') { out(log, T('Usa /demos editar o /demos edit.', 'Use /demos editar or /demos edit.'), 'err'); return; }
+    demoRun({funcion: 'editor', lang: lang()}, log);
   }});
 
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
@@ -1213,7 +1277,7 @@
     parseArquitectura: parseArquitectura, arquitecturaUrl: arquitecturaUrl,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) return {catalogo: p.catalogo, id: p.catalogo}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
     demoEstado: function () { if(root.PixeriaUpdatesDemo) return root.PixeriaUpdatesDemo.state(); return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
@@ -1223,10 +1287,12 @@
 
   function bootNativeDemo() {
     var id; try { id = new URLSearchParams(location.search).get('ax_demo'); } catch (_) { return; }
-    if (!/^(studio|store|tv|biz|app|hoy|proyectos|idioma|marcas|roadmap)$/.test(id || '') || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
+    var nativo = /^(studio|store|tv|biz|app|hoy|proyectos|idioma|marcas|roadmap)$/.test(id || '');
+    var macro = !!id && String(id).indexOf('macro:') === 0;
+    if ((!nativo && !macro) || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
     var loader = document.createElement('script');
     var base;try { base = new URL(script.src || 'https://www.admiranext.com/suite/experto.js'); } catch (_) { base = new URL('https://www.admiranext.com/suite/experto.js'); }
-    loader.src = new URL('/suite/demo-control.js?v=20261009-demo-5446',base.origin).href;
+    loader.src = new URL('/suite/demo-control.js?v=20261009-macro-5462',base.origin).href;
     loader.setAttribute('data-admira-native-control','');
     loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
     document.head.appendChild(loader);

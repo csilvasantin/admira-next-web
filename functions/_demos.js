@@ -6,6 +6,7 @@ import bizRaw from '../subdemos/biz.subdemos.json' with { type: 'json' };
 import storeRaw from '../subdemos/store.subdemos.json' with { type: 'json' };
 import studioRaw from '../subdemos/studio.subdemos.json' with { type: 'json' };
 import appDoc from '../subdemos/v2/app.json' with { type: 'json' };
+import alseaBizApp from '../subdemos/v2/alsea-biz-app.json' with { type: 'json' };
 
 const REPO = [
   aEsquema(bizRaw, RECORRIDOS.biz),
@@ -13,6 +14,7 @@ const REPO = [
   aEsquema(studioRaw, RECORRIDOS.studio),
   validar(appDoc),
 ];
+const MACROS = [validar(alseaBizApp)];
 const TABLA = `CREATE TABLE IF NOT EXISTS demos (
   id TEXT PRIMARY KEY, kind TEXT NOT NULL, site TEXT, status TEXT NOT NULL,
   version INTEGER NOT NULL, doc TEXT NOT NULL, updated_at INTEGER NOT NULL, updated_by TEXT)`;
@@ -41,7 +43,7 @@ export async function asegurarDemos(env) {
 }
 
 function repoDe(id) {
-  return REPO.find((demo) => demo.id === id) || null;
+  return REPO.find((demo) => demo.id === id) || MACROS.find((macro) => macro.id === id) || null;
 }
 
 async function fila(env, id) {
@@ -60,7 +62,7 @@ export async function leer(env, id) {
 }
 
 export async function publicados(env) {
-  const mapa = new Map(REPO.map((demo) => [demo.id, demo]));
+  const mapa = new Map([...REPO, ...MACROS].map((demo) => [demo.id, demo]));
   if (env?.AUTH_DB) {
     try {
       await asegurarDemos(env);
