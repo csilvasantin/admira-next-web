@@ -1,7 +1,7 @@
 {
   "name": "admiranext-matriz",
   "title": "AdmiraNeXT · Matriz (RaaS · IoT)",
-  "description": "Hub MCP de la matriz de AdmiraNeXT, cuyo producto son las 4 patas del sistema operativo del retail (admira.studio, admira.store, admira.app, yokup.com). Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
+  "description": "Hub MCP de la matriz de AdmiraNeXT, cuyo producto son las 4 patas del sistema operativo del retail (admira.studio, admira.store, admira.biz, admira.app). Sitio estático corporativo; la API operativa viva se federa desde el Consejo (admira.live).",
   "version": "v.06.10.2026.r33.22:46",
   "type": "static-site",
   "site": "https://www.admiranext.com",
@@ -16,7 +16,7 @@
   "cuatro_patas": {
     "nota": "Visión de producto (no es mandamiento ni norma). Todos los DeepAgents de Admira deben conocerla. La coordinación de las 4 patas de la comunicación en el punto de venta es el sistema operativo del retail.",
     "canonico": "https://www.admiranext.com/filosofia#cuatro-patas",
-    "coordinacion": "Studio → Store → App → Yokup, en bucle; el MCP es el pegamento y Yokup es el maestro del ITIL (inventario tecnológico de los Xpacios), que reparte por MCP a las demás patas.",
+    "coordinacion": "Studio → Store → Biz → App, en bucle; el MCP es el pegamento y admira.app es el maestro del ITIL (inventario tecnológico de los Xpacios), que reparte por MCP a las demás patas. Los roles salen de data/arquitectura.json.",
     "patas": [
       {
         "orden": 1,
@@ -37,18 +37,18 @@
       {
         "orden": 3,
         "verbo": "comercializar",
-        "dominio": "https://www.admira.app",
+        "dominio": "https://www.admira.biz",
         "equivale_a": "https://www.clearchannel.tv",
-        "marca": "ClearChannel.tv",
-        "funcion": "Comercialización de los Xpacios y visión global de los circuitos."
+        "marca": "DooH y Retail Media",
+        "funcion": "DooH y Retail Media. Comercialización de los Xpacios y visión global de los circuitos. El dominio anterior era clearchannel.tv."
       },
       {
         "orden": 4,
         "verbo": "mantener",
-        "dominio": "https://www.yokup.com",
+        "dominio": "https://www.admira.app",
         "equivale_a": null,
-        "marca": "Yokup",
-        "funcion": "Mantenimiento y gestión diaria de los Xpacios; maestro del ITIL."
+        "marca": "Instalaciones y mantenimiento",
+        "funcion": "Instalaciones y mantenimiento de los Xpacios; maestro del ITIL. El sitio anterior era el de Yokup."
       }
     ],
     "trilogia": "La trilogía (matriz admiranext.com · tienda admira.shop · Consejo admira.live) es la federación corporativa de sitios /mcp, no el producto; sigue vigente."
@@ -228,7 +228,7 @@
     },
     {
       "name": "admira-app-mcp",
-      "producto": "Audiencia y emisión verificada",
+      "producto": "Instalaciones y mantenimiento",
       "endpoint": "https://www.admira.app/mcp",
       "transport": "streamable-http",
       "auth": "ver su página",

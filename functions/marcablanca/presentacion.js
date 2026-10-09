@@ -26,8 +26,8 @@ export function demoIdeas(nombre,corto){
       block('problema','El problema que merece resolverse',`Las pantallas de ${corto} emiten, pero nadie sabe qué venden.`,'Contenido genérico, cambios manuales y ninguna medición: cada campaña empieza de cero.'),
       block('crear','Crear',`Admira.Studio convierte el brief de ${corto} en piezas listas para cada pantalla.`,'Plantillas con la marca, variantes por formato y aprobación en un solo flujo.'),
       block('activar','Distribuir',`Admira.store lleva cada pieza al local, la superficie y el momento correctos.`,'Un gemelo digital de cada tienda y el despacho confirmado por la propia pantalla.'),
-      block('medir','Comercializar y medir',`Admira.app convierte el circuito de ${corto} en un soporte que se planifica y se vende.`,'Circuitos, audiencias, CPM y pujas en vivo sobre el mapa de locales.'),
-      block('mantener','Mantener','Yokup detecta, diagnostica y resuelve las incidencias antes de que las vea el cliente.','Pantallas, hilo musical, climatización y red en una sola bandeja, con IA y técnico asignado.'),
+      block('medir','Comercializar y medir',`Admira.biz convierte el circuito de ${corto} en un soporte que se planifica y se vende.`,'DooH y Retail Media. Circuitos, audiencias, CPM y pujas en vivo sobre el mapa de locales. El dominio anterior era clearchannel.tv.'),
+      block('mantener','Mantener',`Admira.app detecta, diagnostica y resuelve las incidencias de ${corto} antes de que las vea el cliente.`,'Instalaciones y mantenimiento. Pantallas, hilo musical, climatización y red en una sola bandeja, con IA y técnico asignado.'),
       block('piloto','El primer piloto','Empezar pequeño, medir de verdad y escalar lo que funciona.','Tres locales, cuatro semanas y un cuadro compartido de métricas.')
     ],
     closing:{title:`Elijamos los tres primeros locales de ${corto}.`,action:'Definir ubicaciones, responsables, señales disponibles y tres métricas de éxito.'},
@@ -40,8 +40,8 @@ export function demoIdeas(nombre,corto){
       {...es.skeleton[0],title:'The problem worth solving',message:`${corto}'s screens are on air, but nobody knows what they sell.`,detail:'Generic content, manual changes and no measurement: every campaign starts from scratch.'},
       {...es.skeleton[1],title:'Create',message:`Admira.Studio turns ${corto}'s brief into pieces ready for every screen.`,detail:'Branded templates, format variants and approval in a single flow.'},
       {...es.skeleton[2],title:'Distribute',message:'Admira.store takes every piece to the right store, surface and moment.',detail:'A digital twin of every store, with delivery confirmed by the screen itself.'},
-      {...es.skeleton[3],title:'Sell and measure',message:`Admira.app turns ${corto}'s network into media that can be planned and sold.`,detail:'Circuits, audiences, CPM and live bids on the store map.'},
-      {...es.skeleton[4],title:'Maintain',message:'Yokup detects, diagnoses and fixes incidents before customers notice.',detail:'Screens, background music, HVAC and network in one inbox, with AI and an assigned technician.'},
+      {...es.skeleton[3],title:'Sell and measure',message:`Admira.biz turns ${corto}'s network into media that can be planned and sold.`,detail:'DooH and Retail Media. Circuits, audiences, CPM and live bids on the store map. The former domain was clearchannel.tv.'},
+      {...es.skeleton[4],title:'Maintain',message:`Admira.app detects, diagnoses and fixes ${corto}'s incidents before customers notice.`,detail:'Installation and maintenance. Screens, background music, HVAC and network in one inbox, with AI and an assigned technician.'},
       {...es.skeleton[5],title:'The first pilot',message:'Start small, measure for real and scale what works.',detail:'Three stores, four weeks and a shared metrics board.'}
     ],
     closing:{title:`Let's pick ${corto}'s first three stores.`,action:'Define locations, owners, available signals and three success metrics.'},

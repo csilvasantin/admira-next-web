@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="theme-color" content="#0a0703" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="v.09.10.2026.r8.08:45" />
+  <meta name="admiranext-version" content="v.09.10.2026.r9.12:30" />
   <link rel="alternate" type="text/plain" href="/mcp/llms.txt" title="MCP · llms.txt" />
   <link rel="alternate" type="application/json" href="/mcp/manifest.json" title="MCP · manifest" />
   <link rel="manifest" href="site.webmanifest" />
@@ -250,8 +250,8 @@
           'boot.l3': 'Mounting component library... ',
           'boot.l4': '[████████████████████████] ',
           'boot.l5': 'done',
-          'boot.l6': '\nResolving 12 case studies...',
-          'boot.l7': 'Connecting to Product Rocket core... ',
+          'boot.l6': '\nReading the four legs of the retail OS...',
+          'boot.l7': 'Connecting to ADmiraNeXT... ',
           'boot.l8': 'ok',
           'boot.l9': '\nDesign systems: operational',
           'boot.l10': 'UX research modules: loaded',
@@ -447,8 +447,8 @@
           'boot.l3': 'Montando biblioteca de componentes... ',
           'boot.l4': '[████████████████████████] ',
           'boot.l5': 'hecho',
-          'boot.l6': '\nResolviendo 12 casos de estudio...',
-          'boot.l7': 'Conectando con el núcleo de Product Rocket... ',
+          'boot.l6': '\nLeyendo las cuatro patas del sistema operativo del retail...',
+          'boot.l7': 'Conectando con ADmiraNeXT... ',
           'boot.l8': 'ok',
           'boot.l9': '\nSistemas de diseño: operativos',
           'boot.l10': 'Módulos de investigación UX: cargados',
@@ -517,14 +517,16 @@
       document.addEventListener('DOMContentLoaded', window.applyLang);
     })();
   </script>
-  <script src="assets/app.js?v=20261007-luna-1" defer></script>
-  <script defer src="/assets/experto-admiranext.js?v=20261009-demo-hoy-2"></script>
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-auditoria-5434">
+  <script src="assets/app.js?v=20261009-auditoria-5434" defer></script>
+  <script src="/assets/admira-frame.js?v=20261009-auditoria-5434" defer></script>
+  <script defer src="/assets/experto-admiranext.js?v=20261009-auditoria-5434"></script>
   <script src="/assets/avatar.js?v=20261007-demo-ack-1" defer></script>
   <!-- Sello de versión con novedades: SOLO con sesión (06-10-2026). La portada pública no lo enseña;
        sello-sesion.js pregunta a /api/sello y solo entonces carga el cargador común de la suite. -->
   <script defer src="/assets/sello-sesion.js?v=20261006-zona-protegida-1"></script>
 </head>
-<body data-route="">
+<body data-route="" data-yk-title="ADMIRANEXT" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-cli="on">
 <div class="wallpaper" id="wallpaper">
   <picture class="wallpaper-blur" id="wallpaper-picture">
     <img src="assets/robots.jpg" alt="" loading="eager" width="1920" height="1080" fetchpriority="high">
@@ -532,12 +534,7 @@
   <picture class="wallpaper-sharp" id="wallpaper-sharp">
     <img src="assets/robots.jpg" alt="" width="1920" height="1080" decoding="async">
   </picture>
-  <video class="wallpaper-video" id="wallpaperVideo" muted loop playsinline preload="auto" aria-hidden="true">
-    <source src="assets/fondo-prehome-virtudes-1012.mp4" type="video/mp4">
-  </video>
-  <video class="boot-video" id="bootVideo" muted loop playsinline preload="auto" aria-hidden="true">
-    <source src="assets/bannerAdmiraNext.mp4" type="video/mp4">
-  </video>
+  <video class="boot-video" id="bootVideo" muted loop playsinline preload="none" poster="assets/portada-poster.jpg" aria-hidden="true"></video>
 </div>
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KD696XW"

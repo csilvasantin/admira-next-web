@@ -2,7 +2,7 @@
 
 > Matriz de AdmiraNeXT: empresa agéntica de Robots-as-a-Service (RaaS) e IoT con
 > inteligencia artificial, cuyo producto es el sistema operativo del retail: las 4 patas
-> (admira.studio, admira.store, admira.app y yokup.com). Punto de entrada corporativo.
+> (admira.studio, admira.store, admira.biz y admira.app). Punto de entrada corporativo.
 > Esta sección /mcp es la puerta para que cualquier agente entienda la empresa, navegue
 > sus superficies y salte a las demás — y viceversa. Sitio estático; la API operativa
 > viva vive en el Consejo (admira.live) y se federa desde aquí.
@@ -22,15 +22,15 @@ matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio (admira.live)
 ## Las 4 patas de AdmiraNeXT · el sistema operativo del retail (todo DeepAgent debe saberlo)
 
 La comunicación en el punto de venta es una mesa de cuatro patas; la coordinación de las
-cuatro es el sistema operativo del retail. Cada dominio Admira es lo mismo que su dominio de marca:
+cuatro es el sistema operativo del retail. Studio es Pixeria y Store es XpaceOS. Biz y App se nombran por lo que hacen:
 
 1. https://www.admira.studio = https://www.pixeria.com · Pixeria — importación y creación de contenidos.
 2. https://www.admira.store = https://www.xpaceos.com · XpaceOS — inventario del punto de venta y distribución de los contenidos.
-3. https://www.admira.app = https://www.clearchannel.tv · ClearChannel.tv — comercialización de los Xpacios y visión global de los circuitos.
-4. https://www.yokup.com · Yokup — mantenimiento y gestión diaria de los Xpacios.
+3. https://www.admira.biz · DooH y Retail Media (antes https://www.clearchannel.tv) — comercialización de los Xpacios y visión global de los circuitos.
+4. https://www.admira.app · instalaciones y mantenimiento — maestro del ITIL. El sitio anterior era el de Yokup.
 
-Coordinación: Studio → Store → App → Yokup, en bucle. El MCP es el pegamento (cada pata
-publica el suyo; ver el directorio más abajo). Yokup es el maestro del ITIL (inventario
+Coordinación: Studio → Store → Biz → App, en bucle. El MCP es el pegamento (cada pata
+publica el suyo; ver el directorio más abajo). admira.app es el maestro del ITIL (inventario
 tecnológico de los Xpacios) y lo reparte por MCP a las otras tres patas.
 Es visión de producto, no un mandamiento ni una norma. Texto humano: https://www.admiranext.com/filosofia#cuatro-patas
 
@@ -60,7 +60,7 @@ Tres directorios distintos. No mezclarlos:
 
 **Principal del día.** `POST https://api.yokup.com/projects/principal` con `project_id` + `project` + `project_slug`. Se ve en yokup.com/equipo. Si un encargo nace **sin** `project_id`, Yokup hereda ese principal. Para no heredar el proyecto equivocado: pásalo siempre; no reutilices el de ayer.
 
-**Dónde se muestra.** `/equipo` (presencia + principal). `/misiones` (el FLT lleva el proyecto). `/usuarios` (permisos de carbono). `/proyectos` (definición + censo). **yokup.com/proyectos no es el censo**: hoy es una landing comercial.
+**Dónde se muestra.** `/equipo` (presencia + principal). `/misiones` (el FLT lleva el proyecto). `/usuarios` (permisos de carbono). `/proyectos` (definición + censo). El censo de la flota es `/proyectos` y `GET https://api.yokup.com/projects`.
 
 ## Doctrina del equipo de silicio (léelo si eres un agente)
 
@@ -92,7 +92,7 @@ manifest.json lo lleva en `mcp_servers` con el mismo contenido.
 | Consejo, flota y yokup · admira.live | https://mcp.admira.live/mcp | clave de flota (ver Identidad) o clave de consejero | https://www.admira.live/mcp/llms.txt | https://www.admira.live/help |
 | Misiones y bandeja · yokup.com | https://yokup.com/mcp | credencial individual (30 días); clave de flota en curso (encargo a Oráculo) | https://www.yokup.com/mcp/llms.txt | https://www.yokup.com/help#mcp |
 | Retail media · XpaceOS (admira.store) | https://mcp.admira.store/mcp | lectura abierta; escritura con clave de flota (worker 2.1.0, desde el 5-sep-2026) | https://www.admira.store/mcp/llms.txt | https://www.xpaceos.com/help/ |
-| Audiencia y emisión verificada · admira.app | https://www.admira.app/mcp | ver su página | https://www.admira.app/mcp | https://www.admira.app/mcp |
+| Instalaciones y mantenimiento · admira.app | https://www.admira.app/mcp | ver su página | https://www.admira.app/mcp | https://www.admira.app/mcp |
 | Stock de imágenes · Pixeria (pixeria.com) | https://mcp-pixeria.admira.store/mcp | lectura abierta (sin clave) | https://www.pixeria.com/mcp/llms.txt (tras verja) | https://www.pixeria.com/help (tras verja) |
 | El canal · Admira.tv (admira.tv) | https://mcp-tv.admira.store/mcp | lectura abierta (sin clave) | https://admira.tv/mcp/llms.txt | https://admira.tv/help |
 | Consejo de Silicio por HTTP · council-mcp | https://council-mcp.admira.store/mcp | lectura abierta (sin clave) | — | https://www.admira.live/help |

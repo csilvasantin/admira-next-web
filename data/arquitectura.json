@@ -322,8 +322,8 @@
    "version_url": "https://admira.biz/version.json",
    "url": "https://admira.biz/",
    "es": {
-    "nombre": "admira.biz = ClearChannel.tv",
-    "rol": "Nuevos ingresos con DooH y Retail Media: mapa de espacios comerciales, circuitos y pedidos de campaña.",
+    "nombre": "admira.biz · DooH y Retail Media",
+    "rol": "Nuevos ingresos con DooH y Retail Media (antes clearchannel.tv): mapa de espacios comerciales, circuitos y pedidos de campaña.",
     "modulos": [
      "Mapa de espacios comerciales",
      "Circuitos DooH",
@@ -347,8 +347,8 @@
     ]
    },
    "en": {
-    "nombre": "admira.biz = ClearChannel.tv",
-    "rol": "New revenue with DooH and Retail Media: map of commercial spaces, circuits and campaign orders.",
+    "nombre": "admira.biz · DooH and Retail Media",
+    "rol": "New revenue with DooH and Retail Media (formerly clearchannel.tv): map of commercial spaces, circuits and campaign orders.",
     "modulos": [
      "Map of commercial spaces",
      "DooH circuits",
@@ -387,8 +387,8 @@
    "version_url": "https://admira.app/version.json",
    "url": "https://admira.app/",
    "es": {
-    "nombre": "admira.app = Yokup",
-    "rol": "Instalaciones, mantenimiento y gestión: incidencias, instaladores, comercios y misiones con trazabilidad ITIL.",
+    "nombre": "admira.app · instalaciones y mantenimiento",
+    "rol": "Instalaciones, mantenimiento y gestión: incidencias, instaladores, comercios y misiones con trazabilidad ITIL. El sitio anterior era el de Yokup.",
     "modulos": [
      "Mi comercio (/retailer)",
      "Instalador",
@@ -414,8 +414,8 @@
     ]
    },
    "en": {
-    "nombre": "admira.app = Yokup",
-    "rol": "Installation, maintenance and management: incidents, installers, retailers and missions with ITIL traceability.",
+    "nombre": "admira.app · installation and maintenance",
+    "rol": "Installation, maintenance and management: incidents, installers, retailers and missions with ITIL traceability. The previous site was Yokup's.",
     "modulos": [
      "My store (/retailer)",
      "Installer",
@@ -1178,8 +1178,8 @@
    "en": "The allow list (whitelist.admira.store) is mentioned in admira.live, Pixeria and admira.tv; only on admiranext.com is it clear the login uses it."
   },
   {
-   "es": "xpaceos/mcp/galaxia.json todavía describe admira.app como «audiencia × emisión en preproducción», pero en vivo admira.app es la misma web que yokup.com (instalaciones y mantenimiento).",
-   "en": "xpaceos/mcp/galaxia.json still describes admira.app as “audience × broadcast in pre-production”, but live admira.app is the same site as yokup.com (installation and maintenance)."
+   "es": "xpaceos/mcp/galaxia.json describía admira.app como «audiencia × emisión en preproducción». El rol vivo es instalaciones y mantenimiento; el sitio anterior era el de Yokup. DooH y Retail Media es admira.biz (antes clearchannel.tv).",
+   "en": "xpaceos/mcp/galaxia.json described admira.app as “audience × broadcast in pre-production”. The live role is installation and maintenance; the previous site was Yokup's. DooH and Retail Media is admira.biz (formerly clearchannel.tv)."
   },
   {
    "es": "pixer-eleven avisa por Telegram llamando directamente a la API de Telegram, no a través de bot.yokup.com.",

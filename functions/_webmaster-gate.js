@@ -354,7 +354,7 @@ export function respuestaHtml(cuerpo, status = 401) {
   return new Response(cuerpo, { status, headers: {
     'content-type':'text/html; charset=utf-8', 'cache-control':'no-store',
     'x-robots-tag':'noindex, nofollow', 'referrer-policy':'no-referrer',
-    'content-security-policy':"default-src 'none'; script-src https://accounts.google.com/gsi/client; frame-src https://accounts.google.com/gsi/; style-src 'unsafe-inline'; img-src data: https://*.googleusercontent.com; connect-src https://accounts.google.com/gsi/; form-action 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'"
+    'content-security-policy':"default-src 'none'; script-src https://accounts.google.com/gsi/client; frame-src https://accounts.google.com/gsi/; style-src 'unsafe-inline' https://accounts.google.com; img-src data: https://*.googleusercontent.com; connect-src https://accounts.google.com/gsi/; form-action 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'"
   }});
 }
 

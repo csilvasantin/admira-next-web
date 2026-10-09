@@ -16,8 +16,8 @@ const PATAS = [
   {id:'studio', nombre:'Admira.Studio', verbo:'crea', dominio:'admira.studio'},
   {id:'store', nombre:'Admira.store', verbo:'distribuye', dominio:'admira.store'},
   {id:'tv', nombre:'Admira.tv', verbo:'emite', dominio:null},
-  {id:'app', nombre:'Admira.app', verbo:'comercializa', dominio:'admira.app'},
-  {id:'biz', nombre:'Admira.biz', verbo:'mantiene y factura', dominio:null},
+  {id:'app', nombre:'Admira.biz', verbo:'comercializa', dominio:'admira.biz'},
+  {id:'biz', nombre:'Admira.app', verbo:'mantiene', dominio:'admira.app'},
 ];
 
 async function leerJson(url){ const r = await fetch(url, {headers:{accept:'application/json'}}); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }

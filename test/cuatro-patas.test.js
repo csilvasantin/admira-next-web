@@ -12,9 +12,9 @@ const manifest = JSON.parse(await leer("mcp/manifest.json"));
 
 const PATAS = [
   { dominio: "admira.studio", equivale: "pixeria.com", funcion: /importación y creación de contenidos/i },
-  { dominio: "admira.store", equivale: "xpaceos.com", funcion: /inventario del punto de venta y distribución de los contenidos/i },
-  { dominio: "admira.app", equivale: "clearchannel.tv", funcion: /comercialización de los Xpacios y visión global de los circuitos/i },
-  { dominio: "yokup.com", equivale: null, funcion: /mantenimiento y gestión diaria de los Xpacios/i },
+  { dominio: "admira.store", equivale: "xpaceos.com", funcion: /inventario del punto de venta y distribución/i },
+  { dominio: "admira.biz", equivale: "clearchannel.tv", funcion: /DooH y Retail Media/i },
+  { dominio: "admira.app", equivale: null, funcion: /instalaciones y mantenimiento/i },
 ];
 
 const bloque = filosofia.match(/<section id="cuatro-patas">[\s\S]*?<\/section>/)?.[0] ?? "";
@@ -32,10 +32,10 @@ test("filosofía publica las 4 patas con sus dominios principales y equivalentes
   }
 });
 
-test("las patas van en orden Studio → Store → App → Yokup, con MCP y Yokup maestro del ITIL", () => {
+test("las patas van en orden Studio → Store → Biz → App, con MCP y admira.app maestro del ITIL", () => {
   const posiciones = PATAS.map(({ dominio }) => bloque.indexOf(`https://www.${dominio}/`));
   assert.deepEqual([...posiciones].sort((a, b) => a - b), posiciones);
-  assert.match(bloque, /Studio → Store → App → Yokup/);
+  assert.match(bloque, /Studio → Store → Biz → App/);
   assert.match(plano(bloque), /MCP/);
   assert.match(plano(bloque), /maestro del ITIL/);
 });
@@ -56,4 +56,24 @@ test("la capa MCP entrega las 4 patas a los agentes y explica la trilogía", () 
   const patas = manifest.cuatro_patas?.patas ?? [];
   assert.deepEqual(patas.map((p) => p.dominio), PATAS.map((p) => `https://www.${p.dominio}`));
   assert.deepEqual(patas.map((p) => p.equivale_a), PATAS.map((p) => (p.equivale ? `https://www.${p.equivale}` : null)));
+});
+
+const PROHIBIDO = [
+  /admira\.app\s*=\s*[^\n<]{0,40}clearchannel/i,
+  /admira\.app\s*=\s*[^\n<]{0,40}yokup/i,
+  /admira\.app\s*\(\s*ClearChannel/i,
+  /clearchannel\.tv y admira\.app son el MISMO/i,
+];
+const PAGINAS = [
+  "filosofia.html", "mcp/index.html", "mcp/llms.txt", "mcp/manifest.json",
+  "businessplan/index.html", "marcablanca/index.html", "proyectos/index.html",
+  "help/index.html", "webmaster.html", "index.html", "libro-de-estilo.html",
+  "data/arquitectura.json", "data/roadmap.json",
+];
+
+test("ninguna página pública dice que admira.app es clearchannel.tv ni yokup.com", async () => {
+  for (const ruta of PAGINAS) {
+    const texto = await leer(ruta);
+    for (const re of PROHIBIDO) assert.doesNotMatch(texto, re, `${ruta} cumple ${re}`);
+  }
 });
