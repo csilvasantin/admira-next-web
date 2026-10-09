@@ -47,6 +47,7 @@ function withLang(initial) {
     localStorage: storage, sessionStorage: storage, URL,
     fetch: root.fetch, setTimeout, clearTimeout,
     MutationObserver: root.MutationObserver, CustomEvent: root.CustomEvent, Event: root.Event,
+    URLSearchParams,
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
@@ -91,6 +92,19 @@ test('applyLang guarda admiranext_expert_lang y navega con PixeriaIdioma.url', (
   setLang('en');
   assert.equal(storage.getItem('admiranext_expert_lang'), 'en');
   assert.deepEqual(fuimos, ['/stock.html?cliente=altadis&lang=es'], 'si la pata dice que ya estás, no se navega');
+});
+
+test('con una demo en la URL, applyLang no salta a /en/ y deja el idioma pedido', () => {
+  const { setLang, sandbox, storage, location, documentElement } = withLang('es');
+  location.search = '?ax_demo=studio&ax_run=abc';
+  location.href = 'https://www.admira.studio/?ax_demo=studio&ax_run=abc';
+  const fuimos = [];
+  location.assign = (u) => fuimos.push(u);
+  sandbox.PixeriaIdioma = { url: (l) => (l === 'en' ? '/en/?ax_demo=studio' : '/') };
+  assert.equal(setLang('en'), 'en');
+  assert.equal(documentElement.lang, 'en');
+  assert.equal(storage.getItem('admiranext_expert_lang'), 'en');
+  assert.deepEqual(fuimos, []);
 });
 
 test('list/has/exec: el CLI del armazón de admiranext.com delega en los verbos de la piel', () => {

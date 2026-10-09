@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 
 const engine=readFileSync(new URL('../suite/demo-control.js',import.meta.url),'utf8');
 const suite=readFileSync(new URL('../suite/experto.js',import.meta.url),'utf8');
-function fixture({platform='store',host='www.admira.store',path='/',run='new-run',saved=null,source=engine,selectors=true,embedded=false}={}){
+function fixture({platform='store',host='www.admira.store',path='/',run='new-run',saved=null,source=engine,selectors=true,embedded=false,lang='es'}={}){
   let now=0,nextId=0;const jobs=new Map(),nodes=[],fields=new Map(),writes=[],storage=new Map(),assigned=[],frameRequests=[];
   const flush=async()=>{for(let i=0;i<14;i++)await Promise.resolve();};
   function element(tag='input'){
@@ -21,7 +21,7 @@ function fixture({platform='store',host='www.admira.store',path='/',run='new-run
     if(tag==='iframe'){e.contentWindow={location:new URL('about:blank')};e.contentDocument=null;}
     Object.defineProperty(e,'src',{get(){return attrs.src||'';},set(v){attrs.src=String(v);if(tag==='iframe')frameRequests.push(String(v));}});nodes.push(e);return e;
   }
-  const body=element('body'),head=element('head'),documentElement=element('html');documentElement.lang='es';
+  const body=element('body'),head=element('head'),documentElement=element('html');documentElement.lang=lang;
   const document={body,head,documentElement,readyState:'loading',currentScript:{dataset:{},src:'https://www.admiranext.com/suite/experto.js'},
     createElement:element,addEventListener(){},removeEventListener(){},dispatchEvent(){},getElementById(id){return nodes.find(n=>n.id===id&&n.isConnected)||null;},
     querySelectorAll(selector){if(!selectors)return[];if(!fields.has(selector))fields.set(selector,element());return[fields.get(selector)];},querySelector(){return null;}};
@@ -163,6 +163,28 @@ test('Studio reuses one same-origin native frame while switching actual tools, w
   assert.equal(f.nodes.filter(n=>n.tagName==='IFRAME').length,1);assert.equal(f.document.getElementById('admira-native-demo'),panel);assert.equal(frame,f.nodes.find(n=>n.tagName==='IFRAME'));assert.equal(new URL(frame.src).pathname,'/musica');assert.equal(original.value,'original');
   for(const request of f.frameRequests){const u=new URL(request);assert.equal(u.origin,'https://www.admira.studio');assert.ok(['/audio','/musica','/imagenes','/video','/adaptaciones/'].includes(u.pathname));assert.equal(u.searchParams.has('ax_demo'),false,'frame must not start a second engine');}
   f.loadFrame();await f.flush();assert.equal(f.assigned.length,0);f.api.control('stop');assert.equal(frame.isConnected,false);
+});
+
+test('Studio in English stays on the same step and loads /en/ of that tool',async()=>{
+  const f=paused('studio',{host:'www.admira.studio',lang:'en'});
+  const frame=f.nodes.find(n=>n.tagName==='IFRAME');
+  f.api.control('resume');await f.flush();
+  assert.equal(f.assigned.length,0);
+  assert.equal(new URL(frame.src).pathname,'/en/audio');
+  f.loadFrame();
+  const fase=f.api.state().fase;
+  const caption=f.document.getElementById('admira-native-demo').children.find(n=>n.getAttribute&&n.getAttribute('data-demo-phase')==='');
+  assert.match(String(caption.textContent),/coffee shop|voice|welcome/i);
+  f.api.idioma('es');
+  assert.equal(f.api.state().fase,fase);
+  assert.equal(f.api.state().activo,true);
+  assert.equal(new URL(frame.src).pathname,'/audio');
+  assert.doesNotMatch(String(caption.textContent),/coffee shop welcome|We will prepare/i);
+  f.loadFrame();
+  f.api.idioma('en');
+  assert.equal(f.api.state().fase,fase);
+  assert.equal(new URL(frame.src).pathname,'/en/audio');
+  f.api.control('stop');
 });
 
 test('Studio pause cancels pending load; late readiness cannot advance until resume',async()=>{

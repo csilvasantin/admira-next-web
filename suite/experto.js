@@ -119,6 +119,18 @@
       'Use /idioma or /language (toggle), /idioma ESP|ENG (or es|en). Also languageENG, idiomaESP…'
     );
   }
+  // Una demo en curso (overlay de /demo 1 o recorrido ?ax_demo=) no puede
+  // recargar: location.assign a /en/ tiraba el paso y la dejaba inactiva.
+  function demoEnCurso() {
+    try { if (recorrido && recorrido.activo) return true; } catch (_) {}
+    try {
+      var n = root.AdmiraDemoControl && root.AdmiraDemoControl.state && root.AdmiraDemoControl.state();
+      if (n && n.activo) return true;
+    } catch (_) {}
+    try { if (document.getElementById('ax-demo-muestra') || document.getElementById('admira-native-demo')) return true; } catch (_) {}
+    try { if (new URLSearchParams(location.search).get('ax_demo')) return true; } catch (_) {}
+    return false;
+  }
   // Aplica el idioma a la ficha, a la pata (si expone API) y avisa a quien escuche.
   function applyLang(next) {
     var l = next === 'en' ? 'en' : 'es';
@@ -133,9 +145,11 @@
     // Preferencia explícita del Experto, compartida con pixeria / admira.studio (assets/site-nav.js la
     // lee antes de su auto-redirect a /en/; sin ella, /language ESP en pixeria rebotaba al inglés).
     try { root.localStorage.setItem('admiranext_expert_lang', l); } catch (_) {}
+    // Con demo viva se traduce aquí: el mismo paso, el otro idioma, sin recargar.
+    var quedarse = demoEnCurso();
     // La pata sabe mejor que el hreflang adónde ir (origen actual, ?lang=es, query conservado).
     var paginaSabe = false;
-    try {
+    if (!quedarse) try {
       var I = root.PixeriaIdioma;
       if (I && typeof I.url === 'function') {
         paginaSabe = true;
@@ -143,7 +157,7 @@
         if (dest) { location.assign(dest); return l; }
       }
     } catch (_) {}
-    try {
+    if (!quedarse) try {
       var link = paginaSabe ? null : document.querySelector('link[rel="alternate"][hreflang="' + l + '"]');
       if (link && link.href) {
         var target = new URL(link.href, location.href);
@@ -172,6 +186,10 @@
     // assets/xpace-lang.js escucha admira:languagechange en window y repinta la página).
     try { root.dispatchEvent(new CustomEvent('admira:languagechange', {detail: {lang: l, source: 'admira-experto'}})); } catch (_) {}
     paint();
+    if (quedarse) {
+      try { if (recorrido && recorrido.pintar) recorrido.pintar(); } catch (_) {}
+      try { if (root.AdmiraDemoControl && typeof root.AdmiraDemoControl.idioma === 'function') root.AdmiraDemoControl.idioma(l); } catch (_) {}
+    }
     return l;
   }
   function handleLangCommand(text, log) {
@@ -498,6 +516,7 @@
     // /demo <funcionalidad>: hoy (castellano) y today (pone la web en inglés). El resto de nombres
     // desconocidos sigue siendo de la pata. Los pasos viven en suite/demo-control.js.
     if (arg === 'hoy' || arg === 'today') return {funcion: 'hoy', lang: arg === 'today' ? 'en' : 'es'};
+    if (arg === 'idioma' || arg === 'language') return {idiomaDemo: true};
     if(arg==='global')return {global:true};
     if (L && /^(auto|todas|todos|all)$/.test(arg)) return {local: true, auto: true};
     if ((L || (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo)) && /^(pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next)$/.test(arg) &&
@@ -522,7 +541,9 @@
       DEMOS.map(function (d, k) { return (k + 1) + ' /demo ' + d.id + ' · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]); }).join('\n') +
       '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".') +
       '\n' + T('/demo hoy recorre lo de hoy y resume bien, mal o pendiente. /demo today lo hace en inglés.',
-        '/demo hoy walks through today and marks each step. /demo today does it in English.');
+        '/demo hoy walks through today and marks each step. /demo today does it in English.') +
+      '\n' + T('/demo idioma abre la demo 1 y cambia de idioma sin perder el paso.',
+        '/demo idioma opens demo 1 and changes language without losing the step.');
   }
   function localLista() {
     var L = localM();
@@ -677,7 +698,10 @@
     r.media.filter(function(el){return el!==r.video;}).forEach(function(el){el.addEventListener('volumechange',function(){if(soundPrefs.muted&&!el.muted)el.muted=true;});});
     r.pintar = function () {
       status.textContent = r.error || T('Demo ', 'Demo ') + (r.indice + 1) + '/' + r.cola.length + ' · ' + (r.activo ? (r.pausado ? T('En pausa', 'Paused') : T('Fase ', 'Phase ') + (r.fase + 1) + '/' + r.pasos.length) : T('Ensayo completado', 'Rehearsal complete'));
-      phase.textContent = r.pasos[r.fase]; results.hidden = r.fase < (plataforma === 'studio' ? r.pasos.length - 1 : 1);
+      phase.textContent = alIdioma(r.pasos[r.fase]);
+      h.textContent = (d.letra ? d.letra + '. ' : (r.indice + 1) + '. ') + alIdioma(d.nombre);
+      p.textContent = alIdioma(d.desc || '');
+      results.hidden = r.fase < (plataforma === 'studio' ? r.pasos.length - 1 : 1);
       pause.textContent = r.pausado ? T('Reanudar', 'Resume') : T('Pausa', 'Pause'); pause.disabled = next.disabled = !r.activo;
       var finalPhase=r.fase===r.pasos.length-1,cinema=finalPhase&&Boolean(r.video);clipRoot.hidden=!finalPhase;
       if(cinema){results.hidden=true;phase.hidden=true;p.hidden=true;warning.hidden=true;if(data)data.hidden=true;h.style.fontSize='18px';}else{phase.hidden=false;p.hidden=false;warning.hidden=false;if(data)data.hidden=false;}
@@ -702,7 +726,54 @@
     u.searchParams.set('ax_run', Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9));
     return u.href;
   }
+  // Frases de /demo 1 (locución). El catálogo guarda el castellano; el inglés se pinta al vuelo.
+  var FRASE_EN = {
+    'Crear locución': 'Create a voiceover',
+    'De un guion breve a una voz lista para escuchar.': 'From a short script to a voice ready to hear.',
+    'Escribe el mensaje de tu tienda y elige idioma, voz y tono.': 'Write your store message and choose language, voice and tone.',
+    'Cafetería Demo · café y bollería': 'Demo café · coffee and pastries',
+    'Voz adulta cálida y cercana': 'Warm, close adult voice',
+    'Espanol (ES)': 'Spanish (ES)',
+    'Cercano': 'Warm',
+    'Bienvenidos a nuestra cafetería. Haz una pausa y disfruta de un café recién hecho. Pregunta por la combinación de café y bollería. Te esperamos.': 'Welcome to our coffee shop. Take a break and enjoy a freshly made coffee. Ask about the coffee and pastry pairing. We are waiting for you.',
+    'Aquí se crea la locución. Escuchamos la muestra preparada en castellano.': 'The voiceover is created here. We listen to the prepared Spanish sample.'
+  };
+  function alIdioma(es) {
+    es = String(es == null ? '' : es);
+    if (lang() !== 'en') return es;
+    return Object.prototype.hasOwnProperty.call(FRASE_EN, es) ? FRASE_EN[es] : es;
+  }
+  function demoIdioma(log) {
+    var L = localM();
+    var sub = L && L.subdemos && L.subdemos[0];
+    var nativo = root.AdmiraDemoControl && root.AdmiraDemoControl.state && root.AdmiraDemoControl.state();
+    if (!(recorrido && recorrido.activo) && !(nativo && nativo.activo) && sub) mostrarMuestra(sub, 1);
+    var fase = null;
+    if (recorrido && recorrido.activo) fase = recorrido.fase;
+    else if (nativo && nativo.activo) fase = nativo.fase;
+    else {
+      nativo = root.AdmiraDemoControl && root.AdmiraDemoControl.state && root.AdmiraDemoControl.state();
+      if (nativo && nativo.activo) fase = nativo.fase;
+    }
+    if (fase == null) {
+      out(log, T('Esta página no tiene la demo 1. /demo idioma enseña el cambio de idioma sin cortar el paso.', 'This page has no demo 1. /demo idioma shows the language change without dropping the step.'), 'err');
+      return {ok: false};
+    }
+    var destino = lang() === 'en' ? 'es' : 'en';
+    applyLang(destino);
+    var fase2 = recorrido && recorrido.activo ? recorrido.fase : null;
+    if (fase2 == null && root.AdmiraDemoControl && root.AdmiraDemoControl.state) {
+      var st = root.AdmiraDemoControl.state();
+      if (st && st.activo) fase2 = st.fase;
+    }
+    var frase = '';
+    try { var ph = document.querySelector('[data-demo-phase]'); if (ph) frase = ph.textContent || ''; } catch (_) {}
+    var mismo = fase2 === fase && lang() === destino;
+    out(log, (mismo ? T('bien', 'ok') : T('mal', 'bad')) + ' · ' + T('paso ', 'step ') + String(fase2 == null ? '—' : fase2) + ' · ' + destino + (frase ? ' · ' + frase : ''));
+    return {ok: !!mismo, fase: fase2, lang: lang()};
+  }
   function demoRun(p, log) {
+    if (p.idiomaDemo) return demoIdioma(log);
     if(p.global){var globalUrl='https://www.admira.biz/demo/?lang='+T('es','en');out(log,T('Abriendo demo global · Sneakers Store…','Opening global demo · Sneakers Store…'));location.assign(globalUrl);return {id:'global',url:globalUrl};}
     if (p.funcion) {
       applyLang(p.lang);
@@ -1114,7 +1185,7 @@
     parseArquitectura: parseArquitectura, arquitecturaUrl: arquitecturaUrl,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
     demoEstado: function () { return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo,
@@ -1127,7 +1198,7 @@
     if (!/^(studio|store|tv|biz|app|hoy)$/.test(id || '') || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
     var loader = document.createElement('script');
     var base;try { base = new URL(script.src || 'https://www.admiranext.com/suite/experto.js'); } catch (_) { base = new URL('https://www.admiranext.com/suite/experto.js'); }
-    loader.src = new URL('/suite/demo-control.js?v=20261009-demo-hoy-2',base.origin).href;
+    loader.src = new URL('/suite/demo-control.js?v=20261009-idioma-demo-1',base.origin).href;
     loader.setAttribute('data-admira-native-control','');
     loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
     document.head.appendChild(loader);
