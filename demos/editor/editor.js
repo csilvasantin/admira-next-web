@@ -1,7 +1,7 @@
 import {
   OPS, SITIOS, agregarSubdemo, anotar, colorDe, coincide, crearHistorial, demoNueva, deshacer,
   documentoMacro, duplicarMacro, duplicarSubdemo, duracionDe, filasMacro, letra, localizar,
-  macroVacia, moverItem, pasoVacio, quitarItem, quitarSubdemo, resumenMacro, selectoresConocidos,
+  lineaEstado, macroVacia, moverItem, pasoVacio, quitarItem, quitarSubdemo, resumenMacro, selectoresConocidos,
   sitioDe, t, textoDuracion, urlDePieza,
 } from './modelo.mjs';
 
@@ -61,17 +61,27 @@ function piezaActual() {
   return localizar(estado.demos, estado.ref);
 }
 
+function buscarCorto() {
+  return window.matchMedia('(max-width: 800px)').matches;
+}
+
 function aplicarIdioma() {
   document.documentElement.lang = estado.lang;
   $('h-biblioteca').textContent = t(estado.lang, 'biblioteca');
+  $('h-macro').textContent = t(estado.lang, 'macroTitulo');
+  $('h-pasos').textContent = t(estado.lang, 'pasos');
+  $('h-inspector').textContent = t(estado.lang, 'inspector');
+  $('tab-biblioteca').textContent = t(estado.lang, 'biblioteca');
+  $('tab-macro').textContent = t(estado.lang, 'macroTitulo');
+  $('tab-inspector').textContent = t(estado.lang, 'inspector');
   $('titulo').textContent = t(estado.lang, 'titulo');
-  $('atajo').textContent = t(estado.lang, 'atajo');
   $('guardar').textContent = t(estado.lang, 'guardar');
   $('publicar').textContent = t(estado.lang, 'publicar');
   $('ejecutar').textContent = t(estado.lang, 'ejecutar');
-  $('deshacer').textContent = t(estado.lang, 'deshacer');
-  $('buscar').placeholder = t(estado.lang, 'buscar');
-  $('buscar').setAttribute('aria-label', t(estado.lang, 'buscar'));
+  $('mas-acciones').setAttribute('aria-label', t(estado.lang, 'masAcciones'));
+  const busca = t(estado.lang, buscarCorto() ? 'buscarCorto' : 'buscar');
+  $('buscar').placeholder = busca;
+  $('buscar').setAttribute('aria-label', busca);
   $('h-macros').textContent = t(estado.lang, 'macros');
   $('mas-demo').textContent = t(estado.lang, 'masDemo');
   $('mas-sub').textContent = t(estado.lang, 'masSub');
@@ -84,7 +94,6 @@ function aplicarIdioma() {
   $('borrar-paso').textContent = t(estado.lang, 'borrar');
   $('voz-texto').textContent = t(estado.lang, 'voz');
   $('voz').setAttribute('aria-checked', $('voz').checked ? 'true' : 'false');
-  $('idioma-barra').textContent = estado.lang === 'en' ? 'ES' : 'EN';
   $('reproductor-parar').textContent = t(estado.lang, 'parar');
   document.title = t(estado.lang, 'titulo') + ' · AdmiraNeXT';
 }
@@ -102,10 +111,7 @@ function pintarBiblioteca() {
     const bloque = document.createElement('section');
     bloque.className = 'sitio';
     const cabeza = document.createElement('h3');
-    const punto = document.createElement('i');
-    punto.className = 'punto';
-    punto.style.background = sitio.color;
-    cabeza.append(punto, document.createTextNode(sitio[estado.lang]));
+    cabeza.textContent = sitio[estado.lang];
     bloque.append(cabeza);
     bloque.style.borderLeftColor = sitio.color;
     const lista = document.createElement('ul');
@@ -117,10 +123,12 @@ function pintarBiblioteca() {
         li.draggable = true;
         li.dataset.ref = demo.site + '/' + sub.id;
         li.className = estado.ref === li.dataset.ref ? 'sel' : '';
-        li.style.borderColor = sitio.color;
+        li.title = titulo(sub.title);
         const marca = document.createElement('b');
         marca.textContent = letra(sub.n);
-        li.append(marca, document.createTextNode(' ' + titulo(sub.title)));
+        const nombre = document.createElement('span');
+        nombre.textContent = titulo(sub.title);
+        li.append(marca, nombre);
         li.addEventListener('dragstart', (event) => {
           event.dataTransfer.setData('text/plain', 'ref:' + li.dataset.ref);
           event.dataTransfer.effectAllowed = 'copy';
@@ -170,13 +178,6 @@ function pintarFila() {
   const fila = $('fila');
   fila.replaceChildren();
   const filas = filasMacro(estado.macro.items, estado.macro.transition, estado.lang);
-  if (!filas.length) {
-    const vacio = document.createElement('p');
-    vacio.className = 'guia';
-    vacio.dataset.vacio = 'macro';
-    vacio.textContent = t(estado.lang, 'guiaMacro');
-    fila.append(vacio);
-  }
   for (const filaItem of filas) {
     if (filaItem.kind === 'salto') {
       const salto = document.createElement('article');
@@ -214,13 +215,21 @@ function pintarFila() {
     });
     fila.append(card);
   }
-  $('soltar').textContent = t(estado.lang, 'soltar');
+  const soltar = $('soltar');
+  soltar.replaceChildren();
+  const avisoSoltar = document.createElement('strong');
+  avisoSoltar.textContent = t(estado.lang, 'soltar');
+  soltar.append(avisoSoltar);
+  if (!estado.macro.items.length) {
+    const guia = document.createElement('span');
+    guia.className = 'guia';
+    guia.dataset.vacio = 'macro';
+    guia.textContent = t(estado.lang, 'guiaMacro');
+    soltar.append(guia);
+  }
   const datos = resumenMacro(estado.macro.items, estado.demos, estado.macro.status, estado.lang);
-  $('resumen').textContent = datos.elementos + ' ' + t(estado.lang, 'elementos')
-    + ' · ' + datos.sitios + ' ' + t(estado.lang, 'sitios')
-    + ' · ' + textoDuracion(datos.duracion, estado.lang) + ' ' + t(estado.lang, 'duracion')
-    + ' · ' + datos.estado + ' ' + t(estado.lang, 'estado')
-    + ' · ' + t(estado.lang, 'comando') + ' ' + datos.comando;
+  $('resumen').textContent = lineaEstado(datos, estado.lang);
+  $('pastilla').textContent = datos.comando;
 }
 
 function pintarPasos() {
@@ -233,7 +242,7 @@ function pintarPasos() {
     p.dataset.vacio = 'subdemo';
     p.textContent = t(estado.lang, 'sinSubdemo');
     lista.append(p);
-    $('paso-form').replaceChildren();
+    pintarInspector(null);
     return;
   }
   if (!sub.steps.length) {
@@ -276,10 +285,25 @@ function campo(form, etiqueta, nodo) {
   form.append(label);
 }
 
+function pasosActivos(activos) {
+  $('probar').disabled = !activos;
+  $('desde').disabled = !activos;
+  $('borrar-paso').disabled = !activos;
+}
+
 function pintarInspector(sub) {
   const form = $('paso-form');
   form.replaceChildren();
-  if (estado.paso < 0 || !sub.steps[estado.paso]) return;
+  if (!sub || estado.paso < 0 || !sub.steps[estado.paso]) {
+    const guia = document.createElement('p');
+    guia.className = 'guia';
+    guia.dataset.vacio = 'inspector';
+    guia.textContent = t(estado.lang, 'eligePaso');
+    form.append(guia);
+    pasosActivos(false);
+    return;
+  }
+  pasosActivos(true);
   const step = sub.steps[estado.paso];
   const accion = document.createElement('select');
   for (const op of OPS) {
@@ -714,9 +738,26 @@ async function arrancar() {
 $('guardar').addEventListener('click', () => guardar(false));
 $('publicar').addEventListener('click', () => guardar(true));
 $('ejecutar').addEventListener('click', () => ejecutarMacro());
-$('deshacer').addEventListener('click', () => { if (estado.historial && deshacer(estado.historial)) restaurar(estado.historial.actual); });
-$('idioma-barra').addEventListener('click', () => { estado.lang = estado.lang === 'en' ? 'es' : 'en'; pintar(); });
+$('mas-acciones').addEventListener('click', () => {
+  const abierto = $('mas-acciones').closest('.acciones').classList.toggle('abierto');
+  $('mas-acciones').setAttribute('aria-expanded', abierto ? 'true' : 'false');
+});
+document.querySelector('.pestanas').addEventListener('click', (event) => {
+  const boton = event.target.closest('[role="tab"]');
+  if (!boton) return;
+  document.querySelector('.editor').dataset.panel = boton.id.replace('tab-', '');
+  document.querySelectorAll('.pestanas [role="tab"]').forEach((nodo) => {
+    nodo.setAttribute('aria-selected', nodo === boton ? 'true' : 'false');
+  });
+});
 $('buscar').addEventListener('input', () => { estado.consulta = $('buscar').value; pintarBiblioteca(); });
+window.addEventListener('resize', () => {
+  const busca = t(estado.lang, buscarCorto() ? 'buscarCorto' : 'buscar');
+  if ($('buscar').placeholder !== busca) {
+    $('buscar').placeholder = busca;
+    $('buscar').setAttribute('aria-label', busca);
+  }
+});
 $('mas-demo').addEventListener('click', () => altaDemo());
 $('mas-sub').addEventListener('click', () => altaSubdemo());
 $('mas-macro').addEventListener('click', () => altaMacro());
@@ -762,4 +803,23 @@ $('voz').addEventListener('change', () => {
 $('reproductor-parar').addEventListener('click', () => { estado.parar = true; $('reproductor').hidden = true; window.speechSynthesis?.cancel(); });
 window.addEventListener('keydown', tecla);
 window.setLanguage = (lang) => { estado.lang = String(lang).startsWith('en') ? 'en' : 'es'; pintar(); };
+
+function lineaExperto() {
+  const rail = document.getElementById('ykExpertRail');
+  if (!rail || document.documentElement.classList.contains('yk-open-bottom')) return;
+  rail.inert = false;
+  rail.setAttribute('aria-hidden', 'false');
+}
+function vigilarExperto() {
+  lineaExperto();
+  new MutationObserver(lineaExperto).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  const input = document.getElementById('ykCliInput');
+  if (input && input.form) {
+    input.form.addEventListener('submit', () => {
+      if (window.AdmiraFrame && typeof window.AdmiraFrame.abrir === 'function') window.AdmiraFrame.abrir('bottom', true);
+    });
+  }
+}
+if (document.getElementById('ykExpertRail')) vigilarExperto();
+else window.addEventListener('admira-frame:ready', vigilarExperto, { once: true });
 arrancar();
