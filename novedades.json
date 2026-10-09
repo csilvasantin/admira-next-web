@@ -273,5 +273,9 @@
   ],
   "v.09.10.2026.r2.06:06": [
     "/arquitectura: la caja de acceso del diagrama ya no se sale de su marco (rótulo corto ES/EN)."
+  ],
+  "v.09.10.2026.r3.06:16": [
+    "⌘ Experto: /arquitectura (castellano) y /architecture (inglés) abren el organigrama tecnológico desde cualquier página de admiranext.com y desde cualquier web de la Suite con la piel compartida.",
+    "?lang=en|es en la URL fija el idioma de admiranext.com al llegar desde otra web (el localStorage no cruza de dominio)."
   ]
 }
