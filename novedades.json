@@ -434,5 +434,10 @@
     "Demo Pixeria novedades: ocho capítulos y vídeo narrado en español e inglés hasta el gemelo 360.",
     "Comando /demo pixeria novedades disponible desde Experto, con pausa, avance y reanudación.",
     "Entrada temporal editable y eliminable desde el editor de demos; otras demos y campañas se conservan."
+  ],
+  "v.10.10.2026.r22.15:46": [
+    "Frontier · Tinta electrónica MagSafe: caso estrella salas/eventos (ahora/siguiente, flechas, cambios en rojo) y player de imágenes fijas en admira.tv (#5571 · FLT-101849).",
+    "Sigue la ficha base: e-ink 480×800 BLE SY11-ab, primera GOOD 15:23 Madrid (Fold), coste 0 Nemotron 3 Ultra, hoja de ruta sin móvil (Jensen).",
+    "Solo DMZ /pruebas/frontier/tinta-electronica/; sin enlace público."
   ]
 }
