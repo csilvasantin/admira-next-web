@@ -334,25 +334,6 @@
   };
   w.MarcaBlanca = api;
 
-  function leerIdioma(ev) {
-    var det = ev && ev.detail && ev.detail.lang;
-    if (det === 'en' || det === 'es') return det;
-    try {
-      var q = new URLSearchParams(w.location.search).get('lang') || '';
-      if (/^en/i.test(q)) return 'en';
-      if (/^es/i.test(q)) return 'es';
-    } catch (e0) {}
-    var actual = d.documentElement && d.documentElement.getAttribute && d.documentElement.getAttribute('lang');
-    return /^en/i.test(actual || '') ? 'en' : 'es';
-  }
-  function aplicarIdiomaPagina(ev) {
-    var l = leerIdioma(ev);
-    try { if (d.documentElement && d.documentElement.setAttribute) d.documentElement.setAttribute('lang', l); } catch (e1) {}
-    api.idioma = l;
-  }
-  aplicarIdiomaPagina(null);
-  if (typeof w.addEventListener === 'function') w.addEventListener('admira:languagechange', aplicarIdiomaPagina);
-
   function arrancar() {
     if (dato('auto') === 'false') return;
     var plataforma = dato('plataforma') || plataformaPorDominio();

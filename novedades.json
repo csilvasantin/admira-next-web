@@ -4,12 +4,6 @@
     "Portada pública con un solo control de idioma: el selector ES · EN del armazón (sin el botón ESP/ENG del terminal).",
     "/frontier pasa a interno: sale en /ayuda solo con sesión; escrito sin sesión sigue llevando al login."
   ],
-  "v.10.10.2026.r15.14:13": [
-    "El libro de estilo muestra el logo en negativo, sobre el primario y en monocromo, y los tamaños 64, 40 y 24 px se distinguen.",
-    "El acento de JTI avisa que 2,58:1 no llega al contraste del texto normal. JTI, Starbucks y Altadis tienen ilustración de cabecera.",
-    "/marcablanca, el libro de estilo y la propuesta salen en inglés con ?lang=en y con /language.",
-    "Volver atrás: etiqueta retorno/pre-estilo-5549-r15-20261010, sello v.10.10.2026.r14.14:10."
-  ],
   "v.10.10.2026.r14.14:10": [
     "Nuevo comando /frontier: desde el terminal de la entrada y desde ⌘ Experto lleva directo a /pruebas/frontier (sin sesión, pide el login).",
     "Presites sin modo Experto (norma 32): sin sesión no se ve ⌘; en su hueco va el selector de idioma ES · EN, que se conserva tras el login."

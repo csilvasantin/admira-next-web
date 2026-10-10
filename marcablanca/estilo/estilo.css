@@ -34,14 +34,8 @@ section.bloque{background:var(--sup);border:1px solid var(--b);border-radius:var
 .proteccion .zona{position:relative;outline:2px dashed var(--p);outline-offset:0;background:var(--sup);color:var(--t)}
 .proteccion .zona .logo svg,.proteccion .zona .logo img{width:200px;max-height:140px}
 .proteccion .x{position:absolute;font:700 12px var(--fe);color:var(--p)}
-.minimos{display:flex;align-items:flex-end;gap:36px;padding:8px 0 4px;color:var(--t);flex-wrap:wrap}
-.minimos figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:88px;text-align:center;font-size:12px;color:var(--tt)}
-.minimos .marco{display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
-.minimos .marco .logo{height:100%}
-.minimos .marco .logo svg,.minimos .marco .logo img{height:100%;width:auto;max-width:none;max-height:none}
-.logo.logo-neg img{filter:brightness(0) invert(1)}
-.logo.logo-mono img{filter:brightness(0)}
-.wcag{margin:0;padding:8px 12px;background:#FFF4E5;color:#6B3A00;font:700 12px/1.35 var(--fx);border-top:1px solid #E8C99A}
+.minimos{display:flex;align-items:flex-end;gap:28px;padding:16px;color:var(--t)}
+.minimos figure{margin:0;text-align:center;font-size:12px;color:var(--tt)}
 .versiones .cara{min-height:150px;padding:20px}.versiones .cara .logo svg,.versiones .cara .logo img{width:150px;max-height:90px}
 .versiones figcaption{font-size:12px;color:var(--tt);margin-top:8px;text-align:center}
 .versiones figure{margin:0}

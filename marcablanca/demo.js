@@ -26,13 +26,6 @@
 
   /* ── Estado de la página ───────────────────────────────────────────────── */
   var q = new URLSearchParams(location.search);
-  try {
-    var ql = q.get('lang') || '';
-    if (/^en/i.test(ql)) document.documentElement.lang = 'en';
-    else if (/^es/i.test(ql)) document.documentElement.lang = 'es';
-  } catch (eLang) {}
-  function idioma() { return /^en/i.test(document.documentElement.lang || '') ? 'en' : 'es'; }
-  function tr(es, en) { return idioma() === 'en' ? en : es; }
   var estadoPagina = {
     marca: ID_VALIDO.test(q.get('marca') || '') ? q.get('marca') : 'lumbre',
     modo: MODOS[q.get('modo')] ? q.get('modo') : 'marca',
@@ -93,19 +86,19 @@
       var t = m.tipografia, r = m.radios, s = m.sombras, tono = m.tono;
       document.getElementById('fichaNombre').textContent = m.nombre;
       ficha.innerHTML =
-        '<div class="fx-col fx-wide"><h3>' + tr('Colores · modo ', 'Colors · mode ') + esc(modo) + '</h3><div class="sws">' + sw + '</div></div>' +
-        '<div class="fx-col"><h3>' + tr('Tipografía', 'Typography') + '</h3>' +
+        '<div class="fx-col fx-wide"><h3>Colores · modo ' + esc(modo) + '</h3><div class="sws">' + sw + '</div></div>' +
+        '<div class="fx-col"><h3>Tipografía</h3>' +
           '<div class="fx-type" style="font-family:' + esc(t.titulos) + ';font-weight:' + esc(t.pesoTitulos) + ';text-transform:' + esc(t.transformTitulos || 'none') + ';letter-spacing:' + esc(t.trackingTitulos || 'normal') + '">' + esc(m.demo.titular) + '</div>' +
           '<div class="fx-body" style="font-family:' + esc(t.texto) + '">' + esc(m.descripcion) + '</div>' +
-          '<dl class="fx-dl"><dt>' + tr('Títulos', 'Headings') + '</dt><dd>' + esc(t.titulos.split(',')[0].replace(/'/g, '')) + ' · ' + esc(t.pesoTitulos) + '</dd><dt>' + tr('Texto', 'Text') + '</dt><dd>' + esc(t.texto.split(',')[0].replace(/'/g, '')) + '</dd>' +
-          '<dt>' + tr('Radios', 'Radii') + '</dt><dd>' + esc(r.sm) + ' · ' + esc(r.md) + ' · ' + esc(r.lg) + ' · ' + tr('botón', 'button') + ' ' + esc(r.boton) + '</dd><dt>' + tr('Sombras', 'Shadows') + '</dt><dd>' + (s.md === 'none' ? tr('ninguna (plano)', 'none (flat)') : tr('suaves, 3 niveles', 'soft, 3 levels')) + '</dd>' +
-          '<dt>' + tr('Modo', 'Mode') + '</dt><dd>' + esc(m.modo) + tr(' por defecto · ', ' by default · ') + Object.keys(m.colores).join(tr(' y ', ' and ')) + '</dd></dl></div>' +
-        '<div class="fx-col"><h3>' + tr('Logo, favicon y tono', 'Logo, favicon and tone') + '</h3>' +
-          '<div class="fx-logo"><span class="mb-logo" data-mb-logo></span><img src="' + esc(m.favicon) + '" alt="favicon ' + esc(m.nombre) + '" width="40" height="40"></div>' +
+          '<dl class="fx-dl"><dt>Títulos</dt><dd>' + esc(t.titulos.split(',')[0].replace(/'/g, '')) + ' · ' + esc(t.pesoTitulos) + '</dd><dt>Texto</dt><dd>' + esc(t.texto.split(',')[0].replace(/'/g, '')) + '</dd>' +
+          '<dt>Radios</dt><dd>' + esc(r.sm) + ' · ' + esc(r.md) + ' · ' + esc(r.lg) + ' · botón ' + esc(r.boton) + '</dd><dt>Sombras</dt><dd>' + (s.md === 'none' ? 'ninguna (plano)' : 'suaves, 3 niveles') + '</dd>' +
+          '<dt>Modo</dt><dd>' + esc(m.modo) + ' por defecto · ' + Object.keys(m.colores).join(' y ') + '</dd></dl></div>' +
+        '<div class="fx-col"><h3>Logo, favicon y tono</h3>' +
+          '<div class="fx-logo"><span class="mb-logo" data-mb-logo></span><img src="' + esc(m.favicon) + '" alt="favicon de ' + esc(m.nombre) + '" width="40" height="40"></div>' +
           '<p class="fx-voz">' + esc(tono.voz) + '</p>' +
-          '<div class="fx-words"><span>' + tr('Sí:', 'Yes:') + '</span> ' + tono.si.map(function (w) { return '<em>' + esc(w) + '</em>'; }).join(' ') + '</div>' +
-          '<div class="fx-words no"><span>' + tr('No:', 'No:') + '</span> ' + tono.no.map(function (w) { return '<em>' + esc(w) + '</em>'; }).join(' ') + '</div>' +
-          '<ul class="fx-frases"><li><b>CTA</b> «' + esc(tono.frases.cta) + '»</li><li><b>' + tr('Vacío', 'Empty') + '</b> «' + esc(tono.frases.vacio) + '»</li><li><b>' + tr('Error', 'Error') + '</b> «' + esc(tono.frases.error) + '»</li></ul>' +
+          '<div class="fx-words"><span>Sí:</span> ' + tono.si.map(function (w) { return '<em>' + esc(w) + '</em>'; }).join(' ') + '</div>' +
+          '<div class="fx-words no"><span>No:</span> ' + tono.no.map(function (w) { return '<em>' + esc(w) + '</em>'; }).join(' ') + '</div>' +
+          '<ul class="fx-frases"><li><b>CTA</b> «' + esc(tono.frases.cta) + '»</li><li><b>Vacío</b> «' + esc(tono.frases.vacio) + '»</li><li><b>Error</b> «' + esc(tono.frases.error) + '»</li></ul>' +
           (estadoPagina.propuesta ? '<span class="fx-json">propuesta sin guardar · «Descargar JSON» arriba</span>' :
             '<a class="fx-json" href="api/marcas/' + esc(m.id) + '" target="_blank" rel="noopener">api/marcas/' + esc(m.id) + ' ↗</a>') + '</div>';
       var comp = document.getElementById('componentes');
@@ -150,7 +143,7 @@
       var sello = document.getElementById('resumenSello');
       var propuesta = estadoPagina.propuesta || (m.catalogo && m.catalogo.propuesta);
       sello.hidden = !m.ejemplo && !propuesta;
-      sello.textContent = propuesta ? tr('Propuesta automática · no es la marca oficial', 'Automatic proposal · not the official brand') : tr('Cliente de ejemplo · marca ficticia', 'Example client · fictional brand');
+      sello.textContent = propuesta ? 'Propuesta automática · no es la marca oficial' : 'Cliente de ejemplo · marca ficticia';
       return Promise.all([pintarMaquetas(m), pintarFicha(m)]);
     }).catch(function (e) {
       // Un ?marca= que no existe (o que ya no está en el catálogo) vuelve al ejemplo de siempre.
@@ -167,7 +160,7 @@
       var extra = lista.filter(function (c) { return CLIENTES.indexOf(c.id) === -1; });
       if (!extra.length) { cont.hidden = true; return; }
       cont.hidden = false;
-      cont.innerHTML = '<span class="cat-tit">' + tr('Del catálogo', 'From the catalog') + '</span>' + extra.map(function (c) {
+      cont.innerHTML = '<span class="cat-tit">Del catálogo</span>' + extra.map(function (c) {
         var tipo = c.catalogo && c.catalogo.propuesta ? 'propuesta' : (c.ejemplo ? 'ejemplo' : 'real');
         return '<button type="button" class="cat-chip" data-elegir="' + esc(c.id) + '" aria-pressed="false"><b>' + esc(c.nombre) + '</b><small>' + esc(tipo) + '</small></button>';
       }).join('');
@@ -201,10 +194,5 @@
     catalogo: function () { if (MB.refrescar) MB.refrescar(); pintarCatalogo(); },
     estado: function () { return { marca: estadoPagina.marca, modo: estadoPagina.modo, propuesta: estadoPagina.propuesta }; }
   };
-  window.addEventListener('admira:languagechange', function (ev) {
-    var l = ev && ev.detail && ev.detail.lang;
-    if (l === 'en' || l === 'es') document.documentElement.lang = l;
-    if (window.MarcaBlanca) render(false);
-  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
 })();
