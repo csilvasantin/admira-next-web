@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu marca · vista previa</title>
+<meta name="description" content="Vista previa pública de marca blanca. Metes una web o un logo y ves las maquetas en el navegador. No se guarda la marca. La propuesta real queda pendiente de aprobación.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261002-propuesta">
+<link rel="stylesheet" href="/marcablanca/maquetas.css?v=20261009-demo-5446">
+<link rel="stylesheet" href="/marcablanca/vista/vista.css?v=20261010-vista-5552">
+<script>
+(function () {
+  var q = new URLSearchParams(location.search).get('lang');
+  var l = q === 'en' || q === 'es' ? q : (/^en/i.test(document.documentElement.lang) ? 'en' : 'es');
+  document.documentElement.lang = l;
+  document.addEventListener('admira:languagechange', function (e) {
+    var n = e.detail && e.detail.lang;
+    if (n === 'en' || n === 'es') document.documentElement.lang = n;
+  });
+})();
+</script>
+</head>
+<body data-yk-title="TU MARCA" data-yk-auto="on">
+<main class="vista">
+  <p class="vista-kicker" data-es="Vista previa pública · marca blanca" data-en="Public preview · white label">Vista previa pública · marca blanca</p>
+  <h1 data-es="Tu marca, en el navegador" data-en="Your brand, in the browser">Tu marca, en el navegador</h1>
+  <p class="vista-lead" data-es="Escribe una web o sube un logo. Ves las maquetas de los pilares con esa marca, en español o en inglés. No guardamos la marca en el servidor." data-en="Enter a website or upload a logo. You see the pillar mockups in that brand, in Spanish or in English. We do not store the brand on the server.">Escribe una web o sube un logo. Ves las maquetas de los pilares con esa marca, en español o en inglés. No guardamos la marca en el servidor.</p>
+
+  <form id="vistaForm" class="vista-form" novalidate>
+    <label><span data-es="Nombre de la marca" data-en="Brand name">Nombre de la marca</span>
+      <input id="vistaNombre" name="nombre" type="text" maxlength="80" autocomplete="organization" data-ph-es="Tu marca" data-ph-en="Your brand" placeholder="Tu marca">
+    </label>
+    <label><span data-es="Web (https)" data-en="Website (https)">Web (https)</span>
+      <input id="vistaWeb" name="web" type="url" inputmode="url" maxlength="300" spellcheck="false" data-ph-es="https://www.tumarca.com" data-ph-en="https://www.yourbrand.com" placeholder="https://www.tumarca.com">
+    </label>
+    <label><span data-es="Logo (se queda en este navegador)" data-en="Logo (it stays in this browser)">Logo (se queda en este navegador)</span>
+      <input id="vistaLogo" name="logo" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
+    </label>
+    <button type="submit" data-es="Ver mi marca" data-en="See my brand">Ver mi marca</button>
+  </form>
+  <p id="vistaEstado" class="vista-estado" role="status" aria-live="polite"></p>
+
+  <section id="showrooms" class="maquetas" hidden aria-live="polite"></section>
+  <p id="vistaAviso" class="vista-aviso" hidden></p>
+
+  <section class="vista-pide">
+    <h2 data-es="Pide tu propuesta" data-en="Request your proposal">Pide tu propuesta</h2>
+    <p data-es="Esto crea una solicitud pendiente. La propuesta real solo se crea con aprobación interna, con un máximo de 20 al día. No enseña otras marcas." data-en="This creates a pending request. The real proposal is created only with internal approval, with a maximum of 20 a day. It does not show other brands.">Esto crea una solicitud pendiente. La propuesta real solo se crea con aprobación interna, con un máximo de 20 al día. No enseña otras marcas.</p>
+    <form id="pideForm" class="vista-form" novalidate>
+      <label><span data-es="Correo" data-en="Email">Correo</span>
+        <input id="pideEmail" name="email" type="email" maxlength="120" autocomplete="email" required>
+      </label>
+      <label><span data-es="Nota (opcional)" data-en="Note (optional)">Nota (opcional)</span>
+        <input id="pideNota" name="nota" type="text" maxlength="500">
+      </label>
+      <button type="submit" data-es="Enviar solicitud" data-en="Send request">Enviar solicitud</button>
+    </form>
+    <p id="pideEstado" class="vista-estado" role="status" aria-live="polite"></p>
+  </section>
+
+  <p class="vista-pie"><a href="/demo/" data-es="Volver a /demo" data-en="Back to /demo">Volver a /demo</a></p>
+</main>
+<script src="/assets/admira-frame.js?v=20261009-demo-5446" defer></script>
+<script type="module" src="/marcablanca/vista/vista.js?v=20261010-vista-5552"></script>
+</body>
+</html>
