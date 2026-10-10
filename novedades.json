@@ -425,5 +425,10 @@
     "Demo Pixeria novedades: ocho capítulos y vídeo narrado en español e inglés hasta el gemelo 360.",
     "Comando /demo pixeria novedades disponible desde Experto, con pausa, avance y reanudación.",
     "Entrada temporal editable y eliminable desde el editor de demos; otras demos y campañas se conservan."
+  ],
+  "v.10.10.2026.r17.15:43": [
+    "Frontier: nueva ficha Tinta electrónica · batería MagSafe en /pruebas/frontier/tinta-electronica/ (e-ink 480×800, BLE SY11-ab).",
+    "Primera imagen GOOD (15:23 Madrid, Fold + AI Cast Assistant + adb); coste 0 con Nemotron 3 Ultra; hoja de ruta sin móvil (Jensen).",
+    "Incluye cápsula GOOD y capturas del Fold (fotos Jensen #5570). Solo zona DMZ /pruebas; sin enlace público."
   ]
 }
