@@ -318,6 +318,21 @@
     decirDemo('Uso: /demo login | patas | portada | movil | 404 | clientes', ctx);
     return Promise.resolve('mal');
   }
+  // /frontier (Carlos, 10-10-2026 14:01): salto directo a la zona Frontier de /pruebas. Solo el
+  // comando: sin sesión, /pruebas responde con su login (401) como siempre.
+  var FRONTIER_URL = '/pruebas/frontier/';
+  function registrarFrontier(F) {
+    if (!F || !F.verbo || (F.tiene && F.tiene('frontier'))) return;
+    F.verbo({
+      id: 'frontier', aliases: [],
+      ayuda: 'Abre Frontier, lo más avanzado de Admira (zona de pruebas, con sesión)',
+      ayudaEn: 'Opens Frontier, the cutting edge of Admira (test zone, sign-in required)',
+      run: function (args, ctx) {
+        decirDemo(T('Abriendo Frontier…', 'Opening Frontier…'), ctx);
+        G.location.assign(FRONTIER_URL);
+      }
+    });
+  }
   function registrarDemo(F, X) {
     if (!F || !F.verbo || (F.tiene && F.tiene('demo'))) return;
     F.verbo({
@@ -398,6 +413,7 @@
       if (hola && out.querySelector('.ax-hello')) hola.parentNode.removeChild(hola);
       engancharTerminal(X);
       registrarDemo(F, X);
+      registrarFrontier(F);
       if (!F || !F.verbo || !X.list) return;
       // El CLI del armazón delega en la piel los verbos que no tiene (la página manda si ya los tiene).
       X.list().forEach(function (v) {
@@ -426,15 +442,27 @@
       marcaReal(X);
       sincronizarIdioma(X);
       registrarDemo(G.AdmiraFrame, X);
+      registrarFrontier(G.AdmiraFrame);
       engancharTerminal(X);
     });
   }
 
+  // Presites sin ⌘ Experto (Carlos, 10-10-2026 14:02): el modo Experto es SOLO para sesiones
+  // identificadas (intranet y /pruebas). Sin sesión no se carga la piel ni su consola: el armazón
+  // pone en su hueco el selector de idioma ES/EN. El idioma guardado se sigue aplicando y
+  // guardando igual, para que no cambie al iniciar sesión.
+  function conSesion() {
+    if (G.__admiraSesionSello) return G.__admiraSesionSello;
+    return Promise.resolve(false);
+  }
   function arrancar() {
     if (d.body && d.body.getAttribute('data-yk-ligera') === '404') return;
-    var rail = d.getElementById('ykExpertRail');
-    if (rail && rail.querySelector('.yk-cli-form')) conArmazon(rail);
-    else if (!d.querySelector('script[src*="admira-frame.js"]') || d.body.hasAttribute('data-ax-propio')) sinArmazon();
+    conSesion().then(function (ok) {
+      if (!ok) { sincronizarIdioma(null); return; }
+      var rail = d.getElementById('ykExpertRail');
+      if (rail && rail.querySelector('.yk-cli-form')) conArmazon(rail);
+      else if (!d.querySelector('script[src*="admira-frame.js"]') || d.body.hasAttribute('data-ax-propio')) sinArmazon();
+    }, function () { sincronizarIdioma(null); });
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', arrancar, {once: true});
   else arrancar();

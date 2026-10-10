@@ -99,6 +99,7 @@ const NAV_BARRA = ['/proyectos/', '/usuarios', '/webmaster', '/analitics', '/flo
 // pero estas llevan data-yk-interno y el visitante anónimo no las ve (admira-frame.css las esconde
 // sin .admira-con-sesion y admira-frame.js las quita del DOM si /api/sello dice que no hay sesión).
 const NAV_INTERNOS = ['/usuarios', '/webmaster', '/analitics', '/flota', '/organigrama', '/presentaciones/', '/xpace/manage'];
+// #ykLangPre (ES · EN) ocupa el hueco de ⌘ sin sesión (norma 32): resumen() no lo cuenta como icono propio.
 const GLIFOS = {ykOptionsToggle: '☰', ykAdvancedToggle: '▤', ykExpertToggle: '⌘'};
 
 const leer = (rel) => readFile(path.join(ROOT, rel), 'utf8');
@@ -385,7 +386,7 @@ async function montar(rel) {
   return {raiz, cuerpo, contexto, html};
 }
 
-const resumen = (n) => n.tagName === 'BUTTON' ? GLIFOS[n.id] || n.id : n.tagName === 'A' ? 'marca' : n.tagName === 'NAV' ? 'nav' : n.getAttribute('data-yk-access') !== null ? 'acceso' : n.classList.contains('yk-meta') ? n.hijos.map(resumen).join('') : n.tagName;
+const resumen = (n) => n.tagName === 'BUTTON' ? GLIFOS[n.id] || n.id : n.tagName === 'A' ? 'marca' : n.tagName === 'NAV' ? 'nav' : n.getAttribute('data-yk-access') !== null ? 'acceso' : n.classList.contains('yk-meta') ? n.hijos.filter((b) => b.id !== 'ykLangPre').map(resumen).join('') : n.tagName;
 
 for (const rel of Object.keys(ADOPTADAS)) {
   test(`${rel}: el armazón pone ☰ antes de la marca y ▤ ⌘ después del acceso`, async () => {

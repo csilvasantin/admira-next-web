@@ -35,7 +35,7 @@ test('ningún alias apunta a dos soluciones y todos los destinos son internos o 
   const vistos = new Map();
   for (const s of SALTOS) {
     assert.ok(s.es && s.en, `${s.id} tiene texto ES/EN`);
-    assert.match(s.url, /^(\/[a-z-]+\/?|https:\/\/www\.admira\.(studio|store|app|biz)\/)$/, s.url);
+    assert.match(s.url, /^(\/[a-z-]+\/?|\/pruebas\/[a-z-]+\/|https:\/\/www\.admira\.(studio|store|app|biz)\/)$/, s.url);
     for (const a of s.alias) {
       assert.ok(!vistos.has(a), `alias repetido: ${a}`);
       vistos.set(a, s.id);
