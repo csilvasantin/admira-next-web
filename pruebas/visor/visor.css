@@ -58,6 +58,11 @@ h1.vacio {
   color: #f7f7f7;
 }
 
+.detalle.suave {
+  font-size: 20px;
+  font-weight: 500;
+}
+
 .aviso {
   display: none;
   margin: 0;
@@ -72,6 +77,16 @@ h1.vacio {
 }
 
 .aviso.hay { display: inline-block; }
+
+.nota {
+  display: none;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #c8c8c8;
+}
+
+.nota.hay { display: block; }
 
 .marca {
   margin: 0;
@@ -101,6 +116,7 @@ button:focus,
 button.focused {
   outline: none;
   box-shadow: 0 0 0 3px var(--visor-acento, #9eb6ff);
+  background: color-mix(in srgb, var(--visor-acento, #9eb6ff) 20%, transparent);
 }
 
 button[hidden] { display: none; }

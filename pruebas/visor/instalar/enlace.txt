@@ -1,1 +1,1 @@
-fb-viewapp://web_app_deep_link?appName=Admira%20Visor&appUrl=https%3A%2F%2Fsmith-visor-5563.admiranext.pages.dev%2Fpruebas%2Fvisor%2F
+fb-viewapp://web_app_deep_link?appName=Admira%20Visor&appUrl=https%3A%2F%2Fwww.admiranext.com%2Fpruebas%2Fvisor%2F

@@ -39,6 +39,7 @@
     titulo.querySelector('[data-l="es"]').textContent = dato.es;
     titulo.querySelector('[data-l="en"]').textContent = dato.en;
     titulo.classList.toggle('vacio', dato.es === 'Esperando contenido');
+    detalle.classList.toggle('suave', dato.es === 'Esperando contenido');
     detalle.querySelector('[data-l="es"]').textContent = dato.detalleEs;
     detalle.querySelector('[data-l="en"]').textContent = dato.detalleEn;
     var etiquetas = {
@@ -56,7 +57,7 @@
   }
 
   function nota(es, en) {
-    var nodo = document.getElementById('aviso');
+    var nodo = document.getElementById('nota');
     if (!nodo) return;
     var a = nodo.querySelector('[data-l="es"]');
     var b = nodo.querySelector('[data-l="en"]');
@@ -69,6 +70,22 @@
 
   function aviso(texto) {
     nota(texto, texto);
+  }
+
+  function nombreLegible(pd, screen) {
+    var slug = String(screen || '').trim().toLowerCase();
+    var draft = (pd && pd.draft) || {};
+    var pl = draft.playlist;
+    var fuentes = [];
+    if (pl && typeof pl === 'object') fuentes.push(pl.name, pl.title, pl.nombre, pl.label);
+    fuentes.push(draft.name, draft.title, draft.nombre, draft.label);
+    for (var i = 0; i < fuentes.length; i++) {
+      var n = String(fuentes[i] || '').trim();
+      if (!n || n.toLowerCase() === slug) continue;
+      if (!/\s/.test(n) && /virtual-|screen-|pantalla-/.test(n.toLowerCase())) continue;
+      return n;
+    }
+    return '';
   }
 
   function pieza(item) {
@@ -94,19 +111,21 @@
     var screen = q.get('screen') || 'virtual-frescaria';
     var notas = [];
     var items = [];
+    var legible = '';
     try {
       var pr = await fetch('https://admira.tv/api/playlist?screen=' + encodeURIComponent(screen), { cache: 'no-store' });
       if (!pr.ok) notas.push('playlist ' + pr.status);
       else {
         var pd = await pr.json();
         items = (pd.draft && pd.draft.items) || [];
+        legible = nombreLegible(pd, screen);
       }
     } catch (e) {
       notas.push('playlist sin CORS para este origen');
     }
     var utiles = items.map(pieza).filter(Boolean);
     if (utiles[0]) poner('ahora', utiles[0].es, utiles[0].en, utiles[0].detalleEs, utiles[0].detalleEn);
-    else poner('ahora', 'Esperando contenido', 'Waiting for content', 'Pantalla ' + screen, 'Screen ' + screen);
+    else poner('ahora', 'Esperando contenido', 'Waiting for content', legible || 'Pantalla sin asignar', legible || 'Unassigned screen');
     if (utiles[1]) poner('siguiente', utiles[1].es, utiles[1].en, utiles[1].detalleEs, utiles[1].detalleEn);
     else poner('siguiente', 'Sin siguiente', 'No next piece', '', '');
 
