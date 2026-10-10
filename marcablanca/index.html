@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="es" class="yk-framed">
 <head>
+<script>
+/* El lang sigue ?lang= y admira:languagechange. El atributo inicial es solo el respaldo sin script. */
+(function () {
+  function aplicar(l) { if (l === 'en' || l === 'es') document.documentElement.lang = l; }
+  try {
+    var q = new URLSearchParams(location.search).get('lang') || '';
+    if (/^en/i.test(q)) aplicar('en');
+    else if (/^es/i.test(q)) aplicar('es');
+  } catch (e) {}
+  window.addEventListener('admira:languagechange', function (ev) {
+    var l = ev && ev.detail && ev.detail.lang;
+    aplicar(l === 'en' || l === 'es' ? l : null);
+  });
+})();
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Marca blanca · AdmiraNeXT — una piel para Studio, Store, Biz y App</title>
@@ -22,9 +37,9 @@
 <link rel="stylesheet" href="/marcablanca/demo.css?v=20261009-demo-5446">
 <link rel="stylesheet" href="/assets/presentation-prospect.css?v=20261003-switch">
 <link rel="stylesheet" href="/marcablanca/propuesta-automatica.css?v=20261002-propuesta">
-<script src="/marcablanca/marcablanca.js?v=20261002-propuesta" data-mb-auto="false"></script>
+<script src="/marcablanca/marcablanca.js?v=20261010-estilo-5549" data-mb-auto="false"></script>
 <script type="module" src="/marcablanca/maquetas.js?v=20261002-propuesta"></script>
-<script src="/marcablanca/demo.js?v=20261002-propuesta" defer></script>
+<script src="/marcablanca/demo.js?v=20261010-estilo-5549" defer></script>
 <script type="module" src="/marcablanca/propuesta.js?v=20261002-propuesta"></script>
 <script type="module" src="/marcablanca/lanzar-propuesta.js?v=20261010-frescaria"></script>
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
@@ -39,43 +54,43 @@
   <div class="content">
     <header class="hero">
       <div class="term"><span class="pr">$</span> cat clientes/lumbre.json | marcablanca --aplicar studio store app yokup <span class="ok">ok</span></div>
-      <div class="kicker">Marca blanca · Galaxia Admira</div>
-      <h1>Una sola piel para las cuatro patas</h1>
-      <p class="lede">Cada cliente ve <b>Admira.Studio</b>, <b>Admira.store</b>, <b>Admira.biz</b> y <b>Admira.app</b> con
+      <div class="kicker" data-en="White label · Admira galaxy">Marca blanca · Galaxia Admira</div>
+      <h1 data-en="One skin for the four pillars">Una sola piel para las cuatro patas</h1>
+      <p class="lede" data-en="Each client sees <b>Admira.Studio</b>, <b>Admira.store</b>, <b>Admira.biz</b> and <b>Admira.app</b> with <b>its logo, its colors, its type and its tone</b>. One shared stylesheet —<code>marcablanca.css</code>—, one JSON per client and a one-line loader. Change the client and the sites change together.">Cada cliente ve <b>Admira.Studio</b>, <b>Admira.store</b>, <b>Admira.biz</b> y <b>Admira.app</b> con
         <b>su logo, sus colores, su tipografía y su tono</b>. Una hoja de estilos común —<code>marcablanca.css</code>—,
         un JSON por cliente y un cargador de una línea. Cambia el cliente y cambian las webs a la vez.</p>
     </header>
 
     <section id="concepto">
-      <div class="sec-head"><span class="ico">◆</span><h2>La cadena: crear, distribuir, vender, mantener</h2><span class="note">una marca · cuatro webs</span></div>
+      <div class="sec-head"><span class="ico">◆</span><h2 data-en="The chain: create, distribute, sell, maintain">La cadena: crear, distribuir, vender, mantener</h2><span class="note" data-en="one brand · four sites">una marca · cuatro webs</span></div>
       <div class="patas">
-        <div class="pata"><span class="lvl">01 · admira.studio</span><h3>Studio <em>crea</em></h3><p>Contenidos con IA para cada pantalla: carteles, vídeos verticales, menús digitales.</p><span class="arrow">→</span></div>
-        <div class="pata"><span class="lvl">02 · admira.store</span><h3>Store <em>distribuye</em></h3><p>Despacha cada pieza a la superficie exacta del gemelo digital y confirma que se ve.</p><span class="arrow">→</span></div>
-        <div class="pata"><span class="lvl">03 · admira.biz</span><h3>Biz <em>comercializa</em></h3><p>DooH y Retail Media: vende el inventario por circuito, público y CPM. El dominio anterior era clearchannel.tv.</p><span class="arrow">→</span></div>
-        <div class="pata"><span class="lvl">04 · admira.app</span><h3>App <em>mantiene</em></h3><p>Instalaciones y mantenimiento: detecta y resuelve incidencias de pantallas, hilo musical, climatización y redes. El sitio anterior era el de Yokup.</p></div>
+        <div class="pata"><span class="lvl" data-en="01 · admira.studio">01 · admira.studio</span><h3 data-en="Studio &lt;em&gt;creates&lt;/em&gt;">Studio <em>crea</em></h3><p data-en="AI content for every screen: posters, vertical videos, digital menus.">Contenidos con IA para cada pantalla: carteles, vídeos verticales, menús digitales.</p><span class="arrow">→</span></div>
+        <div class="pata"><span class="lvl" data-en="02 · admira.store">02 · admira.store</span><h3 data-en="Store &lt;em&gt;distributes&lt;/em&gt;">Store <em>distribuye</em></h3><p data-en="It sends each piece to the exact surface of the digital twin and confirms it is on screen.">Despacha cada pieza a la superficie exacta del gemelo digital y confirma que se ve.</p><span class="arrow">→</span></div>
+        <div class="pata"><span class="lvl" data-en="03 · admira.biz">03 · admira.biz</span><h3 data-en="Biz &lt;em&gt;sells&lt;/em&gt;">Biz <em>comercializa</em></h3><p data-en="DooH and Retail Media: it sells inventory by circuit, audience and CPM. The previous domain was clearchannel.tv.">DooH y Retail Media: vende el inventario por circuito, público y CPM. El dominio anterior era clearchannel.tv.</p><span class="arrow">→</span></div>
+        <div class="pata"><span class="lvl" data-en="04 · admira.app">04 · admira.app</span><h3 data-en="App &lt;em&gt;maintains&lt;/em&gt;">App <em>mantiene</em></h3><p data-en="Installations and maintenance: it detects and resolves incidents on screens, music, climate and networks. The previous site was Yokup’s.">Instalaciones y mantenimiento: detecta y resuelve incidencias de pantallas, hilo musical, climatización y redes. El sitio anterior era el de Yokup.</p></div>
       </div>
     </section>
 
     <section id="lanzar">
-      <div class="sec-head"><span class="ico">✦</span><h2>Lanzar propuesta</h2><span class="note">marca → estudio → presentación → plataforma · requiere la sesión del generador</span></div>
-      <p class="mas">¿Has detectado una oportunidad? Escribe la <b>marca</b>, su <b>web</b> o la <b>idea</b>: se crea su marca en el catálogo, se estudia la compañía con su web pública (lo deducido va marcado como <em>hipótesis</em>), se genera la presentación vestida con su marca y se preparan Studio, Store, App y Biz con <code>?marca=&lt;id&gt;</code>. Úsalo ante una oportunidad concreta, nunca en bucle.</p>
+      <div class="sec-head"><span class="ico">✦</span><h2 data-en="Launch a proposal">Lanzar propuesta</h2><span class="note" data-en="brand → study → presentation → platform · needs the generator session">marca → estudio → presentación → plataforma · requiere la sesión del generador</span></div>
+      <p class="mas" data-en="Spotted an opportunity? Write the <b>brand</b>, its <b>site</b> or the <b>idea</b>: its brand is created in the catalog, the company is studied from its public site (what is inferred is marked as a <em>hypothesis</em>), the presentation is dressed with that brand, and Studio, Store, App and Biz are prepared with <code>?marca=&lt;id&gt;</code>. Use it for a real opportunity, never in a loop.">¿Has detectado una oportunidad? Escribe la <b>marca</b>, su <b>web</b> o la <b>idea</b>: se crea su marca en el catálogo, se estudia la compañía con su web pública (lo deducido va marcado como <em>hipótesis</em>), se genera la presentación vestida con su marca y se preparan Studio, Store, App y Biz con <code>?marca=&lt;id&gt;</code>. Úsalo ante una oportunidad concreta, nunca en bucle.</p>
       <div data-lanzar-propuesta="marcablanca"></div>
     </section>
 
     <section id="probar">
-      <div class="sec-head"><span class="ico">▣</span><h2>Elige un cliente</h2><span class="note">tres marcas ficticias de ejemplo + Admira · o la tuya por URL</span></div>
+      <div class="sec-head"><span class="ico">▣</span><h2 data-en="Choose a client">Elige un cliente</h2><span class="note" data-en="three fictional example brands + Admira · or yours by URL">tres marcas ficticias de ejemplo + Admira · o la tuya por URL</span></div>
       <div class="selector" role="group" aria-label="Cliente">
-        <button type="button" class="sel" data-elegir="lumbre" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Cafeterías · ejemplo</span></button>
-        <button type="button" class="sel" data-elegir="brumelle" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Moda · ejemplo</span></button>
-        <button type="button" class="sel" data-elegir="frescaria" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Supermercados · ejemplo</span></button>
-        <button type="button" class="sel sel--casa" data-elegir="admira" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub">Marca por defecto</span></button>
+        <button type="button" class="sel" data-elegir="lumbre" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub" data-en="Cafés · example">Cafeterías · ejemplo</span></button>
+        <button type="button" class="sel" data-elegir="brumelle" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub" data-en="Fashion · example">Moda · ejemplo</span></button>
+        <button type="button" class="sel" data-elegir="frescaria" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub" data-en="Supermarkets · example">Supermercados · ejemplo</span></button>
+        <button type="button" class="sel sel--casa" data-elegir="admira" aria-pressed="false"><span class="sel-logo mb-logo" data-mb-logo></span><span class="sel-sub" data-en="Default brand">Marca por defecto</span></button>
         <form class="sel sel--url" id="formUrl" data-activa="false" novalidate>
-          <label class="url-tit" for="urlMarca"><b>Tu marca</b> · introduce una URL</label>
+          <label class="url-tit" for="urlMarca" data-en="<b>Your brand</b> · enter a URL"><b>Tu marca</b> · introduce una URL</label>
           <div class="url-fila">
             <input id="urlMarca" name="url" type="text" inputmode="url" autocomplete="url" spellcheck="false" maxlength="300" placeholder="https://www.tumarca.com" aria-describedby="urlEstado">
-            <button type="submit" class="url-btn">Analizar</button>
+            <button type="submit" class="url-btn" data-en="Analyze">Analizar</button>
           </div>
-          <p id="urlEstado" class="url-estado" role="status" aria-live="polite">Saca logo, colores y tipografía de su web y crea una propuesta de marca blanca para las 4 patas.</p>
+          <p id="urlEstado" class="url-estado" role="status" aria-live="polite" data-en="It takes the logo, colors and type from their site and drafts a white-label proposal for the 4 pillars.">Saca logo, colores y tipografía de su web y crea una propuesta de marca blanca para las 4 patas.</p>
         </form>
       </div>
       <div id="catalogoExtra" class="cat-extra" hidden></div>
@@ -84,26 +99,26 @@
         <div class="pr-cab">
           <span class="pr-logo" id="prLogo"></span>
           <div>
-            <h3 id="propuestaTitulo">Propuesta de marca blanca para <span id="prNombre">—</span></h3>
+            <h3 id="propuestaTitulo" data-en="White-label proposal for <span id=&quot;prNombre&quot;>—</span>">Propuesta de marca blanca para <span id="prNombre">—</span></h3>
             <p class="pr-aviso" id="prAviso"></p>
           </div>
         </div>
         <div class="pr-grid">
-          <label class="pr-f pr-nombre"><span>Nombre</span><input type="text" maxlength="80" data-pr="nombre"></label>
-          <label class="pr-f pr-color"><span>Primario</span><input type="color" data-pr="primario"><code data-pr-hex="primario"></code></label>
-          <label class="pr-f pr-color"><span>Secundario</span><input type="color" data-pr="secundario"><code data-pr-hex="secundario"></code></label>
-          <label class="pr-f pr-color"><span>Acento</span><input type="color" data-pr="acento"><code data-pr-hex="acento"></code></label>
-          <label class="pr-f pr-color"><span>Fondo</span><input type="color" data-pr="fondo"><code data-pr-hex="fondo"></code></label>
-          <label class="pr-f"><span>Tipografía</span><select data-pr="tipografia"></select></label>
-          <label class="pr-f"><span>Modo</span><select data-pr="modo"><option value="claro">Claro</option><option value="oscuro">Oscuro</option></select></label>
+          <label class="pr-f pr-nombre"><span data-en="Name">Nombre</span><input type="text" maxlength="80" data-pr="nombre"></label>
+          <label class="pr-f pr-color"><span data-en="Primary">Primario</span><input type="color" data-pr="primario"><code data-pr-hex="primario"></code></label>
+          <label class="pr-f pr-color"><span data-en="Secondary">Secundario</span><input type="color" data-pr="secundario"><code data-pr-hex="secundario"></code></label>
+          <label class="pr-f pr-color"><span data-en="Accent">Acento</span><input type="color" data-pr="acento"><code data-pr-hex="acento"></code></label>
+          <label class="pr-f pr-color"><span data-en="Background">Fondo</span><input type="color" data-pr="fondo"><code data-pr-hex="fondo"></code></label>
+          <label class="pr-f"><span data-en="Typography">Tipografía</span><select data-pr="tipografia"></select></label>
+          <label class="pr-f"><span data-en="Mode">Modo</span><select data-pr="modo"><option value="claro" data-en="Light">Claro</option><option value="oscuro" data-en="Dark">Oscuro</option></select></label>
         </div>
         <p class="pr-detectado" id="prDetectado"></p>
         <div class="pr-acciones">
-          <button type="button" class="pr-btn" data-pr-accion="presentacion">Vista previa de la presentación ↗</button>
-          <button type="button" class="pr-btn" data-pr-accion="paletaLogo">Paleta del logo</button>
-          <button type="button" class="pr-btn" data-pr-accion="restaurar">Deshacer retoques</button>
-          <button type="button" class="pr-btn" data-pr-accion="json">Descargar JSON</button>
-          <button type="button" class="pr-btn pr-guardar" data-pr-accion="guardar">Guardar en el catálogo</button>
+          <button type="button" class="pr-btn" data-pr-accion="presentacion" data-en="Presentation preview ↗">Vista previa de la presentación ↗</button>
+          <button type="button" class="pr-btn" data-pr-accion="paletaLogo" data-en="Logo palette">Paleta del logo</button>
+          <button type="button" class="pr-btn" data-pr-accion="restaurar" data-en="Undo edits">Deshacer retoques</button>
+          <button type="button" class="pr-btn" data-pr-accion="json" data-en="Download JSON">Descargar JSON</button>
+          <button type="button" class="pr-btn pr-guardar" data-pr-accion="guardar" data-en="Save to the catalog">Guardar en el catálogo</button>
         </div>
         <p class="pr-acceso" id="prAcceso">Guardar en el catálogo requiere la sesión del <a href="/presentaciones/" target="_blank" rel="noopener">generador de presentaciones</a>.</p>
         <p class="pr-estado" id="prEstado" role="status" aria-live="polite"></p>
@@ -115,10 +130,10 @@
           <p id="resumenDesc"></p>
         </div>
         <div class="modos" role="group" aria-label="Modo de color">
-          <button type="button" data-modo="marca" aria-pressed="true">Modo de la marca</button>
-          <button type="button" data-modo="nativo" aria-pressed="false">Nativo de cada web</button>
-          <button type="button" data-modo="claro" aria-pressed="false">Claro</button>
-          <button type="button" data-modo="oscuro" aria-pressed="false">Oscuro</button>
+          <button type="button" data-modo="marca" aria-pressed="true" data-en="Brand mode">Modo de la marca</button>
+          <button type="button" data-modo="nativo" aria-pressed="false" data-en="Each site’s native mode">Nativo de cada web</button>
+          <button type="button" data-modo="claro" aria-pressed="false" data-en="Light">Claro</button>
+          <button type="button" data-modo="oscuro" aria-pressed="false" data-en="Dark">Oscuro</button>
         </div>
       </div>
 
@@ -140,25 +155,25 @@
           <div class="mk-scope"></div>
         </article>
       </div>
-      <p class="pie-maquetas">Maquetas fieles a la estructura real de cada web (cabecera, navegación y pantalla clave). Los clientes Lumbre Café, BRUMELLE y Frescaria son <b>marcas ficticias</b> creadas para este ejemplo. Una marca analizada por URL es una <b>propuesta automática</b>: no es la marca oficial del cliente.</p>
+      <p class="pie-maquetas" data-en="Mocks faithful to the real structure of each site (header, navigation and key screen). Lumbre Café, BRUMELLE and Frescaria are <b>fictional brands</b> made for this example. A brand analyzed from a URL is an <b>automatic proposal</b>: it is not the client’s official brand.">Maquetas fieles a la estructura real de cada web (cabecera, navegación y pantalla clave). Los clientes Lumbre Café, BRUMELLE y Frescaria son <b>marcas ficticias</b> creadas para este ejemplo. Una marca analizada por URL es una <b>propuesta automática</b>: no es la marca oficial del cliente.</p>
     </section>
 
     <section id="tokens">
-      <div class="sec-head"><span class="ico">◐</span><h2>Tokens de <span id="fichaNombre">—</span></h2><span class="note">lo que sirve /marcablanca/api/marcas/&lt;id&gt;</span></div>
+      <div class="sec-head"><span class="ico">◐</span><h2 data-en="Tokens for <span id=&quot;fichaNombre&quot;>—</span>">Tokens de <span id="fichaNombre">—</span></h2><span class="note" data-en="what /marcablanca/api/marcas/&lt;id&gt; serves">lo que sirve /marcablanca/api/marcas/&lt;id&gt;</span></div>
       <div id="ficha" class="ficha"></div>
-      <h3 class="sub">Componentes base de <code>marcablanca.css</code></h3>
+      <h3 class="sub" data-en="Base components of <code>marcablanca.css</code>">Componentes base de <code>marcablanca.css</code></h3>
       <div id="componentes" class="componentes"></div>
     </section>
 
     <section id="presentaciones">
-      <div class="sec-head"><span class="ico">▶</span><h2>En las presentaciones · prospect</h2><span class="note">el generador viste el deck con la marca del destinatario</span></div>
-      <p class="mas">En el <a href="/presentaciones/">generador de presentaciones</a>, activa <b>Prospect</b> y elige una marca del catálogo (<code>/marcablanca/api/marcas</code>) o crea una nueva (nombre, logo, colores, tipografía). Portada, fondos, tipografías, logo, gráficos y las maquetas de Studio, Store, Biz y App se adaptan solos; sin prospect, todo sigue en Admira. La misma presentación de ejemplo, para cada cliente:</p>
+      <div class="sec-head"><span class="ico">▶</span><h2 data-en="In presentations · prospect">En las presentaciones · prospect</h2><span class="note" data-en="the generator dresses the deck with the recipient’s brand">el generador viste el deck con la marca del destinatario</span></div>
+      <p class="mas" data-en="In the <a href=&quot;/presentaciones/&quot;>presentation generator</a>, turn on <b>Prospect</b> and pick a brand from the catalog (<code>/marcablanca/api/marcas</code>) or create one (name, logo, colors, type). Cover, backgrounds, type, logo, charts and the Studio, Store, Biz and App mocks adapt on their own; without a prospect, everything stays Admira. The same sample presentation, for each client:">En el <a href="/presentaciones/">generador de presentaciones</a>, activa <b>Prospect</b> y elige una marca del catálogo (<code>/marcablanca/api/marcas</code>) o crea una nueva (nombre, logo, colores, tipografía). Portada, fondos, tipografías, logo, gráficos y las maquetas de Studio, Store, Biz y App se adaptan solos; sin prospect, todo sigue en Admira. La misma presentación de ejemplo, para cada cliente:</p>
       <p class="mas pp-demo-enlaces"><a href="/marcablanca/presentacion?marca=lumbre" target="_blank" rel="noopener">Lumbre Café ↗</a> · <a href="/marcablanca/presentacion?marca=brumelle" target="_blank" rel="noopener">BRUMELLE ↗</a> · <a href="/marcablanca/presentacion?marca=frescaria" target="_blank" rel="noopener">Frescaria ↗</a> · <a href="/marcablanca/presentacion?marca=admira" target="_blank" rel="noopener">Admira (por defecto) ↗</a></p>
       <div id="prospectDemo"></div>
     </section>
 
     <section id="adoptar">
-      <div class="sec-head"><span class="ico">⌘</span><h2>Cómo adoptarlo en cada web</h2><span class="note">3 pasos · sin reescribir el CSS</span></div>
+      <div class="sec-head"><span class="ico">⌘</span><h2 data-en="How to adopt it on each site">Cómo adoptarlo en cada web</h2><span class="note" data-en="3 steps · without rewriting the CSS">3 pasos · sin reescribir el CSS</span></div>
       <ol class="pasos">
         <li><b>Incluye la hoja y el cargador</b> en el <code>&lt;head&gt;</code> de la web, indicando qué plataforma es:</li>
       </ol>
@@ -189,13 +204,13 @@
 <footer>
   <a href="/">admiranext.com</a>
   <span class="sep">·</span>
-  <a href="/libro-de-estilo">Libro de estilo</a>
+  <a href="/libro-de-estilo" data-en="Style book">Libro de estilo</a>
   <span class="sep">·</span>
-  <a href="/marcablanca/estilo">Libro de estilo por marca</a>
+  <a href="/marcablanca/estilo" data-en="Style book by brand">Libro de estilo por marca</a>
   <span class="sep">·</span>
-  <a href="/filosofia">Filosofía</a>
+  <a href="/filosofia" data-en="Philosophy">Filosofía</a>
   <span class="sep">·</span>
-  <span>Marca blanca de la Galaxia Admira<span data-admira-sello-pie data-prefijo=" · " hidden></span></span>
+  <span data-en="White label of the Admira galaxy">Marca blanca de la Galaxia Admira<span data-admira-sello-pie data-prefijo=" · " hidden></span></span>
 </footer>
 <script type="module">
 import {montarProspect} from '/assets/presentation-prospect.js?v=20261002-propuesta';

@@ -152,5 +152,12 @@
         "estado": "resuelta"
       }
     ]
+  },
+  "fondos": {
+    "escena": {
+      "svg": "../escenas/altadis.svg",
+      "alt": "Luz naranja sobre un mostrador de madera en un local cálido",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): portada del libro de estilo."
+    }
   }
 }
