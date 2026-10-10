@@ -6,7 +6,7 @@
   'use strict';
   var D = document, query = new URLSearchParams(location.search), platform = query.get('ax_demo');
   if (G.top !== G.self) return;
-  var macroState = {activo:false, pausado:false, muted:false, voice:true, saltar:false, aviso:'', puntos:[], timer:0, originals:[], run:'', lang:'es', panel:null, status:null, resumen:null, caption:null, pauseBtn:null, muteBtn:null};
+  var macroState = {activo:false, pausado:false, muted:false, voice:true, saltar:false, aviso:'', puntos:[], timer:0, originals:[], run:'', lang:'es', panel:null, status:null, resumen:null, caption:null, pauseBtn:null, muteBtn:null, nombre:'', total:0, pasoActual:1, titleEl:null, offsets:[]};
   if (!G.AdmiraDemoMacro) macroInstalar();
   if (platform && String(platform).indexOf('macro:') === 0) { void macroArrancar(String(platform).slice(6)); return; }
   if (G.AdmiraDemoControl) return;
@@ -1046,7 +1046,13 @@
     if (!macroState.panel) return;
     var bien = macroState.puntos.filter(function (p) { return p.estado === 'bien'; }).length;
     var mal = macroState.puntos.filter(function (p) { return p.estado === 'mal'; }).length;
-    var pend = macroState.puntos.filter(function (p) { return p.estado === 'pendiente'; }).length;
+    var pend = macroState.total ? Math.max(0, macroState.total - bien - mal) : macroState.puntos.filter(function (p) { return p.estado === 'pendiente'; }).length;
+    if (macroState.titleEl) {
+      var slug = macroState.nombre || 'MACRO';
+      var paso = macroState.pasoActual || 1;
+      var total = macroState.total || Math.max(paso, macroState.puntos.length || 1);
+      macroState.titleEl.textContent = macroFrase('EN VIVO · ' + slug + ' · paso ' + paso + ' de ' + total, 'LIVE · ' + slug + ' · step ' + paso + ' of ' + total);
+    }
     macroState.panel.dataset.state = macroState.activo ? (macroState.pausado ? 'paused' : 'running') : 'complete';
     macroState.status.textContent = (macroState.aviso ? macroState.aviso + ' · ' : '') + bien + ' ' + macroFrase('bien', 'ok') + ' · ' + mal + ' ' + macroFrase('mal', 'fail') + ' · ' + pend + ' ' + macroFrase('pendiente', 'pending');
     macroState.resumen.textContent = '';
@@ -1067,7 +1073,7 @@
     if (!D.getElementById('admira-macro-style')) {
       var style = D.createElement('style');
       style.id = 'admira-macro-style';
-      style.textContent = '#admira-native-demo{position:fixed;z-index:2147483200;left:14px;right:14px;bottom:14px;background:var(--mb-superficie,#10201c);color:var(--mbx-ink,#f1f5ef);border:1px solid var(--mbx-brand,#9bd6bc);border-radius:12px;padding:12px 16px;box-shadow:0 8px 40px #0008;font:14px/1.45 system-ui;max-height:40vh;overflow:auto}#admira-native-demo p,#admira-native-demo li{margin:3px 0}#admira-native-demo strong{color:var(--mbx-accent,#a4dfc3)}#admira-native-demo button{background:var(--mb-fondo,#223c32);color:var(--mbx-ink,#fff);border:1px solid var(--mb-borde,#759d88);border-radius:6px;padding:7px 12px;margin:3px 5px 0 0;font:inherit;cursor:pointer}#admira-native-demo button:disabled{opacity:.5}#admira-demo-resumen{margin:6px 0 8px;padding-left:1.2em}#admira-demo-resumen li[data-estado="bien"]{color:#9be4ba}#admira-demo-resumen li[data-estado="mal"]{color:#ffb4b4}#admira-demo-resumen li[data-estado="pendiente"]{color:#f0d48a}#admira-demo-pointer{position:fixed;z-index:2147483199;pointer-events:none;width:27px;height:34px}.admira-demo-target{outline:3px solid #9be4ba!important;outline-offset:5px!important}#admira-macro-salto{position:fixed;inset:0;z-index:2147483300;background:var(--mb-fondo,#10201c);color:var(--mbx-ink,#f4f7f2);display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;font:600 28px/1.35 system-ui,sans-serif}';
+      style.textContent = '#admira-native-demo{position:fixed;z-index:2147483200;left:14px;right:14px;bottom:14px;background:var(--mb-superficie,#10201c);color:var(--mbx-ink,#f1f5ef);border:1px solid var(--mbx-brand,#9bd6bc);border-radius:12px;padding:12px 16px;box-shadow:0 8px 40px #0008;font:14px/1.45 system-ui;max-height:40vh;overflow:auto}#admira-native-demo p,#admira-native-demo li{margin:3px 0}#admira-native-demo strong{color:var(--mbx-accent,#a4dfc3)}#admira-native-demo button{background:var(--mb-fondo,#223c32);color:var(--mbx-ink,#fff);border:1px solid var(--mb-borde,#759d88);border-radius:6px;padding:7px 12px;margin:3px 5px 0 0;font:inherit;cursor:pointer}#admira-native-demo button:disabled{opacity:.5}#admira-demo-resumen{margin:6px 0 8px;padding-left:0;list-style:none}#admira-demo-resumen li[data-estado="bien"]{color:#9be4ba}#admira-demo-resumen li[data-estado="mal"]{color:#ffb4b4}#admira-demo-resumen li[data-estado="pendiente"]{color:#f0d48a}#admira-demo-pointer{position:fixed;z-index:2147483199;pointer-events:none;width:27px;height:34px}.admira-demo-target{outline:3px solid #9be4ba!important;outline-offset:5px!important}#admira-macro-salto{position:fixed;inset:0;z-index:2147483300;background:var(--mb-fondo,#10201c);color:var(--mbx-ink,#f4f7f2);display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;font:600 28px/1.35 system-ui,sans-serif}';
       (D.head || D.documentElement).appendChild(style);
     }
     var panel = D.createElement('section');
@@ -1075,6 +1081,7 @@
     panel.setAttribute('role', 'region');
     panel.setAttribute('aria-label', macroFrase('Demostración', 'Walkthrough'));
     var title = D.createElement('strong');
+    macroState.titleEl = title;
     title.textContent = macroFrase('EN VIVO · MACRO', 'LIVE · MACRO');
     var status = D.createElement('p'); status.setAttribute('aria-live', 'polite');
     var resumen = D.createElement('ol'); resumen.id = 'admira-demo-resumen';
@@ -1225,9 +1232,13 @@
     return {estado:'bien', detalle:macroTexto(step)};
   }
   async function macroCorrerLista(steps, ref) {
+    macroState.nombre = macroState.nombre || 'editor';
+    macroState.total = steps.length;
+    macroState.pasoActual = 1;
     macroPanelCrear();
     for (var n = 0; n < steps.length && macroState.activo; n++) {
       macroState.saltar = false;
+      macroState.pasoActual = n + 1;
       macroPintar(macroTexto(steps[n]));
       var resultado;
       try { resultado = await macroPaso(steps[n]); } catch (e) {
@@ -1295,6 +1306,19 @@
     macroPintar();
     return r;
   }
+  function macroPrepararCuenta(plan, desde, hasta) {
+    var offset = [];
+    var total = 0;
+    for (var i = desde; i < hasta; i++) {
+      offset[i] = total;
+      var steps = plan.items[i] && plan.items[i].subdemo && plan.items[i].subdemo.steps;
+      total += Array.isArray(steps) && steps.length ? steps.length : 1;
+    }
+    macroState.nombre = (plan && (plan.slug || plan.id)) || 'MACRO';
+    macroState.offsets = offset;
+    macroState.total = total;
+    macroState.pasoActual = 1;
+  }
   async function macroCorrer(plan) {
     macroState.run = query.get('ax_run') || ('m' + Date.now().toString(36));
     macroState.lang = ((query.get('lang') || (D.documentElement && D.documentElement.lang) || (plan.context && plan.context.lang) || 'es').slice(0, 2) === 'en') ? 'en' : 'es';
@@ -1309,6 +1333,7 @@
     var fin = Number(query.get('ax_fin'));
     if (!Number.isInteger(fin) || fin <= indice || fin > plan.items.length) fin = plan.items.length;
     macroState.fin = fin;
+    macroPrepararCuenta(plan, indice, fin);
     while (macroState.activo && indice < fin) {
       var item = plan.items[indice];
       var site = String(item.ref || '').split('/')[0];
@@ -1319,6 +1344,7 @@
         return;
       }
       if (macroMuro()) {
+        macroState.pasoActual = (macroState.offsets[indice] || 0) + 1;
         macroState.aviso = macroAvisoMuro();
         var pasosMuro = (item.subdemo && item.subdemo.steps) || [];
         if (!pasosMuro.length) macroPunto(item.ref, 0, 'pendiente', '');
@@ -1329,6 +1355,7 @@
       var steps = (item.subdemo && item.subdemo.steps) || [];
       for (var n = 0; n < steps.length && macroState.activo; n++) {
         macroState.saltar = false;
+        macroState.pasoActual = (macroState.offsets[indice] || 0) + n + 1;
         macroPintar(macroTexto(steps[n]));
         var resultado;
         try { resultado = await macroPaso(steps[n]); } catch (e) {

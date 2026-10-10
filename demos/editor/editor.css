@@ -21,7 +21,19 @@
 .biblioteca { grid-column: 1; width: 100%; }
 .centro { grid-column: 2; min-width: 0; display: grid; gap: 16px; align-content: start; }
 .escenario, .pasos, #macrodemo { min-width: 0; max-width: 100%; }
-#macrodemo { overflow: hidden; }
+#macrodemo { position: relative; overflow: hidden; }
+#macrodemo.rebosa::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 148px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--yk-bg));
+}
+.fila-cuenta { margin: 4px 0 0; text-align: right; color: var(--yk-mut); font-size: 13px; }
 .inspector { grid-column: 3; width: 100%; }
 .biblioteca, .centro, .inspector {
   position: sticky;
@@ -90,7 +102,7 @@ button { cursor: pointer; }
 .sitio li b { flex: none; }
 .sitio li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .punto { width: 12px; height: 12px; border-radius: 12px; display: inline-block; flex: none; }
-.sel { border-color: var(--yk-brand) !important; }
+.sel:not(.tarjeta) { border-color: var(--yk-brand) !important; }
 .estado-fila { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
 #resumen { margin: 0; }
 .pastilla {
@@ -117,16 +129,40 @@ button { cursor: pointer; }
   padding: 10px;
 }
 .tarjeta, .salto { flex: 0 0 auto; }
-.tarjeta { position: relative; cursor: grab; }
+.tarjeta { position: relative; cursor: grab; border-color: var(--pieza, var(--yk-line2)); }
+.tarjeta.sel {
+  border-color: var(--yk-ink);
+  background: var(--yk-bg);
+  box-shadow: inset 0 0 0 2px var(--yk-ink);
+}
+.tarjeta .elegida {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--yk-ink);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 .tarjeta small, .tarjeta em, .tarjeta strong { display: block; overflow-wrap: anywhere; }
 .tarjeta .quitar {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  min-height: 36px;
-  min-width: 36px;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
   padding: 0;
+  line-height: 18px;
+  font-size: 14px;
+  color: var(--yk-mut);
+  background: transparent;
+  border-color: transparent;
+  opacity: 0;
 }
+.tarjeta:hover .quitar,
+.tarjeta:focus-within .quitar,
+.tarjeta .quitar:focus-visible { opacity: 1; }
 .salto { border-style: dashed; color: var(--yk-brand); display: grid; place-items: center; }
 #soltar {
   border-style: dashed;
@@ -245,6 +281,11 @@ html:not(.yk-open-bottom) #ykExpertRail :is(.yk-cli, .yk-expert, .ax-body, .ax-c
 }
 .titulo-demo, .slug, #pastilla { cursor: text; }
 .slug { color: var(--yk-brand); font-size: 12px; margin-left: 6px; }
+.nombre-demo { flex: 1 0 100%; display: grid; gap: 4px; }
+.nombre-etiqueta { font-size: 12px; color: var(--yk-mut); }
+.nombre-vista, .nombre-pista { margin: 0; font-size: 13px; }
+.nombre-vista { color: var(--yk-ink); }
+.nombre-pista { color: var(--yk-mut); }
 .slug-input {
   width: 100%;
   min-height: 32px;

@@ -171,7 +171,7 @@ test('si admira.app pide sesión, la macro avisa y resume bien, mal y pendiente'
 test('el reproductor aplica la marca del contexto y el editor la viste', async () => {
   assert.equal(macro.context.marca, 'starbucks');
   assert.match(readFileSync(join(dir, '../demos/editor/editor.css'), 'utf8'), /:root\[data-mb-marca\] :is\(\.biblioteca/);
-  assert.match(experto, /demo-control\.js\?v=20261009-marca-5463/);
+  assert.match(experto, /demo-control\.js\?v=20261010-en-vivo-5532/);
   const plan = {
     ...macro,
     context: { ...macro.context, marca: 'jti' },
