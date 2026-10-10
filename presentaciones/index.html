@@ -550,7 +550,7 @@
       var q=String(query||'').trim().toLowerCase();
       var list=(clients||[]).filter(function(c){
         if(!q)return true;
-        var hay=[c.slug,c.displayName,c.website,(c.outputs||[]).join(' '),(c.languages||[]).join(' ')].join(' ').toLowerCase();
+        var hay=[c.slug,c.displayName,c.website,c.clase,(c.outputs||[]).join(' '),(c.languages||[]).join(' ')].join(' ').toLowerCase();
         return hay.indexOf(q)>=0;
       });
       if(count)count.textContent=String((clients||[]).length)+(q?' · '+list.length+' filtrados':'');
@@ -572,7 +572,7 @@
         var pass=c.passwordSet?'<span class="pill ok">Sí</span>':'<span class="pill warn">No</span>';
         return '<tr data-slug="'+esc(slug)+'">'+
           '<td><span class="slug">'+esc(slug)+'</span><div class="mut" style="margin-top:4px">'+esc(String(c.versionCount||0))+' vers.</div></td>'+
-          '<td><b>'+esc(c.displayName||slug)+'</b></td>'+
+          '<td><b>'+esc(c.displayName||slug)+'</b><div class="mut" style="margin-top:4px">'+esc(c.clase||'cliente')+'</div></td>'+
           '<td>'+(web?'<a href="'+esc(web)+'" rel="noopener" target="_blank" onclick="event.stopPropagation()">'+esc(web.replace(/^https?:\/\//i,''))+'</a>':'<span class="mut">—</span>')+'</td>'+
           '<td><div class="langs">'+langs+'</div></td>'+
           '<td><div class="outputs">'+outs+'</div></td>'+
