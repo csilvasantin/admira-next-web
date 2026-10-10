@@ -1,0 +1,54 @@
+{
+  "encargo": 5505,
+  "correccion_de": [
+    5496,
+    5501
+  ],
+  "congelacion_encargo": 5510,
+  "mision": "FLT-101812",
+  "titulo": "Reparto final del finde largo",
+  "rango": "10–12 oct 2026",
+  "desde": "2026-10-10",
+  "hasta": "2026-10-12",
+  "nota": "Asignación FINAL de Carlos (#5505). Anula el hueco de #5496 y el intercambio biz/studio de #5501. Jobs supervisa a Oráculo (studio) y a Trinity (biz).",
+  "congeladas": {
+    "desde": "2026-10-10T09:24:00+02:00",
+    "orden": 5510,
+    "dominios": [
+      "pixeria.com",
+      "xpaceos.com",
+      "yokup.com",
+      "clearchannel.tv"
+    ],
+    "texto": "CONGELADAS hasta nueva orden (desde 10-oct 09:24 Madrid): actualizaciones paralelas de clones pixeria.com, xpaceos.com, yokup.com y clearchannel.tv. Nadie publica en ellos para replicar cambios de los pilares; solo clones puntuales por orden expresa. Oráculo y Trinity deben respetarlo."
+  },
+  "pilares": [
+    {
+      "pilar": "admira.store",
+      "agente": "Morfeo",
+      "supervision": null
+    },
+    {
+      "pilar": "admira.tv",
+      "agente": "Neo",
+      "supervision": null
+    },
+    {
+      "pilar": "admira.app",
+      "agente": "Smith",
+      "supervision": null
+    },
+    {
+      "pilar": "admira.studio",
+      "agente": "Oráculo",
+      "supervision": "Jobs"
+    },
+    {
+      "pilar": "admira.biz",
+      "agente": "Trinity",
+      "supervision": "Jobs"
+    }
+  ],
+  "sello": "AdmiraNeXT v.10.10.2026.r2.09:28",
+  "visibilidad": "solo-sesion"
+}
