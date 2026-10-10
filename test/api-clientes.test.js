@@ -63,11 +63,12 @@ test('D1 manda: las migraciones dejan los cuatro globales y no toca al resto', a
   assert.equal(db.prepare('SELECT name FROM admiranext_commercial_projects WHERE id=?').get('jti').name, 'JTI Xtanco');
 });
 
-test('GET abre CORS y POST no escribe', async () => {
+test('GET sin sesión es 401 (censo interno desde el 10-10-2026) y POST no escribe', async () => {
   const r = await onRequestGet(req());
-  assert.equal(r.status, 200);
-  assert.equal(r.headers.get('access-control-allow-origin'), '*');
-  const body = await r.json();
+  assert.equal(r.status, 401);
+  assert.equal(r.headers.get('cache-control'), 'no-store');
+  assert.doesNotMatch(await r.text(), /Starbucks|Altadis|JTI/);
+  const body = await listarClientes({});
   assert.equal(body.length, SEEDS.length + 1);
   assert.equal(body[0].id, 'admira');
   assert.equal(onRequestOptions().status, 204);

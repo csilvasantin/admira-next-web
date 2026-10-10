@@ -121,7 +121,10 @@ export function montarProspect(raiz, o = {}) {
     try {
       // Catálogo único: la API (semillas + guardadas) y, si no responde, los JSON estáticos.
       let lista = null;
-      try { const r = await fetch('/marcablanca/api/marcas?completo=1', {credentials: 'omit', cache: 'no-store'}); if (r.ok) lista = await r.json(); } catch (_) {}
+      // Catálogo entero (clientes y prospectos) solo detrás de la puerta del generador (10-10-2026);
+      // la lectura pública de /marcablanca/api/marcas ya solo trae Admira y las marcas de ejemplo.
+      try { const r = await fetch('/presentaciones/api/marcas?catalogo=1', {credentials: 'same-origin', cache: 'no-store'}); if (r.ok) lista = await r.json(); } catch (_) {}
+      if (!lista?.marcas?.length) { try { const r = await fetch('/marcablanca/api/marcas?completo=1', {credentials: 'omit', cache: 'no-store'}); if (r.ok) lista = await r.json(); } catch (_) {} }
       if (lista?.marcas?.length) {
         lista.marcas.filter((j) => j.id !== lista.porDefecto).forEach((j) => { const m = normalizarMarca(j); m.ejemplo = j.catalogo?.tipo === 'ejemplo' || j.ejemplo === true; m.catalogo = j.catalogo || null; catalogo.set(m.id, m); });
       } else {

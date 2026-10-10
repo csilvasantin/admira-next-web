@@ -7,11 +7,14 @@
  * deja pasar y el nivel puede generar (owner/editor/master), se escribe; si no, 401/403.
  *
  *   GET    → {ok, acceso:{nivel, nombre}} · lo usa /marcablanca para saber si ofrecer «Guardar».
+ *   GET ?catalogo=1 → el catálogo ENTERO (clientes y prospectos incluidos) para el panel Prospect del
+ *          generador. Desde el 10-10-2026 la lectura pública (/marcablanca/api/marcas) solo da Admira y
+ *          las marcas de ejemplo; el catálogo real se lee aquí, detrás de la puerta del generador.
  *   POST   {marca, origen:'url'|'generador', tipo?:'real'|'ejemplo', web?} → crea (409 si ya existe).
  *   PUT    igual, pero actualiza una marca existente del catálogo (las semillas nunca).
  * La lectura pública está en /marcablanca/api/marcas.
  */
-import {guardarMarca, ErrorCatalogo, MAX_CUERPO} from '../../marcablanca/_catalogo.js';
+import {guardarMarca, listarMarcas, ErrorCatalogo, MAX_CUERPO} from '../../marcablanca/_catalogo.js';
 import {readIdentity} from '../_access.js';
 
 function json(body, status = 200){
@@ -29,6 +32,9 @@ async function autor(context){
 export async function onRequestGet(context){
   const a = acceso(context);
   if (!a?.canGenerate) return json({ok:false, error:'Para guardar marcas en el catálogo hace falta entrar en el generador de presentaciones.', acceso:'/presentaciones/'}, 403);
+  if (new URL(context.request.url).searchParams.get('catalogo') === '1') {
+    return json({ok:true, ...(await listarMarcas(context.env, context.request, {completo:true}))});
+  }
   const quien = await autor(context);
   return json({ok:true, acceso:{nivel:a.level, nombre:quien.nombre}});
 }

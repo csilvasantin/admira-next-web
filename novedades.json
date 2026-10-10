@@ -1,5 +1,10 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.10.10.2026.r8.13:16": [
+    "El censo de clientes (/clientes y /api/clientes) pasa a la zona con sesión: sin sesión, 401.",
+    "Los listados públicos de marcas (/marcablanca/api/marcas y clientes/index.json) solo enseñan Admira y las marcas de ejemplo.",
+    "El panel Prospect del generador lee el catálogo entero en /presentaciones/api/marcas?catalogo=1, detrás de su puerta."
+  ],
   "v.10.10.2026.r7.13:12": [
     "El catálogo de /presentaciones (con sesión) vuelve a etiquetar cada presentación como cliente, prospecto o interno (encargo #5547).",
     "La portada pública no cambia; Bits and Atoms sigue en /pruebas."
