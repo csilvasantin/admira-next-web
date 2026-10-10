@@ -10,7 +10,7 @@
 <meta name="fx-title-en" content="Frontier · The mug (PixelMug)">
 <meta name="description" content="El vaso: la taza LED PixelMug que sigue la señalización del quiosco de Jardinets. Zona de pruebas, solo con sesión.">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-<link rel="stylesheet" href="/pruebas/frontier/assets/frontier.css?v=20261010-frontier-1">
+<link rel="stylesheet" href="/pruebas/frontier/assets/frontier.css?v=20261010-frontier-2">
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
 </head>
@@ -28,11 +28,11 @@
 <main class="fx" data-yk-main>
   <div class="fx-top">
     <p class="fx-crumb"><a href="/pruebas/">/pruebas</a> · <a href="/pruebas/frontier/" data-fx-keep>frontier</a> · <span data-l="es">vaso</span><span data-l="en">mug</span></p>
-    <div class="fx-langs" role="group" aria-label="Idioma / Language"><button type="button" data-fx-lang-btn="es" aria-pressed="true">ESP</button><button type="button" data-fx-lang-btn="en" aria-pressed="false">ENG</button></div>
+    <p class="fx-hint"><span data-l="es">Idioma · <kbd>/idioma</kbd> en ⌘</span><span data-l="en">Language · <kbd>/language</kbd> in ⌘</span></p>
   </div>
 
   <p class="fx-eyebrow">Frontier · <span data-l="es">el vaso</span><span data-l="en">the mug</span></p>
-  <h1><span data-l="es">El vaso: <span class="fx-grad">PixelMug «Planeta»</span></span><span data-l="en">The mug: <span class="fx-grad">PixelMug “Planeta”</span></span></h1>
+  <h1><span data-l="es">El vaso: <span class="fx-grad">taza LED «Planeta»</span></span><span data-l="en">The mug: <span class="fx-grad">“Planeta” LED mug</span></span></h1>
   <p class="fx-lede" data-l="es">Una taza con pantalla LED que se comporta como una pantalla más del circuito: la señalización del quiosco de Jardinets decide qué GIF o qué texto sale en la taza.</p><p class="fx-lede" data-l="en">A mug with an LED screen that behaves like one more screen in the circuit: the Jardinets kiosk signage decides which GIF or text shows on the mug.</p>
   <span class="fx-estado prototipo"><span data-l="es">prototipo · funciona en demo</span><span data-l="en">prototype · works in demo</span></span>
 
@@ -43,7 +43,12 @@
   <div data-l="es"><p class="fx-src">Los GIF son los presets de 32×16 que usa el seguidor (copia del 23-sep-2026), ampliados aquí píxel a píxel. La taza es un dibujo.</p></div><div data-l="en"><p class="fx-src">The GIFs are the 32×16 presets the follower uses (copy from 23 Sep 2026), scaled up pixel by pixel here. The mug is a drawing.</p></div>
 
   <h2><span data-l="es">Cómo funciona</span><span data-l="en">How it works</span></h2>
-  <div class="fx-arq"><div class="fx-flujo"><span data-l="es">Quiosco CanalKiosk · Jardinets</span><span data-l="en">CanalKiosk kiosk · Jardinets</span> → <span data-l="es">antena</span><span data-l="en">antenna</span> <code>playertaza</code> + Fold <code>samsung-galaxy-fold-8-mupi</code> + iPad Admin<br>→ <code>signage-follow.mjs</code> (LaunchAgent <code>com.admiranext.playertaza-signage-follow</code>)<br>→ worker <code>playertaza.csilvasantin.workers.dev</code> (<code>mug-launch</code> · <code>mug-status</code>)<br>→ bridge Bubble (<code>com.admiranext.playertaza-bridge</code>) → <span data-l="es">nube Bubble</span><span data-l="en">Bubble cloud</span> <code>talPlayGif</code> → PixelMug</div></div>
+  <div class="fx-arq"><ol class="fx-pasos">
+    <li><span data-l="es">Quiosco CanalKiosk · Jardinets: antena <code>playertaza</code>, Fold e iPad Admin</span><span data-l="en">CanalKiosk kiosk · Jardinets: <code>playertaza</code> antenna, Fold and iPad Admin</span></li>
+    <li><span data-l="es">Seguidor <code>signage-follow.mjs</code> (LaunchAgent)</span><span data-l="en">Follower <code>signage-follow.mjs</code> (LaunchAgent)</span></li>
+    <li><span data-l="es">Worker <code>playertaza</code> + bridge Bubble</span><span data-l="en"><code>playertaza</code> worker + Bubble bridge</span></li>
+    <li><span data-l="es">Nube Bubble → taza LED 32×16</span><span data-l="en">Bubble cloud → 32×16 LED mug</span></li>
+  </ol></div>
   <div class="fx-tabla"><table>
     <tr><th><span data-l="es">Pieza</span><span data-l="en">Piece</span></th><th><span data-l="es">Qué hace (según las notas del proyecto)</span><span data-l="en">What it does (per project notes)</span></th></tr>
     <tr><td><span data-l="es">Seguidor de señalización</span><span data-l="en">Signage follower</span></td><td><span data-l="es">Mira la antena <code>playertaza</code> (papelera → Queen, contador → MJ) y el Fold + iPad Admin (canción del quiosco → título en la LED). Arranque permanente con <code>RunAtLoad</code> y <code>KeepAlive</code>; copia sellada del 23-sep-2026.</span><span data-l="en">Watches the <code>playertaza</code> antenna (bin → Queen, counter → MJ) and the Fold + iPad Admin (kiosk song → title on the LED). Permanent start with <code>RunAtLoad</code> and <code>KeepAlive</code>; sealed copy from 23 Sep 2026.</span></td></tr>
@@ -68,6 +73,6 @@
 
   <footer class="fx-foot"><span data-l="es">Frontier vive en la zona de pruebas (/pruebas): solo con sesión de Google de Admira, fuera de buscadores y sin enlaces desde la web pública.</span><span data-l="en">Frontier lives in the test zone (/pruebas): Admira Google session only, excluded from search engines and not linked from the public site.</span></footer>
 </main>
-<script src="/pruebas/frontier/assets/frontier.js?v=20261010-frontier-1"></script>
+<script src="/pruebas/frontier/assets/frontier.js?v=20261010-frontier-2"></script>
 </body>
 </html>
