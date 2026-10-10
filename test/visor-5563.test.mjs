@@ -29,8 +29,9 @@ test('el visor es una web app de 600×600, sin vídeo y detrás de /pruebas', as
   assert.match(js, /\/\(marca\|brand\|idioma\|language\)/);
   assert.match(js, /dataset\.demo === 'frescaria'/);
   assert.match(js, /admira\.tv\/api\/playlist\?screen=/);
-  assert.match(js, /stock\.admira\.store\/stock\/index\.json/);
-  assert.match(js, /ancho\) <= 600/);
+  assert.match(js, /stock\.admira\.store/);
+  assert.match(js, /\/pruebas\/visor\/img\?src=/);
+  assert.match(js, /segundos \* 1000/);
   assert.doesNotMatch(js, /\.mp4|createElement\('video'\)|<video/);
   assert.match(sw, /demo\.json/);
   assert.match(sw, /stock\\?\.admira\\?\.store/);

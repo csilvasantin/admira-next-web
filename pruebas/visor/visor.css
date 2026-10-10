@@ -131,3 +131,57 @@ button[hidden] { display: none; }
   font-size: 13px;
   letter-spacing: .04em;
 }
+
+#foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 600px;
+  max-height: 600px;
+  object-fit: contain;
+  object-position: center;
+  background: #000;
+  z-index: 0;
+}
+
+#foto[hidden] { display: none; }
+
+.pos {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: .06em;
+  color: #f4f7ff;
+}
+
+.marca:empty { display: none; }
+
+body.con-foto {
+  position: relative;
+  justify-content: flex-end;
+}
+
+body.con-foto .lente {
+  position: relative;
+  z-index: 1;
+  padding: 72px 24px 18px;
+  background: linear-gradient(transparent, #000 70%);
+}
+
+body.con-foto .kicker,
+body.con-foto #detalle,
+body.con-foto #marca,
+body.con-foto #nota,
+body.con-foto .controles { display: none; }
+
+body.con-foto h1 {
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+body.con-foto .pos:not(:empty) { display: block; }

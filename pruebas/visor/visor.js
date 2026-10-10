@@ -1,4 +1,4 @@
-/* Visor 600×600. Una tarjeta. Flechas y Enter. /marca y /idioma. Sin vídeo. */
+/* Visor 600×600. La tarjeta Ahora enseña la foto y recorre la playlist. Sin vídeo. */
 (function () {
   'use strict';
 
@@ -11,6 +11,10 @@
   var estado = { ahora: null, siguiente: null, promo: null };
   var carta = 'ahora';
   var botones = [];
+  var lista = [];
+  var indice = 0;
+  var reloj = 0;
+  var marcaFijada = false;
 
   function esDemo() {
     return document.body.dataset.demo === 'frescaria';
@@ -28,6 +32,24 @@
 
   function poner(idCarta, es, en, detalleEs, detalleEn) {
     estado[idCarta] = { es: es, en: en, detalleEs: detalleEs, detalleEn: detalleEn };
+  }
+
+  function syncFoto() {
+    var foto = document.getElementById('foto');
+    var pos = document.getElementById('pos');
+    var piezaActual = lista[indice];
+    var ver = carta === 'ahora' && piezaActual && piezaActual.foto;
+    document.body.classList.toggle('con-foto', !!ver);
+    if (foto) {
+      if (ver) {
+        if (foto.getAttribute('src') !== piezaActual.foto) foto.src = piezaActual.foto;
+        foto.alt = piezaActual.es;
+        foto.hidden = false;
+      } else {
+        foto.hidden = true;
+      }
+    }
+    if (pos) pos.textContent = (ver && lista.length) ? ((indice + 1) + '/' + lista.length) : '';
   }
 
   function mostrar(id) {
@@ -54,6 +76,7 @@
       b.classList.toggle('focused', activo);
       if (activo) b.focus();
     });
+    syncFoto();
   }
 
   function nota(es, en) {
@@ -88,12 +111,62 @@
     return '';
   }
 
+  function duracion(item) {
+    var n = Number(item && item.seconds);
+    if (!isFinite(n) || n < 3 || n > 180) return 10;
+    return n;
+  }
+
+  function fotoDe(item) {
+    var asset = String((item && item.asset) || '');
+    if (asset.indexOf('https://stock.admira.store/') !== 0) return '';
+    if (asset.indexOf('..') >= 0 || asset.indexOf('@') >= 0) return '';
+    return '/pruebas/visor/img?src=' + encodeURIComponent(asset);
+  }
+
   function pieza(item) {
     if (!item) return null;
     var tipo = String(item.assetType || item.type || '').toLowerCase();
     if (tipo === 'video' || tipo === 'animation') return null;
     var titulo = String(item.title || item.es || 'Pieza').trim();
-    return { es: titulo, en: titulo, detalleEs: String(item.sub || ''), detalleEn: String(item.sub || '') };
+    var foto = fotoDe(item);
+    if (!foto) return null;
+    return {
+      es: titulo,
+      en: titulo,
+      detalleEs: String(item.sub || ''),
+      detalleEn: String(item.sub || ''),
+      foto: foto,
+      segundos: duracion(item)
+    };
+  }
+
+  function pararReloj() {
+    if (reloj) clearTimeout(reloj);
+    reloj = 0;
+  }
+
+  function ensenar(i) {
+    if (!lista.length) {
+      pararReloj();
+      indice = 0;
+      poner('ahora', 'Esperando contenido', 'Waiting for content', 'Pantalla sin asignar', 'Unassigned screen');
+      poner('siguiente', 'Sin siguiente', 'No next piece', '', '');
+      poner('promo', 'Sin promo', 'No promo', '', '');
+      mostrar('ahora');
+      return;
+    }
+    indice = ((i % lista.length) + lista.length) % lista.length;
+    var actual = lista[indice];
+    var sig = lista[(indice + 1) % lista.length];
+    poner('ahora', actual.es, actual.en, actual.detalleEs, actual.detalleEn);
+    if (lista.length > 1) poner('siguiente', sig.es, sig.en, sig.detalleEs, sig.detalleEn);
+    else poner('siguiente', 'Sin siguiente', 'No next piece', '', '');
+    poner('promo', lista.length + ' piezas', lista.length + ' pieces', '', '');
+    if (!marcaFijada) pintarMarca('', '');
+    mostrar('ahora');
+    pararReloj();
+    reloj = setTimeout(function () { ensenar(indice + 1); }, actual.segundos * 1000);
   }
 
   function cargarDemo() {
@@ -123,46 +196,27 @@
     } catch (e) {
       notas.push('playlist sin CORS para este origen');
     }
-    var utiles = items.map(pieza).filter(Boolean);
-    if (utiles[0]) poner('ahora', utiles[0].es, utiles[0].en, utiles[0].detalleEs, utiles[0].detalleEn);
-    else poner('ahora', 'Esperando contenido', 'Waiting for content', legible || 'Pantalla sin asignar', legible || 'Unassigned screen');
-    if (utiles[1]) poner('siguiente', utiles[1].es, utiles[1].en, utiles[1].detalleEs, utiles[1].detalleEn);
-    else poner('siguiente', 'Sin siguiente', 'No next piece', '', '');
-
-    try {
-      var sr = await fetch('https://stock.admira.store/stock/index.json', { cache: 'no-store' });
-      if (!sr.ok) notas.push('stock ' + sr.status);
-      else {
-        var sd = await sr.json();
-        var lista = sd.items || [];
-        var pequena = lista.find(function (it) {
-          return String(it.mime || '').indexOf('image/') === 0 && Number(it.ancho) > 0 && Number(it.ancho) <= 600 && Number(it.alto) > 0 && Number(it.alto) <= 600;
-        });
-        var alguna = lista.find(function (it) { return String(it.mime || '').indexOf('image/') === 0 && it.title; });
-        if (pequena) {
-          poner('promo', pequena.title, pequena.title, pequena.ancho + '×' + pequena.alto, pequena.ancho + '×' + pequena.alto);
-        } else if (alguna) {
-          poner('promo', alguna.title, alguna.title, 'Sin imagen: pasa de 600 px o no declara tamaño.', 'No image: over 600 px or size unknown.');
-        } else {
-          poner('promo', 'Sin promo', 'No promo', '', '');
-        }
-      }
-    } catch (e) {
-      notas.push('stock no disponible');
-      poner('promo', 'Sin promo', 'No promo', '', '');
-    }
+    lista = items.map(pieza).filter(Boolean);
     aviso(notas.join(' · '));
-    var marca = q.get('marca');
-    if (marca) aplicarMarca(marca);
-    mostrar('ahora');
+    if (q.get('marca')) aplicarMarca(q.get('marca'));
+    if (!lista.length) {
+      poner('ahora', 'Esperando contenido', 'Waiting for content', legible || 'Pantalla sin asignar', legible || 'Unassigned screen');
+      poner('siguiente', 'Sin siguiente', 'No next piece', '', '');
+      poner('promo', 'Sin promo', 'No promo', '', '');
+      mostrar('ahora');
+      return;
+    }
+    ensenar(0);
   }
 
   function aplicarMarca(id) {
     id = String(id || '').trim().toLowerCase();
     if (!id || id === 'off' || id === 'admira' || id === 'none') {
+      marcaFijada = false;
       pintarMarca('', '');
       return;
     }
+    marcaFijada = true;
     if (PALETA[id]) {
       pintarMarca(id, PALETA[id].nombre);
       return;
@@ -170,7 +224,7 @@
     fetch('/marcablanca/api/marcas/' + encodeURIComponent(id), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (m) {
-        if (!m) return;
+        if (!m || !marcaFijada) return;
         var osc = (m.colores && (m.colores.oscuro || m.colores.claro)) || {};
         PALETA[id] = { nombre: m.nombre || id, texto: osc.texto || '#F4F7FF', acento: osc.acento || '#9EB6FF' };
         pintarMarca(id, PALETA[id].nombre);
@@ -205,11 +259,16 @@
     }
   }
 
-  function indiceDe(el) {
-    return botones.indexOf(el);
-  }
-
   var buffer = '';
+
+  function actuar(el) {
+    if (el && el.dataset && el.dataset.carta === 'siguiente' && lista.length) {
+      ensenar(indice + 1);
+      return;
+    }
+    if (el && el.dataset && el.dataset.carta) mostrar(el.dataset.carta);
+    else if (el) el.focus();
+  }
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') { buffer = ''; return; }
@@ -230,37 +289,35 @@
       return;
     }
     if (buffer) return;
-    var lista = botones.slice();
+    var listaFoco = botones.slice();
     var gafas = document.getElementById('btnGafas');
-    if (gafas && !gafas.hidden) lista.push(gafas);
-    var actual = lista.indexOf(document.activeElement);
+    if (gafas && !gafas.hidden) listaFoco.push(gafas);
+    var actual = listaFoco.indexOf(document.activeElement);
     if (actual < 0) actual = botones.findIndex(function (b) { return b.dataset.carta === carta; });
     if (actual < 0) actual = 0;
-    function ir(el) {
-      if (el && el.dataset && el.dataset.carta) mostrar(el.dataset.carta);
-      else if (el) el.focus();
-    }
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      ir(lista[(actual + 1) % lista.length]);
+      actuar(listaFoco[(actual + 1) % listaFoco.length]);
       e.preventDefault();
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      ir(lista[(actual - 1 + lista.length) % lista.length]);
+      actuar(listaFoco[(actual - 1 + listaFoco.length) % listaFoco.length]);
       e.preventDefault();
     } else if (e.key === 'Enter' && document.activeElement && document.activeElement.dataset.carta) {
-      mostrar(document.activeElement.dataset.carta);
+      actuar(document.activeElement);
       e.preventDefault();
     }
   });
 
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-carta]');
-    if (b) mostrar(b.dataset.carta);
+    if (b) actuar(b);
   });
 
   window.addEventListener('admira:marca', function (ev) {
     var d = ev.detail || {};
-    if (!d || !d.id) pintarMarca('', '');
-    else aplicarMarca(d.id);
+    if (!d || !d.id) {
+      marcaFijada = false;
+      pintarMarca('', '');
+    } else aplicarMarca(d.id);
   });
 
   botones = Array.prototype.slice.call(document.querySelectorAll('[data-carta]'));
@@ -297,6 +354,5 @@
     });
   } else {
     cargarVivo();
-    if (params.get('marca')) aplicarMarca(params.get('marca'));
   }
 })();
