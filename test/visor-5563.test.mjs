@@ -39,5 +39,6 @@ test('el visor es una web app de 600×600, sin vídeo y detrás de /pruebas', as
   assert.equal(datos.marca, 'frescaria');
   assert.match(datos.ahora.es, /Fruta de temporada/);
   assert.match(ficha, /href="\/pruebas\/visor\/"/);
-  assert.doesNotMatch(gate, /visor/);
+  assert.match(gate, /esRutaVisor/);
+  assert.match(html, /\/pruebas\/visor\/frontier\.js/);
 });

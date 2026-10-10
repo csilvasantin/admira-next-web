@@ -233,7 +233,7 @@
     btnGafas.hidden = false;
     document.body.classList.add('con-instalar');
     btnGafas.addEventListener('click', function () {
-      var url = btnGafas.dataset.url || location.href;
+      var url = location.href;
       try {
         Promise.resolve(navigator.install(url, { name: 'Admira Visor' })).catch(function () {
           nota('No se pudo añadir a las gafas.', 'Could not add to the glasses.');

@@ -28,5 +28,5 @@ test('el visor ofrece instalar en las gafas y el QR es un deep link', async () =
   assert.doesNotMatch(enlace, /^https:/);
   assert.match(ficha, /qr-gafas\.png/);
   assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
-  assert.doesNotMatch(gate, /visor/);
+  assert.match(gate, /esRutaVisor/);
 });
