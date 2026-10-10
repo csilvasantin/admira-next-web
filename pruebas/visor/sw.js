@@ -1,10 +1,10 @@
 /* Visor · poca red. Guarda la carcasa y la demo. No guarda playlist ni stock ni vídeo. */
-const CACHE = 'visor-5565-v1';
+const CACHE = 'visor-5573-v1';
 const SHELL = [
   '/pruebas/visor/',
   '/pruebas/visor/index.html',
-  '/pruebas/visor/visor.css?v=20261010-visor-5565',
-  '/pruebas/visor/visor.js?v=20261010-visor-5565',
+  '/pruebas/visor/visor.css?v=20261010-visor-5573',
+  '/pruebas/visor/visor.js?v=20261010-visor-5573',
   '/pruebas/visor/demo/',
   '/pruebas/visor/demo/index.html',
   '/pruebas/visor/demo.json',

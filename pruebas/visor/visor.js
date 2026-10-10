@@ -32,16 +32,17 @@
 
   function mostrar(id) {
     carta = id;
-    var dato = estado[id] || { es: 'Sin pieza', en: 'No piece', detalleEs: '', detalleEn: '' };
+    var dato = estado[id] || { es: 'Esperando contenido', en: 'Waiting for content', detalleEs: '', detalleEn: '' };
     var titulo = document.getElementById('titulo');
     var detalle = document.getElementById('detalle');
     var kicker = document.getElementById('kicker');
     titulo.querySelector('[data-l="es"]').textContent = dato.es;
     titulo.querySelector('[data-l="en"]').textContent = dato.en;
+    titulo.classList.toggle('vacio', dato.es === 'Esperando contenido');
     detalle.querySelector('[data-l="es"]').textContent = dato.detalleEs;
     detalle.querySelector('[data-l="en"]').textContent = dato.detalleEn;
     var etiquetas = {
-      ahora: ['Ahora suena', 'Now playing'],
+      ahora: ['Ahora en pantalla', 'Now on screen'],
       siguiente: ['Siguiente', 'Next'],
       promo: ['Promo', 'Promo']
     };
@@ -62,9 +63,8 @@
     if (a && b) {
       a.textContent = es || '';
       b.textContent = en || es || '';
-      return;
-    }
-    nodo.textContent = es || '';
+    } else nodo.textContent = es || '';
+    nodo.classList.toggle('hay', !!(es || en));
   }
 
   function aviso(texto) {
@@ -79,14 +79,14 @@
     return { es: titulo, en: titulo, detalleEs: String(item.sub || ''), detalleEn: String(item.sub || '') };
   }
 
-  async function cargarDemo() {
-    var r = await fetch('/pruebas/visor/demo.json', { cache: 'force-cache' });
-    var d = await r.json();
-    poner('ahora', d.ahora.es, d.ahora.en, d.ahora.detalleEs, d.ahora.detalleEn);
-    poner('siguiente', d.siguiente.es, d.siguiente.en, d.siguiente.detalleEs, d.siguiente.detalleEn);
-    poner('promo', d.promo.es, d.promo.en, d.promo.detalleEs, d.promo.detalleEn);
-    pintarMarca(d.marca, d.nombre);
-    mostrar('ahora');
+  function cargarDemo() {
+    return fetch('/pruebas/visor/demo.json', { cache: 'force-cache' }).then(function (r) { return r.json(); }).then(function (d) {
+      poner('ahora', d.ahora.es, d.ahora.en, d.ahora.detalleEs, d.ahora.detalleEn);
+      poner('siguiente', d.siguiente.es, d.siguiente.en, d.siguiente.detalleEs, d.siguiente.detalleEn);
+      poner('promo', d.promo.es, d.promo.en, d.promo.detalleEs, d.promo.detalleEn);
+      pintarMarca(d.marca, d.nombre);
+      mostrar('ahora');
+    });
   }
 
   async function cargarVivo() {
@@ -106,7 +106,7 @@
     }
     var utiles = items.map(pieza).filter(Boolean);
     if (utiles[0]) poner('ahora', utiles[0].es, utiles[0].en, utiles[0].detalleEs, utiles[0].detalleEn);
-    else poner('ahora', 'Sin pieza', 'No piece', 'Pantalla ' + screen, 'Screen ' + screen);
+    else poner('ahora', 'Esperando contenido', 'Waiting for content', 'Pantalla ' + screen, 'Screen ' + screen);
     if (utiles[1]) poner('siguiente', utiles[1].es, utiles[1].en, utiles[1].detalleEs, utiles[1].detalleEn);
     else poner('siguiente', 'Sin siguiente', 'No next piece', '', '');
 
@@ -159,8 +159,21 @@
       .catch(function () {});
   }
 
+  function irDemo() {
+    if (esDemo()) return;
+    location.assign('/pruebas/visor/demo/' + location.search);
+  }
+
   function interpretar(texto) {
     var t = String(texto || '').trim();
+    if (/^\/(ayuda|help)\s*$/i.test(t)) {
+      nota('/marca · /idioma · /demo', '/brand · /language · /demo');
+      return;
+    }
+    if (/^\/demo\b/i.test(t)) {
+      irDemo();
+      return;
+    }
     var m = t.match(/^\/(marca|brand|idioma|language)\s*(.*)$/i);
     if (!m) return;
     var verbo = m[1].toLowerCase();
@@ -177,23 +190,27 @@
     return botones.indexOf(el);
   }
 
+  var buffer = '';
+
   document.addEventListener('keydown', function (e) {
-    var enOrden = e.target && e.target.id === 'orden';
-    if (enOrden && e.key === 'Enter') {
-      interpretar(e.target.value);
+    if (e.key === 'Escape') { buffer = ''; return; }
+    if (e.key === 'Enter' && buffer) {
+      interpretar(buffer);
+      buffer = '';
       e.preventDefault();
       return;
     }
-    if (!enOrden && e.key === '/') {
-      var campo = document.getElementById('orden');
-      if (campo) {
-        campo.focus();
-        campo.value = '/';
-        e.preventDefault();
-      }
+    if (e.key === '/' && !buffer) {
+      buffer = '/';
+      e.preventDefault();
       return;
     }
-    if (enOrden && e.key !== 'ArrowRight' && e.key !== 'ArrowDown' && e.key !== 'ArrowLeft' && e.key !== 'ArrowUp') return;
+    if (buffer && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      buffer += e.key;
+      e.preventDefault();
+      return;
+    }
+    if (buffer) return;
     var lista = botones.slice();
     var gafas = document.getElementById('btnGafas');
     if (gafas && !gafas.hidden) lista.push(gafas);
@@ -246,8 +263,21 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/pruebas/visor/sw.js', { scope: '/pruebas/visor/' }).catch(function () {});
   }
-  if (esDemo()) cargarDemo();
-  else cargarVivo();
-  var q0 = new URLSearchParams(location.search).get('marca');
-  if (q0 && !esDemo()) aplicarMarca(q0);
+  function enfocarPrimero() {
+    var b = document.getElementById('btnAhora') || botones[0];
+    if (!b) return;
+    botones.forEach(function (x) { x.classList.toggle('focused', x === b); });
+    b.focus();
+  }
+  enfocarPrimero();
+  var params = new URLSearchParams(location.search);
+  if (params.get('demo') && !esDemo()) irDemo();
+  else if (esDemo()) {
+    cargarDemo().then(function () {
+      if (params.get('marca')) aplicarMarca(params.get('marca'));
+    });
+  } else {
+    cargarVivo();
+    if (params.get('marca')) aplicarMarca(params.get('marca'));
+  }
 })();
