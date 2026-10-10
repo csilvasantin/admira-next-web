@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <meta name="theme-color" content="#0a0703" />
   <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
-  <meta name="admiranext-version" content="v.10.10.2026.r5.12:43" />
+  <meta name="admiranext-version" content="v.10.10.2026.r4.09:32" />
   <link rel="alternate" type="text/plain" href="/mcp/llms.txt" title="MCP · llms.txt" />
   <link rel="alternate" type="application/json" href="/mcp/manifest.json" title="MCP · manifest" />
   <link rel="manifest" href="site.webmanifest" />
@@ -59,7 +59,7 @@
   <meta name="twitter:image" content="https://www.admiranext.com/og-image.jpg" />
   <link rel="preload" as="image" href="assets/robots.jpg" type="image/jpeg" fetchpriority="high">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jetbrains-mono.woff2" crossorigin>
-  <link rel="stylesheet" href="assets/app.css?v=20261010-portada-5547">
+  <link rel="stylesheet" href="assets/app.css?v=26.05.14.6">
   <script>
     // ============ i18n bootstrap ============
     // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
@@ -250,20 +250,7 @@
           'boot.l3': 'Mounting component library... ',
           'boot.l4': '[████████████████████████] ',
           'boot.l5': 'done',
-          'boot.l6': '\nReading the five sites of Bits and Atoms...',
-          'portada.kicker': 'The future of Admira',
-          'portada.title': 'ADmiraNeXT',
-          'portada.lede': 'Bits and Atoms has three pillars: technology, creativity and business. The five sites hang from them.',
-          'portada.tec': 'Technology',
-          'portada.tec.tv': 'Playback and proof of play',
-          'portada.tec.app': 'Installation and maintenance',
-          'portada.cre': 'Creativity',
-          'portada.cre.studio': 'Content creation and adaptation',
-          'portada.neg': 'Business',
-          'portada.neg.store': 'Distribution and the store on screen',
-          'portada.neg.biz': 'Revenue with DooH and Retail Media',
-          'portada.cta': 'Try it with your brand',
-          'portada.nota': 'Opens the story with a sample brand. The terminal stays in Expert mode, with /terminal.',
+          'boot.l6': '\nReading the four legs of the retail OS...',
           'boot.l7': 'Connecting to ADmiraNeXT... ',
           'boot.l8': 'ok',
           'boot.l9': '\nDesign systems: operational',
@@ -460,20 +447,7 @@
           'boot.l3': 'Montando biblioteca de componentes... ',
           'boot.l4': '[████████████████████████] ',
           'boot.l5': 'hecho',
-          'boot.l6': '\nLeyendo los cinco sitios de Bits and Atoms...',
-          'portada.kicker': 'El futuro de Admira',
-          'portada.title': 'ADmiraNeXT',
-          'portada.lede': 'Bits and Atoms tiene tres pilares: tecnología, creatividad y negocio. De ellos cuelgan los cinco sitios.',
-          'portada.tec': 'Tecnología',
-          'portada.tec.tv': 'Emisión y prueba de emisión',
-          'portada.tec.app': 'Instalaciones y mantenimiento',
-          'portada.cre': 'Creatividad',
-          'portada.cre.studio': 'Creación y adaptación de contenidos',
-          'portada.neg': 'Negocio',
-          'portada.neg.store': 'Distribución y la tienda en pantalla',
-          'portada.neg.biz': 'Ingresos con DooH y Retail Media',
-          'portada.cta': 'Pruébalo con tu marca',
-          'portada.nota': 'Abre la historia con una marca de ejemplo. El terminal sigue en el modo Experto, con /terminal.',
+          'boot.l6': '\nLeyendo las cuatro patas del sistema operativo del retail...',
           'boot.l7': 'Conectando con ADmiraNeXT... ',
           'boot.l8': 'ok',
           'boot.l9': '\nSistemas de diseño: operativos',
@@ -488,12 +462,8 @@
         },
       };
       window.LANG_KEY = 'admiranext_lang';
-      try {
-        var pedido = new URLSearchParams(location.search).get('lang') || '';
-        if (/^(en|eng|english)$/i.test(pedido)) window.currentLang = 'en';
-        else if (/^(es|esp|spanish|espanol)$/i.test(pedido)) window.currentLang = 'es';
-        else window.currentLang = localStorage.getItem(window.LANG_KEY) || 'en';
-      } catch (e) { window.currentLang = 'en'; }
+      try { window.currentLang = localStorage.getItem(window.LANG_KEY) || 'en'; }
+      catch (e) { window.currentLang = 'en'; }
       window.t = function (key) {
         var L = window.I18N[window.currentLang] || window.I18N.en;
         return (L[key] != null ? L[key] : (window.I18N.en[key] != null ? window.I18N.en[key] : key));
@@ -548,7 +518,7 @@
     })();
   </script>
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
-  <script src="assets/app.js?v=20261010-portada-5547" defer></script>
+  <script src="assets/app.js?v=20261009-demo-5446" defer></script>
   <script src="/assets/admira-frame.js?v=20261009-demo-5446" defer></script>
   <script defer src="/assets/experto-admiranext.js?v=20261009-demo-5446"></script>
   <script src="/assets/avatar.js?v=20261007-demo-ack-1" defer></script>
@@ -772,39 +742,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- Terminal Window -->
 <!-- psst... prueba escribiendo /secrets, sudo hire admiranext, o el código konami -->
-<section id="portada" class="portada" aria-labelledby="portada-titulo">
-  <div class="portada-barra">
-    <p class="portada-kicker" data-i18n="portada.kicker">The future of Admira</p>
-    <button type="button" class="lang-toggle portada-lang" onclick="toggleLang()">ESP</button>
-  </div>
-  <h1 id="portada-titulo" data-i18n="portada.title">ADmiraNeXT</h1>
-  <p class="portada-lede" data-i18n="portada.lede">Bits and Atoms has three pillars: technology, creativity and business. The five sites hang from them.</p>
-  <p class="portada-marca" id="portadaMarca" hidden></p>
-  <div class="portada-pilares">
-    <article class="pilar" data-pilar="tecnologia">
-      <h2 data-i18n="portada.tec">Technology</h2>
-      <ul>
-        <li><a href="https://www.admira.tv/">admira.tv</a> <span data-i18n="portada.tec.tv">Playback and proof of play</span></li>
-        <li><a href="https://www.admira.app/">admira.app</a> <span data-i18n="portada.tec.app">Installation and maintenance</span></li>
-      </ul>
-    </article>
-    <article class="pilar" data-pilar="creatividad">
-      <h2 data-i18n="portada.cre">Creativity</h2>
-      <ul>
-        <li><a href="https://www.admira.studio/">admira.studio</a> <span data-i18n="portada.cre.studio">Content creation and adaptation</span></li>
-      </ul>
-    </article>
-    <article class="pilar" data-pilar="negocio">
-      <h2 data-i18n="portada.neg">Business</h2>
-      <ul>
-        <li><a href="https://www.admira.store/">admira.store</a> <span data-i18n="portada.neg.store">Distribution and the store on screen</span></li>
-        <li><a href="https://www.admira.biz/">admira.biz</a> <span data-i18n="portada.neg.biz">Revenue with DooH and Retail Media</span></li>
-      </ul>
-    </article>
-  </div>
-  <a class="portada-cta" href="/bits-and-atoms/?marca=lumbre" data-i18n="portada.cta">Try it with your brand</a>
-  <p class="portada-nota" data-i18n="portada.nota">Opens the story with a sample brand. The terminal stays in Expert mode, with /terminal.</p>
-</section>
 <div class="terminal-window booting" id="terminal">
   <div class="titlebar">
     <div class="titlebar-dot red" data-i18n-title="titlebar.dot.close"></div>
