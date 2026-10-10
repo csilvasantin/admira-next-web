@@ -13,7 +13,7 @@ test('/frontier salta a /pruebas/frontier/ desde el terminal de la entrada (port
     const m = js.match(/\{ id: 'frontier',[^\n]*\}/);
     assert.ok(m, f + ': entrada frontier en SALTOS');
     assert.match(m[0], /url: '\/pruebas\/frontier\/'/);
-    assert.match(m[0], /alias: \['frontier'\]/);
+    assert.match(m[0], /alias: \['frontier'\], interno: true/);
     assert.match(m[0], /es: '[^']+'/);
     assert.match(m[0], /en: '[^']+'/);
   }
@@ -44,4 +44,11 @@ test('presites: sin sesión no hay ⌘ Experto; en su hueco, selector ES · EN',
 test('la norma 32 está en /normativa y en AGENTS.md', () => {
   assert.match(leer('normativa.html'), /id="n32"[\s\S]*Sin modo Experto en los presites/);
   assert.match(leer('AGENTS.md'), /Sin modo Experto en los presites/);
+});
+
+test('portada pública: un solo control de idioma (sin el botón ESP/ENG del terminal)', () => {
+  const html = leer('index.html');
+  assert.doesNotMatch(html, /terminal-lang-toggle/);
+  assert.doesNotMatch(html, /<button[^>]*lang-toggle[^>]*>/);
+  assert.match(html, /window\.setLang = function/, 'la lógica de idioma sigue para el selector ES · EN');
 });
