@@ -302,9 +302,9 @@ function esc(value) {
 export function returnToSeguro(value) {
   const path = String(value || '');
   // /github (zona militarizada, 06-09-2026) vuelve a su sitio tras el login, como /usuarios.
-  // Zona protegida (06-10-2026): Style Book, Agentes y Organigrama también vuelven a su página.
+  // Zona protegida (06-10-2026): Style Book, Agentes, Organigrama y RoadMap (10-10-2026) también vuelven a su página.
   // /neo58/ (09-10-2026): la prueba en vivo de Neo vuelve a su página tras el login.
-  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/avatar-metricas' || path === '/neo58/' ? path : safeConnection(path) || '/webmaster';
+  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/roadmap' || path === '/avatar-metricas' || path === '/neo58/' ? path : safeConnection(path) || '/webmaster';
 }
 
 export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {

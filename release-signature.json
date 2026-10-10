@@ -1,6 +1,6 @@
 {
-  "version": "v.10.10.2026.r3.09:31",
+  "version": "v.10.10.2026.r4.09:32",
   "deployer": "JobsGrokBot",
-  "machine": "GrokBotBox",
-  "signature": "JobsGrokBot · GrokBotBox"
+  "machine": "GrokBot",
+  "signature": "JobsGrokBot · GrokBot"
 }
