@@ -10,7 +10,7 @@ const PASOS = [
   {id: 'marca', titulo: 'Marca', ayuda: 'catálogo de /marcablanca: de su web, del catálogo o neutra'},
   {id: 'estudio', titulo: 'Estudio', ayuda: 'web pública + IA · suele tardar entre 20 y 60 s'},
   {id: 'presentacion', titulo: 'Presentación', ayuda: 'generador con su marca · Studio, Store, App, Biz y «Su galaxia»'},
-  {id: 'plataforma', titulo: 'Plataforma', ayuda: 'las 4 soluciones con ?marca=<id>'}
+  {id: 'plataforma', titulo: 'Plataforma', ayuda: 'las 5 patas con ?marca=<id>'}
 ];
 const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const pareceWeb = (s) => /^https?:\/\//i.test(s) || (!/\s/.test(s) && /^[a-z0-9-]+(\.[a-z0-9-]+)+(?:[/?#]\S*)?$/i.test(s));
@@ -65,7 +65,7 @@ function pintarResultado(raiz, r) {
   const pres = r.presentacion || {};
   const plat = r.plataforma || {};
   const logo = m.logo ? `<img src="${esc(m.logo)}" alt="Logo de ${esc(m.nombre)}">` : `<b>${esc(m.nombre)}</b>`;
-  const sol = ['studio', 'store', 'app', 'biz'].filter((k) => plat[k]).map((k) => `<a class="pa-sol" href="${esc(plat[k].url)}" target="_blank" rel="noopener"><b>${esc(plat[k].nombre)}</b> <i>${esc(plat[k].verbo)}</i></a>`).join('');
+  const sol = ['studio', 'store', 'tv', 'app', 'biz'].filter((k) => plat[k]).map((k) => `<a class="pa-sol" href="${esc(plat[k].url)}" target="_blank" rel="noopener"><b>${esc(plat[k].nombre)}</b> <i>${esc(plat[k].verbo)}</i></a>`).join('');
   caja.hidden = false;
   caja.innerHTML = `
     <div class="pa-cab"><span class="pa-logo" style="background:${esc(c.fondo || '#fff')};color:${esc(c.texto || '#111')}">${logo}</span>

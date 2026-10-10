@@ -1715,8 +1715,8 @@
     return [
       { text: 'Marca blanca · Galaxia Admira', cls: 'heading' },
       { text: '' },
-      { text: '  Studio crea · Store distribuye · App comercializa · Yokup mantiene.', cls: 'accent' },
-      { text: '  Las cuatro webs, con la marca de cada cliente.', cls: 'dim' },
+      { text: '  studio crea · store distribuye · tv emite · app mantiene · biz comercializa.', cls: 'accent' },
+      { text: '  Las cinco webs, con la marca de cada cliente.', cls: 'dim' },
       { text: '' },
       { text: '  → /marcablanca', cls: 'green' },
     ];

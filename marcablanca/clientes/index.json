@@ -4,28 +4,39 @@
   "porDefecto": "admira",
   "plataformas": {
     "studio": {
-      "nombre": "Admira.Studio",
+      "nombre": "admira.studio",
       "verbo": "crea",
       "dominio": "admira.studio",
+      "pilar": "creatividad",
       "modoNativo": "oscuro"
     },
     "store": {
-      "nombre": "Admira.store",
+      "nombre": "admira.store",
       "verbo": "distribuye",
       "dominio": "admira.store",
+      "pilar": "negocio",
+      "modoNativo": "oscuro"
+    },
+    "tv": {
+      "nombre": "admira.tv",
+      "verbo": "emite",
+      "dominio": "admira.tv",
+      "pilar": "tecnologia",
       "modoNativo": "oscuro"
     },
     "app": {
-      "nombre": "Admira.app",
-      "verbo": "comercializa",
-      "dominio": "admira.app",
-      "modoNativo": "oscuro"
-    },
-    "yokup": {
-      "nombre": "yokup.com",
+      "nombre": "admira.app",
       "verbo": "mantiene",
-      "dominio": "yokup.com",
+      "dominio": "admira.app",
+      "pilar": "tecnologia",
       "modoNativo": "claro"
+    },
+    "biz": {
+      "nombre": "admira.biz",
+      "verbo": "comercializa",
+      "dominio": "admira.biz",
+      "pilar": "negocio",
+      "modoNativo": "oscuro"
     }
   },
   "clientes": [

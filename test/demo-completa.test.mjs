@@ -51,7 +51,7 @@ test('plan 365 Barcelona: 4 locales, 12 equipos ITIL, 16 playlists, 48 huecos, 1
   assert.equal(p.circuito, 'demo_365_bcn');
   assert.equal(p.xpacio.autostart, 'cafeteria');
   assert.equal(p.pasos.length, 7);
-  assert.deepEqual(p.pasos.map((x) => x.componente), ['admira.app', 'admira.biz', 'admira.store', 'admira.app', 'admira.tv', 'pixeria', 'admira.app']);
+  assert.deepEqual(p.pasos.map((x) => x.componente), ['admira.app', 'admira.biz', 'admira.store', 'admira.app', 'admira.tv', 'admira.studio', 'admira.app']);
   const codigos = p.establecimientos.flatMap((e) => e.equipos.map((q) => q.itil_code));
   assert.equal(new Set(codigos).size, 12, 'códigos ITIL únicos');
   codigos.forEach((c) => assert.match(c, ITIL_RE));
@@ -196,7 +196,7 @@ test('la página trae ayuda, formulario con simulación por defecto y la demo r�
   assert.match(h, /id="c_simulacion" checked/, 'simulación activada por defecto');
   for (const v of ['altavoz', 'vertical', 'horizontal']) assert.match(h, new RegExp(`value="${v}" checked disabled`), `${v} es mínimo`);
   assert.doesNotMatch(h, /value="locuciones"/, 'ya no hay un segundo altavoz');
-  for (const c of ['admira.app', 'admira.biz', 'admira.store', 'admira.tv', 'pixeria']) assert.match(h, new RegExp(`<svg class="flujo"[\\s\\S]*${c.replace('.', '\\.')}[\\s\\S]*</svg>`), `diagrama con ${c}`);
+  for (const c of ['admira.app', 'admira.biz', 'admira.store', 'admira.tv', 'admira.studio']) assert.match(h, new RegExp(`<svg class="flujo"[\\s\\S]*${c.replaceAll('.', '\\.')}[\\s\\S]*</svg>`), `diagrama con ${c}`);
   assert.match(h, /365\.bcn-tetuan\.hilomusical/);
   assert.match(h, /src="\/demo\/completa\.js/);
   assert.match(h, /src="\/demo\/demo\.js/, 'el formulario clásico sigue con su script');
@@ -208,7 +208,8 @@ test('ayuda y formulario v2: marca blanca única, TPV, recuentos 12/16 y descone
   assert.doesNotMatch(h, /Marca del cliente<\/label>/);
   assert.match(h, /\/marca 365/);
   assert.match(h, /href="\/marcablanca\/"/, 'enlaza la marca blanca existente');
-  for (const p of ['admira.studio/pixeria', 'admira.store', 'admira.tv', 'admira.app', 'admira.biz']) assert.ok(h.includes(p), p);
+  for (const p of ['admira.studio', 'admira.store', 'admira.tv', 'admira.app', 'admira.biz']) assert.ok(h.includes(p), p);
+  assert.doesNotMatch(h, /pixeria\.com|Pixeria/);
   assert.match(h, /TPV/);
   assert.match(h, /bajo demanda/);
   assert.match(h, /<b>12<\/b> equipos en el inventario ITIL/);

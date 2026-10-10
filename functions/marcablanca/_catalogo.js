@@ -18,6 +18,7 @@
  * PROPUESTA automática, la web de la que salió, autor (si había sesión) y fechas.
  */
 import {normalizarMarca, validarMarca, idMarca, urlSegura} from '../../marcablanca/marca.js';
+import {plataformasCatalogo} from '../../data/pilares-historia.mjs';
 
 export const PREFIJO_KV = 'marca:';
 export const PREFIJO_R2 = 'marcas/';
@@ -108,7 +109,7 @@ export async function listarMarcas(env, request, {completo = false} = {}){
       } while (cursor && clientes.length < MAX_MARCAS + 10);
     } catch (_) { degradado = true; }
   }
-  const salida = {nombre:indice.nombre || 'Marca blanca · Galaxia Admira', version:'2', porDefecto:indice.porDefecto || 'admira', plataformas:indice.plataformas || {}, dominios:indice.dominios || {}, clientes, fuente:degradado ? 'semilla' : 'semilla+kv', degradado};
+  const salida = {nombre:indice.nombre || 'Marca blanca · Galaxia Admira', version:'2', porDefecto:indice.porDefecto || 'admira', plataformas:plataformasCatalogo(), dominios:indice.dominios || {}, clientes, fuente:degradado ? 'semilla' : 'semilla+kv', degradado};
   if (completo) {
     const marcas = await Promise.all(clientes.slice(0, 120).map(c => obtenerMarca(env, request, c.id).catch(() => null)));
     salida.marcas = marcas.filter(Boolean);
