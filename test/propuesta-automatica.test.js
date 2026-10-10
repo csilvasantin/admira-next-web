@@ -54,8 +54,7 @@ function estudioXai(fuente, extra = {}){
     publico: {texto: 'Cadenas de retail', tipo: 'hecho', fuente: 'https://inventada.example/'},
     canales: [{texto: 'Web corporativa', tipo: 'hecho', fuente}], retos: [{texto: 'Medir el impacto en tienda', tipo: 'hecho', fuente}, {texto: 'Mantener una red grande de pantallas', tipo: 'hipotesis', fuente: ''}],
     oportunidades: {studio: {titulo: 'Contenidos con su marca', detalle: 'Piezas para cada pantalla.', basadoEn: 'Ofrecen digital signage'}, store: {titulo: 'Inventario del punto de venta', detalle: 'Gemelo digital de cada tienda.', basadoEn: ''},
-      tv: {titulo: 'Emisión en pantalla', detalle: 'Qué suena en cada pantalla.', basadoEn: ''},
-      app: {titulo: 'Mantenimiento de la red', detalle: 'Incidencias e instaladores.', basadoEn: ''}, biz: {titulo: 'Circuito DOOH', detalle: 'Vender el inventario de pantallas.', basadoEn: ''}},
+      app: {titulo: 'Circuito DOOH', detalle: 'Vender el inventario de pantallas.', basadoEn: ''}, biz: {titulo: 'Mantenimiento de la red', detalle: 'Incidencias e instaladores.', basadoEn: ''}},
     confianza: 'alta', inventado: 'esto no está en el esquema', ...extra};
 }
 const respuestaXai = obj => new Response(JSON.stringify({output: [{type: 'message', content: [{type: 'output_text', text: JSON.stringify(obj)}]}]}), {headers: {'content-type': 'application/json'}});
@@ -131,24 +130,18 @@ test('admira.com: marca admira-com (sin tocar la semilla), estudio con fuentes, 
     const pres = JSON.parse(env.PRESENTATION_IDEAS.values.get('presentation:admira-com'));
     assert.equal(pres.prospect.marca, 'admira-com');
     assert.equal(pres.createdBy.email, 'csilvasantin@gmail.com');
-    assert.deepEqual(pres.structure.slideCodes, ['contexto', 'retos', 'studio', 'store', 'tv', 'app', 'biz', 'piloto']);
+    assert.deepEqual(pres.structure.slideCodes, ['contexto', 'retos', 'studio', 'store', 'app', 'biz', 'piloto']);
     assert.ok(env.PRESENTATION_IDEAS.values.get('versions:admira-com') || [...env.PRESENTATION_IDEAS.values.keys()].some(k => k.startsWith('version')), 'se captura versión como en cualquier alta');
     const deck = await (await renderDeck({params: {client: 'admira-com'}, request: new Request(ORIGEN + '/presentaciones/admira-com/presentacion'), env, data: {}, next: () => new Response('', {status: 404})})).text();
-    for (const p of ['studio', 'store', 'tv', 'app', 'yokup']) assert.match(deck, new RegExp(`data-mb-maqueta="${p}"`), `maqueta ${p}`);
-    assert.match(deck, /admira\.tv/);
-    assert.doesNotMatch(deck, /pixeria|>Yokup</i);
+    for (const p of ['studio', 'store', 'app', 'yokup']) assert.match(deck, new RegExp(`data-mb-maqueta="${p}"`), `maqueta ${p}`);
     assert.match(deck, /galaxia-prospect/, 'termina en «Su galaxia»');
     assert.doesNotMatch(deck.match(/data-block-id="contexto"[^>]*/)?.[0] || '', /data-mb-maqueta/, 'el contexto no roba una maqueta');
     // Plataforma.
     assert.equal(body.plataforma.studio.url, 'https://www.admira.studio/?marca=admira-com');
     assert.equal(body.plataforma.store.url, 'https://www.admira.store/?marca=admira-com');
-    assert.equal(body.plataforma.tv.url, 'https://admira.tv/?marca=admira-com');
-    assert.equal(body.plataforma.app.url, 'https://admira.app/?marca=admira-com');
-    assert.equal(body.plataforma.app.verbo, 'mantiene');
-    assert.equal(body.plataforma.biz.url, 'https://admira.biz/?marca=admira-com');
-    assert.equal(body.plataforma.biz.verbo, 'comercializa');
-    assert.equal(body.plataforma.tv.verbo, 'emite');
-    assert.doesNotMatch(JSON.stringify(body.plataforma), /yokup|pixeria/i);
+    assert.equal(body.plataforma.app.url, 'https://www.admira.app/?marca=admira-com');
+    assert.equal(body.plataforma.biz.url, 'https://www.admira.biz/?marca=admira-com');
+    assert.equal(body.plataforma.biz.alternativa, 'https://www.yokup.com/?marca=admira-com');
     assert.equal(body.propuestaUrl, '/marcablanca/propuesta/admira-com');
     assert.equal(body.cupo.usados, 1);
     // Registro del lanzamiento: quién, cuándo y para quién.
@@ -319,7 +312,7 @@ test('el estudio se valida contra un esquema cerrado: sin campos inventados y co
   assert.ok([sinFuentes.sector, sinFuentes.propuestaValor, ...sinFuentes.canales].every(a => a.tipo === 'hipotesis'));
   const pendiente = estudioPendiente('X');
   assert.equal(pendiente.confianza, 'baja');
-  assert.deepEqual(Object.keys(pendiente.oportunidades), ['studio', 'store', 'tv', 'app', 'biz']);
+  assert.deepEqual(Object.keys(pendiente.oportunidades), ['studio', 'store', 'app', 'biz']);
 });
 
 test('fuentes internas: una por categoría, mismo dominio, sin ficheros ni otros sitios', () => {
@@ -335,9 +328,9 @@ test('entrada: una web escrita como marca se trata como web; dominios y láminas
   assert.equal(etiquetaDominio('www.admira.com'), 'admira');
   assert.equal(etiquetaDominio('tienda.marca.co.uk'), 'marca');
   const laminas = laminasDesdeEstudio('Admira', estudioPendiente('Admira'));
-  assert.deepEqual(laminas.map(l => plataformaDeBloque({id: l.code, product: l.product, title: l.title, message: l.message})), ['', '', 'studio', 'store', 'tv', 'yokup', 'app', '']);
+  assert.deepEqual(laminas.map(l => plataformaDeBloque({id: l.code, product: l.product, title: l.title, message: l.message})), ['', '', 'studio', 'store', 'app', 'yokup', '']);
   assert.equal(plataformaDeBloque({id: 'x', product: 'Contexto', message: 'mantenimiento de Yokup'}), '', 'un producto explícito ajeno no adivina por el texto');
-  assert.deepEqual(Object.keys(plataformaPara('x')).filter((k) => k !== 'marcablanca' && k !== 'presentacionDemo'), ['studio', 'store', 'tv', 'app', 'biz']);
+  assert.deepEqual(Object.keys(plataformaPara('x')).slice(0, 4), ['studio', 'store', 'app', 'biz']);
 });
 
 test('el proveedor de texto es siempre xAI; el simulador local solo puede ser localhost', () => {

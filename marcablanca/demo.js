@@ -6,9 +6,12 @@
 (function () {
   'use strict';
   var MB = window.MarcaBlanca;
-  function plataformas() {
-    return (window.MarcaBlancaMaquetas && window.MarcaBlancaMaquetas.PLATAFORMAS) || [];
-  }
+  var PLATAFORMAS = [
+    { id: 'studio', nombre: 'Admira.Studio', verbo: 'crea', dominio: 'admira.studio', ruta: '/crear' },
+    { id: 'store', nombre: 'Admira.store', verbo: 'distribuye', dominio: 'admira.store', ruta: '/gemelos' },
+    { id: 'app', nombre: 'Admira.biz', verbo: 'comercializa', dominio: 'admira.biz', ruta: '/' },
+    { id: 'yokup', nombre: 'Admira.app', verbo: 'mantiene', dominio: 'admira.app', ruta: '/incidencias' }
+  ];
   var CLIENTES = ['lumbre', 'brumelle', 'frescaria', 'admira'];
   var ID_VALIDO = /^[a-z0-9][a-z0-9-]{0,40}$/;
   var MODOS = { marca: 'Modo de la marca', nativo: 'Nativo de cada web', claro: 'Claro', oscuro: 'Oscuro' };
@@ -59,7 +62,7 @@
   function pintarMaquetas(m) {
     var cont = document.getElementById('maquetas');
     cont.setAttribute('aria-busy', 'true');
-    var trabajos = plataformas().map(function (p) {
+    var trabajos = PLATAFORMAS.map(function (p) {
       var art = cont.querySelector('[data-plataforma="' + p.id + '"]');
       art.querySelector('.mk-url').textContent = url(p, m.id);
       var scope = art.querySelector('.mk-scope');

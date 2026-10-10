@@ -15,7 +15,6 @@
  */
 import {fetchPublico, extractReadableText, limitedText, resolverDoh, esMuroAntibots} from './_inspiration.js';
 import {generateNarrativeWithRetry, xaiResponsesUrl} from './_skeleton.js';
-import {patas} from '../../data/pilares-historia.mjs';
 
 export const ESTUDIO_TIMEOUT_MS = 60000;
 export const MAX_PAGINAS_INTERNAS = 4;
@@ -26,11 +25,15 @@ export const PLAZO_PAGINA_MS = 6000;
 const MAX_RESPUESTA = 256 * 1024;
 const MAX_CANALES = 6;
 const MAX_RETOS = 5;
-const HISTORIA = patas();
-export const SOLUCIONES_ESTUDIO = HISTORIA.map((p) => p.id);
+export const SOLUCIONES_ESTUDIO = ['studio', 'store', 'app', 'biz'];
 
-/** Lo que hace cada pata. El rol sale de data/arquitectura.json. */
-export const SOLUCIONES = Object.fromEntries(HISTORIA.map((p) => [p.id, {nombre:p.dominio, verbo:p.verbo, foco:p.rol}]));
+/** Lo que hace cada una de las 4 soluciones (contexto para el modelo y plantilla de reserva). */
+export const SOLUCIONES = {
+  studio:{nombre:'Admira.Studio', verbo:'crea', foco:'Contenido: creación con IA de carteles, vídeos y menús digitales para cada pantalla y escaparate, con su marca y sus aprobaciones.'},
+  store:{nombre:'Admira.store', verbo:'distribuye', foco:'Distribución e inventario del punto de venta: gemelo digital de cada espacio, superficies y pantallas, despliegue de cada pieza en su sitio y confirmación de emisión.'},
+  app:{nombre:'Admira.app', verbo:'comercializa', foco:'Comercialización y circuitos DOOH: vender el inventario de pantallas por circuito, público y CPM a anunciantes y marcas.'},
+  biz:{nombre:'Admira.biz · Yokup', verbo:'mantiene', foco:'Mantenimiento y red de comercios e instaladores: incidencias IoT (pantallas, música, clima, redes), técnicos y comercios conectados.'}
+};
 
 /* ── 1. Fuentes públicas ─────────────────────────────────────────────────── */
 export const CATEGORIAS = [
@@ -131,7 +134,7 @@ export const ESQUEMA_ESTUDIO = {
 const IDIOMAS = {es:'Spanish (español de España)', en:'English', ca:'Catalan'};
 const SISTEMA = [
   'You are a B2B commercial analyst at ADmiraNeXT preparing a private company study before a sales proposal.',
-  'You receive the public pages of a company website (already fetched, with their URLs) and must describe the company and where each of the five ADmiraNeXT pillars could help it.',
+  'You receive the public pages of a company website (already fetched, with their URLs) and must describe the company and where each of the four ADmiraNeXT solutions could help it.',
   'STRICT HONESTY RULES: use only the supplied sources. A statement is "hecho" ONLY if it is explicitly stated in one of the supplied pages, and then "fuente" must be exactly that page URL. Anything you deduce, estimate or infer is "hipotesis" with "fuente" empty.',
   'Never invent figures, store counts, revenues, employee numbers, client names, people or dates. If the size or number of locations is not stated, say it is not stated (as a hipotesis) instead of guessing.',
   'Do not use any knowledge about the company that is not in the sources; if there are no sources, everything is "hipotesis" and "confianza" is "baja".',

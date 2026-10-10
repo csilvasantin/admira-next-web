@@ -71,7 +71,7 @@ export const EVENTOS_TPV = Object.freeze([
 // Marca blanca: siempre la marca REAL del cliente, aplicada con `/marca <id>` (CLI Experto,
 // suite/experto.js) en las 5 plataformas. Catálogo único: admiranext.com/marcablanca.
 export const PLATAFORMAS_MARCA = Object.freeze([
-  { id: 'studio', nombre: 'admira.studio', url: 'https://www.admira.studio/' },
+  { id: 'studio', nombre: 'admira.studio · pixeria', url: 'https://www.admira.studio/', alt: 'https://www.pixeria.com/' },
   { id: 'store', nombre: 'admira.store', url: 'https://www.admira.store/' },
   { id: 'tv', nombre: 'admira.tv', url: 'https://admira.tv/' },
   { id: 'app', nombre: 'admira.app', url: 'https://admira.app/' },
@@ -298,7 +298,7 @@ export function marcaBlanca(d) {
     pasos: [
       { n: 1, accion: `Analizar ${d.website || 'la web del cliente'} (logo, paleta, tipografía; no guarda nada)`, endpoint: `POST ${URLS.analizar} {url}` },
       { n: 2, accion: `Guardar la marca «${d.cliente}» en el catálogo único (origen url, tipo real)`, endpoint: `POST ${URLS.guardarMarca} {marca, origen:"url", tipo:"real", web} · sesión del generador`, escritura: `marca:${id}` },
-      { n: 3, accion: `Aplicar /marca ${id} en el CLI Experto: viste admira.studio, admira.store, admira.tv, admira.app y admira.biz`, endpoint: `${URLS.marcablanca}?marca=${id}` },
+      { n: 3, accion: `Aplicar /marca ${id} en el CLI Experto: viste admira.studio/pixeria, admira.store, admira.tv, admira.app y admira.biz`, endpoint: `${URLS.marcablanca}?marca=${id}` },
     ],
     estado_hoy: ESTADO_EXTRA.marca_blanca.estado,
     falta: ESTADO_EXTRA.marca_blanca.falta,
@@ -371,17 +371,17 @@ export function construirPlan(entrada = {}, { ahora = new Date().toISOString() }
   });
 
   const pasos = [
-    paso(1, 'admira.app', 'Cliente franquicia + marca blanca', `Cuenta de marca «${d.cliente}» (brand_key ${d.clienteId}) en admira.app y su marca real como marca blanca: catálogo de /marcablanca y ${marca.comando} en las 5 plataformas.`,
+    paso(1, 'admira.app', 'Cliente franquicia + marca blanca', `Cuenta de marca «${d.cliente}» (brand_key ${d.clienteId}) en admira.app / Yokup y su marca real como marca blanca: catálogo de /marcablanca y ${marca.comando} en las 5 plataformas.`,
       `Yokup admira-xpacio-sync (external.brand) · ${URLS.analizar} · ${URLS.guardarMarca} · CLI Experto ${marca.comando}`, [`brand_accounts:${d.clienteId}`, `marca:${marca.id}`]),
     paso(2, 'admira.biz', 'Establecimientos en el mapa', `Circuito ${circuito} con ${establecimientos.length} Xpacios reales (dirección + coordenadas).`,
       `GET → backup → unión → PUT ${URLS.catalogo}`, establecimientos.map((e) => `location:${e.id}`)),
     paso(3, 'admira.store', 'Gemelos digitales', `${establecimientos.length} gemelos (autostart=${tipo.autostart}, marca=${marca.id}).`,
       `${URLS.twin}?autostart=${tipo.autostart}&loc=<id>`, establecimientos.map((e) => `twin:${e.id}`)),
-    paso(4, 'admira.app', 'Inventario ITIL', `${nEquipos} CIs: ${d.dispositivos.length} equipos físicos por establecimiento (${d.dispositivos.map((q) => q.id).join(', ')}).`,
+    paso(4, 'admira.app', 'Inventario ITIL (Yokup)', `${nEquipos} CIs: ${d.dispositivos.length} equipos físicos por establecimiento (${d.dispositivos.map((q) => q.id).join(', ')}).`,
       `${URLS.itilMcp} · itil_ci_upsert {admira_store_id, itil_code, name, category, role, orientation}`, establecimientos.flatMap((e) => e.equipos.map((q) => `ci:${q.itil_code}`))),
     paso(5, 'admira.tv', 'Playlists por canal', `${nPlaylists} playlists (${porLocal} por local) ${d.clienteId}.<xpacio>.<canal>; el altavoz lleva 2: hilomusical continuo y locuciones bajo demanda desde el TPV (${nDemanda}).`,
       `POST ${URLS.xpl} (lista completa, unión) · POST ${URLS.tvPlaylist} {screen, items} · locuciones: TPV → ${URLS.api}/megafonia/push`, todasPl.map((x) => `playlist:${x.playlist}`)),
-    paso(6, 'admira.studio', 'Contenidos de marca', `${d.contenidos} por playlist · ${nSlots} huecos · ${nUnicos} piezas únicas comunes a toda la marca · idiomas ${d.idiomas.join('/')} · locuciones: cierre, emergencia, aviso puntual.`,
+    paso(6, 'pixeria', 'Contenidos de marca', `${d.contenidos} por playlist · ${nSlots} huecos · ${nUnicos} piezas únicas comunes a toda la marca · idiomas ${d.idiomas.join('/')} · locuciones: cierre, emergencia, aviso puntual.`,
       `${URLS.api}/lyria3/generate · /hilomusical/push · /megafonia/push · /imagen/generate · /stock/publish`, [`stock:${nUnicos} piezas`]),
     paso(7, 'admira.app', 'Comprobación final', 'Equipos online (o simulados), playlists asignadas, hilo y pantallas emitiendo y una locución de prueba disparada (simulada) desde el TPV.',
       `${URLS.itilLectura}<id> · ${URLS.tvPlaylist}?screen=<pantalla> · ${URLS.api}/grid/day?screen=<id>`, []),

@@ -56,7 +56,7 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - structure:"admiranext" o slides[] — fuerza la estructura de 3 actos × (portada + a/b/c). beforeDeck/afterDeck/insertDeck aceptan pack o slug de otra presentación.
 - lanzar_propuesta {url? | marca? | idea?, idioma?, destinatario?, rehacer?} — PROPUESTA COMERCIAL AUTOMÁTICA ante una
   oportunidad: marca (catálogo /marcablanca) → estudio de la compañía (web pública + IA, hipótesis marcadas) →
-  presentación vestida con su marca (studio, store, tv, app, biz y «Su galaxia») → enlaces de las 5 patas con ?marca=.
+  presentación vestida con su marca (Studio, Store, App, Biz y «Su galaxia») → enlaces de las 4 soluciones con ?marca=.
   Solo a petición o con criterio comercial claro; NUNCA en bucle ni masivo (límite 20/día por usuario). Ver help tema propuesta.
 - estado_propuesta {id} — estado, estudio, presentación (URL y clave) y plataforma de una propuesta ya lanzada.
 
@@ -178,9 +178,9 @@ lanzar_propuesta {url?, marca?, idea?, idioma?, destinatario?, rehacer?} (al men
   idea → contexto de la oportunidad (también vale sola: marca neutra).
 Pasos (idempotentes por id; relanzar no duplica nada; rehacer:true lo rehace todo y gasta cupo):
   1. marca · 2. estudio (portada + hasta 4 páginas internas; «hecho» solo con fuente leída, lo demás hipótesis; si la IA
-  falla, «estudio pendiente» honesto) · 3. presentación (/presentaciones/<id>/ con su marca, láminas studio, store, tv, app,
-  biz y «Su galaxia»; contraseña propia) · 4. plataforma (admira.studio, admira.store, admira.tv, admira.app, admira.biz con ?marca=<id>).
-Devuelve id, marca, estudio, presentacion{url, slug, password?}, plataforma{studio,store,tv,app,biz}, propuestaUrl.
+  falla, «estudio pendiente» honesto) · 3. presentación (/presentaciones/<id>/ con su marca, láminas Studio, Store, App,
+  Biz y «Su galaxia»; contraseña propia) · 4. plataforma (admira.studio, admira.store, admira.app, admira.biz con ?marca=<id>).
+Devuelve id, marca, estudio, presentacion{url, slug, password?}, plataforma{studio,store,app,biz}, propuestaUrl.
 La página privada de la propuesta: /marcablanca/propuesta/<id> (detrás de la puerta del generador).
 Las semillas no se tocan: admira.com → id admira-com (marca corporativa), distinta de «admira» (marca por defecto).
 estado_propuesta {id} para consultarla después. HTTP equivalente: POST /presentaciones/api/propuesta con el mismo token.`,
@@ -239,7 +239,7 @@ export const TOOLS = [
   { name: 'upload_media', description: 'Sube una imagen, audio o vídeo (≤40 MB; PNG, JPEG, WebP, GIF, MP3, WAV, M4A, MP4, WebM) a la biblioteca privada de la presentación. acceptedByCarlos:true es obligatorio (Carlos autoriza el recurso). Con slide, además lo asigna a esa lámina. Para ficheros grandes usa el mismo token como Bearer en POST /presentaciones/api/media-library (help tema media).', inputSchema: { type: 'object', properties: { client: { type: 'string' }, filename: { type: 'string' }, dataBase64: { type: 'string', description: 'contenido del fichero en base64 (admite prefijo data:…;base64,)' }, acceptedByCarlos: { type: 'boolean', description: 'true: Carlos ha aceptado este recurso' }, approvalNote: { type: 'string', description: 'quién y cuándo lo aceptó Carlos' }, slide: { type: 'string', description: 'opcional: lámina a la que asignarlo (cover, objective, <blockId>, closing)' }, caption: { type: 'string' } }, required: ['client', 'filename', 'dataBase64', 'acceptedByCarlos'] } },
   { name: 'assign_media', description: 'Asigna un recurso de la biblioteca (assetId de list_media) a una lámina (slide).', inputSchema: { type: 'object', properties: { client: { type: 'string' }, assetId: { type: 'string' }, slide: { type: 'string' }, caption: { type: 'string' }, fallback: { type: 'string' } }, required: ['client', 'assetId', 'slide'] } },
   { name: 'delete_media', description: 'Retira un recurso de la biblioteca: lo quita del inventario, de las láminas que lo usaban y borra su objeto privado.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, assetId: { type: 'string' } }, required: ['client', 'assetId'] } },
-  { name: 'lanzar_propuesta', description: 'Propuesta comercial automática ante una oportunidad: marca (catálogo de /marcablanca) → estudio de la compañía (web pública + IA; lo deducido va como hipótesis) → presentación con su marca en studio, store, tv, app y biz → enlaces de las 5 patas con ?marca=. Idempotente por id. Úsala solo a petición o con criterio comercial; nunca en bucle (límite 20/día por usuario). Ver help tema propuesta.', inputSchema: { type: 'object', properties: {
+  { name: 'lanzar_propuesta', description: 'Propuesta comercial automática ante una oportunidad: marca (catálogo de /marcablanca) → estudio de la compañía (web pública + IA; lo deducido va como hipótesis) → presentación con su marca en Studio, Store, App y Biz → enlaces de las 4 soluciones con ?marca=. Idempotente por id. Úsala solo a petición o con criterio comercial; nunca en bucle (límite 20/día por usuario). Ver help tema propuesta.', inputSchema: { type: 'object', properties: {
     url: { type: 'string', description: 'web pública de la marca (https://…)' }, marca: { type: 'string', description: 'id del catálogo o nombre de la marca' }, idea: { type: 'string', description: 'la oportunidad detectada / contexto comercial' },
     idioma: { type: 'string', enum: ['es', 'en', 'ca'], description: 'idioma del estudio y de la presentación (es por defecto; es y en siempre)' }, destinatario: { type: 'string', description: 'a quién se presenta (cargo, área)' },
     rehacer: { type: 'boolean', description: 'true: rehace todos los pasos (gasta cupo)' } } } },

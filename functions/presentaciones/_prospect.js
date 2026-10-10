@@ -194,7 +194,7 @@ export async function resolveRenderBrand({env,request,config,override}){
   return {m,id:m.id,modo:modoDe(m),logoHtml,override:Boolean(pedido&&m&&pedido===m.id)};
 }
 
-const PLAT_NOMBRE={studio:['admira.studio','crea'],store:['admira.store','distribuye'],tv:['admira.tv','emite'],app:['admira.biz','comercializa'],yokup:['admira.app','mantiene']};
+const PLAT_NOMBRE={studio:['Admira.Studio','crea'],store:['Admira.store','distribuye'],app:['Admira.app','comercializa'],yokup:['yokup.com','mantiene']};
 
 /** Una maqueta completa (barra de navegador + pantalla) vestida con la marca en esa plataforma. */
 export function maquetaHtml(brand,plataforma){
@@ -207,9 +207,6 @@ export function maquetaHtml(brand,plataforma){
 /** Qué plataforma de la Galaxia ilustra un bloque del guion (o '' si ninguna). */
 export function plataformaDeBloque(item={}){
   const product=String(item.product||'').toLowerCase();
-  if(/admira\.tv|\btv\b/.test(product))return 'tv';
-  if(/admira\.biz/.test(product)&&/comercializa|sells|ingresos|dooh|retail media/.test(product))return 'app';
-  if(/admira\.app/.test(product)&&/mantiene|maintenance|instalacion/.test(product))return 'yokup';
   if(/studio/.test(product))return 'studio';if(/store/.test(product))return 'store';if(/admira\.app|\bapp\b/.test(product))return 'app';if(/yokup/.test(product))return 'yokup';
   // Un producto explícito que no es ninguna de las cuatro (p. ej. «Contexto» o «Primer piloto» en la
   // propuesta automática) no lleva maqueta: no se adivina por el texto (FLT-101369).
@@ -223,9 +220,9 @@ export function plataformaDeBloque(item={}){
 }
 
 const GALAXIA={
-  es:{eyebrow:'Galaxia Admira · con tu marca',title:name=>`Así se ve ${name} en studio, store, tv, app y biz.`,detail:'studio crea · store distribuye · tv emite · app mantiene · biz comercializa. Las cinco patas, con la identidad de tu marca.'},
-  ca:{eyebrow:'Galàxia Admira · amb la teva marca',title:name=>`Així es veu ${name} a studio, store, tv, app i biz.`,detail:'studio crea · store distribueix · tv emet · app manté · biz comercialitza. Les cinc potes, amb la identitat de la teva marca.'},
-  en:{eyebrow:'Admira Galaxy · with your brand',title:name=>`This is ${name} on studio, store, tv, app and biz.`,detail:'studio creates · store distributes · tv broadcasts · app maintains · biz sells. All five pillars, in your brand identity.'}
+  es:{eyebrow:'Galaxia Admira · con tu marca',title:name=>`Así se ve ${name} en Studio, Store, App y Yokup.`,detail:'Studio crea · Store distribuye · App comercializa · Yokup mantiene. Las cuatro plataformas, con la identidad de tu marca.'},
+  ca:{eyebrow:'Galàxia Admira · amb la teva marca',title:name=>`Així es veu ${name} a Studio, Store, App i Yokup.`,detail:'Studio crea · Store distribueix · App comercialitza · Yokup manté. Les quatre plataformes, amb la identitat de la teva marca.'},
+  en:{eyebrow:'Admira Galaxy · with your brand',title:name=>`This is ${name} on Studio, Store, App and Yokup.`,detail:'Studio creates · Store distributes · App sells · Yokup maintains. All four platforms, in your brand identity.'}
 };
 function i18nAttrs(key,name){return ['es','ca','en'].map(language=>{const value=GALAXIA[language][key];return ` data-pg-${language}="${esc(typeof value==='function'?value(name):value)}"`}).join('')}
 
