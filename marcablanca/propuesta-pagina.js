@@ -10,10 +10,11 @@ import {pintar} from '/marcablanca/maquetas.js?v=20261002-propuesta';
 const $ = (id) => document.getElementById(id);
 const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const SOLUCIONES = [
-  {k: 'studio', maqueta: 'studio', foco: 'Contenido'},
-  {k: 'store', maqueta: 'store', foco: 'Distribución e inventario del punto de venta'},
-  {k: 'app', maqueta: 'app', foco: 'Comercialización y circuitos DOOH'},
-  {k: 'biz', maqueta: 'yokup', foco: 'Mantenimiento, comercios e instaladores'}
+  {k: 'studio', maqueta: 'studio', foco: 'Creación y adaptación de contenidos'},
+  {k: 'store', maqueta: 'store', foco: 'Distribución y gemelo del punto de venta'},
+  {k: 'tv', maqueta: 'tv', foco: 'Emisión y proof of play'},
+  {k: 'app', maqueta: 'yokup', foco: 'Instalaciones y mantenimiento'},
+  {k: 'biz', maqueta: 'app', foco: 'DooH y Retail Media'}
 ];
 
 function idDeLaRuta() {
@@ -104,7 +105,7 @@ function pintarPropuesta(p) {
     <section id="presentacion"><div class="sec-head"><span class="ico">▶</span><h2>Presentación</h2><span class="note">generador · prospect con su marca</span></div>
       ${pres.url ? `<div class="pp-pres"><a class="pa-btn pa-btn--lleno" href="${esc(pres.deckUrl || pres.url)}" target="_blank" rel="noopener">Abrir la presentación ↗</a><code>${esc(location.origin + pres.url)}</code>${pres.password ? `<code title="Clave del cliente">${esc(pres.password)}</code>` : '<span class="pp-nota">clave: la de su alta (se conserva al regenerar)</span>'}<a class="pa-btn" href="${esc(pres.ideasUrl)}" target="_blank" rel="noopener">Editar esqueleto</a></div>` : '<p class="pp-nota">Todavía no hay presentación: relanza la propuesta.</p>'}
     </section>
-    <section id="soluciones"><div class="sec-head"><span class="ico">◆</span><h2>Las 4 soluciones con su marca</h2><span class="note">Studio crea · Store distribuye · App comercializa · Biz mantiene</span></div>
+    <section id="soluciones"><div class="sec-head"><span class="ico">◆</span><h2>Las 5 patas con su marca</h2><span class="note">studio crea · store distribuye · tv emite · app mantiene · biz comercializa</span></div>
       <div class="pp-sols">${sols}</div>
     </section>`;
   pintarMaquetas(m.id);

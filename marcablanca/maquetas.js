@@ -9,10 +9,11 @@
 var LOGO = '';
 var N = 0;
 var PLATAFORMAS = [
-  { id: 'studio', nombre: 'Admira.Studio', verbo: 'crea', dominio: 'admira.studio', ruta: '/crear' },
-  { id: 'store', nombre: 'Admira.store', verbo: 'distribuye', dominio: 'admira.store', ruta: '/gemelos' },
-  { id: 'app', nombre: 'Admira.biz', verbo: 'comercializa', dominio: 'admira.biz', ruta: '/' },
-  { id: 'yokup', nombre: 'Admira.app', verbo: 'mantiene', dominio: 'admira.app', ruta: '/incidencias' }
+  { id: 'studio', nombre: 'admira.studio', verbo: 'crea', dominio: 'admira.studio', ruta: '/crear' },
+  { id: 'store', nombre: 'admira.store', verbo: 'distribuye', dominio: 'admira.store', ruta: '/gemelos' },
+  { id: 'tv', nombre: 'admira.tv', verbo: 'emite', dominio: 'admira.tv', ruta: '/' },
+  { id: 'app', nombre: 'admira.biz', verbo: 'comercializa', dominio: 'admira.biz', ruta: '/' },
+  { id: 'yokup', nombre: 'admira.app', verbo: 'mantiene', dominio: 'admira.app', ruta: '/incidencias' }
 ];
 
 var ESTADOS = { abierta: ['error', 'Abierta'], curso: ['aviso', 'En curso'], resuelta: ['ok', 'Resuelta'] };
@@ -133,14 +134,27 @@ function app(m) {
     '</div></div>';
 }
 
-/* ── Yokup · mantiene ──────────────────────────────────────────────────── */
+/* ── admira.tv · emite ─────────────────────────────────────────────────── */
+function tv(m) {
+  return '<div class="st">' +
+    '<header class="st-top"><span class="st-ico">▶</span><span class="mb-logo st-logo" data-mb-logo>' + LOGO + '</span>' +
+    '<span class="mk-plat">admira.tv</span>' +
+    '<nav class="st-nav"><a aria-current="page">EMISIÓN</a><a>PLAYLIST</a><a>PROOF</a></nav>' +
+    '<span class="st-cta">EN AIRE</span></header>' +
+    '<div class="st-head"><h4 class="mk-h">' + esc(m.nombreCorto || m.nombre) + ' · en emisión</h4>' +
+    '<div class="st-tabs"><b>Ahora</b><span>Siguiente</span><span>Proof of play</span></div></div>' +
+    '<section class="st-card"><div class="mk-eye">Pantalla</div><div class="mk-in">Hilo y visual de ' + esc(m.nombre) + '</div>' +
+    '<div class="st-tags"><span class="mb-chip mb-chip--on">Emitiendo</span><span class="mb-chip">Proof of play</span></div></section></div>';
+}
+
+/* ── admira.app · mantiene (token interno del cargador) ────────────────── */
 function yokup(m) {
   var x = m.demo;
   var filas = x.incidencias.map(function (i) {
     return '<tr><td class="mk-num">' + esc(i.id) + '</td><td>' + esc(i.equipo) + '</td><td>' + esc(corto(i.tienda, m)) + '</td><td>' + esc(i.prioridad) + '</td><td>' + estado(i.estado) + '</td></tr>';
   }).join('');
   return '<div class="yk">' +
-    '<header class="yk-top"><span class="yk-ico">▤</span><span class="mb-logo yk-logo" data-mb-logo>' + LOGO + '</span><span class="mk-plat">Yokup</span>' +
+    '<header class="yk-top"><span class="yk-ico">▤</span><span class="mb-logo yk-logo" data-mb-logo>' + LOGO + '</span><span class="mk-plat">admira.app</span>' +
     '<nav class="yk-nav"><a>DASHBOARD</a><a>MISIONES</a><a aria-current="page">INCIDENCIAS</a><a>INFORMES</a></nav>' +
     '<span class="yk-pill">● TODOS</span></header>' +
     '<div class="yk-body">' +
@@ -157,7 +171,7 @@ function yokup(m) {
 }
 
 
-var PINTORES = { studio: studio, store: store, app: app, yokup: yokup };
+var PINTORES = { studio: studio, store: store, tv: tv, app: app, yokup: yokup };
 
 /** HTML de la maqueta `id` vestida con la marca `m` (un cliente normalizado con su `demo`). */
 export function pintar(id, m, o) {

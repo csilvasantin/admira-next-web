@@ -1,8 +1,8 @@
 # AdmiraNeXT (matriz · admiranext.com)
 
 > Matriz de AdmiraNeXT: empresa agéntica de Robots-as-a-Service (RaaS) e IoT con
-> inteligencia artificial, cuyo producto es el sistema operativo del retail: las 4 patas
-> (admira.studio, admira.store, admira.biz y admira.app). Punto de entrada corporativo.
+> inteligencia artificial, cuyo producto es el sistema operativo del retail: las 5 patas
+> (admira.studio, admira.store, admira.tv, admira.app y admira.biz). Punto de entrada corporativo.
 > Esta sección /mcp es la puerta para que cualquier agente entienda la empresa, navegue
 > sus superficies y salte a las demás — y viceversa. Sitio estático; la API operativa
 > viva vive en el Consejo (admira.live) y se federa desde aquí.
@@ -19,19 +19,20 @@ AdmiraNeXT conecta las cosas a internet con IA. Modelo: Robots-as-a-Service (Raa
 La trilogía corporativa (cómo se organizan los sitios /mcp de la empresa, no el producto):
 matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio (admira.live).
 
-## Las 4 patas de AdmiraNeXT · el sistema operativo del retail (todo DeepAgent debe saberlo)
+## Las 5 patas de AdmiraNeXT · el sistema operativo del retail (todo DeepAgent debe saberlo)
 
-La comunicación en el punto de venta es una mesa de cuatro patas; la coordinación de las
-cuatro es el sistema operativo del retail. Studio es Pixeria y Store es XpaceOS. Biz y App se nombran por lo que hacen:
+Cuelgan de los tres pilares de Bits and Atoms: tecnología, creatividad y negocio.
+La fuente de dominio y rol es data/arquitectura.json.
 
-1. https://www.admira.studio = https://www.pixeria.com · Pixeria — importación y creación de contenidos.
-2. https://www.admira.store = https://www.xpaceos.com · XpaceOS — inventario del punto de venta y distribución de los contenidos.
-3. https://www.admira.biz · DooH y Retail Media (antes https://www.clearchannel.tv) — comercialización de los Xpacios y visión global de los circuitos.
-4. https://www.admira.app · instalaciones y mantenimiento — maestro del ITIL. El sitio anterior era el de Yokup.
+1. https://www.admira.studio — creatividad — crea: creación y adaptación de contenidos.
+2. https://www.admira.store — negocio — distribuye: gemelo, inventario y playlists.
+3. https://admira.tv — tecnología — emite: reproducción, emisión y proof of play.
+4. https://admira.app — tecnología — mantiene: instalaciones, mantenimiento e ITIL.
+5. https://admira.biz — negocio — comercializa: DooH y Retail Media.
 
-Coordinación: Studio → Store → Biz → App, en bucle. El MCP es el pegamento (cada pata
+Coordinación: studio → store → tv → app → biz. El MCP es el pegamento (cada pata
 publica el suyo; ver el directorio más abajo). admira.app es el maestro del ITIL (inventario
-tecnológico de los Xpacios) y lo reparte por MCP a las otras tres patas.
+tecnológico de los Xpacios) y lo reparte por MCP a las demás patas.
 Es visión de producto, no un mandamiento ni una norma. Texto humano: https://www.admiranext.com/filosofia#cuatro-patas
 
 ## Superficie pública (sitio estático)
@@ -68,7 +69,7 @@ Tres directorios distintos. No mezclarlos:
   trabajan los agentes autónomos de AdmiraNeXT (autonomía, honestidad, límites, secretos, una sola
   bandeja en AgoraMatrix, la flota es una, latido de estado cada 5 min y BTV «búscate la vida»).
   Si te incorporas a la flota, este es el primer documento que debes leer.
-- Filosofía del equipo: https://www.admiranext.com/filosofia — las 4 patas, las Máximas y el modelo de trabajo
+- Filosofía del equipo: https://www.admiranext.com/filosofia — las 5 patas, las Máximas y el modelo de trabajo
   de 3 capas × 3 niveles (principal · hijo · infra). Complementa a los mandamientos, no los sustituye.
 - Normativa operativa: https://www.admiranext.com/normativa — contrato numerado y verificable.
   Gobernanza principal: todos los proyectos pertenecen al Xpacio de AdmiraNeXT o al Xpacio de
@@ -141,7 +142,7 @@ Servidor MCP (JSON-RPC 2.0, Streamable HTTP): https://www.admiranext.com/mcp
 Ayuda y tools: https://www.admiranext.com/mcp/generador
 Token: Authorization: Bearer anmcp_… (lo crea un admin en /usuarios → POST /api/mcp-tokens)
 Tools: help, list_presentations, get_catalog, list_decks, get_presentation, create_presentation, create_yokup_report, generation_status, list_versions, restore_version, presentation_urls, delete_slide, update_slide, list_media, upload_media, assign_media, delete_media, lanzar_propuesta, estado_propuesta
-Propuesta comercial automática (lanzar_propuesta): marca + estudio de la compañía + presentación con su marca + las 4 soluciones con ?marca=<id>. Solo a petición o con criterio comercial; nunca en bucle (20/día por usuario).
+Propuesta comercial automática (lanzar_propuesta): marca + estudio de la compañía + presentación con su marca + las 5 patas (studio, store, tv, app, biz) con ?marca=<id>. Solo a petición o con criterio comercial; nunca en bucle (20/día por usuario).
 
 ## Versión en Opciones / Version in Options
 

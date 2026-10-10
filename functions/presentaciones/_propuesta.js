@@ -24,6 +24,7 @@ import {analizarMarca} from '../marcablanca/api/analizar.js';
 import {obtenerMarca, guardarMarca, esSemilla, RESERVADOS, ErrorCatalogo} from '../marcablanca/_catalogo.js';
 import {crearMarca, idMarca} from '../../marcablanca/marca.js';
 import {estudiarCompania, SOLUCIONES} from './_estudio.js';
+import {patas} from '../../data/pilares-historia.mjs';
 import {onRequestPut as generarPresentacion} from './api/generate.js';
 import {ensureHttpsUrl} from './_defaults.js';
 import {fetchPublico, resolverDoh, limitedText, assertPublicHttps} from './_inspiration.js';
@@ -42,13 +43,8 @@ const REGISTRO_TTL = 400 * 24 * 3600;
 /** Primeros segmentos de /presentaciones/<x> que no pueden ser el slug de una presentación. */
 const SLUGS_RESERVADOS = new Set(['api', 'generador', 'index', 'assets', 'auth', 'galeria', 'control', 'jobs', 'propuesta', 'clearchannel', 'lacaixa', 'caixa', 'lenovo']);
 
-/** Las 4 soluciones de la Galaxia Admira con su web principal y la alternativa, vestidas con ?marca=. */
-export const PLATAFORMA = {
-  studio:{nombre:'Admira.Studio', verbo:'crea', web:'https://www.admira.studio/', alternativa:'https://www.pixeria.com/', maqueta:'studio'},
-  store:{nombre:'Admira.store', verbo:'distribuye', web:'https://www.admira.store/', alternativa:'https://www.xpaceos.com/', maqueta:'store'},
-  app:{nombre:'Admira.app', verbo:'comercializa', web:'https://www.admira.app/', alternativa:'https://www.clearchannel.tv/', maqueta:'app'},
-  biz:{nombre:'Admira.biz', verbo:'mantiene', web:'https://www.admira.biz/', alternativa:'https://www.yokup.com/', maqueta:'yokup'}
-};
+/** Las cinco patas, con la web de data/arquitectura.json, vestidas con ?marca=. */
+export const PLATAFORMA = Object.fromEntries(patas().map((p) => [p.id, {nombre:p.dominio, verbo:p.verbo, web:p.url, maqueta:p.token}]));
 
 export class ErrorPropuesta extends Error { constructor(msg, estado = 400, extra = {}){ super(msg); this.estado = estado; this.extra = extra; } }
 
@@ -247,19 +243,23 @@ async function pasoEstudio(ctx, reg){
 /* ── Paso 3 · presentación ──────────────────────────────────────────────── */
 const marcaHipotesis = a => a?.texto ? `${a.texto}${a.tipo === 'hipotesis' ? ' (hipótesis)' : ''}` : '';
 
-/** Láminas de la presentación a partir del estudio: contexto, retos, las 4 soluciones y el piloto. */
+/** Láminas de la presentación a partir del estudio: contexto, retos, las cinco patas y el piloto. */
 export function laminasDesdeEstudio(nombre, datos){
-  const op = datos.oportunidades;
-  const sol = (code, act, product, k, chapter) => ({code, act, product, chapter, title:limpio(op[k].titulo, 120) || `${SOLUCIONES[k].nombre} ${SOLUCIONES[k].verbo}`, message:limpio(op[k].detalle, 600), promise:limpio(op[k].basadoEn ? `Por qué: ${op[k].basadoEn}` : SOLUCIONES[k].foco, 600), duration:5});
+  const op = datos.oportunidades || {};
+  const sol = (code, act, product, k, chapter) => {
+    const dato = op[k] || {titulo:'', detalle:'', basadoEn:''};
+    return {code, act, product, chapter, title:limpio(dato.titulo, 120) || `${SOLUCIONES[k].nombre} ${SOLUCIONES[k].verbo}`, message:limpio(dato.detalle, 600) || SOLUCIONES[k].foco, promise:limpio(dato.basadoEn ? `Por qué: ${dato.basadoEn}` : SOLUCIONES[k].foco, 600), duration:5};
+  };
   const retos = datos.retos || [];
   return [
     {code:'contexto', act:'studio', product:'Lo que hemos leído', chapter:'estudio', title:`Qué hemos entendido de ${nombre}`.slice(0, 120), message:limpio([marcaHipotesis(datos.sector), marcaHipotesis(datos.propuestaValor)].filter(Boolean).join(' '), 600) || datos.resumen, promise:limpio([marcaHipotesis(datos.presencia), marcaHipotesis(datos.publico)].filter(Boolean).join(' '), 600) || datos.resumen, duration:3},
     {code:'retos', act:'studio', product:'Hipótesis a validar', chapter:'estudio', title:'Retos probables', message:limpio(retos[0]?.texto || `Convertir los espacios de ${nombre} en un canal conectado, medible y mantenido.`, 600), promise:limpio(retos.slice(1, 3).map(r => r.texto).join(' · ') || 'Hipótesis a validar juntos en la reunión.', 600), duration:3},
-    sol('studio', 'studio', 'admira.studio · Studio crea', 'studio', '1/4'),
-    sol('store', 'store', 'admira.store · Store distribuye', 'store', '2/4'),
-    sol('app', 'app', 'admira.app · App comercializa', 'app', '3/4'),
-    sol('biz', 'app', 'admira.biz · Yokup mantiene', 'biz', '4/4'),
-    {code:'piloto', act:'app', product:'Siguiente paso', chapter:'piloto', title:'El primer piloto', message:`Un espacio de ${nombre}, cuatro semanas y su marca en Studio, Store, App y Biz.`.slice(0, 600), promise:'Validamos juntos este estudio (lo marcado como hipótesis), elegimos la ubicación y tres métricas de éxito.', duration:3}
+    sol('studio', 'studio', 'admira.studio · crea', 'studio', '1/5'),
+    sol('store', 'store', 'admira.store · distribuye', 'store', '2/5'),
+    sol('tv', 'store', 'admira.tv · emite', 'tv', '3/5'),
+    sol('app', 'app', 'admira.app · mantiene', 'app', '4/5'),
+    sol('biz', 'app', 'admira.biz · comercializa', 'biz', '5/5'),
+    {code:'piloto', act:'app', product:'Siguiente paso', chapter:'piloto', title:'El primer piloto', message:`Un espacio de ${nombre}, cuatro semanas y su marca en studio, store, tv, app y biz.`.slice(0, 600), promise:'Validamos juntos este estudio (lo marcado como hipótesis), elegimos la ubicación y tres métricas de éxito.', duration:3}
   ];
 }
 
@@ -270,9 +270,9 @@ export function cuerpoGenerate(reg, estudio, slug, overwrite){
     displayName:nombre.slice(0, 100), slug, ...(reg.marca.web ? {website:reg.marca.web} : {}),
     problem:limpio(e.idea || (retos.length ? `Retos probables (hipótesis del estudio): ${retos.slice(0, 3).join(' · ')}` : `Llevar a ${nombre} la Galaxia Admira con su marca.`), 4000),
     audience:limpio([e.destinatario, datos.publico?.texto ? `Público de la marca: ${datos.publico.texto}` : ''].filter(Boolean).join(' · ') || 'Dirección de negocio, marketing y operaciones', 1000),
-    title:`${nombre}: crear, distribuir, comercializar y mantener con su marca.`.slice(0, 220),
-    summary:limpio(datos.resumen || `Propuesta de ADmiraNeXT para ${nombre} en las cuatro soluciones de la Galaxia Admira.`, 1200),
-    objective:`Acordar con ${nombre} un primer piloto en las cuatro soluciones de la Galaxia Admira.`.slice(0, 600),
+    title:`${nombre}: crear, distribuir, emitir, mantener y comercializar con su marca.`.slice(0, 220),
+    summary:limpio(datos.resumen || `Propuesta de ADmiraNeXT para ${nombre} en las cinco patas de la Galaxia Admira.`, 1200),
+    objective:`Acordar con ${nombre} un primer piloto en las cinco patas de la Galaxia Admira.`.slice(0, 600),
     closingTitle:`Elijamos el primer espacio de ${nombre}.`.slice(0, 220),
     closingAction:'Validar el estudio con su equipo, elegir una ubicación piloto y fijar tres métricas de éxito.',
     languages:[e.idioma], outputs:DEFAULT_OUTPUTS,
@@ -312,14 +312,14 @@ async function pasoPresentacion(ctx, reg){
 export function plataformaPara(id){
   const q = `?marca=${encodeURIComponent(id)}`;
   const salida = {};
-  for (const [k, p] of Object.entries(PLATAFORMA)) salida[k] = {nombre:p.nombre, verbo:p.verbo, url:p.web + q, alternativa:p.alternativa + q, maqueta:p.maqueta};
+  for (const [k, p] of Object.entries(PLATAFORMA)) salida[k] = {nombre:p.nombre, verbo:p.verbo, url:p.web + q};
   salida.marcablanca = `/marcablanca/?marca=${encodeURIComponent(id)}`;
   salida.presentacionDemo = `/marcablanca/presentacion?marca=${encodeURIComponent(id)}`;
   return salida;
 }
 async function pasoPlataforma(ctx, reg){
   reg.plataforma = plataformaPara(reg.marca.id);
-  return {nota:'Studio, Store, App y Biz vestidas con ?marca=' + reg.marca.id + '.'};
+  return {nota:'studio, store, tv, app y biz vestidas con ?marca=' + reg.marca.id + '.'};
 }
 
 const EJECUTORES = {marca:pasoMarca, estudio:pasoEstudio, presentacion:pasoPresentacion, plataforma:pasoPlataforma};
