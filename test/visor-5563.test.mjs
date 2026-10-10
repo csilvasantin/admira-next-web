@@ -17,7 +17,7 @@ test('el visor es una web app de 600×600, sin vídeo y detrás de /pruebas', as
   assert.match(html, /mrbd-web-app-capable" content="yes"/);
   assert.match(html, /width=device-width, initial-scale=1/);
   assert.match(html, /frontier\.js/);
-  assert.doesNotMatch(html, /<video/i);
+  assert.match(html, /<video id="clip" muted playsinline autoplay/);
   assert.match(css, /background:\s*#000/);
   assert.match(css, /max-width:\s*600px/);
   assert.match(css, /max-height:\s*600px/);
@@ -32,7 +32,9 @@ test('el visor es una web app de 600×600, sin vídeo y detrás de /pruebas', as
   assert.match(js, /stock\.admira\.store/);
   assert.match(js, /\/pruebas\/visor\/img\?src=/);
   assert.match(js, /segundos \* 1000/);
-  assert.doesNotMatch(js, /\.mp4|createElement\('video'\)|<video/);
+  assert.match(js, /\/pruebas\/visor\/vid\?src=/);
+  assert.match(js, /onended/);
+  assert.doesNotMatch(js, /createElement\('video'\)/);
   assert.match(sw, /demo\.json/);
   assert.match(sw, /stock\\?\.admira\\?\.store/);
   assert.match(sw, /api\\?\/playlist/);

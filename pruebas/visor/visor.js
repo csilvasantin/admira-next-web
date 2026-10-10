@@ -15,6 +15,7 @@
   var indice = 0;
   var reloj = 0;
   var marcaFijada = false;
+  var generacion = 0;
 
   function esDemo() {
     return document.body.dataset.demo === 'frescaria';
@@ -36,20 +37,57 @@
 
   function syncFoto() {
     var foto = document.getElementById('foto');
+    var clip = document.getElementById('clip');
     var pos = document.getElementById('pos');
     var piezaActual = lista[indice];
-    var ver = carta === 'ahora' && piezaActual && piezaActual.foto;
-    document.body.classList.toggle('con-foto', !!ver);
+    var verImg = carta === 'ahora' && piezaActual && piezaActual.tipo === 'image' && piezaActual.url;
+    var verVid = carta === 'ahora' && piezaActual && piezaActual.tipo === 'video' && piezaActual.url;
+    var gen = generacion;
+    document.body.classList.toggle('con-foto', !!(verImg || verVid));
+    document.body.classList.toggle('con-video', !!verVid);
     if (foto) {
-      if (ver) {
-        if (foto.getAttribute('src') !== piezaActual.foto) foto.src = piezaActual.foto;
+      if (verImg) {
+        if (foto.getAttribute('src') !== piezaActual.url) foto.src = piezaActual.url;
         foto.alt = piezaActual.es;
         foto.hidden = false;
       } else {
         foto.hidden = true;
+        foto.removeAttribute('src');
       }
     }
-    if (pos) pos.textContent = (ver && lista.length) ? ((indice + 1) + '/' + lista.length) : '';
+    if (clip) {
+      clip.onended = null;
+      clip.onerror = null;
+      if (verVid) {
+        clip.muted = true;
+        clip.defaultMuted = true;
+        clip.playsInline = true;
+        clip.autoplay = true;
+        if (clip.getAttribute('src') !== piezaActual.url) {
+          clip.src = piezaActual.url;
+          clip.load();
+        }
+        clip.hidden = false;
+        clip.onended = function () {
+          if (gen !== generacion || lista[indice] !== piezaActual) return;
+          pararReloj();
+          ensenar(indice + 1);
+        };
+        clip.onerror = function () {
+          if (gen !== generacion) return;
+          clip.hidden = true;
+          document.body.classList.remove('con-foto');
+          document.body.classList.remove('con-video');
+        };
+        var juego = clip.play();
+        if (juego && juego.catch) juego.catch(function () {});
+      } else {
+        try { clip.pause(); } catch (e) {}
+        clip.hidden = true;
+        clip.removeAttribute('src');
+      }
+    }
+    if (pos) pos.textContent = ((verImg || verVid) && lista.length) ? ((indice + 1) + '/' + lista.length) : '';
   }
 
   function mostrar(id) {
@@ -117,26 +155,29 @@
     return n;
   }
 
-  function fotoDe(item) {
+  function medioDe(item) {
     var asset = String((item && item.asset) || '');
-    if (asset.indexOf('https://stock.admira.store/') !== 0) return '';
-    if (asset.indexOf('..') >= 0 || asset.indexOf('@') >= 0) return '';
-    return '/pruebas/visor/img?src=' + encodeURIComponent(asset);
+    if (asset.indexOf('https://stock.admira.store/') !== 0) return null;
+    if (asset.indexOf('..') >= 0 || asset.indexOf('@') >= 0) return null;
+    var tipo = String(item.assetType || item.type || '').toLowerCase();
+    if (tipo === 'animation') return null;
+    if (tipo === 'video') return { tipo: 'video', url: '/pruebas/visor/vid?src=' + encodeURIComponent(asset) };
+    if (tipo && tipo !== 'image') return null;
+    return { tipo: 'image', url: '/pruebas/visor/img?src=' + encodeURIComponent(asset) };
   }
 
   function pieza(item) {
     if (!item) return null;
-    var tipo = String(item.assetType || item.type || '').toLowerCase();
-    if (tipo === 'video' || tipo === 'animation') return null;
+    var medio = medioDe(item);
+    if (!medio) return null;
     var titulo = String(item.title || item.es || 'Pieza').trim();
-    var foto = fotoDe(item);
-    if (!foto) return null;
     return {
       es: titulo,
       en: titulo,
       detalleEs: String(item.sub || ''),
       detalleEn: String(item.sub || ''),
-      foto: foto,
+      tipo: medio.tipo,
+      url: medio.url,
       segundos: duracion(item)
     };
   }
@@ -147,6 +188,7 @@
   }
 
   function ensenar(i) {
+    generacion += 1;
     if (!lista.length) {
       pararReloj();
       indice = 0;
@@ -166,7 +208,8 @@
     if (!marcaFijada) pintarMarca('', '');
     mostrar('ahora');
     pararReloj();
-    reloj = setTimeout(function () { ensenar(indice + 1); }, actual.segundos * 1000);
+    var espera = actual.tipo === 'video' ? (actual.segundos + 2) * 1000 : actual.segundos * 1000;
+    reloj = setTimeout(function () { ensenar(indice + 1); }, espera);
   }
 
   function cargarDemo() {

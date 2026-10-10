@@ -132,7 +132,7 @@ button[hidden] { display: none; }
   letter-spacing: .04em;
 }
 
-#foto {
+#foto, #clip {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -145,7 +145,7 @@ button[hidden] { display: none; }
   z-index: 0;
 }
 
-#foto[hidden] { display: none; }
+#foto[hidden], #clip[hidden] { display: none; }
 
 .pos {
   display: none;
