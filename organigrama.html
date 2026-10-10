@@ -6,7 +6,7 @@
 <title>Organigrama · ADmiraNeXT</title>
 <meta name="description" content="Organigrama de ADmiraNeXT: el Consejo de Silicio responde de la mesa, un DeepAgent dirige cada pata y los agentes ejecutan.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.07.10.2026.r7.10:34">
+<meta name="admiranext-version" content="v.10.10.2026.r1.09:25">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -182,6 +182,23 @@
   @media (prefers-reduced-motion:reduce){
     .org-svg path.org-line,.org-node.is-top,.org-dot.is-ok,.org-dot.is-warn,.org-node.is-revealing{animation:none!important}
   }
+
+  /* Reparto finde largo (#5496) */
+  .reparto-finde{margin:28px 0 36px;padding:18px;border:1px solid rgba(74,227,209,.45);border-radius:16px;background:linear-gradient(165deg,rgba(18,42,48,.92),rgba(8,14,24,.94));box-shadow:0 0 0 1px rgba(74,227,209,.12),0 18px 40px rgba(0,0,0,.35)}
+  .reparto-finde .kicker{margin:0 0 8px}
+  .reparto-finde h2{margin:0 0 10px;font-size:clamp(20px,3vw,28px);letter-spacing:-.02em}
+  .reparto-finde .nota-finde{margin:0 0 16px;max-width:72ch;color:var(--yk-mut,#92a0b4);font-size:14px;line-height:1.55}
+  .reparto-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .reparto-carta{padding:14px;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(8,13,23,.86);min-width:0}
+  .reparto-carta.is-asignada{border-color:rgba(74,227,209,.55)}
+  .reparto-carta.is-hueco{border-style:dashed;opacity:.85}
+  .reparto-carta .rol{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--yk-dim,#6c7a90)}
+  .reparto-carta .agente{display:block;margin:6px 0 4px;font-size:17px;font-weight:700}
+  .reparto-carta .pata{font-size:13px;color:var(--yk-brand,#4ae3d1);word-break:break-word}
+  .reparto-carta .meta{margin-top:8px;font-size:12px;color:var(--yk-mut,#92a0b4)}
+  .reparto-sello{margin-top:14px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--yk-brand,#4ae3d1)}
+  @media (max-width:1100px){.reparto-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:720px){.reparto-grid{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
 </head>
@@ -224,6 +241,46 @@
     <article class="carta"><span class="rol">Consejero</span><h3>Steve Wozniak</h3><a class="pata" href="https://admira.app">admira.app</a><p class="claim">«Instalaciones, Mantenimiento y Gestión»</p><div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Smith (Grok)</em></div></article>
     <article class="carta"><span class="rol">Consejero</span><h3>Walt Disney</h3><a class="pata" href="https://www.admira.biz">www.admira.biz</a><p class="claim">«Nuevos ingresos con DooH y Retail Media»</p><div class="hueco"><span class="rol">Dirección</span><strong>DeepAgent que lo dirige</strong><em>Niobe (OpenCode)</em></div></article>
   </div>
+
+
+  <section class="reparto-finde" id="reparto-finde" aria-label="Reparto del finde largo">
+    <p class="kicker">Reparto temporal · zona protegida</p>
+    <h2>Finde largo 10–12 oct 2026</h2>
+    <p class="nota-finde">Orden de Carlos (10-oct): durante el sábado 10, domingo 11 y lunes 12, estos agentes llevan el pilar indicado. No sustituye el organigrama permanente (consejero → DeepAgent); es el reparto de ejecución del finde. admira.biz y admira.studio quedan sin agente asignado hasta que Carlos lo diga. Registro en admiranext.com (Jobs #5496 · FLT-101812); paralelo en admira.live (Elon). Normas: máximo 4 publicaciones por hora por sitio; sello <code>v.DD.MM.YYYY.rN.HH:MM</code> con nota en castellano.</p>
+    <div class="reparto-grid">
+      <article class="reparto-carta is-asignada">
+        <span class="rol">Pilar · ejecución</span>
+        <span class="agente">Morfeo</span>
+        <a class="pata" href="https://admira.store">admira.store</a>
+        <p class="meta">Encargo #5492 · gemelos Xpacio, experto, demos</p>
+      </article>
+      <article class="reparto-carta is-asignada">
+        <span class="rol">Pilar · ejecución</span>
+        <span class="agente">Neo</span>
+        <a class="pata" href="https://www.admira.tv">admira.tv</a>
+        <p class="meta">Encargo #5493</p>
+      </article>
+      <article class="reparto-carta is-asignada">
+        <span class="rol">Pilar · ejecución</span>
+        <span class="agente">Smith</span>
+        <a class="pata" href="https://admira.app">admira.app</a>
+        <p class="meta">Encargo #5494</p>
+      </article>
+      <article class="reparto-carta is-hueco">
+        <span class="rol">Sin agente</span>
+        <span class="agente">—</span>
+        <a class="pata" href="https://www.admira.biz">admira.biz</a>
+        <p class="meta">Pendiente de Carlos</p>
+      </article>
+      <article class="reparto-carta is-hueco">
+        <span class="rol">Sin agente</span>
+        <span class="agente">—</span>
+        <a class="pata" href="https://admira.studio">admira.studio</a>
+        <p class="meta">Pendiente de Carlos</p>
+      </article>
+    </div>
+    <p class="reparto-sello">Sello v.10.10.2026.r1.09:25 · nota: reparto finde largo registrado por Jobs</p>
+  </section>
 
   <section class="bloque arbol-wrap" id="arbol-interactivo" aria-label="Organigrama interactivo">
     <h2>Escena viva</h2>
@@ -432,7 +489,7 @@
   </section>
 
   <footer>
-    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.07.10.2026.r7.10:34</span> · <a href="/arquitectura">Organigrama tecnológico</a>
+    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.10.10.2026.r1.09:25</span> · <a href="/arquitectura">Organigrama tecnológico</a>
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
