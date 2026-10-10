@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Clientes · AdmiraNeXT</title>
-<meta name="description" content="Censo público de clientes de AdmiraNeXT, leído de /api/clientes, en español y en inglés.">
+<meta name="description" content="Censo interno de clientes de AdmiraNeXT (solo con sesión), leído de /api/clientes, en español y en inglés.">
 <style>
   *{box-sizing:border-box}
   body{margin:0;color:#eef6ff;font-family:system-ui,-apple-system,sans-serif;line-height:1.5}
@@ -30,7 +30,7 @@
 <main data-yk-main>
   <p class="eyebrow" id="cli-kicker">AdmiraNeXT · censo</p>
   <h1 id="cli-titulo">Clientes</h1>
-  <p class="lede" id="cli-lede">Lista pública leída de /api/clientes. Los nombres salen del censo; las etiquetas cambian con ESP y ENG.</p>
+  <p class="lede" id="cli-lede">Lista interna (solo con sesión) leída de /api/clientes. Los nombres salen del censo; las etiquetas cambian con ESP y ENG.</p>
   <div class="langs">
     <button type="button" id="cli-es" aria-pressed="true">ESP</button>
     <button type="button" id="cli-en" aria-pressed="false">ENG</button>
@@ -50,7 +50,7 @@
     es: {
       kicker: 'AdmiraNeXT · censo',
       titulo: 'Clientes',
-      lede: 'Lista pública leída de /api/clientes. Los nombres salen del censo; las etiquetas cambian con ESP y ENG.',
+      lede: 'Lista interna (solo con sesión) leída de /api/clientes. Los nombres salen del censo; las etiquetas cambian con ESP y ENG.',
       cols: ['Cliente', 'Patas', 'Global', 'Origen'],
       si: 'Sí', no: 'No',
       vacio: 'El censo no ha devuelto clientes.',
@@ -60,7 +60,7 @@
     en: {
       kicker: 'AdmiraNeXT · census',
       titulo: 'Clients',
-      lede: 'Public list read from /api/clientes. Names come from the census; ESP and ENG switch the labels.',
+      lede: 'Internal list (session only) read from /api/clientes. Names come from the census; ESP and ENG switch the labels.',
       cols: ['Client', 'Legs', 'Global', 'Origin'],
       si: 'Yes', no: 'No',
       vacio: 'The census returned no clients.',

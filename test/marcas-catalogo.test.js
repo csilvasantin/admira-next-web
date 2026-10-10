@@ -7,6 +7,7 @@ import {readFile} from 'node:fs/promises';
 import {onRequestGet as listar, onRequestPost as listarPost} from '../functions/marcablanca/api/marcas/index.js';
 import {onRequestGet as una} from '../functions/marcablanca/api/marcas/[id]/index.js';
 import {onRequestGet as logoGet} from '../functions/marcablanca/api/marcas/[id]/logo.js';
+import {listarMarcas} from '../functions/marcablanca/_catalogo.js';
 import {onRequestGet as escrituraGet, onRequestPost as crear, onRequestPut as actualizar} from '../functions/presentaciones/api/marcas.js';
 import {onRequest as middleware} from '../functions/presentaciones/_middleware.js';
 import {onRequestPost as analizarPost, analizarMarca} from '../functions/marcablanca/api/analizar.js';
@@ -58,7 +59,9 @@ test('la API pública lista las semillas aunque KV esté vacío o caído, con el
     assert.equal(res.headers.get('access-control-allow-origin'), '*', 'cualquier web de la Galaxia la lee');
     const body = await res.json();
     assert.equal(body.porDefecto, 'admira');
-    assert.deepEqual(body.clientes.map(c => c.id), ['admira', 'altadis', 'jti', '365', 'starbucks', 'lumbre', 'brumelle', 'frescaria', '81', '82', '83', '84', '85', '86', '87', '88', '89']);
+    // Sin sesión (Carlos, 10-10-2026) solo Admira y las marcas de ejemplo: ningún cliente real.
+    assert.deepEqual(body.clientes.map(c => c.id), ['admira', 'lumbre', 'brumelle', 'frescaria', '81', '82', '83', '84', '85', '86', '87', '88', '89']);
+    assert.equal(body.publico, true);
     assert.deepEqual(body.clientes.filter(c => c.catalogo.tipo === 'ejemplo').map(c => c.id), ['lumbre', 'brumelle', 'frescaria', '81', '82', '83', '84', '85', '86', '87', '88', '89']);
     assert.equal(body.clientes[0].catalogo.tipo, 'real');
     assert.ok(body.clientes.every(c => c.catalogo.origen === 'semilla' && c.catalogo.protegida));
@@ -82,7 +85,11 @@ test('una marca por id: semilla con rutas absolutas, guardada en KV, y 404 si no
   assert.equal(nubia.catalogo.autor, 'csilvasantin@gmail.com');
   assert.equal(JSON.stringify(nubia).includes('"email"'), false, 'el correo del autor no sale en público');
   assert.equal(validarMarca(nubia).length, 0, 'cumple el esquema');
-  const lista = await (await listar({request: get('/marcablanca/api/marcas?completo=1'), env})).json();
+  // La lista pública (sin sesión) no enseña marcas reales guardadas; el catálogo entero sí las tiene.
+  const publica = await (await listar({request: get('/marcablanca/api/marcas?completo=1'), env})).json();
+  assert.equal(publica.clientes.some(c => c.id === 'opticas-nubia'), false);
+  assert.equal(publica.marcas.some(m => m.id === 'opticas-nubia'), false);
+  const lista = await listarMarcas(env, get('/marcablanca/api/marcas?completo=1'), {completo: true});
   assert.ok(lista.clientes.some(c => c.id === 'opticas-nubia' && c.nombre === 'Ópticas Nubia'));
   assert.ok(lista.marcas.some(m => m.id === 'opticas-nubia'));
   assert.equal((await una({request: get('/marcablanca/api/marcas/no-existe'), env, params: {id: 'no-existe'}})).status, 404);

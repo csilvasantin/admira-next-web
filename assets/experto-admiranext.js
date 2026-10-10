@@ -303,6 +303,8 @@
         fetch('/api/clientes', {credentials: 'same-origin'}).then(function (r) { return r.json().then(function (j) { return {status: r.status, j: j}; }, function () { return {status: r.status, j: null}; }); })
       ]).then(function (par) {
         var page = par[0], api = par[1];
+        // Desde el 10-10-2026 el censo es interno: sin sesión, 401 en la página y en la API es lo correcto.
+        if (page.status === 401 && api.status === 401) { decirDemo('clientes · bien · censo protegido: identifícate para verlo', ctx); return 'bien'; }
         var labels = /Clientes/.test(page.t) && /Clients/.test(page.t);
         var lista = Array.isArray(api.j) && api.j.length > 0 && api.j.every(function (c) { return c && c.nombre; });
         var ok = page.status === 200 && api.status === 200 && labels && lista && /\/api\/clientes/.test(page.t);

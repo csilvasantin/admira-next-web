@@ -304,8 +304,9 @@ export function returnToSeguro(value) {
   // /github (zona militarizada, 06-09-2026) vuelve a su sitio tras el login, como /usuarios.
   // Zona protegida (06-10-2026): Style Book, Agentes, Organigrama y RoadMap (10-10-2026) también vuelven a su página.
   // /neo58/ (09-10-2026): la prueba en vivo de Neo vuelve a su página tras el login.
+  // /clientes/ (10-10-2026): el censo de clientes pasa a la zona con sesión.
   // /pruebas/… (10-10-2026): la zona de pruebas vuelve a la carpeta pedida (solo [a-z0-9-], sin «//» ni «..»).
-  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/roadmap' || path === '/avatar-metricas' || path === '/neo58/' || /^\/pruebas\/(?:[a-z0-9-]+\/)*$/.test(path) ? path : safeConnection(path) || '/webmaster';
+  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/roadmap' || path === '/avatar-metricas' || path === '/neo58/' || path === '/clientes/' || /^\/pruebas\/(?:[a-z0-9-]+\/)*$/.test(path) ? path : safeConnection(path) || '/webmaster';
 }
 
 export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {
