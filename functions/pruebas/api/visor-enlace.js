@@ -3,7 +3,7 @@
  * que ya exige /pruebas. La cookie del visor no abre esta ruta.
  */
 import { csrfValido, sesionCompleta } from '../../_webmaster-gate.js';
-import { borrarEnlace, crearEnlace } from '../_visor-enlace.js';
+import { borrarEnlace, crearEnlace, presentarEnlace } from '../_visor-enlace.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -23,6 +23,16 @@ async function staff(request, env) {
   if (!current) return json({ error: 'Sin sesión.' }, 401);
   if (!csrfValido(request, current)) return json({ error: 'Sesión o CSRF no válidos.' }, 403);
   return current;
+}
+
+export async function onRequestGet(context) {
+  const { request, env } = context;
+  const current = await staff(request, env);
+  if (current instanceof Response) return current;
+  const id = new URL(request.url).searchParams.get('id');
+  const hecho = await presentarEnlace(env, id, new URL(request.url).origin);
+  if (!hecho.ok) return json({ error: hecho.error }, hecho.status);
+  return json({ ok: true, id: hecho.id, exp: hecho.exp, url: hecho.url, deepLink: hecho.deepLink, qrSvg: hecho.qrSvg });
 }
 
 export async function onRequestPost(context) {
