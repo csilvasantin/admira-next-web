@@ -1,18 +1,21 @@
 /*!
- * Vista previa pública de marca blanca (encargo #5552).
+ * Vista previa de marca blanca en /pruebas (encargos #5552 y #5566).
  * La URL pasa por /marcablanca/api/analizar, que no guarda la marca.
  * El logo se lee en este navegador y no se envía al servidor.
  * «Pide tu propuesta» crea una solicitud pendiente, no una propuesta.
  */
 import {propuestaDesdeDatos, paletaDesdeColores, cssVariables, variablesMarca} from '/marcablanca/marca.js?v=20261001-catalogo';
 import {coloresDeImagen, leerArchivo} from '/marcablanca/logo-paleta.js?v=20261001-catalogo';
-import {pintar, urlDe} from '/marcablanca/maquetas.js?v=20261002-propuesta';
+import {pintar} from '/marcablanca/maquetas.js?v=20261002-propuesta';
 
+// Cinco patas, en este orden: store, tv, app, studio, biz.
+// El pintor de mantenimiento del catálogo se rotula App; el de campaña, Biz.
 const PILARES = [
-  {id: 'studio', es: 'Admira.Studio · crea', en: 'Admira.Studio · creates'},
-  {id: 'store', es: 'Admira.store · distribuye', en: 'Admira.store · distributes'},
-  {id: 'app', es: 'Admira.biz · comercializa', en: 'Admira.biz · sells'},
-  {id: 'yokup', es: 'Admira.app · mantiene', en: 'Admira.app · maintains'}
+  {id: 'store', es: 'Admira.store · distribuye', en: 'Admira.store · distributes', pinta: 'store', ruta: 'admira.store/gemelos'},
+  {id: 'tv', es: 'Admira.tv · emite', en: 'Admira.tv · broadcasts', ruta: 'admira.tv/'},
+  {id: 'app', es: 'Admira.app · mantiene', en: 'Admira.app · maintains', pinta: 'yokup', busca: '<span class="mk-plat">Yokup</span>', rotulo: 'App', ruta: 'admira.app/incidencias'},
+  {id: 'studio', es: 'Admira.Studio · crea', en: 'Admira.Studio · creates', pinta: 'studio', ruta: 'admira.studio/crear'},
+  {id: 'biz', es: 'Admira.biz · comercializa', en: 'Admira.biz · sells', pinta: 'app', busca: '<span class="mk-plat">App</span>', rotulo: 'Biz', ruta: 'admira.biz/'}
 ];
 
 const T = {
@@ -67,7 +70,7 @@ function aplicarIdioma(lang) {
   for (const el of document.querySelectorAll('[data-ph-es]')) {
     el.placeholder = el.getAttribute(l === 'en' ? 'data-ph-en' : 'data-ph-es') || '';
   }
-  document.title = l === 'en' ? 'Your brand · public preview' : 'Tu marca · vista previa';
+  document.title = l === 'en' ? 'Your brand · preview' : 'Tu marca · vista previa';
   for (const id of ['vistaEstado', 'pideEstado']) {
     const n = $(id);
     if (n.dataset.clave && T[l][n.dataset.clave]) n.textContent = T[l][n.dataset.clave];
@@ -89,6 +92,29 @@ function logoHtml(marca) {
   return `<img src="${esc(src)}" alt="">`;
 }
 
+function urlPilar(p, marcaId) {
+  return (marcaId && marcaId !== 'admira' ? marcaId + '.' : '') + p.ruta;
+}
+
+function tvHtml(marca, logo) {
+  const piezas = (marca.demo && marca.demo.piezas) || [];
+  const canales = ['Pantalla vertical', 'Pantalla horizontal', 'Altavoz'];
+  const filas = canales.map((canal, i) => {
+    const pieza = piezas[i] || canal;
+    return `<tr><td>${esc(pieza)}</td><td>${canal}</td><td><span class="mb-estado mb-estado--ok">En emisión</span></td></tr>`;
+  }).join('');
+  return `<div class="so"><header class="so-top"><span class="mb-logo so-logo" data-mb-logo>${logo}</span><span class="mk-plat">TV</span>` +
+    `<nav class="so-nav"><a aria-current="page">Emisión</a><a>Playlists</a><a>Pantallas</a></nav></header>` +
+    `<div class="so-body"><h4 class="mk-h">${esc(marca.nombreCorto || marca.nombre)} · en pantalla</h4>` +
+    `<table class="mb-tabla"><thead><tr><th>Pieza</th><th>Canal</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table></div></div>`;
+}
+
+function maqueta(p, marca, logo) {
+  if (p.id === 'tv') return tvHtml(marca, logo);
+  const raw = pintar(p.pinta, marca, {logo});
+  return p.rotulo ? raw.replace(p.busca, `<span class="mk-plat">${p.rotulo}</span>`) : raw;
+}
+
 function pintarShowrooms(marca) {
   const l = idioma() === 'en' ? 'en' : 'es';
   const caja = $('showrooms');
@@ -99,9 +125,9 @@ function pintarShowrooms(marca) {
     const etiqueta = l === 'en' ? p.en : p.es;
     return `<article class="mk" data-plataforma="${p.id}">
       <div class="mk-chrome"><span class="d"></span><span class="d"></span><span class="d"></span>
-        <span class="mk-url">${esc(urlDe(p.id, marca.id))}</span>
+        <span class="mk-url">${esc(urlPilar(p, marca.id))}</span>
         <span class="mk-tag">${esc(etiqueta)}</span></div>
-      <div class="mk-scope" style="${esc(estilo)}">${pintar(p.id, marca, {logo})}</div>
+      <div class="mk-scope" style="${esc(estilo)}">${maqueta(p, marca, logo)}</div>
     </article>`;
   }).join('');
 }
