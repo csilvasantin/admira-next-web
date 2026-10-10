@@ -1,0 +1,102 @@
+/* Frontier · zona /pruebas (Carlos, 10-10-2026). Lo más avanzado de Admira, solo con sesión.
+   Tokens de la casa con caída a la marca blanca (--mbx-*, --mb-*) que pone assets/marca-blanca.js. */
+*{box-sizing:border-box}
+body{margin:0;color:var(--mbx-ink,#eef6ff);font-family:var(--mb-fuente-texto,system-ui,-apple-system,"Segoe UI",sans-serif);line-height:1.55}
+html[data-fx-lang="es"] [data-l="en"],html[data-fx-lang="en"] [data-l="es"]{display:none!important}
+main.fx{padding:28px 0 88px}
+.fx a{color:var(--mbx-brand,#63e6d5)}
+.fx-eyebrow{font:700 12px/1.4 var(--mb-fuente-mono,ui-monospace,SFMono-Regular,Menlo,monospace);letter-spacing:.16em;text-transform:uppercase;color:var(--mbx-brand,#63e6d5);margin:0}
+.fx h1{margin:8px 0 12px;font:800 clamp(32px,5.4vw,58px)/1.02 var(--mb-fuente-titulos,system-ui,sans-serif);letter-spacing:-.02em}
+.fx h1 .fx-grad{background:linear-gradient(90deg,#ff3366,#ffcc00 35%,#33ff99 65%,#ff33cc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fx h2{margin:40px 0 12px;font:750 clamp(22px,3vw,30px)/1.15 var(--mb-fuente-titulos,system-ui,sans-serif)}
+.fx h3{margin:0 0 8px;font-size:18px}
+.fx p{margin:0 0 12px}
+.fx-lede{color:var(--mbx-mut,#9fb0c8);font-size:clamp(16px,1.6vw,19px);max-width:46rem}
+.fx-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.fx-crumb{font:600 12px/1.4 var(--mb-fuente-mono,ui-monospace,Menlo,monospace);color:var(--mbx-mut,#8ea0b8);margin:0 0 14px}
+.fx-crumb a{text-decoration:none}
+.fx-langs{display:flex;gap:8px}
+.fx-langs button{font:700 12px var(--mb-fuente-mono,ui-monospace,Menlo,monospace);letter-spacing:.08em;color:var(--mbx-ink,#eef6ff);background:var(--mb-superficie,#121c2c);border:1px solid var(--mb-borde,#25344b);border-radius:10px;padding:8px 12px;cursor:pointer}
+.fx-langs button[aria-pressed="true"]{border-color:var(--mbx-brand,#63e6d5);color:var(--mbx-brand,#63e6d5)}
+.fx-dmz{display:inline-flex;align-items:center;gap:8px;margin:6px 0 0;padding:6px 10px;border:1px dashed var(--mb-borde,#2c3d57);border-radius:999px;font:600 12px var(--mb-fuente-mono,ui-monospace,Menlo,monospace);color:var(--mbx-mut,#8ea0b8)}
+.fx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-top:26px}
+.fx-card{position:relative;display:flex;flex-direction:column;gap:10px;padding:22px;border:1px solid var(--mb-borde,#25344b);border-radius:18px;background:color-mix(in srgb,var(--mb-superficie,#101724) 92%,transparent);box-shadow:0 18px 40px #0006;transition:border-color .2s,transform .2s}
+.fx-card:hover{border-color:var(--mbx-brand,#63e6d5);transform:translateY(-2px)}
+.fx-card .fx-ico{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:28px;background:#0b1320;border:1px solid var(--mb-borde,#25344b)}
+.fx-card h3{font-size:22px;margin:4px 0 0}
+.fx-card p{color:var(--mbx-mut,#a7b6cb);margin:0}
+.fx-card .fx-go{margin-top:auto;padding-top:8px;font-weight:700;text-decoration:none}
+.fx-card .fx-go::after{content:" →"}
+.fx-card a.fx-cover{position:absolute;inset:0;border-radius:18px}
+.fx-card .fx-go,.fx-card .fx-links a{position:relative;z-index:1}
+.fx-estado{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:4px 10px;border-radius:999px;font:700 11px/1.4 var(--mb-fuente-mono,ui-monospace,Menlo,monospace);letter-spacing:.1em;text-transform:uppercase;border:1px solid}
+.fx-estado::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.fx-estado.prototipo{color:#ffcc00;border-color:#ffcc0066;background:#ffcc0012}
+.fx-estado.exploracion{color:#9fb0c8;border-color:#9fb0c866;background:#9fb0c812}
+.fx-estado.marcha{color:#33ff99;border-color:#33ff9966;background:#33ff9912}
+.fx-links{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+.fx-panel{border:1px solid var(--mb-borde,#25344b);border-radius:16px;padding:20px 22px;background:color-mix(in srgb,var(--mb-superficie,#101724) 90%,transparent);margin:14px 0}
+.fx-panel.ahora{border-left:4px solid #33ff99}
+.fx-panel.pendiente{border-left:4px solid #ffcc00}
+.fx-tabla{overflow-x:auto;border:1px solid var(--mb-borde,#25344b);border-radius:12px;margin:14px 0}
+.fx-tabla table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+.fx-tabla th,.fx-tabla td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--mb-borde,#25344b)}
+.fx-tabla tr:last-child td{border-bottom:0}
+.fx-tabla th{font:700 11px var(--mb-fuente-mono,ui-monospace,Menlo,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--mbx-mut,#8ea0b8)}
+.fx ul.fx-lista{margin:8px 0 0;padding-left:20px}
+.fx ul.fx-lista li{margin:4px 0}
+.fx-src{font-size:12px;color:var(--mbx-mut,#8ea0b8)}
+.fx-src a{word-break:break-all}
+.fx-tag{display:inline-block;padding:2px 8px;border-radius:6px;font:700 11px var(--mb-fuente-mono,ui-monospace,Menlo,monospace);letter-spacing:.06em}
+.fx-tag.si{color:#0b1320;background:#33ff99}
+.fx-tag.no{color:#0b1320;background:#ffcc00}
+.fx-arqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.fx-arq{border:1px solid var(--mb-borde,#25344b);border-radius:16px;padding:18px 20px;background:color-mix(in srgb,var(--mb-superficie,#101724) 90%,transparent)}
+.fx-arq .fx-flujo{font:600 12px/1.6 var(--mb-fuente-mono,ui-monospace,Menlo,monospace);color:var(--mbx-brand,#63e6d5);background:#0a121d;border:1px solid var(--mb-borde,#25344b);border-radius:10px;padding:10px 12px;margin:10px 0}
+.fx-foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--mb-borde,#25344b);font-size:13px;color:var(--mbx-mut,#8ea0b8)}
+
+/* ── Maqueta de lo que ve quien lleva las gafas ─────────────────────────── */
+.fx-maqueta{margin:20px 0 8px;padding:26px 18px 20px;border-radius:22px;border:1px solid var(--mb-borde,#25344b);background:
+  radial-gradient(120% 90% at 30% 20%,#2b3b52 0%,#1a2433 45%,#0d131c 100%);position:relative;overflow:hidden}
+.fx-maqueta-sello{position:absolute;top:12px;left:14px;z-index:3;padding:4px 10px;border-radius:6px;background:#ff3366;color:#fff;font:800 11px var(--mb-fuente-mono,ui-monospace,Menlo,monospace);letter-spacing:.14em}
+.fx-escena{position:absolute;inset:0;opacity:.9;background:
+  linear-gradient(180deg,transparent 58%,#0006 58%,#0009 100%),
+  repeating-linear-gradient(90deg,#3a4a60 0 70px,#33435a 70px 74px,#2c3a4e 74px 150px,#33435a 150px 154px),
+  linear-gradient(180deg,#56677f,#2a3647)}
+.fx-escena::before{content:"";position:absolute;left:8%;right:8%;top:16%;height:26%;border-radius:6px;background:linear-gradient(90deg,#f2b84b,#f06a3b);opacity:.55;filter:blur(1px)}
+.fx-escena::after{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;background:repeating-linear-gradient(90deg,#4b5d75 0 40px,#43546b 40px 80px);opacity:.55}
+.fx-gafas{position:relative;z-index:2;display:flex;justify-content:center;align-items:center;gap:0;margin:24px auto 6px;max-width:860px}
+.fx-lente{position:relative;width:min(42vw,380px);aspect-ratio:1.04;border:14px solid #0d0d10;border-radius:44% 44% 48% 48%/40% 40% 60% 60%;box-shadow:inset 0 0 0 2px #2a2a33,0 18px 40px #000a;background:linear-gradient(160deg,#ffffff10,#ffffff03 40%,#00000022);overflow:hidden;display:grid;place-items:center}
+.fx-puente{width:min(6vw,54px);height:16px;border-top:12px solid #0d0d10;border-radius:50% 50% 0 0;margin:0 -4px;align-self:flex-start;margin-top:22%}
+.fx-hud{width:60%;aspect-ratio:1;border-radius:10px;padding:4% 5%;display:flex;flex-direction:column;gap:3.5%;color:#eafff9;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-shadow:0 0 8px #6ff7e588;outline:1px dashed #6ff7e555;outline-offset:3px;background:linear-gradient(180deg,#00000014,#00000005)}
+.fx-hud-top{display:flex;justify-content:space-between;align-items:center;font:700 clamp(7px,1vw,10px)/1.2 ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#8ff5e8}
+.fx-hud-live{color:#ff6f91}
+.fx-hud-card{border:1.5px solid #8ff5e8aa;border-radius:8px;padding:5% 6%;background:#00000010}
+.fx-hud-card b{display:block;font-size:clamp(10px,1.45vw,15px);line-height:1.15;color:#fff}
+.fx-hud-card > span{display:block;font-size:clamp(8px,1.05vw,11px);color:#bff9f0;margin-top:3px}
+.fx-hud-prog{height:4px;border-radius:2px;background:#8ff5e833;overflow:hidden;margin-top:6%}
+.fx-hud-prog i{display:block;height:100%;width:62%;background:#8ff5e8;animation:fx-prog 9s linear infinite}
+@keyframes fx-prog{from{width:8%}to{width:100%}}
+.fx-hud-row{display:flex;gap:5%;font-size:clamp(7px,.95vw,10px);color:#bff9f0}
+.fx-hud-row div{flex:1;border:1px solid #8ff5e855;border-radius:6px;padding:4% 5%}
+.fx-hud-row div b{display:block;color:#fff;font-size:1.15em}
+.fx-hud-pop{display:flex;align-items:center;gap:6px;font:700 clamp(7px,.95vw,10px)/1.2 ui-monospace,Menlo,monospace;color:#33ff99}
+.fx-hud-hint{margin-top:auto;font-size:clamp(7px,.9vw,9.5px);color:#8ff5e8;opacity:.9}
+.fx-lente.izq{background:linear-gradient(160deg,#ffffff0c,#ffffff02 40%,#00000022)}
+.fx-lente.izq::after{content:attr(data-nota);position:absolute;bottom:12%;left:0;right:0;text-align:center;font:600 11px ui-monospace,Menlo,monospace;color:#ffffff66;padding:0 10%}
+.fx-pulsera{position:relative;z-index:2;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+.fx-pulsera > span{padding:6px 12px;border-radius:999px;background:#0b1320cc;border:1px solid #2c3d57;font:600 12px ui-monospace,Menlo,monospace;color:#cfe3ff}
+.fx-maqueta-pie{position:relative;z-index:2;text-align:center;margin:12px 0 0;font-size:12px;color:#c7d3e4}
+
+/* ── Vaso: la taza LED en grande ───────────────────────────────────────── */
+.fx-tazas{display:flex;flex-wrap:wrap;gap:22px;margin:18px 0}
+.fx-taza{flex:1 1 260px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px;border:1px solid var(--mb-borde,#25344b);border-radius:16px;background:color-mix(in srgb,var(--mb-superficie,#101724) 90%,transparent)}
+.fx-taza-cuerpo{position:relative;width:240px;height:150px;border-radius:12px 12px 26px 26px;background:linear-gradient(90deg,#1b1b1f,#2c2c33 50%,#1b1b1f);box-shadow:0 14px 30px #0009;display:grid;place-items:center}
+.fx-taza-cuerpo::after{content:"";position:absolute;right:-38px;top:28px;width:46px;height:78px;border:12px solid #26262c;border-left:0;border-radius:0 40px 40px 0}
+.fx-taza-cuerpo img{width:192px;height:96px;image-rendering:pixelated;border-radius:4px;background:#000;box-shadow:0 0 18px #ff335544}
+.fx-taza figcaption{font-size:13px;color:var(--mbx-mut,#9fb0c8);text-align:center}
+@media (max-width:720px){
+  .fx-gafas{flex-direction:column}.fx-puente{display:none}.fx-lente.izq{display:none}.fx-lente{width:min(86vw,380px)}
+}
+@media (prefers-reduced-motion:reduce){.fx-hud-prog i{animation:none}.fx-card{transition:none}}

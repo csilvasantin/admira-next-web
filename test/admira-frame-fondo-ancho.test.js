@@ -57,7 +57,12 @@ const ANCHO = {
   'organigrama.html': 'main',
   'roadmap.html': 'main',
   'arquitectura.html': 'main',
-  'demos/editor/index.html': 'main.editor-pagina'
+  'demos/editor/index.html': 'main.editor-pagina',
+  // Frontier (10-10-2026): zona /pruebas, mismo ancho común que la intranet.
+  'pruebas/frontier/index.html': 'main.fx',
+  'pruebas/frontier/gafas-meta/index.html': 'main.fx',
+  'pruebas/frontier/vaso/index.html': 'main.fx',
+  'pruebas/frontier/robotics/index.html': 'main.fx'
 };
 // Páginas con la barra del sitio que conservan su ancho de lectura, con su motivo.
 const LECTURA = 'Página de lectura (doctrina, ayuda o informe): conserva su medida de línea de 60-90 caracteres; el encargo del ancho común es para las categorías de la intranet.';

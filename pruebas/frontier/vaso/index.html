@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es" data-fx-lang="es" class="yk-framed">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<!-- ZONA /pruebas · FRONTIER (Carlos, 10-10-2026): lo más avanzado de Admira, solo con sesión (functions/pruebas/_middleware.js). Nada de esto va a la parte pública. -->
+<title>Frontier · El vaso (PixelMug)</title>
+<meta name="fx-title-es" content="Frontier · El vaso (PixelMug)">
+<meta name="fx-title-en" content="Frontier · The mug (PixelMug)">
+<meta name="description" content="El vaso: la taza LED PixelMug que sigue la señalización del quiosco de Jardinets. Zona de pruebas, solo con sesión.">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="stylesheet" href="/pruebas/frontier/assets/frontier.css?v=20261010-frontier-1">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
+<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+</head>
+<body data-yk-frame="cabecera" data-yk-auto="on">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="privado" title="Acceso privado">●<span class="yk-access-txt"> Acceso privado</span></span></header>
+<section data-yk-slot="left" hidden>
+  <div class="yk-auto-blk" data-yk-label="Frontier">
+    <a href="/pruebas/frontier/">Frontier</a>
+    <a href="/pruebas/frontier/gafas-meta/">Gafas Meta · Admira Player</a>
+    <a href="/pruebas/frontier/vaso/">El vaso · PixelMug</a>
+    <a href="/pruebas/frontier/robotics/">Robotics</a>
+    <a href="/pruebas/">Zona de pruebas</a>
+  </div>
+</section>
+<main class="fx" data-yk-main>
+  <div class="fx-top">
+    <p class="fx-crumb"><a href="/pruebas/">/pruebas</a> · <a href="/pruebas/frontier/" data-fx-keep>frontier</a> · <span data-l="es">vaso</span><span data-l="en">mug</span></p>
+    <div class="fx-langs" role="group" aria-label="Idioma / Language"><button type="button" data-fx-lang-btn="es" aria-pressed="true">ESP</button><button type="button" data-fx-lang-btn="en" aria-pressed="false">ENG</button></div>
+  </div>
+
+  <p class="fx-eyebrow">Frontier · <span data-l="es">el vaso</span><span data-l="en">the mug</span></p>
+  <h1><span data-l="es">El vaso: <span class="fx-grad">PixelMug «Planeta»</span></span><span data-l="en">The mug: <span class="fx-grad">PixelMug “Planeta”</span></span></h1>
+  <p class="fx-lede" data-l="es">Una taza con pantalla LED que se comporta como una pantalla más del circuito: la señalización del quiosco de Jardinets decide qué GIF o qué texto sale en la taza.</p><p class="fx-lede" data-l="en">A mug with an LED screen that behaves like one more screen in the circuit: the Jardinets kiosk signage decides which GIF or text shows on the mug.</p>
+  <span class="fx-estado prototipo"><span data-l="es">prototipo · funciona en demo</span><span data-l="en">prototype · works in demo</span></span>
+
+  <div class="fx-tazas">
+    <figure class="fx-taza"><div class="fx-taza-cuerpo"><img src="/pruebas/frontier/assets/mj-bad-32x16.gif" width="32" height="16" alt="GIF MJ 32×16"></div><figcaption><span data-l="es">Contador → MJ · preset real <code>mj-bad-32x16.gif</code></span><span data-l="en">Counter → MJ · real preset <code>mj-bad-32x16.gif</code></span></figcaption></figure>
+    <figure class="fx-taza"><div class="fx-taza-cuerpo"><img src="/pruebas/frontier/assets/queen-dsmn-32x16.gif" width="32" height="16" alt="GIF Queen 32×16"></div><figcaption><span data-l="es">Papelera → Queen · preset real <code>queen-dsmn-32x16.gif</code></span><span data-l="en">Bin → Queen · real preset <code>queen-dsmn-32x16.gif</code></span></figcaption></figure>
+  </div>
+  <div data-l="es"><p class="fx-src">Los GIF son los presets de 32×16 que usa el seguidor (copia del 23-sep-2026), ampliados aquí píxel a píxel. La taza es un dibujo.</p></div><div data-l="en"><p class="fx-src">The GIFs are the 32×16 presets the follower uses (copy from 23 Sep 2026), scaled up pixel by pixel here. The mug is a drawing.</p></div>
+
+  <h2><span data-l="es">Cómo funciona</span><span data-l="en">How it works</span></h2>
+  <div class="fx-arq"><div class="fx-flujo"><span data-l="es">Quiosco CanalKiosk · Jardinets</span><span data-l="en">CanalKiosk kiosk · Jardinets</span> → <span data-l="es">antena</span><span data-l="en">antenna</span> <code>playertaza</code> + Fold <code>samsung-galaxy-fold-8-mupi</code> + iPad Admin<br>→ <code>signage-follow.mjs</code> (LaunchAgent <code>com.admiranext.playertaza-signage-follow</code>)<br>→ worker <code>playertaza.csilvasantin.workers.dev</code> (<code>mug-launch</code> · <code>mug-status</code>)<br>→ bridge Bubble (<code>com.admiranext.playertaza-bridge</code>) → <span data-l="es">nube Bubble</span><span data-l="en">Bubble cloud</span> <code>talPlayGif</code> → PixelMug</div></div>
+  <div class="fx-tabla"><table>
+    <tr><th><span data-l="es">Pieza</span><span data-l="en">Piece</span></th><th><span data-l="es">Qué hace (según las notas del proyecto)</span><span data-l="en">What it does (per project notes)</span></th></tr>
+    <tr><td><span data-l="es">Seguidor de señalización</span><span data-l="en">Signage follower</span></td><td><span data-l="es">Mira la antena <code>playertaza</code> (papelera → Queen, contador → MJ) y el Fold + iPad Admin (canción del quiosco → título en la LED). Arranque permanente con <code>RunAtLoad</code> y <code>KeepAlive</code>; copia sellada del 23-sep-2026.</span><span data-l="en">Watches the <code>playertaza</code> antenna (bin → Queen, counter → MJ) and the Fold + iPad Admin (kiosk song → title on the LED). Permanent start with <code>RunAtLoad</code> and <code>KeepAlive</code>; sealed copy from 23 Sep 2026.</span></td></tr>
+    <tr><td><span data-l="es">Bridge Bubble</span><span data-l="en">Bubble bridge</span></td><td><span data-l="es">Sin él la cola de GIF no llega a Bubble. El envío oficial de GIF es <code>talPlayGif</code> de Bubble a través del bot <code>PlayerTazaAdmira</code>.</span><span data-l="en">Without it the GIF queue never reaches Bubble. The official GIF send is Bubble <code>talPlayGif</code> through the <code>PlayerTazaAdmira</code> bot.</span></td></tr>
+    <tr><td><span data-l="es">La taza</span><span data-l="en">The mug</span></td><td><span data-l="es"><code>PIXELMUG-P1</code>, firmware 00.04.0155, LED 32×16, Wi-Fi 2,4 GHz (USB-C solo carga). Pantalla de admira.tv <code>playertaza</code>.</span><span data-l="en"><code>PIXELMUG-P1</code>, firmware 00.04.0155, 32×16 LED, 2.4 GHz Wi-Fi (USB-C charge only). admira.tv screen <code>playertaza</code>.</span></td></tr>
+    <tr><td><span data-l="es">Cola de pedidos (7-oct-2026)</span><span data-l="en">Order queue (7 Oct 2026)</span></td><td><span data-l="es">En PlayerTaza, cuando un pedido de demo pasa a «listo», la taza muestra el nombre y «PEDIDO LISTO» (pago simulado).</span><span data-l="en">In PlayerTaza, when a demo order turns “ready”, the mug shows the name and “PEDIDO LISTO” (simulated payment).</span></td></tr>
+  </table></div>
+
+  <h2><span data-l="es">Evidencia</span><span data-l="en">Evidence</span></h2>
+  <ul class="fx-lista">
+    <li><a href="https://www.ainimation.studio/taza/" rel="noopener" target="_blank">ainimation.studio/taza</a> — <span data-l="es">consola PlayerTaza (proyecto CanalKiosk · Jardinets)</span><span data-l="en">PlayerTaza console (CanalKiosk · Jardinets project)</span></li>
+    <li><a href="https://www.ainimation.studio/taza/help/" rel="noopener" target="_blank">ainimation.studio/taza/help</a> — <span data-l="es">ayuda</span><span data-l="en">help</span></li>
+    <li><a href="https://playertaza.csilvasantin.workers.dev/" rel="noopener" target="_blank">playertaza.csilvasantin.workers.dev</a> — <span data-l="es">worker público</span><span data-l="en">public worker</span> · <a href="https://playertaza.csilvasantin.workers.dev/api/admira?screen=playertaza" rel="noopener" target="_blank">/api/admira?screen=playertaza</a></li>
+    <li><a href="https://admira.tv/canal.html?embed=mupi&amp;screen=playertaza" rel="noopener" target="_blank">admira.tv · canal playertaza</a> · <a href="https://admira.tv/adcelerate/demo/?view=human&amp;site=jardinets" rel="noopener" target="_blank"><span data-l="es">demo Jardinets</span><span data-l="en">Jardinets demo</span></a></li>
+    <li><a href="https://github.com/csilvasantin/ainimation/tree/main/taza" rel="noopener" target="_blank">github · csilvasantin/ainimation/taza</a></li>
+  </ul>
+
+  <h2><span data-l="es">Huecos conocidos</span><span data-l="en">Known gaps</span></h2>
+  <ul class="fx-lista">
+    <li data-l="es">La 2ª taza no se pudo dar de alta el 17-sep-2026: no aparecía por USB, ADB ni BLE.</li><li data-l="es">La vía BLE directa sigue experimental (bloqueos 409); la vía buena es la nube Bubble.</li><li data-l="es">El código del seguidor y del bridge vive en el Mac, no en un repo público; la nota del 23-sep sitúa el LaunchAgent en MacBookProNegro14.</li><li data-l="en">The 2nd mug could not be registered on 17 Sep 2026: it did not show up over USB, ADB or BLE.</li><li data-l="en">Direct BLE is still experimental (409 blocks); the working path is the Bubble cloud.</li><li data-l="en">The follower and bridge code lives on the Mac, not in a public repo; the 23 Sep note places the LaunchAgent on MacBookProNegro14.</li>
+  </ul>
+
+  <footer class="fx-foot"><span data-l="es">Frontier vive en la zona de pruebas (/pruebas): solo con sesión de Google de Admira, fuera de buscadores y sin enlaces desde la web pública.</span><span data-l="en">Frontier lives in the test zone (/pruebas): Admira Google session only, excluded from search engines and not linked from the public site.</span></footer>
+</main>
+<script src="/pruebas/frontier/assets/frontier.js?v=20261010-frontier-1"></script>
+</body>
+</html>

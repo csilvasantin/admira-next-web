@@ -15,7 +15,7 @@ const PASOS = [
 const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const pareceWeb = (s) => /^https?:\/\//i.test(s) || (!/\s/.test(s) && /^[a-z0-9-]+(\.[a-z0-9-]+)+(?:[/?#]\S*)?$/i.test(s));
 
-/** «admira.com» → web · «Starbucks» → marca · «cadena de gimnasios que…» → idea. */
+/** «admira.com» → web · «Frescaria» → marca · «cadena de gimnasios que…» → idea. */
 export function interpretar(texto) {
   const t = String(texto || '').trim();
   if (!t) return null;
@@ -28,7 +28,7 @@ const PLANTILLA = `
 <form class="pa-form" novalidate>
   <label class="pa-tit" for="paEntrada"><b>Marca, web o idea</b> · el generador estudia la compañía y prepara su propuesta</label>
   <div class="pa-fila">
-    <input id="paEntrada" name="entrada" type="text" maxlength="600" autocomplete="off" spellcheck="false" placeholder="admira.com · Starbucks · cadena de gimnasios que quiere pantallas en sala">
+    <input id="paEntrada" name="entrada" type="text" maxlength="600" autocomplete="off" spellcheck="false" placeholder="admira.com · Frescaria · cadena de gimnasios que quiere pantallas en sala">
     <button type="submit" class="pa-btn pa-lanzar">Lanzar propuesta</button>
   </div>
   <details class="pa-mas"><summary>Opciones</summary>
