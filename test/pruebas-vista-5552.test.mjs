@@ -28,3 +28,11 @@ test('sin sesión: POST /pruebas/api/solicitud da 401; otro POST en /pruebas sig
   assert.equal((await onRequest({request: post('/pruebas/marcablanca/vista/'), env, next: siguiente})).status, 405);
   assert.equal((await onRequestPost({request: post('/pruebas/api/solicitud'), env})).status, 401);
 });
+
+test('la URL pública /marcablanca/vista responde 410 vía función (apagado de huérfana)', async () => {
+  const {onRequest} = await import('../functions/marcablanca/vista/index.js');
+  const res = await onRequest();
+  assert.equal(res.status, 410);
+  assert.match(await res.text(), /pruebas\/marcablanca\/vista/);
+  assert.equal(res.headers.get('cache-control'), 'no-store');
+});
