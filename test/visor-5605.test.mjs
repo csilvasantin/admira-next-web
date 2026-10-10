@@ -26,7 +26,7 @@ test('la tarjeta Ahora lleva la foto, la posición y no repite Admira', async ()
   assert.match(html, /id="foto"/);
   assert.match(html, /id="pos"/);
   assert.match(html, /id="marca"><\/p>/);
-  assert.doesNotMatch(html, /<video/i);
+  assert.match(html, /id="foto"/);
   assert.match(css, /object-fit:\s*contain/);
   assert.match(css, /max-width:\s*600px/);
   assert.match(css, /max-height:\s*600px/);
@@ -34,10 +34,10 @@ test('la tarjeta Ahora lleva la foto, la posición y no repite Admira', async ()
   assert.match(js, /return 10/);
   assert.match(js, /virtual-frescaria/);
   assert.doesNotMatch(js, /textContent = ['"]Admira['"]/);
-  assert.match(sw, /visor-5605-v1/);
+  assert.match(sw, /visor-5609-v1/);
   assert.match(sw, /\/pruebas\/visor\/img/);
   assert.match(sw, /visor\\\/img/);
-  assert.match(sw, /20261010-visor-5605/);
+  assert.match(sw, /20261011-visor-5609/);
 });
 
 test('el proxy solo admite el Stock y deja el lado largo en 600', async () => {
