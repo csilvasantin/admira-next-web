@@ -62,6 +62,7 @@ test('ax_fin ejecuta solo establecimientos y sin él sigue con inventario', asyn
   assert.equal(cortada.assigned.length, 0);
   const panel = cortada.nodes.find((nodo) => nodo.id === 'admira-native-demo' && nodo.isConnected !== false);
   const texto = panel.children.map((child) => child.textContent).join('\n');
+  assert.match(texto, /EN VIVO · gira-carlos · paso \d+ de \d+/);
   assert.match(texto, /Resumen/);
   assert.match(texto, /4 pendiente/);
   assert.match(sola.aviso, /iniciar sesión/);
@@ -98,6 +99,7 @@ test('si el catálogo no responde, el reproductor usa el plan de la dirección',
   assert.equal(estado.puntos.length, 2);
   assert.doesNotMatch(estado.aviso, /cannot read|No puedo leer/);
   const texto = nodes.find((nodo) => nodo.id === 'admira-native-demo' && nodo.isConnected !== false).children.map((child) => child.textContent).join('\n');
+  assert.match(texto, /LIVE · gira-carlos · step \d+ of \d+/);
   assert.match(texto, /Summary/);
   assert.match(texto, /pending/);
 });

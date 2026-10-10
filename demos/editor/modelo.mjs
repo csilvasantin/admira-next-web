@@ -49,6 +49,10 @@ export const TEXTO = {
     estado: 'estado',
     comando: 'comando',
     slug: 'Nombre de comando',
+    nombreDemo: 'Nombre para /demo',
+    pistaNombre: 'Enter guarda · Esc cancela',
+    elegida: 'Elegida',
+    quitar: 'Quitar',
     slugOcupado: 'Ese nombre ya existe o está reservado.',
     alias: 'También responde a',
     borrador: 'borrador',
@@ -105,6 +109,10 @@ export const TEXTO = {
     estado: 'status',
     comando: 'command',
     slug: 'Command name',
+    nombreDemo: 'Name for /demo',
+    pistaNombre: 'Enter saves · Esc cancels',
+    elegida: 'Selected',
+    quitar: 'Remove',
     slugOcupado: 'That name already exists or is reserved.',
     alias: 'Also answers to',
     borrador: 'draft',
@@ -159,6 +167,12 @@ export function duracionDe(demo, sub) {
   const steps = sub?.steps || [];
   if (!steps.length) return 8;
   return steps.reduce((sum, step) => sum + (step.op === 'wait' ? Number(step.seconds) || 0 : 4), 0);
+}
+
+export function textoPasos(n, lang) {
+  const num = Math.max(0, Number(n) || 0);
+  if (lang === 'en') return num + (num === 1 ? ' step' : ' steps');
+  return num + (num === 1 ? ' paso' : ' pasos');
 }
 
 export function textoDuracion(segundos, lang) {

@@ -2,7 +2,7 @@ import {
   OPS, SITIOS, aSlug, agregarSubdemo, anotar, choque, colorDe, coincide, comandoDe, crearHistorial, demoNueva, deshacer,
   documentoMacro, duplicarMacro, duplicarSubdemo, duracionDe, filasMacro, letra, localizar,
   lineaEstado, macroVacia, moverItem, pasoVacio, quitarItem, quitarSubdemo, renombrarComando, resumenMacro, selectoresConocidos,
-  sitioDe, slugValido, t, textoDuracion, urlDePieza,
+  sitioDe, slugValido, t, textoDuracion, textoPasos, urlDePieza,
 } from './modelo.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -123,12 +123,26 @@ function abrirCampoSlug(chip, actual, aplicar) {
   input.value = actual || '';
   input.maxLength = 40;
   input.spellcheck = false;
-  input.setAttribute('aria-label', t(estado.lang, 'slug'));
+  input.setAttribute('aria-label', t(estado.lang, 'nombreDemo'));
+  const caja = document.createElement('div');
+  caja.className = 'nombre-demo';
+  const etiqueta = document.createElement('label');
+  etiqueta.className = 'nombre-etiqueta';
+  etiqueta.textContent = t(estado.lang, 'nombreDemo');
+  const vista = document.createElement('p');
+  vista.className = 'nombre-vista';
+  const pista = document.createElement('p');
+  pista.className = 'nombre-pista';
+  pista.textContent = t(estado.lang, 'pistaNombre');
+  const pintarVista = () => { vista.textContent = '/demo ' + (aSlug(input.value) || '…'); };
+  input.addEventListener('input', pintarVista);
+  caja.append(etiqueta, input, vista, pista);
+  pintarVista();
   const fijo = chip.id === 'pastilla';
   if (fijo) {
     chip.hidden = true;
-    chip.after(input);
-  } else chip.replaceWith(input);
+    chip.after(caja);
+  } else chip.replaceWith(caja);
   input.focus();
   try { input.setSelectionRange(0, 0); } catch (_) { /* el campo sigue mostrando el valor */ }
   input.scrollLeft = 0;
@@ -137,7 +151,7 @@ function abrirCampoSlug(chip, actual, aplicar) {
     if (cerrado) return;
     cerrado = true;
     if (fijo) {
-      input.remove();
+      caja.remove();
       chip.hidden = false;
     }
     if (guardar) aplicar(input.value);
@@ -341,12 +355,19 @@ function pintarFila() {
     card.draggable = true;
     card.dataset.index = String(filaItem.index);
     const site = sitioDe(filaItem.ref);
-    card.innerHTML = '<button type="button" class="quitar" aria-label="×">×</button><i class="punto"></i><small></small><strong></strong><em></em>';
-    card.style.borderColor = colorDe(site);
+    card.innerHTML = '<button type="button" class="quitar">×</button><i class="punto"></i><small></small><strong></strong><em></em>';
+    card.style.setProperty('--pieza', colorDe(site));
+    card.querySelector('.quitar').setAttribute('aria-label', t(estado.lang, 'quitar'));
     card.querySelector('.punto').style.background = colorDe(site);
     card.querySelector('small').textContent = site + ' · ' + (sub ? letra(sub.n) : '·');
     card.querySelector('strong').textContent = sub ? titulo(sub.title) : filaItem.ref;
-    card.querySelector('em').textContent = (sub ? textoDuracion(duracionDe(demo, sub), estado.lang) : '—') + ' · ' + ((sub && sub.steps.length) || 0);
+    card.querySelector('em').textContent = (sub ? textoDuracion(duracionDe(demo, sub), estado.lang) : '—') + ' · ' + textoPasos(sub ? sub.steps.length : 0, estado.lang);
+    if (estado.ref === filaItem.ref) {
+      const marca = document.createElement('b');
+      marca.className = 'elegida';
+      marca.textContent = t(estado.lang, 'elegida');
+      card.append(marca);
+    }
     card.addEventListener('dragstart', (event) => {
       event.dataTransfer.setData('text/plain', 'move:' + filaItem.index);
       event.dataTransfer.effectAllowed = 'move';
@@ -391,6 +412,30 @@ function pintarFila() {
     : '';
   $('pastilla').onclick = () => abrirSlugMacro(estado.macro.id);
   $('pastilla').ondblclick = () => abrirSlugMacro(estado.macro.id);
+  requestAnimationFrame(actualizarCuenta);
+}
+
+function actualizarCuenta() {
+  const fila = $('fila');
+  const cuenta = $('fila-cuenta');
+  const macro = $('macrodemo');
+  if (!fila || !cuenta || !macro) return;
+  const piezas = [...fila.querySelectorAll('.tarjeta')];
+  const total = piezas.length;
+  const rebosa = fila.scrollWidth > fila.clientWidth + 4;
+  macro.classList.toggle('rebosa', rebosa && total > 0);
+  if (!total) { cuenta.textContent = ''; return; }
+  const caja = fila.getBoundingClientRect();
+  let visible = 1;
+  piezas.forEach((card, index) => {
+    const rect = card.getBoundingClientRect();
+    if (rect.left < caja.right - 24) visible = index + 1;
+  });
+  const de = estado.lang === 'en' ? ' of ' : ' de ';
+  let texto = visible + de + total;
+  if (fila.scrollLeft > 4) texto = '← · ' + texto;
+  if (rebosa && fila.scrollLeft + fila.clientWidth < fila.scrollWidth - 4) texto += ' · →';
+  cuenta.textContent = texto;
 }
 
 function pintarPasos() {
@@ -743,7 +788,7 @@ function cargarReproductor() {
   if (window.AdmiraDemoMacro) return Promise.resolve(window.AdmiraDemoMacro);
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = '/suite/demo-control.js?v=20261009-marca-5463';
+    script.src = '/suite/demo-control.js?v=20261010-en-vivo-5532';
     const fallo = () => reject(new Error(estado.lang === 'en' ? 'The player did not load.' : 'No se pudo cargar el reproductor.'));
     script.onload = () => (window.AdmiraDemoMacro ? resolve(window.AdmiraDemoMacro) : fallo());
     script.onerror = fallo;
@@ -919,7 +964,9 @@ window.addEventListener('resize', () => {
     $('buscar').setAttribute('aria-label', busca);
   }
   margenBiblioteca();
+  actualizarCuenta();
 });
+$('fila').addEventListener('scroll', actualizarCuenta, { passive: true });
 $('mas-demo').addEventListener('click', () => altaDemo());
 $('mas-sub').addEventListener('click', () => altaSubdemo());
 $('mas-macro').addEventListener('click', () => altaMacro());
