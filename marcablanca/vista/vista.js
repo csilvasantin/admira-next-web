@@ -52,9 +52,10 @@ const $ = (id) => document.getElementById(id);
 const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 
 function idioma() {
+  const actual = document.documentElement.lang;
+  if (actual === 'en' || actual === 'es') return actual;
   const q = new URLSearchParams(location.search).get('lang');
-  if (q === 'en' || q === 'es') return q;
-  return /^en/i.test(document.documentElement.lang) ? 'en' : 'es';
+  return q === 'en' ? 'en' : 'es';
 }
 
 function aplicarIdioma(lang) {
