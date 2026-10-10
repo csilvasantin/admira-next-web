@@ -15,6 +15,7 @@
 import { sesionCompleta, respuestaLogin } from '../_webmaster-gate.js';
 
 export const PREFIJO_PRUEBAS = '/pruebas';
+export const POST_PRUEBAS = new Set(['/pruebas/api/solicitud']);
 
 function texto(mensaje, status) {
   return new Response(mensaje + '\n', { status, headers: {
@@ -34,7 +35,9 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   if (url.pathname !== PREFIJO_PRUEBAS && !url.pathname.startsWith(PREFIJO_PRUEBAS + '/')) return next();
   const pagina = request.method === 'GET' || request.method === 'HEAD' ? paginaDePruebas(url.pathname) : null;
-  if (request.method !== 'GET' && request.method !== 'HEAD') return texto('Método no permitido.', 405);
+  // Única escritura en /pruebas: POST /pruebas/api/solicitud (vista previa #5552), y solo con sesión (abajo).
+  const postPermitido = request.method === 'POST' && POST_PRUEBAS.has(url.pathname);
+  if (request.method !== 'GET' && request.method !== 'HEAD' && !postPermitido) return texto('Método no permitido.', 405);
   if (!env.WEBMASTER_SIGNING_KEY) return pagina ? respuestaLogin(env, 'Acceso no disponible ahora mismo.', pagina, 503) : texto('Acceso no disponible ahora mismo.', 503);
   const current = await sesionCompleta(request, env);
   if (!current) return pagina ? respuestaLogin(env, 'Zona de pruebas: identifícate para entrar.', pagina, 401) : texto('Sin sesión.', 401);
