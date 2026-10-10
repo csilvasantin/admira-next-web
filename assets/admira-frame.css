@@ -1005,3 +1005,15 @@ body[data-yk-frame="cabecera"] [data-yk-main]{
  * Organigrama, Presentaciones, Proyectos y locales). admira-frame.js pone .admira-con-sesion en
  * <html> cuando /api/sello confirma sesión y, si no la hay, además las quita del DOM. */
 html:not(.admira-con-sesion) [data-yk-interno]{ display: none !important }
+
+/* Presites sin ⌘ Experto (Carlos, 10-10-2026 14:02): sin sesión no se ve ni el botón ⌘ ni su raíl
+ * ni la consola propia de la piel; en el hueco de ⌘ va el selector de idioma ES/EN (#ykLangPre),
+ * del mismo tamaño. Con sesión, al revés: vuelve ⌘ y el selector se retira. */
+html:not(.admira-con-sesion) #ykExpertToggle,
+html:not(.admira-con-sesion) #ykExpertRail,
+html:not(.admira-con-sesion) #axAdmiranextExperto{ display: none !important }
+html.admira-con-sesion #ykLangPre{ display: none !important }
+.yk-bar .yk-meta .yk-ico.yk-lang-pre, .yk-ico.yk-lang-pre{ justify-content: center; gap: 1px; padding: 0 5px; font-size: 10px; font-weight: 700; letter-spacing: .02em }
+.yk-lang-pre > span{ color: var(--yk-dim); opacity: .75 }
+.yk-lang-pre > span.yk-lang-on{ color: var(--yk-brand); opacity: 1 }
+.yk-lang-pre > .yk-lang-sep{ opacity: .5 }

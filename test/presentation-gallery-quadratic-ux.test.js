@@ -225,7 +225,8 @@ test('cada nivel tiene su icono en la barra, dice qué cajón abre y nace plegad
   const barra = descendientes(documento.documentElement).find((nodo) => nodo.clases.has('yk-head'));
   assert.ok(barra, 'la galería lleva la cabecera de la intranet (modo cabecera)');
   assert.equal(descendientes(documento.documentElement).find((nodo) => nodo.clases.has('yk-bar')), undefined, 'y no la barra propia del modo barra');
-  const piezas = barra.hijos.map((n) => n.tagName === 'BUTTON' ? n.id : n.tagName === 'A' ? 'marca' : n.tagName === 'NAV' ? 'nav' : n.getAttribute('data-yk-access') !== null ? 'acceso' : n.clases.has('yk-meta') ? n.hijos.map((b) => b.id).join('+') : n.tagName);
+  const piezas = barra.hijos.map((n) => n.tagName === 'BUTTON' ? n.id : n.tagName === 'A' ? 'marca' : n.tagName === 'NAV' ? 'nav' : n.getAttribute('data-yk-access') !== null ? 'acceso' : n.clases.has('yk-meta') ? n.hijos.map((b) => b.id).filter((id) => id !== 'ykLangPre').join('+') : n.tagName);
+  // #ykLangPre (ES · EN) ocupa el hueco de ⌘ solo sin sesión (norma 32); el CSS lo retira con sesión.
   assert.deepEqual(piezas, ['ykOptionsToggle', 'marca', 'nav', 'acceso', 'ykAdvancedToggle+ykExpertToggle']);
   assert.equal(barra.querySelector('[data-yk-access]').getAttribute('data-yk-access'), 'privado', 'la galería sólo se sirve con sesión: «● Acceso privado»');
 });

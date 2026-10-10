@@ -81,6 +81,7 @@
   const SALTOS = [
     { id: 'analitics',      url: '/analitics',      es: 'Analítica del grupo',          en: 'Group analytics',          alias: ['analitics', 'analytics', 'analitica', 'analiticas', 'estadisticas', 'stats'], interno: true },
     { id: 'presentaciones', url: '/presentaciones/', es: 'Generador de presentaciones', en: 'Presentation generator',   alias: ['presentaciones', 'presentacion', 'presentations', 'presentation', 'presentar', 'slides'], interno: true },
+    { id: 'frontier',       url: '/pruebas/frontier/', es: 'Frontier · lo más avanzado (zona de pruebas, con sesión)', en: 'Frontier · cutting edge (test zone, sign-in required)', alias: ['frontier'] },
     { id: 'webmaster',      url: '/webmaster',      es: 'Webmaster · versiones',        en: 'Webmaster · versions',     alias: ['webmaster', 'versiones', 'versions'], interno: true },
     { id: 'proyectos',      url: '/proyectos/',     es: 'Proyectos',                    en: 'Projects',                 alias: ['proyectos', 'projects'] },
     { id: 'usuarios',       url: '/usuarios',       es: 'Gestión de usuarios',          en: 'User management',          alias: ['usuarios', 'users'], interno: true },

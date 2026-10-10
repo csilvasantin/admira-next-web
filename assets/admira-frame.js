@@ -316,6 +316,40 @@
   var meta = el('div', modoCabecera ? 'yk-meta yk-head-meta' : 'yk-meta');
   meta.appendChild(btnDer);
   meta.appendChild(btnAbajo);
+  // ── Presites sin ⌘ Experto (Carlos, 10-10-2026 14:02) ─────────────────────────
+  // Lo que ve un visitante ANTES de identificarse (home, logins y páginas públicas) no enseña
+  // el modo Experto: en su hueco va el selector de idioma ES/EN, del mismo tamaño, para que la
+  // esquina no baile al entrar. admira-frame.css esconde ⌘ y su raíl mientras <html> no lleve
+  // .admira-con-sesion, y este botón cuando sí la lleva. El idioma se guarda en las mismas
+  // claves que el Experto (admiranext_expert_lang / admiranext_lang) y se avisa con
+  // admira:languagechange: sigue igual después del login.
+  var CLAVES_IDIOMA = ['admiranext_expert_lang', 'admiranext_lang'];
+  function idiomaActual() { return String(root.lang || 'es').slice(0, 2).toLowerCase() === 'en' ? 'en' : 'es'; }
+  var btnIdioma = el('button', 'yk-ico yk-lang-pre');
+  btnIdioma.type = 'button';
+  btnIdioma.id = 'ykLangPre';
+  function pintarIdioma() {
+    var l = idiomaActual();
+    btnIdioma.innerHTML = '<span' + (l === 'es' ? ' class="yk-lang-on"' : '') + '>ES</span><span class="yk-lang-sep" aria-hidden="true">·</span><span' + (l === 'en' ? ' class="yk-lang-on"' : '') + '>EN</span>';
+    btnIdioma.setAttribute('aria-label', l === 'en' ? 'Language: English · switch to Spanish' : 'Idioma: español · cambiar a inglés');
+    btnIdioma.setAttribute('title', l === 'en' ? 'Language · ES / EN' : 'Idioma · ES / EN');
+  }
+  function idiomaPresite(l) {
+    l = l === 'en' ? 'en' : 'es';
+    CLAVES_IDIOMA.forEach(function (k) { try { G.localStorage.setItem(k, l); } catch (e) { /* sin almacenamiento */ } });
+    try {
+      if (typeof G.setLang === 'function') G.setLang(l);
+      else if (typeof G.setLanguage === 'function') G.setLanguage(l);
+      else if (typeof G.AdmiraSetLanguage === 'function') G.AdmiraSetLanguage(l);
+    } catch (e) { /* la página no deja */ }
+    root.lang = l;
+    try { doc.dispatchEvent(new CustomEvent('admira:languagechange', {detail: {lang: l, source: 'frame-presite'}})); } catch (e) { /* navegador antiguo */ }
+    pintarIdioma();
+  }
+  pintarIdioma();
+  btnIdioma.addEventListener('click', function () { idiomaPresite(idiomaActual() === 'en' ? 'es' : 'en'); });
+  try { new MutationObserver(pintarIdioma).observe(root, {attributes: true, attributeFilter: ['lang']}); } catch (e) { /* sin observador */ }
+  meta.appendChild(btnIdioma);
 
   // /proyectos/, /proyectos/index.html y /proyectos son la misma página; /flota.html
   // y /flota también (Pages sirve las dos).
