@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdmiraNeXT · Bits and Atoms</title>
+<meta name="description" content="AdmiraNeXT, the future of Admira. Three pillars — technology, creativity, business — and the five sites, including TV.">
+<link rel="stylesheet" href="/assets/marca-blanca.css?v=20261006-escenas-1">
+<style>
+  :root { color-scheme: dark; --ink:#e8eef8; --mut:#9aabC4; --bg:#0c1018; --brand:#e8a87c; --panel:#151b28; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--mbx-ink, var(--ink)); font-family: "Segoe UI", system-ui, sans-serif; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 22px; }
+  header a { color: var(--mbx-brand, var(--brand)); }
+  button, .cta, .ejemplos a { border: 0; border-radius: 999px; padding: 10px 14px; font-weight: 700; cursor: pointer; background: var(--mbx-brand, var(--brand)); color: var(--mbx-on-brand, #1a120c); text-decoration: none; }
+  .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
+  .ejemplos span { color: var(--mbx-mut, var(--mut)); font-size: 13px; font-weight: 600; }
+  main { min-height: calc(100vh - 120px); display: grid; place-items: center; padding: 12px 22px 80px; }
+  article { width: min(920px, 100%); display: none; }
+  article.activa { display: grid; gap: 16px; }
+  h1 { font-size: clamp(36px, 6vw, 64px); line-height: 0.95; margin: 0; }
+  h2 { margin: 0; font-size: clamp(28px, 4vw, 44px); }
+  p { margin: 0; font-size: 20px; line-height: 1.4; color: var(--mbx-mut, var(--mut)); }
+  ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  li { background: var(--panel); border-radius: 14px; padding: 14px 16px; }
+  li b { display: block; color: var(--mbx-ink, var(--ink)); }
+  nav { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 12px; padding: 14px 22px; background: color-mix(in srgb, var(--bg) 88%, transparent); }
+  .puntos { display: flex; gap: 8px; align-items: center; }
+  .puntos button { width: 10px; height: 10px; padding: 0; border-radius: 50%; background: var(--mut); }
+  .puntos button.activa { background: var(--mbx-brand, var(--brand)); }
+</style>
+</head>
+<body>
+<header>
+  <a href="/pruebas/">ADmiraNeXT</a>
+  <p class="ejemplos" id="ejemplos"></p>
+  <button type="button" id="lang">ES</button>
+</header>
+<main id="sala"></main>
+<nav>
+  <button type="button" id="prev">←</button>
+  <div class="puntos" id="puntos"></div>
+  <button type="button" id="next">→</button>
+</nav>
+<script src="/assets/marca-blanca.js?v=20261006-escenas-1"></script>
+<script>
+(function () {
+  var C = {
+    es: {
+      lang: 'EN',
+      slides: [
+        { h: 'ADmiraNeXT', k: 'Bits and Atoms', p: 'El futuro de Admira. Tres pilares y cinco sitios.' },
+        { h: 'Tres pilares', p: 'Tecnología, creatividad y negocio. La misma historia en toda la casa.', items: ['Tecnología sostiene lo que se enciende.', 'Creatividad hace la pieza.', 'Negocio la lleva a la tienda y la vende.'] },
+        { h: 'Tecnología', p: 'Lo que funciona cada día.', items: ['admira.tv · emisión y prueba de emisión.', 'admira.app · instalaciones y mantenimiento.'] },
+        { h: 'Creatividad', p: 'Lo que se ve y se oye.', items: ['admira.studio · creación y adaptación de contenidos.'] },
+        { h: 'Negocio', p: 'La tienda y el ingreso.', items: ['admira.store · distribución y la tienda en pantalla.', 'admira.biz · ingresos con DooH y Retail Media.'] },
+        { h: 'admira.tv', p: 'La diapositiva que faltaba: la emisión.', items: ['Decide qué suena en cada pantalla.', 'Deja constancia de lo emitido.'] },
+        { h: 'Pruébalo con tu marca', p: 'Estas tres marcas son de ejemplo. La demo pública con la tuya llega aparte.', items: ['El terminal de la portada sigue en el modo Experto, con /terminal.'] }
+      ]
+    },
+    en: {
+      lang: 'ES',
+      slides: [
+        { h: 'ADmiraNeXT', k: 'Bits and Atoms', p: 'The future of Admira. Three pillars and five sites.' },
+        { h: 'Three pillars', p: 'Technology, creativity and business. The same story across the house.', items: ['Technology keeps the lights on.', 'Creativity makes the piece.', 'Business puts it in the store and sells it.'] },
+        { h: 'Technology', p: 'What runs every day.', items: ['admira.tv · playback and proof of play.', 'admira.app · installation and maintenance.'] },
+        { h: 'Creativity', p: 'What people see and hear.', items: ['admira.studio · content creation and adaptation.'] },
+        { h: 'Business', p: 'The store and the revenue.', items: ['admira.store · distribution and the store on screen.', 'admira.biz · revenue with DooH and Retail Media.'] },
+        { h: 'admira.tv', p: 'The slide that was missing: playback.', items: ['It decides what plays on each screen.', 'It records what was aired.'] },
+        { h: 'Try it with your brand', p: 'These three brands are samples. The public demo with yours comes later.', items: ['The homepage terminal still lives in Expert mode, with /terminal.'] }
+      ]
+    }
+  };
+  var lang = 'en';
+  try {
+    var q = new URLSearchParams(location.search).get('lang') || '';
+    if (/^(es|esp|spanish|espanol)$/i.test(q)) lang = 'es';
+    else if (/^(en|eng|english)$/i.test(q)) lang = 'en';
+    else if (localStorage.getItem('admiranext_lang') === 'es') lang = 'es';
+  } catch (e) {}
+  var i = 0;
+  var sala = document.getElementById('sala');
+  var puntos = document.getElementById('puntos');
+  var ejemplos = [
+    { id: 'lumbre', nombre: 'Lumbre Café' },
+    { id: 'brumelle', nombre: 'BRUMELLE' },
+    { id: 'frescaria', nombre: 'Frescaria' }
+  ];
+  function pack() { return C[lang]; }
+  function pintarEjemplos() {
+    var etiqueta = lang === 'es' ? 'Marcas de ejemplo' : 'Sample brands';
+    var admira = '<a href="?lang=' + lang + '&marca=off">Admira</a>';
+    var chips = ejemplos.map(function (m) {
+      return '<a href="?lang=' + lang + '&marca=' + m.id + '">' + m.nombre + '</a>';
+    }).join('');
+    document.getElementById('ejemplos').innerHTML = '<span>' + etiqueta + '</span>' + chips + admira;
+  }
+  function pintar() {
+    document.documentElement.lang = lang;
+    document.getElementById('lang').textContent = pack().lang;
+    pintarEjemplos();
+    var slides = pack().slides;
+    sala.innerHTML = slides.map(function (s, n) {
+      var items = (s.items || []).map(function (t) { return '<li><b>' + t + '</b></li>'; }).join('');
+      return '<article class="' + (n === i ? 'activa' : '') + '"><p>' + (s.k || '') + '</p><h1>' + s.h + '</h1><p>' + s.p + '</p><ul>' + items + '</ul></article>';
+    }).join('');
+    puntos.innerHTML = slides.map(function (_, n) {
+      return '<button type="button" class="' + (n === i ? 'activa' : '') + '" data-i="' + n + '" aria-label="' + (n + 1) + '"></button>';
+    }).join('');
+  }
+  function ir(n) {
+    var total = pack().slides.length;
+    i = (n + total) % total;
+    pintar();
+  }
+  document.getElementById('lang').addEventListener('click', function () {
+    lang = lang === 'en' ? 'es' : 'en';
+    try { localStorage.setItem('admiranext_lang', lang); } catch (e) {}
+    pintar();
+  });
+  document.getElementById('prev').addEventListener('click', function () { ir(i - 1); });
+  document.getElementById('next').addEventListener('click', function () { ir(i + 1); });
+  puntos.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button');
+    if (b) ir(Number(b.getAttribute('data-i')));
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'ArrowRight') ir(i + 1);
+    if (ev.key === 'ArrowLeft') ir(i - 1);
+  });
+  pintar();
+})();
+</script>
+</body>
+</html>

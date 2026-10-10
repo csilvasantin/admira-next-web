@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial</title>
+  <meta name="description" content="ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial. Physical AI, IoT, robotics and connected operations from Barcelona.">
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="robots" content="noindex,nofollow" />
+  <!-- ZONA /pruebas (Carlos, 10-10-2026): portada Bits and Atoms del encargo 5547, solo con sesión. No es la portada pública. -->
+  <meta name="theme-color" content="#0a0703" />
+  <meta name="apple-mobile-web-app-title" content="ADmiraNeXT" />
+  <meta name="admiranext-version" content="v.10.10.2026.r6.13:09" />
+  <link rel="alternate" type="text/plain" href="/mcp/llms.txt" title="MCP · llms.txt" />
+  <link rel="alternate" type="application/json" href="/mcp/manifest.json" title="MCP · manifest" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://csilvasantin.github.io/ADmiraNeXT/#organization",
+    "name": "ADmiraNeXT",
+    "url": "https://csilvasantin.github.io/ADmiraNeXT/",
+    "description": "Donde las Cosas se Conectan a Internet con Inteligencia Artificial.",
+    "email": "info@admira.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Barcelona",
+      "addressCountry": "ES"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://csilvasantin.github.io/ADmiraNeXT/#website",
+    "name": "ADmiraNeXT",
+    "url": "https://csilvasantin.github.io/ADmiraNeXT/",
+    "publisher": { "@id": "https://csilvasantin.github.io/ADmiraNeXT/#organization" }
+  }
+  </script>
+  <link rel="canonical" href="https://www.admiranext.com/" />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.admiranext.com/" />
+  <meta property="og:title" content="ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial" />
+  <meta property="og:description" content="Physical AI, IoT, robotics and connected operations from Barcelona." />
+  <meta property="og:image" content="https://www.admiranext.com/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="ADmiraNeXT — Donde las cosas se conectan a Internet con Inteligencia Artificial" />
+  <meta property="og:site_name" content="ADmiraNeXT" />
+  <meta property="og:locale" content="en_US" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial" />
+  <meta name="twitter:description" content="Physical AI, IoT, robotics and connected operations from Barcelona." />
+  <meta name="twitter:image" content="https://www.admiranext.com/og-image.jpg" />
+  <link rel="preload" as="image" href="/assets/robots.jpg" type="image/jpeg" fetchpriority="high">
+  <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jetbrains-mono.woff2" crossorigin>
+  <link rel="stylesheet" href="/pruebas/assets/app.css?v=20261010-portada-5547">
+  <script>
+    // ============ i18n bootstrap ============
+    // Default: English. Toggle button (titlebar) muestra el OPUESTO ("ESP"
+    // cuando está en EN, "ENG" cuando está en ES). Persiste en localStorage.
+    (function () {
+      window.I18N = {
+        en: {
+          'titlebar.path.exit': 'user@admiranext ~ /exit',
+          'titlebar.path.portfolio': 'user@admiranext',
+          'titlebar.dot.close': 'Close',
+          'titlebar.dot.minimize': 'Minimize',
+          'titlebar.dot.maximize': 'Maximize',
+          'close.kill': '$ kill -9 portfolio',
+          'close.terminated': '✗ Process terminated.',
+          'close.tagline1': '  Creativity and innovation never end. We will keep working to improve.',
+          'close.tagline2': '  Hope to see you again.',
+          'close.reopen': 'Reopen terminal',
+          'sr.h1': 'ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
+          'welcome.greeting': 'Welcome, visitor.',
+          'manifesto.title': 'Manifesto',
+          'manifesto.who.label': 'Who',
+          'manifesto.who.value': 'Where things connect to the Internet with Artificial Intelligence',
+          'manifesto.what.label': 'What',
+          'manifesto.what.value': 'We build Physical AI projects',
+          'manifesto.how.label': 'How',
+          'manifesto.how.value': 'Proprietary IoT platform + the best robots',
+          'manifesto.why.label': 'Why',
+          'manifesto.why.value': 'Because it\'s our passion',
+          'nav.title': 'Navigation',
+          'nav.cmd.about': '/about',
+          'nav.cmd.work': '/work',
+          'nav.cmd.identity': '/branding',
+          'nav.cmd.skills': '/skills',
+          'nav.helphint': '... /help for all commands',
+          'nav.themehint': 'Try /themes to change the vibe',
+          'idle.1': 'Still there? Try /work to see what I\'ve built...',
+          'idle.2': 'This terminal has more commands than you think...',
+          'idle.3': 'Psst — ever tried typing ls in a portfolio?',
+          'idle.4': 'The Konami code works here. Just saying.',
+          'idle.5': 'Some commands don\'t need a slash. Try: whoami',
+          'idle.6': 'Type /secrets if you like finding hidden things.',
+          'whoami.line1': '  You are the person about to hire the best robot Service in Europe.',
+          'whoami.line2': '  (Trust the terminal. It knows things.)',
+          'milestone.3': 'You\'ve run 3 commands. There are more hiding beneath the surface.',
+          'milestone.5': 'Bored of the dark? Try /themes — there are 4 looks to choose from.',
+          'milestone.7': 'Getting curious? Try typing whoami or ls — this isn\'t your average terminal.',
+          'milestone.12': 'Power user detected. Type /secrets for the full map.',
+          'error.notfound': 'Command not found: "{cmd}"',
+          'error.hint1': 'Type /help to see available commands',
+          'error.hint2': 'Type /help to see available commands. Hint: some Unix commands work here too…',
+          'error.hint3': 'Type /help to see available commands. Or try something unexpected.',
+          'error.hint4': 'Type /help — or don\'t. Some commands aren\'t listed there.',
+          'cmd.about':        '/about',
+          'cmd.identidad':    '/branding',
+          'cmd.work':         '/work',
+          'cmd.clients':      '/clients',
+          'cmd.skills':       '/skills',
+          'cmd.contact':      '/contact',
+          'cmd.themes':       '/themes',
+          'cmd.help':         '/help',
+          'cmd.philosophy':   '/philosophy',
+          'cmd.social':       '/social',
+          'cmd.articles':     '/articles',
+          'cmd.testimonials': '/testimonials',
+          'cmd.awards':       '/awards',
+          'cmd.clear':        '/clear',
+          'cmd.phone':        '/phone',
+          'cmd.email':        '/email',
+          'cmd.company':      '/company',
+          'cmd.classic':      '/classic',
+          'cmd.robots':       '/robots',
+          'cmd.creditos':     '/credits',
+          'cmd.impacto':      '/impact',
+          'cmd.tiktok':       '/tiktok',
+          'cmd.informes':     '/reports',
+          'cmd.location':     '/location',
+          'cmd.privacy':      '/privacy',
+          'cmd.dark':         '/dark',
+          'cmd.light':        '/light',
+          'cmd.retro':        '/retro',
+          'cmd.glass':        '/glass',
+          'comingSoon':   'Coming soon.',
+          'about.title':  'About ADmiraNeXT',
+          'about.l1':     'ADmiraNeXT is an Everything as a Service company. We design, deploy and operate Physical AI projects — robots in lobbies, shop floors, warehouses — so our customers can pay for outcomes instead of running fleets.',
+          'about.h1':     'Manifesto',
+          'about.who':    'Who: where things connect to the Internet with Artificial Intelligence.',
+          'about.what':   'What: we build Physical AI projects.',
+          'about.how':    'How: a proprietary IoT platform + the best robots.',
+          'about.why':    'Why: because it\'s our passion.',
+          'about.h2':     'How we work',
+          'about.l2':     'Robot as a Service. You bring the use case; we bring the platform, the orchestration, the connectivity, the maintenance and the SLA.',
+          'about.l3':     'No upfront capex. Pay for results.',
+          'about.tip.work':    'see what we are building',
+          'about.tip.contact': 'get in touch',
+          'about.tip.readme':  'try: cat readme.md',
+          'contact.title':  'Get in Touch',
+          'contact.openTo': 'Open to: pilot deployments, IoT integrations, fleet operations, partnerships and consulting.',
+          'contact.cta':    'Let\'s build something that ships.',
+          'contact.tip':    'or just say hi at info@admira.com',
+          'phone.title':  'Phone',
+          'phone.handle': 'tap to call',
+          'phone.tip':    'for all contact options',
+          'email.title':  'Email',
+          'email.handle': 'tap to send a mail',
+          'email.tip':    'for all contact options',
+          'company.title': 'ADmiraNeXT',
+          'company.l1':    'Robot as a Service company based in Barcelona, Spain.',
+          'company.l2':    'We deploy and operate Physical AI for our customers.',
+          'company.tip':   'see what we ship',
+          'rental.title':   'Robot as a Service Rental',
+          'rental.tagline': 'Pay for outcomes, not fleets.',
+          'rental.h1':      'What\'s included',
+          'rental.l1':      'Deployment, IoT platform, fleet orchestration.',
+          'rental.l2':      'Maintenance, software updates, on-site support.',
+          'rental.l3':      'Connectivity, monitoring, edge runtime.',
+          'rental.l4':      'Defined SLA + uptime guarantee.',
+          'rental.h2':      'How it works',
+          'rental.l5':      'Pilot deployments in 4 weeks.',
+          'rental.l6':      'Monthly fee per unit. Custom quotes for fleets.',
+          'rental.cta':     'No upfront capex. You only pay for the result.',
+          'rental.tip':     'to start your pilot',
+          'rental.tooltip': 'See robot rental info',
+          'classic.button': 'HOME',
+          'classic.title': 'Classic Web',
+          'classic.tagline': 'Choose between About us, Robots or Platform depending on how much you want to explore.',
+          'classic.good.label': 'About us',
+          'classic.good.title': 'Contact me',
+          'classic.good.copy': 'Fastest path: send your details and we call you back, or book a video call.',
+          'classic.good.cta': 'Contact',
+          'classic.good.form.title': 'We call you',
+          'classic.good.form.name': 'Name',
+          'classic.good.form.phone': 'Phone',
+          'classic.good.form.reason': 'Reason',
+          'classic.good.form.submit': 'Send request',
+          'classic.good.form.calendar': 'Book a video call',
+          'classic.good.form.note': 'We will receive your request without opening your email app.',
+          'classic.good.form.success': 'Request sent. We will call you shortly.',
+          'classic.good.form.error': 'Could not send it right now. Please try again in a moment.',
+          'contact.panel.title': 'Contact us',
+          'contact.panel.details': 'Contact details',
+          'contact.panel.call': 'We call you',
+          'contact.panel.office': 'Office',
+          'contact.panel.city': 'Barcelona, Spain',
+          'contact.panel.social': 'Social',
+          'contact.panel.close': 'Close contact panel',
+          'classic.better.label': 'Robots',
+          'classic.better.title': 'Robots',
+          'classic.better.copy': 'Available robot portfolio with humanoid, quadruped and cleaning options.',
+          'classic.better.cta': 'Open robots',
+          'classic.identidad.label': 'Identity',
+          'classic.best.label': 'Platform',
+          'classic.best.title': 'Terminal Experience',
+          'classic.best.copy': 'The current interactive ADmiraNeXT experience: denser, stranger, more memorable.',
+          'classic.best.cta': 'Enter terminal',
+          'classic.close': 'Skip',
+          'location.title': 'Location',
+          'location.city':  'Barcelona, Spain',
+          'location.scope': 'Working across Europe and beyond.',
+          'location.tz':    'Central European Time (CET / UTC+1)',
+          'location.tip':   'to get in touch',
+          'work.title':       'Featured Work',
+          'work.l1':          'New case studies are on the way. Our first deployments are running and we are putting them on stage soon.',
+          'work.tip':         'to talk about your use case',
+          'clients.title':    'Customers',
+          'clients.l1':       'Our customer list is growing. Watch this space.',
+          'testimonials.title': 'Testimonials',
+          'testimonials.l1':    'Pilots are running. Real testimonials will land here as they come back.',
+          'testimonials.tip':   'to start your pilot',
+          'articles.title':   'Articles',
+          'articles.l1':      'Notes on Physical AI, IoT and robotics-as-a-service will be published here.',
+          'consent.msg':      'This site uses analytics cookies (GA4) to understand traffic.',
+          'consent.accept':   'Accept',
+          'consent.decline':  'Decline',
+          'consent.privacy':  '/privacy for full details',
+          'consent.granted':  'Analytics cookies accepted. Thanks.',
+          'consent.denied':   'Analytics cookies declined. No tracking cookies will be used.',
+          'help.title':       'Available Commands',
+          'help.section.nav':      'Navigation',
+          'help.section.info':     'Quick Info',
+          'help.section.projects': 'Projects',
+          'help.section.themes':   'Themes',
+          'help.aliases':     'Aliases: /portfolio, /projects, /me, /hire, /call, /mail',
+          'help.tip':         'Tip: Use ↑↓ arrows for history, Tab to autocomplete',
+          'help.suffix':      '  …and a few more, if you know where to look.',
+          'prompt.placeholder': 'Type a command... try "/help"',
+          'boot.l1': 'Booting portfolio system...',
+          'boot.l2': 'Loading design tokens...',
+          'boot.l3': 'Mounting component library... ',
+          'boot.l4': '[████████████████████████] ',
+          'boot.l5': 'done',
+          'boot.l6': '\nReading the five sites of Bits and Atoms...',
+          'portada.kicker': 'The future of Admira',
+          'portada.title': 'ADmiraNeXT',
+          'portada.lede': 'Bits and Atoms has three pillars: technology, creativity and business. The five sites hang from them.',
+          'portada.tec': 'Technology',
+          'portada.tec.tv': 'Playback and proof of play',
+          'portada.tec.app': 'Installation and maintenance',
+          'portada.cre': 'Creativity',
+          'portada.cre.studio': 'Content creation and adaptation',
+          'portada.neg': 'Business',
+          'portada.neg.store': 'Distribution and the store on screen',
+          'portada.neg.biz': 'Revenue with DooH and Retail Media',
+          'portada.cta': 'Try it with your brand',
+          'portada.nota': 'Opens the story with a sample brand. The terminal stays in Expert mode, with /terminal.',
+          'boot.l7': 'Connecting to ADmiraNeXT... ',
+          'boot.l8': 'ok',
+          'boot.l9': '\nDesign systems: operational',
+          'boot.l10': 'UX research modules: loaded',
+          'boot.l11': 'Don\'t look for /secrets here...',
+          'boot.l12': 'Strategic thinking: activated',
+          'boot.l13': '\n✦ ',
+          'boot.l14': 'ADmiraNeXT',
+          'boot.l15': ' — ready.\n',
+          'boot.l16': 'Press Enter to continue...',
+          'launch.opening': '  Opening in a new tab...',
+        },
+        es: {
+          'titlebar.path.exit': 'user@admiranext ~ /salir',
+          'titlebar.path.portfolio': 'user@admiranext',
+          'titlebar.dot.close': 'Cerrar',
+          'titlebar.dot.minimize': 'Minimizar',
+          'titlebar.dot.maximize': 'Maximizar',
+          'close.kill': '$ kill -9 portafolio',
+          'close.terminated': '✗ Proceso terminado.',
+          'close.tagline1': '  La creatividad y la innovación nunca se acaban. Seguiremos trabajando para mejorar.',
+          'close.tagline2': '  Espero que nos volvamos a ver.',
+          'close.reopen': 'Reabrir terminal',
+          'sr.h1': 'ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
+          'welcome.greeting': 'Bienvenido, visitante.',
+          'manifesto.title': 'Manifiesto',
+          'manifesto.who.label': 'Quiénes',
+          'manifesto.who.value': 'Donde las Cosas se Conectan a Internet con Inteligencia Artificial',
+          'manifesto.what.label': 'Qué',
+          'manifesto.what.value': 'Generamos proyectos de Physical AI',
+          'manifesto.how.label': 'Cómo',
+          'manifesto.how.value': 'Plataforma propia de IoT + los mejores robots',
+          'manifesto.why.label': 'Por qué',
+          'manifesto.why.value': 'Porque es nuestra pasión',
+          'nav.title': 'Navegación',
+          'nav.cmd.about': '/acerca de',
+          'nav.cmd.work': '/proyectos',
+          'nav.cmd.identity': '/identidad',
+          'nav.cmd.skills': '/habilidades',
+          'nav.helphint': '... /ayuda para todos los comandos',
+          'nav.themehint': 'Prueba /temas para cambiar el rollo',
+          'idle.1': '¿Todavía estás? Prueba /trabajos para ver qué cosas hemos hecho...',
+          'idle.2': 'Este terminal tiene más comandos de los que crees...',
+          'idle.3': 'Pssst — ¿alguna vez has escrito ls en un portafolio?',
+          'idle.4': 'El código Konami funciona aquí. Solo lo digo.',
+          'idle.5': 'Algunos comandos no necesitan barra. Prueba: whoami',
+          'idle.6': 'Escribe /secretos si te gusta encontrar cosas escondidas.',
+          'whoami.line1': '  Eres la persona a punto de contratar el mejor servicio de robots de Europa.',
+          'whoami.line2': '  (Confía en el terminal. Sabe cosas.)',
+          'milestone.3': 'Has ejecutado 3 comandos. Hay más escondidos bajo la superficie.',
+          'milestone.5': '¿Aburrido de la oscuridad? Prueba /temas — hay 4 looks para elegir.',
+          'milestone.7': '¿Te pica la curiosidad? Prueba escribir whoami o ls — esto no es un terminal cualquiera.',
+          'milestone.12': 'Power user detectado. Escribe /secretos para ver el mapa completo.',
+          'error.notfound': 'Comando no encontrado: "{cmd}"',
+          'error.hint1': 'Escribe /ayuda para ver los comandos disponibles',
+          'error.hint2': 'Escribe /ayuda para ver los comandos disponibles. Pista: algunos comandos Unix también funcionan…',
+          'error.hint3': 'Escribe /ayuda para ver los comandos disponibles. O prueba algo inesperado.',
+          'error.hint4': 'Escribe /ayuda — o no. Algunos comandos no están en la lista.',
+          'cmd.about':        '/acerca de',
+          'cmd.identidad':    '/identidad',
+          'cmd.work':         '/proyectos',
+          'cmd.clients':      '/clientes',
+          'cmd.skills':       '/habilidades',
+          'cmd.contact':      '/contacto',
+          'cmd.themes':       '/temas',
+          'cmd.help':         '/ayuda',
+          'cmd.philosophy':   '/filosofia',
+          'cmd.social':       '/social',
+          'cmd.articles':     '/articulos',
+          'cmd.testimonials': '/testimoniales',
+          'cmd.awards':       '/premios',
+          'cmd.clear':        '/limpiar',
+          'cmd.phone':        '/telefono',
+          'cmd.email':        '/correo',
+          'cmd.company':      '/empresa',
+          'cmd.classic':      '/web-clasica',
+          'cmd.robots':       '/robots',
+          'cmd.creditos':     '/creditos',
+          'cmd.impacto':      '/impacto',
+          'cmd.tiktok':       '/tiktok',
+          'cmd.informes':     '/informes',
+          'cmd.location':     '/ubicacion',
+          'cmd.privacy':      '/privacidad',
+          'cmd.dark':         '/oscuro',
+          'cmd.light':        '/claro',
+          'cmd.retro':        '/retro',
+          'cmd.glass':        '/cristal',
+          'comingSoon':   'Próximamente.',
+          'about.title':  'Sobre ADmiraNeXT',
+          'about.l1':     'ADmiraNeXT es una empresa de Everything as a Service. Diseñamos, desplegamos y operamos proyectos de Physical AI — robots en lobbies, tiendas, almacenes — para que nuestros clientes paguen por resultados, no por flotas que mantener.',
+          'about.h1':     'Manifiesto',
+          'about.who':    'Quiénes: donde las Cosas se Conectan a Internet con Inteligencia Artificial.',
+          'about.what':   'Qué: generamos proyectos de Physical AI.',
+          'about.how':    'Cómo: plataforma propia de IoT + los mejores robots.',
+          'about.why':    'Por qué: porque es nuestra pasión.',
+          'about.h2':     'Cómo trabajamos',
+          'about.l2':     'Robot as a Service. Tú traes el caso de uso; nosotros traemos la plataforma, la orquestación, la conectividad, el mantenimiento y el SLA.',
+          'about.l3':     'Sin inversión inicial. Pagas por resultados.',
+          'about.tip.work':    'para ver lo que estamos construyendo',
+          'about.tip.contact': 'para ponerse en contacto',
+          'about.tip.readme':  'prueba: cat readme.md',
+          'contact.title':  'Ponte en Contacto',
+          'contact.openTo': 'Abierto a: despliegues piloto, integraciones IoT, operación de flotas, partnerships y consultoría.',
+          'contact.cta':    'Construyamos algo que se entregue.',
+          'contact.tip':    'o simplemente escríbenos a info@admira.com',
+          'phone.title':  'Teléfono',
+          'phone.handle': 'toca para llamar',
+          'phone.tip':    'para todas las opciones de contacto',
+          'email.title':  'Correo Electrónico',
+          'email.handle': 'toca para enviar un correo',
+          'email.tip':    'para todas las opciones de contacto',
+          'company.title': 'ADmiraNeXT',
+          'company.l1':    'Empresa de Robot as a Service con sede en Barcelona, España.',
+          'company.l2':    'Desplegamos y operamos Physical AI para nuestros clientes.',
+          'company.tip':   'para ver lo que entregamos',
+          'rental.title':   'Alquiler Robot as a Service',
+          'rental.tagline': 'Paga por resultados, no por flotas.',
+          'rental.h1':      'Qué incluye',
+          'rental.l1':      'Despliegue, plataforma IoT, orquestación de flota.',
+          'rental.l2':      'Mantenimiento, actualizaciones software, soporte on-site.',
+          'rental.l3':      'Conectividad, monitorización, edge runtime.',
+          'rental.l4':      'SLA definido + garantía de uptime.',
+          'rental.h2':      'Cómo funciona',
+          'rental.l5':      'Pilotos en 4 semanas.',
+          'rental.l6':      'Cuota mensual por unidad. Presupuestos a medida para flotas.',
+          'rental.cta':     'Sin inversión inicial. Solo pagas por el resultado.',
+          'rental.tip':     'para empezar tu piloto',
+          'rental.tooltip': 'Ver información de alquiler',
+          'classic.button': 'INICIO',
+          'classic.title': 'Elige tu entrada',
+          'classic.tagline': 'Elige entre Acerca de, Robots o Plataforma según cuánto quieras explorar.',
+          'classic.good.label': 'Acerca de',
+          'classic.good.title': 'Te llamamos',
+          'classic.good.copy': 'El camino rápido: envía tus datos y te llamamos, o reserva una videoconferencia.',
+          'classic.good.cta': 'Contacto',
+          'classic.good.form.title': 'Te llamamos',
+          'classic.good.form.name': 'Nombre',
+          'classic.good.form.phone': 'Teléfono',
+          'classic.good.form.reason': 'Motivo',
+          'classic.good.form.submit': 'Enviar solicitud',
+          'classic.good.form.calendar': 'Agendar videoconferencia',
+          'classic.good.form.note': 'Recibiremos tu solicitud sin abrir ninguna app de correo.',
+          'classic.good.form.success': 'Solicitud enviada. Te llamaremos en breve.',
+          'classic.good.form.error': 'No se ha podido enviar ahora. Inténtalo de nuevo en un momento.',
+          'contact.panel.title': 'Contáctanos',
+          'contact.panel.details': 'Datos de contacto',
+          'contact.panel.call': 'Te llamamos',
+          'contact.panel.office': 'Oficina',
+          'contact.panel.city': 'Barcelona, España',
+          'contact.panel.social': 'Social',
+          'contact.panel.close': 'Cerrar panel de contacto',
+          'classic.better.label': 'Robots',
+          'classic.better.title': 'Robots',
+          'classic.better.copy': 'Portfolio disponible con humanoides, cuadrúpedos y limpieza.',
+          'classic.better.cta': 'Abrir robots',
+          'classic.identidad.label': 'Identidad',
+          'classic.best.label': 'Plataforma',
+          'classic.best.title': 'Experiencia Terminal',
+          'classic.best.copy': 'La experiencia interactiva actual de ADmiraNeXT: más densa, distinta y memorable.',
+          'classic.best.cta': 'Entrar al terminal',
+          'classic.close': 'Saltar',
+          'location.title': 'Ubicación',
+          'location.city':  'Barcelona, España',
+          'location.scope': 'Trabajando en toda Europa y más allá.',
+          'location.tz':    'Hora Central Europea (CET / UTC+1)',
+          'location.tip':   'para ponerse en contacto',
+          'work.title':       'Trabajos Destacados',
+          'work.l1':          'Nuevos casos de estudio en camino. Los primeros despliegues ya están en marcha y los publicamos pronto.',
+          'work.tip':         'para hablar de tu caso de uso',
+          'clients.title':    'Clientes',
+          'clients.l1':       'La lista de clientes está creciendo. Atento a este espacio.',
+          'testimonials.title': 'Testimonios',
+          'testimonials.l1':    'Los pilotos están en marcha. Los testimonios reales llegarán aquí cuando vuelvan.',
+          'testimonials.tip':   'para empezar tu piloto',
+          'articles.title':   'Artículos',
+          'articles.l1':      'Notas sobre Physical AI, IoT y robotics-as-a-service se publicarán aquí.',
+          'consent.msg':      'Este sitio utiliza cookies de análisis (GA4) para comprender el tráfico.',
+          'consent.accept':   'Aceptar',
+          'consent.decline':  'Rechazar',
+          'consent.privacy':  '/privacy para más detalles',
+          'consent.granted':  'Cookies de análisis aceptadas. Gracias.',
+          'consent.denied':   'Cookies de análisis rechazadas. No se utilizarán cookies de seguimiento.',
+          'help.title':       'Comandos Disponibles',
+          'help.section.nav':      'Navegación',
+          'help.section.info':     'Información Rápida',
+          'help.section.projects': 'Proyectos',
+          'help.section.themes':   'Temas',
+          'help.aliases':     'Alias: /portafolio, /proyectos, /sobre, /contratar, /llamar, /correo',
+          'help.tip':         'Consejo: Usa las flechas ↑↓ para el historial, Tab para autocompletar',
+          'help.suffix':      '  …y algunos otros, si sabes dónde buscar.',
+          'prompt.placeholder': 'Escribe un comando... prueba "/ayuda"',
+          'boot.l1': 'Iniciando sistema de portafolio...',
+          'boot.l2': 'Cargando tokens de diseño...',
+          'boot.l3': 'Montando biblioteca de componentes... ',
+          'boot.l4': '[████████████████████████] ',
+          'boot.l5': 'hecho',
+          'boot.l6': '\nLeyendo los cinco sitios de Bits and Atoms...',
+          'portada.kicker': 'El futuro de Admira',
+          'portada.title': 'ADmiraNeXT',
+          'portada.lede': 'Bits and Atoms tiene tres pilares: tecnología, creatividad y negocio. De ellos cuelgan los cinco sitios.',
+          'portada.tec': 'Tecnología',
+          'portada.tec.tv': 'Emisión y prueba de emisión',
+          'portada.tec.app': 'Instalaciones y mantenimiento',
+          'portada.cre': 'Creatividad',
+          'portada.cre.studio': 'Creación y adaptación de contenidos',
+          'portada.neg': 'Negocio',
+          'portada.neg.store': 'Distribución y la tienda en pantalla',
+          'portada.neg.biz': 'Ingresos con DooH y Retail Media',
+          'portada.cta': 'Pruébalo con tu marca',
+          'portada.nota': 'Abre la historia con una marca de ejemplo. El terminal sigue en el modo Experto, con /terminal.',
+          'boot.l7': 'Conectando con ADmiraNeXT... ',
+          'boot.l8': 'ok',
+          'boot.l9': '\nSistemas de diseño: operativos',
+          'boot.l10': 'Módulos de investigación UX: cargados',
+          'boot.l11': 'No busques /secrets aquí...',
+          'boot.l12': 'Pensamiento estratégico: activado',
+          'boot.l13': '\n✦ ',
+          'boot.l14': 'ADmiraNeXT',
+          'boot.l15': ' — listo.\n',
+          'boot.l16': 'Presiona Enter para continuar...',
+          'launch.opening': '  Abriendo en una pestaña nueva...',
+        },
+      };
+      window.LANG_KEY = 'admiranext_lang';
+      try {
+        var pedido = new URLSearchParams(location.search).get('lang') || '';
+        if (/^(en|eng|english)$/i.test(pedido)) window.currentLang = 'en';
+        else if (/^(es|esp|spanish|espanol)$/i.test(pedido)) window.currentLang = 'es';
+        else window.currentLang = localStorage.getItem(window.LANG_KEY) || 'en';
+      } catch (e) { window.currentLang = 'en'; }
+      window.t = function (key) {
+        var L = window.I18N[window.currentLang] || window.I18N.en;
+        return (L[key] != null ? L[key] : (window.I18N.en[key] != null ? window.I18N.en[key] : key));
+      };
+      // EL SELLO DE LA PANTALLA DE ARRANQUE SE LEE, NO SE TECLEA (Neo · MBP14, 02-09-2026).
+      // 'boot.l14' llevaba escrito a mano «v.04.09.2026.r1.05:28» desde el 4 de agosto: la
+      // home anunciaba una versión de hacía un mes mientras el verificador —que lee el
+      // <meta> y /version.json— decía «al día». Los dos tenían razón sobre fuentes
+      // distintas, que es la peor manera de mentir. Y la guardia de la regla 07 solo mira
+      // el <footer>, así que a éste no lo veía nadie. Ahora sale del mismo sitio que el
+      // verificador y no puede volver a divergir.
+      // Desde el 06-10-2026 la versión solo se enseña con sesión: sello-sesion.js llama a
+      // AdmiraSelloArranque cuando /api/sello confirma usuario registrado.
+      window.AdmiraSelloArranque = function () {
+        var meta = document.querySelector('meta[name="admiranext-version"]');
+        var sello = (meta && meta.content ? meta.content : '').match(/v\.\d{2}\.\d{2}\.\d{4}\.r\d+\.\d{2}:\d{2}/);
+        if (!sello) return;
+        Object.keys(window.I18N || {}).forEach(function (lang) {
+          var d = window.I18N[lang];
+          if (d && d['boot.l14']) d['boot.l14'] = d['boot.l14'].replace(/\s*v\.[\d.r:]+$/, '') + ' ' + sello[0];
+        });
+      };
+
+      window.applyLang = function () {
+        document.documentElement.lang = window.currentLang;
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+          el.textContent = window.t(el.getAttribute('data-i18n'));
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
+          el.title = window.t(el.getAttribute('data-i18n-title'));
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+          el.placeholder = window.t(el.getAttribute('data-i18n-placeholder'));
+        });
+        document.querySelectorAll('.lang-toggle:not(.rental-toggle)').forEach(function (b) {
+          b.textContent = window.currentLang === 'en' ? 'ESP' : 'ENG';
+          b.title = window.currentLang === 'en' ? 'Cambiar a español' : 'Switch to English';
+        });
+        document.querySelectorAll('[data-classic-label]').forEach(function (b) {
+          b.textContent = window.t('classic.button');
+        });
+        window.dispatchEvent(new CustomEvent('admiranext:langchanged', { detail: window.currentLang }));
+      };
+      window.setLang = function (l) {
+        if (l !== 'en' && l !== 'es') return;
+        window.currentLang = l;
+        try { localStorage.setItem(window.LANG_KEY, l); } catch (e) {}
+        window.applyLang();
+      };
+      window.toggleLang = function () { window.setLang(window.currentLang === 'en' ? 'es' : 'en'); };
+      document.addEventListener('DOMContentLoaded', window.applyLang);
+    })();
+  </script>
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
+  <script src="/pruebas/assets/app.js?v=20261010-portada-5547" defer></script>
+  <script src="/assets/admira-frame.js?v=20261009-demo-5446" defer></script>
+  <script defer src="/assets/experto-admiranext.js?v=20261009-demo-5446"></script>
+  <script src="/assets/avatar.js?v=20261007-demo-ack-1" defer></script>
+  <!-- Sello de versión con novedades: SOLO con sesión (06-10-2026). La portada pública no lo enseña;
+       sello-sesion.js pregunta a /api/sello y solo entonces carga el cargador común de la suite. -->
+  <script defer src="/assets/sello-sesion.js?v=20261006-zona-protegida-1"></script>
+</head>
+<body data-route="" data-yk-title="ADMIRANEXT" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-cli="on">
+<div class="wallpaper" id="wallpaper">
+  <picture class="wallpaper-blur" id="wallpaper-picture">
+    <img src="/assets/robots.jpg" alt="" loading="eager" width="1920" height="1080" fetchpriority="high">
+  </picture>
+  <picture class="wallpaper-sharp" id="wallpaper-sharp">
+    <img src="/assets/robots.jpg" alt="" width="1920" height="1080" decoding="async">
+  </picture>
+  <video class="boot-video" id="bootVideo" muted loop playsinline preload="none" poster="assets/portada-poster.jpg" aria-hidden="true"></video>
+</div>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KD696XW"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<!-- Matrix Rain -->
+<canvas id="matrixCanvas"></canvas>
+<!-- Confetti -->
+<canvas id="confettiCanvas"></canvas>
+
+<nav class="entry-nav" aria-label="AdmiraNext entry navigation">
+  <div class="entry-nav-links">
+    <button type="button" data-entry-best data-i18n="classic.best.label">Platform</button>
+    <button type="button" data-entry-robots data-i18n="classic.better.label">Robots</button>
+    <button type="button" data-entry-about data-i18n="classic.good.label">About us</button>
+    <!-- Style book, Agentes y Organigrama viven en la zona protegida (/webmaster#zona-protegida), 06-10-2026 -->
+    <button type="button" data-entry-contact-panel data-i18n="classic.good.cta">Contact</button>
+  </div>
+</nav>
+
+<!-- Entry chooser: Good / Better / Best -->
+<section class="entry-screen hidden" id="entryScreen" aria-label="AdmiraNext entry screen"></section>
+<div class="entry-contact-backdrop" data-entry-contact-close></div>
+<aside class="entry-contact-panel" id="entryContactPanel" aria-hidden="true" aria-labelledby="entryContactPanelTitle">
+  <button class="entry-contact-close" type="button" data-entry-contact-close aria-label="Close contact panel" data-i18n-title="contact.panel.close">×</button>
+  <h2 id="entryContactPanelTitle" data-i18n="contact.panel.title">Contact us</h2>
+  <div class="entry-contact-panel-grid">
+    <div data-i18n="contact.panel.details">Contact details</div>
+    <div>
+      <a href="tel:+34934150930">+34 93 415 09 30</a>
+      <a href="mailto:info@admira.com">info@admira.com</a>
+    </div>
+    <div data-i18n="contact.panel.call">We call you</div>
+    <form class="entry-contact entry-contact-form entry-contact-panel-form" id="entryContactPanelForm">
+      <label>
+        <span data-i18n="classic.good.form.name">Name</span>
+        <input type="text" name="name" autocomplete="name" required>
+      </label>
+      <label>
+        <span data-i18n="classic.good.form.phone">Phone</span>
+        <input type="tel" name="phone" autocomplete="tel" required>
+      </label>
+      <label>
+        <span data-i18n="classic.good.form.reason">Reason</span>
+        <textarea name="reason" rows="3" required></textarea>
+      </label>
+      <div class="entry-contact-actions">
+        <button type="submit" data-i18n="classic.good.form.submit">Send request</button>
+        <a href="https://calendar.google.com/calendar/u/0/r/eventedit?text=Videoconferencia%20AdmiraNext&details=Quiero%20agendar%20una%20videoconferencia%20con%20AdmiraNext.&add=info%40admira.com" target="_blank" rel="noopener noreferrer" data-i18n="classic.good.form.calendar">Book a video call</a>
+      </div>
+      <p class="entry-contact-status" role="status" aria-live="polite"></p>
+    </form>
+    <div data-i18n="contact.panel.office">Office</div>
+    <div data-i18n="contact.panel.city">Barcelona, Spain</div>
+    <div data-i18n="contact.panel.social">Social</div>
+    <div><a href="https://www.linkedin.com/company/admira-next/" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
+  </div>
+</aside>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var entry = document.getElementById('entryScreen');
+    if (!entry) return;
+    entry.classList.add('hidden');
+    document.querySelectorAll('.entry-contact-form').forEach(function (contactForm) {
+      contactForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var name = contactForm.elements.name.value.trim();
+        var phone = contactForm.elements.phone.value.trim();
+        var reason = contactForm.elements.reason.value.trim();
+        var status = contactForm.querySelector('.entry-contact-status');
+        var submit = contactForm.querySelector('button[type="submit"]');
+        if (status) status.textContent = '';
+        if (submit) submit.disabled = true;
+        fetch('https://formsubmit.co/ajax/info@admira.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            _subject: 'Solicitud de llamada - AdmiraNext',
+            name: name,
+            phone: phone,
+            reason: reason
+          })
+        }).then(function (response) {
+          if (!response.ok) throw new Error('submit failed');
+          contactForm.reset();
+          if (status) status.textContent = window.t ? window.t('classic.good.form.success') : 'Request sent.';
+        }).catch(function () {
+          if (status) status.textContent = window.t ? window.t('classic.good.form.error') : 'Could not send it right now.';
+        }).finally(function () {
+          if (submit) submit.disabled = false;
+        });
+      });
+    });
+    var contactPanel = document.getElementById('entryContactPanel');
+    var closeIntranetGate = function () {
+      if (typeof window.hideIntranetGate === 'function') window.hideIntranetGate();
+    };
+    var toggleContactPanel = function (open) {
+      if (!contactPanel) return;
+      if (open) closeIntranetGate();
+      document.body.classList.toggle('contact-open', open);
+      contactPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (open) {
+        setTimeout(function () {
+          var firstInput = contactPanel.querySelector('input, textarea');
+          if (firstInput) firstInput.focus();
+        }, 120);
+      }
+    };
+    document.querySelectorAll('[data-entry-contact-panel]').forEach(function (button) {
+      button.addEventListener('click', function () { toggleContactPanel(true); });
+    });
+    document.querySelectorAll('[data-entry-contact-close]').forEach(function (button) {
+      button.addEventListener('click', function () { toggleContactPanel(false); });
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') toggleContactPanel(false);
+    });
+    document.querySelectorAll('[data-entry-best]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        closeIntranetGate();
+        toggleContactPanel(false);
+        entry.classList.add('hidden');
+        runTerminalCommand(window.currentLang === 'es' ? '/plataforma' : '/intranet');
+      });
+    });
+    var runTerminalCommand = function (command) {
+      try { sessionStorage.setItem('autoCommand', command); } catch (e) {}
+      var attempts = 0;
+      var timer = setInterval(function () {
+        attempts += 1;
+        var terminalBooting = document.body.classList.contains('booting') || !!document.querySelector('.terminal-window.booting');
+        if (terminalBooting) {
+          document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        } else if (window.runCmd) {
+          var pending = null;
+          try { pending = sessionStorage.getItem('autoCommand'); } catch (e) {}
+          if (pending === command) {
+            try { sessionStorage.removeItem('autoCommand'); } catch (e) {}
+            window.runCmd(command);
+          }
+          clearInterval(timer);
+        }
+        if (attempts > 40) clearInterval(timer);
+      }, 250);
+    };
+    var goHome = function () {
+      closeIntranetGate();
+      toggleContactPanel(false);
+      try { sessionStorage.removeItem('autoCommand'); } catch (e) {}
+      var target = window.location.protocol === 'file:' ? 'index.html' : '/';
+      window.location.href = target;
+    };
+    document.querySelectorAll('[data-entry-home]').forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        goHome();
+      });
+    });
+    document.querySelectorAll('[data-entry-robots]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        closeIntranetGate();
+        toggleContactPanel(false);
+        entry.classList.add('hidden');
+        runTerminalCommand('/robots');
+      });
+    });
+    document.querySelectorAll('[data-entry-about]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        closeIntranetGate();
+        toggleContactPanel(false);
+        entry.classList.add('hidden');
+        runTerminalCommand('/about');
+      });
+    });
+    window.showEntryScreen = function () {
+      goHome();
+    };
+  });
+</script>
+
+<!-- Close Overlay -->
+<div class="close-overlay" id="closeOverlay">
+  <div class="close-window">
+    <div class="titlebar">
+      <div class="titlebar-dot red" data-i18n-title="titlebar.dot.close"></div>
+      <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
+      <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
+      <div class="titlebar-title" data-i18n="titlebar.path.exit"></div>
+    </div>
+    <div class="close-body">
+      <div class="output-line red" data-i18n="close.kill"></div>
+      <div class="output-line red" data-i18n="close.terminated"></div>
+      <div class="output-line"></div>
+      <div class="output-line dim" data-i18n="close.tagline1"></div>
+      <div class="output-line accent" data-i18n="close.tagline2"></div>
+      <div class="close-actions">
+        <span class="output-line accent" style="margin-right:4px">></span>
+        <button class="close-btn" id="closeReopen" data-i18n="close.reopen"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Terminal Window -->
+<!-- psst... prueba escribiendo /secrets, sudo hire admiranext, o el código konami -->
+<section id="portada" class="portada" aria-labelledby="portada-titulo">
+  <div class="portada-barra">
+    <p class="portada-kicker" data-i18n="portada.kicker">The future of Admira</p>
+    <button type="button" class="lang-toggle portada-lang" onclick="toggleLang()">ESP</button>
+  </div>
+  <h1 id="portada-titulo" data-i18n="portada.title">ADmiraNeXT</h1>
+  <p class="portada-lede" data-i18n="portada.lede">Bits and Atoms has three pillars: technology, creativity and business. The five sites hang from them.</p>
+  <p class="portada-marca" id="portadaMarca" hidden></p>
+  <div class="portada-pilares">
+    <article class="pilar" data-pilar="tecnologia">
+      <h2 data-i18n="portada.tec">Technology</h2>
+      <ul>
+        <li><a href="https://www.admira.tv/">admira.tv</a> <span data-i18n="portada.tec.tv">Playback and proof of play</span></li>
+        <li><a href="https://www.admira.app/">admira.app</a> <span data-i18n="portada.tec.app">Installation and maintenance</span></li>
+      </ul>
+    </article>
+    <article class="pilar" data-pilar="creatividad">
+      <h2 data-i18n="portada.cre">Creativity</h2>
+      <ul>
+        <li><a href="https://www.admira.studio/">admira.studio</a> <span data-i18n="portada.cre.studio">Content creation and adaptation</span></li>
+      </ul>
+    </article>
+    <article class="pilar" data-pilar="negocio">
+      <h2 data-i18n="portada.neg">Business</h2>
+      <ul>
+        <li><a href="https://www.admira.store/">admira.store</a> <span data-i18n="portada.neg.store">Distribution and the store on screen</span></li>
+        <li><a href="https://www.admira.biz/">admira.biz</a> <span data-i18n="portada.neg.biz">Revenue with DooH and Retail Media</span></li>
+      </ul>
+    </article>
+  </div>
+  <a class="portada-cta" href="/pruebas/bits-and-atoms/?marca=lumbre" data-i18n="portada.cta">Try it with your brand</a>
+  <p class="portada-nota" data-i18n="portada.nota">Opens the story with a sample brand. The terminal stays in Expert mode, with /terminal.</p>
+</section>
+<div class="terminal-window booting" id="terminal">
+  <div class="titlebar">
+    <div class="titlebar-dot red" data-i18n-title="titlebar.dot.close"></div>
+    <div class="titlebar-dot yellow" data-i18n-title="titlebar.dot.minimize"></div>
+    <div class="titlebar-dot green" data-i18n-title="titlebar.dot.maximize"></div>
+    <span class="titlebar-brand" aria-label="ADmiraNeXT">
+      <span class="titlebar-brand-admira">ADmira</span><span class="titlebar-brand-next"><span class="bln bln-n">N</span><span class="bln bln-e">e</span><span class="bln bln-x">X</span><span class="bln bln-t">T</span></span>
+    </span>
+    <div class="titlebar-title" data-i18n="titlebar.path.portfolio"></div>
+    <button class="lang-toggle terminal-lang-toggle" type="button" onclick="window.toggleLang()">ESP</button>
+  </div>
+
+  <div class="terminal-body" id="terminalBody">
+    <!-- Boot Sequence (shown only while .booting) -->
+    <div class="boot-text" id="bootText"></div>
+    <!-- Semantic heading for SEO (visually hidden, rendered as ASCII art) -->
+    <h1 class="sr-only" data-i18n="sr.h1"></h1>
+    <!-- ASCII Name -->
+    <pre class="ascii-name" id="asciiName" aria-hidden="true"></pre>
+
+    <!-- Welcome Box (Claude Code style) -->
+    <div class="welcome-box" id="welcomeBox">
+      <div class="welcome-left">
+        <h2 class="greeting" data-i18n="welcome.greeting"></h2>
+        <pre class="pixel-rocket">                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                               ......                                               
+                                          .-+#%@@@@@@@%*+-.                                         
+                                       .=#@@@@%#****##@@@@%*-                                       
+                                      =%@@%*-.         :=*@@@#-                                     
+                                    :#@@%=.               .+@@@*.                                   
+                              :-+*##@@@*.                   :#@@%##*+-.                             
+                           .+#@@@@@@@@+                       #@@@@@@@@#=.                          
+                          +@@@%+-....:                         ....:-*%@@%-                         
+                         *@@%-                                        .+@@@+                        
+                        +@@%.                                           -@@@-                       
+                       .@@@=                                             *@@#                       
+                       :@@@:                                             =@@%                       
+                        %@@+                                             #@@*                       
+                        =@@@-                                           +@@@:                       
+                         +@@@+.         ::                 :.         :*@@@-                        
+                          -#@@@#+-:::-+#@@*-.           :=#@@*=-:::-+#@@@*:                         
+                            -*%@@@@@@@@@%@@@@%*+=---=+*%@@@%%@@@@@@@@@%+:                           
+                               :-=+++=-: .-*#@@@@@@@@@@@#+- .:-=++==-.                              
+                                             .:--===-:..                                            
+                                                                                                    
+                                                                                                    
+                                 -++=                             .                                 
+                                 *@@#                           -%@%-                               
+                                 +@@*                           -%@%-                               
+       .-===-:           .-===-:.+@@*      :-===-.  :-===-.                .:===-     .:-==-:.      
+     =#@@@@@@@%+.      -#@@@@@@@%%@@*    =%@@@@@@@*#@@@@@@@*:   .+++.    :*%@@@@*   :*%@@@@@@@#-    
+   :%@@%+---=#@@@-   .#@@@*=--=#@@@@*   +@@%+=-=#@@@@*=-=#@@@:  :@@@:   =@@@*=-:.  +@@@#=--=*@@@*   
+   %@@*.      =@@@:  *@@#.      -@@@*   @@@=     %@@+     #@@+  :@@@:  -@@@-      =@@%-      :%@@*  
+  :@@@.        %@@+ .@@@-        *@@*  .%@@-     %@@=     #@@+  :@@@:  +@@#       #@@+        =@@%  
+  .@@@=       :%@@+  %@@*       .%@@*  .%@@-     %@@=     #@@+  :@@@:  +@@#       *@@#        *@@%  
+   =@@@+:.  .=%@@@=  :@@@*:.  .-#@@@*  .%@@-     #@@=     #@@+  :@@@:  +@@#       .%@@#-.  .-*@@@%  
+    -#@@@@%@@@@@@@+   :#@@@@%%@@@@@@#  .@@@-     %@@=     %@@+  :@@@:  +@@#        .*@@@@%%@@@@@@@  
+      :+*#%%#+--==:     :=*#%%#+--==-   -==.     -==:     -==:  .===.  :==-          .=*#%%#*=-==-  
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    </pre>
+        <div class="subtitle" data-i18n="manifesto.who.value">Donde las Cosas se Conectan a Internet con Inteligencia Artificial</div>
+        <div class="subtitle" id="emailSubtitle"></div>
+      </div>
+      <div class="welcome-right">
+        <div class="welcome-section">
+          <h2 class="welcome-section-title" data-i18n="manifesto.title"></h2>
+          <div class="item"><span class="label" data-i18n="manifesto.who.label"></span><span data-i18n="manifesto.who.value"></span></div>
+          <div class="item"><span class="label" data-i18n="manifesto.what.label"></span><span data-i18n="manifesto.what.value"></span></div>
+          <div class="item"><span class="label" data-i18n="manifesto.how.label"></span><span data-i18n="manifesto.how.value"></span></div>
+          <div class="item"><span class="label" data-i18n="manifesto.why.label"></span><span data-i18n="manifesto.why.value"></span></div>
+        </div>
+        <div class="welcome-section">
+          <h2 class="welcome-section-title" data-i18n="nav.title"></h2>
+          <div class="item"><button type="button" class="item-command" data-run-command="/about"><span data-i18n="nav.cmd.about"></span></button></div>
+          <div class="item"><button type="button" class="item-command" data-run-command="/work"><span data-i18n="nav.cmd.work"></span></button></div>
+          <div class="item"><button type="button" class="item-command" data-run-command="/identidad"><span data-i18n="nav.cmd.identity"></span></button></div>
+          <div class="item"><button type="button" class="item-command" data-run-command="/skills"><span data-i18n="nav.cmd.skills"></span></button></div>
+          <div class="command-hint" data-i18n="nav.helphint"></div>
+          <div class="command-hint" style="margin-top:6px;opacity:0.5" data-i18n="nav.themehint"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Command output appears here -->
+    <div class="output-area" id="outputArea"></div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <span class="input-prompt">&gt;</span>
+    <div class="input-wrapper">
+      <div class="autocomplete" id="autocomplete"></div>
+      <input
+        type="text"
+        class="input-field"
+        id="cmdInput"
+        data-i18n-placeholder="prompt.placeholder"
+        placeholder='Type a command... try "/help"'
+        autocomplete="off"
+        spellcheck="false"
+      >
+    </div>
+  </div>
+</div>
+
+<!-- Semantic content: always in DOM for AI crawlers, visually hidden when JS runs -->
+<div class="seo-fallback" id="seoFallback">
+  <h1>ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial</h1>
+  <p>Physical AI, IoT, robotics and connected operations from Barcelona.</p>
+  <h2>Manifesto</h2>
+  <ul>
+    <li><strong>Who:</strong> Donde las Cosas se Conectan a Internet con Inteligencia Artificial.</li>
+    <li><strong>What:</strong> We build Physical AI projects.</li>
+    <li><strong>How:</strong> Proprietary IoT platform + the best robots.</li>
+    <li><strong>Why:</strong> Because it's our passion.</li>
+  </ul>
+  <h2>Contact</h2>
+  <p>info@admira.com — Barcelona, Spain</p>
+</div>
+<!-- Noscript: make semantic content visible when JS is disabled -->
+<noscript><style>.seo-fallback { position:static; width:auto; height:auto; padding:32px; margin:40px auto; max-width:720px; overflow:visible; clip:auto; white-space:normal; font-family:'JetBrains Mono',monospace; color:var(--text); line-height:1.7; } .seo-fallback h1 { color:var(--accent); font-size:1.5rem; margin-bottom:8px; } .seo-fallback h2 { color:var(--accent); font-size:1.1rem; margin:24px 0 8px; } .seo-fallback h3 { color:var(--text); font-size:0.95rem; margin:16px 0 4px; } .seo-fallback p,.seo-fallback li { color:var(--text-dim); font-size:0.85rem; } .seo-fallback ul { padding-left:20px; } .seo-fallback a { color:var(--accent); }</style></noscript>
+
+<!-- Consent Mode + Google Tag Manager -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+// Default: analytics denied until user consents
+gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' });
+// Restore consent if previously accepted
+if (localStorage.getItem('cookie_consent') === 'granted') {
+  gtag('consent', 'update', { analytics_storage: 'granted' });
+}
+// Load GTM after page load
+window.addEventListener('load', function(){
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KD696XW');
+});
+</script>
+
+  <script src="/assets/admira-version-watch.js?build=06092026-1" defer></script>
+<script defer src="/assets/live-presence.js?v=2"></script></body>
+</html>
