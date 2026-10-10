@@ -9,13 +9,37 @@ const html = await readFile(new URL('../roadmap.html', import.meta.url), 'utf8')
 const proyectos = await readFile(new URL('../proyectos/index.html', import.meta.url), 'utf8');
 const lista = hitos();
 
-test('RoadMap sigue en el menú y comienza directamente con la visualización', () => {
+import { cookieDeSesion, asegurarDirectorio } from '../functions/_webmaster-gate.js';
+import { DatabaseSync } from 'node:sqlite';
+
+class Statement {
+  constructor(stmt){ this.stmt=stmt; this.values=[]; }
+  bind(...values){ this.values=values; return this; }
+  first(){ return this.stmt.get(...this.values) || null; }
+  all(){ return {results:this.stmt.all(...this.values)}; }
+  run(){ const meta=this.stmt.run(...this.values); return {success:true,meta}; }
+}
+class D1 {
+  constructor(){ this.db=new DatabaseSync(':memory:'); }
+  prepare(sql){ return new Statement(this.db.prepare(sql)); }
+}
+async function setupAuth(){
+  const env={AUTH_DB:new D1(),WEBMASTER_SIGNING_KEY:'roadmap-test-key'};
+  await asegurarDirectorio(env);
+  const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind('csilva@admira.com').first();
+  const cookie=(await cookieDeSesion(env,user)).split(';')[0];
+  return {env, cookie};
+}
+
+test('RoadMap es entrada interna y la página arranca con el reparto y la visualización', () => {
   const nav = proyectos.match(/<nav aria-label="Navegación del grupo">[\s\S]*?<\/nav>/)[0];
-  // Organigrama y Presentaciones son entradas internas (data-yk-interno, 06-10-2026); RoadMap es pública.
-  assert.match(nav, /<a href="\/organigrama" data-yk-interno>Organigrama<\/a><a href="\/roadmap">RoadMap<\/a><a href="\/presentaciones\/" data-yk-interno>Presentaciones<\/a>/);
+  // RoadMap pasa a data-yk-interno (10-10-2026, #5498), como Organigrama y Presentaciones.
+  assert.match(nav, /<a href="\/roadmap"[^>]*data-yk-interno[^>]*>RoadMap<\/a>/);
+  assert.match(html, /id="reparto-finde"/);
   assert.match(html, /<h1>RoadMap<\/h1>\s*<section class="rm-show"/);
   assert.doesNotMatch(html, /<p class="(?:aviso|lede)"/);
   assert.match(html, /<!--CORTE-->/);
+  assert.match(html, /data-yk-access="privado"/);
 });
 
 test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
@@ -121,10 +145,15 @@ test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   assert.equal(onRequestPost().status, 405);
 });
 
-test('la página pinta el corte de la URL', async () => {
-  const env = { ASSETS: { fetch: async () => new Response(html) } };
-  const r = await pagina({ request: new Request('https://www.admiranext.com/roadmap?vista=mes&desde=2026-10-01'), env });
+test('la página pinta el corte de la URL (solo con sesión)', async () => {
+  const { env, cookie } = await setupAuth();
+  env.ASSETS = { fetch: async () => new Response(html) };
+  const r = await pagina({ request: new Request('https://www.admiranext.com/roadmap?vista=mes&desde=2026-10-01', { headers: { cookie } }), env });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('cache-control'), 'private, no-store');
+  assert.equal(r.headers.get('x-robots-tag'), 'noindex, nofollow');
   const texto = await r.text();
+  assert.match(texto, /Reparto finde largo/);
   assert.match(texto, /<h1>RoadMap<\/h1>\s*<section class="rm-show"/);
   assert.doesNotMatch(texto, /<p class="(?:aviso|lede)"/);
   assert.match(texto, /octubre de 2026/);
@@ -135,19 +164,29 @@ test('la página pinta el corte de la URL', async () => {
   assert.match(texto, /aria-label="Proyecto"/);
   assert.match(texto, /aria-label="Cliente"/);
   assert.match(texto, /aria-label="Idea"/);
-  // Carlos, 4-oct-2026: un solo «RoadMap» (sin kicker) y los filtros en ☰ Opciones.
-  assert.equal((texto.match(/class="kicker"/g) || []).length, 0);
   assert.equal((texto.match(/<h1>RoadMap<\/h1>/g) || []).length, 1);
   for (const f of ['Proyecto', 'Cliente', 'Idea']) {
     assert.match(texto, new RegExp(`<div class="rm-filtro" data-yk-slot="left" data-yk-label="${f}"><nav aria-label="${f}">`));
   }
   assert.equal((texto.match(/<nav class="vistas" aria-label="(Proyecto|Cliente|Idea)"/g) || []).length, 0);
   assert.match(texto, /<nav class="vistas" aria-label="Escala del RoadMap">/);
-  const filtrada = await pagina({ request: new Request('https://www.admiranext.com/roadmap?proyecto=studio&cliente=altadis&idea=contenidos-pixeria&vista=trimestre&desde=2026-10-01'), env });
+  const filtrada = await pagina({ request: new Request('https://www.admiranext.com/roadmap?proyecto=studio&cliente=altadis&idea=contenidos-pixeria&vista=trimestre&desde=2026-10-01', { headers: { cookie } }), env });
   const corteHtml = await filtrada.text();
   assert.match(corteHtml, /proyecto=studio&amp;cliente=altadis&amp;idea=contenidos-pixeria/);
   assert.match(corteHtml, /Gemelos 9 estancos BCN/);
   assert.equal((corteHtml.match(/JTI global/g) || []).length, 0);
+});
+
+test('sin sesión la página RoadMap no pinta HTML ni pilares', async () => {
+  const { env } = await setupAuth();
+  let fetched = false;
+  env.ASSETS = { fetch: async () => { fetched = true; return new Response(html); } };
+  const r = await pagina({ request: new Request('https://www.admiranext.com/roadmap'), env });
+  assert.equal(r.status, 401);
+  const body = await r.text();
+  assert.match(body, /AdmiraNeXT · Acceso/);
+  assert.doesNotMatch(body, /Reparto finde largo/);
+  assert.equal(fetched, false);
 });
 
 test('RoadMap espectacular: escena, meta del corte y estados', async () => {

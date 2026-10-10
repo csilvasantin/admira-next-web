@@ -12,6 +12,7 @@ import { ZONA_PROTEGIDA } from '../functions/_zona-protegida.js';
 import { onRequest as libro } from '../functions/libro-de-estilo.js';
 import { onRequest as flota } from '../functions/flota.js';
 import { onRequest as organigrama } from '../functions/organigrama.js';
+import { onRequestGet as roadmap } from '../functions/roadmap.js';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
 
@@ -49,8 +50,8 @@ test('la navegación pública de la portada deja solo Platform, Robots, About us
   const index = await read('../index.html');
   const nav = index.match(/<nav class="entry-nav"[\s\S]*?<\/nav>/)?.[0] || '';
   assert.ok(nav, 'la portada tiene su navegación de entrada');
-  for (const ruta of ['/libro-de-estilo', '/flota', '/organigrama']) assert.ok(!nav.includes(`href="${ruta}"`), `${ruta} fuera de la navegación pública`);
-  assert.doesNotMatch(nav, />\s*(Style book|Agentes|Organigrama)\s*</i);
+  for (const ruta of ['/libro-de-estilo', '/flota', '/organigrama', '/roadmap']) assert.ok(!nav.includes(`href="${ruta}"`), `${ruta} fuera de la navegación pública`);
+  assert.doesNotMatch(nav, />\s*(Style book|Agentes|Organigrama|RoadMap)\s*</i);
   for (const marca of ['data-entry-best', 'data-entry-robots', 'data-entry-about', 'data-entry-contact-panel']) assert.ok(nav.includes(marca), `sigue ${marca}`);
 });
 
@@ -94,19 +95,55 @@ test('con sesión del directorio se sirve la página, sin caché compartida y fu
   }
 });
 
+
+test('sin sesión /roadmap responde 401 con login y no suelta el HTML del RoadMap', async () => {
+  const env = await setup();
+  const html = await read('../roadmap.html');
+  let fetched = false;
+  env.ASSETS = { fetch: async () => { fetched = true; return new Response(html); } };
+  const res = await roadmap({ request: new Request('https://www.admiranext.com/roadmap'), env });
+  assert.equal(res.status, 401);
+  const body = await res.text();
+  assert.match(body, /AdmiraNeXT · Acceso/);
+  assert.match(body, /Zona protegida/);
+  assert.doesNotMatch(body, /Reparto finde largo/);
+  assert.equal(fetched, false, 'sin sesión no se pide roadmap.html');
+  assert.equal(res.headers.get('cache-control'), 'no-store');
+  const challenge = await env.AUTH_DB.prepare('SELECT return_to FROM admiranext_login_challenges ORDER BY created_at DESC, rowid DESC LIMIT 1').first();
+  assert.equal(challenge.return_to, '/roadmap');
+});
+
+test('con sesión /roadmap inyecta el corte, cache privada y noindex', async () => {
+  const env = await setup();
+  const c = await cookie(env, 'csilva@admira.com');
+  const html = await read('../roadmap.html');
+  env.ASSETS = { fetch: async () => new Response(html) };
+  const res = await roadmap({
+    request: new Request('https://www.admiranext.com/roadmap?vista=mes&desde=2026-10-01', { headers: { cookie: c } }),
+    env,
+  });
+  assert.equal(res.status, 200);
+  const body = await res.text();
+  assert.match(body, /Reparto finde largo 10–12 oct 2026/);
+  assert.match(body, /Morfeo/);
+  assert.match(body, /octubre de 2026/);
+  assert.equal(res.headers.get('cache-control'), 'private, no-store');
+  assert.equal(res.headers.get('x-robots-tag'), 'noindex, nofollow');
+});
+
 test('el login devuelve a cada página protegida y a nada arbitrario', () => {
   for (const {ruta} of ZONA_PROTEGIDA) assert.equal(returnToSeguro(ruta), ruta);
   assert.equal(returnToSeguro('/flota/../usuarios-x'), '/webmaster');
   assert.equal(returnToSeguro('https://evil.example/flota'), '/webmaster');
 });
 
-test('la zona protegida (/webmaster) enlaza las tres páginas y el sitemap ya no las anuncia', async () => {
+test('la zona protegida (/webmaster) enlaza las cuatro páginas y el sitemap ya no las anuncia', async () => {
   const webmaster = await read('../webmaster.html');
   const bloque = webmaster.match(/id="zona-protegida"[\s\S]*?<\/nav>/)?.[0] || '';
-  for (const ruta of ['/libro-de-estilo', '/flota', '/organigrama']) assert.ok(bloque.includes(`href="${ruta}"`), ruta);
+  for (const ruta of ['/libro-de-estilo', '/flota', '/organigrama', '/roadmap']) assert.ok(bloque.includes(`href="${ruta}"`), ruta);
   const sitemap = await read('../sitemap.xml');
-  assert.doesNotMatch(sitemap, /admiranext\.com\/(libro-de-estilo|flota|organigrama)</);
-  for (const p of ['../flota.html', '../organigrama.html', '../libro-de-estilo.html']) assert.match(await read(p), /name="robots" content="noindex,nofollow"/, p);
+  assert.doesNotMatch(sitemap, /admiranext\.com\/(libro-de-estilo|flota|organigrama|roadmap)</);
+  for (const p of ['../flota.html', '../organigrama.html', '../libro-de-estilo.html', '../roadmap.html']) assert.match(await read(p), /name="robots" content="noindex,nofollow"/, p);
 });
 
 // ── Sello solo con sesión (Carlos, 06-10-2026): la parte pública no enseña sello ni novedades ──
