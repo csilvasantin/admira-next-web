@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="application-name" content="Admira Visor">
+<title>Admira Visor · añadir a las gafas</title>
+<style>
+  body { margin: 0; background: #000; color: #f4f7ff; font-family: system-ui, sans-serif; }
+  main { max-width: 420px; margin: 0 auto; padding: 28px 20px 48px; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  p { font-size: 18px; line-height: 1.4; color: #d5d5d5; }
+  img { width: 280px; height: 280px; background: #fff; padding: 12px; }
+  code { display: block; margin-top: 16px; font-size: 12px; word-break: break-all; color: #9eb6ff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Admira Visor</h1>
+  <p>Mira este código con las Ray-Ban Display. Es el enlace de instalar, no la dirección de la página sola.</p>
+  <img src="/pruebas/visor/instalar/qr-gafas.png" width="280" height="280" alt="QR para añadir Admira Visor a las gafas">
+  <code id="enlace"></code>
+</main>
+<script>
+  fetch('/pruebas/visor/instalar/enlace.txt').then(function (r) { return r.text(); }).then(function (t) {
+    document.getElementById('enlace').textContent = t.trim();
+  });
+</script>
+</body>
+</html>

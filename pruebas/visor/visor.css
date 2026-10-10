@@ -93,3 +93,15 @@ button:focus, #orden:focus, button.focused {
 #orden::placeholder {
   color: #d0d0d0;
 }
+
+#btnGafas {
+  grid-column: 1 / -1;
+}
+
+body.con-instalar {
+  grid-template-rows: 1fr 292px;
+}
+
+body.con-instalar .controles {
+  grid-template-rows: 88px 88px 88px;
+}

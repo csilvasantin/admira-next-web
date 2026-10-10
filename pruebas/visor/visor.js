@@ -54,9 +54,21 @@
     });
   }
 
-  function aviso(texto) {
+  function nota(es, en) {
     var nodo = document.getElementById('aviso');
-    if (nodo) nodo.textContent = texto || '';
+    if (!nodo) return;
+    var a = nodo.querySelector('[data-l="es"]');
+    var b = nodo.querySelector('[data-l="en"]');
+    if (a && b) {
+      a.textContent = es || '';
+      b.textContent = en || es || '';
+      return;
+    }
+    nodo.textContent = es || '';
+  }
+
+  function aviso(texto) {
+    nota(texto, texto);
   }
 
   function pieza(item) {
@@ -182,16 +194,21 @@
       return;
     }
     if (enOrden && e.key !== 'ArrowRight' && e.key !== 'ArrowDown' && e.key !== 'ArrowLeft' && e.key !== 'ArrowUp') return;
-    var actual = indiceDe(document.activeElement);
+    var lista = botones.slice();
+    var gafas = document.getElementById('btnGafas');
+    if (gafas && !gafas.hidden) lista.push(gafas);
+    var actual = lista.indexOf(document.activeElement);
     if (actual < 0) actual = botones.findIndex(function (b) { return b.dataset.carta === carta; });
     if (actual < 0) actual = 0;
+    function ir(el) {
+      if (el && el.dataset && el.dataset.carta) mostrar(el.dataset.carta);
+      else if (el) el.focus();
+    }
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      var sig = botones[(actual + 1) % botones.length];
-      mostrar(sig.dataset.carta);
+      ir(lista[(actual + 1) % lista.length]);
       e.preventDefault();
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      var prev = botones[(actual - 1 + botones.length) % botones.length];
-      mostrar(prev.dataset.carta);
+      ir(lista[(actual - 1 + lista.length) % lista.length]);
       e.preventDefault();
     } else if (e.key === 'Enter' && document.activeElement && document.activeElement.dataset.carta) {
       mostrar(document.activeElement.dataset.carta);
@@ -211,6 +228,21 @@
   });
 
   botones = Array.prototype.slice.call(document.querySelectorAll('[data-carta]'));
+  var btnGafas = document.getElementById('btnGafas');
+  if (btnGafas && typeof navigator.install === 'function') {
+    btnGafas.hidden = false;
+    document.body.classList.add('con-instalar');
+    btnGafas.addEventListener('click', function () {
+      var url = btnGafas.dataset.url || location.href;
+      try {
+        Promise.resolve(navigator.install(url, { name: 'Admira Visor' })).catch(function () {
+          nota('No se pudo añadir a las gafas.', 'Could not add to the glasses.');
+        });
+      } catch (err) {
+        nota('No se pudo añadir a las gafas.', 'Could not add to the glasses.');
+      }
+    });
+  }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/pruebas/visor/sw.js', { scope: '/pruebas/visor/' }).catch(function () {});
   }
