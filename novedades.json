@@ -1,5 +1,10 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.10.10.2026.r21.15:45": [
+    "Frontier: nueva ficha Tinta electrónica · batería MagSafe en /pruebas/frontier/tinta-electronica/ (e-ink 480×800, BLE SY11-ab).",
+    "Primera imagen GOOD (15:23 Madrid, Fold + AI Cast Assistant + adb); coste 0 con Nemotron 3 Ultra; hoja de ruta sin móvil (Jensen).",
+    "Incluye cápsula GOOD y capturas del Fold (fotos Jensen #5570). Solo zona DMZ /pruebas; sin enlace público."
+  ],
   "v.10.10.2026.r20.14:55": [
     "Se revierte de la web pública la vista previa #5552 (PR #161 y #162): /marcablanca/vista/ deja de existir, /demo vuelve a como estaba en r17.14:19 y POST /marcablanca/api/solicitud desaparece.",
     "La vista pasa a /pruebas/marcablanca/vista/ (solo con sesión) y «Pide tu propuesta» guarda por POST /pruebas/api/solicitud, también con sesión, como manda la norma 31.",
@@ -429,5 +434,10 @@
     "Demo Pixeria novedades: ocho capítulos y vídeo narrado en español e inglés hasta el gemelo 360.",
     "Comando /demo pixeria novedades disponible desde Experto, con pausa, avance y reanudación.",
     "Entrada temporal editable y eliminable desde el editor de demos; otras demos y campañas se conservan."
+  ],
+  "v.10.10.2026.r22.15:46": [
+    "Frontier · Tinta electrónica MagSafe: caso estrella salas/eventos (ahora/siguiente, flechas, cambios en rojo) y player de imágenes fijas en admira.tv (#5571 · FLT-101849).",
+    "Sigue la ficha base: e-ink 480×800 BLE SY11-ab, primera GOOD 15:23 Madrid (Fold), coste 0 Nemotron 3 Ultra, hoja de ruta sin móvil (Jensen).",
+    "Solo DMZ /pruebas/frontier/tinta-electronica/; sin enlace público."
   ]
 }
