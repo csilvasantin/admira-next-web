@@ -26,7 +26,7 @@ export async function onRequestGet(context){
   html=html.replace('</body>','<script src="/assets/presentation-generator-quadratic.js?v=20261003-cabecera"></script><script src="/assets/admira-frame.js?v=20261004-5053" defer></script><script src="/assets/presentation-media-library.js?v=20260724-1"></script></body>');
   // PROSPECT (01-10-2026): interruptor y selector de marca del destinatario (marca blanca).
   html=html.replace('</head>','<link rel="stylesheet" href="/marcablanca/marcablanca.css?v=20261001-prospect"><link rel="stylesheet" href="/assets/presentation-prospect.css?v=20261003-switch"></head>');
-  html=html.replace('</body>','<script type="module" src="/assets/presentation-prospect.js?v=20261001-catalogo2"></script></body>');
+  html=html.replace('</body>','<script type="module" src="/assets/presentation-prospect.js?v=20261010-censo"></script></body>');
   // PROPUESTA AUTOMÁTICA (02-10-2026 · FLT-101369): marca → estudio → presentación → plataforma desde una
   // marca, web o idea. Mismo lanzador que /marcablanca, misma API (POST /presentaciones/api/propuesta).
   html=html.replace('</head>','<link rel="stylesheet" href="/marcablanca/propuesta-automatica.css?v=20261002-propuesta"></head>');

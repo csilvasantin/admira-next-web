@@ -601,7 +601,16 @@
     return (typeof window.t === 'function' ? window.t(step.key) : step.key);
   }
 
+  let bootPromesa = null;
+  function pedirBoot() {
+    if (!bootPromesa) bootPromesa = runBoot();
+    return bootPromesa;
+  }
+
   async function runBoot() {
+    // La asignación de pedirBoot ocurre al volver de esta llamada. Sin este
+    // turno, el return de abajo anula la promesa y el caller la vuelve a guardar.
+    await Promise.resolve();
     // Esperar a que el gate de acceso esté desbloqueado antes de hacer nada
     // que pueda robarle el foco al input del password (cmdInput.focus() etc.)
     // o capturarle el Enter (los keydown globales del boot animation).
@@ -616,6 +625,14 @@
       routeCmd = match ? match[0] : '';
     }
     const isDeepLink = routeCmd && routeCmd.length > 0;
+    if (isDeepLink) document.body.classList.add('terminal-abierto');
+    // La primera pantalla es la portada. El terminal solo sale en modo Experto
+    // (/terminal) o en un enlace profundo.
+    if (!document.body.classList.contains('terminal-abierto')) {
+      engancharTerminalExperto();
+      bootPromesa = null;
+      return;
+    }
 
     // Marca body como "booting" para que el wallpaper muestre el banner video
     document.body.classList.add('booting');
@@ -2636,6 +2653,51 @@
   // (ej: los botones del UI invocan comandos o abren la web clásica).
   window.runCmd = function (input) { try { executeCommand(input); } catch (e) {} };
 
+  window.abrirTerminal = function () {
+    document.body.classList.add('terminal-abierto');
+    pedirBoot();
+    var caja = document.getElementById('terminal');
+    if (caja && caja.scrollIntoView) caja.scrollIntoView({ block: 'start' });
+  };
+
+  function engancharTerminalExperto() {
+    if (window.__terminalEnganchado || !window.AdmiraExperto || typeof window.AdmiraExperto.verb !== 'function') return;
+    window.AdmiraExperto.verb({
+      name: 'terminal',
+      alias: ['boot'],
+      args: '',
+      desc: ['abre el terminal de la portada', 'opens the homepage terminal'],
+      run: function (_a, log) {
+        window.abrirTerminal();
+        if (log && log.appendChild) {
+          var li = document.createElement('li');
+          li.textContent = window.currentLang === 'en' ? 'Terminal open.' : 'Terminal abierto.';
+          log.appendChild(li);
+        }
+      }
+    });
+    window.__terminalEnganchado = true;
+  }
+  engancharTerminalExperto();
+  document.addEventListener('admiranext:langchanged', function () {
+    var actual = window.AdmiraMarca && typeof window.AdmiraMarca.actual === 'function' ? window.AdmiraMarca.actual() : null;
+    document.dispatchEvent(new CustomEvent('admira:marca', { detail: actual }));
+  });
+  document.addEventListener('admira:marca', function (ev) {
+    var linea = document.getElementById('portadaMarca');
+    if (!linea) return;
+    var marca = ev && ev.detail;
+    if (!marca || !marca.nombre) { linea.hidden = true; linea.textContent = ''; return; }
+    var en = window.currentLang === 'en';
+    linea.hidden = false;
+    linea.textContent = (en ? 'White label: ' : 'Marca blanca: ') + marca.nombre;
+  });
+  var esperaExperto = setInterval(function () {
+    engancharTerminalExperto();
+    if (window.__terminalEnganchado) clearInterval(esperaExperto);
+  }, 400);
+  setTimeout(function () { clearInterval(esperaExperto); }, 20000);
+
   function executeCommand(input) {
     const raw = input.trim().toLowerCase();
     if (!raw) return;
@@ -3149,6 +3211,6 @@
   setInterval(checkAdmiranextVersion, 5 * 60 * 1000);
 
   // ============ INIT ============
-  runBoot();
+  pedirBoot();
 
 })();

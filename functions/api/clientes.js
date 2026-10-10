@@ -1,5 +1,6 @@
 /**
- * GET /api/clientes — censo público de solo lectura.
+ * GET /api/clientes — censo de clientes, de solo lectura y CON SESIÓN (Carlos, 10-10-2026):
+ * sin la sesión del directorio de AdmiraNeXT (_webmaster-gate.js) responde 401 y no sale ningún nombre.
  *
  * Clientes: D1 admiranext_commercial_projects, o las semillas de
  * functions/_xpace-registry.js si no hay base. Admira se añade si falta.
@@ -9,6 +10,7 @@
  * conserva patas:["todas"] y origen:"provisional", con global:false.
  */
 import { SEEDS } from '../_xpace-registry.js';
+import { conSesion } from '../_marcas-publicas.js';
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -123,7 +125,10 @@ function json(body, status, extra = {}) {
 }
 
 export async function onRequestGet(context) {
-  return json(await listarClientes(context.env), 200);
+  if (!(await conSesion(context.request, context.env))) {
+    return json({ error: 'El censo de clientes es interno: identifícate en /webmaster.', acceso: '/clientes/' }, 401, { 'cache-control': 'no-store' });
+  }
+  return json(await listarClientes(context.env), 200, { 'cache-control': 'private, no-store', vary: 'Cookie' });
 }
 
 export function onRequestOptions() {
