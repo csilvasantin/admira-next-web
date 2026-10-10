@@ -1,5 +1,6 @@
 import {publicPresiteOpening} from '../_presite-opening.js';
 import {publicProspect} from '../_prospect.js';
+import {clasificarPresentacion, contarClases} from '../_clase.js';
 
 function json(body,status=200){return new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}})}
 
@@ -34,9 +35,10 @@ export async function onRequestGet(context){
       presite:publicPresiteOpening(item.presite,item.slug),
       // Marca del destinatario (modo prospect): sólo el resumen; el JSON completo vive con la presentación.
       prospect:publicProspect(item.prospect),
+      clase:clasificarPresentacion(item),
       createdAt:item.createdAt,
       updatedAt:item.updatedAt
     };
   }))).filter(Boolean).sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
-  return json({clients,catalog:true});
+  return json({clients,catalog:true,clases:contarClases(clients)});
 }
