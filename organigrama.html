@@ -6,7 +6,7 @@
 <title>Organigrama · ADmiraNeXT</title>
 <meta name="description" content="Organigrama de ADmiraNeXT: el Consejo de Silicio responde de la mesa, un DeepAgent dirige cada pata y los agentes ejecutan.">
 <meta name="robots" content="noindex,nofollow">
-<meta name="admiranext-version" content="v.10.10.2026.r1.09:25">
+<meta name="admiranext-version" content="v.10.10.2026.r2.09:28">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -196,6 +196,11 @@
   .reparto-carta .agente{display:block;margin:6px 0 4px;font-size:17px;font-weight:700}
   .reparto-carta .pata{font-size:13px;color:var(--yk-brand,#4ae3d1);word-break:break-word}
   .reparto-carta .meta{margin-top:8px;font-size:12px;color:var(--yk-mut,#92a0b4)}
+  .congelacion-clones{margin:16px 0 0;padding:14px 16px;border:1px solid rgba(255,107,122,.45);border-radius:12px;background:rgba(40,12,18,.72)}
+  .congelacion-clones .kicker{color:#ff8fa0}
+  .congelacion-clones .titulo-congelacion{margin:0 0 8px;font-size:16px;font-weight:700;color:#ffd0d6}
+  .congelacion-clones p{margin:0;max-width:72ch;color:#c9a0a6;font-size:13px;line-height:1.55}
+  .congelacion-clones code{color:#ffd0d6}
   .reparto-sello{margin-top:14px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--yk-brand,#4ae3d1)}
   @media (max-width:1100px){.reparto-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:720px){.reparto-grid{grid-template-columns:1fr}}
@@ -246,8 +251,8 @@
   <section class="reparto-finde" id="reparto-finde" aria-label="Reparto del finde largo">
     <p class="kicker">Reparto temporal · zona protegida</p>
     <h2>Finde largo 10–12 oct 2026</h2>
-    <p class="nota-finde">Orden de Carlos (10-oct): durante el sábado 10, domingo 11 y lunes 12, estos agentes llevan el pilar indicado. No sustituye el organigrama permanente (consejero → DeepAgent); es el reparto de ejecución del finde. admira.biz y admira.studio quedan sin agente asignado hasta que Carlos lo diga. Registro en admiranext.com (Jobs #5496 · FLT-101812); paralelo en admira.live (Elon). Normas: máximo 4 publicaciones por hora por sitio; sello <code>v.DD.MM.YYYY.rN.HH:MM</code> con nota en castellano.</p>
-    <div class="reparto-grid">
+    <p class="nota-finde">Orden de Carlos (10-oct, corrección #5505): durante el sábado 10, domingo 11 y lunes 12, estos agentes llevan el pilar indicado. No sustituye el organigrama permanente (consejero → DeepAgent); es el reparto de ejecución del finde. <b>Morfeo → admira.store</b> (#5492) · <b>Neo → admira.tv</b> (#5493) · <b>Smith → admira.app</b> (#5494) · <b>Trinity → admira.biz</b> (bajo supervisión Jobs) · <b>Oráculo → admira.studio</b> (bajo supervisión Jobs). Registro en admiranext.com (Jobs #5510 · #5496 · FLT-101812); paralelo en admira.live (Elon). Normas: máximo 4 publicaciones por hora por sitio; sello <code>v.DD.MM.YYYY.rN.HH:MM</code> con nota en castellano.</p>
+        <div class="reparto-grid">
       <article class="reparto-carta is-asignada">
         <span class="rol">Pilar · ejecución</span>
         <span class="agente">Morfeo</span>
@@ -266,20 +271,28 @@
         <a class="pata" href="https://admira.app">admira.app</a>
         <p class="meta">Encargo #5494</p>
       </article>
-      <article class="reparto-carta is-hueco">
-        <span class="rol">Sin agente</span>
-        <span class="agente">—</span>
+      <article class="reparto-carta is-asignada">
+        <span class="rol">Pilar · ejecución</span>
+        <span class="agente">Trinity</span>
         <a class="pata" href="https://www.admira.biz">admira.biz</a>
-        <p class="meta">Pendiente de Carlos</p>
+        <p class="meta">Bajo supervisión Jobs · corrección #5505</p>
       </article>
-      <article class="reparto-carta is-hueco">
-        <span class="rol">Sin agente</span>
-        <span class="agente">—</span>
+      <article class="reparto-carta is-asignada">
+        <span class="rol">Pilar · ejecución</span>
+        <span class="agente">Oráculo</span>
         <a class="pata" href="https://admira.studio">admira.studio</a>
-        <p class="meta">Pendiente de Carlos</p>
+        <p class="meta">Bajo supervisión Jobs · corrección #5505</p>
       </article>
     </div>
-    <p class="reparto-sello">Sello v.10.10.2026.r1.09:25 · nota: reparto finde largo registrado por Jobs</p>
+    <aside class="congelacion-clones" id="congelacion-clones" aria-label="Congelación de clones Admira">
+      <p class="kicker">Orden de congelación · vigente</p>
+      <p class="titulo-congelacion">Clones Admira congelados (Carlos #5510)</p>
+      <p>Desde el 10-oct 09:24 (Madrid) y hasta nueva orden: quedan <b>congeladas</b> las actualizaciones en paralelo a los clones Admira —
+      <code>pixeria.com</code>, <code>xpaceos.com</code>, <code>yokup.com</code> y <code>clearchannel.tv</code>.
+      Nadie publica ahí para replicar cambios de pilar. Si hace falta un espejo, se clona de forma puntual y solo por orden expresa.
+      Esta norma convive con el reparto del finde y vive en zona protegida.</p>
+    </aside>
+    <p class="reparto-sello">Sello v.10.10.2026.r2.09:28 · nota: reparto finde corregido (#5505) + congelación de clones (#5510) por Jobs</p>
   </section>
 
   <section class="bloque arbol-wrap" id="arbol-interactivo" aria-label="Organigrama interactivo">
@@ -489,7 +502,7 @@
   </section>
 
   <footer>
-    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.10.10.2026.r1.09:25</span> · <a href="/arquitectura">Organigrama tecnológico</a>
+    <a href="/">admiranext.com</a> · Organigrama de ADmiraNeXT · <span>v.10.10.2026.r2.09:28</span> · <a href="/arquitectura">Organigrama tecnológico</a>
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>

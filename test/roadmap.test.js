@@ -22,9 +22,9 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(lista.some((h) => h.fuente === 'ejemplo'), false);
   const por = (id) => lista.filter((h) => h.solucion === id);
   assert.equal(por('app').length, 8);
-  assert.equal(por('biz').length, 7);
-  assert.equal(por('admiranext').length, 5);
-  assert.equal(por('studio').length, 7);
+  assert.equal(por('biz').length, 8);
+  assert.equal(por('admiranext').length, 6);
+  assert.equal(por('studio').length, 8);
   // e6727cc (5-oct) sumó los hitos Q4 de store: 4 de Jobs + 7 de Jensen/Walt.
   assert.equal(por('store').length, 11);
   assert.equal(por('tv').length, 4);
@@ -58,7 +58,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   const semana = cortar(lista, 'semana', '2026-10-05');
   assert.equal(semana.desde, '2026-10-05');
   assert.equal(semana.hasta, '2026-10-11');
-  assert.equal(semana.soluciones.find((s) => s.id === 'studio').hitos.length, 4);
+  assert.equal(semana.soluciones.find((s) => s.id === 'studio').hitos.length, 5);
   assert.ok(semana.soluciones.find((s) => s.id === 'admiranext').hitos.some((h) => h.id === 'admiranext-superusuario-api-clientes'));
 
   const mes = cortar(lista, 'mes', '2026-10-04');
@@ -68,10 +68,10 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   const tri = cortar(lista, 'trimestre', '2026-11-02');
   assert.equal(tri.desde, '2026-10-01');
   assert.equal(tri.hasta, '2026-12-31');
-  assert.equal(tri.soluciones.find((s) => s.id === 'studio').hitos.length, 7);
+  assert.equal(tri.soluciones.find((s) => s.id === 'studio').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'app').hitos.length, 8);
-  assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 7);
-  assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 5);
+  assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 8);
+  assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 6);
   assert.equal(tri.soluciones.find((s) => s.id === 'store').hitos.length, 11);
   assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 0);
 
