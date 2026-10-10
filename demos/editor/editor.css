@@ -20,6 +20,8 @@
 }
 .biblioteca { grid-column: 1; width: 100%; }
 .centro { grid-column: 2; min-width: 0; display: grid; gap: 16px; align-content: start; }
+.escenario, .pasos, #macrodemo { min-width: 0; max-width: 100%; }
+#macrodemo { overflow: hidden; }
 .inspector { grid-column: 3; width: 100%; }
 .biblioteca, .centro, .inspector {
   position: sticky;
@@ -103,7 +105,7 @@ button { cursor: pointer; }
   background: var(--yk-bg2);
   font-size: 13px;
 }
-#fila { display: flex; gap: 8px; overflow-x: auto; min-height: 148px; padding-bottom: 8px; }
+#fila { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; min-width: 0; max-width: 100%; min-height: 148px; padding-bottom: 8px; }
 #fila:empty { display: none; min-height: 0; padding: 0; }
 .tarjeta, .salto, #soltar {
   min-width: 168px;
@@ -114,6 +116,7 @@ button { cursor: pointer; }
   border-radius: 14px;
   padding: 10px;
 }
+.tarjeta, .salto { flex: 0 0 auto; }
 .tarjeta { position: relative; cursor: grab; }
 .tarjeta small, .tarjeta em, .tarjeta strong { display: block; overflow-wrap: anywhere; }
 .tarjeta .quitar {
@@ -252,4 +255,10 @@ html:not(.yk-open-bottom) #ykExpertRail :is(.yk-cli, .yk-expert, .ax-body, .ax-c
   border-radius: 8px;
 }
 .alias-nota { margin: 0; flex-basis: 100%; font-size: 12px; color: var(--yk-ink); }
-#lista-macros button { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; text-align: left; }
+#lista-macros button { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; text-align: left; }
+#lista-macros .slug, #lista-macros .slug-input, .estado-fila > .slug-input {
+  flex: 1 0 100%;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}

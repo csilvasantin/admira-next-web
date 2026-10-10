@@ -130,7 +130,8 @@ function abrirCampoSlug(chip, actual, aplicar) {
     chip.after(input);
   } else chip.replaceWith(input);
   input.focus();
-  input.select();
+  try { input.setSelectionRange(0, 0); } catch (_) { /* el campo sigue mostrando el valor */ }
+  input.scrollLeft = 0;
   let cerrado = false;
   const cerrar = (guardar) => {
     if (cerrado) return;

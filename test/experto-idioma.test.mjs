@@ -60,6 +60,9 @@ test('parseLangCommand: toggle, fijar, typo y pegados', () => {
   assert.equal(api.parseLangCommand('/foo'), null);
   assert.deepEqual(snap(api.parseLangCommand('/idioma')), { ok: true, lang: 'en', verb: 'idioma', toggled: true });
   assert.deepEqual(snap(api.parseLangCommand('/language')), { ok: true, lang: 'en', verb: 'language', toggled: true });
+  assert.deepEqual(snap(api.parseLangCommand('/lang')), { ok: true, lang: 'en', verb: 'lang', toggled: true });
+  assert.deepEqual(snap(api.parseLangCommand('/lang ENG')), { ok: true, lang: 'en', verb: 'lang', toggled: false });
+  assert.deepEqual(snap(api.parseLangCommand('langESP')), { ok: true, lang: 'es', verb: 'lang', toggled: false });
   assert.deepEqual(snap(api.parseLangCommand('/languague')), { ok: true, lang: 'en', verb: 'languague', toggled: true });
   assert.deepEqual(snap(api.parseLangCommand('/idioma ESP')), { ok: true, lang: 'es', verb: 'idioma', toggled: false });
   assert.deepEqual(snap(api.parseLangCommand('/language ENG')), { ok: true, lang: 'en', verb: 'language', toggled: false });

@@ -86,7 +86,7 @@
   // ─── Idioma / language (Carlos, 5-oct-2026) ───
   // /idioma y /language (y typo /languague) alternan o fijan ESP↔ENG.
   // Acepta barra o no, args separados o pegados (idiomaESP, /languageENG…).
-  var LANG_VERBS = /^(idioma|language|languague)$/i;
+  var LANG_VERBS = /^(idioma|language|languague|lang)$/i;
   function normalizeLangToken(s) {
     var n = String(s == null ? '' : s).toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -101,7 +101,7 @@
     var raw = String(text == null ? '' : text).trim();
     if (!raw) return null;
     var body = raw.replace(/^\//, '').trim();
-    var m = body.match(/^(idioma|language|languague)(?:[\s_-]*(.*))?$/i);
+    var m = body.match(/^(idioma|language|languague|lang)(?:[\s_-]*(.*))?$/i);
     if (!m) return null;
     var token = normalizeLangToken(m[2] || '');
     if (token === null) {
@@ -364,7 +364,7 @@
   }});
   verb({name: 'estado', alias: ['status'], desc: ['ficha del motor en el registro', 'engine card into the log'], run: function (a, log) { out(log, lines().join('\n')); }});
   verb({name: 'version', desc: ['sello de la release', 'release stamp'], run: function (a, log) { out(log, readVersion()); }});
-  verb({name: 'idioma', alias: ['language', 'languague'], args: '[ESP|ENG|es|en]', desc: ['idioma de la ficha y del CLI (sin arg: alterna)', 'language of the card and CLI (no arg: toggle)'], run: function (a, log) {
+  verb({name: 'idioma', alias: ['language', 'languague', 'lang'], args: '[ESP|ENG|es|en]', desc: ['idioma de la ficha y del CLI (sin arg: alterna)', 'language of the card and CLI (no arg: toggle)'], run: function (a, log) {
     var joined = (a && a.length) ? a.join(' ') : '';
     var parsed = parseLangCommand('idioma' + (joined ? ' ' + joined : ''));
     if (!parsed || !parsed.ok) { out(log, langUsage(), 'err'); return; }
@@ -1459,7 +1459,15 @@
     loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
     document.head.appendChild(loader);
   }
+  function langDeQuery() {
+    try {
+      var q = normalizeLangToken(new URLSearchParams(location.search).get('lang') || '');
+      return q === 'en' || q === 'es' ? q : '';
+    } catch (_) { return ''; }
+  }
   function boot() {
+    var pedido = langDeQuery();
+    if (pedido && pedido !== lang()) { try { applyLang(pedido); } catch (_) {} }
     try { document.addEventListener('keydown', completarNombreDemo, true); } catch (_) {}
     bootNativeDemo();
     if (apply()) return;

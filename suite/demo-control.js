@@ -281,7 +281,7 @@
       resumen.textContent='';
       plan.forEach(function(p,i){
         var li=D.createElement('li'); li.dataset.estado=hechos[i]||'';
-        li.textContent=(i+1)+'. '+T(p.es,p.en)+' · '+hechoTxt(hechos[i])+(notas[i]?' · '+notas[i]:'');
+        li.textContent=T(p.es,p.en)+' · '+hechoTxt(hechos[i])+(notas[i]?' · '+notas[i]:'');
         resumen.appendChild(li);
       });
       caption.textContent=plan[state.index]?T(plan[state.index].es, plan[state.index].en):'';
@@ -523,7 +523,7 @@
       plan.forEach(function(p,i){
         var li = D.createElement('li');
         li.dataset.estado = hechos[i] || '';
-        li.textContent = (i+1) + '. ' + T(p.es, p.en) + ' · ' + hechoTxt(hechos[i]) + (notas[i] ? ' · ' + notas[i] : '');
+        li.textContent = T(p.es, p.en) + ' · ' + hechoTxt(hechos[i]) + (notas[i] ? ' · ' + notas[i] : '');
         resumen.appendChild(li);
       });
       caption.textContent = plan[state.index] ? T(plan[state.index].es, plan[state.index].en) : '';
@@ -1053,7 +1053,8 @@
     macroState.puntos.forEach(function (p, i) {
       var li = D.createElement('li');
       li.dataset.estado = p.estado;
-      li.textContent = (i + 1) + '. ' + p.ref + ' · ' + macroFrase(p.estado === 'bien' ? 'bien' : p.estado === 'mal' ? 'mal' : 'pendiente', p.estado === 'bien' ? 'ok' : p.estado === 'mal' ? 'fail' : 'pending') + (p.detalle ? ' · ' + p.detalle : '');
+      var avisoLargo = macroState.aviso && p.detalle === macroState.aviso;
+      li.textContent = p.ref + ' · ' + macroFrase(p.estado === 'bien' ? 'bien' : p.estado === 'mal' ? 'mal' : 'pendiente', p.estado === 'bien' ? 'ok' : p.estado === 'mal' ? 'fail' : 'pending') + (p.detalle && !avisoLargo ? ' · ' + p.detalle : '');
       macroState.resumen.appendChild(li);
     });
     if (caption != null && macroState.caption) macroState.caption.textContent = caption;
@@ -1320,8 +1321,8 @@
       if (macroMuro()) {
         macroState.aviso = macroAvisoMuro();
         var pasosMuro = (item.subdemo && item.subdemo.steps) || [];
-        if (!pasosMuro.length) macroPunto(item.ref, 0, 'pendiente', macroState.aviso);
-        for (var s = 0; s < pasosMuro.length; s++) macroPunto(item.ref, s, 'pendiente', macroState.aviso);
+        if (!pasosMuro.length) macroPunto(item.ref, 0, 'pendiente', '');
+        for (var s = 0; s < pasosMuro.length; s++) macroPunto(item.ref, s, 'pendiente', '');
         indice++;
         continue;
       }
@@ -1331,7 +1332,7 @@
         macroPintar(macroTexto(steps[n]));
         var resultado;
         try { resultado = await macroPaso(steps[n]); } catch (e) {
-          if (e && e.muro) { macroState.aviso = macroAvisoMuro(); for (var k = n; k < steps.length; k++) macroPunto(item.ref, k, 'pendiente', macroState.aviso); n = steps.length; break; }
+          if (e && e.muro) { macroState.aviso = macroAvisoMuro(); for (var k = n; k < steps.length; k++) macroPunto(item.ref, k, 'pendiente', ''); n = steps.length; break; }
           resultado = {estado:'mal', detalle:String(e && e.message || e).slice(0, 160)};
         }
         if (!resultado || !macroState.activo) return;

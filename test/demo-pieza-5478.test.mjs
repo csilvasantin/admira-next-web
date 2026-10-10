@@ -64,6 +64,12 @@ test('ax_fin ejecuta solo establecimientos y sin él sigue con inventario', asyn
   const texto = panel.children.map((child) => child.textContent).join('\n');
   assert.match(texto, /Resumen/);
   assert.match(texto, /4 pendiente/);
+  assert.match(sola.aviso, /iniciar sesión/);
+  assert.ok(sola.puntos.every((punto) => !/iniciar sesión/.test(punto.detalle || '')));
+  const resumen = panel.children.find((nodo) => nodo.id === 'admira-demo-resumen');
+  assert.equal(resumen.children.length, 4);
+  assert.ok(resumen.children.every((li) => !/^\d+\./.test(li.textContent) && !/iniciar sesión/.test(li.textContent)));
+  assert.equal(panel.children.filter((nodo) => /iniciar sesión/.test(nodo.textContent || '')).length, 1);
 
   const entera = muro('?ax_demo=macro:gira-carlos&ax_run=run-1&ax_i=3&ax_v=1&lang=es');
   vm.runInNewContext(motor, entera.G, { filename: 'demo-control.js' });
