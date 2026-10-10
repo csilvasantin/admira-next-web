@@ -74,7 +74,8 @@ test('la página pública habla ES y EN, pinta studio y store, y no lista otros 
   assert.match(html, /data-en="Your brand, in the browser"/);
   assert.match(html, /data-es="Pide tu propuesta"/);
   assert.match(html, /admira:languagechange/);
-  assert.match(html, /vista\.js\?v=20261010-vista-5552/);
+  assert.match(html, /vista\.js\?v=20261010-vista-5552b/);
+  assert.match(js, /const actual = document.documentElement.lang/);
   assert.match(js, /\/marcablanca\/api\/analizar/);
   assert.match(js, /\/marcablanca\/api\/solicitud/);
   assert.match(js, /id: 'studio'/);
