@@ -27,6 +27,11 @@ function texto(mensaje, status) {
   } });
 }
 
+async function loginSeguro(env, mensaje, pagina, status) {
+  try { return await respuestaLogin(env, mensaje, pagina, status); }
+  catch (_) { return texto('Acceso no disponible ahora mismo.', 503); }
+}
+
 // Ruta de vuelta tras el login: solo páginas (carpetas) dentro de /pruebas.
 export function paginaDePruebas(pathname) {
   if (pathname === PREFIJO_PRUEBAS) return '/pruebas/';
@@ -74,9 +79,12 @@ export async function onRequest(context) {
     }
     if (acceso.cerrar) return texto('Sin enlace.', 401);
   }
-  if (!env.WEBMASTER_SIGNING_KEY) return pagina ? respuestaLogin(env, 'Acceso no disponible ahora mismo.', pagina, 503) : texto('Acceso no disponible ahora mismo.', 503);
+  // El enlace firmado del visor conserva su excepción; el acceso Google falla
+  // cerrado si el directorio falta o no puede emitir su desafío de login.
+  if (!env.AUTH_DB && pagina) return texto('Acceso no disponible ahora mismo.', 503);
+  if (!env.WEBMASTER_SIGNING_KEY) return pagina ? loginSeguro(env, 'Acceso no disponible ahora mismo.', pagina, 503) : texto('Acceso no disponible ahora mismo.', 503);
   const current = await sesionCompleta(request, env);
-  if (!current) return pagina ? respuestaLogin(env, 'Zona de pruebas: identifícate para entrar.', pagina, 401) : texto('Sin sesión.', 401);
+  if (!current) return pagina ? loginSeguro(env, 'Zona de pruebas: identifícate para entrar.', pagina, 401) : texto('Sin sesión.', 401);
   if (url.pathname === PREFIJO_PRUEBAS) return Response.redirect(url.origin + '/pruebas/' + url.search, 302);
   const respuesta = await next();
   const headers = new Headers(respuesta.headers);

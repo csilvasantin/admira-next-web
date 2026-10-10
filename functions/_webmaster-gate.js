@@ -301,6 +301,8 @@ function esc(value) {
 }
 export function returnToSeguro(value) {
   const path = String(value || '');
+  // Sólo el destino privado exacto, sin abrir redirecciones a rutas arbitrarias.
+  if (['/pruebas/mapa', '/pruebas/mapa/', '/pruebas/mapa/index.html'].includes(path)) return '/pruebas/mapa/';
   // /github (zona militarizada, 06-09-2026) vuelve a su sitio tras el login, como /usuarios.
   // Zona protegida (06-10-2026): Style Book, Agentes, Organigrama y RoadMap (10-10-2026) también vuelven a su página.
   // /neo58/ (09-10-2026): la prueba en vivo de Neo vuelve a su página tras el login.
