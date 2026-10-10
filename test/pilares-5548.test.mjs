@@ -46,5 +46,6 @@ test('las páginas citadas cuentan la misma historia', async () => {
   assert.doesNotMatch(demo, /pixeria\.com|Pixeria/);
   const css = await leer('demo/demo.css');
   assert.match(css, /\.estado-hoy,\.estado-leyenda\{display:none\}/);
-  assert.match(css, /html\[data-ax-experto="on"\] \.estado-hoy\{display:inline-block/);
+  assert.match(css, /html\[data-ax-dock="open"\] \.estado-hoy\{display:inline-block/);
+  assert.doesNotMatch(demo, /Yokup/);
 });
