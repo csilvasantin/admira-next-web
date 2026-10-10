@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>
+/* El lang sigue ?lang= y admira:languagechange. El atributo inicial es solo el respaldo sin script. */
+(function () {
+  function aplicar(l) { if (l === 'en' || l === 'es') document.documentElement.lang = l; }
+  try {
+    var q = new URLSearchParams(location.search).get('lang') || '';
+    if (/^en/i.test(q)) aplicar('en');
+    else if (/^es/i.test(q)) aplicar('es');
+  } catch (e) {}
+  window.addEventListener('admira:languagechange', function (ev) {
+    var l = ev && ev.detail && ev.detail.lang;
+    aplicar(l === 'en' || l === 'es' ? l : null);
+  });
+})();
+</script>
+<meta name="robots" content="noindex, nofollow">
+<!-- ZONA /pruebas (Carlos, 10-10-2026): versión del encargo #5549 (PR #158, Smith), solo con sesión. No es la parte pública (norma 31). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Libro de estilo de marca · Marca blanca AdmiraNeXT</title>
+<meta name="description" content="Libro de estilo de cada marca del catálogo de marca blanca: logo, zona de protección, colores con HEX y RGB, tipografía, tono, usos correctos e incorrectos y ejemplos en las cinco patas.">
+<meta name="theme-color" content="#101114">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="stylesheet" href="/pruebas/marcablanca/estilo/estilo.css?v=20261010-pruebas-5549">
+<script type="module" src="/pruebas/marcablanca/estilo/estilo.js?v=20261010-pruebas-5549"></script>
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
+</head>
+<body data-yk-title="LIBRO DE ESTILO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on">
+<div style="position:relative;z-index:50;font:700 11px/1.4 ui-monospace,monospace;letter-spacing:.08em;padding:8px 12px;border:1px dashed #f5c542;color:#f5c542;background:#0a0703;text-align:center">ZONA DE PRUEBAS · SOLO CON SESIÓN · libro de estilo #5549 (PR #158) · <a style="color:#7ce8d8" href="/pruebas/marcablanca/">marca blanca</a> · <a style="color:#7ce8d8" href="/pruebas/marcablanca/estilo/">libro de estilo</a> · <a style="color:#7ce8d8" href="/pruebas/cinco-pilares/marcablanca/">cinco pilares (#5548)</a> · <a style="color:#7ce8d8" href="/pruebas/">/pruebas</a></div>
+<main id="libro" aria-live="polite">
+  <p class="cargando">Cargando el libro de estilo…</p>
+</main>
+<noscript><p class="cargando">El libro de estilo necesita JavaScript: lee la marca de <a href="/marcablanca/api/marcas">/marcablanca/api/marcas</a>.</p></noscript>
+<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+</body>
+</html>

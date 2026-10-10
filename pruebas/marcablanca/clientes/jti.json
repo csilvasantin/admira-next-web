@@ -1,0 +1,11 @@
+{
+  "_zona": "ZONA /pruebas (norma 31): solo la escena de cabecera de #5549; el resto de la marca es el del catálogo público.",
+  "id": "jti",
+  "fondos": {
+    "escena": {
+      "svg": "/pruebas/marcablanca/escenas/jti.svg",
+      "alt": "Toldo verde sobre una fila de escaparates en una calle oscura",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): portada del libro de estilo."
+    }
+  }
+}

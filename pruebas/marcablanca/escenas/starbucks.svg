@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" style="background-color:#0F1F1A" role="img" aria-labelledby="tsb dsb">
+<title id="tsb">Piel starbucks · tazas y vapor sobre una barra verde</title>
+<desc id="dsb">Ilustración vectorial original de Admira para la piel: una barra de cafetería, tres tazas sencillas y vapor, en verde y crema. Sin fotogramas, carteles, logotipos, títulos ni personajes de terceros.</desc>
+<defs>
+<linearGradient id="csb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F1F1A"/><stop offset="1" stop-color="#1A2E27"/></linearGradient>
+</defs>
+<rect width="1600" height="900" fill="url(#csb)"/>
+<rect x="0" y="560" width="1600" height="340" fill="#15291F"/>
+<rect x="80" y="520" width="1440" height="48" rx="8" fill="#00704A"/>
+<rect x="80" y="568" width="1440" height="18" fill="#1E3932"/>
+<g fill="none" stroke="#D4B072" stroke-width="6" stroke-linecap="round">
+<path d="M280 470 Q300 400 340 430 Q370 390 400 450"/>
+<path d="M760 450 Q790 370 830 410 Q860 360 900 440"/>
+<path d="M1240 460 Q1270 390 1310 420 Q1340 370 1380 450"/>
+</g>
+<g>
+<rect x="250" y="430" width="160" height="90" rx="16" fill="#F2F0EB"/>
+<rect x="230" y="500" width="200" height="24" rx="8" fill="#CBA258"/>
+<path d="M410 455 Q470 455 470 500 Q470 545 410 545" fill="none" stroke="#F2F0EB" stroke-width="14"/>
+<rect x="730" y="410" width="180" height="110" rx="18" fill="#F2F5F3"/>
+<rect x="705" y="500" width="230" height="26" rx="8" fill="#00A862"/>
+<path d="M910 440 Q980 440 980 495 Q980 550 910 550" fill="none" stroke="#F2F5F3" stroke-width="16"/>
+<rect x="1210" y="425" width="170" height="100" rx="16" fill="#EDEBE6"/>
+<rect x="1188" y="505" width="214" height="24" rx="8" fill="#1E3932"/>
+<path d="M1380 450 Q1440 450 1440 500 Q1440 548 1380 548" fill="none" stroke="#EDEBE6" stroke-width="14"/>
+</g>
+<circle cx="180" cy="160" r="70" fill="#00704A" opacity=".35"/>
+<circle cx="1460" cy="200" r="110" fill="#00A862" opacity=".12"/>
+<rect x="140" y="250" width="220" height="140" rx="12" fill="#1A2E27"/>
+<rect x="160" y="270" width="180" height="90" fill="#F2F0EB" opacity=".15"/>
+</svg>

@@ -1,0 +1,11 @@
+{
+  "_zona": "ZONA /pruebas (norma 31): solo la escena de cabecera de #5549; el resto de la marca es el del catálogo público.",
+  "id": "altadis",
+  "fondos": {
+    "escena": {
+      "svg": "/pruebas/marcablanca/escenas/altadis.svg",
+      "alt": "Luz naranja sobre un mostrador de madera en un local cálido",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): portada del libro de estilo."
+    }
+  }
+}
