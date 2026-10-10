@@ -17,6 +17,7 @@
   #qr { margin-top: 20px; background: #fff; width: 280px; height: 280px; }
   #qr svg { width: 280px; height: 280px; }
   code, pre { display: block; white-space: pre-wrap; word-break: break-all; color: #9eb6ff; font-size: 13px; }
+  a { color: #9eb6ff; font-size: 18px; }
   .aviso { color: #ffb4a8; }
 </style>
 </head>
@@ -34,7 +35,9 @@
   <pre id="deep"></pre>
   <p>
     <label>Id <input id="id" type="text" autocomplete="off"></label>
+    <button type="button" id="ver">Ver enlace y QR</button>
     <button type="button" id="revocar">Revocar</button>
+    <a id="bajar" hidden download="qr-visor.svg">Descargar QR</a>
   </p>
 </main>
 <script>
@@ -44,15 +47,41 @@
   function nota(t) { aviso.textContent = t || ''; }
   fetch('/api/session', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
     csrf = (d && d.csrf) || '';
+    var pedido = new URLSearchParams(location.search).get('id');
+    if (pedido) {
+      document.getElementById('id').value = pedido;
+      document.getElementById('ver').click();
+    }
   }).catch(function () { nota('No hay sesión.'); });
 
   function pedir(method, body) {
-    return fetch('/pruebas/api/visor-enlace', {
-      method: method,
-      cache: 'no-store',
-      headers: { 'content-type': 'application/json', 'X-Admira-CSRF': csrf },
-      body: JSON.stringify(body)
-    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); });
+    var url = '/pruebas/api/visor-enlace';
+    var opts = { method: method, cache: 'no-store', headers: { 'X-Admira-CSRF': csrf } };
+    if (body) {
+      opts.headers['content-type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(url, opts).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); });
+  }
+
+  function pintar(d) {
+    document.getElementById('id').value = d.id || '';
+    document.getElementById('url').textContent = d.url || '';
+    document.getElementById('deep').textContent = d.deepLink || '';
+    var caja = document.getElementById('qr');
+    var baja = document.getElementById('bajar');
+    caja.replaceChildren();
+    baja.hidden = true;
+    if (typeof d.qrSvg === 'string' && d.qrSvg.indexOf('<svg xmlns="http://www.w3.org/2000/svg"') === 0 && d.qrSvg.indexOf('<script') === -1) {
+      var img = new Image();
+      img.width = 280;
+      img.height = 280;
+      img.alt = 'QR para añadir Admira Visor a las gafas';
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(d.qrSvg);
+      caja.appendChild(img);
+      baja.href = img.src;
+      baja.hidden = false;
+    }
   }
 
   document.getElementById('crear').addEventListener('click', function () {
@@ -60,20 +89,20 @@
     var dias = Number(document.getElementById('dias').value);
     pedir('POST', { dias: dias }).then(function (res) {
       if (!res.ok) { nota(res.d.error || 'No se pudo crear.'); return; }
-      document.getElementById('id').value = res.d.id;
-      document.getElementById('url').textContent = res.d.url;
-      document.getElementById('deep').textContent = res.d.deepLink;
-      var caja = document.getElementById('qr');
-      caja.replaceChildren();
-      if (typeof res.d.qrSvg === 'string' && res.d.qrSvg.indexOf('<svg xmlns="http://www.w3.org/2000/svg"') === 0 && res.d.qrSvg.indexOf('<script') === -1) {
-        var img = new Image();
-        img.width = 280;
-        img.height = 280;
-        img.alt = 'QR para añadir Admira Visor a las gafas';
-        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(res.d.qrSvg);
-        caja.appendChild(img);
-      }
+      pintar(res.d);
     }).catch(function () { nota('No se pudo crear.'); });
+  });
+
+  document.getElementById('ver').addEventListener('click', function () {
+    nota('');
+    var id = document.getElementById('id').value.trim();
+    fetch('/pruebas/api/visor-enlace?id=' + encodeURIComponent(id), {
+      cache: 'no-store',
+      headers: { 'X-Admira-CSRF': csrf }
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); }).then(function (res) {
+      if (!res.ok) { nota(res.d.error || 'No se pudo mostrar.'); return; }
+      pintar(res.d);
+    }).catch(function () { nota('No se pudo mostrar.'); });
   });
 
   document.getElementById('revocar').addEventListener('click', function () {

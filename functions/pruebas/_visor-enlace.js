@@ -164,6 +164,22 @@ export async function crearEnlace(env, { origin, dias, now }) {
   return { ok: true, id, iat, exp, url, deepLink: link, qrSvg: qrSvg(link) };
 }
 
+export async function presentarEnlace(env, id, origin) {
+  if (!env || !env.VISOR_LINK_KEY || !env.VISOR_LINKS) return { ok: false, status: 503, error: 'Falta la clave del visor.' };
+  if (!idValido(id)) return { ok: false, status: 400, error: 'Enlace no válido.' };
+  let page;
+  try { page = new URL(origin); } catch (_) { return { ok: false, status: 400, error: 'Origen no válido.' }; }
+  if (page.protocol !== 'https:') return { ok: false, status: 400, error: 'El enlace tiene que ser https.' };
+  let row;
+  try { row = await leerFila(env.VISOR_LINKS, id); } catch (_) { row = null; }
+  const now = Math.floor(Date.now() / 1000);
+  if (!row || row.exp <= now) return { ok: false, status: 404, error: 'Ese enlace no está.' };
+  const token = await firmarToken(env.VISOR_LINK_KEY, { id: row.id, iat: row.iat, exp: row.exp });
+  const url = `${page.origin}/pruebas/visor/?t=${token}`;
+  const link = deepLink(url);
+  return { ok: true, id: row.id, exp: row.exp, url, deepLink: link, qrSvg: qrSvg(link) };
+}
+
 export async function borrarEnlace(env, id) {
   if (!env || !env.VISOR_LINKS) return { ok: false, status: 503, error: 'Falta la clave del visor.' };
   if (!idValido(id)) return { ok: false, status: 400, error: 'Enlace no válido.' };
