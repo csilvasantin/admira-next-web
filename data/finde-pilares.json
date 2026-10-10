@@ -1,0 +1,58 @@
+{
+  "id": "finde-largo-10-12-oct-2026",
+  "titulo": "Finde largo 10–12 oct 2026",
+  "inicio": "2026-10-10",
+  "fin": "2026-10-12",
+  "zona": "protegida",
+  "fuente": "FLT-101812 · #5496 #5498 #5501 · corrección #5503 #5504 #5505 · congelación #5510",
+  "nota": "Asignación final: Trinity→biz y Oráculo→studio bajo Jobs. No usar Oráculo→biz / Trinity→studio.",
+  "congeladas": {
+    "desde": "2026-10-10T09:24:00+02:00",
+    "orden": 5510,
+    "dominios": [
+      "pixeria.com",
+      "xpaceos.com",
+      "yokup.com",
+      "clearchannel.tv"
+    ]
+  },
+  "pilares": [
+    {
+      "agente": "Morfeo",
+      "dominio": "admira.store",
+      "url": "https://www.admira.store/",
+      "encargo": 5492,
+      "supervision": null
+    },
+    {
+      "agente": "Neo",
+      "dominio": "admira.tv",
+      "url": "https://www.admira.tv/",
+      "encargo": 5493,
+      "supervision": null
+    },
+    {
+      "agente": "Smith",
+      "dominio": "admira.app",
+      "url": "https://admira.app/",
+      "encargo": 5494,
+      "supervision": null
+    },
+    {
+      "agente": "Trinity",
+      "dominio": "admira.biz",
+      "url": "https://www.admira.biz/",
+      "encargo": 5500,
+      "supervision": "Jobs"
+    },
+    {
+      "agente": "Oráculo",
+      "dominio": "admira.studio",
+      "url": "https://admira.studio/",
+      "encargo": 5499,
+      "supervision": "Jobs"
+    }
+  ],
+  "sello": "v.10.10.2026.r3.09:31",
+  "visibilidad": "solo-sesion"
+}

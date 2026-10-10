@@ -1,5 +1,11 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.10.10.2026.r3.09:31": [
+    "Sello canónico del reparto del finde largo ya en producción: cinco pilares en Agentes y Organigrama.",
+    "Morfeo→store, Neo→tv, Smith→app, Trinity→biz y Oráculo→studio (biz/studio bajo Jobs).",
+    "data/finde-pilares.json y /api/finde-pilares solo con sesión; /flota y /organigrama siguen en 401.",
+    "Volver atrás: etiqueta retorno/pre-finde-sello-r3-20261010, sello v.09.10.2026.r20.18:46"
+  ],
   "v.09.10.2026.r20.18:46": [
     "En el editor, /marca y /brand visten la página: cine 81 a 89 y clientes como JTI, Altadis o Starbucks.",
     "Los paneles del editor toman los colores de esa marca. /marca off vuelve a Admira.",
