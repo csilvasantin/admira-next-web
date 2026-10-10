@@ -49,3 +49,10 @@ Variables opcionales: `VISUAL_BRIEF_MODEL`, `VISUAL_BRIEF_OLLAMA_URL` y
 `NOTEBOOKLM_CLIENT=portaventura` y `NOTEBOOKLM_OUTPUTS=pdf,powerpoint` permiten
 procesar un caso o unos entregables concretos durante una prueba sin reclamar el
 resto de la cola.
+
+## Navegador oculto (7-oct-2026)
+
+El productor procesa la cola con Chrome en **headless**: no abre ventana ni aparece en el Dock, así nadie acaba
+usando ese Chrome como navegador de trabajo (ahí Google Meet se queda sin cámara, porque macOS atribuye el
+permiso al proceso de fondo que lo lanza). Sólo `--setup` (el login) abre ventana. `NOTEBOOKLM_VISIBLE=1`
+vuelve a la ventana visible para depurar. Si Chrome se cierra, el proceso sale y launchd lo relanza.
