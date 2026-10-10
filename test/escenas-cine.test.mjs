@@ -146,7 +146,7 @@ test('libro de estilo: la escena sale bajo la portada de /marcablanca/estilo?mar
   assert.match(js, /\$\{escenaHtml\(m\)\}/);
   assert.match(js, /<figure class="escena"><img src="\$\{esc\(e\.svg\)\}" alt="\$\{esc\(e\.alt \|\| m\.nombre\)\}"/);
   assert.match(js, /\\\/marcablanca\\\/escenas\\\/\[a-z0-9-\]\+\\\.svg\$/, 'solo escenas del propio catálogo');
-  assert.match(leer('marcablanca/estilo/index.html'), /estilo\.js\?v=20261010-estilo-5549/);
+  assert.match(leer('marcablanca/estilo/index.html'), /estilo\.js\?v=20261006-escenas-1/);
   assert.match(leer('marcablanca/estilo/estilo.css'), /\.escena img\{/);
 });
 
@@ -166,7 +166,7 @@ test('libro de estilo: el pie de la escena se lee (≥ 7:1 sobre su barra) en la
   assert.doesNotMatch(regla, /var\(--(t|ts|tt|p|f|fa|sup)\)/, 'nada de la paleta de la piel: el mismo pie para todas');
   const r = contraste(texto, fondo);
   for (const id of PIELES) assert.ok(r >= 7, `${id}: ${r.toFixed(2)}:1`);
-  assert.match(leer('marcablanca/estilo/index.html'), /estilo\.css\?v=20261010-estilo-5549/, 'sello nuevo de la hoja');
+  assert.match(leer('marcablanca/estilo/index.html'), /estilo\.css\?v=20261006-escenas-pie/, 'sello nuevo de la hoja');
 });
 
 test('cada escena se sirve con 200 e image/svg+xml (servidor estático local del repo)', async () => {

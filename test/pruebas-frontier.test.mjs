@@ -56,6 +56,8 @@ test('cada tarjeta lleva estado y evidencia; la maqueta de las gafas se declara 
   assert.match(tinta, /eink-capsula-tinta-electronica\.png/);
   assert.match(tinta, /eink-fold-15-after\.jpg/);
   assert.match(tinta, /prototipo/);
+  assert.match(tinta, /FLT-101847/);
+  assert.match(tinta, /Hoja de ruta sin móvil|Roadmap without a phone/);
   assert.ok(existsSync(new URL('../pruebas/frontier/assets/eink-capsula-tinta-electronica.png', import.meta.url)));
   assert.ok(existsSync(new URL('../pruebas/frontier/assets/eink-fold-15-after.jpg', import.meta.url)));
 });

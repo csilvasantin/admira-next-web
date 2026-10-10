@@ -18,7 +18,7 @@
 
   var VERSION = '1.3.0';
   var script = d.currentScript;
-  var BASE = (script && script.src) ? new URL('.', script.src).href : new URL('/marcablanca/', w.location.href).href;
+  var BASE = new URL('/marcablanca/', (script && script.src) || w.location.href).href; // /pruebas: el catálogo es el público
   var NATIVO = { studio: 'oscuro', store: 'oscuro', app: 'oscuro', yokup: 'claro' };
   var DOMINIO_PLATAFORMA = { 'admira.studio': 'studio', 'admira.store': 'store', 'admira.app': 'app', 'yokup.com': 'yokup' };
   var ID_VALIDO = /^[a-z0-9][a-z0-9-]{0,40}$/;
@@ -333,6 +333,25 @@
     refrescar: function (id) { if (id) delete cacheMarca[id]; else cacheMarca = {}; cacheIndice = null; cacheJson = {}; }
   };
   w.MarcaBlanca = api;
+
+  function leerIdioma(ev) {
+    var det = ev && ev.detail && ev.detail.lang;
+    if (det === 'en' || det === 'es') return det;
+    try {
+      var q = new URLSearchParams(w.location.search).get('lang') || '';
+      if (/^en/i.test(q)) return 'en';
+      if (/^es/i.test(q)) return 'es';
+    } catch (e0) {}
+    var actual = d.documentElement && d.documentElement.getAttribute && d.documentElement.getAttribute('lang');
+    return /^en/i.test(actual || '') ? 'en' : 'es';
+  }
+  function aplicarIdiomaPagina(ev) {
+    var l = leerIdioma(ev);
+    try { if (d.documentElement && d.documentElement.setAttribute) d.documentElement.setAttribute('lang', l); } catch (e1) {}
+    api.idioma = l;
+  }
+  aplicarIdiomaPagina(null);
+  if (typeof w.addEventListener === 'function') w.addEventListener('admira:languagechange', aplicarIdiomaPagina);
 
   function arrancar() {
     if (dato('auto') === 'false') return;

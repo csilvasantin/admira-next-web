@@ -1,0 +1,11 @@
+{
+  "_zona": "ZONA /pruebas (norma 31): solo la escena de cabecera de #5549; el resto de la marca es el del catálogo público.",
+  "id": "starbucks",
+  "fondos": {
+    "escena": {
+      "svg": "/pruebas/marcablanca/escenas/starbucks.svg",
+      "alt": "Tres tazas sencillas y vapor sobre una barra verde",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): portada del libro de estilo."
+    }
+  }
+}

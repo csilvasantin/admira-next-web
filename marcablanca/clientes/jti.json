@@ -152,12 +152,5 @@
         "estado": "resuelta"
       }
     ]
-  },
-  "fondos": {
-    "escena": {
-      "svg": "../escenas/jti.svg",
-      "alt": "Toldo verde sobre una fila de escaparates en una calle oscura",
-      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): portada del libro de estilo."
-    }
   }
 }

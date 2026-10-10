@@ -1,21 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>
-/* El lang sigue ?lang= y admira:languagechange. El atributo inicial es solo el respaldo sin script. */
-(function () {
-  function aplicar(l) { if (l === 'en' || l === 'es') document.documentElement.lang = l; }
-  try {
-    var q = new URLSearchParams(location.search).get('lang') || '';
-    if (/^en/i.test(q)) aplicar('en');
-    else if (/^es/i.test(q)) aplicar('es');
-  } catch (e) {}
-  window.addEventListener('admira:languagechange', function (ev) {
-    var l = ev && ev.detail && ev.detail.lang;
-    aplicar(l === 'en' || l === 'es' ? l : null);
-  });
-})();
-</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Libro de estilo de marca · Marca blanca AdmiraNeXT</title>
@@ -24,15 +9,13 @@
 <meta name="theme-color" content="#101114">
 <link rel="canonical" href="https://www.admiranext.com/marcablanca/estilo">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-<link rel="stylesheet" href="/marcablanca/estilo/estilo.css?v=20261010-estilo-5549">
-<script type="module" src="/marcablanca/estilo/estilo.js?v=20261010-estilo-5549"></script>
-<link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
+<link rel="stylesheet" href="/marcablanca/estilo/estilo.css?v=20261006-escenas-pie">
+<script type="module" src="/marcablanca/estilo/estilo.js?v=20261006-escenas-1"></script>
 </head>
-<body data-yk-title="LIBRO DE ESTILO" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO" data-yk-auto="on">
+<body>
 <main id="libro" aria-live="polite">
   <p class="cargando">Cargando el libro de estilo…</p>
 </main>
 <noscript><p class="cargando">El libro de estilo necesita JavaScript: lee la marca de <a href="/marcablanca/api/marcas">/marcablanca/api/marcas</a>.</p></noscript>
-<script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
 </body>
 </html>
