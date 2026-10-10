@@ -397,7 +397,7 @@ test('UI: «Lanzar propuesta» en /marcablanca y en el generador; página de pro
   const {interpretar} = await import('../marcablanca/lanzar-propuesta.js');
   assert.deepEqual(interpretar('admira.com'), {url: 'admira.com'});
   assert.deepEqual(interpretar('https://www.admira.com'), {url: 'https://www.admira.com'});
-  assert.deepEqual(interpretar('Starbucks'), {marca: 'Starbucks'});
+  assert.deepEqual(interpretar('Frescaria'), {marca: 'Frescaria'});
   assert.deepEqual(interpretar('cadena de gimnasios que quiere pantallas en sala'), {idea: 'cadena de gimnasios que quiere pantallas en sala'});
   const mb = await readFile(new URL('../marcablanca/index.html', import.meta.url), 'utf8');
   assert.match(mb, /<section id="lanzar">[\s\S]*data-lanzar-propuesta="marcablanca"/);

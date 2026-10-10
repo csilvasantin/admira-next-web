@@ -70,7 +70,12 @@ const ADOPTADAS = {
   'demos/editor/index.html': {ruta: '/demos/editor/', acceso: 'publico', actual: null, auto: true},
   // Encargo 5435: la 404 ligera y el censo de clientes llevan la misma barra pública.
   '404.html': {ruta: '/404.html', acceso: 'publico', actual: null, auto: true},
-  'clientes/index.html': {ruta: '/clientes/', acceso: 'publico', actual: null, auto: true}
+  'clientes/index.html': {ruta: '/clientes/', acceso: 'publico', actual: null, auto: true},
+  // Frontier (Carlos, 10-10-2026): zona /pruebas, solo con sesión (functions/pruebas/_middleware.js).
+  'pruebas/frontier/index.html': {ruta: '/pruebas/frontier/', acceso: 'privado', actual: null, auto: true},
+  'pruebas/frontier/gafas-meta/index.html': {ruta: '/pruebas/frontier/gafas-meta/', acceso: 'privado', actual: null, auto: true},
+  'pruebas/frontier/vaso/index.html': {ruta: '/pruebas/frontier/vaso/', acceso: 'privado', actual: null, auto: true},
+  'pruebas/frontier/robotics/index.html': {ruta: '/pruebas/frontier/robotics/', acceso: 'privado', actual: null, auto: true}
 };
 
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que
