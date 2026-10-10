@@ -1,0 +1,168 @@
+# AdmiraNeXT (matriz · admiranext.com)
+
+> Matriz de AdmiraNeXT: empresa agéntica de Robots-as-a-Service (RaaS) e IoT con
+> inteligencia artificial, cuyo producto es el sistema operativo del retail: las 5 patas
+> (admira.studio, admira.store, admira.tv, admira.app y admira.biz). Punto de entrada corporativo.
+> Esta sección /mcp es la puerta para que cualquier agente entienda la empresa, navegue
+> sus superficies y salte a las demás — y viceversa. Sitio estático; la API operativa
+> viva vive en el Consejo (admira.live) y se federa desde aquí.
+
+Sitio: https://www.admiranext.com
+Hub MCP: https://www.admiranext.com/mcp/
+Manifest máquina: https://www.admiranext.com/mcp/manifest.json
+Versión: v.01.10.2026.r1.04:56
+Repo: https://github.com/csilvasantin/admira-next-web
+
+## Qué es
+
+AdmiraNeXT conecta las cosas a internet con IA. Modelo: Robots-as-a-Service (RaaS) + IoT.
+La trilogía corporativa (cómo se organizan los sitios /mcp de la empresa, no el producto):
+matriz (esta), tienda de robots (admira.shop) y Consejo de Silicio (admira.live).
+
+## Las 5 patas de AdmiraNeXT · el sistema operativo del retail (todo DeepAgent debe saberlo)
+
+Cuelgan de los tres pilares de Bits and Atoms: tecnología, creatividad y negocio.
+La fuente de dominio y rol es data/arquitectura.json.
+
+1. https://www.admira.studio — creatividad — crea: creación y adaptación de contenidos.
+2. https://www.admira.store — negocio — distribuye: gemelo, inventario y playlists.
+3. https://admira.tv — tecnología — emite: reproducción, emisión y proof of play.
+4. https://admira.app — tecnología — mantiene: instalaciones, mantenimiento e ITIL.
+5. https://admira.biz — negocio — comercializa: DooH y Retail Media.
+
+Coordinación: studio → store → tv → app → biz. El MCP es el pegamento (cada pata
+publica el suyo; ver el directorio más abajo). admira.app es el maestro del ITIL (inventario
+tecnológico de los Xpacios) y lo reparte por MCP a las demás patas.
+Es visión de producto, no un mandamiento ni una norma. Texto humano: https://www.admiranext.com/filosofia#cuatro-patas
+
+## Superficie pública (sitio estático)
+
+- Home: https://www.admiranext.com/ — tres entradas (contacto directo, web clásica, terminal interactiva).
+- Web clásica: https://www.admiranext.com/classic.html
+- Plan de negocio: https://www.admiranext.com/businessplan/
+- Ayuda: https://www.admiranext.com/help/
+- Presentar (verbo): https://www.admiranext.com/presentar — la puerta del verbo Presentar en la matriz: tu asistente por MCP (create_presentation…), el generador para personas y el verbo del Consejo en admira.live.
+- Generador de Presentaciones: https://www.admiranext.com/presentaciones/ — la herramienta principal del ecosistema. De un cliente y un problema saca un portal privado con su clave, el esqueleto editable del relato y un site navegable; cambiar las ideas regenera la historia. Entregables nativos: site, documento, créditos y postcréditos, en ES/CA/EN. Tiene modo presentador con salida de audiencia aislada y trazabilidad de fuentes por diapositiva. Está tras acceso interno: sin credenciales responde `401`, no es una página pública rota. Recurso Yokup: `generador-de-presentaciones`.
+- Generador de créditos: https://www.admiranext.com/creditos/ — editor y preview de créditos finales animados; exporta vídeo WebM a 1080p y HTML autónomo. Funciona localmente en el navegador. Es una de las salidas nativas del Generador de Presentaciones (`?source=presentation-generator`) y también se usa suelto.
+- Generador de presupuestos: https://www.admiranext.com/presupuestos/ — recoge datos de cliente y partidas, permite revisar el resumen económico y exporta CSV o PDF. El procesamiento y las exportaciones son locales en el navegador; no envía esos datos a servicios externos. Recurso Yokup: `generador-presupuestos`; responsable: `OraculoMini · admira-macmini`.
+- Narrativa de Impacto: https://www.admiranext.com/impacto/ — campaña bilingüe con historias humanas sobre señalización digital útil en salud, comercio y movilidad; conecta la experiencia con evidencia operativa y valor de negocio.
+- Intranet: comando `/intranet` (en la terminal de la home) con acceso al ecosistema; `/presentaciones` abre el generador de presentaciones.
+- Definición de proyectos: https://www.admiranext.com/proyectos/ — censo vivo + modelo canónico (xpacio, responsable, /help y /mcp). Gestión de personas (admin): https://www.admiranext.com/usuarios
+
+## Usuarios y proyectos (modelo canónico · FLT-100047)
+
+Tres directorios distintos. No mezclarlos:
+
+1. **Carbono** — Google email en `admiranext_users`. Alta en `/usuarios` (admin). Roles: admin / editor / viewer. Estado derivado: activo · pendiente (nunca ha entrado) · suspendido. Permisos por `project_key` del censo. Tokens MCP `anmcp_` también desde `/usuarios`.
+2. **Silicio** — persona + apellido de máquina (`SmithMacMini`). El trabajo se da de alta con `project_id` del censo Yokup (`GET https://api.yokup.com/projects`).
+3. **Lista blanca de admira.live** — otro correo, otra puerta. El cruce se ve en `/usuarios`; dar de alta aquí no mete a nadie allí.
+
+**Proyecto.** Campos: `id` (slug), nombre, xpacio (`AdmiraNeXT` o `Yokup`), responsable silicio, opcional carbono. Norma 24: cada proyecto publica `/help` (humanos) y `/mcp` (agentes).
+
+**Principal del día.** `POST https://api.yokup.com/projects/principal` con `project_id` + `project` + `project_slug`. Se ve en yokup.com/equipo. Si un encargo nace **sin** `project_id`, Yokup hereda ese principal. Para no heredar el proyecto equivocado: pásalo siempre; no reutilices el de ayer.
+
+**Dónde se muestra.** `/equipo` (presencia + principal). `/misiones` (el FLT lleva el proyecto). `/usuarios` (permisos de carbono). `/proyectos` (definición + censo). El censo de la flota es `/proyectos` y `GET https://api.yokup.com/projects`.
+
+## Doctrina del equipo de silicio (léelo si eres un agente)
+
+- Los 14 Mandamientos: https://www.admiranext.com/mandamientos — **fuente de verdad canónica** de cómo
+  trabajan los agentes autónomos de AdmiraNeXT (autonomía, honestidad, límites, secretos, una sola
+  bandeja en AgoraMatrix, la flota es una, latido de estado cada 5 min y BTV «búscate la vida»).
+  Si te incorporas a la flota, este es el primer documento que debes leer.
+- Filosofía del equipo: https://www.admiranext.com/filosofia — las 5 patas, las Máximas y el modelo de trabajo
+  de 3 capas × 3 niveles (principal · hijo · infra). Complementa a los mandamientos, no los sustituye.
+- Normativa operativa: https://www.admiranext.com/normativa — contrato numerado y verificable.
+  Gobernanza principal: todos los proyectos pertenecen al Xpacio de AdmiraNeXT o al Xpacio de
+  Yokup.com; comparten origen y creador en el Arquitecto Carlos y tienen importancia equivalente.
+  Neo es el máximo responsable de AdmiraNeXT y Morfeo el máximo responsable de Yokup.com; ambos
+  están dirigidos por Carlos.
+
+## Documentación
+
+- HANDOFF de la trilogía corporativa (matriz · tienda · Consejo): https://www.admiranext.com/HANDOFF.md
+- README: https://www.admiranext.com/README.md
+
+## Directorio de los MCP de la suite AdmiraNeXT (FLT-2137, v.07.09.2026.r3.06:08)
+
+Unir la suite por MCP no es un servidor único: cada producto tiene el suyo, en su dominio propio,
+y todos reconocen a la misma persona con la misma clave. Este es el directorio canónico;
+manifest.json lo lleva en `mcp_servers` con el mismo contenido.
+
+| Producto | Endpoint MCP | Auth | Silicio (llms.txt) | Humanos |
+|---|---|---|---|---|
+| Consejo, flota y yokup · admira.live | https://mcp.admira.live/mcp | clave de flota (ver Identidad) o clave de consejero | https://www.admira.live/mcp/llms.txt | https://www.admira.live/help |
+| Misiones y bandeja · yokup.com | https://yokup.com/mcp | credencial individual (30 días); clave de flota en curso (encargo a Oráculo) | https://www.yokup.com/mcp/llms.txt | https://www.yokup.com/help#mcp |
+| Retail media · XpaceOS (admira.store) | https://mcp.admira.store/mcp | lectura abierta; escritura con clave de flota (worker 2.1.0, desde el 5-sep-2026) | https://www.admira.store/mcp/llms.txt | https://www.xpaceos.com/help/ |
+| Instalaciones y mantenimiento · admira.app | https://www.admira.app/mcp | ver su página | https://www.admira.app/mcp | https://www.admira.app/mcp |
+| Stock de imágenes · Pixeria (pixeria.com) | https://mcp-pixeria.admira.store/mcp | lectura abierta (sin clave) | https://www.pixeria.com/mcp/llms.txt (tras verja) | https://www.pixeria.com/help (tras verja) |
+| El canal · Admira.tv (admira.tv) | https://mcp-tv.admira.store/mcp | lectura abierta (sin clave) | https://admira.tv/mcp/llms.txt | https://admira.tv/help |
+| Consejo de Silicio por HTTP · council-mcp | https://council-mcp.admira.store/mcp | lectura abierta (sin clave) | — | https://www.admira.live/help |
+| Presentaciones · admiranext.com | https://www.admiranext.com/mcp | token anmcp_ (admin en /usuarios) | este fichero | https://www.admiranext.com/mcp/generador |
+| Studio · admira.studio | tras login (federado desde aquí) | Google | — | https://www.admira.studio/ |
+
+Tres de ellos medidos el 7-sep-2026 sin cabecera Authorization: `initialize` responde 200 en
+pixeria-mcp (Pixeria 1.0.0: search_stock, stock_stats, get_asset), admira-tv-mcp (Admira.tv 1.1.0:
+on_air, airtime_report, channel_url, player_info) y council-mcp (AdmiraNeXT Council 1.0.0:
+list_consejeros, ask_consejero, ask_council).
+
+Bus compartido: los encargos entre agentes y consejeros van por el bot-inbox de admira-telegram
+(bot.yokup.com), que sirve a yokup y a admira.live; por eso sus MCP se entienden (FLT-2111).
+Regla de Carlos (5-sep-2026): entre agentes y consejeros TODA comunicación va por MCP; Telegram es
+el canal del humano.
+
+## Identidad común de la flota
+
+    clave = base64url( HMAC-SHA256( MCP_FLOTA_SEED, "Persona|Equipo" ) ).slice(0, 40)
+
+- Personas: Morfeo, Neo, Smith, Trinity, Oraculo, Niobe, Link, Cypher, Switch, Persefone, Seraph.
+  Equipos: MacMini, MacBookPro14, MacBookPro16, MacBookAirAzul, MacBookAirRosa, MacBookAirCrema,
+  MacBookAirPlata, MacBookAir16. Los consejeros de GrokBot (Wozniak, Jobs, Lucas, Disney) llevan
+  clave propia (MCP_KEYS de admira.live), no derivada.
+- La semilla es secreto de cada worker (`wrangler secret put MCP_FLOTA_SEED`, valor en la bóveda
+  s:MCP_FLOTA_SEED). El agente lee su clave de s:MCP_KEY_<PERSONA>_<EQUIPO>; mcp-conectar.sh la
+  registra en Claude Code / Codex / OpenCode.
+- Módulo verificador sin dependencias (WebCrypto), para vendorizar en cada worker:
+  https://www.admiranext.com/mcp/identidad-flota.mjs — `identidadPorClave(clave, seed)` →
+  {persona, equipo, runtime, agente} | null; `claveDeRequest(request)`; `sinAutorizacion()`.
+- El servidor no guarda claves: recalcula las parejas y compara en tiempo constante. Revocar =
+  rotar la semilla. Un secreto de Cloudflare no pasa de 5 KB: por eso no hay mapa de claves.
+
+## Convenciones comunes (normativa 24 aplicada)
+
+- Primera herramienta: `quien_soy` (o `yokup_quien_soy`, `yokup_whoami`): quién eres según la clave.
+- Nombres en castellano con prefijo de producto (`consejo_`, `agente_`, `yokup_`, `xpace_`…).
+- Cada producto abre `/help` (carbono) y `/mcp` con `llms.txt` y `manifest.json` (silicio).
+- Sello único por publicación: `v.DD.MM.AAAA.rN.HH:MM` (normativa 07 y 09).
+- Lo que un MCP encarga a un agente entra por el bot-inbox; lo que un agente hace se da de alta
+  en yokup (normativa 14).
+
+## MCP vivo: Generador de Presentaciones
+
+Servidor MCP (JSON-RPC 2.0, Streamable HTTP): https://www.admiranext.com/mcp
+Ayuda y tools: https://www.admiranext.com/mcp/generador
+Token: Authorization: Bearer anmcp_… (lo crea un admin en /usuarios → POST /api/mcp-tokens)
+Tools: help, list_presentations, get_catalog, list_decks, get_presentation, create_presentation, create_yokup_report, generation_status, list_versions, restore_version, presentation_urls, delete_slide, update_slide, list_media, upload_media, assign_media, delete_media, lanzar_propuesta, estado_propuesta
+Propuesta comercial automática (lanzar_propuesta): marca + estudio de la compañía + presentación con su marca + las 5 patas (studio, store, tv, app, biz) con ?marca=<id>. Solo a petición o con criterio comercial; nunca en bucle (20/día por usuario).
+
+## Versión en Opciones / Version in Options
+
+ES: La versión aparece al pie del menú lateral Opciones y desaparece al plegarlo. En la primera visita con una novedad sin reconocer se permite un único aviso fuera del menú; abrir Opciones o leer y cerrar el aviso lo reconoce en este navegador y dominio. Una actualización posterior permite un nuevo primer aviso. Pasar sobre el sello abre las novedades; una versión pendiente conserva la acción Recargar. Se mantienen los enlaces de ayuda del sello nativo. Las páginas de emisión, kioscos e iframes conservan sus exclusiones.
+
+EN: The version appears at the bottom of the Options side panel and disappears when it is collapsed. The first visit with unacknowledged news allows a single notice outside the panel; opening Options or reading and closing the notice acknowledges it in this browser and domain. A later update allows a new first notice. Hovering over the stamp opens release notes; a pending version retains the Reload action. Native stamp help links are preserved. Broadcasting pages, kiosks and iframes retain their exclusions.
+
+Contrato / Contract: `version-options`; cargador compartido / shared loader `https://www.admiranext.com/assets/sello-novedades.js`; versión propia / site version `/version.json`. Se reutilizan / reused: `.qm-version`, `.rail-ver`, `[data-yk-version]`, `[data-admira-sello]`, `[data-release-signature]`. Panel explícito / explicit panel: `data-options` en el script / on the script. Aviso reconocido / acknowledged notice: `admira-sello:aviso-visto`; lectura de novedades / news read: `admira-sello:visto`. No añade herramientas MCP / No additional MCP tools.
+
+Tutorial ES: ☰ Opciones → sello al pie → pasar el ratón → plegar Opciones. EN: ☰ Options → bottom stamp → hover → collapse Options.
+
+ES: El sello permanece en el pie visible de Opciones, por encima de la barra de Experto minimizada o ampliada, sin desplazar el contenido central. EN: The stamp stays in the visible Options footer, above the minimized or expanded Expert bar, without moving the main content.
+
+ES: El cargador compartido usa Cache-Control: no-store para evitar el mínimo de cuatro horas de caché de navegador. Las pestañas que ya cargaron una copia anterior requieren recarga completa. EN: The shared loader uses Cache-Control: no-store to avoid the four-hour browser-cache minimum. Tabs that already loaded an earlier copy require a hard reload.
+
+
+## Pixeria · novedades / Pixeria updates (2026-10-09)
+ES: `/demo pixeria novedades` abre el recorrido preparado de ocho capítulos con narración y vídeo hasta el gemelo 360. La demo queda en el editor hasta que Carlos quiera eliminarla. Eliminar la entrada Studio sólo retira la definición y sus referencias en este navegador; otras demos, borradores y la campaña se conservan. Exportar primero permite recuperarla.
+EN: `/demo pixeria updates` opens the prepared eight-chapter narrated tour and video through the 360 twin. The demo stays in the editor until Carlos deletes it. Deleting the Studio entry removes only that definition and its references in this browser; other demos, drafts and the campaign remain. Export first for recovery.
+Demo: https://www.admiranext.com/demo/pixeria-novedades/
+Guide/tutorial ES/EN: https://www.admiranext.com/demo/pixeria-novedades/README.md
+Manifest: https://www.admiranext.com/demo/pixeria-novedades/studio.subdemos.json
+MCP: existing `help {tema:"novedades"}`. Public GET /mcp (Accept application/json) returns demoUpdates metadata. No generation or new credentials.

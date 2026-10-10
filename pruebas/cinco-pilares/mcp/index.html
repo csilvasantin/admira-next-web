@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<!-- ZONA /pruebas (Carlos, 10-10-2026): versión «cinco pilares» del encargo #5548, solo con sesión. No es la página pública. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADmiraNeXT MCP | Las 5 patas del sistema operativo del retail</title>
+  <meta name="description" content="Hub MCP de la matriz AdmiraNeXT: qué es, superficie pública, documentación y federación con la tienda y el Consejo. Sección legible por agentes.">
+  <meta name="admiranext-version" content="v.04.10.2026.r3.14:00">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* Metaestilo de admiranext.com (3-oct-2026): el hub dejó el papel crema y el ámbar
+       (Carlos: «no hay metaestilo en esta página») y lleva el fondo y los tokens
+       oscuros del sitio, los de /proyectos/ y la intranet: fondo #070b12 con el halo
+       verdoso, paneles #101724, líneas #25344b y el cian de la casa. */
+    :root{
+      color-scheme:dark;
+      --ink:#eef6ff; --muted:#8ea0b8; --line:#25344b;
+      --paper:#070b12; --panel:#101724; --panel2:#09111d; --accent:#63e6d5; --accent-ink:#63e6d5; --on-accent:#04211d;
+      --shadow:0 18px 42px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55;}
+    a{color:inherit}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+    .shell{width:100%;margin:0 auto}
+    footer.shell{width:min(var(--yk-content-w,1200px),calc(100% - 32px))}
+    .button{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#121c2c;color:var(--ink);text-decoration:none;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace}
+    .button:hover{border-color:var(--accent)}
+    .button.primary{color:var(--on-accent);border-color:transparent;background:var(--accent)}
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:40px 0 50px}
+    .eyebrow{margin:0 0 12px;color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:.76rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+    h1{margin:0;font-size:clamp(2.8rem,7vw,5.4rem);line-height:.92;letter-spacing:-.01em}
+    h2{margin:0;font-size:clamp(1.6rem,3vw,2.6rem);line-height:1}
+    h3{margin:0;font-size:1.1rem}
+    .lead{max-width:760px;margin-top:22px;color:var(--muted);font-size:1.08rem;line-height:1.7}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+    .status-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:26px}
+    .stat{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+    .stat strong{display:block;font-size:1.7rem;line-height:1;color:var(--accent)}
+    .stat span{display:block;margin-top:8px;color:var(--muted);line-height:1.35;font-size:.92rem}
+    .visual{min-height:300px;display:grid;align-content:end;gap:10px;padding:24px;border:1px solid var(--line);border-radius:16px;
+      background:radial-gradient(120% 90% at 100% 0%,rgba(99,230,213,.14),transparent 60%),var(--panel);box-shadow:var(--shadow)}
+    .node{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;padding:12px 15px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-weight:800}
+    .node small{color:var(--muted);font-weight:700;text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem}
+    .band{padding:54px 0;border-top:1px solid var(--line)}
+    .band p{color:var(--muted)}
+    .band p b{color:var(--ink)}
+    .section-head{display:grid;grid-template-columns:.92fr 1.08fr;gap:24px;align-items:end;margin-bottom:22px}
+    .section-head p{color:var(--muted);font-size:1.02rem;line-height:1.7}
+    .grid-3{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-4{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr))}
+    .card{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+    .card p{color:var(--muted);line-height:1.6;margin:10px 0 0}
+    .card h3 a{text-underline-offset:3px}
+    .card h3 a:hover,.band p a:hover{color:var(--accent)}
+    .tag{display:inline-flex;margin-bottom:10px;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:rgba(99,230,213,.08);color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:.72rem;font-weight:900}
+    .callout{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px;align-items:center;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:var(--shadow)}
+    .callout a{font-weight:800;color:var(--accent-ink)}
+    .dir{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;font-size:.92rem}
+    .dir th{text-align:left;padding:10px;background:rgba(99,230,213,.08);font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+    .dir td{padding:10px;border-top:1px solid var(--line);color:var(--muted);vertical-align:top}
+    .dir td:first-child{color:var(--ink)}
+    .dir a{color:var(--accent)}
+    footer{padding:30px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+    @media(max-width:820px){.hero{grid-template-columns:1fr}.section-head{grid-template-columns:1fr}.grid-3,.grid-4{grid-template-columns:1fr}.callout{grid-template-columns:1fr}.status-row{grid-template-columns:1fr}}
+  </style>
+  <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
+  <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+</head>
+<body data-yk-frame="cabecera">
+<header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap">RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="publico" title="Página pública">○<span class="yk-access-txt"> Página pública</span></span></header>
+  <!-- La barra es la del sitio (Carlos, 3-oct-2026: «la barra superior tiene que ser
+       igual en todas las páginas de un sitio»): la misma cabecera que /proyectos/, con
+       «○ Página pública» porque /mcp/ es la puerta abierta para agentes. Las antiguas
+       pestañas de la barra (Hub MCP, Generador) y la navegación del panel van a ☰, en
+       el bloque «MCP» bajo la navegación del grupo; «Ir a» a ▤; los verbos a ⌘.
+       admira-frame.js muda cada data-yk-slot a su panel (assets/admira-frame.md). -->
+  <nav data-yk-slot="left" data-yk-label="MCP" aria-label="Páginas MCP">
+    <a href="/mcp/" aria-current="page">Hub MCP</a>
+    <a href="/mcp/generador">MCP del generador</a>
+    <a href="/mcp/llms.txt">llms.txt ↗</a>
+    <a href="/mcp/manifest.json">manifest.json ↗</a>
+    <a href="https://www.admira.live/mcp/">Consejo MCP (admira.live) ↗</a>
+  </nav>
+  <div data-yk-slot="right" data-yk-label="Ir a" id="hubIrA"></div>
+  <div data-yk-slot="right" data-yk-label="Para agentes"><a href="/mcp/llms.txt">Abrir llms.txt</a><a href="/mcp/manifest.json">Abrir manifest.json</a></div>
+
+  <main data-yk-main>
+    <section class="shell hero">
+      <div>
+        <p class="eyebrow">Model Context Protocol</p>
+        <h1>ADmiraNeXT MCP</h1>
+        <p class="lead" data-en="The AdmiraNeXT parent site — an agentic Robots-as-a-Service (RaaS) and AI-powered IoT company whose product is the operating system of retail: &lt;a href=&quot;#cuatro-patas&quot;&gt;the 5 pillars&lt;/a&gt; (admira.studio, admira.store, admira.tv, admira.app and admira.biz). This section is the &quot;hidden door&quot; for any agent to understand what AdmiraNeXT is, navigate its surfaces and jump to the others. And vice versa.">La matriz de AdmiraNeXT — empresa agéntica de Robots-as-a-Service (RaaS) e IoT con IA, cuyo producto es el sistema operativo del retail: <a href="#cuatro-patas">las 5 patas</a> (admira.studio, admira.store, admira.tv, admira.app y admira.biz). Esta sección es la "puerta oculta" para que cualquier agente entienda qué es AdmiraNeXT, navegue sus superficies y salte a las demás. Y viceversa.</p>
+        <div class="actions">
+          <a class="button primary" href="/pruebas/cinco-pilares/mcp/llms.txt">llms.txt</a>
+          <a class="button" href="/pruebas/cinco-pilares/mcp/manifest.json">manifest.json</a>
+        </div>
+        <div class="status-row">
+          <div class="stat"><strong>5</strong><span data-en="pillars of the retail operating system, each with its own &lt;code&gt;/mcp&lt;/code&gt;.">patas del sistema operativo del retail, cada una con su <code>/mcp</code>.</span></div>
+          <div class="stat"><strong>1</strong><span data-en="Live API (the Council) that this matrix federates.">API viva (el Consejo) que esta matriz federa.</span></div>
+          <div class="stat"><strong>RaaS</strong><span data-en="Robots-as-a-Service + AI-powered IoT.">Robots-as-a-Service + IoT con IA.</span></div>
+        </div>
+      </div>
+      <aside class="visual" aria-label="Federación AdmiraNeXT">
+        <div class="node"><span data-en="Matrix">Matriz</span><small data-en="admiranext.com (here)">admiranext.com (aquí)</small></div>
+        <div class="node"><span data-en="Create">Crear</span><small>admira.studio</small></div>
+        <div class="node"><span data-en="Distribute">Distribuir</span><small>admira.store</small></div>
+        <div class="node"><span data-en="Broadcast">Emitir</span><small>admira.tv</small></div>
+        <div class="node"><span data-en="Commercialise">Comercializar</span><small data-en="admira.biz · DooH and Retail Media">admira.biz · DooH y Retail Media</small></div>
+        <div class="node"><span data-en="Maintain · ITIL">Mantener · ITIL</span><small data-en="admira.app · installations">admira.app · instalaciones</small></div>
+        <div class="node"><span data-en="Council">Consejo</span><small data-en="admira.live · live API">admira.live · API viva</small></div>
+      </aside>
+    </section>
+
+    <section class="band" id="cuatro-patas">
+      <div class="shell section-head">
+        <div><p class="eyebrow" data-en="Vision · product">Visión · producto</p><h2 data-en="Five pillars: technology, creativity and business.">Cinco patas: tecnología, creatividad y negocio.</h2></div>
+        <p data-en="studio creates, store distributes, tv broadcasts, app maintains and biz sells. MCP is the glue and admira.app is the ITIL master. Canonical human text: &lt;a href=&quot;https://www.admiranext.com/filosofia#cuatro-patas&quot;&gt;/filosofia#cuatro-patas&lt;/a&gt;.">studio crea, store distribuye, tv emite, app mantiene y biz comercializa. El <a href="#directorio">MCP</a> es el pegamento y <b>admira.app es el maestro del ITIL</b>. Texto canónico humano: <a href="https://www.admiranext.com/filosofia#cuatro-patas">/filosofia#cuatro-patas</a>.</p>
+      </div>
+      <div class="shell grid-4">
+        <article class="card"><span class="tag" data-en="1 · create">1 · crear</span><h3><a href="https://www.admira.studio/">admira.studio</a></h3><p data-en="Creativity. Content creation and adaptation.">Creatividad. Creación y adaptación de contenidos.</p></article>
+        <article class="card"><span class="tag" data-en="2 · distribute">2 · distribuir</span><h3><a href="https://www.admira.store/">admira.store</a></h3><p data-en="Business. Distribution, the store twin and playlists.">Negocio. Distribución, gemelo e inventario.</p></article>
+        <article class="card"><span class="tag" data-en="3 · broadcast">3 · emitir</span><h3><a href="https://admira.tv/">admira.tv</a></h3><p data-en="Technology. Playback, broadcast and proof of play.">Tecnología. Reproducción, emisión y proof of play.</p></article>
+        <article class="card"><span class="tag" data-en="4 · maintain">4 · mantener</span><h3><a href="https://admira.app/">admira.app</a></h3><p data-en="Technology. Installations and maintenance. ITIL master for the other pillars.">Tecnología. Instalaciones y mantenimiento. Maestro del ITIL.</p></article>
+        <article class="card"><span class="tag" data-en="5 · sell">5 · comercializar</span><h3><a href="https://admira.biz/">admira.biz</a></h3><p data-en="Business. New revenue with DooH and Retail Media.">Negocio. Nuevos ingresos con DooH y Retail Media.</p></article>
+      </div>
+      <div class="shell" style="margin-top:14px"><p data-en="&lt;b&gt;And the &quot;trilogy&quot;?&lt;/b&gt; That is something else and it still exists: the corporate federation of &lt;code&gt;/mcp&lt;/code&gt; sites of the agentic company — parent site (admiranext.com), robot shop (admira.shop) and Silicon Council (admira.live, the only one with a live API). The 4 legs are the product that company sells to retail; the trilogy is how its sites are organised. Trilogy status: &lt;a href=&quot;https://www.admiranext.com/HANDOFF.md&quot;&gt;HANDOFF.md&lt;/a&gt;."><b>¿Y la «trilogía»?</b> Es otra cosa y sigue existiendo: la federación corporativa de sitios <code>/mcp</code> de la empresa agéntica —matriz (admiranext.com), tienda de robots (admira.shop) y Consejo de Silicio (admira.live, la única con API viva)—. Las 5 patas son el producto que esa empresa vende al retail; la trilogía, cómo se organizan sus sitios. Estado de la trilogía: <a href="https://www.admiranext.com/HANDOFF.md">HANDOFF.md</a>.</p></div>
+    </section>
+
+    <section class="band">
+      <div class="shell section-head">
+        <div><p class="eyebrow" data-en="What it is">Qué es</p><h2 data-en="The parent site of the agentic company.">La matriz de la empresa agéntica.</h2></div>
+        <p data-en="AdmiraNeXT connects things to the internet with artificial intelligence. The website is static and offers three entry points (direct contact, a classic corporate website and an interactive terminal experience), plus an intranet with access to the ecosystem, tools and impact narratives.">AdmiraNeXT conecta las cosas a internet con inteligencia artificial. La web es estática y ofrece tres entradas (contacto directo, web corporativa clásica y una experiencia de terminal interactiva), más una intranet con acceso al ecosistema, herramientas y narrativas de impacto.</p>
+      </div>
+      <div class="shell grid-3">
+        <article class="card"><span class="tag" data-en="product">producto</span><h3>RaaS · IoT</h3><p data-en="Robots-as-a-Service and Internet of Things with AI as the core proposition.">Robots-as-a-Service e Internet of Things con IA como propuesta central.</p></article>
+        <article class="card"><span class="tag" data-en="entry">entrada</span><h3>Good · Better · Best</h3><p data-en="Direct contact, classic website or terminal experience depending on the visitor.">Contacto directo, web clásica o experiencia de terminal según el visitante.</p></article>
+        <article class="card"><span class="tag">intranet</span><h3>/intranet → /presentaciones</h3><p data-en="Private area that routes to the AdmiraNeXT ecosystem and to the presentation generator.">Zona privada que enruta al ecosistema AdmiraNeXT y al generador de presentaciones.</p></article>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="shell section-head">
+        <div><p class="eyebrow" data-en="Public surface">Superficie pública</p><h2 data-en="Pages for humans and agents.">Páginas para humanos y agentes.</h2></div>
+        <p data-en="Static site served by GitHub Pages. It has no API of its own: the live operational surface (fleet status, AgoraMatrix, tasks) lives in the Council and is federated from here.">Sitio estático servido por GitHub Pages. No tiene API propia: la superficie operativa viva (estado de flota, AgoraMatrix, tareas) vive en el Consejo y se federa desde aquí.</p>
+      </div>
+      <div class="shell grid-3">
+        <article class="card"><span class="tag">home</span><h3><a href="https://www.admiranext.com/">index.html</a></h3><p data-en="Main entry with the three experiences.">Entrada principal con las tres experiencias.</p></article>
+        <article class="card"><span class="tag">web</span><h3><a href="https://www.admiranext.com/classic.html">classic.html</a></h3><p data-en="Classic corporate website.">Web corporativa clásica.</p></article>
+        <article class="card"><span class="tag" data-en="verb">verbo</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/presentar&quot;&gt;Present&lt;/a&gt;"><a href="https://www.admiranext.com/presentar">Presentar</a></h3><p data-en="The door to the verb Present on the parent site: three entry points to the same tool — your assistant over MCP (&lt;code&gt;create_presentation&lt;/code&gt;…), the generator for people and the Council&#x27;s verb on admira.live.">La puerta del verbo Presentar en la matriz: tres entradas a la misma herramienta — tu asistente por MCP (<code>create_presentation</code>…), el generador para personas y el verbo del Consejo en admira.live.</p></article>
+        <article class="card"><span class="tag" data-en="tool">herramienta</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/presentaciones/&quot;&gt;Presentation Generator&lt;/a&gt; &lt;a href=&quot;/mcp/generador&quot; style=&quot;color:var(--accent)&quot;&gt;· Live MCP + help&lt;/a&gt;"><a href="https://www.admiranext.com/presentaciones/">Generador de Presentaciones</a> <a href="/mcp/generador" style="color:var(--accent)">· MCP vivo + ayuda</a></h3><p data-en="The ecosystem&#x27;s main tool: from a client and a problem to a private portal with its own key, the editable skeleton of the story and a browsable site. Native deliverables: site, document, &lt;a href=&quot;https://www.admiranext.com/creditos/&quot;&gt;credits&lt;/a&gt; and post-credits, in ES/CA/EN. Requires internal access (answers &lt;code&gt;401&lt;/code&gt; without it). Yokup: &lt;code&gt;generador-de-presentaciones&lt;/code&gt;.">La herramienta principal del ecosistema: de un cliente y un problema a un portal privado con su clave, el esqueleto editable del relato y un site navegable. Entregables nativos: site, documento, <a href="https://www.admiranext.com/creditos/">créditos</a> y postcréditos, en ES/CA/EN. Requiere acceso interno (responde <code>401</code> sin él). Yokup: <code>generador-de-presentaciones</code>.</p></article>
+        <article class="card"><span class="tag" data-en="tool">herramienta</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/creditos/&quot;&gt;Credits generator&lt;/a&gt;"><a href="https://www.admiranext.com/creditos/">Generador de créditos</a></h3><p data-en="Animated end credits for presentations, with export to video and HTML. It is a native output of the Presentation Generator, and also works on its own.">Créditos finales animados para presentaciones, con exportación a vídeo y HTML. Es una salida nativa del Generador de Presentaciones, y también funciona suelto.</p></article>
+        <article class="card"><span class="tag" data-en="tool">herramienta</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/presupuestos/&quot;&gt;Quote generator&lt;/a&gt;"><a href="https://www.admiranext.com/presupuestos/">Generador de presupuestos</a></h3><p data-en="Prepare client data and line items, review totals and export CSV or PDF locally, without sending the information to external services. Yokup: &lt;code&gt;generador-presupuestos&lt;/code&gt;.">Prepara datos de cliente y partidas, revisa totales y exporta CSV o PDF localmente, sin enviar la información a servicios externos. Yokup: <code>generador-presupuestos</code>.</p></article>
+        <article class="card"><span class="tag" data-en="campaign">campaña</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/impacto/&quot;&gt;Impact Narrative&lt;/a&gt;"><a href="https://www.admiranext.com/impacto/">Narrativa de Impacto</a></h3><p data-en="Human stories about useful digital signage in health, commerce and mobility.">Historias humanas sobre señalización digital útil en salud, comercio y movilidad.</p></article>
+        <article class="card"><span class="tag" data-en="doctrine">doctrina</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/mandamientos&quot;&gt;The 14 Commandments&lt;/a&gt;"><a href="https://www.admiranext.com/mandamientos">Los 14 Mandamientos</a></h3><p data-en="Operating doctrine of the silicon team: how AdmiraNeXT&#x27;s autonomous agents work. Source of truth for any agent joining.">Doctrina operativa del equipo de silicio: cómo trabajan los agentes autónomos de AdmiraNeXT. Fuente de verdad para cualquier agente que se incorpore.</p></article>
+        <article class="card"><span class="tag" data-en="culture">cultura</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/filosofia&quot;&gt;Team philosophy&lt;/a&gt;"><a href="https://www.admiranext.com/filosofia">Filosofía del equipo</a></h3><p data-en="The 5 pillars of the operating system of retail, the Maxims and the 3 layers × 3 levels model. The canonical commandments live at &lt;a href=&quot;https://www.admiranext.com/mandamientos&quot;&gt;/mandamientos&lt;/a&gt;.">Las 5 patas del sistema operativo del retail, las Máximas y el modelo de 3 capas × 3 niveles. Los mandamientos canónicos viven en <a href="https://www.admiranext.com/mandamientos">/mandamientos</a>.</p></article>
+        <article class="card"><span class="tag" data-en="governance">gobernanza</span><h3 data-en="&lt;a href=&quot;https://www.admiranext.com/normativa&quot;&gt;Operating rules&lt;/a&gt;"><a href="https://www.admiranext.com/normativa">Normativa operativa</a></h3><p data-en="Two Xpacios with the same origin and the same importance: Neo answers for AdmiraNeXT and Morfeo for Yokup.com, both under the direction of the Architect Carlos.">Dos Xpacios con el mismo origen y la misma importancia: Neo responde por AdmiraNeXT y Morfeo por Yokup.com, ambos bajo la dirección del Arquitecto Carlos.</p></article>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="shell section-head">
+        <div><p class="eyebrow" data-en="Documentation">Documentación</p><h2 data-en="Posted here.">Colgada aquí.</h2></div>
+        <p data-en="The machine files (&lt;a href=&quot;llms.txt&quot;&gt;llms.txt&lt;/a&gt;, &lt;a href=&quot;manifest.json&quot;&gt;manifest.json&lt;/a&gt;) describe the parent site in a stable way.">Los ficheros máquina (<a href="/pruebas/cinco-pilares/mcp/llms.txt">llms.txt</a>, <a href="/pruebas/cinco-pilares/mcp/manifest.json">manifest.json</a>) describen la matriz de forma estable.</p>
+      </div>
+      <div class="shell grid-3">
+        <article class="card"><span class="tag" data-en="trilogy">trilogía</span><h3><a href="https://www.admiranext.com/HANDOFF.md">HANDOFF.md</a></h3><p data-en="Status and continuity of the corporate trilogy (parent site · shop · Council), which the parent site publishes. Not to be confused with the product&#x27;s &lt;a href=&quot;#cuatro-patas&quot;&gt;5 pillars&lt;/a&gt;.">Estado y continuidad de la trilogía corporativa (matriz · tienda · Consejo), que la matriz publica. No confundir con las <a href="#cuatro-patas">5 patas</a> del producto.</p></article>
+        <article class="card"><span class="tag" data-en="guide">guía</span><h3><a href="https://www.admiranext.com/README.md">README.md</a></h3><p data-en="Site summary and getting started.">Resumen del sitio y arranque.</p></article>
+        <article class="card"><span class="tag" data-en="machine">máquina</span><h3><a href="/pruebas/cinco-pilares/mcp/manifest.json">manifest.json</a> · <a href="/pruebas/cinco-pilares/mcp/llms.txt">llms.txt</a></h3><p data-en="Agent-readable descriptor and index.">Descriptor e índice legible por agentes.</p></article>
+      </div>
+    </section>
+
+    <section class="band" id="directorio">
+      <div class="shell">
+        <p class="eyebrow" data-en="Directory · FLT-2137">Directorio · FLT-2137</p>
+        <h2 data-en="The suite&#x27;s MCPs, one per product.">Los MCP de la suite, uno por producto.</h2>
+        <p data-en="Joining AdmiraNeXT over MCP is not a single server: each product has its own, on its own domain, and all of them recognise the same person with the same key. This directory is the canonical one; &lt;a href=&quot;manifest.json&quot;&gt;manifest.json&lt;/a&gt; carries it in &lt;code&gt;mcp_servers&lt;/code&gt;.">Unir AdmiraNeXT por MCP no es un servidor único: cada producto tiene el suyo, en su dominio, y todos reconocen a la misma persona con la misma clave. Este directorio es el canónico; <a href="/pruebas/cinco-pilares/mcp/manifest.json">manifest.json</a> lo lleva en <code>mcp_servers</code>.</p>
+        <div style="overflow-x:auto"><table class="dir">
+          <tr><th data-en="Product">Producto</th><th data-en="MCP endpoint">Endpoint MCP</th><th data-en="Authentication">Autenticación</th><th data-en="Silicon">Silicio</th><th data-en="Humans">Humanos</th></tr>
+          <tr><td data-en="Council, fleet and yokup · admira.live">Consejo, flota y yokup · admira.live</td><td><code>mcp.admira.live/mcp</code></td><td data-en="fleet or adviser key">clave de flota o de consejero</td><td><a href="https://www.admira.live/mcp/llms.txt">llms.txt</a></td><td><a href="https://www.admira.live/help">/help</a></td></tr>
+          <tr><td data-en="Missions and inbox · yokup.com">Misiones y bandeja · yokup.com</td><td><code>yokup.com/mcp</code></td><td data-en="individual credential · fleet key in progress">credencial individual · clave de flota en curso</td><td><a href="https://www.yokup.com/mcp/llms.txt">llms.txt</a></td><td><a href="https://www.yokup.com/help#mcp">/help</a></td></tr>
+          <tr><td>Retail media · XpaceOS (admira.store)</td><td><code>mcp.admira.store/mcp</code></td><td data-en="open read · write with fleet key (2.1.0)">lectura abierta · escritura con clave de flota (2.1.0)</td><td><a href="https://www.admira.store/mcp/llms.txt">llms.txt</a></td><td><a href="https://www.xpaceos.com/help/">/help</a></td></tr>
+          <tr><td data-en="Installations and maintenance · admira.app">Instalaciones y mantenimiento · admira.app</td><td><code>admira.app/mcp</code></td><td data-en="see its page">ver su página</td><td><a href="https://www.admira.app/mcp">/mcp</a></td><td><a href="https://www.admira.app/mcp">/mcp</a></td></tr>
+          <tr><td data-en="Image stock · Pixeria (pixeria.com)">Stock de imágenes · Pixeria (pixeria.com)</td><td><code>mcp-pixeria.admira.store/mcp</code></td><td data-en="open read (no key)">lectura abierta (sin clave)</td><td data-en="&lt;a href=&quot;https://www.pixeria.com/mcp/llms.txt&quot;&gt;llms.txt&lt;/a&gt; (behind the gate)"><a href="https://www.pixeria.com/mcp/llms.txt">llms.txt</a> (tras verja)</td><td data-en="&lt;a href=&quot;https://www.pixeria.com/help&quot;&gt;/help&lt;/a&gt; (behind the gate)"><a href="https://www.pixeria.com/help">/help</a> (tras verja)</td></tr>
+          <tr><td data-en="The channel · Admira.tv (admira.tv)">El canal · Admira.tv (admira.tv)</td><td><code>mcp-tv.admira.store/mcp</code></td><td data-en="open read (no key)">lectura abierta (sin clave)</td><td><a href="https://admira.tv/mcp/llms.txt">llms.txt</a></td><td><a href="https://admira.tv/help">/help</a></td></tr>
+          <tr><td data-en="Silicon Council over HTTP · council-mcp">Consejo de Silicio por HTTP · council-mcp</td><td><code>council-mcp.admira.store/mcp</code></td><td data-en="open read (no key)">lectura abierta (sin clave)</td><td>—</td><td><a href="https://www.admira.live/help">/help</a></td></tr>
+          <tr><td data-en="Presentations · admiranext.com">Presentaciones · admiranext.com</td><td><code>admiranext.com/mcp</code></td><td>token anmcp_</td><td><a href="/pruebas/cinco-pilares/mcp/llms.txt">llms.txt</a></td><td><a href="/mcp/generador">/mcp/generador</a></td></tr>
+          <tr><td data-en="Interactive Xperiencias · AInimation Studio (ainimation.studio)">Xperiencias interactivas · AInimation Studio (ainimation.studio)</td><td><code>mcp-ainimation.admira.store/mcp</code></td><td data-en="open read · publish with fleet key">lectura abierta · publicar con clave de flota</td><td><a href="https://www.ainimation.studio/mcp/llms.txt">llms.txt</a></td><td><a href="https://www.ainimation.studio/help/">/help</a></td></tr>
+          <tr><td>Studio · admira.studio</td><td data-en="federated from here, after login">federado desde aquí, tras login</td><td>Google</td><td>—</td><td data-en="&lt;a href=&quot;https://www.admira.studio/&quot;&gt;site&lt;/a&gt;"><a href="https://www.admira.studio/">sitio</a></td></tr>
+        </table></div>
+        <p style="margin-top:14px" data-en="&lt;b&gt;Shared bus:&lt;/b&gt; orders between agents and advisers go through the admira-telegram bot-inbox, which serves yokup and admira.live; that is why their MCPs understand each other. &lt;b&gt;Carlos&#x27;s rule (5-Sep-2026):&lt;/b&gt; between agents and advisers all communication goes over MCP; Telegram is the human&#x27;s channel."><b>Bus compartido:</b> los encargos entre agentes y consejeros van por el bot-inbox de admira-telegram, que sirve a yokup y a admira.live; por eso sus MCP se entienden. <b>Regla de Carlos (5-sep-2026):</b> entre agentes y consejeros toda comunicación va por MCP; Telegram es el canal del humano.</p>
+      </div>
+    </section>
+    <section class="band" id="identidad">
+      <div class="shell callout">
+        <div><p class="eyebrow" data-en="Common identity">Identidad común</p><h2 data-en="One key per person and machine, valid across the whole suite.">Una clave por persona y equipo, válida en toda la suite.</h2></div>
+        <div>
+          <p><code>clave = base64url( HMAC-SHA256( MCP_FLOTA_SEED, "Persona|Equipo" ) ).slice(0, 40)</code></p>
+          <p data-en="The seed is a secret of each worker and lives in the vault; the agent reads its key from &lt;code&gt;s:MCP_KEY_&amp;lt;PERSONA&amp;gt;_&amp;lt;EQUIPO&amp;gt;&lt;/code&gt; and &lt;code&gt;mcp-conectar.sh&lt;/code&gt; registers it in its client. No server stores keys: each recomputes and compares in constant time. Dependency-free verifier module to vendor: &lt;a href=&quot;identidad-flota.mjs&quot;&gt;identidad-flota.mjs&lt;/a&gt;. GrokBot&#x27;s advisers carry their own key.">La semilla es secreto de cada worker y vive en la bóveda; el agente lee su clave de <code>s:MCP_KEY_&lt;PERSONA&gt;_&lt;EQUIPO&gt;</code> y <code>mcp-conectar.sh</code> la registra en su cliente. Ningún servidor guarda claves: recalcula y compara en tiempo constante. Módulo verificador sin dependencias para vendorizar: <a href="/mcp/identidad-flota.mjs">identidad-flota.mjs</a>. Los consejeros de GrokBot llevan clave propia.</p>
+        </div>
+      </div>
+    </section>
+
+<section id="pixeria-novedades"><h2 lang="mul">Pixeria · novedades / Pixeria updates</h2><p lang="es"><code>/demo pixeria novedades</code>: ocho capítulos preparados con voz opcional y vídeo, desde los previos de Creador hasta URBAN FLOW en el gemelo 360. Se mantiene en el editor hasta que quieras borrarla. Eliminar la entrada Studio retira sus referencias sólo en este navegador; conserva otras demos y la campaña. Exporta antes para poder recuperarla.</p><p lang="en"><code>/demo pixeria updates</code>: eight prepared chapters with optional narration and video, from Creator previews to URBAN FLOW in the 360 twin. Keep it in the editor until you want to delete it. Removing the Studio entry affects this browser only; other demos and the campaign remain. Export first for recovery.</p><p lang="mul"><a href="/demo/pixeria-novedades/">Demo</a> · <a href="/subdemos/">Editor</a> · <a href="/demo/pixeria-novedades/README.md">Tutorial ES/EN</a> · <a href="/demo/pixeria-novedades/studio.subdemos.json">Manifiesto / Manifest</a></p></section>
+</main>
+
+  <footer class="shell">
+    <span>ADmiraNeXT MCP<span id="mcpStamp" data-admira-sello-pie data-prefijo=" · " hidden></span></span>
+    <span><a href="/pruebas/cinco-pilares/mcp/llms.txt">llms.txt</a> · <a href="/pruebas/cinco-pilares/mcp/manifest.json">manifest.json</a> · Admira IA</span>
+  </footer>
+<script>
+// ▤ «Ir a» y ⌘ Experto: verbos de esta página para el CLI del armazón (script en línea:
+// corre antes que admira-frame.js, que va con defer).
+(function(){
+  var secs=[].slice.call(document.querySelectorAll('main section')).filter(function(x){return x.classList.contains('band')&&x.querySelector('h2')});
+  secs.forEach(function(x,i){if(!x.id)x.id='seccion-'+(i+1);});
+  var ira=document.getElementById('hubIrA');
+  function titulo(x){return x.querySelector('h2').textContent.trim();}
+  secs.forEach(function(x,i){var b=document.createElement('button');b.type='button';b.dataset.hubIr=x.id;b.textContent=(i+1)+' · '+titulo(x);ira.appendChild(b);});
+  function ir(id){var n=document.getElementById(id);if(n)n.scrollIntoView({behavior:'smooth',block:'start'});}
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-hub-ir]');if(b)ir(b.dataset.hubIr);});
+  window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
+    {id:'seccion',aliases:['s'],uso:'<n|texto>',ayuda:'Salta a una sección (1-'+secs.length+' o parte del título)',run:function(a,ctx){var q=a.join(' ').toLowerCase();var x=secs.filter(function(y,i){return q&&(String(i+1)===q||titulo(y).toLowerCase().indexOf(q)>=0);})[0];if(!x){ctx.error('Uso: /seccion <n|texto> · '+secs.map(function(y,i){return (i+1)+' '+titulo(y)}).join(' · '));return;}ir(x.id);ctx.imprimir('→ '+titulo(x));}},
+    {id:'generador',ayuda:'Abre el MCP del generador de presentaciones',run:function(a,ctx){ctx.imprimir('Abriendo /mcp/generador…');location.href='/mcp/generador';}},
+    {id:'manifest',ayuda:'Abre manifest.json',run:function(a,ctx){location.href='/mcp/manifest.json';}},
+    {id:'llms',ayuda:'Abre llms.txt',run:function(a,ctx){location.href='/mcp/llms.txt';}}
+  ]);
+})();
+</script>
+</body>
+</html>

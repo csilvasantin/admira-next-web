@@ -57,6 +57,11 @@ const ADOPTADAS = {
   'mandamientos.html': {ruta: '/mandamientos', acceso: 'publico', actual: null, auto: true},
   'normativa.html': {ruta: '/normativa', acceso: 'publico', actual: null, auto: true},
   'help/index.html': {ruta: '/help/', acceso: 'publico', actual: null, auto: true},
+  // Zona /pruebas (10-10-2026): copias «cinco pilares» (#5548, PR #152) de páginas públicas, servidas con sesión
+  // por functions/pruebas/_middleware.js. Son la misma página candidata, con la misma barra que tendría en público.
+  'pruebas/cinco-pilares/filosofia/index.html': {ruta: '/pruebas/cinco-pilares/filosofia/', acceso: 'publico', actual: null, auto: true},
+  'pruebas/cinco-pilares/help/index.html': {ruta: '/pruebas/cinco-pilares/help/', acceso: 'publico', actual: null, auto: true},
+  'pruebas/cinco-pilares/mcp/index.html': {ruta: '/pruebas/cinco-pilares/mcp/', acceso: 'publico', actual: null},
   'informes/index.html': {ruta: '/informes/', acceso: 'publico', actual: null, auto: true},
   'informes/handon-contenidos-2026-09-14.html': {ruta: '/informes/handon-contenidos-2026-09-14', acceso: 'publico', actual: null, auto: true},
   'telegram/index.html': {ruta: '/telegram/', acceso: 'publico', actual: null, auto: true},
