@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Enlaces del visor</title>
+<style>
+  body { margin: 0; background: #000; color: #f4f7ff; font-family: system-ui, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  p, label { font-size: 18px; line-height: 1.4; color: #d5d5d5; }
+  input, button { font: inherit; min-height: 48px; }
+  button { background: #f4f7ff; color: #000; border: 0; padding: 0 16px; margin-right: 8px; }
+  input { background: #111; color: #f4f7ff; border: 1px solid #444; padding: 0 12px; width: 8ch; }
+  #id { width: 100%; }
+  #qr { margin-top: 20px; background: #fff; width: 280px; height: 280px; }
+  #qr svg { width: 280px; height: 280px; }
+  code, pre { display: block; white-space: pre-wrap; word-break: break-all; color: #9eb6ff; font-size: 13px; }
+  .aviso { color: #ffb4a8; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Enlaces del visor</h1>
+  <p>Crea un enlace https para las Ray-Ban Display. Caduca como máximo a los 7 días. El primer dispositivo que vuelve con la cookie se queda el enlace; otro dispositivo recibe 401. Para revocar, borra el id.</p>
+  <p>
+    <label>Días <input id="dias" type="number" min="1" max="7" value="7"></label>
+    <button type="button" id="crear">Crear enlace y QR</button>
+  </p>
+  <p class="aviso" id="aviso"></p>
+  <div id="qr"></div>
+  <pre id="url"></pre>
+  <pre id="deep"></pre>
+  <p>
+    <label>Id <input id="id" type="text" autocomplete="off"></label>
+    <button type="button" id="revocar">Revocar</button>
+  </p>
+</main>
+<script>
+(function () {
+  var csrf = '';
+  var aviso = document.getElementById('aviso');
+  function nota(t) { aviso.textContent = t || ''; }
+  fetch('/api/session', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+    csrf = (d && d.csrf) || '';
+  }).catch(function () { nota('No hay sesión.'); });
+
+  function pedir(method, body) {
+    return fetch('/pruebas/api/visor-enlace', {
+      method: method,
+      cache: 'no-store',
+      headers: { 'content-type': 'application/json', 'X-Admira-CSRF': csrf },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); });
+  }
+
+  document.getElementById('crear').addEventListener('click', function () {
+    nota('');
+    var dias = Number(document.getElementById('dias').value);
+    pedir('POST', { dias: dias }).then(function (res) {
+      if (!res.ok) { nota(res.d.error || 'No se pudo crear.'); return; }
+      document.getElementById('id').value = res.d.id;
+      document.getElementById('url').textContent = res.d.url;
+      document.getElementById('deep').textContent = res.d.deepLink;
+      var caja = document.getElementById('qr');
+      caja.replaceChildren();
+      if (typeof res.d.qrSvg === 'string' && res.d.qrSvg.indexOf('<svg xmlns="http://www.w3.org/2000/svg"') === 0 && res.d.qrSvg.indexOf('<script') === -1) {
+        var img = new Image();
+        img.width = 280;
+        img.height = 280;
+        img.alt = 'QR para añadir Admira Visor a las gafas';
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(res.d.qrSvg);
+        caja.appendChild(img);
+      }
+    }).catch(function () { nota('No se pudo crear.'); });
+  });
+
+  document.getElementById('revocar').addEventListener('click', function () {
+    nota('');
+    pedir('DELETE', { id: document.getElementById('id').value.trim() }).then(function (res) {
+      nota(res.ok ? 'Enlace revocado.' : (res.d.error || 'No se pudo revocar.'));
+    }).catch(function () { nota('No se pudo revocar.'); });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "marca": "frescaria",
+  "nombre": "Frescaria Supermercados",
+  "ahora": {
+    "es": "Fruta de temporada",
+    "en": "Seasonal fruit",
+    "detalleEs": "Pasillo 4 · pantalla 3",
+    "detalleEn": "Aisle 4 · screen 3"
+  },
+  "siguiente": {
+    "es": "Mandarinas",
+    "en": "Tangerines",
+    "detalleEs": "−20 % · siguiente pieza",
+    "detalleEn": "−20% · next piece"
+  },
+  "promo": {
+    "es": "Esta semana en Frescaria",
+    "en": "This week at Frescaria",
+    "detalleEs": "Texto solo. La demo no descarga imágenes ni vídeo.",
+    "detalleEn": "Text only. The demo downloads no images and no video."
+  }
+}

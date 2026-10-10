@@ -18,6 +18,10 @@
     {
       "binding": "AVATAR_FLAGS",
       "id": "c8618c09b25d48b083558fbfec459a64"
+    },
+    {
+      "binding": "VISOR_LINKS",
+      "id": "83134fc579514827baec552e194a0afe"
     }
   ],
   "r2_buckets": [
