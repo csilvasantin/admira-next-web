@@ -33,6 +33,9 @@ test('cada página: noindex, bilingüe ES/EN, armazón cuadrático y «Acceso pr
   const js = leer('pruebas/frontier/assets/frontier.js');
   assert.match(js, /admira:languagechange/);
   assert.match(js, /get\('lang'\)/);
+  assert.match(js, /window\.setLanguage/, '/idioma y /language llegan por setLanguage');
+  assert.match(js, /fx-cli-min/, '⌘ Experto minimizado siempre visible');
+  for (const rel of PAGINAS) assert.doesNotMatch(leer(rel), /data-fx-lang-btn|>ESP<\/button>|>ENG<\/button>/, rel + ': sin botones ESP/ENG');
 });
 
 test('cada tarjeta lleva estado y evidencia; la maqueta de las gafas se declara maqueta', () => {
@@ -41,8 +44,8 @@ test('cada tarjeta lleva estado y evidencia; la maqueta de las gafas se declara 
   assert.equal((idx.match(/<article class="fx-card">/g) || []).length, 3);
   assert.equal((idx.match(/<article class="fx-card">[\s\S]*?class="fx-estado /g) || []).length, 3);
   const gafas = leer('pruebas/frontier/gafas-meta/index.html');
-  assert.match(gafas, /MAQUETA · NO ES UNA CAPTURA REAL/);
-  assert.match(gafas, /MOCK-UP · NOT A REAL CAPTURE/);
+  assert.match(gafas, /Maqueta, no es una captura real/);
+  assert.match(gafas, /Mock-up, not a real capture/);
   assert.match(gafas, /wearables\.developer\.meta\.com\/docs\/develop\/dat\/display-overview/);
   const rob = leer('pruebas/frontier/robotics/index.html');
   assert.match(rob, /en exploración/);
