@@ -26,19 +26,19 @@ export function interpretar(texto) {
 
 const PLANTILLA = `
 <form class="pa-form" novalidate>
-  <label class="pa-tit" for="paEntrada"><b>Marca, web o idea</b> · el generador estudia la compañía y prepara su propuesta</label>
+  <label class="pa-tit" for="paEntrada" data-en="<b>Brand, site or idea</b> · the generator studies the company and prepares its proposal"><b>Marca, web o idea</b> · el generador estudia la compañía y prepara su propuesta</label>
   <div class="pa-fila">
     <input id="paEntrada" name="entrada" type="text" maxlength="600" autocomplete="off" spellcheck="false" placeholder="admira.com · Frescaria · cadena de gimnasios que quiere pantallas en sala">
-    <button type="submit" class="pa-btn pa-lanzar">Lanzar propuesta</button>
+    <button type="submit" class="pa-btn pa-lanzar" data-en="Launch proposal">Lanzar propuesta</button>
   </div>
-  <details class="pa-mas"><summary>Opciones</summary>
+  <details class="pa-mas"><summary data-en="Options">Opciones</summary>
     <div class="pa-opciones">
       <label class="pa-f"><span>Para quién (opcional)</span><input name="destinatario" type="text" maxlength="160" placeholder="Dirección de marketing"></label>
       <label class="pa-f"><span>Idioma</span><select name="idioma"><option value="es">Español</option><option value="en">English</option><option value="ca">Català</option></select></label>
       <label class="pa-check"><input name="rehacer" type="checkbox"> Rehacerla entera si ya existe (gasta cupo)</label>
     </div>
   </details>
-  <p class="pa-acceso" data-pa="acceso">Comprobando el acceso al generador…</p>
+  <p class="pa-acceso" data-pa="acceso" data-en="Checking access to the generator…">Comprobando el acceso al generador…</p>
 </form>
 <ol class="pa-pasos" data-pa="pasos" hidden></ol>
 <p class="pa-estado" data-pa="estado" role="status" aria-live="polite"></p>

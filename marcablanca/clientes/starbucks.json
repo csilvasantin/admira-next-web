@@ -144,5 +144,12 @@
         "estado": "resuelta"
       }
     ]
+  },
+  "fondos": {
+    "escena": {
+      "svg": "../escenas/starbucks.svg",
+      "alt": "Tres tazas sencillas y vapor sobre una barra verde",
+      "nota": "Ilustración vectorial original de Admira (sin fotogramas, carteles, logotipos ni personajes): portada del libro de estilo."
+    }
   }
 }
