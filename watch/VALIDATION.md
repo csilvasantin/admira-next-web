@@ -13,7 +13,9 @@ Las capturas y registros reales viven en la evidencia de la misión FLT-101914. 
 
 Revisión cruzada de Wozniak (#5659) aprobada para código, seguridad y límites de fase A en simulador. Se corrigió la conservación del puerto del origen y se rechazaron URLs de configuración sin host o con credenciales. Límites aceptados: póster vinculado al clip actual; descarga completa acotada por el servidor del visor (1,2 MB máximo). La instalación física sigue pendiente.
 
-## Retoques de diseño · #5682 · FLT-101935 · 11-oct-2026
+## Retoques de diseño · #5682 · FLT-101933 · 11-oct-2026
+
+El claim inicial no resolvió la misión original. El seguimiento durante el trabajo quedó en FLT-101935; al informar se resolvió el vínculo #5682 → FLT-101933. La original recibe el resultado y la continuación se reconcilia como duplicada, sin contabilizar dos implementaciones.
 
 - Base b41907a del PR #173. Cabecera pequeña en #33FF99, sin los márgenes de contenido de watchOS; fotos horizontales al ancho completo y verticales al alto disponible, conservando proporción. Sala A aprovecha la altura para hacer legibles Ahora y Siguiente.
 - Título blanco de 16 pt seminegrita, una línea con elipsis, superpuesto sobre un degradado negro en la parte inferior de la pieza.
