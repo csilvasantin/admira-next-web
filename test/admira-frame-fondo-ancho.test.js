@@ -49,6 +49,7 @@ const ANCHO = {
   'webmaster.html': 'div.wrap',
   'analitics/index.html': 'main',
   'flota.html': 'main.shell',
+  'pruebas/mapa/index.html': 'main.mapa-shell',
   'presentaciones/generador.html': 'main.wrap',
   'presentaciones/index.html': 'main.wrap',
   'xpace/manage.html': 'main',
