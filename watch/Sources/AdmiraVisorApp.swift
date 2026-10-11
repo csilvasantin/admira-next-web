@@ -54,10 +54,15 @@ struct Piece: Decodable, Identifiable {
             guard let path = Bundle.main.url(forResource: "Device", withExtension: "plist"),
                   let data = try? Data(contentsOf: path),
                   let config = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
-                  let link = config["VisorURL"] as? String, let url = URL(string: link), url.scheme == "https" else {
+                  let link = config["VisorURL"] as? String, let url = URL(string: link),
+                  url.scheme == "https", url.host != nil, url.user == nil, url.password == nil,
+                  var origin = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
                 throw VisorError.configuration
             }
-            base = URL(string: url.scheme! + "://" + url.host!)
+            origin.path = ""
+            origin.query = nil
+            origin.fragment = nil
+            base = origin.url
             let fingerprint = SHA256.hash(data: Data(link.utf8)).map { String(format: "%02x", $0) }.joined()
             if UserDefaults.standard.string(forKey: "visorLinkFingerprint") != fingerprint {
                 for cookie in HTTPCookieStorage.shared.cookies ?? [] where cookie.name == "admira_visor" && cookie.domain == url.host {
@@ -85,7 +90,7 @@ struct Piece: Decodable, Identifiable {
     }
 
     private func read(_ url: URL) async throws -> Data {
-        guard url.scheme == "https", url.host == base?.host else { throw VisorError.configuration }
+        guard url.scheme == "https", url.host == base?.host, url.port == base?.port else { throw VisorError.configuration }
         let (data, response) = try await session.data(from: url)
         guard let http = response as? HTTPURLResponse else { throw VisorError.network }
         log.info("HTTP \(http.statusCode): \(url.path, privacy: .public)")

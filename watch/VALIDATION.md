@@ -10,3 +10,5 @@
 - La prueba física requiere modo desarrollador y conexión. No equivale a instalación verificada el hecho de compilar con firma. El primer intento falló por timeout Bluetooth y la consulta posterior seguía mostrando Developer Mode Disabled.
 
 Las capturas y registros reales viven en la evidencia de la misión FLT-101914. El criterio de hecho exige ejecución física; hasta verificarla, #5655 permanece abierto.
+
+Revisión cruzada de Wozniak (#5659) aprobada para código, seguridad y límites de fase A en simulador. Se corrigió la conservación del puerto del origen y se rechazaron URLs de configuración sin host o con credenciales. Límites aceptados: póster vinculado al clip actual; descarga completa acotada por el servidor del visor (1,2 MB máximo). La instalación física sigue pendiente.
