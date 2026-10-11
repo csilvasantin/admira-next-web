@@ -40,6 +40,7 @@ const ADOPTADAS = {
   'xpace/manage.html': {ruta: '/xpace/manage', acceso: 'privado'},
   'proyectos/index.html': {ruta: '/proyectos/', acceso: 'publico'},
   'flota.html': {ruta: '/flota', acceso: 'privado'}, // zona protegida desde el 06-10-2026 (functions/flota.js)
+  'pruebas/mapa/index.html': {ruta: '/pruebas/mapa/', acceso: 'privado', actual: null}, // experimento privado de ubicación (#5594)
   // Carlos (3-oct-2026): «que Presentaciones lleve también la barra de la intranet».
   'presentaciones/generador.html': {ruta: '/presentaciones/', acceso: 'privado', funcion: 'functions/presentaciones/generador.js'},
   'presentaciones/index.html': {ruta: '/presentaciones/galeria', acceso: 'privado', actual: '/presentaciones/', funcion: 'functions/presentaciones/galeria.js'},
@@ -168,6 +169,17 @@ async function familia() {
     const html = (await leer(rel)).match(/new URL\('\/(presentaciones\/[^']+\.html)'/);
     if (html && !miembros.has(html[1])) miembros.set(html[1], 'servida por ' + rel + ' tras exigir sesión (puerta de functions/presentaciones/_middleware.js)');
   }
+  // /pruebas tiene puerta común de servidor, también en sus subcarpetas. Las
+  // copias de páginas públicas conservan su etiqueta candidata; aquí registramos
+  // los paneles que se declaran privados para comprobar su puerta real.
+  if (await existe('functions/pruebas/_middleware.js')) {
+    const puertaPruebas = await leer('functions/pruebas/_middleware.js');
+    assert.match(puertaPruebas, /sesionCompleta/, 'la puerta de /pruebas exige la sesión común');
+    assert.match(puertaPruebas, /next\(\)/, 'la puerta de /pruebas sirve sus subcarpetas');
+    for (const rel of await archivos('pruebas', '.html')) {
+      if (/data-yk-access="privado"/.test(await leer(rel))) miembros.set(rel, 'servida por functions/pruebas/_middleware.js tras exigir sesión');
+    }
+  }
   // 3) La navegación del grupo.
   for (const ruta of NAV_GRUPO) await apuntar(ruta, 'navegación del grupo');
   // 4) Cualquier página que diga «Acceso privado» o declare la cabecera del grupo.
@@ -227,7 +239,12 @@ for (const [rel, {ruta, acceso, actual}] of Object.entries(ADOPTADAS)) {
     const enBarra = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => !/data-yk-rail-only/.test(m[1] + m[3])).map((m) => m[2]);
     assert.deepEqual(enBarra, NAV_BARRA, 'en la barra quedan Proyectos · Usuarios · Webmaster · Analitics · Agentes · Organigrama · RoadMap · Presentaciones; el resto, en ☰');
     const internos = [...cab.matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => /\bdata-yk-interno\b/.test(m[1] + m[3])).map((m) => m[2]);
-    assert.deepEqual(internos, NAV_INTERNOS, 'las entradas internas van marcadas igual en todas las páginas (data-yk-interno): sin sesión no se ven');
+    // La nueva prueba copia la cabecera privada vigente de /flota; no amplía
+    // el cambio a las páginas antiguas cuya adopción de RoadMap sigue pendiente.
+    const internosEsperados = rel === 'pruebas/mapa/index.html'
+      ? [...cabeceraDe(await leer('flota.html')).matchAll(/<a\b([^>]*)href="([^"]+)"([^>]*)>/g)].slice(1).filter((m) => /\bdata-yk-interno\b/.test(m[1] + m[3])).map((m) => m[2])
+      : NAV_INTERNOS;
+    assert.deepEqual(internos, internosEsperados, 'las entradas internas van marcadas como la cabecera canónica (data-yk-interno): sin sesión no se ven');
     if (actual === null) {
       // Página fuera de la navegación del grupo: la barra es la misma, sin nada marcado.
       assert.equal((cab.match(/aria-current="page"/g) || []).length, 0, 'ninguna página del grupo marcada: ésta no es del grupo');
