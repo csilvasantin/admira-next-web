@@ -51,6 +51,9 @@ test('una marca clara pinta toda la página, la leyenda baja y el anillo mide al
   assert.match(js, /is-prueba/);
   assert.match(js, /data-mapa-tema/);
   assert.match(js, /json\.modo === 'claro'/);
+  assert.match(css, /\.mapa-status\.is-prueba\{[^}]*#B7791F/);
+  assert.match(css, /\.mapa-status\.is-prueba\{[^}]*background:#f3e0b5/);
+  assert.match(css, /\.mapa-status\.is-prueba\{[^}]*color:#2a1a12/);
 });
 
 test('sin AUTH_DB una página de /pruebas responde 401 y no 503', async () => {

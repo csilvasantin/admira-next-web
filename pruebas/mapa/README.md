@@ -22,7 +22,9 @@ eran la base pedida; desde el 25 de septiembre de 2026 su tesela pública, sin
 clave, es la marca de agua «API KEY REQUIRED». La clave no está en el
 repositorio. El marcador mide unos 32 px y lleva el color de su tipo (teléfono
 en los móviles, ordenador en los fijos). El dorado de «Dato de prueba» queda
-solo en el borde. El círculo de precisión tiene al menos unos 24 px de radio,
+solo en el borde del marcador. La etiqueta de la tarjeta va en una pastilla
+ámbar con borde #B7791F y texto oscuro, para leerse sobre crema y sobre el
+tema de noche. El círculo de precisión tiene al menos unos 24 px de radio,
 para que el del iPhone (±14 m) se vea alrededor del marcador. La leyenda va
 abajo a la izquierda, encima de la atribución. En móvil se pliega en un botón
 «Leyenda». En «Datos reales» solo salen avisos reales. Cualquier dato de

@@ -35,7 +35,7 @@ body{margin:0;color:var(--ink);font-family:system-ui,-apple-system,sans-serif}
 .mapa-dot{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;background:var(--cyan)}
 .mapa-dot-fixed{background:#93b5ff}.mapa-dot-stale{background:var(--warn)}.mapa-dot-prueba{background:#e7c27a}
 .mapa-device.is-linked{background:#132033;margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:10px}
-.mapa-status.is-prueba{color:#e7c27a}
+.mapa-status.is-prueba{color:#2a1a12;background:#f3e0b5;border:1px solid #B7791F;border-radius:999px;padding:2px 8px}
 .mapa-devices{padding:0 18px}
 .mapa-device{padding:20px 0;border-bottom:1px solid var(--line)}
 .mapa-device:last-child{border-bottom:0}
