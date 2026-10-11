@@ -8,13 +8,13 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.10.10.2026.r4.09:32">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261010-1">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261011-mapa-5612b">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-  <script defer src="/pruebas/mapa/idioma.js?v=20261010-1"></script>
-  <script defer src="/pruebas/mapa/mapa.js?v=20261010-1"></script>
+  <script defer src="/pruebas/mapa/idioma.js?v=20261011-mapa-5612b"></script>
+  <script defer src="/pruebas/mapa/mapa.js?v=20261011-mapa-5612b"></script>
 </head>
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap" data-yk-interno>RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="privado" title="Acceso privado">●<span class="yk-access-txt"> Acceso privado</span></span></header>
@@ -37,9 +37,8 @@
 
   <div class="mapa-layout">
     <section class="mapa-panel mapa-canvas-panel" aria-labelledby="mapa-titulo">
-      <div class="mapa-panel-head"><h2 id="mapa-titulo">Ubicaciones</h2><span class="mapa-tag" id="mapa-origen">Datos reales</span></div>
-      <div class="mapa-canvas-wrap"><div id="mapa" aria-label="Mapa de ubicaciones de los equipos"></div><p id="mapa-vacio" class="mapa-empty" hidden>Aún no hay posiciones confirmadas. Los equipos sin ubicación se muestran en la lista.</p></div>
-      <div class="mapa-legend" aria-label="Leyenda"><span><i class="mapa-dot mapa-dot-mobile"></i>Móvil</span><span><i class="mapa-dot mapa-dot-fixed"></i>Fijo</span><span><i class="mapa-dot mapa-dot-stale"></i>Desactualizado · más de 2 h</span></div>
+      <div class="mapa-panel-head"><h2 id="mapa-titulo">Ubicaciones</h2></div>
+      <div class="mapa-canvas-wrap"><div id="mapa" aria-label="Mapa de ubicaciones de los equipos"></div><p id="mapa-vacio" class="mapa-empty" hidden>Aún no hay posiciones confirmadas. Los equipos sin ubicación se muestran en la lista.</p><div class="mapa-legend" aria-label="Leyenda"><span><i class="mapa-dot mapa-dot-mobile"></i>Móvil</span><span><i class="mapa-dot mapa-dot-fixed"></i>Fijo</span><span><i class="mapa-dot mapa-dot-stale"></i>Desactualizado · más de 2 h</span><span><i class="mapa-dot mapa-dot-prueba"></i>Dato de prueba</span></div></div>
     </section>
 
     <section class="mapa-panel mapa-devices-panel" aria-labelledby="equipos-titulo">

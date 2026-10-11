@@ -40,23 +40,49 @@
       "service": "pixer-eleven"
     }
   ],
+  // Preview sustituye los arrays de arriba, no los mezcla. Se repiten todos
+  // los bindings y AUTH_DB sigue siendo la base de login real. Solo el KV de
+  // ubicaciones queda en su espacio de preview, para no escribir el historial
+  // de producción desde una rama.
   "env": {
     "preview": {
       "d1_databases": [
         {
           "binding": "AUTH_DB",
-          "database_name": "admiranext-mapa-preview-auth",
-          "database_id": "773813bf-6b4b-49b9-827b-e41e95c26e02"
+          "database_name": "admiranext-auth",
+          "database_id": "1568f825-4dfb-40a9-ac40-c6776ee62b3e"
         }
       ],
       "kv_namespaces": [
+        {
+          "binding": "PRESENTATION_IDEAS",
+          "id": "865b826b5e0f4093b693583d46fe69e0"
+        },
+        {
+          "binding": "AVATAR_FLAGS",
+          "id": "c8618c09b25d48b083558fbfec459a64"
+        },
+        {
+          "binding": "VISOR_LINKS",
+          "id": "83134fc579514827baec552e194a0afe"
+        },
         {
           "binding": "UBICACIONES",
           "id": "620db3314a8043c192a6a25f2de9b41d"
         }
       ],
-      "r2_buckets": [],
-      "services": []
+      "r2_buckets": [
+        {
+          "binding": "PRESENTATION_MEDIA",
+          "bucket_name": "admiranext-presentations"
+        }
+      ],
+      "services": [
+        {
+          "binding": "PIXERIA_STOCK",
+          "service": "pixer-eleven"
+        }
+      ]
     }
   }
 }

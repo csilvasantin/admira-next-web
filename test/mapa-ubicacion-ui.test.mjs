@@ -27,7 +27,7 @@ function mount(fetcher = async () => answer([phone(),mini()])) {
   const map = {setView() {return this;},fitBounds() {}};
   const group = {addTo() {return this;},clearLayers() {pins.length = 0;}};
   const L = {
-    map:() => map,tileLayer:() => ({addTo() {}}),layerGroup:() => group,latLngBounds:(points) => points,divIcon:(options) => options,
+    map:() => map,tileLayer:() => ({addTo() {return this;}}),circle:() => ({addTo() {return this;}}),layerGroup:() => group,latLngBounds:(points) => points,divIcon:(options) => options,
     marker:(latlon,options) => ({latlon,options,bindPopup(popup) {this.popup = popup;return this;},addTo() {pins.push(this);return this;}})
   };
   class Clock extends Date {constructor(...args) {super(...(args.length ? args : [NOW]));} static now() {return NOW;}}
@@ -109,6 +109,19 @@ test('expired Google session clears previously loaded positions and offers the p
   assert.equal(ui.element('mapa-error').hidden,false);
   assert.match(ui.element('mapa-error').innerHTML,/href="\/pruebas\/mapa\/"/);
   assert.doesNotMatch(ui.element('equipos-lista').innerHTML,/iPhone 17/);
+  assert.doesNotMatch(ui.element('equipos-lista').innerHTML,/Esperando datos/);
+  assert.match(ui.element('equipos-lista').innerHTML,/Inicia sesión para ver los equipos/);
+});
+
+test('a fixture inside real data is labelled test data and does not raise a real stale warning',async () => {
+  const ui = mount(async () => answer([phone({fuente:'fixture-no-iphone',ultimo_aviso:iso(400)})]));
+  await flush();
+  const list = ui.element('equipos-lista').innerHTML;
+  assert.match(list,/Dato de prueba/);
+  assert.doesNotMatch(list,/Desactualizado/);
+  assert.equal(ui.pins[0].options.icon.iconSize[0],32);
+  assert.match(ui.pins[0].popup.innerHTML,/Dato de prueba/);
+  assert.match(ui.pins[0].options.icon.html,/mapa-pin-nombre/);
 });
 
 test('language changes rerender live metadata, device details, popup text and demo controls',async () => {
@@ -122,7 +135,7 @@ test('language changes rerender live metadata, device details, popup text and de
   assert.match(ui.pins[0].popup.innerHTML,/Outdated/);
   ui.element('modo-demo').click();
   assert.match(ui.element('mapa-origen').textContent,/Synthetic/);
-  assert.match(ui.element('equipos-lista').innerHTML,/Synthetic/);
+  assert.match(ui.element('equipos-lista').innerHTML,/Test data/);
   ui.language('es');
   assert.match(ui.element('mapa-origen').textContent,/Sintético/);
   assert.match(ui.element('equipos-lista').innerHTML,/Último aviso/);

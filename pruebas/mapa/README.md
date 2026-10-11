@@ -10,9 +10,18 @@ usar **el mismo host**: `https://mapa-5594.admiranext.pages.dev/api/ubicacion`.
 
 Ruta prevista tras una futura fusión y publicación autorizadas:
 `https://www.admiranext.com/pruebas/mapa/`, con el emisor en
-`https://www.admiranext.com/api/ubicacion`. Estas direcciones de producción no
-forman parte de la entrega actual: también requerirían provisionar el secreto
-de producción. No apuntar todavía el atajo a ellas.
+`https://www.admiranext.com/api/ubicacion`. El secreto de producción ya está
+creado. Esta PR no se fusiona: el atajo no debe apuntar todavía a esas
+direcciones.
+
+El mapa usa Leaflet. El tema oscuro carga el lienzo gris oscuro de Esri y la
+marca Lumbre el lienzo gris claro, sin iconos de servicios y con la atribución
+de Esri y OpenStreetMap. CARTO Dark Matter y Positron eran la base pedida; desde
+el 25 de septiembre de 2026 su tesela pública, sin clave, es la marca de agua
+«API KEY REQUIRED». La clave no está en el repositorio. El marcador mide unos
+32 px (teléfono en los móviles, ordenador en los fijos), lleva el nombre corto,
+un círculo de precisión y la leyenda dentro del mapa. En «Datos reales» solo
+salen avisos reales. Cualquier dato de prueba se marca «Dato de prueba».
 
 ## Acceso y alcance
 
@@ -24,8 +33,10 @@ de producción. No apuntar todavía el atajo a ellas.
   leer posiciones. Sin sesión responde `401` y no devuelve coordenadas.
 - Respuestas del mapa y de la API: `private, no-store`, sin caché CDN y fuera de
   buscadores. No hay claves en HTML, JavaScript, URLs ni el repositorio.
-- Preview dispone de `AUTH_DB`, firma de sesión y KV de ubicaciones separados.
-  El callback Google existente apunta a `www.admiranext.com/webmaster`: una
+- La preview repite todos los bindings de producción y usa la base de login
+  real (`admiranext-auth`). El KV de ubicaciones sigue en su espacio de preview
+  para que un aviso de rama no entre en el historial de producción.
+- El callback Google existente apunta a `www.admiranext.com/webmaster`: una
   sesión de producción no abre por sí sola el host de preview. Hasta disponer
   de un callback autorizado para ese host, una sesión de prueba demuestra el
   control de acceso, pero no equivale a validar el login Google completo allí.
@@ -65,19 +76,18 @@ ni registra la clave.
 
 ## Clave y ejemplo técnico seguro
 
-El valor existente está en el Llavero de macOS del MacBook Pro 16, servicio
-`UBICACION_KEY_IPHONE`, cuenta `TrinityMBP16`, y se provisiona como secreto de
-Cloudflare Pages **preview**, con el mismo nombre. Para recuperarlo localmente,
-se captura la salida de
-`security find-generic-password -a TrinityMBP16 -s UBICACION_KEY_IPHONE -w`
-en memoria; no se imprime ni se pasa como argumento visible de `curl`.
+La clave de **preview** sigue en el Llavero del MacBook Pro 16, servicio
+`UBICACION_KEY_IPHONE`, cuenta `TrinityMBP16`. No se ha rotado.
 
-La escritura de ese mismo valor en la Cúpula devolvió `403 forbidden-need-admin`
-con la credencial administrativa disponible. Por tanto, **no se afirma que esté
-guardado en el vault**. Cuando se actualice dicha credencial y se confirme el
-almacenamiento, la lectura desde otro equipo será
-`bash ~/Claude/admira-vault/vault-get.sh UBICACION_KEY_IPHONE`, capturando su salida
-sin imprimirla. No rotar ni inventar otra clave para completar este paso.
+La clave de **producción** es otra, creada para el proyecto Pages `admiranext`
+(entorno production, secreto `UBICACION_KEY_IPHONE`). Está en el Llavero del
+Mac mini, servicio `UBICACION_KEY_IPHONE`, cuenta `WozMBP14`. El MacBook Pro
+Negro 14 se alcanza por Tailscale, pero su llavero de inicio no acepta
+escritura por SSH. Para leerla en el Mac mini, sin imprimirla:
+`security find-generic-password -a WozMBP14 -s UBICACION_KEY_IPHONE -w`.
+No está en el repositorio ni en el chat. La PR sigue sin fusionar: el secreto
+queda listo para el próximo despliegue de producción y el atajo no debe apuntar
+aún a `www.admiranext.com`.
 
 Este ejemplo envía deliberadamente una **posición sintética de prueba al
 preview**. Su fuente la identifica; no demuestra que el iPhone haya informado.

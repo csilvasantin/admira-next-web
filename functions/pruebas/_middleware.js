@@ -15,7 +15,7 @@
  * Excepción (Carlos, 10-oct-2026, 13:46): /pruebas/visor/ también entra con un
  * enlace firmado de un solo dispositivo. El resto de /pruebas sigue cerrado.
  */
-import { sesionCompleta, respuestaLogin } from '../_webmaster-gate.js';
+import { sesionCompleta, respuestaLogin, paginaLogin, respuestaHtml } from '../_webmaster-gate.js';
 import { accesoVisor, esRutaVisor, RUTA_ALTA_VISOR } from './_visor-enlace.js';
 
 export const PREFIJO_PRUEBAS = '/pruebas';
@@ -27,7 +27,7 @@ function texto(mensaje, status) {
   } });
 }
 
-async function loginSeguro(env, mensaje, pagina, status) {
+async function loginDePagina(env, mensaje, pagina, status) {
   try { return await respuestaLogin(env, mensaje, pagina, status); }
   catch (_) { return texto('Acceso no disponible ahora mismo.', 503); }
 }
@@ -79,12 +79,12 @@ export async function onRequest(context) {
     }
     if (acceso.cerrar) return texto('Sin enlace.', 401);
   }
-  // El enlace firmado del visor conserva su excepción; el acceso Google falla
-  // cerrado si el directorio falta o no puede emitir su desafío de login.
-  if (!env.AUTH_DB && pagina) return texto('Acceso no disponible ahora mismo.', 503);
-  if (!env.WEBMASTER_SIGNING_KEY) return pagina ? loginSeguro(env, 'Acceso no disponible ahora mismo.', pagina, 503) : texto('Acceso no disponible ahora mismo.', 503);
+  // Sin directorio no hay 503 en las páginas: el login se pinta igual y producción,
+  // donde AUTH_DB sí está, sigue el mismo camino de siempre.
+  if (!env.AUTH_DB && pagina) return respuestaHtml(paginaLogin('Zona de pruebas: identifícate para entrar.', pagina, ''), 401);
+  if (!env.WEBMASTER_SIGNING_KEY) return pagina ? respuestaLogin(env, 'Acceso no disponible ahora mismo.', pagina, 503) : texto('Acceso no disponible ahora mismo.', 503);
   const current = await sesionCompleta(request, env);
-  if (!current) return pagina ? loginSeguro(env, 'Zona de pruebas: identifícate para entrar.', pagina, 401) : texto('Sin sesión.', 401);
+  if (!current) return pagina ? loginDePagina(env, 'Zona de pruebas: identifícate para entrar.', pagina, 401) : texto('Sin sesión.', 401);
   if (url.pathname === PREFIJO_PRUEBAS) return Response.redirect(url.origin + '/pruebas/' + url.search, 302);
   const respuesta = await next();
   const headers = new Headers(respuesta.headers);

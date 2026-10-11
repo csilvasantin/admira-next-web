@@ -203,14 +203,13 @@ test('/pruebas HTML, variantes, JS y demo se cierran sin sesión y tras Google v
   const allowed=await gate(context);assert.equal(allowed.status,200);assert.equal(await allowed.text(),'private');noStore(allowed);
 });
 
-test('sin directorio o con fallo de configuración /pruebas no sirve contenido y el login devuelve503', async()=>{
+test('sin directorio una página de /pruebas no da 503; si el directorio falla, el login sigue cerrado', async()=>{
   for (const env of [{},{WEBMASTER_SIGNING_KEY:'key'},{WEBMASTER_SIGNING_KEY:'key',AUTH_DB:{prepare(){throw new Error('db unavailable');}}}]) {
     for (const path of ['/pruebas/mapa','/pruebas/mapa/','/pruebas/mapa/index.html','/pruebas/mapa/mapa.js']) {
       let served=false;
       const response=await gate({request:new Request('https://www.admiranext.com'+path),env,next:async()=>{served=true;return new Response('private');}});
-      // Assets y rutas sin barra no generan desafíos: el fallo D1 se observa al
-      // emitir el login de una página; las otras rutas conservan su401 upstream.
-      const expected = env.WEBMASTER_SIGNING_KEY && !path.endsWith('/') && !path.endsWith('/index.html') ? 401 : 503;
+      const pagina = path.endsWith('/') || path.endsWith('/index.html');
+      const expected = !env.AUTH_DB && pagina ? 401 : env.WEBMASTER_SIGNING_KEY && !pagina ? 401 : 503;
       assert.equal(response.status,expected,path);assert.equal(served,false);noStore(response);
     }
   }
