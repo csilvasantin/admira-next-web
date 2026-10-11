@@ -1,0 +1,3 @@
+Config/Device.plist
+.build/
+*.xcodeproj/

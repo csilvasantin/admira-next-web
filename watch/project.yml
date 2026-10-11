@@ -1,0 +1,29 @@
+name: AdmiraVisor
+options:
+  bundleIdPrefix: com.admiranext
+  deploymentTarget:
+    watchOS: '26.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    DEVELOPMENT_TEAM: JTVR8HASG7
+    CODE_SIGN_STYLE: Automatic
+targets:
+  AdmiraVisor:
+    type: application
+    platform: watchOS
+    sources:
+      - path: Sources
+      - path: Config/Device.plist
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.admiranext.visor.watch
+        PRODUCT_NAME: AdmiraVisor
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Admira Visor
+        INFOPLIST_KEY_WKApplication: YES
+        INFOPLIST_KEY_WKWatchOnly: YES
+        INFOPLIST_KEY_WKSupportsAlwaysOnDisplay: YES
+        MARKETING_VERSION: '1.0'
+        CURRENT_PROJECT_VERSION: '5655'
