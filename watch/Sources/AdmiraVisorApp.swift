@@ -18,6 +18,15 @@ struct Piece: Decodable, Identifiable {
     let seconds: Double
     let url: String
     let poster: String?
+
+    var displayTitle: String {
+        // This phase-A clip's catalog label is still the placeholder "Clip 5s".
+        // Name its actual subject locally; keep every other catalog title intact.
+        if id == "1790352875323-h4x25z", title == "Clip 5s" {
+            return "Modelo de pantalla · envío"
+        }
+        return title
+    }
 }
 
 @MainActor final class Visor: ObservableObject {
@@ -25,6 +34,7 @@ struct Piece: Decodable, Identifiable {
     @Published var index = 0
     @Published var image: UIImage?
     @Published var player: AVPlayer?
+    @Published var videoSize = CGSize(width: 16, height: 9)
     @Published var message = "Conectando…"
     @Published var playing = false
     private let session: URLSession
@@ -125,6 +135,7 @@ struct Piece: Decodable, Identifiable {
         if let videoFile { try? FileManager.default.removeItem(at: videoFile) }
         videoFile = nil
         image = nil
+        videoSize = CGSize(width: 16, height: 9)
     }
 
     private func show(_ piece: Piece) async {
@@ -142,6 +153,19 @@ struct Piece: Decodable, Identifiable {
                 try data.write(to: file, options: .atomic)
                 videoFile = file
                 let item = AVPlayerItem(url: file)
+                let asset = AVURLAsset(url: file)
+                var mediaSize = CGSize(width: 16, height: 9)
+                if let tracks = try? await asset.loadTracks(withMediaType: .video),
+                   let track = tracks.first,
+                   let size = try? await track.load(.naturalSize),
+                   let transform = try? await track.load(.preferredTransform) {
+                    let transformed = size.applying(transform)
+                    if abs(transformed.width) > 0, abs(transformed.height) > 0 {
+                        mediaSize = CGSize(width: abs(transformed.width), height: abs(transformed.height))
+                    }
+                }
+                guard !Task.isCancelled, currentGeneration == generation else { return }
+                videoSize = mediaSize
                 let av = AVPlayer(playerItem: item)
                 av.isMuted = true
                 av.actionAtItemEnd = .none
@@ -209,37 +233,90 @@ struct VisorView: View {
     @StateObject private var visor = Visor()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.isLuminanceReduced) private var dimmed
+    private let admiraGreen = Color(red: 0x33 / 255.0, green: 1, blue: 0x99 / 255.0)
+
+    private func fittedSize(_ media: CGSize, in available: CGSize) -> CGSize {
+        guard media.width > 0, media.height > 0 else { return available }
+        let scale = min(available.width / media.width, available.height / media.height)
+        return CGSize(width: media.width * scale, height: media.height * scale)
+    }
+
+    private var currentTitle: String? {
+        guard visor.items.indices.contains(visor.index) else { return nil }
+        return visor.items[visor.index].displayTitle
+    }
+
+    private func titleOverlay(width: CGFloat) -> some View {
+        ZStack(alignment: .bottomLeading) {
+            LinearGradient(colors: [.clear, .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+            if let title = currentTitle {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 8)
+                    .accessibilityIdentifier("pieceTitle")
+            }
+        }
+        .frame(width: width, height: 48)
+        .allowsHitTesting(false)
+    }
+
     var body: some View {
-        VStack(spacing: 3) {
+        VStack(spacing: 4) {
             HStack {
                 Text("ADMIRA VISOR").font(.system(size: 10, weight: .semibold))
                 Spacer()
                 Text(visor.items.isEmpty ? "—" : "\(visor.index + 1)/\(visor.items.count)")
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .accessibilityIdentifier("playlistPosition")
-            }.foregroundStyle(.mint)
-            ZStack {
-                Color.black
-                if let image = visor.image {
-                    Image(uiImage: image).resizable().scaledToFit()
-                }
-                if let player = visor.player, !dimmed { VideoPlayer(player: player) }
-                if !visor.message.isEmpty {
-                    VStack(spacing: 5) {
-                        Text(visor.message).font(.caption2).multilineTextAlignment(.center)
-                        if !visor.playing {
-                            Button("Reintentar") { Task { await visor.retry() } }.font(.caption2)
-                        }
+            }
+            .foregroundStyle(admiraGreen)
+            .padding(.horizontal, 10)
+            .frame(height: 14)
+            GeometryReader { geometry in
+                ZStack {
+                    Color.black
+                    if let image = visor.image {
+                        let size = fittedSize(image.size, in: geometry.size)
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: size.width, height: size.height)
+                            .overlay(alignment: .bottom) { titleOverlay(width: size.width) }
                     }
+                    if let player = visor.player, !dimmed {
+                        // The video surface spans the width. Keep portrait clips
+                        // intact at full height, with black bars inside the surface.
+                        let size = fittedSize(visor.videoSize, in: geometry.size)
+                        VideoPlayer(player: player)
+                            .frame(width: geometry.size.width, height: size.height)
+                            .background(.black)
+                            .disabled(true)
+                            .allowsHitTesting(false)
+                            .overlay(alignment: .bottom) { titleOverlay(width: geometry.size.width) }
+                    }
+                    if !visor.message.isEmpty {
+                        VStack(spacing: 5) {
+                            Text(visor.message).font(.caption2).multilineTextAlignment(.center)
+                            if !visor.playing {
+                                Button("Reintentar") { Task { await visor.retry() } }.font(.caption2)
+                            }
+                        }
+                        .padding(.horizontal, 10)
+                    }
+                    if dimmed { Text("Admira Visor").font(.caption2).foregroundStyle(.secondary) }
                 }
-                if dimmed { Text("Admira Visor").font(.caption2).foregroundStyle(.secondary) }
-            }.clipped()
-            if !visor.items.isEmpty {
-                Text(visor.items[visor.index].title).font(.system(size: 10)).lineLimit(1)
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .clipped()
             }
         }
-        .padding(.horizontal, 5)
+        // Reserve only the system clock; reclaim watchOS's large content margins.
+        .padding(.top, 35)
         .background(.black)
+        .ignoresSafeArea()
         .task { await visor.start() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await visor.resume() } }
