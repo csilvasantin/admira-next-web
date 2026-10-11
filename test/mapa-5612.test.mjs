@@ -33,6 +33,26 @@ test('el mapa pinta calles sin iconos de servicios, marca el dato de prueba y no
   assert.match(canvas, /class="mapa-legend"/);
 });
 
+test('una marca clara pinta toda la página, la leyenda baja y el anillo mide al menos 24 px', () => {
+  const css = leer('pruebas/mapa/mapa.css');
+  const js = leer('pruebas/mapa/mapa.js');
+  const html = leer('pruebas/mapa/index.html');
+  assert.match(css, /data-mapa-tema="claro"/);
+  assert.match(css, /body\[data-yk-frame="cabecera"\]\{background:var\(--bg\) !important/);
+  assert.match(css, /\.yk-dots\{display:none !important\}/);
+  assert.doesNotMatch(css, /data-mb-marca="lumbre"/);
+  assert.match(css, /\.mapa-legend\{[^}]*bottom:/);
+  assert.doesNotMatch(css, /\.mapa-legend\{[^}]*top:12px/);
+  assert.match(css, /max-width:600px[\s\S]*\.mapa-legend-body\{display:none\}/);
+  assert.doesNotMatch(css, /\.is-prueba \.mapa-pin\{[^}]*background:/);
+  assert.match(html, /class="mapa-legend-toggle"/);
+  assert.match(html, />Leyenda</);
+  assert.match(js, /24 \* metrosPorPx/);
+  assert.match(js, /is-prueba/);
+  assert.match(js, /data-mapa-tema/);
+  assert.match(js, /json\.modo === 'claro'/);
+});
+
 test('sin AUTH_DB una página de /pruebas responde 401 y no 503', async () => {
   const {onRequest} = await import('../functions/pruebas/_middleware.js');
   const next = async () => new Response('SECRETO');

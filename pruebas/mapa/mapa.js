@@ -7,7 +7,7 @@
   var T = function (es, en) { return english() ? en : es; };
   var escape = function (value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
   var state = {demo:false, devices:[], loaded:false, loading:false, lastRead:null, error:null, request:0, controller:null};
-  var map, markers, tiles, pins = new Map(), fitNext = true;
+  var map, markers, tiles, pins = new Map(), halos = [], fitNext = true, temaTicket = 0;
 
   function hasPosition(device) {
     return typeof device.lat === 'number' && Number.isFinite(device.lat) && Math.abs(device.lat) <= 90 &&
@@ -108,15 +108,19 @@
     map = G.L.map('mapa', {scrollWheelZoom:false}).setView([41.394,2.164], 13);
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
+    if (map.on) map.on('zoomend', refrescarHalos);
+  }
+
+  function temaClaro() {
+    return !!(d.documentElement.getAttribute && d.documentElement.getAttribute('data-mapa-tema') === 'claro');
   }
 
   function aplicarCapa() {
     if (!map || !G.L) return;
-    var lumbre = d.documentElement.getAttribute('data-mb-marca') === 'lumbre';
     // CARTO Dark Matter y Positron exigen clave desde el 25-sep-2026; sin ella
     // la tesela es la marca de agua. El lienzo gris de Esri pinta calles y
-    // nombres, sin iconos de servicios: oscuro en el tema oscuro, claro con Lumbre.
-    var url = lumbre
+    // nombres, sin iconos de servicios: oscuro en el tema oscuro, claro con una marca clara.
+    var url = temaClaro()
       ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
       : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
     if (tiles && map.removeLayer) map.removeLayer(tiles);
@@ -142,11 +146,28 @@
     map.fitBounds(G.L.latLngBounds(points), {padding:[45,45],maxZoom:15,animate:false});
   }
 
+  function radioHalo(metros, lat) {
+    if (typeof metros !== 'number' || !(metros > 0)) return metros;
+    var zoom = map && typeof map.getZoom === 'function' ? map.getZoom() : null;
+    if (zoom == null) return metros;
+    var metrosPorPx = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
+    if (!Number.isFinite(metrosPorPx) || metrosPorPx <= 0) return metros;
+    // El marcador mide 32 px. Un radio de 24 px deja el anillo visible alrededor.
+    return Math.max(metros, 24 * metrosPorPx);
+  }
+
+  function refrescarHalos() {
+    halos.forEach(function (item) {
+      if (item.circle && item.circle.setRadius) item.circle.setRadius(radioHalo(item.metros, item.lat));
+    });
+  }
+
   function renderMap() {
     byId('mapa-vacio').hidden = !state.loaded || state.devices.some(hasPosition);
     if (!map) return;
     markers.clearLayers();
     pins.clear();
+    halos = [];
     state.devices.filter(hasPosition).forEach(function (device) {
       var prueba = esPrueba(device), key = prueba ? 'prueba' : status(device), popup = d.createElement('div');
       popup.className = 'mapa-popup';
@@ -154,14 +175,14 @@
       popup.innerHTML = '<strong>' + escape(nombreCorto(device)) + '</strong><p>' + escape(statusText(key)) + '<br>' + escape(prueba ? T('Dato de prueba','Test data') : date(device.ultimo_aviso || device.ts)) + '</p>' +
         (prueba ? '<p class="mapa-popup-demo">' + T('Dato de prueba · DEMO','Test data · DEMO') + '</p>' : '') +
         (device.direccion ? '<p>' + escape(device.direccion) + '</p>' : '');
-      if (prueba === false && typeof device.precision_m === 'number' && device.precision_m > 0 && G.L.circle) {
-        G.L.circle([device.lat,device.lon], {radius:device.precision_m, color:'#63e6d5', weight:1, fillColor:'#63e6d5', fillOpacity:0.12, interactive:false}).addTo(markers);
+      if (typeof device.precision_m === 'number' && device.precision_m > 0 && G.L.circle) {
+        var color = prueba ? '#ffbd69' : '#63e6d5';
+        var circle = G.L.circle([device.lat,device.lon], {radius:radioHalo(device.precision_m, device.lat), color:color, weight:2, fillColor:color, fillOpacity:0.12, interactive:false}).addTo(markers);
+        halos.push({circle:circle, metros:device.precision_m, lat:device.lat});
       }
-      if (prueba && typeof device.precision_m === 'number' && device.precision_m > 0 && G.L.circle) {
-        G.L.circle([device.lat,device.lon], {radius:device.precision_m, color:'#ffbd69', weight:1, fillColor:'#ffbd69', fillOpacity:0.12, interactive:false}).addTo(markers);
-      }
+      var tipo = device.tipo === 'fijo' ? 'fijo' : 'movil';
       var icon = G.L.divIcon({
-        className:'mapa-marker is-' + key,
+        className:'mapa-marker is-' + tipo + (prueba ? ' is-prueba' : key === 'stale' ? ' is-stale' : ''),
         html:'<span class="mapa-pin">' + GLYPH[device.tipo === 'fijo' ? 'fijo' : 'movil'] + '</span><span class="mapa-pin-nombre">' + escape(nombreCorto(device)) + '</span>',
         iconSize:[32,32], iconAnchor:[16,16], popupAnchor:[0,-18]
       });
@@ -173,6 +194,7 @@
       pins.set(device.equipo,pin);
     });
     if (fitNext) {fit();fitNext = false;}
+    refrescarHalos();
   }
 
   function renderError() {
@@ -285,13 +307,128 @@
     var card = event.target.closest('.mapa-device');
     if (card && card.getAttribute('data-equipo')) enlazar(card.getAttribute('data-equipo'), false);
   });
+  function canales(value) {
+    var s = String(value || '').trim();
+    var hex = s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (hex) {
+      var h = hex[1];
+      if (h.length === 3) h = h.replace(/./g, function (c) { return c + c; });
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+    var rgb = s.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
+    return rgb ? [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])] : null;
+  }
+
+  function esFondoClaro(value) {
+    var c = canales(value);
+    if (!c) return false;
+    var lin = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]) >= 0.45;
+  }
+
+  function fondoAplicado() {
+    if (!G.getComputedStyle) return '';
+    try { return G.getComputedStyle(d.documentElement).getPropertyValue('--mb-fondo').trim(); }
+    catch (err) { return ''; }
+  }
+
+  function modoPedido() {
+    try {
+      var q = new URLSearchParams(G.location.search).get('modo');
+      return q === 'claro' || q === 'oscuro' ? q : '';
+    } catch (err) { return ''; }
+  }
+
+  var PINTADOS = ['--mb-fondo','--mb-fondo-alt','--mb-superficie','--mb-superficie-alt','--mb-borde','--mb-texto','--mb-texto-suave','--mb-primario','--mb-secundario','--mb-acento','--mb-aviso','--mb-ok','--mbx-ink','--mbx-mut','--mbx-brand'];
+
+  function setTema(claro) {
+    var root = d.documentElement;
+    if (!root || !root.setAttribute) return;
+    if (claro) root.setAttribute('data-mapa-tema', 'claro');
+    else if (typeof root.removeAttribute === 'function') root.removeAttribute('data-mapa-tema');
+  }
+
+  function limpiarPintura() {
+    var root = d.documentElement;
+    if (!root.getAttribute || root.getAttribute('data-mapa-pintado') !== '1' || !root.style || !root.style.removeProperty) return;
+    PINTADOS.forEach(function (name) { root.style.removeProperty(name); });
+    if (typeof root.removeAttribute === 'function') root.removeAttribute('data-mapa-pintado');
+  }
+
+  function pintarClaro(pal) {
+    var root = d.documentElement;
+    if (!root.style || !root.style.setProperty) return;
+    var put = function (name, value) { if (value) root.style.setProperty(name, value); };
+    put('--mb-fondo', pal.fondo);
+    put('--mb-fondo-alt', pal.fondoAlt);
+    put('--mb-superficie', pal.superficie);
+    put('--mb-superficie-alt', pal.superficieAlt);
+    put('--mb-borde', pal.borde);
+    put('--mb-texto', pal.texto);
+    put('--mb-texto-suave', pal.textoSuave);
+    put('--mb-primario', pal.primario);
+    put('--mb-secundario', pal.secundario);
+    put('--mb-acento', pal.acento);
+    put('--mb-aviso', pal.aviso);
+    put('--mb-ok', pal.ok);
+    put('--mbx-ink', pal.texto);
+    put('--mbx-mut', pal.textoSuave);
+    put('--mbx-brand', pal.primario);
+    root.setAttribute('data-mapa-pintado', '1');
+  }
+
+  function paletaClara(json) {
+    var colores = json && (json.colores || json.paleta) || {};
+    return colores.claro || colores.light || null;
+  }
+
+  async function aplicarTema() {
+    var root = d.documentElement;
+    var marca = root.getAttribute ? root.getAttribute('data-mb-marca') : '';
+    var ticket = ++temaTicket;
+    if (!marca) { limpiarPintura(); setTema(false); return false; }
+    var pedido = modoPedido();
+    var claro = false;
+    if (pedido !== 'oscuro') {
+      var fondo = fondoAplicado();
+      claro = pedido === 'claro' || root.getAttribute('data-mb-modo') === 'claro' || esFondoClaro(fondo);
+      if (!claro || (pedido === 'claro' && !esFondoClaro(fondo))) {
+        try {
+          var response = await G.fetch('/marcablanca/clientes/' + encodeURIComponent(marca) + '.json', {cache:'force-cache'});
+          if (ticket !== temaTicket) return false;
+          if (response && response.ok) {
+            var json = await response.json();
+            var pal = paletaClara(json);
+            var colores = json && (json.colores || json.paleta) || {};
+            if (pal && esFondoClaro(pal.fondo) && (pedido === 'claro' || json.modo === 'claro' || !colores.oscuro)) {
+              pintarClaro(pal);
+              claro = true;
+            }
+          }
+        } catch (err) {}
+      }
+    }
+    if (ticket !== temaTicket) return false;
+    if (!claro) limpiarPintura();
+    setTema(claro);
+    return claro;
+  }
+
+  var leyendaBtn = d.querySelector && d.querySelector('.mapa-legend-toggle');
+  if (leyendaBtn && leyendaBtn.addEventListener) leyendaBtn.addEventListener('click', function () {
+    var abierto = leyendaBtn.getAttribute('aria-expanded') === 'true';
+    leyendaBtn.setAttribute('aria-expanded', abierto ? 'false' : 'true');
+    var caja = leyendaBtn.parentNode;
+    if (caja && caja.classList) caja.classList.toggle('is-open', !abierto);
+  });
   if (typeof MutationObserver === 'function') new MutationObserver(function (records) {
     render();
-    var marca = !records || records.some(function (record) { return record.attributeName === 'data-mb-marca'; });
-    if (marca) aplicarCapa();
-  }).observe(d.documentElement,{attributes:true,attributeFilter:['lang','data-mb-marca']});
+    var marca = !records || records.some(function (record) { return record.attributeName === 'data-mb-marca' || record.attributeName === 'data-mb-modo'; });
+    if (marca) aplicarTema().then(function () { aplicarCapa(); });
+  }).observe(d.documentElement,{attributes:true,attributeFilter:['lang','data-mb-marca','data-mb-modo']});
   G.setInterval(function () {if (state.loaded && !state.loading) render();},30000);
   G.setInterval(function () {if (!state.demo && !d.hidden) refresh();},60000);
   initializeMap();
+  aplicarTema().then(function () { aplicarCapa(); });
   refresh();
 })(window,document);

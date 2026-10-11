@@ -24,17 +24,18 @@ function mount(fetcher = async () => answer([phone(),mini()])) {
   const element = (id) => {if (!elements.has(id)) elements.set(id,new Element());return elements.get(id);};
   const html = new Element();html.lang = 'es';
   const document = {documentElement:html,getElementById:element,createElement:() => new Element(),addEventListener:() => {}};
-  const map = {setView() {return this;},fitBounds() {}};
-  const group = {addTo() {return this;},clearLayers() {pins.length = 0;}};
+  const circles = [];
+  const map = {setView() {return this;},fitBounds() {},getZoom() {return 14;},on() {}};
+  const group = {addTo() {return this;},clearLayers() {pins.length = 0;circles.length = 0;}};
   const L = {
-    map:() => map,tileLayer:() => ({addTo() {return this;}}),circle:() => ({addTo() {return this;}}),layerGroup:() => group,latLngBounds:(points) => points,divIcon:(options) => options,
+    map:() => map,tileLayer:() => ({addTo() {return this;}}),circle:(latlon,options) => ({latlon,options,setRadius(value) {this.options.radius = value;},addTo() {circles.push(this);return this;}}),layerGroup:() => group,latLngBounds:(points) => points,divIcon:(options) => options,
     marker:(latlon,options) => ({latlon,options,bindPopup(popup) {this.popup = popup;return this;},addTo() {pins.push(this);return this;}})
   };
   class Clock extends Date {constructor(...args) {super(...(args.length ? args : [NOW]));} static now() {return NOW;}}
   const context = vm.createContext({document,L,Date:Clock,Intl,Map,console,AbortController,MutationObserver:class {constructor(callback) {observers.push(callback);} observe() {}},setInterval:(callback,ms) => intervals.push({callback,ms}),fetch:async (url,options) => {requests.push({url,options});return fetcher(url,options);}});
   context.window = context;
   vm.runInContext(code,context);
-  return {element,requests,pins,intervals,language:(lang) => {html.lang = lang;observers.forEach((callback) => callback());}};
+  return {element,requests,pins,circles,intervals,language:(lang) => {html.lang = lang;observers.forEach((callback) => callback());}};
 }
 
 test('live view has one marker per positioned device, fixed address and zero battery; names are escaped',async () => {
@@ -61,7 +62,9 @@ test('over two hours is outdated, exactly two hours is fresh, no reports or coor
   assert.match(ui.element('equipos-lista').innerHTML,/Desactualizado/);
   assert.match(ui.element('equipos-lista').innerHTML,/Sin coordenadas confirmadas/);
   assert.equal(ui.pins.length,1);
-  assert.equal(ui.pins[0].options.icon.className,'mapa-marker is-stale');
+  assert.equal(ui.pins[0].options.icon.className,'mapa-marker is-movil is-stale');
+  assert.equal(ui.circles[0].options.color,'#63e6d5');
+  assert.ok(ui.circles[0].options.radius > 100);
   const exact = mount(async () => answer([phone({ultimo_aviso:iso(120)})]));
   await flush();
   assert.match(exact.element('equipos-lista').innerHTML,/Actualizado/);
@@ -120,8 +123,11 @@ test('a fixture inside real data is labelled test data and does not raise a real
   assert.match(list,/Dato de prueba/);
   assert.doesNotMatch(list,/Desactualizado/);
   assert.equal(ui.pins[0].options.icon.iconSize[0],32);
+  assert.equal(ui.pins[0].options.icon.className,'mapa-marker is-movil is-prueba');
   assert.match(ui.pins[0].popup.innerHTML,/Dato de prueba/);
   assert.match(ui.pins[0].options.icon.html,/mapa-pin-nombre/);
+  assert.equal(ui.circles[0].options.color,'#ffbd69');
+  assert.ok(ui.circles[0].options.radius > 100);
 });
 
 test('language changes rerender live metadata, device details, popup text and demo controls',async () => {

@@ -14,14 +14,19 @@ Ruta prevista tras una futura fusión y publicación autorizadas:
 creado. Esta PR no se fusiona: el atajo no debe apuntar todavía a esas
 direcciones.
 
-El mapa usa Leaflet. El tema oscuro carga el lienzo gris oscuro de Esri y la
-marca Lumbre el lienzo gris claro, sin iconos de servicios y con la atribución
-de Esri y OpenStreetMap. CARTO Dark Matter y Positron eran la base pedida; desde
-el 25 de septiembre de 2026 su tesela pública, sin clave, es la marca de agua
-«API KEY REQUIRED». La clave no está en el repositorio. El marcador mide unos
-32 px (teléfono en los móviles, ordenador en los fijos), lleva el nombre corto,
-un círculo de precisión y la leyenda dentro del mapa. En «Datos reales» solo
-salen avisos reales. Cualquier dato de prueba se marca «Dato de prueba».
+El mapa usa Leaflet. El tema oscuro carga el lienzo gris oscuro de Esri. Una
+marca clara —Lumbre u otra cuyo modo o fondo sea claro— pinta toda la página en
+ese tema: fondo, cabecera, botones y textos, y carga el lienzo gris claro. El
+fondo de puntos de la noche no se queda debajo. CARTO Dark Matter y Positron
+eran la base pedida; desde el 25 de septiembre de 2026 su tesela pública, sin
+clave, es la marca de agua «API KEY REQUIRED». La clave no está en el
+repositorio. El marcador mide unos 32 px y lleva el color de su tipo (teléfono
+en los móviles, ordenador en los fijos). El dorado de «Dato de prueba» queda
+solo en el borde. El círculo de precisión tiene al menos unos 24 px de radio,
+para que el del iPhone (±14 m) se vea alrededor del marcador. La leyenda va
+abajo a la izquierda, encima de la atribución. En móvil se pliega en un botón
+«Leyenda». En «Datos reales» solo salen avisos reales. Cualquier dato de
+prueba se marca «Dato de prueba». Estos retoques siguen en la PR, sin publicar.
 
 ## Acceso y alcance
 
