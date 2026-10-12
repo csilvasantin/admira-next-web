@@ -1141,7 +1141,7 @@
   }
   verb({name: 'demo', args: 'ios [iphone|watch] [playlist|#tag] | [global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var localAction=localDemoAction(a,log); if(localAction)return localAction.result;
-    if (!catalogReady && !/^(?:ios|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false});});
+    if (!catalogReady && !/^(?:ios|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false,record:false});});
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     return demoRun(p, log);
@@ -1206,12 +1206,12 @@
     var t = String(text || '').trim();
     if (!t) return;
     if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
-    recordCommand(t);
+    if(!opts||opts.record!==false)recordCommand(t);
     if (handleLangCommand(t, log)) return;
     var parts = t.replace(/^\//, '').split(/\s+/), name = (parts.shift() || '').toLowerCase();
     var v = findVerb(name), c = v ? null : compacto(name);
     if (c) { name = c.name; parts.unshift(c.arg); v = findVerb(name); }
-    if (!v) { out(log, T('Verbo desconocido: /', 'Unknown verb: /') + name + T(' · escribe /help', ' · type /help'), 'err'); return; }
+    if (!v) { var unknown=T('Verbo desconocido: /', 'Unknown verb: /') + name + T(' · escribe /help', ' · type /help');out(log,unknown,'err');return {ok:false,error:unknown}; }
     // El idioma del verbo pasa a ser el de la web, cuando la orden ya ha hecho lo suyo.
     var idioma = idiomaDeVerbo(name);
     var cambiaIdioma = function () {
@@ -1231,7 +1231,7 @@
       if (r && typeof r.then === 'function') return r.then(function (x) { cambiaIdioma(); return x; }, function (e) { cambiaIdioma(); out(log,String(e && e.message || e),'err'); return {ok:false,error:String(e && e.message || e)}; });
       cambiaIdioma();
       return r;
-    } catch (e) { out(log, String(e && e.message || e), 'err'); }
+    } catch (e) { var error=String(e&&e.message||e);out(log,error,'err');return {ok:false,error:error}; }
   }
 
   function build() {
@@ -1518,7 +1518,7 @@
   };
 
   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
-  try { document.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
+  try { root.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
 
   function bootNativeDemo() {
     var id; try { id = new URLSearchParams(location.search).get('ax_demo'); } catch (_) { return; }
@@ -1527,7 +1527,7 @@
     if ((!nativo && !macro) || root.AdmiraDemoControl || document.querySelector('script[data-admira-native-control]')) return;
     var loader = document.createElement('script');
     var base;try { base = new URL(script.src || 'https://www.admiranext.com/suite/experto.js'); } catch (_) { base = new URL('https://www.admiranext.com/suite/experto.js'); }
-    loader.src = new URL('/suite/demo-control.js?v=20261009-marca-5463',base.origin).href;
+    loader.src = new URL('/suite/demo-control.js?v=20261012-unified-1',base.origin).href;
     loader.setAttribute('data-admira-native-control','');
     loader.onerror = function(){ var msg=document.createElement('p');msg.setAttribute('role','alert');msg.textContent=T('No se pudo cargar el recorrido. Recarga la página para reintentar.','The walkthrough could not load. Reload the page to retry.');document.body.appendChild(msg); };
     document.head.appendChild(loader);
