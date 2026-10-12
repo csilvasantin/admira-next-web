@@ -171,7 +171,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.8.1');
+  assert.equal(init.result.serverInfo.version, '1.8.2');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');
@@ -247,4 +247,12 @@ test('tokens: formato anmcp_, hash estable y cabecera Bearer', async () => {
 test('public MCP help documents prepared Pixeria updates and explicit local removal',async()=>{
  const anon={access:null,fetchImpl:async()=>{throw Error('public guide must not execute APIs');}}, response=await handleRpc(anon,{jsonrpc:'2.0',id:900,method:'tools/call',params:{name:'help',arguments:{tema:'novedades'}}});
  const text=response.result.content[0].text;assert.match(text,/demo pixeria novedades/);assert.match(text,/demo pixeria updates/);assert.match(text,/No generation is executed/);assert.match(text,/this browser/);assert.match(text,/studio.subdemos.json/);
+});
+
+test('native demo MCP guide is discoverable without granting execution or reading project data', async () => {
+ const r=await handleRpc({access:null}, {jsonrpc:'2.0',id:77,method:'tools/call',params:{name:'help',arguments:{tema:'demo-ios'}}});
+ assert.equal(r.result.isError,false);
+ for(const text of ['/demo ios iphone','/demo ios watch','#musica','playlist','macOS','no abre escritorios'])assert.ok(r.result.content[0].text.includes(text));
+ const listing=await handleRpc({access:null}, {jsonrpc:'2.0',id:78,method:'tools/list'});
+ assert.match(listing.result.tools.find(t=>t.name==='help').description,/demo-ios/);
 });

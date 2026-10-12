@@ -329,6 +329,7 @@
     return items;
   }
   verb({name: 'help', alias: ['?', 'ayuda'], desc: ['esta lista', 'this list'], run: function (a, log) {
+    if (/^(?:demo\s+)?ios$/i.test(a.join(' ').trim())) { out(log, iosHelp()); return; }
     out(log, verbs.map(function (v) { var par = parDe(v.name); return '/' + v.name + (par ? ' · /' + par : '') + (v.args ? ' ' + v.args : '') + ' — ' + T(v.desc[0], v.desc[1]); }).join('\n') +
       '\n' + T('Cada verbo vale en castellano o en inglés: el castellano pone la web en castellano y el inglés en inglés. /marca84 = /marca 84.',
         'Every verb works in Spanish or English: the Spanish one switches the site to Spanish, the English one to English. /brand84 = /brand 84.'));
@@ -588,6 +589,12 @@
   // En una plataforma con manifiesto manda resolverDemo (números y alias locales); los nombres de las cinco
   // soluciones (/demo store, /demo biz…) siguen abriendo las otras plataformas.
   var recorrido = null, recorridoTimer = null, recorridoVideo = null, recorridoPrime = 0;
+  function iosHelp() {
+    return T('Demo nativa iPhone + Apple Watch', 'Native iPhone + Apple Watch demo') + '\n' +
+      '/demo ios — iPhone + Apple Watch\n/demo ios iphone — iPhone\n/demo ios watch — Apple Watch\n/demo ios #musica — tags del proyecto / project tags\n/demo ios "playlist" — asociar playlist / associate playlist\n' +
+      T('Por defecto usa la última playlist asociada al proyecto activo. Requiere el lanzador Admira IOS Demo en macOS y los simuladores instalados; no necesita dispositivos físicos. Acepta Abrir Admira IOS Demo si Chrome lo pide. El envío no confirma el arranque. Ayuda: https://www.admiranext.com/help/#demo-ios',
+      'Defaults to the latest playlist associated with the active project. Requires the Admira IOS Demo macOS launcher and installed simulators; no physical devices required. Accept Open Admira IOS Demo if Chrome asks. Sending does not confirm startup. Help: https://www.admiranext.com/help/#demo-ios');
+  }
   function parseDemo(text) {
     var m = /^\/?demo(?:\s+(.*))?$/i.exec(String(text == null ? '' : text).trim());
     if (!m) return null;
@@ -1018,6 +1025,8 @@
   }
   function demoRun(p, log) {
     if(p.ios){
+      if (/^\/?demo\s+ios\s+(?:help|ayuda)$/i.test(p.ios)) { out(log,iosHelp()); return {id:'ios',help:true}; }
+      out(log,T('Solicitando la demo nativa. Si Chrome lo pide, acepta Abrir Admira IOS Demo. Requiere el lanzador instalado en este Mac.', 'Requesting the native demo. If Chrome asks, accept Open Admira IOS Demo. The launcher must be installed on this Mac.'));
       var moduleURL = new URL('demo-ios.mjs?v=20261012-ios-1', script.src || 'https://www.admiranext.com/suite/experto.js').href;
       import(moduleURL).then(function(m){return m.runIOS(p.ios,root);}).then(function(r){out(log,T('Solicitud enviada al lanzador del Mac: ','Request sent to the Mac launcher: ')+r.project+' · '+r.playlist.name+' · '+r.device);}).catch(function(e){out(log,String(e.message||e),'err');});
       return {id:'ios',native:true};

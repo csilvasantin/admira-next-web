@@ -567,3 +567,11 @@ test('native iOS commands available on all five authenticated suite skins',()=>{
   for(const command of ['/demo ios','/demo ios iphone','/demo ios watch #musica'])assert.deepEqual(snap(api.parseDemo(command)),{id:'ios',native:true,command});
  }
 });
+
+test('native demo help is accessible from the Store console without opening a protocol URL', () => {
+ const {api,location}=withLang('en','admira.store');
+ const before=location.href;
+ const result=api.demo('/demo ios help');
+ assert.equal(result.help,true);
+ assert.equal(location.href,before);
+});

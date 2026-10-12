@@ -165,3 +165,8 @@ Demo: https://www.admiranext.com/demo/pixeria-novedades/
 Guide/tutorial ES/EN: https://www.admiranext.com/demo/pixeria-novedades/README.md
 Manifest: https://www.admiranext.com/demo/pixeria-novedades/studio.subdemos.json
 MCP: existing `help {tema:"novedades"}`. Public GET /mcp (Accept application/json) returns demoUpdates metadata. No generation or new credentials.
+
+## Demo iOS nativa
+/demo ios | /demo ios iphone | /demo ios watch | /demo ios #musica | /demo ios "playlist"
+Proyecto activo, última playlist asociada; requiere lanzador macOS y simuladores, sin hardware físico.
+MCP help {tema:"demo-ios"}. Guía: https://www.admiranext.com/mcp/DEMO-IOS.md

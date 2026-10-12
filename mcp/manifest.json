@@ -366,5 +366,18 @@
     "mode": "prepared",
     "generation": false,
     "delete": "Explicitly delete the Studio entry in this browser; keep other definitions and campaign assets."
+  },
+  "nativeIOSDemo": {
+    "command": "/demo ios",
+    "variants": [
+      "/demo ios iphone",
+      "/demo ios watch",
+      "/demo ios #musica",
+      "/demo ios \"playlist\""
+    ],
+    "guide": "https://www.admiranext.com/mcp/DEMO-IOS.md",
+    "helpTopic": "demo-ios",
+    "execution": "local macOS URL launcher",
+    "physicalDevicesRequired": false
   }
 }

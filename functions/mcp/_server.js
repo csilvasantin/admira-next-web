@@ -17,7 +17,7 @@ import { FLEET_EXAMPLE_VIDEO, exampleVideoEntry, ensureExampleVideo, wantsExampl
 import { leerAtajoMarca } from '../presentaciones/_marca-atajo.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.8.1' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.8.2' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -33,7 +33,7 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - Ayuda para humanos: ${SITE}/mcp/generador
 
 ## Tools
-- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo · novedades · estructura · propuesta).
+- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo · demo-ios · novedades · estructura · propuesta).
 - list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
@@ -81,6 +81,14 @@ UI humana: /presentaciones/galeria (Registro vivo) y /presentaciones/?improve=<s
 5. Cierra con yokup_informe pegando la URL+pass de la sala (el generador es el informe completo).`;
 
 const HELP_TOPICS = {
+  'demo-ios': `Demo nativa iPhone + Apple Watch — Studio, Store, TV, App y Biz.
+/demo ios: ambos. /demo ios iphone: solo iPhone. /demo ios watch: solo Watch.
+/demo ios #musica: tags de playlists del proyecto. /demo ios "playlist": selecciona y asocia esa playlist.
+Por defecto: última playlist asociada al proyecto activo. Sin asociación, indica nombre o ID primero.
+Requiere el lanzador Admira IOS Demo instalado en macOS, apps compiladas y simuladores iOS/watchOS 26.5; no necesita hardware físico. Chrome puede pedir abrir la app externa. Recarga pestañas anteriores al despliegue.
+El MCP documenta el contrato; no abre escritorios remotos. Envío no equivale a arranque confirmado.
+Watch: previo del fotograma local y controles. Contenido descargado para reproducción sin internet.
+Guía y diagnóstico: ${SITE}/mcp/DEMO-IOS.md. Ayuda humana: ${SITE}/help/#demo-ios.`,
   novedades: `Pixeria · novedades / Pixeria updates (2026-10-09)
 ES: /demo pixeria novedades abre ocho capítulos preparados con narración opcional y vídeo completo hasta el gemelo 360. No ejecuta generación. Se conserva en el editor hasta que Carlos quiera eliminarla. Eliminar la entrada Studio retira sólo esa definición y sus referencias de este navegador; no borra la campaña ni publica una baja global.
 EN: /demo pixeria updates opens eight prepared chapters with optional narration and a full video through the 360 twin. No generation is executed. Keep it in the editor until Carlos deletes it. Removing the Studio entry removes only that definition and its project references in this browser, not the campaign or public assets.
@@ -195,7 +203,7 @@ Cada acto: portada + capítulos a, b y c (5 min).
 };
 
 export const TOOLS = [
-  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo, novedades, estructura, propuesta.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo · novedades · estructura · propuesta' } } } },
+  { name: 'help', description: 'Ayuda del Generador de Presentaciones / informes Yokup y de este MCP. `tema` opcional: crear, presentaciones, versiones, permisos, informes, catalogo, demo, demo-ios, novedades, estructura, propuesta.', inputSchema: { type: 'object', properties: { tema: { type: 'string', description: 'crear · presentaciones · versiones · permisos · informes · catalogo · demo · demo-ios · novedades · estructura · propuesta' } } } },
   { name: 'list_presentations', description: 'Catálogo / censo vivo (slug, displayName, website, languages, outputs, passwordSet, versionCount, updatedAt…). Consulta antes de crear o mejorar.', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_catalog', description: 'Alias de list_presentations: el catálogo es el gesto principal. Mismos campos.', inputSchema: { type: 'object', properties: {} } },
   { name: 'list_decks', description: 'Packs de deck (antes/después) disponibles para create_presentation.', inputSchema: { type: 'object', properties: {} } },
@@ -573,8 +581,8 @@ export async function handleRpc(ctx, msg){
     case 'tools/call': {
       const name = params && params.name;
       // This prepared-tour guide is also a public static document; it exposes no user data or execution.
-      if (!ctx.access && name === 'help' && params?.arguments?.tema === 'novedades') {
-        return rpcResult(id, {content:[{type:'text',text:HELP_TOPICS.novedades}],isError:false});
+      if (!ctx.access && name === 'help' && ['novedades','demo-ios'].includes(params?.arguments?.tema)) {
+        return rpcResult(id, {content:[{type:'text',text:HELP_TOPICS[params.arguments.tema]}],isError:false});
       }
       if (!ctx.access) return rpcResult(id, { content: [{ type: 'text', text: 'Falta un token MCP válido. Cabecera Authorization: Bearer anmcp_… (lo crea un admin en /usuarios → Tokens MCP). Sin token solo funcionan initialize, tools/list y help.' }], isError: name !== 'help' });
       try {
