@@ -1,0 +1,12 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Demo nativa iOS · pruebas</title>
+<style>body{background:#081012;color:#e0f5eb;font:18px system-ui;margin:40px;max-width:900px}input,button{font:inherit;padding:10px;background:#152624;color:inherit;border:1px solid #347d65;border-radius:6px}code{color:#58e99e}pre{white-space:pre-wrap}</style>
+<h1>Demo nativa iPhone y Apple Watch</h1><p>Zona de pruebas con sesión. El lanzador registrado en el Mac abre las apps reales en simuladores emparejados del Mac libre.</p>
+<label>Proyecto <input id="project" value="demo-suite-ios"></label>
+<form id="command"><p><input id="text" size="48" value='/demo ios "365.bcn-tetuan.vertical"'><button>Lanzar</button></p></form>
+<p><code>/demo ios</code> ambos · <code>/demo ios iphone</code> · <code>/demo ios watch</code> · <code>/demo ios #musica</code></p>
+<p>La primera selección explícita asocia la playlist al proyecto en el lanzador. Las siguientes usan la más reciente entre las playlists asociadas al proyecto. Los tags filtran sus contenidos usando el índice de Stock.</p><pre id="result" role="status"></pre>
+<script type="module">
+import {runIOS} from '/suite/demo-ios.mjs';
+window.AdmiraIOSDemoContext=()=>({project:document.querySelector('#project').value});
+document.querySelector('#command').addEventListener('submit',async e=>{e.preventDefault();try{const r=await runIOS(document.querySelector('#text').value);document.querySelector('#result').textContent='Solicitud enviada al lanzador: '+r.project+' · '+r.device+' · '+r.playlist.name;}catch(err){document.querySelector('#result').textContent=err.message;}});
+</script></html>

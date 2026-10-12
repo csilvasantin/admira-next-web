@@ -560,3 +560,10 @@ test('/demo editor abre el editor de demos en admiranext.com', () => {
   const enMarca = new URL(en.api.parseDemo('/demo editor').url);
   assert.equal(enMarca.searchParams.get('lang'), 'en');
 });
+
+test('native iOS commands available on all five authenticated suite skins',()=>{
+ for(const host of ['admira.studio','admira.store','admira.tv','admira.app','admira.biz']){
+  const {api}=withLang('es',host);
+  for(const command of ['/demo ios','/demo ios iphone','/demo ios watch #musica'])assert.deepEqual(snap(api.parseDemo(command)),{id:'ios',native:true,command});
+ }
+});
