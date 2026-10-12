@@ -291,13 +291,14 @@
     (def.verbs || []).forEach(function(action){
       if(reserved.indexOf(String(action.name).toLowerCase())>=0)return;
       var aliases=(action.alias || []).filter(function(alias){return reserved.indexOf(String(alias).toLowerCase())<0;});
-      verb(Object.assign({},action,{alias:aliases}));
+      verb(Object.assign({},action,{name:String(action.name).toLowerCase(),alias:aliases.map(function(alias){return String(alias).toLowerCase();})}));
     });
     (def.demos || []).forEach(function(action){
       if (!/^[a-z0-9-]*$/i.test(action.name || '') || /^(ios|editor|global|help|ayuda|lista|list)$/.test(action.name)) throw Error('Reserved demo action');
       localDemos[action.name]=action;
     });
   }
+  function demoExtensionHelp(){return Object.keys(localDemos).filter(function(name){return name&&!/^(pausa|pause|reanudar|resume|siguiente|next|estado|status|stop|off)$/.test(name);}).map(function(name){return '/demo '+name;}).join(' · ');}
   function recordCommand(text) {
     Object.keys(adapters).forEach(function(id){if(adapters[id].onCommand)adapters[id].onCommand(text);});
   }
@@ -311,7 +312,7 @@
   var MARCAS = 'https://www.admiranext.com/marcablanca/api/marcas';
   var marcaSel = null;
   try { marcaSel = JSON.parse(sessionStorage.getItem('ax-experto-marca') || 'null'); } catch (_) {}
-  function verb(v) { verbs = verbs.filter(function (x) { return x.name !== v.name; }); verbs.push(v); }
+  function verb(v) { var names=[v.name].concat(v.alias||[]);verbs = verbs.filter(function(x){return x.name!==v.name&&names.indexOf(x.name)<0;}).map(function(x){return Object.assign({},x,{alias:(x.alias||[]).filter(function(a){return names.indexOf(a)<0;})});});verbs.push(v); }
   // ─── Verbos bilingües (Carlos, 06-10-2026 10:58) ───
   // Cada verbo vale en castellano y en inglés (/marca = /brand, /ayuda = /help, /limpiar = /clear…).
   // Usar la forma castellana pone la web en castellano y la inglesa en inglés, con el mismo applyLang
@@ -1110,7 +1111,7 @@
     if (p.control) { var native = root.AdmiraDemoControl; var nativeControl = {pausa:'pause',pause:'pause',reanudar:'resume',resume:'resume',continuar:'resume',parar:'stop',stop:'stop',off:'stop',siguiente:'next',next:'next'}[p.control]; var state = native && native.state().activo ? (nativeControl ? native.control(nativeControl) : native.state()) : controlarRecorrido(p.control); out(log, JSON.stringify(state)); return state; }
     if (p.auto) { var L = localM(); if (!L.subdemos.length) { out(log, T('No hay subdemos en este catálogo.', 'No subdemos in this catalog.')); return null; } mostrarMuestra(L.subdemos[0], 1, L.subdemos, 0); return estadoRecorrido(); }
     if (p.catalogo) { lanzarCatalogo(p.catalogo, log, p.pieza); return {id: p.catalogo, pieza: p.pieza || ''}; }
-    if (p.lista) { out(log, p.local ? localLista() : demoLista()); if (p.catalogoLista) listarCatalogo(log); return null; }
+    if (p.lista) { out(log, (p.local ? localLista() : demoLista())+'\n'+demoExtensionHelp()); if (p.catalogoLista) listarCatalogo(log); return null; }
     if (p.desconocida != null) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + p.desconocida + T('. Escribe /demo help.', '. Type /demo help.') + '\n' + localLista(), 'err'); return null; }
     if (p.local && p.sub && p.sub.catalogId) { return lanzarCatalogo(p.sub.catalogId,log,p.sub.id); }
     if (p.local) {
