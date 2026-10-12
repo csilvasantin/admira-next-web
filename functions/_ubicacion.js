@@ -38,8 +38,7 @@ export function respuestaUbicacion(data, status = 200, extraHeaders = {}) {
   }});
 }
 
-export async function claveUbicacionValida(request, env) {
-  const expected = env.UBICACION_KEY_IPHONE;
+async function bearerCoincide(request, expected) {
   const match = /^Bearer ([A-Za-z0-9._~+\/-]+=*)$/i.exec(request.headers.get('Authorization') || '');
   if (typeof expected !== 'string' || expected.length < 32 || !match || match[1].length > 512) return false;
   const [providedHash, expectedHash] = await Promise.all([
@@ -47,6 +46,28 @@ export async function claveUbicacionValida(request, env) {
     crypto.subtle.digest('SHA-256', encoder.encode(expected)),
   ]);
   return crypto.subtle.timingSafeEqual(providedHash, expectedHash);
+}
+
+export const claveUbicacionValida = (request, env) => bearerCoincide(request, env.UBICACION_KEY_IPHONE);
+// Clave propia del parte horario: solo lectura de la última posición.
+export const claveParteValida = (request, env) => bearerCoincide(request, env.UBICACION_KEY_PARTE);
+
+// Ciudades de referencia: la posición solo trae lat/lon; se nombra la más cercana (<40 km).
+const CIUDADES = [
+  ['Barcelona',41.3874,2.1686],['Madrid',40.4168,-3.7038],['Valencia',39.4699,-0.3763],
+  ['Sevilla',37.3891,-5.9845],['Zaragoza',41.6488,-0.8891],['Málaga',36.7213,-4.4214],
+  ['Bilbao',43.263,-2.935],['Palma',39.5696,2.6502],['Girona',41.9794,2.8214],
+  ['Tarragona',41.1189,1.2445],['Lleida',41.6176,0.62],['Sitges',41.2372,1.8059],
+];
+export function ciudadCercana(lat, lon) {
+  const rad = Math.PI / 180;
+  let mejor = null, min = 40;
+  for (const [nombre, la, lo] of CIUDADES) {
+    const a = Math.sin((la-lat)*rad/2)**2 + Math.cos(lat*rad)*Math.cos(la*rad)*Math.sin((lo-lon)*rad/2)**2;
+    const km = 12742 * Math.asin(Math.sqrt(a));
+    if (km < min) { min = km; mejor = nombre; }
+  }
+  return mejor;
 }
 
 class EntradaInvalida extends Error {
