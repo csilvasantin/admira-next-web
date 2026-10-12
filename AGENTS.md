@@ -41,3 +41,11 @@ La norma está también en https://www.admiranext.com/normativa (norma 31).
   es el modo Experto. No añadas ninguna interfaz Experto antes del login.
 
 La norma está también en https://www.admiranext.com/normativa (norma 32).
+
+## Un único manejador de comandos de la suite (Carlos, 12-10-2026)
+
+- Studio, Store, TV, App y Biz comparten un único motor de comandos: `suite/experto.js`, API `AdmiraExperto.exec`.
+- Los comandos comunes, sus alias, ayuda, validación y errores se implementan una sola vez. No copiar parsers ni añadir interceptores por dominio para solucionar un comando compartido.
+- Las funciones específicas de una aplicación se exponen como acciones registradas en el motor común; la consola y el avatar delegan en la misma entrada. MCP documenta/utiliza ese contrato, sin inventar otra gramática.
+- Un único despacho debe ejecutar cada entrada una sola vez. No lanzar el comando desde un listener y volver a intentarlo en otro.
+- Las rutas locales antiguas requieren migración explícita y pruebas de sus funciones antes de retirarlas. No afirmar que toda la suite está unificada por haber compartido su apariencia o un único comando.

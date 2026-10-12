@@ -1072,12 +1072,12 @@
     var p = parseDemo(text);
     if (!p) return null;
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
-    return demoRun(p, log);
+    return execute(text, log, {echo:false});
   }
   verb({name: 'demo', args: 'ios [iphone|watch] [playlist|#tag] | [global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
-    demoRun(p, log);
+    return demoRun(p, log);
   }});
   verb({name: 'demos', args: 'editar|edit', desc: ['abre el editor de demos', 'opens the demo editor'], run: function (a, log) {
     var arg = norm(a.join(' '));
@@ -1131,6 +1131,10 @@
   }});
 
   // opts.echo === false: quien llama ya pintó la orden (p. ej. el CLI del armazón de admiranext.com).
+  function sharedCommand(text) {
+    var t = String(text || '').trim();
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t))));
+  }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
     if (!t) return;
@@ -1373,47 +1377,18 @@
       hd.insertBefore(b, title.nextSibling);
     }
 
-    // Idioma: intercepta en capture ANTES de que la pata diga «verbo desconocido».
-    // Cubre /idioma, /language, typos, pegados y sin barra, en cualquier pata con la piel.
+    // Una entrada para los comandos compartidos: consola, API y avatar usan execute.
+    // Los adaptadores locales antiguos todavía deben migrar sus acciones al registro.
     form.addEventListener('submit', function (e) {
-      var val = (input && input.value != null) ? String(input.value) : '';
-      var parsed = parseLangCommand(val);
-      if (!parsed) return;
+      var val = (input && input.value != null) ? String(input.value).trim() : '';
+      if (!sharedCommand(val)) return;
       e.preventDefault();
       e.stopImmediatePropagation();
-      var echoed = val.trim();
       input.value = '';
       if (!isOpen()) setOpen(true, false);
-      if (echoed) out(log, '› ' + echoed, 'cmd');
-      if (!parsed.ok) { out(log, langUsage(), 'err'); return; }
-      applyLang(parsed.lang);
-      out(log, langMessage(parsed.lang));
+      execute(val, log);
       state = '';
       paint();
-    }, true);
-    // /arquitectura · /architecture en cualquier pata con la piel, aunque traiga su propio CLI.
-    form.addEventListener('submit', function (e) {
-      var val = (input && input.value != null) ? String(input.value).trim() : '';
-      var l = val.charAt(0) === '/' ? parseArquitectura(val) : null;
-      if (!l) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      input.value = '';
-      if (!isOpen()) setOpen(true, false);
-      out(log, '› ' + val, 'cmd');
-      irArquitectura(l, log);
-    }, true);
-    // /demo de la suite (las cinco soluciones) en cualquier pata con la piel; el resto de /demo es de la pata.
-    form.addEventListener('submit', function (e) {
-      var val = (input && input.value != null) ? String(input.value).trim() : '';
-      var p = val.charAt(0) === '/' ? parseDemo(val) : null;
-      if (!p) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      input.value = '';
-      if (!isOpen()) setOpen(true, false);
-      out(log, '› ' + val, 'cmd');
-      demoRun(p, log);
     }, true);
     // La ficha se repinta tras cada orden (/marca cambia el cliente) y al cambiar marca o idioma.
     form.addEventListener('submit', function () {

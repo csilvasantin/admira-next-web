@@ -575,3 +575,15 @@ test('native demo help is accessible from the Store console without opening a pr
  assert.equal(result.help,true);
  assert.equal(location.href,before);
 });
+
+test('avatar and console dispatch demos through the same registered action exactly once on every platform', () => {
+ for (const host of ['admira.studio','admira.store','admira.tv','admira.app','admira.biz']) {
+  const {api}=withLang('es',host);
+  const calls=[];
+  api.verb({name:'demo',desc:['demo','demo'],run:args=>{calls.push(args.join(' '));return {handled:true};}});
+  const log={appendChild(){},children:[],scrollTop:0,scrollHeight:0};
+  assert.equal(api.demo('/demo ios watch',log).handled,true);
+  assert.equal(api.exec('/demo ios iphone',log).handled,true);
+  assert.deepEqual(calls,['ios watch','ios iphone']);
+ }
+});
