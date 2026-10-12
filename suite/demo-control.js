@@ -975,11 +975,15 @@
   async function macroLeer(id) {
     var origen = macroOrigen();
     var nombre = encodeURIComponent(id);
+    var piece=new URLSearchParams(location.search).get('ax_piece');
+    var runQuery=piece?'?piece='+encodeURIComponent(piece):'';
     var plan = await macroPedir(origen + '/api/demos/resolver?nombre=' + nombre);
     if (!plan) plan = await macroPedir(origen + '/api/demos/' + nombre);
+    if (!plan) plan = await macroPedir(origen + '/api/demos/' + nombre + '/run'+runQuery);
     if (!plan && origen !== 'https://www.admiranext.com') {
       plan = await macroPedir('https://www.admiranext.com/api/demos/resolver?nombre=' + nombre);
       if (!plan) plan = await macroPedir('https://www.admiranext.com/api/demos/' + nombre);
+      if (!plan) plan = await macroPedir('https://www.admiranext.com/api/demos/' + nombre + '/run'+runQuery);
     }
     if (!plan) plan = macroDecodificar(query.get('ax_plan'));
     if (plan && plan.id !== id) return null;
@@ -1164,7 +1168,7 @@
     if (step.op === 'cli') {
       if (!macroComando(step.command)) return {estado:'mal', detalle:macroFrase('comando no permitido', 'command not allowed')};
       if (G.AdmiraExperto && typeof G.AdmiraExperto.exec === 'function') {
-        try { G.AdmiraExperto.exec(step.command, {appendChild:function(){}, children:[], removeChild:function(){}, scrollTop:0, scrollHeight:0}); } catch (e) { return {estado:'mal', detalle:String(e && e.message || e).slice(0, 160)}; }
+        try { var commandResult=await G.AdmiraExperto.exec(step.command, {appendChild:function(){}, children:[], removeChild:function(){}, scrollTop:0, scrollHeight:0});if(commandResult&&commandResult.ok===false)return {estado:'mal',detalle:commandResult.error||step.command}; } catch (e) { return {estado:'mal', detalle:String(e && e.message || e).slice(0, 160)}; }
         return {estado:'bien', detalle:step.command};
       }
       return {estado:'pendiente', detalle:macroFrase('esta página no tiene el CLI', 'this page has no CLI')};

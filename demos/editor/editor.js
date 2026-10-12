@@ -661,7 +661,17 @@ async function enviar(method, path, body, sesionDatos) {
 async function guardar(publicar) {
   const sesionDatos = await sesionEditor();
   if (!sesionDatos) { aviso(t(estado.lang, 'sesion')); return; }
-  if (!estado.macro.items.length) { aviso(estado.lang === 'en' ? 'The macro needs at least one subdemo.' : 'La macro necesita al menos una subdemo.'); return; }
+  if (!estado.macro.items.length) {
+    if(!estado.sucios.size){aviso(estado.lang==='en'?'Choose a demo to edit.':'Elige una demo para editar.');return;}
+    try {
+      for(const id of estado.sucios){const demo=estado.demos.find(item=>item.id===id);if(!demo)continue;
+        const saved=await enviar('PUT','/api/demos/'+encodeURIComponent(id),{...demo,status:'draft'},sesionDatos);
+        const final=publicar?await enviar('POST','/api/demos/'+encodeURIComponent(id)+'/publish',undefined,sesionDatos):saved;
+        Object.assign(demo,final);
+      }
+      estado.sucios.clear();aviso(publicar?t(estado.lang,'publicada'):t(estado.lang,'borrador'));pintar();
+    }catch(error){aviso(error.message);}return;
+  }
   if (!estado.macro.id) {
     const datos = await preguntar('+ Macro', [
       { name: 'id', label: 'ID', required: true },
@@ -883,7 +893,9 @@ function tecla(event) {
 async function arrancar() {
   aplicarIdioma();
   try {
-    const respuesta = await fetch('/api/demos', { cache: 'no-store' });
+    const session=await sesionEditor();
+    const respuesta = await fetch(session?'/api/demos?view=editor':'/api/demos', { cache:'no-store',credentials:'same-origin',headers:session?{'x-admira-csrf':session.csrf}:{} });
+    if(!respuesta.ok)throw Error('HTTP '+respuesta.status);
     const datos = await respuesta.json();
     estado.demos = datos.demos || [];
     estado.macros = datos.macros || [];

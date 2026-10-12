@@ -111,10 +111,10 @@ test('paso 4: GET /api/demos devuelve biz, store, studio y app', async () => {
   const env = await entorno();
   const res = await onRequest({ request: llamada('/api/demos'), env });
   assert.equal(res.status, 200);
-  assert.match(res.headers.get('cache-control'), /max-age=60/);
+  assert.match(res.headers.get('cache-control'), /no-store/);
   const body = await res.json();
   assert.equal(body.schema, 'admira.demo/2');
-  assert.deepEqual(body.demos.map((demo) => demo.id), ['biz', 'store', 'studio', 'app']);
+  assert.deepEqual(body.demos.map((demo) => demo.id), ['biz', 'store', 'studio', 'app', 'tv']);
   assert.equal(body.demos.find((demo) => demo.id === 'app').subdemos.length, 4);
   const una = await onRequest({ request: llamada('/api/demos/app'), env });
   assert.equal((await una.json()).subdemos.length, 4);
@@ -159,4 +159,23 @@ test('paso 5: un editor publica la macro biz×3 + app×2 y sin rol recibe 403', 
   const restaurado = await onRequest({ request: llamada('/api/demos/biz-app-retail/restore', { method: 'POST', cookie: editor.cookie, csrf: editor.csrf }), env });
   assert.equal(restaurado.status, 200);
   assert.equal((await restaurado.json()).status, 'draft');
+});
+
+test('public execution keeps the published version while editing and hides deleted seeds', async () => {
+  const env=await entorno(), editor=await sesion(env,'csilva@admira.com');
+  const invoke=async(path,options={})=>onRequest({request:llamada(path,{cookie:editor.cookie,csrf:editor.csrf,...options}),env});
+  const original=await (await invoke('/api/demos/studio')).json();
+  const draft=await (await invoke('/api/demos/studio',{method:'PUT',body:{...original,title:{es:'Borrador privado',en:'Private draft'}}})).json();
+  assert.equal(draft.status,'draft');
+  assert.notEqual((await (await invoke('/api/demos/studio')).json()).title.es,'Borrador privado');
+  const published=await (await invoke('/api/demos/studio/publish',{method:'POST'})).json();
+  assert.equal(published.title.es,'Borrador privado');
+  const run=await (await invoke('/api/demos/studio/run?piece=voz')).json();
+  assert.equal(run.kind,'macro');assert.equal(run.items.length,1);assert.equal(run.items[0].ref,'studio/voz');
+  const next=await (await invoke('/api/demos/studio',{method:'PUT',body:{...published,title:{es:'Siguiente borrador',en:'Next draft'}}})).json();
+  assert.equal(next.status,'draft');assert.equal((await (await invoke('/api/demos/studio')).json()).title.es,'Borrador privado');
+  assert.equal((await invoke('/api/demos/studio',{method:'DELETE'})).status,200);
+  assert.equal((await invoke('/api/demos/studio')).status,404);
+  assert.equal((await invoke('/api/demos/studio/run')).status,404);
+  assert.equal((await (await invoke('/api/demos')).json()).demos.some(d=>d.id==='studio'),false);
 });

@@ -25,7 +25,7 @@ function withLang(initial, hostname = 'www.admiranext.com', savedManifests = nul
   const documentElement = { lang: initial, dataset: {}, setAttribute() {}, getAttribute() { return null; }, classList: { contains: () => false, add() {}, toggle() {} } };
   const document = {
     documentElement,
-    currentScript: { dataset: {} },
+    currentScript: { dataset: {catalog:'offline'} },
     readyState: 'complete',
     querySelector: () => null,
     querySelectorAll: () => [],
@@ -217,8 +217,8 @@ test('admira.studio y pixeria.com: /demo 1…5 son locales, help solo lista Stud
   assert.equal(pix.parseDemo('/demo 1').url, 'https://www.pixeria.com/audio.html');
   assert.equal(withLang('es', 'www.admira.studio').api.parseDemo('/demo 1').url, 'https://www.admira.studio/audio.html');
   // En las plataformas sin manifiesto, los números siguen siendo las cinco soluciones.
-  assert.equal(withLang('es', 'www.admira.tv').api.plataforma(), null);
-  assert.equal(withLang('es', 'www.admira.tv').api.parseDemo('/demo 1').id, 'studio');
+  assert.equal(withLang('es', 'www.admira.tv').api.plataforma(), 'tv');
+  assert.deepEqual(snap(withLang('es', 'www.admira.tv').api.parseDemo('/demo 1')), {desconocida:'1'});
 });
 
 for (const plataforma of ['store', 'biz']) {
@@ -586,4 +586,21 @@ test('avatar and console dispatch demos through the same registered action exact
   assert.equal(api.exec('/demo ios iphone',log).handled,true);
   assert.deepEqual(calls,['ios watch','ios iphone']);
  }
+});
+
+test('one registry reserves suite commands and executes registered domain actions once',async()=>{
+ for(const host of ['admira.studio','admira.store','admira.tv','admira.app','admira.biz']){
+  const {api,sandbox}=withLang('es',host),log=sandbox.document.createElement('ol');let calls=0;
+  api.registerAdapter({id:'test',verbs:[{name:'probe',alias:['probar'],run:(args,output,command)=>{calls++;assert.equal(command.args,'hello');}},{name:'demo',run:()=>{throw Error('shadow');}}]});
+  api.exec('/probar hello',log);assert.equal(calls,1);
+  api.exec('/demo ios help',log);assert.equal(calls,1);
+  api.registerAdapter({id:'test',verbs:[{name:'probe',run:()=>calls++}]});api.exec('/probe hello',log);assert.equal(calls,2);
+  api.registerAdapter({id:'async',verbs:[{name:'reject',run:()=>Promise.reject(Error('expected failure'))}]});
+  await api.exec('/reject',log);assert.ok(log.children.some(li=>li.textContent==='expected failure'));
+ }
+});
+test('shared argument schema validates attributes before domain actions',()=>{
+ const {api,sandbox}=withLang('es'),log=sandbox.document.createElement('ol');let value;
+ api.registerAdapter({id:'schema',verbs:[{name:'lookup',attributes:[{key:'client',aliases:['cliente'],required:true,normalize:v=>v.toLowerCase()}],run:args=>value=args.client}]});
+ api.exec('/lookup cliente=Starbucks',log);assert.equal(value,'starbucks');value=null;api.exec('/lookup',log);assert.equal(value,null);
 });

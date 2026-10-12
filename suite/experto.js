@@ -281,6 +281,33 @@
 
   // ─── Modo propio: CLI de la suite para patas que no traen el suyo ───
   var verbs = [];
+  var adapters = Object.create(null), localDemos = Object.create(null), adapterOwnsInput = false;
+  var reserved = ['help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart'];
+  function registerAdapter(def) {
+    if (!def || !/^[a-z0-9-]+$/i.test(def.id || '')) throw Error('Invalid command adapter');
+    if (adapters[def.id]) return;
+    adapters[def.id]=def;
+    adapterOwnsInput=true;
+    (def.verbs || []).forEach(function(action){
+      if(reserved.indexOf(String(action.name).toLowerCase())>=0)return;
+      var aliases=(action.alias || []).filter(function(alias){return reserved.indexOf(String(alias).toLowerCase())<0;});
+      verb(Object.assign({},action,{alias:aliases}));
+    });
+    (def.demos || []).forEach(function(action){
+      if (!/^[a-z0-9-]*$/i.test(action.name || '') || /^(ios|editor|global|help|ayuda|lista|list)$/.test(action.name)) throw Error('Reserved demo action');
+      localDemos[action.name]=action;
+    });
+  }
+  function recordCommand(text) {
+    Object.keys(adapters).forEach(function(id){if(adapters[id].onCommand)adapters[id].onCommand(text);});
+  }
+  function localDemoAction(args, log) {
+    var name=String(args[0] || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''), action=localDemos[name];
+    if (!action || (action.when && !action.when())) return null;
+    var result=action.run(args.slice(name?1:0),log);
+    return {handled:true,result:result};
+  }
+
   var MARCAS = 'https://www.admiranext.com/marcablanca/api/marcas';
   var marcaSel = null;
   try { marcaSel = JSON.parse(sessionStorage.getItem('ax-experto-marca') || 'null'); } catch (_) {}
@@ -475,6 +502,9 @@
     if (!demo) return {tipo: 'desconocido', mensaje: 'Demo desconocida. Escribe /demo help.', opciones: opciones};
     return {tipo: 'demo', plataforma: manifest.plataforma, clave: manifest.plataforma + '/' + demo.id, modo: manifest.default_mode, demo: demo};
   }
+  ['app','tv'].forEach(function(site){
+    LOCALES[site]={manifiestos:[],m:{version:1,plataforma:site,nombre:'Admira '+site,default_mode:'recorrido',activacion:{hosts:site==='app'?['admira.app','www.admira.app','yokup.com','www.yokup.com']:['admira.tv','www.admira.tv']},subdemos:[]}};
+  });
   var plataforma = null;
   Object.keys(LOCALES).forEach(function (k) { if (LOCALES[k].m.activacion.hosts.indexOf(String(location.hostname).toLowerCase()) >= 0) plataforma = k; });
   function localM() { return plataforma ? LOCALES[plataforma].m : null; }
@@ -490,7 +520,26 @@
     return j;
   }
   function valido(j) { return j && j.plataforma === plataforma && j.activacion && Array.isArray(j.activacion.hosts) && Array.isArray(j.subdemos) && j.subdemos.length <= 40 && j.subdemos.every(function (d) { return d && /^[a-z0-9-]{1,40}$/.test(d.id) && /^https:\/\//.test(d.url || '') && Array.isArray(d.aliases) && d.aliases.length; }); }
-  function cargarLocal() {
+  var publishedCatalog = null;
+  function usePublishedCatalog(data) {
+    if (!data || !Array.isArray(data.demos)) return false;
+    publishedCatalog = data;
+    Object.keys(LOCALES).forEach(function(site){
+      if(!data.demos.some(function(doc){return doc.id===site&&doc.status==='published';})) LOCALES[site].m=Object.assign({},LOCALES[site].m,{subdemos:[],catalogId:site});
+    });
+    data.demos.forEach(function (doc) {
+      if (doc.kind !== 'demo' || doc.status !== 'published' || !LOCALES[doc.site]) return;
+      if (doc.id !== doc.site) return;
+      var old = LOCALES[doc.site].m;
+      LOCALES[doc.site].m = Object.assign({}, old, {catalogId:doc.id, catalogVersion:doc.version, subdemos:doc.subdemos.map(function (sub, index) {
+        var previous = old.subdemos.filter(function (item) { return item.id === sub.id; })[0] || {};
+        return Object.assign({}, previous, {id:sub.id,nombre:sub.title && (sub.title[lang()] || sub.title.es || sub.title.en) || sub.id,url:sub.url,aliases:(sub.aliases || []).concat([sub.id]),steps:sub.steps || [],catalogId:doc.id,letra:String.fromCharCode(97+index)});
+      })});
+    });
+    recogerNombres(data);
+    return true;
+  }
+  function cargarLocalFallback() {
     if (!plataforma) return Promise.resolve(null);
     try { var guardados = JSON.parse(localStorage.getItem('ax-subdemos-manifiestos') || '{}'), custom = guardados[plataforma]; if (custom && typeof custom === 'object') { custom = Object.assign({}, LOCALES[plataforma].m, custom); if (Array.isArray(custom.subdemos)) custom.subdemos = custom.subdemos.map(function (d) { return Object.assign({}, d, {aliases: d.aliases && d.aliases.length ? d.aliases : [d.id]}); }); } if (valido(custom)) { LOCALES[plataforma].m = muestrasPixeria(custom); return Promise.resolve(custom); } } catch (_) {}
     if (typeof fetch !== 'function') return Promise.resolve(null);
@@ -503,7 +552,15 @@
     };
     return next();
   }
-  var localListo = cargarLocal();
+  var catalogReady = ds.catalog === 'offline';
+  function refreshCatalog() {
+    if (typeof fetch !== 'function') { catalogReady=true; return Promise.resolve(null); }
+    return fetch(origenCatalogo()+'/api/demos', {cache:'no-store',credentials:'omit'}).then(function (response) {
+      if (!response.ok) throw Error('catalog');
+      return response.json();
+    }).then(function (data) { if (!usePublishedCatalog(data)) throw Error('catalog'); return data; }).catch(function () { return cargarLocalFallback(); }).then(function (data) { catalogReady=true; return data; });
+  }
+  var localListo = ds.catalog === 'offline' ? cargarLocalFallback() : refreshCatalog();
   var nombresCatalogo = Object.create(null);
   function origenCatalogo() {
     var h = '';
@@ -924,6 +981,7 @@
       return {ref:item.ref, subdemo:limpio};
     })};
     if (plan.slug) copia.slug = plan.slug;
+    if(plan.piece)copia.piece=plan.piece;
     ['lang','marca','project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) copia.context[k] = ctx[k]; });
     if (plan.transition && Number(plan.transition.seconds) >= 3) copia.transition = {seconds:Number(plan.transition.seconds)};
     var json = '';
@@ -956,6 +1014,7 @@
     url.searchParams.set('ax_run', String(runId || 'run'));
     url.searchParams.set('ax_i', String(index));
     url.searchParams.set('ax_v', String(plan.version));
+    if(plan.piece)url.searchParams.set('ax_piece',plan.piece);
     ['project','circuit'].forEach(function (k) { if (typeof ctx[k] === 'string' && ctx[k] && ctx[k].length <= 80) url.searchParams.set(k, ctx[k]); });
     var marcaPagina = marcaDeEditor();
     var marcaPlan = marcaPagina || (typeof ctx.marca === 'string' ? ctx.marca : '');
@@ -1005,7 +1064,10 @@
       out(log, T('Abriendo ', 'Opening ') + destino);
       setTimeout(function () { location.assign(destino); }, 600);
     };
-    fetch(base + '/api/demos/resolver?nombre=' + encodeURIComponent(nombre), {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (res) {
+    if (publishedCatalog && publishedCatalog.demos.some(function (doc) { return doc.id === id; })) {
+      return fetch(base+'/api/demos/'+encodeURIComponent(id)+'/run'+(pieza?'?piece='+encodeURIComponent(pieza):''),{cache:'no-store',credentials:'omit'}).then(function (r) { if(!r.ok)throw Error('Demo no disponible');return r.json(); }).then(function (plan) { plan.piece=pieza;aplicar(plan,0); }).catch(function(e){out(log,String(e.message||e),'err');});
+    }
+    return fetch(base + '/api/demos/resolver?nombre=' + encodeURIComponent(nombre), {cache: 'no-store', credentials: 'omit'}).then(function (r) { return r.ok ? r.json() : null; }).then(function (res) {
       if (res && res.tipo === 'ambiguo') { out(log, T('Hay más de una demo con ese nombre. Escribe /demo lista.', 'More than one demo uses that name. Type /demo list.'), 'err'); return; }
       if (res && res.tipo === 'reservado') { out(log, T('Ese nombre está reservado.', 'That name is reserved.'), 'err'); return; }
       if (res && res.plan) { aplicar(res.plan, res.tipo === 'pieza' ? res.index : 0); return null; }
@@ -1050,6 +1112,7 @@
     if (p.catalogo) { lanzarCatalogo(p.catalogo, log, p.pieza); return {id: p.catalogo, pieza: p.pieza || ''}; }
     if (p.lista) { out(log, p.local ? localLista() : demoLista()); if (p.catalogoLista) listarCatalogo(log); return null; }
     if (p.desconocida != null) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + p.desconocida + T('. Escribe /demo help.', '. Type /demo help.') + '\n' + localLista(), 'err'); return null; }
+    if (p.local && p.sub && p.sub.catalogId) { return lanzarCatalogo(p.sub.catalogId,log,p.sub.id); }
     if (p.local) {
       var d = p.sub, modo = p.modo || 'muestra';
       out(log, 'Demo ' + p.n + ' · ' + d.nombre + (d.desc ? ' — ' + d.desc : ''));
@@ -1058,7 +1121,9 @@
       else { out(log, T('Abriendo ', 'Opening ') + abs(subUrl(d)) + '…'); setTimeout(function () { location.assign(abs(subUrl(d))); }, 600); }
       return {id: p.clave, nombre: d.nombre, desc: d.desc || ''};
     }
-    var g = p.demo, url = demoLaunchUrl(g);
+    var g = p.demo;
+    if(publishedCatalog && publishedCatalog.demos.some(function(doc){return doc.id===g.id;}))return lanzarCatalogo(g.id,log);
+    var url = demoLaunchUrl(g);
     if (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) root.AdmiraDemoControl.control('stop');
     cerrarMuestra();
     out(log, T('Demo ', 'Demo ') + (p.i + 1) + '/5 · ' + g.nombre + ' — ' + T(g.desc[0], g.desc[1]));
@@ -1075,6 +1140,8 @@
     return execute(text, log, {echo:false});
   }
   verb({name: 'demo', args: 'ios [iphone|watch] [playlist|#tag] | [global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+    var localAction=localDemoAction(a,log); if(localAction)return localAction.result;
+    if (!catalogReady && !/^(?:ios|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false});});
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     return demoRun(p, log);
@@ -1139,6 +1206,7 @@
     var t = String(text || '').trim();
     if (!t) return;
     if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
+    recordCommand(t);
     if (handleLangCommand(t, log)) return;
     var parts = t.replace(/^\//, '').split(/\s+/), name = (parts.shift() || '').toLowerCase();
     var v = findVerb(name), c = v ? null : compacto(name);
@@ -1152,8 +1220,15 @@
       out(log, langMessage(idioma));
     };
     try {
-      var r = v.run(parts, log);
-      if (r && typeof r.then === 'function') return r.then(function (x) { cambiaIdioma(); return x; }, function (e) { cambiaIdioma(); throw e; });
+      var actionArgs=parts;
+      if(v.attributes){
+        actionArgs={};var rest=parts.join(' '),match=rest.match(/^([^\s=:]+)\s*[=:]\s*([\s\S]+)$/),attrs=v.attributes;
+        var attr=match&&attrs.filter(function(a){return a.key===match[1]||(a.aliases||[]).indexOf(match[1])>=0;})[0];
+        if(rest){attr=attr||attrs[0];if(!attr)throw Error(T('Esta orden no admite atributos','This command takes no attributes'));var value=attr&&match&&(attr.key===match[1]||(attr.aliases||[]).indexOf(match[1])>=0)?match[2]:rest;actionArgs[attr.key]=attr.normalize?attr.normalize(value):value;}
+        attrs.forEach(function(a){if(a.required&&!actionArgs[a.key])throw Error(T('Falta el atributo: ','Missing attribute: ')+a.key);});
+      }
+      var r = v.run(actionArgs, log, {raw:t,name:name,args:parts.join(' ')});
+      if (r && typeof r.then === 'function') return r.then(function (x) { cambiaIdioma(); return x; }, function (e) { cambiaIdioma(); out(log,String(e && e.message || e),'err'); return {ok:false,error:String(e && e.message || e)}; });
       cambiaIdioma();
       return r;
     } catch (e) { out(log, String(e && e.message || e), 'err'); }
@@ -1379,9 +1454,10 @@
 
     // Una entrada para los comandos compartidos: consola, API y avatar usan execute.
     // Los adaptadores locales antiguos todavía deben migrar sus acciones al registro.
-    form.addEventListener('submit', function (e) {
+    (root.addEventListener ? root : form).addEventListener('submit', function (e) {
+      if (e.target !== form) return;
       var val = (input && input.value != null) ? String(input.value).trim() : '';
-      if (!sharedCommand(val)) return;
+      if (!val || (!adapterOwnsInput && !cfg.mount && !sharedCommand(val))) return;
       e.preventDefault();
       e.stopImmediatePropagation();
       input.value = '';
@@ -1412,7 +1488,11 @@
     setState: function (s) { state = s || ''; paint(); },
     set: function (k, v) { if (v == null) delete extra[k]; else extra[k] = v; paint(); },
     apply: apply,
+    refreshCatalog: function(){localListo=refreshCatalog();return localListo;},
+    catalog: function(){return publishedCatalog;},
     verb: verb,
+    registerAdapter: registerAdapter,
+    engineVersion: '20261012-unified-1',
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
     close: function () { setOpen(false, true); },
@@ -1437,6 +1517,9 @@
     setLanguage: applyLang
   };
 
+  (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
+  try { document.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
+
   function bootNativeDemo() {
     var id; try { id = new URLSearchParams(location.search).get('ax_demo'); } catch (_) { return; }
     var nativo = /^(studio|store|tv|biz|app|hoy|proyectos|idioma|marcas|roadmap)$/.test(id || '');
@@ -1456,6 +1539,7 @@
     } catch (_) { return ''; }
   }
   function boot() {
+    if (root.addEventListener) root.addEventListener('focus',function(){localListo=refreshCatalog();});
     var pedido = langDeQuery();
     if (pedido && pedido !== lang()) { try { applyLang(pedido); } catch (_) {} }
     try { document.addEventListener('keydown', completarNombreDemo, true); } catch (_) {}

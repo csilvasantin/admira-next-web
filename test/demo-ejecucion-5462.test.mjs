@@ -19,7 +19,7 @@ function llamada(path) {
 
 test('la macro alsea-biz-app sale en el catálogo público y el repo no se borra', async () => {
   const lista = await (await onRequest({ request: llamada('/api/demos'), env: {} })).json();
-  assert.deepEqual(lista.demos.map((demo) => demo.id), ['biz', 'store', 'studio', 'app']);
+  assert.deepEqual(lista.demos.map((demo) => demo.id), ['biz', 'store', 'studio', 'app', 'tv']);
   const pieza = lista.macros.find((item) => item.id === 'alsea-biz-app');
   assert.equal(pieza.status, 'published');
   assert.equal(pieza.transition.seconds, 3);

@@ -1,0 +1,39 @@
+{
+  "schema": "admira.demo/2",
+  "kind": "demo",
+  "site": "tv",
+  "id": "tv",
+  "title": {
+    "es": "admira.tv",
+    "en": "admira.tv"
+  },
+  "mode": "recorrido",
+  "version": 1,
+  "status": "published",
+  "subdemos": [
+    {
+      "id": "plataforma",
+      "n": 1,
+      "title": {
+        "es": "Plataforma de players",
+        "en": "Player platform"
+      },
+      "url": "https://www.admira.tv/",
+      "mode": "recorrido",
+      "aliases": [
+        "plataforma",
+        "platform"
+      ],
+      "steps": [
+        {
+          "op": "say",
+          "text": {
+            "es": "Admira TV conecta contenidos, programación y players. Accede con tu cuenta para revisar tus proyectos.",
+            "en": "Admira TV connects content, schedules and players. Sign in to review your projects."
+          },
+          "path": "/"
+        }
+      ]
+    }
+  ]
+}

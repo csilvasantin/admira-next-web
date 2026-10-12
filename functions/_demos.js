@@ -7,6 +7,7 @@ import bizRaw from '../subdemos/biz.subdemos.json' with { type: 'json' };
 import storeRaw from '../subdemos/store.subdemos.json' with { type: 'json' };
 import studioRaw from '../subdemos/studio.subdemos.json' with { type: 'json' };
 import appDoc from '../subdemos/v2/app.json' with { type: 'json' };
+import tvDoc from '../subdemos/v2/tv.json' with { type: 'json' };
 import alseaBizApp from '../subdemos/v2/alsea-biz-app.json' with { type: 'json' };
 import giraCarlos from '../subdemos/v2/gira-carlos.json' with { type: 'json' };
 
@@ -15,6 +16,7 @@ const REPO = [
   aEsquema(storeRaw, RECORRIDOS.store),
   aEsquema(studioRaw, RECORRIDOS.studio),
   validar(appDoc),
+  validar(tvDoc),
 ];
 const MACROS = [validar(alseaBizApp), validar(giraCarlos)];
 const ORIGENES = new Set(ORIGENES_DEMO);
@@ -75,10 +77,15 @@ export async function publicados(env) {
   if (env?.AUTH_DB) {
     try {
       await asegurarDemos(env);
-      const rows = await env.AUTH_DB.prepare('SELECT doc, status FROM demos').all();
+      const rows = await env.AUTH_DB.prepare('SELECT id, doc, status FROM demos').all();
       for (const row of rows.results || []) {
         const doc = validar(JSON.parse(row.doc));
+        if (doc.status === 'deleted') { mapa.delete(doc.id); continue; }
         if (doc.status === 'published') mapa.set(doc.id, doc);
+        else {
+          const previous = await env.AUTH_DB.prepare("SELECT doc FROM demo_versions WHERE id=? AND json_extract(doc, '$.status')='published' ORDER BY version DESC LIMIT 1").bind(doc.id).first();
+          if (previous) mapa.set(doc.id, validar(JSON.parse(previous.doc)));
+        }
       }
     } catch { /* el JSON del repo sigue siendo la respuesta */ }
   }
@@ -176,10 +183,22 @@ export async function onRequest(context) {
   const accion = partes[3] || '';
   try {
     if (request.method === 'GET' && !id) {
-      const todos = await publicados(env);
+      const editing=new URL(request.url).searchParams.get('view')==='editor';
+      if(editing && !await autor(request,env,context.waitUntil))return responder({error:'sin permiso'},403,'no-store',request);
+      const todos = editing ? [...new Map((await documentos(env)).map(doc=>[doc.id,doc])).values()].filter(doc=>doc.status!=='deleted') : await publicados(env);
       const demos = todos.filter((doc) => doc.kind === 'demo');
       const macros = todos.filter((doc) => doc.kind === 'macro').map((macro) => resolverMacro(macro, demos));
-      return responder({ schema: ESQUEMA, demos, macros }, 200, 'public, max-age=60');
+      return responder({ schema: ESQUEMA, demos, macros }, 200, 'no-store');
+    }
+    if (request.method === 'GET' && id && accion === 'run') {
+      const doc = (await publicados(env)).find(item => item.id === id);
+      if (!doc) return responder({error:'no encontrada'},404,'no-store',request);
+      const demos = (await publicados(env)).filter(item => item.kind === 'demo');
+      if (doc.kind === 'macro') return responder(resolverMacro(doc,demos),200,'no-store',request);
+      const piece = new URL(request.url).searchParams.get('piece');
+      const selected = piece ? doc.subdemos.filter(sub => sub.id === piece) : doc.subdemos;
+      if (!selected.length) return responder({error:'sin piezas'},404,'no-store',request);
+      return responder({kind:'macro',id:doc.id,version:doc.version,title:doc.title,context:doc.context || {},items:selected.map(sub => ({ref:doc.site+'/'+sub.id,subdemo:sub}))},200,'no-store',request);
     }
     if (request.method === 'GET' && id === 'resolver') {
       const nombre = new URL(request.url).searchParams.get('nombre') || '';
@@ -201,7 +220,7 @@ export async function onRequest(context) {
       return responder(cuerpoRes, status, 'public, max-age=60', request);
     }
     if (request.method === 'GET' && id && !accion) {
-      let doc = await leer(env, id);
+      let doc = (await publicados(env)).find(item => item.id === id);
       if (!doc || doc.status !== 'published') {
         const hallado = resolverNombre(await publicados(env), id);
         doc = hallado.macro || null;
