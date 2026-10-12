@@ -235,3 +235,24 @@ test('binding KV ausente nunca anuncia guardado ni divulga posiciones', async()=
     assert.equal(response.status,503);noStore(response);assert.deepEqual(await response.json(),{ok:false,error:'almacenamiento_no_disponible'});
   }
 });
+
+test('GET /api/ubicacion/ultima: solo la clave del parte, devuelve la última posición', async () => {
+  const {onRequest: ultima} = await import('../functions/api/ubicacion/ultima.js');
+  const kv = new KV();
+  const PARTE = 'parte-fixture-key-with-at-least-32-characters';
+  const env = {UBICACIONES:kv, UBICACION_KEY_PARTE:PARTE, UBICACION_KEY_IPHONE:DEVICE_KEY};
+  const get = (key) => ultima({request:new Request(URL_API + '/ultima', {headers:key ? {authorization:`Bearer ${key}`} : {}}), env});
+  assert.equal((await get()).status, 401);
+  assert.equal((await get(DEVICE_KEY)).status, 401);
+  const vacio = await (await get(PARTE)).json();
+  assert.equal(vacio.estado, 'sin_datos');
+  await guardarAviso(kv, validarAviso(aviso({ts:new Date(Date.now() - 600000).toISOString()})));
+  const r = await get(PARTE);
+  assert.equal(r.status, 200);
+  const data = await r.json();
+  assert.equal(data.ciudad, 'Barcelona');
+  assert.equal(data.estado, 'actualizado');
+  assert.ok(data.antiguedad_min >= 9 && data.antiguedad_min <= 11);
+  assert.equal(JSON.stringify(data).includes(PARTE), false);
+  assert.equal((await ultima({request:new Request(URL_API + '/ultima', {method:'POST'}), env})).status, 405);
+});
