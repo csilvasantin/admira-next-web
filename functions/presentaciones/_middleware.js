@@ -230,7 +230,7 @@ export async function onRequest(context){
   // y emite las mismas cookies (pres_owner + pres_identity) que el login Google.
   if (isSsoApi) return next();
   // Canje de la clave de máquina por una sesión corta (auth/machine.js valida la clave).
-  if (first === 'auth' && ['machine','agent'].includes(second) && parts.length === 2) return next();
+  if (first === 'auth' && ['machine','agent','device'].includes(second) && parts.length === 2) return next();
   // Leer una URL y preparar un brief no inicia ninguna generación de pago ni
   // concede acceso a la presentación. El endpoint devuelve únicamente una
   // proyección acotada (título, resumen y bloques visibles), por lo que puede
