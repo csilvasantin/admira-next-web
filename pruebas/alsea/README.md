@@ -19,7 +19,7 @@ La plantilla canónica de tres actos sigue intacta. Los `slides[]` personalizado
 
 1. Entrar en el generador y consultar el catálogo. Reutilizar el destino Alsea existente; resolver su slug si difiere de `alsea-starbucks` antes de desplegar este lanzador.
 2. Guardar/mejorar ese destino con el brief, conservando contenido o permisos previos que deban mantenerse. No regenerar ni sobrescribir sin revisar el destino existente.
-3. Ensayar las cinco plataformas: en particular TV solo tiene una entrada general en el catálogo publicado, y Biz contiene fechas de ejemplo del 8 al 15 de octubre.
+3. Ensayar las cinco plataformas: TV se verifica con un player virtual dedicado, su playlist, reproducción y registro de pases. Revisar las fechas de ejemplo de Biz antes de compartir.
 4. Publicar primero la ruta protegida `/pruebas/alsea`. El lanzamiento público o un cambio de destino es una revisión aparte conforme a AGENTS.md.
 5. Comprobar `/demo alsea` desde las cinco ventanas con sesión y que abre una sola sala, con el idioma elegido. No afirmar que está disponible en producción por pasar las pruebas locales.
 

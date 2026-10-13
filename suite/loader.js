@@ -10,6 +10,7 @@
       {panel:'.yk-expert',form:'.yk-cli-form',input:'.yk-cli-input',log:'.yk-cli-out',body:'.yk-cli',header:'.yk-expert-head'},
       {panel:'#telegramDock',form:'#admira-command-form',input:'#telegramComposer',log:'#admira-command-log',body:'.expert-workspace',header:'.tg-head',dock:'off'},
       {panel:'.pf-cli',form:'.pf-cli-form',input:'#pf-cli-input',log:'#pf-cli-output'},
+      {panel:'#admExp',form:'#admExpForm',input:'#admExpIn',log:'#admExpLog',body:'.admexp-bd',header:'.admexp-hd',dock:'off'},
       {panel:'#expert-panel',form:'#expert-command-form',input:'#expert-command',log:'#expert-command-result'},
       {panel:'#xpaceShell',form:'#xsCliForm',input:'#xsCli',log:'#xsLog'}
     ];
