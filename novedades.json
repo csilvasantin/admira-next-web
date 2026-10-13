@@ -456,5 +456,9 @@
   "v.13.10.2026.r4.18:41": [
     "El motor común conserva los comandos nativos de Android al sustituir las copias anteriores de App y Biz.",
     "La entrada de agentes al generador muestra el resultado de la autenticación y abre Alsea con una sesión corta."
+  ],
+  "v.13.10.2026.r5.21:32": [
+    "Acceso de dispositivo para abrir Alsea en los navegadores de la flota mediante un código de un solo uso.",
+    "La sesión conserva una hora de duración y comprueba token y permisos vigentes del generador."
   ]
 }
