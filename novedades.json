@@ -452,5 +452,9 @@
   "v.13.10.2026.r3.18:28": [
     "Los agentes pueden abrir la UI del generador con su token MCP existente, sin Google ni nuevas credenciales.",
     "Sesión de una hora, permisos vigentes y revocación inmediata. Alcance limitado al generador y al lanzador /pruebas/alsea."
+  ],
+  "v.13.10.2026.r4.18:41": [
+    "El motor común conserva los comandos nativos de Android al sustituir las copias anteriores de App y Biz.",
+    "La entrada de agentes al generador muestra el resultado de la autenticación y abre Alsea con una sesión corta."
   ]
 }

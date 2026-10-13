@@ -628,3 +628,17 @@ test('/demo alsea opens the web presentation once from every suite host, includi
     }
   }
 });
+
+test('the shared engine preserves Android commands while replacing old App and Biz copies',()=>{
+  for(const host of ['admira.studio','admira.store','admira.tv','admira.app','admira.biz']){
+    const {api,sandbox,location}=withLang('es',host),assigned=[];
+    location.assign=url=>assigned.push(url);
+    assert.deepEqual(snap(api.parseDemo('/demo android Fold8 #starbucks')),{id:'android',native:true,command:'/demo android Fold8 #starbucks'});
+    const log=sandbox.document.createElement('ol');
+    api.exec('/demo android help',log);
+    assert.ok(log.children.some(e=>e.textContent.includes('Fold8')));
+    assert.deepEqual(assigned,[]);
+    assert.equal(api.parseDemo('/demo ios iphone').id,'ios');
+    assert.equal(api.parseDemo('/demo alsea').id,'alsea');
+  }
+});
