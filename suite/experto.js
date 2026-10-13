@@ -294,7 +294,7 @@
       verb(Object.assign({},action,{name:String(action.name).toLowerCase(),alias:aliases.map(function(alias){return String(alias).toLowerCase();})}));
     });
     (def.demos || []).forEach(function(action){
-      if (!/^[a-z0-9-]*$/i.test(action.name || '') || /^(ios|editor|global|help|ayuda|lista|list|alsea)$/.test(action.name)) throw Error('Reserved demo action');
+      if (!/^[a-z0-9-]*$/i.test(action.name || '') || /^(android|ios|editor|global|help|ayuda|lista|list|alsea)$/.test(action.name)) throw Error('Reserved demo action');
       localDemos[action.name]=action;
     });
   }
@@ -661,6 +661,7 @@
   function parseDemo(text) {
     var m = /^\/?demo(?:\s+(.*))?$/i.exec(String(text == null ? '' : text).trim());
     if (!m) return null;
+    if (/^android(?:\s|$)/i.test(String(m[1] || ''))) return {android: String(text).trim()};
     if (/^ios(?:\s|$)/i.test(String(m[1] || ''))) return {ios: String(text).trim()};
     var arg = norm(m[1]).replace(/^admira\./, ''), L = localM();
     if (arg === 'alsea') return {presentation: 'alsea'};
@@ -703,7 +704,7 @@
     return i < 0 ? null : {demo: DEMOS[i], i: i};
   }
   function demoLista() {
-    return '/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('/demo global · Sneakers Store: proyecto → Xpacio → Pixeria → gemelo → cámara\nDemos · las cinco soluciones:', '/demo global · Sneakers Store: project → Xpace → Pixeria → twin → camera\nDemos · the five solutions:') + '\n' +
+    return '/demo android [Fold8|watch] [playlist|#tag] · Fold + Watch virtuales\n/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('/demo global · Sneakers Store: proyecto → Xpacio → Pixeria → gemelo → cámara\nDemos · las cinco soluciones:', '/demo global · Sneakers Store: project → Xpace → Pixeria → twin → camera\nDemos · the five solutions:') + '\n' +
       DEMOS.map(function (d, k) { return (k + 1) + ' /demo ' + d.id + ' · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]); }).join('\n') +
       '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".') +
       '\n' + T('/demo hoy recorre lo de hoy y resume bien, mal o pendiente. /demo today lo hace en inglés.',
@@ -718,7 +719,7 @@
   }
   function localLista() {
     var L = localM();
-    return '/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
+    return '/demo android [Fold8|watch] [playlist|#tag] · Fold + Watch virtuales\n/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
       L.subdemos.map(function (d, k) { return '/demo ' + (k + 1) + ' · /demo ' + d.aliases[0] + ' — ' + d.nombre + (d.desc ? ': ' + d.desc : ''); }).join('\n') +
       '\n' + T('Recorridos y muestras preparados. /demo store, /demo biz… abren las otras plataformas.',
         'Prepared walkthroughs and samples. /demo store, /demo biz… open the other platforms.') +
@@ -1093,6 +1094,13 @@
     }).catch(function () { out(log, T('No pude leer el plan.', 'I could not read the plan.'), 'err'); });
   }
   function demoRun(p, log) {
+    if(p.android){
+      if (/^\/?demo\s+android\s+(?:help|ayuda)$/i.test(p.android)) { out(log, '/demo android — Fold + Watch\n/demo android Fold8 — plegable\n/demo android watch — visor\n/demo android [Fold8|watch] ["playlist"|#tag]\nPlaylist del proyecto activo. Fold8 es alias de un perfil Pixel Fold Android 16, sin firmware Samsung. Watch: Wear OS 4; audio como título silencioso. Requiere el lanzador Admira Native Demo en este Mac. El envío no confirma la reproducción.'); return {id:'android',help:true}; }
+      out(log,T('Solicitando la demo Android del proyecto. Si el navegador lo pide, acepta Abrir Admira Native Demo.', 'Requesting the project Android demo. If prompted, accept Open Admira Native Demo.'));
+      var androidModuleURL = new URL('demo-android.mjs?v=20261012-android-1', script.src || 'https://www.admiranext.com/suite/experto.js').href;
+      import(androidModuleURL).then(function(m){return m.runAndroid(p.android,root);}).then(function(r){out(log,T('Solicitud enviada al lanzador del Mac: ','Request sent to the Mac launcher: ')+r.project+' · '+r.playlist.name+' · '+r.device);}).catch(function(e){out(log,String(e.message||e),'err');});
+      return {id:'android',native:true};
+    }
     if(p.ios){
       if (/^\/?demo\s+ios\s+(?:help|ayuda)$/i.test(p.ios)) { out(log,iosHelp()); return {id:'ios',help:true}; }
       out(log,T('Solicitando la demo nativa. Si Chrome lo pide, acepta Abrir Admira IOS Demo. Requiere el lanzador instalado en este Mac.', 'Requesting the native demo. If Chrome asks, accept Open Admira IOS Demo. The launcher must be installed on this Mac.'));
@@ -1154,9 +1162,9 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return execute(text, log, {echo:false});
   }
-  verb({name: 'demo', args: 'ios [iphone|watch] [playlist|#tag] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: 'android [Fold8|watch] [playlist|#tag] | ios [iphone|watch] [playlist|#tag] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var localAction=localDemoAction(a,log); if(localAction)return localAction.result;
-    if (!catalogReady && !/^(?:alsea|ios|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false,record:false});});
+    if (!catalogReady && !/^(?:alsea|android|ios|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false,record:false});});
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     return demoRun(p, log);
@@ -1524,7 +1532,7 @@
     parseArquitectura: parseArquitectura, arquitecturaUrl: arquitecturaUrl,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.ios) return {id:'ios',native:true,command:p.ios}; if(p.presentation) return {id:p.presentation,presentation:true,url:alseaPresentationUrl()}; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) { var cat = {catalogo: p.catalogo, id: p.catalogo}; if (p.pieza) cat.pieza = p.pieza; return cat; } if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.android) return {id:'android',native:true,command:p.android}; if(p.ios) return {id:'ios',native:true,command:p.ios}; if(p.presentation) return {id:p.presentation,presentation:true,url:alseaPresentationUrl()}; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) { var cat = {catalogo: p.catalogo, id: p.catalogo}; if (p.pieza) cat.pieza = p.pieza; return cat; } if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
     demoEstado: function () { if(root.PixeriaUpdatesDemo) return root.PixeriaUpdatesDemo.state(); return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo, anotarNombres: anotarNombres,

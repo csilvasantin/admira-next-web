@@ -25,6 +25,12 @@ async function session(env,token,form=false){
   return {response,cookies:response.headers.getSetCookie().map(s=>s.split(';')[0]).join('; ')};
 }
 const protectedRequest=(handler,env,path,cookies)=>handler({request:request(path,{headers:{cookie:cookies,Accept:'text/html'}}),env,data:{},params:{},waitUntil(){},next:async()=>new Response('private content')});
+test('browser sign-in reports the result through a nonce-protected same-origin client',async()=>{
+  const response=await login({request:request('/presentaciones/auth/agent'),env:{}}),html=await response.text();
+  const nonce=/script nonce="([a-f0-9]+)"/.exec(html)?.[1];assert.ok(nonce);
+  assert.ok(response.headers.get('content-security-policy').includes("script-src 'nonce-"+nonce+"'"));
+  assert.match(html,/role="status"/);assert.match(html,/location.assign\(d.next\)/);
+});
 test('existing MCP editor token opens a short browser session without exposing the credential',async()=>{
   const {env,token}=await setup();const {response,cookies}=await session(env,token);
   assert.equal(response.status,200);assert.equal((await response.json()).expiresIn,3600);
