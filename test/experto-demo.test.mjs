@@ -604,3 +604,27 @@ test('shared argument schema validates attributes before domain actions',()=>{
  api.registerAdapter({id:'schema',verbs:[{name:'lookup',attributes:[{key:'client',aliases:['cliente'],required:true,normalize:v=>v.toLowerCase()}],run:args=>value=args.client}]});
  api.exec('/lookup cliente=Starbucks',log);assert.equal(value,'starbucks');value=null;api.exec('/lookup',log);assert.equal(value,null);
 });
+
+// A client launch opens the generator room; it must not start a platform tour.
+test('/demo alsea opens the web presentation once from every suite host, including aliases', async () => {
+  for (const hostname of ['www.admiranext.com','www.admira.studio','www.pixeria.com','www.admira.store','www.xpaceos.com','www.admira.tv','www.admira.app','www.yokup.com','www.admira.biz','www.clearchannel.tv']) {
+    for (const language of ['es','en']) {
+      const {api,location}=withLang(language,hostname);
+      await api.listo();
+      const parsed=api.parseDemo(' /DEMO ALSEA ');
+      assert.equal(parsed.presentation,true);
+      assert.equal(parsed.id,'alsea');
+      assert.equal(new URL(parsed.url).pathname,'/pruebas/alsea/');
+      assert.equal(new URL(parsed.url).searchParams.get('lang'),language);
+      const assigned=[];location.assign=url=>assigned.push(url);
+      const lines=[];
+      const log={appendChild:el=>lines.push(el.textContent),children:[],scrollTop:0,scrollHeight:0};
+      api.exec('/demo alsea',log);
+      assert.deepEqual(assigned,[parsed.url]);
+      assert.equal(new URL(assigned[0]).searchParams.has('ax_demo'),false);
+      assert.equal(api.parseDemo('/demo studio').id,'studio');
+      assert.equal(api.parseDemo('/demo alsea-biz-app').catalogo,'alsea-biz-app');
+      assert.ok(!api.parseDemo('/demo alsea extra')?.presentation);
+    }
+  }
+});

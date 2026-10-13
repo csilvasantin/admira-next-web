@@ -49,3 +49,10 @@ La norma está también en https://www.admiranext.com/normativa (norma 32).
 - Las funciones específicas de una aplicación se exponen como acciones registradas en el motor común; la consola y el avatar delegan en la misma entrada. MCP documenta/utiliza ese contrato, sin inventar otra gramática.
 - Un único despacho debe ejecutar cada entrada una sola vez. No lanzar el comando desde un listener y volver a intentarlo en otro.
 - Las rutas locales antiguas requieren migración explícita y pruebas de sus funciones antes de retirarlas. No afirmar que toda la suite está unificada por haber compartido su apariencia o un único comando.
+
+## Generador de presentaciones desde agentes (sin sesión humana)
+
+Usa `python3 tools/presentations-mcp.py list_presentations --out /ruta/privada/catalogo.json`.
+El cliente resuelve la credencial existente de la bóveda en cada llamada, usa el MCP oficial y guarda respuestas con permisos 0600. No imprime tokens ni contraseñas de sala. `ADMIRA_PRESENTATIONS_SECRET` permite elegir la credencial autorizada de un agente; `ADMIRA_VAULT_GETTER` permite indicar su getter local. Nunca copies credenciales al repositorio, a una URL ni a informes.
+
+Consultar el catálogo antes de crear o mejorar: un cliente = un destino existente. La presentación Alsea usa `alsea-starbucks`; no crear otro slug por ensayo o reunión. El brief y el guion comercial son privados: guardar en el generador, nunca en este repositorio público. El lanzador `/demo alsea` abre la sala; los agentes también pueden consultar y actualizar el contenido por MCP sin pedir que una persona se identifique en un navegador.

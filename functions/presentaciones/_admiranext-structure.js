@@ -129,8 +129,8 @@ export function normalizeStructureInput(raw = {}) {
     seen.add(code);
 
     const act = clean(row.act || fallback?.act, 40).toLowerCase();
-    if (!ADMIRANEXT_ACTS.some((item) => item.id === act)) {
-      throw new Error(`slides[${index}]: act debe ser studio|store|app (recibido «${act || ''}»).`);
+    if (![...ADMIRANEXT_ACTS.map((item) => item.id), 'tv', 'biz'].includes(act)) {
+      throw new Error(`slides[${index}]: act debe ser studio|store|tv|app|biz (recibido «${act || ''}»).`);
     }
     const duration = durationMinutes(row.duration ?? row.minutes ?? fallback?.duration, CHAPTER_MINUTES);
     const role = clean(row.role || (String(code).endsWith('-cover') || String(code).includes('portada') ? 'cover' : 'chapter'), 20) || 'chapter';

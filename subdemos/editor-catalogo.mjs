@@ -1,6 +1,6 @@
 // Validación compartida de catálogos editados. No ejecuta pasos ni modifica el catálogo global.
 import {videoPorDemo} from './retail-videos.mjs?v=20261007-retail-video-1';
-const PLATAFORMAS = new Set(['biz', 'store', 'studio']);
+const PLATAFORMAS = new Set(['biz', 'store', 'studio', 'app', 'tv']);
 const MAX_BYTES = 200000;
 const bytes = value => new TextEncoder().encode(value).byteLength;
 function https(value, label) {
@@ -50,7 +50,7 @@ export function validarSubdemo(raw) {
   return s;
 }
 export function normalizarCatalogo(raw = []) {
-  if (!Array.isArray(raw) || raw.length > 3 || bytes(JSON.stringify(raw)) > MAX_BYTES) throw Error('Catálogo no válido (máximo tres plataformas y 200 KB)');
+  if (!Array.isArray(raw) || raw.length > 5 || bytes(JSON.stringify(raw)) > MAX_BYTES) throw Error('Catálogo no válido (máximo cinco plataformas y 200 KB)');
   const seen = new Set();
   return raw.map(m => {
     if (!m || m.version !== undefined && m.version !== 1 || !PLATAFORMAS.has(m.plataforma) || seen.has(m.plataforma) || !Array.isArray(m.subdemos) || m.subdemos.length > 40) throw Error('Manifiesto no válido');

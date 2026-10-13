@@ -1,10 +1,21 @@
 // Snapshot de un proyecto de demos para anexarlo a su presentación, también desde API/MCP.
-import {GLOBALES, PROYECTOS_INICIALES, RENOMBRADAS, guion, ANTERIORES} from './catalogo.mjs';
+import {GLOBALES, PROYECTOS_INICIALES, RENOMBRADAS, ANTERIORES} from './catalogo.mjs';
 import {normalizarCatalogo, guionDeCatalogo} from './editor-catalogo.mjs';
 import {videoPorDemo} from './retail-videos.mjs?v=20261007-retail-video-1';
+import appDemo from './v2/app.json' with {type:'json'};
+import tvDemo from './v2/tv.json' with {type:'json'};
+// The original editor started with three platforms. Presentation snapshots
+// also cover App and TV using their canonical v2 walkthrough definitions.
+const plataformasPresentacion = [appDemo, tvDemo].map(d => ({
+  id:d.site, nombre:d.title.es, desc:d.title.es, url:d.subdemos[0].url,
+  subdemos:d.subdemos.map(s=>({id:s.id,nombre:s.title.es,desc:s.title.es,url:s.url,
+    aliases:s.aliases || [],cmd:'/demo '+s.id,steps:s.steps,
+    guion:s.steps.map(step=>({accion:step.op,texto:step.text?.es || ''}))}))
+}));
+const globalesPresentacion = [...GLOBALES, ...plataformasPresentacion];
 const slug = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const texto = (value, max) => String(value || '').trim().slice(0, max);
-const validas = new Set(GLOBALES.flatMap(g => [g.id, ...[...g.subdemos,...(ANTERIORES[g.id]||[])].map(s => g.id + '/' + s.id)]));
+const validas = new Set(globalesPresentacion.flatMap(g => [g.id, ...[...g.subdemos,...(ANTERIORES[g.id]||[])].map(s => g.id + '/' + s.id)]));
 const basicas = ['biz', 'store', 'studio', ...GLOBALES.find(g => g.id === 'studio').subdemos.map(s => 'studio/' + s.id)];
 const alsea = {
   marca: 'starbucks', loc: 'alsea-sbux-021', project: 'starbucks', circuito: 'alsea_starbucks'
@@ -61,13 +72,13 @@ export function normalizarDemoProject(raw, cliente = {}) {
     if (typeof inputProposals[key] === 'string') propuestas[key] = texto(inputProposals[key], 600);
   }
   return {version: 1, id: slug(source.id) || slug(cliente.slug || name), nombre: texto(source.nombre, 120) || name,
-    nota: texto(source.nota, 400), demos, contexto, propuestas, ...(catalogo.length?{catalogo}:{}), documentacion: structuredClone(guionDeCatalogo(demos,GLOBALES,catalogo,ANTERIORES))};
+    nota: texto(source.nota, 400), demos, contexto, propuestas, ...(catalogo.length?{catalogo}:{}), documentacion: structuredClone(guionDeCatalogo(demos,globalesPresentacion,catalogo,ANTERIORES))};
 }
 
 export function documentacionDemos(project, idioma = 'es', overrideMarca = '') {
   const {contexto} = project;
   const reemplazo = overrideMarca && overrideMarca !== contexto.marca;
-  return (project.documentacion || guion(project.demos)).map(item => {
+  return (project.documentacion || guionDeCatalogo(project.demos,globalesPresentacion,[],ANTERIORES)).map(item => {
     const url = new URL(item.url);
     // El catálogo de Store es una demostración Starbucks; nunca heredar su local en otro cliente.
     for (const key of ['marca', 'loc', 'project', 'circuit', 'circuito']) url.searchParams.delete(key);
