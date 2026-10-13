@@ -448,5 +448,9 @@
   "v.13.10.2026.r2.18:12": [
     "El cargador común reconoce la consola anterior de TV y conecta sus comandos compartidos al mismo motor de la suite.",
     "El MCP devuelve el contenido estructurado completo de una presentación, sin recortarlo a 4 KB."
+  ],
+  "v.13.10.2026.r3.18:28": [
+    "Los agentes pueden abrir la UI del generador con su token MCP existente, sin Google ni nuevas credenciales.",
+    "Sesión de una hora, permisos vigentes y revocación inmediata. Alcance limitado al generador y al lanzador /pruebas/alsea."
   ]
 }
