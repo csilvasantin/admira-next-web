@@ -17,6 +17,7 @@
  */
 import { sesionCompleta, respuestaLogin, paginaLogin, respuestaHtml } from '../_webmaster-gate.js';
 import { accesoVisor, esRutaVisor, RUTA_ALTA_VISOR } from './_visor-enlace.js';
+import {agentBrowserSessionFromRequest,AGENT_LAUNCH_COOKIE} from '../presentaciones/_agent-token.js';
 
 export const PREFIJO_PRUEBAS = '/pruebas';
 export const POST_PRUEBAS = new Set(['/pruebas/api/solicitud', RUTA_ALTA_VISOR]);
@@ -28,7 +29,12 @@ function texto(mensaje, status) {
 }
 
 async function loginDePagina(env, mensaje, pagina, status) {
-  try { return await respuestaLogin(env, mensaje, pagina, status); }
+  try {
+    const response=await respuestaLogin(env, mensaje, pagina, status);
+    if(pagina!=='/pruebas/alsea/')return response;
+    const html=await response.text();
+    return new Response(html.replace('</body>','<p><a href="/presentaciones/auth/agent">Entrada de agentes con token MCP</a></p></body>'),{status:response.status,headers:response.headers});
+  }
   catch (_) { return texto('Acceso no disponible ahora mismo.', 503); }
 }
 
@@ -83,7 +89,8 @@ export async function onRequest(context) {
   // donde AUTH_DB sí está, sigue el mismo camino de siempre.
   if (!env.AUTH_DB && pagina) return respuestaHtml(paginaLogin('Zona de pruebas: identifícate para entrar.', pagina, ''), 401);
   if (!env.WEBMASTER_SIGNING_KEY) return pagina ? respuestaLogin(env, 'Acceso no disponible ahora mismo.', pagina, 503) : texto('Acceso no disponible ahora mismo.', 503);
-  const current = await sesionCompleta(request, env);
+  const current = await sesionCompleta(request, env) || (metodoOk && /^\/pruebas\/alsea\/?$/.test(url.pathname)
+    ? await agentBrowserSessionFromRequest(env,request,AGENT_LAUNCH_COOKIE) : null);
   if (!current) return pagina ? loginDePagina(env, 'Zona de pruebas: identifícate para entrar.', pagina, 401) : texto('Sin sesión.', 401);
   if (url.pathname === PREFIJO_PRUEBAS) return Response.redirect(url.origin + '/pruebas/' + url.search, 302);
   const respuesta = await next();

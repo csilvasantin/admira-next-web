@@ -7,7 +7,7 @@
 import {cleanIdentity, identityCookie, makeIdentityToken, readCookies, readIdentity, writeAccessEvent} from './_access.js';
 import {allowedBy, generatorAccess, makeSessionToken, readSession} from './_directory.js';
 import {loginLockout, noteLoginAttempt, lockoutMessage} from './_login-rate.js';
-import {agentSessionFromRequest} from './_agent-token.js';
+import {agentSessionFromRequest,agentBrowserSessionFromRequest} from './_agent-token.js';
 import {MACHINE_IDENTITY, machineSessionFromRequest} from './_machine-key.js';
 import {sesionCompleta, buscarUsuarioIdentidad, cookieDeSesion, auditar} from '../_webmaster-gate.js';
 
@@ -230,7 +230,7 @@ export async function onRequest(context){
   // y emite las mismas cookies (pres_owner + pres_identity) que el login Google.
   if (isSsoApi) return next();
   // Canje de la clave de máquina por una sesión corta (auth/machine.js valida la clave).
-  if (first === 'auth' && second === 'machine' && parts.length === 2) return next();
+  if (first === 'auth' && ['machine','agent'].includes(second) && parts.length === 2) return next();
   // Leer una URL y preparar un brief no inicia ninguna generación de pago ni
   // concede acceso a la presentación. El endpoint devuelve únicamente una
   // proyección acotada (título, resumen y bloques visibles), por lo que puede
@@ -331,8 +331,9 @@ export async function onRequest(context){
   // (nunca en páginas ni en /control/). No abre nada al público: el token se cruza en cada
   // petición con /usuarios (activo + proyecto del generador + rol) y sólo owner/editor
   // cuentan; revocarlo o dar de baja al usuario lo corta al instante. Ver _agent-token.js.
-  const agentSession = (!masterValid && !editorValid && !directorySession && !isControlArea && parts.includes('api'))
-    ? await agentSessionFromRequest(env, request, fn => { try { context.waitUntil(fn); } catch (_) {} })
+  const agentSession = (!masterValid && !editorValid && !directorySession && !isControlArea)
+    ? (parts.includes('api') ? await agentSessionFromRequest(env, request, fn => { try { context.waitUntil(fn); } catch (_) {} }) : null)
+      || await agentBrowserSessionFromRequest(env,request)
     : null;
   // CLAVE DE MÁQUINA (Carlos, 01-10-2026 · «Monta una clave de máquina para que la flota
   // entre sin Google»). Cabecera X-Admira-Machine-Key / Bearer amk_… o cookie corta
@@ -467,7 +468,7 @@ export async function onRequest(context){
     }
     return htmlResponse(loginPage(title, cleanPath));
   }
-  if (shouldIdentify(request, parts) && !identity && !machineSession) return htmlResponse(identifyPage(title, cleanPath));
+  if (shouldIdentify(request, parts) && !identity && !machineSession && !agentSession) return htmlResponse(identifyPage(title, cleanPath));
 
   // LA SALA SABE QUIÉN MIRA (MorfeoMacMini, 21-09-2026 · FLT-100766 b). La sala decidía si
   // llamar a la API del generador mirando sólo el estado del set de láminas: con alguna en
@@ -483,7 +484,7 @@ export async function onRequest(context){
     // Quién es, para dejarlo anotado en lo que suba (biblioteca multimedia): el correo del
     // directorio y, si entra un agente con su token, `via` y la etiqueta del token.
     if (directoryAllowed) context.data.presentationAccess.email = session.email;
-    if (viaAgent) Object.assign(context.data.presentationAccess, {via:'agent-token', tokenLabel:agentSession.tokenLabel});
+    if (viaAgent) Object.assign(context.data.presentationAccess, {via:agentSession.source, tokenLabel:agentSession.tokenLabel});
     if (viaMachine) Object.assign(context.data.presentationAccess, {via:machineSession.via, tokenLabel:MACHINE_IDENTITY.name});
   }
   if (viaMachine && request.method !== 'GET') {
