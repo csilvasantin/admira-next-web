@@ -347,7 +347,7 @@ export async function callTool(ctx, name, args = {}){
     case 'list_presentations':
     case 'get_catalog': return callGenerator(ctx, 'GET', '/presentaciones/api/clients');
     case 'list_decks': return callGenerator(ctx, 'GET', '/presentaciones/api/decks');
-    case 'get_presentation': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/content-data`);
+    case 'get_presentation': return callGenerator(ctx, 'GET', `/presentaciones/${slug(a.client)}/api/ideas`);
     case 'create_presentation': {
       if (!String(a.displayName || '').trim()) throw new Error('displayName es obligatorio.');
       assertDemoVideoUrl(a);

@@ -444,5 +444,9 @@
     "/demo alsea abre la sala existente del generador desde el motor Experto común de las cinco plataformas, a través de /pruebas/alsea con sesión.",
     "Las presentaciones personalizadas pueden documentar Studio, Store, TV, App y Biz; se conserva la plantilla predeterminada de tres actos.",
     "Cliente MCP para agentes: credenciales de la bóveda, respuestas privadas y acceso al generador sin sesión humana."
+  ],
+  "v.13.10.2026.r2.18:12": [
+    "El cargador común reconoce la consola anterior de TV y conecta sus comandos compartidos al mismo motor de la suite.",
+    "El MCP devuelve el contenido estructurado completo de una presentación, sin recortarlo a 4 KB."
   ]
 }
