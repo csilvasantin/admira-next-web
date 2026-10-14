@@ -100,7 +100,7 @@ test('/bugito va por el mismo camino que /admirito: el cargador avatar.js', asyn
   await c.run('/admirito');
   assert.deepEqual(llamadas, ['/bugito popup', '/admirito']);
   assert.match(c.texto(), /¡Popup va!/);
-  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-bugito-1';/, 'carga el avatar.js que conoce a Bugito');
+  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-personajes-1';/, 'carga el avatar.js que conoce a Bugito');
 });
 
 test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera, abre el banco', async () => {
