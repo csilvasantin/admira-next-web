@@ -1643,7 +1643,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261014-supervisor-camera-1',
+    engineVersion: '20261014-supervisor-camera-2',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
@@ -1697,6 +1697,8 @@
     try { document.addEventListener('keydown', completarNombreDemo, true); } catch (_) {}
     bootNativeDemo();
     bootSupervisorCamera();
+    // Fleet conserva su terminal nativo; comparte únicamente el registro de comandos.
+    if (ds.commandsOnly != null) return;
     if (apply()) return;
     var mo = new MutationObserver(function () { if (apply()) mo.disconnect(); });
     mo.observe(document.documentElement, {childList: true, subtree: true});

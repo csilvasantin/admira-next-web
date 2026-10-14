@@ -447,3 +447,5 @@ Las consolas nativas anteriores al avatar delegan `/admirito`, `/avatar`, `/avat
 `/supervisor` abre la Insta360 del Mac mini en Admira Live, con los presets, las flechas de movimiento y el zoom visibles. Desde Studio, Store, TV, App, Biz y sus clones, el motor común lleva a `/analizar?supervisor=1` y conserva ES/EN. En Live reutiliza el visor Analizar existente y muestra los controles si estaban ocultos; repetir la orden no cierra la cámara. Requiere la sesión existente de Google del operador. Abrir el visor no activa por sí solo la detección ni confirma el estado de un player.
 
 `/supervisor` opens the Mac mini Insta360 in Admira Live with visible presets, movement arrows and zoom controls. The shared engine preserves ES/EN and reuses the existing Analizar viewer, Google session and PTZ service. Opening the viewer alone does not enable fault detection or confirm player health.
+
+`data-commands-only` carga el registro y API de comandos sin montar ni redimensionar una consola. Se usa en el modo de flota de Yokup/App, cuya consola local delega en `AdmiraExperto.exec` y mantiene separado su terminal remoto.
