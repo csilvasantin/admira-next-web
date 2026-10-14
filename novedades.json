@@ -491,5 +491,9 @@
   "v.14.10.2026.r7.20:16": [
     "Bugito queda completamente por encima de la consola compartida, incluido el raíl nativo de TV.",
     "La separación sigue la altura real del CLI al arrastrar el tirador."
+  ],
+  "v.14.10.2026.r8.20:38": [
+    "/admirito vuelve a mostrar la nube también en consolas antiguas de los clones.",
+    "Los comandos y alias compartidos del avatar se ejecutan una sola vez en el motor común."
   ]
 }
