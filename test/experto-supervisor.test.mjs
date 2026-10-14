@@ -6,17 +6,19 @@ const experto=readFileSync(new URL('../suite/experto.js',import.meta.url),'utf8'
 const existing=readFileSync(new URL('./experto-bugito.test.mjs',import.meta.url),'utf8');
 // Same minimal DOM fixture used by the legacy-console integration tests.
 const base=existing.slice(existing.indexOf('function consola('),existing.indexOf("test('/bugito está"));
-function consoleFor({hostname='admira.studio',search='',lang='es',hidden=false,ready=true}={}) {
-  const calls={open:0,reveal:0};let camera;
+function consoleFor({hostname='admira.studio',search='',lang='es',hidden=false,ready=true,commandsOnly=false}={}) {
+  const calls={open:0,reveal:0};let camera,observations=0;
   const toggle={getAttribute:()=>hidden?'false':'true',click(){hidden=false;calls.reveal++;}};
   const entry={click(){calls.open++;camera={querySelector:()=>toggle};}};
   const query=selector=>selector==='#analizar-webcam'?camera:selector==='button[data-verb="analizar"]'?entry:null;
   const fixture=base.replace("hostname: 'www.admira.store'","hostname: testHost").replace("search: ''","search: testSearch")
     .replace('querySelector: () => null, querySelectorAll: () => [],\n    createElement','querySelector: testQuery, querySelectorAll: () => [],\n    createElement')
+    .replace('currentScript: { dataset: {} }', 'currentScript: { dataset: testCommandsOnly ? {commandsOnly: \"\"} : {} }')
+    .replace('MutationObserver: class { observe() {} disconnect() {} }', 'MutationObserver: class { observe() {testObserved();} disconnect() {} }')
     .replace('sandbox.window = sandbox;', 'if(testReady)sandbox.AdmiraWebcam={mount(){}};sandbox.window = sandbox;');
-  const context={experto,vm,URL,URLSearchParams,testHost:hostname,testSearch:search,testQuery:query,testReady:ready};
+  const context={experto,vm,URL,URLSearchParams,testHost:hostname,testSearch:search,testQuery:query,testReady:ready,testCommandsOnly:commandsOnly,testObserved:()=>observations++};
   vm.runInNewContext(fixture+';result=consola({lang:'+JSON.stringify(lang)+'});',context);
-  return {...context.result,calls};
+  return {...context.result,calls,observations:()=>observations};
 }
 test('the shared command opens the camera from all five sites and client clones',async()=>{
   for(const hostname of ['admira.studio','www.admira.store','admira.tv','www.admira.app','www.admira.biz','studio.client.example','tv.client.example']) {
@@ -45,4 +47,13 @@ test('missing camera reports failure without claiming a connected stream',async(
 });
 test('arguments never execute display or shell commands',async()=>{
   const c=consoleFor();assert.equal((await c.run('/supervisor rotation-90')).ok,false);assert.deepEqual(Array.from(c.fuera),[]);
+});
+
+test('commands-only mode exposes the shared API while preserving the native Fleet terminal',async()=>{
+  const c=consoleFor({hostname:'www.yokup.com',commandsOnly:true});
+  assert.equal(c.api.has('supervisor'),true);
+  assert.equal(c.observations(),0,'does not wait for a panel or attach a skin to the native terminal');
+  assert.ok(consoleFor({hostname:'www.yokup.com'}).observations()>0);
+  assert.equal((await c.run('/supervisor')).ok,true);
+  assert.deepEqual(Array.from(c.fuera),['https://www.admira.live/analizar?supervisor=1&lang=es']);
 });

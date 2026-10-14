@@ -500,5 +500,9 @@
     "/supervisor abre la Insta360 del Mac mini en Admira Live con controles visibles.",
     "Una sola entrada desde las cinco patas y sus clones, conservando ES/EN.",
     "Repetir /supervisor mantiene abierto el visor y muestra los controles ocultos."
+  ],
+  "v.14.10.2026.r10.22:49": [
+    "El motor común admite consolas nativas de flota sin sustituir su interfaz.",
+    "/supervisor comparte la misma cámara y controles desde la consola local de Yokup y Admira App."
   ]
 }
