@@ -76,7 +76,8 @@ function consola({ AdmiraAvatar = null, AdmiraBugito = null, lang = 'es' } = {})
   if (AdmiraAvatar) sandbox.AdmiraAvatar = AdmiraAvatar;
   if (AdmiraBugito) sandbox.AdmiraBugito = AdmiraBugito;
   sandbox.window = sandbox; sandbox.globalThis = sandbox;
-  vm.runInNewContext(experto, sandbox, { filename: 'experto.js' });
+  // Expose the private routing predicate only inside this VM fixture.
+  vm.runInNewContext(experto.replace('root.AdmiraExperto = {','root.AdmiraExperto = { __sharedCommand: sharedCommand,'), sandbox, { filename: 'experto.js' });
   const log = { children: [], tagName: 'OL', querySelector: () => null, insertBefore(x) { this.children.unshift(x); }, appendChild(x) { this.children.push(x); }, removeChild() {}, get firstChild() { return this.children[0]; }, scrollTop: 0, scrollHeight: 0 };
   return { api: sandbox.AdmiraExperto, fuera, run: (t) => sandbox.AdmiraExperto.exec(t, log, { echo: false }), texto: () => log.children.map((li) => li.textContent).join('\n') };
 }
@@ -193,6 +194,16 @@ test('floating Bugito changes the mascot in place, toggles, and restores Admirit
  await window.AdmiraAvatar.handle('/bugito avanzado');assert.deepEqual(navigations,['https://www.admira.biz/bugito.html?lang=es']);
 });
 test('shared dock height starts at a writable minimum and clamps manual resizing to the viewport',()=>{const c=consola();assert.equal(c.api.height(),52);assert.equal(c.api.resize(0),52);assert.equal(c.api.resize(300),300);assert.equal(c.api.resize(100000),680);assert.equal(c.api.resize(-100),52);});
+
+test('native consoles dispatch Admirito and the shared avatar aliases once through the shared engine',async()=>{
+ const calls=[],native=[];const c=consola({AdmiraAvatar:{floatingCharacters:true,handle:t=>{calls.push(t);return Promise.resolve('restored');}}});
+ for(const text of ['/admirito',' /Admirito off ','/avatar good','/avatarON','/avatarOFF','/avatarDigital','/digitalAvatar','/cli ayudante','/cli helper']){
+  assert.equal(c.api.__sharedCommand(text),true,text);
+ }
+ const submit=async text=>{if(c.api.__sharedCommand(text))await c.run(text);else native.push(text);};
+ await submit('/admirito');await submit('/music');assert.deepEqual(calls,['/admirito']);assert.deepEqual(native,['/music']);
+ for(const text of ['/admirito-extra','/avatars','/avatartron','/digitalavatarx','/cli inventario'])assert.equal(c.api.__sharedCommand(text),false,text);
+});
 
 test('a cached avatar is upgraded in place without another dock or demo listener',async()=>{
  const navigations=[],delegated=[],events=[],nodes=new Map();

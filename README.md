@@ -440,3 +440,5 @@ Al abrir Experto se muestra una línea de orden de 52 px. El tirador superior ad
 Los cargadores de avatar antiguos se actualizan desde el motor común al ejecutar `/bugito`, conservando el dock, contexto y nivel elegidos. En TV el raíl nativo conserva su botón y visibilidad; el dock común controla la altura. Los clones deben cargar el motor y CSS canónicos, sin copias congeladas.
 
 Older avatar loaders are upgraded by the shared engine when `/bugito` runs, preserving the dock, context and chosen level. TV keeps its native rail toggle and visibility while the shared dock owns height. Clones must load the canonical engine and CSS rather than frozen copies.
+
+Las consolas nativas anteriores al avatar delegan `/admirito`, `/avatar`, `/avatarON`, `/avatarOFF`, `/avatarDigital`, `/digitalAvatar` y `/cli ayudante|helper` en el mismo motor compartido, con un solo despacho por entrada. Legacy native consoles delegate those shared avatar verbs through the same engine, exactly once per submitted command.
