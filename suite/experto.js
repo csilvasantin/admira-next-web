@@ -1178,7 +1178,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261007-demo-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261014-bugito-1';
   function avatarApi() {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
     var tag = document.querySelector('script[data-admira-avatar]');
@@ -1214,6 +1214,24 @@
   }});
   verb({name: 'admirito', desc: ['muestra u oculta a Admirito, la mascota nube', 'show or hide Admirito, the cloud mascot'], run: function (a, log) {
     return avatarRun('/admirito' + (a.length ? ' ' + a.join(' ') : ''), log);
+  }});
+  // Bugito (Carlos, 14-oct-2026): Admirito con piel de diablillo, el creador de incidencias del banco de pruebas
+  // de admira.biz. Mismo camino que /admirito (avatar.js): fuera del banco lo abre; dentro, lo muestra u oculta y
+  // «/bugito <incidencia>» lanza ese fallo en el player virtual de laboratorio. Con un avatar.js anterior en la
+  // página (sin Bugito), el banco se abre igual.
+  var BUGITO_BANCO = 'https://www.admira.biz/bugito.html';
+  verb({name: 'bugito', args: '[girar|resolucion|popup|medias|normal]', desc: [
+    'sin nada, abre el banco de pruebas de Bugito en admira.biz (si ya estás en él, lo muestra u oculta); con una incidencia, la lanza en el player virtual de laboratorio',
+    'alone, opens Bugito\'s test bench on admira.biz (if you are already there, shows or hides him); with an incident, launches it on the lab virtual player'
+  ], run: function (a, log) {
+    var text = '/bugito' + (a.length ? ' ' + a.join(' ') : '');
+    return avatarApi().then(function (A) {
+      if (A && A.bugito) return avatarRun(text, log);
+      var B = root.AdmiraBugito;
+      if (B && typeof B.toggle === 'function') return Promise.resolve(a.length ? B.lanzar(a.join('-')) : B.toggle()).then(function (msg) { if (msg) out(log, String(msg)); });
+      out(log, T('Bugito: abriendo su banco de pruebas en admira.biz…', 'Bugito: opening his test bench on admira.biz…'));
+      setTimeout(function () { location.assign(BUGITO_BANCO + '?lang=' + lang()); }, 400);
+    });
   }});
   verb({name: 'cli', args: 'ayudante|helper', desc: ['interruptor del avatar en esta consola', 'avatar switch on this console'], run: function (a, log) {
     if (/^(ayudante|helper)$/i.test(a[0] || '')) return avatarRun('/cli ' + a.join(' '), log);

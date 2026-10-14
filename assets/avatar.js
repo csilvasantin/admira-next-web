@@ -10,6 +10,9 @@
  *   /avatar best    Neo — MetaHuman por Pixel Streaming (metahuman.html)
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
+ *   /bugito [incidencia]   Bugito — Admirito con piel de diablillo (nube.html?personaje=bugito), creador de
+ *                   incidencias del banco de pruebas de admira.biz (bugito.html). En el banco (window.AdmiraBugito)
+ *                   lo muestra u oculta y, con argumento, lanza ese fallo; fuera, abre el banco.
  *   AdmiraAvatar.setContext({loc, lang, sector, brand, site, city, tier})  contexto del cliente
  *     (tier = nivel que pide la página; /avatar <nivel> del usuario manda en su pestaña)
  *     (la cara lo recibe en la URL y por postMessage; ver levelUrl).
@@ -38,6 +41,10 @@
     better: 'https://digitalavatar.ai/best.html?dock=1&kiosk=0',
     best: 'https://digitalavatar.ai/metahuman.html?dock=1'
   };
+  // Bugito (Carlos, 14-oct-2026: «Bugito es una adaptación de Admirito»): la misma cara con otra piel,
+  // por el mismo camino que /admirito. No es un nivel: nunca pasa a ser la cara por defecto de un sitio.
+  var BUGITO = 'https://digitalavatar.ai/nube.html?dock=1&personaje=bugito';
+  var BUGITO_BANCO = 'https://www.admira.biz/bugito.html';
   // Categorías públicas (Carlos, 7-oct-2026): avatar = good (Admirito), human = better (Luna),
   // metahuman = best (Neo). good/better/best siguen como alias.
   var CATEGORY_LEVEL = { avatar: 'good', human: 'better', metahuman: 'best', admirito: 'good', luna: 'better', neo: 'best' };
@@ -63,6 +70,7 @@
     var rest = String(m[2] || '').trim().split(/\s+/).filter(Boolean);
     if (verb === 'avataron') return 'on';
     if (verb === 'avataroff') return 'off';
+    if (verb === 'bugito') return 'bugito';
     // Admirito, la mascota nube (Carlos, 5-oct-2026): /avatarDigital, /avatar Digital y /admirito
     // la muestran u ocultan (alternan); con on/off la fijan.
     if (verb === 'admirito' || (verb === 'avatar' && /^digital$/i.test(rest[0] || ''))) {
@@ -84,6 +92,26 @@
     arg = CATEGORY_LEVEL[arg] || arg;
     if (verb !== 'cli' && LEVELS[arg]) return arg;
     return 'bad';
+  }
+
+  // «/bugito girar» → 'girar' · «/bugito» → '' · otra cosa → null. El banco traduce el alias a su catálogo.
+  function bugitoArg(text) {
+    var m = String(text == null ? '' : text).trim().match(/^\/?bugito(?:@\S+)?(?:\s+([\s\S]*))?$/i);
+    if (!m) return null;
+    return String(m[1] || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  }
+  // La cara de Bugito (la nube de Admirito con ?personaje=bugito), con el idioma de la página.
+  function bugitoUrl(ctx) {
+    var c = cleanContext(ctx);
+    return BUGITO + (c.lang ? '&lang=' + c.lang : '') + '&tier=good';
+  }
+  // El banco de pruebas, con la incidencia preseleccionada (no se lanza sola: se lanza en el banco).
+  function bugitoBanco(arg, lang) {
+    var q = [];
+    if (lang === 'es' || lang === 'en') q.push('lang=' + lang);
+    if (arg && /^[a-z0-9-]{1,40}$/.test(arg)) q.push('incidencia=' + arg);
+    return BUGITO_BANCO + (q.length ? '?' + q.join('&') : '');
   }
 
   // override 'on'|'off'|null, flag true|false|null → {on, open:false, source}
@@ -109,6 +137,7 @@
       : 'Avatar digital. /avatar avatar · Admirito, la nube animada. /avatar human · Luna, la anfitriona web. /avatar metahuman · Neo, MetaHuman (good, better y best siguen valiendo). /avatarON lo muestra, /avatarOFF lo oculta.';
     if (kind === 'mascota-on') return en ? 'Admirito shown. /avatarDigital or /admirito hides it again.' : 'Admirito visible. /avatarDigital o /admirito lo vuelve a ocultar.';
     if (kind === 'mascota-off') return en ? 'Admirito hidden. /avatarDigital or /admirito shows it again.' : 'Admirito oculto. /avatarDigital o /admirito lo vuelve a mostrar.';
+    if (kind === 'bugito-ir') return en ? 'Bugito: opening his test bench on admira.biz (virtual player on the left, Bugito on the right)…' : 'Bugito: abriendo su banco de pruebas en admira.biz (player virtual a la izquierda, Bugito a la derecha)…';
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
     if (kind === 'reset-off') return en ? 'Digital avatar follows the project switch (off)' : 'El avatar sigue el interruptor del proyecto (apagado)';
     return en
@@ -193,7 +222,7 @@
     return c[0] + ' · ' + c[1];
   }
 
-  var api = {decide: decide, nextLevel: nextLevel, categoryLabel: categoryLabel, resolve: resolve, legacyValue: legacyValue, message: message,
+  var api = {decide: decide, bugitoArg: bugitoArg, bugitoUrl: bugitoUrl, bugitoBanco: bugitoBanco, BUGITO: BUGITO, BUGITO_BANCO: BUGITO_BANCO, nextLevel: nextLevel, categoryLabel: categoryLabel, resolve: resolve, legacyValue: legacyValue, message: message,
     clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl, pickLevel: pickLevel,
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -598,6 +627,7 @@
       show(true, mode);
       return message(mode, english);
     }
+    if (mode === 'bugito') return bugitoRun(bugitoArg(text) || '');
     if (mode === 'mascota') {
       var vis = !present();
       set(KEY, vis ? 'on' : 'off');
@@ -608,6 +638,14 @@
     set(KEY, on ? 'on' : 'off');
     if (on) show(true); else hide();
     return message(on ? 'on' : 'off', english);
+  }
+  // /bugito: en el banco (la página registra window.AdmiraBugito) lo muestra u oculta o lanza el fallo;
+  // en cualquier otra página de la red abre el banco de admira.biz.
+  function bugitoRun(arg) {
+    var B = root.AdmiraBugito, english = en();
+    if (B && typeof B.toggle === 'function' && typeof B.lanzar === 'function') return arg ? B.lanzar(arg) : B.toggle();
+    root.location.assign(bugitoBanco(arg, english ? 'en' : 'es'));
+    return message('bugito-ir', english);
   }
   function handle(text) {
     var out = run(text);
@@ -754,7 +792,7 @@
     if (requested) { cache.set(d.requestId, entry); entry.promise.then(function (ack) { demoReply(ev.source, ack); }); }
   });
 
-  root.AdmiraAvatar = {run: run, handle: handle, demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
+  root.AdmiraAvatar = {run: run, handle: handle, bugito: {url: function (ctx) { return bugitoUrl(ctx || context()); }, banco: bugitoBanco, run: bugitoRun}, demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },
