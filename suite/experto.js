@@ -1178,7 +1178,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261007-demo-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261014-personajes-2';
   function avatarApi() {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
     var tag = document.querySelector('script[data-admira-avatar]');
@@ -1215,6 +1215,40 @@
   verb({name: 'admirito', desc: ['muestra u oculta a Admirito, la mascota nube', 'show or hide Admirito, the cloud mascot'], run: function (a, log) {
     return avatarRun('/admirito' + (a.length ? ' ' + a.join(' ') : ''), log);
   }});
+  // PERSONAJES (Carlos, 14-oct-2026): pieles de Admirito con verbo propio, por el mismo camino que /admirito
+  // (avatar.js). Fuera de su página la abren; dentro, lo muestran u ocultan y «/<id> <arg>» se lo pasa (Bugito:
+  // lanza esa incidencia en el player virtual de laboratorio). Con un avatar.js anterior en la página (sin el
+  // personaje), su página se abre igual. Añadir el Arquitecto = una entrada más en PERSONAJES_SUITE.
+  var PERSONAJES_SUITE = [
+    {name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https://www.admira.biz/bugito.html', param: 'incidencia', args: '[girar|resolucion|popup|medias|normal]',
+      desc: ['sin nada, abre el banco de pruebas de Bugito en admira.biz (si ya estás en él, lo muestra u oculta); con una incidencia, la lanza en el player virtual de laboratorio',
+        'alone, opens Bugito\'s test bench on admira.biz (if you are already there, shows or hides him); with an incident, launches it on the lab virtual player'],
+      abriendo: ['Bugito: abriendo su banco de pruebas en admira.biz…', 'Bugito: opening his test bench on admira.biz…']}
+  ];
+  // Mismo troceado que avatar.js (personajeArg): minúsculas, sin acentos, guiones; 40 caracteres.
+  function personajeSlug(t) {
+    return String(t || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  }
+  function personajeRun(p, a, log) {
+    var text = '/' + p.name + (a.length ? ' ' + a.join(' ') : '');
+    return avatarApi().then(function (A) {
+      if (A && typeof A.personaje === 'function' && A.personaje(p.name)) return avatarRun(text, log);
+      var B = root[p.gancho], arg = personajeSlug(a.join(' '));
+      if (B && typeof B.toggle === 'function' && typeof B.lanzar === 'function') {
+        return Promise.resolve().then(function () { return arg ? B.lanzar(arg) : B.toggle(); })
+          .then(function (msg) { if (msg) out(log, String(msg)); }, function () { out(log, T('No se pudo: mira el estado de la página.', 'It failed: check the page status.'), 'err'); });
+      }
+      out(log, T(p.abriendo[0], p.abriendo[1]));
+      // Con argumento, la página lo recibe preseleccionado (Bugito: ?incidencia=…), no se lanza solo.
+      var q = '?lang=' + lang() + (arg && p.param ? '&' + p.param + '=' + encodeURIComponent(arg) : '');
+      setTimeout(function () { location.assign(p.pagina + q); }, 400);
+    });
+  }
+  PERSONAJES_SUITE.forEach(function (p) {
+    verb({name: p.name, args: p.args, desc: p.desc, run: function (a, log) { return personajeRun(p, a, log); }});
+  });
+  // Los verbos de personaje son de la suite también donde la pata conserva su propio CLI (sharedCommand).
+  var PERSONAJE_RE = new RegExp('^\\/(' + PERSONAJES_SUITE.map(function (p) { return p.name; }).join('|') + ')(?:\\s|$)', 'i');
   verb({name: 'cli', args: 'ayudante|helper', desc: ['interruptor del avatar en esta consola', 'avatar switch on this console'], run: function (a, log) {
     if (/^(ayudante|helper)$/i.test(a[0] || '')) return avatarRun('/cli ' + a.join(' '), log);
     out(log, T('En esta consola, /cli ayudante es el avatar. /avatar good, /avatar better o /avatar best elige la cara.', 'On this console, /cli helper is the avatar. /avatar good, /avatar better or /avatar best picks the face.'), 'err');
@@ -1223,7 +1257,8 @@
   // opts.echo === false: quien llama ya pintó la orden (p. ej. el CLI del armazón de admiranext.com).
   function sharedCommand(text) {
     var t = String(text || '').trim();
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t))));
+    // Los personajes (/bugito…) son de la suite en las cinco patas, también donde la pata conserva su propio CLI.
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || PERSONAJE_RE.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
