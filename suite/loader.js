@@ -1,3 +1,5 @@
+/* Product header policy also applies before login; it never mounts Expert. */
+(function(D){if(!D||!D.createElement||!D.head)return;if(D.querySelector('script[data-admira-header-loader]'))return;var s=D.createElement('script');if(!s||!s.dataset)return;s.src='https://www.admiranext.com/suite/header.js?v=20261014-1';s.dataset.admiraHeaderLoader='';s.defer=true;D.head.appendChild(s);})(typeof document==='undefined'?null:document);
 /* Mount the one suite engine on an existing Expert console. No login UI is created. */
 (function(G,D){
   'use strict';
