@@ -13,7 +13,7 @@
  *   /avatar         estado y las tres opciones
  *   /avatarON /avatarOFF   muestran u ocultan el panel y lo recuerdan
  *   /<personaje> [arg]   PERSONAJES: pieles de Admirito (nube.html?personaje=<id>) con verbo propio. Hoy:
- *                   /bugito [incidencia] — el diablillo creador de incidencias del banco de pruebas de admira.biz.
+ *                   /bugito — mascota flotante; /bugito full o avanzado — banco de pruebas; [incidencia] — laboratorio.
  *                   En su página (window.Admira<Id>, p. ej. AdmiraBugito) lo muestra u oculta y, con argumento,
  *                   se lo pasa; fuera, abre su página. Añadir otro (arquitecto) = una entrada en PERSONAJES.
  *                   /arquitecto [crear [tipo]|reformar|inventariar] — Admirito con casco de obra, el estudio de admira.biz
@@ -139,6 +139,7 @@
     if (arg && /^[a-z0-9-]{1,40}$/.test(arg)) q.push((PERSONAJES[id].param || 'arg') + '=' + arg);
     return PERSONAJES[id].pagina + (q.length ? '?' + q.join('&') : '');
   }
+  function personajeMode(id,arg){return id==='bugito'&&/^(?:on|off)?$/.test(arg||'')?'floating':id==='bugito'&&/^(?:full|avanzado|advanced)$/.test(arg||'')?'full':'action';}
   function bugitoArg(text) { return personajeArg('bugito', text); }
   function bugitoUrl(ctx) { return personajeUrl('bugito', ctx); }
   function bugitoBanco(arg, lang) { return personajePagina('bugito', arg, lang); }
@@ -257,7 +258,7 @@
     return c[0] + ' · ' + c[1];
   }
 
-  var api = {decide: decide, personajeArg: personajeArg, personajeUrl: personajeUrl, personajePagina: personajePagina, PERSONAJES: PERSONAJES,
+  var api = {decide: decide, personajeMode: personajeMode, personajeArg: personajeArg, personajeUrl: personajeUrl, personajePagina: personajePagina, PERSONAJES: PERSONAJES,
     bugitoArg: bugitoArg, bugitoUrl: bugitoUrl, bugitoBanco: bugitoBanco, BUGITO: BUGITO, BUGITO_BANCO: BUGITO_BANCO, nextLevel: nextLevel, categoryLabel: categoryLabel, resolve: resolve, legacyValue: legacyValue, message: message,
     clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl, pickLevel: pickLevel,
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
@@ -320,7 +321,7 @@
   function watchLift() {
     ensureLift();
     applyLift();
-    root.addEventListener('resize', applyLift);
+    root.addEventListener('resize', applyLift);root.addEventListener('admira:expert-resize',applyLift);
     // Las barras se abren y cierran sin avisar: se reajusta con un sondeo barato.
     if (!liftTimer) liftTimer = root.setInterval(applyLift, 1500);
   }
@@ -420,6 +421,22 @@
   // Mascota: la nube del imagotipo de Admira (contorno #689840 de admira-logo_green.svg) en cartoon,
   // con ojos, mejillas y sonrisa; parpadea y bota al pasar el ratón (sin movimiento si reduced-motion).
   var NUBE = '<svg class="da-nube" viewBox="-6 6 289 186" width="62" height="40" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><g class="da-nube-cuerpo"><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Z" fill="#f3f9e8"/><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Zm0,99.81a41.75,41.75,0,0,1-28.06-11,67.09,67.09,0,0,1-13.39,10.21,65.93,65.93,0,0,1-66.81,0A67.09,67.09,0,0,1,91.66,148,41.56,41.56,0,1,1,59,76a43.33,43.33,0,0,1,4.58-.26A41.39,41.39,0,0,1,76.11,77.7a66.43,66.43,0,0,1,124.69,0,41.39,41.39,0,0,1,12.51-1.93,43.33,43.33,0,0,1,4.58.26,41.58,41.58,0,0,1-4.58,82.91Z" fill="#689840"/><ellipse cx="92" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><ellipse cx="185" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><g class="da-nube-ojos"><ellipse cx="111" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><ellipse cx="166" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><circle cx="115.5" cy="103" r="5" fill="#fff"/><circle cx="170.5" cy="103" r="5" fill="#fff"/></g><path class="da-nube-boca" d="M122,135 Q138.5,153 155,135" fill="none" stroke="#1d2b12" stroke-width="8" stroke-linecap="round"/><path class="da-nube-risa" d="M121,131 Q138.5,162 156,131 Z" fill="#1d2b12" stroke="#1d2b12" stroke-width="4" stroke-linejoin="round"/><path class="da-nube-risa" d="M129,145 Q138.5,154 148,145 Q138.5,141 129,145Z" fill="#e8706f"/></g></svg>';
+  var floatingPersonaje='';
+  function paintMascot(id){
+    floatingPersonaje=id||'';var wrap=node(),bubble=doc.getElementById('da-suite-bubble');if(!wrap||!bubble)return;
+    wrap.setAttribute('data-personaje',floatingPersonaje);bubble.setAttribute('aria-label',id==='bugito'?'Bugito':'Admirito');bubble.title=id==='bugito'?'Bugito':'Admirito';
+    bubble.innerHTML=id==='bugito'?NUBE.replace('viewBox="-6 6 289 186"','viewBox="-18 -15 325 220"').replace(/#f3f9e8/g,'#ee3434').replace(/#689840/g,'#510b0b').replace('<g class="da-nube-cuerpo">','<g class="da-nube-cuerpo"><path d="M92 66 L65 2 L124 46 M179 46 L233 2 L211 71" fill="#ad1515" stroke="#510b0b" stroke-width="9" stroke-linejoin="round"/><path d="M244 146 Q296 177 280 107 M269 118 L280 97 L289 118" fill="none" stroke="#ee3434" stroke-width="8" stroke-linecap="round"/>'):NUBE;
+  }
+  function openPersonajePanel(id){
+    var wrap=ensureDock(),frame=doc.getElementById('da-suite-frame');if(!wrap||!frame)return;
+    frame.src=personajeUrl(id,context());frame.title=id==='bugito'?'Bugito':id;wrap.style.display='';wrap.classList.add('open');var label=doc.getElementById('da-suite-label');var text=label&&label.querySelector('.da-pill-txt');if(text)text.textContent=id.toUpperCase();fitPanel();applyLift();
+  }
+  function floatingCharacter(id,arg){
+    if(arg==='off'){if(floatingPersonaje===id)hide();return en()?'Bugito hidden.':'Bugito oculto.';}
+    var on=arg==='on'||floatingPersonaje!==id||!present();
+    if(on){show(false);paintMascot(id);set(KEY,'on');}else{hide();set(KEY,'off');}
+    return en()?(on?'Bugito is floating on this page. Use /bugito full for the test bench.':'Bugito hidden.'):(on?'Bugito está flotando en esta página. Usa /bugito full para el banco de pruebas.':'Bugito oculto.');
+  }
   function ensureDock() {
     if (node()) return node();
     watchLift();
@@ -465,7 +482,7 @@
     fitPanel();
     bindResize(wrap.querySelector('#da-suite-resize'));
     wrap.querySelector('#da-suite-frame').addEventListener('load', postContext);
-    wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { requestOpen(currentLevel()); });
+    wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { if(floatingPersonaje)openPersonajePanel(floatingPersonaje);else requestOpen(currentLevel()); });
     // El idioma de la página manda: si cambia, la cara recibe el nuevo (chips e idioma de respuesta).
     try { new MutationObserver(postContext).observe(doc.documentElement, {attributes: true, attributeFilter: ['lang']}); } catch (_) {}
     root.addEventListener('storage', function (e) { if (e && e.key === 'admiranext_expert_lang') postContext(); });
@@ -484,6 +501,7 @@
   }
   // Elección por la pastilla = misma memoria que /avatar <categoría> (localStorage + pestaña).
   function chooseLevel(lv) {
+    paintMascot('');
     if (!LEVELS[lv]) return;
     set(LEVEL_KEY, lv);
     var ss = session(); try { if (ss) ss.setItem(CHOICE_KEY, lv); } catch (_) {}
@@ -657,6 +675,7 @@
       return message(readCache() ? 'reset-on' : 'reset-off', english);
     }
     if (LEVELS[mode]) {
+      paintMascot('');
       set(LEVEL_KEY, mode);
       var ss = session(); try { if (ss) ss.setItem(CHOICE_KEY, mode); } catch (_) {}
       set(KEY, 'on');
@@ -665,7 +684,7 @@
     }
     if (Object.prototype.hasOwnProperty.call(PERSONAJES, mode)) return personajeRun(mode, personajeArg(mode, text) || '');
     if (mode === 'mascota') {
-      var vis = !present();
+      var vis = !!floatingPersonaje||!present();paintMascot('');
       set(KEY, vis ? 'on' : 'off');
       if (vis) show(false); else hide();
       return message(vis ? 'mascota-on' : 'mascota-off', english);
@@ -679,7 +698,9 @@
   // pasa el argumento (Bugito: lanza ese fallo); en cualquier otra página de la red abre la suya.
   // La acción: texto, o promesa de texto cuando la página lanza algo asíncrono (Bugito manda la orden al mando).
   function personajeAccion(id, arg) {
-    var B = root[PERSONAJES[id].gancho], english = en();
+    var B = root[PERSONAJES[id].gancho], english = en(),mode=personajeMode(id,arg);
+    if(mode==='floating')return floatingCharacter(id,arg);
+    if(mode==='full'){root.location.assign(personajePagina(id,'',english?'en':'es'));return message(id+'-ir',english);}
     if (B && typeof B.toggle === 'function' && typeof B.lanzar === 'function') {
       try { return arg ? B.lanzar(arg) : B.toggle(); } catch (_) { return message(id + '-fallo', english); }
     }
@@ -851,7 +872,7 @@
     if (requested) { cache.set(d.requestId, entry); entry.promise.then(function (ack) { demoReply(ev.source, ack); }); }
   });
 
-  root.AdmiraAvatar = {run: run, handle: handle, personaje: personaje, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
+  root.AdmiraAvatar = {floatingCharacters:true,run: run, handle: handle, personaje: personaje, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },

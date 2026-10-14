@@ -478,5 +478,9 @@
   "v.14.10.2026.r4.18:37": [
     "Segundo ajuste de cabecera: los tres controles quedan al 81% del tamaño original en la suite y sus clones.",
     "Marca blanca de Studio: powered by encima de Admira Studio para estrechar el bloque."
+  ],
+  "v.14.10.2026.r5.19:51": [
+    "Experto abre con una línea de escritura mínima y permite ampliar o reducir el panel desde su borde superior.",
+    "Bugito aparece flotando con /bugito; /bugito full o /bugito avanzado abre el banco de pruebas."
   ]
 }

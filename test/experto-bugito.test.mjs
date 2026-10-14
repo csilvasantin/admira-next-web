@@ -86,7 +86,7 @@ test('/bugito está en el ⌘ Experto y en /help, en castellano y en inglés', a
   assert.equal(c.api.has('bugito'), true);
   await c.run('/help');
   assert.match(c.texto(), /\/bugito/);
-  assert.match(c.texto(), /banco de pruebas de Bugito/);
+  assert.match(c.texto(), /banco de pruebas/);
   const en = consola({ lang: 'en' });
   await en.run('/help');
   assert.match(en.texto(), /Bugito's test bench/);
@@ -94,13 +94,13 @@ test('/bugito está en el ⌘ Experto y en /help, en castellano y en inglés', a
 
 test('/bugito va por el mismo camino que /admirito: el cargador avatar.js', async () => {
   const llamadas = [];
-  const AdmiraAvatar = { handle: (t) => { llamadas.push(t); return Promise.resolve(t === '/bugito popup' ? 'Bugito: ¡Popup va!' : 'ok'); }, personaje: (id) => (id === 'bugito' ? { url() {} } : null) };
+  const AdmiraAvatar = { floatingCharacters:true,handle: (t) => { llamadas.push(t); return Promise.resolve(t === '/bugito popup' ? 'Bugito: ¡Popup va!' : 'ok'); }, personaje: (id) => (id === 'bugito' ? { url() {} } : null) };
   const c = consola({ AdmiraAvatar });
   await c.run('/bugito popup');
   await c.run('/admirito');
   assert.deepEqual(llamadas, ['/bugito popup', '/admirito']);
   assert.match(c.texto(), /¡Popup va!/);
-  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-personajes-3';/, 'carga el avatar.js que conoce a Bugito (y al Arquitecto)');
+  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-floating-bugito-1';/, 'carga el avatar.js que conoce a Bugito (y al Arquitecto)');
 });
 
 test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera, abre el banco', async () => {
@@ -110,9 +110,11 @@ test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera,
   await enBanco.run('/bugito');
   await enBanco.run('/bugito popup');
   assert.deepEqual(pedidos, ['popup']);
-  assert.match(enBanco.texto(), /Bugito oculto/);
+  assert.match(enBanco.texto(), /Recarga/);
   const fuera = consola({ AdmiraAvatar: viejo });
   await fuera.run('/bugito');
+  assert.equal(fuera.fuera.length,0,'bare Bugito never navigates through an older loader');
+  await fuera.run('/bugito full');
   await fuera.run('/bugito Ábrela a medias');
   assert.deepEqual(fuera.fuera, ['https://www.admira.biz/bugito.html?lang=es', 'https://www.admira.biz/bugito.html?lang=es&incidencia=abrela-a-medias'], 'la incidencia viaja preseleccionada');
   // Una página con toggle pero sin lanzar no es el banco: no se llama a lo que no existe, se abre el banco.
@@ -161,10 +163,10 @@ test('AdmiraAvatar.run(/bugito x) no devuelve una promesa sin manejar; handle() 
     assert.equal(typeof r, 'string', 'run() es síncrono');
     assert.equal(r, 'Bugito: lanzando «popup» en el banco…');
     assert.equal(await falla.A.handle('/bugito popup'), 'Bugito no ha podido hacerlo: mira el estado del banco.');
-    assert.equal(falla.A.run('/bugito'), 'Bugito a la vista.');
+    assert.match(falla.A.run('/bugito avanzado'), /abriendo su banco de pruebas/);
     const bien = cargadorConDom({ toggle: () => 'Bugito escondido.', lanzar: (x) => Promise.resolve('Bugito lanza «' + x + '».') });
     assert.equal(await bien.A.handle('/bugito medias'), 'Bugito lanza «medias».');
-    assert.equal(await bien.A.handle('/bugito'), 'Bugito escondido.');
+    assert.match(await bien.A.handle('/bugito full'), /abriendo su banco de pruebas/);
     const lanzaRompe = cargadorConDom({ toggle: () => '', lanzar: () => { throw new Error('x'); } });
     assert.equal(lanzaRompe.A.run('/bugito popup'), 'Bugito no ha podido hacerlo: mira el estado del banco.');
     const fuera = cargadorConDom(null);
@@ -174,3 +176,20 @@ test('AdmiraAvatar.run(/bugito x) no devuelve una promesa sin manejar; handle() 
     assert.equal(sueltas.length, 0, 'ningún rechazo sin manejar');
   } finally { process.off('unhandledRejection', oyente); }
 });
+
+test('bare Bugito is floating; full and avanzado select the bench explicitly',()=>{for(const arg of ['', 'on','off'])assert.equal(A.personajeMode('bugito',arg),'floating');for(const arg of ['full','avanzado','advanced'])assert.equal(A.personajeMode('bugito',arg),'full');assert.equal(A.personajeMode('bugito','popup'),'action');assert.equal(A.personajeMode('arquitecto',''),'action');});
+
+test('floating Bugito changes the mascot in place, toggles, and restores Admirito without navigation',async()=>{
+ const navigations=[],nodes=new Map();
+ const node=()=>({style:{},attrs:{},classList:{values:new Set(),add(x){this.values.add(x);},remove(x){this.values.delete(x);},contains(x){return this.values.has(x);}},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this.attrs[k];},querySelector(){return null;}});
+ const wrap=node(),bubble=node(),frame=node(),panel=node();wrap.querySelector=()=>frame;
+ for(const [id,n]of [['da-suite',wrap],['da-suite-bubble',bubble],['da-suite-frame',frame],['da-suite-panel',panel]])nodes.set(id,n);
+ const document={readyState:'loading',currentScript:null,documentElement:{lang:'es',style:{setProperty(){},getPropertyValue(){return '';}}},getElementById:id=>nodes.get(id)||null,querySelector:()=>null,querySelectorAll:()=>[],addEventListener(){}};
+ const window={document,innerWidth:1280,innerHeight:800,location:{host:'admira.studio',origin:'https://admira.studio',assign:u=>navigations.push(u)},addEventListener(){}};
+ vm.runInNewContext(avatar,{window,document,URL,Promise,WeakMap,Map});
+ assert.match(await window.AdmiraAvatar.handle('/bugito'),/flotando/);assert.equal(wrap.attrs['data-personaje'],'bugito');assert.match(bubble.innerHTML,/#ee3434/);assert.equal(wrap.style.display,'');assert.equal(wrap.classList.contains('open'),false);assert.deepEqual(navigations,[]);
+ assert.match(await window.AdmiraAvatar.handle('/bugito'),/oculto/);assert.equal(wrap.style.display,'none');
+ await window.AdmiraAvatar.handle('/bugito on');await window.AdmiraAvatar.handle('/admirito');assert.equal(wrap.attrs['data-personaje'],'');assert.match(bubble.innerHTML,/#689840/);assert.deepEqual(navigations,[]);
+ await window.AdmiraAvatar.handle('/bugito avanzado');assert.deepEqual(navigations,['https://www.admira.biz/bugito.html?lang=es']);
+});
+test('shared dock height starts at a writable minimum and clamps manual resizing to the viewport',()=>{const c=consola();assert.equal(c.api.height(),52);assert.equal(c.api.resize(0),52);assert.equal(c.api.resize(300),300);assert.equal(c.api.resize(100000),680);assert.equal(c.api.resize(-100),52);});

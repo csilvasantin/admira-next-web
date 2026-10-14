@@ -1180,7 +1180,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261014-personajes-3';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261014-floating-bugito-1';
   function avatarApi() {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
     var tag = document.querySelector('script[data-admira-avatar]');
@@ -1222,9 +1222,9 @@
   // lanza esa incidencia en el player virtual de laboratorio). Con un avatar.js anterior en la página (sin el
   // personaje), su página se abre igual. Añadir el Arquitecto = una entrada más en PERSONAJES_SUITE.
   var PERSONAJES_SUITE = [
-    {name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https://www.admira.biz/bugito.html', param: 'incidencia', args: '[girar|resolucion|popup|medias|normal]',
-      desc: ['sin nada, abre el banco de pruebas de Bugito en admira.biz (si ya estás en él, lo muestra u oculta); con una incidencia, la lanza en el player virtual de laboratorio',
-        'alone, opens Bugito\'s test bench on admira.biz (if you are already there, shows or hides him); with an incident, launches it on the lab virtual player'],
+    {name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https://www.admira.biz/bugito.html', param: 'incidencia', args: '[full|avanzado|girar|resolucion|popup|medias|normal]',
+      desc: ['sin nada, muestra u oculta a Bugito flotando en la página; full o avanzado abre el banco de pruebas en admira.biz; una incidencia se prepara en el laboratorio',
+        'alone, toggles floating Bugito on the page; full or avanzado opens Bugito\'s test bench on admira.biz; incident arguments prepare the laboratory'],
       abriendo: ['Bugito: abriendo su banco de pruebas en admira.biz…', 'Bugito: opening his test bench on admira.biz…']},
     // El Arquitecto (Carlos, 14-oct-2026, DCL-66d9ae0d5e756d0067127f24): Admirito con casco de obra. Crear (un Xpacio
     // inventado), reformar (desde foto, vídeo o lo que se cuente) o inventariar (y dar de alta el ITIL en Yokup).
@@ -1240,8 +1240,10 @@
   function personajeRun(p, a, log) {
     var text = '/' + p.name + (a.length ? ' ' + a.join(' ') : '');
     return avatarApi().then(function (A) {
-      if (A && typeof A.personaje === 'function' && A.personaje(p.name)) return avatarRun(text, log);
+      if (A && typeof A.personaje === 'function' && A.personaje(p.name) && (p.name!=='bugito'||A.floatingCharacters)) return avatarRun(text, log);
       var B = root[p.gancho], arg = personajeSlug(a.join(' '));
+      if(p.name==='bugito'&&!arg){out(log,T('Recarga la página para cargar a Bugito flotante.','Reload the page to load floating Bugito.'),'err');return;}
+      if(p.name==='bugito'&&/^(full|avanzado|advanced)$/.test(arg))arg='';
       if (B && typeof B.toggle === 'function' && typeof B.lanzar === 'function') {
         return Promise.resolve().then(function () { return arg ? B.lanzar(arg) : B.toggle(); })
           .then(function (msg) { if (msg) out(log, String(msg)); }, function () { out(log, T('No se pudo: mira el estado de la página.', 'It failed: check the page status.'), 'err'); });
@@ -1352,8 +1354,31 @@
   // ── Minimizado = una línea de orden ─────────────────────────────────────────
   // Carlos (4-oct 23:11): «no es cerrada es minimizada, que se pueda escribir pero no ocupe mucho
   // espacio». Minimizado solo queda la orden «› /help» (escribible) con un asa pequeña encima;
-  // el asa, el ▾ de la cabecera o el ⌘ de la pata despliegan/pliegan, y una orden lanzada en
-  // minimizado lo despliega para que se vea la respuesta. La página reserva abajo ese alto.
+  // el icono ⌘ muestra u oculta la línea; el borde superior redimensiona el panel.
+  // La altura inicial es mínima y escribir una orden no la fuerza al tamaño completo. La página reserva abajo ese alto.
+  var DOCK_MIN=52,dockHeight=DOCK_MIN,dockExpanded=300;
+  function dockMaximum(){var v=root.visualViewport;return Math.max(DOCK_MIN,Math.floor((v?v.height:root.innerHeight||800)*.85));}
+  function resizeDock(value,remember){
+    dockHeight=Math.round(Math.max(DOCK_MIN,Math.min(dockMaximum(),Number(value)||DOCK_MIN)));
+    if(!panel)return dockHeight;
+    panel.style.setProperty('--ax-dock-h',dockHeight+'px');
+    document.documentElement.style.setProperty('--pf-cli-height',dockHeight+'px');document.documentElement.style.setProperty('--ax-dock-current-height',dockHeight+'px');
+    panel.classList.toggle('ax-compact',dockHeight===DOCK_MIN);panel.classList.toggle('ax-short',dockHeight<200);
+    if(remember&&dockHeight>DOCK_MIN)dockExpanded=dockHeight;
+    [].forEach.call(panel.querySelectorAll('.ax-resize'),function(h){h.setAttribute('aria-valuemin',String(DOCK_MIN));h.setAttribute('aria-valuemax',String(dockMaximum()));h.setAttribute('aria-valuenow',String(dockHeight));});
+    try{root.dispatchEvent(new CustomEvent('admira:expert-resize',{detail:{height:dockHeight}}));}catch(_){}
+    return dockHeight;
+  }
+  function bindDockResize(){
+    var h=document.createElement('div'),drag=null;h.className='ax-resize';h.tabIndex=0;h.setAttribute('role','separator');h.setAttribute('aria-orientation','horizontal');h.setAttribute('aria-label',T('Redimensionar modo Experto','Resize Expert mode'));panel.insertBefore(h,panel.firstChild);
+    h.addEventListener('pointerdown',function(e){if(e.button!=null&&e.button!==0)return;e.preventDefault();e.stopPropagation();drag={id:e.pointerId,y:e.clientY,height:dockHeight};panel.classList.add('ax-resizing');try{h.setPointerCapture(e.pointerId);}catch(_){};});
+    h.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.id)return;e.preventDefault();resizeDock(drag.height+drag.y-e.clientY,true);});
+    function stop(){drag=null;panel.classList.remove('ax-resizing');}
+    h.addEventListener('pointerup',stop);h.addEventListener('pointercancel',stop);h.addEventListener('lostpointercapture',stop);
+    h.addEventListener('dblclick',function(e){e.preventDefault();resizeDock(dockHeight===DOCK_MIN?dockExpanded:DOCK_MIN,false);});
+    h.addEventListener('keydown',function(e){if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();resizeDock(dockHeight+(e.key==='ArrowUp'?1:-1)*(e.shiftKey?48:16),true);}else if(e.key==='Home'){e.preventDefault();resizeDock(DOCK_MIN,false);}else if(e.key==='End'){e.preventDefault();resizeDock(dockMaximum(),true);}});
+    root.addEventListener('resize',function(){resizeDock(dockHeight,false);});if(root.visualViewport)root.visualViewport.addEventListener('resize',function(){resizeDock(dockHeight,false);});
+  }
   function isOpen() { return !!panel && !panel.classList.contains('ax-min'); }
   function pad() {
     if (!panel) return;
@@ -1363,6 +1388,7 @@
   }
   function setOpen(open, remember) {
     if (!panel || !panel.classList.contains('ax-dock')) return;
+    var wasOpen=isOpen();
     panel.classList.toggle('ax-min', !open);
     panel.classList.toggle('ax-hide', cfg.minHide && !open);
     document.documentElement.setAttribute('data-ax-dock', open ? 'open' : cfg.minHide ? 'hidden' : 'min');
@@ -1373,6 +1399,7 @@
       f.setAttribute('aria-label', lab); f.title = lab;
     });
     if (remember) { try { dockStore().setItem(DOCK_KEY, open ? '1' : '0'); } catch (_) {} }
+    if(open&&!wasOpen)resizeDock(DOCK_MIN,false);
     if (open) {
       var log = panel.querySelector('.ax-cli-out');
       if (log) setTimeout(function () { log.scrollTop = log.scrollHeight; }, 0);
@@ -1405,6 +1432,7 @@
       }, true);
     }
     panel.classList.add('ax-dock');
+    bindDockResize();resizeDock(DOCK_MIN,false);
     var sp = document.createElement('div');
     sp.className = 'ax-dock-spacer';
     sp.setAttribute('aria-hidden', 'true');
@@ -1558,7 +1586,8 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261012-unified-1',
+    engineVersion: '20261014-compact-bugito-1',
+    resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
     close: function () { setOpen(false, true); },
