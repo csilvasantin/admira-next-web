@@ -1222,6 +1222,49 @@
   verb({name: 'admirito', desc: ['muestra u oculta a Admirito, la mascota nube', 'show or hide Admirito, the cloud mascot'], run: function (a, log) {
     return avatarRun('/admirito' + (a.length ? ' ' + a.join(' ') : ''), log);
   }});
+  // Reutiliza Analizar de Admira Live: una sola cámara, sesión y controles PTZ.
+  function supervisorCamera() {
+    if (host !== 'admira.live') {
+      location.assign('https://www.admira.live/analizar?supervisor=1&lang=' + lang());
+      return {ok:true, navigating:true};
+    }
+    var camera = document.querySelector('#analizar-webcam');
+    if (!camera) {
+      var entry = document.querySelector('button[data-verb="analizar"]');
+      if (!entry || !root.AdmiraWebcam) return {ok:false, error:T('La cámara todavía no está disponible. Vuelve a ejecutar /supervisor.', 'The camera is not ready yet. Run /supervisor again.')};
+      entry.click();
+      camera = document.querySelector('#analizar-webcam');
+    }
+    if (!camera) return {ok:false, error:T('No se pudo abrir la cámara de Admira Live.', 'Could not open the Admira Live camera.')};
+    var controls = camera.querySelector('[data-toggle]');
+    if (!controls) return {ok:false, error:T('No se encuentran los controles de cámara.', 'Camera controls could not be found.')};
+    if (controls.getAttribute('aria-expanded') === 'false') controls.click();
+    return {ok:true, camera:true};
+  }
+  verb({name:'supervisor', desc:[
+    'abre la Insta360 del Mac mini en Admira Live con presets, movimiento y zoom visibles',
+    'opens the Mac mini Insta360 in Admira Live with visible presets, movement and zoom controls'
+  ], run:function(a,log){
+    if(a.length){var usage=T('Usa /supervisor para abrir la cámara con sus controles.','Use /supervisor to open the camera with its controls.');out(log,usage,'err');return {ok:false,error:usage};}
+    var result=supervisorCamera();
+    out(log,result.ok?T('Supervisor: cámara Insta360 con controles.','Supervisor: Insta360 camera with controls.'):result.error,result.ok?'':'err');
+    return result;
+  }});
+  function bootSupervisorCamera() {
+    if (host !== 'admira.live' || new URLSearchParams(location.search).get('supervisor') !== '1') return;
+    var observer, timer;
+    function ready() {
+      var result=supervisorCamera();
+      if (!result.ok) return false;
+      if(observer)observer.disconnect();
+      if(timer)clearTimeout(timer);
+      return true;
+    }
+    if(ready())return;
+    observer=new MutationObserver(ready);
+    observer.observe(document.documentElement,{childList:true,subtree:true});
+    timer=setTimeout(function(){observer.disconnect();},20000);
+  }
   // PERSONAJES (Carlos, 14-oct-2026): pieles de Admirito con verbo propio, por el mismo camino que /admirito
   // (avatar.js). Fuera de su página la abren; dentro, lo muestran u ocultan y «/<id> <arg>» se lo pasa (Bugito:
   // lanza esa incidencia en el player virtual de laboratorio). Con un avatar.js anterior en la página (sin el
@@ -1274,7 +1317,7 @@
   function sharedCommand(text) {
     var t = String(text || '').trim();
     // The shared avatar owns its verbs even when the native console predates them.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || /^\/supervisor(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
@@ -1600,7 +1643,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261014-compact-bugito-1',
+    engineVersion: '20261014-supervisor-camera-1',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
@@ -1653,6 +1696,7 @@
     if (pedido && pedido !== lang()) { try { applyLang(pedido); } catch (_) {} }
     try { document.addEventListener('keydown', completarNombreDemo, true); } catch (_) {}
     bootNativeDemo();
+    bootSupervisorCamera();
     if (apply()) return;
     var mo = new MutationObserver(function () { if (apply()) mo.disconnect(); });
     mo.observe(document.documentElement, {childList: true, subtree: true});
