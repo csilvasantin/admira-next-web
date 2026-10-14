@@ -100,7 +100,7 @@ test('/bugito va por el mismo camino que /admirito: el cargador avatar.js', asyn
   await c.run('/admirito');
   assert.deepEqual(llamadas, ['/bugito popup', '/admirito']);
   assert.match(c.texto(), /¡Popup va!/);
-  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-personajes-2';/, 'carga el avatar.js que conoce a Bugito');
+  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-personajes-3';/, 'carga el avatar.js que conoce a Bugito (y al Arquitecto)');
 });
 
 test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera, abre el banco', async () => {
@@ -131,13 +131,13 @@ test('en piel (la pata conserva su CLI), la suite intercepta /bugito igual que /
 });
 
 test('personajes: una tabla en el cargador y otra en la suite; añadir el Arquitecto es una entrada', () => {
-  assert.deepEqual(Object.keys(A.PERSONAJES), ['bugito']);
+  assert.deepEqual(Object.keys(A.PERSONAJES), ['bugito', 'arquitecto'], 'el Arquitecto llegó con su entrada (DCL-66d9ae0d5e756d0067127f24)');
   assert.equal(A.PERSONAJES.bugito.gancho, 'AdmiraBugito');
   assert.equal(A.personajeUrl('bugito', { lang: 'es' }), 'https://digitalavatar.ai/nube.html?dock=1&personaje=bugito&lang=es&tier=good');
-  assert.equal(A.personajeUrl('arquitecto', {}), '', 'hasta que tenga su entrada');
+  assert.equal(A.personajeUrl('pirata', {}), '', 'un personaje sin entrada no tiene cara');
   assert.equal(A.personajeArg('bugito', '/bugito Gira'), 'gira');
   assert.equal(A.personajeArg('bugito', '/admirito gira'), null);
-  assert.equal(A.decide('/arquitecto'), null);
+  assert.equal(A.decide('/pirata'), null);
   assert.match(experto, /var PERSONAJES_SUITE = \[\n    \{name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https:\/\/www\.admira\.biz\/bugito\.html'/);
   assert.match(experto, /PERSONAJES_SUITE\.forEach\(function \(p\) \{\n    verb\(\{name: p\.name, args: p\.args, desc: p\.desc, run: function \(a, log\) \{ return personajeRun\(p, a, log\); \}\}\);/);
 });
