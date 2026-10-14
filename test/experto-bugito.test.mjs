@@ -100,7 +100,7 @@ test('/bugito va por el mismo camino que /admirito: el cargador avatar.js', asyn
   await c.run('/admirito');
   assert.deepEqual(llamadas, ['/bugito popup', '/admirito']);
   assert.match(c.texto(), /¡Popup va!/);
-  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-floating-bugito-1';/, 'carga el avatar.js que conoce a Bugito (y al Arquitecto)');
+  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-floating-bugito-2';/, 'carga el avatar.js que actualiza cargadores antiguos sin duplicar el dock');
 });
 
 test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera, abre el banco', async () => {
@@ -193,3 +193,21 @@ test('floating Bugito changes the mascot in place, toggles, and restores Admirit
  await window.AdmiraAvatar.handle('/bugito avanzado');assert.deepEqual(navigations,['https://www.admira.biz/bugito.html?lang=es']);
 });
 test('shared dock height starts at a writable minimum and clamps manual resizing to the viewport',()=>{const c=consola();assert.equal(c.api.height(),52);assert.equal(c.api.resize(0),52);assert.equal(c.api.resize(300),300);assert.equal(c.api.resize(100000),680);assert.equal(c.api.resize(-100),52);});
+
+test('a cached avatar is upgraded in place without another dock or demo listener',async()=>{
+ const navigations=[],delegated=[],events=[],nodes=new Map();
+ const node=()=>({style:{},attrs:{},listeners:{},classList:{values:new Set(),add(x){this.values.add(x);},remove(x){this.values.delete(x);},contains(x){return this.values.has(x);}},setAttribute(k,v){this.attrs[k]=v;},hasAttribute(k){return k in this.attrs;},removeAttribute(k){delete this.attrs[k];},addEventListener(k,fn){this.listeners[k]=fn;},querySelector(){return null;}});
+ const wrap=node(),bubble=node(),frame=node(),panel=node();wrap.querySelector=()=>frame;
+ for(const [id,n]of [['da-suite',wrap],['da-suite-bubble',bubble],['da-suite-frame',frame],['da-suite-panel',panel]])nodes.set(id,n);
+ const document={readyState:'complete',currentScript:null,documentElement:{lang:'es',style:{setProperty(){},getPropertyValue(){return '';}}},getElementById:id=>nodes.get(id)||null,querySelector:()=>null,querySelectorAll:()=>[],addEventListener(){throw Error('No new boot listener');},createElement(){throw Error('No new dock or styles');}};
+ const original={handle:t=>{delegated.push(t);return Promise.resolve('legacy:'+t);},run:t=>'legacy:'+t,show(){wrap.style.display='';wrap.classList.remove('open');},hide(){wrap.style.display='none';wrap.classList.remove('open');},context:()=>({lang:'es',brand:'starbucks'}),personaje:id=>id==='arquitecto'?{legacy:true}:null,level:'best'};
+ const window={AdmiraAvatar:original,AvatarDigital:{handle:original.handle},document,innerWidth:1280,innerHeight:800,location:{host:'admira.store',origin:'https://admira.store',assign:u=>navigations.push(u)},addEventListener:name=>events.push(name)};
+ vm.runInNewContext(avatar,{window,document,URL,Promise,WeakMap,Map});
+ assert.equal(window.AdmiraAvatar,original);assert.equal(original.floatingCharacters,true);assert.deepEqual(events,['admira:expert-resize']);assert.equal(original.level,'best');
+ assert.match(await original.handle('/bugito'),/flotando/);assert.equal(wrap.attrs['data-personaje'],'bugito');assert.deepEqual(navigations,[]);
+ let stopped=false;bubble.listeners.click({preventDefault(){},stopImmediatePropagation(){stopped=true;}});assert.equal(stopped,true);assert.match(frame.src,/personaje=bugito/);assert.equal(original.context().brand,'starbucks');
+ await original.handle('/admirito');assert.equal(wrap.attrs['data-personaje'],'');assert.match(bubble.innerHTML,/#689840/);
+ assert.equal(await original.handle('/avatar'), 'legacy:/avatar');assert.deepEqual(delegated,['/avatar']);assert.equal(original.personaje('arquitecto').legacy,true);assert.equal(window.AvatarDigital.handle,original.handle);
+ await original.handle('/bugito full');assert.deepEqual(navigations,['https://www.admira.biz/bugito.html?lang=es']);
+ vm.runInNewContext(avatar,{window,document,URL,Promise,WeakMap,Map});assert.deepEqual(events,['admira:expert-resize'],'reloading the new asset does not upgrade twice');
+});
