@@ -1215,24 +1215,31 @@
   verb({name: 'admirito', desc: ['muestra u oculta a Admirito, la mascota nube', 'show or hide Admirito, the cloud mascot'], run: function (a, log) {
     return avatarRun('/admirito' + (a.length ? ' ' + a.join(' ') : ''), log);
   }});
-  // Bugito (Carlos, 14-oct-2026): Admirito con piel de diablillo, el creador de incidencias del banco de pruebas
-  // de admira.biz. Mismo camino que /admirito (avatar.js): fuera del banco lo abre; dentro, lo muestra u oculta y
-  // «/bugito <incidencia>» lanza ese fallo en el player virtual de laboratorio. Con un avatar.js anterior en la
-  // página (sin Bugito), el banco se abre igual.
-  var BUGITO_BANCO = 'https://www.admira.biz/bugito.html';
-  verb({name: 'bugito', args: '[girar|resolucion|popup|medias|normal]', desc: [
-    'sin nada, abre el banco de pruebas de Bugito en admira.biz (si ya estás en él, lo muestra u oculta); con una incidencia, la lanza en el player virtual de laboratorio',
-    'alone, opens Bugito\'s test bench on admira.biz (if you are already there, shows or hides him); with an incident, launches it on the lab virtual player'
-  ], run: function (a, log) {
-    var text = '/bugito' + (a.length ? ' ' + a.join(' ') : '');
+  // PERSONAJES (Carlos, 14-oct-2026): pieles de Admirito con verbo propio, por el mismo camino que /admirito
+  // (avatar.js). Fuera de su página la abren; dentro, lo muestran u ocultan y «/<id> <arg>» se lo pasa (Bugito:
+  // lanza esa incidencia en el player virtual de laboratorio). Con un avatar.js anterior en la página (sin el
+  // personaje), su página se abre igual. Añadir el Arquitecto = una entrada más en PERSONAJES_SUITE.
+  var PERSONAJES_SUITE = [
+    {name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https://www.admira.biz/bugito.html', args: '[girar|resolucion|popup|medias|normal]',
+      desc: ['sin nada, abre el banco de pruebas de Bugito en admira.biz (si ya estás en él, lo muestra u oculta); con una incidencia, la lanza en el player virtual de laboratorio',
+        'alone, opens Bugito\'s test bench on admira.biz (if you are already there, shows or hides him); with an incident, launches it on the lab virtual player'],
+      abriendo: ['Bugito: abriendo su banco de pruebas en admira.biz…', 'Bugito: opening his test bench on admira.biz…']}
+  ];
+  function personajeRun(p, a, log) {
+    var text = '/' + p.name + (a.length ? ' ' + a.join(' ') : '');
     return avatarApi().then(function (A) {
-      if (A && A.bugito) return avatarRun(text, log);
-      var B = root.AdmiraBugito;
+      if (A && typeof A.personaje === 'function' && A.personaje(p.name)) return avatarRun(text, log);
+      var B = root[p.gancho];
       if (B && typeof B.toggle === 'function') return Promise.resolve(a.length ? B.lanzar(a.join('-')) : B.toggle()).then(function (msg) { if (msg) out(log, String(msg)); });
-      out(log, T('Bugito: abriendo su banco de pruebas en admira.biz…', 'Bugito: opening his test bench on admira.biz…'));
-      setTimeout(function () { location.assign(BUGITO_BANCO + '?lang=' + lang()); }, 400);
+      out(log, T(p.abriendo[0], p.abriendo[1]));
+      setTimeout(function () { location.assign(p.pagina + '?lang=' + lang()); }, 400);
     });
-  }});
+  }
+  PERSONAJES_SUITE.forEach(function (p) {
+    verb({name: p.name, args: p.args, desc: p.desc, run: function (a, log) { return personajeRun(p, a, log); }});
+  });
+  // Los verbos de personaje son de la suite también donde la pata conserva su propio CLI (sharedCommand).
+  var PERSONAJE_RE = new RegExp('^\\/(' + PERSONAJES_SUITE.map(function (p) { return p.name; }).join('|') + ')(?:\\s|$)', 'i');
   verb({name: 'cli', args: 'ayudante|helper', desc: ['interruptor del avatar en esta consola', 'avatar switch on this console'], run: function (a, log) {
     if (/^(ayudante|helper)$/i.test(a[0] || '')) return avatarRun('/cli ' + a.join(' '), log);
     out(log, T('En esta consola, /cli ayudante es el avatar. /avatar good, /avatar better o /avatar best elige la cara.', 'On this console, /cli helper is the avatar. /avatar good, /avatar better or /avatar best picks the face.'), 'err');
@@ -1241,8 +1248,8 @@
   // opts.echo === false: quien llama ya pintó la orden (p. ej. el CLI del armazón de admiranext.com).
   function sharedCommand(text) {
     var t = String(text || '').trim();
-    // /bugito es de la suite en las cinco patas, también donde la pata conserva su propio CLI.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/bugito(?:\s|$)/i.test(t))));
+    // Los personajes (/bugito…) son de la suite en las cinco patas, también donde la pata conserva su propio CLI.
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || PERSONAJE_RE.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();

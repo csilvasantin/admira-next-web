@@ -47,10 +47,11 @@ test('el banco de pruebas de admira.biz, con la incidencia sólo preseleccionada
   assert.equal(A.bugitoBanco('mal&x=1', 'xx'), 'https://www.admira.biz/bugito.html');
   assert.match(A.message('bugito-ir', false), /banco de pruebas en admira\.biz/);
   assert.match(A.message('bugito-ir', true), /test bench on admira\.biz/);
-  // run(): /bugito va por bugitoRun → en el banco, la página (AdmiraBugito); fuera, el banco.
-  assert.match(avatar, /if \(mode === 'bugito'\) return bugitoRun\(bugitoArg\(text\) \|\| ''\);/);
+  // run(): /<personaje> va por personajeRun → en su página, el gancho (AdmiraBugito); fuera, su página.
+  assert.match(avatar, /if \(Object\.prototype\.hasOwnProperty\.call\(PERSONAJES, mode\)\) return personajeRun\(mode, personajeArg\(mode, text\) \|\| ''\);/);
+  assert.match(avatar, /var B = root\[PERSONAJES\[id\]\.gancho\]/);
   assert.match(avatar, /if \(B && typeof B\.toggle === 'function' && typeof B\.lanzar === 'function'\) return arg \? B\.lanzar\(arg\) : B\.toggle\(\);/);
-  assert.match(avatar, /root\.location\.assign\(bugitoBanco\(arg, english \? 'en' : 'es'\)\);/);
+  assert.match(avatar, /root\.location\.assign\(personajePagina\(id, arg, english \? 'en' : 'es'\)\);/);
 });
 
 // ── El verbo en el ⌘ Experto compartido ──
@@ -93,7 +94,7 @@ test('/bugito está en el ⌘ Experto y en /help, en castellano y en inglés', a
 
 test('/bugito va por el mismo camino que /admirito: el cargador avatar.js', async () => {
   const llamadas = [];
-  const AdmiraAvatar = { handle: (t) => { llamadas.push(t); return Promise.resolve(t === '/bugito popup' ? 'Bugito: ¡Popup va!' : 'ok'); }, bugito: { url() {} } };
+  const AdmiraAvatar = { handle: (t) => { llamadas.push(t); return Promise.resolve(t === '/bugito popup' ? 'Bugito: ¡Popup va!' : 'ok'); }, personaje: (id) => (id === 'bugito' ? { url() {} } : null) };
   const c = consola({ AdmiraAvatar });
   await c.run('/bugito popup');
   await c.run('/admirito');
@@ -119,6 +120,19 @@ test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera,
 test('en piel (la pata conserva su CLI), la suite intercepta /bugito igual que /demo e /idioma', () => {
   const i = experto.indexOf('function sharedCommand(');
   const cuerpo = experto.slice(i, experto.indexOf('\n  }', i));
-  assert.match(cuerpo, /\/\^\\\/bugito\(\?:\\s\|\$\)\/i\.test\(t\)/);
+  assert.match(cuerpo, /PERSONAJE_RE\.test\(t\)/);
+  assert.match(experto, /var PERSONAJE_RE = new RegExp\('\^\\\\\/\(' \+ PERSONAJES_SUITE\.map/);
   assert.match(experto, /if \(!val \|\| \(!adapterOwnsInput && !cfg\.mount && !sharedCommand\(val\)\)\) return;/);
+});
+
+test('personajes: una tabla en el cargador y otra en la suite; añadir el Arquitecto es una entrada', () => {
+  assert.deepEqual(Object.keys(A.PERSONAJES), ['bugito']);
+  assert.equal(A.PERSONAJES.bugito.gancho, 'AdmiraBugito');
+  assert.equal(A.personajeUrl('bugito', { lang: 'es' }), 'https://digitalavatar.ai/nube.html?dock=1&personaje=bugito&lang=es&tier=good');
+  assert.equal(A.personajeUrl('arquitecto', {}), '', 'hasta que tenga su entrada');
+  assert.equal(A.personajeArg('bugito', '/bugito Gira'), 'gira');
+  assert.equal(A.personajeArg('bugito', '/admirito gira'), null);
+  assert.equal(A.decide('/arquitecto'), null);
+  assert.match(experto, /var PERSONAJES_SUITE = \[\n    \{name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https:\/\/www\.admira\.biz\/bugito\.html'/);
+  assert.match(experto, /PERSONAJES_SUITE\.forEach\(function \(p\) \{\n    verb\(\{name: p\.name, args: p\.args, desc: p\.desc, run: function \(a, log\) \{ return personajeRun\(p, a, log\); \}\}\);/);
 });
