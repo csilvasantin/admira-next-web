@@ -442,3 +442,8 @@ Los cargadores de avatar antiguos se actualizan desde el motor común al ejecuta
 Older avatar loaders are upgraded by the shared engine when `/bugito` runs, preserving the dock, context and chosen level. TV keeps its native rail toggle and visibility while the shared dock owns height. Clones must load the canonical engine and CSS rather than frozen copies.
 
 Las consolas nativas anteriores al avatar delegan `/admirito`, `/avatar`, `/avatarON`, `/avatarOFF`, `/avatarDigital`, `/digitalAvatar` y `/cli ayudante|helper` en el mismo motor compartido, con un solo despacho por entrada. Legacy native consoles delegate those shared avatar verbs through the same engine, exactly once per submitted command.
+
+
+`/supervisor` abre la Insta360 del Mac mini en Admira Live, con los presets, las flechas de movimiento y el zoom visibles. Desde Studio, Store, TV, App, Biz y sus clones, el motor común lleva a `/analizar?supervisor=1` y conserva ES/EN. En Live reutiliza el visor Analizar existente y muestra los controles si estaban ocultos; repetir la orden no cierra la cámara. Requiere la sesión existente de Google del operador. Abrir el visor no activa por sí solo la detección ni confirma el estado de un player.
+
+`/supervisor` opens the Mac mini Insta360 in Admira Live with visible presets, movement arrows and zoom controls. The shared engine preserves ES/EN and reuses the existing Analizar viewer, Google session and PTZ service. Opening the viewer alone does not enable fault detection or confirm player health.

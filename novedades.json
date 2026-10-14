@@ -495,5 +495,10 @@
   "v.14.10.2026.r8.20:38": [
     "/admirito vuelve a mostrar la nube también en consolas antiguas de los clones.",
     "Los comandos y alias compartidos del avatar se ejecutan una sola vez en el motor común."
+  ],
+  "v.14.10.2026.r9.22:41": [
+    "/supervisor abre la Insta360 del Mac mini en Admira Live con controles visibles.",
+    "Una sola entrada desde las cinco patas y sus clones, conservando ES/EN.",
+    "Repetir /supervisor mantiene abierto el visor y muestra los controles ocultos."
   ]
 }
