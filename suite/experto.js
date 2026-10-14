@@ -1,3 +1,5 @@
+/* Product header policy also applies before login; it never mounts Expert. */
+(function(D){if(!D||!D.createElement||!D.head)return;if(D.querySelector('script[data-admira-header-loader]'))return;var s=D.createElement('script');if(!s||!s.dataset)return;s.src='https://www.admiranext.com/suite/header.js?v=20261014-1';s.dataset.admiraHeaderLoader='';s.defer=true;D.head.appendChild(s);})(typeof document==='undefined'?null:document);
 /* ⌘ EXPERTO · CLI — piel compartida de la suite AdmiraNeXT (studio, store, app, tv, biz).
  * Carlos, 4-oct-2026: el modo Experto de todas las patas con el look de digitalavatar.ai
  * (csilvasantin/digitalavatar.ai assets/da-shell.js: ficha verde del motor a la izquierda,

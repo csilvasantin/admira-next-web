@@ -470,5 +470,9 @@
   "v.13.10.2026.r5.21:32": [
     "Acceso de dispositivo para abrir Alsea en los navegadores de la flota mediante un código de un solo uso.",
     "La sesión conserva una hora de duración y comprueba token y permisos vigentes del generador."
+  ],
+  "v.14.10.2026.r3.18:29": [
+    "Cabecera común de Studio, Store, TV, App, Biz y sus clones: logo como Inicio y tres controles al 90%.",
+    "La política conserva marca blanca, navegación, sesión, estado y comandos."
   ]
 }
