@@ -14,6 +14,8 @@
  *                   /bugito [incidencia] — el diablillo creador de incidencias del banco de pruebas de admira.biz.
  *                   En su página (window.Admira<Id>, p. ej. AdmiraBugito) lo muestra u oculta y, con argumento,
  *                   se lo pasa; fuera, abre su página. Añadir otro (arquitecto) = una entrada en PERSONAJES.
+ *                   /arquitecto [crear [tipo]|reformar|inventariar] — Admirito con casco de obra, el estudio de admira.biz
+ *                   (arquitecto.html) que crea, reforma e inventaría Xpacios y da de alta el inventario ITIL en Yokup.
  *   AdmiraAvatar.setContext({loc, lang, sector, brand, site, city, tier})  contexto del cliente
  *     (tier = nivel que pide la página; /avatar <nivel> del usuario manda en su pestaña)
  *     (la cara lo recibe en la URL y por postMessage; ver levelUrl).
@@ -52,7 +54,15 @@
       es: 'Bugito: abriendo su banco de pruebas en admira.biz (player virtual a la izquierda, Bugito a la derecha)…',
       en: 'Bugito: opening his test bench on admira.biz (virtual player on the left, Bugito on the right)…',
       lanzaEs: 'Bugito: lanzando «%s» en el banco…', lanzaEn: 'Bugito: launching “%s” on the bench…',
-      falloEs: 'Bugito no ha podido hacerlo: mira el estado del banco.', falloEn: 'Bugito could not do it: check the bench status.'}
+      falloEs: 'Bugito no ha podido hacerlo: mira el estado del banco.', falloEn: 'Bugito could not do it: check the bench status.'},
+    // El Arquitecto (Carlos, 14-oct-2026, DCL-66d9ae0d5e756d0067127f24: «/arquitecto … admirito se disfrace de arquitecto»).
+    // Sin argumento, su estudio lo saca y explica las tres órdenes; con «crear [tipo]», «reformar» o «inventariar», abre
+    // esa orden (?arg=crear-cafeteria; dentro del estudio, AdmiraArquitecto.lanzar).
+    arquitecto: {pagina: 'https://www.admira.biz/arquitecto.html', gancho: 'AdmiraArquitecto', param: 'arg',
+      es: 'El Arquitecto: abriendo su estudio en admira.biz. Órdenes: /arquitecto crear [tipo] · /arquitecto reformar · /arquitecto inventariar.',
+      en: 'The Architect: opening his studio on admira.biz. Commands: /arquitecto crear [type] · /arquitecto reformar · /arquitecto inventariar.',
+      lanzaEs: 'El Arquitecto: abriendo «%s» en el estudio…', lanzaEn: 'The Architect: opening “%s” in the studio…',
+      falloEs: 'El Arquitecto no ha podido hacerlo: mira el estudio.', falloEn: 'The Architect could not do it: check the studio.'}
   };
   var BUGITO = CARA_PERSONAJE + 'bugito';
   var BUGITO_BANCO = PERSONAJES.bugito.pagina;
