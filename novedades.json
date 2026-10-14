@@ -1,5 +1,10 @@
 {
   "_como": "Novedades del sello (2-4 líneas, español). Clave = sello exacto (v.DD.MM.AAAA.rN.HH:MM); .default si el sello aún no tiene entrada. El deploy las escribe en /version.json.novedades[] y el cargador común https://www.admiranext.com/assets/sello-novedades.js las enseña al pasar el ratón por el sello.",
+  "v.14.10.2026.r2.14:09": [
+    "El Arquitecto: Admirito con casco de obra; /arquitecto crear, reformar o inventariar en el ⌘ Experto de las cinco patas.",
+    "avatar.js con el Arquitecto en la tabla de personajes (caché personajes-3).",
+    "/arquitectura (organigrama) sigue igual."
+  ],
   "v.14.10.2026.r1.13:46": [
     "Bugito: Admirito con piel de demonio para probar el Creador de incidencias; /bugito en el ⌘ Experto de las cinco patas.",
     "avatar.js con tabla de personajes (Admirito, Bugito) y caché personajes-2.",
