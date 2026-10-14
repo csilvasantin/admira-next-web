@@ -50,7 +50,7 @@ test('el banco de pruebas de admira.biz, con la incidencia sólo preseleccionada
   // run(): /<personaje> va por personajeRun → en su página, el gancho (AdmiraBugito); fuera, su página.
   assert.match(avatar, /if \(Object\.prototype\.hasOwnProperty\.call\(PERSONAJES, mode\)\) return personajeRun\(mode, personajeArg\(mode, text\) \|\| ''\);/);
   assert.match(avatar, /var B = root\[PERSONAJES\[id\]\.gancho\]/);
-  assert.match(avatar, /if \(B && typeof B\.toggle === 'function' && typeof B\.lanzar === 'function'\) return arg \? B\.lanzar\(arg\) : B\.toggle\(\);/);
+  assert.match(avatar, /if \(B && typeof B\.toggle === 'function' && typeof B\.lanzar === 'function'\) \{\n      try \{ return arg \? B\.lanzar\(arg\) : B\.toggle\(\); \}/);
   assert.match(avatar, /root\.location\.assign\(personajePagina\(id, arg, english \? 'en' : 'es'\)\);/);
 });
 
@@ -100,7 +100,7 @@ test('/bugito va por el mismo camino que /admirito: el cargador avatar.js', asyn
   await c.run('/admirito');
   assert.deepEqual(llamadas, ['/bugito popup', '/admirito']);
   assert.match(c.texto(), /¡Popup va!/);
-  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-personajes-1';/, 'carga el avatar.js que conoce a Bugito');
+  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-personajes-2';/, 'carga el avatar.js que conoce a Bugito');
 });
 
 test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera, abre el banco', async () => {
@@ -113,7 +113,12 @@ test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera,
   assert.match(enBanco.texto(), /Bugito oculto/);
   const fuera = consola({ AdmiraAvatar: viejo });
   await fuera.run('/bugito');
-  assert.deepEqual(fuera.fuera, ['https://www.admira.biz/bugito.html?lang=es']);
+  await fuera.run('/bugito Ábrela a medias');
+  assert.deepEqual(fuera.fuera, ['https://www.admira.biz/bugito.html?lang=es', 'https://www.admira.biz/bugito.html?lang=es&incidencia=abrela-a-medias'], 'la incidencia viaja preseleccionada');
+  // Una página con toggle pero sin lanzar no es el banco: no se llama a lo que no existe, se abre el banco.
+  const cojo = consola({ AdmiraAvatar: viejo, AdmiraBugito: { toggle: () => 'x' } });
+  await cojo.run('/bugito popup');
+  assert.deepEqual(cojo.fuera, ['https://www.admira.biz/bugito.html?lang=es&incidencia=popup']);
   assert.match(fuera.texto(), /abriendo su banco de pruebas/);
 });
 
@@ -135,4 +140,37 @@ test('personajes: una tabla en el cargador y otra en la suite; añadir el Arquit
   assert.equal(A.decide('/arquitecto'), null);
   assert.match(experto, /var PERSONAJES_SUITE = \[\n    \{name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https:\/\/www\.admira\.biz\/bugito\.html'/);
   assert.match(experto, /PERSONAJES_SUITE\.forEach\(function \(p\) \{\n    verb\(\{name: p\.name, args: p\.args, desc: p\.desc, run: function \(a, log\) \{ return personajeRun\(p, a, log\); \}\}\);/);
+});
+
+// ── avatar.js con DOM: run() síncrono y sin promesas sueltas; handle() con el texto final ──
+function cargadorConDom(AdmiraBugito) {
+  const navegacion = [];
+  const document = { readyState: 'loading', currentScript: null, documentElement: { lang: 'es' }, getElementById: () => null, addEventListener() {}, createElement: () => ({}) };
+  const window = { document, location: { host: 'www.admira.biz', origin: 'https://www.admira.biz', assign: (u) => navegacion.push(u) }, addEventListener() {} };
+  if (AdmiraBugito) window.AdmiraBugito = AdmiraBugito;
+  vm.runInNewContext(avatar, { window, document, URL, Promise, WeakMap, Map });
+  return { A: window.AdmiraAvatar, navegacion };
+}
+test('AdmiraAvatar.run(/bugito x) no devuelve una promesa sin manejar; handle() da el texto final', async () => {
+  const sueltas = [];
+  const oyente = (e) => sueltas.push(e);
+  process.on('unhandledRejection', oyente);
+  try {
+    const falla = cargadorConDom({ toggle: () => 'Bugito a la vista.', lanzar: () => Promise.reject(new Error('mando caído')) });
+    const r = falla.A.run('/bugito popup');
+    assert.equal(typeof r, 'string', 'run() es síncrono');
+    assert.equal(r, 'Bugito: lanzando «popup» en el banco…');
+    assert.equal(await falla.A.handle('/bugito popup'), 'Bugito no ha podido hacerlo: mira el estado del banco.');
+    assert.equal(falla.A.run('/bugito'), 'Bugito a la vista.');
+    const bien = cargadorConDom({ toggle: () => 'Bugito escondido.', lanzar: (x) => Promise.resolve('Bugito lanza «' + x + '».') });
+    assert.equal(await bien.A.handle('/bugito medias'), 'Bugito lanza «medias».');
+    assert.equal(await bien.A.handle('/bugito'), 'Bugito escondido.');
+    const lanzaRompe = cargadorConDom({ toggle: () => '', lanzar: () => { throw new Error('x'); } });
+    assert.equal(lanzaRompe.A.run('/bugito popup'), 'Bugito no ha podido hacerlo: mira el estado del banco.');
+    const fuera = cargadorConDom(null);
+    assert.match(fuera.A.run('/bugito resolución'), /abriendo su banco/);
+    assert.deepEqual(fuera.navegacion, ['https://www.admira.biz/bugito.html?lang=es&incidencia=resolucion']);
+    await new Promise((ok) => setImmediate(ok));
+    assert.equal(sueltas.length, 0, 'ningún rechazo sin manejar');
+  } finally { process.off('unhandledRejection', oyente); }
 });

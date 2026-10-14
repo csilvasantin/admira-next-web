@@ -48,9 +48,11 @@
   // aviso al abrirla. Añadir el Arquitecto = una entrada más aquí (y su verbo en suite/experto.js).
   var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&personaje=';
   var PERSONAJES = {
-    bugito: {pagina: 'https://www.admira.biz/bugito.html', gancho: 'AdmiraBugito',
+    bugito: {pagina: 'https://www.admira.biz/bugito.html', gancho: 'AdmiraBugito', param: 'incidencia',
       es: 'Bugito: abriendo su banco de pruebas en admira.biz (player virtual a la izquierda, Bugito a la derecha)…',
-      en: 'Bugito: opening his test bench on admira.biz (virtual player on the left, Bugito on the right)…'}
+      en: 'Bugito: opening his test bench on admira.biz (virtual player on the left, Bugito on the right)…',
+      lanzaEs: 'Bugito: lanzando «%s» en el banco…', lanzaEn: 'Bugito: launching “%s” on the bench…',
+      falloEs: 'Bugito no ha podido hacerlo: mira el estado del banco.', falloEn: 'Bugito could not do it: check the bench status.'}
   };
   var BUGITO = CARA_PERSONAJE + 'bugito';
   var BUGITO_BANCO = PERSONAJES.bugito.pagina;
@@ -122,7 +124,7 @@
     if (!Object.prototype.hasOwnProperty.call(PERSONAJES, id)) return '';
     var q = [];
     if (lang === 'es' || lang === 'en') q.push('lang=' + lang);
-    if (arg && /^[a-z0-9-]{1,40}$/.test(arg)) q.push((id === 'bugito' ? 'incidencia' : 'arg') + '=' + arg);
+    if (arg && /^[a-z0-9-]{1,40}$/.test(arg)) q.push((PERSONAJES[id].param || 'arg') + '=' + arg);
     return PERSONAJES[id].pagina + (q.length ? '?' + q.join('&') : '');
   }
   function bugitoArg(text) { return personajeArg('bugito', text); }
@@ -141,7 +143,7 @@
     return v === '1' ? 'on' : v === '0' ? 'off' : null;
   }
 
-  function message(kind, en) {
+  function message(kind, en, arg) {
     if (kind === 'on') return en ? 'Digital avatar on' : 'Avatar digital activado';
     if (kind === 'off') return en ? 'Digital avatar off' : 'Avatar digital desactivado';
     if (kind === 'good') return en ? 'Avatar: Admirito, the animated cloud (moves its lips and lives on its own).' : 'Avatar: Admirito, la nube animada (mueve los labios y hace cosas sola).';
@@ -152,8 +154,13 @@
       : 'Avatar digital. /avatar avatar · Admirito, la nube animada. /avatar human · Luna, la anfitriona web. /avatar metahuman · Neo, MetaHuman (good, better y best siguen valiendo). /avatarON lo muestra, /avatarOFF lo oculta.';
     if (kind === 'mascota-on') return en ? 'Admirito shown. /avatarDigital or /admirito hides it again.' : 'Admirito visible. /avatarDigital o /admirito lo vuelve a ocultar.';
     if (kind === 'mascota-off') return en ? 'Admirito hidden. /avatarDigital or /admirito shows it again.' : 'Admirito oculto. /avatarDigital o /admirito lo vuelve a mostrar.';
-    var pj = /^(.+)-ir$/.exec(String(kind || ''));
-    if (pj && Object.prototype.hasOwnProperty.call(PERSONAJES, pj[1])) return en ? PERSONAJES[pj[1]].en : PERSONAJES[pj[1]].es;
+    var pj = /^(.+)-(ir|lanza|fallo)$/.exec(String(kind || ''));
+    if (pj && Object.prototype.hasOwnProperty.call(PERSONAJES, pj[1])) {
+      var P = PERSONAJES[pj[1]];
+      if (pj[2] === 'lanza') return (en ? P.lanzaEn : P.lanzaEs).replace('%s', String(arg || ''));
+      if (pj[2] === 'fallo') return en ? P.falloEn : P.falloEs;
+      return en ? P.en : P.es;
+    }
     if (kind === 'reset-on') return en ? 'Digital avatar follows the project switch (on)' : 'El avatar sigue el interruptor del proyecto (encendido)';
     if (kind === 'reset-off') return en ? 'Digital avatar follows the project switch (off)' : 'El avatar sigue el interruptor del proyecto (apagado)';
     return en
@@ -658,17 +665,36 @@
   }
   // /<personaje>: en su página (que registra window.Admira<Id>, p. ej. AdmiraBugito) lo muestra u oculta o le
   // pasa el argumento (Bugito: lanza ese fallo); en cualquier otra página de la red abre la suya.
-  function personajeRun(id, arg) {
+  // La acción: texto, o promesa de texto cuando la página lanza algo asíncrono (Bugito manda la orden al mando).
+  function personajeAccion(id, arg) {
     var B = root[PERSONAJES[id].gancho], english = en();
-    if (B && typeof B.toggle === 'function' && typeof B.lanzar === 'function') return arg ? B.lanzar(arg) : B.toggle();
+    if (B && typeof B.toggle === 'function' && typeof B.lanzar === 'function') {
+      try { return arg ? B.lanzar(arg) : B.toggle(); } catch (_) { return message(id + '-fallo', english); }
+    }
     root.location.assign(personajePagina(id, arg, english ? 'en' : 'es'));
     return message(id + '-ir', english);
+  }
+  // run() es síncrono: si la acción es una promesa, queda atendida (nunca un rechazo suelto) y se devuelve el
+  // aviso inmediato; handle() espera y devuelve el texto final.
+  function personajeRun(id, arg) {
+    var r = personajeAccion(id, arg);
+    if (r && typeof r.then === 'function') { r.then(null, function () {}); return message(id + '-lanza', en(), arg); }
+    return r == null ? '' : String(r);
+  }
+  function personajeHandle(id, arg) {
+    var english = en();
+    var r;
+    try { r = personajeAccion(id, arg); } catch (_) { r = message(id + '-fallo', english); }
+    return Promise.resolve(r).then(function (m) { return m == null || m === '' ? message(id + '-lanza', english, arg) : String(m); },
+      function () { return message(id + '-fallo', english); });
   }
   function personaje(id) {
     if (!Object.prototype.hasOwnProperty.call(PERSONAJES, id)) return null;
     return {url: function (ctx) { return personajeUrl(id, ctx || context()); }, pagina: function (arg, lang) { return personajePagina(id, arg, lang); }, run: function (arg) { return personajeRun(id, arg || ''); }};
   }
   function handle(text) {
+    var pmode = decide(text);
+    if (pmode && Object.prototype.hasOwnProperty.call(PERSONAJES, pmode)) return personajeHandle(pmode, personajeArg(pmode, text) || '');
     var out = run(text);
     return Promise.resolve(out == null ? message('bad', en()) : out);
   }

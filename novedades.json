@@ -460,9 +460,5 @@
   "v.13.10.2026.r5.21:32": [
     "Acceso de dispositivo para abrir Alsea en los navegadores de la flota mediante un código de un solo uso.",
     "La sesión conserva una hora de duración y comprueba token y permisos vigentes del generador."
-  ],
-  "v.14.10.2026.r1.12:57": [
-    "Bugito, la piel diablillo de Admirito, llega al ⌘ Experto de las cinco patas: /bugito abre su banco de pruebas en admira.biz y, dentro, lo muestra u oculta; /bugito <incidencia> la lanza en el player virtual de laboratorio.",
-    "El cargador común del avatar (assets/avatar.js) aprende personajes: la misma cara de Admirito con otra piel (nube.html?personaje=<id>), por el mismo camino que /admirito. Bugito hoy; el Arquitecto, con una entrada más."
   ]
 }
