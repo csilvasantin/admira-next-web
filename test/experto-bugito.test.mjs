@@ -115,3 +115,10 @@ test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera,
   assert.deepEqual(fuera.fuera, ['https://www.admira.biz/bugito.html?lang=es']);
   assert.match(fuera.texto(), /abriendo su banco de pruebas/);
 });
+
+test('en piel (la pata conserva su CLI), la suite intercepta /bugito igual que /demo e /idioma', () => {
+  const i = experto.indexOf('function sharedCommand(');
+  const cuerpo = experto.slice(i, experto.indexOf('\n  }', i));
+  assert.match(cuerpo, /\/\^\\\/bugito\(\?:\\s\|\$\)\/i\.test\(t\)/);
+  assert.match(experto, /if \(!val \|\| \(!adapterOwnsInput && !cfg\.mount && !sharedCommand\(val\)\)\) return;/);
+});
