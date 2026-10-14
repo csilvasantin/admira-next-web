@@ -152,3 +152,6 @@ html[data-ax-experto][data-ax-dock="open"] body.pf-cli-open .rail{bottom:var(--a
 /* TV's native rail owns visibility; the shared dock owns its content and height. */
 html[data-ax-native-dock] [data-ax-dock-host]{height:var(--ax-dock-current-height,52px)!important;padding:0!important;border:0!important;background:transparent!important;overflow:visible!important}
 html[data-ax-native-dock] [data-ax-dock-host]>.yk-rail-navhd,html[data-ax-native-dock] .yk-resize-bottom{display:none!important}
+
+/* The mascot always clears the actual shared dock, including native nested rails. */
+html[data-ax-experto][data-ax-dock="open"] #da-suite{bottom:calc(var(--ax-dock-current-height,52px) + 16px)!important}
