@@ -143,5 +143,5 @@ test('en piel (la pata conserva su CLI), /arquitecto es de la suite como /bugito
   const c = consola();
   await c.run('/arquitectura');
   assert.deepEqual(c.fuera, ['https://www.admiranext.com/arquitectura?lang=es'], 'sigue abriendo el organigrama');
-  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-floating-bugito-1';/, 'avatar.js nuevo (la -2 ya está publicada sin el Arquitecto)');
+  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-floating-bugito-2';/, 'avatar.js con personajes y actualización de cargadores antiguos');
 });

@@ -264,7 +264,8 @@
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
-  if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return; // ya cargado en esta página
+  var previousAvatar=root.AdmiraAvatar&&root.AdmiraAvatar.handle?root.AdmiraAvatar:null;
+  if(previousAvatar&&previousAvatar.floatingCharacters)return;
 
   var doc = document;
   var script = doc.currentScript;
@@ -278,6 +279,7 @@
 
   // Migración del interruptor por sitio (una vez).
   (function migrate() {
+    if(previousAvatar)return;
     var oldKey = 'da-avatar:' + host;
     var old = legacyValue(get(oldKey));
     if (old && !get(KEY)) set(KEY, old);
@@ -422,6 +424,9 @@
   // con ojos, mejillas y sonrisa; parpadea y bota al pasar el ratón (sin movimiento si reduced-motion).
   var NUBE = '<svg class="da-nube" viewBox="-6 6 289 186" width="62" height="40" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><g class="da-nube-cuerpo"><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Z" fill="#f3f9e8"/><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Zm0,99.81a41.75,41.75,0,0,1-28.06-11,67.09,67.09,0,0,1-13.39,10.21,65.93,65.93,0,0,1-66.81,0A67.09,67.09,0,0,1,91.66,148,41.56,41.56,0,1,1,59,76a43.33,43.33,0,0,1,4.58-.26A41.39,41.39,0,0,1,76.11,77.7a66.43,66.43,0,0,1,124.69,0,41.39,41.39,0,0,1,12.51-1.93,43.33,43.33,0,0,1,4.58.26,41.58,41.58,0,0,1-4.58,82.91Z" fill="#689840"/><ellipse cx="92" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><ellipse cx="185" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><g class="da-nube-ojos"><ellipse cx="111" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><ellipse cx="166" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><circle cx="115.5" cy="103" r="5" fill="#fff"/><circle cx="170.5" cy="103" r="5" fill="#fff"/></g><path class="da-nube-boca" d="M122,135 Q138.5,153 155,135" fill="none" stroke="#1d2b12" stroke-width="8" stroke-linecap="round"/><path class="da-nube-risa" d="M121,131 Q138.5,162 156,131 Z" fill="#1d2b12" stroke="#1d2b12" stroke-width="4" stroke-linejoin="round"/><path class="da-nube-risa" d="M129,145 Q138.5,154 148,145 Q138.5,141 129,145Z" fill="#e8706f"/></g></svg>';
   var floatingPersonaje='';
+  // Older product loaders may be cached. Upgrade their existing API and dock,
+  // preserving its listeners, iframe, project context and configured avatar level.
+  if(previousAvatar){upgradeFloating(previousAvatar);return;}
   function paintMascot(id){
     floatingPersonaje=id||'';var wrap=node(),bubble=doc.getElementById('da-suite-bubble');if(!wrap||!bubble)return;
     wrap.setAttribute('data-personaje',floatingPersonaje);bubble.setAttribute('aria-label',id==='bugito'?'Bugito':'Admirito');bubble.title=id==='bugito'?'Bugito':'Admirito';
@@ -429,13 +434,25 @@
   }
   function openPersonajePanel(id){
     var wrap=ensureDock(),frame=doc.getElementById('da-suite-frame');if(!wrap||!frame)return;
-    frame.src=personajeUrl(id,context());frame.title=id==='bugito'?'Bugito':id;wrap.style.display='';wrap.classList.add('open');var label=doc.getElementById('da-suite-label');var text=label&&label.querySelector('.da-pill-txt');if(text)text.textContent=id.toUpperCase();fitPanel();applyLift();
+    frame.src=personajeUrl(id,previousAvatar&&previousAvatar.context?previousAvatar.context():context());frame.title=id==='bugito'?'Bugito':id;wrap.style.display='';wrap.classList.add('open');var label=doc.getElementById('da-suite-label');var text=label&&label.querySelector('.da-pill-txt');if(text)text.textContent=id.toUpperCase();fitPanel();applyLift();
   }
+  function floatingShow(){if(previousAvatar)previousAvatar.show(false);else show(false);}
+  function floatingHide(){if(previousAvatar)previousAvatar.hide();else hide();}
   function floatingCharacter(id,arg){
-    if(arg==='off'){if(floatingPersonaje===id)hide();return en()?'Bugito hidden.':'Bugito oculto.';}
+    if(arg==='off'){if(floatingPersonaje===id)floatingHide();return en()?'Bugito hidden.':'Bugito oculto.';}
     var on=arg==='on'||floatingPersonaje!==id||!present();
-    if(on){show(false);paintMascot(id);set(KEY,'on');}else{hide();set(KEY,'off');}
+    if(on){floatingShow();paintMascot(id);set(KEY,'on');if(previousAvatar){var b=doc.getElementById('da-suite-bubble');if(b&&!b.hasAttribute('data-floating-upgrade')){b.setAttribute('data-floating-upgrade','');b.addEventListener('click',function(e){if(!floatingPersonaje)return;e.preventDefault();e.stopImmediatePropagation();openPersonajePanel(floatingPersonaje);},true);}applyLift();}}else{floatingHide();set(KEY,'off');}
     return en()?(on?'Bugito is floating on this page. Use /bugito full for the test bench.':'Bugito hidden.'):(on?'Bugito está flotando en esta página. Usa /bugito full para el banco de pruebas.':'Bugito oculto.');
+  }
+  function upgradeFloating(A){
+    var oldHandle=A.handle,oldRun=A.run,oldPersonaje=A.personaje;
+    function restore(text){var mode=decide(text);if(!floatingPersonaje)return null;if(mode==='mascota'){paintMascot('');A.show(false);set(KEY,'on');return message('mascota-on',en());}if(LEVELS[mode])paintMascot('');return null;}
+    A.handle=function(text){if(decide(text)==='bugito')return personajeHandle('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?Promise.resolve(msg):oldHandle.call(A,text);};
+    A.run=function(text){if(decide(text)==='bugito')return personajeRun('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?msg:oldRun?oldRun.call(A,text):oldHandle.call(A,text);};
+    A.personaje=function(id){return id==='bugito'?{url:function(ctx){return personajeUrl(id,ctx||(A.context?A.context():{}));},pagina:function(arg,lang){return personajePagina(id,arg,lang);},run:function(arg){return personajeRun(id,arg||'');}}:oldPersonaje?oldPersonaje.call(A,id):null;};
+    A.bugito=A.personaje('bugito');A.floatingCharacters=true;
+    if(root.AvatarDigital)root.AvatarDigital.handle=A.handle;
+    root.addEventListener('admira:expert-resize',applyLift);
   }
   function ensureDock() {
     if (node()) return node();

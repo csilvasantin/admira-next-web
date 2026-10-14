@@ -482,5 +482,10 @@
   "v.14.10.2026.r5.19:51": [
     "Experto abre con una línea de escritura mínima y permite ampliar o reducir el panel desde su borde superior.",
     "Bugito aparece flotando con /bugito; /bugito full o /bugito avanzado abre el banco de pruebas."
+  ],
+  "v.14.10.2026.r6.20:03": [
+    "Experto: la consola de TV sigue el estado de su botón nativo y abre en la altura mínima.",
+    "Bugito actualiza en el mismo panel los cargadores antiguos de productos y clones, conservando contexto y nivel del avatar.",
+    "Un solo tirador de altura sustituye a los controles heredados solapados."
   ]
 }

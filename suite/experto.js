@@ -1180,24 +1180,29 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261014-floating-bugito-1';
-  function avatarApi() {
-    if (root.AdmiraAvatar && root.AdmiraAvatar.handle) return Promise.resolve(root.AdmiraAvatar);
-    var tag = document.querySelector('script[data-admira-avatar]');
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261014-floating-bugito-2';
+  var avatarUpgrade=null;
+  function avatarApi(requireFloating) {
+    if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
+    if(requireFloating&&avatarUpgrade)return avatarUpgrade;
+    var tag = document.querySelector(requireFloating?'script[data-admira-avatar-upgrade]':'script[data-admira-avatar]');
+    var created=!tag;
     if (!tag) {
       tag = document.createElement('script');
       tag.src = AVATAR_SRC;
       tag.async = true;
-      tag.setAttribute('data-admira-avatar', '');
-      (document.head || document.documentElement).appendChild(tag);
+      tag.setAttribute(requireFloating?'data-admira-avatar-upgrade':'data-admira-avatar', '');
     }
-    return new Promise(function (resolve) {
+    var pending=new Promise(function (resolve) {
       var done = function () { resolve(root.AdmiraAvatar || null); };
-      if (root.AdmiraAvatar) return done();
+      if (root.AdmiraAvatar&&(!requireFloating||root.AdmiraAvatar.floatingCharacters)) return done();
       tag.addEventListener('load', done, {once: true});
       tag.addEventListener('error', done, {once: true});
+      if(created)(document.head || document.documentElement).appendChild(tag);
       setTimeout(done, 4000);
     });
+    if(requireFloating)avatarUpgrade=pending.then(function(A){avatarUpgrade=null;return A;});
+    return requireFloating?avatarUpgrade:pending;
   }
   function avatarRun(text, log) {
     return avatarApi().then(function (A) {
@@ -1239,7 +1244,7 @@
   }
   function personajeRun(p, a, log) {
     var text = '/' + p.name + (a.length ? ' ' + a.join(' ') : '');
-    return avatarApi().then(function (A) {
+    return avatarApi(p.name==='bugito').then(function (A) {
       if (A && typeof A.personaje === 'function' && A.personaje(p.name) && (p.name!=='bugito'||A.floatingCharacters)) return avatarRun(text, log);
       var B = root[p.gancho], arg = personajeSlug(a.join(' '));
       if(p.name==='bugito'&&!arg){out(log,T('Recarga la página para cargar a Bugito flotante.','Reload the page to load floating Bugito.'),'err');return;}
@@ -1356,7 +1361,14 @@
   // espacio». Minimizado solo queda la orden «› /help» (escribible) con un asa pequeña encima;
   // el icono ⌘ muestra u oculta la línea; el borde superior redimensiona el panel.
   // La altura inicial es mínima y escribir una orden no la fuerza al tamaño completo. La página reserva abajo ese alto.
-  var DOCK_MIN=52,dockHeight=DOCK_MIN,dockExpanded=300;
+  var DOCK_MIN=52,dockHeight=DOCK_MIN,dockExpanded=300,nativeDock=null;
+  function bindNativeDock(){
+    var host=panel.closest&&panel.closest('#ykExpertRail');
+    var control=host&&host!==panel&&document.querySelector('#ykExpertToggle[aria-controls="ykExpertRail"]');
+    if(!control)return;
+    nativeDock={host:host,control:control};host.setAttribute('data-ax-dock-host','');document.documentElement.setAttribute('data-ax-native-dock','');
+    new MutationObserver(function(){var open=host.getAttribute('aria-hidden')==='false';if(open!==isOpen())setOpen(open,true);}).observe(host,{attributes:true,attributeFilter:['aria-hidden']});
+  }
   function dockMaximum(){var v=root.visualViewport;return Math.max(DOCK_MIN,Math.floor((v?v.height:root.innerHeight||800)*.85));}
   function resizeDock(value,remember){
     dockHeight=Math.round(Math.max(DOCK_MIN,Math.min(dockMaximum(),Number(value)||DOCK_MIN)));
@@ -1400,6 +1412,7 @@
     });
     if (remember) { try { dockStore().setItem(DOCK_KEY, open ? '1' : '0'); } catch (_) {} }
     if(open&&!wasOpen)resizeDock(DOCK_MIN,false);
+    if(nativeDock&&(nativeDock.host.getAttribute('aria-hidden')==='false')!==open)nativeDock.control.click();
     if (open) {
       var log = panel.querySelector('.ax-cli-out');
       if (log) setTimeout(function () { log.scrollTop = log.scrollHeight; }, 0);
@@ -1432,7 +1445,7 @@
       }, true);
     }
     panel.classList.add('ax-dock');
-    bindDockResize();resizeDock(DOCK_MIN,false);
+    bindDockResize();bindNativeDock();resizeDock(DOCK_MIN,false);
     var sp = document.createElement('div');
     sp.className = 'ax-dock-spacer';
     sp.setAttribute('aria-hidden', 'true');

@@ -135,7 +135,7 @@ html[data-ax-experto] .ax-experto textarea.ax-cli-input{height:38px!important;mi
 
 /* One height owner: open starts with a writable line; the top edge resizes it. */
 html[data-ax-experto] .ax-experto.ax-dock{box-sizing:border-box!important;height:var(--ax-dock-h,52px)!important}
-html[data-ax-experto] .ax-experto.ax-dock .pf-cli-grip{display:none!important}
+html[data-ax-experto] .ax-experto.ax-dock :is(.pf-cli-grip,.mode-resize-expert,.yk-expert-resizer){display:none!important}
 html[data-ax-experto] .ax-experto.ax-dock .ax-resize{position:absolute;left:0;right:0;top:0;height:10px;z-index:40;cursor:ns-resize;touch-action:none;background:transparent}
 html[data-ax-experto] .ax-experto.ax-dock .ax-resize::after{content:"";position:absolute;width:52px;height:3px;left:calc(50% - 26px);top:2px;border-radius:4px;background:var(--ax-cyan)}
 html[data-ax-experto] .ax-experto.ax-dock .ax-resize:focus-visible{outline:2px solid var(--ax-cyan);outline-offset:-2px}
@@ -149,3 +149,6 @@ html[data-ax-experto] .ax-experto.ax-dock.ax-compact .ax-cli-form{margin:0!impor
 html[data-ax-experto] .ax-experto.ax-dock.ax-resizing{user-select:none!important}
 
 html[data-ax-experto][data-ax-dock="open"] body.pf-cli-open .rail{bottom:var(--ax-dock-current-height,52px)!important}
+/* TV's native rail owns visibility; the shared dock owns its content and height. */
+html[data-ax-native-dock] [data-ax-dock-host]{height:var(--ax-dock-current-height,52px)!important;padding:0!important;border:0!important;background:transparent!important;overflow:visible!important}
+html[data-ax-native-dock] [data-ax-dock-host]>.yk-rail-navhd,html[data-ax-native-dock] .yk-resize-bottom{display:none!important}

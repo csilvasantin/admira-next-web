@@ -436,3 +436,7 @@ MCP: existing `help {tema:"novedades"}`. Public GET /mcp (Accept application/jso
 Al abrir Experto se muestra una línea de orden de 52 px. El tirador superior admite arrastre, flechas, Home/End y doble clic para alternar altura mínima/ampliada. El motor compartido es el único propietario de la altura (`AdmiraExperto.resize/height`); cerrar y volver a abrir empieza otra vez en la altura mínima. Los permisos y la ocultación de Experto en presites permanecen en sus guardas existentes.
 
 `/bugito` muestra u oculta a Bugito como mascota flotante en la página, con la piel roja de Admirito. `/bugito full`, `/bugito avanzado` y `/bugito advanced` abren el banco de pruebas de admira.biz. Los argumentos de incidencia conservan su recorrido al laboratorio virtual. `/admirito` recupera la mascota nube normal.
+
+Los cargadores de avatar antiguos se actualizan desde el motor común al ejecutar `/bugito`, conservando el dock, contexto y nivel elegidos. En TV el raíl nativo conserva su botón y visibilidad; el dock común controla la altura. Los clones deben cargar el motor y CSS canónicos, sin copias congeladas.
+
+Older avatar loaders are upgraded by the shared engine when `/bugito` runs, preserving the dock, context and chosen level. TV keeps its native rail toggle and visibility while the shared dock owns height. Clones must load the canonical engine and CSS rather than frozen copies.
