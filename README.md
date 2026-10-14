@@ -430,3 +430,9 @@ Demo: https://www.admiranext.com/demo/pixeria-novedades/
 Guide/tutorial ES/EN: https://www.admiranext.com/demo/pixeria-novedades/README.md
 Manifest: https://www.admiranext.com/demo/pixeria-novedades/studio.subdemos.json
 MCP: existing `help {tema:"novedades"}`. Public GET /mcp (Accept application/json) returns demoUpdates metadata. No generation or new credentials.
+
+## Experto compacto y Bugito · 14 octubre 2026
+
+Al abrir Experto se muestra una línea de orden de 52 px. El tirador superior admite arrastre, flechas, Home/End y doble clic para alternar altura mínima/ampliada. El motor compartido es el único propietario de la altura (`AdmiraExperto.resize/height`); cerrar y volver a abrir empieza otra vez en la altura mínima. Los permisos y la ocultación de Experto en presites permanecen en sus guardas existentes.
+
+`/bugito` muestra u oculta a Bugito como mascota flotante en la página, con la piel roja de Admirito. `/bugito full`, `/bugito avanzado` y `/bugito advanced` abren el banco de pruebas de admira.biz. Los argumentos de incidencia conservan su recorrido al laboratorio virtual. `/admirito` recupera la mascota nube normal.

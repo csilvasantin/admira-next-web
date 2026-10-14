@@ -95,7 +95,7 @@ html[data-ax-experto] .ax-experto:has(.ax-cli-out[hidden]) :is(.ax-hd,.ax-engine
    de cada pata (hidden, fuera de pantalla, visibility…). Minimizado = una sola línea de orden escribible. */
 html[data-ax-experto] .ax-experto.ax-dock{display:flex!important;flex-direction:column!important;position:fixed!important;
   left:0!important;right:0!important;bottom:0!important;top:auto!important;width:auto!important;max-width:none!important;
-  height:var(--ax-dock-h,min(46vh,440px))!important;min-height:0!important;max-height:none!important;margin:0!important;
+  height:var(--ax-dock-h,52px)!important;min-height:0!important;max-height:none!important;margin:0!important;
   transform:none!important;translate:none!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
   z-index:9000!important;overflow:hidden!important;transition:none!important}
 html[data-ax-experto] .ax-experto.ax-dock .ax-form-path{visibility:visible!important;opacity:1!important;transform:none!important}
@@ -132,3 +132,20 @@ html[data-ax-experto][data-ax-experto] .ax-experto.ax-experto.ax-experto{backgro
   border-color:rgba(80,200,255,.35)!important;color:var(--ax-text)!important;font-family:var(--ax-mono)!important}
 /* Orden en textarea (admira.store): una línea, sin asa de redimensionar. */
 html[data-ax-experto] .ax-experto textarea.ax-cli-input{height:38px!important;min-height:38px!important;max-height:38px!important;resize:none!important;overflow:hidden!important;line-height:18px!important}
+
+/* One height owner: open starts with a writable line; the top edge resizes it. */
+html[data-ax-experto] .ax-experto.ax-dock{box-sizing:border-box!important;height:var(--ax-dock-h,52px)!important}
+html[data-ax-experto] .ax-experto.ax-dock .pf-cli-grip{display:none!important}
+html[data-ax-experto] .ax-experto.ax-dock .ax-resize{position:absolute;left:0;right:0;top:0;height:10px;z-index:40;cursor:ns-resize;touch-action:none;background:transparent}
+html[data-ax-experto] .ax-experto.ax-dock .ax-resize::after{content:"";position:absolute;width:52px;height:3px;left:calc(50% - 26px);top:2px;border-radius:4px;background:var(--ax-cyan)}
+html[data-ax-experto] .ax-experto.ax-dock .ax-resize:focus-visible{outline:2px solid var(--ax-cyan);outline-offset:-2px}
+html[data-ax-experto] .ax-experto.ax-dock.ax-min .ax-resize{display:none!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-short{padding:10px 12px 4px!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-short :is(.ax-hd,.ax-engine-slot,.ax-cli-hint,.ax-extra){display:none!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-short :is(.ax-body,.ax-own-panel,.ax-cli-module,.ax-cli){min-height:0!important;overflow:hidden!important;gap:3px!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-short .ax-cli-input{padding:7px 0!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-compact .ax-cli-out{display:none!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-compact .ax-cli-form{margin:0!important;flex:1 0 auto!important}
+html[data-ax-experto] .ax-experto.ax-dock.ax-resizing{user-select:none!important}
+
+html[data-ax-experto][data-ax-dock="open"] body.pf-cli-open .rail{bottom:var(--ax-dock-current-height,52px)!important}
