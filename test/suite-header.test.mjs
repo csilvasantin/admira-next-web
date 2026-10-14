@@ -13,9 +13,9 @@ function fixture(host){
  const sandbox={document,location:{hostname:host,origin:'https://'+host,href:'https://'+host+'/'},URL,MutationObserver:class{constructor(fn){changed=fn;}observe(){}disconnect(){}},requestAnimationFrame:fn=>fn(),addEventListener(){}};sandbox.window=sandbox;
  const run=()=>vm.runInNewContext(src,sandbox);run();return {sandbox,controls,logo,home,creator,external,styles,run,changed};
 }
-test('the five product hosts and four clones share exactly one 90% policy',()=>{
+test('the five product hosts and four clones share exactly one 81% policy',()=>{
  for(const host of ['admira.studio','admira.store','admira.tv','admira.app','admira.biz','pixeria.com','xpaceos.com','yokup.com','clearchannel.tv']){
-  const f=fixture(host);assert.equal(f.sandbox.AdmiraHeader.scale,.9);assert.equal(f.styles.length,1);assert(f.styles[0].textContent.includes('zoom:.9!important'));assert(f.controls.every(n=>n.hasAttribute('data-admira-compact-control')));assert.equal(f.controls[0].onclick(),42);f.run();assert.equal(f.styles.length,1);
+  const f=fixture(host);assert.equal(f.sandbox.AdmiraHeader.scale,.81);assert.equal(f.styles.length,1);assert(f.styles[0].textContent.includes('zoom:.81!important'));assert(f.controls.every(n=>n.hasAttribute('data-admira-compact-control')));assert.equal(f.controls[0].onclick(),42);f.run();assert.equal(f.styles.length,1);
  }
 });
 test('only local redundant top Home is hidden; logo and all other destinations survive',()=>{
