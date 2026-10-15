@@ -13,6 +13,7 @@ export function playlistRenderer(venue, project) {
     const url = new URL(venue.xpace_url);
     if (!['https://www.admira.store', 'https://admira.store', 'https://www.xpaceos.com', 'https://xpaceos.com'].includes(url.origin)) return null;
     if (url.pathname === '/xpacios/sneakerstore/') return 'sneakers-store';
+    if (url.pathname === '/xpacios/gran-de-gracia-51/') return 'office';
     const scene = url.searchParams.get('autostart');
     if (project.id === 'starbucks' && (!scene || scene === 'cafeteria')) return 'starbucks';
     return ({ xtanco: 'xtanco', cafeteria: 'cafeteria', office: 'office', oficina: 'office', lab: 'lab', laboratorio: 'lab' })[scene] || null;
