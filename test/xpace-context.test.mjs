@@ -64,3 +64,12 @@ test('admira.biz y clearchannel.tv (mismo backoffice que admira.app) pueden enla
 });
 
 test('Sneakers Store accepts only its own explicit category URL and venue identity',()=>{const p=[{id:'sneakers-store',circuit:'sneakerstore'}],v={id:'sneakers-store-santa-rosa-19',project_id:'sneakers-store',name:'Sneakers Store',enabled:true,xpace_url:'https://www.admira.store/xpacios/sneakerstore/?loc=sneakers-store-santa-rosa-19'};assert.equal(validateVenue(v,p).project_id,'sneakers-store');for(const patch of [{id:'different'},{xpace_url:v.xpace_url.replace('sneakerstore/','other/')},{xpace_url:v.xpace_url+'&token=secret'}])assert.throws(()=>validateVenue({...v,...patch},p));});
+
+test('the shared office page requires an explicit matching venue and a permitted registered project',()=>{
+ const projects=[{id:'admiraxperience',circuit:'admiraxperience'}];
+ const venue={id:'lab-gran-de-gracia-51',project_id:'admiraxperience',name:'Laboratorio AdmiraNeXT',enabled:true,xpace_url:'https://www.admira.store/xpacios/gran-de-gracia-51/?loc=lab-gran-de-gracia-51'};
+ const saved=validateVenue(venue,projects),url=new URL(saved.xpace_url);
+ assert.equal(url.searchParams.get('project'),venue.project_id);
+ assert.equal(url.searchParams.get('circuit'),'admiraxperience');
+ for(const patch of [{id:'another-office'},{project_id:'unregistered'},{xpace_url:venue.xpace_url.replace('gran-de-gracia-51/','arbitrary-office/')},{xpace_url:venue.xpace_url+'&token=secret'}])assert.throws(()=>validateVenue({...venue,...patch},projects));
+});
