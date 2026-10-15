@@ -1,6 +1,7 @@
 {
-  "version": "v.16.10.2026.r1.00:05",
-  "deployer": "OraculoMacMini",
-  "machine": "MacMini",
-  "signature": "OraculoMacMini · MacMini"
+  "version": "v.16.10.2026.r2.01:41",
+  "deployer": "Codex",
+  "agent": "Codex",
+  "machine": "MacStudio",
+  "signature": "Codex · MacStudio"
 }

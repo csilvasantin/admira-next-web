@@ -284,7 +284,7 @@
   // ─── Modo propio: CLI de la suite para patas que no traen el suyo ───
   var verbs = [];
   var adapters = Object.create(null), localDemos = Object.create(null), adapterOwnsInput = false;
-  var reserved = ['help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart'];
+  var reserved = ['help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content'];
   function registerAdapter(def) {
     if (!def || !/^[a-z0-9-]+$/i.test(def.id || '')) throw Error('Invalid command adapter');
     if (adapters[def.id]) return;
@@ -1251,6 +1251,18 @@
     out(log,result.ok?T('Supervisor: cámara Insta360 con controles.','Supervisor: Insta360 camera with controls.'):result.error,result.ok?'':'err');
     return result;
   }});
+  verb({name:'contenido',alias:['content'],args:'starbucks 360',desc:[
+    'abre Starbucks 360: siete pantallas, recorrido con vapor, castellano e inglés, 3D y Matrix',
+    'opens Starbucks 360: seven screens, steaming coffee journey, Spanish and English, 3D and Matrix'
+  ],run:function(a,log){
+    if(a.length!==2||String(a[0]).toLowerCase()!=='starbucks'||a[1]!=='360'){
+      var usage=T('Usa /contenido starbucks 360 para lanzar la demo de siete pantallas.','Use /content starbucks 360 to launch the seven-screen demo.');
+      out(log,usage,a.length?'err':'');return {ok:false,error:usage};
+    }
+    var url='https://admira.studio/campanas/starbucks-360/?lang='+lang()+'&start=1';
+    out(log,T('Starbucks 360: abriendo la demo de siete pantallas.','Starbucks 360: opening the seven-screen demo.'));
+    location.assign(url);return {ok:true,navigating:true,url:url};
+  }});
   function bootSupervisorCamera() {
     if (host !== 'admira.live' || new URLSearchParams(location.search).get('supervisor') !== '1') return;
     var observer, timer;
@@ -1355,7 +1367,7 @@
   function sharedCommand(text) {
     var t = String(text || '').trim();
     // The shared avatar owns its verbs even when the native console predates them.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || /^\/supervisor(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || /^\/(?:supervisor|contenido|content)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
@@ -1683,7 +1695,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261016-bugito-help-2',
+    engineVersion: '20261016-starbucks360-1',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },

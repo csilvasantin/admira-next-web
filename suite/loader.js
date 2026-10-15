@@ -24,7 +24,7 @@
         G.addEventListener('keydown',function(e){if(e.target!==input||e.key!=='Enter'||e.shiftKey||e.isComposing)return;if(!String(input.value).trim().startsWith('/'))return;e.preventDefault();e.stopImmediatePropagation();form.requestSubmit();},true);
       }
       if(!panel.querySelector(p.form)||!panel.querySelector(p.log))continue;
-      var script=D.createElement('script');script.src='https://www.admiranext.com/suite/experto.js?v=20261012-unified-1';script.id='admira-command-engine';
+      var script=D.createElement('script');script.src='https://www.admiranext.com/suite/experto.js?v=20261016-starbucks360-1';script.id='admira-command-engine';
       Object.keys(p).forEach(function(k){script.dataset[k]=p[k];});script.dataset.min='hide';script.dataset.toggle='none';
       var css=D.createElement('link');css.rel='stylesheet';css.href='https://www.admiranext.com/suite/experto.css?v=20261012-unified-1';D.head.appendChild(css);D.head.appendChild(script);
       if(observer)observer.disconnect();return true;
