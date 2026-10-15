@@ -512,5 +512,10 @@
   "v.15.10.2026.r2.23:17": [
     "Bugito recibe órdenes físicas completas desde la consola común de Studio, Store, TV, App y Biz.",
     "La demo Starbucks de Gran de Gràcia 51 controla el MBP16, con sesión owner, protección de duplicados y comprobación del resultado."
+  ],
+  "v.15.10.2026.r3.23:53": [
+    "Bugito: /ayuda bugito y /help bugito con giro, popup, negro, resolución, recorte y restauración en las cinco patas.",
+    "MCP help con tema bugito y guía pública ES/EN del mando físico, permisos owner y destino MBP16.",
+    "La ayuda distingue la mascota, el banco virtual y las evidencias del Supervisor; recuperación con incidencia abierta."
   ]
 }

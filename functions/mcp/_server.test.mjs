@@ -171,7 +171,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.8.2');
+  assert.equal(init.result.serverInfo.version, '1.8.3');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');
@@ -255,4 +255,18 @@ test('native demo MCP guide is discoverable without granting execution or readin
  for(const text of ['/demo ios iphone','/demo ios watch','#musica','playlist','macOS','no abre escritorios'])assert.ok(r.result.content[0].text.includes(text));
  const listing=await handleRpc({access:null}, {jsonrpc:'2.0',id:78,method:'tools/list'});
  assert.match(listing.result.tools.find(t=>t.name==='help').description,/demo-ios/);
+});
+
+
+test('MCP help bugito es público, completo y de solo lectura',async()=>{
+  const result=await handleRpc({access:null,env:{},fetchImpl(){throw Error('help no debe enviar órdenes');}}, {jsonrpc:'2.0',id:71,method:'tools/call',params:{name:'help',arguments:{tema:'bugito'}}});
+  assert.equal(result.result.isError,false);
+  const text=result.result.content[0].text;
+  assert.equal(text,await readFile(new URL('../../mcp/BUGITO.md',import.meta.url),'utf8'),'MCP devuelve la misma guía publicada');
+  for(const suffix of ['pantalla girada','popup','pantalla negra','resolucion','recorte'])assert.ok(text.includes('/bugito error starbucks gran de gracia 51 '+suffix));
+  assert.match(text,/\/bugito restaurar starbucks gran de gracia 51/);
+  assert.match(text,/\/bugito restore starbucks gran de gracia 51/);
+  assert.match(text,/mantiene la incidencia abierta/);assert.match(text,/not a new anonymous hardware execution tool/);
+  assert.ok(TOOLS.find(t=>t.name==='help').description.includes('bugito'));
+  const protectedCall=await handleRpc({access:null,env:{}},{id:72,method:'tools/call',params:{name:'create_presentation',arguments:{}}});assert.equal(protectedCall.result.isError,true);
 });

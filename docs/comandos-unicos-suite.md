@@ -35,3 +35,5 @@ Studio, Store, TV, App y Biz usan el mismo verbo registrado en `suite/experto.js
 El destino configurado para esta demostración es el laboratorio de Gran de Gràcia 51 y su MBP16, CI GDG51-PAN-07. Es una vinculación explícita de demo Starbucks; no atribuye el portátil al inventario de un restaurante. La autoridad de control verifica la cuenta y emite un nonce acotado al equipo; la orden exige señal reciente. Cada petición se reserva en servidor para evitar una segunda ejecución. El envío en cola, el acuse de ejecución y la medida posterior del reproductor son estados separados. El Supervisor existente registra las evidencias ópticas y mantiene la incidencia abierta para revisión.
 
 Otros fallos admitidos: `popup`, `pantalla en negro`, `resolucion` y `recorte`. Los destinos sin vinculación se rechazan; no se selecciona otro portátil como alternativa. Los comandos antiguos de Bugito, Arquitecto y las demos siguen disponibles.
+
+Ayuda operativa ES/EN: `/ayuda bugito`, `/help bugito` y `/bugito help`. El MCP devuelve la guía pública con `help {"tema":"bugito"}`. Contrato y todos los ejemplos: [mcp/BUGITO.md](../mcp/BUGITO.md).

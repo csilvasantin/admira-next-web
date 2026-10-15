@@ -359,6 +359,7 @@
     return items;
   }
   verb({name: 'help', alias: ['?', 'ayuda'], desc: ['esta lista', 'this list'], run: function (a, log) {
+    if (/^bugito$/i.test(a.join(' ').trim())) { out(log, bugitoHelp()); return; }
     if (/^(?:demo\s+)?ios$/i.test(a.join(' ').trim())) { out(log, iosHelp()); return; }
     out(log, verbs.map(function (v) { var par = parDe(v.name); return '/' + v.name + (par ? ' · /' + par : '') + (v.args ? ' ' + v.args : '') + ' — ' + T(v.desc[0], v.desc[1]); }).join('\n') +
       '\n' + T('Cada verbo vale en castellano o en inglés: el castellano pone la web en castellano y el inglés en inglés. /marca84 = /marca 84.',
@@ -1271,8 +1272,8 @@
   // personaje), su página se abre igual. Añadir el Arquitecto = una entrada más en PERSONAJES_SUITE.
   var PERSONAJES_SUITE = [
     {name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https://www.admira.biz/bugito.html', param: 'incidencia', args: '[error <proyecto> <establecimiento> <fallo>|restaurar <proyecto> <establecimiento>|full|girar|popup|normal]',
-      desc: ['error <proyecto> <establecimiento> <fallo> envía un fallo al equipo físico vinculado; restaurar devuelve la emisión. Requiere owner. Sin argumentos muestra Bugito; full abre el banco',
-        'error <project> <establishment> <fault> sends a fault to the bound physical device; restore returns playback. Requires owner. Alone toggles Bugito; full opens the bench'],
+      desc: ['fallos físicos: pantalla girada, popup, pantalla negra, resolucion y recorte; restaurar devuelve la emisión. Guía y ejemplos: /ayuda bugito · /help bugito. Requiere owner. Sin argumentos muestra Bugito; full abre el banco de pruebas',
+        'physical faults: rotated screen, popup, black screen, resolution and half screen; restore returns playback. Guide and examples: /help bugito. Requires owner. Alone toggles Bugito; full opens Bugito\'s test bench'],
       abriendo: ['Bugito: abriendo su banco de pruebas en admira.biz…', 'Bugito: opening his test bench on admira.biz…']},
     // El Arquitecto (Carlos, 14-oct-2026, DCL-66d9ae0d5e756d0067127f24): Admirito con casco de obra. Crear (un Xpacio
     // inventado), reformar (desde foto, vídeo o lo que se cuente) o inventariar (y dar de alta el ITIL en Yokup).
@@ -1287,6 +1288,7 @@
   }
   function personajeRun(p, a, log) {
     var text = '/' + p.name + (a.length ? ' ' + a.join(' ') : '');
+    if(p.name==='bugito'&&/^(help|ayuda|\?)$/i.test(a.join(' '))){out(log,bugitoHelp());return;}
     if(p.name==='bugito'&&/^(error|fallo|fault|restaurar|restore)\s+/i.test(a.join(' ')))return bugitoPhysical(a.join(' '),log);
     return avatarApi(p.name==='bugito').then(function (A) {
       if (A && typeof A.personaje === 'function' && A.personaje(p.name) && (p.name!=='bugito'||A.floatingCharacters)) return avatarRun(text, log);
@@ -1302,6 +1304,30 @@
       var q = '?lang=' + lang() + (arg && p.param ? '&' + p.param + '=' + encodeURIComponent(arg) : '');
       setTimeout(function () { location.assign(p.pagina + q); }, 400);
     });
+  }
+  function bugitoHelp(){
+    return T('BUGITO · fallos físicos desde Studio, Store, TV, App y Biz', 'BUGITO · physical faults from Studio, Store, TV, App and Biz')+'\n'+
+      T('Entra en la aplicación, abre ⌘ Experto y escribe una orden completa. Fuera de Bugito se abre admira.biz; entra allí con tu cuenta owner de Google. La orden pendiente se atiende una sola vez.',
+        'Sign in to the application, open ⌘ Expert and enter a complete command. Outside Bugito, admira.biz opens; sign in there with your Google owner account. The pending command is handled once.')+'\n'+
+      T('Destino de demo: Starbucks · laboratorio Gran de Gràcia 51 → MBP16 (macbookpro16, GDG51-PAN-07). No representa el inventario de un restaurante.',
+        'Demo binding: Starbucks · Gran de Gràcia 51 lab → MBP16 (macbookpro16, GDG51-PAN-07). This is not a restaurant inventory.')+'\n'+
+      '/bugito error starbucks gran de gracia 51 pantalla girada\n'+
+      '/bugito error starbucks gran de gracia 51 popup\n'+
+      '/bugito error starbucks gran de gracia 51 pantalla negra\n'+
+      '/bugito error starbucks gran de gracia 51 resolucion\n'+
+      '/bugito error starbucks gran de gracia 51 recorte\n'+
+      '/bugito restaurar starbucks gran de gracia 51\n'+
+      T('Negro pone el contenido en espera; no apaga eléctricamente el portátil. Restaurar retira los fallos y devuelve la emisión.',
+        'Black puts content on standby; it does not power off the laptop. Restore removes the faults and resumes playback.')+'\n'+
+      T('En inglés: /bugito fault starbucks gran de gracia 51 rotated screen|popup|black screen|resolution|half screen; /bugito restore starbucks gran de gracia 51.',
+        'English aliases: /bugito fault starbucks gran de gracia 51 rotated screen|popup|black screen|resolution|half screen; /bugito restore starbucks gran de gracia 51.')+'\n'+
+      T('En cola no confirma ejecución; el acuse y la medida reciente son estados distintos. Si el resultado es incierto, consulta el Supervisor antes de repetir. Los destinos sin equipo vinculado se rechazan.',
+        'Queued does not confirm execution; acknowledgement and recent measurement are separate states. If the result is uncertain, check Supervisor before retrying. Unbound targets are rejected.')+'\n'+
+      T('El Supervisor detecta y documenta con medidas e imágenes cuando hay señal y encuadre libre; una persona o un corte de cámara impide la foto. La recuperación se anota y la incidencia queda abierta para revisión.',
+        'Supervisor detects and documents measurements and images when signal and a clear view are available; a person or camera outage prevents the photo. Recovery is recorded and the incident remains open for review.')+'\n'+
+      T('/bugito muestra la mascota; /bugito full abre el banco. Los alias cortos del banco, como /bugito popup, no seleccionan el MBP16.',
+        '/bugito toggles the mascot; /bugito full opens the bench. Short bench aliases, such as /bugito popup, do not select MBP16.')+'\n'+
+      'https://www.admiranext.com/help/#bugito · https://www.admiranext.com/mcp/BUGITO.md · MCP help {"tema":"bugito"}';
   }
   // One entry for every platform and the avatar. The full command travels in
   // a POST body; a URL or a character slug cannot launch a physical fault.
@@ -1329,7 +1355,7 @@
   function sharedCommand(text) {
     var t = String(text || '').trim();
     // The shared avatar owns its verbs even when the native console predates them.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || /^\/supervisor(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || /^\/supervisor(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
@@ -1655,7 +1681,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261015-bugito-physical-1',
+    engineVersion: '20261015-bugito-help-1',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
