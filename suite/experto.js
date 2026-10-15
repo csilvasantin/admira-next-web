@@ -1368,7 +1368,9 @@
     if (c) { name = c.name; parts.unshift(c.arg); v = findVerb(name); }
     if (!v) { var unknown=T('Verbo desconocido: /', 'Unknown verb: /') + name + T(' · escribe /help', ' · type /help');out(log,unknown,'err');return {ok:false,error:unknown}; }
     // El idioma del verbo pasa a ser el de la web, cuando la orden ya ha hecho lo suyo.
-    var idioma = idiomaDeVerbo(name);
+    var helpBugito = /^(help|ayuda|\?)$/.test(name) && /^bugito$/i.test(parts.join(' ').trim());
+    // Este tema es lectura local: cambiar idioma puede navegar y borrar la ayuda recién mostrada.
+    var idioma = helpBugito ? null : idiomaDeVerbo(name);
     var cambiaIdioma = function () {
       if (!idioma || idioma === lang()) return;
       applyLang(idioma);
@@ -1681,7 +1683,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261015-bugito-help-1',
+    engineVersion: '20261016-bugito-help-2',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },

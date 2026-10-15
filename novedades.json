@@ -517,5 +517,9 @@
     "Bugito: /ayuda bugito y /help bugito con giro, popup, negro, resolución, recorte y restauración en las cinco patas.",
     "MCP help con tema bugito y guía pública ES/EN del mando físico, permisos owner y destino MBP16.",
     "La ayuda distingue la mascota, el banco virtual y las evidencias del Supervisor; recuperación con incidencia abierta."
+  ],
+  "v.16.10.2026.r1.00:05": [
+    "Bugito: /help bugito y /ayuda bugito muestran la guía en el idioma actual, sin recargar ni perder la respuesta.",
+    "Guía completa de fallos físicos y restauración disponible desde las cinco consolas y el MCP."
   ]
 }
