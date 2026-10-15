@@ -170,3 +170,13 @@ MCP: existing `help {tema:"novedades"}`. Public GET /mcp (Accept application/jso
 /demo ios | /demo ios iphone | /demo ios watch | /demo ios #musica | /demo ios "playlist"
 Proyecto activo, última playlist asociada; requiere lanzador macOS y simuladores, sin hardware físico.
 MCP help {tema:"demo-ios"}. Guía: https://www.admiranext.com/mcp/DEMO-IOS.md
+
+## Bugito · cinco patas / five applications
+/ayuda bugito · /help bugito · MCP help {"tema":"bugito"}. Guide: https://www.admiranext.com/mcp/BUGITO.md
+/bugito error starbucks gran de gracia 51 pantalla girada
+/bugito error starbucks gran de gracia 51 popup
+/bugito error starbucks gran de gracia 51 pantalla negra
+/bugito error starbucks gran de gracia 51 resolucion
+/bugito error starbucks gran de gracia 51 recorte
+/bugito restaurar starbucks gran de gracia 51
+Studio, Store, TV, App and Biz share the same Expert verb. Other apps open admira.biz with the complete order; valid Google owner login is required there. The configured lab demo targets MBP16, not a restaurant device. Black is content standby, not power-off. Supervisor records faults and recovery, with photos when signal and a clear view are available; recovery keeps the incident open. Unbound targets are rejected. MCP help is documentation, not an anonymous execution tool.

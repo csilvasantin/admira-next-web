@@ -11,7 +11,7 @@ function consoleFor({hostname='admira.studio',search='',lang='es',hidden=false,r
   const toggle={getAttribute:()=>hidden?'false':'true',click(){hidden=false;calls.reveal++;}};
   const entry={click(){calls.open++;camera={querySelector:()=>toggle};}};
   const query=selector=>selector==='#analizar-webcam'?camera:selector==='button[data-verb="analizar"]'?entry:null;
-  const fixture=base.replace("hostname: 'www.admira.store'","hostname: testHost").replace("search: ''","search: testSearch")
+  const fixture=base.replace("hostname: host","hostname: testHost").replace("search: ''","search: testSearch")
     .replace('querySelector: () => null, querySelectorAll: () => [],\n    createElement','querySelector: testQuery, querySelectorAll: () => [],\n    createElement')
     .replace('currentScript: { dataset: {} }', 'currentScript: { dataset: testCommandsOnly ? {commandsOnly: \"\"} : {} }')
     .replace('MutationObserver: class { observe() {} disconnect() {} }', 'MutationObserver: class { observe() {testObserved();} disconnect() {} }')

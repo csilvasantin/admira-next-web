@@ -55,7 +55,7 @@ test('el banco de pruebas de admira.biz, con la incidencia sólo preseleccionada
 });
 
 // ── El verbo en el ⌘ Experto compartido ──
-function consola({ AdmiraAvatar = null, AdmiraBugito = null, lang = 'es' } = {}) {
+function consola({ AdmiraAvatar = null, AdmiraBugito = null, lang = 'es', host = 'www.admira.store' } = {}) {
   const documentElement = { lang, dataset: {}, setAttribute() {}, getAttribute() { return null; }, classList: { contains: () => false, add() {}, toggle() {} } };
   const fuera = [];
   const document = {
@@ -65,7 +65,7 @@ function consola({ AdmiraAvatar = null, AdmiraBugito = null, lang = 'es' } = {})
       appendChild() {}, style: {}, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [], textContent: '', children: [], insertBefore() {}, removeAttribute() {} }),
     addEventListener() {}, head: { appendChild() {} }, body: { appendChild() {} }, dispatchEvent() {},
   };
-  const location = { hostname: 'www.admira.store', host: 'www.admira.store', href: 'https://www.admira.store/', pathname: '/', search: '', hash: '', origin: 'https://www.admira.store', assign: (u) => fuera.push(u) };
+  const location = { hostname: host, host: host, href: 'https://'+host+'/', pathname: '/', search: '', hash: '', origin: 'https://'+host, assign: (u) => fuera.push(u) };
   const storage = { _m: {}, getItem(k) { return k in this._m ? this._m[k] : null; }, setItem(k, v) { this._m[k] = String(v); }, removeItem(k) { delete this._m[k]; } };
   const sandbox = {
     document, location, localStorage: storage, sessionStorage: storage, URL, URLSearchParams,
@@ -221,4 +221,24 @@ test('a cached avatar is upgraded in place without another dock or demo listener
  assert.equal(await original.handle('/avatar'), 'legacy:/avatar');assert.deepEqual(delegated,['/avatar']);assert.equal(original.personaje('arquitecto').legacy,true);assert.equal(window.AvatarDigital.handle,original.handle);
  await original.handle('/bugito full');assert.deepEqual(navigations,['https://www.admira.biz/bugito.html?lang=es']);
  vm.runInNewContext(avatar,{window,document,URL,Promise,WeakMap,Map});assert.deepEqual(events,['admira:expert-resize'],'reloading the new asset does not upgrade twice');
+});
+
+
+test('ayuda de Bugito completa, ES/EN y sin ejecutar fallos en las cinco patas', async () => {
+  for(const host of ['admira.studio','www.admira.store','admira.tv','www.admira.app','www.admira.biz']){
+    for(const command of ['/ayuda bugito','/help bugito','/bugito help','/bugito ayuda']){
+      let sent=0;
+      const c=consola({host,lang:command==='/help bugito'?'en':'es',AdmiraBugito:{toggle(){sent++;},lanzar(){sent++;}}});
+      await c.run(command);
+      for(const fault of ['pantalla girada','popup','pantalla negra','resolucion','recorte'])assert.ok(c.texto().includes('/bugito error starbucks gran de gracia 51 '+fault),host+' '+command+' '+fault);
+      assert.match(c.texto(),/\/bugito restaurar starbucks gran de gracia 51/);
+      assert.match(c.texto(),/MBP16/);assert.match(c.texto(),/owner/);
+      assert.match(c.texto(),/incidencia queda abierta|incident remains open/);
+      assert.match(c.texto(),/no apaga eléctricamente|does not power off/);
+      assert.equal(sent,0);assert.deepEqual(c.fuera,[],'pedir ayuda no navega al banco');
+      assert.equal(c.api.__sharedCommand(command),true,'la consola nativa delega este tema en el motor común');
+      if(command==='/help bugito')assert.match(c.texto(),/Sign in to the application/);
+      if(command==='/ayuda bugito')assert.match(c.texto(),/Entra en la aplicación/);
+    }
+  }
 });
