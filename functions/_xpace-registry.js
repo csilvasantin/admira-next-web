@@ -60,10 +60,11 @@ export function validateVenue(body,knownProjects) {
  if(!/^[a-z0-9][a-z0-9_-]{1,79}$/.test(id)||!knownProjects.some(p=>p.id===project_id)||name.length<2||name.length>160||typeof enabled!=='boolean') throw Error('ID, proyecto, nombre o estado inválido');
  const u=new URL(body.xpace_url);
  const sneakers=project_id==='sneakers-store'&&u.pathname==='/xpacios/sneakerstore/'&&u.searchParams.get('loc')===id;
- if(!['https://www.xpaceos.com','https://www.admira.store'].includes(u.origin)||u.username||u.password||(u.pathname!=='/admira-xp/'&&!sneakers)||u.hash||u.href.length>1500) throw Error('La URL debe ser un Xpacio HTTPS de XpaceOS o admira.store');
+ const office=u.pathname==='/xpacios/gran-de-gracia-51/'&&u.searchParams.get('loc')===id;
+ if(!['https://www.xpaceos.com','https://www.admira.store'].includes(u.origin)||u.username||u.password||(u.pathname!=='/admira-xp/'&&!sneakers&&!office)||u.hash||u.href.length>1500) throw Error('La URL debe ser un Xpacio HTTPS de XpaceOS o admira.store');
  const allowed=new Set(['autostart','loc','project','circuit','quality','visual','lang','langlock']);
  if([...u.searchParams.keys()].some(k=>!allowed.has(k))) throw Error('Parámetros de Xpacio no permitidos');
- if(!sneakers&&!['xtanco','cafeteria'].includes(u.searchParams.get('autostart'))) throw Error('Falta una escena compatible');
+ if(!sneakers&&!office&&!['xtanco','cafeteria'].includes(u.searchParams.get('autostart'))) throw Error('Falta una escena compatible');
  if(u.searchParams.get('project') && u.searchParams.get('project')!==project_id) throw Error('El proyecto de la URL no coincide');
  if(u.searchParams.get('loc')==='alsea-sbux-021'&&project_id!=='starbucks')throw Error('Este local pertenece a Starbucks');
  const p=knownProjects.find(p=>p.id===project_id);
