@@ -1270,9 +1270,9 @@
   // lanza esa incidencia en el player virtual de laboratorio). Con un avatar.js anterior en la página (sin el
   // personaje), su página se abre igual. Añadir el Arquitecto = una entrada más en PERSONAJES_SUITE.
   var PERSONAJES_SUITE = [
-    {name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https://www.admira.biz/bugito.html', param: 'incidencia', args: '[full|avanzado|girar|resolucion|popup|medias|normal]',
-      desc: ['sin nada, muestra u oculta a Bugito flotando en la página; full o avanzado abre el banco de pruebas en admira.biz; una incidencia se prepara en el laboratorio',
-        'alone, toggles floating Bugito on the page; full or avanzado opens Bugito\'s test bench on admira.biz; incident arguments prepare the laboratory'],
+    {name: 'bugito', gancho: 'AdmiraBugito', pagina: 'https://www.admira.biz/bugito.html', param: 'incidencia', args: '[error <proyecto> <establecimiento> <fallo>|restaurar <proyecto> <establecimiento>|full|girar|popup|normal]',
+      desc: ['error <proyecto> <establecimiento> <fallo> envía un fallo al equipo físico vinculado; restaurar devuelve la emisión. Requiere owner. Sin argumentos muestra Bugito; full abre el banco',
+        'error <project> <establishment> <fault> sends a fault to the bound physical device; restore returns playback. Requires owner. Alone toggles Bugito; full opens the bench'],
       abriendo: ['Bugito: abriendo su banco de pruebas en admira.biz…', 'Bugito: opening his test bench on admira.biz…']},
     // El Arquitecto (Carlos, 14-oct-2026, DCL-66d9ae0d5e756d0067127f24): Admirito con casco de obra. Crear (un Xpacio
     // inventado), reformar (desde foto, vídeo o lo que se cuente) o inventariar (y dar de alta el ITIL en Yokup).
@@ -1287,6 +1287,7 @@
   }
   function personajeRun(p, a, log) {
     var text = '/' + p.name + (a.length ? ' ' + a.join(' ') : '');
+    if(p.name==='bugito'&&/^(error|fallo|fault|restaurar|restore)\s+/i.test(a.join(' ')))return bugitoPhysical(a.join(' '),log);
     return avatarApi(p.name==='bugito').then(function (A) {
       if (A && typeof A.personaje === 'function' && A.personaje(p.name) && (p.name!=='bugito'||A.floatingCharacters)) return avatarRun(text, log);
       var B = root[p.gancho], arg = personajeSlug(a.join(' '));
@@ -1301,6 +1302,17 @@
       var q = '?lang=' + lang() + (arg && p.param ? '&' + p.param + '=' + encodeURIComponent(arg) : '');
       setTimeout(function () { location.assign(p.pagina + q); }, 400);
     });
+  }
+  // One entry for every platform and the avatar. The full command travels in
+  // a POST body; a URL or a character slug cannot launch a physical fault.
+  function bugitoPhysical(order,log){
+    log=log||document.createElement('ul');
+    if(root.BugitoPhysical&&typeof root.BugitoPhysical.runOrder==='function')return root.BugitoPhysical.runOrder(order).then(function(msg){out(log,msg);return msg;});
+    var form=document.createElement('form');form.method='POST';form.action='https://www.admira.biz/api/bugito/launch?lang='+lang();form.hidden=true;
+    var fields={order:order,request_id:root.crypto.randomUUID()};
+    Object.keys(fields).forEach(function(name){var input=document.createElement('input');input.type='hidden';input.name=name;input.value=fields[name];form.appendChild(input);});
+    document.body.appendChild(form);out(log,T('Bugito: enviando la orden completa al control físico…','Bugito: sending the complete command to physical control…'));form.submit();
+    return T('Bugito: abriendo el control físico.','Bugito: opening physical control.');
   }
   PERSONAJES_SUITE.forEach(function (p) {
     verb({name: p.name, args: p.args, desc: p.desc, run: function (a, log) { return personajeRun(p, a, log); }});
@@ -1643,7 +1655,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261014-supervisor-camera-2',
+    engineVersion: '20261015-bugito-physical-1',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
@@ -1666,7 +1678,8 @@
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo, anotarNombres: anotarNombres,
     normalizeLangToken: normalizeLangToken,
-    setLanguage: applyLang
+    setLanguage: applyLang,
+    bugitoPhysical: bugitoPhysical
   };
 
   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});

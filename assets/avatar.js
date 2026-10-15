@@ -122,6 +122,7 @@
     if (!Object.prototype.hasOwnProperty.call(PERSONAJES, id)) return null;
     var m = String(text == null ? '' : text).trim().match(/^\/?([^\s@]+)(?:@\S+)?(?:\s+([\s\S]*))?$/);
     if (!m || m[1].toLowerCase() !== id) return null;
+    if(id==='bugito'&&/^(error|fallo|fault|restaurar|restore)\s+/i.test(String(m[2]||'').trim()))return String(m[2]).trim();
     return String(m[2] || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
   }
@@ -715,6 +716,7 @@
   // pasa el argumento (Bugito: lanza ese fallo); en cualquier otra página de la red abre la suya.
   // La acción: texto, o promesa de texto cuando la página lanza algo asíncrono (Bugito manda la orden al mando).
   function personajeAccion(id, arg) {
+    if(id==='bugito'&&/^(error|fallo|fault|restaurar|restore)\s+/i.test(arg))return bugitoEngine().then(function(X){return X.exec('/bugito '+arg,doc.createElement('ul'),{echo:false});});
     var B = root[PERSONAJES[id].gancho], english = en(),mode=personajeMode(id,arg);
     if(mode==='floating')return floatingCharacter(id,arg);
     if(mode==='full'){root.location.assign(personajePagina(id,'',english?'en':'es'));return message(id+'-ir',english);}
@@ -723,6 +725,17 @@
     }
     root.location.assign(personajePagina(id, arg, english ? 'en' : 'es'));
     return message(id + '-ir', english);
+  }
+  var bugitoEngineLoading=null;
+  function bugitoEngine(){
+    if(root.AdmiraExperto&&root.AdmiraExperto.bugitoPhysical)return Promise.resolve(root.AdmiraExperto);
+    if(bugitoEngineLoading)return bugitoEngineLoading;
+    bugitoEngineLoading=new Promise(function(resolve,reject){
+      var script=doc.createElement('script');script.src=ORIGIN+'/suite/experto.js?v=20261015-bugito-command-1';script.dataset.commandsOnly='1';
+      var timer=root.setTimeout(function(){reject(Error('Command engine unavailable'));},15000);
+      script.onload=function(){root.clearTimeout(timer);root.AdmiraExperto&&root.AdmiraExperto.bugitoPhysical?resolve(root.AdmiraExperto):reject(Error('Command engine unavailable'));};
+      script.onerror=function(){root.clearTimeout(timer);reject(Error('Command engine unavailable'));};(doc.head||doc.body).appendChild(script);
+    });return bugitoEngineLoading;
   }
   // run() es síncrono: si la acción es una promesa, queda atendida (nunca un rechazo suelto) y se devuelve el
   // aviso inmediato; handle() espera y devuelve el texto final.
