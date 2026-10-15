@@ -521,5 +521,8 @@
   "v.16.10.2026.r1.00:05": [
     "Bugito: /help bugito y /ayuda bugito muestran la guía en el idioma actual, sin recargar ni perder la respuesta.",
     "Guía completa de fallos físicos y restauración disponible desde las cinco consolas y el MCP."
+  ],
+  "v.16.10.2026.r2.01:41": [
+    "/contenido starbucks 360 abre la demo de siete pantallas desde las cinco plataformas, con 3D y Matrix."
   ]
 }
