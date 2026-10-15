@@ -12,7 +12,12 @@ export const DEMOS = [
  {id:'sneakers-store-santa-rosa-19',project_id:'sneakers-store',name:'Sneakers Store · Santa Rosa 19 · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/sneakerstore/?project=sneakers-store&circuit=sneakerstore&loc=sneakers-store-santa-rosa-19',enabled:1},
  {id:'demo-xtanco',project_id:'estancos',name:'Xtanco · demo',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=xtanco&project=estancos&quality=better'},
  {id:'demo-cafebreria',project_id:'cafebreria',name:'Cafebrería · demo',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=cafeteria&project=cafebreria&quality=better'},
- {id:'demo-starbucks',project_id:'starbucks',name:'Starbucks · demo pública',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=cafeteria&loc=alsea-sbux-021&project=starbucks&quality=better'},
+ // Starbucks (15-oct-2026, Carlos): los tres centros en el desplegable. Paseo de Gràcia 103 (alsea-sbux-021)
+ // abre el gemelo Matrix; Diagonal 634 la página de centros con sus playlists; Gran de Gràcia 51 el
+ // laboratorio con su ubicación real (lab-gran-de-gracia-51: calibración y plano).
+ {id:'demo-starbucks',project_id:'starbucks',name:'Starbucks Paseo de Gràcia 103 · Barcelona',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=cafeteria&loc=alsea-sbux-021&project=starbucks&quality=better'},
+ {id:'starbucks-diagonal-634',project_id:'starbucks',name:'Starbucks Diagonal 634 · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/starbucks-centros/?loc=starbucks-diagonal-634&project=starbucks'},
+ {id:'lab-gran-de-gracia-51',project_id:'starbucks',name:'Gran de Gràcia 51 · laboratorio AdmiraNeXT · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/gran-de-gracia-51/?loc=lab-gran-de-gracia-51&project=starbucks'},
  // Altadis (2-oct-2026): 9 estancos reales OSM de Gràcia, circuito altadis_bcn publicado en admira.app y en el KV de puntos.
  // Mismos ID/URL que admiranext_xpace_venues (AUTH_DB), para que demo y cuenta abran el mismo gemelo.
  {id:"altadis-bcn-001",project_id:'altadis',name:"Estanco Gràcia 1 · Carrer Gran de Gràcia s/n · 08012 Barcelona",demo:true,xpace_url:"https://www.xpaceos.com/admira-xp/?autostart=xtanco&loc=altadis-bcn-001&quality=better&project=altadis&circuit=altadis_bcn"},
@@ -61,10 +66,12 @@ export function validateVenue(body,knownProjects) {
  const u=new URL(body.xpace_url);
  const sneakers=project_id==='sneakers-store'&&u.pathname==='/xpacios/sneakerstore/'&&u.searchParams.get('loc')===id;
  const office=u.pathname==='/xpacios/gran-de-gracia-51/'&&u.searchParams.get('loc')===id;
- if(!['https://www.xpaceos.com','https://www.admira.store'].includes(u.origin)||u.username||u.password||(u.pathname!=='/admira-xp/'&&!sneakers&&!office)||u.hash||u.href.length>1500) throw Error('La URL debe ser un Xpacio HTTPS de XpaceOS o admira.store');
+ // Centros Starbucks con playlists (Diagonal 634…): sólo para Starbucks y con su propio local en la URL.
+ const centros=project_id==='starbucks'&&u.pathname==='/xpacios/starbucks-centros/'&&u.searchParams.get('loc')===id;
+ if(!['https://www.xpaceos.com','https://www.admira.store'].includes(u.origin)||u.username||u.password||(u.pathname!=='/admira-xp/'&&!sneakers&&!office&&!centros)||u.hash||u.href.length>1500) throw Error('La URL debe ser un Xpacio HTTPS de XpaceOS o admira.store');
  const allowed=new Set(['autostart','loc','project','circuit','quality','visual','lang','langlock']);
  if([...u.searchParams.keys()].some(k=>!allowed.has(k))) throw Error('Parámetros de Xpacio no permitidos');
- if(!sneakers&&!office&&!['xtanco','cafeteria'].includes(u.searchParams.get('autostart'))) throw Error('Falta una escena compatible');
+ if(!sneakers&&!office&&!centros&&!['xtanco','cafeteria'].includes(u.searchParams.get('autostart'))) throw Error('Falta una escena compatible');
  if(u.searchParams.get('project') && u.searchParams.get('project')!==project_id) throw Error('El proyecto de la URL no coincide');
  if(u.searchParams.get('loc')==='alsea-sbux-021'&&project_id!=='starbucks')throw Error('Este local pertenece a Starbucks');
  const p=knownProjects.find(p=>p.id===project_id);
