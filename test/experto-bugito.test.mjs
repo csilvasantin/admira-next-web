@@ -226,9 +226,9 @@ test('a cached avatar is upgraded in place without another dock or demo listener
 
 test('ayuda de Bugito completa, ES/EN y sin ejecutar fallos en las cinco patas', async () => {
   for(const host of ['admira.studio','www.admira.store','admira.tv','www.admira.app','www.admira.biz']){
-    for(const command of ['/ayuda bugito','/help bugito','/bugito help','/bugito ayuda']){
+    for(const lang of ['es','en'])for(const command of ['/ayuda bugito','/help bugito','/bugito help','/bugito ayuda']){
       let sent=0;
-      const c=consola({host,lang:command==='/help bugito'?'en':'es',AdmiraBugito:{toggle(){sent++;},lanzar(){sent++;}}});
+      const c=consola({host,lang,AdmiraBugito:{toggle(){sent++;},lanzar(){sent++;}}});
       await c.run(command);
       for(const fault of ['pantalla girada','popup','pantalla negra','resolucion','recorte'])assert.ok(c.texto().includes('/bugito error starbucks gran de gracia 51 '+fault),host+' '+command+' '+fault);
       assert.match(c.texto(),/\/bugito restaurar starbucks gran de gracia 51/);
@@ -237,8 +237,8 @@ test('ayuda de Bugito completa, ES/EN y sin ejecutar fallos en las cinco patas',
       assert.match(c.texto(),/no apaga eléctricamente|does not power off/);
       assert.equal(sent,0);assert.deepEqual(c.fuera,[],'pedir ayuda no navega al banco');
       assert.equal(c.api.__sharedCommand(command),true,'la consola nativa delega este tema en el motor común');
-      if(command==='/help bugito')assert.match(c.texto(),/Sign in to the application/);
-      if(command==='/ayuda bugito')assert.match(c.texto(),/Entra en la aplicación/);
+      assert.match(c.texto(),lang==='en'?/Sign in to the application/:/Entra en la aplicación/);
+      assert.doesNotMatch(c.texto(),/Language: English|Idioma: español/,'la ayuda no cambia el idioma ni navega');
     }
   }
 });
