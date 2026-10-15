@@ -133,6 +133,13 @@ test('office and lab metadata follows the registered venue, including an office 
   await venue(env, 'qa349-office', 'starbucks', 'office'); await venue(env, 'qa349-lab', 'admiraxperience', 'lab');
   assert.equal((await result(env, { venueId: 'qa349-office' })).body.renderer, 'office');
   assert.equal((await result(env, { projectId: 'admiraxperience', venueId: 'qa349-lab' })).body.renderer, 'lab');
+  env.AUTH_DB.prepare('UPDATE admiranext_xpace_venues SET xpace_url=? WHERE id=?')
+    .bind('https://www.admira.store/xpacios/gran-de-gracia-51/?loc=qa349-office', 'qa349-office').run();
+  const office = await result(env, { venueId: 'qa349-office' });
+  assert.equal(office.body.renderer, 'office');
+  const claims = await verifyPlaylistGrant(office.body.grant, signingKey, { scope: { ...scope, venueId: 'qa349-office' } });
+  assert.equal(claims.context.renderer, 'office');
+  assert.equal(new URL(claims.context.xpaceUrl).pathname, '/xpacios/gran-de-gracia-51/');
 });
 
 test('missing scope, injected destination, arbitrary channels and untrusted identity shapes are rejected', async () => {
