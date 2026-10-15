@@ -18,6 +18,7 @@
 import { sesionCompleta, respuestaLogin, paginaLogin, respuestaHtml } from '../_webmaster-gate.js';
 import { accesoVisor, esRutaVisor, RUTA_ALTA_VISOR } from './_visor-enlace.js';
 import {agentBrowserSessionFromRequest,AGENT_LAUNCH_COOKIE} from '../presentaciones/_agent-token.js';
+import {PLAYLIST_PERMISSION_PATH,playlistServiceAuthorized} from '../_xpace-playlist-grant.js';
 
 export const PREFIJO_PRUEBAS = '/pruebas';
 export const POST_PRUEBAS = new Set(['/pruebas/api/solicitud', RUTA_ALTA_VISOR]);
@@ -68,6 +69,12 @@ export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
   if (url.pathname !== PREFIJO_PRUEBAS && !url.pathname.startsWith(PREFIJO_PRUEBAS + '/')) return next();
+  // A scoped private service endpoint; this credential opens no page or other test route.
+  // Its handler repeats authentication and checks the current commercial directory ACL.
+  if (url.pathname === PLAYLIST_PERMISSION_PATH) {
+    if (!await playlistServiceAuthorized(request, env)) return texto('Sin autorización de servicio.', 401);
+    return next();
+  }
   const pagina = request.method === 'GET' || request.method === 'HEAD' ? paginaDePruebas(url.pathname) : null;
   const metodoOk = request.method === 'GET' || request.method === 'HEAD';
   // Escrituras: la solicitud de marca blanca y el alta del enlace del visor. Las dos exigen sesión.
