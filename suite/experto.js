@@ -35,6 +35,8 @@
  * data-dock="off" desactiva el anclaje (lo gobierna la pata).
  * API: window.AdmiraExperto = {paint(), setState(texto), lines(), set(clave, valor), verb({name, args, desc:[es,en], run(args, log)}), run(texto),
  *      demos(), parseDemo(texto)  ← /demo de las cinco soluciones (studio, store, tv, app, biz),
+ *      /demo dooh <cliente> y /vision general <cliente> abren el Tour DooH de admira.biz desde cualquier pata
+ *      (en biz manda su expert-commands.js; DCL-97f84ae3e5b2cb2311c55101, 16-oct-2026),
  *      open(), close(), toggle(), isOpen()}.
  */
 (function (root) {
@@ -475,6 +477,80 @@
   function demoActual() { for (var i = 0; i < DEMOS.length; i++) if (DEMOS[i].hosts.test(host)) return i; return -1; }
   function norm(t) { return String(t == null ? '' : t).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
+  // ─── /demo dooh <cliente> y /vision general <cliente> en las cuatro patas (Carlos, 16-oct-2026 · DCL-97f84ae3e5b2cb2311c55101) ───
+  // Los Tours DooH viven en admira.biz (expert-commands.js: /demo dooh y /vision general, enlazables con
+  // ?ax_cmd=). En admira.biz y clearchannel.tv la suite NO los intercepta: manda el manejador local de la
+  // pata. En studio, store, app (y admiranext.com) la orden navega en la misma pestaña al enlace del tour,
+  // con la marca del cliente para que no se quede pegada otra (Altadis) de una visita anterior.
+  // DOOH_STARBUCKS: el cliente que admira.biz recibe para Starbucks México. biz resuelve «starbucks» y
+  // «alsea» al tour global de Alsea México; si un día «starbucks» dejara de llevar allí, vuelve a 'alsea'.
+  var DOOH_BIZ = 'https://www.admira.biz/';
+  var DOOH_STARBUCKS = 'starbucks';
+  var DOOH_CLIENTES = [
+    {id: 'starbucks', biz: DOOH_STARBUCKS, marca: 'starbucks', nombre: ['Starbucks México', 'Starbucks Mexico'],
+      desc: ['Alsea · del país entero a la puerta de cada Starbucks', 'Alsea · from the whole country to each Starbucks door'],
+      alias: ['starbucks', 'sbux', 'starbucks mexico', 'starbucks mx', 'sbux mx', 'alsea', 'alsea mexico', 'alsea mx', 'alsea starbucks']},
+    {id: 'altadis', biz: 'altadis', marca: 'altadis', nombre: ['Altadis España', 'Altadis Spain'],
+      desc: ['10 Xtancos con la marca Altadis', '10 Xtancos with the Altadis brand'],
+      alias: ['altadis', 'xtancos altadis', 'altadis xtancos', 'estancos altadis', 'altadis espana', 'altadis spain', 'xtancos']}
+  ];
+  // En biz manda la pata; también si ya registró su propio /demo dooh (registerAdapter → localDemos).
+  function doohEnPata() { return /(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host) || !!localDemos.dooh; }
+  function doohClave(t) { return norm(t).replace(/[-_+]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function doohCliente(texto) {
+    var k = doohClave(texto);
+    if (!k) return null;
+    var exacto = DOOH_CLIENTES.filter(function (c) { return c.id === k || c.alias.indexOf(k) >= 0; })[0];
+    if (exacto) return exacto;
+    var prefijo = k.length >= 3 ? DOOH_CLIENTES.filter(function (c) { return [c.id].concat(c.alias).some(function (a) { return a.indexOf(k) === 0; }); }) : [];
+    return prefijo.length === 1 ? prefijo[0] : null;
+  }
+  // tipo 'demo' → ?ax_cmd=demo-dooh-<cliente>; tipo 'vision' → ?ax_cmd=vision-general-<cliente>.
+  function doohUrl(c, tipo) {
+    var u = new URL(DOOH_BIZ);
+    u.searchParams.set('ax_cmd', (tipo === 'vision' ? 'vision-general-' : 'demo-dooh-') + c.biz);
+    u.searchParams.set('marca', c.marca);
+    u.searchParams.set('lang', lang());
+    return u.href;
+  }
+  function doohNombre(c) { return T(c.nombre[0], c.nombre[1]); }
+  function doohLista() {
+    return T('Tours DooH en admira.biz (desde cualquier pata):', 'DooH Tours on admira.biz (from any suite site):') + '\n' +
+      DOOH_CLIENTES.map(function (c) { return '/demo dooh ' + c.id + ' · ' + doohNombre(c) + ' — ' + T(c.desc[0], c.desc[1]); }).join('\n') + '\n' +
+      T('/vision general <cliente> abre el circuito con su semáforo por Xpacio (starbucks · altadis).', '/vision general <client> opens the circuit with a status light per Xpace (starbucks · altadis).');
+  }
+  function doohAbrir(c, tipo, log) {
+    var url = doohUrl(c, tipo);
+    if (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) root.AdmiraDemoControl.control('stop');
+    cerrarMuestra();
+    out(log, tipo === 'vision'
+      ? T('Abriendo la visión general de ' + doohNombre(c) + ' en admira.biz…', 'Opening the ' + doohNombre(c) + ' overview on admira.biz…')
+      : T('Abriendo el Tour DooH de ' + doohNombre(c) + ' en admira.biz…', 'Opening the ' + doohNombre(c) + ' DooH Tour on admira.biz…'));
+    try { document.dispatchEvent(new CustomEvent('admira:demo', {detail: {id: (tipo === 'vision' ? 'vision-' : 'dooh-') + c.id, url: url}})); } catch (_) {}
+    setTimeout(function () { location.assign(url); }, 600);
+    return {id: (tipo === 'vision' ? 'vision-' : 'dooh-') + c.id, url: url};
+  }
+  function doohRun(p, log) {
+    if (!p.cliente) {
+      if (p.pedido) out(log, T('Cliente DooH desconocido: ', 'Unknown DooH client: ') + p.pedido + '\n' + doohLista(), 'err');
+      else out(log, doohLista());
+      return null;
+    }
+    return doohAbrir(p.cliente, p.tipo, log);
+  }
+  // Autocompletado (Tab): /demo do → /demo dooh · /demo dooh st → /demo dooh starbucks · /visi → /vision general.
+  function completarDooh(valor) {
+    if (doohEnPata()) return null;
+    var v = String(valor == null ? '' : valor).replace(/^\s+/, ''), m;
+    var ids = DOOH_CLIENTES.map(function (c) { return c.id; });
+    function unico(pref, lista) { var hits = lista.filter(function (x) { return x.indexOf(norm(pref)) === 0; }); return hits.length === 1 ? hits[0] : null; }
+    if ((m = /^\/demo\s+(do\S*)$/i.exec(v)) && unico(m[1], ['dooh'])) return '/demo dooh ';
+    if ((m = /^\/demo\s+dooh\s+(\S*)$/i.exec(v)) && unico(m[1], ids)) return '/demo dooh ' + unico(m[1], ids) + ' ';
+    if (/^\/visi\S*$/i.test(v.trim()) && 'vision'.indexOf(norm(v.trim().slice(1))) === 0) return '/vision general ';
+    if ((m = /^\/visi[oó]n(?:\s+general)?\s+(\S*)$/i.exec(v)) && !/^general$/i.test(m[1]) && unico(m[1], ids)) return '/vision general ' + unico(m[1], ids) + ' ';
+    return null;
+  }
+
   // ─── Subdemos locales de la plataforma (encargos de Trinity del 7-oct-2026: activar /demo en admira.studio) ───
   // En los hosts de una plataforma con manifiesto, /demo 1…5 y sus alias son LOCALES de esa plataforma
   // (admira.studio y pixeria.com = studio: 1 voz/locución, 2 música, 3 imagen, 4 vídeo, 5 adaptar), y
@@ -586,7 +662,7 @@
     });
   }
   function reservadoDemo(token) {
-    return /^(hoy|today|editor|editar|edit|list|lista|help|ayuda|proyectos|projects|marcas|brands|roadmap|idioma|language|global|auto|todas|todos|all|pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next|sig|soluciones|solutions|studio|store|tv|app|biz|pixeria|yokup|demos)$/.test(token);
+    return /^(hoy|today|editor|editar|edit|list|lista|help|ayuda|proyectos|projects|marcas|brands|roadmap|idioma|language|global|auto|todas|todos|all|pausa|pause|reanudar|resume|continuar|parar|stop|off|estado|status|siguiente|next|sig|soluciones|solutions|studio|store|tv|app|biz|pixeria|yokup|demos|dooh)$/.test(token);
   }
   function tokenSlug(token) {
     return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(token) && token.length <= 40 && !reservadoDemo(token);
@@ -638,6 +714,8 @@
   }
   function completarNombreDemo(e) {
     if (!e || e.key !== 'Tab' || !e.target || e.target.value == null) return;
+    var dooh = completarDooh(e.target.value);
+    if (dooh) { e.preventDefault(); e.target.value = dooh; return; }
     var m = /^\/demo\s+(\S*)$/i.exec(String(e.target.value).trim());
     if (!m) return;
     var pref = norm(m[1]);
@@ -668,6 +746,10 @@
     if (/^ios(?:\s|$)/i.test(String(m[1] || ''))) return {ios: String(text).trim()};
     var arg = norm(m[1]).replace(/^admira\./, ''), L = localM();
     if (arg === 'alsea') return {presentation: 'alsea'};
+    // /demo dooh [cliente] (DCL-97f84ae3e5b2cb2311c55101): Tour DooH de admira.biz. En biz (o si la pata ya
+    // registró su /demo dooh) la suite no lo toca: sigue como antes y lo atiende el manejador local.
+    var dooh = /^dooh(?:\s+(.*))?$/.exec(arg);
+    if (dooh && !doohEnPata()) return {dooh: true, tipo: 'demo', pedido: String(dooh[1] || '').trim(), cliente: doohCliente(dooh[1])};
     // /demo <funcionalidad>: hoy (castellano) y today (pone la web en inglés). El resto de nombres
     // desconocidos sigue siendo de la pata. Los pasos viven en suite/demo-control.js.
     if (arg === 'hoy' || arg === 'today') return {funcion: 'hoy', lang: arg === 'today' ? 'en' : 'es'};
@@ -707,7 +789,7 @@
     return i < 0 ? null : {demo: DEMOS[i], i: i};
   }
   function demoLista() {
-    return '/demo android [Fold8|watch] [playlist|#tag] · Fold + Watch virtuales\n/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('/demo global · Sneakers Store: proyecto → Xpacio → Pixeria → gemelo → cámara\nDemos · las cinco soluciones:', '/demo global · Sneakers Store: project → Xpace → Pixeria → twin → camera\nDemos · the five solutions:') + '\n' +
+    return '/demo android [Fold8|watch] [playlist|#tag] · Fold + Watch virtuales\n/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + doohLista() + '\n' + T('/demo global · Sneakers Store: proyecto → Xpacio → Pixeria → gemelo → cámara\nDemos · las cinco soluciones:', '/demo global · Sneakers Store: project → Xpace → Pixeria → twin → camera\nDemos · the five solutions:') + '\n' +
       DEMOS.map(function (d, k) { return (k + 1) + ' /demo ' + d.id + ' · ' + d.nombre + ' — ' + T(d.desc[0], d.desc[1]); }).join('\n') +
       '\n' + T('/demo 1…5 o /demo siguiente. También desde el avatar digital: «/demo store».', '/demo 1…5 or /demo next. Also from the digital avatar: "/demo store".') +
       '\n' + T('/demo hoy recorre lo de hoy y resume bien, mal o pendiente. /demo today lo hace en inglés.',
@@ -722,7 +804,7 @@
   }
   function localLista() {
     var L = localM();
-    return '/demo android [Fold8|watch] [playlist|#tag] · Fold + Watch virtuales\n/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
+    return '/demo android [Fold8|watch] [playlist|#tag] · Fold + Watch virtuales\n/demo ios [iphone|watch] [playlist|#tag] · iPhone + Apple Watch\n' + T('/demo pixeria novedades · mejoras de Trinity → gemelo 360\n','/demo pixeria updates · Trinity updates → 360 twin\n') + doohLista() + '\n' + T('Demos de ', 'Demos of ') + (L.nombre || plataforma) + ':\n' +
       L.subdemos.map(function (d, k) { return '/demo ' + (k + 1) + ' · /demo ' + d.aliases[0] + ' — ' + d.nombre + (d.desc ? ': ' + d.desc : ''); }).join('\n') +
       '\n' + T('Recorridos y muestras preparados. /demo store, /demo biz… abren las otras plataformas.',
         'Prepared walkthroughs and samples. /demo store, /demo biz… open the other platforms.') +
@@ -1111,6 +1193,7 @@
       import(moduleURL).then(function(m){return m.runIOS(p.ios,root);}).then(function(r){out(log,T('Solicitud enviada al lanzador del Mac: ','Request sent to the Mac launcher: ')+r.project+' · '+r.playlist.name+' · '+r.device);}).catch(function(e){out(log,String(e.message||e),'err');});
       return {id:'ios',native:true};
     }
+    if (p.dooh) return doohRun(p, log);
     if (p.presentation) {
       var presentationUrl = alseaPresentationUrl();
       if (root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo) root.AdmiraDemoControl.control('stop');
@@ -1165,13 +1248,22 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return execute(text, log, {echo:false});
   }
-  verb({name: 'demo', args: 'android [Fold8|watch] [playlist|#tag] | ios [iphone|watch] [playlist|#tag] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: 'android [Fold8|watch] [playlist|#tag] | ios [iphone|watch] [playlist|#tag] | dooh [starbucks|altadis] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     var localAction=localDemoAction(a,log); if(localAction)return localAction.result;
-    if (!catalogReady && !/^(?:alsea|android|ios|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false,record:false});});
+    if (!catalogReady && !/^(?:alsea|android|ios|dooh|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false,record:false});});
     var p = parseDemo('/demo ' + a.join(' '));
     if (!p) { out(log, T('Demo desconocida: ', 'Unknown demo: ') + a.join(' ') + '\n' + demoLista(), 'err'); return; }
     return demoRun(p, log);
   }});
+  // /vision general <cliente> (DCL-97f84ae3e5b2cb2311c55101): fuera de biz abre la visión general del circuito
+  // en admira.biz (?ax_cmd=vision-general-<cliente>). En biz no se registra: manda su verbo /vision.
+  if (!/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) verb({name: 'vision', alias: ['visión', 'visiongeneral', 'vision-general'], args: 'general <starbucks|altadis>',
+    desc: ['abre en admira.biz la visión general del circuito del cliente, con semáforo por Xpacio', 'opens the client circuit overview on admira.biz, with a status light per Xpace'],
+    run: function (a, log) {
+      var pedido = String((a || []).join(' ')).replace(/^\s*general\b\s*/i, '').trim(), c = doohCliente(pedido);
+      if (!c) { out(log, (pedido ? T('Cliente desconocido: ', 'Unknown client: ') + pedido + '\n' : '') + T('Uso: /vision general <cliente> · ', 'Usage: /vision general <client> · ') + DOOH_CLIENTES.map(function (x) { return x.id; }).join(' · '), pedido ? 'err' : undefined); return null; }
+      return doohAbrir(c, 'vision', log);
+    }});
   verb({name: 'demos', args: 'editar|edit', desc: ['abre el editor de demos', 'opens the demo editor'], run: function (a, log) {
     var arg = norm(a.join(' '));
     if (arg !== 'editar' && arg !== 'edit') { out(log, T('Usa /demos editar o /demos edit.', 'Use /demos editar or /demos edit.'), 'err'); return; }
@@ -1367,7 +1459,7 @@
   function sharedCommand(text) {
     var t = String(text || '').trim();
     // The shared avatar owns its verbs even when the native console predates them.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || /^\/(?:supervisor|contenido|content)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || (/^\/(?:vision|visión|visiongeneral|vision-general)(?:\s|$)/i.test(t) && !/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) || /^\/(?:supervisor|contenido|content)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
@@ -1695,7 +1787,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261016-starbucks360-1',
+    engineVersion: '20261016-dooh-1',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
@@ -1713,7 +1805,7 @@
     parseArquitectura: parseArquitectura, arquitecturaUrl: arquitecturaUrl,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if(p.android) return {id:'android',native:true,command:p.android}; if(p.ios) return {id:'ios',native:true,command:p.ios}; if(p.presentation) return {id:p.presentation,presentation:true,url:alseaPresentationUrl()}; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) { var cat = {catalogo: p.catalogo, id: p.catalogo}; if (p.pieza) cat.pieza = p.pieza; return cat; } if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.dooh) return p.cliente ? {id: 'dooh-' + p.cliente.id, dooh: true, url: doohUrl(p.cliente, 'demo')} : {dooh: true, lista: true, desconocida: p.pedido || undefined}; if(p.android) return {id:'android',native:true,command:p.android}; if(p.ios) return {id:'ios',native:true,command:p.ios}; if(p.presentation) return {id:p.presentation,presentation:true,url:alseaPresentationUrl()}; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) { var cat = {catalogo: p.catalogo, id: p.catalogo}; if (p.pieza) cat.pieza = p.pieza; return cat; } if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
     demoEstado: function () { if(root.PixeriaUpdatesDemo) return root.PixeriaUpdatesDemo.state(); return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo, anotarNombres: anotarNombres,
