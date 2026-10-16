@@ -32,7 +32,7 @@ test('en BEST, la imagen o el vídeo que sobra no ocupan sitio en la figura',asy
   const response=await renderPresentation({params:{client:'demo'},env:{PRESENTATION_IDEAS:kv({'presentation:demo':config,'ideas:demo':ideas,'image-set:demo':imageSet})},next(){throw new Error('unexpected next')}});
   const html=await response.text();
   // La figura sigue existiendo y el elemento que sobra sigue marcándose con hidden…
-  assert.match(html,/<figure class="best-figure" aria-hidden="true"><img alt="" loading="lazy"><video class="best-figure-video"/);
+  assert.match(html,/<figure class="best-figure" aria-hidden="true" data-video-frame><img alt="" loading="lazy"><video class="best-figure-video"/);
   // …pero ahora hidden gana: ni la imagen ni el vídeo vacíos ocupan una columna.
   assert.match(html,/html\[data-quality="best"\] \.best-figure img\[hidden\],html\[data-quality="best"\] \.best-figure video\[hidden\]\{display:none\}/);
   // La regla del hueco tiene que ir ANTES de la que pinta el fondo negro del vídeo,
