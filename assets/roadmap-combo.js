@@ -4,7 +4,9 @@
   var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   fetch('/data/roadmap/proyectos.json',{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
     var byId={};d.proyectos.forEach(function(p){byId[p.id]=p});
-    sel.innerHTML=d.proyectos.map(function(p){return '<option value="'+p.id+'">'+esc(p.nombre)+(p.descripcion?' · '+esc(p.descripcion):'')+'</option>'}).join('');
+    var opt=function(p){return '<option value="'+p.id+'">'+esc(p.nombre)+(p.descripcion?' · '+esc(p.descripcion):'')+'</option>'};
+    var grupos={};d.proyectos.forEach(function(p){if(p.grupo)(grupos[p.grupo]=grupos[p.grupo]||[]).push(p)});
+    sel.innerHTML='<optgroup label="Pilares">'+d.proyectos.filter(function(p){return !p.grupo}).map(opt).join('')+'</optgroup>'+Object.keys(grupos).map(function(g){return '<optgroup label="'+esc(g)+'">'+grupos[g].map(opt).join('')+'</optgroup>'}).join('');
     var q=new URLSearchParams(location.search).get('p');if(byId[q])sel.value=q;
     function render(){
       var p=byId[sel.value];

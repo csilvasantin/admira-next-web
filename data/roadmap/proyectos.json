@@ -183,6 +183,113 @@
           }
         ]
       }
+    },
+    {
+      "id": "live",
+      "nombre": "Admira.live",
+      "grupo": "Nexos",
+      "web": "https://admira.live",
+      "responsable": "consejero Elon",
+      "descripcion": "Prioridad: liquidar integración GrokBot este finde",
+      "roadmap": {
+        "manana": [
+          {
+            "t": "Arreglar proyecto_id en encargos",
+            "d": "agente_encargar devuelve proyecto_id null aunque el texto lleve 'Proyecto:'; asignarlo correctamente (integración GrokBot, finde 17–18 oct)"
+          },
+          {
+            "t": "encargos_listar ve todos los encargos",
+            "d": "Hoy solo muestra los de Arquitecto; GrokBot debe ver los encargos abiertos de toda la flota antes de asignar"
+          },
+          {
+            "t": "encargo_anular con permisos de supervisor",
+            "d": "Hoy solo puede anular el creador (p. ej. #6324 de Jensen); permitir anular al supervisor/consejero con traza"
+          },
+          {
+            "t": "Corregir nombres de consejeros",
+            "d": "Jensen guardado como 'Y' y la máquina de Musk/Huang registrada como 'GrokBot'; normalizar identidades"
+          }
+        ],
+        "semana": [
+          {
+            "t": "deepagent_vivo de Merovingio y Cypher",
+            "d": "deepagent_vivo en false para Merovingio (MacMini) y Cypher (46 encargos en cola); recuperar latidos y vaciar cola"
+          },
+          {
+            "t": "Heartbeats y reasignación a 30 min",
+            "d": "Validar latidos de agentes_vivos y la reasignación automática a los 30 min sin heartbeat"
+          },
+          {
+            "t": "Proof of play con capturas",
+            "d": "Cada encargo cerrado adjunta captura como prueba (yokup_evidencia)"
+          },
+          {
+            "t": "Claves solo por Telegram privado",
+            "d": "Enlaces y claves solo al chat privado de Carlos (telegram_responder); nunca en otros canales"
+          },
+          {
+            "t": "Handoff nocturno",
+            "d": "Al relevo de noche se cierran todos los terminales bajo control del agente saliente; cerrar la integración GrokBot el domingo 18 oct"
+          }
+        ],
+        "mes": [
+          {
+            "t": "Consejo y bandejas estables",
+            "d": "consejero_bandeja/mensaje/preguntar/responder y consejo_* sin pérdidas entre consejeros y agentes"
+          },
+          {
+            "t": "Panel de flota fiable",
+            "d": "flota_estado y encargos_listar como fuente única del estado de la flota"
+          }
+        ],
+        "trimestre": [
+          {
+            "t": "admira.live como nexo operativo",
+            "d": "Orquestación de agentes, consejo y encargos de todas las verticales desde admira.live"
+          }
+        ]
+      }
+    },
+    {
+      "id": "next",
+      "nombre": "AdmiraNeXT",
+      "grupo": "Nexos",
+      "web": "https://admiranext.com",
+      "responsable": "Jobs",
+      "roadmap": {
+        "manana": [
+          {
+            "t": "Publicar roadmap combo",
+            "d": "Selector por proyecto en admiranext.com/roadmap, tras OK de Carlos"
+          }
+        ],
+        "semana": [
+          {
+            "t": "Presites explainer + vídeos verticales",
+            "d": "Formato presite (página casi vídeo) y vídeo vertical por solución"
+          },
+          {
+            "t": "Formulario /demo",
+            "d": "Revisar y pulir el formulario de solicitud de demo"
+          }
+        ],
+        "mes": [
+          {
+            "t": "DESIGN.md: sistema de diseño",
+            "d": "Documentar el sistema de diseño del sitio en DESIGN.md"
+          },
+          {
+            "t": "Herramientas de diseño",
+            "d": "Taste Skill, Vercel web-design-guidelines, awesome-design-md e image-to-code en el flujo de diseño"
+          }
+        ],
+        "trimestre": [
+          {
+            "t": "Capturas como prueba en cada cambio",
+            "d": "playwright-cli para capturas de prueba en cada publicación de admiranext.com"
+          }
+        ]
+      }
     }
   ]
 }
