@@ -11,9 +11,9 @@
       meta.innerHTML='Responsable: <b>'+esc(p.responsable)+'</b> · <a href="'+p.web+'">'+esc(p.web.replace(/^https?:\/\/(www\.)?/,''))+'</a> · <span class="rmc-borrador">'+esc(d.estado)+'</span>';
       out.innerHTML=d.horizontes.map(function(h){
         var items=[];
-        (p.suma||[]).forEach(function(id){(byId[id].roadmap[h]||[]).forEach(function(t){items.push({t:t,o:byId[id].nombre})})});
-        (p.roadmap[h]||[]).forEach(function(t){items.push({t:t,o:p.suma?p.nombre:''})});
-        return '<article class="rmc-h"><h3>'+esc(d.etiquetas[h])+'</h3><ul>'+items.map(function(i){return '<li>'+(i.o?'<span class="rmc-o">'+esc(i.o)+'</span> ':'')+esc(i.t)+'</li>'}).join('')+'</ul></article>';
+        (p.suma||[]).forEach(function(id){(byId[id].roadmap[h]||[]).forEach(function(t){items.push({t:t.t,d:t.d,o:byId[id].nombre})})});
+        (p.roadmap[h]||[]).forEach(function(t){items.push({t:t.t,d:t.d,o:p.suma?p.nombre:''})});
+        return '<article class="rmc-h"><h3>'+esc(d.etiquetas[h])+'</h3><ul>'+items.map(function(i){return '<li><details><summary>'+(i.o?'<span class="rmc-o">'+esc(i.o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+'</summary><p>'+esc(i.d)+'</p></details></li>'}).join('')+'</ul></article>';
       }).join('');
     }
     sel.addEventListener('change',function(){var u=new URL(location.href);u.searchParams.set('p',sel.value);history.replaceState(null,'',u);render()});
