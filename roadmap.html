@@ -188,6 +188,28 @@
   .reparto-carta .meta{margin-top:8px;font-size:12px;color:#92a0b4}
   @media (max-width:1100px){.reparto-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:720px){.reparto-grid{grid-template-columns:1fr}}
+  /* Roadmap por proyecto (combo) */
+  .rmc{margin:22px 0 28px;padding:18px;border:1px solid rgba(120,243,255,.4);border-radius:16px;background:linear-gradient(165deg,rgba(14,30,44,.92),rgba(8,14,24,.94))}
+  .rmc-top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:8px}
+  .rmc label{font:700 11px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78f3ff}
+  .rmc select{font:600 15px ui-monospace,Menlo,monospace;color:#f2f6fc;background:#0b1422;border:1px solid #2b3a52;border-radius:10px;padding:8px 12px;min-width:260px}
+  .rmc-meta{margin:0 0 14px;color:#92a0b4;font-size:13px}.rmc-meta a{color:#4ae3d1}.rmc-meta b{color:#f2f6fc}
+  .rmc-borrador{color:#ffcf6a}
+  .rmc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .rmc-h{padding:14px;border:1px solid #253042;border-radius:12px;background:rgba(8,13,23,.86);min-width:0}
+  .rmc-h h3{margin:0 0 8px;font-size:15px;color:#4ae3d1;letter-spacing:.06em;text-transform:uppercase}
+  .rmc-h ul{margin:0;padding-left:18px;font-size:13px;color:#cfd8e6}.rmc-h li{margin:0 0 6px}
+  .rmc-o{display:inline-block;font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(120,243,255,.12);color:#78f3ff}
+  .rmc{margin:10px 0 14px;padding:12px 14px}.rmc-top{margin-bottom:4px}.rmc-meta{margin:0 0 10px}
+  .rmc-h{padding:10px 12px}.rmc-h h3{margin:0 0 6px}.rmc-h ul{list-style:none;padding:0}.rmc-h li{margin:0 0 4px}
+  .rmc-h details summary{cursor:pointer;list-style:none;color:#e6edf7}.rmc-h details summary::-webkit-details-marker{display:none}
+  .rmc-h details summary::before{content:"▸ ";color:#4ae3d1}.rmc-h details[open] summary::before{content:"▾ "}
+  .rmc-h details p{margin:4px 0 2px 14px;color:#92a0b4;font-size:12px}
+  .rmc-fold{margin:0 0 12px;border:1px solid #253042;border-radius:12px;background:rgba(8,13,23,.6)}
+  .rmc-fold>summary{cursor:pointer;padding:10px 14px;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78f3ff}
+  .rmc-fold[open]>summary{border-bottom:1px solid #253042}.rmc-fold>*:not(summary){margin-left:12px;margin-right:12px}
+  @media (max-width:1100px){.rmc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:720px){.rmc-grid{grid-template-columns:1fr}.rmc select{min-width:0;width:100%}}
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
 </head>
@@ -195,20 +217,13 @@
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap" aria-current="page" data-yk-interno>RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="privado" title="Acceso privado">●<span class="yk-access-txt"> Acceso privado</span></span></header>
 <main data-yk-main>
 
-  <section class="reparto-finde" id="reparto-finde" aria-label="Reparto del finde largo">
-    <p class="kicker">Reparto temporal · zona protegida</p>
-    <h2>Reparto finde largo 10–12 oct 2026</h2>
-    <p class="nota-finde">Corrección Carlos #5505: Morfeo → admira.store (#5492), Neo → admira.tv (#5493), Smith → admira.app (#5494), Trinity → admira.biz (supervisión Jobs), Oráculo → admira.studio (supervisión Jobs). RoadMap en zona protegida (#5498 · FLT-101812).</p>
-    <div class="reparto-grid">
-      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Morfeo</span><a class="pata" href="https://admira.store">admira.store</a><p class="meta">Encargo #5492</p></article>
-      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Neo</span><a class="pata" href="https://www.admira.tv">admira.tv</a><p class="meta">Encargo #5493</p></article>
-      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Smith</span><a class="pata" href="https://admira.app">admira.app</a><p class="meta">Encargo #5494</p></article>
-      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Trinity</span><a class="pata" href="https://www.admira.biz">admira.biz</a><p class="meta">Supervisión Jobs · #5505</p></article>
-      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Oráculo</span><a class="pata" href="https://admira.studio">admira.studio</a><p class="meta">Supervisión Jobs · #5505</p></article>
-    </div>
-    <p class="reparto-sello" style="margin-top:14px;font:600 12px ui-monospace,Menlo,monospace;color:#4ae3d1">Sello v.10.10.2026.r4.09:32 · RoadMap protegido · Jobs</p>
+  <section class="rmc" id="roadmap-proyecto" aria-label="Roadmap por proyecto">
+    <div class="rmc-top"><label for="rmc-sel">Proyecto</label><select id="rmc-sel"><option>Cargando…</option></select></div>
+    <p class="rmc-meta" id="rmc-meta"></p>
+    <div class="rmc-grid" id="rmc-out"></div>
   </section>
 
+  <details class="rmc-fold" id="rm-detalle"><summary>RoadMap detallado · Gantt y corte por periodo</summary>
   <h1>RoadMap</h1>
   <section class="rm-show" id="rm-show" aria-label="Panorama del RoadMap">
     <canvas id="rm-matrix" aria-hidden="true"></canvas>
@@ -235,11 +250,30 @@
   <h2 class="corte-h">Corte por periodo</h2>
   <div id="corte"><!--CORTE--></div>
 
+  </details>
+  <details class="rmc-fold" id="reparto-fold"><summary>Reparto finde largo 10–12 oct 2026 · zona protegida</summary>
+  <section class="reparto-finde" id="reparto-finde" aria-label="Reparto del finde largo">
+    <p class="kicker">Reparto temporal · zona protegida</p>
+    <h2>Reparto finde largo 10–12 oct 2026</h2>
+    <p class="nota-finde">Corrección Carlos #5505: Morfeo → admira.store (#5492), Neo → admira.tv (#5493), Smith → admira.app (#5494), Trinity → admira.biz (supervisión Jobs), Oráculo → admira.studio (supervisión Jobs). RoadMap en zona protegida (#5498 · FLT-101812).</p>
+    <div class="reparto-grid">
+      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Morfeo</span><a class="pata" href="https://admira.store">admira.store</a><p class="meta">Encargo #5492</p></article>
+      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Neo</span><a class="pata" href="https://www.admira.tv">admira.tv</a><p class="meta">Encargo #5493</p></article>
+      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Smith</span><a class="pata" href="https://admira.app">admira.app</a><p class="meta">Encargo #5494</p></article>
+      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Trinity</span><a class="pata" href="https://www.admira.biz">admira.biz</a><p class="meta">Supervisión Jobs · #5505</p></article>
+      <article class="reparto-carta is-asignada"><span class="rol">Pilar · ejecución</span><span class="agente">Oráculo</span><a class="pata" href="https://admira.studio">admira.studio</a><p class="meta">Supervisión Jobs · #5505</p></article>
+    </div>
+    <p class="reparto-sello" style="margin-top:14px;font:600 12px ui-monospace,Menlo,monospace;color:#4ae3d1">Sello v.10.10.2026.r4.09:32 · RoadMap protegido · Jobs</p>
+  </section>
+
+  </details>
+
   <footer>
     <a href="/">admiranext.com</a> · RoadMap · borrador para validar por Carlos
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
+<script defer src="/assets/roadmap-combo.js?v=20261016-combo-1"></script>
 <script defer src="/assets/roadmap-show.js?v=20261006-roadmap-1"></script>
 </body>
 </html>
