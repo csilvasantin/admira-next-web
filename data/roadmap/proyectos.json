@@ -1579,6 +1579,639 @@
           }
         ]
       }
+    },
+    {
+      "id": "trinity",
+      "tipo": "agente",
+      "nombre": "Trinity",
+      "info": "admira.studio · Codex · MBP14",
+      "sinPlan": false,
+      "roadmap": {
+        "ayer": [
+          {
+            "ref": "studio-ayer-1"
+          }
+        ],
+        "hoy": [
+          {
+            "ref": "studio-hoy-1"
+          },
+          {
+            "ref": "studio-hoy-2"
+          },
+          {
+            "ref": "studio-hoy-3"
+          }
+        ],
+        "manana": [
+          {
+            "ref": "studio-manana-1"
+          },
+          {
+            "ref": "studio-manana-2"
+          },
+          {
+            "ref": "studio-manana-3"
+          }
+        ],
+        "semana": [
+          {
+            "ref": "studio-semana-1"
+          },
+          {
+            "ref": "studio-semana-2"
+          },
+          {
+            "ref": "studio-semana-3"
+          }
+        ],
+        "mes": [
+          {
+            "ref": "studio-mes-1"
+          },
+          {
+            "ref": "studio-mes-2"
+          },
+          {
+            "ref": "studio-mes-3"
+          }
+        ],
+        "trimestre": [
+          {
+            "ref": "studio-trimestre-1"
+          },
+          {
+            "ref": "studio-trimestre-2"
+          },
+          {
+            "ref": "studio-trimestre-3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "neo",
+      "tipo": "agente",
+      "nombre": "Neo",
+      "info": "admira.store · Claude",
+      "sinPlan": false,
+      "roadmap": {
+        "ayer": [
+          {
+            "ref": "store-ayer-1"
+          }
+        ],
+        "hoy": [
+          {
+            "ref": "store-hoy-1"
+          }
+        ],
+        "manana": [
+          {
+            "ref": "store-manana-1"
+          },
+          {
+            "ref": "store-manana-2"
+          },
+          {
+            "ref": "store-manana-3"
+          }
+        ],
+        "semana": [
+          {
+            "ref": "store-semana-1"
+          },
+          {
+            "ref": "store-semana-2"
+          },
+          {
+            "ref": "store-semana-3"
+          }
+        ],
+        "mes": [
+          {
+            "ref": "store-mes-1"
+          },
+          {
+            "ref": "store-mes-2"
+          },
+          {
+            "ref": "store-mes-3"
+          }
+        ],
+        "trimestre": [
+          {
+            "ref": "store-trimestre-1"
+          },
+          {
+            "ref": "store-trimestre-2"
+          },
+          {
+            "ref": "store-trimestre-3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "oraculo",
+      "tipo": "agente",
+      "nombre": "Oráculo",
+      "info": "admira.app · Codex · MacMini",
+      "sinPlan": false,
+      "roadmap": {
+        "ayer": [
+          {
+            "ref": "app-ayer-1"
+          }
+        ],
+        "hoy": [
+          {
+            "ref": "app-hoy-1"
+          },
+          {
+            "ref": "app-hoy-2"
+          },
+          {
+            "ref": "app-hoy-3"
+          }
+        ],
+        "manana": [
+          {
+            "ref": "app-manana-1"
+          },
+          {
+            "ref": "app-manana-2"
+          },
+          {
+            "ref": "app-manana-3"
+          }
+        ],
+        "semana": [
+          {
+            "ref": "app-semana-1"
+          },
+          {
+            "ref": "app-semana-2"
+          },
+          {
+            "ref": "app-semana-3"
+          }
+        ],
+        "mes": [
+          {
+            "ref": "app-mes-1"
+          },
+          {
+            "ref": "app-mes-2"
+          },
+          {
+            "ref": "app-mes-3"
+          }
+        ],
+        "trimestre": [
+          {
+            "ref": "app-trimestre-1"
+          },
+          {
+            "ref": "app-trimestre-2"
+          },
+          {
+            "ref": "app-trimestre-3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "morfeo",
+      "tipo": "agente",
+      "nombre": "Morfeo",
+      "info": "admira.biz · Claude · MacMini",
+      "sinPlan": false,
+      "roadmap": {
+        "ayer": [
+          {
+            "ref": "biz-ayer-1"
+          }
+        ],
+        "hoy": [
+          {
+            "ref": "biz-hoy-1"
+          },
+          {
+            "ref": "biz-hoy-2"
+          }
+        ],
+        "manana": [
+          {
+            "ref": "biz-manana-1"
+          },
+          {
+            "ref": "biz-manana-2"
+          },
+          {
+            "ref": "biz-manana-3"
+          }
+        ],
+        "semana": [
+          {
+            "ref": "biz-semana-1"
+          },
+          {
+            "ref": "biz-semana-2"
+          },
+          {
+            "ref": "biz-semana-3"
+          }
+        ],
+        "mes": [
+          {
+            "ref": "biz-mes-1"
+          },
+          {
+            "ref": "biz-mes-2"
+          },
+          {
+            "ref": "biz-mes-3"
+          }
+        ],
+        "trimestre": [
+          {
+            "ref": "biz-trimestre-1"
+          },
+          {
+            "ref": "biz-trimestre-2"
+          },
+          {
+            "ref": "biz-trimestre-3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "smith",
+      "tipo": "agente",
+      "nombre": "Smith",
+      "info": "Grok · MacMini",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "niobe",
+      "tipo": "agente",
+      "nombre": "Niobe",
+      "info": "OpenCode · MacMini",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "merovingio",
+      "tipo": "agente",
+      "nombre": "Merovingio",
+      "info": "Grok CLI · MacMini · no señal",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "cypher",
+      "tipo": "agente",
+      "nombre": "Cypher",
+      "info": "DeepAgents · Nemotron · no señal",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "elon",
+      "tipo": "consejero",
+      "nombre": "consejero Elon (Musk)",
+      "info": "admira.tv + admira.live · deepagent Merovingio",
+      "aprobacion": "propuesto",
+      "sinPlan": false,
+      "roadmap": {
+        "ayer": [
+          {
+            "ref": "live-ayer-1"
+          },
+          {
+            "ref": "live-ayer-2"
+          },
+          {
+            "ref": "tv-ayer-1"
+          }
+        ],
+        "hoy": [
+          {
+            "ref": "live-hoy-1"
+          },
+          {
+            "ref": "live-hoy-2"
+          },
+          {
+            "ref": "tv-hoy-1"
+          }
+        ],
+        "manana": [
+          {
+            "ref": "live-manana-1"
+          },
+          {
+            "ref": "live-manana-2"
+          },
+          {
+            "ref": "app-manana-1"
+          }
+        ],
+        "semana": [
+          {
+            "ref": "live-semana-1"
+          },
+          {
+            "ref": "live-semana-2"
+          },
+          {
+            "ref": "app-semana-2"
+          }
+        ],
+        "mes": [
+          {
+            "ref": "live-mes-1"
+          },
+          {
+            "ref": "live-mes-2"
+          },
+          {
+            "ref": "app-mes-1"
+          }
+        ],
+        "trimestre": [
+          {
+            "ref": "live-trimestre-1"
+          },
+          {
+            "ref": "live-trimestre-2"
+          },
+          {
+            "ref": "tv-trimestre-1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "jensen",
+      "tipo": "consejero",
+      "nombre": "consejero Jensen Huang",
+      "info": "CTO · deepagent Cypher",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "jobs",
+      "tipo": "consejero",
+      "nombre": "consejero Jobs",
+      "info": "CEO · admiranext",
+      "aprobacion": "propuesto",
+      "sinPlan": false,
+      "roadmap": {
+        "ayer": [
+          {
+            "ref": "next-ayer-1"
+          }
+        ],
+        "hoy": [
+          {
+            "ref": "next-hoy-1"
+          },
+          {
+            "ref": "next-hoy-2"
+          },
+          {
+            "ref": "next-hoy-3"
+          }
+        ],
+        "manana": [
+          {
+            "ref": "next-manana-1"
+          },
+          {
+            "ref": "next-manana-2"
+          },
+          {
+            "ref": "next-manana-3"
+          }
+        ],
+        "semana": [
+          {
+            "ref": "next-semana-1"
+          },
+          {
+            "ref": "next-semana-2"
+          },
+          {
+            "ref": "next-semana-3"
+          }
+        ],
+        "mes": [
+          {
+            "ref": "next-mes-1"
+          },
+          {
+            "ref": "next-mes-2"
+          },
+          {
+            "ref": "next-mes-3"
+          }
+        ],
+        "trimestre": [
+          {
+            "ref": "next-trimestre-1"
+          },
+          {
+            "ref": "next-trimestre-2"
+          },
+          {
+            "ref": "next-trimestre-3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wozniak",
+      "tipo": "consejero",
+      "nombre": "consejero Wozniak",
+      "info": "CTO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "lucas",
+      "tipo": "consejero",
+      "nombre": "consejero Lucas",
+      "info": "CSO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "disney",
+      "tipo": "consejero",
+      "nombre": "consejero Disney",
+      "info": "CCO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "gwynne",
+      "tipo": "consejero",
+      "nombre": "Gwynne (Trinity)",
+      "info": "COO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "ruth",
+      "tipo": "consejero",
+      "nombre": "Ruth (Oráculo)",
+      "info": "CFO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "jony",
+      "tipo": "consejero",
+      "nombre": "Jony (Arquitecto)",
+      "info": "CDO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "carlo",
+      "tipo": "consejero",
+      "nombre": "Carlo (Link)",
+      "info": "CXO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "john",
+      "tipo": "consejero",
+      "nombre": "John (Mouse)",
+      "info": "CCO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
+    },
+    {
+      "id": "ryan",
+      "tipo": "consejero",
+      "nombre": "Ryan Reynolds",
+      "info": "CSO",
+      "aprobacion": "propuesto",
+      "sinPlan": true,
+      "roadmap": {
+        "ayer": [],
+        "hoy": [],
+        "manana": [],
+        "semana": [],
+        "mes": [],
+        "trimestre": []
+      }
     }
   ],
   "regla": "regla del 123 y el abc: 3 ideas por horizonte (1,2,3), cada una con 3 subobjetivos (a,b,c)",
@@ -1594,5 +2227,6 @@
     "semana",
     "mes",
     "trimestre"
-  ]
+  ],
+  "sinPlan": "Sin plan registrado · lo prepara a las 7:30"
 }

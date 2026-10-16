@@ -4,6 +4,7 @@
  *      semilla data/roadmap/proyectos.json. Exige sesión de la zona protegida.
  * PUT: guarda el documento completo. Exige rol admin/editor + CSRF (mismo
  *      perímetro que /webmaster). Control de concurrencia con "rev".
+ * También guarda los planes por agente y por consejero (tipo agente|consejero).
  * Sin binding nuevo ni migración.
  */
 import SEMILLA from '../../data/roadmap/proyectos.json' with { type: 'json' };
@@ -24,7 +25,11 @@ const txt = (v, max) => (typeof v === 'string' && v.trim() && v.length <= max ? 
 async function leer(env) {
   let doc = null;
   try { doc = env.PRESENTATION_IDEAS && await env.PRESENTATION_IDEAS.get(CLAVE, { type: 'json' }); } catch (_) { doc = null; }
-  return doc || { ...SEMILLA, rev: 0, origen: 'semilla' };
+  if (!doc) return { ...SEMILLA, rev: 0, origen: 'semilla' };
+  // Agentes y consejeros (16-10-2026): lo que falte en el documento guardado sale de la semilla.
+  const hay = new Set((doc.proyectos || []).map((p) => p.id));
+  const faltan = SEMILLA.proyectos.filter((p) => !hay.has(p.id));
+  return faltan.length ? { ...doc, proyectos: [...doc.proyectos, ...faltan], sinPlan: SEMILLA.sinPlan } : doc;
 }
 
 /** Valida y normaliza. Devuelve null si algo no cuadra (regla del 123 y el abc). */
@@ -59,7 +64,9 @@ export function validar(entrada, base) {
         roadmap[h].push(item);
       }
     }
-    out.proyectos.push({ ...p, roadmap });
+    const fila = { ...p, roadmap };
+    if (p.tipo === 'consejero' && nuevo && (nuevo.aprobacion === 'propuesto' || nuevo.aprobacion === 'ok')) fila.aprobacion = nuevo.aprobacion;
+    out.proyectos.push(fila);
   }
   return out;
 }

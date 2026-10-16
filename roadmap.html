@@ -217,6 +217,8 @@
   .rmc-er input:not([type=checkbox]),.rmc-er select{flex:1;min-width:120px;font:12px ui-monospace,Menlo,monospace;color:#f2f6fc;background:#0b1422;border:1px solid #2b3a52;border-radius:6px;padding:4px 6px}
   .rmc-er button{font:600 12px ui-monospace,Menlo,monospace;color:#f2f6fc;background:#13203a;border:1px solid #2b3a52;border-radius:6px;padding:4px 10px;cursor:pointer}.rmc-er .rmc-ok{background:#0f3b3a;border-color:#4ae3d1}
   .rmc-links label{white-space:nowrap}.rmc-okt{color:#4ae3d1}.rmc-err{color:#ff6b6b}
+  .rmc-apr{font-size:11px;padding:1px 6px;border-radius:6px;background:rgba(255,207,106,.12);color:#ffcf6a}.rmc-apr-ok{background:rgba(74,227,209,.14);color:#4ae3d1}
+  .rmc-aprb{font:600 11px ui-monospace,Menlo,monospace;color:#f2f6fc;background:#13203a;border:1px solid #2b3a52;border-radius:6px;padding:1px 8px;cursor:pointer}
   .rmc-fold{margin:0 0 12px;border:1px solid #253042;border-radius:12px;background:rgba(8,13,23,.6)}
   .rmc-fold>summary{cursor:pointer;padding:10px 14px;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78f3ff}
   .rmc-fold[open]>summary{border-bottom:1px solid #253042}.rmc-fold>*:not(summary){margin-left:12px;margin-right:12px}
@@ -230,7 +232,7 @@
 <main data-yk-main>
 
   <section class="rmc" id="roadmap-proyecto" data-yk-no-traducir aria-label="Roadmap por proyecto">
-    <div class="rmc-top"><label for="rmc-sel">Proyecto</label><select id="rmc-sel"><option>Cargando…</option></select></div>
+    <div class="rmc-top"><label for="rmc-modo">Ver por</label><select id="rmc-modo" style="min-width:0"><option value="proyecto">Proyecto</option><option value="agente">Agente</option><option value="consejero">Consejero</option></select><select id="rmc-sel" aria-label="Elegir"><option>Cargando…</option></select></div>
     <p class="rmc-meta" id="rmc-meta"></p>
     <div class="rmc-grid" id="rmc-out"></div>
   </section>
@@ -285,7 +287,7 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script defer src="/assets/roadmap-combo.js?v=20261016-edit-4"></script>
+<script defer src="/assets/roadmap-combo.js?v=20261016-who-5"></script>
 <script defer src="/assets/roadmap-show.js?v=20261006-roadmap-1"></script>
 </body>
 </html>
