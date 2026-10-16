@@ -26,18 +26,27 @@
   }
   cargar().then(function(d){
     D=d;indexar();
-    var opt=function(p){return '<option value="'+p.id+'">'+esc(p.nombre)+(p.descripcion?' · '+esc(p.descripcion):'')+'</option>'};
-    var grupos={};D.proyectos.forEach(function(p){if(p.grupo)(grupos[p.grupo]=grupos[p.grupo]||[]).push(p)});
-    sel.innerHTML='<optgroup label="Pilares">'+D.proyectos.filter(function(p){return !p.grupo}).map(opt).join('')+'</optgroup>'+Object.keys(grupos).map(function(g){return '<optgroup label="'+esc(g)+'">'+grupos[g].map(opt).join('')+'</optgroup>'}).join('');
-    var q=new URLSearchParams(location.search).get('p');if(byId[q])sel.value=q;
-    sel.addEventListener('change',function(){editando=null;var u=new URL(location.href);u.searchParams.set('p',sel.value);history.replaceState(null,'',u);render()});
+    var modo=document.getElementById('rmc-modo'),PAR={proyecto:'p',agente:'a',consejero:'c'};
+    var opt=function(p){return '<option value="'+p.id+'">'+esc(p.nombre)+(p.descripcion?' · '+esc(p.descripcion):p.info?' · '+esc(p.info):'')+'</option>'};
+    function opciones(){
+      var m=modo?modo.value:'proyecto';
+      if(m==='proyecto'){var proy=D.proyectos.filter(function(p){return !p.tipo});var grupos={};proy.forEach(function(p){if(p.grupo)(grupos[p.grupo]=grupos[p.grupo]||[]).push(p)});
+        sel.innerHTML='<optgroup label="Pilares">'+proy.filter(function(p){return !p.grupo}).map(opt).join('')+'</optgroup>'+Object.keys(grupos).map(function(g){return '<optgroup label="'+esc(g)+'">'+grupos[g].map(opt).join('')+'</optgroup>'}).join('');}
+      else sel.innerHTML=D.proyectos.filter(function(p){return p.tipo===m}).map(opt).join('');
+    }
+    var qs=new URLSearchParams(location.search),ini='proyecto';
+    if(qs.get('c')&&byId[qs.get('c')])ini='consejero';else if(qs.get('a')&&byId[qs.get('a')])ini='agente';
+    if(modo)modo.value=ini;opciones();var q=qs.get(PAR[ini]);if(byId[q])sel.value=q;
+    function url(){var u=new URL(location.href);['p','a','c'].forEach(function(k){u.searchParams.delete(k)});u.searchParams.set(PAR[modo?modo.value:'proyecto'],sel.value);history.replaceState(null,'',u)}
+    if(modo)modo.addEventListener('change',function(){editando=null;opciones();url();render()});
+    sel.addEventListener('change',function(){editando=null;url();render()});
     render();
   }).catch(function(){out.innerHTML='<p class="rmc-err">No se pudo leer el roadmap por proyecto.</p>'});
 
   function vista(p,h){
     var editable=puede&&(D.editables||ORDEN).indexOf(h)>=0;
     var l=(p.roadmap[h]||[]).slice(0,3),conAv=h!=='ayer';
-    return '<article class="rmc-h"><h3>'+esc(D.etiquetas[h])+(conAv?' <span class="rmc-hp">'+avanceH(p,h)+'%</span>':'')+(editable?'<button type="button" class="rmc-lapiz" data-h="'+h+'" title="Editar '+esc(D.etiquetas[h])+'">✎</button>':'')+'</h3><ol class="rmc-123">'+l.map(function(raw,n){
+    return '<article class="rmc-h"><h3>'+esc(D.etiquetas[h])+(conAv?' <span class="rmc-hp">'+avanceH(p,h)+'%</span>':'')+(editable?'<button type="button" class="rmc-lapiz" data-h="'+h+'" title="Editar '+esc(D.etiquetas[h])+'">✎</button>':'')+'</h3>'+(l.length?'':'<p class="rmc-sr">—</p>')+'<ol class="rmc-123">'+l.map(function(raw,n){
       var i=real(raw);if(!i)return '';var o=raw.ref?byId[items[raw.ref].p].nombre:'';var s=i.s||[];
       return '<li>'+(s.length?'<details><summary>':'<span class="rmc-sr">')+(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+(s.length?'</summary><ul class="rmc-abc">'+s.map(function(x,k){return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(x)+'</li>'}).join('')+'</ul></details>':'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
   }
@@ -76,7 +85,10 @@
     var quedan=[];l.forEach(function(i){var m=i._mover;delete i._mover;if(m){if((p.roadmap[m]||[]).length>=3){aviso='Ese horizonte ya tiene 3 ideas (regla del 123).';quedan.push(i)}else p.roadmap[m].push(i)}else quedan.push(i)});
     if(aviso){return render()}
     p.roadmap[h]=quedan;indexar();editando=null;aviso='';render();
-    if(!csrf){aviso='';return}
+    enviar(antes);
+  }
+  function enviar(antes){
+    if(!csrf)return;
     fetch('/api/roadmap-combo',{method:'PUT',credentials:'same-origin',headers:{'content-type':'application/json','X-Admira-CSRF':csrf},body:JSON.stringify(D)})
       .then(function(r){return r.json().then(function(j){if(!r.ok)throw j;D.rev=j.rev;estado('Guardado ✓')})})
       .catch(function(e){D=JSON.parse(antes);indexar();render();estado('No se guardó: '+((e&&e.error)||'error'),true)});
@@ -85,10 +97,13 @@
   function render(){
     var p=byId[sel.value];
     var pil=p.id==='tv'?' · pilares '+media(['studio','store','app','biz'].filter(function(x){return byId[x]}).map(function(x){return avanceP(byId[x])}))+'%':'';
-    meta.innerHTML='Responsable: <b>'+esc(p.responsable)+'</b> · <a href="'+p.web+'">'+esc(p.web.replace(/^https?:\/\/(www\.)?/,''))+'</a> · avance <b>'+avanceP(p)+'%</b>'+pil+' · <span class="rmc-borrador">'+esc(D.estado)+'</span> <span id="rmc-estado"></span>';
+    var vacio=D.horizontes.every(function(h){return !(p.roadmap[h]||[]).length});
+    if(p.tipo){meta.innerHTML='<b>'+esc(p.nombre)+'</b> · '+esc(p.info||'')+' · avance <b>'+avanceP(p)+'%</b>'+(p.tipo==='consejero'?' · <span class="rmc-apr rmc-apr-'+(p.aprobacion||'propuesto')+'">'+(p.aprobacion==='ok'?'OK Carlos':'propuesto · aprobado salvo objeción de Carlos')+'</span>'+(puede?' <button type="button" class="rmc-aprb">'+(p.aprobacion==='ok'?'↺ propuesto':'✓ OK Carlos')+'</button>':''):'')+(vacio?' · <span class="rmc-sr">'+esc(D.sinPlan||'Sin plan registrado')+'</span>':'')+' <span id="rmc-estado"></span>';}
+    else meta.innerHTML='Responsable: <b>'+esc(p.responsable)+'</b> · <a href="'+p.web+'">'+esc(p.web.replace(/^https?:\/\/(www\.)?/,''))+'</a> · avance <b>'+avanceP(p)+'%</b>'+pil+' · <span class="rmc-borrador">'+esc(D.estado)+'</span> <span id="rmc-estado"></span>';
     out.innerHTML=D.horizontes.map(function(h){return editando&&editando.p===p.id&&editando.h===h?formHtml(p,h,editando.l):vista(p,h)}).join('');
     var g=document.querySelector('#rm-detalle>summary');if(g){g.dataset.base=g.dataset.base||g.textContent;g.textContent=g.dataset.base+' · '+p.nombre+' '+avanceP(p)+'% (Hoy '+avanceH(p,'hoy')+'% · Semana '+avanceH(p,'semana')+'% · Mes '+avanceH(p,'mes')+'% · Trimestre '+avanceH(p,'trimestre')+'%)'}
   }
+  meta.addEventListener('click',function(ev){var b=ev.target.closest('.rmc-aprb');if(!b)return;var p=byId[sel.value];var antes=JSON.stringify(D);p.aprobacion=p.aprobacion==='ok'?'propuesto':'ok';render();enviar(antes)});
   out.addEventListener('click',function(ev){
     var b=ev.target.closest('button');if(!b)return;
     if(b.classList.contains('rmc-lapiz')){aviso='';var p=byId[sel.value];out.innerHTML='';form(p,b.dataset.h);return render()}
