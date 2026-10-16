@@ -1,0 +1,43 @@
+{
+  "estado": "borrador, pendiente de validar por Carlos",
+  "horizontes": ["manana", "semana", "mes", "trimestre"],
+  "etiquetas": {"manana": "Mañana", "semana": "Semana", "mes": "Mes", "trimestre": "Trimestre"},
+  "proyectos": [
+    {"id": "studio", "nombre": "Admira.Studio", "web": "https://admira.studio", "responsable": "Trinity",
+     "roadmap": {
+       "manana": ["Revisar el formato presite explainer (vertical + página casi vídeo) con la temática de las 4 patas"],
+       "semana": ["Añadir música al vídeo del presite (Suno) y publicar el presite tras OK de Carlos"],
+       "mes": ["Generador de presentaciones: plantillas de presite por temática reutilizables"],
+       "trimestre": ["Biblioteca de presites por solución, lista para usar en propuestas comerciales"]
+     }},
+    {"id": "store", "nombre": "Admira.Store", "web": "https://admira.store", "responsable": "Neo",
+     "roadmap": {
+       "manana": ["Inventario de demos de marca blanca activas y su estado"],
+       "semana": ["Pulir las demos de marca blanca para tiendas piloto"],
+       "mes": ["Gemelo digital (digital twin) de tienda conectado a contenido real"],
+       "trimestre": ["Gemelos digitales de tienda como entregable estándar de la propuesta Store"]
+     }},
+    {"id": "app", "nombre": "Admira.App", "web": "https://admira.app", "responsable": "Oráculo",
+     "roadmap": {
+       "manana": ["Publicar el inventario ITIL (CMDB) del laboratorio de Gran de Gràcia 51 tras OK de Carlos"],
+       "semana": ["Confirmar los elementos pendientes del inventario (MBP16, DGX Spark, admiratwin)", "Supervisor de soluciones #6000: revisar las incidencias de webcam"],
+       "mes": ["Supervisor de soluciones integrado con el inventario ITIL"],
+       "trimestre": ["admira.app como punto único de inventario y supervisión del parque"]
+     }},
+    {"id": "biz", "nombre": "Admira.Biz", "web": "https://www.admira.biz", "responsable": "Morfeo",
+     "roadmap": {
+       "manana": ["Revisar el estado de las playlists de hilomusical"],
+       "semana": ["Circuitos Biz: ficha de Barcelona y Madrid"],
+       "mes": ["Circuitos Biz: ficha de London y New York"],
+       "trimestre": ["Oferta de circuitos Biz London / New York / Barcelona / Madrid con hilo musical"]
+     }},
+    {"id": "tv", "nombre": "Admira.TV", "web": "https://www.admira.tv", "responsable": "consejero Elon",
+     "descripcion": "Suma de los 4 pilares", "suma": ["studio", "store", "app", "biz"],
+     "roadmap": {
+       "manana": ["Asignar responsables por vertical y confirmar el reparto"],
+       "semana": ["Revisión conjunta de los 4 pilares"],
+       "mes": ["Mensaje unificado de Admira.TV como suma de Studio, Store, App y Biz"],
+       "trimestre": ["Propuesta integrada Admira.TV con las 4 patas"]
+     }}
+  ]
+}
