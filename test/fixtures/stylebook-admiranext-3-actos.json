@@ -1,0 +1,902 @@
+{
+ "presentation": {
+  "slug": "admiranext-3-actos",
+  "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+  "website": "https://www.admiranext.com",
+  "inspirationUrl": "https://www.admiranext.com",
+  "problem": "Crear, distribuir y mantener contenido en muchas pantallas exige herramientas separadas y mucho trabajo manual.",
+  "audience": "Equipos de marketing, operaciones y retail con redes de pantallas",
+  "theme": {
+   "primary": "#e7edf6",
+   "accent": "#ffb454",
+   "background": "#c0c0c0",
+   "surface": "#dfdfdf",
+   "text": "#142238",
+   "mode": "light",
+   "fontStyle": "grotesk",
+   "radius": 8,
+   "radiusStyle": "soft",
+   "density": "balanced",
+   "layout": "editorial",
+   "profile": "immersive",
+   "heroDevice": "none"
+  },
+  "languages": [
+   "es",
+   "en"
+  ],
+  "outputs": [
+   "website",
+   "documents"
+  ],
+  "brand": {
+   "logoKey": "presentations/admiranext-3-actos/brand/logo.png",
+   "logoUrl": "/presentaciones/admiranext-3-actos/brand/logo",
+   "sourceUrl": "https://www.admiranext.com/apple-touch-icon.png",
+   "website": "https://www.admiranext.com",
+   "contentType": "image/png",
+   "alt": "Logo de AdmiraNeXT · Studio, Store y App (3 actos)",
+   "capturedAt": "2026-10-16T09:10:03.048Z"
+  },
+  "inspiration": {
+   "schemaVersion": 1,
+   "url": "https://www.admiranext.com/",
+   "finalUrl": "https://www.admiranext.com/",
+   "host": "www.admiranext.com",
+   "title": "ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial",
+   "description": "ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial. Physical AI, IoT, robotics and connected operations from Barcelona.",
+   "siteName": "ADmiraNeXT",
+   "themeColor": "#0a0703",
+   "contentExcerpt": "ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial × Contact us Contact details +34 93 415 09 30 info@admira.com We call you Office Barcelona, Spain Social LinkedIn > ADmira N e X T ...... .-+#%@@@@@@@%*+-. .=#@@@@%#****##@@@@%*- =%@@%*-. :=*@@@#- :#@@%=. .+@@@*. :-+*##@@@*. :#@@%##*+-. .+#@@@@@@@@+ #@@@@@@@@#=. +@@@%+-....: ....:-*%@@%- *@@%- .+@@@+ +@@%. -@@@- .@@@= *@@# :@@@: =@@% %@@+ #@@* =@@@- +@@@: +@@@+. :: :. :*@@@- -#@@@#+-:::-+#@@*-. :=#@@*=-:::-+#@@@*: -*%@@@@@@@@@%@@@@%*+=---=+*%@@@%%@@@@@@@@@%+: :-=+++=-: .-*#@@@@@@@@@@@#+- .:-=++==-. .:--===-:.. -++= . *@@# -%@%- +@@* -%@%- .-===-: .-===-:.+@@* :-===-. :-===-. .:===- .:-==-:. =#@@@@@@@%+. -#@@@@@@@%%@@* =%@@@@@@@*#@@@@@@@*: .+++. :*%@@@@* :*%@@@@@@@#- :%@@%+---=#@@@- .#@@@*=--=#@@@@* +@@%+=-=#@@@@*=-=#@@@: :@@@: =@@@*=-:. +@@@#=--=*@@@* %@@*. =@@@: *@@#. -@@@* @@@= %@@+ #@@+ :@@@: -@@@- =@@%- :%@@* :@@@. %@@+ .@@@- *@@* .%@@- %@@= #@@+ :@@@: +@@# #@@+ =@@% .@@@= :%@@+ %@@* .%@@* .%@@- %@@= #@@+ :@@@: +@@# *@@# *@@% =@@@+:. .=%@@@= :@@@*:. .-#@@@* .%@@- #@@= #@@+ :@@@: +@@# .%@@#-. .-*@@@% -#@@@@%@@@@@@@+ :#@@@@%%@@@@@@# .@@@- %@@= %@@+ :@@@: +@@# .*@@@@%%@@@@@@@ :+*#%%#+--==: :=*#%%#+--==- -==. -==: -==: .===. :==- .=*#%%#*=-==- Donde las Cosas se Conectan a Internet con Inteligencia Artificial > ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial Physical AI, IoT, robotics and connected operations from Barcelona. Manifesto Who: Donde las Cosas se Conectan a Internet con Inteligencia Artificial. What: We build Physical AI projects. How: Proprietary IoT platform + the best robots. Why: Because it's our passion. Contact info@admira.com — Barcelona, Spain",
+   "primary": "#e7edf6",
+   "accent": "#ffb454",
+   "background": "#c0c0c0",
+   "surface": "#dfdfdf",
+   "text": "#142238",
+   "palette": [
+    "#e7edf6",
+    "#ffb454",
+    "#c0c0c0",
+    "#dfdfdf",
+    "#000000",
+    "#ffffff",
+    "#02080d"
+   ],
+   "mode": "light",
+   "fontStyle": "grotesk",
+   "sourceFont": "inherit",
+   "radius": 8,
+   "radiusStyle": "soft",
+   "density": "balanced",
+   "layout": "editorial",
+   "gradients": 20,
+   "shadows": 37,
+   "profile": "immersive",
+   "logo": {
+    "type": "url",
+    "url": "https://www.admiranext.com/apple-touch-icon.png",
+    "sourceUrl": "https://www.admiranext.com/apple-touch-icon.png",
+    "alt": "Icono oficial"
+   },
+   "analyzedAt": "2026-10-16T09:10:02.233Z"
+  },
+  "slideMedia": [
+   {
+    "slide": "studio-a",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-01.mp4",
+    "poster": "",
+    "caption": "Crear contenidos · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:27.181Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "studio-b",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-02.mp4",
+    "poster": "",
+    "caption": "Importar contenidos · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:30.247Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "studio-c",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-03.mp4",
+    "poster": "",
+    "caption": "Adaptar vs recrear · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:32.622Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "store-a",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-04.mp4",
+    "poster": "",
+    "caption": "Distribuir contenidos · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:38.227Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "store-b",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-05.mp4",
+    "poster": "",
+    "caption": "Emitir contenidos · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:40.795Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "store-c",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-06.mp4",
+    "poster": "",
+    "caption": "Supervisar contenidos · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:42.982Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "app-a",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-07.mp4",
+    "poster": "",
+    "caption": "Instalar pantallas · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:46.137Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "app-b",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-08.mp4",
+    "poster": "",
+    "caption": "Mantener pantallas · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:48.786Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   },
+   {
+    "slide": "app-c",
+    "type": "video",
+    "src": "/presentaciones/admiranext-3-actos/media/library-es-fixture-09.mp4",
+    "poster": "",
+    "caption": "Gestionar incidencias · 20 s",
+    "fallback": "El contenido multimedia no está disponible. Continúa con el relato de la diapositiva.",
+    "preload": "metadata",
+    "autoplay": false,
+    "loop": false,
+    "muted": false,
+    "animation": "fade",
+    "durationMs": 900,
+    "rights": {
+     "source": "Biblioteca multimedia de la presentación",
+     "permission": "granted",
+     "license": "Aceptación final de Carlos",
+     "holder": "Carlos Silva",
+     "attribution": "",
+     "expiresAt": "",
+     "acceptedByCarlos": true,
+     "acceptedAt": "2026-10-16T09:13:51.226Z",
+     "approvalNote": "Carlos 16-oct-2026 11:08: ordena integrar los 9 vídeos en la presentación",
+     "status": "carlos-approved",
+     "usable": true
+    }
+   }
+  ],
+  "passwordVerifier": "x",
+  "createdAt": "2026-10-16T09:10:03.048Z",
+  "updatedAt": "2026-10-16T09:14:49.390Z",
+  "structure": "admiranext"
+ },
+ "ideas": {
+  "schemaVersion": 2,
+  "client": "admiranext-3-actos",
+  "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+  "languages": [
+   "es",
+   "en"
+  ],
+  "hero": {
+   "eyebrow": "Estructura AdmiraNeXT · AdmiraNeXT · Studio, Store y App (3 actos)",
+   "title": "AdmiraNeXT · Studio, Store y App",
+   "summary": "Tres actos de 15 minutos: admira.studio (crear, importar y adaptar contenidos), admira.store (distribuir, emitir y supervisar) y admira.app (instalar, mantener y gestionar incidencias en pantallas)."
+  },
+  "objective": "Mostrar de principio a fin cómo AdmiraNeXT crea, distribuye y opera contenido en pantallas, en 45 minutos y 3 actos.",
+  "skeleton": [
+   {
+    "id": "studio-cover",
+    "title": "Acto 1 · admira.studio",
+    "message": "Crear, importar y adaptar contenidos para todas las pantallas desde un único estudio.",
+    "detail": "Apertura del acto 1 (admira.studio): creación, importación y adaptación de contenidos.",
+    "enabled": true,
+    "minutes": 0,
+    "act": "studio",
+    "role": "cover",
+    "chapter": null,
+    "product": "admira.studio",
+    "promise": "Abrir el acto admira.studio con una promesa concreta."
+   },
+   {
+    "id": "studio-a",
+    "title": "Crear contenidos",
+    "message": "Del brief a una pieza lista en minutos: crear contenidos con IA, con marca y formato bajo control.",
+    "detail": "Capítulo A del acto 1 (admira.studio): creación de contenidos · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "studio",
+    "role": "chapter",
+    "chapter": "a",
+    "product": "admira.studio",
+    "promise": "Capítulo A del acto admira.studio: 5 minutos."
+   },
+   {
+    "id": "studio-b",
+    "title": "Importar contenidos",
+    "message": "Traer a la biblioteca los vídeos, imágenes y materiales que ya existen, ordenados y listos para usar.",
+    "detail": "Capítulo B del acto 1 (admira.studio): importación de contenidos · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "studio",
+    "role": "chapter",
+    "chapter": "b",
+    "product": "admira.studio",
+    "promise": "Capítulo B del acto admira.studio: 5 minutos."
+   },
+   {
+    "id": "studio-c",
+    "title": "Adaptar vs recrear",
+    "message": "Cuándo adaptar una pieza existente a cada formato y pantalla, y cuándo conviene recrearla desde cero.",
+    "detail": "Capítulo C del acto 1 (admira.studio): adaptación de contenidos · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "studio",
+    "role": "chapter",
+    "chapter": "c",
+    "product": "admira.studio",
+    "promise": "Capítulo C del acto admira.studio: 5 minutos."
+   },
+   {
+    "id": "store-cover",
+    "title": "Acto 2 · admira.store",
+    "message": "Distribuir, emitir y supervisar el contenido en cada punto de la red de pantallas.",
+    "detail": "Apertura del acto 2 (admira.store): distribución, emisión y supervisión de contenidos.",
+    "enabled": true,
+    "minutes": 0,
+    "act": "store",
+    "role": "cover",
+    "chapter": null,
+    "product": "admira.store",
+    "promise": "Abrir el acto admira.store con una promesa concreta."
+   },
+   {
+    "id": "store-a",
+    "title": "Distribuir contenidos",
+    "message": "Hacer llegar cada pieza a las pantallas correctas, por grupos, ubicaciones y calendarios.",
+    "detail": "Capítulo A del acto 2 (admira.store): distribución de contenidos · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "store",
+    "role": "chapter",
+    "chapter": "a",
+    "product": "admira.store",
+    "promise": "Capítulo A del acto admira.store: 5 minutos."
+   },
+   {
+    "id": "store-b",
+    "title": "Emitir contenidos",
+    "message": "Programar y emitir en el momento justo: listas de reproducción, horarios y reglas por pantalla.",
+    "detail": "Capítulo B del acto 2 (admira.store): emisión de contenidos · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "store",
+    "role": "chapter",
+    "chapter": "b",
+    "product": "admira.store",
+    "promise": "Capítulo B del acto admira.store: 5 minutos."
+   },
+   {
+    "id": "store-c",
+    "title": "Supervisar contenidos",
+    "message": "Comprobar en tiempo real qué se está emitiendo en cada pantalla y detectar desvíos a tiempo.",
+    "detail": "Capítulo C del acto 2 (admira.store): supervisión de contenidos · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "store",
+    "role": "chapter",
+    "chapter": "c",
+    "product": "admira.store",
+    "promise": "Capítulo C del acto admira.store: 5 minutos."
+   },
+   {
+    "id": "app-cover",
+    "title": "Acto 3 · admira.app",
+    "message": "Instalar, mantener y resolver incidencias en las pantallas con una sola aplicación.",
+    "detail": "Apertura del acto 3 (admira.app): instalación, mantenimiento y gestión de incidencias.",
+    "enabled": true,
+    "minutes": 0,
+    "act": "app",
+    "role": "cover",
+    "chapter": null,
+    "product": "admira.app",
+    "promise": "Abrir el acto admira.app con una promesa concreta."
+   },
+   {
+    "id": "app-a",
+    "title": "Instalar pantallas",
+    "message": "Dar de alta y poner en marcha una pantalla nueva en pocos pasos, sin conocimientos técnicos.",
+    "detail": "Capítulo A del acto 3 (admira.app): instalación de pantallas · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "app",
+    "role": "chapter",
+    "chapter": "a",
+    "product": "admira.app",
+    "promise": "Capítulo A del acto admira.app: 5 minutos."
+   },
+   {
+    "id": "app-b",
+    "title": "Mantener pantallas",
+    "message": "Mantener la red al día: actualizaciones, revisiones y estado de cada pantalla de un vistazo.",
+    "detail": "Capítulo B del acto 3 (admira.app): mantenimiento de pantallas · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "app",
+    "role": "chapter",
+    "chapter": "b",
+    "product": "admira.app",
+    "promise": "Capítulo B del acto admira.app: 5 minutos."
+   },
+   {
+    "id": "app-c",
+    "title": "Gestionar incidencias",
+    "message": "Detectar, asignar y resolver incidencias de las pantallas con trazabilidad hasta su cierre.",
+    "detail": "Capítulo C del acto 3 (admira.app): gestión de incidencias · 5 minutos.",
+    "enabled": true,
+    "minutes": 5,
+    "act": "app",
+    "role": "chapter",
+    "chapter": "c",
+    "product": "admira.app",
+    "promise": "Capítulo C del acto admira.app: 5 minutos."
+   }
+  ],
+  "closing": {
+   "title": "Elijamos el primer acto con AdmiraNeXT · Studio, Store y App (3 actos).",
+   "action": "Fijar acto piloto, responsables, señales disponibles y tres métricas de éxito."
+  },
+  "labels": {
+   "objective": "El objetivo",
+   "next": "Siguiente paso"
+  },
+  "narrativeSource": "admiranext-structure",
+  "structure": "admiranext",
+  "terminology": [],
+  "translationPending": [
+   "en"
+  ],
+  "inspiration": {
+   "schemaVersion": 1,
+   "url": "https://www.admiranext.com/",
+   "finalUrl": "https://www.admiranext.com/",
+   "host": "www.admiranext.com",
+   "title": "ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial",
+   "description": "ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial. Physical AI, IoT, robotics and connected operations from Barcelona.",
+   "siteName": "ADmiraNeXT",
+   "themeColor": "#0a0703",
+   "contentExcerpt": "ADmiraNeXT | Donde las Cosas se Conectan a Internet con Inteligencia Artificial × Contact us Contact details +34 93 415 09 30 info@admira.com We call you Office Barcelona, Spain Social LinkedIn > ADmira N e X T ...... .-+#%@@@@@@@%*+-. .=#@@@@%#****##@@@@%*- =%@@%*-. :=*@@@#- :#@@%=. .+@@@*. :-+*##@@@*. :#@@%##*+-. .+#@@@@@@@@+ #@@@@@@@@#=. +@@@%+-....: ....:-*%@@%- *@@%- .+@@@+ +@@%. -@@@- .@@@= *@@# :@@@: =@@% %@@+ #@@* =@@@- +@@@: +@@@+. :: :. :*@@@- -#@@@#+-:::-+#@@*-. :=#@@*=-:::-+#@@@*: -*%@@@@@@@@@%@@@@%*+=---=+*%@@@%%@@@@@@@@@%+: :-=+++=-: .-*#@@@@@@@@@@@#+- .:-=++==-. .:--===-:.. -++= . *@@# -%@%- +@@* -%@%- .-===-: .-===-:.+@@* :-===-. :-===-. .:===- .:-==-:. =#@@@@@@@%+. -#@@@@@@@%%@@* =%@@@@@@@*#@@@@@@@*: .+++. :*%@@@@* :*%@@@@@@@#- :%@@%+---=#@@@- .#@@@*=--=#@@@@* +@@%+=-=#@@@@*=-=#@@@: :@@@: =@@@*=-:. +@@@#=--=*@@@* %@@*. =@@@: *@@#. -@@@* @@@= %@@+ #@@+ :@@@: -@@@- =@@%- :%@@* :@@@. %@@+ .@@@- *@@* .%@@- %@@= #@@+ :@@@: +@@# #@@+ =@@% .@@@= :%@@+ %@@* .%@@* .%@@- %@@= #@@+ :@@@: +@@# *@@# *@@% =@@@+:. .=%@@@= :@@@*:. .-#@@@* .%@@- #@@= #@@+ :@@@: +@@# .%@@#-. .-*@@@% -#@@@@%@@@@@@@+ :#@@@@%%@@@@@@# .@@@- %@@= %@@+ :@@@: +@@# .*@@@@%%@@@@@@@ :+*#%%#+--==: :=*#%%#+--==- -==. -==: -==: .===. :==- .=*#%%#*=-==- Donde las Cosas se Conectan a Internet con Inteligencia Artificial > ADmiraNeXT — Donde las Cosas se Conectan a Internet con Inteligencia Artificial Physical AI, IoT, robotics and connected operations from Barcelona. Manifesto Who: Donde las Cosas se Conectan a Internet con Inteligencia Artificial. What: We build Physical AI projects. How: Proprietary IoT platform + the best robots. Why: Because it's our passion. Contact info@admira.com — Barcelona, Spain",
+   "primary": "#e7edf6",
+   "accent": "#ffb454",
+   "background": "#c0c0c0",
+   "surface": "#dfdfdf",
+   "text": "#142238",
+   "palette": [
+    "#e7edf6",
+    "#ffb454",
+    "#c0c0c0",
+    "#dfdfdf",
+    "#000000",
+    "#ffffff",
+    "#02080d"
+   ],
+   "mode": "light",
+   "fontStyle": "grotesk",
+   "sourceFont": "inherit",
+   "radius": 8,
+   "radiusStyle": "soft",
+   "density": "balanced",
+   "layout": "editorial",
+   "gradients": 20,
+   "shadows": 37,
+   "profile": "immersive",
+   "logo": {
+    "type": "url",
+    "url": "https://www.admiranext.com/apple-touch-icon.png",
+    "sourceUrl": "https://www.admiranext.com/apple-touch-icon.png",
+    "alt": "Icono oficial"
+   },
+   "analyzedAt": "2026-10-16T09:10:02.233Z"
+  },
+  "updatedAt": "2026-10-16T09:13:13.237Z"
+ },
+ "library": {
+  "assets": [
+   {
+    "id": "747e857a748145cf",
+    "name": "app-c.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6760367,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-09.mp4",
+    "assignedSlides": [
+     "app-c"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "c250da8ef4964ad0",
+    "name": "app-b.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6331289,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-08.mp4",
+    "assignedSlides": [
+     "app-b"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "534f3fcc29134a3f",
+    "name": "app-a.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6862002,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-07.mp4",
+    "assignedSlides": [
+     "app-a"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "7ea65189a3824989",
+    "name": "store-c.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6618895,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-06.mp4",
+    "assignedSlides": [
+     "store-c"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "b30e45e2533a4b5e",
+    "name": "store-b.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6718480,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-05.mp4",
+    "assignedSlides": [
+     "store-b"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "e0c3840a2b5b4f52",
+    "name": "store-a.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6804773,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-04.mp4",
+    "assignedSlides": [
+     "store-a"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "0e5697d484564fea",
+    "name": "studio-c.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 9514558,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-03.mp4",
+    "assignedSlides": [
+     "studio-c"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "b3c4480e09d849d5",
+    "name": "studio-b.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6811258,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-02.mp4",
+    "assignedSlides": [
+     "studio-b"
+    ],
+    "acceptedByCarlos": true
+   },
+   {
+    "id": "ec73857c254347eb",
+    "name": "studio-a.mp4",
+    "kind": "video",
+    "contentType": "video/mp4",
+    "size": 6826720,
+    "url": "/presentaciones/admiranext-3-actos/media/library-es-fixture-01.mp4",
+    "assignedSlides": [
+     "studio-a"
+    ],
+    "acceptedByCarlos": true
+   }
+  ]
+ },
+ "versions": [
+  {
+   "id": "20261016091313-710d624c",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:13:13.483Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:13:13.237Z"
+  },
+  {
+   "id": "20261016091300-5788fc9c",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:13:00.522Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:13:00.167Z"
+  },
+  {
+   "id": "20261016091230-3a5976a4",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:12:30.402Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:12:30.160Z"
+  },
+  {
+   "id": "20261016091221-f4936852",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:12:21.016Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:12:20.689Z"
+  },
+  {
+   "id": "20261016091207-33a8efd0",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:12:07.221Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:12:06.978Z"
+  },
+  {
+   "id": "20261016091151-88dfb2bb",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:11:51.938Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:11:51.681Z"
+  },
+  {
+   "id": "20261016091134-0b3094c6",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:11:34.342Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:11:34.078Z"
+  },
+  {
+   "id": "20261016091124-3bcfe14a",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:11:24.519Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:11:24.279Z"
+  },
+  {
+   "id": "20261016091116-6202e9b4",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:11:16.422Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:11:16.169Z"
+  },
+  {
+   "id": "20261016091106-49fb1cd9",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:11:06.186Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:11:05.934Z"
+  },
+  {
+   "id": "20261016091059-1bd74d9a",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:10:59.309Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:10:59.048Z"
+  },
+  {
+   "id": "20261016091044-89660425",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:10:44.666Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:10:44.414Z"
+  },
+  {
+   "id": "20261016091038-f0525c61",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:10:38.270Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:10:38.066Z"
+  },
+  {
+   "id": "20261016091036-0886e1e2",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:10:36.839Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:10:36.587Z"
+  },
+  {
+   "id": "20261016091035-f87add1c",
+   "reason": "textos ES guardados",
+   "createdAt": "2026-10-16T09:10:35.555Z",
+   "displayName": "AdmiraNeXT · Studio, Store y App (3 actos)",
+   "languages": [
+    "es",
+    "en"
+   ],
+   "outputs": [
+    "website",
+    "documents"
+   ],
+   "revision": "2026-10-16T09:10:35.317Z"
+  }
+ ]
+}

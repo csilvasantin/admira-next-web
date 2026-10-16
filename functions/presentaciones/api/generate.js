@@ -17,6 +17,7 @@ import {BRIEF_MAX,normalizeStructureInput,structureIdeasSeed,normalizeFooter} fr
 import {resolveProspect,prospectTheme,prospectSource,publicProspect} from '../_prospect.js';
 import {guardarMarca,ErrorCatalogo} from '../../marcablanca/_catalogo.js';
 import {aplicarAtajoMarca} from '../_marca-atajo.js';
+import {ensureStylebook,stylebookSummary} from '../_stylebook.js';
 
 const MAX_BYTES = 256 * 1024;
 const enc = new TextEncoder();
@@ -427,7 +428,10 @@ export async function onRequestPut(context){
     context.env.PRESENTATION_IDEAS.put(`generation:${slug}`,JSON.stringify(generation))
   ]);
   cronometra('guardado');
-  await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null});
+  // LIBRO DE ESTILO (16-oct-2026): entregable fijo de toda presentación. Se crea (o se anota la regeneración y se
+  // CONSERVAN las secciones editadas a mano) antes de la versión, para que la instantánea lo incluya. Nunca tumba el alta.
+  const stylebook=await ensureStylebook(context.env,slug,{actor:context.data?.presentationAccess||{},existed:Boolean(existing)});
+  await captureVersion(context.env,slug,existing?'presentación regenerada':'presentación creada',{presentation,ideas,generation,'image-set':null,stylebook});
   cronometra('version');timings.total=Date.now()-reloj;
   try{console.log(JSON.stringify({evento:'presentacion-creada',slug,narrativeSource:ideas.narrativeSource||'template',timings}));}catch(_){}
   const slideCount=ideas.skeleton.filter(item=>item.enabled!==false).length+3;
@@ -459,5 +463,5 @@ export async function onRequestPut(context){
   const narrativeSource=ideas.narrativeSource==='xai'?'xai':ideas.narrativeSource==='admiranext-structure'?'admiranext-structure':'template';
   const narrativeFallback=narrativeSource==='xai'||narrativeSource==='admiranext-structure'?'':(FALLBACK_REASONS[narrativeResult?.reason]||FALLBACK_GENERIC);
   const publicPresite=publicPresiteOpening(presentation.presite,slug);
-  return json({ok:true,slug,displayName,prospect:publicProspect(presentation.prospect),...(catalogoMarca?{catalogo:catalogoMarca}:{}),narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,demoProject:presentation.demoProject,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
+  return json({ok:true,slug,displayName,prospect:publicProspect(presentation.prospect),...(catalogoMarca?{catalogo:catalogoMarca}:{}),narrativeSource,narrativeFallback,translationPending:ideas.translationPending||[],translationError:ideas.translationError||'',timings,password:password||null,passwordPreserved:!password&&Boolean(existing),outputs,languages,slideCount,sequence:presentation.sequence,demoProject:presentation.demoProject,structure:presentation.structure,footer:presentation.footer,presite:publicPresite,generation:publicGeneration(generation),compatibility:publicCompatibilityLab(compatibilityLab),compatibilityUrl:`/presentaciones/${slug}/api/compatibility`,roomDeviceLab:publicRoomDeviceLab(roomDeviceLab),roomDeviceLabUrl:`/presentaciones/${slug}/api/room-device-lab`,url:`/presentaciones/${slug}/`,ideasUrl:`/presentaciones/${slug}/ideas`,styleBookUrl:`/presentaciones/${slug}/estilo`,styleBook:stylebookSummary(slug,stylebook),launchUrl:publicPresite?.launchUrl||`/presentaciones/${slug}/presentacion`,deckUrl:`/presentaciones/${slug}/presentacion`},201);
 }

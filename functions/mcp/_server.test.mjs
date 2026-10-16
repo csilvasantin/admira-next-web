@@ -24,7 +24,7 @@ function ctxFor(level, log = []){
       return ok({ ok: true, slug, password });
     }
     if (path === '/presentaciones/portaventura/api/versions') return ok({ versions: [{ id: 'v1' }] });
-    if (path === '/presentaciones/portaventura/content-data') return ok({ client: 'portaventura', slides: 12 });
+    if (path === '/presentaciones/portaventura/content-data' || path === '/presentaciones/portaventura/api/ideas') return ok({ client: 'portaventura', slides: 12 });
     if (path === '/presentaciones/portaventura/api/inline-edit') {
       let body = {}; try { body = JSON.parse(init.body || '{}'); } catch {}
       return ok({ ok: true, deleted: body.blockId, locales: { es: { skeleton: [] } } });
@@ -149,7 +149,7 @@ test('viewer solo lee; editor y admin crean', async () => {
   await assert.rejects(() => callTool(ctxFor('viewer'), 'create_presentation', { displayName: 'X' }), /solo lectura/);
   assert.ok((await callTool(ctxFor('viewer'), 'list_presentations')).clients);
   assert.equal((await callTool(ctxFor('editor'), 'create_presentation', { displayName: 'X' })).slug, 'nuevo-cliente');
-  assert.deepEqual(Object.keys(urlsFor('portaventura')), ['presentacion', 'sala', 'versiones', 'ideas', 'galeria']);
+  assert.deepEqual(Object.keys(urlsFor('portaventura')), ['presentacion', 'sala', 'versiones', 'ideas', 'galeria', 'estilo', 'estiloMd']);
 });
 
 test('protocolo: initialize, tools/list y help funcionan sin token; el resto pide token', async () => {
@@ -171,7 +171,7 @@ test('protocolo: initialize, tools/list y help funcionan sin token; el resto pid
   assert.match(helpCatalogo.result.content[0].text, /get_catalog|list_presentations/);
   assert.match(helpCatalogo.result.content[0].text, /Mejorar|overwrite:true/);
   assert.equal((await callTool(ctxFor('viewer'), 'get_catalog')).clients[0].slug, 'portaventura');
-  assert.equal(init.result.serverInfo.version, '1.8.3');
+  assert.equal(init.result.serverInfo.version, '1.9.0');
   assert.equal((await handleRpc(anon, { jsonrpc: '2.0', id: 6, method: 'otra' })).error.code, -32601);
   const sse = encodeResponse({ jsonrpc: '2.0', id: 1, result: {} }, true);
   assert.equal(sse.headers.get('content-type'), 'text/event-stream');

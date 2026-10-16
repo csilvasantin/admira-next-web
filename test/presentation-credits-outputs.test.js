@@ -13,11 +13,13 @@ test('credits and postcredits are native ready outputs with prefilled generator 
     outputs:['credits','postcredits'],
     languages:['es','ca']
   });
-  assert.deepEqual(job.requested,['credits','postcredits']);
+  // El libro de estilo es un entregable fijo de toda presentación (16-oct-2026): una sola variante, en castellano.
+  assert.deepEqual(job.requested,['credits','postcredits','stylebook']);
   assert.deepEqual(Object.keys(job.tasks).sort(),[
-    'ca:credits','ca:postcredits','es:credits','es:postcredits'
+    'ca:credits','ca:postcredits','es:credits','es:postcredits','es:stylebook'
   ]);
-  for(const task of Object.values(job.tasks)){
+  assert.equal(job.tasks['es:stylebook'].url,'/presentaciones/cliente-demo/estilo');
+  for(const task of Object.values(job.tasks).filter(task=>task.output!=='stylebook')){
     assert.equal(task.status,'ready');
     assert.equal(task.progress,100);
     assert.equal(task.provider,'admiranext');

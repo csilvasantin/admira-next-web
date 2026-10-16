@@ -198,6 +198,10 @@ export async function onRequest(context){
   const isInlineEditApi = !isGallery && second === 'api' && third === 'inline-edit';
   const isVersionsApi = !isGallery && second === 'api' && third === 'versions';
   const isVersionsPage = !isGallery && second === 'versiones';
+  // LIBRO DE ESTILO (16-oct-2026): documento interno de cada presentación. Misma puerta que Ideas/Historial:
+  // la contraseña del cliente NO lo abre (lleva reglas internas de la casa); sí los editores/admin y los tokens MCP de editor.
+  const isStylebookPage = !isGallery && second === 'estilo';
+  const isStylebookApi = !isGallery && second === 'api' && third === 'stylebook';
   const isSlideImages = !isGallery && second === 'images';
   const isDeckAssets = !isGallery && second === 'deck';
   const isBrandAssets = !isGallery && second === 'brand';
@@ -215,7 +219,7 @@ export async function onRequest(context){
   const isClientsApi = first === 'api' && second === 'clients';
   const isControlArea = first === 'control';
   const isRemoteApi = !isGallery && second === 'api' && third === 'remote';
-  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
+  const isInternalArea = isIdeasEditor || isIdeasWrite || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isStylebookPage || isStylebookApi || isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
 
   // El productor local se autentica con un Bearer token propio. No debe atravesar
   // el formulario/cookie de las áreas humanas antes de llegar a su endpoint.
@@ -348,7 +352,7 @@ export async function onRequest(context){
     context.waitUntil(writeAccessEvent(env, request, {type:'machine_key_failed', client:seg || '_generator', presentation:title, access:'denied', path:url.pathname}));
   }
   const session = directorySession || agentSession || machineSession;
-  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isDemoProjectApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode || isPresentationExtraPage);
+  const editorAllowed = !isControlArea && (isIdeasEditor || isIdeasApi || isDemoProjectApi || isGenerationApi || isCompatibilityApi || isRoomDeviceLabApi || isInlineEditApi || isVersionsApi || isVersionsPage || isStylebookPage || isStylebookApi || isSlideImages || isDeckAssets || isBrandAssets || isGeneratorPage || isGeneratorApi || isClientsApi || isPresentationMode || isPresentationExtraPage);
   // FLT-100781: Admin (owner) entra a /control/ con Google; editor/viewer siguen fuera.
   const ownerAllowed = isGeneratorPage || isGalleryPage || isGeneratorApi || isClientsApi || isControlArea;
   const directoryAllowed = Boolean(session) && allowedBy(session.level, {ownerAllowed, editorAllowed, internalArea:isInternalArea, ownerOnly:isControlArea});

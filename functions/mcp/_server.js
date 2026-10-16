@@ -15,9 +15,10 @@ import { generatorAccess, makeSessionToken } from '../presentaciones/_directory.
 import { bearerOf, tokenRow } from './_tokens.js';
 import { FLEET_EXAMPLE_VIDEO, exampleVideoEntry, ensureExampleVideo, wantsExampleVideo } from '../presentaciones/_slide-media.js';
 import { leerAtajoMarca } from '../presentaciones/_marca-atajo.js';
+import { renderTemplateMarkdown, SECTIONS as STYLEBOOK_SECTIONS } from '../presentaciones/_stylebook.js';
 
 export const SITE = 'https://www.admiranext.com';
-export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.8.3' };
+export const SERVER_INFO = { name: 'admiranext-generador-presentaciones', version: '1.9.0' };
 export const PROTOCOL = '2025-06-18';
 const SESSION_SECONDS = 300;
 
@@ -33,7 +34,7 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - Ayuda para humanos: ${SITE}/mcp/generador
 
 ## Tools
-- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo · demo-ios · bugito · novedades · estructura · propuesta).
+- help — esta ayuda (tema opcional: crear · presentaciones · versiones · permisos · informes · catalogo · demo · demo-ios · bugito · novedades · estructura · propuesta · estilo).
 - list_presentations / get_catalog — catálogo vivo (GET /presentaciones/api/clients): slug, nombre, web, idiomas, outputs, passwordSet, versionCount, updatedAt…
 - list_decks — packs de deck (antes/después) disponibles para create_presentation.
 - get_presentation {client} — contenido vivo de una presentación (láminas, idiomas, secuencia).
@@ -48,6 +49,8 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - presentation_urls {client} — URLs de la presentación, de la sala y de las versiones.
 - delete_slide {client, blockId} — quita una lámina del esqueleto sin regenerar el deck (misma API que Ctrl+E → Eliminar / Ctrl+Backspace en la sala).
 - update_slide {client, blockId, title?, message?, detail?, language?} — actualiza una lámina del esqueleto sin regenerar.
+- get_stylebook {client, section?, format?} — LIBRO DE ESTILO de la presentación (entregable fijo de TODA presentación, como el METAESTILO de la serie de 9 vídeos): propósito, voz, estructura, paleta, tipografía, composición, animación, medios, marca, reglas, checklist, lo medido vs. inferido, historial y cómo continuarlo. Se calcula con los datos vivos; format:"markdown" devuelve el documento para pasarlo como referencia; template:true devuelve la plantilla base de la serie. Ver help tema estilo.
+- update_stylebook {client, section, body | reset:true | markdown | measured:[…], reason, baseRevision?} — edita una sección (queda [MAN] e historial) o la devuelve a la versión automática. Editor/admin.
 - list_media {client} — biblioteca multimedia de la presentación (recursos, láminas y slideMedia).
 - upload_media {client, filename, dataBase64, acceptedByCarlos:true, approvalNote?, slide?, caption?} — sube imagen/audio/vídeo (≤40 MB; PNG, JPEG, WebP, GIF, MP3, WAV, M4A, MP4, WebM) a la biblioteca privada y, con slide, lo asigna. acceptedByCarlos:true es obligatorio: sólo con el OK de Carlos.
 - assign_media {client, assetId, slide, caption?} — asigna un recurso de la biblioteca a una lámina.
@@ -98,6 +101,16 @@ Demo: https://www.admiranext.com/demo/pixeria-novedades/
 Manifest: https://www.admiranext.com/demo/pixeria-novedades/studio.subdemos.json
 Editor: https://www.admiranext.com/subdemos/
 Export first to preserve custom definitions; merge the extra entry before importing into an already customized catalog. No new MCP tool or credentials.`,
+  estilo: `Libro de estilo · entregable fijo de cada presentación (16-oct-2026)
+Qué es: un documento de estilo versionado con la presentación, como el METAESTILO de la serie de 9 vídeos, para que cualquier persona o agente pueda continuarla con el mismo criterio. Se genera SIEMPRE (además de website y documents) y aparece en la matriz de entregables (generation_status → artifacts.stylebook).
+Secciones fijas: 1 Propósito y audiencia · 2 Voz y tono · 3 Estructura narrativa y de láminas · 4 Paleta (hex + contraste) · 5 Tipografía · 6 Composición y maquetación · 7 Animación y ritmo · 8 Uso de medios · 9 Logo y marca · 10 Reglas de contenido y legales · 11 Lista de comprobación final · 12 Lo medido vs. lo inferido · 13 Historial de cambios · 14 Cómo continuarlo.
+Fiabilidad: [DAT] dato de la presentación · [SER] valor de la serie de vídeos (código/medido) · [CAL] calculado · [INF] inferido · [MAN] editado a mano.
+Cómo se rellena: sola, con marca/prospect, colores primaryColor/accentColor (theme), láminas, slideMedia, biblioteca, idiomas y outputs; las secciones automáticas se recalculan al leer, así que nunca quedan viejas.
+Leer: get_stylebook {client} (JSON con markdown) · {client, format:"markdown"} (solo el documento) · {client, section:"paleta"} · {template:true} (plantilla base). Web interna: ${SITE}/presentaciones/<slug>/estilo · markdown: ${SITE}/presentaciones/<slug>/api/stylebook?format=md.
+Medir: update_stylebook {client, measured:[{item,value,method?}], reason} anota mediciones reales (ffprobe, capturas) y las pasa de «inferido» a «medido» (sección 12).
+Editar: update_stylebook {client, section, body, reason, baseRevision?} (la sección pasa a [MAN] y queda en el historial) · {client, section, reset:true, reason} · {client, markdown, reason} (solo cambia lo que difiera). reason es obligatorio. Las secciones 12 y 13 se generan siempre.
+Pasarlo como referencia: dale a otro agente la URL del markdown (o get_stylebook) y pídele que cree su presentación con el mismo estilo. urls.estilo / urls.estiloMd y styleBookUrl salen en create_presentation y presentation_urls.
+Permisos: interno. Lo leen y editan editor/admin y tokens MCP de editor; la contraseña del cliente no lo abre y un token viewer no lo lee.`,
   crear: `create_presentation — campos:
 - Antes: list_presentations (censo). Un cliente = un slug. Si ya existe, usa overwrite:true para mejorar in situ (no crees otro).
 - displayName (obligatorio): nombre del cliente. slug (opcional): identificador de URL.
@@ -253,6 +266,14 @@ export const TOOLS = [
     idioma: { type: 'string', enum: ['es', 'en', 'ca'], description: 'idioma del estudio y de la presentación (es por defecto; es y en siempre)' }, destinatario: { type: 'string', description: 'a quién se presenta (cargo, área)' },
     rehacer: { type: 'boolean', description: 'true: rehace todos los pasos (gasta cupo)' } } } },
   { name: 'estado_propuesta', description: 'Estado de una propuesta automática ya lanzada: pasos, marca, estudio (fuentes y confianza), presentación (URL y clave) y plataforma.', inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'id devuelto por lanzar_propuesta' } }, required: ['id'] } },
+  { name: 'get_stylebook', description: 'Libro de estilo de la presentación (entregable fijo): voz, estructura, paleta con hex y contraste, tipografía, composición, animación, medios, marca, reglas, checklist, medido vs. inferido, historial y cómo continuarlo. Calculado con los datos vivos. Pasa client (+ section?, format: json|markdown) o template:true para la plantilla base de la serie. Ver help tema estilo.', inputSchema: { type: 'object', properties: {
+    client: { type: 'string', description: 'slug de la presentación' }, section: { type: 'string', description: 'id (paleta), número (4) o prefijo del título; omitir = documento entero' },
+    format: { type: 'string', enum: ['json', 'markdown'], description: 'json (default: secciones + markdown) o markdown (solo el documento, para pasarlo como referencia)' },
+    template: { type: 'boolean', description: 'true: devuelve la plantilla base (valores de la serie de 9 vídeos) sin cliente' } } } },
+  { name: 'update_stylebook', description: 'Edita el libro de estilo: sustituye una sección (queda [MAN] y en el historial), la restablece a la automática (reset:true) o aplica un markdown completo. reason obligatorio; baseRevision evita pisar a otro editor.', inputSchema: { type: 'object', properties: {
+    client: { type: 'string' }, section: { type: 'string', description: 'id, número o prefijo del título (1-11 y 14 son editables; 12 y 13 se generan siempre)' }, body: { type: 'string', description: 'markdown de la sección' },
+    reset: { type: 'boolean', description: 'true: vuelve a la versión automática de esa sección' }, measured: { type: 'array', description: 'mediciones [{item, value, method?}] (ffprobe, capturas…): pasan a «medido» en la sección 12', items: { type: 'object', properties: { item: { type: 'string' }, value: { type: 'string' }, method: { type: 'string' } } } }, markdown: { type: 'string', description: 'documento completo (## N. Título); solo cambia lo que difiera' },
+    reason: { type: 'string', description: 'qué cambias y por qué (historial)' }, baseRevision: { type: 'integer', description: 'revisión leída; si cambió, responde 409' } }, required: ['client', 'reason'] } },
   { name: 'update_slide', description: 'Actualiza título/mensaje/detalle de una lámina del esqueleto sin regenerar el deck.', inputSchema: { type: 'object', properties: { client: { type: 'string' }, blockId: { type: 'string' }, title: { type: 'string' }, message: { type: 'string' }, detail: { type: 'string' }, language: { type: 'string' } }, required: ['client', 'blockId'] } }
 ];
 
@@ -306,11 +327,11 @@ function findClient(clients, hint){
 
 export function urlsFor(client){
   const c = slug(client);
-  return { presentacion: `${SITE}/presentaciones/${c}/`, sala: `${SITE}/presentaciones/${c}/presentacion`, versiones: `${SITE}/presentaciones/${c}/versiones`, ideas: `${SITE}/presentaciones/${c}/ideas`, galeria: `${SITE}/presentaciones/galeria` };
+  return { presentacion: `${SITE}/presentaciones/${c}/`, sala: `${SITE}/presentaciones/${c}/presentacion`, versiones: `${SITE}/presentaciones/${c}/versiones`, ideas: `${SITE}/presentaciones/${c}/ideas`, galeria: `${SITE}/presentaciones/galeria`, estilo: `${SITE}/presentaciones/${c}/estilo`, estiloMd: `${SITE}/presentaciones/${c}/api/stylebook?format=md` };
 }
 
 /** Llama a una API del generador en el mismo origen con la sesión de directorio del dueño del token. */
-async function callGenerator(ctx, method, path, body){
+async function callGenerator(ctx, method, path, body, { asText = false } = {}){
   const token = await makeSessionToken(ctx.env.PRES_SIGNING_KEY, ctx.access, SESSION_SECONDS);
   const headers = { cookie: `pres_owner=${token}`, origin: SITE, accept: 'application/json', 'user-agent': 'admiranext-mcp/1.0' };
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
@@ -320,6 +341,7 @@ async function callGenerator(ctx, method, path, body){
   let data = null; try { data = JSON.parse(text); } catch (_) { data = null; }
   if (response.status === 401 || response.status === 303) throw new Error(`el generador no ha aceptado la sesión (${response.status}): tu usuario no tiene acceso a ${path}`);
   if (!response.ok) throw new Error((data && (data.error || data.message)) || `HTTP ${response.status} en ${path}`);
+  if (asText) return text;
   return data == null ? { raw: text.slice(0, 4000) } : data;
 }
 
@@ -360,7 +382,7 @@ export async function callTool(ctx, name, args = {}){
       leerAtajoMarca(body);
       if (wantsExampleVideo(body) || requiresDemoVideoUrl(a)) body.slideMedia = ensureExampleVideo(body.slideMedia, body, body.slug || '');
       const out = await callGenerator(ctx, 'POST', '/presentaciones/api/jobs', body);
-      return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined };
+      return { ...out, urls: out && out.slug ? urlsFor(out.slug) : undefined, styleBookUrl: out && out.slug ? `${SITE}/presentaciones/${out.slug}/estilo` : undefined };
     }
     case 'create_yokup_report': {
       const mision = String(a.mision || '').trim().toUpperCase();
@@ -489,7 +511,7 @@ export async function callTool(ctx, name, args = {}){
       if (!String(a.id || '').trim()) throw new Error('id de versión obligatorio (list_versions).');
       return callGenerator(ctx, 'POST', `/presentaciones/${slug(a.client)}/api/versions`, { id: String(a.id) });
     }
-    case 'presentation_urls': return urlsFor(a.client);
+    case 'presentation_urls': { const urls = urlsFor(a.client); return { ...urls, styleBookUrl: urls.estilo, styleBookMarkdownUrl: urls.estiloMd }; }
     case 'delete_slide': {
       const blockId = String(a.blockId || '').trim();
       if (!blockId) throw new Error('blockId es obligatorio (id de la lámina del esqueleto, p.ej. problema).');
@@ -508,6 +530,28 @@ export async function callTool(ctx, name, args = {}){
       const unknown = Object.keys(a).filter(key => !['client', 'blockId', 'title', 'message', 'detail', 'language'].includes(key));
       if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
       return callGenerator(ctx, 'PUT', `/presentaciones/${slug(a.client)}/api/inline-edit`, { language, edits });
+    }
+    case 'get_stylebook': {
+      if (a.template === true) return { template: true, series: 'metaestilo-admira-9-videos@2026-10-16', markdown: renderTemplateMarkdown(), sections: STYLEBOOK_SECTIONS.map(x => ({ id: x.id, n: x.n, title: x.title })) };
+      const c = slug(a.client);
+      const unknown = Object.keys(a).filter(key => !['client', 'section', 'format', 'template'].includes(key));
+      if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
+      const format = String(a.format || 'json').toLowerCase();
+      if (!['json', 'markdown', 'md'].includes(format)) throw new Error('format debe ser json o markdown.');
+      if (format !== 'json') { return callGenerator(ctx, 'GET', `/presentaciones/${c}/api/stylebook?format=md`, undefined, { asText: true }); }
+      const query = a.section ? `?section=${encodeURIComponent(String(a.section))}` : '';
+      const data = await callGenerator(ctx, 'GET', `/presentaciones/${c}/api/stylebook${query}`);
+      return data && typeof data === 'object' && !a.section ? { ...data, styleBookUrl: `${SITE}/presentaciones/${c}/estilo` } : data;
+    }
+    case 'update_stylebook': {
+      const c = slug(a.client);
+      const unknown = Object.keys(a).filter(key => !['client', 'section', 'body', 'reset', 'markdown', 'measured', 'reason', 'baseRevision'].includes(key));
+      if (unknown.length) throw new Error(`Campos desconocidos: ${unknown.join(', ')}.`);
+      if (!String(a.reason || '').trim()) throw new Error('reason es obligatorio: qué cambias y por qué (queda en el historial del libro).');
+      if (a.markdown === undefined && a.measured === undefined && !String(a.section || '').trim()) throw new Error('Indica section (+ body o reset:true), markdown completo o measured.');
+      const body = {};
+      for (const key of ['section', 'body', 'reset', 'markdown', 'measured', 'reason', 'baseRevision']) if (a[key] !== undefined) body[key] = a[key];
+      return callGenerator(ctx, 'PUT', `/presentaciones/${c}/api/stylebook`, body);
     }
     case 'list_media': return callGenerator(ctx, 'GET', `/presentaciones/api/media-library?client=${slug(a.client)}`);
     case 'upload_media': {

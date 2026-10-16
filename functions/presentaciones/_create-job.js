@@ -24,7 +24,8 @@ export function publicCreateJob(job) {
     result: saved ? {
       slug: job.result?.slug || job.slug,
       password: job.result?.password || null,
-      narrativeSource: job.result?.narrativeSource || null
+      narrativeSource: job.result?.narrativeSource || null,
+      styleBookUrl: job.result?.styleBookUrl || `/presentaciones/${job.result?.slug || job.slug}/estilo`
     } : null
   };
 }
