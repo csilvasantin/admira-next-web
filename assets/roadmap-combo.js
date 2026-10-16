@@ -13,8 +13,8 @@
       meta.innerHTML='Responsable: <b>'+esc(p.responsable)+'</b> · <a href="'+p.web+'">'+esc(p.web.replace(/^https?:\/\/(www\.)?/,''))+'</a> · <span class="rmc-borrador">'+esc(d.estado)+'</span>';
       out.innerHTML=d.horizontes.map(function(h){
         var items=[];
-        (p.roadmap[h]||[]).slice(0,3).forEach(function(t){items.push({t:t.t,d:t.d,o:t.o&&byId[t.o]?byId[t.o].nombre:''})});
-        return '<article class="rmc-h"><h3>'+esc(d.etiquetas[h])+'</h3><ol class="rmc-123">'+items.map(function(i){return '<li><details><summary>'+(i.o?'<span class="rmc-o">'+esc(i.o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+'</summary><p>'+esc(i.d)+'</p></details></li>'}).join('')+'</ol></article>';
+        (p.roadmap[h]||[]).slice(0,3).forEach(function(t){items.push({t:t.t,s:t.s||[],o:t.o&&byId[t.o]?byId[t.o].nombre:''})});
+        return '<article class="rmc-h"><h3>'+esc(d.etiquetas[h])+'</h3><ol class="rmc-123">'+items.map(function(i,n){return '<li><details><summary>'+(i.o?'<span class="rmc-o">'+esc(i.o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+'</summary><ul class="rmc-abc">'+i.s.map(function(x,k){return '<li><b>'+(n+1)+'abc'[k]+'</b> '+esc(x)+'</li>'}).join('')+'</ul></details></li>'}).join('')+'</ol></article>';
       }).join('');
     }
     sel.addEventListener('change',function(){var u=new URL(location.href);u.searchParams.set('p',sel.value);history.replaceState(null,'',u);render()});
