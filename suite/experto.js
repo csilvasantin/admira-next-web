@@ -283,6 +283,27 @@
     try { (scope || panel).querySelectorAll(sel).forEach(function (n) { n.classList.add(cls); }); } catch (_) {}
   }
 
+  // Explicit avatar commands belong to the common engine, including when the face loader is cached.
+  var commandRequests=new WeakMap();
+  root.addEventListener('message',function(ev){
+    var d=ev&&ev.data,frame=document.getElementById('da-suite-frame');
+    if(!d||d.type!=='da-command'||ev.origin!=='https://digitalavatar.ai'||!frame||ev.source!==frame.contentWindow)return;
+    if(typeof d.requestId!=='string'||!/^[a-zA-Z0-9_.:-]{1,128}$/.test(d.requestId))return;
+    var text=typeof d.texto==='string'?d.texto.trim():'';
+    var reply=function(ack){try{ev.source.postMessage(Object.assign({type:'da-command-result',requestId:d.requestId},ack),'https://digitalavatar.ai');}catch(_){}};
+    if(!/^\/[a-z][a-z0-9-]*(?:\s|$)/i.test(text)||text.length>2200||/[\r\n]/.test(text)){reply({ok:false,message:'Invalid command.'});return;}
+    var cache=commandRequests.get(ev.source);if(!cache){cache=new Map();commandRequests.set(ev.source,cache);}
+    var old=cache.get(d.requestId);if(old){if(old.text!==text){reply({ok:false,message:'Request identifier already used.'});return;}old.promise.then(reply);return;}
+    if(cache.size>=128){reply({ok:false,message:'Command limit reached. Reload before sending more commands.'});return;}
+    var entry={text:text};entry.promise=Promise.resolve().then(function(){
+      var log=document.createElement('div');return Promise.resolve(root.AdmiraExperto.exec(text,log,{echo:false})).then(function(result){
+        var message=(log.textContent||'').trim().slice(0,4000),ok=!log.querySelector('.err')&&result?.ok!==false&&(result!=null||!!message);
+        return {ok:ok,message:message||(ok?'Command opened.':'Command was not handled.'),result:result?.ok===true?result:undefined};
+      });
+    }).catch(function(){return {ok:false,message:'Command failed.'};});cache.set(d.requestId,entry);entry.promise.then(reply);
+  });
+  // End shared avatar command transport.
+
   // ─── Modo propio: CLI de la suite para patas que no traen el suyo ───
   var verbs = [];
   var adapters = Object.create(null), localDemos = Object.create(null), adapterOwnsInput = false;
