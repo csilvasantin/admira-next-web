@@ -59,3 +59,11 @@ test('unavailable local engine fails honestly and replay cache stays bounded',as
   for(let i=0;i<140;i++){q.send({type:'da-demo',texto:'/demo estado',requestId:'r'+i});await flush();}
   assert.equal(calls,128);assert.equal(q.responses.length,140);assert.equal(q.responses.filter(r=>r.data.ok).length,128);q.send({type:'da-demo',texto:'/demo estado',requestId:'r0'});await flush();assert.equal(calls,128);assert.equal(q.responses.at(-1).data.ok,true);
 });
+
+test('Admirito forwards an explicit create command to the common exec exactly once, with a typed ACK',async()=>{
+ let calls=0;const q=setup({exec(text,log){calls++;assert.equal(text,'/crear cartela tintaelectronica');log.textContent='Creador · 4 cartelas';return {ok:true,count:4};}});
+ const request={type:'da-command',texto:'/crear cartela tintaelectronica',requestId:'cartelas'};q.send(request);q.send(request);await flush();
+ assert.equal(calls,1);assert.equal(q.responses.length,2);assert.equal(q.responses[0].data.type,'da-command-result');assert.equal(q.responses[0].data.ok,true);assert.equal(q.responses[0].data.result.count,4);
+ q.send({...request,texto:'/logout'});await flush();assert.equal(calls,1);assert.equal(q.responses.at(-1).data.ok,false);
+ q.send({...request,requestId:'bad'},{origin:'https://evil.example'});await flush();assert.equal(calls,1);
+});
