@@ -42,15 +42,15 @@
   var FLAGS_URL = ORIGIN + '/api/avatar/flags';
   var CENTRAL_BRAIN = ORIGIN + '/api/avatar-ask';
   var LEVELS = {
-    good: 'https://digitalavatar.ai/nube.html?dock=1',
-    better: 'https://digitalavatar.ai/best.html?dock=1&kiosk=0',
+    good: 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180',
+    better: 'https://digitalavatar.ai/best.html?dock=1&contract=20261016-180&kiosk=0',
     best: 'https://digitalavatar.ai/metahuman.html?dock=1'
   };
   // PERSONAJES (Carlos, 14-oct-2026: «Bugito es una adaptación de Admirito»): la misma cara con otra piel
   // (nube.html?personaje=<id>), por el mismo camino que /admirito. No son niveles: nunca pasan a ser la cara
   // por defecto de un sitio. Cada uno: su página (pagina), el gancho que esa página registra (gancho) y el
   // aviso al abrirla. Añadir el Arquitecto = una entrada más aquí (y su verbo en suite/experto.js).
-  var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&personaje=';
+  var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&personaje=';
   var PERSONAJES = {
     bugito: {pagina: 'https://www.admira.biz/bugito.html', gancho: 'AdmiraBugito', param: 'incidencia',
       es: 'Bugito: abriendo su banco de pruebas en admira.biz (player virtual a la izquierda, Bugito a la derecha)…',
