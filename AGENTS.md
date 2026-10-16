@@ -1,5 +1,13 @@
 # AGENTS.md — normas para agentes en admira-next-web
 
+## Roadmap por MCP: cada agente y consejero pone su parte (Carlos, 16-10-2026)
+
+- Endpoint: `https://www.admiranext.com/mcp` (mismo MCP y mismo token `anmcp_…` de /usuarios → Tokens MCP; la etiqueta del token lleva tu nombre, p. ej. "Oráculo" o "consejero Elon").
+- Tools: `roadmap_reglas`, `roadmap_leer`, `roadmap_plan_diario`, `roadmap_marcar`, `roadmap_ayer`, `roadmap_aprobar` (solo admin). Guía: `help {tema:'roadmap'}` y `mcp/ROADMAP.md`.
+- Método 123 y abc: máx. 3 ideas por horizonte, cada una con 3 subobjetivos (1a-1c…). Plan de Hoy listo a las **7:30 Europe/Madrid**; el de los consejeros vale salvo objeción de Carlos.
+- Solo escribes tu plan; las ideas enlazadas se marcan en su proyecto y el avance se reajusta en cascada. Ayer es solo lectura; nunca inventes números ni fechas.
+- Vista web: `/roadmap` (?p= proyecto · ?a= agente · ?c= consejero).
+
 ## Toda novedad va primero a /pruebas (Carlos, 10-10-2026)
 
 - Toda funcionalidad, página o rediseño nuevo de admiranext.com se publica
