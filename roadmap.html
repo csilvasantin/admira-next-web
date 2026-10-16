@@ -205,6 +205,9 @@
   .rmc-h details summary{cursor:pointer;list-style:none;color:#e6edf7}.rmc-h details summary::-webkit-details-marker{display:none}
   .rmc-h details summary::before{content:"▸ ";color:#4ae3d1}.rmc-h details[open] summary::before{content:"▾ "}
   .rmc-h details p{margin:4px 0 2px 14px;color:#92a0b4;font-size:12px}
+  .rmc-h ol.rmc-123{list-style:none;padding:0;margin:0;counter-reset:n}.rmc-123>li{counter-increment:n;position:relative;padding-left:26px}
+  .rmc-123>li::before{content:counter(n);position:absolute;left:0;top:1px;width:18px;height:18px;border-radius:50%;background:#4ae3d1;color:#06121a;font:800 11px/18px ui-monospace,Menlo,monospace;text-align:center}
+  .rmc-123 details summary::before{content:none!important}
   .rmc-fold{margin:0 0 12px;border:1px solid #253042;border-radius:12px;background:rgba(8,13,23,.6)}
   .rmc-fold>summary{cursor:pointer;padding:10px 14px;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78f3ff}
   .rmc-fold[open]>summary{border-bottom:1px solid #253042}.rmc-fold>*:not(summary){margin-left:12px;margin-right:12px}
