@@ -286,7 +286,7 @@
   // ─── Modo propio: CLI de la suite para patas que no traen el suyo ───
   var verbs = [];
   var adapters = Object.create(null), localDemos = Object.create(null), adapterOwnsInput = false;
-  var reserved = ['help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content'];
+  var reserved = ['help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content','crear','create'];
   function registerAdapter(def) {
     if (!def || !/^[a-z0-9-]+$/i.test(def.id || '')) throw Error('Invalid command adapter');
     if (adapters[def.id]) return;
@@ -1279,7 +1279,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261014-floating-bugito-2';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261016-eink-command-1';
   var avatarUpgrade=null;
   function avatarApi(requireFloating) {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
@@ -1348,6 +1348,16 @@
     var result=supervisorCamera();
     out(log,result.ok?T('Supervisor: cámara Insta360 con controles.','Supervisor: Insta360 camera with controls.'):result.error,result.ok?'':'err');
     return result;
+  }});
+  // One creation dispatcher for console and Admirito; grammar lives in the native Creator contract.
+  verb({name:'crear',alias:['create'],args:'cartela tintaelectronica [brief] | contenido [brief]',desc:[
+    'crea 4 imágenes y 4 cartelas 3:4 para Diagonal, o contenido para póster y pantallas',
+    'create 4 images and 4 portrait 3:4 Diagonal posters, or poster and screen content'],run:function(a,log){
+    return import('https://www.admira.studio/adaptaciones/content-request-core.mjs?v=eink-series-1').then(function(m){
+      var url=new URL(m.contentRequestURL(a.join(' '),lang()),'https://www.admira.studio');
+      out(log,url.searchParams.get('count')==='4'?T('Abriendo Creador: cuatro imágenes y cuatro cartelas verticales, revisión y Stock.','Opening Creator: four images and four portrait posters, review and Stock.'):T('Abriendo Creador: póster y pantallas.','Opening Creator: poster and screens.'));
+      setTimeout(function(){location.assign(url.href);},600);return {ok:true,url:url.href,flow:url.searchParams.get('flow'),count:url.searchParams.get('count')==='4'?4:1};
+    });
   }});
   verb({name:'contenido',alias:['content'],args:'starbucks 360',desc:[
     'abre Starbucks 360: siete pantallas, recorrido con vapor, castellano e inglés, 3D y Matrix',
@@ -1465,7 +1475,7 @@
   function sharedCommand(text) {
     var t = String(text || '').trim();
     // The shared avatar owns its verbs even when the native console predates them.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || (/^\/(?:vision|visión|visiongeneral|vision-general)(?:\s|$)/i.test(t) && !/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) || /^\/(?:supervisor|contenido|content)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || (/^\/(?:vision|visión|visiongeneral|vision-general)(?:\s|$)/i.test(t) && !/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) || /^\/(?:supervisor|contenido|content|crear|create)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
