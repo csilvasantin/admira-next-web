@@ -1,13 +1,17 @@
 {
   "estado": "borrador, pendiente de validar por Carlos",
   "horizontes": [
+    "ayer",
+    "hoy",
     "manana",
     "semana",
     "mes",
     "trimestre"
   ],
   "etiquetas": {
-    "manana": "Mañana",
+    "ayer": "Ayer · jue 15 oct",
+    "hoy": "Hoy · vie 16 oct",
+    "manana": "Mañana · sáb 17 oct",
     "semana": "Semana",
     "mes": "Mes",
     "trimestre": "Trimestre"
@@ -19,6 +23,38 @@
       "web": "https://admira.studio",
       "responsable": "Trinity",
       "roadmap": {
+        "ayer": [
+          {
+            "t": "Sin registro de lo hecho ayer",
+            "s": []
+          }
+        ],
+        "hoy": [
+          {
+            "t": "Presite 4 tortugas en mueble arcade",
+            "s": [
+              "Look de monitor analógico CRT dentro del mueble arcade",
+              "Nombres de tortugas, solo uso interno",
+              "Vídeo vertical MP4 grabado con presite-video.mjs"
+            ]
+          },
+          {
+            "t": "Pendientes del presite",
+            "s": [
+              "Colores: patas o colores de la serie (decide Carlos)",
+              "Música con Suno desde el navegador del box",
+              "Publicación tras OK de Carlos"
+            ]
+          },
+          {
+            "t": "Trinity responsable de admira.studio",
+            "s": [
+              "Asignación hecha por Carlos",
+              "Mejora continua de la vertical",
+              "Primer informe pendiente"
+            ]
+          }
+        ],
         "manana": [
           {
             "t": "Revisar el presite explainer",
@@ -131,6 +167,22 @@
       "web": "https://admira.store",
       "responsable": "Neo",
       "roadmap": {
+        "ayer": [
+          {
+            "t": "Sin registro de lo hecho ayer",
+            "s": []
+          }
+        ],
+        "hoy": [
+          {
+            "t": "Neo responsable de admira.store",
+            "s": [
+              "Asignación hecha por Carlos",
+              "Revisar encargos abiertos de Store",
+              "Primer informe pendiente"
+            ]
+          }
+        ],
         "manana": [
           {
             "t": "Inventario de demos de marca blanca",
@@ -243,6 +295,38 @@
       "web": "https://admira.app",
       "responsable": "Oráculo",
       "roadmap": {
+        "ayer": [
+          {
+            "t": "Sin registro de lo hecho ayer",
+            "s": []
+          }
+        ],
+        "hoy": [
+          {
+            "t": "Inventario ITIL en admira.app",
+            "s": [
+              "7 elementos de Gran de Gràcia 51 dados de alta en borrador",
+              "MBP16, DGX Spark y admiratwin por confirmar",
+              "Parche pendiente de push desde el Mac Mini"
+            ]
+          },
+          {
+            "t": "Oráculo responsable de admira.app",
+            "s": [
+              "Asignación hecha por Carlos",
+              "#6350 anulado: el inventario lo hizo Grok Bot directamente",
+              "Primer informe pendiente"
+            ]
+          },
+          {
+            "t": "GoPro #6324 sustituida por móvil",
+            "s": [
+              "Bloqueado todo el día",
+              "Solo Jensen puede anularlo",
+              "Pendiente de si Carlos quiere pedírselo"
+            ]
+          }
+        ],
         "manana": [
           {
             "t": "Publicar inventario ITIL de Gran de Gràcia 51",
@@ -355,6 +439,30 @@
       "web": "https://www.admira.biz",
       "responsable": "Morfeo",
       "roadmap": {
+        "ayer": [
+          {
+            "t": "Sin registro de lo hecho ayer",
+            "s": []
+          }
+        ],
+        "hoy": [
+          {
+            "t": "Morfeo responsable de admira.biz",
+            "s": [
+              "Asignación hecha por Carlos",
+              "Revisar encargos abiertos de Biz",
+              "Primer informe pendiente"
+            ]
+          },
+          {
+            "t": "Botones Apps/CLIs en /control (#5865)",
+            "s": [
+              "Esperando OK de Carlos",
+              "Publicar ya o esperar PRs #202 y #204",
+              "Sin respuesta todavía"
+            ]
+          }
+        ],
         "manana": [
           {
             "t": "Revisar playlists de hilomusical",
@@ -474,6 +582,43 @@
         "biz"
       ],
       "roadmap": {
+        "ayer": [
+          {
+            "t": "Reglas de flota acordadas",
+            "s": [
+              "Ventanas CLI: nombre solo en el banner ASCII y colores de estado",
+              "Un solo punto sobre el semáforo",
+              "Alarma roja si la cabecera es incoherente"
+            ],
+            "e": "hecho"
+          }
+        ],
+        "hoy": [
+          {
+            "t": "Presentación urgente de Alsea",
+            "s": [
+              "Terminada",
+              "Libera a los responsables para la mejora continua",
+              "#6305 posiblemente obsoleto"
+            ]
+          },
+          {
+            "t": "Responsables por vertical",
+            "s": [
+              "Trinity studio, Neo store, Oráculo app, Morfeo biz",
+              "Elon admira.tv, Jobs admiranext",
+              "Solape de admira.live por aclarar"
+            ]
+          },
+          {
+            "t": "Roadmap por proyecto publicado",
+            "s": [
+              "Combo de proyectos en /roadmap",
+              "Regla del 123 y el abc",
+              "PRs #205 a #207 desplegados"
+            ]
+          }
+        ],
         "manana": [
           {
             "t": "Publicar inventario ITIL de Gran de Gràcia 51",
@@ -600,6 +745,61 @@
       "responsable": "consejero Elon",
       "descripcion": "Prioridad: liquidar integración GrokBot este finde",
       "roadmap": {
+        "ayer": [
+          {
+            "t": "Llamar consejero a los consejeros",
+            "s": [
+              "Regla acordada para los agentes",
+              "Aplicada en los mensajes",
+              "Nombres guardados mal aún (Jensen como 'Y')"
+            ],
+            "e": "parcial"
+          },
+          {
+            "t": "Revisar encargos abiertos antes de asignar",
+            "s": [
+              "Regla acordada",
+              "encargos_listar solo muestra los de Arquitecto",
+              "Pendiente de arreglo"
+            ],
+            "e": "parcial"
+          },
+          {
+            "t": "Relevo nocturno cerrando terminales",
+            "s": [
+              "Regla acordada",
+              "Aplicar en cada relevo",
+              "Sin automatizar todavía"
+            ],
+            "e": "parcial"
+          }
+        ],
+        "hoy": [
+          {
+            "t": "Integración GrokBot en curso",
+            "s": [
+              "agente_encargar devuelve proyecto_id null",
+              "encargo_anular solo para el creador",
+              "Liquidar este finde 17–18 oct"
+            ]
+          },
+          {
+            "t": "Roadmap de Admira.live",
+            "s": [
+              "Prioridades en el roadmap",
+              "Responsable consejero Elon",
+              "Borrador pendiente de validar por Carlos"
+            ]
+          },
+          {
+            "t": "Encargos atascados",
+            "s": [
+              "#6324 GoPro (de Jensen)",
+              "#6309 Starbucks: enlace de YouTube incorrecto",
+              "Esperando decisión de Carlos"
+            ]
+          }
+        ],
         "manana": [
           {
             "t": "proyecto_id en encargos",
@@ -713,6 +913,43 @@
       "web": "https://admiranext.com",
       "responsable": "Jobs",
       "roadmap": {
+        "ayer": [
+          {
+            "t": "Entrega de clave a Morfeo",
+            "s": [
+              "Las claves van solo por Telegram privado de Carlos",
+              "Sin copiar credenciales entre máquinas sin OK",
+              "Sin confirmación registrada de entrega"
+            ],
+            "e": "parcial"
+          }
+        ],
+        "hoy": [
+          {
+            "t": "Roadmap en admiranext.com/roadmap",
+            "s": [
+              "Combo con 7 proyectos",
+              "Regla del 123 y el abc",
+              "Ayer / Hoy / Mañana en esta versión"
+            ]
+          },
+          {
+            "t": "Visita al laboratorio con móvil",
+            "s": [
+              "Móvil en lugar de GoPro",
+              "Contenido sincronizado Mac Studio, Mac Mini y MBP16",
+              "Propuesta: dejar el Mac Mini fuera de la sincro (sin respuesta)"
+            ]
+          },
+          {
+            "t": "Presites explainer",
+            "s": [
+              "Formato _explainer.js con ?record=1",
+              "Vídeo vertical con Playwright y ffmpeg",
+              "Parche pendiente de push"
+            ]
+          }
+        ],
         "manana": [
           {
             "t": "Revisar presite explainer de las 4 tortugas",
@@ -820,5 +1057,10 @@
       }
     }
   ],
-  "regla": "regla del 123 y el abc: 3 ideas por horizonte (1,2,3), cada una con 3 subobjetivos (a,b,c)"
+  "regla": "regla del 123 y el abc: 3 ideas por horizonte (1,2,3), cada una con 3 subobjetivos (a,b,c)",
+  "estados": {
+    "hecho": "✓",
+    "parcial": "◐",
+    "no": "✗"
+  }
 }
