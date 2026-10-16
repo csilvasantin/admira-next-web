@@ -21,26 +21,106 @@
       "roadmap": {
         "manana": [
           {
-            "t": "Revisar el formato presite explainer",
-            "d": "Revisar el formato presite explainer (vertical + página casi vídeo) con la temática de las 4 patas"
+            "t": "Revisar el presite explainer",
+            "s": [
+              "Repasar las escenas boot, roster, héroes, equipo y cierre",
+              "Comprobar el look de monitor analógico en el mueble arcade",
+              "Validar con Carlos los colores de las tortugas"
+            ]
+          },
+          {
+            "t": "Revisar el vídeo vertical del presite",
+            "s": [
+              "Grabar con ?record=1 y scripts/presite-video.mjs",
+              "Comparar ritmo con la referencia del intro KOF 2002",
+              "Anotar cortes y escenas a ajustar"
+            ]
+          },
+          {
+            "t": "Nombres de tortugas solo para uso interno",
+            "s": [
+              "Marcar el presite de tortugas como interno",
+              "Preparar versión con nombres de las patas para externo",
+              "Confirmar criterio con Carlos"
+            ]
           }
         ],
         "semana": [
           {
-            "t": "Añadir música al vídeo del presite",
-            "d": "Añadir música al vídeo del presite (Suno) y publicar el presite tras OK de Carlos"
+            "t": "Música para el vídeo del presite",
+            "s": [
+              "Componer la pista en Suno desde el navegador del box",
+              "Montar la pista sobre el vídeo vertical",
+              "Revisar volumen y final con Carlos"
+            ]
+          },
+          {
+            "t": "Publicar el presite tras OK de Carlos",
+            "s": [
+              "Abrir PR en admira-next-web",
+              "Merge solo con OK de Carlos",
+              "Desplegar y adjuntar captura como prueba"
+            ]
+          },
+          {
+            "t": "Presite por cada pilar",
+            "s": [
+              "Presite de admira.studio",
+              "Presite de admira.store y admira.app",
+              "Presite de admira.biz"
+            ]
           }
         ],
         "mes": [
           {
-            "t": "Generador de presentaciones",
-            "d": "Generador de presentaciones: plantillas de presite por temática reutilizables"
+            "t": "Generador de presentaciones con presites",
+            "s": [
+              "Plantilla de presite reutilizable por temática",
+              "Selector de temática en el generador",
+              "Exportar página y vídeo vertical desde el generador"
+            ]
+          },
+          {
+            "t": "Temáticas adicionales",
+            "s": [
+              "Definir temáticas candidatas con Carlos",
+              "Implementar una segunda temática",
+              "Documentar cómo añadir temáticas"
+            ]
+          },
+          {
+            "t": "Grabación automática de vídeos",
+            "s": [
+              "Script de grabación por presite",
+              "Salida vertical lista para redes",
+              "Guardar vídeos versionados"
+            ]
           }
         ],
         "trimestre": [
           {
-            "t": "Biblioteca de presites por solución, lista",
-            "d": "Biblioteca de presites por solución, lista para usar en propuestas comerciales"
+            "t": "Biblioteca de presites por solución",
+            "s": [
+              "Catálogo de presites publicados",
+              "Presite enlazado desde cada propuesta comercial",
+              "Revisión periódica de presites caducados"
+            ]
+          },
+          {
+            "t": "Presites en propuestas comerciales",
+            "s": [
+              "Insertar presite en el flujo de propuestas",
+              "Versión externa sin nombres internos",
+              "Medir uso con Analitics"
+            ]
+          },
+          {
+            "t": "Vídeos verticales para redes",
+            "s": [
+              "Plan de publicación por pilar",
+              "Adaptar formatos a cada red",
+              "Revisión de marca antes de publicar"
+            ]
           }
         ]
       }
@@ -53,26 +133,106 @@
       "roadmap": {
         "manana": [
           {
-            "t": "Inventario de demos de marca blanca…",
-            "d": "Inventario de demos de marca blanca activas y su estado"
+            "t": "Inventario de demos de marca blanca",
+            "s": [
+              "Listar demos activas en /marcablanca",
+              "Anotar estado de cada demo",
+              "Marcar las que fallan"
+            ]
+          },
+          {
+            "t": "Revisar gemelo digital de tienda",
+            "s": [
+              "Abrir el visor del gemelo actual",
+              "Anotar qué contenido muestra",
+              "Detectar huecos frente a tienda real"
+            ]
+          },
+          {
+            "t": "Responsable Neo al frente de Store",
+            "s": [
+              "Confirmar encargos abiertos de Store",
+              "Reasignar a Neo lo pendiente",
+              "Fijar primer informe de Neo"
+            ]
           }
         ],
         "semana": [
           {
-            "t": "Pulir las demos de marca blanca",
-            "d": "Pulir las demos de marca blanca para tiendas piloto"
+            "t": "Pulir demos de marca blanca",
+            "s": [
+              "Corregir las demos marcadas como fallidas",
+              "Unificar estilo con el libro de estilo",
+              "Capturas de prueba de cada demo"
+            ]
+          },
+          {
+            "t": "Demo de tienda piloto",
+            "s": [
+              "Elegir demo de referencia para piloto",
+              "Preparar guion de demo",
+              "Ensayar la demo"
+            ]
+          },
+          {
+            "t": "Contenido real en el gemelo",
+            "s": [
+              "Identificar fuente de contenido de tienda",
+              "Conectar contenido al gemelo",
+              "Validar visualmente"
+            ]
           }
         ],
         "mes": [
           {
-            "t": "Gemelo digital",
-            "d": "Gemelo digital (digital twin) de tienda conectado a contenido real"
+            "t": "Gemelo digital conectado a contenido real",
+            "s": [
+              "Sincronizar playlist con el gemelo",
+              "Mostrar estado de pantallas en el gemelo",
+              "Captura como proof of play"
+            ]
+          },
+          {
+            "t": "Demos de marca blanca por cliente tipo",
+            "s": [
+              "Plantilla por sector",
+              "Personalización de marca rápida",
+              "Checklist de entrega"
+            ]
+          },
+          {
+            "t": "Gemelo en el laboratorio",
+            "s": [
+              "Modelar el laboratorio de Gran de Gràcia 51",
+              "Vincular pantallas del inventario",
+              "Mostrarlo en la visita del lab"
+            ]
           }
         ],
         "trimestre": [
           {
-            "t": "Gemelos digitales de tienda",
-            "d": "Gemelos digitales de tienda como entregable estándar de la propuesta Store"
+            "t": "Gemelos digitales como entregable estándar",
+            "s": [
+              "Proceso de alta de gemelo por tienda",
+              "Plantilla de gemelo reutilizable",
+              "Incluir gemelo en propuesta Store"
+            ]
+          },
+          {
+            "t": "Catálogo de demos Store",
+            "s": [
+              "Publicar catálogo interno",
+              "Enlazar demos desde presites",
+              "Mantener demos vivas"
+            ]
+          },
+          {
+            "t": "Store integrado con App",
+            "s": [
+              "Estado de pantallas de tienda desde admira.app",
+              "Incidencias de tienda en el supervisor",
+              "Inventario de tienda en la CMDB"
+            ]
           }
         ]
       }
@@ -85,30 +245,106 @@
       "roadmap": {
         "manana": [
           {
-            "t": "Publicar el inventario ITIL",
-            "d": "Publicar el inventario ITIL (CMDB) del laboratorio de Gran de Gràcia 51 tras OK de Carlos"
+            "t": "Publicar inventario ITIL de Gran de Gràcia 51",
+            "s": [
+              "Revisar la CMDB (data/inventario/cmdb.json)",
+              "PR y merge con OK de Carlos",
+              "Desplegar y captura como prueba"
+            ]
+          },
+          {
+            "t": "Incidencias de webcam del supervisor #6000",
+            "s": [
+              "Revisar incidencias abiertas",
+              "Clasificar por causa",
+              "Asignar responsable a cada una"
+            ]
+          },
+          {
+            "t": "Responsable Oráculo al frente de App",
+            "s": [
+              "Revisar encargos abiertos de App",
+              "Traspasar lo pendiente a Oráculo",
+              "Primer informe de Oráculo"
+            ]
           }
         ],
         "semana": [
           {
-            "t": "Confirmar los elementos pendientes del inventario",
-            "d": "Confirmar los elementos pendientes del inventario (MBP16, DGX Spark, admiratwin)"
+            "t": "Confirmar elementos pendientes del inventario",
+            "s": [
+              "Confirmar MBP16",
+              "Confirmar DGX Spark",
+              "Confirmar admiratwin"
+            ]
           },
           {
             "t": "Supervisor de soluciones #6000",
-            "d": "Supervisor de soluciones #6000: revisar las incidencias de webcam"
+            "s": [
+              "Cerrar las incidencias de webcam",
+              "Alertas útiles sin ruido",
+              "Captura del supervisor en verde"
+            ]
+          },
+          {
+            "t": "Teléfono en el inventario",
+            "s": [
+              "Dar de alta el móvil de la visita del lab",
+              "Vincularlo a la sincronización de contenido",
+              "Actualizar estado del GoPro (#6324)"
+            ]
           }
         ],
         "mes": [
           {
-            "t": "Supervisor de soluciones integrado",
-            "d": "Supervisor de soluciones integrado con el inventario ITIL"
+            "t": "Supervisor integrado con el inventario ITIL",
+            "s": [
+              "Enlazar incidencias con elementos de la CMDB",
+              "Ver historial por elemento",
+              "Estado del lab de un vistazo"
+            ]
+          },
+          {
+            "t": "Inventario del resto de ubicaciones",
+            "s": [
+              "Listar ubicaciones a inventariar",
+              "Alta de elementos conocidos",
+              "Revisión con Carlos"
+            ]
+          },
+          {
+            "t": "Gestión de cambios ITIL básica",
+            "s": [
+              "Registrar cambios por elemento",
+              "Responsable de cada cambio",
+              "Traza visible en admira.app"
+            ]
           }
         ],
         "trimestre": [
           {
-            "t": "admira.app",
-            "d": "admira.app como punto único de inventario y supervisión del parque"
+            "t": "admira.app punto único de inventario y supervisión",
+            "s": [
+              "Todo el parque en la CMDB",
+              "Supervisor sobre todo el parque",
+              "Informes desde admira.app"
+            ]
+          },
+          {
+            "t": "Proof of play centralizado",
+            "s": [
+              "Capturas de pantallas en admira.app",
+              "Vínculo con encargos de admira.live",
+              "Consulta por cliente"
+            ]
+          },
+          {
+            "t": "App al servicio de los 4 pilares",
+            "s": [
+              "Datos de Store en App",
+              "Datos de Biz en App",
+              "Panel para Admira.TV"
+            ]
           }
         ]
       }
@@ -121,26 +357,106 @@
       "roadmap": {
         "manana": [
           {
-            "t": "Revisar el estado de las playlists…",
-            "d": "Revisar el estado de las playlists de hilomusical"
+            "t": "Revisar playlists de hilomusical",
+            "s": [
+              "Listar playlists activas",
+              "Detectar playlists caducadas",
+              "Anotar cambios necesarios"
+            ]
+          },
+          {
+            "t": "Responsable Morfeo al frente de Biz",
+            "s": [
+              "Revisar encargos abiertos de Biz",
+              "Traspasar lo pendiente a Morfeo",
+              "Primer informe de Morfeo"
+            ]
+          },
+          {
+            "t": "Estado de los circuitos Biz",
+            "s": [
+              "Revisar ficha actual de cada circuito",
+              "Detectar huecos de información",
+              "Priorizar circuitos"
+            ]
           }
         ],
         "semana": [
           {
-            "t": "Circuitos Biz",
-            "d": "Circuitos Biz: ficha de Barcelona y Madrid"
+            "t": "Fichas de Barcelona y Madrid",
+            "s": [
+              "Ficha del circuito de Barcelona",
+              "Ficha del circuito de Madrid",
+              "Revisión con Carlos"
+            ]
+          },
+          {
+            "t": "Actualizar playlists de hilomusical",
+            "s": [
+              "Renovar playlists caducadas",
+              "Ajustar por circuito",
+              "Verificar reproducción"
+            ]
+          },
+          {
+            "t": "Botones Apps/CLIs en /control (#5865)",
+            "s": [
+              "Obtener OK de Carlos",
+              "Publicar o esperar PRs #202 y #204",
+              "Captura de prueba"
+            ]
           }
         ],
         "mes": [
           {
-            "t": "Circuitos Biz",
-            "d": "Circuitos Biz: ficha de London y New York"
+            "t": "Fichas de London y New York",
+            "s": [
+              "Ficha del circuito de London",
+              "Ficha del circuito de New York",
+              "Revisión con Carlos"
+            ]
+          },
+          {
+            "t": "Hilo musical por circuito",
+            "s": [
+              "Playlist por ciudad",
+              "Programación horaria",
+              "Proof of play de audio"
+            ]
+          },
+          {
+            "t": "Presentación comercial Biz",
+            "s": [
+              "Usar el presite de admira.biz",
+              "Datos de los 4 circuitos",
+              "Revisión con Carlos"
+            ]
           }
         ],
         "trimestre": [
           {
-            "t": "Oferta de circuitos Biz London /…",
-            "d": "Oferta de circuitos Biz London / New York / Barcelona / Madrid con hilo musical"
+            "t": "Oferta de circuitos London, NY, Barcelona y Madrid",
+            "s": [
+              "Paquete por circuito",
+              "Paquete combinado",
+              "Material comercial"
+            ]
+          },
+          {
+            "t": "Hilo musical como producto",
+            "s": [
+              "Catálogo de playlists",
+              "Alta de clientes",
+              "Soporte desde admira.app"
+            ]
+          },
+          {
+            "t": "Biz integrado en Admira.TV",
+            "s": [
+              "Circuitos visibles en Admira.TV",
+              "Informes conjuntos",
+              "Revisión trimestral"
+            ]
           }
         ]
       }
@@ -160,69 +476,117 @@
       "roadmap": {
         "manana": [
           {
-            "t": "Publicar el inventario ITIL",
-            "d": "Publicar el inventario ITIL (CMDB) del laboratorio de Gran de Gràcia 51 tras OK de Carlos",
+            "t": "Publicar inventario ITIL de Gran de Gràcia 51",
+            "s": [
+              "Revisar la CMDB (data/inventario/cmdb.json)",
+              "PR y merge con OK de Carlos",
+              "Desplegar y captura como prueba"
+            ],
             "o": "app"
           },
           {
-            "t": "Revisar el formato presite explainer",
-            "d": "Revisar el formato presite explainer (vertical + página casi vídeo) con la temática de las 4 patas",
+            "t": "Revisar el presite explainer",
+            "s": [
+              "Repasar las escenas boot, roster, héroes, equipo y cierre",
+              "Comprobar el look de monitor analógico en el mueble arcade",
+              "Validar con Carlos los colores de las tortugas"
+            ],
             "o": "studio"
           },
           {
-            "t": "Asignar responsables por vertical y confirmar…",
-            "d": "Asignar responsables por vertical y confirmar el reparto",
+            "t": "Asignar responsables por vertical",
+            "s": [
+              "Trinity, Neo, Oráculo y Morfeo confirmados",
+              "Encargos abiertos traspasados",
+              "Resolver solape de admira.live"
+            ],
             "o": "tv"
           }
         ],
         "semana": [
           {
             "t": "Supervisor de soluciones #6000",
-            "d": "Supervisor de soluciones #6000: revisar las incidencias de webcam",
+            "s": [
+              "Cerrar las incidencias de webcam",
+              "Alertas útiles sin ruido",
+              "Captura del supervisor en verde"
+            ],
             "o": "app"
           },
           {
-            "t": "Añadir música al vídeo del presite",
-            "d": "Añadir música al vídeo del presite (Suno) y publicar el presite tras OK de Carlos",
+            "t": "Música para el vídeo del presite",
+            "s": [
+              "Componer la pista en Suno desde el navegador del box",
+              "Montar la pista sobre el vídeo vertical",
+              "Revisar volumen y final con Carlos"
+            ],
             "o": "studio"
           },
           {
-            "t": "Pulir las demos de marca blanca",
-            "d": "Pulir las demos de marca blanca para tiendas piloto",
+            "t": "Pulir demos de marca blanca",
+            "s": [
+              "Corregir las demos marcadas como fallidas",
+              "Unificar estilo con el libro de estilo",
+              "Capturas de prueba de cada demo"
+            ],
             "o": "store"
           }
         ],
         "mes": [
           {
-            "t": "Supervisor de soluciones integrado",
-            "d": "Supervisor de soluciones integrado con el inventario ITIL",
+            "t": "Supervisor integrado con el inventario ITIL",
+            "s": [
+              "Enlazar incidencias con elementos de la CMDB",
+              "Ver historial por elemento",
+              "Estado del lab de un vistazo"
+            ],
             "o": "app"
           },
           {
-            "t": "Gemelo digital",
-            "d": "Gemelo digital (digital twin) de tienda conectado a contenido real",
+            "t": "Gemelo digital conectado a contenido real",
+            "s": [
+              "Sincronizar playlist con el gemelo",
+              "Mostrar estado de pantallas en el gemelo",
+              "Captura como proof of play"
+            ],
             "o": "store"
           },
           {
-            "t": "Generador de presentaciones",
-            "d": "Generador de presentaciones: plantillas de presite por temática reutilizables",
+            "t": "Generador de presentaciones con presites",
+            "s": [
+              "Plantilla de presite reutilizable por temática",
+              "Selector de temática en el generador",
+              "Exportar página y vídeo vertical desde el generador"
+            ],
             "o": "studio"
           }
         ],
         "trimestre": [
           {
             "t": "Propuesta integrada Admira.TV",
-            "d": "Propuesta integrada Admira.TV con las 4 patas",
+            "s": [
+              "Paquete con las 4 patas",
+              "Material comercial conjunto",
+              "Revisión con Carlos"
+            ],
             "o": "tv"
           },
           {
-            "t": "Gemelos digitales de tienda",
-            "d": "Gemelos digitales de tienda como entregable estándar de la propuesta Store",
+            "t": "Gemelos digitales como entregable estándar",
+            "s": [
+              "Proceso de alta de gemelo por tienda",
+              "Plantilla de gemelo reutilizable",
+              "Incluir gemelo en propuesta Store"
+            ],
             "o": "store"
           },
           {
-            "t": "admira.app",
-            "d": "admira.app como punto único de inventario y supervisión del parque",
+            "t": "admira.app punto único de inventario y supervisión",
+            "s": [
+              "Todo el parque en la CMDB",
+              "Supervisor sobre todo el parque",
+              "Informes desde admira.app"
+            ],
             "o": "app"
           }
         ]
@@ -238,46 +602,106 @@
       "roadmap": {
         "manana": [
           {
-            "t": "Arreglar proyecto_id en encargos",
-            "d": "agente_encargar devuelve proyecto_id null aunque el texto lleve 'Proyecto:'; asignarlo correctamente (integración GrokBot, finde 17–18 oct)"
+            "t": "proyecto_id en encargos",
+            "s": [
+              "Reproducir: agente_encargar con 'Proyecto:' devuelve proyecto_id null",
+              "Corregir el parseo o añadir el parámetro de proyecto",
+              "Verificar con un encargo de prueba y captura"
+            ]
           },
           {
             "t": "encargos_listar ve toda la flota",
-            "d": "Hoy solo muestra los de Arquitecto; GrokBot debe ver los encargos abiertos de toda la flota antes de asignar"
+            "s": [
+              "Quitar el filtro que solo devuelve los de Arquitecto",
+              "Filtrar por agente, proyecto y estado",
+              "Comprobar encargos abiertos antes de asignar"
+            ]
           },
           {
             "t": "encargo_anular por consejero",
-            "d": "Hoy solo puede anular el creador (p. ej. #6324 de Jensen); permitir anular al supervisor/consejero con traza"
+            "s": [
+              "Permitir anular al consejero o supervisor, no solo al creador",
+              "Guardar traza de quién anula y por qué",
+              "Probar con #6324 tras OK de Carlos"
+            ]
           }
         ],
         "semana": [
           {
             "t": "Recuperar Merovingio y Cypher",
-            "d": "deepagent_vivo en false para Merovingio (MacMini) y Cypher (46 encargos en cola); recuperar latidos y vaciar cola"
+            "s": [
+              "Diagnosticar deepagent_vivo false en Merovingio (MacMini)",
+              "Diagnosticar Cypher y vaciar su cola de 46",
+              "Corregir nombres de consejeros (Jensen como 'Y', máquina 'GrokBot')"
+            ]
           },
           {
             "t": "Latidos y reasignación 30 min",
-            "d": "Validar latidos de agentes_vivos y la reasignación automática a los 30 min sin heartbeat"
+            "s": [
+              "Verificar heartbeats en agentes_vivos",
+              "Probar la reasignación automática a los 30 min",
+              "Avisar por Telegram privado al reasignar"
+            ]
           },
           {
             "t": "Proof of play con capturas",
-            "d": "Cada encargo cerrado adjunta captura como prueba (yokup_evidencia)"
+            "s": [
+              "Exigir captura al cerrar encargo (yokup_evidencia)",
+              "Mostrar la captura en el encargo",
+              "Rechazar cierres sin prueba"
+            ]
           }
         ],
         "mes": [
           {
             "t": "Consejo y bandejas estables",
-            "d": "consejero_bandeja/mensaje/preguntar/responder y consejo_* sin pérdidas entre consejeros y agentes"
+            "s": [
+              "consejero_bandeja y consejero_mensaje sin pérdidas",
+              "consejero_preguntar y responder con trazas",
+              "consejo_* con estado de salud visible"
+            ]
           },
           {
             "t": "Panel de flota fiable",
-            "d": "flota_estado y encargos_listar como fuente única del estado de la flota"
+            "s": [
+              "flota_estado como fuente única",
+              "Encargos por máquina y agente",
+              "Alarma cuando la cabecera es inconsistente"
+            ]
+          },
+          {
+            "t": "Handoff nocturno automático",
+            "s": [
+              "Cerrar terminales del agente saliente",
+              "Traspaso de encargos abiertos",
+              "Informe de relevo"
+            ]
           }
         ],
         "trimestre": [
           {
             "t": "admira.live como nexo operativo",
-            "d": "Orquestación de agentes, consejo y encargos de todas las verticales desde admira.live"
+            "s": [
+              "Encargos de todas las verticales",
+              "Consejo y agentes en un solo panel",
+              "Responsables por vertical visibles"
+            ]
+          },
+          {
+            "t": "Claves y accesos seguros",
+            "s": [
+              "Claves solo por Telegram privado de Carlos",
+              "Nada de copiar credenciales entre máquinas sin OK",
+              "Auditoría de accesos"
+            ]
+          },
+          {
+            "t": "Integración con admira.app",
+            "s": [
+              "Incidencias del supervisor como encargos",
+              "Inventario visible desde live",
+              "Proof of play compartido"
+            ]
           }
         ]
       }
@@ -291,38 +715,110 @@
       "roadmap": {
         "manana": [
           {
-            "t": "Publicar roadmap combo",
-            "d": "Selector por proyecto en admiranext.com/roadmap, tras OK de Carlos"
+            "t": "Revisar presite explainer de las 4 tortugas",
+            "s": [
+              "Repasar escenas y mueble arcade",
+              "Decidir colores de las tortugas con Carlos",
+              "Anotar ajustes antes de publicar"
+            ]
+          },
+          {
+            "t": "Comprobar /roadmap publicado",
+            "s": [
+              "Revisar los 7 proyectos en el combo",
+              "Comprobar ?p= en la URL",
+              "Captura de prueba"
+            ]
+          },
+          {
+            "t": "Revisar formulario /demo",
+            "s": [
+              "Probar envío del formulario",
+              "Revisar campos y textos",
+              "Anotar mejoras"
+            ]
           }
         ],
         "semana": [
           {
             "t": "Presites explainer + vídeos verticales",
-            "d": "Formato presite (página casi vídeo) y vídeo vertical por solución"
+            "s": [
+              "Publicar presite de tortugas tras OK",
+              "Vídeo vertical con música",
+              "Enlazar desde admiranext.com"
+            ]
           },
           {
             "t": "Formulario /demo",
-            "d": "Revisar y pulir el formulario de solicitud de demo"
+            "s": [
+              "Aplicar mejoras anotadas",
+              "Confirmación clara al enviar",
+              "Prueba de extremo a extremo"
+            ]
+          },
+          {
+            "t": "Validar roadmap con Carlos",
+            "s": [
+              "Repasar regla del 123 y el abc",
+              "Ajustar prioridades",
+              "Quitar marca de borrador lo validado"
+            ]
           }
         ],
         "mes": [
           {
             "t": "DESIGN.md: sistema de diseño",
-            "d": "Documentar el sistema de diseño del sitio en DESIGN.md"
+            "s": [
+              "Documentar colores y tipografías",
+              "Documentar componentes",
+              "Enlazar con el libro de estilo"
+            ]
           },
           {
             "t": "Herramientas de diseño",
-            "d": "Taste Skill, Vercel web-design-guidelines, awesome-design-md e image-to-code en el flujo de diseño"
+            "s": [
+              "Taste Skill y Vercel web-design-guidelines",
+              "awesome-design-md como referencia",
+              "image-to-code para maquetas"
+            ]
+          },
+          {
+            "t": "Revisión de páginas con el sistema",
+            "s": [
+              "Aplicar DESIGN.md a /roadmap",
+              "Aplicar a /presentaciones",
+              "Aplicar a la portada"
+            ]
           }
         ],
         "trimestre": [
           {
             "t": "Capturas como prueba en cada cambio",
-            "d": "playwright-cli para capturas de prueba en cada publicación de admiranext.com"
+            "s": [
+              "playwright-cli en cada publicación",
+              "Guardar capturas por sello",
+              "Mostrar última captura en /webmaster"
+            ]
+          },
+          {
+            "t": "Sitio coherente con el sistema de diseño",
+            "s": [
+              "Todas las páginas revisadas",
+              "Eliminar estilos sueltos",
+              "Revisión con Carlos"
+            ]
+          },
+          {
+            "t": "admiranext.com como escaparate",
+            "s": [
+              "Presites de las 4 patas",
+              "Roadmap vivo",
+              "Acceso a demos"
+            ]
           }
         ]
       }
     }
   ],
-  "regla": "regla del 123: máximo 3 elementos por horizonte, en orden de prioridad"
+  "regla": "regla del 123 y el abc: 3 ideas por horizonte (1,2,3), cada una con 3 subobjetivos (a,b,c)"
 }
