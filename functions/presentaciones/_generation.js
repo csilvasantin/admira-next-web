@@ -3,12 +3,16 @@ export const DEFAULT_OUTPUTS = ['website','documents'];
 export const NOTEBOOKLM_OUTPUTS = new Set(['audio','video','pdf','powerpoint','infographic']);
 export const AUXILIARY_OUTPUTS = new Set(['backgrounds']);
 // Nativos: los sirve el propio sitio al instante (website, créditos y el documento = deck en PDF).
-export const NATIVE_OUTPUTS = new Set(['website','credits','postcredits','documents']);
+// LIBRO DE ESTILO (Carlos, 16-oct-2026): entregable fijo de TODA presentación. No está en OUTPUTS (no se
+// elige ni se desmarca: un guardado del editor de Ideas no lo puede perder); buildGeneration lo añade siempre,
+// una sola vez (castellano: es el documento interno de la casa) y apunta a /presentaciones/<slug>/estilo.
+export const ALWAYS_OUTPUTS = ['stylebook'];
+export const NATIVE_OUTPUTS = new Set(['website','credits','postcredits','documents','stylebook']);
 export const LANGUAGES = ['es','ca','en'];
 export const OUTPUT_LABELS = {
   website:'Website', audio:'Audio', video:'Vídeo', pdf:'PDF', powerpoint:'PowerPoint',
   documents:'Documento de trabajo', infographic:'Infografía', backgrounds:'Imágenes de fondo',
-  credits:'Créditos', postcredits:'Postcréditos'
+  credits:'Créditos', postcredits:'Postcréditos', stylebook:'Libro de estilo'
 };
 export const LANGUAGE_LABELS = { es:'Castellano', ca:'Català', en:'English' };
 export const VALID_STATUSES = new Set(['queued','processing','ready','published','complete','failed','skipped']);
@@ -63,6 +67,7 @@ function postProcess(output){
 
 function taskUrl(client, displayName, language, output){
   if (output === 'website') return `/presentaciones/${client}/presentacion?lang=${language}`;
+  if (output === 'stylebook') return `/presentaciones/${client}/estilo`;
   // DOCUMENTO DE TRABAJO = EL DECK EN PDF (MorfeoMacMini, 6-sep-2026 · FLT-100018). Era un entregable por
   // defecto que nadie producía: nacía «en cola» con proveedor admiranext, sin URL, y la matriz de
   // entregables se quedaba al 0 % para siempre —«no está generando las presentaciones» (Carlos)—.
@@ -83,9 +88,11 @@ function taskUrl(client, displayName, language, output){
 export function buildGeneration({client, displayName, outputs, languages, sourceText = ''}){
   const now = new Date().toISOString();
   const tasks = {};
-  const productionOutputs = outputs.filter(output => !AUXILIARY_OUTPUTS.has(output));
+  const productionOutputs = [...outputs.filter(output => !AUXILIARY_OUTPUTS.has(output) && !ALWAYS_OUTPUTS.includes(output)), ...ALWAYS_OUTPUTS];
   for (const language of languages) {
     for (const output of productionOutputs) {
+      // El libro de estilo es uno por presentación (no por idioma): solo la variante en castellano.
+      if (ALWAYS_OUTPUTS.includes(output) && language !== (languages.includes('es') ? 'es' : languages[0])) continue;
       const key = taskKey(language, output);
       tasks[key] = {
         id:key, language, languageLabel:LANGUAGE_LABELS[language], output, label:OUTPUT_LABELS[output],

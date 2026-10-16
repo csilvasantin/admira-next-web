@@ -42,9 +42,9 @@ test('normalization does not invent a third-party submission time',()=>{
 
 test('background images are recorded as an auxiliary Grok order, not duplicated per language',()=>{
   const job=buildGeneration({client:'demo',displayName:'Demo',outputs:['website','audio','backgrounds'],languages:['es','ca']});
-  assert.deepEqual(job.requested,['website','audio']);
+  assert.deepEqual(job.requested,['website','audio','stylebook']);   // + libro de estilo, fijo en toda presentación
   assert.equal(Object.values(job.tasks).some(task=>task.output==='backgrounds'),false);
-  assert.deepEqual(Object.keys(job.tasks).sort(),['ca:audio','ca:website','es:audio','es:website']);
+  assert.deepEqual(Object.keys(job.tasks).sort(),['ca:audio','ca:website','es:audio','es:stylebook','es:website']);
 });
 
 test('Grok aggregates slide phases into observable package progress',async()=>{

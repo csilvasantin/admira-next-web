@@ -104,7 +104,7 @@ export async function runCreateJob(context, job, { origin, cookie }) {
     const current = await readJob(context.env, job.id) || job;
     if (current.status === 'saved') return current;
     if (!response.ok) applyJobResult(current, { ok: false, error: (data && data.error) || `HTTP ${response.status}` });
-    else applyJobResult(current, { ok: true, result: { slug: data?.slug || current.slug, password: data?.password || null, narrativeSource: data?.narrativeSource || null } });
+    else applyJobResult(current, { ok: true, result: { slug: data?.slug || current.slug, password: data?.password || null, narrativeSource: data?.narrativeSource || null, styleBookUrl: data?.styleBookUrl || `/presentaciones/${data?.slug || current.slug}/estilo` } });
     await writeJob(context.env, current);
     return current;
   } catch (error) {

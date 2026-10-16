@@ -6,6 +6,8 @@
   const apiUrl = new URL(`./api/ideas`, location.href).pathname;
   const generationUrl = new URL(`./api/generation`, location.href).pathname;
   const historyLink=document.createElement('a');historyLink.className='btn';historyLink.href=new URL('./versiones',location.href).pathname;historyLink.textContent='Historial';document.querySelector('.top-actions')?.insertBefore(historyLink,document.querySelector('.top-actions .primary'));
+  // Libro de estilo (entregable fijo de toda presentación, 16-oct-2026): enlace junto al Historial.
+  const styleLink=document.createElement('a');styleLink.className='btn';styleLink.href=new URL('./estilo',location.href).pathname;styleLink.textContent='Libro de estilo';document.querySelector('.top-actions')?.insertBefore(styleLink,document.querySelector('.top-actions .primary'));
   const defaultUrl = `${apiUrl}?base=1`;
   const $ = (id) => document.getElementById(id);
   const ALL_OUTPUTS = ['website','audio','video','pdf','powerpoint','documents','infographic','backgrounds','credits','postcredits'];

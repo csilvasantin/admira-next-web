@@ -1,5 +1,5 @@
 const MAX_VERSIONS=100;
-const KEYS=['presentation','ideas','generation','image-set'];
+const KEYS=['presentation','ideas','generation','image-set','stylebook'];
 const clone=value=>value==null?null:JSON.parse(JSON.stringify(value));
 
 export async function captureVersion(env,client,reason='guardado',provided={}){
