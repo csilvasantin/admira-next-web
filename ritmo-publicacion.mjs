@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// ritmo-publicacion — TOPE DE CUATRO PUBLICACIONES POR HORA Y PROYECTO.
+// ritmo-publicacion — TOPE DE SEIS PUBLICACIONES POR HORA (una cada 10 min, Carlos 16-oct-2026) Y PROYECTO.
 //
 // Por qué existe. La noche del 9 al 10 de agosto de 2026 Yokup se publicó CINCO
 // veces de madrugada (r1 00:01, r2 00:39, r3 00:57, r4 01:01, r5 08:05) más las
@@ -20,12 +20,12 @@
 // ritmo. PUBLICACION_URGENTE="<motivo>" publica igual, deja el motivo escrito en
 // la salida y lo anuncia. Lo que no admite es saltárselo en silencio.
 //
-// Uso:  node scripts/ritmo-publicacion.mjs [--proyecto yokup-rtc] [--tope 4]
+// Uso:  node scripts/ritmo-publicacion.mjs [--proyecto yokup-rtc] [--tope 6]
 //       Sale 0 si se puede publicar, 1 si no.
 
 import { execFileSync } from "node:child_process";
 
-export const TOPE_POR_HORA = 4;
+export const TOPE_POR_HORA = 6;
 export const VENTANA_MINUTOS = 60;
 
 function git(args, { silencioso = true } = {}) {
