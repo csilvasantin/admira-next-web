@@ -71,7 +71,8 @@ test('fuera de biz /demo dooh starbucks lleva al Tour DooH de Starbucks México 
       const u = new URL(p.url);
       assert.equal(u.origin, 'https://www.admira.biz');
       assert.equal(u.pathname, '/');
-      assert.equal(u.searchParams.get('ax_cmd'), 'demo-dooh-starbucks');
+      // Determinista: el id de biz, no «starbucks»/«alsea», que en biz también son Starbucks España.
+      assert.equal(u.searchParams.get('ax_cmd'), 'demo-dooh-starbucks-mexico');
       assert.equal(u.searchParams.get('marca'), 'starbucks');
       assert.equal(u.searchParams.get('lang'), 'es');
     }
@@ -96,7 +97,7 @@ test('la orden navega en la misma pestaña y avisa en el registro del Experto', 
   assert.equal(r.id, 'dooh-starbucks');
   assert.ok(s.lines().includes('Abriendo el Tour DooH de Starbucks México en admira.biz…'), s.lines().join('\n'));
   assert.equal(s.assigned.length, 1);
-  assert.equal(s.assigned[0], 'https://www.admira.biz/?ax_cmd=demo-dooh-starbucks&marca=starbucks&lang=es');
+  assert.equal(s.assigned[0], 'https://www.admira.biz/?ax_cmd=demo-dooh-starbucks-mexico&marca=starbucks&lang=es');
   const a = suite('www.admira.store');
   a.run('/demo dooh altadis');
   assert.ok(a.lines().includes('Abriendo el Tour DooH de Altadis España en admira.biz…'));
@@ -122,6 +123,27 @@ test('/demo dooh sin cliente lista los disponibles; un cliente desconocido no na
   assert.equal(u.api.parseDemo('/demo dooh').lista, true);
 });
 
+test('Altadis no se confunde con JTI ni con Xtanco Nacional (encargo #4969): xtanco, xtancos, estancos y est no llevan a Altadis', () => {
+  for (const h of ['www.admira.studio', 'www.admira.store', 'www.admira.app']) {
+    for (const cliente of ['xtanco', 'xtancos', 'estancos', 'est', 'estanco', 'xtan', 'jti']) {
+      const s = suite(h);
+      const p = s.api.parseDemo('/demo dooh ' + cliente);
+      assert.ok(!p.url, h + ' · ' + cliente + ' no resuelve a ningún tour');
+      s.run('/demo dooh ' + cliente);
+      assert.equal(s.assigned.length, 0, h + ' · ' + cliente + ' no navega');
+      assert.match(s.lines().join('\n'), new RegExp('Cliente DooH desconocido: ' + cliente), h + ' · ' + cliente + ' avisa');
+      const v = suite(h);
+      v.run('/vision general ' + cliente);
+      assert.equal(v.assigned.length, 0, h + ' · /vision general ' + cliente + ' no navega');
+    }
+    // El prefijo solo vale contra el id: «alt» y «star» sí; un alias de varias palabras a medias, no.
+    const s = suite(h);
+    assert.equal(s.api.parseDemo('/demo dooh alt').id, 'dooh-altadis');
+    assert.equal(s.api.parseDemo('/demo dooh star').id, 'dooh-starbucks');
+    assert.ok(!s.api.parseDemo('/demo dooh altadis esp').url);
+  }
+});
+
 test('/demo alsea sigue siendo la presentación web y /demo store sigue abriendo su solución', () => {
   const {api} = suite('www.admira.app');
   assert.equal(api.parseDemo('/demo alsea').presentation, true);
@@ -135,7 +157,7 @@ test('/vision general <cliente> abre la visión general en admira.biz', () => {
   assert.ok(s.lines().includes('Abriendo la visión general de Altadis España en admira.biz…'));
   const t = suite('www.admira.store');
   t.run('/vision starbucks');
-  assert.equal(t.assigned[0], 'https://www.admira.biz/?ax_cmd=vision-general-starbucks&marca=starbucks&lang=es');
+  assert.equal(t.assigned[0], 'https://www.admira.biz/?ax_cmd=vision-general-starbucks-mexico&marca=starbucks&lang=es');
   const v = suite('www.admira.app');
   v.run('/vision general');
   assert.equal(v.assigned.length, 0);
@@ -150,6 +172,10 @@ test('en admira.biz y clearchannel.tv la suite no intercepta: manda el expert-co
     assert.ok(!p || (!p.dooh && !String(p.url || '').includes('ax_cmd=')), h);
     assert.equal(s.api.parseDemo('/demo dooh').id, 'biz/circuito', h);
     assert.equal(s.api.has('vision'), false, h);
+    // La lista de /demo no enseña el bloque de Tours DooH «desde cualquier pata»: allí lo atiende biz.
+    s.run('/demo');
+    assert.ok(s.lines().length > 3, h);
+    assert.doesNotMatch(s.lines().join('\n'), /Tours DooH en admira\.biz|DooH Tours on admira\.biz/, h);
     // Con el adaptador de biz, /demo dooh lo atiende la pata y la suite no navega.
     const got = [];
     s.api.registerAdapter({id: 'biz-map-demo', demos: [{name: 'dooh', run: (args) => { got.push(args.join(' ')); return {ok: true}; }}],
