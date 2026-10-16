@@ -532,5 +532,9 @@
   "v.16.10.2026.r6.19:43": [
     "El modo Experto respeta la paleta del portal: fondo claro, texto y acentos coherentes con el aspecto seleccionado.",
     "Los campos, la salida y las fichas del modo Experto actualizan sus colores al cambiar la paleta del marco."
+  ],
+  "v.16.10.2026.r7.19:53": [
+    "El modo Experto hereda la marca seleccionada, la paleta del marco o el tema nativo en las plataformas que usan la hoja compartida.",
+    "Campos, textos, tipografía y acentos responden a los cambios claro/oscuro; corregida la legibilidad del editor de Store con marcas claras."
   ]
 }

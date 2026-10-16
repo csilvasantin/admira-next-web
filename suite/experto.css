@@ -1,20 +1,20 @@
 /* ⌘ EXPERTO · CLI — piel compartida de la suite AdmiraNeXT (studio, store, app, tv, biz).
    Carlos, 4-oct-2026: el modo Experto de todas las patas con el look de digitalavatar.ai.
    Fuente: csilvasantin/digitalavatar.ai assets/da-shell.css (#daExpert .yk-cli + generator-console).
-   Respeta los tokens del marco anfitrión; sin ellos conserva la paleta de consola original.
+   Prioridad: marca seleccionada (--mb/--mbx), marco (--yk), paleta nativa; sin ellos conserva la paleta de consola original.
    Uso:  <link rel="stylesheet" href="https://admiranext.com/suite/experto.css?v=…">
          <script defer src="https://admiranext.com/suite/experto.js?v=…" data-engine="ADMIRA BIZ ENGINE" data-pata="admira.biz"></script>
    experto.js marca el panel con .ax-experto y las piezas con .ax-*; esta hoja no toca nada más. */
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap");
 
 html[data-ax-experto] .ax-experto{
-  --ax-bg:var(--yk-bg,#0a0c12);--ax-bg2:var(--yk-bg2,#10141e);
-  --ax-text:var(--yk-ink,#f0e6ff);--ax-muted:var(--yk-mut,rgba(216,200,255,.72));
-  --ax-field:var(--yk-field,#050a12);--ax-output:var(--yk-card,#05090f);--ax-engine-bg:var(--yk-bg2,#03080c);
-  --ax-extra-bg:var(--yk-bg2,rgba(2,8,13,.55));--ax-placeholder:var(--yk-dim,rgba(216,200,255,.45));
-  --ax-border:var(--yk-line,rgba(80,200,255,.35));--ax-shadow:var(--yk-shadow,0 0 40px rgba(0,0,0,.6));
-  --ax-cyan:var(--yk-brand,#50c8ff);--ax-green:var(--yk-ok,#3df08a);--ax-err:var(--yk-err,#ffbc8c);
-  --ax-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ax-bg:var(--mb-fondo,var(--yk-bg,var(--bg,#0a0c12)));--ax-bg2:var(--mb-superficie,var(--yk-bg2,var(--card,var(--bg2,var(--bg,#10141e)))));
+  --ax-text:var(--mbx-ink,var(--mb-texto,var(--yk-ink,var(--ink,#f0e6ff))));--ax-muted:var(--mbx-mut,var(--mb-texto-suave,var(--yk-mut,var(--mut,rgba(216,200,255,.72)))));
+  --ax-field:var(--mb-superficie,var(--yk-field,var(--card,var(--bg2,var(--bg,#050a12)))));--ax-output:var(--mb-superficie,var(--yk-card,var(--card,var(--bg2,var(--bg,#05090f)))));--ax-engine-bg:var(--mb-superficie-alt,var(--yk-bg2,var(--card2,var(--bg2,var(--bg,#03080c)))));
+  --ax-extra-bg:var(--mb-superficie-alt,var(--yk-bg2,var(--card2,var(--bg2,var(--bg,rgba(2,8,13,.55))))));--ax-placeholder:var(--mbx-mut,var(--yk-dim,var(--mut,rgba(216,200,255,.45))));
+  --ax-border:var(--mb-borde,var(--yk-line,var(--line,rgba(80,200,255,.35))));--ax-shadow:var(--mb-sombra-sm,var(--yk-shadow,0 0 40px rgba(0,0,0,.6)));
+  --ax-cyan:var(--mbx-brand,var(--mb-primario,var(--yk-brand,var(--accent,#50c8ff))));--ax-green:var(--mbx-ok,var(--mb-ok,var(--yk-ok,var(--good,#3df08a))));--ax-err:var(--mbx-error,var(--mb-error,var(--yk-err,var(--warn,#ffbc8c))));
+  --ax-mono:var(--mb-fuente-mono,var(--yk-mono,"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace));
   background:linear-gradient(180deg,var(--ax-bg),var(--ax-bg2))!important;
   border:1px solid var(--ax-border)!important;border-bottom:0!important;border-radius:0!important;
   box-shadow:var(--ax-shadow)!important;
@@ -159,3 +159,8 @@ html[data-ax-native-dock] [data-ax-dock-host]>.yk-rail-navhd,html[data-ax-native
 
 /* The mascot always clears the actual shared dock, including native nested rails. */
 html[data-ax-experto][data-ax-dock="open"] #da-suite{bottom:calc(var(--ax-dock-current-height,52px) + 16px)!important}
+
+/* Native editors may carry ID-based colours: the selected palette also owns their text. */
+html[data-ax-experto][data-ax-experto] .ax-experto.ax-experto .ax-cli-input{
+  color:var(--ax-text)!important;-webkit-text-fill-color:var(--ax-text)!important;
+}
