@@ -553,5 +553,10 @@
   ],
   "v.16.10.2026.r12.21:55": [
     "RoadMap: fuerza recarga del selector para ver los subobjetivos abc"
+  ],
+  "v.16.10.2026.r13.22:41": [
+    "RoadMap: Ayer/Hoy/Mañana arriba, Semana/Mes/Trimestre debajo, edición y barras de progreso",
+    "Ver por Proyecto, Agente o Consejero con su 123 y abc",
+    "MCP: herramientas roadmap_* para consejeros y agentes"
   ]
 }
