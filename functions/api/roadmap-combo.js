@@ -7,70 +7,14 @@
  * También guarda los planes por agente y por consejero (tipo agente|consejero).
  * Sin binding nuevo ni migración.
  */
-import SEMILLA from '../../data/roadmap/proyectos.json' with { type: 'json' };
 import { sesionCompleta, csrfValido } from '../_webmaster-gate.js';
-
-const CLAVE = 'roadmap-combo:v1';
-const HORIZONTES = ['ayer', 'hoy', 'manana', 'semana', 'mes', 'trimestre'];
-const EDITABLES = new Set(['hoy', 'manana', 'semana', 'mes', 'trimestre']);
-const ESTADOS = new Set(['hecho', 'parcial', 'no']);
+import { leer, guardar } from '../_roadmap-combo.js';
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: {
     'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, no-store',
     'x-content-type-options': 'nosniff', 'x-robots-tag': 'noindex, nofollow' } });
 }
-const txt = (v, max) => (typeof v === 'string' && v.trim() && v.length <= max ? v.trim() : null);
-
-async function leer(env) {
-  let doc = null;
-  try { doc = env.PRESENTATION_IDEAS && await env.PRESENTATION_IDEAS.get(CLAVE, { type: 'json' }); } catch (_) { doc = null; }
-  if (!doc) return { ...SEMILLA, rev: 0, origen: 'semilla' };
-  // Agentes y consejeros (16-10-2026): lo que falte en el documento guardado sale de la semilla.
-  const hay = new Set((doc.proyectos || []).map((p) => p.id));
-  const faltan = SEMILLA.proyectos.filter((p) => !hay.has(p.id));
-  return faltan.length ? { ...doc, proyectos: [...doc.proyectos, ...faltan], sinPlan: SEMILLA.sinPlan } : doc;
-}
-
-/** Valida y normaliza. Devuelve null si algo no cuadra (regla del 123 y el abc). */
-export function validar(entrada, base) {
-  if (!entrada || !Array.isArray(entrada.proyectos)) return null;
-  const ids = new Set(base.proyectos.map((p) => p.id));
-  const out = { ...base, proyectos: [] };
-  for (const p of base.proyectos) {
-    const nuevo = entrada.proyectos.find((x) => x && x.id === p.id);
-    const roadmap = {};
-    for (const h of HORIZONTES) {
-      const orig = (p.roadmap && p.roadmap[h]) || [];
-      if (!EDITABLES.has(h) || !nuevo || !nuevo.roadmap) { roadmap[h] = orig; continue; }
-      const lista = nuevo.roadmap[h];
-      if (!Array.isArray(lista) || lista.length > 3) return null;
-      roadmap[h] = [];
-      for (const it of lista) {
-        if (it && typeof it.ref === 'string') { if (!/^[a-z]+-[a-z]+-[0-9a-z]+$/.test(it.ref) || !ids.has(it.ref.split('-')[0])) return null; roadmap[h].push({ ref: it.ref }); continue; }
-        const t = txt(it && it.t, 120); const id = txt(it && it.id, 40);
-        if (!t || !id || !/^[a-z0-9-]+$/.test(id)) return null;
-        const s = Array.isArray(it.s) ? it.s : [];
-        if (s.length > 3) return null;
-        const subs = s.map((x) => txt(x, 200));
-        if (subs.some((x) => !x)) return null;
-        const hs = subs.map((_, k) => !!(Array.isArray(it.hs) && it.hs[k]));
-        const item = { id, t, s: subs, hs };
-        if (it.pct !== undefined && it.pct !== null && it.pct !== '') {
-          const n = Number(it.pct); if (!Number.isFinite(n) || n < 0 || n > 100) return null; item.pct = Math.round(n);
-        }
-        if (Array.isArray(it.de)) item.de = it.de.filter((x) => typeof x === 'string' && /^[a-z0-9-]+$/.test(x)).slice(0, 9);
-        if (it.e && ESTADOS.has(it.e)) item.e = it.e;
-        roadmap[h].push(item);
-      }
-    }
-    const fila = { ...p, roadmap };
-    if (p.tipo === 'consejero' && nuevo && (nuevo.aprobacion === 'propuesto' || nuevo.aprobacion === 'ok')) fila.aprobacion = nuevo.aprobacion;
-    out.proyectos.push(fila);
-  }
-  return out;
-}
-
 export async function onRequestGet({ request, env }) {
   if (!env.WEBMASTER_SIGNING_KEY) return json({ error: 'Acceso no disponible.' }, 503);
   const current = await sesionCompleta(request, env);
@@ -88,14 +32,9 @@ export async function onRequestPut({ request, env }) {
   const cuerpo = await request.text();
   if (cuerpo.length > 200000) return json({ error: 'Demasiado grande.' }, 413);
   let entrada; try { entrada = JSON.parse(cuerpo); } catch (_) { return json({ error: 'JSON no válido.' }, 400); }
-  const base = await leer(env);
-  if (Number(entrada.rev) !== Number(base.rev || 0)) return json({ error: 'Otro cambio se guardó antes. Recarga.', rev: base.rev || 0 }, 409);
-  const doc = validar(entrada, base);
-  if (!doc) return json({ error: 'Datos no válidos (máx. 3 ideas y 3 subobjetivos).' }, 422);
-  doc.rev = Number(base.rev || 0) + 1; doc.origen = 'kv';
-  doc.editado = { por: current.email, en: new Date().toISOString() };
-  await env.PRESENTATION_IDEAS.put(CLAVE, JSON.stringify(doc));
-  return json({ ok: true, rev: doc.rev });
+  const r = await guardar(env, entrada, current.email);
+  if (!r.ok) return json({ error: r.error, rev: r.rev }, r.status);
+  return json({ ok: true, rev: r.rev });
 }
 
 const no = () => json({ error: 'Método no permitido.' }, 405);
