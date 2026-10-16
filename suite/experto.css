@@ -164,3 +164,52 @@ html[data-ax-experto][data-ax-dock="open"] #da-suite{bottom:calc(var(--ax-dock-c
 html[data-ax-experto][data-ax-experto] .ax-experto.ax-experto .ax-cli-input{
   color:var(--ax-text)!important;-webkit-text-fill-color:var(--ax-text)!important;
 }
+
+@layer expertLegibility {
+/* Native Xpace shells use ID selectors and !important. Keep the whole visible
+   dock, including editor and engine card, under the same selected palette. */
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto{
+  background:linear-gradient(180deg,var(--ax-bg),var(--ax-bg2))!important;
+  color:var(--ax-text)!important;border-color:var(--ax-border)!important;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto .ax-engine{
+  background:var(--ax-engine-bg)!important;color:var(--ax-green)!important;
+  -webkit-text-fill-color:var(--ax-green)!important;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto .ax-cli-form{
+  background:var(--ax-field)!important;border-color:var(--ax-border)!important;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto :is(#xsCli,.ax-cli-input){
+  background:transparent!important;color:var(--ax-text)!important;
+  -webkit-text-fill-color:var(--ax-text)!important;border:0!important;
+  font-family:var(--ax-mono)!important;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto .ax-cli-input::placeholder{
+  color:var(--ax-placeholder)!important;-webkit-text-fill-color:var(--ax-placeholder)!important;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto .ax-cli-out{
+  background:var(--ax-output)!important;color:var(--ax-muted)!important;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto :is(.ax-title,.ax-cli-prompt,.ax-hd button){
+  color:var(--ax-cyan)!important;-webkit-text-fill-color:var(--ax-cyan)!important;
+}
+
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto :is(#expertCategoryDetail,.ax-extra,.expert-controls-pane,.expert-view-pane,.xs-category-detail,.tg-pane,.tg-cli-row,.expert-docked-panel,.xs-expert-docked,.ax-cli,.ax-body,.ax-cli-module,.ax-own-panel,.ax-form-path){
+  background:var(--ax-bg2)!important;color:var(--ax-text)!important;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto :is(button,select,a){
+  background:var(--ax-field)!important;color:var(--ax-cyan)!important;border-color:var(--ax-border)!important;color-scheme:inherit;
+}
+html[data-ax-experto][data-ax-experto] :is(#xsExpert,.ax-experto).ax-experto :is(button,a) :is(span,small,strong,b){color:inherit!important}
+/* Native category panels can sit outside the shared CLI mount. */
+html[data-mb-marca] :is(#xsExpert,#telegramDock,.xs-expert){background:var(--mb-superficie)!important;color:var(--mbx-ink,var(--mb-texto))!important}
+html[data-mb-marca] :is(#xsExpert,#telegramDock,.xs-expert) :is(#expertCategoryDetail,.expert-controls-pane,.expert-view-pane,.expert-docked-panel,.xs-expert-docked,.xs-category-detail,.ax-cli,.ax-body,.ax-cli-module,.ax-own-panel,.ax-form-path,.xs-hint){
+ background:var(--mb-superficie)!important;color:var(--mbx-ink,var(--mb-texto))!important;
+}
+html[data-mb-marca] :is(#xsExpert,#telegramDock,.xs-expert) :is(div,p,span,small,strong,b,label,summary,output,pre,code,h2,h3,[role="status"]){color:var(--mbx-ink,var(--mb-texto))!important}
+html[data-mb-marca] :is(#xsExpert,#telegramDock,.xs-expert) :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select,button,a){
+ background:var(--mb-superficie)!important;color:var(--mbx-ink,var(--mb-texto))!important;border-color:var(--mb-borde)!important;color-scheme:inherit;
+}
+html[data-mb-marca] :is(#xsExpert,#telegramDock,.xs-expert) :is(input,textarea)::placeholder{color:var(--mbx-mut,var(--mb-texto-suave))!important;-webkit-text-fill-color:var(--mbx-mut,var(--mb-texto-suave))!important}
+
+}

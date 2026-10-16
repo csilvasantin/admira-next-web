@@ -536,5 +536,9 @@
   "v.16.10.2026.r7.19:53": [
     "El modo Experto hereda la marca seleccionada, la paleta del marco o el tema nativo en las plataformas que usan la hoja compartida.",
     "Campos, textos, tipografía y acentos responden a los cambios claro/oscuro; corregida la legibilidad del editor de Store con marcas claras."
+  ],
+  "v.16.10.2026.r8.20:12": [
+    "Los paneles nativos del modo Experto de Store y XpaceOS respetan la marca y el tema elegidos, incluidos editor, opciones y ficha del motor.",
+    "El ajuste conserva la legibilidad al cambiar claro/oscuro y evita que la antigua capa de contraste fuerce el fondo oscuro."
   ]
 }
