@@ -558,5 +558,8 @@
     "RoadMap: Ayer/Hoy/Mañana arriba, Semana/Mes/Trimestre debajo, edición y barras de progreso",
     "Ver por Proyecto, Agente o Consejero con su 123 y abc",
     "MCP: herramientas roadmap_* para consejeros y agentes"
+  ],
+  "v.16.10.2026.r14.23:04": [
+    "Acceso: login por token MCP personal (anmcp_) para agentes y consejeros, alternativa a Google"
   ]
 }
