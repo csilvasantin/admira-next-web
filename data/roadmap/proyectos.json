@@ -26,7 +26,8 @@
         "ayer": [
           {
             "t": "Sin registro de lo hecho ayer",
-            "s": []
+            "s": [],
+            "id": "studio-ayer-1"
           }
         ],
         "hoy": [
@@ -36,7 +37,13 @@
               "Look de monitor analógico CRT dentro del mueble arcade",
               "Nombres de tortugas, solo uso interno",
               "Vídeo vertical MP4 grabado con presite-video.mjs"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-hoy-1"
           },
           {
             "t": "Pendientes del presite",
@@ -44,7 +51,13 @@
               "Colores: patas o colores de la serie (decide Carlos)",
               "Música con Suno desde el navegador del box",
               "Publicación tras OK de Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-hoy-2"
           },
           {
             "t": "Trinity responsable de admira.studio",
@@ -52,7 +65,13 @@
               "Asignación hecha por Carlos",
               "Mejora continua de la vertical",
               "Primer informe pendiente"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-hoy-3"
           }
         ],
         "manana": [
@@ -62,7 +81,13 @@
               "Repasar las escenas boot, roster, héroes, equipo y cierre",
               "Comprobar el look de monitor analógico en el mueble arcade",
               "Validar con Carlos los colores de las tortugas"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-manana-1"
           },
           {
             "t": "Revisar el vídeo vertical del presite",
@@ -70,7 +95,13 @@
               "Grabar con ?record=1 y scripts/presite-video.mjs",
               "Comparar ritmo con la referencia del intro KOF 2002",
               "Anotar cortes y escenas a ajustar"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-manana-2"
           },
           {
             "t": "Nombres de tortugas solo para uso interno",
@@ -78,7 +109,13 @@
               "Marcar el presite de tortugas como interno",
               "Preparar versión con nombres de las patas para externo",
               "Confirmar criterio con Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-manana-3"
           }
         ],
         "semana": [
@@ -88,7 +125,13 @@
               "Componer la pista en Suno desde el navegador del box",
               "Montar la pista sobre el vídeo vertical",
               "Revisar volumen y final con Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-semana-1"
           },
           {
             "t": "Publicar el presite tras OK de Carlos",
@@ -96,7 +139,13 @@
               "Abrir PR en admira-next-web",
               "Merge solo con OK de Carlos",
               "Desplegar y adjuntar captura como prueba"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-semana-2"
           },
           {
             "t": "Presite por cada pilar",
@@ -104,7 +153,13 @@
               "Presite de admira.studio",
               "Presite de admira.store y admira.app",
               "Presite de admira.biz"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-semana-3"
           }
         ],
         "mes": [
@@ -114,7 +169,13 @@
               "Plantilla de presite reutilizable por temática",
               "Selector de temática en el generador",
               "Exportar página y vídeo vertical desde el generador"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-mes-1"
           },
           {
             "t": "Temáticas adicionales",
@@ -122,7 +183,13 @@
               "Definir temáticas candidatas con Carlos",
               "Implementar una segunda temática",
               "Documentar cómo añadir temáticas"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-mes-2"
           },
           {
             "t": "Grabación automática de vídeos",
@@ -130,7 +197,13 @@
               "Script de grabación por presite",
               "Salida vertical lista para redes",
               "Guardar vídeos versionados"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-mes-3"
           }
         ],
         "trimestre": [
@@ -140,7 +213,13 @@
               "Catálogo de presites publicados",
               "Presite enlazado desde cada propuesta comercial",
               "Revisión periódica de presites caducados"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-trimestre-1"
           },
           {
             "t": "Presites en propuestas comerciales",
@@ -148,7 +227,13 @@
               "Insertar presite en el flujo de propuestas",
               "Versión externa sin nombres internos",
               "Medir uso con Analitics"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-trimestre-2"
           },
           {
             "t": "Vídeos verticales para redes",
@@ -156,7 +241,13 @@
               "Plan de publicación por pilar",
               "Adaptar formatos a cada red",
               "Revisión de marca antes de publicar"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "studio-trimestre-3"
           }
         ]
       }
@@ -170,7 +261,8 @@
         "ayer": [
           {
             "t": "Sin registro de lo hecho ayer",
-            "s": []
+            "s": [],
+            "id": "store-ayer-1"
           }
         ],
         "hoy": [
@@ -180,7 +272,13 @@
               "Asignación hecha por Carlos",
               "Revisar encargos abiertos de Store",
               "Primer informe pendiente"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-hoy-1"
           }
         ],
         "manana": [
@@ -190,7 +288,13 @@
               "Listar demos activas en /marcablanca",
               "Anotar estado de cada demo",
               "Marcar las que fallan"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-manana-1"
           },
           {
             "t": "Revisar gemelo digital de tienda",
@@ -198,7 +302,13 @@
               "Abrir el visor del gemelo actual",
               "Anotar qué contenido muestra",
               "Detectar huecos frente a tienda real"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-manana-2"
           },
           {
             "t": "Responsable Neo al frente de Store",
@@ -206,7 +316,13 @@
               "Confirmar encargos abiertos de Store",
               "Reasignar a Neo lo pendiente",
               "Fijar primer informe de Neo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-manana-3"
           }
         ],
         "semana": [
@@ -216,7 +332,13 @@
               "Corregir las demos marcadas como fallidas",
               "Unificar estilo con el libro de estilo",
               "Capturas de prueba de cada demo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-semana-1"
           },
           {
             "t": "Demo de tienda piloto",
@@ -224,7 +346,13 @@
               "Elegir demo de referencia para piloto",
               "Preparar guion de demo",
               "Ensayar la demo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-semana-2"
           },
           {
             "t": "Contenido real en el gemelo",
@@ -232,7 +360,13 @@
               "Identificar fuente de contenido de tienda",
               "Conectar contenido al gemelo",
               "Validar visualmente"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-semana-3"
           }
         ],
         "mes": [
@@ -242,7 +376,13 @@
               "Sincronizar playlist con el gemelo",
               "Mostrar estado de pantallas en el gemelo",
               "Captura como proof of play"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-mes-1"
           },
           {
             "t": "Demos de marca blanca por cliente tipo",
@@ -250,7 +390,13 @@
               "Plantilla por sector",
               "Personalización de marca rápida",
               "Checklist de entrega"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-mes-2"
           },
           {
             "t": "Gemelo en el laboratorio",
@@ -258,7 +404,13 @@
               "Modelar el laboratorio de Gran de Gràcia 51",
               "Vincular pantallas del inventario",
               "Mostrarlo en la visita del lab"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-mes-3"
           }
         ],
         "trimestre": [
@@ -268,7 +420,13 @@
               "Proceso de alta de gemelo por tienda",
               "Plantilla de gemelo reutilizable",
               "Incluir gemelo en propuesta Store"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-trimestre-1"
           },
           {
             "t": "Catálogo de demos Store",
@@ -276,7 +434,13 @@
               "Publicar catálogo interno",
               "Enlazar demos desde presites",
               "Mantener demos vivas"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-trimestre-2"
           },
           {
             "t": "Store integrado con App",
@@ -284,7 +448,13 @@
               "Estado de pantallas de tienda desde admira.app",
               "Incidencias de tienda en el supervisor",
               "Inventario de tienda en la CMDB"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "store-trimestre-3"
           }
         ]
       }
@@ -298,7 +468,8 @@
         "ayer": [
           {
             "t": "Sin registro de lo hecho ayer",
-            "s": []
+            "s": [],
+            "id": "app-ayer-1"
           }
         ],
         "hoy": [
@@ -308,7 +479,13 @@
               "7 elementos de Gran de Gràcia 51 dados de alta en borrador",
               "MBP16, DGX Spark y admiratwin por confirmar",
               "Parche pendiente de push desde el Mac Mini"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-hoy-1"
           },
           {
             "t": "Oráculo responsable de admira.app",
@@ -316,7 +493,13 @@
               "Asignación hecha por Carlos",
               "#6350 anulado: el inventario lo hizo Grok Bot directamente",
               "Primer informe pendiente"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-hoy-2"
           },
           {
             "t": "GoPro #6324 sustituida por móvil",
@@ -324,7 +507,13 @@
               "Bloqueado todo el día",
               "Solo Jensen puede anularlo",
               "Pendiente de si Carlos quiere pedírselo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-hoy-3"
           }
         ],
         "manana": [
@@ -334,7 +523,13 @@
               "Revisar la CMDB (data/inventario/cmdb.json)",
               "PR y merge con OK de Carlos",
               "Desplegar y captura como prueba"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-manana-1"
           },
           {
             "t": "Incidencias de webcam del supervisor #6000",
@@ -342,7 +537,13 @@
               "Revisar incidencias abiertas",
               "Clasificar por causa",
               "Asignar responsable a cada una"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-manana-2"
           },
           {
             "t": "Responsable Oráculo al frente de App",
@@ -350,7 +551,13 @@
               "Revisar encargos abiertos de App",
               "Traspasar lo pendiente a Oráculo",
               "Primer informe de Oráculo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-manana-3"
           }
         ],
         "semana": [
@@ -360,7 +567,13 @@
               "Confirmar MBP16",
               "Confirmar DGX Spark",
               "Confirmar admiratwin"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-semana-1"
           },
           {
             "t": "Supervisor de soluciones #6000",
@@ -368,7 +581,13 @@
               "Cerrar las incidencias de webcam",
               "Alertas útiles sin ruido",
               "Captura del supervisor en verde"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-semana-2"
           },
           {
             "t": "Teléfono en el inventario",
@@ -376,7 +595,13 @@
               "Dar de alta el móvil de la visita del lab",
               "Vincularlo a la sincronización de contenido",
               "Actualizar estado del GoPro (#6324)"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-semana-3"
           }
         ],
         "mes": [
@@ -386,7 +611,13 @@
               "Enlazar incidencias con elementos de la CMDB",
               "Ver historial por elemento",
               "Estado del lab de un vistazo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-mes-1"
           },
           {
             "t": "Inventario del resto de ubicaciones",
@@ -394,7 +625,13 @@
               "Listar ubicaciones a inventariar",
               "Alta de elementos conocidos",
               "Revisión con Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-mes-2"
           },
           {
             "t": "Gestión de cambios ITIL básica",
@@ -402,7 +639,13 @@
               "Registrar cambios por elemento",
               "Responsable de cada cambio",
               "Traza visible en admira.app"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-mes-3"
           }
         ],
         "trimestre": [
@@ -412,7 +655,13 @@
               "Todo el parque en la CMDB",
               "Supervisor sobre todo el parque",
               "Informes desde admira.app"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-trimestre-1"
           },
           {
             "t": "Proof of play centralizado",
@@ -420,7 +669,13 @@
               "Capturas de pantallas en admira.app",
               "Vínculo con encargos de admira.live",
               "Consulta por cliente"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-trimestre-2"
           },
           {
             "t": "App al servicio de los 4 pilares",
@@ -428,7 +683,13 @@
               "Datos de Store en App",
               "Datos de Biz en App",
               "Panel para Admira.TV"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "app-trimestre-3"
           }
         ]
       }
@@ -442,7 +703,8 @@
         "ayer": [
           {
             "t": "Sin registro de lo hecho ayer",
-            "s": []
+            "s": [],
+            "id": "biz-ayer-1"
           }
         ],
         "hoy": [
@@ -452,7 +714,13 @@
               "Asignación hecha por Carlos",
               "Revisar encargos abiertos de Biz",
               "Primer informe pendiente"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-hoy-1"
           },
           {
             "t": "Botones Apps/CLIs en /control (#5865)",
@@ -460,7 +728,13 @@
               "Esperando OK de Carlos",
               "Publicar ya o esperar PRs #202 y #204",
               "Sin respuesta todavía"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-hoy-2"
           }
         ],
         "manana": [
@@ -470,7 +744,13 @@
               "Listar playlists activas",
               "Detectar playlists caducadas",
               "Anotar cambios necesarios"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-manana-1"
           },
           {
             "t": "Responsable Morfeo al frente de Biz",
@@ -478,7 +758,13 @@
               "Revisar encargos abiertos de Biz",
               "Traspasar lo pendiente a Morfeo",
               "Primer informe de Morfeo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-manana-2"
           },
           {
             "t": "Estado de los circuitos Biz",
@@ -486,7 +772,13 @@
               "Revisar ficha actual de cada circuito",
               "Detectar huecos de información",
               "Priorizar circuitos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-manana-3"
           }
         ],
         "semana": [
@@ -496,7 +788,13 @@
               "Ficha del circuito de Barcelona",
               "Ficha del circuito de Madrid",
               "Revisión con Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-semana-1"
           },
           {
             "t": "Actualizar playlists de hilomusical",
@@ -504,7 +802,13 @@
               "Renovar playlists caducadas",
               "Ajustar por circuito",
               "Verificar reproducción"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-semana-2"
           },
           {
             "t": "Botones Apps/CLIs en /control (#5865)",
@@ -512,7 +816,13 @@
               "Obtener OK de Carlos",
               "Publicar o esperar PRs #202 y #204",
               "Captura de prueba"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-semana-3"
           }
         ],
         "mes": [
@@ -522,7 +832,13 @@
               "Ficha del circuito de London",
               "Ficha del circuito de New York",
               "Revisión con Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-mes-1"
           },
           {
             "t": "Hilo musical por circuito",
@@ -530,7 +846,13 @@
               "Playlist por ciudad",
               "Programación horaria",
               "Proof of play de audio"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-mes-2"
           },
           {
             "t": "Presentación comercial Biz",
@@ -538,7 +860,13 @@
               "Usar el presite de admira.biz",
               "Datos de los 4 circuitos",
               "Revisión con Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-mes-3"
           }
         ],
         "trimestre": [
@@ -548,7 +876,13 @@
               "Paquete por circuito",
               "Paquete combinado",
               "Material comercial"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-trimestre-1"
           },
           {
             "t": "Hilo musical como producto",
@@ -556,7 +890,13 @@
               "Catálogo de playlists",
               "Alta de clientes",
               "Soporte desde admira.app"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-trimestre-2"
           },
           {
             "t": "Biz integrado en Admira.TV",
@@ -564,7 +904,13 @@
               "Circuitos visibles en Admira.TV",
               "Informes conjuntos",
               "Revisión trimestral"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "biz-trimestre-3"
           }
         ]
       }
@@ -590,7 +936,13 @@
               "Un solo punto sobre el semáforo",
               "Alarma roja si la cabecera es incoherente"
             ],
-            "e": "hecho"
+            "e": "hecho",
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "tv-ayer-1"
           }
         ],
         "hoy": [
@@ -600,7 +952,13 @@
               "Terminada",
               "Libera a los responsables para la mejora continua",
               "#6305 posiblemente obsoleto"
-            ]
+            ],
+            "hs": [
+              true,
+              false,
+              false
+            ],
+            "id": "tv-hoy-1"
           },
           {
             "t": "Responsables por vertical",
@@ -608,7 +966,13 @@
               "Trinity studio, Neo store, Oráculo app, Morfeo biz",
               "Elon admira.tv, Jobs admiranext",
               "Solape de admira.live por aclarar"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "tv-hoy-2"
           },
           {
             "t": "Roadmap por proyecto publicado",
@@ -616,27 +980,21 @@
               "Combo de proyectos en /roadmap",
               "Regla del 123 y el abc",
               "PRs #205 a #207 desplegados"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "tv-hoy-3"
           }
         ],
         "manana": [
           {
-            "t": "Publicar inventario ITIL de Gran de Gràcia 51",
-            "s": [
-              "Revisar la CMDB (data/inventario/cmdb.json)",
-              "PR y merge con OK de Carlos",
-              "Desplegar y captura como prueba"
-            ],
-            "o": "app"
+            "ref": "app-manana-1"
           },
           {
-            "t": "Revisar el presite explainer",
-            "s": [
-              "Repasar las escenas boot, roster, héroes, equipo y cierre",
-              "Comprobar el look de monitor analógico en el mueble arcade",
-              "Validar con Carlos los colores de las tortugas"
-            ],
-            "o": "studio"
+            "ref": "studio-manana-1"
           },
           {
             "t": "Asignar responsables por vertical",
@@ -645,65 +1003,34 @@
               "Encargos abiertos traspasados",
               "Resolver solape de admira.live"
             ],
-            "o": "tv"
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "tv-manana-3"
           }
         ],
         "semana": [
           {
-            "t": "Supervisor de soluciones #6000",
-            "s": [
-              "Cerrar las incidencias de webcam",
-              "Alertas útiles sin ruido",
-              "Captura del supervisor en verde"
-            ],
-            "o": "app"
+            "ref": "app-semana-2"
           },
           {
-            "t": "Música para el vídeo del presite",
-            "s": [
-              "Componer la pista en Suno desde el navegador del box",
-              "Montar la pista sobre el vídeo vertical",
-              "Revisar volumen y final con Carlos"
-            ],
-            "o": "studio"
+            "ref": "studio-semana-1"
           },
           {
-            "t": "Pulir demos de marca blanca",
-            "s": [
-              "Corregir las demos marcadas como fallidas",
-              "Unificar estilo con el libro de estilo",
-              "Capturas de prueba de cada demo"
-            ],
-            "o": "store"
+            "ref": "store-semana-1"
           }
         ],
         "mes": [
           {
-            "t": "Supervisor integrado con el inventario ITIL",
-            "s": [
-              "Enlazar incidencias con elementos de la CMDB",
-              "Ver historial por elemento",
-              "Estado del lab de un vistazo"
-            ],
-            "o": "app"
+            "ref": "app-mes-1"
           },
           {
-            "t": "Gemelo digital conectado a contenido real",
-            "s": [
-              "Sincronizar playlist con el gemelo",
-              "Mostrar estado de pantallas en el gemelo",
-              "Captura como proof of play"
-            ],
-            "o": "store"
+            "ref": "store-mes-1"
           },
           {
-            "t": "Generador de presentaciones con presites",
-            "s": [
-              "Plantilla de presite reutilizable por temática",
-              "Selector de temática en el generador",
-              "Exportar página y vídeo vertical desde el generador"
-            ],
-            "o": "studio"
+            "ref": "studio-mes-1"
           }
         ],
         "trimestre": [
@@ -714,25 +1041,18 @@
               "Material comercial conjunto",
               "Revisión con Carlos"
             ],
-            "o": "tv"
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "tv-trimestre-1"
           },
           {
-            "t": "Gemelos digitales como entregable estándar",
-            "s": [
-              "Proceso de alta de gemelo por tienda",
-              "Plantilla de gemelo reutilizable",
-              "Incluir gemelo en propuesta Store"
-            ],
-            "o": "store"
+            "ref": "store-trimestre-1"
           },
           {
-            "t": "admira.app punto único de inventario y supervisión",
-            "s": [
-              "Todo el parque en la CMDB",
-              "Supervisor sobre todo el parque",
-              "Informes desde admira.app"
-            ],
-            "o": "app"
+            "ref": "app-trimestre-1"
           }
         ]
       }
@@ -753,7 +1073,13 @@
               "Aplicada en los mensajes",
               "Nombres guardados mal aún (Jensen como 'Y')"
             ],
-            "e": "parcial"
+            "e": "parcial",
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-ayer-1"
           },
           {
             "t": "Revisar encargos abiertos antes de asignar",
@@ -762,7 +1088,13 @@
               "encargos_listar solo muestra los de Arquitecto",
               "Pendiente de arreglo"
             ],
-            "e": "parcial"
+            "e": "parcial",
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-ayer-2"
           },
           {
             "t": "Relevo nocturno cerrando terminales",
@@ -771,7 +1103,13 @@
               "Aplicar en cada relevo",
               "Sin automatizar todavía"
             ],
-            "e": "parcial"
+            "e": "parcial",
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-ayer-3"
           }
         ],
         "hoy": [
@@ -781,7 +1119,13 @@
               "agente_encargar devuelve proyecto_id null",
               "encargo_anular solo para el creador",
               "Liquidar este finde 17–18 oct"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-hoy-1"
           },
           {
             "t": "Roadmap de Admira.live",
@@ -789,7 +1133,13 @@
               "Prioridades en el roadmap",
               "Responsable consejero Elon",
               "Borrador pendiente de validar por Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-hoy-2"
           },
           {
             "t": "Encargos atascados",
@@ -797,7 +1147,13 @@
               "#6324 GoPro (de Jensen)",
               "#6309 Starbucks: enlace de YouTube incorrecto",
               "Esperando decisión de Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-hoy-3"
           }
         ],
         "manana": [
@@ -807,7 +1163,13 @@
               "Reproducir: agente_encargar con 'Proyecto:' devuelve proyecto_id null",
               "Corregir el parseo o añadir el parámetro de proyecto",
               "Verificar con un encargo de prueba y captura"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-manana-1"
           },
           {
             "t": "encargos_listar ve toda la flota",
@@ -815,7 +1177,13 @@
               "Quitar el filtro que solo devuelve los de Arquitecto",
               "Filtrar por agente, proyecto y estado",
               "Comprobar encargos abiertos antes de asignar"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-manana-2"
           },
           {
             "t": "encargo_anular por consejero",
@@ -823,7 +1191,13 @@
               "Permitir anular al consejero o supervisor, no solo al creador",
               "Guardar traza de quién anula y por qué",
               "Probar con #6324 tras OK de Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-manana-3"
           }
         ],
         "semana": [
@@ -833,7 +1207,13 @@
               "Diagnosticar deepagent_vivo false en Merovingio (MacMini)",
               "Diagnosticar Cypher y vaciar su cola de 46",
               "Corregir nombres de consejeros (Jensen como 'Y', máquina 'GrokBot')"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-semana-1"
           },
           {
             "t": "Latidos y reasignación 30 min",
@@ -841,7 +1221,13 @@
               "Verificar heartbeats en agentes_vivos",
               "Probar la reasignación automática a los 30 min",
               "Avisar por Telegram privado al reasignar"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-semana-2"
           },
           {
             "t": "Proof of play con capturas",
@@ -849,7 +1235,13 @@
               "Exigir captura al cerrar encargo (yokup_evidencia)",
               "Mostrar la captura en el encargo",
               "Rechazar cierres sin prueba"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-semana-3"
           }
         ],
         "mes": [
@@ -859,7 +1251,13 @@
               "consejero_bandeja y consejero_mensaje sin pérdidas",
               "consejero_preguntar y responder con trazas",
               "consejo_* con estado de salud visible"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-mes-1"
           },
           {
             "t": "Panel de flota fiable",
@@ -867,7 +1265,13 @@
               "flota_estado como fuente única",
               "Encargos por máquina y agente",
               "Alarma cuando la cabecera es inconsistente"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-mes-2"
           },
           {
             "t": "Handoff nocturno automático",
@@ -875,7 +1279,13 @@
               "Cerrar terminales del agente saliente",
               "Traspaso de encargos abiertos",
               "Informe de relevo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-mes-3"
           }
         ],
         "trimestre": [
@@ -885,7 +1295,13 @@
               "Encargos de todas las verticales",
               "Consejo y agentes en un solo panel",
               "Responsables por vertical visibles"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-trimestre-1"
           },
           {
             "t": "Claves y accesos seguros",
@@ -893,7 +1309,13 @@
               "Claves solo por Telegram privado de Carlos",
               "Nada de copiar credenciales entre máquinas sin OK",
               "Auditoría de accesos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-trimestre-2"
           },
           {
             "t": "Integración con admira.app",
@@ -901,7 +1323,13 @@
               "Incidencias del supervisor como encargos",
               "Inventario visible desde live",
               "Proof of play compartido"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "live-trimestre-3"
           }
         ]
       }
@@ -921,7 +1349,13 @@
               "Sin copiar credenciales entre máquinas sin OK",
               "Sin confirmación registrada de entrega"
             ],
-            "e": "parcial"
+            "e": "parcial",
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-ayer-1"
           }
         ],
         "hoy": [
@@ -931,7 +1365,13 @@
               "Combo con 7 proyectos",
               "Regla del 123 y el abc",
               "Ayer / Hoy / Mañana en esta versión"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-hoy-1"
           },
           {
             "t": "Visita al laboratorio con móvil",
@@ -939,7 +1379,13 @@
               "Móvil en lugar de GoPro",
               "Contenido sincronizado Mac Studio, Mac Mini y MBP16",
               "Propuesta: dejar el Mac Mini fuera de la sincro (sin respuesta)"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-hoy-2"
           },
           {
             "t": "Presites explainer",
@@ -947,7 +1393,13 @@
               "Formato _explainer.js con ?record=1",
               "Vídeo vertical con Playwright y ffmpeg",
               "Parche pendiente de push"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-hoy-3"
           }
         ],
         "manana": [
@@ -957,7 +1409,13 @@
               "Repasar escenas y mueble arcade",
               "Decidir colores de las tortugas con Carlos",
               "Anotar ajustes antes de publicar"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-manana-1"
           },
           {
             "t": "Comprobar /roadmap publicado",
@@ -965,7 +1423,13 @@
               "Revisar los 7 proyectos en el combo",
               "Comprobar ?p= en la URL",
               "Captura de prueba"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-manana-2"
           },
           {
             "t": "Revisar formulario /demo",
@@ -973,7 +1437,13 @@
               "Probar envío del formulario",
               "Revisar campos y textos",
               "Anotar mejoras"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-manana-3"
           }
         ],
         "semana": [
@@ -983,7 +1453,13 @@
               "Publicar presite de tortugas tras OK",
               "Vídeo vertical con música",
               "Enlazar desde admiranext.com"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-semana-1"
           },
           {
             "t": "Formulario /demo",
@@ -991,7 +1467,13 @@
               "Aplicar mejoras anotadas",
               "Confirmación clara al enviar",
               "Prueba de extremo a extremo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-semana-2"
           },
           {
             "t": "Validar roadmap con Carlos",
@@ -999,7 +1481,13 @@
               "Repasar regla del 123 y el abc",
               "Ajustar prioridades",
               "Quitar marca de borrador lo validado"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-semana-3"
           }
         ],
         "mes": [
@@ -1009,7 +1497,13 @@
               "Documentar colores y tipografías",
               "Documentar componentes",
               "Enlazar con el libro de estilo"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-mes-1"
           },
           {
             "t": "Herramientas de diseño",
@@ -1017,7 +1511,13 @@
               "Taste Skill y Vercel web-design-guidelines",
               "awesome-design-md como referencia",
               "image-to-code para maquetas"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-mes-2"
           },
           {
             "t": "Revisión de páginas con el sistema",
@@ -1025,7 +1525,13 @@
               "Aplicar DESIGN.md a /roadmap",
               "Aplicar a /presentaciones",
               "Aplicar a la portada"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-mes-3"
           }
         ],
         "trimestre": [
@@ -1035,7 +1541,13 @@
               "playwright-cli en cada publicación",
               "Guardar capturas por sello",
               "Mostrar última captura en /webmaster"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-trimestre-1"
           },
           {
             "t": "Sitio coherente con el sistema de diseño",
@@ -1043,7 +1555,13 @@
               "Todas las páginas revisadas",
               "Eliminar estilos sueltos",
               "Revisión con Carlos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-trimestre-2"
           },
           {
             "t": "admiranext.com como escaparate",
@@ -1051,7 +1569,13 @@
               "Presites de las 4 patas",
               "Roadmap vivo",
               "Acceso a demos"
-            ]
+            ],
+            "hs": [
+              false,
+              false,
+              false
+            ],
+            "id": "next-trimestre-3"
           }
         ]
       }
@@ -1062,5 +1586,13 @@
     "hecho": "✓",
     "parcial": "◐",
     "no": "✗"
-  }
+  },
+  "version": 1,
+  "editables": [
+    "hoy",
+    "manana",
+    "semana",
+    "mes",
+    "trimestre"
+  ]
 }
