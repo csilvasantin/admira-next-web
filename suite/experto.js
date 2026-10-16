@@ -287,7 +287,8 @@
   var commandRequests=new WeakMap();
   root.addEventListener('message',function(ev){
     var d=ev&&ev.data,frame=document.getElementById('da-suite-frame');
-    if(!d||d.type!=='da-command'||ev.origin!=='https://digitalavatar.ai'||!frame||ev.source!==frame.contentWindow)return;
+    if(!d||(d.type!=='da-command'&&d.type!=='da-command-catalog-request')||ev.origin!=='https://digitalavatar.ai'||!frame||ev.source!==frame.contentWindow)return;
+    if(d.type==='da-command-catalog-request'){ev.source.postMessage({type:'da-command-catalog',commands:['/demo starbucks 180']},'https://digitalavatar.ai');return;}
     if(typeof d.requestId!=='string'||!/^[a-zA-Z0-9_.:-]{1,128}$/.test(d.requestId))return;
     var text=typeof d.texto==='string'?d.texto.trim():'';
     var reply=function(ack){try{ev.source.postMessage(Object.assign({type:'da-command-result',requestId:d.requestId},ack),'https://digitalavatar.ai');}catch(_){}};
@@ -323,7 +324,7 @@
       localDemos[action.name]=action;
     });
   }
-  function demoExtensionHelp(){return Object.keys(localDemos).filter(function(name){return name&&!/^(pausa|pause|reanudar|resume|siguiente|next|estado|status|stop|off)$/.test(name);}).map(function(name){return '/demo '+name;}).join(' · ');}
+  function demoExtensionHelp(){return Object.keys(localDemos).filter(function(name){return name&&!/^(pausa|pause|reanudar|resume|siguiente|next|estado|status|stop|off)$/.test(name);}).map(function(name){return '/demo '+name;}).concat(['/demo starbucks 180']).join(' · ');}
   function recordCommand(text) {
     Object.keys(adapters).forEach(function(id){if(adapters[id].onCommand)adapters[id].onCommand(text);});
   }
@@ -1275,7 +1276,12 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return execute(text, log, {echo:false});
   }
-  verb({name: 'demo', args: 'android [Fold8|watch] [playlist|#tag] | ios [iphone|watch] [playlist|#tag] | dooh [starbucks|altadis] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: 'starbucks 180 | android [Fold8|watch] [playlist|#tag] | ios [iphone|watch] [playlist|#tag] | dooh [starbucks|altadis] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+    if(norm(a.join(' '))==='starbucks 180'){
+      var url='https://admira.studio/campanas/starbucks-180/?lang='+lang()+'&start=1';
+      out(log,T('Starbucks 180: MacStudio V–H–V → MacBookPro16 H → MacStudio.','Starbucks 180: MacStudio V–H–V → MacBookPro16 H → MacStudio.'));
+      setTimeout(function(){location.assign(url);},600);return {ok:true,navigating:true,url:url,screens:4};
+    }
     var localAction=localDemoAction(a,log); if(localAction)return localAction.result;
     if (!catalogReady && !/^(?:alsea|android|ios|dooh|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false,record:false});});
     var p = parseDemo('/demo ' + a.join(' '));
@@ -1300,7 +1306,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261016-eink-command-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261016-eink-command-2';
   var avatarUpgrade=null;
   function avatarApi(requireFloating) {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
