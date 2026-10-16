@@ -160,26 +160,70 @@
       "roadmap": {
         "manana": [
           {
+            "t": "Publicar el inventario ITIL",
+            "d": "Publicar el inventario ITIL (CMDB) del laboratorio de Gran de Gràcia 51 tras OK de Carlos",
+            "o": "app"
+          },
+          {
+            "t": "Revisar el formato presite explainer",
+            "d": "Revisar el formato presite explainer (vertical + página casi vídeo) con la temática de las 4 patas",
+            "o": "studio"
+          },
+          {
             "t": "Asignar responsables por vertical y confirmar…",
-            "d": "Asignar responsables por vertical y confirmar el reparto"
+            "d": "Asignar responsables por vertical y confirmar el reparto",
+            "o": "tv"
           }
         ],
         "semana": [
           {
-            "t": "Revisión conjunta de los 4 pilares",
-            "d": "Revisión conjunta de los 4 pilares"
+            "t": "Supervisor de soluciones #6000",
+            "d": "Supervisor de soluciones #6000: revisar las incidencias de webcam",
+            "o": "app"
+          },
+          {
+            "t": "Añadir música al vídeo del presite",
+            "d": "Añadir música al vídeo del presite (Suno) y publicar el presite tras OK de Carlos",
+            "o": "studio"
+          },
+          {
+            "t": "Pulir las demos de marca blanca",
+            "d": "Pulir las demos de marca blanca para tiendas piloto",
+            "o": "store"
           }
         ],
         "mes": [
           {
-            "t": "Mensaje unificado de Admira.TV",
-            "d": "Mensaje unificado de Admira.TV como suma de Studio, Store, App y Biz"
+            "t": "Supervisor de soluciones integrado",
+            "d": "Supervisor de soluciones integrado con el inventario ITIL",
+            "o": "app"
+          },
+          {
+            "t": "Gemelo digital",
+            "d": "Gemelo digital (digital twin) de tienda conectado a contenido real",
+            "o": "store"
+          },
+          {
+            "t": "Generador de presentaciones",
+            "d": "Generador de presentaciones: plantillas de presite por temática reutilizables",
+            "o": "studio"
           }
         ],
         "trimestre": [
           {
             "t": "Propuesta integrada Admira.TV",
-            "d": "Propuesta integrada Admira.TV con las 4 patas"
+            "d": "Propuesta integrada Admira.TV con las 4 patas",
+            "o": "tv"
+          },
+          {
+            "t": "Gemelos digitales de tienda",
+            "d": "Gemelos digitales de tienda como entregable estándar de la propuesta Store",
+            "o": "store"
+          },
+          {
+            "t": "admira.app",
+            "d": "admira.app como punto único de inventario y supervisión del parque",
+            "o": "app"
           }
         ]
       }
@@ -198,38 +242,26 @@
             "d": "agente_encargar devuelve proyecto_id null aunque el texto lleve 'Proyecto:'; asignarlo correctamente (integración GrokBot, finde 17–18 oct)"
           },
           {
-            "t": "encargos_listar ve todos los encargos",
+            "t": "encargos_listar ve toda la flota",
             "d": "Hoy solo muestra los de Arquitecto; GrokBot debe ver los encargos abiertos de toda la flota antes de asignar"
           },
           {
-            "t": "encargo_anular con permisos de supervisor",
+            "t": "encargo_anular por consejero",
             "d": "Hoy solo puede anular el creador (p. ej. #6324 de Jensen); permitir anular al supervisor/consejero con traza"
-          },
-          {
-            "t": "Corregir nombres de consejeros",
-            "d": "Jensen guardado como 'Y' y la máquina de Musk/Huang registrada como 'GrokBot'; normalizar identidades"
           }
         ],
         "semana": [
           {
-            "t": "deepagent_vivo de Merovingio y Cypher",
+            "t": "Recuperar Merovingio y Cypher",
             "d": "deepagent_vivo en false para Merovingio (MacMini) y Cypher (46 encargos en cola); recuperar latidos y vaciar cola"
           },
           {
-            "t": "Heartbeats y reasignación a 30 min",
+            "t": "Latidos y reasignación 30 min",
             "d": "Validar latidos de agentes_vivos y la reasignación automática a los 30 min sin heartbeat"
           },
           {
             "t": "Proof of play con capturas",
             "d": "Cada encargo cerrado adjunta captura como prueba (yokup_evidencia)"
-          },
-          {
-            "t": "Claves solo por Telegram privado",
-            "d": "Enlaces y claves solo al chat privado de Carlos (telegram_responder); nunca en otros canales"
-          },
-          {
-            "t": "Handoff nocturno",
-            "d": "Al relevo de noche se cierran todos los terminales bajo control del agente saliente; cerrar la integración GrokBot el domingo 18 oct"
           }
         ],
         "mes": [
@@ -291,5 +323,6 @@
         ]
       }
     }
-  ]
+  ],
+  "regla": "regla del 123: máximo 3 elementos por horizonte, en orden de prioridad"
 }
