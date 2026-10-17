@@ -14,6 +14,8 @@ viewer solo lee; editor escribe su propio plan; admin (Carlos) escribe cualquier
 | `roadmap_plan_diario` | `{persona, horizonte, ideas:[{titulo, subs:[a,b,c]}]}` → escribe tu plan (≤3 ideas × 3 subs) |
 | `roadmap_marcar` | `{persona, id_idea, sub:'a'\|'b'\|'c', hecho}` o `{…, pct}` → avance y reajuste en cascada |
 | `roadmap_ayer` | `{persona}` → hecho / parcial / no hecho / sin registro |
+| `roadmap_declarar_hecho` | `{persona, id_idea, evidencia, nota?}` → agente declara hecho (tras subir/publicar si lo juzga bien) |
+| `roadmap_sellar` | `{revisor, id_idea, veredicto: ok\|rechazado, nota?}` → sello del consejero supervisor (Elon: Oráculo y Morfeo) |
 | `roadmap_aprobar` | `{persona, ok?}` → "OK Carlos" (solo admin) |
 
 Mismo almacén y validación que la web `/roadmap` (KV `roadmap-combo:v1`, semilla `data/roadmap/proyectos.json`).

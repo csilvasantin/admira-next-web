@@ -9,6 +9,8 @@
  */
 import { leer, guardar, EDITABLES, HORIZONTES } from '../_roadmap-combo.js';
 
+// Supervisor de cada agente (Carlos, 17-10-2026). Sin entrada: cualquier consejero.
+export const SUPERVISOR = { oraculo: 'elon', morfeo: 'elon' };
 const ORDEN = ['hoy', 'manana', 'semana', 'mes', 'trimestre'];
 const SUBS = ['a', 'b', 'c'];
 
@@ -21,7 +23,8 @@ export const REGLAS = `# Roadmap AdmiraNeXT · reglas (Carlos, 16-10-2026)
 5. **Progreso por subobjetivos**: a/b/c hechos = 0/33/67/100 % (o % manual). Una idea puede sumar ideas de horizontes inferiores; el horizonte es la media de sus ideas y el proyecto la media de Hoy…Trimestre. Todo se reajusta en cascada (Hoy → Semana → Mes → Trimestre, y Admira.TV suma los 4 pilares).
 6. **Cada encargo lleva proyecto** (admira.live: "Proyecto:" en el encargo).
 7. **Responsables por vertical**: Trinity admira.studio · Neo admira.store · Oráculo admira.app · Morfeo admira.biz · consejero Elon admira.tv + admira.live · Jobs admiranext.
-8. Las ideas enlazadas a un proyecto se marcan/editan en su proyecto; no se inventan números ni fechas.
+8. **Hecho declarado + sello del consejero**: el agente trabaja y, cuando lo juzga bien, puede subir/publicar él mismo; entonces declara el ítem hecho con roadmap_declarar_hecho (persona, id_idea, evidencia: URL o fichero). El consejero supervisor lo revisa y confirma con roadmap_sellar (revisor, id_idea, veredicto ok|rechazado, nota): su sello queda junto al ítem en /roadmap. **El consejero Elon supervisa a Oráculo y a Morfeo.** Un rechazo devuelve el ítem al agente (vuelve a declarar tras corregir).
+9. Las ideas enlazadas a un proyecto se marcan/editan en su proyecto; no se inventan números ni fechas.
 
 Vista web: https://www.admiranext.com/roadmap (?p=proyecto · ?a=agente · ?c=consejero).`;
 
@@ -32,7 +35,9 @@ export const ROADMAP_HELP = REGLAS + `
 2. roadmap_reglas → roadmap_leer {vista:'agente'|'consejero', id:'<tu id>'}.
 3. Antes de las 7:30: roadmap_plan_diario {persona, horizonte:'hoy', ideas:[{titulo, subs:[a,b,c]} ×3]} (y 'manana').
 4. Durante el día: roadmap_marcar {persona, id_idea, sub:'a', hecho:true}. Las ideas enlazadas a tu proyecto se marcan igual y su avance sube en el proyecto, en tu plan y en Admira.TV.
-5. roadmap_ayer {persona} para el resumen de ayer. Carlos aprueba con roadmap_aprobar.`;
+5. roadmap_ayer {persona} para el resumen de ayer. Carlos aprueba con roadmap_aprobar.
+6. Al terminar un ítem (agente): sube/publica si lo juzgas bien y roadmap_declarar_hecho {persona, id_idea, evidencia:'https://…' o ruta del fichero, nota}. En /roadmap sale "◷ declarado".
+7. Revisión (consejero supervisor): roadmap_sellar {revisor:'elon', id_idea, veredicto:'ok'|'rechazado', nota}. Sale "✔ sello Elon" (o "✗ rechazado"). Elon revisa a Oráculo y Morfeo; para el resto sella cualquier consejero (o Carlos).`;
 
 const persona = { type: 'string', description: 'id de agente o consejero (p. ej. oraculo, morfeo, elon, jobs). Lista en roadmap_leer.' };
 const horizonte = { type: 'string', enum: ORDEN };
@@ -42,6 +47,8 @@ export const ROADMAP_TOOLS = [
   { name: 'roadmap_plan_diario', description: 'Escribe TU plan (o cualquiera si eres admin) para un horizonte editable: hasta 3 ideas en orden de prioridad, cada una con exactamente 3 subobjetivos (a, b, c). Sustituye las ideas propias de ese horizonte. Hazlo antes de las 7:30 (Europe/Madrid).', inputSchema: { type: 'object', properties: { persona, horizonte, ideas: { type: 'array', maxItems: 3, items: { type: 'object', properties: { titulo: { type: 'string' }, subs: { type: 'array', minItems: 3, maxItems: 3, items: { type: 'string' } } }, required: ['titulo', 'subs'] } } }, required: ['persona', 'horizonte', 'ideas'] } },
   { name: 'roadmap_marcar', description: 'Marca un subobjetivo (a|b|c) como hecho o no, o fija un % manual (pct 0-100, o null para volver a automático) de una idea por su id_idea (ver roadmap_leer). Solo ideas de tu plan (o enlazadas en él) salvo admin. Ayer no se edita.', inputSchema: { type: 'object', properties: { persona: { type: 'string', description: 'tu id (o el proyecto si eres admin)' }, id_idea: { type: 'string' }, sub: { type: 'string', enum: SUBS }, hecho: { type: 'boolean' }, pct: { type: ['number', 'null'] } }, required: ['id_idea'] } },
   { name: 'roadmap_ayer', description: 'Resumen automático de Ayer para una persona o proyecto: hecho / parcial / no hecho / sin registro.', inputSchema: { type: 'object', properties: { persona } , required: ['persona'] } },
+  { name: 'roadmap_declarar_hecho', description: 'Agente: declara hecho un ítem de tu plan (o enlazado en él) tras subir/publicar si lo juzgas bien. evidencia: URL o ruta del fichero. Queda "declarado" hasta el sello del consejero supervisor.', inputSchema: { type: 'object', properties: { persona: { type: 'string', description: 'tu id de agente (p. ej. oraculo, morfeo)' }, id_idea: { type: 'string' }, evidencia: { type: 'string', description: 'URL o fichero que lo demuestra' }, nota: { type: 'string' } }, required: ['persona', 'id_idea', 'evidencia'] } },
+  { name: 'roadmap_sellar', description: 'Consejero supervisor: revisa un ítem declarado y pone su sello (veredicto ok | rechazado, nota). Elon supervisa a Oráculo y Morfeo.', inputSchema: { type: 'object', properties: { revisor: { type: 'string', description: 'tu id de consejero (p. ej. elon)' }, id_idea: { type: 'string' }, veredicto: { type: 'string', enum: ['ok', 'rechazado'] }, nota: { type: 'string' } }, required: ['revisor', 'id_idea', 'veredicto'] } },
   { name: 'roadmap_aprobar', description: 'Solo admin (Carlos): marca el plan de un consejero como "OK Carlos" (ok:false lo devuelve a "propuesto").', inputSchema: { type: 'object', properties: { persona, ok: { type: 'boolean' } }, required: ['persona'] } },
 ];
 export const ROADMAP_READ_ONLY = ['roadmap_reglas', 'roadmap_leer', 'roadmap_ayer'];
@@ -93,7 +100,7 @@ function vistaPlan(doc, ix, p, h) {
 }
 
 async function escribir(ctx, doc) {
-  const r = await guardar(ctx.env, doc, `${ctx.access.email} (MCP${ctx.access.tokenLabel ? ' · ' + ctx.access.tokenLabel : ''})`);
+  const r = await guardar(ctx.env, doc, `${ctx.access.email} (MCP${ctx.access.tokenLabel ? ' · ' + ctx.access.tokenLabel : ''})`, true);
   if (!r.ok) throw new Error(r.error);
   return r;
 }
@@ -153,6 +160,34 @@ export async function callRoadmapTool(ctx, name, a = {}) {
       const r = await escribir(ctx, doc); const ix2 = indice(r.doc);
       const proy = ix2.byId[hit.p];
       return { ok: true, rev: r.rev, id_idea: i.id, proyecto: hit.p, avance_idea: avance(ix2, ix2.items[i.id].i), avance_horizonte: avanceH(ix2, proy, hit.h), avance_proyecto: avanceP(ix2, proy) };
+    }
+    case 'roadmap_declarar_hecho': {
+      const p = buscar(a.persona);
+      if (p.tipo !== 'agente') throw new Error('roadmap_declarar_hecho es para agentes (persona = tu id de agente).');
+      if (!esAdmin(ctx.access) && !esPersona(ctx.access, p)) throw new Error(`Tu token no corresponde a ${p.nombre}.`);
+      const hit = ix.items[String(a.id_idea || '')];
+      if (!hit) throw new Error('id_idea desconocido. Usa roadmap_leer.');
+      if (!Object.values(p.roadmap).some((l) => (l || []).some((i) => i.id === hit.i.id || i.ref === hit.i.id))) throw new Error('Ese ítem no está en tu plan.');
+      const evidencia = String(a.evidencia || '').trim().slice(0, 400);
+      if (!evidencia) throw new Error('Falta evidencia (URL o fichero).');
+      hit.i.dec = { por: p.id, en: new Date().toISOString(), evidencia, nota: String(a.nota || '').trim().slice(0, 300) || undefined };
+      delete hit.i.sel;
+      const r = await escribir(ctx, doc);
+      return { ok: true, rev: r.rev, id_idea: hit.i.id, estado: 'declarado', supervisor: SUPERVISOR[p.id] || 'cualquier consejero', aviso: 'Pendiente del sello del consejero supervisor.' };
+    }
+    case 'roadmap_sellar': {
+      const c = buscar(a.revisor);
+      if (c.tipo !== 'consejero') throw new Error('revisor debe ser un consejero.');
+      if (!esAdmin(ctx.access) && !esPersona(ctx.access, c)) throw new Error(`Tu token no corresponde a ${c.nombre}.`);
+      const hit = ix.items[String(a.id_idea || '')];
+      if (!hit) throw new Error('id_idea desconocido. Usa roadmap_leer.');
+      if (!hit.i.dec) throw new Error('Ese ítem no está declarado hecho todavía.');
+      const sup = SUPERVISOR[hit.i.dec.por];
+      if (sup && sup !== c.id && !esAdmin(ctx.access)) throw new Error(`Este ítem lo supervisa el consejero ${sup}.`);
+      if (!['ok', 'rechazado'].includes(a.veredicto)) throw new Error('veredicto: ok | rechazado.');
+      hit.i.sel = { por: c.id, nombre: c.nombre, veredicto: a.veredicto, nota: String(a.nota || '').trim().slice(0, 300) || undefined, en: new Date().toISOString() };
+      const r = await escribir(ctx, doc);
+      return { ok: true, rev: r.rev, id_idea: hit.i.id, sello: hit.i.sel };
     }
     case 'roadmap_aprobar': {
       if (!esAdmin(ctx.access)) throw new Error('Solo Carlos (admin) aprueba planes.');

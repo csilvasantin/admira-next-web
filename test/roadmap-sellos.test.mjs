@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { callRoadmapTool, REGLAS, ROADMAP_HELP } from '../functions/mcp/_roadmap.js';
+import { leer, guardar, etiquetasHoy } from '../functions/_roadmap-combo.js';
+const store = new Map();
+const env = { PRESENTATION_IDEAS: { async get(k) { const v = store.get(k); return v ? JSON.parse(v) : null; }, async put(k, v) { store.set(k, v); } } };
+const ctx = (email, tokenLabel) => ({ env, access: { email, tokenLabel, level: 'editor' } });
+const ora = ctx('oraculo@agentes.admiranext.com', 'Oráculo · login');
+const elon = ctx('elon@agentes.admiranext.com', 'consejero Elon · login');
+const jobs = ctx('jobs@agentes.admiranext.com', 'consejero Jobs · login');
+const plan = await callRoadmapTool(ora, 'roadmap_leer', { vista: 'agente', id: 'oraculo', horizonte: 'hoy' });
+const id = plan.plan.hoy.ideas[0].id_idea; assert.ok(id);
+await assert.rejects(callRoadmapTool(elon, 'roadmap_sellar', { revisor: 'elon', id_idea: id, veredicto: 'ok' }), /no está declarado/);
+await assert.rejects(callRoadmapTool(elon, 'roadmap_declarar_hecho', { persona: 'oraculo', id_idea: id, evidencia: 'x' }), /no corresponde/);
+let r = await callRoadmapTool(ora, 'roadmap_declarar_hecho', { persona: 'oraculo', id_idea: id, evidencia: 'https://www.admira.app/x' });
+assert.equal(r.supervisor, 'elon');
+await assert.rejects(callRoadmapTool(jobs, 'roadmap_sellar', { revisor: 'jobs', id_idea: id, veredicto: 'ok' }), /supervisa el consejero elon/);
+await assert.rejects(callRoadmapTool(ora, 'roadmap_sellar', { revisor: 'elon', id_idea: id, veredicto: 'ok' }), /no corresponde/);
+r = await callRoadmapTool(elon, 'roadmap_sellar', { revisor: 'elon', id_idea: id, veredicto: 'ok', nota: 'revisado' });
+assert.equal(r.sello.veredicto, 'ok');
+// Un PUT web no puede borrar ni falsificar el sello
+const doc = await leer(env);
+const forged = JSON.parse(JSON.stringify(doc));
+forged.proyectos.forEach((p) => Object.values(p.roadmap).forEach((l) => l.forEach((i) => { if (i.id === id) { i.sel = { por: 'hacker', veredicto: 'ok' }; } })));
+const g = await guardar(env, forged, 'web');
+assert.ok(g.ok);
+const after = await leer(env); let it;
+after.proyectos.forEach((p) => Object.values(p.roadmap).forEach((l) => l.forEach((i) => { if (i.id === id) it = i; })));
+assert.equal(it.sel.por, 'elon'); assert.equal(it.dec.por, 'oraculo');
+assert.match(REGLAS, /Elon supervisa a Oráculo y a Morfeo/); assert.match(ROADMAP_HELP, /roadmap_sellar/);
+const e = etiquetasHoy(new Date('2026-10-17T13:00:00Z'));
+assert.match(e.hoy, /sáb 17/); assert.match(e.ayer, /vie 16/); assert.match(e.manana, /dom 18/);
+assert.match(etiquetasHoy(new Date('2026-10-17T22:30:00Z')).hoy, /dom 18/); // 00:30 en Madrid
+assert.match(after.etiquetas.hoy, /^Hoy · /);
+console.log('roadmap-sellos: ok', e.hoy);
