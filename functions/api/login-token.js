@@ -4,7 +4,7 @@
  * en la URL). El token se cruza con admiranext_mcp_tokens (hash) y el directorio
  * (activo, rol, caducidad); emite la misma cookie __Host-an_session que Google.
  */
-import { buscarUsuario, auditar, cookieDeSesion, returnToSeguro } from '../_webmaster-gate.js';
+import { buscarUsuario, auditar, cookieDeSesion, returnToSeguro, consumirDesafioLogin } from '../_webmaster-gate.js';
 import { tokenRow, bearerOf } from '../mcp/_tokens.js';
 
 const ROLES = new Set(['admin', 'editor', 'viewer']);
@@ -29,7 +29,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
   await auditar(env, user.email, user.email, 'login_success', `${user.role} · token`).catch(() => {});
   const cookie = await cookieDeSesion(env, user);
-  const dest = returnToSeguro(returnTo);
+  // Formulario de la página de acceso: el destino sale del desafío de login (cookie), no del HTML.
+  let dest = returnToSeguro(returnTo);
+  if (isForm) { const m = /(?:^|;\s*)__Host-an_login_nonce=([^;]+)/.exec(request.headers.get('Cookie') || ''); const d = m && await consumirDesafioLogin(env, m[1]).catch(() => null); if (d) dest = d; }
   if (isForm) return new Response(null, { status: 303, headers: { location: dest, 'set-cookie': cookie, 'cache-control': 'no-store' } });
   return json({ ok: true, email: user.email, role: user.role, return_to: dest }, 200, { 'set-cookie': cookie });
 }
