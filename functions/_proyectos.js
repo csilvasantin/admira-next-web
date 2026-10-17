@@ -235,6 +235,15 @@ export const PROYECTOS = [
     nota: 'Mismo proyecto de Pages que clearchannel.tv, por eso enseñan los mismos snapshots. El proyecto admira-app existe, pero sin dominio propio.',
   },
   {
+    // Pilar Biz (Morfeo, 17-10-2026). Sin repositorio propio: el dominio cuelga del
+    // proyecto de Pages de clearchannel-tv, igual que admira.app.
+    clave: 'admira-biz', nombre: 'admira.biz', url: 'https://www.admira.biz',
+    repo: null, repoTxt: '—',
+    pages: 'clearchannel-tv', publica: 'lo publica clearchannel.tv',
+    tipo: 'sitio', shot: null,
+    nota: 'Mismo proyecto de Pages que clearchannel.tv y admira.app. Responsable: Morfeo.',
+  },
+  {
     clave: 'digitalavatar', nombre: 'digitalavatar.ai', url: 'https://digitalavatar.ai',
     repo: 'csilvasantin/digitalavatar.ai', repoTxt: 'digitalavatar.ai',
     pages: null, publica: 'git push (GitHub Pages)',
