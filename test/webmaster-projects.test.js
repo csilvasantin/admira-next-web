@@ -38,7 +38,7 @@ test("el censo publica una única fila operativa para el Generador de Presupuest
 test("Webmaster distingue proyectos raíz, subproyectos y el total canónico de Yokup", () => {
   const rootKeys = new Set(PROYECTOS.map((project) => project.clave));
   const subprojects = PROYECTOS.filter((project) => project.parentKey && rootKeys.has(project.parentKey));
-  assert.equal(PROYECTOS.length - subprojects.length, 17);
+  assert.equal(PROYECTOS.length - subprojects.length, 18); // + admira.biz (17-10-2026)
   assert.equal(subprojects.length, 29);
   assert.deepEqual(
     subprojects
