@@ -10,23 +10,36 @@ export const HORIZONTES = ['ayer', 'hoy', 'manana', 'semana', 'mes', 'trimestre'
 export const EDITABLES = new Set(['hoy', 'manana', 'semana', 'mes', 'trimestre']);
 const ESTADOS = new Set(['hecho', 'parcial', 'no']);
 
+// Fechas de Ayer/Hoy/Mañana siempre del día real en Europe/Madrid (17-10-2026: el
+// sábado seguía saliendo "Hoy · vie 16" porque las etiquetas eran texto fijo).
+export function etiquetasHoy(now = new Date()) {
+  const f = (d) => new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', weekday: 'short', day: 'numeric', month: 'short' }).format(d).replace(/\./g, '').replace(',', '');
+  const dia = 864e5;
+  return { ayer: 'Ayer · ' + f(new Date(+now - dia)), hoy: 'Hoy · ' + f(now), manana: 'Mañana · ' + f(new Date(+now + dia)), semana: 'Semana', mes: 'Mes', trimestre: 'Trimestre' };
+}
+const conFechas = (doc) => ({ ...doc, etiquetas: { ...(doc.etiquetas || {}), ...etiquetasHoy() } });
+
 const txt = (v, max) => (typeof v === 'string' && v.trim() && v.length <= max ? v.trim() : null);
 
 export async function leer(env) {
   let doc = null;
   try { doc = env.PRESENTATION_IDEAS && await env.PRESENTATION_IDEAS.get(CLAVE, { type: 'json' }); } catch (_) { doc = null; }
-  if (!doc) return { ...SEMILLA, rev: 0, origen: 'semilla' };
+  if (!doc) return conFechas({ ...SEMILLA, rev: 0, origen: 'semilla' });
   // Agentes y consejeros (16-10-2026): lo que falte en el documento guardado sale de la semilla.
   const hay = new Set((doc.proyectos || []).map((p) => p.id));
   const faltan = SEMILLA.proyectos.filter((p) => !hay.has(p.id));
-  return faltan.length ? { ...doc, proyectos: [...doc.proyectos, ...faltan], sinPlan: SEMILLA.sinPlan } : doc;
+  return conFechas(faltan.length ? { ...doc, proyectos: [...doc.proyectos, ...faltan], sinPlan: SEMILLA.sinPlan } : doc);
 }
 
 /** Valida y normaliza. Devuelve null si algo no cuadra (regla del 123 y el abc). */
-export function validar(entrada, base) {
+export function validar(entrada, base, confiar = false) {
   if (!entrada || !Array.isArray(entrada.proyectos)) return null;
   const ids = new Set(base.proyectos.map((p) => p.id));
   const out = { ...base, proyectos: [] };
+  // Declaración de hecho (dec) y sello del consejero (sel) solo los escribe el MCP
+  // (roadmap_declarar_hecho / roadmap_sellar). Un PUT web conserva los guardados.
+  const previos = {};
+  base.proyectos.forEach((p) => Object.values(p.roadmap || {}).forEach((l) => (l || []).forEach((i) => { if (i && i.id) previos[i.id] = i; })));
   for (const p of base.proyectos) {
     const nuevo = entrada.proyectos.find((x) => x && x.id === p.id);
     const roadmap = {};
@@ -51,6 +64,9 @@ export function validar(entrada, base) {
         }
         if (Array.isArray(it.de)) item.de = it.de.filter((x) => typeof x === 'string' && /^[a-z0-9-]+$/.test(x)).slice(0, 9);
         if (it.e && ESTADOS.has(it.e)) item.e = it.e;
+        const fuente = confiar ? it : previos[id];
+        if (fuente && fuente.dec && typeof fuente.dec === 'object') item.dec = fuente.dec;
+        if (fuente && fuente.sel && typeof fuente.sel === 'object') item.sel = fuente.sel;
         roadmap[h].push(item);
       }
     }
@@ -63,11 +79,11 @@ export function validar(entrada, base) {
 
 
 /** Guarda con control de concurrencia (rev). Devuelve {ok, rev} o {error, status}. */
-export async function guardar(env, entrada, quien) {
+export async function guardar(env, entrada, quien, confiar = false) {
   if (!env || !env.PRESENTATION_IDEAS) return { error: 'Guardado no disponible.', status: 503 };
   const base = await leer(env);
   if (Number(entrada.rev) !== Number(base.rev || 0)) return { error: 'Otro cambio se guardó antes. Recarga.', status: 409, rev: base.rev || 0 };
-  const doc = validar(entrada, base);
+  const doc = validar(entrada, base, confiar);
   if (!doc) return { error: 'Datos no válidos (máx. 3 ideas y 3 subobjetivos).', status: 422 };
   doc.rev = Number(base.rev || 0) + 1; doc.origen = 'kv';
   doc.editado = { por: String(quien || ''), en: new Date().toISOString() };

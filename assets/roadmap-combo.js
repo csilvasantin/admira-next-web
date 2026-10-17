@@ -43,12 +43,13 @@
     render();
   }).catch(function(){out.innerHTML='<p class="rmc-err">No se pudo leer el roadmap por proyecto.</p>'});
 
-  function vista(p,h){
+  function marcaRev(i){var h='';if(i.dec){var ev=String(i.dec.evidencia||'');h+=' <span class="rmc-dec" title="Declarado por '+esc(i.dec.por)+' · '+esc(String(i.dec.en||'').slice(0,16).replace('T',' '))+' UTC">◷ declarado'+(/^https?:\/\//.test(ev)?' · <a href="'+esc(ev)+'" target="_blank" rel="noopener">evidencia</a>':' · '+esc(ev.slice(0,40)))+'</span>'}if(i.sel){h+=' <span class="rmc-sel rmc-sel-'+esc(i.sel.veredicto)+'" title="'+esc(i.sel.nota||'')+'">'+(i.sel.veredicto==='ok'?'✔ sello ':'✗ rechazado · ')+esc(i.sel.nombre||i.sel.por)+'</span>'}else if(i.dec)h+=' <span class="rmc-pend">pendiente de sello</span>';return h}
+    function vista(p,h){
     var editable=puede&&(D.editables||ORDEN).indexOf(h)>=0;
     var l=(p.roadmap[h]||[]).slice(0,3),conAv=h!=='ayer';
     return '<article class="rmc-h"><h3>'+esc(D.etiquetas[h])+(conAv?' <span class="rmc-hp">'+avanceH(p,h)+'%</span>':'')+(editable?'<button type="button" class="rmc-lapiz" data-h="'+h+'" title="Editar '+esc(D.etiquetas[h])+'">✎</button>':'')+'</h3>'+(l.length?'':'<p class="rmc-sr">—</p>')+'<ol class="rmc-123">'+l.map(function(raw,n){
       var i=real(raw);if(!i)return '';var o=raw.ref?byId[items[raw.ref].p].nombre:'';var s=i.s||[];
-      return '<li>'+(s.length?'<details><summary>':'<span class="rmc-sr">')+(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+(s.length?'</summary><ul class="rmc-abc">'+s.map(function(x,k){return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(x)+'</li>'}).join('')+'</ul></details>':'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
+      return '<li>'+(s.length?'<details><summary>':'<span class="rmc-sr">')+(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+marcaRev(i)+(s.length?'</summary><ul class="rmc-abc">'+s.map(function(x,k){return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(x)+'</li>'}).join('')+'</ul></details>':'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
   }
   function form(p,h){
     var l=JSON.parse(JSON.stringify(p.roadmap[h]||[]));editando={p:p.id,h:h,l:l};return formHtml(p,h,l);
