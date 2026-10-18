@@ -47,7 +47,7 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   const por = (id) => lista.filter((h) => h.solucion === id);
   assert.equal(por('app').length, 8);
   assert.equal(por('biz').length, 8);
-  assert.equal(por('admiranext').length, 6);
+  assert.equal(por('admiranext').length, 9);
   assert.equal(por('studio').length, 8);
   // e6727cc (5-oct) sumó los hitos Q4 de store: 4 de Jobs + 7 de Jensen/Walt.
   assert.equal(por('store').length, 11);
@@ -95,7 +95,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   assert.equal(tri.soluciones.find((s) => s.id === 'studio').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'app').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 8);
-  assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 6);
+  assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 9);
   assert.equal(tri.soluciones.find((s) => s.id === 'store').hitos.length, 11);
   assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 0);
 

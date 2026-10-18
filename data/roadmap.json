@@ -512,5 +512,38 @@
     "fuente": "Carlos #5510 vigente desde 10-oct 09:24; norma en zona protegida",
     "idea": "Clientes globales y marca blanca",
     "cliente": "admira"
+  },
+  {
+    "id": "admiranext-usuarios-1-directorio-18oct",
+    "solucion": "admiranext",
+    "titulo": "Misión 18-oct · 1 Directorio único de usuarios: (a) censo de humanos, agentes y consejeros en /usuarios; (b) cruce con la lista blanca de admira.live sin divergencias; (c) cada alta con rol admin/editor/viewer",
+    "inicio": "2026-10-18",
+    "fin": "2026-10-18",
+    "estado": "en_curso",
+    "responsable": "Jensen Huang (coordina) · Steve Jobs (admiranext)",
+    "fuente": "Carlos 18-oct · misión del día: gestión de usuarios",
+    "idea": "Entrada de agentes sin Google"
+  },
+  {
+    "id": "admiranext-usuarios-2-login-garantizado-18oct",
+    "solucion": "admiranext",
+    "titulo": "Misión 18-oct · 2 Login garantizado: (a) cada agente y consejero con token MCP anmcp_ activo; (b) prueba real de entrada en admiranext.com y admira.live con captura; (c) Google para humanos con revocación inmediata",
+    "inicio": "2026-10-18",
+    "fin": "2026-10-18",
+    "estado": "en_curso",
+    "responsable": "Jensen Huang (coordina) · Steve Jobs (admiranext)",
+    "fuente": "Carlos 18-oct · misión del día: gestión de usuarios",
+    "idea": "Entrada de agentes sin Google"
+  },
+  {
+    "id": "admiranext-usuarios-3-acceso-por-proyecto-18oct",
+    "solucion": "admiranext",
+    "titulo": "Misión 18-oct · 3 Acceso por proyecto: (a) permisos por proyecto censado (Webmaster/Yokup); (b) responsables por vertical: Trinity studio, Neo store, Oráculo app, Morfeo biz, Elon tv/live, Jobs admiranext; (c) informe diario de accesos y bloqueos",
+    "inicio": "2026-10-18",
+    "fin": "2026-10-18",
+    "estado": "en_curso",
+    "responsable": "Jensen Huang (coordina) · Steve Jobs (admiranext)",
+    "fuente": "Carlos 18-oct · misión del día: gestión de usuarios",
+    "idea": "Entrada de agentes sin Google"
   }
 ]
