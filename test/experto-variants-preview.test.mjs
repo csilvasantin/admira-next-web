@@ -14,13 +14,13 @@ test('standard green has explicit non-toggle selection and legacy avatar aliases
 });
 test('all suite hosts route standard selection once, including repeated invocations',async()=>{
  for(const host of ['www.admira.app','www.admira.biz','www.admira.store','admira.studio','admira.tv','www.yokup.com']){
- const calls=[];const c=fixture({host,AdmiraAvatar:{floatingCharacters:true,handle:async t=>{calls.push(t);return 'ok';}}});
+ const calls=[];const c=fixture({host,AdmiraAvatar:{variantContract:1,floatingCharacters:true,handle:async t=>{calls.push(t);return 'ok';}}});
  for(const command of ['/admirito','/default','/admirito /default','/admirito']){assert.equal(c.api.__sharedCommand(command),true);await c.run(command);}
  assert.deepEqual(calls,Array(4).fill('/admirito default'));
  }
 });
 test('help is bilingual and creative fails explicitly without invoking another character',async()=>{
- for(const lang of ['es','en']){let calls=0;const c=fixture({lang,AdmiraAvatar:{floatingCharacters:true,handle:async()=>{calls++;return 'ok';}}});
+ for(const lang of ['es','en']){let calls=0;const c=fixture({lang,AdmiraAvatar:{variantContract:1,floatingCharacters:true,handle:async()=>{calls++;return 'ok';}}});
  await c.run('/help admirito');assert.match(c.texto(),lang==='es'?/verde estándar/:/standard green/);
  assert.equal(c.api.__sharedCommand('/help admirito'),true);
  assert.equal((await c.run('/creativo')).ok,false);assert.equal((await c.run('/admirito /creativo')).ok,false);assert.equal(calls,0);

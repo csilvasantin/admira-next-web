@@ -311,7 +311,7 @@
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
   var previousAvatar=root.AdmiraAvatar&&root.AdmiraAvatar.handle?root.AdmiraAvatar:null;
-  if(previousAvatar&&previousAvatar.floatingCharacters)return;
+  if(previousAvatar&&previousAvatar.variantContract===1)return;
 
   var doc = document;
   var script = doc.currentScript;
@@ -499,11 +499,11 @@
   }
   function upgradeFloating(A){
     var oldHandle=A.handle,oldRun=A.run,oldPersonaje=A.personaje;
-    function restore(text){var mode=decide(text);if(!floatingPersonaje)return null;if(mode==='mascota'){paintMascot('');A.show(false);set(KEY,'on');return message('mascota-on',en());}if(LEVELS[mode])paintMascot('');return null;}
+    function restore(text){var mode=decide(text);if(mode==='standard'){paintMascot('');set(LEVEL_KEY,'good');var ss=session();try{if(ss)ss.setItem(CHOICE_KEY,'good');}catch(_){}set(KEY,'on');A.show(false,'good');return en()?'Standard green Admirito shown.':'Admirito verde estándar visible.';}if(!floatingPersonaje)return null;if(mode==='mascota'){paintMascot('');A.show(false);set(KEY,'on');return message('mascota-on',en());}if(LEVELS[mode])paintMascot('');return null;}
     A.handle=function(text){if(decide(text)==='bugito')return personajeHandle('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?Promise.resolve(msg):oldHandle.call(A,text);};
     A.run=function(text){if(decide(text)==='bugito')return personajeRun('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?msg:oldRun?oldRun.call(A,text):oldHandle.call(A,text);};
     A.personaje=function(id){return id==='bugito'?{url:function(ctx){return personajeUrl(id,ctx||(A.context?A.context():{}));},pagina:function(arg,lang){return personajePagina(id,arg,lang);},run:function(arg){return personajeRun(id,arg||'');}}:oldPersonaje?oldPersonaje.call(A,id):null;};
-    A.bugito=A.personaje('bugito');A.floatingCharacters=true;if(!A.cara)A.cara=cara;
+    A.bugito=A.personaje('bugito');A.floatingCharacters=true;A.variantContract=1;if(!A.cara)A.cara=cara;
     if(root.AvatarDigital)root.AvatarDigital.handle=A.handle;
     root.addEventListener('admira:expert-resize',applyLift);
   }
@@ -1060,7 +1060,7 @@
     if (requested) { cache.set(d.requestId, entry); entry.promise.then(function (ack) { demoReply(ev.source, ack); }); }
   });
 
-  root.AdmiraAvatar = {floatingCharacters:true,run: run, handle: handle, personaje: personaje, cara: cara, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
+  root.AdmiraAvatar = {variantContract:1,floatingCharacters:true,run: run, handle: handle, personaje: personaje, cara: cara, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },

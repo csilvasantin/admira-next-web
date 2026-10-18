@@ -1307,33 +1307,34 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-idioma-cabecera-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/pruebas/admirito-variantes/avatar.js?v=20261018-variants-2';
   var avatarUpgrade=null;
-  function avatarApi(requireFloating) {
-    if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
-    if(requireFloating&&avatarUpgrade)return avatarUpgrade;
-    var tag = document.querySelector(requireFloating?'script[data-admira-avatar-upgrade]':'script[data-admira-avatar]');
+  function avatarApi(requireFloating, requireVariants) {
+    function ready(A){return A&&A.handle&&(!requireFloating||A.floatingCharacters)&&(!requireVariants||A.variantContract===1);}
+    if (ready(root.AdmiraAvatar)) return Promise.resolve(root.AdmiraAvatar);
+    if((requireFloating||requireVariants)&&avatarUpgrade)return avatarUpgrade;
+    var tag = document.querySelector((requireFloating||requireVariants)?'script[data-admira-avatar-upgrade]':'script[data-admira-avatar]');
     var created=!tag;
     if (!tag) {
       tag = document.createElement('script');
       tag.src = AVATAR_SRC;
       tag.async = true;
-      tag.setAttribute(requireFloating?'data-admira-avatar-upgrade':'data-admira-avatar', '');
+      tag.setAttribute((requireFloating||requireVariants)?'data-admira-avatar-upgrade':'data-admira-avatar', '');
     }
     var pending=new Promise(function (resolve) {
-      var done = function () { resolve(root.AdmiraAvatar || null); };
-      if (root.AdmiraAvatar&&(!requireFloating||root.AdmiraAvatar.floatingCharacters)) return done();
+      var done = function () { resolve(ready(root.AdmiraAvatar)?root.AdmiraAvatar:null); };
+      if (ready(root.AdmiraAvatar)) return done();
       tag.addEventListener('load', done, {once: true});
       tag.addEventListener('error', done, {once: true});
       if(created)(document.head || document.documentElement).appendChild(tag);
       setTimeout(done, 4000);
     });
-    if(requireFloating)avatarUpgrade=pending.then(function(A){avatarUpgrade=null;return A;});
-    return requireFloating?avatarUpgrade:pending;
+    if(requireFloating||requireVariants)avatarUpgrade=pending.then(function(A){avatarUpgrade=null;return A;});
+    return (requireFloating||requireVariants)?avatarUpgrade:pending;
   }
   function avatarRun(text, log) {
-    return avatarApi().then(function (A) {
-      if (!A) { out(log, T('Avatar digital no disponible', 'Digital avatar unavailable'), 'err'); return; }
+    return avatarApi(false,/^\/(admirito|default)(?:\s|$)/i.test(text)).then(function (A) {
+      if (!A) { out(log, T('Avatar digital no disponible', 'Digital avatar unavailable'), 'err'); return {ok:false,error:'avatar_unavailable'}; }
       return Promise.resolve(A.handle(text)).then(function (msg) { if (msg) out(log, String(msg)); });
     });
   }

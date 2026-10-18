@@ -12,4 +12,6 @@ Esta preparación usa una copia de prueba del motor compartido y su cargador, si
 
 Validación: cuatro pruebas nuevas de contrato y siete pruebas existentes de Supervisor pasan. Dos pruebas existentes de Arquitecto fallan sin modificación de las fuentes canónicas: esperan una URL anterior sin parámetros contract/langui y una versión antigua exacta del cargador.
 
-Pendiente: respuesta de Trinity; versión Creativo real; carga/actualización de un cargador anterior; comprobación visual con sesión de la prueba; promoción y verificación real en todos los Expertos y móviles. No desplegado ni comprobado globalmente.
+Navegador real sin interfaz: verificadas selección verde repetida y transición desde Bugito con cargador nuevo y anterior.
+
+Pendiente: respuesta de Trinity; versión Creativo real; comprobación visual con sesión de la prueba; promoción y verificación real en todos los Expertos y móviles. No desplegado ni comprobado globalmente.
