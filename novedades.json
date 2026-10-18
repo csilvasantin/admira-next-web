@@ -579,5 +579,9 @@
   ],
   "v.18.10.2026.r3.12:55": [
     "Avatar: el idioma (ESP · ENG) pasa a la cabecera del panel, arriba a la derecha junto a ✕, y el campo de texto gana sitio"
+  ],
+  "v.18.10.2026.r4.13:31": [
+    "Prueba protegida de variantes compartidas de Admirito y selección del verde estándar.",
+    "Compatibilidad con cargadores anteriores y ayuda ES/EN; Creativo pendiente del contrato."
   ]
 }
