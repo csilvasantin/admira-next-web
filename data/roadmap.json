@@ -545,5 +545,38 @@
     "responsable": "Jensen Huang (coordina) · Steve Jobs (admiranext)",
     "fuente": "Carlos 18-oct · misión del día: gestión de usuarios",
     "idea": "Entrada de agentes sin Google"
+  },
+  {
+    "id": "tv-admirito-hilomusical-automatico-18oct",
+    "solucion": "tv",
+    "titulo": "admira.tv a · /admirito hilomusical automatico <cliente>: hilo musical con 2 canciones (inglés y castellano), playlist cliente.xpacio.hilomusical asignada a todos sus Xpacios",
+    "inicio": "2026-10-18",
+    "fin": "2026-10-18",
+    "estado": "en_curso",
+    "responsable": "Elon Musk (consejero) · Jensen Huang (coordina)",
+    "fuente": "Carlos 18-oct · todo vía asistente /admirito",
+    "idea": "Contenidos y Pixeria"
+  },
+  {
+    "id": "tv-player-tinta-electronica-18oct",
+    "solucion": "tv",
+    "titulo": "admira.tv b · Player de tinta electrónica (solo imagen, wayfinding de salas/eventos), controlado vía /admirito",
+    "inicio": "2026-10-18",
+    "fin": "2026-10-18",
+    "estado": "en_curso",
+    "responsable": "Elon Musk (consejero) · Jensen Huang (coordina)",
+    "fuente": "Carlos 18-oct · todo vía asistente /admirito",
+    "idea": "Reproducción y Proof of Play"
+  },
+  {
+    "id": "tv-estado-reproduccion-alerta-18oct",
+    "solucion": "tv",
+    "titulo": "admira.tv c · Estado de reproducción visible por dispositivo con alerta si se para, compartido con el gemelo de admira.store, vía /admirito",
+    "inicio": "2026-10-18",
+    "fin": "2026-10-18",
+    "estado": "en_curso",
+    "responsable": "Elon Musk (consejero) · Jensen Huang (coordina)",
+    "fuente": "Carlos 18-oct · todo vía asistente /admirito",
+    "idea": "Reproducción y Proof of Play"
   }
 ]

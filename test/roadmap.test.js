@@ -51,11 +51,11 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(por('studio').length, 8);
   // e6727cc (5-oct) sumó los hitos Q4 de store: 4 de Jobs + 7 de Jensen/Walt.
   assert.equal(por('store').length, 11);
-  assert.equal(por('tv').length, 4);
+  assert.equal(por('tv').length, 7);
   const deJobs = por('store').filter((h) => h.responsable === 'Jensen Huang (propuesta de Jobs)');
   assert.equal(deJobs.length, 4);
   assert.ok(deJobs.every((h) => h.estado === 'hecho' && h.fuente.startsWith('xpaceos ')));
-  assert.ok(por('tv').every((h) => h.responsable === 'Elon Musk (propuesta de Jobs)' && h.estado === 'hecho'));
+  assert.ok(por('tv').filter((h) => !h.id.endsWith('-18oct')).every((h) => h.responsable === 'Elon Musk (propuesta de Jobs)' && h.estado === 'hecho'));
   assert.ok(por('studio').every((h) => h.responsable === 'George Lucas'));
   assert.equal(por('studio').find((h) => h.id === 'studio-mcp-cliente-activo-xpaceos').cliente, undefined);
   assert.ok(por('app').every((h) => h.responsable === 'Steve Wozniak'));
@@ -97,7 +97,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 9);
   assert.equal(tri.soluciones.find((s) => s.id === 'store').hitos.length, 11);
-  assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 0);
+  assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 3);
 
   const ano = cortar(lista, 'ano', '2026-10-05');
   assert.equal(ano.desde, '2026-01-01');
@@ -136,7 +136,7 @@ test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   const idea = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?idea=reproduccion-pop&vista=ano&desde=2026-01-01') });
   const cuerpoIdea = await idea.json();
   assert.equal(cuerpoIdea.agrupar, 'idea');
-  assert.equal(cuerpoIdea.columnas[0].hitos.length, 4);
+  assert.equal(cuerpoIdea.columnas[0].hitos.length, 6);
   const combo = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?proyecto=studio&cliente=altadis&idea=contenidos-pixeria&vista=trimestre&desde=2026-10-01') });
   const cuerpoCombo = await combo.json();
   assert.equal(cuerpoCombo.agrupar, 'idea');
@@ -160,7 +160,7 @@ test('la página pinta el corte de la URL (solo con sesión)', async () => {
   assert.match(texto, /Steve Wozniak/);
   assert.match(texto, /Walt Disney/);
   assert.equal((texto.match(/fuente: ejemplo/g) || []).length, 0);
-  assert.match(texto, /Por definir con Carlos/);
+  assert.match(texto, /Player de tinta electrónica/); // octubre ya no tiene patas vacías (tv 18-oct); el vacío se cubre en la vista dia 20-dic
   assert.match(texto, /aria-label="Proyecto"/);
   assert.match(texto, /aria-label="Cliente"/);
   assert.match(texto, /aria-label="Idea"/);
