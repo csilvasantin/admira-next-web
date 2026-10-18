@@ -1306,7 +1306,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-supervisor-cara-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-supervisor-aparta-1';
   var avatarUpgrade=null;
   function avatarApi(requireFloating) {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
@@ -1377,7 +1377,8 @@
   function supervisorCara() {
     return avatarApi(true).then(function (A) {
       if (!A || typeof A.cara !== 'function') return null;
-      return A.cara('supervisor', {orden: function (o) {
+      // Nunca tapa la cámara de Analizar: si no cabe a su lado, la cara se estrecha o se pliega en su burbuja.
+      return A.cara('supervisor', {evitar: '#analizar-webcam', orden: function (o) {
         var cli = panel && panel.querySelector('.ax-cli-out');
         execute(o.orden === 'estado' ? '/supervisor estado' : '/supervisor', cli || document.createElement('ol'));
       }});

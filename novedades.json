@@ -572,5 +572,9 @@
   "v.18.10.2026.r1.10:23": [
     "Supervisor con cara: /supervisor abre la cámara de Admira Live y saca su cara (Admirito con gorra de vigilante y ojo de cámara) en el panel del avatar",
     "/supervisor estado en toda la suite: el parte del MBP16 sin salir de la página, y la cara dice lo que ve"
+  ],
+  "v.18.10.2026.r2.10:37": [
+    "La cara del Supervisor nunca tapa la cámara de Admira Live: si no cabe a su lado se estrecha o se pliega en su burbuja",
+    "Si el lector del Supervisor no carga, /supervisor abre la cámara igual y /supervisor estado lo dice claro"
   ]
 }
