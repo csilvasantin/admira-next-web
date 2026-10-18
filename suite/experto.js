@@ -308,7 +308,7 @@
   // ─── Modo propio: CLI de la suite para patas que no traen el suyo ───
   var verbs = [];
   var adapters = Object.create(null), localDemos = Object.create(null), adapterOwnsInput = false;
-  var reserved = ['help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content','crear','create'];
+  var reserved = ['admirito','help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content','crear','create'];
   function registerAdapter(def) {
     if (!def || !/^[a-z0-9-]+$/i.test(def.id || '')) throw Error('Invalid command adapter');
     if (adapters[def.id]) return;
@@ -1881,7 +1881,7 @@
     catalog: function(){return publishedCatalog;},
     verb: verb,
     registerAdapter: registerAdapter,
-    engineVersion: '20261016-dooh-1',
+    engineVersion: '20261018-admirito-1',
     resize: function(height){return resizeDock(height,true);},height: function(){return dockHeight;},
     run: function (t) { var log = panel && panel.querySelector('.ax-cli-out'); if (log) return execute(t, log); },
     open: function () { setOpen(true, true); },
@@ -1909,6 +1909,7 @@
   };
 
   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
+  import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-1').then(function(m){m.installAdmirito(root.AdmiraExperto);}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);});
   try { root.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
 
   function bootNativeDemo() {
