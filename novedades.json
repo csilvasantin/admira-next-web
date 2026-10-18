@@ -593,5 +593,10 @@
     "Variantes unificadas de Admirito: Creativo, Arquitecto, Bugito, Supervisor y ayuda ES/EN.",
     "/admirito y /default abren siempre el verde estándar; se actualizan los cargadores anteriores.",
     "Las apps de iPhone y Fold conservan las acciones compartidas al navegar por la suite."
+  ],
+  "v.18.10.2026.r7.18:25": [
+    "/usuarios: 3 bloques plegados (Usuarios, Directorio, Auditoría)",
+    "Alta y acceso a tercero dentro de Usuarios",
+    "Tokens MCP siguen en cada fila del Directorio"
   ]
 }
