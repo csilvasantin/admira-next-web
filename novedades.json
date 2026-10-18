@@ -616,5 +616,9 @@
   "v.18.10.2026.r12.18:51": [
     "/usuarios Directorio a 1024 y 1440 px: el rol se lee entero y proyectos, estado y acciones ya no se pisan ni se cortan (#6528).",
     "Columnas con ancho fijo, proyectos con tooltip y acciones en varias líneas; cabeceras ordenables intactas."
+  ],
+  "v.18.10.2026.r13.18:53": [
+    "Comercial cubre campañas para anunciantes y captación de comercios, locales y pantallas.",
+    "/comercial comercios y /admirito comercial comercios abren la ficha de captación en admira.biz."
   ]
 }
