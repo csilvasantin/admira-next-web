@@ -41,16 +41,19 @@
   var ORIGIN = 'https://www.admiranext.com';
   var FLAGS_URL = ORIGIN + '/api/avatar/flags';
   var CENTRAL_BRAIN = ORIGIN + '/api/avatar-ask';
+  // langui=host (Carlos, 18-oct-2026): el idioma del avatar se elige en la cabecera del panel, arriba a la derecha y a
+  // la izquierda de ✕, para dejar sitio al campo de texto; la cara esconde sus pastillas ESP/ENG (da-conversation-controls.js)
+  // y cambia de idioma con {type:'da-context', lang}.
   var LEVELS = {
-    good: 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180',
-    better: 'https://digitalavatar.ai/best.html?dock=1&contract=20261016-180&kiosk=0',
-    best: 'https://digitalavatar.ai/metahuman.html?dock=1'
+    good: 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host',
+    better: 'https://digitalavatar.ai/best.html?dock=1&contract=20261016-180&kiosk=0&langui=host',
+    best: 'https://digitalavatar.ai/metahuman.html?dock=1&langui=host'
   };
   // PERSONAJES (Carlos, 14-oct-2026: «Bugito es una adaptación de Admirito»): la misma cara con otra piel
   // (nube.html?personaje=<id>), por el mismo camino que /admirito. No son niveles: nunca pasan a ser la cara
   // por defecto de un sitio. Cada uno: su página (pagina), el gancho que esa página registra (gancho) y el
   // aviso al abrirla. Añadir el Arquitecto = una entrada más aquí (y su verbo en suite/experto.js).
-  var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&personaje=';
+  var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=';
   var CARA_ORIGIN = 'https://digitalavatar.ai';   // también en el camino de mejora de un cargador anterior
   var PERSONAJES = {
     bugito: {pagina: 'https://www.admira.biz/bugito.html', gancho: 'AdmiraBugito', param: 'incidencia',
@@ -510,7 +513,9 @@
     wrap.setAttribute('style', 'position:fixed;right:16px;bottom:20px;z-index:25;font-family:ui-monospace,SFMono-Regular,Menlo,monospace');
     wrap.innerHTML = '<button type="button" id="da-suite-bubble" title="' + (en() ? 'Digital avatar' : 'Avatar digital') + '" style="width:64px;height:64px;padding:0;border-radius:50%;border:0;background:transparent;cursor:pointer">' + NUBE + '</button>'
       + '<div id="da-suite-panel" style="position:relative;box-sizing:border-box;background:#05080f;border:1px solid rgba(120,243,255,.35);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55);flex-direction:column">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px 6px 48px;color:#dff8ff;font-size:11px;letter-spacing:.12em"><button type="button" id="da-suite-label" class="da-pill"><span class="da-pill-txt">AVATAR · Admirito</span><span class="da-pill-chev" aria-hidden="true">›</span></button><button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 48px;color:#dff8ff;font-size:11px;letter-spacing:.12em"><button type="button" id="da-suite-label" class="da-pill"><span class="da-pill-txt">AVATAR · Admirito</span><span class="da-pill-chev" aria-hidden="true">›</span></button>'
+      + '<span class="da-suite-der"><span id="da-suite-lang" class="da-lang" role="group" aria-label="' + (en() ? 'Avatar language' : 'Idioma del avatar') + '"><button type="button" data-lang="es" aria-label="Español">ESP</button><button type="button" data-lang="en" aria-label="English">ENG</button></span>'
+      + '<button type="button" id="da-suite-x" style="background:none;border:0;color:#75aab9;cursor:pointer;font-size:15px">✕</button></span></div>'
       + '<iframe id="da-suite-frame" title="Avatar digital" style="flex:1;width:100%;min-height:0;border:0;background:#05080f" allow="autoplay; microphone; camera; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>'
       + '<button type="button" id="da-suite-resize" aria-label="' + (en() ? 'Resize avatar' : 'Redimensionar el avatar') + '"></button></div>';
     doc.body.appendChild(wrap);
@@ -540,6 +545,11 @@
         + '.da-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid rgba(120,243,255,.45);background:rgba(120,243,255,.08);color:#dff8ff;font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;cursor:pointer;touch-action:pan-y;user-select:none;transition:background .15s,border-color .15s}'
         + '.da-pill:hover,.da-pill:focus-visible{background:rgba(120,243,255,.18);border-color:#78f3ff;outline:none}'
         + '.da-pill-chev{font-size:14px;opacity:.75;transition:transform .2s}.da-pill:hover .da-pill-chev{transform:translateX(2px)}'
+        + '#da-suite-label{min-width:0}#da-suite-label .da-pill-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+        + '.da-suite-der{display:flex;align-items:center;gap:8px;flex:none}'
+        + '.da-lang{display:inline-flex;gap:2px;padding:2px;border:1px solid #345362;border-radius:9px;background:#0b171f}'
+        + '.da-lang button{min-width:32px;height:22px;padding:0 6px;border:0;border-radius:7px;background:transparent;color:#9bb8cc;font:700 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:.04em;cursor:pointer}'
+        + '.da-lang button[aria-pressed=true]{background:#c0f3e6;color:#09281f}.da-lang button:focus-visible{outline:2px solid #78f3ff;outline-offset:1px}'
         + '#da-suite-frame{transition:opacity .22s ease}#da-suite.da-fading #da-suite-frame{opacity:0}'
         + '@media (prefers-reduced-motion:reduce){#da-suite-frame{transition:none}}';
       (doc.head || doc.documentElement).appendChild(style);
@@ -548,9 +558,14 @@
     bindResize(wrap.querySelector('#da-suite-resize'));
     wrap.querySelector('#da-suite-frame').addEventListener('load', postContext);
     wrap.querySelector('#da-suite-bubble').addEventListener('click', function () { if(floatingPersonaje)openPersonajePanel(floatingPersonaje);else requestOpen(currentLevel()); });
-    // El idioma de la página manda: si cambia, la cara recibe el nuevo (chips e idioma de respuesta).
-    try { new MutationObserver(postContext).observe(doc.documentElement, {attributes: true, attributeFilter: ['lang']}); } catch (_) {}
-    root.addEventListener('storage', function (e) { if (e && e.key === 'admiranext_expert_lang') postContext(); });
+    // El idioma de la página manda: si cambia, la cara recibe el nuevo (chips e idioma de respuesta) y deja de valer
+    // el que se eligiera en la cabecera del panel.
+    try { new MutationObserver(idiomaDePagina).observe(doc.documentElement, {attributes: true, attributeFilter: ['lang']}); } catch (_) {}
+    root.addEventListener('storage', function (e) { if (e && e.key === 'admiranext_expert_lang') idiomaDePagina(); });
+    Array.prototype.forEach.call(wrap.querySelectorAll('#da-suite-lang button[data-lang]'), function (b) {
+      b.addEventListener('click', function () { elegirIdioma(b.getAttribute('data-lang')); });
+    });
+    pintarIdioma();
     wrap.querySelector('#da-suite-x').addEventListener('click', function () { wrap.classList.remove('open'); });
     bindPill(wrap.querySelector('#da-suite-label'));
     return wrap;
@@ -621,7 +636,29 @@
   function context() {
     var c = defaultContext();
     for (var k in CTX) if (Object.prototype.hasOwnProperty.call(CTX, k)) { if (CTX[k] == null || CTX[k] === '') delete c[k]; else c[k] = CTX[k]; }
+    var elegido = idiomaElegido();
+    if (elegido) c.lang = elegido;
     return cleanContext(c);
+  }
+  // Idioma del avatar elegido en la cabecera del panel (ESP/ENG junto a ✕), sólo en esta pestaña. Si la página cambia de
+  // idioma después, manda la página: la última elección explícita gana.
+  var IDIOMA_KEY = 'admira-avatar:idioma';
+  function idiomaElegido() { var s = session(); try { var v = s && s.getItem(IDIOMA_KEY); return v === 'es' || v === 'en' ? v : ''; } catch (_) { return ''; } }
+  function elegirIdioma(lang) {
+    if (lang !== 'es' && lang !== 'en') return;
+    var s = session(); try { if (s) s.setItem(IDIOMA_KEY, lang); } catch (_) {}
+    pintarIdioma(); postContext();
+  }
+  function pintarIdioma() {
+    var grupo = doc.getElementById('da-suite-lang');
+    if (!grupo) return;
+    var actual = context().lang === 'en' ? 'en' : 'es';
+    grupo.setAttribute('aria-label', en() ? 'Avatar language' : 'Idioma del avatar');
+    Array.prototype.forEach.call(grupo.querySelectorAll('button[data-lang]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === actual)); });
+  }
+  function idiomaDePagina() {
+    var s = session(); try { if (s) s.removeItem(IDIOMA_KEY); } catch (_) {}
+    pintarIdioma(); postContext();
   }
   function postContext() {
     var n = node(), frame = n && n.querySelector('#da-suite-frame');

@@ -576,5 +576,8 @@
   "v.18.10.2026.r2.10:37": [
     "La cara del Supervisor nunca tapa la cámara de Admira Live: si no cabe a su lado se estrecha o se pliega en su burbuja",
     "Si el lector del Supervisor no carga, /supervisor abre la cámara igual y /supervisor estado lo dice claro"
+  ],
+  "v.18.10.2026.r3.12:55": [
+    "Avatar: el idioma (ESP · ENG) pasa a la cabecera del panel, arriba a la derecha junto a ✕, y el campo de texto gana sitio"
   ]
 }

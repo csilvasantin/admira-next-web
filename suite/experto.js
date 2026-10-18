@@ -1306,7 +1306,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-supervisor-aparta-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-idioma-cabecera-1';
   var avatarUpgrade=null;
   function avatarApi(requireFloating) {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
