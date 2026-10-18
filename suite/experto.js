@@ -308,7 +308,7 @@
   // ─── Modo propio: CLI de la suite para patas que no traen el suyo ───
   var verbs = [];
   var adapters = Object.create(null), localDemos = Object.create(null), adapterOwnsInput = false;
-  var reserved = ['admirito','help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content','crear','create'];
+  var reserved = ['default','admirito','help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content','crear','create'];
   function registerAdapter(def) {
     if (!def || !/^[a-z0-9-]+$/i.test(def.id || '')) throw Error('Invalid command adapter');
     if (adapters[def.id]) return;
@@ -383,6 +383,7 @@
     return items;
   }
   verb({name: 'help', alias: ['?', 'ayuda'], desc: ['esta lista', 'this list'], run: function (a, log) {
+    if (/^(admirito|default|creativo)$/i.test(a.join(' ').trim())) return root.AdmiraExperto.assistantHelp(log);
     if (/^bugito$/i.test(a.join(' ').trim())) { out(log, bugitoHelp()); return; }
     if (/^(?:demo\s+)?ios$/i.test(a.join(' ').trim())) { out(log, iosHelp()); return; }
     out(log, verbs.map(function (v) { var par = parDe(v.name); return '/' + v.name + (par ? ' · /' + par : '') + (v.args ? ' ' + v.args : '') + ' — ' + T(v.desc[0], v.desc[1]); }).join('\n') +
@@ -1306,33 +1307,34 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-idioma-cabecera-1';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-variants-2';
   var avatarUpgrade=null;
-  function avatarApi(requireFloating) {
-    if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
-    if(requireFloating&&avatarUpgrade)return avatarUpgrade;
-    var tag = document.querySelector(requireFloating?'script[data-admira-avatar-upgrade]':'script[data-admira-avatar]');
+  function avatarApi(requireFloating, requireVariants) {
+    function ready(A){return A&&A.handle&&(!requireFloating||A.floatingCharacters)&&(!requireVariants||A.variantContract===1);}
+    if (ready(root.AdmiraAvatar)) return Promise.resolve(root.AdmiraAvatar);
+    if((requireFloating||requireVariants)&&avatarUpgrade)return avatarUpgrade;
+    var tag = document.querySelector((requireFloating||requireVariants)?'script[data-admira-avatar-upgrade]':'script[data-admira-avatar]');
     var created=!tag;
     if (!tag) {
       tag = document.createElement('script');
       tag.src = AVATAR_SRC;
       tag.async = true;
-      tag.setAttribute(requireFloating?'data-admira-avatar-upgrade':'data-admira-avatar', '');
+      tag.setAttribute((requireFloating||requireVariants)?'data-admira-avatar-upgrade':'data-admira-avatar', '');
     }
     var pending=new Promise(function (resolve) {
-      var done = function () { resolve(root.AdmiraAvatar || null); };
-      if (root.AdmiraAvatar&&(!requireFloating||root.AdmiraAvatar.floatingCharacters)) return done();
+      var done = function () { resolve(ready(root.AdmiraAvatar)?root.AdmiraAvatar:null); };
+      if (ready(root.AdmiraAvatar)) return done();
       tag.addEventListener('load', done, {once: true});
       tag.addEventListener('error', done, {once: true});
       if(created)(document.head || document.documentElement).appendChild(tag);
       setTimeout(done, 4000);
     });
-    if(requireFloating)avatarUpgrade=pending.then(function(A){avatarUpgrade=null;return A;});
-    return requireFloating?avatarUpgrade:pending;
+    if(requireFloating||requireVariants)avatarUpgrade=pending.then(function(A){avatarUpgrade=null;return A;});
+    return (requireFloating||requireVariants)?avatarUpgrade:pending;
   }
   function avatarRun(text, log) {
-    return avatarApi().then(function (A) {
-      if (!A) { out(log, T('Avatar digital no disponible', 'Digital avatar unavailable'), 'err'); return; }
+    return avatarApi(false,/^\/(admirito|default)(?:\s|$)/i.test(text)).then(function (A) {
+      if (!A) { out(log, T('Avatar digital no disponible', 'Digital avatar unavailable'), 'err'); return {ok:false,error:'avatar_unavailable'}; }
       return Promise.resolve(A.handle(text)).then(function (msg) { if (msg) out(log, String(msg)); });
     });
   }
@@ -1345,9 +1347,7 @@
   verb({name: 'avatardigital', alias: ['digitalavatar'], desc: ['sin nada, muestra u oculta a Admirito (la nube); con on/off lo fija', 'alone, shows or hides Admirito (the cloud); on/off sets it'], run: function (a, log) {
     return avatarRun('/avatarDigital' + (a.length ? ' ' + a.join(' ') : ''), log);
   }});
-  verb({name: 'admirito', desc: ['muestra u oculta a Admirito, la mascota nube', 'show or hide Admirito, the cloud mascot'], run: function (a, log) {
-    return avatarRun('/admirito' + (a.length ? ' ' + a.join(' ') : ''), log);
-  }});
+  verb({name:'admirito',args:'[default|creativo|arquitecto|bugito|supervisor|help]',desc:['Admirito y sus asistentes · /help admirito','Admirito and its assistants · /help admirito'],run:function(a,log){out(log,T('Cargando asistentes…','Loading assistants…'));return {ok:false,error:'assistants_not_ready'};}});
   // Reutiliza Analizar de Admira Live: una sola cámara, sesión y controles PTZ.
   function supervisorCamera() {
     if (host !== 'admira.live') {
@@ -1549,15 +1549,17 @@
   }});
 
   // opts.echo === false: quien llama ya pintó la orden (p. ej. el CLI del armazón de admiranext.com).
-  var AVATAR_COMMAND_RE=/^\/(?:admirito|avatar(?:on|off)?|avatardigital|digitalavatar)(?:\s|$)/i;
+  var AVATAR_COMMAND_RE=/^\/(?:admirito|default|creativo|avatar(?:on|off)?|avatardigital|digitalavatar)(?:\s|$)/i;
   function sharedCommand(text) {
     var t = String(text || '').trim();
     // The shared avatar owns its verbs even when the native console predates them.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+bugito\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || (/^\/(?:vision|visión|visiongeneral|vision-general)(?:\s|$)/i.test(t) && !/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) || /^\/(?:supervisor|contenido|content|crear|create)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
+    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+(?:bugito|admirito|default|creativo)\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || (/^\/(?:vision|visión|visiongeneral|vision-general)(?:\s|$)/i.test(t) && !/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) || /^\/(?:supervisor|contenido|content|crear|create)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
     if (!t) return;
+    var engine=root.AdmiraExperto;
+    if(engine&&!engine.admiritoInstalled&&engine.admiritoReady&&/^\/(?:admirito|default|creativo)(?:\s|$)|^\/(?:help|ayuda|\?)\s+(?:admirito|default|creativo)\s*$/i.test(t)) return engine.admiritoReady.then(function(ready){if(ready)return execute(t,log,opts);out(log,T('Asistentes no disponibles. Recarga la página.','Assistants unavailable. Reload this page.'),'err');return {ok:false,error:'assistants_unavailable'};});
     if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
     if(!opts||opts.record!==false)recordCommand(t);
     if (handleLangCommand(t, log)) return;
@@ -1566,7 +1568,7 @@
     if (c) { name = c.name; parts.unshift(c.arg); v = findVerb(name); }
     if (!v) { var unknown=T('Verbo desconocido: /', 'Unknown verb: /') + name + T(' · escribe /help', ' · type /help');out(log,unknown,'err');return {ok:false,error:unknown}; }
     // El idioma del verbo pasa a ser el de la web, cuando la orden ya ha hecho lo suyo.
-    var helpBugito = /^(help|ayuda|\?)$/.test(name) && /^bugito$/i.test(parts.join(' ').trim());
+    var helpBugito = /^(help|ayuda|\?)$/.test(name) && /^(bugito|admirito|default|creativo)$/i.test(parts.join(' ').trim());
     // Este tema es lectura local: cambiar idioma puede navegar y borrar la ayuda recién mostrada.
     var idioma = helpBugito ? null : idiomaDeVerbo(name);
     var cambiaIdioma = function () {
@@ -1873,6 +1875,8 @@
   }
 
   root.AdmiraExperto = {
+    variantContract:1,
+    standardAvatar:function(log){return avatarRun('/admirito default',log);},
     paint: paint, lines: lines,
     setState: function (s) { state = s || ''; paint(); },
     set: function (k, v) { if (v == null) delete extra[k]; else extra[k] = v; paint(); },
@@ -1909,7 +1913,7 @@
   };
 
   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
-  import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-1').then(function(m){m.installAdmirito(root.AdmiraExperto);}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);});
+  root.AdmiraExperto.admiritoReady=import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-variants-2').then(function(m){m.installAdmirito(root.AdmiraExperto);return true;}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);return false;});
   try { root.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
 
   function bootNativeDemo() {

@@ -1,12 +1,13 @@
+import {installAdmirito} from '../suite/admirito.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-const experto=readFileSync(new URL('../pruebas/admirito-variantes/experto.js',import.meta.url),'utf8');
-const avatar=readFileSync(new URL('../pruebas/admirito-variantes/avatar.js',import.meta.url),'utf8');
+const experto=readFileSync(new URL('../suite/experto.js',import.meta.url),'utf8');
+const avatar=readFileSync(new URL('../assets/avatar.js',import.meta.url),'utf8');
 const existing=readFileSync(new URL('./experto-bugito.test.mjs',import.meta.url),'utf8');
 const base=existing.slice(existing.indexOf('function consola('),existing.indexOf("test('/bugito está"));
-function fixture(options={}) {const c={experto,vm,URL,URLSearchParams,options};vm.runInNewContext(base+';result=consola(options)',c);return c.result;}
+function fixture(options={}) {const c={experto,vm,URL,URLSearchParams,options,installAdmirito};vm.runInNewContext(base+';result=consola(options)',c);return c.result;}
 test('standard green has explicit non-toggle selection and legacy avatar aliases remain intact',()=>{
  const module={exports:{}};vm.runInNewContext(avatar,{module,globalThis:{},window:undefined});
  for(const command of ['/admirito','/default','/admirito default','/admirito /default'])assert.equal(module.exports.decide(command),'standard');
@@ -19,11 +20,11 @@ test('all suite hosts route standard selection once, including repeated invocati
  assert.deepEqual(calls,Array(4).fill('/admirito default'));
  }
 });
-test('help is bilingual and creative fails explicitly without invoking another character',async()=>{
+test('help is bilingual and Creative uses the canonical Studio route without substituting another character',async()=>{
  for(const lang of ['es','en']){let calls=0;const c=fixture({lang,AdmiraAvatar:{variantContract:1,floatingCharacters:true,handle:async()=>{calls++;return 'ok';}}});
- await c.run('/help admirito');assert.match(c.texto(),lang==='es'?/verde estándar/:/standard green/);
+ await c.run('/help admirito');assert.match(c.texto(),lang==='es'?/verde estándar/:/Standard green/);
  assert.equal(c.api.__sharedCommand('/help admirito'),true);
- assert.equal((await c.run('/creativo')).ok,false);assert.equal((await c.run('/admirito /creativo')).ok,false);assert.equal(calls,0);
+ assert.equal((await c.run('/creativo')).ok,true);assert.equal((await c.run('/admirito /creativo')).ok,true);assert.equal(calls,0);assert.equal(c.fuera.length,2);assert.ok(c.fuera.every(u=>u.startsWith('https://www.admira.studio/')));
  assert.equal((await c.run('/default unexpected')).ok,false);assert.equal(calls,0);
  }
 });

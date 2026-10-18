@@ -588,5 +588,10 @@
     "Llamadas unificadas: /admirito creativo, arquitecto, bugito y supervisor.",
     "/admirito help abre la consola y muestra las opciones sin ejecutar asistentes.",
     "Un único motor conserva el texto literal y evita duplicar órdenes o historial."
+  ],
+  "v.18.10.2026.r6.13:39": [
+    "Variantes unificadas de Admirito: Creativo, Arquitecto, Bugito, Supervisor y ayuda ES/EN.",
+    "/admirito y /default abren siempre el verde estándar; se actualizan los cargadores anteriores.",
+    "Las apps de iPhone y Fold conservan las acciones compartidas al navegar por la suite."
   ]
 }
