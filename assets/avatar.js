@@ -51,6 +51,7 @@
   // por defecto de un sitio. Cada uno: su página (pagina), el gancho que esa página registra (gancho) y el
   // aviso al abrirla. Añadir el Arquitecto = una entrada más aquí (y su verbo en suite/experto.js).
   var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&personaje=';
+  var CARA_ORIGIN = 'https://digitalavatar.ai';   // también en el camino de mejora de un cargador anterior
   var PERSONAJES = {
     bugito: {pagina: 'https://www.admira.biz/bugito.html', gancho: 'AdmiraBugito', param: 'incidencia',
       es: 'Bugito: abriendo su banco de pruebas en admira.biz (player virtual a la izquierda, Bugito a la derecha)…',
@@ -64,7 +65,15 @@
       es: 'El Arquitecto: abriendo su estudio en admira.biz. Órdenes: /arquitecto crear [tipo] · /arquitecto reformar · /arquitecto inventariar.',
       en: 'The Architect: opening his studio on admira.biz. Commands: /arquitecto crear [type] · /arquitecto reformar · /arquitecto inventariar.',
       lanzaEs: 'El Arquitecto: abriendo «%s» en el estudio…', lanzaEn: 'The Architect: opening “%s” in the studio…',
-      falloEs: 'El Arquitecto no ha podido hacerlo: mira el estudio.', falloEn: 'The Architect could not do it: check the studio.'}
+      falloEs: 'El Arquitecto no ha podido hacerlo: mira el estudio.', falloEn: 'The Architect could not do it: check the studio.'},
+    // El Supervisor (Carlos, 18-oct-2026): la tercera mascota del ⌘ Experto, la Insta360 del MacMini que vigila el MBP16
+    // y abre incidencias en admira.app/supervisor; su cara es la nube con gorra de vigilante y ojo de cámara. Sólo cara
+    // (soloCara): su verbo /supervisor es de la suite (cámara en Admira Live y parte), así que decide() no lo reclama.
+    // La suite la saca con AdmiraAvatar.cara('supervisor', …) junto a la cámara. Contrato: mcp/SUPERVISOR.md.
+    supervisor: {soloCara: true, pagina: 'https://www.admira.app/supervisor', gancho: 'AdmiraSupervisor', param: 'arg',
+      es: 'El Supervisor: abriendo su tablero en admira.app.', en: 'The Supervisor: opening his board on admira.app.',
+      lanzaEs: 'El Supervisor: «%s»…', lanzaEn: 'The Supervisor: “%s”…',
+      falloEs: 'El Supervisor no ha podido hacerlo: mira su tablero.', falloEn: 'The Supervisor could not do it: check his board.'}
   };
   var BUGITO = CARA_PERSONAJE + 'bugito';
   var BUGITO_BANCO = PERSONAJES.bugito.pagina;
@@ -93,7 +102,7 @@
     var rest = String(m[2] || '').trim().split(/\s+/).filter(Boolean);
     if (verb === 'avataron') return 'on';
     if (verb === 'avataroff') return 'off';
-    if (Object.prototype.hasOwnProperty.call(PERSONAJES, verb)) return verb;   // /bugito → 'bugito'
+    if (Object.prototype.hasOwnProperty.call(PERSONAJES, verb) && !PERSONAJES[verb].soloCara) return verb;   // /bugito → 'bugito'
     // Admirito, la mascota nube (Carlos, 5-oct-2026): /avatarDigital, /avatar Digital y /admirito
     // la muestran u ocultan (alternan); con on/off la fijan.
     if (verb === 'admirito' || (verb === 'avatar' && /^digital$/i.test(rest[0] || ''))) {
@@ -141,6 +150,26 @@
     return PERSONAJES[id].pagina + (q.length ? '?' + q.join('&') : '');
   }
   function personajeMode(id,arg){return id==='bugito'&&/^(?:on|off)?$/.test(arg||'')?'floating':id==='bugito'&&/^(?:full|avanzado|advanced)$/.test(arg||'')?'full':'action';}
+  // Mensaje del anfitrión a la cara de un personaje ({type:'da-<id>'}): sólo los campos del contrato, acotados.
+  // null si el personaje no existe o el estado no es una palabra. La cara decide si el estado es suyo.
+  function caraMensaje(id, msg) {
+    if (!Object.prototype.hasOwnProperty.call(PERSONAJES, id) || !msg || typeof msg !== 'object') return null;
+    var estado = String(msg.estado || '');
+    if (!/^[a-z][a-z-]{0,23}$/.test(estado)) return null;
+    var out = {type: 'da-' + id, estado: estado};
+    if (/^[a-z-]{1,24}$/.test(String(msg.espera || ''))) out.espera = msg.espera;
+    var ticket = typeof msg.ticket === 'string' ? msg.ticket : msg.incidencia && typeof msg.incidencia === 'object' ? msg.incidencia.id : '';
+    if (/^[A-Z]{3}-[A-Z0-9]{3,16}$/.test(String(ticket || ''))) out.ticket = ticket;
+    if (typeof msg.texto === 'string' && msg.texto.trim()) out.texto = msg.texto.trim().slice(0, 240);
+    if (msg.silencio === true) out.silencio = true;
+    if (msg.lang === 'es' || msg.lang === 'en') out.lang = msg.lang;
+    return out;
+  }
+  // Orden de la cara al anfitrión ({type:'da-<id>-orden', orden, texto}): null si no es de ese personaje o no es una palabra.
+  function caraOrden(id, d) {
+    if (!d || d.type !== 'da-' + id + '-orden' || !/^[a-z]{1,20}$/.test(String(d.orden || ''))) return null;
+    return {orden: d.orden, texto: typeof d.texto === 'string' ? d.texto.slice(0, 500) : '', lang: d.lang === 'en' ? 'en' : 'es'};
+  }
   function bugitoArg(text) { return personajeArg('bugito', text); }
   function bugitoUrl(ctx) { return personajeUrl('bugito', ctx); }
   function bugitoBanco(arg, lang) { return personajePagina('bugito', arg, lang); }
@@ -259,7 +288,7 @@
     return c[0] + ' · ' + c[1];
   }
 
-  var api = {decide: decide, personajeMode: personajeMode, personajeArg: personajeArg, personajeUrl: personajeUrl, personajePagina: personajePagina, PERSONAJES: PERSONAJES,
+  var api = {decide: decide, personajeMode: personajeMode, personajeArg: personajeArg, personajeUrl: personajeUrl, personajePagina: personajePagina, PERSONAJES: PERSONAJES, caraMensaje: caraMensaje, caraOrden: caraOrden,
     bugitoArg: bugitoArg, bugitoUrl: bugitoUrl, bugitoBanco: bugitoBanco, BUGITO: BUGITO, BUGITO_BANCO: BUGITO_BANCO, nextLevel: nextLevel, categoryLabel: categoryLabel, resolve: resolve, legacyValue: legacyValue, message: message,
     clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl, pickLevel: pickLevel,
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
@@ -451,7 +480,7 @@
     A.handle=function(text){if(decide(text)==='bugito')return personajeHandle('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?Promise.resolve(msg):oldHandle.call(A,text);};
     A.run=function(text){if(decide(text)==='bugito')return personajeRun('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?msg:oldRun?oldRun.call(A,text):oldHandle.call(A,text);};
     A.personaje=function(id){return id==='bugito'?{url:function(ctx){return personajeUrl(id,ctx||(A.context?A.context():{}));},pagina:function(arg,lang){return personajePagina(id,arg,lang);},run:function(arg){return personajeRun(id,arg||'');}}:oldPersonaje?oldPersonaje.call(A,id):null;};
-    A.bugito=A.personaje('bugito');A.floatingCharacters=true;
+    A.bugito=A.personaje('bugito');A.floatingCharacters=true;if(!A.cara)A.cara=cara;
     if(root.AvatarDigital)root.AvatarDigital.handle=A.handle;
     root.addEventListener('admira:expert-resize',applyLift);
   }
@@ -755,6 +784,54 @@
     if (!Object.prototype.hasOwnProperty.call(PERSONAJES, id)) return null;
     return {url: function (ctx) { return personajeUrl(id, ctx || context()); }, pagina: function (arg, lang) { return personajePagina(id, arg, lang); }, run: function (arg) { return personajeRun(id, arg || ''); }};
   }
+  // La cara de un personaje junto a lo que la página ya enseña (Supervisor, 18-oct-2026: la cámara de Admira Live sigue
+  // abierta y su cara sale en el panel). Abre el panel con nube.html?personaje=<id> (si ya es esa cara, no la recarga)
+  // y devuelve {enviar(msg), cerrar()}. enviar manda {type:'da-<id>', estado, …} (caraMensaje) en cuanto la cara avisa
+  // 'da-<id>-listo', y lo repite si se recarga; opts.orden recibe sus órdenes ('da-<id>-orden': {orden, texto, lang}).
+  // Sólo se habla con el iframe propio y con el origen de digitalavatar.ai. Contrato: mcp/SUPERVISOR.md.
+  var caraActual = null, escuchandoCaras = false;
+  function cara(id, opts) {
+    if (!Object.prototype.hasOwnProperty.call(PERSONAJES, id)) return null;
+    escucharCaras();
+    if (!caraViva(caraActual, id)) {
+      caraActual = {id: id, listo: false, ultimo: null, orden: null, src: ''};
+      openPersonajePanel(id); openedLevel = '';
+      var frame = doc.getElementById('da-suite-frame');
+      caraActual.src = frame ? frame.getAttribute('src') || '' : '';
+    } else { var wrap = node(); if (wrap) { wrap.style.display = ''; wrap.classList.add('open'); } applyLift(); }
+    if (opts && typeof opts.orden === 'function') caraActual.orden = opts.orden;
+    var mia = caraActual;
+    return {
+      enviar: function (msg) {
+        var m = caraMensaje(id, msg);
+        if (!m || caraActual !== mia || !caraViva(mia, id)) return false;
+        mia.ultimo = m;
+        if (mia.listo) caraPost(m);
+        return true;
+      },
+      cerrar: function () { if (caraActual === mia) { caraActual = null; var n = node(); if (n) n.classList.remove('open'); } }
+    };
+  }
+  // ¿Sigue en el panel la cara que se abrió? (/avatar good u ocultar el panel la quitan.)
+  function caraViva(c, id) {
+    var frame = doc.getElementById('da-suite-frame');
+    return !!c && c.id === id && !!frame && !!c.src && frame.getAttribute('src') === c.src;
+  }
+  function caraPost(m) {
+    var frame = doc.getElementById('da-suite-frame');
+    try { if (frame && frame.contentWindow) frame.contentWindow.postMessage(m, CARA_ORIGIN); } catch (_) {}
+  }
+  function escucharCaras() {
+    if (escuchandoCaras) return;
+    escuchandoCaras = true;
+    root.addEventListener('message', function (ev) {
+      var d = ev && ev.data, frame = doc.getElementById('da-suite-frame'), c = caraActual;
+      if (!c || !caraViva(c, c.id) || !d || typeof d !== 'object' || ev.origin !== CARA_ORIGIN || !frame || ev.source !== frame.contentWindow) return;
+      if (d.type === 'da-' + c.id + '-listo') { c.listo = true; if (c.ultimo) caraPost(c.ultimo); return; }
+      var o = caraOrden(c.id, d);
+      if (o && c.orden) { try { c.orden(o); } catch (_) {} }
+    });
+  }
   function handle(text) {
     var pmode = decide(text);
     if (pmode && Object.prototype.hasOwnProperty.call(PERSONAJES, pmode)) return personajeHandle(pmode, personajeArg(pmode, text) || '');
@@ -902,7 +979,7 @@
     if (requested) { cache.set(d.requestId, entry); entry.promise.then(function (ack) { demoReply(ev.source, ack); }); }
   });
 
-  root.AdmiraAvatar = {floatingCharacters:true,run: run, handle: handle, personaje: personaje, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
+  root.AdmiraAvatar = {floatingCharacters:true,run: run, handle: handle, personaje: personaje, cara: cara, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },
@@ -915,6 +992,7 @@
     if (o === 'off') return;
     projectFlag().then(function (flag) {
       if (override() !== null) return;          // el usuario decidió mientras tanto
+      if (visible()) return;                    // o algo abrió el panel (p. ej. la cara del Supervisor): no se pliega
       if (resolve(null, flag).on) show(false);   // burbuja cerrada; no se guarda nada
     });
   }

@@ -180,3 +180,7 @@ MCP help {tema:"demo-ios"}. Guía: https://www.admiranext.com/mcp/DEMO-IOS.md
 /bugito error starbucks gran de gracia 51 recorte
 /bugito restaurar starbucks gran de gracia 51
 Studio, Store, TV, App and Biz share the same Expert verb. Other apps open admira.biz with the complete order; valid Google owner login is required there. The configured lab demo targets MBP16, not a restaurant device. Black is content standby, not power-off. Supervisor records faults and recovery, with photos when signal and a clear view are available; recovery keeps the incident open. Unbound targets are rejected. MCP help is documentation, not an anonymous execution tool.
+
+## Supervisor · cara, cámara y parte / face, camera and report
+/supervisor · /supervisor estado · /supervisor status. Guide and contract: https://www.admiranext.com/mcp/SUPERVISOR.md
+/supervisor opens the Mac mini Insta360 in Admira Live with its controls; there the Supervisor face (Admirito with a security cap and a camera eye, digitalavatar.ai nube.html?personaje=supervisor) appears in the avatar panel without hiding the camera. /supervisor estado prints the MBP16 report (screen state, open incidents, latest photo) without leaving the page, read from admira.biz/supervisor-core.mjs, and the face says what it sees. The face never asks the brain or reads the board itself; recovery never closes an incident.

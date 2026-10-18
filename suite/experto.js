@@ -1306,7 +1306,7 @@
   // Avatar conversacional. Un solo cargador (admiranext.com/assets/avatar.js): good = Admirito (nube animada),
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
-  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261016-eink-command-2';
+  var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-supervisor-cara-1';
   var avatarUpgrade=null;
   function avatarApi(requireFloating) {
     if (root.AdmiraAvatar && root.AdmiraAvatar.handle && (!requireFloating||root.AdmiraAvatar.floatingCharacters)) return Promise.resolve(root.AdmiraAvatar);
@@ -1367,15 +1367,64 @@
     if (controls.getAttribute('aria-expanded') === 'false') controls.click();
     return {ok:true, camera:true};
   }
-  verb({name:'supervisor', desc:[
-    'abre la Insta360 del Mac mini en Admira Live con presets, movimiento y zoom visibles',
-    'opens the Mac mini Insta360 in Admira Live with visible presets, movement and zoom controls'
+  // La cara del Supervisor (18-oct-2026): la tercera mascota del ⌘ Experto, Admirito con gorra de vigilante y ojo de
+  // cámara (digitalavatar.ai nube.html?personaje=supervisor), sale en el panel del avatar junto a la cámara, sin quitarla.
+  // Lo que ve se lee del tablero con el lector de admira.biz (supervisor-core.mjs, CORS abierto); una página que ya lo
+  // tenga puede dejarlo en window.AdmiraSupervisorCore. Contrato: mcp/SUPERVISOR.md.
+  var SUPERVISOR_CORE = 'https://www.admira.biz/supervisor-core.mjs?v=20261018-supervisor-1';
+  function supervisorLector() { return root.AdmiraSupervisorCore ? Promise.resolve(root.AdmiraSupervisorCore) : import(SUPERVISOR_CORE); }
+  // Abre (o reutiliza) la cara; null si el avatar de la página no sabe sacar caras (cargador anterior).
+  function supervisorCara() {
+    return avatarApi(true).then(function (A) {
+      if (!A || typeof A.cara !== 'function') return null;
+      return A.cara('supervisor', {orden: function (o) {
+        var cli = panel && panel.querySelector('.ax-cli-out');
+        execute(o.orden === 'estado' ? '/supervisor estado' : '/supervisor', cli || document.createElement('ol'));
+      }});
+    }).catch(function () { return null; });
+  }
+  // Lectura del tablero → mensaje para la cara: el estado tal cual (la cara lo traduce) y la incidencia abierta.
+  function supervisorParaCara(m, l) {
+    var abierta = l.abiertas && l.abiertas[0];
+    return {estado: l.estado, ticket: abierta ? abierta.id : '', lang: lang(),
+      texto: m.textoEstado(l.estado, lang()) + (abierta ? T(' · incidencia ', ' · incident ') + abierta.id + T(' abierta', ' open') : '') + '.'};
+  }
+  function supervisorEstado(log, cara) {
+    if (cara) cara.enviar({estado: 'enfocando', silencio: true});
+    return supervisorLector().then(function (m) {
+      return m.leerSupervisor().then(function (l) {
+        var lines = m.parteSupervisor(l, lang()), ok = l.estado !== 'sin-senal';
+        lines.forEach(function (line, i) { out(log, line, i === 1 && !ok ? 'err' : ''); });
+        if (cara) cara.enviar(supervisorParaCara(m, l));
+        return {ok: ok, estado: l.estado, abiertas: l.abiertas.map(function (i) { return i.id; }), lines: lines};
+      });
+    }, function () {
+      var error = T('No se pudo cargar el lector del Supervisor (admira.biz/supervisor-core.mjs).', 'Could not load the Supervisor reader (admira.biz/supervisor-core.mjs).');
+      out(log, error, 'err');
+      if (cara) cara.enviar({estado: 'sin-senal'});
+      return {ok: false, error: error};
+    });
+  }
+  verb({name:'supervisor', args:'[estado|status]', desc:[
+    'abre la Insta360 del Mac mini en Admira Live con presets, movimiento y zoom visibles, con la cara del Supervisor en el panel del avatar; estado da su parte (pantalla del MBP16, incidencias abiertas y última foto) sin salir de la página',
+    'opens the Mac mini Insta360 in Admira Live with visible presets, movement and zoom controls, with the Supervisor face in the avatar panel; status gives its report (MBP16 screen, open incidents and latest photo) without leaving the page'
   ], run:function(a,log){
-    if(a.length){var usage=T('Usa /supervisor para abrir la cámara con sus controles.','Use /supervisor to open the camera with its controls.');out(log,usage,'err');return {ok:false,error:usage};}
+    var arg = a.join(' ').trim().toLowerCase();
+    if (arg === 'estado' || arg === 'status') {
+      out(log, T('Supervisor: leyendo la cámara del MBP16…', 'Supervisor: reading the MBP16 camera…'));
+      return supervisorCara().then(function (cara) { return supervisorEstado(log, cara); });
+    }
+    if(a.length){var usage=T('Usa /supervisor para abrir la cámara con sus controles, o /supervisor estado para su parte.','Use /supervisor to open the camera with its controls, or /supervisor status for its report.');out(log,usage,'err');return {ok:false,error:usage};}
     var result=supervisorCamera();
     out(log,result.ok?T('Supervisor: cámara Insta360 con controles.','Supervisor: Insta360 camera with controls.'):result.error,result.ok?'':'err');
+    // Fuera de Admira Live la página se va a la cámara y la cara sale al llegar (bootSupervisorCamera).
+    if (result.ok && result.camera) supervisorCaraConLectura();
     return result;
   }});
+  // Cara junto a la cámara, con lo que ve ahora (sin escribir el parte en la consola).
+  function supervisorCaraConLectura() {
+    return supervisorCara().then(function (cara) { if (cara) return supervisorEstado(document.createElement('ol'), cara); });
+  }
   // One creation dispatcher for console and Admirito; grammar lives in the native Creator contract.
   verb({name:'crear',alias:['create'],args:'cartela tintaelectronica [brief] | contenido [brief]',desc:[
     'crea 4 imágenes y 4 cartelas 3:4 para Diagonal, o contenido para póster y pantallas',
@@ -1406,6 +1455,7 @@
       if (!result.ok) return false;
       if(observer)observer.disconnect();
       if(timer)clearTimeout(timer);
+      supervisorCaraConLectura();
       return true;
     }
     if(ready())return;
