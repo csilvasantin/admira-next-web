@@ -1913,7 +1913,7 @@
   };
 
   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
-  root.AdmiraExperto.admiritoReady=import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-comercial-1').then(function(m){m.installAdmirito(root.AdmiraExperto);return true;}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);return false;});
+  root.AdmiraExperto.admiritoReady=import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-comercial-3').then(function(m){m.installAdmirito(root.AdmiraExperto);return true;}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);return false;});
   try { root.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
 
   function bootNativeDemo() {

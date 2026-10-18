@@ -4,7 +4,7 @@ export const ADMIRITOS=Object.freeze([
  {id:'creativo',command:'creativo',es:'Locuciones y música: texto o letra, voz, idioma y estilo.',en:'Voice-overs and music: text or lyrics, voice, language and style.'},
  {id:'arquitecto',command:'arquitecto',es:'Crear, reformar e inventariar espacios.',en:'Create, renovate and survey spaces.'},
  {id:'bugito',command:'bugito',es:'Revisar incidencias y abrir el banco de pruebas.',en:'Review incidents and open the test bench.'},
- {id:'comercial',command:'comercial',es:'Campañas para anunciantes: audiencias, ubicaciones y propuestas.',en:'Advertiser campaigns: audiences, locations and proposals.'},
+ {id:'comercial',command:'comercial',es:'Campañas para anunciantes y captación de comercios y pantallas.',en:'Advertiser campaigns and merchant and screen recruitment.'},
  {id:'supervisor',command:'supervisor',es:'Supervisar cámaras, pantallas e incidencias.',en:'Supervise cameras, screens and incidents.'}
 ]);
 const installed=new WeakSet();
@@ -14,9 +14,9 @@ export function installAdmirito(engine,environment=globalThis){
  const en=()=>environment.document.documentElement.lang.startsWith('en');
  function write(log,text,error=false){if(!log)return;for(const line of text.split('\n')){const row=environment.document.createElement(/^(OL|UL)$/.test(log.tagName)?'li':'div');row.className=error?'err':'';row.textContent=line;log.appendChild(row);}log.scrollTop=log.scrollHeight;}
  function help(log,error){engine.open?.();engine.resize?.(Math.max(300,engine.height?.()||0));if(environment.CustomEvent)environment.dispatchEvent?.(new environment.CustomEvent('admira:assistant-help'));const text=(error?error+'\n':'')+ADMIRITOS.map(a=>'/admirito '+a.id+' — '+a[en()?'en':'es']).join('\n')+'\n/admirito · /default · /admirito default — '+(en()?'Standard green Admirito, always shown.':'Admirito verde estándar, siempre visible.')+'\n/admirito help — '+(en()?'Show these options.':'Mostrar estas opciones.');write(log,text,!!error);return {ok:!error,options:ADMIRITOS.map(a=>a.id)};}
- if(!engine.has('comercial'))engine.verb({name:'comercial',args:'[brief|audiencias|ubicaciones|propuesta]',desc:['Campañas para anunciantes en admira.biz.','Advertiser campaigns in admira.biz.'],run(args,log){
+ if(!engine.has('comercial'))engine.verb({name:'comercial',args:'[brief|audiencias|ubicaciones|propuesta|comercios]',desc:['Campañas y captación de comercios en admira.biz.','Campaigns and merchant recruitment in admira.biz.'],run(args,log){
   const step=args[0]||'brief';
-  if(args.length>1||!['brief','audiencias','ubicaciones','propuesta'].includes(step)){const error=en()?'Use /comercial [brief|audiencias|ubicaciones|propuesta].':'Usa /comercial [brief|audiencias|ubicaciones|propuesta].';write(log,error,true);return {ok:false,error};}
+  if(args.length>1||!['brief','audiencias','ubicaciones','propuesta','comercios'].includes(step)){const error=en()?'Use /comercial [brief|audiencias|ubicaciones|propuesta|comercios].':'Usa /comercial [brief|audiencias|ubicaciones|propuesta|comercios].';write(log,error,true);return {ok:false,error};}
   write(log,en()?'Opening Commercial: audiences, locations and campaign proposals.':'Abriendo Comercial: audiencias, ubicaciones y propuestas de campaña.');
   if(environment.AdmiraComercial?.lanzar)return environment.AdmiraComercial.lanzar(step);
   environment.location.assign('https://www.admira.biz/?asistente=comercial&paso='+step+'&lang='+(en()?'en':'es'));return {ok:true,navigating:true};
