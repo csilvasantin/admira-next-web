@@ -1,7 +1,7 @@
 {
-  "version": "v.18.10.2026.r9.18:31",
-  "deployer": "GrokBotBox",
-  "agent": "GrokBotBox",
-  "machine": "Box",
-  "signature": "GrokBotBox \u00b7 Box"
+  "version": "v.18.10.2026.r10.18:33",
+  "deployer": "OraculoMacMini",
+  "agent": "OraculoMacMini",
+  "machine": "MacMini",
+  "signature": "OraculoMacMini · MacMini"
 }
