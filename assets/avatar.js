@@ -170,6 +170,17 @@
     if (!d || d.type !== 'da-' + id + '-orden' || !/^[a-z]{1,20}$/.test(String(d.orden || ''))) return null;
     return {orden: d.orden, texto: typeof d.texto === 'string' ? d.texto.slice(0, 500) : '', lang: d.lang === 'en' ? 'en' : 'es'};
   }
+  // ¿Dónde cabe la cara sin tapar lo que la página protege (Supervisor: la cámara de Admira Live, con sus controles)?
+  // zona y panel: rectángulos {left, top, right, bottom}; vista: {w}. 'libre' si no se tocan; 'estrecha' con el ancho que
+  // queda a la derecha de la zona (el panel va anclado a 16 px del borde derecho), si llega a CARA_MIN; si no, 'plegada'.
+  var CARA_MIN = 220, CARA_MARGEN = 12;
+  function caraHueco(zona, panel, vista) {
+    if (!zona || !panel) return {modo: 'libre'};
+    var corta = zona.left < panel.right && panel.left < zona.right && zona.top < panel.bottom && panel.top < zona.bottom;
+    if (!corta) return {modo: 'libre'};
+    var ancho = Math.floor(((vista && vista.w) || 1280) - 16 - zona.right - CARA_MARGEN);
+    return ancho >= CARA_MIN ? {modo: 'estrecha', ancho: ancho} : {modo: 'plegada'};
+  }
   function bugitoArg(text) { return personajeArg('bugito', text); }
   function bugitoUrl(ctx) { return personajeUrl('bugito', ctx); }
   function bugitoBanco(arg, lang) { return personajePagina('bugito', arg, lang); }
@@ -288,7 +299,7 @@
     return c[0] + ' · ' + c[1];
   }
 
-  var api = {decide: decide, personajeMode: personajeMode, personajeArg: personajeArg, personajeUrl: personajeUrl, personajePagina: personajePagina, PERSONAJES: PERSONAJES, caraMensaje: caraMensaje, caraOrden: caraOrden,
+  var api = {decide: decide, personajeMode: personajeMode, personajeArg: personajeArg, personajeUrl: personajeUrl, personajePagina: personajePagina, PERSONAJES: PERSONAJES, caraMensaje: caraMensaje, caraOrden: caraOrden, caraHueco: caraHueco,
     bugitoArg: bugitoArg, bugitoUrl: bugitoUrl, bugitoBanco: bugitoBanco, BUGITO: BUGITO, BUGITO_BANCO: BUGITO_BANCO, nextLevel: nextLevel, categoryLabel: categoryLabel, resolve: resolve, legacyValue: legacyValue, message: message,
     clampPanelSize: clampPanelSize, panelSizeAfterDrag: panelSizeAfterDrag, cleanContext: cleanContext, levelUrl: levelUrl, pickLevel: pickLevel,
     KEY: KEY, LEVEL_KEY: LEVEL_KEY, SIZE_KEY: SIZE_KEY, LEVELS: LEVELS, FLAGS_URL: FLAGS_URL, CENTRAL_BRAIN: CENTRAL_BRAIN};
@@ -399,7 +410,7 @@
     if (!panel || resizing) return;
     var stored = readSize();
     var s = clampPanelSize(stored && stored.w, stored && stored.h, viewBox());
-    panel.style.width = s.w + 'px';
+    panel.style.width = (caraTope ? Math.min(s.w, caraTope) : s.w) + 'px';   // la cara se estrecha para no tapar la cámara
     panel.style.height = s.h + 'px';
     if (stored && (stored.w !== s.w || stored.h !== s.h)) set(SIZE_KEY, JSON.stringify(s));
   }
@@ -453,14 +464,21 @@
   // Mascota: la nube del imagotipo de Admira (contorno #689840 de admira-logo_green.svg) en cartoon,
   // con ojos, mejillas y sonrisa; parpadea y bota al pasar el ratón (sin movimiento si reduced-motion).
   var NUBE = '<svg class="da-nube" viewBox="-6 6 289 186" width="62" height="40" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><g class="da-nube-cuerpo"><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Z" fill="#f3f9e8"/><path d="M213.31,59.13c-1,0-1.9.1-2.85.15a83,83,0,0,0-144,0c-1-.05-1.89-.15-2.85-.15A58.22,58.22,0,1,0,90.81,168.79a82.72,82.72,0,0,0,95.29,0A58.21,58.21,0,1,0,213.31,59.13Zm0,99.81a41.75,41.75,0,0,1-28.06-11,67.09,67.09,0,0,1-13.39,10.21,65.93,65.93,0,0,1-66.81,0A67.09,67.09,0,0,1,91.66,148,41.56,41.56,0,1,1,59,76a43.33,43.33,0,0,1,4.58-.26A41.39,41.39,0,0,1,76.11,77.7a66.43,66.43,0,0,1,124.69,0,41.39,41.39,0,0,1,12.51-1.93,43.33,43.33,0,0,1,4.58.26,41.58,41.58,0,0,1-4.58,82.91Z" fill="#689840"/><ellipse cx="92" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><ellipse cx="185" cy="138" rx="15" ry="9" fill="#f5a3a3" opacity=".75"/><g class="da-nube-ojos"><ellipse cx="111" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><ellipse cx="166" cy="110" rx="12.5" ry="17" fill="#1d2b12"/><circle cx="115.5" cy="103" r="5" fill="#fff"/><circle cx="170.5" cy="103" r="5" fill="#fff"/></g><path class="da-nube-boca" d="M122,135 Q138.5,153 155,135" fill="none" stroke="#1d2b12" stroke-width="8" stroke-linecap="round"/><path class="da-nube-risa" d="M121,131 Q138.5,162 156,131 Z" fill="#1d2b12" stroke="#1d2b12" stroke-width="4" stroke-linejoin="round"/><path class="da-nube-risa" d="M129,145 Q138.5,154 148,145 Q138.5,141 129,145Z" fill="#e8706f"/></g></svg>';
+  // La burbuja del Supervisor (cara plegada junto a la cámara): la nube en menta y teal con su gorra y su ojo de cámara.
+  var NUBE_SUPERVISOR = NUBE.replace('viewBox="-6 6 289 186"', 'viewBox="-6 -22 289 214"').replace(/#f3f9e8/g, '#eefcf6').replace(/#689840/g, '#1f8a70').replace(/#1d2b12/g, '#0b2d27')
+    .replace('</g></svg>', '<path d="M84 42 C78 30 66 14 64 6 C62 -6 96 -16 138.5 -16 C181 -16 215 -6 213 6 C211 14 199 30 193 42 Z" fill="#165a4c" stroke="#04120f" stroke-width="6"/>'
+      + '<path d="M78 55 Q138.5 43 199 55 Q205 65 190 69 Q138.5 59 87 69 Q72 65 78 55 Z" fill="#06100e"/><path d="M138.5 1 L152 6.5 L151 20 Q149 30 138.5 35 Q128 30 126 20 L125 6.5 Z" fill="#f2c94c"/>'
+      + '<circle cx="166" cy="110" r="21" fill="none" stroke="#0b2d27" stroke-width="7"/><circle cx="181" cy="95" r="5" fill="#ff4d4d"/></g></svg>');
+  var NOMBRE_MASCOTA = {bugito: 'Bugito', supervisor: 'Supervisor'};
   var floatingPersonaje='';
   // Older product loaders may be cached. Upgrade their existing API and dock,
   // preserving its listeners, iframe, project context and configured avatar level.
   if(previousAvatar){upgradeFloating(previousAvatar);return;}
   function paintMascot(id){
     floatingPersonaje=id||'';var wrap=node(),bubble=doc.getElementById('da-suite-bubble');if(!wrap||!bubble)return;
-    wrap.setAttribute('data-personaje',floatingPersonaje);bubble.setAttribute('aria-label',id==='bugito'?'Bugito':'Admirito');bubble.title=id==='bugito'?'Bugito':'Admirito';
-    bubble.innerHTML=id==='bugito'?NUBE.replace('viewBox="-6 6 289 186"','viewBox="-18 -15 325 220"').replace(/#f3f9e8/g,'#ee3434').replace(/#689840/g,'#510b0b').replace('<g class="da-nube-cuerpo">','<g class="da-nube-cuerpo"><path d="M92 66 L65 2 L124 46 M179 46 L233 2 L211 71" fill="#ad1515" stroke="#510b0b" stroke-width="9" stroke-linejoin="round"/><path d="M244 146 Q296 177 280 107 M269 118 L280 97 L289 118" fill="none" stroke="#ee3434" stroke-width="8" stroke-linecap="round"/>'):NUBE;
+    var nombre=NOMBRE_MASCOTA[id]||'Admirito';
+    wrap.setAttribute('data-personaje',floatingPersonaje);bubble.setAttribute('aria-label',nombre);bubble.title=nombre;
+    bubble.innerHTML=id==='supervisor'?NUBE_SUPERVISOR:id==='bugito'?NUBE.replace('viewBox="-6 6 289 186"','viewBox="-18 -15 325 220"').replace(/#f3f9e8/g,'#ee3434').replace(/#689840/g,'#510b0b').replace('<g class="da-nube-cuerpo">','<g class="da-nube-cuerpo"><path d="M92 66 L65 2 L124 46 M179 46 L233 2 L211 71" fill="#ad1515" stroke="#510b0b" stroke-width="9" stroke-linejoin="round"/><path d="M244 146 Q296 177 280 107 M269 118 L280 97 L289 118" fill="none" stroke="#ee3434" stroke-width="8" stroke-linecap="round"/>'):NUBE;
   }
   function openPersonajePanel(id){
     var wrap=ensureDock(),frame=doc.getElementById('da-suite-frame');if(!wrap||!frame)return;
@@ -789,19 +807,24 @@
   // y devuelve {enviar(msg), cerrar()}. enviar manda {type:'da-<id>', estado, …} (caraMensaje) en cuanto la cara avisa
   // 'da-<id>-listo', y lo repite si se recarga; opts.orden recibe sus órdenes ('da-<id>-orden': {orden, texto, lang}).
   // Sólo se habla con el iframe propio y con el origen de digitalavatar.ai. Contrato: mcp/SUPERVISOR.md.
-  var caraActual = null, escuchandoCaras = false;
+  var caraActual = null, escuchandoCaras = false, caraTope = 0;
   function cara(id, opts) {
     if (!Object.prototype.hasOwnProperty.call(PERSONAJES, id)) return null;
     escucharCaras();
     if (!caraViva(caraActual, id)) {
-      caraActual = {id: id, listo: false, ultimo: null, orden: null, src: ''};
-      openPersonajePanel(id); openedLevel = '';
+      caraActual = {id: id, listo: false, ultimo: null, orden: null, src: '', evitar: '', modo: ''};
+      caraTope = 0; openPersonajePanel(id); openedLevel = '';
       var frame = doc.getElementById('da-suite-frame');
       caraActual.src = frame ? frame.getAttribute('src') || '' : '';
     } else { var wrap = node(); if (wrap) { wrap.style.display = ''; wrap.classList.add('open'); } applyLift(); }
     if (opts && typeof opts.orden === 'function') caraActual.orden = opts.orden;
+    // opts.evitar: selector de lo que la cara no debe tapar (Jobs, 18-oct-2026: «que no tape ningún control de la cámara;
+    // si los tapa, que se pliegue o se aparte»). Se estrecha a la derecha de esa zona o se pliega en su burbuja.
+    if (opts && typeof opts.evitar === 'string' && opts.evitar.length <= 100) caraActual.evitar = opts.evitar;
+    caraApartar(caraActual);
     var mia = caraActual;
     return {
+      modo: function () { return mia.modo; },
       enviar: function (msg) {
         var m = caraMensaje(id, msg);
         if (!m || caraActual !== mia || !caraViva(mia, id)) return false;
@@ -811,6 +834,17 @@
       },
       cerrar: function () { if (caraActual === mia) { caraActual = null; var n = node(); if (n) n.classList.remove('open'); } }
     };
+  }
+  function caraApartar(c) {
+    var wrap = node(), panel = doc.getElementById('da-suite-panel'), zona = null;
+    caraTope = 0; fitPanel();
+    try { zona = c && c.evitar ? doc.querySelector(c.evitar) : null; } catch (_) { zona = null; }
+    if (!zona || !wrap || !panel || !wrap.classList.contains('open')) { if (c) c.modo = 'libre'; return 'libre'; }
+    var h = caraHueco(zona.getBoundingClientRect(), panel.getBoundingClientRect(), {w: root.innerWidth || 1280});
+    if (h.modo === 'estrecha') { caraTope = h.ancho; fitPanel(); }
+    else if (h.modo === 'plegada') { wrap.classList.remove('open'); paintMascot(c.id); applyLift(); }
+    c.modo = h.modo;
+    return h.modo;
   }
   // ¿Sigue en el panel la cara que se abrió? (/avatar good u ocultar el panel la quitan.)
   function caraViva(c, id) {
@@ -824,6 +858,8 @@
   function escucharCaras() {
     if (escuchandoCaras) return;
     escuchandoCaras = true;
+    // Si cambia la ventana, la cara vuelve a buscar su sitio junto a la zona que no debe tapar.
+    root.addEventListener('resize', function () { var c = caraActual, n = node(); if (c && c.evitar && caraViva(c, c.id) && n && n.classList.contains('open')) caraApartar(c); });
     root.addEventListener('message', function (ev) {
       var d = ev && ev.data, frame = doc.getElementById('da-suite-frame'), c = caraActual;
       if (!c || !caraViva(c, c.id) || !d || typeof d !== 'object' || ev.origin !== CARA_ORIGIN || !frame || ev.source !== frame.contentWindow) return;

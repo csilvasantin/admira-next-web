@@ -177,3 +177,41 @@ test('el arranque del cargador no pliega un panel que ya se abrió (la cara del 
   const boot = avatar.slice(avatar.indexOf('function boot() {'), avatar.indexOf("if (doc.readyState === 'loading')"));
   assert.match(boot, /if \(override\(\) !== null\) return;[\s\S]*if \(visible\(\)\) return;[\s\S]*show\(false\)/);
 });
+
+// Jobs, 18-oct-2026 (encargo #6473): «si admira.biz/supervisor-core.mjs no carga, /supervisor estado tiene que dar un
+// mensaje claro y la cámara tiene que abrir igual».
+test('sin el lector de admira.biz, /supervisor abre la cámara igual y /supervisor estado lo dice claro', async () => {
+  const c = consola({hostname: 'www.admira.live', core: null});
+  const r = await c.run('/supervisor');
+  await espera(); await espera();
+  assert.equal(r.ok, true);
+  assert.deepEqual(c.calls, {open: 1, reveal: 1}, 'la cámara se abre aunque el lector no cargue');
+  assert.equal(c.enviados.at(-1).estado, 'sin-senal', 'la cara no inventa una lectura');
+  const e = await c.run('/supervisor estado');
+  assert.equal(e.ok, false);
+  assert.match(c.texto(), /No se pudo cargar el lector del Supervisor \(admira\.biz\/supervisor-core\.mjs\)\./);
+  assert.deepEqual(c.calls, {open: 1, reveal: 1}, 'el parte no toca la cámara');
+});
+
+// Jobs: «probad en admira.live/analizar que el panel no tapa ningún control de la cámara; si los tapa, que se pliegue o
+// se aparte». Medidas reales de admira.live/analizar (headless, 18-oct-2026): la cámara ocupa 916×682 centrada.
+test('la cara no tapa la cámara: se queda, se estrecha a su lado o se pliega en su burbuja', async () => {
+  const module = {exports: {}};
+  vm.runInNewContext(avatar, {module, globalThis: {}, window: undefined});
+  const hueco = (...a) => JSON.parse(JSON.stringify(module.exports.caraHueco(...a)));
+  const caja = (x, y, w, h) => ({left: x, top: y, right: x + w, bottom: y + h});
+  assert.deepEqual(hueco(caja(502, 143, 916, 682), caja(1504, 380, 400, 680), {w: 1920}), {modo: 'libre'}, '1920×1080: cabe al lado');
+  assert.deepEqual(hueco(caja(262, 63, 916, 682), caja(1024, 200, 400, 680), {w: 1440}), {modo: 'estrecha', ancho: 234}, '1440×900: se estrecha a la derecha');
+  assert.deepEqual(hueco(caja(182, 63, 916, 682), caja(864, 100, 400, 680), {w: 1280}), {modo: 'plegada'}, '1280×800: no cabe, se pliega');
+  assert.deepEqual(hueco(null, caja(0, 0, 10, 10), {w: 800}), {modo: 'libre'}, 'sin cámara en la página, nada que evitar');
+  const c = consola({hostname: 'www.admira.live'});
+  await c.run('/supervisor');
+  await espera();
+  assert.equal(c.caras[0].opts.evitar, '#analizar-webcam', 'la suite le dice a la cara qué no debe tapar');
+  const fit = avatar.slice(avatar.indexOf('function fitPanel()'), avatar.indexOf('function bindResize('));
+  assert.match(fit, /caraTope \? Math\.min\(s\.w, caraTope\) : s\.w/, 'el estrechamiento no se guarda como tamaño elegido');
+  assert.match(fit, /set\(SIZE_KEY, JSON\.stringify\(s\)\)/);
+  assert.match(avatar, /id==='supervisor'\?NUBE_SUPERVISOR:/, 'plegada, la burbuja es la del Supervisor');
+  assert.ok(avatar.indexOf('var NUBE_SUPERVISOR') < avatar.indexOf('if(previousAvatar){upgradeFloating'), 'también al mejorar un cargador anterior');
+  assert.match(avatar, /addEventListener\('resize', function \(\) \{ var c = caraActual/, 'al cambiar la ventana vuelve a buscar su sitio');
+});

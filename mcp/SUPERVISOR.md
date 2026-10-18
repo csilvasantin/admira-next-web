@@ -10,7 +10,7 @@ Su cara es Admirito en menta y teal, con gorra de vigilante y el ojo derecho hec
 
 | Orden | Dónde | Qué hace |
 |---|---|---|
-| `/supervisor` | Admira Live | Abre la cámara de Analizar con sus controles, como antes. Además saca la cara en el panel del avatar con lo que ve ahora. La cámara no se cierra ni se tapa: la cara va en el panel de siempre, abajo a la derecha, y se puede mover o cerrar. |
+| `/supervisor` | Admira Live | Abre la cámara de Analizar con sus controles, como antes. Además saca la cara en el panel del avatar con lo que ve ahora. La cara **nunca tapa la cámara**: si no cabe al lado, se estrecha a su derecha (mínimo 220 px) y, si tampoco cabe así, se pliega en la burbuja del Supervisor. Medido en admira.live: a 1920×1080 cabe tal cual, a 1440×900 se estrecha a 234 px y a 1280×800 se pliega. |
 | `/supervisor` | Cualquier otra página | Va a `admira.live/analizar?supervisor=1`, como antes. Al llegar se abre la cámara y sale la cara. |
 | `/supervisor estado` · `/supervisor status` | Cualquier página | Da el parte en la consola sin salir de la página. Saca la cara, que primero enfoca y luego dice lo que ve. |
 | Otro argumento | — | Error de uso. Nunca ejecuta nada más. |
@@ -59,6 +59,8 @@ The **Supervisor** is the ⌘ Expert's third mascot, next to Admirito and Bugito
 - `enviar(msg)` sanitises `msg` with `caraMensaje`, keeps the latest one, and posts it once the face says it is ready. It posts it again if the face reloads.
 - `enviar` returns `false` once that face has left the panel, for example after `/avatar good` or when the panel is hidden.
 - `opts.orden({orden, texto, lang})` receives the face's orders, filtered by `caraOrden`.
+- `opts.evitar` is a CSS selector (≤ 100 chars) for what the face must never cover; the suite passes `#analizar-webcam`. `caraHueco(zona, panel, vista)` decides `libre`, `estrecha` (the width left to the right of that zone, at least 220 px; the narrowing is never saved as the user's chosen size) or `plegada` (the Supervisor bubble). The face looks again when the window is resized. Jobs, 18-oct-2026: «que no tape ningún control de la cámara; si los tapa, que se pliegue o se aparte».
+- Without the reader (`admira.biz/supervisor-core.mjs` not loading), `/supervisor` still opens the camera and `/supervisor estado` says so clearly; the face goes to `sin-senal`.
 - Messages go only to and from the avatar's own iframe, and only to and from the origin `https://digitalavatar.ai`. Never to `*`.
 
 ### Mensajes / Messages
