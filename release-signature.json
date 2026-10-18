@@ -1,7 +1,7 @@
 {
-  "version": "v.17.10.2026.r2.15:37",
-  "deployer": "ElonGrokBot",
-  "agent": "ElonGrokBot",
+  "version": "v.18.10.2026.r1.10:23",
+  "deployer": "MorfeoMacMini",
+  "agent": "MorfeoMacMini",
   "machine": "MacMini",
-  "signature": "ElonGrokBot · MacMini"
+  "signature": "MorfeoMacMini · MacMini"
 }
