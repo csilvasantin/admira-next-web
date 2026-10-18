@@ -1347,7 +1347,7 @@
   verb({name: 'avatardigital', alias: ['digitalavatar'], desc: ['sin nada, muestra u oculta a Admirito (la nube); con on/off lo fija', 'alone, shows or hides Admirito (the cloud); on/off sets it'], run: function (a, log) {
     return avatarRun('/avatarDigital' + (a.length ? ' ' + a.join(' ') : ''), log);
   }});
-  verb({name:'admirito',args:'[default|creativo|arquitecto|bugito|supervisor|comercial|help]',desc:['Admirito y sus asistentes · /help admirito','Admirito and its assistants · /help admirito'],run:function(a,log){out(log,T('Cargando asistentes…','Loading assistants…'));return {ok:false,error:'assistants_not_ready'};}});
+  verb({name:'admirito',args:'[default|creativo|arquitecto|bugito|supervisor|comercial|playlist|help]',desc:['Admirito y sus asistentes · /help admirito','Admirito and its assistants · /help admirito'],run:function(a,log){out(log,T('Cargando asistentes…','Loading assistants…'));return {ok:false,error:'assistants_not_ready'};}});
   // Reutiliza Analizar de Admira Live: una sola cámara, sesión y controles PTZ.
   function supervisorCamera() {
     if (host !== 'admira.live') {
@@ -1559,7 +1559,7 @@
     var t = String(text || '').trim();
     if (!t) return;
     var engine=root.AdmiraExperto;
-    if(engine&&!engine.admiritoInstalled&&engine.admiritoReady&&/^\/(?:admirito|default|creativo)(?:\s|$)|^\/(?:help|ayuda|\?)\s+(?:admirito|default|creativo)\s*$/i.test(t)) return engine.admiritoReady.then(function(ready){if(ready)return execute(t,log,opts);out(log,T('Asistentes no disponibles. Recarga la página.','Assistants unavailable. Reload this page.'),'err');return {ok:false,error:'assistants_unavailable'};});
+    if(engine&&!engine.admiritoInstalled&&engine.admiritoReady&&/^\/(?:admirito|default|creativo|playlist)(?:\s|$)|^\/(?:help|ayuda|\?)\s+(?:admirito|default|creativo|playlist)\s*$/i.test(t)) return engine.admiritoReady.then(function(ready){if(ready)return execute(t,log,opts);out(log,T('Asistentes no disponibles. Recarga la página.','Assistants unavailable. Reload this page.'),'err');return {ok:false,error:'assistants_unavailable'};});
     if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
     if(!opts||opts.record!==false)recordCommand(t);
     if (handleLangCommand(t, log)) return;
@@ -1913,7 +1913,7 @@
   };
 
   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
-  root.AdmiraExperto.admiritoReady=import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-comercial-3').then(function(m){m.installAdmirito(root.AdmiraExperto);return true;}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);return false;});
+  root.AdmiraExperto.admiritoReady=import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-playlist-1').then(function(m){m.installAdmirito(root.AdmiraExperto);return true;}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);return false;});
   try { root.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
 
   function bootNativeDemo() {
