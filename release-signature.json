@@ -1,7 +1,7 @@
 {
-  "version": "v.18.10.2026.r13.18:53",
-  "deployer": "OraculoMacMini",
-  "agent": "OraculoMacMini",
-  "machine": "MacMini",
-  "signature": "OraculoMacMini · MacMini"
+  "version": "v.18.10.2026.r14.20:00",
+  "deployer": "JobsGrokBotBox",
+  "agent": "JobsGrokBotBox",
+  "machine": "GrokBotBox",
+  "signature": "JobsGrokBotBox · GrokBotBox"
 }

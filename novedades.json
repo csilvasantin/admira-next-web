@@ -620,5 +620,9 @@
   "v.18.10.2026.r13.18:53": [
     "Comercial cubre campañas para anunciantes y captación de comercios, locales y pantallas.",
     "/comercial comercios y /admirito comercial comercios abren la ficha de captación en admira.biz."
+  ],
+  "v.18.10.2026.r14.20:00": [
+    "/usuarios Auditoría compacta: el aviso de diferencias con admira.live ocupa una línea (detalle plegado) y los eventos son una hoja de una línea por evento (#6545).",
+    "Cabeceras ordenables, JSON recortado con tooltip y detalle completo al pulsar la fila; sin solapes a 1024 y 1440 px."
   ]
 }
