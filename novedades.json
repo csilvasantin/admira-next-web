@@ -603,5 +603,10 @@
     "/usuarios: arreglo JS openBlock (sin romper Tokens MCP)",
     "3 bloques plegados Usuarios·Directorio·Auditoría",
     "Sello hotfix r8 tras r7"
+  ],
+  "v.18.10.2026.r9.18:31": [
+    "/usuarios Directorio: lista tipo hoja de cálculo (#6527)",
+    "Filas compactas, cabeceras ordenables, acciones sin corte",
+    "Sobre 3 bloques plegados Usuarios·Directorio·Auditoría"
   ]
 }
