@@ -1,0 +1,55 @@
+--- a/suite/experto.js
++++ b/suite/experto.js
+@@ -308,7 +308,7 @@
+   // ─── Modo propio: CLI de la suite para patas que no traen el suyo ───
+   var verbs = [];
+   var adapters = Object.create(null), localDemos = Object.create(null), adapterOwnsInput = false;
+-  var reserved = ['help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content','crear','create'];
++  var reserved = ['admirito','help','ayuda','?','demo','demos','idioma','language','languague','lang','arquitectura','architecture','organigrama-tecnologico','tech-chart','contenido','content','crear','create'];
+   function registerAdapter(def) {
+     if (!def || !/^[a-z0-9-]+$/i.test(def.id || '')) throw Error('Invalid command adapter');
+     if (adapters[def.id]) return;
+@@ -1909,6 +1909,7 @@
+   };
+ 
+   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
++  import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-1').then(function(m){m.installAdmirito(root.AdmiraExperto);}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);});
+   try { root.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
+ 
+   function bootNativeDemo() {
+--- /dev/null
++++ b/suite/admirito.mjs
+@@ -0,0 +1,33 @@
++// Shared namespace extension. Registers one verb in the existing suite engine;
++// each assistant keeps its existing application action and execution path.
++export const ADMIRITOS=Object.freeze([
++ {id:'creativo',command:'creativo',es:'Locuciones y música: texto o letra, voz, idioma y estilo.',en:'Voice-overs and music: text or lyrics, voice, language and style.'},
++ {id:'arquitecto',command:'arquitecto',es:'Crear, reformar e inventariar espacios.',en:'Create, renovate and survey spaces.'},
++ {id:'bugito',command:'bugito',es:'Revisar incidencias y abrir el banco de pruebas.',en:'Review incidents and open the test bench.'},
++ {id:'supervisor',command:'supervisor',es:'Supervisar cámaras, pantallas e incidencias.',en:'Supervise cameras, screens and incidents.'}
++]);
++const installed=new WeakSet();
++export function installAdmirito(engine,environment=globalThis){
++ if(!engine?.verb||!engine?.exec)throw Error('shared-expert-engine-required');
++ if(installed.has(engine))return;installed.add(engine);
++ const en=()=>environment.document.documentElement.lang.startsWith('en');
++ function write(log,text,error=false){if(!log)return;for(const line of text.split('\n')){const row=environment.document.createElement(/^(OL|UL)$/.test(log.tagName)?'li':'div');row.className=error?'err':'';row.textContent=line;log.appendChild(row);}log.scrollTop=log.scrollHeight;}
++ function help(log,error){engine.open?.();engine.resize?.(Math.max(300,engine.height?.()||0));if(environment.CustomEvent)environment.dispatchEvent?.(new environment.CustomEvent('admira:assistant-help'));const text=(error?error+'\n':'')+ADMIRITOS.map(a=>'/admirito '+a.id+' — '+a[en()?'en':'es']).join('\n')+'\n/admirito help — '+(en()?'Show these options.':'Mostrar estas opciones.');write(log,text,!!error);return {ok:!error,options:ADMIRITOS.map(a=>a.id)};}
++ engine.verb({name:'admirito',args:'creativo|arquitecto|bugito|supervisor|help',desc:['Asistentes virtuales. /admirito help muestra las opciones.','Virtual assistants. /admirito help shows the options.'],run(args,log,command){
++  // Read raw payload so literal lyrics retain newlines and repeated spaces.
++  const raw=command?.raw?command.raw.replace(/^\/?admirito(?:\s+|$)/i,''):args.join(' ');
++  const match=/^(\S+)(?:\s+([\s\S]*))?$/.exec(raw.trim()),name=(match?.[1]||'help').toLowerCase(),tail=match?.[2]||'';
++  if(['help','ayuda','?'].includes(name))return help(log);
++  // Preserve explicit legacy visibility controls, without routing them as assistants.
++  if(['on','off'].includes(name)&&!tail)return engine.exec(name==='on'?'/avataron':'/avataroff',log,{echo:false,record:false});
++  const assistant=ADMIRITOS.find(a=>a.id===name);
++  if(!assistant)return help(log,en()?'Unknown assistant.':'Asistente desconocido.');
++  if(!engine.has(assistant.command)){
++   const message=en()?'This assistant is not available on this page.':'Este asistente no está disponible en esta página.';
++   if(name==='creativo'&&!tail){write(log,en()?'Opening El Creativo in Admira Studio.':'Abriendo El Creativo en Admira Studio.');environment.location.assign('https://www.admira.studio/'+(en()?'en/':'')+'creativo/?lang='+(en()?'en':'es'));return {ok:true,navigating:true};}
++   write(log,message,true);return {ok:false,error:message};
++  }
++  return engine.exec('/'+assistant.command+(tail?' '+tail:''),log,{echo:false,record:false});
++ }});
++ return engine;
++}
