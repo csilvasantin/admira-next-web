@@ -612,5 +612,9 @@
   "v.18.10.2026.r11.18:37": [
     "Comercial en admira.biz: campañas para anunciantes, audiencias, ubicaciones y propuestas.",
     "/comercial y /admirito comercial comparten la misma acción; /admirito vuelve al verde estándar."
+  ],
+  "v.18.10.2026.r12.18:51": [
+    "/usuarios Directorio a 1024 y 1440 px: el rol se lee entero y proyectos, estado y acciones ya no se pisan ni se cortan (#6528).",
+    "Columnas con ancho fijo, proyectos con tooltip y acciones en varias líneas; cabeceras ordenables intactas."
   ]
 }
