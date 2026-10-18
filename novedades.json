@@ -598,5 +598,10 @@
     "/usuarios: 3 bloques plegados (Usuarios, Directorio, Auditoría)",
     "Alta y acceso a tercero dentro de Usuarios",
     "Tokens MCP siguen en cada fila del Directorio"
+  ],
+  "v.18.10.2026.r8.18:27": [
+    "/usuarios: arreglo JS openBlock (sin romper Tokens MCP)",
+    "3 bloques plegados Usuarios·Directorio·Auditoría",
+    "Sello hotfix r8 tras r7"
   ]
 }
