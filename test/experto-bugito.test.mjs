@@ -1,3 +1,4 @@
+import {installAdmirito} from '../suite/admirito.mjs';
 // /bugito (Carlos, 14-oct-2026, DCL-5da4653d859552490fd5ae1d): Bugito es Admirito con piel de diablillo, el
 // creador de incidencias del banco de pruebas de admira.biz. Mismo cargador (assets/avatar.js) y mismo camino
 // que /admirito (avatarRun) desde el ⌘ Experto de las cinco patas.
@@ -23,7 +24,7 @@ test('el cargador reconoce /bugito y su argumento, sin tocar /admirito', () => {
   assert.equal(A.decide('/bugito'), 'bugito');
   assert.equal(A.decide('/Bugito popup'), 'bugito');
   assert.equal(A.decide('bugito girar'), 'bugito');
-  assert.equal(A.decide('/admirito'), 'mascota');
+  assert.equal(A.decide('/admirito'), 'standard');
   assert.equal(A.decide('/bugitos'), null);
   assert.equal(A.bugitoArg('/bugito'), '');
   assert.equal(A.bugitoArg('/bugito Ábrela a medias'), 'abrela-a-medias');
@@ -33,9 +34,9 @@ test('el cargador reconoce /bugito y su argumento, sin tocar /admirito', () => {
 });
 
 test('Bugito es la cara de Admirito con ?personaje=bugito, y no un nivel más', () => {
-  assert.equal(A.BUGITO, 'https://digitalavatar.ai/nube.html?dock=1&personaje=bugito');
-  assert.equal(A.bugitoUrl({ lang: 'en', loc: 'x' }), 'https://digitalavatar.ai/nube.html?dock=1&personaje=bugito&lang=en&tier=good');
-  assert.equal(A.bugitoUrl({}), 'https://digitalavatar.ai/nube.html?dock=1&personaje=bugito&tier=good');
+  assert.equal(A.BUGITO, 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=bugito');
+  assert.equal(A.bugitoUrl({ lang: 'en', loc: 'x' }), 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=bugito&lang=en&tier=good');
+  assert.equal(A.bugitoUrl({}), 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=bugito&tier=good');
   assert.equal('bugito' in A.LEVELS, false, 'nunca pasa a ser la cara por defecto de un sitio');
   assert.equal(A.pickLevel('bugito', '', ''), 'good');
 });
@@ -78,6 +79,7 @@ function consola({ AdmiraAvatar = null, AdmiraBugito = null, lang = 'es', host =
   sandbox.window = sandbox; sandbox.globalThis = sandbox;
   // Expose the private routing predicate only inside this VM fixture.
   vm.runInNewContext(experto.replace('root.AdmiraExperto = {','root.AdmiraExperto = { __sharedCommand: sharedCommand,'), sandbox, { filename: 'experto.js' });
+  if(typeof installAdmirito==='function')installAdmirito(sandbox.AdmiraExperto,sandbox);
   const log = { children: [], tagName: 'OL', querySelector: () => null, insertBefore(x) { this.children.unshift(x); }, appendChild(x) { this.children.push(x); }, removeChild() {}, get firstChild() { return this.children[0]; }, scrollTop: 0, scrollHeight: 0 };
   return { api: sandbox.AdmiraExperto, fuera, run: (t) => sandbox.AdmiraExperto.exec(t, log, { echo: false }), texto: () => log.children.map((li) => li.textContent).join('\n') };
 }
@@ -95,13 +97,13 @@ test('/bugito está en el ⌘ Experto y en /help, en castellano y en inglés', a
 
 test('/bugito va por el mismo camino que /admirito: el cargador avatar.js', async () => {
   const llamadas = [];
-  const AdmiraAvatar = { floatingCharacters:true,handle: (t) => { llamadas.push(t); return Promise.resolve(t === '/bugito popup' ? 'Bugito: ¡Popup va!' : 'ok'); }, personaje: (id) => (id === 'bugito' ? { url() {} } : null) };
+  const AdmiraAvatar = { variantContract:1,floatingCharacters:true,handle: (t) => { llamadas.push(t); return Promise.resolve(t === '/bugito popup' ? 'Bugito: ¡Popup va!' : 'ok'); }, personaje: (id) => (id === 'bugito' ? { url() {} } : null) };
   const c = consola({ AdmiraAvatar });
   await c.run('/bugito popup');
   await c.run('/admirito');
-  assert.deepEqual(llamadas, ['/bugito popup', '/admirito']);
+  assert.deepEqual(llamadas, ['/bugito popup', '/admirito default']);
   assert.match(c.texto(), /¡Popup va!/);
-  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261014-floating-bugito-2';/, 'carga el avatar.js que actualiza cargadores antiguos sin duplicar el dock');
+  assert.match(experto, /var AVATAR_SRC = 'https:\/\/www\.admiranext\.com\/assets\/avatar\.js\?v=20261018-variants-2';/, 'carga el avatar.js que actualiza cargadores antiguos sin duplicar el dock');
 });
 
 test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera, abre el banco', async () => {
@@ -134,9 +136,9 @@ test('en piel (la pata conserva su CLI), la suite intercepta /bugito igual que /
 });
 
 test('personajes: una tabla en el cargador y otra en la suite; añadir el Arquitecto es una entrada', () => {
-  assert.deepEqual(Object.keys(A.PERSONAJES), ['bugito', 'arquitecto'], 'el Arquitecto llegó con su entrada (DCL-66d9ae0d5e756d0067127f24)');
+  assert.deepEqual(Object.keys(A.PERSONAJES), ['bugito', 'arquitecto', 'supervisor'], 'el Arquitecto llegó con su entrada (DCL-66d9ae0d5e756d0067127f24)');
   assert.equal(A.PERSONAJES.bugito.gancho, 'AdmiraBugito');
-  assert.equal(A.personajeUrl('bugito', { lang: 'es' }), 'https://digitalavatar.ai/nube.html?dock=1&personaje=bugito&lang=es&tier=good');
+  assert.equal(A.personajeUrl('bugito', { lang: 'es' }), 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=bugito&lang=es&tier=good');
   assert.equal(A.personajeUrl('pirata', {}), '', 'un personaje sin entrada no tiene cara');
   assert.equal(A.personajeArg('bugito', '/bugito Gira'), 'gira');
   assert.equal(A.personajeArg('bugito', '/admirito gira'), null);
@@ -196,12 +198,12 @@ test('floating Bugito changes the mascot in place, toggles, and restores Admirit
 test('shared dock height starts at a writable minimum and clamps manual resizing to the viewport',()=>{const c=consola();assert.equal(c.api.height(),52);assert.equal(c.api.resize(0),52);assert.equal(c.api.resize(300),300);assert.equal(c.api.resize(100000),680);assert.equal(c.api.resize(-100),52);});
 
 test('native consoles dispatch Admirito and the shared avatar aliases once through the shared engine',async()=>{
- const calls=[],native=[];const c=consola({AdmiraAvatar:{floatingCharacters:true,handle:t=>{calls.push(t);return Promise.resolve('restored');}}});
+ const calls=[],native=[];const c=consola({AdmiraAvatar:{variantContract:1,floatingCharacters:true,handle:t=>{calls.push(t);return Promise.resolve('restored');}}});
  for(const text of ['/admirito',' /Admirito off ','/avatar good','/avatarON','/avatarOFF','/avatarDigital','/digitalAvatar','/cli ayudante','/cli helper']){
   assert.equal(c.api.__sharedCommand(text),true,text);
  }
  const submit=async text=>{if(c.api.__sharedCommand(text))await c.run(text);else native.push(text);};
- await submit('/admirito');await submit('/music');assert.deepEqual(calls,['/admirito']);assert.deepEqual(native,['/music']);
+ await submit('/admirito');await submit('/music');assert.deepEqual(calls,['/admirito default']);assert.deepEqual(native,['/music']);
  for(const text of ['/admirito-extra','/avatars','/avatartron','/digitalavatarx','/cli inventario'])assert.equal(c.api.__sharedCommand(text),false,text);
 });
 

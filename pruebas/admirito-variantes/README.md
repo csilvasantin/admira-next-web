@@ -1,17 +1,9 @@
-# Variantes de Admirito — preparación pendiente de contrato
+# Variantes de Admirito — integración común
 
-Encargo #6492 · contrato de variantes de Admirito, dirigido a Trinity, pendiente de acuse.
-Misión FLT-102556 · variantes de Admirito en Experto: sigue abierta.
+La prueba protegida se publicó primero con PR #220 · contrato compartido de variantes. Trinity publicó después PR #219 · llamadas unificadas de asistentes, firmado TrinityMacStudio. Su módulo `suite/admirito.mjs` es la fuente única del selector y conserva los textos literales, permisos, acciones y registro único en historial.
 
-Esta preparación usa una copia de prueba del motor compartido y su cargador, sin modificar el motor público. Antes de promover, integrar únicamente el cambio en las fuentes canónicas `suite/experto.js` y `assets/avatar.js` y retirar las copias de prueba. No crear manejadores por dominio.
+La integración añade `/default` y `/admirito default` (también con barra), y hace que `/admirito` sin argumento seleccione siempre el verde estándar sin ocultarse al repetir. Mantiene los alias existentes de Arquitecto, Bugito y Supervisor. Creativo abre la herramienta real de locuciones y música de Studio; fuera de Studio no reenvía texto privado en URLs. `/help admirito` muestra ayuda ES/EN sin cambiar el idioma.
 
-- `/admirito`, `/default`, `/admirito default` y `/admirito /default`: selección explícita del verde estándar, sin alternar ocultación.
-- Arquitecto, Bugito y Supervisor delegan en sus acciones existentes.
-- Ayuda ES/EN: `/help admirito` y `/admirito help`.
-- Creativo sigue sin contrato ni recurso confirmado. La preparación informa del pendiente y no simula otra variante.
+El HTML de la prueba carga las fuentes canónicas; se retiran las dos copias de preparación. Cargadores anteriores se actualizan en su dock existente. El despacho espera a que esté instalado el módulo, para evitar ejecutar el comportamiento antiguo durante la carga.
 
-Validación: cuatro pruebas nuevas de contrato y siete pruebas existentes de Supervisor pasan. Dos pruebas existentes de Arquitecto fallan sin modificación de las fuentes canónicas: esperan una URL anterior sin parámetros contract/langui y una versión antigua exacta del cargador.
-
-Navegador real sin interfaz: verificadas selección verde repetida y transición desde Bugito con cargador nuevo y anterior.
-
-Pendiente: respuesta de Trinity; versión Creativo real; comprobación visual con sesión de la prueba; promoción y verificación real en todos los Expertos y móviles. No desplegado ni comprobado globalmente.
+Validación previa: 56 pruebas de variantes, namespace de Trinity, cargador, Bugito, Arquitecto, Supervisor, transporte e idioma. Navegador real con cargador nuevo y anterior: transición Bugito → verde, invocación repetida y alias. Las pruebas físicas y la versión publicada se documentan al finalizar.

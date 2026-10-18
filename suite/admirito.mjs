@@ -9,15 +9,16 @@ export const ADMIRITOS=Object.freeze([
 const installed=new WeakSet();
 export function installAdmirito(engine,environment=globalThis){
  if(!engine?.verb||!engine?.exec)throw Error('shared-expert-engine-required');
- if(installed.has(engine))return;installed.add(engine);
+ if(installed.has(engine))return engine;installed.add(engine);
  const en=()=>environment.document.documentElement.lang.startsWith('en');
  function write(log,text,error=false){if(!log)return;for(const line of text.split('\n')){const row=environment.document.createElement(/^(OL|UL)$/.test(log.tagName)?'li':'div');row.className=error?'err':'';row.textContent=line;log.appendChild(row);}log.scrollTop=log.scrollHeight;}
- function help(log,error){engine.open?.();engine.resize?.(Math.max(300,engine.height?.()||0));if(environment.CustomEvent)environment.dispatchEvent?.(new environment.CustomEvent('admira:assistant-help'));const text=(error?error+'\n':'')+ADMIRITOS.map(a=>'/admirito '+a.id+' — '+a[en()?'en':'es']).join('\n')+'\n/admirito help — '+(en()?'Show these options.':'Mostrar estas opciones.');write(log,text,!!error);return {ok:!error,options:ADMIRITOS.map(a=>a.id)};}
- engine.verb({name:'admirito',args:'creativo|arquitecto|bugito|supervisor|help',desc:['Asistentes virtuales. /admirito help muestra las opciones.','Virtual assistants. /admirito help shows the options.'],run(args,log,command){
+ function help(log,error){engine.open?.();engine.resize?.(Math.max(300,engine.height?.()||0));if(environment.CustomEvent)environment.dispatchEvent?.(new environment.CustomEvent('admira:assistant-help'));const text=(error?error+'\n':'')+ADMIRITOS.map(a=>'/admirito '+a.id+' — '+a[en()?'en':'es']).join('\n')+'\n/admirito · /default · /admirito default — '+(en()?'Standard green Admirito, always shown.':'Admirito verde estándar, siempre visible.')+'\n/admirito help — '+(en()?'Show these options.':'Mostrar estas opciones.');write(log,text,!!error);return {ok:!error,options:ADMIRITOS.map(a=>a.id)};}
+ engine.verb({name:'admirito',args:'creativo|arquitecto|bugito|supervisor|default|help',desc:['Asistentes virtuales. /admirito help muestra las opciones.','Virtual assistants. /admirito help shows the options.'],run(args,log,command){
   // Read raw payload so literal lyrics retain newlines and repeated spaces.
   const raw=command?.raw?command.raw.replace(/^\/?admirito(?:\s+|$)/i,''):args.join(' ');
-  const match=/^(\S+)(?:\s+([\s\S]*))?$/.exec(raw.trim()),name=(match?.[1]||'help').toLowerCase(),tail=match?.[2]||'';
-  if(['help','ayuda','?'].includes(name))return help(log);
+  const match=/^(\S+)(?:\s+([\s\S]*))?$/.exec(raw.trim()),name=(match?.[1]||'default').replace(/^\//,'').toLowerCase(),tail=match?.[2]||'';
+  if(['help','ayuda','?'].includes(name))return help(log,tail?(en()?'Unexpected help arguments.':'La ayuda no admite más argumentos.'):null);
+  if(name==='default'){if(tail)return help(log,en()?'Use /admirito or /default.':'Usa /admirito o /default.');return engine.standardAvatar(log);}
   // Preserve explicit legacy visibility controls, without routing them as assistants.
   if(['on','off'].includes(name)&&!tail)return engine.exec(name==='on'?'/avataron':'/avataroff',log,{echo:false,record:false});
   const assistant=ADMIRITOS.find(a=>a.id===name);
@@ -29,5 +30,8 @@ export function installAdmirito(engine,environment=globalThis){
   }
   return engine.exec('/'+assistant.command+(tail?' '+tail:''),log,{echo:false,record:false});
  }});
+ engine.verb({name:'default',desc:['Abre Admirito verde estándar.','Shows standard green Admirito.'],run(args,log){return engine.exec('/admirito default'+(args.length?' '+args.join(' '):''),log,{echo:false,record:false});}});
+ if(!engine.has('creativo'))engine.verb({name:'creativo',desc:['Abre El Creativo en Admira Studio.','Opens Creative in Admira Studio.'],run(args,log){if(args.length){const message=en()?'Open Creative in Studio before submitting text.':'Abre primero El Creativo en Studio para enviar texto.';write(log,message,true);return {ok:false,error:message};}environment.location.assign('https://www.admira.studio/'+(en()?'en/':'')+'creativo/?lang='+(en()?'en':'es'));return {ok:true,navigating:true};}});
+ engine.assistantHelp=help;engine.admiritoInstalled=true;
  return engine;
 }
