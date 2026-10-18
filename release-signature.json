@@ -1,7 +1,7 @@
 {
-  "version": "v.18.10.2026.r3.12:55",
-  "deployer": "MorfeoMacMini",
-  "agent": "MorfeoMacMini",
-  "machine": "MacMini",
-  "signature": "MorfeoMacMini · MacMini"
+  "version": "v.18.10.2026.r4.13:31",
+  "deployer": "TrinityMacStudio",
+  "agent": "TrinityMacStudio",
+  "machine": "MacStudio",
+  "signature": "TrinityMacStudio · MacStudio"
 }

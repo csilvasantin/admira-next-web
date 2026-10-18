@@ -1,19 +1,9 @@
 # Admirito · llamadas de asistentes
 
-Prueba del contrato pedido por Carlos el 18-oct-2026:
+Carlos autoriza publicar el 18-oct-2026 las llamadas `/admirito creativo`, `/admirito arquitecto`, `/admirito bugito`, `/admirito supervisor` y `/admirito help`, necesarias para la publicación y las pruebas de Admira Studio. La prueba previa queda como reexportación del mismo módulo público.
 
-- `/admirito creativo`
-- `/admirito arquitecto`
-- `/admirito bugito`
-- `/admirito supervisor`
-- `/admirito help`
+La implementación única es `/suite/admirito.mjs`, cargada desde `suite/experto.js`. Registra un verbo, reservado frente a adaptadores de aplicaciones, y delega una sola vez en las acciones existentes con `echo:false,record:false`. La ayuda abre el log y muestra opciones sin ejecutar asistentes. Los hosts con consola propia pueden reaccionar al evento de presentación `admira:assistant-help`, sin ejecutar ni interceptar comandos.
 
-`admirito.mjs` instala un único verbo mediante la API `AdmiraExperto.verb` del motor existente, sin interceptar formularios ni volver a interpretar su gramática. La ayuda se pinta en el log de Experto y no ejecuta asistentes. Cada opción delega una sola vez en la acción ya existente con `echo:false,record:false`, conservando los alias antiguos. `/admirito on|off` mantiene los controles explícitos de visibilidad. El texto literal del Creativo viaja en `command.raw`, sin convertir saltos de línea en espacios.
+Studio registra su acción del Creativo; el módulo común conserva `command.raw` y la aplicación recibe texto literal con espacios y saltos de línea. En otros sitios, la llamada sin encargo abre Studio; con texto y sin adaptador no navega ni incluye texto privado en la URL. Los alias antiguos y `/admirito on|off` siguen compatibles. Supervisor conserva sus permisos y controles de cámara.
 
-En Studio, Creativo es una acción registrada de la aplicación que abre su ventana. En otros sitios, sin esa acción registrada, la llamada sin encargo abre Studio; con texto no se navega ni se incluye texto privado en una URL. Los otros asistentes conservan sus acciones existentes, incluido el Supervisor y sus controles/permisos de cámara.
-
-La implementación queda bajo `/pruebas/` conforme a AGENTS.md. No modifica `suite/experto.js`, el cargador público, la portada ni el avatar de otras páginas. Para probar localmente, cargar el motor compartido existente y después `installAdmirito(window.AdmiraExperto)`. El preview local de Trinity sirve este módulo en una ruta de ensayo; no expone la zona privada de producción.
-
-La promoción a `/suite/admirito.mjs` y su carga común en todas las verticales es el paso de publicación independiente. Mientras tanto, el cambio está en revisión y no se afirma que esté desplegado en toda la suite.
-
-`promotion.patch` deja concreta la promoción propuesta para cuando Carlos la autorice: añade el módulo común a `/suite/`, lo carga una sola vez desde el motor compartido y reserva el verbo `admirito` para que un adaptador de aplicación no lo sustituya. El parche se comprueba con `git apply --check`, pero no se aplica en esta prueba. La ayuda abre el log de Experto; los hosts con consola propia pueden reaccionar al evento de presentación `admira:assistant-help`, sin interceptar ni ejecutar comandos.
+No se añade Experto a presites ni se cambia la portada, salvo la actualización obligatoria del sello de publicación.

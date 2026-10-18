@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import {readFileSync} from 'node:fs';
-import {installAdmirito,ADMIRITOS} from '../pruebas/admirito/admirito.mjs';
+import {installAdmirito,ADMIRITOS} from '../suite/admirito.mjs';
 const experto=readFileSync(new URL('../suite/experto.js',import.meta.url),'utf8'),source=readFileSync(new URL('./experto-bugito.test.mjs',import.meta.url),'utf8');
 const fixture=source.slice(source.indexOf('function consola('),source.indexOf("test('/bugito está")).replace('return { api: sandbox.AdmiraExperto','return { root:sandbox,api: sandbox.AdmiraExperto');
 function boot(lang='es'){const context={experto,vm,URL,URLSearchParams};vm.runInNewContext(fixture+';result=consola({lang:'+JSON.stringify(lang)+'});',context);const c=context.result;installAdmirito(c.api,c.root);return c;}
@@ -11,3 +11,5 @@ test('English help changes descriptions while keeping canonical calls',()=>{cons
 test('reinstalling the shared namespace does not create duplicate actions',()=>{const c=boot();installAdmirito(c.api,c.root);assert.equal(c.api.list().filter(v=>v.name==='admirito').length,1);});
 test('legacy assistant aliases stay registered and explicit avatar visibility still routes once',()=>{const c=boot();for(const name of ['bugito','arquitecto','supervisor'])assert(c.api.has(name));let calls=0;c.api.verb({name:'avataroff',run:()=>{calls++;return {ok:true};}});c.run('/admirito off');assert.equal(calls,1);});
 test('outside Studio, Creative opens its assistant without putting text in a URL',()=>{const c=boot();c.run('/admirito creativo');assert.equal(c.fuera[0],'https://www.admira.studio/creativo/?lang=es');const withText=boot();const result=withText.run('/admirito creativo crear locución "Private literal" chica esp');assert.equal(result.ok,false);assert.equal(withText.fuera.length,0);});
+
+test('application adapters cannot shadow the shared Admirito namespace',()=>{const c=boot();c.api.registerAdapter({id:'late-native',verbs:[{name:'admirito',run:()=>{throw Error('shadowed');}}]});assert.equal(c.run('/admirito help').ok,true);assert.match(c.texto(),/\/admirito creativo/);});

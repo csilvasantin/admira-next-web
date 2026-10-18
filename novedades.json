@@ -579,5 +579,10 @@
   ],
   "v.18.10.2026.r3.12:55": [
     "Avatar: el idioma (ESP · ENG) pasa a la cabecera del panel, arriba a la derecha junto a ✕, y el campo de texto gana sitio"
+  ],
+  "v.18.10.2026.r4.13:31": [
+    "Llamadas unificadas: /admirito creativo, arquitecto, bugito y supervisor.",
+    "/admirito help abre la consola y muestra las opciones sin ejecutar asistentes.",
+    "Un único motor conserva el texto literal y evita duplicar órdenes o historial."
   ]
 }
