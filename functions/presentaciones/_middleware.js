@@ -405,7 +405,7 @@ export async function onRequest(context){
             await env.AUTH_DB.prepare('UPDATE admiranext_users SET google_sub=COALESCE(google_sub,?),last_login_at=?,last_login_ip=?,last_login_ua=?,updated_at=? WHERE email=? AND (google_sub IS NULL OR google_sub=?)')
               .bind(googleIdentity.sub, now, request.headers.get('CF-Connecting-IP') || '', String(request.headers.get('User-Agent') || '').slice(0,300), now, user.email, googleIdentity.sub).run();
             await auditar(env, googleIdentity.email, user.email, 'login_success', `${user.role} · presentaciones`);
-            headers.append('Set-Cookie', await cookieDeSesion(env, user));
+            headers.append('Set-Cookie', await cookieDeSesion(env, user, { amr: 'google_pres' }));
           }
         } catch (_) {}
       }

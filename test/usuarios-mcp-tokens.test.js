@@ -27,7 +27,7 @@ class D1 {
 async function setup(){ const env={AUTH_DB:new D1(),WEBMASTER_SIGNING_KEY:'mcp-tokens-test-key',YOKUP_FETCH:async()=>Response.json({ok:true,projects:[]})}; await asegurarDirectorio(env); return env; }
 async function cookie(env,email='csilva@admira.com'){
   const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(email).first();
-  return (await cookieDeSesion(env,user)).split(';')[0];
+  return (await cookieDeSesion(env,user,{amr:"google"})).split(';')[0];
 }
 const source = fs.readFileSync(new URL('../usuarios.html', import.meta.url), 'utf8');
 

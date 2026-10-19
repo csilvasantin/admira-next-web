@@ -50,7 +50,7 @@ async function setup(){
 }
 async function cookie(env,email){
   const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(email).first();
-  return (await cookieDeSesion(env,user)).split(';')[0];
+  return (await cookieDeSesion(env,user,{amr:"google"})).split(';')[0];
 }
 async function alta(env,email,role='viewer'){
   const adminCookie=await cookie(env,'csilva@admira.com');

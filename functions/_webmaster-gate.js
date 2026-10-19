@@ -147,6 +147,9 @@ export async function asegurarDirectorio(env) {
       user_email TEXT NOT NULL, app_key TEXT NOT NULL, created_at INTEGER NOT NULL, created_by TEXT NOT NULL,
       PRIMARY KEY(user_email, app_key))`,
     'CREATE INDEX IF NOT EXISTS idx_admiranext_user_apps_email ON admiranext_user_apps(user_email)',
+    // Auditoría DMZ (19-10-2026): IP y navegador de quien hace cada cambio.
+    'ALTER TABLE admiranext_user_audit ADD COLUMN ip TEXT',
+    'ALTER TABLE admiranext_user_audit ADD COLUMN user_agent TEXT',
   ]) {
     try { await env.AUTH_DB.prepare(extra).run(); } catch (_) { /* columna/tabla ya existe */ }
   }
@@ -177,18 +180,32 @@ export async function buscarUsuarioIdentidad(env, identity) {
   ).bind(email).first();
 }
 
-export async function auditar(env, actor, target, action, detail = '') {
+export async function auditar(env, actor, target, action, detail = '', meta = null) {
   await asegurarDirectorio(env);
+  const base = [id(), emailValido(actor) || 'system', emailValido(target) || '-', String(action).slice(0,80), String(detail).slice(0,500), Date.now()];
+  if (meta && (meta.ip || meta.ua)) {
+    // Zona DMZ: quién, qué, cuándo, desde qué IP y con qué navegador.
+    try {
+      await env.AUTH_DB.prepare(
+        'INSERT INTO admiranext_user_audit(id,actor_email,target_email,action,detail,created_at,ip,user_agent) VALUES(?,?,?,?,?,?,?,?)'
+      ).bind(...base, String(meta.ip || '').slice(0,64), String(meta.ua || '').slice(0,300)).run();
+      return;
+    } catch (_) { /* columnas aún no creadas: se anota sin IP antes que perder el evento */ }
+  }
   await env.AUTH_DB.prepare(
     'INSERT INTO admiranext_user_audit(id,actor_email,target_email,action,detail,created_at) VALUES(?,?,?,?,?,?)'
-  ).bind(id(), emailValido(actor) || 'system', emailValido(target) || '-', String(action).slice(0,80), String(detail).slice(0,500), Date.now()).run();
+  ).bind(...base).run();
 }
 
-async function crearToken(clave, user, exp) {
+// Cómo se abrió la sesión (amr) y cuándo (at). La DMZ de /usuarios solo acepta amr=google.
+const AMR = new Set(['google', 'google_pres', 'token']);
+async function crearToken(clave, user, exp, amr = '') {
+  const iat = Math.floor(Date.now() / 1000);
   const payload = {
     v: 2, email: user.email, role: user.role, sv: Number(user.session_version),
-    iat: Math.floor(Date.now() / 1000), exp, sid: id(), csrf: id(), aud: 'admiranext.com'
+    iat, exp, sid: id(), csrf: id(), aud: 'admiranext.com'
   };
+  if (AMR.has(amr)) { payload.amr = amr; payload.at = iat; }
   const cuerpo = b64url(enc.encode(JSON.stringify(payload)));
   return `${cuerpo}.${await hmac(clave, `an:${cuerpo}`)}`;
 }
@@ -226,6 +243,7 @@ async function leerToken(request, env) {
     'SELECT project_key FROM admiranext_user_projects WHERE user_email=? ORDER BY project_key'
   ).bind(email).all();
   return { email, role:user.role, display_name:user.display_name || '', session_version:Number(user.session_version), csrf, sid:String(data.sid || ''), legacy:!!legacy,
+    amr:legacy ? '' : String(data.amr || ''), auth_time:legacy ? 0 : Number(data.at || 0),
     project_keys:(permissions.results || []).map((row) => row.project_key) };
 }
 
@@ -281,9 +299,9 @@ export async function verificarGoogle(credential, fetchImpl = fetch) {
   } catch (_) { return null; }
 }
 
-export async function cookieDeSesion(env, user) {
+export async function cookieDeSesion(env, user, { amr = '' } = {}) {
   const exp = Math.floor(Date.now() / 1000) + MAXAGE;
-  const token = await crearToken(env.WEBMASTER_SIGNING_KEY, user, exp);
+  const token = await crearToken(env.WEBMASTER_SIGNING_KEY, user, exp, amr);
   return `${COOKIE}=${token}; Path=/; Max-Age=${MAXAGE}; HttpOnly; Secure; SameSite=Strict`;
 }
 

@@ -33,7 +33,7 @@ async function setup(lista=LISTA){
 }
 async function auth(env,email='csilva@admira.com'){
   const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(email).first();
-  return (await cookieDeSesion(env,user)).split(';')[0];
+  return (await cookieDeSesion(env,user,{amr:"google"})).split(';')[0];
 }
 async function current(env,cookie){ return sesionCompleta(new Request('https://www.admiranext.com/usuarios',{headers:{cookie}}),env); }
 function request(method,cookie,csrf,body){ return new Request('https://www.admiranext.com/api/usuarios',{method,headers:{cookie,origin:'https://www.admiranext.com','X-Admira-CSRF':csrf,'content-type':'application/json'},body:body&&JSON.stringify(body)}); }

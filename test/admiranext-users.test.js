@@ -34,7 +34,7 @@ test('el binding AUTH_DB forma parte del despliegue canónico, incluido GitHub A
 async function setup(){ const env={AUTH_DB:new D1(),WEBMASTER_SIGNING_KEY:KEY,YOKUP_FETCH:async()=>Response.json({ok:true,projects:[]})}; await asegurarDirectorio(env); return env; }
 async function auth(env,email='csilva@admira.com'){
   const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(email).first();
-  const raw=await cookieDeSesion(env,user); return raw.split(';')[0];
+  const raw=await cookieDeSesion(env,user,{amr:"google"}); return raw.split(';')[0];
 }
 async function current(env,cookie){ return sesionCompleta(new Request('https://www.admiranext.com/usuarios',{headers:{cookie}}),env); }
 function request(method,cookie,csrf,body){ return new Request('https://www.admiranext.com/api/usuarios',{method,headers:{cookie,origin:'https://www.admiranext.com','X-Admira-CSRF':csrf,'content-type':'application/json'},body:body&&JSON.stringify(body)}); }
