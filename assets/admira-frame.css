@@ -803,6 +803,10 @@ html.yk-head-mode .yk-rail-sub{ font: 700 9.5px/1.3 var(--yk-mono); letter-spaci
 html.yk-head-mode .yk-rail-group{ display: flex; flex-direction: column; margin: 0; padding: 0; border: 0; background: none; gap: 0 }
 html.yk-head-mode .yk-rail .yk-rail-navlink{ min-height: 40px; padding: 0 10px; margin: 0; font: 12px var(--yk-mono); letter-spacing: .06em; text-transform: none; border-radius: 0; background: none; color: var(--yk-ink) }
 html.yk-head-mode .yk-rail .yk-rail-navlink[aria-current="page"]{ color: var(--yk-brand); font-weight: 700; border-left-color: var(--yk-brand); background: rgba(74,227,209,.08) }
+html.yk-head-mode .yk-rail .yk-rail-navsub{ display: flex; align-items: center; min-height: 34px; padding: 0 10px 0 26px; font: 12px var(--yk-mono); letter-spacing: .06em; color: var(--yk-mut, #92a0b4); border-left: 2px solid transparent; text-decoration: none }
+html.yk-head-mode .yk-rail .yk-rail-navsub:hover{ color: var(--yk-brand); background: rgba(120,243,255,.06) }
+html.yk-head-mode .yk-rail .yk-rail-navsub::before{ content: "↳"; margin-right: 6px; color: var(--yk-dim, #6c7a90) }
+html.yk-head-mode .yk-rail .yk-rail-navsub[aria-current="page"]{ color: var(--yk-brand); font-weight: 700; border-left-color: var(--yk-brand); background: rgba(74,227,209,.08) }
 html.yk-head-mode .yk-rail .yk-slot{ display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin: 0; padding: 0; border: 0; background: none; box-shadow: none }
 html.yk-head-mode .yk-rail .yk-slot a,
 html.yk-head-mode .yk-rail .yk-slot button{
