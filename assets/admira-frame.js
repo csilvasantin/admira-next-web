@@ -357,6 +357,9 @@
     return String(href || '').split(/[?#]/)[0].replace(/\.html$/, '').replace(/\/index$/, '/').replace(/\/+$/, '') || '/';
   }
   var aquí = ruta(location.pathname);
+  // Subpáginas que cuelgan de un enlace de la navegación del grupo (☰). En la
+  // cabecera el padre queda marcado: la subpágina lo trae con aria-current.
+  var SUBPAGINAS = {'/roadmap': [['/roadmap/encargos', 'Encargos']]};
 
   var bar;
   var grupo = [];   // enlaces de navegación que ☰ repite (modo cabecera)
@@ -569,6 +572,15 @@
         copia.removeAttribute('data-yk-rail-only');
         copia.className = 'yk-rail-navlink';
         lista.appendChild(copia);
+        // Subpáginas (19-10-2026): «Encargos» cuelga DEBAJO de RoadMap en ☰.
+        (SUBPAGINAS[ruta(a.getAttribute('href'))] || []).forEach(function (par) {
+          // Clase propia (no yk-rail-navlink): la lista del grupo sigue siendo la de la cabecera.
+          var sub = texto('a', 'yk-rail-navsub', par[1]);
+          sub.setAttribute('href', par[0]);
+          if (esInterno(a)) sub.setAttribute('data-yk-interno', '');
+          if (ruta(par[0]) === aquí) sub.setAttribute('aria-current', 'page');
+          lista.appendChild(sub);
+        });
       });
       r.appendChild(lista);
     }
