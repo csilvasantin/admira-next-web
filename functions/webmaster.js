@@ -53,7 +53,7 @@ export async function onRequest(context) {
       .bind(identity.sub, now, request.headers.get('CF-Connecting-IP') || '', String(request.headers.get('User-Agent') || '').slice(0,300), now, user.email, identity.sub).run();
     await auditar(env, identity.email, user.email, 'login_success', user.role);
     const response = respuestaContinuacion(returnTo);
-    response.headers.append('Set-Cookie', await cookieDeSesion(env, user));
+    response.headers.append('Set-Cookie', await cookieDeSesion(env, user, { amr: 'google' }));
     cookiesBorradas().slice(1).forEach((cookie) => response.headers.append('Set-Cookie', cookie));
     return response;
   }

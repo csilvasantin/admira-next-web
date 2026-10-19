@@ -5,16 +5,15 @@
  *   DELETE {id}    → revoca.
  * El email tiene que existir en el directorio; el acceso real se decide en cada llamada.
  */
-import { exigirRol, csrfValido, buscarUsuario, auditar } from '../_webmaster-gate.js';
+import { buscarUsuario } from '../_webmaster-gate.js';
+import { exigirDmz, jsonDmz } from '../_usuarios-dmz.js';
 import { createToken, listTokens, revokeToken } from '../mcp/_tokens.js';
 
-const json = (body, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
+const json = (body, status = 200) => jsonDmz(body, status);
 
+// Zona DMZ (19-10-2026): emitir o revocar un token es tan sensible como dar un alta.
 async function admin(request, env, write){
-  const current = await exigirRol(request, env, ['admin']);
-  if (!current) return { error: json({ ok: false, error: 'administrador requerido' }, 403) };
-  if (write && !csrfValido(request, current)) return { error: json({ ok: false, error: 'CSRF inválido' }, 403) };
-  return { current };
+  return exigirDmz(request, env, { escritura: !!write, ambito: 'mcp-tokens' });
 }
 
 export async function onRequestGet({ request, env }){
@@ -36,7 +35,7 @@ export async function onRequestPost({ request, env }){
     if (!apps.includes('mcp')) return json({ ok: false, error: 'este tercero no tiene MCP contratado (ni MCP de flota)' }, 403);
   }
   const { token, row } = await createToken(env, { email, label: body.label, createdBy: auth.current.email });
-  await auditar(env, auth.current.email, email, 'mcp_token_created', JSON.stringify({ id: row.id, label: row.label })).catch(() => {});
+  await auth.auditar(email, 'mcp_token_created', JSON.stringify({ id: row.id, label: row.label })).catch(() => {});
   return json({ ok: true, token, id: row.id, email, label: row.label, aviso: 'Guarda el token: no se vuelve a mostrar.' }, 201);
 }
 
@@ -45,6 +44,11 @@ export async function onRequestDelete({ request, env }){
   let body; try { body = await request.json(); } catch (_) { return json({ ok: false, error: 'JSON no válido' }, 400); }
   const id = String(body.id || '').trim(); if (!id) return json({ ok: false, error: 'id requerido' }, 422);
   await revokeToken(env, id, auth.current.email);
-  await auditar(env, auth.current.email, '-', 'mcp_token_revoked', id).catch(() => {});
+  await auth.auditar('-', 'mcp_token_revoked', id).catch(() => {});
   return json({ ok: true, id });
 }
+
+const noPermitido = () => jsonDmz({ ok: false, error: 'método no permitido' }, 405, { allow: 'GET, POST, DELETE' });
+export const onRequestPut = noPermitido;
+export const onRequestPatch = noPermitido;
+export const onRequestOptions = noPermitido;

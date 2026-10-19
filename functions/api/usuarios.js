@@ -1,18 +1,19 @@
-import { asegurarDirectorio, exigirRol, csrfValido, auditar } from '../_webmaster-gate.js';
+import { asegurarDirectorio } from '../_webmaster-gate.js';
+import { exigirDmz, jsonDmz } from '../_usuarios-dmz.js';
 import { catalogoProyectos, normalizarPermisos } from '../_project-access.js';
 import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion, escribirListaBlanca, aclApps, enviarInvitacionEmail } from '../_usuarios-estado.js';
 import { listTokens } from '../mcp/_tokens.js';
 import { APPS, kindDe, esTercero, esOwner, parseApps, parseExpires } from '../_terceros.js';
 
 const ROLES = new Set(['admin','editor','viewer']);
-const json = (body, status=200) => Response.json(body, {status, headers:{'cache-control':'no-store'}});
+// Zona DMZ (19-10-2026): todas las respuestas llevan no-store, noindex, CSP y anti-iframe.
+const json = (body, status=200) => jsonDmz(body, status);
 const email = (value) => { const v=String(value||'').trim().toLowerCase(); return v.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)?v:''; };
 
+// Puerta DMZ en CADA petición: admin en D1 + lista blanca DMZ + login Google reciente;
+// en escrituras además CSRF (Origin + Sec-Fetch-Site + X-Admira-CSRF + JSON) y reauth ≤15 min.
 async function admin(request, env, write=false) {
-  const current = await exigirRol(request, env, ['admin']);
-  if (!current) return {error:json({ok:false,error:'administrador requerido'},403)};
-  if (write && !csrfValido(request,current)) return {error:json({ok:false,error:'CSRF inválido'},403)};
-  return {current};
+  return exigirDmz(request, env, {escritura:write, ambito:'usuarios'});
 }
 async function activeAdmins(env) {
   const row = await env.AUTH_DB.prepare("SELECT COUNT(*) n FROM admiranext_users WHERE role='admin' AND status='active'").first();
@@ -49,12 +50,18 @@ async function permisosValidos(body,env) {
   return {keys,catalog};
 }
 
+// La auditoría enseña también la IP de cada cambio (columna nueva; si aún no existe, sin ella).
+async function leerAuditoria(env) {
+  try { return await env.AUTH_DB.prepare('SELECT actor_email,target_email,action,detail,created_at,ip FROM admiranext_user_audit ORDER BY created_at DESC LIMIT 80').all(); }
+  catch (_) { return env.AUTH_DB.prepare('SELECT actor_email,target_email,action,detail,created_at FROM admiranext_user_audit ORDER BY created_at DESC LIMIT 80').all(); }
+}
+
 export async function onRequestGet({request,env}) {
   const auth=await admin(request,env); if(auth.error)return auth.error;
   await asegurarDirectorio(env);
   const [users,audit,permissions,catalog,lista,appMap,tokens]=await Promise.all([
     env.AUTH_DB.prepare('SELECT email,display_name,role,status,session_version,created_at,updated_at,last_login_at,account_kind,expires_at FROM admiranext_users ORDER BY status,role,email').all(),
-    env.AUTH_DB.prepare('SELECT actor_email,target_email,action,detail,created_at FROM admiranext_user_audit ORDER BY created_at DESC LIMIT 80').all(),
+    leerAuditoria(env),
     permisosPorUsuario(env), catalogoProyectos(env), leerListaBlanca(env), appsPorUsuario(env),
     // Tokens MCP por persona (06-09-2026): el gestor los enseña y revoca desde la ficha; nunca el token, solo su huella.
     listTokens(env).catch(()=>[])
@@ -104,15 +111,15 @@ export async function onRequestPost({request,env}) {
     .bind(target,name,role,now,now,kind,expiresAt||null).run();
   await reemplazarPermisos(env,target,access.keys,auth.current.email);
   if(esTercero(kind))await reemplazarApps(env,target,apps,auth.current.email);
-  await auditar(env,auth.current.email,target,'user_created',JSON.stringify({role,kind,projects:access.keys,apps,expires_at:expiresAt||null}));
+  await auth.auditar(target,'user_created',JSON.stringify({role,kind,projects:access.keys,apps,expires_at:expiresAt||null}));
   const invitacion=textoInvitacion({email:target,display_name:name,role},access.keys,access.catalog.projects);
   const invite=await enviarInvitacionEmail(env,{to:target,subject:'Tienes acceso a AdmiraNeXT',text:invitacion,actor:auth.current.email});
-  await auditar(env,auth.current.email,target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
+  await auth.auditar(target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
   const syncLive=!esTercero(kind)||(body.sync_live===true&&apps.includes('live'));
   let wl={ok:false,error:'no pedido'};
   if(syncLive){
     wl=await escribirListaBlanca(env,'add',target);
-    await auditar(env,auth.current.email,target,wl.ok?'whitelist_add':'whitelist_add_failed',wl.ok?'alta':String(wl.error||'fail'));
+    await auth.auditar(target,wl.ok?'whitelist_add':'whitelist_add_failed',wl.ok?'alta':String(wl.error||'fail'));
   }
   return json({ok:true,email:target,role,account_kind:kind,apps,expires_at:expiresAt||null,project_keys:access.keys,acl:aclApps({project_keys:access.keys,en_lista_blanca:wl.ok,apps,kind}),invite_email:invite,invitacion,whitelist:{ok:!!wl.ok,error:wl.ok?'':(wl.error||'')}},201);
 }
@@ -126,14 +133,14 @@ export async function onRequestPatch({request,env}) {
   const action=String(body.action||'update');
   if(action==='revoke_sessions'){
     await env.AUTH_DB.prepare('UPDATE admiranext_users SET session_version=session_version+1,updated_at=? WHERE email=?').bind(Date.now(),target).run();
-    await auditar(env,auth.current.email,target,'sessions_revoked','manual');
+    await auth.auditar(target,'sessions_revoked','manual');
     return json({ok:true,email:target,action});
   }
   if(action==='revoke_tercero'){
     if(esOwner(target))return json({ok:false,error:'OWNERS no se revocan'},409);
     await env.AUTH_DB.prepare("UPDATE admiranext_users SET status='suspended',session_version=session_version+1,updated_at=? WHERE email=?").bind(Date.now(),target).run();
     const wl=await escribirListaBlanca(env,'remove',target);
-    await auditar(env,auth.current.email,target,'tercero_revocado',wl.ok?'live-':'live-fail');
+    await auth.auditar(target,'tercero_revocado',wl.ok?'live-':'live-fail');
     return json({ok:true,email:target,action,status:'suspended'});
   }
   if(action==='invite_email'){
@@ -142,7 +149,7 @@ export async function onRequestPatch({request,env}) {
     const catalog=await catalogoProyectos(env);
     const invitacion=textoInvitacion({email:user.email,display_name:user.display_name,role:user.role},projectKeys,catalog.projects);
     const invite=await enviarInvitacionEmail(env,{to:target,subject:'Tienes acceso a AdmiraNeXT',text:invitacion,actor:auth.current.email});
-    await auditar(env,auth.current.email,target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
+    await auth.auditar(target,'invite_email',JSON.stringify({sent:invite.sent,error:invite.error||''}));
     if(!invite.ok)return json({ok:false,error:invite.error||'invite',invite_email:invite,invitacion},502);
     return json({ok:true,email:target,action,invite_email:invite,invitacion});
   }
@@ -150,7 +157,7 @@ export async function onRequestPatch({request,env}) {
     const wlAct=action==='whitelist_add'?'add':'remove';
     const wl=await escribirListaBlanca(env,wlAct,target);
     if(!wl.ok)return json({ok:false,error:wl.error||'whitelist'},502);
-    await auditar(env,auth.current.email,target,'whitelist_'+wlAct,'live');
+    await auth.auditar(target,'whitelist_'+wlAct,'live');
     return json({ok:true,email:target,action,whitelist:{emails:wl.emails,superusers:wl.superusers}});
   }
   if(action==='whitelist_sync'){
@@ -161,7 +168,7 @@ export async function onRequestPatch({request,env}) {
       const wl=await escribirListaBlanca(env,'add',mail);
       if(wl.ok)added.push(mail); else errors.push(mail+': '+(wl.error||'fail'));
     }
-    await auditar(env,auth.current.email,'*','whitelist_sync',JSON.stringify({added:added.length,errors:errors.length}));
+    await auth.auditar('*','whitelist_sync',JSON.stringify({added:added.length,errors:errors.length}));
     return json({ok:true,action,added:added.length,errors});
   }
   const kind=kindDe(body.account_kind||user.account_kind||'team')||'team';
@@ -184,6 +191,12 @@ export async function onRequestPatch({request,env}) {
     .bind(name,role,status,changed?1:0,Date.now(),target,removesAdmin?1:0,target).run();
   if(!result||!result.meta||Number(result.meta.changes)!==1)return json({ok:false,error:'no se puede retirar el último administrador activo'},409);
   if(projectsChanged)await reemplazarPermisos(env,target,projects,auth.current.email);
-  await auditar(env,auth.current.email,target,'user_updated',JSON.stringify({from:{role:user.role,status:user.status,projects:oldProjects},to:{role,status,projects}}));
+  await auth.auditar(target,'user_updated',JSON.stringify({from:{role:user.role,status:user.status,projects:oldProjects},to:{role,status,projects}}));
   return json({ok:true,email:target,role,status,project_keys:projects,sessions_revoked:changed});
 }
+
+// Cualquier otro método en la DMZ: 405 explícito con cabeceras duras.
+const noPermitido = () => jsonDmz({ok:false,error:'método no permitido'},405,{allow:'GET, POST, PATCH'});
+export const onRequestPut = noPermitido;
+export const onRequestDelete = noPermitido;
+export const onRequestOptions = noPermitido;
