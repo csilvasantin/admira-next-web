@@ -14,7 +14,13 @@
   function quienId(v){if(!v)return '';var k=String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,' ').replace(/\b(consejero|agente)\b/g,' ').trim().split(/[^a-z0-9]+/)[0]||'';k=ALIAS[k]||k;return COLOR[k]?k:''}
   function colorDe(v){var k=quienId(v);return k?COLOR[k]:''}
   function dueno(p){return p?(p.tipo?quienId(p.id):quienId(p.responsable)):''}
-  function chipQuien(v,txt){var c=colorDe(v);return c?'<span class="rmc-who" style="--q:'+c+'">'+esc(txt||v)+'</span>':'<b>'+esc(txt||v)+'</b>'}
+  // Imagotipo (cara) de cada persona (Carlos, 19-10-2026): retratos que ya publica admira.live
+  // (avatars/*.jpg y la sala de los coetáneos), reducidos a 96 px en /assets/avatares/. Ver FUENTES.md.
+  // Sin retrato: iniciales sobre su color.
+  var CARA={elon:1,jobs:1,wozniak:1,jensen:1,lucas:1,disney:1,ryan:1,gwynne:1,ruth:1,jony:1,carlo:1,john:1,oraculo:1,morfeo:1,trinity:1,neo:1,smith:1,niobe:1,merovingio:1,cypher:1};
+  function iniciales(t){var w=String(t||'').replace(/^consejer[oa]\s+/i,'').replace(/\(.*?\)/g,'').trim().split(/\s+/).filter(Boolean);return ((w[0]||'?')[0]+(w[1]?w[1][0]:'')).toUpperCase()}
+  function cara(v,txt){var k=quienId(v)||String(v||'');if(CARA[k])return '<img class="rmc-cara" src="/assets/avatares/'+k+'.jpg" alt="" width="20" height="20" loading="lazy" decoding="async">';return '<span class="rmc-cara rmc-ini" aria-hidden="true">'+esc(iniciales(txt||v))+'</span>'}
+  function chipQuien(v,txt){var c=colorDe(v);return c?'<span class="rmc-who rmc-wc" style="--q:'+c+'">'+cara(v,txt)+esc(txt||v)+'</span>':'<b>'+esc(txt||v)+'</b>'}
   var ORDEN=['hoy','manana','semana','mes','trimestre'],INFER={semana:['hoy'],mes:['hoy','semana'],trimestre:['hoy','semana','mes']};
   function indexar(){byId={};items={};D.proyectos.forEach(function(p){byId[p.id]=p;Object.keys(p.roadmap).forEach(function(h){p.roadmap[h].forEach(function(i){if(i.id)items[i.id]={i:i,p:p.id,h:h}})})})}
   function real(i){return i&&i.ref?(items[i.ref]&&items[i.ref].i):i}
@@ -61,7 +67,7 @@
     top.insertAdjacentElement('afterend',div);
     div.addEventListener('click',function(ev){var b=ev.target.closest('.rmc-ley');if(b)elegirPersona(b.dataset.id)});
   }
-  function marcaRev(i){var h='';if(i.dec){var ev=String(i.dec.evidencia||'');var cd=colorDe(i.dec.por);h+=' <span class="rmc-dec'+(cd?' rmc-q':'')+'"'+(cd?' style="--q:'+cd+'"':'')+' title="Declarado por '+esc(i.dec.por)+' · '+esc(String(i.dec.en||'').slice(0,16).replace('T',' '))+' UTC">◷ declarado'+(/^https?:\/\//.test(ev)?' · <a href="'+esc(ev)+'" target="_blank" rel="noopener">evidencia</a>':' · '+esc(ev.slice(0,40)))+'</span>'}if(i.sel){var cs=colorDe(i.sel.por)||colorDe(i.sel.nombre);h+=' <span class="rmc-sel rmc-sel-'+esc(i.sel.veredicto)+(cs?' rmc-q':'')+'"'+(cs?' style="--q:'+cs+'"':'')+' title="'+esc(i.sel.nota||'')+'">'+(i.sel.veredicto==='ok'?'✔ sello ':'✗ rechazado · ')+esc(i.sel.nombre||i.sel.por)+'</span>'}else if(i.dec)h+=' <span class="rmc-pend">pendiente de sello</span>';return h}
+  function marcaRev(i){var h='';if(i.dec){var ev=String(i.dec.evidencia||'');var cd=colorDe(i.dec.por);h+=' <span class="rmc-dec'+(cd?' rmc-q':'')+'"'+(cd?' style="--q:'+cd+'"':'')+' title="Declarado por '+esc(i.dec.por)+' · '+esc(String(i.dec.en||'').slice(0,16).replace('T',' '))+' UTC">◷ declarado'+(/^https?:\/\//.test(ev)?' · <a href="'+esc(ev)+'" target="_blank" rel="noopener">evidencia</a>':' · '+esc(ev.slice(0,40)))+'</span>'}if(i.sel){var cs=colorDe(i.sel.por)||colorDe(i.sel.nombre);h+=' <span class="rmc-sel rmc-sel-'+esc(i.sel.veredicto)+(cs?' rmc-q':'')+'"'+(cs?' style="--q:'+cs+'"':'')+' title="'+esc(i.sel.nota||'')+'">'+(i.sel.veredicto==='ok'?'✔ sello ':'✗ rechazado · ')+cara(i.sel.por||i.sel.nombre,i.sel.nombre||i.sel.por)+esc(i.sel.nombre||i.sel.por)+'</span>'}else if(i.dec)h+=' <span class="rmc-pend">pendiente de sello</span>';return h}
     function vista(p,h){
     var editable=puede&&(D.editables||ORDEN).indexOf(h)>=0;
     var l=(p.roadmap[h]||[]).slice(0,3),conAv=h!=='ayer';
@@ -121,9 +127,24 @@
     var cp=COLOR[dueno(p)]||'';out.style.setProperty('--q',cp||'#4ae3d1');document.querySelectorAll('.rmc-ley').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.id===p.id?'true':'false')});
     if(p.tipo){meta.innerHTML=chipQuien(p.id,p.nombre)+' · '+esc(p.info||'')+' · avance <b>'+avanceP(p)+'%</b>'+(p.tipo==='consejero'?' · <span class="rmc-apr rmc-apr-'+(p.aprobacion||'propuesto')+'">'+(p.aprobacion==='ok'?'OK Carlos':'propuesto · aprobado salvo objeción de Carlos')+'</span>'+(puede?' <button type="button" class="rmc-aprb">'+(p.aprobacion==='ok'?'↺ propuesto':'✓ OK Carlos')+'</button>':''):'')+(vacio?' · <span class="rmc-sr">'+esc(D.sinPlan||'Sin plan registrado')+'</span>':'')+' <span id="rmc-estado"></span>';}
     else meta.innerHTML='Responsable: '+chipQuien(p.responsable)+' · <a href="'+p.web+'">'+esc(p.web.replace(/^https?:\/\/(www\.)?/,''))+'</a> · avance <b>'+avanceP(p)+'%</b>'+pil+' · <span class="rmc-borrador">'+esc(D.estado)+'</span> <span id="rmc-estado"></span>';
+    hoyPanel();
     out.innerHTML=D.horizontes.map(function(h){return editando&&editando.p===p.id&&editando.h===h?formHtml(p,h,editando.l):vista(p,h)}).join('');
     var g=document.querySelector('#rm-detalle>summary');if(g){g.dataset.base=g.dataset.base||g.textContent;g.textContent=g.dataset.base+' · '+p.nombre+' '+avanceP(p)+'% (Hoy '+avanceH(p,'hoy')+'% · Semana '+avanceH(p,'semana')+'% · Mes '+avanceH(p,'mes')+'% · Trimestre '+avanceH(p,'trimestre')+'%)'}
   }
+  // «Hoy · quién hace qué» (Carlos, 19-10-2026): una tarjeta por consejero o agente con plan hoy,
+  // con su cara, su color (COLOR de #6552) y sus 3 ideas; al pulsarla se abre su plan.
+  function hoyPanel(){
+    var cont=document.getElementById('rmc-hoy');if(!cont)return;
+    var gente=D.proyectos.filter(function(p){return p.tipo==='consejero'||p.tipo==='agente'});
+    var con=gente.filter(function(g){return (g.roadmap.hoy||[]).some(real)}),sin=gente.filter(function(g){return con.indexOf(g)<0});
+    var corto=function(g){return String(g.nombre).replace(/^consejer[oa]\s+/i,'').replace(/\s*\(.*\)$/,'')};
+    var det=cont.querySelector('details'),abierto=det?det.open:true;
+    cont.innerHTML='<details'+(abierto?' open':'')+'><summary>'+esc((D.etiquetas&&D.etiquetas.hoy)||'Hoy')+' · quién hace qué</summary><div class="rmc-hoy-grid">'+con.map(function(g){
+      return '<button type="button" class="rmc-hoy-c'+(sel.value===g.id?' is-sel':'')+'" style="--q:'+(COLOR[quienId(g.id)]||'#4ae3d1')+'" data-id="'+esc(g.id)+'" title="Ver el plan de '+esc(g.nombre)+'"><span class="rmc-hoy-n">'+cara(g.id,g.nombre)+'<b>'+esc(corto(g))+'</b><small>'+(g.tipo==='consejero'?'consejero':'agente')+' · '+avanceH(g,'hoy')+'%</small></span><ol>'+
+        g.roadmap.hoy.slice(0,3).map(function(raw){var i=real(raw);return i?'<li>'+esc(i.t)+' <em>'+avance(raw)+'%</em></li>':''}).join('')+'</ol></button>'}).join('')+'</div>'+
+      (sin.length?'<p class="rmc-hoy-sin">Sin plan hoy: '+sin.map(function(g){return '<button type="button" class="rmc-hoy-p" style="--q:'+(COLOR[quienId(g.id)]||'#4ae3d1')+'" data-id="'+esc(g.id)+'">'+cara(g.id,g.nombre)+esc(corto(g))+'</button>'}).join(' ')+'</p>':'')+'</details>';
+  }
+  document.addEventListener('click',function(ev){var b=ev.target.closest('#rmc-hoy [data-id]');if(b)elegirPersona(b.dataset.id)});
   meta.addEventListener('click',function(ev){var b=ev.target.closest('.rmc-aprb');if(!b)return;var p=byId[sel.value];var antes=JSON.stringify(D);p.aprobacion=p.aprobacion==='ok'?'propuesto':'ok';render();enviar(antes)});
   out.addEventListener('click',function(ev){
     var b=ev.target.closest('button');if(!b)return;

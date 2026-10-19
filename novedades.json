@@ -636,5 +636,9 @@
   "v.19.10.2026.r1.08:04": [
     "/roadmap Hoy con un color por consejero y por agente: su nombre, su sello y sus ideas llevan su color (#6552).",
     "Leyenda de colores de consejeros y agentes encima del roadmap; pulsar un nombre abre su plan."
+  ],
+  "v.19.10.2026.r3.08:20": [
+    "/roadmap: la cara de cada consejero y agente junto a su nombre (cabecera del plan, Responsable y sellos), con su color; sin cara, sus iniciales.",
+    "Nuevo bloque «Hoy · quién hace qué»: una tarjeta por persona con su cara, sus 3 ideas de hoy y su avance; al pulsarla se abre su plan."
   ]
 }
