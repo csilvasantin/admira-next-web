@@ -219,6 +219,22 @@
   .rmc-links label{white-space:nowrap}.rmc-okt{color:#4ae3d1}.rmc-err{color:#ff6b6b}
   .rmc-apr{font-size:11px;padding:1px 6px;border-radius:6px;background:rgba(255,207,106,.12);color:#ffcf6a}.rmc-apr-ok{background:rgba(74,227,209,.14);color:#4ae3d1}
   .rmc-aprb{font:600 11px ui-monospace,Menlo,monospace;color:#f2f6fc;background:#13203a;border:1px solid #2b3a52;border-radius:6px;padding:1px 8px;cursor:pointer}
+  /* Colores por consejero y agente (#6552 · 19-10-2026): nombre, sello e ideas */
+  .rmc-who{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--q,#f2f6fc)}
+  .rmc-who::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--q,#4ae3d1);box-shadow:0 0 8px var(--q,#4ae3d1);flex:none}
+  .rmc-meta .rmc-who{color:var(--q)}
+  .rmc-leyenda{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 10px}
+  .rmc-ley-g{font:700 10px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#6c7a90;margin:0 2px 0 6px}.rmc-ley-g:first-child{margin-left:0}
+  .rmc-ley{font:600 11px ui-monospace,Menlo,monospace;padding:2px 9px;border:1px solid color-mix(in srgb,var(--q) 45%,transparent);border-radius:999px;background:color-mix(in srgb,var(--q) 8%,transparent);cursor:pointer}
+  .rmc-ley:hover,.rmc-ley:focus-visible{background:color-mix(in srgb,var(--q) 18%,transparent);outline:none}
+  .rmc-ley[aria-pressed="true"]{border-color:var(--q);background:color-mix(in srgb,var(--q) 22%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--q) 40%,transparent)}
+  #rmc-out .rmc-h{border-top:2px solid color-mix(in srgb,var(--q,#253042) 70%,transparent)}
+  #rmc-out .rmc-h h3{color:var(--q,#4ae3d1)}
+  .rmc-123>li.rmc-q{border-left:2px solid color-mix(in srgb,var(--q) 55%,transparent);padding-left:30px;margin-left:-6px}
+  .rmc-123>li.rmc-q::before{left:6px;background:var(--q)}
+  .rmc-123>li.rmc-q .rmc-bar i{background:var(--q)}
+  .rmc-sel.rmc-q.rmc-sel-ok{color:var(--q);border-color:var(--q)}
+  .rmc-dec.rmc-q{color:var(--q)}
   .rmc-fold{margin:0 0 12px;border:1px solid #253042;border-radius:12px;background:rgba(8,13,23,.6)}
   .rmc-fold>summary{cursor:pointer;padding:10px 14px;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#78f3ff}
   .rmc-fold[open]>summary{border-bottom:1px solid #253042}.rmc-fold>*:not(summary){margin-left:12px;margin-right:12px}
@@ -287,7 +303,7 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script defer src="/assets/roadmap-combo.js?v=20261016-who-5"></script>
+<script defer src="/assets/roadmap-combo.js?v=20261019-colores-1"></script>
 <script defer src="/assets/roadmap-show.js?v=20261006-roadmap-1"></script>
 </body>
 </html>

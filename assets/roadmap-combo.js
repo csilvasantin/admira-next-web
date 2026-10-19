@@ -8,6 +8,13 @@
   if(!sel)return;
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   var D=null,byId={},items={},editando=null,puede=false,csrf='',aviso='';
+  // Un color por consejero y por agente (Carlos, 19-10-2026, #6552): nombre, sello e ideas.
+  var COLOR={"jobs":"#ff4d5e","wozniak":"#3ddc84","elon":"#4da3ff","jensen":"#a3e635","lucas":"#ffb020","disney":"#c77dff","gwynne":"#ff6fb5","ruth":"#22d3c5","jony":"#e5e7eb","carlo":"#ff8a3d","john":"#7c83ff","ryan":"#f5e663","trinity":"#00e5ff","neo":"#39ff14","oraculo":"#ffd1a6","morfeo":"#c08a5a","smith":"#ff3df0","niobe":"#93c5fd","merovingio":"#fca5a5","cypher":"#9ca3af"};
+  var ALIAS={musk:'elon',huang:'jensen',woz:'wozniak',steve:'jobs',walt:'disney',george:'lucas',oracle:'oraculo'};
+  function quienId(v){if(!v)return '';var k=String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,' ').replace(/\b(consejero|agente)\b/g,' ').trim().split(/[^a-z0-9]+/)[0]||'';k=ALIAS[k]||k;return COLOR[k]?k:''}
+  function colorDe(v){var k=quienId(v);return k?COLOR[k]:''}
+  function dueno(p){return p?(p.tipo?quienId(p.id):quienId(p.responsable)):''}
+  function chipQuien(v,txt){var c=colorDe(v);return c?'<span class="rmc-who" style="--q:'+c+'">'+esc(txt||v)+'</span>':'<b>'+esc(txt||v)+'</b>'}
   var ORDEN=['hoy','manana','semana','mes','trimestre'],INFER={semana:['hoy'],mes:['hoy','semana'],trimestre:['hoy','semana','mes']};
   function indexar(){byId={};items={};D.proyectos.forEach(function(p){byId[p.id]=p;Object.keys(p.roadmap).forEach(function(h){p.roadmap[h].forEach(function(i){if(i.id)items[i.id]={i:i,p:p.id,h:h}})})})}
   function real(i){return i&&i.ref?(items[i.ref]&&items[i.ref].i):i}
@@ -27,7 +34,7 @@
   cargar().then(function(d){
     D=d;indexar();
     var modo=document.getElementById('rmc-modo'),PAR={proyecto:'p',agente:'a',consejero:'c'};
-    var opt=function(p){return '<option value="'+p.id+'">'+esc(p.nombre)+(p.descripcion?' · '+esc(p.descripcion):p.info?' · '+esc(p.info):'')+'</option>'};
+    var opt=function(p){var c=colorDe(dueno(p));return '<option value="'+p.id+'"'+(c?' style="color:'+c+'"':'')+'>'+(c?'● ':'')+esc(p.nombre)+(p.descripcion?' · '+esc(p.descripcion):p.info?' · '+esc(p.info):'')+'</option>'};
     function opciones(){
       var m=modo?modo.value:'proyecto';
       if(m==='proyecto'){var proy=D.proyectos.filter(function(p){return !p.tipo});var grupos={};proy.forEach(function(p){if(p.grupo)(grupos[p.grupo]=grupos[p.grupo]||[]).push(p)});
@@ -36,20 +43,32 @@
     }
     var qs=new URLSearchParams(location.search),ini='proyecto';
     if(qs.get('c')&&byId[qs.get('c')])ini='consejero';else if(qs.get('a')&&byId[qs.get('a')])ini='agente';
+    leyenda();
     if(modo)modo.value=ini;opciones();var q=qs.get(PAR[ini]);if(byId[q])sel.value=q;
     function url(){var u=new URL(location.href);['p','a','c'].forEach(function(k){u.searchParams.delete(k)});u.searchParams.set(PAR[modo?modo.value:'proyecto'],sel.value);history.replaceState(null,'',u)}
     if(modo)modo.addEventListener('change',function(){editando=null;opciones();url();render()});
     sel.addEventListener('change',function(){editando=null;url();render()});
     render();
+    elegirPersona=function(id){var p=byId[id];if(!p||!p.tipo||!modo)return;editando=null;modo.value=p.tipo;opciones();sel.value=id;url();render()};
   }).catch(function(){out.innerHTML='<p class="rmc-err">No se pudo leer el roadmap por proyecto.</p>'});
 
-  function marcaRev(i){var h='';if(i.dec){var ev=String(i.dec.evidencia||'');h+=' <span class="rmc-dec" title="Declarado por '+esc(i.dec.por)+' · '+esc(String(i.dec.en||'').slice(0,16).replace('T',' '))+' UTC">◷ declarado'+(/^https?:\/\//.test(ev)?' · <a href="'+esc(ev)+'" target="_blank" rel="noopener">evidencia</a>':' · '+esc(ev.slice(0,40)))+'</span>'}if(i.sel){h+=' <span class="rmc-sel rmc-sel-'+esc(i.sel.veredicto)+'" title="'+esc(i.sel.nota||'')+'">'+(i.sel.veredicto==='ok'?'✔ sello ':'✗ rechazado · ')+esc(i.sel.nombre||i.sel.por)+'</span>'}else if(i.dec)h+=' <span class="rmc-pend">pendiente de sello</span>';return h}
+  var elegirPersona=function(){};
+  function leyenda(){
+    var top=document.querySelector('.rmc-top');if(!top||document.getElementById('rmc-leyenda'))return;
+    var div=document.createElement('div');div.className='rmc-leyenda';div.id='rmc-leyenda';div.setAttribute('aria-label','Colores de consejeros y agentes');
+    var grupo=function(t,et){var l=D.proyectos.filter(function(p){return p.tipo===t&&COLOR[quienId(p.id)]});return l.length?'<span class="rmc-ley-g">'+et+'</span>'+l.map(function(p){return '<button type="button" class="rmc-who rmc-ley" data-id="'+p.id+'" aria-pressed="false" style="--q:'+COLOR[quienId(p.id)]+'" title="'+esc(p.nombre)+(p.info?' · '+esc(p.info):'')+'">'+esc(p.nombre.replace(/^consejero\s+/i,'').replace(/\s*\(.*\)$/,''))+'</button>'}).join(''):''};
+    div.innerHTML=grupo('consejero','Consejeros')+grupo('agente','Agentes');
+    top.insertAdjacentElement('afterend',div);
+    div.addEventListener('click',function(ev){var b=ev.target.closest('.rmc-ley');if(b)elegirPersona(b.dataset.id)});
+  }
+  function marcaRev(i){var h='';if(i.dec){var ev=String(i.dec.evidencia||'');var cd=colorDe(i.dec.por);h+=' <span class="rmc-dec'+(cd?' rmc-q':'')+'"'+(cd?' style="--q:'+cd+'"':'')+' title="Declarado por '+esc(i.dec.por)+' · '+esc(String(i.dec.en||'').slice(0,16).replace('T',' '))+' UTC">◷ declarado'+(/^https?:\/\//.test(ev)?' · <a href="'+esc(ev)+'" target="_blank" rel="noopener">evidencia</a>':' · '+esc(ev.slice(0,40)))+'</span>'}if(i.sel){var cs=colorDe(i.sel.por)||colorDe(i.sel.nombre);h+=' <span class="rmc-sel rmc-sel-'+esc(i.sel.veredicto)+(cs?' rmc-q':'')+'"'+(cs?' style="--q:'+cs+'"':'')+' title="'+esc(i.sel.nota||'')+'">'+(i.sel.veredicto==='ok'?'✔ sello ':'✗ rechazado · ')+esc(i.sel.nombre||i.sel.por)+'</span>'}else if(i.dec)h+=' <span class="rmc-pend">pendiente de sello</span>';return h}
     function vista(p,h){
     var editable=puede&&(D.editables||ORDEN).indexOf(h)>=0;
     var l=(p.roadmap[h]||[]).slice(0,3),conAv=h!=='ayer';
     return '<article class="rmc-h"><h3>'+esc(D.etiquetas[h])+(conAv?' <span class="rmc-hp">'+avanceH(p,h)+'%</span>':'')+(editable?'<button type="button" class="rmc-lapiz" data-h="'+h+'" title="Editar '+esc(D.etiquetas[h])+'">✎</button>':'')+'</h3>'+(l.length?'':'<p class="rmc-sr">—</p>')+'<ol class="rmc-123">'+l.map(function(raw,n){
       var i=real(raw);if(!i)return '';var o=raw.ref?byId[items[raw.ref].p].nombre:'';var s=i.s||[];
-      return '<li>'+(s.length?'<details><summary>':'<span class="rmc-sr">')+(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+marcaRev(i)+(s.length?'</summary><ul class="rmc-abc">'+s.map(function(x,k){return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(x)+'</li>'}).join('')+'</ul></details>':'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
+      var cq=COLOR[raw.ref?dueno(byId[items[raw.ref].p]):dueno(p)]||'';
+      return '<li'+(cq?' class="rmc-q" style="--q:'+cq+'"':'')+'>'+(s.length?'<details><summary>':'<span class="rmc-sr">')+(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+marcaRev(i)+(s.length?'</summary><ul class="rmc-abc">'+s.map(function(x,k){return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(x)+'</li>'}).join('')+'</ul></details>':'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
   }
   function form(p,h){
     var l=JSON.parse(JSON.stringify(p.roadmap[h]||[]));editando={p:p.id,h:h,l:l};return formHtml(p,h,l);
@@ -99,8 +118,9 @@
     var p=byId[sel.value];
     var pil=p.id==='tv'?' · pilares '+media(['studio','store','app','biz'].filter(function(x){return byId[x]}).map(function(x){return avanceP(byId[x])}))+'%':'';
     var vacio=D.horizontes.every(function(h){return !(p.roadmap[h]||[]).length});
-    if(p.tipo){meta.innerHTML='<b>'+esc(p.nombre)+'</b> · '+esc(p.info||'')+' · avance <b>'+avanceP(p)+'%</b>'+(p.tipo==='consejero'?' · <span class="rmc-apr rmc-apr-'+(p.aprobacion||'propuesto')+'">'+(p.aprobacion==='ok'?'OK Carlos':'propuesto · aprobado salvo objeción de Carlos')+'</span>'+(puede?' <button type="button" class="rmc-aprb">'+(p.aprobacion==='ok'?'↺ propuesto':'✓ OK Carlos')+'</button>':''):'')+(vacio?' · <span class="rmc-sr">'+esc(D.sinPlan||'Sin plan registrado')+'</span>':'')+' <span id="rmc-estado"></span>';}
-    else meta.innerHTML='Responsable: <b>'+esc(p.responsable)+'</b> · <a href="'+p.web+'">'+esc(p.web.replace(/^https?:\/\/(www\.)?/,''))+'</a> · avance <b>'+avanceP(p)+'%</b>'+pil+' · <span class="rmc-borrador">'+esc(D.estado)+'</span> <span id="rmc-estado"></span>';
+    var cp=COLOR[dueno(p)]||'';out.style.setProperty('--q',cp||'#4ae3d1');document.querySelectorAll('.rmc-ley').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.id===p.id?'true':'false')});
+    if(p.tipo){meta.innerHTML=chipQuien(p.id,p.nombre)+' · '+esc(p.info||'')+' · avance <b>'+avanceP(p)+'%</b>'+(p.tipo==='consejero'?' · <span class="rmc-apr rmc-apr-'+(p.aprobacion||'propuesto')+'">'+(p.aprobacion==='ok'?'OK Carlos':'propuesto · aprobado salvo objeción de Carlos')+'</span>'+(puede?' <button type="button" class="rmc-aprb">'+(p.aprobacion==='ok'?'↺ propuesto':'✓ OK Carlos')+'</button>':''):'')+(vacio?' · <span class="rmc-sr">'+esc(D.sinPlan||'Sin plan registrado')+'</span>':'')+' <span id="rmc-estado"></span>';}
+    else meta.innerHTML='Responsable: '+chipQuien(p.responsable)+' · <a href="'+p.web+'">'+esc(p.web.replace(/^https?:\/\/(www\.)?/,''))+'</a> · avance <b>'+avanceP(p)+'%</b>'+pil+' · <span class="rmc-borrador">'+esc(D.estado)+'</span> <span id="rmc-estado"></span>';
     out.innerHTML=D.horizontes.map(function(h){return editando&&editando.p===p.id&&editando.h===h?formHtml(p,h,editando.l):vista(p,h)}).join('');
     var g=document.querySelector('#rm-detalle>summary');if(g){g.dataset.base=g.dataset.base||g.textContent;g.textContent=g.dataset.base+' · '+p.nombre+' '+avanceP(p)+'% (Hoy '+avanceH(p,'hoy')+'% · Semana '+avanceH(p,'semana')+'% · Mes '+avanceH(p,'mes')+'% · Trimestre '+avanceH(p,'trimestre')+'%)'}
   }
