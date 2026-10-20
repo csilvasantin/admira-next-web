@@ -327,7 +327,8 @@ export function returnToSeguro(value) {
   // /neo58/ (09-10-2026): la prueba en vivo de Neo vuelve a su página tras el login.
   // /clientes/ (10-10-2026): el censo de clientes pasa a la zona con sesión.
   // /pruebas/… (10-10-2026): la zona de pruebas vuelve a la carpeta pedida (solo [a-z0-9-], sin «//» ni «..»).
-  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/roadmap' || path === '/roadmap/encargos' || path === '/avatar-metricas' || path === '/neo58/' || path === '/clientes/' || /^\/pruebas\/(?:[a-z0-9-]+\/)*$/.test(path) ? path : safeConnection(path) || '/webmaster';
+  // /proyectos/<clave>/ (20-10-2026): el detalle de cada proyecto vuelve a su ficha (solo [a-z0-9-]).
+  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/roadmap' || path === '/roadmap/encargos' || path === '/avatar-metricas' || path === '/neo58/' || path === '/clientes/' || /^\/pruebas\/(?:[a-z0-9-]+\/)*$/.test(path) || /^\/proyectos\/[a-z0-9-]+\/$/.test(path) ? path : safeConnection(path) || '/webmaster';
 }
 
 export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {
