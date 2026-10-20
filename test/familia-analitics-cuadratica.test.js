@@ -87,6 +87,8 @@ const ADOPTADAS = {
 // Miembros de la familia que NO llevan la barra, con su motivo. Una excepción que
 // ya no se detecta (o que ya adopta la barra) también hace fallar el test.
 const EXCEPCIONES = {
+  'documentacion/index.html': 'Documentación de la presentación agéntica (Carlos, 20-10-2026): sale de clearchannel.tv/admira.biz y pasa detrás de functions/documentacion/_middleware.js; conserva su propia maqueta de la presentación, no es una página del grupo.',
+  '/proyectos/[[ruta]]': 'Detalle de proyecto (Carlos, 20-10-2026): handON de cada proyecto (/proyectos/<clave>/) traídos de clearchannel.tv con su maqueta, servidos por functions/proyectos/[[ruta]].js tras exigir sesión; no son páginas del grupo.',
   'libro-de-estilo.html': 'Style Book: zona protegida desde el 06-10-2026 (destino de la puerta de login), pero es el libro de estilo con su propia maqueta editorial y no lleva la barra del grupo.',
   '/avatar-metricas': 'Panel de métricas del avatar para clientes (Starbucks): lo genera en el edge functions/avatar-metricas.js con maqueta de marca clara para enseñarlo al cliente, sin la barra interna del grupo.',
   '/github': 'Zona militarizada: el HTML lo genera en el edge functions/github.js sin ningún script; meter el armazón exige tocar esa Function y su perímetro, fuera de este encargo.',

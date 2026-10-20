@@ -52,3 +52,21 @@ test('los handON del laboratorio y de Cafebrería viven aquí, sin el shell de c
   }
   JSON.parse(readFileSync(new URL('../proyectos/cafebreria/manifest.json', import.meta.url), 'utf8'));
 });
+
+test('/documentacion: 401 sin sesión y sin el material; con sesión sale privado', async () => {
+  const { onRequest: documentacion } = await import('../functions/documentacion/_middleware.js');
+  const env = await setup();
+  const nextDoc = async () => new Response('<html>informe estratégico</html>', { headers: { 'content-type': 'text/html' } });
+  for (const ruta of ['/documentacion/', '/documentacion/informe-estrategico.txt', '/documentacion/agentic-retail-media-dooh.pdf']) {
+    const sin = await documentacion({ request: req(ruta), env, next: nextDoc });
+    assert.equal(sin.status, 401, ruta);
+    assert.doesNotMatch(await sin.text(), /informe estratégico/, ruta);
+  }
+  const con = await documentacion({ request: req('/documentacion/', await cookie(env)), env, next: nextDoc });
+  assert.equal(con.status, 200);
+  assert.equal(con.headers.get('cache-control'), 'private, no-store');
+  assert.equal(returnToSeguro('/documentacion/'), '/documentacion/');
+  const html = readFileSync(new URL('../documentacion/index.html', import.meta.url), 'utf8');
+  assert.match(html, /noindex, nofollow/);
+  assert.doesNotMatch(html, /galaxy-shell|brand\.js|data-shell-slots hidden/);
+});
