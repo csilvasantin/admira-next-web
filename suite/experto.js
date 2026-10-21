@@ -1308,6 +1308,48 @@
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
   var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-variants-2';
+  var ASSISTANT_AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261021-assistants-1';
+  var ASSISTANT_IDS = ['admirito', 'creativo', 'arquitecto', 'bugito', 'supervisor', 'angelito', 'comercial'];
+  var assistantLoader = null;
+  function assistantRequest(text) {
+    var m = /^\/(?:demo\s+)?(admirito|default|creativo|arquitecto|bugito|supervisor|angelito|comercial)(?:\s+(on|off))?$/i.exec(text);
+    if (!m) m = /^\/admirito\s+(default|creativo|arquitecto|bugito|supervisor|angelito|comercial)(?:\s+(on|off))?$/i.exec(text);
+    if (m && /^(admirito|default)$/i.test(m[1]) && !/^\/demo\s/i.test(text)) return null;
+    return m ? {id: m[1].toLowerCase() === 'default' ? 'admirito' : m[1].toLowerCase(), visibility: (m[2] || 'on').toLowerCase()} : null;
+  }
+  function assistantAvatar() {
+    if (root.AdmiraAvatar && root.AdmiraAvatar.assistantContract === 1) return Promise.resolve(root.AdmiraAvatar);
+    if (assistantLoader) return assistantLoader;
+    assistantLoader = new Promise(function (resolve) {
+      var tag = document.createElement('script');
+      tag.src = ASSISTANT_AVATAR_SRC; tag.async = true;
+      tag.setAttribute('data-admira-avatar-assistants', '');
+      var timer;
+      function done() {
+        clearTimeout(timer);
+        var A = root.AdmiraAvatar;
+        if (!A || A.assistantContract !== 1) { assistantLoader = null; resolve(null); }
+        else resolve(A);
+      }
+      tag.onload = done; tag.onerror = done;
+      timer = setTimeout(done, 15000);
+      (document.head || document.documentElement).appendChild(tag);
+    });
+    return assistantLoader;
+  }
+  ASSISTANT_IDS.forEach(function(id){if(id==='angelito'&&!findVerb(id))verb({name:id,args:'[on|off]',desc:[id+' en este site',id+' on this site'],run:function(a,log){return openAssistant(id,log,a[0]);}});});
+  function openAssistant(id, log, visibility) {
+    if (ASSISTANT_IDS.indexOf(id) < 0) return Promise.resolve({ok:false, error:'unknown_assistant'});
+    return assistantAvatar().then(function (A) {
+      if (!A) { var error = T('No se pudo cargar el asistente. Vuelve a intentarlo.', 'Could not load the assistant. Please retry.'); out(log,error,'err'); return {ok:false,error:error}; }
+      if (visibility === 'off') { A.hide(); return {ok:true,assistant:id,visible:false}; }
+      if (id === 'admirito') return Promise.resolve(A.handle('/admirito default')).then(function () { out(log,T('Admirito abierto en este site.','Admirito opened on this site.'));return {ok:true,assistant:id,visible:true}; });
+      var face = A.cara(id, id === 'supervisor' ? {evitar:'#analizar-webcam'} : undefined);
+      if (!face) { out(log,T('Asistente no disponible.','Assistant unavailable.'),'err');return {ok:false,error:'assistant_unavailable'}; }
+      out(log,id.charAt(0).toUpperCase()+id.slice(1)+T(' abierto en este site.',' opened on this site.'));
+      return {ok:true,assistant:id,visible:true};
+    });
+  }
   var avatarUpgrade=null;
   function avatarApi(requireFloating, requireVariants) {
     function ready(A){return A&&A.handle&&(!requireFloating||A.floatingCharacters)&&(!requireVariants||A.variantContract===1);}
@@ -1554,11 +1596,17 @@
   function sharedCommand(text) {
     var t = String(text || '').trim();
     // The shared avatar owns its verbs even when the native console predates them.
-    return !!(parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+(?:bugito|admirito|default|creativo)\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || (/^\/(?:vision|visión|visiongeneral|vision-general)(?:\s|$)/i.test(t) && !/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) || /^\/(?:supervisor|contenido|content|crear|create)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
+    return !!(assistantRequest(t) || parseLangCommand(t) || (t.charAt(0) === '/' && (parseArquitectura(t) || parseDemo(t) || /^\/(?:help|ayuda|\?)\s+(?:bugito|admirito|default|creativo)\s*$/i.test(t) || PERSONAJE_RE.test(t) || AVATAR_COMMAND_RE.test(t) || (/^\/(?:vision|visión|visiongeneral|vision-general)(?:\s|$)/i.test(t) && !/(^|\.)(admira\.biz|clearchannel\.tv)$/.test(host)) || /^\/(?:supervisor|contenido|content|crear|create)(?:\s|$)/i.test(t) || /^\/cli\s+(?:ayudante|helper)(?:\s|$)/i.test(t))));
   }
   function execute(text, log, opts) {
     var t = String(text || '').trim();
     if (!t) return;
+    var assistant = assistantRequest(t);
+    if (assistant) {
+      if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
+      if (!opts || opts.record !== false) recordCommand(t);
+      return openAssistant(assistant.id, log, assistant.visibility);
+    }
     var engine=root.AdmiraExperto;
     if(engine&&!engine.admiritoInstalled&&engine.admiritoReady&&/^\/(?:admirito|default|creativo|playlist)(?:\s|$)|^\/(?:help|ayuda|\?)\s+(?:admirito|default|creativo|playlist)\s*$/i.test(t)) return engine.admiritoReady.then(function(ready){if(ready)return execute(t,log,opts);out(log,T('Asistentes no disponibles. Recarga la página.','Assistants unavailable. Reload this page.'),'err');return {ok:false,error:'assistants_unavailable'};});
     if (!opts || opts.echo !== false) out(log, '› ' + t, 'cmd');
@@ -1876,6 +1924,8 @@
   }
 
   root.AdmiraExperto = {
+    assistantRequest: assistantRequest,
+    openAssistant: openAssistant,
     variantContract:1,
     standardAvatar:function(log){return avatarRun('/admirito default',log);},
     paint: paint, lines: lines,
@@ -1904,7 +1954,7 @@
     parseArquitectura: parseArquitectura, arquitecturaUrl: arquitecturaUrl,
     // /demo (7-oct-2026): catálogo de las cinco soluciones y lanzador, para el avatar digital.
     demos: function () { return DEMOS.map(function (d) { return {id: d.id, nombre: d.nombre, alias: d.alias.slice(), desc: T(d.desc[0], d.desc[1]), url: demoUrl(d)}; }); },
-    parseDemo: function (t) { var p = parseDemo(t); if (!p) return null; if (p.dooh) return p.cliente ? {id: 'dooh-' + p.cliente.id, dooh: true, url: doohUrl(p.cliente, 'demo')} : {dooh: true, lista: true, desconocida: p.pedido || undefined}; if(p.android) return {id:'android',native:true,command:p.android}; if(p.ios) return {id:'ios',native:true,command:p.ios}; if(p.presentation) return {id:p.presentation,presentation:true,url:alseaPresentationUrl()}; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) { var cat = {catalogo: p.catalogo, id: p.catalogo}; if (p.pieza) cat.pieza = p.pieza; return cat; } if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
+    parseDemo: function (t) { var assistant=assistantRequest(t);if(assistant&&/^\/demo\s/i.test(t))return {id:assistant.id,assistant:true,local:true}; var p = parseDemo(t); if (!p) return null; if (p.dooh) return p.cliente ? {id: 'dooh-' + p.cliente.id, dooh: true, url: doohUrl(p.cliente, 'demo')} : {dooh: true, lista: true, desconocida: p.pedido || undefined}; if(p.android) return {id:'android',native:true,command:p.android}; if(p.ios) return {id:'ios',native:true,command:p.ios}; if(p.presentation) return {id:p.presentation,presentation:true,url:alseaPresentationUrl()}; if(p.updates) return {id:'pixeria-novedades-20261009',lang:p.lang,url:updatesDemoUrl(p.lang)}; if (p.idiomaDemo) return {idiomaDemo: true}; if (p.funcion) return {funcion: p.funcion, lang: p.lang, id: p.funcion, url: funcionDemoUrl(p.funcion, p.lang)}; if (p.global) return {id:'global',url:'https://www.admira.biz/demo/'}; if (p.control) return {control: p.control}; if (p.auto) return {auto: true, local: true}; if (p.catalogo) { var cat = {catalogo: p.catalogo, id: p.catalogo}; if (p.pieza) cat.pieza = p.pieza; return cat; } if (p.lista) return p.local ? {lista: true, local: true} : {lista: true}; if (p.desconocida != null) return {desconocida: p.desconocida}; if (p.local) return {id: plataforma + '/' + p.sub.id, i: p.n - 1, url: abs(subUrl(p.sub)), local: true}; return {id: p.demo.id, i: p.i, url: demoUrl(p.demo)}; },
     demoEstado: function () { if(root.PixeriaUpdatesDemo) return root.PixeriaUpdatesDemo.state(); return root.AdmiraDemoControl && root.AdmiraDemoControl.state().activo ? root.AdmiraDemoControl.state() : estadoRecorrido(); },
     demoLaunchUrl: function(id) { var d=DEMOS.filter(function(x){return x.id===id;})[0];return d?demoLaunchUrl(d):''; },
     demo: demoTexto, plataforma: function () { return plataforma; }, subdemos: function () { return localM(); }, listo: function () { return localListo; }, resolverDemo: resolverDemo, anotarNombres: anotarNombres,
@@ -1914,7 +1964,7 @@
   };
 
   (root.AdmiraCommandAdapters || []).splice(0).forEach(function(connect){connect(root.AdmiraExperto);});
-  root.AdmiraExperto.admiritoReady=import('https://www.admiranext.com/suite/admirito.mjs?v=20261018-playlist-1').then(function(m){m.installAdmirito(root.AdmiraExperto);return true;}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);return false;});
+  root.AdmiraExperto.admiritoReady=import('https://www.admiranext.com/suite/admirito.mjs?v=20261021-assistants-1').then(function(m){m.installAdmirito(root.AdmiraExperto);return true;}).catch(function(error){if(root.console)root.console.error('Admirito namespace unavailable',error);return false;});
   try { root.dispatchEvent(new CustomEvent('admira:commands-ready',{detail:{version:root.AdmiraExperto.engineVersion}})); } catch (_) {}
 
   function bootNativeDemo() {

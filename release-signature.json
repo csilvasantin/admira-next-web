@@ -1,7 +1,7 @@
 {
-  "version": "v.19.10.2026.r4.08:38",
-  "deployer": "WozniakGrokBotBox",
-  "agent": "WozniakGrokBotBox",
-  "machine": "GrokBotBox",
-  "signature": "WozniakGrokBotBox · GrokBotBox"
+  "version": "v.21.10.2026.r1.20:18",
+  "deployer": "OraculoMacMini",
+  "agent": "OraculoMacMini",
+  "machine": "MacMini",
+  "signature": "OraculoMacMini · MacMini"
 }

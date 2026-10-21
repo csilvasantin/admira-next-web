@@ -56,6 +56,9 @@
   var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=';
   var CARA_ORIGIN = 'https://digitalavatar.ai';   // también en el camino de mejora de un cargador anterior
   var PERSONAJES = {
+    creativo: {soloCara:true},
+    comercial: {soloCara:true},
+    angelito: {soloCara:true},
     bugito: {pagina: 'https://www.admira.biz/bugito.html', gancho: 'AdmiraBugito', param: 'incidencia',
       es: 'Bugito: abriendo su banco de pruebas en admira.biz (player virtual a la izquierda, Bugito a la derecha)…',
       en: 'Bugito: opening his test bench on admira.biz (virtual player on the left, Bugito on the right)…',
@@ -311,7 +314,7 @@
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
   var previousAvatar=root.AdmiraAvatar&&root.AdmiraAvatar.handle?root.AdmiraAvatar:null;
-  if(previousAvatar&&previousAvatar.variantContract===1)return;
+  if(previousAvatar&&previousAvatar.assistantContract===1)return;
 
   var doc = document;
   var script = doc.currentScript;
@@ -474,7 +477,7 @@
     .replace('</g></svg>', '<path d="M84 42 C78 30 66 14 64 6 C62 -6 96 -16 138.5 -16 C181 -16 215 -6 213 6 C211 14 199 30 193 42 Z" fill="#165a4c" stroke="#04120f" stroke-width="6"/>'
       + '<path d="M78 55 Q138.5 43 199 55 Q205 65 190 69 Q138.5 59 87 69 Q72 65 78 55 Z" fill="#06100e"/><path d="M138.5 1 L152 6.5 L151 20 Q149 30 138.5 35 Q128 30 126 20 L125 6.5 Z" fill="#f2c94c"/>'
       + '<circle cx="166" cy="110" r="21" fill="none" stroke="#0b2d27" stroke-width="7"/><circle cx="181" cy="95" r="5" fill="#ff4d4d"/></g></svg>');
-  var NOMBRE_MASCOTA = {bugito: 'Bugito', supervisor: 'Supervisor'};
+  var NOMBRE_MASCOTA = {bugito:'Bugito', supervisor:'Supervisor', angelito:'Angelito', arquitecto:'Arquitecto', creativo:'Creativo', comercial:'Comercial'};
   var floatingPersonaje='';
   // Older product loaders may be cached. Upgrade their existing API and dock,
   // preserving its listeners, iframe, project context and configured avatar level.
@@ -483,10 +486,11 @@
     floatingPersonaje=id||'';var wrap=node(),bubble=doc.getElementById('da-suite-bubble');if(!wrap||!bubble)return;
     var nombre=NOMBRE_MASCOTA[id]||'Admirito';
     wrap.setAttribute('data-personaje',floatingPersonaje);bubble.setAttribute('aria-label',nombre);bubble.title=nombre;
-    bubble.innerHTML=id==='supervisor'?NUBE_SUPERVISOR:id==='bugito'?NUBE.replace('viewBox="-6 6 289 186"','viewBox="-18 -15 325 220"').replace(/#f3f9e8/g,'#ee3434').replace(/#689840/g,'#510b0b').replace('<g class="da-nube-cuerpo">','<g class="da-nube-cuerpo"><path d="M92 66 L65 2 L124 46 M179 46 L233 2 L211 71" fill="#ad1515" stroke="#510b0b" stroke-width="9" stroke-linejoin="round"/><path d="M244 146 Q296 177 280 107 M269 118 L280 97 L289 118" fill="none" stroke="#ee3434" stroke-width="8" stroke-linecap="round"/>'):NUBE;
+    bubble.innerHTML=id==='angelito'?NUBE.replace(/#f3f9e8/g,'#fff7d6').replace(/#689840/g,'#d4a82a').replace('<g class="da-nube-cuerpo">','<g class="da-nube-cuerpo"><ellipse cx="138" cy="30" rx="50" ry="9" fill="none" stroke="#d4a82a" stroke-width="7"/>'):id==='supervisor'?NUBE_SUPERVISOR:id==='bugito'?NUBE.replace('viewBox="-6 6 289 186"','viewBox="-18 -15 325 220"').replace(/#f3f9e8/g,'#ee3434').replace(/#689840/g,'#510b0b').replace('<g class="da-nube-cuerpo">','<g class="da-nube-cuerpo"><path d="M92 66 L65 2 L124 46 M179 46 L233 2 L211 71" fill="#ad1515" stroke="#510b0b" stroke-width="9" stroke-linejoin="round"/><path d="M244 146 Q296 177 280 107 M269 118 L280 97 L289 118" fill="none" stroke="#ee3434" stroke-width="8" stroke-linecap="round"/>'):NUBE;
   }
   function openPersonajePanel(id){
     var wrap=ensureDock(),frame=doc.getElementById('da-suite-frame');if(!wrap||!frame)return;
+    paintMascot(id);
     frame.src=personajeUrl(id,previousAvatar&&previousAvatar.context?previousAvatar.context():context());frame.title=id==='bugito'?'Bugito':id;wrap.style.display='';wrap.classList.add('open');var label=doc.getElementById('da-suite-label');var text=label&&label.querySelector('.da-pill-txt');if(text)text.textContent=id.toUpperCase();fitPanel();applyLift();
   }
   function floatingShow(){if(previousAvatar)previousAvatar.show(false);else show(false);}
@@ -503,7 +507,7 @@
     A.handle=function(text){if(decide(text)==='bugito')return personajeHandle('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?Promise.resolve(msg):oldHandle.call(A,text);};
     A.run=function(text){if(decide(text)==='bugito')return personajeRun('bugito',personajeArg('bugito',text)||'');var msg=restore(text);return msg!==null?msg:oldRun?oldRun.call(A,text):oldHandle.call(A,text);};
     A.personaje=function(id){return id==='bugito'?{url:function(ctx){return personajeUrl(id,ctx||(A.context?A.context():{}));},pagina:function(arg,lang){return personajePagina(id,arg,lang);},run:function(arg){return personajeRun(id,arg||'');}}:oldPersonaje?oldPersonaje.call(A,id):null;};
-    A.bugito=A.personaje('bugito');A.floatingCharacters=true;A.variantContract=1;if(!A.cara)A.cara=cara;
+    A.bugito=A.personaje('bugito');A.floatingCharacters=true;A.variantContract=1;A.assistantContract=1;A.cara=cara;
     if(root.AvatarDigital)root.AvatarDigital.handle=A.handle;
     root.addEventListener('admira:expert-resize',applyLift);
   }
@@ -1060,7 +1064,7 @@
     if (requested) { cache.set(d.requestId, entry); entry.promise.then(function (ack) { demoReply(ev.source, ack); }); }
   });
 
-  root.AdmiraAvatar = {variantContract:1,floatingCharacters:true,run: run, handle: handle, personaje: personaje, cara: cara, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
+  root.AdmiraAvatar = {assistantContract:1,variantContract:1,floatingCharacters:true,run: run, handle: handle, personaje: personaje, cara: cara, bugito: personaje('bugito'), demo: openDemo, demoUrl: demoUrl, next: function () { stepLevel(1); }, prev: function () { stepLevel(-1); }, decide: decide, show: show, hide: hide, state: state, setContext: setContext, context: context,
     reset: function () { set(KEY, null); }, flag: projectFlag};
   // Compatibilidad con los CLI que ya llamaban a AvatarDigital (FLT-101350).
   root.AvatarDigital = {handle: handle, decide: decide, show: function () { set(KEY, 'on'); return show(true); },

@@ -20,31 +20,18 @@ function consoleFor({hostname='admira.studio',search='',lang='es',hidden=false,r
   vm.runInNewContext(fixture+';result=consola({lang:'+JSON.stringify(lang)+'});',context);
   return {...context.result,calls,observations:()=>observations};
 }
-test('the shared command opens the camera from all five sites and client clones',async()=>{
-  for(const hostname of ['admira.studio','www.admira.store','admira.tv','www.admira.app','www.admira.biz','studio.client.example','tv.client.example']) {
-    const c=consoleFor({hostname});assert.equal(c.api.has('supervisor'),true);
-    assert.equal(c.api.__sharedCommand('/supervisor'),true);assert.equal(c.api.__sharedCommand('/supervisores'),false);
-    assert.equal((await c.run('/supervisor')).ok,true);
-    assert.deepEqual(Array.from(c.fuera),['https://www.admira.live/analizar?supervisor=1&lang=es']);
-  }
-});
-test('Live reuses Analizar and reveals controls without toggling the camera closed',async()=>{
-  const c=consoleFor({hostname:'www.admira.live',hidden:true});
-  assert.equal((await c.run('/supervisor')).ok,true);await c.run('/supervisor');
-  assert.deepEqual(c.calls,{open:1,reveal:1});assert.deepEqual(Array.from(c.fuera),[]);
-});
+test('the shared command owns Supervisor on all sites without redirecting',async()=>{for(const hostname of ['admira.studio','admira.store','admira.tv','admira.app','admira.biz','studio.client.example']){const c=consoleFor({hostname});assert(c.api.__sharedCommand('/supervisor'));assert.equal((await c.run('/supervisor')).ok,false,'missing avatar is an honest failure');assert.equal(c.fuera.length,0);assert.deepEqual(c.calls,{open:0,reveal:0});}});
+
+test('plain Supervisor does not start a camera even on Live',async()=>{const c=consoleFor({hostname:'www.admira.live',hidden:true});await c.run('/supervisor');assert.deepEqual(c.calls,{open:0,reveal:0});assert.equal(c.fuera.length,0);});
+
 test('the cross-site arrival opens the camera automatically; ordinary visits do not',()=>{
   const c=consoleFor({hostname:'admira.live',search:'?supervisor=1',hidden:true});assert.deepEqual(c.calls,{open:1,reveal:1});
   const normal=consoleFor({hostname:'admira.live'});assert.deepEqual(normal.calls,{open:0,reveal:0});
 });
-test('English is preserved and the help describes the actual camera',async()=>{
-  const c=consoleFor({lang:'en'});await c.run('/supervisor');await c.run('/help');
-  assert.deepEqual(Array.from(c.fuera),['https://www.admira.live/analizar?supervisor=1&lang=en']);assert.match(c.texto(),/opens the Mac mini Insta360/);
-});
-test('missing camera reports failure without claiming a connected stream',async()=>{
-  const c=consoleFor({hostname:'admira.live',ready:false});assert.equal((await c.run('/supervisor')).ok,false);
-  assert.match(c.texto(),/todavía no está disponible/);assert.deepEqual(c.calls,{open:0,reveal:0});
-});
+test('English stays on the same page',async()=>{const c=consoleFor({lang:'en'});await c.run('/supervisor');assert.equal(c.fuera.length,0);assert.match(c.texto(),/Could not load the assistant/);});
+
+test('missing avatar reports failure without claiming a connected stream',async()=>{const c=consoleFor({ready:false});assert.equal((await c.run('/supervisor')).ok,false);assert.deepEqual(c.calls,{open:0,reveal:0});assert.equal(c.fuera.length,0);});
+
 test('arguments never execute display or shell commands',async()=>{
   const c=consoleFor();assert.equal((await c.run('/supervisor rotation-90')).ok,false);assert.deepEqual(Array.from(c.fuera),[]);
 });
@@ -54,6 +41,6 @@ test('commands-only mode exposes the shared API while preserving the native Flee
   assert.equal(c.api.has('supervisor'),true);
   assert.equal(c.observations(),0,'does not wait for a panel or attach a skin to the native terminal');
   assert.ok(consoleFor({hostname:'www.yokup.com'}).observations()>0);
-  assert.equal((await c.run('/supervisor')).ok,true);
-  assert.deepEqual(Array.from(c.fuera),['https://www.admira.live/analizar?supervisor=1&lang=es']);
+  assert.equal((await c.run('/supervisor')).ok,false);
+  assert.deepEqual(Array.from(c.fuera),[]);
 });
