@@ -47,7 +47,7 @@ test('el cargador conoce al Arquitecto: un personaje más, con su cara y su estu
   assert.equal(A.personajeArg('arquitecto', '/arquitecto'), '');
   assert.equal(A.personajeArg('arquitecto', '/arquitecto crear cafetería'), 'crear-cafeteria');
   assert.equal(A.personajeArg('arquitecto', '/arquitecto <script>'), 'script');
-  assert.equal(A.personajeUrl('arquitecto', { lang: 'en' }), 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=arquitecto&lang=en&tier=good');
+  assert.equal(A.personajeUrl('arquitecto', { lang: 'en' }), 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&v=20261021-assistants-1&personaje=arquitecto&lang=en&tier=good');
   assert.equal(A.personajePagina('arquitecto', 'crear-cafeteria', 'es'), 'https://www.admira.biz/arquitecto.html?lang=es&arg=crear-cafeteria');
   assert.equal(A.personajePagina('arquitecto', '', 'en'), 'https://www.admira.biz/arquitecto.html?lang=en');
   assert.match(A.message('arquitecto-ir', false), /crear \[tipo\] · \/arquitecto reformar · \/arquitecto inventariar/);

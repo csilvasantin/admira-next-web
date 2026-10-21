@@ -33,7 +33,7 @@ function ventana({ lang = 'es', elegido = null } = {}) {
 test('las tres caras y los personajes se abren con langui=host: la cara no pinta sus pastillas ESP/ENG', () => {
   const A = cargador();
   for (const lv of ['good', 'better', 'best']) assert.match(A.LEVELS[lv], /[?&]langui=host(?:&|$)/, lv);
-  for (const id of ['bugito', 'arquitecto', 'supervisor']) assert.match(A.personajeUrl(id, { lang: 'en' }), /[?&]langui=host&personaje=/, id);
+  for (const id of ['bugito', 'arquitecto', 'supervisor']) assert.match(A.personajeUrl(id, { lang: 'en' }), /[?&]langui=host&v=20261021-assistants-1&personaje=/, id);
   assert.match(A.levelUrl('good', { lang: 'en' }), /langui=host.*&lang=en&tier=good/);
 });
 

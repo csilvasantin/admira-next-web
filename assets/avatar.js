@@ -53,7 +53,7 @@
   // (nube.html?personaje=<id>), por el mismo camino que /admirito. No son niveles: nunca pasan a ser la cara
   // por defecto de un sitio. Cada uno: su página (pagina), el gancho que esa página registra (gancho) y el
   // aviso al abrirla. Añadir el Arquitecto = una entrada más aquí (y su verbo en suite/experto.js).
-  var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=';
+  var CARA_PERSONAJE = 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&v=20261021-assistants-1&personaje=';
   var CARA_ORIGIN = 'https://digitalavatar.ai';   // también en el camino de mejora de un cargador anterior
   var PERSONAJES = {
     creativo: {soloCara:true},
