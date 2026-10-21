@@ -18,9 +18,9 @@
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": "https://csilvasantin.github.io/ADmiraNeXT/#organization",
+    "@id": "https://www.admiranext.com/#organization",
     "name": "ADmiraNeXT",
-    "url": "https://csilvasantin.github.io/ADmiraNeXT/",
+    "url": "https://www.admiranext.com/",
     "description": "Donde las Cosas se Conectan a Internet con Inteligencia Artificial.",
     "email": "info@admira.com",
     "address": {
@@ -34,13 +34,16 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://csilvasantin.github.io/ADmiraNeXT/#website",
+    "@id": "https://www.admiranext.com/#website",
     "name": "ADmiraNeXT",
-    "url": "https://csilvasantin.github.io/ADmiraNeXT/",
-    "publisher": { "@id": "https://csilvasantin.github.io/ADmiraNeXT/#organization" }
+    "url": "https://www.admiranext.com/",
+    "publisher": { "@id": "https://www.admiranext.com/#organization" }
   }
   </script>
   <link rel="canonical" href="https://www.admiranext.com/" />
+  <link rel="alternate" hreflang="es" href="https://www.admiranext.com/" />
+  <link rel="alternate" hreflang="en" href="https://www.admiranext.com/" />
+  <link rel="alternate" hreflang="x-default" href="https://www.admiranext.com/" />
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.admiranext.com/" />
@@ -220,6 +223,26 @@
           'location.scope': 'Working across Europe and beyond.',
           'location.tz':    'Central European Time (CET / UTC+1)',
           'location.tip':   'to get in touch',
+          'fast.pitch':     'We connect stores, screens and robots to an AI that runs them: content, incidents and operations, live.',
+          'fast.cta':       'Request a demo',
+          'fast.work':      'See real cases',
+          'fast.demos':     'Watch it working:',
+          'fast.d.incidencia': 'Incident auto-resolved',
+          'fast.d.conversacion': 'AI councillors talking',
+          'fast.d.tpv':     'Café: muffin to the POS',
+          'fast.terminal':  'Prefer the terminal? Type /help below.',
+          'fast.mail.subject': 'Demo request · AdmiraNeXT',
+          'work.intro':     'Real deployments in the XpaceOS digital twin. Each case has its demo video.',
+          'work.video.todo': 'Video coming soon',
+          'work.result':    'Result',
+          'work.result.todo': 'Measured result pending verified source',
+          'work.open':      'Open live demo',
+          'work.c1.title':  'Incident → assigned → fixed',
+          'work.c1.body':   'A screen in the café twin goes red; the platform detects it, assigns it and closes it with a report, on camera.',
+          'work.c2.title':  'AI councillors working together',
+          'work.c2.body':   'Two AI agents coordinate a task through admira.live and Grok Bot, message by message, in real time.',
+          'work.c3.title':  'Café: product to the POS',
+          'work.c3.body':   'A product is pushed from the content platform to the POS and screens of a coffee-shop twin.',
           'work.title':       'Featured Work',
           'work.l1':          'New case studies are on the way. Our first deployments are running and we are putting them on stage soon.',
           'work.tip':         'to talk about your use case',
@@ -417,6 +440,26 @@
           'location.scope': 'Trabajando en toda Europa y más allá.',
           'location.tz':    'Hora Central Europea (CET / UTC+1)',
           'location.tip':   'para ponerse en contacto',
+          'fast.pitch':     'Conectamos tiendas, pantallas y robots a una IA que las opera: contenidos, incidencias y operaciones, en directo.',
+          'fast.cta':       'Pide una demo',
+          'fast.work':      'Ver casos reales',
+          'fast.demos':     'Míralo funcionando:',
+          'fast.d.incidencia': 'Incidencia resuelta sola',
+          'fast.d.conversacion': 'Consejeros IA conversando',
+          'fast.d.tpv':     'Cafetería: muffin al TPV',
+          'fast.terminal':  '¿Prefieres la terminal? Escribe /help abajo.',
+          'fast.mail.subject': 'Solicitud de demo · AdmiraNeXT',
+          'work.intro':     'Despliegues reales en el gemelo digital XpaceOS. Cada caso tiene su vídeo demo.',
+          'work.video.todo': 'Vídeo próximamente',
+          'work.result':    'Resultado',
+          'work.result.todo': 'Resultado medible pendiente de fuente verificada',
+          'work.open':      'Abrir demo en directo',
+          'work.c1.title':  'Incidencia → asignada → resuelta',
+          'work.c1.body':   'Una pantalla del gemelo de la cafetería se pone en rojo; la plataforma la detecta, la asigna y la cierra con informe, delante de cámara.',
+          'work.c2.title':  'Consejeros IA trabajando juntos',
+          'work.c2.body':   'Dos agentes IA coordinan una tarea por admira.live y Grok Bot, mensaje a mensaje, en tiempo real.',
+          'work.c3.title':  'Cafetería: producto al TPV',
+          'work.c3.body':   'Un producto pasa de la plataforma de contenidos al TPV y a las pantallas del gemelo de una cafetería.',
           'work.title':       'Trabajos Destacados',
           'work.l1':          'Nuevos casos de estudio en camino. Los primeros despliegues ya están en marcha y los publicamos pronto.',
           'work.tip':         'para hablar de tu caso de uso',
@@ -841,6 +884,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
       </div>
     </div>
+
+    <!-- Fast path (no-terminal visitors): qué hacemos + demo en 5 s -->
+    <section class="fastpath" id="fastPath" aria-label="AdmiraNeXT">
+      <p class="fastpath-pitch" data-i18n="fast.pitch"></p>
+      <div class="fastpath-actions">
+        <a class="fastpath-cta" id="fastCta" href="mailto:info@admira.com" data-i18n="fast.cta">Pide una demo</a>
+        <button type="button" class="fastpath-secondary" data-run-command="/work" data-i18n="fast.work"></button>
+      </div>
+      <div class="fastpath-demos">
+        <span class="fastpath-label" data-i18n="fast.demos"></span>
+        <a href="https://www.admira.store/admira-xp/?demo=incidencia" target="_blank" rel="noopener" data-i18n="fast.d.incidencia"></a>
+        <a href="https://www.admira.store/admira-xp/?demo=conversacion" target="_blank" rel="noopener" data-i18n="fast.d.conversacion"></a>
+        <a href="https://www.admira.store/admira-xp/?demo=tpv" target="_blank" rel="noopener" data-i18n="fast.d.tpv"></a>
+      </div>
+      <p class="fastpath-terminal" data-i18n="fast.terminal"></p>
+    </section>
 
     <!-- Command output appears here -->
     <div class="output-area" id="outputArea"></div>

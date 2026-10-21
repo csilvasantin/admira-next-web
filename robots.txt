@@ -54,4 +54,4 @@ Disallow: /
 User-agent: ImagesiftBot
 Disallow: /
 
-Sitemap: https://admiranext.com/sitemap.xml
+Sitemap: https://www.admiranext.com/sitemap.xml
