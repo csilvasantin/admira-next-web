@@ -1308,7 +1308,7 @@
   // better = chica Ready Player Me, best = Neo. En modo piel el CLI de la pata ya lo tiene;
   // aquí entra el modo propio (data-mount), que es el dock de las patas sin consola.
   var AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261018-variants-2';
-  var ASSISTANT_AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261021-assistants-1';
+  var ASSISTANT_AVATAR_SRC = 'https://www.admiranext.com/assets/avatar.js?v=20261021-assistants-2';
   var ASSISTANT_IDS = ['admirito', 'creativo', 'arquitecto', 'bugito', 'supervisor', 'angelito', 'comercial'];
   var assistantLoader = null;
   function assistantRequest(text) {
