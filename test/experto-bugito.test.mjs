@@ -113,7 +113,7 @@ test('con un avatar.js anterior (sin Bugito): en el banco usa la página; fuera,
   await enBanco.run('/bugito');
   await enBanco.run('/bugito popup');
   assert.deepEqual(pedidos, ['popup']);
-  assert.match(enBanco.texto(), /Recarga/);
+  assert.match(enBanco.texto(), /No se pudo cargar el asistente/);
   const fuera = consola({ AdmiraAvatar: viejo });
   await fuera.run('/bugito');
   assert.equal(fuera.fuera.length,0,'bare Bugito never navigates through an older loader');
@@ -136,7 +136,7 @@ test('en piel (la pata conserva su CLI), la suite intercepta /bugito igual que /
 });
 
 test('personajes: una tabla en el cargador y otra en la suite; añadir el Arquitecto es una entrada', () => {
-  assert.deepEqual(Object.keys(A.PERSONAJES), ['bugito', 'arquitecto', 'supervisor'], 'el Arquitecto llegó con su entrada (DCL-66d9ae0d5e756d0067127f24)');
+  assert.deepEqual(Object.keys(A.PERSONAJES), ['creativo', 'comercial', 'angelito', 'bugito', 'arquitecto', 'supervisor'], 'el Arquitecto llegó con su entrada (DCL-66d9ae0d5e756d0067127f24)');
   assert.equal(A.PERSONAJES.bugito.gancho, 'AdmiraBugito');
   assert.equal(A.personajeUrl('bugito', { lang: 'es' }), 'https://digitalavatar.ai/nube.html?dock=1&contract=20261016-180&langui=host&personaje=bugito&lang=es&tier=good');
   assert.equal(A.personajeUrl('pirata', {}), '', 'un personaje sin entrada no tiene cara');

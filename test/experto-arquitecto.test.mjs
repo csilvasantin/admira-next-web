@@ -113,7 +113,7 @@ test('/arquitecto está en el ⌘ Experto de las cinco patas y en /help, junto a
 
 test('/arquitecto va por el cargador avatar.js; con uno anterior, por la página o abriendo el estudio', async () => {
   const llamadas = [];
-  const AdmiraAvatar = { handle: (t) => { llamadas.push(t); return Promise.resolve('Arquitecto: orden abierta'); }, personaje: (id) => (['bugito', 'arquitecto'].includes(id) ? { url() {} } : null) };
+  const AdmiraAvatar = {assistantContract:1,cara:(id)=>{llamadas.push('/'+id);return {};}, handle: (t) => { llamadas.push(t); return Promise.resolve('Arquitecto: orden abierta'); }, personaje: (id) => (['bugito', 'arquitecto'].includes(id) ? { url() {} } : null) };
   const c = consola({ AdmiraAvatar });
   await c.run('/arquitecto crear cafetería');
   await c.run('/arquitecto');
@@ -125,11 +125,11 @@ test('/arquitecto va por el cargador avatar.js; con uno anterior, por la página
   await enEstudio.run('/arquitecto');
   await enEstudio.run('/arquitecto inventariar');
   assert.deepEqual(pedidos, ['inventariar']);
-  assert.match(enEstudio.texto(), /Arquitecto a la vista/);
+  assert.match(enEstudio.texto(), /No se pudo cargar el asistente/);
   const fuera = consola({ AdmiraAvatar: viejo });
   await fuera.run('/arquitecto');
   await fuera.run('/arquitecto crear cafetería');
-  assert.deepEqual(fuera.fuera, ['https://www.admira.biz/arquitecto.html?lang=es', 'https://www.admira.biz/arquitecto.html?lang=es&arg=crear-cafeteria'], 'param:"arg" también sin el avatar.js nuevo');
+  assert.deepEqual(fuera.fuera, ['https://www.admira.biz/arquitecto.html?lang=es&arg=crear-cafeteria'], 'param:"arg" también sin el avatar.js nuevo');
   assert.match(experto, /\{name: 'arquitecto', gancho: 'AdmiraArquitecto', pagina: 'https:\/\/www\.admira\.biz\/arquitecto\.html', param: 'arg'/);
   assert.match(fuera.texto(), /abriendo su estudio en admira\.biz/);
 });

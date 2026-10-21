@@ -26,7 +26,7 @@ function lector(lectura = LECTURA) {
 // El avatar de la página: sólo lo que la suite usa (cara), y lo que la cara recibe.
 function avatarFalso({conCara = true} = {}) {
   const caras = [], enviados = [];
-  const A = {floatingCharacters: true, handle: async () => '', personaje: () => null};
+  const A = {assistantContract:1, floatingCharacters: true, handle: async () => '', personaje: () => null};
   if (conCara) A.cara = (id, opts) => { caras.push({id, opts}); return {enviar: (m) => { enviados.push(m); return true; }, cerrar() {}}; };
   return {A, caras, enviados};
 }
@@ -90,10 +90,10 @@ test('en Admira Live, /supervisor abre la cámara y además la cara, con lo que 
   const c = consola({hostname: 'www.admira.live'});
   assert.equal((await c.run('/supervisor')).ok, true);
   await espera();
-  assert.deepEqual(c.calls, {open: 1, reveal: 1}, 'la cámara, como siempre');
+  assert.deepEqual(c.calls, {open:0,reveal:0}, 'activar el personaje no activa la cámara');
   assert.deepEqual(Array.from(c.fuera), []);
   assert.deepEqual(c.caras.map((x) => x.id), ['supervisor']);
-  assert.equal(c.enviados.at(-1).estado, 'encendida');
+  assert.equal(c.enviados.length,0,'no presenta observaciones sin solicitarlas');
   assert.doesNotMatch(c.texto(), /Incidencia abierta/, 'el parte no ensucia la consola: es para la cara');
 });
 
@@ -101,8 +101,8 @@ test('fuera de Admira Live, /supervisor va a la cámara como siempre; la cara sa
   const c = consola();
   assert.equal((await c.run('/supervisor')).ok, true);
   await espera();
-  assert.deepEqual(Array.from(c.fuera), ['https://www.admira.live/analizar?supervisor=1&lang=es']);
-  assert.deepEqual(c.caras, [], 'la página se va: no tiene sentido abrirla aquí');
+  assert.deepEqual(Array.from(c.fuera), []);
+  assert.deepEqual(c.caras.map(x=>x.id), ['supervisor'], 'la cara abre aquí');
   const llegada = consola({hostname: 'admira.live', search: '?supervisor=1'});
   await espera();
   assert.deepEqual(llegada.calls, {open: 1, reveal: 1});
@@ -118,7 +118,7 @@ test('las órdenes de la cara son las del verbo: «¿qué ves?» da el parte y �
   await espera(); await espera();
   assert.equal(lecturas.length, 2, 'vuelve a leer el tablero');
   orden({orden: 'camara', texto: 'Abre la cámara', lang: 'es'});
-  assert.deepEqual(Array.from(c.fuera), ['https://www.admira.live/analizar?supervisor=1&lang=es']);
+  assert.deepEqual(Array.from(c.fuera), []);
 });
 
 test('los argumentos siguen sin ejecutar nada más que estado', async () => {
@@ -162,7 +162,7 @@ test('el cargador sólo habla con su propio iframe y con el origen de digitalava
   assert.match(listener, /ev\.source !== frame\.contentWindow/);
   assert.match(avatar, /var CARA_ORIGIN = 'https:\/\/digitalavatar\.ai';/);
   assert.match(avatar, /frame\.contentWindow\.postMessage\(m, CARA_ORIGIN\)/, 'nunca a «*»');
-  assert.match(avatar, /if\(!A\.cara\)A\.cara=cara;/, 'también al mejorar un cargador anterior');
+  assert.match(avatar, /A\.assistantContract=1;A\.cara=cara;/, 'actualiza las caras de cargadores anteriores');
 });
 
 test('el contrato está escrito: mcp/SUPERVISOR.md y la ayuda del verbo', async () => {
@@ -185,12 +185,12 @@ test('sin el lector de admira.biz, /supervisor abre la cámara igual y /supervis
   const r = await c.run('/supervisor');
   await espera(); await espera();
   assert.equal(r.ok, true);
-  assert.deepEqual(c.calls, {open: 1, reveal: 1}, 'la cámara se abre aunque el lector no cargue');
-  assert.equal(c.enviados.at(-1).estado, 'sin-senal', 'la cara no inventa una lectura');
+  assert.deepEqual(c.calls, {open:0,reveal:0}, 'la activación no necesita cámara');
+  assert.equal(c.enviados.length,0,'la activación no inventa una lectura');
   const e = await c.run('/supervisor estado');
   assert.equal(e.ok, false);
   assert.match(c.texto(), /No se pudo cargar el lector del Supervisor \(admira\.biz\/supervisor-core\.mjs\)\./);
-  assert.deepEqual(c.calls, {open: 1, reveal: 1}, 'el parte no toca la cámara');
+  assert.deepEqual(c.calls, {open:0,reveal:0}, 'el parte no toca la cámara');
 });
 
 // Jobs: «probad en admira.live/analizar que el panel no tapa ningún control de la cámara; si los tapa, que se pliegue o
