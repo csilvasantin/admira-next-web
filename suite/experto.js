@@ -1698,6 +1698,11 @@
   function bindNativeDock(){
     var host=panel.closest&&panel.closest('#ykExpertRail');
     var control=host&&host!==panel&&document.querySelector('#ykExpertToggle[aria-controls="ykExpertRail"]');
+    // Store mounts the shared dock directly in its native, aria-controlled rail.
+    if(!control&&cfg.toggle===''&&panel.id){
+      host=panel;
+      control=document.querySelector('button[aria-controls="'+panel.id+'"]');
+    }
     if(!control)return;
     nativeDock={host:host,control:control};host.setAttribute('data-ax-dock-host','');document.documentElement.setAttribute('data-ax-native-dock','');
     new MutationObserver(function(){var open=host.getAttribute('aria-hidden')==='false';if(open!==isOpen())setOpen(open,true);}).observe(host,{attributes:true,attributeFilter:['aria-hidden']});
@@ -1786,6 +1791,7 @@
     try { new ResizeObserver(pad).observe(panel); } catch (_) {}
     var open = false;
     try { open = dockStore().getItem(DOCK_KEY) === '1'; } catch (_) {}
+    if(nativeDock)open=nativeDock.host.getAttribute('aria-hidden')==='false';
     setOpen(open, false);
   }
 
