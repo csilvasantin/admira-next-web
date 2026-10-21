@@ -1348,12 +1348,8 @@
     return avatarRun('/avatarDigital' + (a.length ? ' ' + a.join(' ') : ''), log);
   }});
   verb({name:'admirito',args:'[default|creativo|arquitecto|bugito|supervisor|comercial|playlist|help]',desc:['Admirito y sus asistentes · /help admirito','Admirito and its assistants · /help admirito'],run:function(a,log){out(log,T('Cargando asistentes…','Loading assistants…'));return {ok:false,error:'assistants_not_ready'};}});
-  // Reutiliza Analizar de Admira Live: una sola cámara, sesión y controles PTZ.
+  // Reutiliza los controles de cámara presentes en la página, sin navegar a otro site.
   function supervisorCamera() {
-    if (host !== 'admira.live') {
-      location.assign('https://www.admira.live/analizar?supervisor=1&lang=' + lang());
-      return {ok:true, navigating:true};
-    }
     var camera = document.querySelector('#analizar-webcam');
     if (!camera) {
       var entry = document.querySelector('button[data-verb="analizar"]');
@@ -1407,8 +1403,8 @@
     });
   }
   verb({name:'supervisor', args:'[estado|status]', desc:[
-    'abre la Insta360 del Mac mini en Admira Live con presets, movimiento y zoom visibles, con la cara del Supervisor en el panel del avatar; estado da su parte (pantalla del MBP16, incidencias abiertas y última foto) sin salir de la página',
-    'opens the Mac mini Insta360 in Admira Live with visible presets, movement and zoom controls, with the Supervisor face in the avatar panel; status gives its report (MBP16 screen, open incidents and latest photo) without leaving the page'
+    'abre al Supervisor en el site actual y reutiliza sus controles de cámara si están disponibles; estado da su parte sin salir de la página',
+    'opens Supervisor on the current site and reuses its camera controls when available; status gives its report without leaving the page'
   ], run:function(a,log){
     var arg = a.join(' ').trim().toLowerCase();
     if (arg === 'estado' || arg === 'status') {
@@ -1416,11 +1412,16 @@
       return supervisorCara().then(function (cara) { return supervisorEstado(log, cara); });
     }
     if(a.length){var usage=T('Usa /supervisor para abrir la cámara con sus controles, o /supervisor estado para su parte.','Use /supervisor to open the camera with its controls, or /supervisor status for its report.');out(log,usage,'err');return {ok:false,error:usage};}
-    var result=supervisorCamera();
-    out(log,result.ok?T('Supervisor: cámara Insta360 con controles.','Supervisor: Insta360 camera with controls.'):result.error,result.ok?'':'err');
-    // Fuera de Admira Live la página se va a la cámara y la cara sale al llegar (bootSupervisorCamera).
-    if (result.ok && result.camera) supervisorCaraConLectura();
-    return result;
+    return supervisorCara().then(function (cara) {
+      if (!cara) {
+        var error = T('No se pudo cargar la cara del Supervisor en este site.', 'Could not load the Supervisor avatar on this site.');
+        out(log, error, 'err');
+        return {ok:false, error:error};
+      }
+      var result = supervisorCamera();
+      out(log, result.camera ? T('Supervisor: avatar y controles de cámara en este site.', 'Supervisor: avatar and camera controls on this site.') : T('Supervisor abierto en este site.', 'Supervisor opened on this site.'));
+      return {ok:true, avatar:true, camera:result.camera === true};
+    });
   }});
   // Cara junto a la cámara, con lo que ve ahora (sin escribir el parte en la consola).
   function supervisorCaraConLectura() {
