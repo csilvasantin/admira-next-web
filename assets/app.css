@@ -2150,3 +2150,33 @@
       background: rgba(232,168,124,0.25);
       color: var(--text);
     }
+
+    /* ===== Fast path + /work (Elon, 21-oct-2026) ===== */
+    .fastpath { margin: 14px 0 6px; padding: 16px 18px; border: 1px solid rgba(255,51,102,.35); border-radius: 12px; background: rgba(255,255,255,.03); }
+    .fastpath-pitch { font-size: 1.15rem; line-height: 1.45; margin: 0 0 12px; color: #fff; max-width: 60ch; }
+    .fastpath-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .fastpath-cta { display: inline-block; padding: 12px 22px; border-radius: 999px; background: #FF3366; color: #fff !important; font-weight: 700; text-decoration: none; letter-spacing: .02em; box-shadow: 0 0 18px rgba(255,51,102,.45); }
+    .fastpath-cta:hover, .fastpath-cta:focus-visible { background: #ff4f7c; outline: 2px solid #fff; outline-offset: 2px; }
+    .fastpath-secondary { padding: 11px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: transparent; color: #fff; font: inherit; cursor: pointer; }
+    .fastpath-demos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .9rem; }
+    .fastpath-label { opacity: .7; }
+    .fastpath-demos a { padding: 5px 11px; border-radius: 999px; border: 1px solid rgba(51,255,153,.45); color: #33FF99; text-decoration: none; }
+    .fastpath-demos a:hover { background: rgba(51,255,153,.12); }
+    .fastpath-terminal { margin: 10px 0 0; font-size: .82rem; opacity: .55; }
+    .work-block { margin: 12px 0; }
+    .work-title { margin: 0 0 4px; }
+    .work-intro { opacity: .75; margin: 0 0 12px; }
+    .work-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .work-card { border: 1px solid rgba(255,255,255,.15); border-radius: 12px; padding: 12px; background: rgba(255,255,255,.03); }
+    .work-card video, .work-video-todo { width: 100%; aspect-ratio: 16/9; border-radius: 8px; background: #111; display: flex; align-items: center; justify-content: center; color: #FFCC00; font-size: .85rem; border: 1px dashed rgba(255,204,0,.5); }
+    .work-card video { border: 0; }
+    .work-card h3 { margin: 10px 0 6px; font-size: 1rem; }
+    .work-card p { margin: 0 0 8px; font-size: .88rem; line-height: 1.4; }
+    .work-result.is-todo { color: #FFCC00; opacity: .8; font-style: italic; }
+    .work-open { color: #33FF99; text-decoration: none; font-size: .88rem; }
+    .work-cta { margin-top: 14px; }
+    @media (max-width: 700px) {
+      .fastpath { padding: 14px; }
+      .fastpath-pitch { font-size: 1rem; }
+      .fastpath-cta, .fastpath-secondary { flex: 1 1 100%; text-align: center; }
+    }

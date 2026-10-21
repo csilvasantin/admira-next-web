@@ -935,18 +935,66 @@
     ];
   }
 
-  function cmdWork() {
+  // /work · casos reales con vídeo /demo (admira.studio/stock). Sin cifras
+  // inventadas: un resultado solo si hay fuente verificable (si no, TODO).
+  const WORK_CASES = [
+    // TODO(video): URL pública del MP4 /demo /incidencia (v4 con cartelas) en admira.studio/stock
+    { id: 'incidencia', video: '', poster: '', demo: 'https://www.admira.store/admira-xp/?demo=incidencia', result: null, source: null },
+    // TODO(video): URL pública del MP4 /demo /conversacion (92 s, con cartelas) en admira.studio/stock
+    { id: 'conversacion', video: '', poster: '', demo: 'https://www.admira.store/admira-xp/?demo=conversacion', result: null, source: null },
+    // TODO(video): grabar /demo tpv (Starbucks · muffin al TPV) con cartelas y subir a admira.studio/stock
+    { id: 'tpv', video: '', poster: '', demo: 'https://www.admira.store/admira-xp/?demo=tpv', result: null, source: null },
+  ];
+  const WORK_KEYS = { incidencia: 'c1', conversacion: 'c2', tpv: 'c3' };
+
+  function buildWorkCases(shouldScroll = true) {
     const _T = (typeof window.t === 'function') ? window.t : (k => k);
-    return [
-      { text: _T('work.title'), cls: 'heading' },
-      { text: '' },
-      { text: '  ' + _T('comingSoon'), cls: 'accent' },
-      { text: '' },
-      { text: '  ' + _T('work.l1'), cls: 'dim' },
-      { text: '' },
-      { text: '  → ' + _T('cmd.contact') + ' ' + _T('work.tip'), cls: 'dim' },
-    ];
+    const box = document.createElement('section');
+    box.className = 'work-block';
+    box.setAttribute('aria-label', _T('work.title'));
+    box.innerHTML = `<h2 class="work-title">${escapeHtml(_T('work.title'))}</h2><p class="work-intro">${escapeHtml(_T('work.intro'))}</p>`;
+    const grid = document.createElement('div');
+    grid.className = 'work-grid';
+    WORK_CASES.forEach(c => {
+      const k = WORK_KEYS[c.id];
+      const card = document.createElement('article');
+      card.className = 'work-card';
+      const media = c.video
+        ? `<video src="${escapeHtml(c.video)}" ${c.poster ? `poster="${escapeHtml(c.poster)}"` : ''} muted playsinline controls preload="metadata"></video>`
+        : `<div class="work-video-todo" data-todo="video">▶ ${escapeHtml(_T('work.video.todo'))}</div>`;
+      const result = (c.result && c.source)
+        ? `<p class="work-result"><b>${escapeHtml(_T('work.result'))}:</b> ${escapeHtml(c.result)} <a href="${escapeHtml(c.source)}" target="_blank" rel="noopener">↗</a></p>`
+        : `<p class="work-result is-todo" data-todo="result">${escapeHtml(_T('work.result.todo'))}</p>`;
+      card.innerHTML = `${media}<h3>${escapeHtml(_T('work.' + k + '.title'))}</h3><p>${escapeHtml(_T('work.' + k + '.body'))}</p>${result}<a class="work-open" href="${escapeHtml(c.demo)}" target="_blank" rel="noopener">${escapeHtml(_T('work.open'))} →</a>`;
+      grid.appendChild(card);
+    });
+    box.appendChild(grid);
+    const cta = document.createElement('p');
+    cta.className = 'work-cta';
+    cta.innerHTML = `<a class="fastpath-cta" href="${demoMailto()}">${escapeHtml(_T('fast.cta'))}</a>`;
+    box.appendChild(cta);
+    if (shouldScroll) setTimeout(() => { if (box.isConnected) box.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 120);
+    return box;
   }
+
+  function cmdWork() {
+    return buildWorkCases(true);
+  }
+
+  function demoMailto() {
+    const _T = (typeof window.t === 'function') ? window.t : (k => k);
+    return 'mailto:' + _e + '?subject=' + encodeURIComponent(_T('fast.mail.subject'));
+  }
+
+  function syncFastPath() {
+    const a = document.getElementById('fastCta');
+    if (a) a.href = demoMailto();
+  }
+  window.addEventListener('admiranext:langchanged', function () {
+    syncFastPath();
+    document.querySelectorAll('.work-block').forEach(b => b.replaceWith(buildWorkCases(false)));
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncFastPath); else syncFastPath();
 
   function buildRobotsCatalog(shouldScroll = true) {
     const isSpanish = window.currentLang !== 'en';
