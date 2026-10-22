@@ -71,7 +71,11 @@ test('con sesión pinta la semilla con el Total fijo en tfoot, cache privada y n
   assert.match(tfoots[1], /<td>Total<\/td><td>7<\/td><td>3<\/td><td>3<\/td><td>1<\/td>/);
   assert.doesNotMatch(agentes, /<td>Total<\/td>/, 'el Total no está en tbody: ordenar no lo mueve');
   assert.doesNotMatch(consejeros, /<td>Total<\/td>/);
-  for (const col of ['Persona', 'Abiertos', 'Hoy', 'Ayer', 'Anteriores']) assert.match(body, new RegExp(`<button type="button">${col}</button>`));
+  assert.match(body, /<table class="enc" id="enc-agentes"[\s\S]*?<button type="button">Deepagent<\/button>/);
+  assert.match(body, /<table class="enc" id="enc-consejeros"[\s\S]*?<button type="button">Consejeros<\/button>/);
+  assert.doesNotMatch(body, /<button type="button">Persona<\/button>/);
+  assert.doesNotMatch(body, /id="enc-h-agentes"|id="enc-h-consejeros"/);
+  for (const col of ['Abiertos', 'Hoy', 'Ayer', 'Anteriores']) assert.match(body, new RegExp(`<button type="button">${col}</button>`));
   assert.match(body, /<a href="\/roadmap" aria-current="page" data-yk-interno>RoadMap<\/a>/, 'cuelga de RoadMap en la cabecera');
 });
 
@@ -164,9 +168,10 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   const cada = sort.match(/leerTrabajando\(\); \}, (\d+)\)/);
   assert.ok(cada && Number(cada[1]) >= 10000 && Number(cada[1]) <= 30000, 'Trabajando ahora se relee entre 10 y 30 s');
   const html = await read('../roadmap/encargos.html');
-  assert.match(html, /id="enc-vivo"/);
-  assert.match(html, /id="enc-trab"/);
-  assert.match(html, /class="enc-leyenda"/);
+  assert.match(html, /class="enc-estado"[\s\S]*class="enc-leyenda"[\s\S]*id="enc-vivo"[\s\S]*id="enc-trab"/);
+  assert.match(html, /id="enc-n-verde"/);
+  assert.match(html, /Deepagents a la izquierda y consejeros a la derecha/);
+  assert.doesNotMatch(html, /<h2 id="enc-h-agentes">|<h2 id="enc-h-consejeros">/);
   assert.match(html, /trabajando/);
   assert.match(html, /hace poco/);
   assert.match(html, /&gt;1 h/);

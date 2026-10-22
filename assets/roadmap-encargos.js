@@ -279,13 +279,18 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
       entradas.push({ mision: mision, tarjeta: tarjeta });
     });
     if (vivas || trab) guardarRelojes(persistir);
-    if (aviso && vivas && trab) aviso.textContent = textoEnCurso(contarEnCurso(entradas));
-    else if (aviso && vivas && falloTrab) aviso.textContent = textoEnCurso(contarEnCurso(entradas)) + ' · Trabajando ahora no se pudo leer';
-    else if (aviso && trab && falloMisiones) aviso.textContent = textoEnCurso(contarEnCurso(entradas)) + ' · Misiones no se pudo leer';
-    if (avisoTrab && trab) {
-      var cuando = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Madrid' });
-      avisoTrab.textContent = n.verde + ' trabajando · ' + n.amarillo + ' hace poco · ' + n.rojo + ' >1 h · ' + n.gris + ' en espera · Trabajando ahora · ' + cuando;
+    var cuenta = contarEnCurso(entradas);
+    if (trab) {
+      ESTADOS_FILA.forEach(function (k) {
+        var el = document.getElementById('enc-n-' + k);
+        if (el) el.textContent = String(n[k]);
+      });
     }
+    if (aviso && vivas && trab) aviso.textContent = textoEnCurso(cuenta);
+    else if (aviso && vivas && falloTrab) aviso.textContent = textoEnCurso(cuenta) + ' · Trabajando ahora no se pudo leer';
+    else if (aviso && trab && falloMisiones) aviso.textContent = textoEnCurso(cuenta) + ' · Misiones no se pudo leer';
+    /* Los cuatro recuentos viven en la leyenda: esta línea no se repite. */
+    if (avisoTrab && trab) avisoTrab.textContent = '';
   }
 
   function aplicar(por) {
