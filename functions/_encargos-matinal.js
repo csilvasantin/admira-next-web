@@ -1,5 +1,5 @@
 /*
- * Encargos abiertos por persona — tabla matinal (Carlos, 19-10-2026).
+ * Misiones abiertas por persona — tabla matinal (Carlos, 19-10-2026; «Misiones» desde 22-10-2026).
  *
  * Vive en functions/ a propósito: Cloudflare Pages no sirve esta carpeta como
  * asset (GET /functions/... da 404), así que las cifras solo salen por
@@ -94,15 +94,69 @@ export function fechaMadrid(iso) {
   return `${dia} a las ${hora}`;
 }
 
-/** Pinta tbody, tfoot y notas para inyectar en roadmap/encargos.html. */
-export function htmlParte(parte) {
+/*
+ * Misiones (Carlos vía Jensen, 22-10-2026 · #7059 · FLT-102622): la sección se llama
+ * «Misiones» y se parte en dos tablas, Consejeros a la izquierda y Agentes a la derecha.
+ * Solo cambia lo que se ve: la ruta /roadmap/encargos, la clave KV y los campos siguen igual.
+ */
+export const CONSEJEROS = Object.freeze(['Wozniak', 'Jobs', 'Lucas', 'Disney', 'Musk', 'Huang']);
+/** Alias con los que la flota nombra a los consejeros (admira.live/api/flota/trabajando). */
+const ALIAS = { woz: 'wozniak', steve: 'jobs', elon: 'musk', jensen: 'huang', walt: 'disney', george: 'lucas' };
+export const RESTO = 'Resto de agentes';
+
+/** Clave canónica de una persona: minúsculas, sin tildes, alias resueltos. */
+export function clavePersona(nombre) {
+  const k = String(nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  return ALIAS[k] || k;
+}
+const CLAVES_CONSEJO = new Set(CONSEJEROS.map(clavePersona));
+export const esConsejero = (persona) => CLAVES_CONSEJO.has(clavePersona(persona));
+
+/*
+ * Quién trabaja AHORA en una misión. Fuente: admira.live/api/flota/trabajando (pública,
+ * CORS *, la misma del reloj de admira.live/consumos): estado «verde» = latido reciente y
+ * encargo en curso o tokens en los últimos 15 min. Si no responde, nadie late: nunca se inventa.
+ */
+export const TRABAJANDO_API = 'https://www.admira.live/api/flota/trabajando';
+export async function leerActivos(env = {}, timeoutMs = 3500) {
+  const fetchImpl = typeof env.TRABAJANDO_FETCH === 'function' ? env.TRABAJANDO_FETCH : fetch;
+  try {
+    const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(timeoutMs) : undefined;
+    const r = await fetchImpl(TRABAJANDO_API, { headers: { accept: 'application/json' }, signal });
+    if (!r.ok) return { ok: false, activos: [] };
+    const d = await r.json();
+    const tarjetas = (d && Array.isArray(d.tarjetas)) ? d.tarjetas : [];
+    const activos = tarjetas.filter((t) => t && t.estado === 'verde' && t.agente).map((t) => ({ clave: clavePersona(t.agente), consejero: t.consejero === true }));
+    return { ok: true, activos, generado: d.generado || null };
+  } catch (_) {
+    return { ok: false, activos: [] };
+  }
+}
+
+/** Marca cada fila con «activo» si su persona trabaja ahora; «Resto de agentes» late si late alguno sin fila propia. */
+export function marcarActivos(filas, activos) {
+  const vivos = new Set((activos || []).map((a) => a.clave));
+  const conFila = new Set(filas.map((f) => clavePersona(f.persona)));
+  const restoVivo = (activos || []).some((a) => !a.consejero && !CLAVES_CONSEJO.has(a.clave) && !conFila.has(a.clave));
+  return filas.map((f) => ({ ...f, activo: f.persona === RESTO ? restoVivo : vivos.has(clavePersona(f.persona)) }));
+}
+
+/** Pinta las dos tablas (tbody + tfoot de cada una) y las notas para inyectar en roadmap/encargos.html. */
+export function htmlParte(parte, activos = []) {
   const celdas = (f) => `<td>${esc(f.persona)}</td>` + COLUMNAS.map((c) => `<td>${f[c]}</td>`).join('');
-  const t = totales(parte.filas);
+  const fila = (f) => `<tr data-persona="${esc(clavePersona(f.persona))}"${f.activo ? ' class="activo" title="Trabajando ahora en una misión"' : ''}>${celdas(f)}</tr>`;
+  const marcadas = marcarActivos(parte.filas, activos);
+  const consejo = marcadas.filter((f) => esConsejero(f.persona));
+  const agentes = marcadas.filter((f) => !esConsejero(f.persona));
   return {
     fecha: esc(fechaMadrid(parte.fecha)),
     origen: parte.origen === 'kv' ? 'parte del día (KV)' : 'semilla del 19-10-2026',
-    filas: parte.filas.map((f) => `<tr>${celdas(f)}</tr>`).join('\n'),
-    total: `<tr>${celdas(t)}</tr>`,
+    filasConsejeros: consejo.map(fila).join('\n'),
+    totalConsejeros: `<tr>${celdas(totales(consejo))}</tr>`,
+    filasAgentes: agentes.map(fila).join('\n'),
+    totalAgentes: `<tr>${celdas(totales(agentes))}</tr>`,
+    total: `<tr>${celdas(totales(parte.filas))}</tr>`,
+    activos: marcadas.filter((f) => f.activo).length,
     notas: parte.notas.map((n) => `<p class="enc-nota">${esc(n)}</p>`).join('\n'),
   };
 }
