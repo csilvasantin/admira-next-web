@@ -78,6 +78,17 @@ test('un clic en el formulario de token nunca cae en el toggle de estado de la p
   assert.match(source, /confirm\('¿Revocar este token MCP de '/, 'revocar pide confirmación: corta el asistente al instante');
 });
 
+test('crear un token no mete el secreto en el aviso ni en la auditoría', () => {
+  const api = fs.readFileSync(new URL('../functions/api/mcp-tokens.js', import.meta.url), 'utf8');
+  const audit = api.match(/auth\.auditar\(email, 'mcp_token_created', JSON\.stringify\(\{[^}]+\}\)/);
+  assert.ok(audit, 'la auditoría del alta anota id y etiqueta');
+  assert.match(audit[0], /id: row\.id, label: row\.label/);
+  assert.doesNotMatch(audit[0], /\btoken\b/);
+  assert.match(source, /notice\('Token creado para '\+email\+': cópialo ahora, no se vuelve a mostrar'\)/);
+  assert.doesNotMatch(source, /notice\([^;]*d\.token/);
+  assert.doesNotMatch(source, /console\.(log|info|debug|warn)\(/);
+});
+
 test('el panel de tokens no vive fuera del perímetro: solo admin, y el token nuevo desaparece al cerrar el panel', () => {
   assert.match(source, /tokenNuevo=null;paintUsers\(\)/, 'cerrar el panel borra el token de la pantalla');
   assert.match(source, /disabled title="Solo una persona activa puede tener tokens"/, 'no se crean tokens a personas suspendidas');
