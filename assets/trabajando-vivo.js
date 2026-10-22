@@ -5,7 +5,7 @@
  * estado: verde | amarillo | rojo | gris.
  * Huang y Jensen son la misma fila. Musk, Elon y MuskGrokBot son solo Musk.
  * Una misión (FLT-…) se pinta en una sola persona: la de Misiones. */
-import { personaClave } from './misiones-vivas.js';
+import { epochMs, personaClave } from './misiones-vivas.js';
 
 export const TRABAJANDO_API = 'https://www.admira.live/api/flota/trabajando';
 
@@ -116,6 +116,36 @@ export function tarjetaPara(clave, tarjeta, indice) {
   return { ...tarjeta, ...trabajo };
 }
 
+/** Arranque que traiga Trabajando ahora. La última actividad no es un inicio. */
+export function inicioTarea(t) {
+  if (!t || typeof t !== 'object') return 0;
+  const directo = epochMs(t.started_at || t.startedAt || t.inicio || t.desde || t.start);
+  if (directo) return directo;
+  const latido = t.latidoConsejero || t.latido;
+  if (latido && typeof latido === 'object') {
+    const d = epochMs(latido.desde || latido.started_at || latido.inicio);
+    if (d) return d;
+  }
+  const foco = t.foco;
+  if (foco && typeof foco === 'object' && !foco.defecto && foco.fuente !== 'defecto' && foco.fuente !== 'training') {
+    const a = epochMs(foco.actualizado || foco.inicio || foco.desde);
+    if (a) return a;
+  }
+  return 0;
+}
+
+/** Bajo una hora, mm:ss. A partir de una hora, h:mm:ss. */
+export function formatoReloj(inicioMs, ahoraMs) {
+  let s = Math.floor((Number(ahoraMs) - Number(inicioMs)) / 1000);
+  if (!Number.isFinite(s) || s < 0) s = 0;
+  const hh = Math.floor(s / 3600);
+  const mm = Math.floor((s % 3600) / 60);
+  const ss = s % 60;
+  const p = (n) => String(n).padStart(2, '0');
+  if (hh >= 1) return `${hh}:${p(mm)}:${p(ss)}`;
+  return `${p(mm)}:${p(ss)}`;
+}
+
 /** Quien tiene una misión in_progress está trabajando, aunque la tarjeta venga gris. */
 export function estadoVisible(tarjeta, mision) {
   if (mision && (!tarjeta || tarjeta.estado === 'gris')) {
@@ -165,6 +195,7 @@ export function normalizarTarjetas(data) {
       encargo: trabajo.encargo,
       textoTarea: trabajo.textoTarea,
       enTarea: trabajo.enTarea,
+      inicio: inicioTarea(t),
     };
   }
   return por;

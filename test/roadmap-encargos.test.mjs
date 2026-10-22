@@ -9,8 +9,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions/_webmaster-gate.js';
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
 import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
-import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, MISIONES_API } from '../assets/misiones-vivas.js';
-import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible } from '../assets/trabajando-vivo.js';
+import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, inicioMision, MISIONES_API } from '../assets/misiones-vivas.js';
+import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible, inicioTarea, formatoReloj } from '../assets/trabajando-vivo.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -155,7 +155,11 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   assert.match(sort, /leerTrabajando\(\)/);
   assert.match(sort, /admira\.live\/api\/flota\/trabajando/);
   assert.match(sort, /enc-curso/);
-  assert.match(sort, /en curso · misión/);
+  assert.match(sort, /en curso/);
+  assert.match(sort, /table\.enc \.enc-reloj/);
+  assert.match(sort, /admiranext-encargos-reloj/);
+  assert.match(sort, /setInterval\(function \(\) \{[\s\S]*?enc-reloj[\s\S]*?\}, 1000\)/);
+  assert.match(sort, /id \+ ' · ' \+ titulo/);
   assert.match(sort, /textoEnCurso/);
   const cada = sort.match(/leerTrabajando\(\); \}, (\d+)\)/);
   assert.ok(cada && Number(cada[1]) >= 10000 && Number(cada[1]) <= 30000, 'Trabajando ahora se relee entre 10 y 30 s');
@@ -324,4 +328,38 @@ test('FLT-102626 es de Musk: no se pinta en Jensen ni en Merovingio, y un gris c
   const client = await read('../assets/roadmap-encargos.js');
   assert.match(client, /tarjetaPara\(clave, base, indice\)/);
   assert.match(client, /estadoVisible\(tarjeta, mision\)/);
+});
+
+test('el reloj usa el arranque real y corre en agentes y consejeros', async () => {
+  assert.equal(formatoReloj(0, 65_000), '01:05');
+  assert.equal(formatoReloj(0, 3_599_000), '59:59');
+  assert.equal(formatoReloj(0, 3_600_000), '1:00:00');
+  assert.equal(formatoReloj(0, 3_600_000 + 23 * 60_000 + 5_000), '1:23:05');
+  assert.equal(formatoReloj(5_000, 1_000), '00:00');
+  const cruda = {
+    id: 'FLT-102626', persona: 'MuskGrokBot', status: 'in_progress', subject: 'Colores encargos',
+    created_at: 1_792_693_022_000,
+    tasks: [
+      { status: 'pending', created_at: 1_792_693_053_918 },
+      { status: 'in_progress', started_at: 1_792_694_000_000, created_at: 1_792_693_053_918 },
+    ],
+  };
+  assert.equal(inicioMision(cruda), 1_792_694_000_000);
+  const norm = agruparMisiones([cruda]).musk[0];
+  assert.equal(norm.inicio, 1_792_694_000_000);
+  assert.equal(norm.titulo, 'Colores encargos');
+  assert.equal(inicioMision({ id: 'FLT-1', persona: 'Jobs', status: 'in_progress', subject: 'Latido', created_at: 1_792_685_515_000 }), 1_792_685_515_000);
+  assert.equal(inicioTarea({ latidoConsejero: { desde: 1_792_698_729 } }), 1_792_698_729_000);
+  assert.equal(inicioTarea({ ultimaActividad: '2026-10-22T19:59:04.328Z', haceS: 0 }), 0, 'la última actividad no es el inicio');
+  assert.equal(inicioTarea({ started_at: '2026-10-22T18:00:00.000Z' }), Date.parse('2026-10-22T18:00:00.000Z'));
+  const por = normalizarTarjetas({ tarjetas: [{ agente: 'Jobs', estado: 'verde', tarea: 'panel', latidoConsejero: { desde: 1_792_698_729 } }] });
+  assert.equal(por.jobs.inicio, 1_792_698_729_000);
+  const html = await read('../roadmap/encargos.html');
+  assert.match(html, /<table class="enc" id="enc-agentes"/);
+  assert.match(html, /<table class="enc" id="enc-consejeros"/);
+  assert.match(html, /\.enc-reloj\{/);
+  const js = await read('../assets/roadmap-encargos.js');
+  assert.match(js, /table\.enc\[data-ordenable\] tbody tr\[data-persona\]/);
+  assert.match(js, /table\.enc \.enc-reloj/);
+  assert.doesNotMatch(js, /#enc-agentes \.enc-reloj/);
 });

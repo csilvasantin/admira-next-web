@@ -8,8 +8,8 @@
  * Un texto HECHO, o un encargo cerrado, no cuenta como tarea.
  * Las dos cuentan en En curso. El detalle sale de Misiones
  * (api.yokup.com/fleet/missions), releídas cada 30 s. */
-import { agruparMisiones, claveFila, clavesEnCurso, consultaMisiones, ESTADO_TEXTO } from './misiones-vivas.js?v=20261022-dueno-1';
-import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, normalizarTarjetas, tarjetaPara, TRABAJANDO_API } from './trabajando-vivo.js?v=20261022-dueno-1';
+import { agruparMisiones, claveFila, clavesEnCurso, consultaMisiones, ESTADO_TEXTO } from './misiones-vivas.js?v=20261022-reloj-1';
+import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, formatoReloj, normalizarTarjetas, tarjetaPara, TRABAJANDO_API } from './trabajando-vivo.js?v=20261022-reloj-1';
 
 (function () {
   'use strict';
@@ -163,37 +163,59 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     componerTitulo(tr);
   }
 
+  var RELOJ_CLAVE = 'admiranext-encargos-reloj';
+
+  function leerRelojes() {
+    try {
+      var raw = localStorage.getItem(RELOJ_CLAVE);
+      if (raw) {
+        var o = JSON.parse(raw);
+        if (o && typeof o === 'object') return o;
+      }
+    } catch (e) { /* sin almacén: el mapa en memoria basta esta sesión */ }
+    return relojMemoria;
+  }
+
+  function guardarRelojes(o) {
+    relojMemoria = o;
+    try { localStorage.setItem(RELOJ_CLAVE, JSON.stringify(o)); } catch (e) {}
+  }
+
   function quitarChips(tr) {
     var td = tr.cells[0];
     if (!td) return;
     Array.prototype.forEach.call(td.querySelectorAll('.enc-curso, .enc-tarea'), function (n) { n.remove(); });
   }
 
-  function ponerChip(tr, tipo, texto) {
+  function anadirReloj(padre, desde) {
+    padre.appendChild(document.createTextNode(' · '));
+    var t = document.createElement('time');
+    t.className = 'enc-reloj';
+    t.setAttribute('data-desde', String(desde));
+    t.dateTime = new Date(desde).toISOString();
+    t.textContent = '⏱ ' + formatoReloj(desde, Date.now());
+    padre.appendChild(t);
+  }
+
+  function ponerChip(tr, tipo, texto, desde) {
     quitarChips(tr);
     var td = tr.cells[0];
-    if (!td) return;
-    if (tipo === 'mision') {
-      var m = document.createElement('span');
-      m.className = 'enc-curso';
-      m.textContent = 'en curso · misión';
-      td.appendChild(m);
-    } else if (tipo === 'tarea') {
-      var s = document.createElement('span');
-      s.className = 'enc-tarea';
-      var b = document.createElement('b');
-      b.textContent = 'tarea';
-      s.appendChild(b);
-      if (texto) {
-        s.appendChild(document.createTextNode(' · '));
-        var n = document.createElement('span');
-        n.className = 'enc-tarea-txt';
-        n.textContent = texto;
-        s.appendChild(n);
-        s.title = 'Tarea · ' + texto;
-      }
-      td.appendChild(s);
+    if (!td || (tipo !== 'mision' && tipo !== 'tarea')) return;
+    var s = document.createElement('span');
+    s.className = tipo === 'mision' ? 'enc-curso' : 'enc-tarea';
+    var b = document.createElement('b');
+    b.textContent = tipo === 'mision' ? 'en curso' : 'tarea';
+    s.appendChild(b);
+    if (texto) {
+      s.appendChild(document.createTextNode(' · '));
+      var n = document.createElement('span');
+      n.className = 'enc-chip-txt';
+      n.textContent = texto;
+      s.appendChild(n);
     }
+    if (desde) anadirReloj(s, desde);
+    s.title = (tipo === 'mision' ? 'Misión' : 'Tarea') + (texto ? ' · ' + texto : '') + (desde ? ' · ⏱ ' + formatoReloj(desde, Date.now()) : '');
+    td.appendChild(s);
     componerTitulo(tr);
   }
 
@@ -205,18 +227,35 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
       + ' · ' + cuando;
   }
 
+  function misionActiva(clave) {
+    var lista = vivas && vivas[clave];
+    if (!lista) return null;
+    for (var i = 0; i < lista.length; i++) if (lista[i].enCurso) return lista[i];
+    return null;
+  }
+
+  function textoMision(m) {
+    var id = String(m.id || m.numero || '').trim();
+    var titulo = String(m.titulo || '').replace(/\s+/g, ' ').trim();
+    return titulo ? (id ? id + ' · ' + titulo : titulo) : id;
+  }
+
   function pintarFilas() {
     var indice = duenoPorMision(vivas || {});
     var curso = {};
     if (vivas) clavesEnCurso(vivas).forEach(function (k) { curso[k] = 1; });
+    var guardados = leerRelojes();
+    var persistir = {};
     var entradas = [];
     var n = { verde: 0, amarillo: 0, rojo: 0, gris: 0 };
+    /* Agentes y consejeros: las dos tablas .enc[data-ordenable]. */
     Array.prototype.forEach.call(document.querySelectorAll('table.enc[data-ordenable] tbody tr[data-persona]'), function (tr) {
       var id = tr.getAttribute('data-persona');
       var clave = claveFila(id);
       var base = trab && trab[claveTrabajando(id)];
       var tarjeta = tarjetaPara(clave, base, indice);
-      var mision = !!(vivas && curso[clave]);
+      var activa = misionActiva(clave);
+      var mision = !!activa;
       var vis = estadoVisible(tarjeta, mision);
       if (vis) {
         ponerEstado(tr, vis);
@@ -227,12 +266,19 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
         componerTitulo(tr);
       }
       var chip = chipDe(mision, tarjeta);
-      if (vivas || trab) {
-        ponerChip(tr, chip.tipo, chip.texto);
-        componerTitulo(tr);
+      var texto = chip.tipo === 'mision' && activa ? textoMision(activa) : chip.texto;
+      var desde = 0;
+      if (chip.tipo === 'mision' && activa) desde = Number(activa.inicio) || 0;
+      else if (chip.tipo === 'tarea' && tarjeta) desde = Number(tarjeta.inicio) || 0;
+      if (chip.tipo && !desde) {
+        var marca = (chip.tipo === 'mision' ? 'm:' : 't:') + (activa && activa.id ? activa.id : clave + ':' + (texto || 'trabajo'));
+        desde = Number(guardados[marca]) || Date.now();
+        persistir[marca] = desde;
       }
+      if (vivas || trab) ponerChip(tr, chip.tipo, texto, desde);
       entradas.push({ mision: mision, tarjeta: tarjeta });
     });
+    if (vivas || trab) guardarRelojes(persistir);
     if (aviso && vivas && trab) aviso.textContent = textoEnCurso(contarEnCurso(entradas));
     else if (aviso && vivas && falloTrab) aviso.textContent = textoEnCurso(contarEnCurso(entradas)) + ' · Trabajando ahora no se pudo leer';
     else if (aviso && trab && falloMisiones) aviso.textContent = textoEnCurso(contarEnCurso(entradas)) + ' · Misiones no se pudo leer';
@@ -265,6 +311,7 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     return out;
   }
 
+  var relojMemoria = {};
   var leyendo = false;
   var falloMisiones = false;
   var falloTrab = false;
@@ -312,4 +359,10 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     leer();
     leerTrabajando();
   });
+  setInterval(function () {
+    var ahora = Date.now();
+    Array.prototype.forEach.call(document.querySelectorAll('table.enc .enc-reloj'), function (el) {
+      el.textContent = '⏱ ' + formatoReloj(Number(el.getAttribute('data-desde')), ahora);
+    });
+  }, 1000);
 })();
