@@ -31,7 +31,10 @@ export async function onRequest({ request, env, next }) {
         { ip: request.headers.get('CF-Connecting-IP') || '', ua: request.headers.get('User-Agent') || '' }).catch(() => {});
     }
     const texto = r.ok ? 'Zona DMZ: vuelve a verificar tu identidad con Google para hacer cambios.' : (MENSAJE[r.motivo] || MENSAJE.sin_sesion);
-    return respuestaLogin(env, texto, '/usuarios', r.ok ? 401 : (r.status === 403 && r.current ? 403 : 401));
+    // También la pantalla de login de la DMZ lleva las cabeceras duras (X-Frame-Options, HSTS,
+    // no-store, private…), conservando su CSP propia, que necesita el botón de Google.
+    const login = await respuestaLogin(env, texto, '/usuarios', r.ok ? 401 : (r.status === 403 && r.current ? 403 : 401));
+    return endurecer(login, login.headers.get('content-security-policy'));
   }
   const response = await next();
   const html = await response.text();

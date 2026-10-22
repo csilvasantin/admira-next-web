@@ -204,3 +204,15 @@ test('el cliente sabe reverificar: si el servidor pide reauth, avisa de que el c
   assert.match(HTML,/El cambio NO se ha aplicado/);
   assert.match(HTML,/\/usuarios\?reauth=1/);
 });
+
+test('la pantalla de login de /usuarios (401 sin sesión) también lleva las cabeceras duras', async()=>{
+  const env=await setup();
+  const r=await pagina({request:get('/usuarios',''),env,next:async()=>new Response(HTML)});
+  assert.equal(r.status,401);
+  assert.equal(r.headers.get('x-frame-options'),'DENY');
+  assert.match(r.headers.get('strict-transport-security'),/max-age=31536000/);
+  assert.match(r.headers.get('cache-control'),/no-store/);
+  assert.match(r.headers.get('content-security-policy'),/default-src 'none'.*frame-ancestors 'none'/);
+  assert.match(r.headers.get('content-security-policy'),/accounts\.google\.com\/gsi\/client/,'conserva la CSP del botón de Google');
+  assert.match(r.headers.get('set-cookie')||'',/__Host-an_login_nonce=/,'el desafío de login sigue saliendo');
+});
