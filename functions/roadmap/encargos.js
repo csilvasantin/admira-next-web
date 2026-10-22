@@ -34,8 +34,11 @@ export async function onRequestGet({ request, env }) {
   const out = html
     .replace('<!--ENC_FECHA-->', p.fecha)
     .replace('<!--ENC_ORIGEN-->', p.origen)
-    .replace('<!--ENC_FILAS-->', p.filas)
-    .replace('<!--ENC_TOTAL-->', p.total)
+    .replace('<!--ENC_AGENTES-->', p.agentes)
+    .replace('<!--ENC_TOTAL_AGENTES-->', p.totalAgentes)
+    .replace('<!--ENC_CONSEJEROS-->', p.consejeros)
+    .replace('<!--ENC_TOTAL_CONSEJEROS-->', p.totalConsejeros)
+    .replace('<!--ENC_DETALLE-->', p.detalle)
     .replace('<!--ENC_NOTAS-->', p.notas);
   return new Response(out, {
     status: 200,

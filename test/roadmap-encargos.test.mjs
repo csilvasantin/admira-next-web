@@ -8,7 +8,7 @@ import { readFile } from 'node:fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions/_webmaster-gate.js';
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
-import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente } from '../functions/_encargos-matinal.js';
+import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -54,11 +54,21 @@ test('con sesión pinta la semilla con el Total fijo en tfoot, cache privada y n
   const body = await res.text();
   assert.doesNotMatch(body, /<!--ENC_/);
   assert.match(body, /19-oct-2026 a las 08:01/);
-  assert.match(body, /<tr><td>Smith<\/td><td>18<\/td><td>0<\/td><td>7<\/td><td>11<\/td><\/tr>/);
-  const tfoot = body.match(/<tfoot>([\s\S]*?)<\/tfoot>/)[1];
-  assert.match(tfoot, /<td>Total<\/td><td>61<\/td><td>3<\/td><td>35<\/td><td>23<\/td>/);
-  const tbody = body.match(/<tbody>([\s\S]*?)<\/tbody>/)[1];
-  assert.doesNotMatch(tbody, /Total/, 'el Total no está en tbody: ordenar no lo mueve');
+  assert.match(body, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  const agentes = body.match(/id="enc-agentes"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/)[1];
+  const consejeros = body.match(/id="enc-consejeros"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/)[1];
+  assert.match(agentes, /data-persona="Smith"[^>]*>[\s\S]*?<td>Smith<\/td><td>18<\/td><td>0<\/td><td>7<\/td><td>11<\/td>/);
+  assert.deepEqual([...agentes.matchAll(/data-persona="([^"]+)"/g)].map((m) => m[1]), ['Neo', 'Morfeo', 'Trinity', 'Oráculo', 'Smith', 'Cypher', 'Niobe', 'Switch', 'Link', 'Perséfone', 'Seraph', 'Arquitecto', 'Merovingio']);
+  assert.deepEqual([...consejeros.matchAll(/data-persona="([^"]+)"/g)].map((m) => m[1]), ['Wozniak', 'Jobs', 'Lucas', 'Disney', 'Musk', 'Huang']);
+  assert.match(consejeros, /data-persona="Huang"[^>]*>[\s\S]*?<td>Jensen<\/td><td>0<\/td>/);
+  assert.doesNotMatch(agentes, /data-persona="Musk"/);
+  assert.doesNotMatch(consejeros, /data-persona="Neo"/);
+  const tfoots = [...body.matchAll(/<tfoot>([\s\S]*?)<\/tfoot>/g)].map((m) => m[1]);
+  assert.equal(tfoots.length, 2);
+  assert.match(tfoots[0], /<td>Total<\/td><td>54<\/td><td>0<\/td><td>32<\/td><td>22<\/td>/);
+  assert.match(tfoots[1], /<td>Total<\/td><td>7<\/td><td>3<\/td><td>3<\/td><td>1<\/td>/);
+  assert.doesNotMatch(agentes, /<td>Total<\/td>/, 'el Total no está en tbody: ordenar no lo mueve');
+  assert.doesNotMatch(consejeros, /<td>Total<\/td>/);
   for (const col of ['Persona', 'Abiertos', 'Hoy', 'Ayer', 'Anteriores']) assert.match(body, new RegExp(`<button type="button">${col}</button>`));
   assert.match(body, /<a href="\/roadmap" aria-current="page" data-yk-interno>RoadMap<\/a>/, 'cuelga de RoadMap en la cabecera');
 });
@@ -75,6 +85,46 @@ test('un parte válido en KV manda sobre la semilla; uno roto se ignora', async 
 
 test('la semilla cuadra con la tabla matinal del 19-10-2026', () => {
   assert.deepEqual(totales(SEMILLA.filas), { persona: 'Total', abiertos: 61, hoy: 3, ayer: 35, anteriores: 23 });
+  const { agentes, consejeros } = dividir(SEMILLA.filas);
+  const suma = (lado) => totales(lado);
+  const a = suma(agentes), c = suma(consejeros);
+  assert.equal(a.abiertos + c.abiertos, 61);
+  assert.equal(a.hoy + c.hoy, 3);
+  assert.equal(a.ayer + c.ayer, 35);
+  assert.equal(a.anteriores + c.anteriores, 23);
+});
+
+test('la fila en curso cambia de color y el detalle trae número, título, estado y desde', () => {
+  const parte = normalizar({
+    fecha: '2026-10-22T09:00:00+02:00',
+    filas: [
+      { persona: 'Trinity', abiertos: 1, hoy: 1, ayer: 0, anteriores: 0, encargos: [
+        { numero: 7055, titulo: 'Dos tablas en encargos', estado: 'in_progress', desde: '2026-10-22T15:52:00Z' },
+      ] },
+      { persona: 'Huang', abiertos: 1, hoy: 0, ayer: 0, anteriores: 1, encargos: [
+        { numero: 7001, titulo: 'Revisión del parte', estado: 'ack', desde: '2026-10-22T08:00:00+02:00' },
+      ] },
+      { persona: 'Jobs', abiertos: 0, hoy: 0, ayer: 0, anteriores: 0, trabajando: true },
+      { persona: 'Jensen', abiertos: 0, hoy: 0, ayer: 0, anteriores: 0 },
+    ],
+  });
+  assert.ok(parte);
+  assert.equal(parte.filas[3].persona, 'Jensen', 'normalizar no renombra: el canon se aplica al pintar');
+  const html = htmlParte(parte);
+  assert.match(html.agentes, /<tr class="enc-activo" data-persona="Trinity"/);
+  assert.match(html.agentes, /en curso/);
+  assert.match(html.consejeros, /<tr data-persona="Huang"/);
+  assert.doesNotMatch(html.consejeros, /enc-activo" data-persona="Huang"/);
+  assert.match(html.consejeros, /<tr class="enc-activo" data-persona="Jobs"/);
+  assert.match(html.consejeros, />Jensen</);
+  assert.match(html.detalle, /7055/);
+  assert.match(html.detalle, /Dos tablas en encargos/);
+  assert.match(html.detalle, /in_progress/);
+  assert.match(html.detalle, /22-oct-2026 a las 17:52/);
+  const lados = dividir(parte.filas);
+  assert.equal(lados.consejeros.filter((f) => f.persona === 'Huang').length, 1, 'Jensen y Huang son la misma fila');
+  assert.equal(normalizar({ fecha: '2026-10-22T09:00:00Z', filas: [{ persona: 'Neo', abiertos: 0, hoy: 0, ayer: 0, anteriores: 0, encargos: [{ numero: 1, titulo: 'x', estado: 'nope', desde: '2026-10-22T09:00:00Z' }] }] }), null);
+  assert.equal(normalizar({ fecha: '2026-10-22T09:00:00Z', filas: [{ persona: 'Neo', abiertos: 0, hoy: 0, ayer: 0, anteriores: 0, trabajando: 'si' }] }), null);
 });
 
 test('el script matinal convierte el HTML y rechaza un Total que no cuadra', () => {
@@ -94,4 +144,7 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   const sort = await read('../assets/roadmap-encargos.js');
   assert.match(sort, /tabla\.tBodies\[0\]/, 'solo se reordena tbody');
   assert.match(sort, /'ascending' : 'descending'/);
+  assert.match(sort, /data-persona/);
+  assert.match(sort, /enc-detalle/);
+  assert.match(sort, /in_progress/);
 });
