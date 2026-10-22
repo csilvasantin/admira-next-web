@@ -59,7 +59,8 @@
   <nav class="rm-sub" aria-label="RoadMap"><a href="/roadmap">Plan</a><a href="/roadmap/encargos" aria-current="page">Encargos</a></nav>
   <p class="enc-crumb"><a href="/roadmap">RoadMap</a> › Encargos</p>
   <h1>Encargos abiertos por persona</h1>
-  <p class="enc-meta">Datos del <b><!--ENC_FECHA--></b>, hora de Madrid (<!--ENC_ORIGEN-->). Agentes a la izquierda y consejeros a la derecha, cada tabla con su total. La fila resaltada es quien tiene un encargo en curso. Pulsa una fila para ver número, título, estado y desde cuándo; pulsa una cabecera para ordenar. El total se queda abajo.</p>
+  <p class="enc-meta">Datos del <b><!--ENC_FECHA--></b>, hora de Madrid (<!--ENC_ORIGEN-->). Agentes a la izquierda y consejeros a la derecha, cada tabla con su total. La fila resaltada es quien tiene una misión en curso ahora. Pulsa una fila para ver número, título, estado y desde cuándo; pulsa una cabecera para ordenar. El total se queda abajo.</p>
+  <p class="enc-nota" id="enc-vivo" role="status">Leyendo Misiones…</p>
   <div class="enc-par">
     <section class="enc-col" aria-labelledby="enc-h-agentes">
       <h2 id="enc-h-agentes">Agentes</h2>
@@ -124,6 +125,6 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script defer src="/assets/roadmap-encargos.js?v=20261022-7055"></script>
+<script type="module" src="/assets/roadmap-encargos.js?v=20261022-misiones-1"></script>
 </body>
 </html>
