@@ -98,3 +98,19 @@ Para texturizarlos con estas piezas:
    `rotation.x = -0.2`). La revista es 3:4 y la caja 0,806: `map.repeat.set(1, 0.93)` y `map.offset.y = 0.035`
    la encajan sin deformar.
 4. `colorSpace = T.SRGBColorSpace` y liberar las texturas con el mismo `own(…)` del motor para no fugar memoria.
+
+## «¿Sabías que?» · `sabias.py` (#4415 · nota #4417)
+
+Cápsulas de 20 s para las tres pantallas de cartelería de detrás del mostrador (H · V · H), con las
+plantillas de Walt (`/workspace/capsulas/sabias-que/plantillas/`): firma con la tele que se enciende
+y el «¿?», entrada propia del tipo (literaria, efemérides o musical), cifra grande, idea y cierre
+de 14 a 20 s con la portada, «Pídelo en barra», QR y fuente. Las dos orientaciones comparten
+`tiempos.json`, así que salen con los mismos tiempos al fotograma y el montaje de tres pantallas
+va sincronizado. Voz local con Piper, sin gasto en xAI.
+
+```bash
+~/.venvs/capsulas/bin/python tools/capsulas/sabias.py voz <carpeta>          # voz.wav + tiempos.json
+python3 tools/capsulas/sabias.py render 16x9 <carpeta> <carpeta>/capsula-16x9.mp4
+python3 tools/capsulas/sabias.py render 9x16 <carpeta> <carpeta>/capsula-9x16.mp4
+python3 tools/capsulas/sabias.py montaje <carpeta>                          # tres-pantallas.mp4
+```
