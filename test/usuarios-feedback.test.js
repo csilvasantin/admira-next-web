@@ -1,7 +1,8 @@
 /*
  * Carlos, 22-10-2026: al dar acceso (y en el resto de acciones de /usuarios)
- * tiene que verse qué ha pasado. El aviso aguanta 5 s, el botón espera con
- * una ruleta, y la fila tocada se señala. El token MCP en claro no viaja al aviso.
+ * tiene que verse qué ha pasado. El aviso aguanta 6 s, el botón espera con
+ * una ruleta, y la fila tocada se señala. Un correo vacío o inválido se dice
+ * junto al campo. El token MCP en claro no viaja al aviso.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,13 +10,27 @@ import fs from 'node:fs';
 
 const source = fs.readFileSync(new URL('../usuarios.html', import.meta.url), 'utf8');
 
-test('el aviso es verde o rojo, aguanta 5 s y se puede cerrar', () => {
+test('el aviso es verde o rojo, aguanta 6 s y se puede cerrar', () => {
   assert.match(source, /function notice\(t,bad=false\)/);
   assert.match(source, /el\.className='toast '\+\(bad\?'bad':'ok'\)/);
-  assert.match(source, /setTimeout\(\(\)=>\{if\(el\.isConnected\)el\.remove\(\)\},5000\)/);
+  assert.match(source, /setTimeout\(\(\)=>\{if\(el\.isConnected\)el\.remove\(\)\},6000\)/);
   assert.match(source, /x\.textContent='Cerrar'/);
   assert.match(source, /aria-label','Cerrar aviso'/);
   assert.match(source, /class="toasts"/);
+  assert.match(source, /z-index:2147483600/);
+  assert.match(source, /document\.body\.appendChild\(box\)/);
+});
+
+test('un correo vacío o inválido se dice junto al campo y no llama al API', () => {
+  assert.match(source, /<form id="add" class="add" novalidate>/);
+  assert.match(source, /<form id="tercero" class="add" novalidate>/);
+  assert.match(source, /function correoDe\(v\)/);
+  assert.match(source, /function errorCorreo\(form,input\)/);
+  assert.match(source, /className='field-error'/);
+  assert.match(source, /Escribe un correo para dar acceso\./);
+  assert.match(source, /El correo no es válido\./);
+  assert.match(source, /if\(!errorCorreo\(form,form\.email\)\)return;body\.project_keys/);
+  assert.match(source, /if\(!errorCorreo\(form,form\.email\)\)return;const apps/);
 });
 
 test('alta, edición, suspensión y tokens desactivan el botón y marcan la fila', () => {
