@@ -7,6 +7,11 @@
 export const MISIONES_API = 'https://api.yokup.com/fleet/missions';
 
 const ROSTER = ['arquitecto', 'merovingio', 'persefone', 'oraculo', 'trinity', 'wozniak', 'disney', 'morfeo', 'cypher', 'seraph', 'switch', 'niobe', 'smith', 'huang', 'jensen', 'lucas', 'musk', 'jobs', 'link', 'neo'];
+const ROSTER_SET = new Set(ROSTER);
+/* Huang es la fila de Jensen. Musk, Elon y MuskGrokBot son solo Musk. */
+const ALIAS = { musk: 'musk', elon: 'musk', elonmusk: 'musk', huang: 'jensen', jensen: 'jensen' };
+/* Sufijo de máquina, del más largo al más corto. No es parte del nombre. */
+const SUFIJOS = ['grokbotbox', 'macbookpro16', 'macbookpro', 'macstudio', 'macmini', 'grokbot', 'mbp16', 'mbp14', 'mbp'];
 
 export const ESTADO_TEXTO = Object.freeze({
   pending: 'pendiente',
@@ -21,16 +26,28 @@ export const ESTADO_TEXTO = Object.freeze({
 
 const fold = (s) => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z]/g, '');
 
-/** Clave de la fila (oraculo, huang, jobs…). Vacío si no es alguien de la tabla. */
+function claveRoster(k) {
+  if (!k) return '';
+  if (k === 'y') return 'y';
+  if (ALIAS[k]) return ALIAS[k];
+  if (ROSTER_SET.has(k)) return k;
+  return '';
+}
+
+/** Clave de la fila (oraculo, jensen, musk, jobs…). Vacío si no casa exacto.
+ *  JobsGrokBot o TrinityMBP14 sí: el resto es un sufijo de máquina conocido.
+ *  No hay prefijo suelto: MuskMerovingio no cae en Musk ni en Merovingio. */
 export function personaClave(raw) {
   const k = fold(raw);
-  if (k === 'y') return 'y';
-  let best = '';
-  for (const n of ROSTER) {
-    if ((k === n || k.startsWith(n)) && n.length > best.length) best = n;
+  const exacta = claveRoster(k);
+  if (exacta) return exacta;
+  for (const suf of SUFIJOS) {
+    if (k.length > suf.length && k.endsWith(suf)) {
+      const base = claveRoster(k.slice(0, -suf.length));
+      if (base) return base;
+    }
   }
-  if (best === 'jensen') return 'huang';
-  return best;
+  return '';
 }
 
 /** La misma clave, a partir del data-persona de la fila (Oráculo, Huang, Jensen). */
@@ -41,6 +58,37 @@ export function claveFila(dataPersona) {
 export function consultaMisiones(estado, offset = 0) {
   const q = new URLSearchParams({ status: estado, limit: '200', offset: String(offset) });
   return `${MISIONES_API}?${q}`;
+}
+
+/** Epoch en milisegundos. Segundos por debajo de 2100-01-01; si no, ya son ms. */
+export function epochMs(valor) {
+  if (valor == null || valor === '') return 0;
+  if (typeof valor === 'string' && !/^\d+(\.\d+)?$/.test(valor.trim())) {
+    const t = Date.parse(valor);
+    return Number.isFinite(t) && t > 0 ? t : 0;
+  }
+  const n = Number(valor);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return n > 4102444800 ? n : n * 1000;
+}
+
+function inicioPaso(paso) {
+  if (!paso || typeof paso !== 'object') return 0;
+  return epochMs(paso.started_at || paso.startedAt || paso.inicio) || epochMs(paso.created_at || paso.createdAt);
+}
+
+/** Arranque de la misión: el paso in_progress (started_at o created_at) o, si no, la misión. */
+export function inicioMision(m) {
+  if (!m || typeof m !== 'object') return 0;
+  const pasos = Array.isArray(m.tasks) ? m.tasks : (Array.isArray(m.steps) ? m.steps : []);
+  let mejor = 0;
+  for (const paso of pasos) {
+    if (String(paso && (paso.status || paso.estado) || '') !== 'in_progress') continue;
+    const t = inicioPaso(paso);
+    if (t && (!mejor || t < mejor)) mejor = t;
+  }
+  if (mejor) return mejor;
+  return epochMs(m.started_at || m.startedAt || m.inicio) || epochMs(m.created_at || m.createdAt);
 }
 
 export function fechaMadrid(valor) {
@@ -71,7 +119,7 @@ export function normalizarMision(m) {
   const numero = numeroDe(m);
   if (!numero) return null;
   const id = String(m.id || numero);
-  return { id, clave, numero, titulo, estado, desde: fechaMadrid(m.created_at), enCurso: estado === 'in_progress' };
+  return { id, clave, numero, titulo, estado, desde: fechaMadrid(m.created_at), inicio: inicioMision(m), enCurso: estado === 'in_progress' };
 }
 
 /** Agrupa por persona. En curso primero; si no, la más reciente. */

@@ -9,8 +9,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions/_webmaster-gate.js';
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
 import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
-import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, MISIONES_API } from '../assets/misiones-vivas.js';
-import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso } from '../assets/trabajando-vivo.js';
+import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, inicioMision, MISIONES_API } from '../assets/misiones-vivas.js';
+import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible, inicioTarea, formatoReloj } from '../assets/trabajando-vivo.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -155,7 +155,11 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   assert.match(sort, /leerTrabajando\(\)/);
   assert.match(sort, /admira\.live\/api\/flota\/trabajando/);
   assert.match(sort, /enc-curso/);
-  assert.match(sort, /en curso · misión/);
+  assert.match(sort, /en curso/);
+  assert.match(sort, /table\.enc \.enc-reloj/);
+  assert.match(sort, /admiranext-encargos-reloj/);
+  assert.match(sort, /setInterval\(function \(\) \{[\s\S]*?enc-reloj[\s\S]*?\}, 1000\)/);
+  assert.match(sort, /id \+ ' · ' \+ titulo/);
   assert.match(sort, /textoEnCurso/);
   const cada = sort.match(/leerTrabajando\(\); \}, (\d+)\)/);
   assert.ok(cada && Number(cada[1]) >= 10000 && Number(cada[1]) <= 30000, 'Trabajando ahora se relee entre 10 y 30 s');
@@ -183,11 +187,18 @@ test('Misiones en vivo: in_progress resalta a la persona y el clic lista número
   assert.equal(personaClave('JobsGrokBot'), 'jobs');
   assert.equal(personaClave('OraculoMacMini'), 'oraculo');
   assert.equal(personaClave('Oráculo'), 'oraculo');
-  assert.equal(claveFila('Huang'), 'huang');
-  assert.equal(personaClave('JensenGrokBot'), 'huang');
+  assert.equal(claveFila('Huang'), 'jensen');
+  assert.equal(personaClave('JensenGrokBot'), 'jensen');
+  assert.equal(personaClave('HuangGrokBot'), 'jensen');
+  assert.equal(personaClave('MuskGrokBot'), 'musk');
+  assert.equal(personaClave('Musk'), 'musk');
+  assert.equal(personaClave('Elon'), 'musk');
+  assert.equal(personaClave('Elon Musk'), 'musk');
+  assert.equal(personaClave('MuskMerovingio'), '', 'un nombre pegado no cae en dos filas');
   assert.equal(personaClave('WozniakGrokBot'), 'wozniak');
   assert.equal(personaClave('TrinityMBP14'), 'trinity');
   assert.equal(personaClave('SubNeoMBP16'), '', 'un subagente no hereda la fila de Neo');
+  assert.equal(personaClave('LinkedIn'), '', 'no hay prefijo suelto sobre Link');
   assert.equal(MISIONES_API, 'https://api.yokup.com/fleet/missions');
   assert.equal(consultaMisiones('in_progress', 0), 'https://api.yokup.com/fleet/missions?status=in_progress&limit=200&offset=0');
   const por = agruparMisiones([
@@ -210,9 +221,12 @@ test('Trabajando ahora: verde, amarillo, rojo y gris, y Huang es Jensen', () => 
   assert.equal(TRABAJANDO_API, 'https://www.admira.live/api/flota/trabajando');
   assert.equal(claveTrabajando('Huang'), 'jensen');
   assert.equal(claveTrabajando('Jensen'), 'jensen');
+  assert.equal(claveTrabajando('MuskGrokBot'), 'musk');
+  assert.equal(claveTrabajando('Elon'), 'musk');
   assert.equal(claveTrabajando('Oráculo'), claveTrabajando('oraculo'));
   assert.equal(claveTrabajando('WhiteRabbit'), 'whiterabbit');
   assert.equal(claveTrabajando('Neo'), 'neo');
+  assert.equal(claveTrabajando('MuskMerovingio'), 'muskmerovingio');
   const por = normalizarTarjetas({
     tarjetas: [
       { agente: 'Neo', estado: 'verde', motivo: 'tokens en los últimos 15 min', enCurso: 0 },
@@ -254,7 +268,9 @@ test('En curso suma misiones y tareas; Morfeo sin misión sale como TAREA', () =
   assert.equal(por.morfeo.textoTarea, 'admira.store');
   assert.deepEqual(chipDe(false, por.morfeo), { tipo: 'tarea', texto: 'admira.store' });
   assert.equal(por.neo.textoTarea, 'Video 360 a modelo 3D');
-  assert.equal(por.trinity.textoTarea, 'FLT-101994/#5761 HECHO: informe', 'no repite el número que ya va en la tarea');
+  assert.equal(por.trinity.enTarea, true, 'verde sigue siendo trabajo');
+  assert.equal(por.trinity.textoTarea, '', 'un texto HECHO no se enseña como tarea');
+  assert.equal(por.trinity.encargo, '');
   assert.equal(por.jobs.textoTarea, 'encargo 6919 · FLT-102622');
   assert.equal(por.disney.enTarea, true);
   assert.equal(por.jensen.enTarea, true);
@@ -272,4 +288,78 @@ test('En curso suma misiones y tareas; Morfeo sin misión sale como TAREA', () =
     { mision: false, tarjeta: por.jensen },
     { mision: false, tarjeta: por.lucas },
   ]), { total: 7, misiones: 2, tareas: 5 });
+});
+
+test('FLT-102626 es de Musk: no se pinta en Jensen ni en Merovingio, y un gris con misión no queda en espera', async () => {
+  const misiones = agruparMisiones([
+    { id: 'FLT-102626', persona: 'MuskGrokBot', assignee: 'MuskGrokBot', status: 'in_progress', subject: 'Encargos por persona', display_ref: 'Hoy #101', created_at: 1792693022000 },
+    { id: 'FLT-102626', persona: 'Merovingio', status: 'in_progress', subject: 'Encargos por persona', display_ref: 'Hoy #101', created_at: 1792693022000 },
+  ]);
+  assert.deepEqual(Object.keys(misiones), ['musk']);
+  const por = normalizarTarjetas({
+    tarjetas: [
+      { agente: 'Huang', estado: 'gris', encargo: 'FLT-102626', foco: { proyecto: 'Training', fuente: 'training' } },
+      { agente: 'Merovingio', estado: 'gris', encargo: 'FLT-102626' },
+      { agente: 'Musk', estado: 'gris', encargo: 'FLT-102626' },
+      { agente: 'Trinity', estado: 'amarillo', tarea: 'FLT-101994/#5761 HECHO: informe', encargo: '#5761', foco: { proyecto: 'admira.studio', fuente: 'ahora' } },
+    ],
+  });
+  const indice = duenoPorMision(misiones);
+  assert.equal(indice.dueno.flt102626, 'musk');
+  const jensen = tarjetaPara('jensen', por.jensen, indice);
+  const merovingio = tarjetaPara('merovingio', por.merovingio, indice);
+  const musk = tarjetaPara('musk', por.musk, indice);
+  assert.equal(jensen.enTarea, false);
+  assert.equal(jensen.textoTarea, '');
+  assert.equal(jensen.encargo, '');
+  assert.equal(merovingio.enTarea, false);
+  assert.equal(merovingio.encargo, '');
+  assert.equal(musk.encargo, 'FLT-102626');
+  assert.deepEqual(chipDe(true, musk), { tipo: 'mision', texto: '' });
+  assert.deepEqual(chipDe(false, jensen), { tipo: '', texto: '' });
+  const vis = estadoVisible(musk, true);
+  assert.equal(vis.estado, 'verde');
+  assert.equal(vis.etiqueta, 'trabajando');
+  assert.equal(estadoVisible({ estado: 'amarillo', etiqueta: 'hace poco' }, true).estado, 'amarillo');
+  assert.equal(estadoVisible(null, true).etiqueta, 'trabajando');
+  const trinity = tarjetaPara('trinity', por.trinity, indice);
+  assert.equal(trinity.textoTarea, 'admira.studio');
+  assert.doesNotMatch(trinity.textoTarea, /HECHO/i);
+  const client = await read('../assets/roadmap-encargos.js');
+  assert.match(client, /tarjetaPara\(clave, base, indice\)/);
+  assert.match(client, /estadoVisible\(tarjeta, mision\)/);
+});
+
+test('el reloj usa el arranque real y corre en agentes y consejeros', async () => {
+  assert.equal(formatoReloj(0, 65_000), '01:05');
+  assert.equal(formatoReloj(0, 3_599_000), '59:59');
+  assert.equal(formatoReloj(0, 3_600_000), '1:00:00');
+  assert.equal(formatoReloj(0, 3_600_000 + 23 * 60_000 + 5_000), '1:23:05');
+  assert.equal(formatoReloj(5_000, 1_000), '00:00');
+  const cruda = {
+    id: 'FLT-102626', persona: 'MuskGrokBot', status: 'in_progress', subject: 'Colores encargos',
+    created_at: 1_792_693_022_000,
+    tasks: [
+      { status: 'pending', created_at: 1_792_693_053_918 },
+      { status: 'in_progress', started_at: 1_792_694_000_000, created_at: 1_792_693_053_918 },
+    ],
+  };
+  assert.equal(inicioMision(cruda), 1_792_694_000_000);
+  const norm = agruparMisiones([cruda]).musk[0];
+  assert.equal(norm.inicio, 1_792_694_000_000);
+  assert.equal(norm.titulo, 'Colores encargos');
+  assert.equal(inicioMision({ id: 'FLT-1', persona: 'Jobs', status: 'in_progress', subject: 'Latido', created_at: 1_792_685_515_000 }), 1_792_685_515_000);
+  assert.equal(inicioTarea({ latidoConsejero: { desde: 1_792_698_729 } }), 1_792_698_729_000);
+  assert.equal(inicioTarea({ ultimaActividad: '2026-10-22T19:59:04.328Z', haceS: 0 }), 0, 'la última actividad no es el inicio');
+  assert.equal(inicioTarea({ started_at: '2026-10-22T18:00:00.000Z' }), Date.parse('2026-10-22T18:00:00.000Z'));
+  const por = normalizarTarjetas({ tarjetas: [{ agente: 'Jobs', estado: 'verde', tarea: 'panel', latidoConsejero: { desde: 1_792_698_729 } }] });
+  assert.equal(por.jobs.inicio, 1_792_698_729_000);
+  const html = await read('../roadmap/encargos.html');
+  assert.match(html, /<table class="enc" id="enc-agentes"/);
+  assert.match(html, /<table class="enc" id="enc-consejeros"/);
+  assert.match(html, /\.enc-reloj\{/);
+  const js = await read('../assets/roadmap-encargos.js');
+  assert.match(js, /table\.enc\[data-ordenable\] tbody tr\[data-persona\]/);
+  assert.match(js, /table\.enc \.enc-reloj/);
+  assert.doesNotMatch(js, /#enc-agentes \.enc-reloj/);
 });
