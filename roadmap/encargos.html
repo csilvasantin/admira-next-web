@@ -41,7 +41,11 @@
   .enc tbody tr.enc-activo:hover td{background:rgba(74,227,209,.24)}
   .enc tbody tr.enc-abierta{outline:1px solid #4ae3d1;outline-offset:-2px}
   .enc tbody tr:focus-visible{outline:1px solid #4ae3d1;outline-offset:-2px}
-  .enc-curso{display:inline-block;margin-left:8px;padding:1px 6px;border:1px solid rgba(74,227,209,.5);border-radius:999px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#4ae3d1;vertical-align:1px}
+  .enc-curso,.enc-tarea{display:inline-flex;align-items:center;gap:4px;max-width:100%;margin-left:8px;padding:1px 6px;border-radius:999px;font-size:10px;vertical-align:1px}
+  .enc-curso{border:1px solid rgba(74,227,209,.5);letter-spacing:.12em;text-transform:uppercase;color:#4ae3d1}
+  .enc-tarea{border:1px solid rgba(255,208,103,.7);color:#ffe29a}
+  .enc-tarea b{letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+  .enc-tarea-txt{font-weight:500;letter-spacing:0;text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:32ch}
   .enc-est{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:11px;font-weight:700;color:var(--yk-mut,#92a0b4);vertical-align:1px}
   .enc-est i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#6b7b82;flex:none}
   .enc tbody tr.enc-est-verde td{background:rgba(61,220,132,.1)}
@@ -87,15 +91,15 @@
   <nav class="rm-sub" aria-label="RoadMap"><a href="/roadmap">Plan</a><a href="/roadmap/encargos" aria-current="page">Encargos</a></nav>
   <p class="enc-crumb"><a href="/roadmap">RoadMap</a> › Encargos</p>
   <h1>Encargos abiertos por persona</h1>
-  <p class="enc-meta">Datos del <b><!--ENC_FECHA--></b>, hora de Madrid (<!--ENC_ORIGEN-->). Agentes a la izquierda y consejeros a la derecha, cada tabla con su total. El color de la fila es el de Trabajando ahora en admira.live. La pastilla «en curso» marca quien tiene una misión en curso. Pulsa una fila para ver número, título, estado y desde cuándo; pulsa una cabecera para ordenar. El total se queda abajo.</p>
+  <p class="enc-meta">Datos del <b><!--ENC_FECHA--></b>, hora de Madrid (<!--ENC_ORIGEN-->). Agentes a la izquierda y consejeros a la derecha, cada tabla con su total. El color de la fila es el de Trabajando ahora en admira.live. Quien tiene una misión activa lleva «en curso · misión»; si está trabajando y no tiene misión, lleva «tarea» con el texto y el número. Las dos cuentan en En curso. Pulsa una fila para ver número, título, estado y desde cuándo; pulsa una cabecera para ordenar. El total se queda abajo.</p>
   <ul class="enc-leyenda" aria-label="Colores de Trabajando ahora">
     <li title="Verde: trabajando ahora"><i class="enc-sw-verde" aria-hidden="true"></i>trabajando</li>
     <li title="Amarillo: con Carlos o actividad reciente"><i class="enc-sw-amarillo" aria-hidden="true"></i>hace poco</li>
     <li title="Rojo: sin actividad desde hace más de 1 h, pero activo hoy"><i class="enc-sw-rojo" aria-hidden="true"></i>&gt;1 h</li>
     <li title="Gris: sin actividad hoy"><i class="enc-sw-gris" aria-hidden="true"></i>en espera</li>
   </ul>
+  <p class="enc-nota" id="enc-vivo" role="status">Leyendo quién está en curso…</p>
   <p class="enc-nota" id="enc-trab" role="status">Leyendo Trabajando ahora…</p>
-  <p class="enc-nota" id="enc-vivo" role="status">Leyendo Misiones…</p>
   <div class="enc-par">
     <section class="enc-col" aria-labelledby="enc-h-agentes">
       <h2 id="enc-h-agentes">Agentes</h2>
@@ -160,6 +164,6 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script type="module" src="/assets/roadmap-encargos.js?v=20261022-colores-1"></script>
+<script type="module" src="/assets/roadmap-encargos.js?v=20261022-tarea-1"></script>
 </body>
 </html>
