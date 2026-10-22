@@ -10,6 +10,7 @@ import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
 import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
 import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, MISIONES_API } from '../assets/misiones-vivas.js';
+import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso } from '../assets/trabajando-vivo.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -151,8 +152,30 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   assert.match(sort, /leerEstado\('in_progress'\)/);
   assert.match(sort, /api\.yokup\.com\/fleet\/missions/);
   assert.match(sort, /setInterval\(function \(\) \{ if \(!document\.hidden\) leer\(\); \}, 30000\)/);
+  assert.match(sort, /leerTrabajando\(\)/);
+  assert.match(sort, /admira\.live\/api\/flota\/trabajando/);
+  assert.match(sort, /enc-curso/);
+  assert.match(sort, /en curso · misión/);
+  assert.match(sort, /textoEnCurso/);
+  const cada = sort.match(/leerTrabajando\(\); \}, (\d+)\)/);
+  assert.ok(cada && Number(cada[1]) >= 10000 && Number(cada[1]) <= 30000, 'Trabajando ahora se relee entre 10 y 30 s');
   const html = await read('../roadmap/encargos.html');
   assert.match(html, /id="enc-vivo"/);
+  assert.match(html, /id="enc-trab"/);
+  assert.match(html, /class="enc-leyenda"/);
+  assert.match(html, /trabajando/);
+  assert.match(html, /hace poco/);
+  assert.match(html, /&gt;1 h/);
+  assert.match(html, /en espera/);
+  assert.match(html, /#3ddc84/);
+  assert.match(html, /box-shadow:0 0 6px #3ddc84/);
+  assert.match(html, /rgba\(61,220,132,\.1\)/);
+  assert.match(html, /linear-gradient\(90deg,rgba\(255,208,103,\.13\),transparent 55%\)/);
+  assert.match(html, /#ffe29a/);
+  assert.match(html, /#ff5d5d/);
+  assert.match(html, /rgba\(255,93,93,\.1\)/);
+  assert.match(html, /opacity:\.6/);
+  assert.match(html, /grayscale\(1\)/);
   assert.match(html, /type="module" src="\/assets\/roadmap-encargos\.js/);
 });
 
@@ -181,4 +204,72 @@ test('Misiones en vivo: in_progress resalta a la persona y el clic lista número
   assert.equal(por.jobs[0].desde, fechaMadrid(1792685515000));
   assert.match(por.jobs[0].desde, /2026 a las /);
   assert.equal(por.neo[0].enCurso, false);
+});
+
+test('Trabajando ahora: verde, amarillo, rojo y gris, y Huang es Jensen', () => {
+  assert.equal(TRABAJANDO_API, 'https://www.admira.live/api/flota/trabajando');
+  assert.equal(claveTrabajando('Huang'), 'jensen');
+  assert.equal(claveTrabajando('Jensen'), 'jensen');
+  assert.equal(claveTrabajando('Oráculo'), claveTrabajando('oraculo'));
+  assert.equal(claveTrabajando('WhiteRabbit'), 'whiterabbit');
+  assert.equal(claveTrabajando('Neo'), 'neo');
+  const por = normalizarTarjetas({
+    tarjetas: [
+      { agente: 'Neo', estado: 'verde', motivo: 'tokens en los últimos 15 min', enCurso: 0 },
+      { agente: 'Huang', estado: 'amarillo', motivo: 'con Carlos', enCurso: 0 },
+      { agente: 'Jobs', estado: 'rojo', motivo: 'sin actividad desde hace más de 1 h (activo hoy)', enCurso: 3 },
+      { agente: 'Lucas', estado: 'gris', motivo: 'sin latido', enCurso: 0 },
+      { agente: 'Nadie', estado: 'azul', motivo: 'no' },
+      { agente: '', estado: 'verde' },
+    ],
+  });
+  assert.equal(por.neo.estado, 'verde');
+  assert.equal(por.neo.etiqueta, ETIQUETA.verde);
+  assert.equal(por.neo.etiqueta, 'trabajando');
+  assert.equal(por.jensen.estado, 'amarillo');
+  assert.equal(por.jensen.etiqueta, 'hace poco');
+  assert.equal(por.huang, undefined, 'Huang no abre otra fila: cae en Jensen');
+  assert.equal(por.jobs.etiqueta, '>1 h');
+  assert.equal(por.lucas.etiqueta, 'en espera');
+  assert.equal(por.nadie, undefined);
+  assert.deepEqual(Object.keys(por).sort(), ['jensen', 'jobs', 'lucas', 'neo']);
+  assert.equal(por.neo.enTarea, true, 'verde es trabajo aunque no traiga tarea');
+  assert.equal(por.lucas.enTarea, false);
+});
+
+test('En curso suma misiones y tareas; Morfeo sin misión sale como TAREA', () => {
+  const por = normalizarTarjetas({
+    tarjetas: [
+      { agente: 'Morfeo', estado: 'amarillo', motivo: 'con Carlos', foco: { proyecto: 'admira.store', fuente: 'ahora', defecto: false } },
+      { agente: 'Neo', estado: 'verde', tarea: 'Video 360 a modelo 3D' },
+      { agente: 'Trinity', estado: 'verde', tarea: 'FLT-101994/#5761 HECHO: informe', encargo: '#5761' },
+      { agente: 'Jobs', estado: 'rojo', tarea: 'encargo 6919', encargo: 'FLT-102622' },
+      { agente: 'Disney', estado: 'rojo', tarea: 'Parte nocturno', encargo: '#7040' },
+      { agente: 'Huang', estado: 'gris', encargo: 'FLT-102626', foco: { proyecto: 'Training', fuente: 'training' } },
+      { agente: 'Lucas', estado: 'gris', motivo: 'sin latido', foco: { proyecto: 'Training', fuente: 'training' } },
+      { agente: 'Oráculo', estado: 'verde', motivo: '2 encargos en curso' },
+    ],
+  });
+  assert.equal(por.morfeo.enTarea, true, 'Morfeo trabaja con Carlos aunque no tenga misión');
+  assert.equal(por.morfeo.textoTarea, 'admira.store');
+  assert.deepEqual(chipDe(false, por.morfeo), { tipo: 'tarea', texto: 'admira.store' });
+  assert.equal(por.neo.textoTarea, 'Video 360 a modelo 3D');
+  assert.equal(por.trinity.textoTarea, 'FLT-101994/#5761 HECHO: informe', 'no repite el número que ya va en la tarea');
+  assert.equal(por.jobs.textoTarea, 'encargo 6919 · FLT-102622');
+  assert.equal(por.disney.enTarea, true);
+  assert.equal(por.jensen.enTarea, true);
+  assert.equal(por.jensen.textoTarea, 'FLT-102626');
+  assert.equal(por.lucas.enTarea, false);
+  assert.deepEqual(chipDe(false, por.lucas), { tipo: '', texto: '' });
+  assert.deepEqual(chipDe(true, por.jobs), { tipo: 'mision', texto: '' }, 'la misión tapa a la tarea');
+  assert.deepEqual(contarEnCurso([
+    { mision: true, tarjeta: por.jobs },
+    { mision: true, tarjeta: por.oraculo },
+    { mision: false, tarjeta: por.morfeo },
+    { mision: false, tarjeta: por.neo },
+    { mision: false, tarjeta: por.trinity },
+    { mision: false, tarjeta: por.disney },
+    { mision: false, tarjeta: por.jensen },
+    { mision: false, tarjeta: por.lucas },
+  ]), { total: 7, misiones: 2, tareas: 5 });
 });

@@ -41,7 +41,39 @@
   .enc tbody tr.enc-activo:hover td{background:rgba(74,227,209,.24)}
   .enc tbody tr.enc-abierta{outline:1px solid #4ae3d1;outline-offset:-2px}
   .enc tbody tr:focus-visible{outline:1px solid #4ae3d1;outline-offset:-2px}
-  .enc-curso{display:inline-block;margin-left:8px;padding:1px 6px;border:1px solid rgba(74,227,209,.5);border-radius:999px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#4ae3d1;vertical-align:1px}
+  .enc-curso,.enc-tarea{display:inline-flex;align-items:center;gap:4px;max-width:100%;margin-left:8px;padding:1px 6px;border-radius:999px;font-size:10px;vertical-align:1px}
+  .enc-curso{border:1px solid rgba(74,227,209,.5);letter-spacing:.12em;text-transform:uppercase;color:#4ae3d1}
+  .enc-tarea{border:1px solid rgba(255,208,103,.7);color:#ffe29a}
+  .enc-tarea b{letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+  .enc-tarea-txt{font-weight:500;letter-spacing:0;text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:32ch}
+  .enc-est{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:11px;font-weight:700;color:var(--yk-mut,#92a0b4);vertical-align:1px}
+  .enc-est i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#6b7b82;flex:none}
+  .enc tbody tr.enc-est-verde td{background:rgba(61,220,132,.1)}
+  .enc tbody tr.enc-est-verde:hover td{background:rgba(61,220,132,.18)}
+  .enc tbody tr.enc-est-verde td:first-child{box-shadow:inset 3px 0 0 #3ddc84}
+  .enc tbody tr.enc-est-verde .enc-est{color:#b8ffd2}
+  .enc tbody tr.enc-est-verde .enc-est i{background:#3ddc84;box-shadow:0 0 6px #3ddc84}
+  .enc tbody tr.enc-est-amarillo{background:linear-gradient(90deg,rgba(255,208,103,.13),transparent 55%)}
+  .enc tbody tr.enc-est-amarillo td,.enc tbody tr.enc-est-amarillo:hover td{background:transparent}
+  .enc tbody tr.enc-est-amarillo:hover{background:linear-gradient(90deg,rgba(255,208,103,.22),transparent 55%)}
+  .enc tbody tr.enc-est-amarillo td:first-child{box-shadow:inset 3px 0 0 #ffd067}
+  .enc tbody tr.enc-est-amarillo .enc-est{color:#ffe29a}
+  .enc tbody tr.enc-est-amarillo .enc-est i{background:#ffd067}
+  .enc tbody tr.enc-est-rojo td{background:rgba(255,93,93,.1)}
+  .enc tbody tr.enc-est-rojo:hover td{background:rgba(255,93,93,.18)}
+  .enc tbody tr.enc-est-rojo td:first-child{box-shadow:inset 3px 0 0 #ff5d5d}
+  .enc tbody tr.enc-est-rojo .enc-est{color:#ffb3b3}
+  .enc tbody tr.enc-est-rojo .enc-est i{background:#ff5d5d}
+  .enc tbody tr.enc-est-gris{opacity:.6;filter:grayscale(1)}
+  .enc tbody tr.enc-est-gris td:first-child{box-shadow:none;background-image:repeating-linear-gradient(to bottom,#9aa8b8 0 3px,transparent 3px 7px);background-size:3px 100%;background-repeat:no-repeat;background-position:left center}
+  .enc tbody tr.enc-est-gris:hover td{background-color:transparent}
+  .enc-leyenda{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 14px;padding:0;list-style:none;color:var(--yk-mut,#92a0b4);font-size:12px}
+  .enc-leyenda li{display:inline-flex;align-items:center;gap:6px}
+  .enc-leyenda i{width:12px;height:12px;border-radius:3px;flex:none}
+  .enc-sw-verde{background:#3ddc84;box-shadow:0 0 6px #3ddc84}
+  .enc-sw-amarillo{background:#ffd067}
+  .enc-sw-rojo{background:#ff5d5d}
+  .enc-sw-gris{background:#6b7b82;opacity:.6;filter:grayscale(1);border:1px dashed #9aa8b8}
   .enc tfoot td{font-weight:700;color:#4ae3d1;border-top:2px solid rgba(74,227,209,.55);border-bottom:0;background:rgba(16,23,36,.6)}
   .enc-detalle{margin-top:18px}
   .enc-detalle h2{margin:0 0 8px;font-size:15px;letter-spacing:.02em}
@@ -59,8 +91,15 @@
   <nav class="rm-sub" aria-label="RoadMap"><a href="/roadmap">Plan</a><a href="/roadmap/encargos" aria-current="page">Encargos</a></nav>
   <p class="enc-crumb"><a href="/roadmap">RoadMap</a> › Encargos</p>
   <h1>Encargos abiertos por persona</h1>
-  <p class="enc-meta">Datos del <b><!--ENC_FECHA--></b>, hora de Madrid (<!--ENC_ORIGEN-->). Agentes a la izquierda y consejeros a la derecha, cada tabla con su total. La fila resaltada es quien tiene una misión en curso ahora. Pulsa una fila para ver número, título, estado y desde cuándo; pulsa una cabecera para ordenar. El total se queda abajo.</p>
-  <p class="enc-nota" id="enc-vivo" role="status">Leyendo Misiones…</p>
+  <p class="enc-meta">Datos del <b><!--ENC_FECHA--></b>, hora de Madrid (<!--ENC_ORIGEN-->). Agentes a la izquierda y consejeros a la derecha, cada tabla con su total. El color de la fila es el de Trabajando ahora en admira.live. Quien tiene una misión activa lleva «en curso · misión»; si está trabajando y no tiene misión, lleva «tarea» con el texto y el número. Las dos cuentan en En curso. Pulsa una fila para ver número, título, estado y desde cuándo; pulsa una cabecera para ordenar. El total se queda abajo.</p>
+  <ul class="enc-leyenda" aria-label="Colores de Trabajando ahora">
+    <li title="Verde: trabajando ahora"><i class="enc-sw-verde" aria-hidden="true"></i>trabajando</li>
+    <li title="Amarillo: con Carlos o actividad reciente"><i class="enc-sw-amarillo" aria-hidden="true"></i>hace poco</li>
+    <li title="Rojo: sin actividad desde hace más de 1 h, pero activo hoy"><i class="enc-sw-rojo" aria-hidden="true"></i>&gt;1 h</li>
+    <li title="Gris: sin actividad hoy"><i class="enc-sw-gris" aria-hidden="true"></i>en espera</li>
+  </ul>
+  <p class="enc-nota" id="enc-vivo" role="status">Leyendo quién está en curso…</p>
+  <p class="enc-nota" id="enc-trab" role="status">Leyendo Trabajando ahora…</p>
   <div class="enc-par">
     <section class="enc-col" aria-labelledby="enc-h-agentes">
       <h2 id="enc-h-agentes">Agentes</h2>
@@ -125,6 +164,6 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script type="module" src="/assets/roadmap-encargos.js?v=20261022-misiones-1"></script>
+<script type="module" src="/assets/roadmap-encargos.js?v=20261022-tarea-1"></script>
 </body>
 </html>
