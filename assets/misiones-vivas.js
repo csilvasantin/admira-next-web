@@ -7,6 +7,11 @@
 export const MISIONES_API = 'https://api.yokup.com/fleet/missions';
 
 const ROSTER = ['arquitecto', 'merovingio', 'persefone', 'oraculo', 'trinity', 'wozniak', 'disney', 'morfeo', 'cypher', 'seraph', 'switch', 'niobe', 'smith', 'huang', 'jensen', 'lucas', 'musk', 'jobs', 'link', 'neo'];
+const ROSTER_SET = new Set(ROSTER);
+/* Huang es la fila de Jensen. Musk, Elon y MuskGrokBot son solo Musk. */
+const ALIAS = { musk: 'musk', elon: 'musk', elonmusk: 'musk', huang: 'jensen', jensen: 'jensen' };
+/* Sufijo de máquina, del más largo al más corto. No es parte del nombre. */
+const SUFIJOS = ['grokbotbox', 'macbookpro16', 'macbookpro', 'macstudio', 'macmini', 'grokbot', 'mbp16', 'mbp14', 'mbp'];
 
 export const ESTADO_TEXTO = Object.freeze({
   pending: 'pendiente',
@@ -21,16 +26,28 @@ export const ESTADO_TEXTO = Object.freeze({
 
 const fold = (s) => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z]/g, '');
 
-/** Clave de la fila (oraculo, huang, jobs…). Vacío si no es alguien de la tabla. */
+function claveRoster(k) {
+  if (!k) return '';
+  if (k === 'y') return 'y';
+  if (ALIAS[k]) return ALIAS[k];
+  if (ROSTER_SET.has(k)) return k;
+  return '';
+}
+
+/** Clave de la fila (oraculo, jensen, musk, jobs…). Vacío si no casa exacto.
+ *  JobsGrokBot o TrinityMBP14 sí: el resto es un sufijo de máquina conocido.
+ *  No hay prefijo suelto: MuskMerovingio no cae en Musk ni en Merovingio. */
 export function personaClave(raw) {
   const k = fold(raw);
-  if (k === 'y') return 'y';
-  let best = '';
-  for (const n of ROSTER) {
-    if ((k === n || k.startsWith(n)) && n.length > best.length) best = n;
+  const exacta = claveRoster(k);
+  if (exacta) return exacta;
+  for (const suf of SUFIJOS) {
+    if (k.length > suf.length && k.endsWith(suf)) {
+      const base = claveRoster(k.slice(0, -suf.length));
+      if (base) return base;
+    }
   }
-  if (best === 'jensen') return 'huang';
-  return best;
+  return '';
 }
 
 /** La misma clave, a partir del data-persona de la fila (Oráculo, Huang, Jensen). */

@@ -10,7 +10,7 @@ import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
 import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
 import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, MISIONES_API } from '../assets/misiones-vivas.js';
-import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso } from '../assets/trabajando-vivo.js';
+import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible } from '../assets/trabajando-vivo.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -183,11 +183,18 @@ test('Misiones en vivo: in_progress resalta a la persona y el clic lista número
   assert.equal(personaClave('JobsGrokBot'), 'jobs');
   assert.equal(personaClave('OraculoMacMini'), 'oraculo');
   assert.equal(personaClave('Oráculo'), 'oraculo');
-  assert.equal(claveFila('Huang'), 'huang');
-  assert.equal(personaClave('JensenGrokBot'), 'huang');
+  assert.equal(claveFila('Huang'), 'jensen');
+  assert.equal(personaClave('JensenGrokBot'), 'jensen');
+  assert.equal(personaClave('HuangGrokBot'), 'jensen');
+  assert.equal(personaClave('MuskGrokBot'), 'musk');
+  assert.equal(personaClave('Musk'), 'musk');
+  assert.equal(personaClave('Elon'), 'musk');
+  assert.equal(personaClave('Elon Musk'), 'musk');
+  assert.equal(personaClave('MuskMerovingio'), '', 'un nombre pegado no cae en dos filas');
   assert.equal(personaClave('WozniakGrokBot'), 'wozniak');
   assert.equal(personaClave('TrinityMBP14'), 'trinity');
   assert.equal(personaClave('SubNeoMBP16'), '', 'un subagente no hereda la fila de Neo');
+  assert.equal(personaClave('LinkedIn'), '', 'no hay prefijo suelto sobre Link');
   assert.equal(MISIONES_API, 'https://api.yokup.com/fleet/missions');
   assert.equal(consultaMisiones('in_progress', 0), 'https://api.yokup.com/fleet/missions?status=in_progress&limit=200&offset=0');
   const por = agruparMisiones([
@@ -210,9 +217,12 @@ test('Trabajando ahora: verde, amarillo, rojo y gris, y Huang es Jensen', () => 
   assert.equal(TRABAJANDO_API, 'https://www.admira.live/api/flota/trabajando');
   assert.equal(claveTrabajando('Huang'), 'jensen');
   assert.equal(claveTrabajando('Jensen'), 'jensen');
+  assert.equal(claveTrabajando('MuskGrokBot'), 'musk');
+  assert.equal(claveTrabajando('Elon'), 'musk');
   assert.equal(claveTrabajando('Oráculo'), claveTrabajando('oraculo'));
   assert.equal(claveTrabajando('WhiteRabbit'), 'whiterabbit');
   assert.equal(claveTrabajando('Neo'), 'neo');
+  assert.equal(claveTrabajando('MuskMerovingio'), 'muskmerovingio');
   const por = normalizarTarjetas({
     tarjetas: [
       { agente: 'Neo', estado: 'verde', motivo: 'tokens en los últimos 15 min', enCurso: 0 },
@@ -254,7 +264,9 @@ test('En curso suma misiones y tareas; Morfeo sin misión sale como TAREA', () =
   assert.equal(por.morfeo.textoTarea, 'admira.store');
   assert.deepEqual(chipDe(false, por.morfeo), { tipo: 'tarea', texto: 'admira.store' });
   assert.equal(por.neo.textoTarea, 'Video 360 a modelo 3D');
-  assert.equal(por.trinity.textoTarea, 'FLT-101994/#5761 HECHO: informe', 'no repite el número que ya va en la tarea');
+  assert.equal(por.trinity.enTarea, true, 'verde sigue siendo trabajo');
+  assert.equal(por.trinity.textoTarea, '', 'un texto HECHO no se enseña como tarea');
+  assert.equal(por.trinity.encargo, '');
   assert.equal(por.jobs.textoTarea, 'encargo 6919 · FLT-102622');
   assert.equal(por.disney.enTarea, true);
   assert.equal(por.jensen.enTarea, true);
@@ -272,4 +284,44 @@ test('En curso suma misiones y tareas; Morfeo sin misión sale como TAREA', () =
     { mision: false, tarjeta: por.jensen },
     { mision: false, tarjeta: por.lucas },
   ]), { total: 7, misiones: 2, tareas: 5 });
+});
+
+test('FLT-102626 es de Musk: no se pinta en Jensen ni en Merovingio, y un gris con misión no queda en espera', async () => {
+  const misiones = agruparMisiones([
+    { id: 'FLT-102626', persona: 'MuskGrokBot', assignee: 'MuskGrokBot', status: 'in_progress', subject: 'Encargos por persona', display_ref: 'Hoy #101', created_at: 1792693022000 },
+    { id: 'FLT-102626', persona: 'Merovingio', status: 'in_progress', subject: 'Encargos por persona', display_ref: 'Hoy #101', created_at: 1792693022000 },
+  ]);
+  assert.deepEqual(Object.keys(misiones), ['musk']);
+  const por = normalizarTarjetas({
+    tarjetas: [
+      { agente: 'Huang', estado: 'gris', encargo: 'FLT-102626', foco: { proyecto: 'Training', fuente: 'training' } },
+      { agente: 'Merovingio', estado: 'gris', encargo: 'FLT-102626' },
+      { agente: 'Musk', estado: 'gris', encargo: 'FLT-102626' },
+      { agente: 'Trinity', estado: 'amarillo', tarea: 'FLT-101994/#5761 HECHO: informe', encargo: '#5761', foco: { proyecto: 'admira.studio', fuente: 'ahora' } },
+    ],
+  });
+  const indice = duenoPorMision(misiones);
+  assert.equal(indice.dueno.flt102626, 'musk');
+  const jensen = tarjetaPara('jensen', por.jensen, indice);
+  const merovingio = tarjetaPara('merovingio', por.merovingio, indice);
+  const musk = tarjetaPara('musk', por.musk, indice);
+  assert.equal(jensen.enTarea, false);
+  assert.equal(jensen.textoTarea, '');
+  assert.equal(jensen.encargo, '');
+  assert.equal(merovingio.enTarea, false);
+  assert.equal(merovingio.encargo, '');
+  assert.equal(musk.encargo, 'FLT-102626');
+  assert.deepEqual(chipDe(true, musk), { tipo: 'mision', texto: '' });
+  assert.deepEqual(chipDe(false, jensen), { tipo: '', texto: '' });
+  const vis = estadoVisible(musk, true);
+  assert.equal(vis.estado, 'verde');
+  assert.equal(vis.etiqueta, 'trabajando');
+  assert.equal(estadoVisible({ estado: 'amarillo', etiqueta: 'hace poco' }, true).estado, 'amarillo');
+  assert.equal(estadoVisible(null, true).etiqueta, 'trabajando');
+  const trinity = tarjetaPara('trinity', por.trinity, indice);
+  assert.equal(trinity.textoTarea, 'admira.studio');
+  assert.doesNotMatch(trinity.textoTarea, /HECHO/i);
+  const client = await read('../assets/roadmap-encargos.js');
+  assert.match(client, /tarjetaPara\(clave, base, indice\)/);
+  assert.match(client, /estadoVisible\(tarjeta, mision\)/);
 });

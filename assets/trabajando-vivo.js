@@ -3,7 +3,10 @@
  * GET https://www.admira.live/api/flota/trabajando (CORS *).
  * { tarjetas: [{ agente, estado, motivo, enCurso }] }
  * estado: verde | amarillo | rojo | gris.
- * Huang y Jensen son la misma fila. */
+ * Huang y Jensen son la misma fila. Musk, Elon y MuskGrokBot son solo Musk.
+ * Una misión (FLT-…) se pinta en una sola persona: la de Misiones. */
+import { personaClave } from './misiones-vivas.js';
+
 export const TRABAJANDO_API = 'https://www.admira.live/api/flota/trabajando';
 
 const ESTADOS = new Set(['verde', 'amarillo', 'rojo', 'gris']);
@@ -17,11 +20,12 @@ export const ETIQUETA = Object.freeze({
 
 const fold = (s) => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z]/g, '');
 
-/** Clave para casar la tarjeta con data-persona. Huang y Jensen coinciden. */
+/** Clave para casar la tarjeta con data-persona. Sin prefijo suelto. */
 export function claveTrabajando(raw) {
+  const mapped = personaClave(raw);
+  if (mapped) return mapped;
   const k = fold(raw);
-  if (k === 'huang' || k === 'jensen') return 'jensen';
-  return k;
+  return k || '';
 }
 
 const plano = (v) => (v == null ? '' : String(v).trim());
@@ -41,20 +45,84 @@ function yaLoDice(tarea, encargo) {
   return num.length > 1 && tarea.includes(num);
 }
 
+/** La tarea o el encargo ya están cerrados. «HECHO:» no es trabajo en curso. */
+export function esHecho(texto) {
+  return /\bhecho\b/i.test(String(texto || ''));
+}
+
+const ESTADOS_CERRADOS = new Set(['done', 'resolved', 'cancelled', 'hecho', 'finalizada', 'anulada']);
+
+export function tokenDe(valor) {
+  return String(valor || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/** id de misión → persona. Las cerradas no tienen dueño activo. */
+export function duenoPorMision(por) {
+  const dueno = {};
+  const cerradas = {};
+  for (const clave of Object.keys(por || {})) {
+    for (const m of por[clave] || []) {
+      const token = tokenDe(m && m.id);
+      if (!token) continue;
+      if (ESTADOS_CERRADOS.has(m.estado)) cerradas[token] = true;
+      else if (!dueno[token]) dueno[token] = clave;
+    }
+  }
+  return { dueno, cerradas };
+}
+
 /**
  * Trabajo visible aunque no haya misión.
  * Verde, o con Carlos (amarillo: Morfeo no está parado), o con tarea o encargo.
  */
 export function trabajoDe(t) {
-  if (!t || typeof t !== 'object') return { enTarea: false, textoTarea: '' };
-  const tarea = plano(t.tarea);
-  const encargo = plano(t.encargo);
+  if (!t || typeof t !== 'object') return { enTarea: false, textoTarea: '', tarea: '', encargo: '' };
+  let tarea = plano(t.tarea);
+  let encargo = plano(t.encargo);
   const estado = plano(t.estado);
+  if (esHecho(tarea)) {
+    if (encargo && yaLoDice(tarea, encargo)) encargo = '';
+    tarea = '';
+  }
+  if (esHecho(encargo) || t.encargoCerrado) encargo = '';
   const enTarea = estado === 'verde' || estado === 'amarillo' || !!tarea || !!encargo;
   let textoTarea = tarea;
   if (encargo && !yaLoDice(tarea, encargo)) textoTarea = textoTarea ? `${textoTarea} · ${encargo}` : encargo;
   if (!textoTarea && (estado === 'verde' || estado === 'amarillo')) textoTarea = focoActual(t.foco);
   return { enTarea, textoTarea, tarea, encargo };
+}
+
+/** Quita de esta fila una misión que es de otra persona o que ya está cerrada. */
+export function tarjetaPara(clave, tarjeta, indice) {
+  if (!tarjeta) return null;
+  const dueno = (indice && indice.dueno) || {};
+  const cerradas = (indice && indice.cerradas) || {};
+  let tarea = tarjeta.tarea || '';
+  let encargo = tarjeta.encargo || '';
+  const token = tokenDe(encargo);
+  const ajena = token && dueno[token] && dueno[token] !== clave;
+  const cerrada = token && cerradas[token];
+  if (ajena || cerrada) {
+    if (tarea && yaLoDice(tarea, encargo)) tarea = '';
+    encargo = '';
+  }
+  const trabajo = trabajoDe({
+    tarea,
+    encargo,
+    estado: tarjeta.estado,
+    foco: tarjeta.foco ? { proyecto: tarjeta.foco, fuente: 'ahora' } : null,
+    encargoCerrado: !!cerrada,
+  });
+  return { ...tarjeta, ...trabajo };
+}
+
+/** Quien tiene una misión in_progress está trabajando, aunque la tarjeta venga gris. */
+export function estadoVisible(tarjeta, mision) {
+  if (mision && (!tarjeta || tarjeta.estado === 'gris')) {
+    const base = tarjeta || {};
+    return { ...base, estado: 'verde', etiqueta: ETIQUETA.verde, motivo: base.motivo || '' };
+  }
+  return tarjeta;
 }
 
 /** Misión en curso gana. Si no, la tarea. Si no, nada. */
@@ -92,6 +160,7 @@ export function normalizarTarjetas(data) {
       estado,
       etiqueta: ETIQUETA[estado],
       motivo: String(t.motivo || '').trim(),
+      foco: focoActual(t.foco),
       tarea: trabajo.tarea,
       encargo: trabajo.encargo,
       textoTarea: trabajo.textoTarea,

@@ -3,11 +3,13 @@
  * Solo se reordena el <tbody>: la fila Total vive en <tfoot> y se queda abajo.
  * El color de la fila sale de Trabajando ahora (admira.live/api/flota/trabajando),
  * releído cada 15 s. Quien tiene una misión in_progress lleva «en curso · misión».
- * Si no, y está trabajando (verde, con Carlos, o con tarea/encargo), lleva «tarea».
+ * Si no, y está trabajando (verde, con Carlos, o con una tarea abierta), lleva «tarea».
+ * Una misión FLT solo sale en su asignado. Quien la tiene en curso no queda en gris.
+ * Un texto HECHO, o un encargo cerrado, no cuenta como tarea.
  * Las dos cuentan en En curso. El detalle sale de Misiones
  * (api.yokup.com/fleet/missions), releídas cada 30 s. */
-import { agruparMisiones, claveFila, clavesEnCurso, consultaMisiones, ESTADO_TEXTO } from './misiones-vivas.js?v=20261022-misiones-1';
-import { chipDe, claveTrabajando, contarEnCurso, normalizarTarjetas, TRABAJANDO_API } from './trabajando-vivo.js?v=20261022-tarea-1';
+import { agruparMisiones, claveFila, clavesEnCurso, consultaMisiones, ESTADO_TEXTO } from './misiones-vivas.js?v=20261022-dueno-1';
+import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, normalizarTarjetas, tarjetaPara, TRABAJANDO_API } from './trabajando-vivo.js?v=20261022-dueno-1';
 
 (function () {
   'use strict';
@@ -203,27 +205,47 @@ import { chipDe, claveTrabajando, contarEnCurso, normalizarTarjetas, TRABAJANDO_
       + ' · ' + cuando;
   }
 
-  function pintarChips() {
+  function pintarFilas() {
+    var indice = duenoPorMision(vivas || {});
     var curso = {};
     if (vivas) clavesEnCurso(vivas).forEach(function (k) { curso[k] = 1; });
     var entradas = [];
+    var n = { verde: 0, amarillo: 0, rojo: 0, gris: 0 };
     Array.prototype.forEach.call(document.querySelectorAll('table.enc[data-ordenable] tbody tr[data-persona]'), function (tr) {
       var id = tr.getAttribute('data-persona');
-      var tarjeta = trab && trab[claveTrabajando(id)];
-      var mision = !!(vivas && curso[claveFila(id)]);
+      var clave = claveFila(id);
+      var base = trab && trab[claveTrabajando(id)];
+      var tarjeta = tarjetaPara(clave, base, indice);
+      var mision = !!(vivas && curso[clave]);
+      var vis = estadoVisible(tarjeta, mision);
+      if (vis) {
+        ponerEstado(tr, vis);
+        if (n[vis.estado] != null) n[vis.estado]++;
+      } else if (trab) {
+        quitarEstado(tr);
+        tr.classList.remove('enc-activo');
+        componerTitulo(tr);
+      }
       var chip = chipDe(mision, tarjeta);
-      if (vivas || trab) ponerChip(tr, chip.tipo, chip.texto);
+      if (vivas || trab) {
+        ponerChip(tr, chip.tipo, chip.texto);
+        componerTitulo(tr);
+      }
       entradas.push({ mision: mision, tarjeta: tarjeta });
     });
     if (aviso && vivas && trab) aviso.textContent = textoEnCurso(contarEnCurso(entradas));
     else if (aviso && vivas && falloTrab) aviso.textContent = textoEnCurso(contarEnCurso(entradas)) + ' · Trabajando ahora no se pudo leer';
     else if (aviso && trab && falloMisiones) aviso.textContent = textoEnCurso(contarEnCurso(entradas)) + ' · Misiones no se pudo leer';
+    if (avisoTrab && trab) {
+      var cuando = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Madrid' });
+      avisoTrab.textContent = n.verde + ' trabajando · ' + n.amarillo + ' hace poco · ' + n.rojo + ' >1 h · ' + n.gris + ' en espera · Trabajando ahora · ' + cuando;
+    }
   }
 
   function aplicar(por) {
     vivas = por;
     falloMisiones = false;
-    pintarChips();
+    pintarFilas();
     if (abierta && abierta.isConnected) rellenar(abierta, false);
   }
 
@@ -254,7 +276,7 @@ import { chipDe, claveTrabajando, contarEnCurso, normalizarTarjetas, TRABAJANDO_
       .catch(function () {
         falloMisiones = !vivas;
         if (aviso && !vivas) aviso.textContent = 'No se pudo leer Misiones (api.yokup.com/fleet/missions). Se reintenta solo.';
-        pintarChips();
+        pintarFilas();
       })
       .then(function () { leyendo = false; });
   }
@@ -264,23 +286,7 @@ import { chipDe, claveTrabajando, contarEnCurso, normalizarTarjetas, TRABAJANDO_
   function aplicarTrabajando(por) {
     trab = por;
     falloTrab = false;
-    var n = { verde: 0, amarillo: 0, rojo: 0, gris: 0 };
-    Array.prototype.forEach.call(document.querySelectorAll('table.enc[data-ordenable] tbody tr[data-persona]'), function (tr) {
-      var t = por[claveTrabajando(tr.getAttribute('data-persona'))];
-      if (!t) {
-        quitarEstado(tr);
-        tr.classList.remove('enc-activo');
-        componerTitulo(tr);
-        return;
-      }
-      ponerEstado(tr, t);
-      n[t.estado]++;
-    });
-    if (avisoTrab) {
-      var cuando = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Madrid' });
-      avisoTrab.textContent = n.verde + ' trabajando · ' + n.amarillo + ' hace poco · ' + n.rojo + ' >1 h · ' + n.gris + ' en espera · Trabajando ahora · ' + cuando;
-    }
-    pintarChips();
+    pintarFilas();
   }
 
   function leerTrabajando() {
@@ -292,7 +298,7 @@ import { chipDe, claveTrabajando, contarEnCurso, normalizarTarjetas, TRABAJANDO_
       .catch(function () {
         falloTrab = !trab;
         if (avisoTrab && !trab) avisoTrab.textContent = 'No se pudo leer Trabajando ahora (admira.live/api/flota/trabajando). Se reintenta solo.';
-        pintarChips();
+        pintarFilas();
       })
       .then(function () { leyendoTrab = false; });
   }
