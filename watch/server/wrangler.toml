@@ -1,0 +1,5 @@
+name = "admira-watch-preview"
+main = "worker.js"
+compatibility_date = "2026-10-11"
+workers_dev = false
+routes = [{ pattern = "admira.biz/pruebas/visor/*", zone_name = "admira.biz" }, { pattern = "www.admira.biz/pruebas/visor/*", zone_name = "admira.biz" }]
