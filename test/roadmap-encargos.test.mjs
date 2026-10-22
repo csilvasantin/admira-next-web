@@ -9,6 +9,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions/_webmaster-gate.js';
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
 import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
+import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, MISIONES_API } from '../assets/misiones-vivas.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -147,4 +148,37 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   assert.match(sort, /data-persona/);
   assert.match(sort, /enc-detalle/);
   assert.match(sort, /in_progress/);
+  assert.match(sort, /leerEstado\('in_progress'\)/);
+  assert.match(sort, /api\.yokup\.com\/fleet\/missions/);
+  assert.match(sort, /setInterval\(function \(\) \{ if \(!document\.hidden\) leer\(\); \}, 30000\)/);
+  const html = await read('../roadmap/encargos.html');
+  assert.match(html, /id="enc-vivo"/);
+  assert.match(html, /type="module" src="\/assets\/roadmap-encargos\.js/);
+});
+
+test('Misiones en vivo: in_progress resalta a la persona y el clic lista número, título, estado y desde', () => {
+  assert.equal(personaClave('JobsGrokBot'), 'jobs');
+  assert.equal(personaClave('OraculoMacMini'), 'oraculo');
+  assert.equal(personaClave('Oráculo'), 'oraculo');
+  assert.equal(claveFila('Huang'), 'huang');
+  assert.equal(personaClave('JensenGrokBot'), 'huang');
+  assert.equal(personaClave('WozniakGrokBot'), 'wozniak');
+  assert.equal(personaClave('TrinityMBP14'), 'trinity');
+  assert.equal(personaClave('SubNeoMBP16'), '', 'un subagente no hereda la fila de Neo');
+  assert.equal(MISIONES_API, 'https://api.yokup.com/fleet/missions');
+  assert.equal(consultaMisiones('in_progress', 0), 'https://api.yokup.com/fleet/missions?status=in_progress&limit=200&offset=0');
+  const por = agruparMisiones([
+    { id: 'FLT-1', persona: 'JobsGrokBot', status: 'in_progress', subject: 'Latido de consejeros', display_ref: 'Hoy #70', created_at: 1792685515000 },
+    { id: 'FLT-2', persona: 'JobsGrokBot', status: 'open', subject: 'Otra abierta', display_ref: 'Hoy #71', created_at: 1792680000000 },
+    { id: 'FLT-3', persona: 'NeoMBP16', status: 'open', subject: 'Sin empezar', display_ref: 'Hoy #4', created_at: 1792600000000 },
+    { id: 'FLT-1', persona: 'JobsGrokBot', status: 'in_progress', subject: 'duplicada', display_ref: 'Hoy #70', created_at: 1792685515000 },
+  ]);
+  assert.deepEqual(clavesEnCurso(por), ['jobs']);
+  assert.equal(por.jobs.length, 2);
+  assert.equal(por.jobs[0].estado, 'in_progress');
+  assert.equal(por.jobs[0].numero, 'Hoy #70');
+  assert.equal(por.jobs[0].titulo, 'Latido de consejeros');
+  assert.equal(por.jobs[0].desde, fechaMadrid(1792685515000));
+  assert.match(por.jobs[0].desde, /2026 a las /);
+  assert.equal(por.neo[0].enCurso, false);
 });
