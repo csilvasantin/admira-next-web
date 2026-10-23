@@ -56,6 +56,38 @@ test('el catálogo fusiona el censo Yokup encima del webmaster: no tira el respo
   assert.equal(yok.responsible, 'OraculoMini');
 });
 
+test('el texto de /proyectos cabe en una barra cerrada y no pierde el modelo', () => {
+  const page = fs.readFileSync(new URL('../proyectos/index.html', import.meta.url), 'utf8');
+  assert.match(page, /<details class="censo-nota" id="nota-censo">/);
+  assert.doesNotMatch(page, /<details class="censo-nota" id="nota-censo"[^>]*\sopen/);
+  assert.match(page, /data-en="Live census:">Censo vivo:<\/span><span> <\/span>/);
+  assert.match(page, /href="https:\/\/api\.yokup\.com\/projects">api\.yokup\.com\/projects<\/a>/);
+  assert.match(page, /href="https:\/\/www\.yokup\.com\/misiones" data-en="Missions">Misiones<\/a>/);
+  assert.match(page, /href="https:\/\/www\.yokup\.com\/equipo" data-en="Team">Equipo<\/a>/);
+  assert.match(page, /data-en="Model ⓘ">Modelo ⓘ<\/span>/);
+  const nota = page.indexOf('id="nota-censo"');
+  const cierre = page.indexOf('</details>');
+  const censo = page.indexOf('id="censo"');
+  assert.ok(nota > 0 && cierre > nota && censo > cierre, 'el censo queda debajo de la barra, no entre el texto');
+  const cuerpo = page.slice(nota, cierre);
+  for (const frase of [
+    'El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.',
+    'El censo de la flota está en esta página',
+    'GET https://api.yokup.com/projects',
+    'admira.biz es DooH y Retail Media (antes clearchannel.tv)',
+    'admira.app es instalaciones y mantenimiento',
+    'href="https://www.yokup.com/misiones">/misiones</a>',
+    'href="https://www.yokup.com/equipo">/equipo</a>',
+    'Modelo canónico',
+    'Agente (silicio)',
+    'SmithMacMini',
+    'project_id',
+    'POST /projects/principal',
+    'id="modelo"',
+    'Puertas norma 24',
+  ]) assert.ok(cuerpo.includes(frase), frase);
+});
+
 test('la página /proyectos y /help nombran el hueco de yokup.com/proyectos', () => {
   const page = fs.readFileSync(new URL('../proyectos/index.html', import.meta.url), 'utf8');
   const help = fs.readFileSync(new URL('../help/index.html', import.meta.url), 'utf8');
