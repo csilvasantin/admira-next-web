@@ -691,7 +691,7 @@
         var s = D.createElement('script');
         var listo = false;
         function fin(){ if (listo) return; listo = true; resolve(G.AdmiraMarca || null); }
-        s.src = '/assets/marca-blanca.js?v=20261009-demo-5446';
+        s.src = '/assets/marca-blanca.js?v=20261023-idioma-1';
         s.onload = fin; s.onerror = fin;
         (D.head || D.documentElement).appendChild(s);
         setTimeout(fin, 8000);

@@ -98,6 +98,9 @@
     'Proyectos': 'Projects', 'Usuarios': 'Users', 'Agentes': 'Agents', 'Organigrama': 'Org chart', 'Organigrama tecnológico': 'Technology org chart',
     'Presentaciones': 'Presentations', 'Proyectos y locales': 'Projects and venues',
     'Página pública': 'Public page', 'Acceso privado': 'Private access',
+    'Analítica': 'Analytics', 'Analitics': 'Analytics', 'Hoja de ruta': 'Roadmap', 'RoadMap': 'Roadmap',
+    'Misiones': 'Missions', 'Buscar': 'Search', 'Alta': 'Sign-up', 'Acceso a tercero': 'Third-party access',
+    'Alta · Acceso a tercero': 'Sign-up · Third-party access',
     // Mapa del sitio (modo automático)
     'La casa': 'The house', 'Operación': 'Operations', 'Estudio': 'Studio',
     'El Consejo': 'The Council', 'Academia': 'Academy', 'Mandamientos': 'Commandments',
@@ -142,7 +145,7 @@
     var t = traducirFrase(core), fin = '';
     // «La mesa que une las cinco patas.»: el cierre (punto, comillas…) también se conserva.
     if (t == null) {
-      var c = core.match(/^([\s\S]*?[^.»"”:…!?\s])([\s.»"”:…!?·]+)$/);
+      var c = core.match(/^([\s\S]*?[^.»"”:…!?)\s])([\s.»"”:…!?·)]+)$/);
       if (c) { t = traducirFrase(c[1]); fin = c[2]; }
     }
     return t == null || t + fin === core ? null : m[1] + t + fin + m[3];
@@ -160,9 +163,12 @@
     // La página reescribió el nodo (no es ni el original ni nuestra traducción): manda lo nuevo.
     if (reg && actual !== reg.o && actual !== reg.t) reg = null;
     var orig = reg ? reg.o : actual;
-    var trad = reg ? reg.t : traduceTexto(orig);
+    // Se recalcula: el diccionario de la página llega después y una frase a medias
+    // («Misiones · zona protegida») no puede quedarse con la primera traducción.
+    var trad = traduceTexto(orig);
     if (trad == null) return;
     if (!reg) originales.set(n, {o: orig, t: trad});
+    else reg.t = trad;
     var quiero = en ? trad : orig;
     if (actual !== quiero) n.nodeValue = quiero;
   }
@@ -220,7 +226,12 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261009-demo-5446';
+  var IDIOMA_STAMP = '20261023-idioma-1';
+  function traducirTitulo(en) {
+    var t = doc.querySelector && doc.querySelector('title');
+    var n = t && t.firstChild;
+    if (n && n.nodeType === 3) traducirTextoNodo(n, en);
+  }
   function aplicarIdioma(forzar) {
     var en = enIngles();
     if (!forzar && idiomaPintado === en) return;
@@ -229,6 +240,7 @@
     // Traducir nunca puede tumbar el armazón: si algo falla, se queda como estaba.
     try { traducirBloques(body, en); } catch (e) { /* el bloque se queda en el idioma anterior */ }
     try { zonasIdioma.forEach(function (z) { traducirZona(z, en); }); } catch (e) { /* sigue en el idioma anterior */ }
+    try { traducirTitulo(en); } catch (e) { /* el título de la pestaña se queda */ }
     try { vigilar(en); } catch (e) { /* sin vigía: se traduce lo que hay */ }
     // La cabecera cambia de ancho: que vuelva a medir y a plegar su navegación.
     try { if (typeof G.dispatchEvent === 'function' && typeof Event === 'function') G.dispatchEvent(new Event('resize')); } catch (e) { /* nada */ }
@@ -1110,7 +1122,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261009-demo-5446';
+  script.src = '/assets/experto-admiranext.js?v=20261023-idioma-1';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
