@@ -73,7 +73,7 @@
   .enc tbody tr.enc-est-gris td:first-child{box-shadow:none;background-image:repeating-linear-gradient(to bottom,#9aa8b8 0 3px,transparent 3px 7px);background-size:3px 100%;background-repeat:no-repeat;background-position:left center}
   .enc tbody tr.enc-est-gris:hover td{background-color:transparent}
   .enc thead .enc-th-linea{container-type:inline-size}
-  .enc-estado{display:flex;flex:1 1 auto;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0;margin:0;overflow:hidden;color:var(--yk-mut,#92a0b4);font-size:10px;line-height:1.2}
+  .enc-estado{display:flex;flex:1 0 auto;flex-wrap:nowrap;align-items:center;gap:8px;min-width:min-content;margin:0;overflow:visible;color:var(--yk-mut,#92a0b4);font-size:10px;line-height:1.2}
   .enc-leyenda{display:flex;flex-wrap:nowrap;gap:8px;margin:0;padding:0;list-style:none;color:inherit;font-size:inherit}
   .enc-leyenda li{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
   .enc-leyenda b{font-weight:700;color:var(--yk-ink,#f2f6fc);font-variant-numeric:tabular-nums}
@@ -128,7 +128,7 @@
       <div class="enc-caja">
         <table class="enc" id="enc-agentes" data-ordenable data-yk-no-traducir>
           <thead><tr>
-            <th scope="col" data-t="s" aria-sort="none"><div class="enc-th-linea"><button type="button">Deepagent</button><div class="enc-estado"><ul class="enc-leyenda" aria-label="Colores de Trabajando ahora"><li title="Verde: trabajando ahora"><i class="enc-sw-verde" aria-hidden="true"></i><b id="enc-n-verde"></b>trabajando</li><li title="Amarillo: con Carlos o actividad reciente"><i class="enc-sw-amarillo" aria-hidden="true"></i><b id="enc-n-amarillo"></b>hace poco</li><li title="Rojo: sin actividad desde hace más de 1 h, pero activo hoy"><i class="enc-sw-rojo" aria-hidden="true"></i><b id="enc-n-rojo"></b>&gt;1 h</li><li title="Gris: sin actividad hoy"><i class="enc-sw-gris" aria-hidden="true"></i><b id="enc-n-gris"></b>en espera</li></ul><p class="enc-nota" id="enc-vivo" role="status">Leyendo quién está en curso…</p><p class="enc-nota" id="enc-trab" role="status">Leyendo Trabajando ahora…</p></div><span class="enc-parte">Datos del <b><!--ENC_FECHA--></b> · <!--ENC_ORIGEN--></span></div></th>
+            <th scope="col" data-t="s" aria-sort="none"><div class="enc-th-linea"><button type="button">Deepagent</button><div class="enc-estado"><ul class="enc-leyenda" aria-label="Colores de Trabajando ahora"><li title="Verde: trabajando ahora"><i class="enc-sw-verde" aria-hidden="true"></i><b id="enc-n-verde"></b>trabajando</li><li title="Amarillo: con Carlos o actividad reciente"><i class="enc-sw-amarillo" aria-hidden="true"></i><b id="enc-n-amarillo"></b>hace poco</li><li title="Rojo: sin actividad desde hace más de 1 h, pero activo hoy"><i class="enc-sw-rojo" aria-hidden="true"></i><b id="enc-n-rojo"></b>&gt;1 h</li><li title="Gris: sin actividad hoy"><i class="enc-sw-gris" aria-hidden="true"></i><b id="enc-n-gris"></b>en espera</li></ul><p class="enc-nota" id="enc-vivo" role="status">Leyendo quién está en curso…</p><p class="enc-nota" id="enc-trab" role="status">Leyendo Trabajando ahora…</p></div></div></th>
             <th scope="col" data-t="n" aria-sort="none"><button type="button">Abiertos</button></th>
             <th scope="col" data-t="n" aria-sort="none"><button type="button">Hoy</button></th>
             <th scope="col" data-t="n" aria-sort="none"><button type="button">Ayer</button></th>
