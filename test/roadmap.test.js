@@ -51,11 +51,17 @@ test('el fichero junta a Woz, Walt y Jobs, sin ejemplos', () => {
   assert.equal(por('studio').length, 8);
   // e6727cc (5-oct) sumó los hitos Q4 de store: 4 de Jobs + 7 de Jensen/Walt.
   assert.equal(por('store').length, 11);
-  assert.equal(por('tv').length, 7);
+  assert.equal(por('tv').length, 10);
   const deJobs = por('store').filter((h) => h.responsable === 'Jensen Huang (propuesta de Jobs)');
   assert.equal(deJobs.length, 4);
   assert.ok(deJobs.every((h) => h.estado === 'hecho' && h.fuente.startsWith('xpaceos ')));
-  assert.ok(por('tv').filter((h) => !h.id.endsWith('-18oct')).every((h) => h.responsable === 'Elon Musk (propuesta de Jobs)' && h.estado === 'hecho'));
+  assert.ok(por('tv').filter((h) => !h.id.endsWith('-18oct') && !h.id.endsWith('-23oct')).every((h) => h.responsable === 'Elon Musk (propuesta de Jobs)' && h.estado === 'hecho'));
+  const del23 = por('tv').filter((h) => h.id.endsWith('-23oct'));
+  assert.deepEqual(del23.map((h) => h.id), ['tv-antena-ahora-23oct', 'tv-demos-dosieres-23oct', 'tv-playlist-xpacio-23oct']);
+  assert.ok(del23.every((h) => h.responsable === 'Jensen Huang' && h.inicio === '2026-10-23' && h.fin === '2026-10-23'));
+  assert.equal(del23[0].estado, 'en_curso');
+  assert.equal(del23[1].estado, 'pendiente');
+  assert.equal(del23[2].estado, 'pendiente');
   assert.ok(por('studio').every((h) => h.responsable === 'George Lucas'));
   assert.equal(por('studio').find((h) => h.id === 'studio-mcp-cliente-activo-xpaceos').cliente, undefined);
   assert.ok(por('app').every((h) => h.responsable === 'Steve Wozniak'));
@@ -97,7 +103,7 @@ test('las cinco vistas agrupan por solución y el vacío queda por definir', () 
   assert.equal(tri.soluciones.find((s) => s.id === 'biz').hitos.length, 8);
   assert.equal(tri.soluciones.find((s) => s.id === 'admiranext').hitos.length, 9);
   assert.equal(tri.soluciones.find((s) => s.id === 'store').hitos.length, 11);
-  assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 3);
+  assert.equal(tri.soluciones.find((s) => s.id === 'tv').hitos.length, 6);
 
   const ano = cortar(lista, 'ano', '2026-10-05');
   assert.equal(ano.desde, '2026-01-01');
@@ -136,7 +142,7 @@ test('GET /api/roadmap sirve el JSON y el corte, con CORS', async () => {
   const idea = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?idea=reproduccion-pop&vista=ano&desde=2026-01-01') });
   const cuerpoIdea = await idea.json();
   assert.equal(cuerpoIdea.agrupar, 'idea');
-  assert.equal(cuerpoIdea.columnas[0].hitos.length, 6);
+  assert.equal(cuerpoIdea.columnas[0].hitos.length, 8);
   const combo = await onRequestGet({ request: new Request('https://www.admiranext.com/api/roadmap?proyecto=studio&cliente=altadis&idea=contenidos-pixeria&vista=trimestre&desde=2026-10-01') });
   const cuerpoCombo = await combo.json();
   assert.equal(cuerpoCombo.agrupar, 'idea');
@@ -210,5 +216,12 @@ test('RoadMap espectacular: escena, meta del corte y estados', async () => {
   assert.match(meta[1], /data-idea="contenidos-pixeria"/);
   assert.match(meta[1], /data-idea-nombre="Contenidos y Pixeria"/);
   assert.match(meta[1], /data-patas="\[\{&quot;id&quot;:&quot;studio&quot;/);
-  assert.match(corte, /<li class="hito is-(hecho|en_curso|confirmado|propuesta)" data-estado="/);
+  assert.match(corte, /<li class="hito is-(hecho|en_curso|pendiente|confirmado|propuesta)" data-estado="/);
+  const diaTv = htmlCorte(cortar(lista, 'dia', '2026-10-23', new Date(), { proyecto: 'tv' }));
+  assert.match(diaTv, /En antena ahora/);
+  assert.match(diaTv, /Demos y dosieres reales/);
+  assert.match(diaTv, /Playlist en vivo por Xpacio/);
+  assert.match(diaTv, /is-en_curso/);
+  assert.match(diaTv, /is-pendiente/);
+  assert.match(diaTv, /Jensen Huang/);
 });

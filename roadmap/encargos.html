@@ -44,8 +44,9 @@
   .enc-curso{border:1px solid rgba(74,227,209,.5);letter-spacing:.12em;text-transform:uppercase;color:#4ae3d1}
   .enc-tarea{border:1px solid rgba(255,208,103,.7);color:#ffe29a}
   .enc-tarea b,.enc-curso b{letter-spacing:.12em;text-transform:uppercase;font-weight:700}
-  .enc-tarea-txt,.enc-chip-txt{font-weight:500;letter-spacing:0;text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:32ch}
+  .enc-tarea-txt,.enc-chip-txt{font-weight:500;letter-spacing:0;text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:42ch}
   .enc-reloj{flex:none;font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none;font-weight:700;white-space:nowrap}
+  .enc-idle{display:inline-block;margin-left:14px;font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:#d5deea;font-variant-numeric:tabular-nums;white-space:nowrap;vertical-align:1px}
   .enc-est{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:11px;font-weight:700;color:var(--yk-mut,#92a0b4);vertical-align:1px}
   .enc-est i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#6b7b82;flex:none}
   .enc tbody tr.enc-est-verde td{background:rgba(61,220,132,.1)}
@@ -101,9 +102,9 @@
   <div class="enc-estado">
     <ul class="enc-leyenda" aria-label="Colores de Trabajando ahora">
       <li title="Verde: trabajando ahora"><i class="enc-sw-verde" aria-hidden="true"></i><b id="enc-n-verde"></b>trabajando</li>
-      <li title="Amarillo: con Carlos o actividad reciente"><i class="enc-sw-amarillo" aria-hidden="true"></i><b id="enc-n-amarillo"></b>hace poco</li>
+      <li title="Amarillo: sin trabajo en curso. La fila dice idle y el tiempo sin actividad. Hoy «desde HH:MM»; otro día «desde DD/MM HH:MM»"><i class="enc-sw-amarillo" aria-hidden="true"></i><b id="enc-n-amarillo"></b>idle</li>
       <li title="Rojo: sin actividad desde hace más de 1 h, pero activo hoy"><i class="enc-sw-rojo" aria-hidden="true"></i><b id="enc-n-rojo"></b>&gt;1 h</li>
-      <li title="Gris: sin actividad hoy"><i class="enc-sw-gris" aria-hidden="true"></i><b id="enc-n-gris"></b>en espera</li>
+      <li title="Gris: sin actividad. La fila dice idle y cuánto lleva parado"><i class="enc-sw-gris" aria-hidden="true"></i><b id="enc-n-gris"></b>idle</li>
     </ul>
     <p class="enc-nota" id="enc-vivo" role="status">Leyendo quién está en curso…</p>
     <p class="enc-nota" id="enc-trab" role="status">Leyendo Trabajando ahora…</p>
@@ -170,6 +171,6 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script type="module" src="/assets/roadmap-encargos.js?v=20261022-compacto-1"></script>
+<script type="module" src="/assets/roadmap-encargos.js?v=20261023-latido-2"></script>
 </body>
 </html>

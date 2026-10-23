@@ -15,6 +15,7 @@
   var ESTADOS = [
     {id: 'hecho', nom: 'Hecho', c: '#4ae3d1'},
     {id: 'en_curso', nom: 'En curso', c: '#78f3ff'},
+    {id: 'pendiente', nom: 'Pendiente', c: '#e7c27a'},
     {id: 'confirmado', nom: 'Confirmado', c: '#5ec8ff'},
     {id: 'propuesta', nom: 'Propuesta', c: '#b8c7da'}
   ];
@@ -92,6 +93,7 @@
       {k: 'total', n: c.total, l: 'Hitos', cls: 'is-total'},
       {k: 'hecho', n: c.hecho, l: 'Hechos', cls: 'is-hecho'},
       {k: 'en_curso', n: c.en_curso, l: 'En curso', cls: 'is-en_curso'},
+      {k: 'pendiente', n: c.pendiente, l: 'Pendientes', cls: 'is-pendiente'},
       {k: 'confirmado', n: c.confirmado, l: 'Confirmados', cls: 'is-confirmado'},
       {k: 'propuesta', n: c.propuesta, l: 'Propuestas', cls: 'is-propuesta'},
       {k: 'pct', n: pct(c.hecho, c.total), l: '% completado', cls: 'is-hecho', suf: '%'}
@@ -342,6 +344,7 @@
         if (h.estado === 'hecho') forma.setAttribute('fill', 'url(#rmHecho)');
         else if (h.estado === 'en_curso') forma.setAttribute('fill', 'url(#rmStripe)');
         else if (h.estado === 'confirmado') { forma.setAttribute('fill', '#5ec8ff'); forma.setAttribute('fill-opacity', '.85'); }
+        else if (h.estado === 'pendiente') { forma.setAttribute('fill', 'rgba(231,194,122,.14)'); forma.setAttribute('stroke', e.c); forma.setAttribute('stroke-dasharray', '2 3'); }
         else { forma.setAttribute('fill', 'rgba(184,199,218,.08)'); forma.setAttribute('stroke', e.c); forma.setAttribute('stroke-dasharray', '3 3'); }
         forma.style.animationDelay = delay + 'ms';
         g.appendChild(forma);
