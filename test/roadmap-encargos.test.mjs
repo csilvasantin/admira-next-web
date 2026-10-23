@@ -58,7 +58,9 @@ test('con sesión pinta la semilla con el Total fijo en tfoot, cache privada y n
   assert.match(body, /19-oct-2026 a las 08:01/);
   assert.match(body, /grid-template-columns:minmax\(0,1fr\)/);
   assert.ok(body.indexOf('id="enc-consejeros"') < body.indexOf('id="enc-agentes"'), 'consejeros arriba y deepagents debajo');
-  assert.equal(body.match(/Datos del <b>19-oct-2026 a las 08:01<\/b>/g).length, 2, 'la fecha va en las dos cabeceras');
+  assert.equal(body.match(/Datos del <b>19-oct-2026 a las 08:01<\/b>/g).length, 1, 'la fecha solo va en la cabecera de consejeros');
+  assert.match(body.slice(body.indexOf('id="enc-consejeros"'), body.indexOf('id="enc-agentes"')), /Datos del <b>19-oct-2026 a las 08:01<\/b>/);
+  assert.doesNotMatch(body.slice(body.indexOf('id="enc-agentes"')), /Datos del/);
   assert.doesNotMatch(body, /<h1>Encargos abiertos por persona<\/h1>/);
   assert.match(body, /<title>Misiones · RoadMap/);
   assert.match(body, />Misiones<\/a>/);
@@ -179,7 +181,8 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   assert.doesNotMatch(html.split('id="enc-agentes"')[0], /class="enc-estado"/, 'la leyenda vive en la cabecera de deepagents');
   assert.match(html, /id="enc-n-verde"/);
   assert.match(html, /id="enc-consejeros"[\s\S]*id="enc-agentes"/);
-  assert.match(html, /class="enc-parte">Datos del <b><!--ENC_FECHA--><\/b>/);
+  assert.match(html.slice(0, html.indexOf('id="enc-agentes"')), /id="enc-consejeros"[\s\S]*class="enc-parte">Datos del <b><!--ENC_FECHA--><\/b>/);
+  assert.doesNotMatch(html.slice(html.indexOf('id="enc-agentes"')), /class="enc-parte"|Datos del/);
   assert.doesNotMatch(html, /<h1>Encargos abiertos por persona<\/h1>/);
   assert.doesNotMatch(html, /Deepagents a la izquierda/);
   assert.match(html, /href="\/roadmap\/encargos"/);
