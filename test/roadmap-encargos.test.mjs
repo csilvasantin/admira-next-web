@@ -174,7 +174,9 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   const cada = sort.match(/leerTrabajando\(\); \}, (\d+)\)/);
   assert.ok(cada && Number(cada[1]) >= 10000 && Number(cada[1]) <= 30000, 'Trabajando ahora se relee entre 10 y 30 s');
   const html = await read('../roadmap/encargos.html');
-  assert.match(html, /class="enc-estado"[\s\S]*class="enc-leyenda"[\s\S]*id="enc-vivo"[\s\S]*id="enc-trab"/);
+  assert.match(html, /id="enc-agentes"[\s\S]*<button type="button">Deepagent<\/button>[\s\S]*class="enc-estado"[\s\S]*class="enc-leyenda"[\s\S]*id="enc-vivo"[\s\S]*id="enc-trab"[\s\S]*<button type="button">Abiertos<\/button>/);
+  assert.doesNotMatch(html.split('<div class="enc-par">')[0], /class="enc-estado"/, 'la leyenda no ocupa una línea encima de las tablas');
+  assert.doesNotMatch(html.split('id="enc-agentes"')[0], /class="enc-estado"/, 'la leyenda vive en la cabecera de deepagents');
   assert.match(html, /id="enc-n-verde"/);
   assert.match(html, /id="enc-consejeros"[\s\S]*id="enc-agentes"/);
   assert.match(html, /class="enc-parte">Datos del <b><!--ENC_FECHA--><\/b>/);
