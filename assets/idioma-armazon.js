@@ -128,8 +128,8 @@
   // /proyectos
   var diccProy = {
     'AdmiraNeXT · definición': 'AdmiraNeXT · definition',
-    'El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.':
-      'The live census lives in Yokup. Here you see the model (what a project is, which xpacio, how it comes in) and the current inventory, without deleting anything. Click a census header to sort.',
+    'El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual. Un admin puede mandar un proyecto a la papelera 7 días; después se purga la copia y no vuelve al censo. Pulsa una cabecera del censo para ordenar.':
+      'The live census lives in Yokup. Here you see the model (what a project is, which xpacio, how it comes in) and the current inventory. An admin can move a project to the trash for 7 days; then the copy is purged and it does not return to the census. Click a census header to sort.',
     'Enlaces de la página': 'Page links', 'El censo de la flota está en esta página': 'The fleet census is on this page',
     'El censo se lee con': 'The census is read with',
     '. admira.biz es DooH y Retail Media (antes clearchannel.tv). admira.app es instalaciones y mantenimiento. Las misiones se ven en': '. admira.biz is DooH and Retail Media (formerly clearchannel.tv). admira.app is installation and maintenance. Missions are shown at',
@@ -139,15 +139,21 @@
     'del censo. Si falta, Yokup hereda el principal del día — y se trabaja en el proyecto equivocado.': 'from the census. If missing, Yokup inherits the main project of the day — and work lands on the wrong project.',
     'Principal del día:': 'Main project of the day:', 'con id + nombre + slug. Se ve en /equipo.': 'with id + name + slug. Shown at /equipo.',
     'Obligatorios:': 'Required:', 'slug), nombre, xpacio (AdmiraNeXT o Yokup), responsable. Puertas norma 24:': 'slug), name, xpacio (AdmiraNeXT or Yokup), owner. Rule 24 doors:',
-    'humanos) y': 'humans) and', 'agentes). No se borra el censo: se añade o se retitula.': 'agents). The census is never deleted: entries are added or renamed.',
+    'humanos) y': 'humans) and', 'agentes). Yokup no admite DELETE: un admin lo oculta 7 días en la papelera, con copia, y al vencer se purga la copia para que no vuelva.': 'agents). Yokup has no DELETE: an admin hides it for 7 days in the trash, with a full copy, and when that ends the copy is purged so it does not return.',
     'Censo vivo': 'Live census', 'cargando…': 'loading…', 'Leyendo api.yokup.com/projects': 'Reading api.yokup.com/projects',
     'Número de proyecto: único en todo el ecosistema Admira': 'Project number: unique across the whole Admira ecosystem',
     'Nombre': 'Name', 'Volver a leer el censo': 'Read the census again', 'proyectos': 'projects', 'Esta página': 'This page',
-    'no se borra nada desde aquí.': 'nothing is deleted from here.',
+    'sin los que están en la papelera.': 'excluding whatever is in the trash.',
+    'Papelera': 'Trash', 'Restaurar': 'Restore', 'Eliminar': 'Delete', 'Enviar a la papelera': 'Move to trash',
+    'Escribe el slug': 'Type the slug', 'para confirmar. Se guarda una copia 7 días y el censo deja de contarlo.': 'to confirm. A full copy is kept for 7 days and the census stops counting it.',
+    'Vacía. Un proyecto eliminado permanece aquí 7 días, con su copia, y se puede restaurar.': 'Empty. A deleted project stays here for 7 days, with its copy, and can be restored.',
+    'Cancelar': 'Cancel', 'Slug': 'Slug',
     'Nº pendiente: api.yokup.com/projects aún no publica el número de proyecto.': 'No. pending: api.yokup.com/projects does not publish the project number yet.'
   };
   var reglasProy = [
+    [/^Censo del (.+) · sin los que están en la papelera\.$/, 'Census of $1 · excluding whatever is in the trash.'],
     [/^Censo del (.+)$/, 'Census of $1'],
+    [/^se purga en (.+)$/, 'purged in $1'],
     [/^No se pudo leer el censo: ([\s\S]*)$/, 'Could not read the census: $1']
   ];
 
