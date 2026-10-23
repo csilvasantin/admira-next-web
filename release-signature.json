@@ -1,7 +1,7 @@
 {
-  "version": "v.21.10.2026.r4.20:40",
-  "deployer": "OraculoMacMini",
-  "agent": "OraculoMacMini",
-  "machine": "MacMini",
-  "signature": "OraculoMacMini · MacMini"
+  "version": "v.23.10.2026.r1.22:24",
+  "deployer": "NeoMacStudio",
+  "agent": "NeoMacStudio",
+  "machine": "MacStudio",
+  "signature": "NeoMacStudio · MacStudio"
 }

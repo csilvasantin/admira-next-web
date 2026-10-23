@@ -4,7 +4,7 @@ AdmiraNext owns identity, users, commercial project ACLs and explicit venue/twin
 
 AdmiraNext centraliza identidad, usuarios, permisos de proyectos comerciales y asociaciones explícitas local/gemelo en AUTH_DB D1. Migra una sola vez los 20 IDs del backoffice, sin sobrescribir ediciones posteriores. Los permisos commercial:ID están separados de proyectos de software. Sólo se migra como local real Starbucks alsea-sbux-021. Xtanco y Cafebrería siguen como demos.
 
-- GET /api/xpace/demos: public, three sample scenes plus the public Altadis circuit (9 OSM tobacconists, altadis_bcn); no customer directory.
+- GET /api/xpace/demos: public, AdmiraXperience (GarageXperience · Santa Rosa 4 and SpaceXperience · Planeta 7, since 23-oct-2026, instead of Sneakers Store), the sample scenes plus the public Altadis circuit (9 OSM tobacconists, altadis_bcn); no customer directory.
 - GET /api/xpace/context: current central cookie or limited bearer, returns {ok,source,user:{display_name},projects:[{id,name,circuit}],venues:[{id,project_id,name,xpace_url}]}. No full user directory. Every request rechecks status, account expiry, session_version, project ACL. Third parties also require the contracted xpaceos app.
 - GET /api/xpace/registry: central admin cookie; projects, all venues including disabled and dedicated audit.
 - POST /api/xpace/registry: same-origin admin cookie + X-Admira-CSRF; kind project with {id,name,circuit}, or kind venue with {id,project_id,name,xpace_url,enabled:boolean}. Stable IDs cannot move between projects; existing circuits cannot change. Valid HTTPS renderer URLs only. Disabled venues disappear from context. Audit persists independently in admiranext_xpace_audit.
@@ -32,3 +32,10 @@ ES: Proyecto sneakers-store, circuito sneakerstore, local sneakers-store-santa-r
 EN: Project sneakers-store, circuit sneakerstore, venue sneakers-store-santa-rosa-19. The association accepts the canonical SneakerStore path with matching project and venue. /demo global opens the bilingual guide with current language. Shared playlist and new SneakerStore category; manual IEU camera, no physical device control.
 
 Contract: https://www.admira.store/xpacios/sneakerstore/contract.json
+
+
+## AdmiraXperience · demos públicas (23-oct-2026)
+
+ES: Proyecto `admiraxperience` (circuito `admiraxperience`) sustituye a Sneakers Store en el desplegable de demos. Dos locales: `garage-xperience-santa-rosa-4` (GarageXperience · Santa Rosa 4 · Barcelona), que abre la tienda de https://www.admira.store/xpacios/sneakerstore/ con su `loc` de render `sneakers-store-santa-rosa-19` (sin cambiar), y `space-xperience-planeta-7` (SpaceXperience · Planeta 7 · Barcelona), que abre https://www.admira.store/Xsuperman/. El registro admite esas dos URL para este proyecto. El proyecto `sneakers-store` sigue existiendo en D1 para las cuentas que lo tengan.
+
+EN: Project `admiraxperience` replaces Sneakers Store in the public demos. Venues: GarageXperience · Santa Rosa 4 (the sneakerstore page, render `loc` unchanged) and SpaceXperience · Planeta 7 (/Xsuperman/). The registry accepts those two URLs for this project; `sneakers-store` stays in D1 for accounts that hold it.
