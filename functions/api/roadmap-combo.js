@@ -30,7 +30,8 @@ export async function onRequestPut({ request, env }) {
   if (current.role !== 'admin' && current.role !== 'editor') return json({ error: 'Sin permiso de edición.' }, 403);
   if (!csrfValido(request, current)) return json({ error: 'CSRF no válido.' }, 403);
   const cuerpo = await request.text();
-  if (cuerpo.length > 200000) return json({ error: 'Demasiado grande.' }, 413);
+  // Cada idea y cada sub pueden llevar un detalle de 1000 caracteres (3×4×horizontes).
+  if (cuerpo.length > 2500000) return json({ error: 'Demasiado grande.' }, 413);
   let entrada; try { entrada = JSON.parse(cuerpo); } catch (_) { return json({ error: 'JSON no válido.' }, 400); }
   const r = await guardar(env, entrada, current.email);
   if (!r.ok) return json({ error: r.error, rev: r.rev }, r.status);

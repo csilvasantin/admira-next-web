@@ -32,8 +32,8 @@ export async function onRequestGet({ request, env }) {
 
   const p = htmlParte(await parteVigente(env));
   const out = html
-    .replace('<!--ENC_FECHA-->', p.fecha)
-    .replace('<!--ENC_ORIGEN-->', p.origen)
+    .replaceAll('<!--ENC_FECHA-->', p.fecha)
+    .replaceAll('<!--ENC_ORIGEN-->', p.origen)
     .replace('<!--ENC_AGENTES-->', p.agentes)
     .replace('<!--ENC_TOTAL_AGENTES-->', p.totalAgentes)
     .replace('<!--ENC_CONSEJEROS-->', p.consejeros)

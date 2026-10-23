@@ -10,7 +10,7 @@ import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
 import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
 import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, cuentaAbiertos, misionesSinCurso, fechaMadrid, inicioMision, MISIONES_API } from '../assets/misiones-vivas.js';
-import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible, inicioTarea, formatoReloj, formatoDesde, formatoIdle, estaOcupado, ultimaActividadMs, latidoDeclaradoTrabajando, conPresencia } from '../assets/trabajando-vivo.js';
+import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible, inicioTarea, formatoReloj, formatoDesde, formatoIdle, estaOcupado, ultimaActividadMs, latidoDeclaradoTrabajando, conPresencia, resumenTitulo, tooltipChip, textoPildora, tooltipPildora, numeroDeTrabajo, fechaEmpezo } from '../assets/trabajando-vivo.js';
 import { onRequestGet as presenciaRuta } from '../functions/roadmap/presencia.js';
 import { reducirPresencia } from '../functions/_presencia-flota.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
@@ -58,7 +58,14 @@ test('con sesión pinta la semilla con el Total fijo en tfoot, cache privada y n
   const body = await res.text();
   assert.doesNotMatch(body, /<!--ENC_/);
   assert.match(body, /19-oct-2026 a las 08:01/);
-  assert.match(body, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(body, /grid-template-columns:minmax\(0,1fr\)/);
+  assert.ok(body.indexOf('id="enc-consejeros"') < body.indexOf('id="enc-agentes"'), 'consejeros arriba y deepagents debajo');
+  assert.equal(body.match(/Datos del <b>19-oct-2026 a las 08:01<\/b>/g).length, 1, 'la fecha solo va en la cabecera de consejeros');
+  assert.match(body.slice(body.indexOf('id="enc-consejeros"'), body.indexOf('id="enc-agentes"')), /Datos del <b>19-oct-2026 a las 08:01<\/b>/);
+  assert.doesNotMatch(body.slice(body.indexOf('id="enc-agentes"')), /Datos del/);
+  assert.doesNotMatch(body, /<h1>Encargos abiertos por persona<\/h1>/);
+  assert.match(body, /<title>Misiones · RoadMap/);
+  assert.match(body, />Misiones<\/a>/);
   const agentes = body.match(/id="enc-agentes"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/)[1];
   const consejeros = body.match(/id="enc-consejeros"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/)[1];
   assert.match(agentes, /data-persona="Smith"[^>]*>[\s\S]*?<td>Smith<\/td><td>18<\/td><td>0<\/td><td>7<\/td><td>11<\/td>/);
@@ -69,8 +76,8 @@ test('con sesión pinta la semilla con el Total fijo en tfoot, cache privada y n
   assert.doesNotMatch(consejeros, /data-persona="Neo"/);
   const tfoots = [...body.matchAll(/<tfoot>([\s\S]*?)<\/tfoot>/g)].map((m) => m[1]);
   assert.equal(tfoots.length, 2);
-  assert.match(tfoots[0], /<td>Total<\/td><td>54<\/td><td>0<\/td><td>32<\/td><td>22<\/td>/);
-  assert.match(tfoots[1], /<td>Total<\/td><td>7<\/td><td>3<\/td><td>3<\/td><td>1<\/td>/);
+  assert.match(tfoots[0], /<td>Total<\/td><td>7<\/td><td>3<\/td><td>3<\/td><td>1<\/td>/, 'el total de consejeros queda en la tabla de arriba');
+  assert.match(tfoots[1], /<td>Total<\/td><td>54<\/td><td>0<\/td><td>32<\/td><td>22<\/td>/);
   assert.doesNotMatch(agentes, /<td>Total<\/td>/, 'el Total no está en tbody: ordenar no lo mueve');
   assert.doesNotMatch(consejeros, /<td>Total<\/td>/);
   assert.match(body, /<table class="enc" id="enc-agentes"[\s\S]*?<button type="button">Deepagent<\/button>/);
@@ -146,9 +153,9 @@ test('el script matinal convierte el HTML y rechaza un Total que no cuadra', () 
 test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras login', async () => {
   assert.equal(returnToSeguro('/roadmap/encargos'), '/roadmap/encargos');
   const rm = await read('../roadmap.html');
-  assert.match(rm, /<nav class="rm-sub"[^>]*><a href="\/roadmap" aria-current="page">Plan<\/a><a href="\/roadmap\/encargos">Encargos<\/a><\/nav>/);
+  assert.match(rm, /<nav class="rm-sub"[^>]*><a href="\/roadmap" aria-current="page">Plan<\/a><a href="\/roadmap\/encargos">Misiones<\/a><\/nav>/);
   const js = await read('../assets/admira-frame.js');
-  assert.match(js, /var SUBPAGINAS = \{'\/roadmap': \[\['\/roadmap\/encargos', 'Encargos'\]\]\}/);
+  assert.match(js, /var SUBPAGINAS = \{'\/roadmap': \[\['\/roadmap\/encargos', 'Misiones'\]\]\}/);
   const sort = await read('../assets/roadmap-encargos.js');
   assert.match(sort, /tabla\.tBodies\[0\]/, 'solo se reordena tbody');
   assert.match(sort, /'ascending' : 'descending'/);
@@ -165,14 +172,22 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   assert.match(sort, /table\.enc \.enc-reloj/);
   assert.match(sort, /admiranext-encargos-reloj/);
   assert.match(sort, /setInterval\(function \(\) \{[\s\S]*?enc-reloj[\s\S]*?\}, 1000\)/);
-  assert.match(sort, /id \+ ' · ' \+ titulo/);
+  assert.match(sort, /resumenTitulo\(tituloChip\)/);
+  assert.match(sort, /tooltipChip\(/);
   assert.match(sort, /textoEnCurso/);
   const cada = sort.match(/leerTrabajando\(\); \}, (\d+)\)/);
   assert.ok(cada && Number(cada[1]) >= 10000 && Number(cada[1]) <= 30000, 'Trabajando ahora se relee entre 10 y 30 s');
   const html = await read('../roadmap/encargos.html');
-  assert.match(html, /class="enc-estado"[\s\S]*class="enc-leyenda"[\s\S]*id="enc-vivo"[\s\S]*id="enc-trab"/);
+  assert.match(html, /id="enc-agentes"[\s\S]*<button type="button">Deepagent<\/button>[\s\S]*class="enc-estado"[\s\S]*class="enc-leyenda"[\s\S]*id="enc-vivo"[\s\S]*id="enc-trab"[\s\S]*<button type="button">Abiertos<\/button>/);
+  assert.doesNotMatch(html.split('<div class="enc-par">')[0], /class="enc-estado"/, 'la leyenda no ocupa una línea encima de las tablas');
+  assert.doesNotMatch(html.split('id="enc-agentes"')[0], /class="enc-estado"/, 'la leyenda vive en la cabecera de deepagents');
   assert.match(html, /id="enc-n-verde"/);
-  assert.match(html, /Deepagents a la izquierda y consejeros a la derecha/);
+  assert.match(html, /id="enc-consejeros"[\s\S]*id="enc-agentes"/);
+  assert.match(html.slice(0, html.indexOf('id="enc-agentes"')), /id="enc-consejeros"[\s\S]*class="enc-parte">Datos del <b><!--ENC_FECHA--><\/b>/);
+  assert.doesNotMatch(html.slice(html.indexOf('id="enc-agentes"')), /class="enc-parte"|Datos del/);
+  assert.doesNotMatch(html, /<h1>Encargos abiertos por persona<\/h1>/);
+  assert.doesNotMatch(html, /Deepagents a la izquierda/);
+  assert.match(html, /href="\/roadmap\/encargos"/);
   assert.doesNotMatch(html, /<h2 id="enc-h-agentes">|<h2 id="enc-h-consejeros">/);
   assert.match(html, /trabajando/);
   assert.match(html, /desde HH:MM/);
@@ -440,10 +455,11 @@ test('el latido «trabajando» fresco pinta trabajando; un open de admira-tv no 
   assert.deepEqual(Object.keys(reducido), ['jensen']);
   assert.equal(reducido.jensen.verified, false);
   assert.equal(reducido.jensen.proyecto, 'admira-tv');
-  assert.equal(JSON.stringify(reducido).includes('no sale'), false);
+  assert.equal(reducido.jensen.foco, 'no sale');
+  assert.equal(JSON.stringify(reducido).includes('account'), false);
 });
 
-test('GET /roadmap/presencia exige sesión y no reenvía el foco', async () => {
+test('GET /roadmap/presencia exige sesión y reenvía el foco sin la cuenta', async () => {
   const env = await setup();
   const pideP = (c) => presenciaRuta({
     request: new Request('https://www.admiranext.com/roadmap/presencia', { headers: c ? { cookie: c } : {} }),
@@ -467,13 +483,72 @@ test('GET /roadmap/presencia exige sesión y no reenvía el foco', async () => {
     assert.equal(body.ok, true);
     assert.equal(body.por.jensen.ageS, 21);
     assert.equal(body.por.jensen.verified, false);
-    assert.doesNotMatch(JSON.stringify(body), /secreto|no-pasa/);
+    assert.equal(body.por.jensen.foco, 'secreto');
+    assert.doesNotMatch(JSON.stringify(body), /no-pasa/);
   } finally {
     globalThis.fetch = orig;
   }
   const js = await read('../assets/roadmap-encargos.js');
   assert.match(js, /\/roadmap\/presencia/);
   assert.match(js, /conPresencia\(tarjeta, presencia && presencia\[clave\]\)/);
+});
+
+test('el chip visible resume el título y el tooltip guarda FLT, número, título y inicio', () => {
+  assert.equal(resumenTitulo('Cierre de jornada y handoff a MacStudio del encargo #7077. a) Verificar identidad'), 'Cierre de jornada y handoff');
+  assert.equal(resumenTitulo('Pedido de Carlos: en admiranext.com/usuarios, combo junto a 171 proyectos'), 'Pedido de Carlos');
+  assert.equal(resumenTitulo('Encargo #7082 (Carlos vía Musk): anotar mi misión más importante de hoy en admiranext.com/roadmap. a) Escribir plan'), 'anotar mi misión más importante');
+  assert.equal(resumenTitulo('FLT-102634 · Pedido de Carlos: en admiranext.com/usuarios'), 'Pedido de Carlos');
+  assert.equal(resumenTitulo('encargo 6919 · FLT-102622'), '');
+  assert.equal(resumenTitulo('Video 360 a modelo 3D'), 'Video 360 a modelo 3D');
+  assert.equal(resumenTitulo('Verificar preview #227 y arreglar presencia verde de Woz'), 'Verificar preview y arreglar presencia verde');
+  assert.equal(resumenTitulo('Parte nocturno de consumo a admira.live/consumos'), 'Parte nocturno de consumo a admira.live/consumos');
+  assert.equal(resumenTitulo('admiranext'), 'admiranext');
+  assert.equal(resumenTitulo('admira.tv 1/3 · «En antena ahora» en portada: emisión real'), '«En antena ahora» en portada');
+  assert.equal(resumenTitulo(''), '');
+  for (const muestra of [
+    'FLT-102633 · Encargo #7082 (Carlos vía Musk): anotar mi misión más importante',
+    'TAREA · encargo 6919 · FLT-102622',
+    resumenTitulo('Cierre de jornada y handoff a MacStudio del encargo #7077'),
+  ]) {
+    assert.doesNotMatch(muestra && resumenTitulo(muestra), /FLT-\d|#\d|\bencargo\s+\d/i);
+  }
+  const inicio = 1_792_729_651_000;
+  assert.equal(
+    tooltipChip({ id: 'FLT-102633', numero: 'Hoy #11', titulo: 'Encargo #7082 (Carlos vía Musk): anotar mi misión más importante de hoy', inicio }),
+    'FLT-102633 · Hoy #11 · Encargo #7082 (Carlos vía Musk): anotar mi misión más importante de hoy · ' + fechaMadrid(inicio),
+  );
+  assert.equal(tooltipChip({ id: 'FLT-102622', numero: 'encargo 6919', titulo: 'encargo 6919 · FLT-102622' }), 'FLT-102622 · encargo 6919');
+  assert.equal(tooltipChip({ titulo: 'Video 360 a modelo 3D', inicio }), 'Video 360 a modelo 3D · ' + fechaMadrid(inicio));
+  const corto = resumenTitulo('Verificar preview #227 y arreglar presencia verde de Woz');
+  assert.ok(corto.split(/\s+/).length <= 6 && corto.split(/\s+/).length >= 3);
+  assert.equal(corto, corto.trim());
+  assert.doesNotMatch(corto, /\s$/);
+});
+
+test('la píldora dice número, título corto, desde HH:MM y minutos', () => {
+  const inicio = Date.parse('2026-10-23T05:19:00.000Z');
+  const ahora = Date.parse('2026-10-23T05:46:00.000Z');
+  assert.equal(numeroDeTrabajo('Encargo #7088', 'PR #252'), '7088');
+  assert.equal(numeroDeTrabajo('Hoy #25', 'PR #252'), '');
+  assert.equal(numeroDeTrabajo('#252'), '');
+  assert.equal(numeroDeTrabajo('PR #252', '#252'), '');
+  assert.equal(numeroDeTrabajo('#7088'), '7088');
+  assert.equal(numeroDeTrabajo('encargo 6919'), '6919');
+  assert.equal(textoPildora({
+    numero: '7088',
+    titulo: 'admira.tv 1/3 · «En antena ahora» en portada: emisión real del canal',
+    inicio,
+    ahora,
+  }), '#7088 En antena ahora · desde 07:19 · 27 min');
+  assert.equal(tooltipPildora({
+    numero: '7088',
+    titulo: '«En antena ahora» en la portada de admira.tv: emisión real del canal en silencio y en bucle',
+    inicio,
+    proyecto: 'admira-tv',
+  }), 'Empezó: 23-oct-2026 07:19 · Misión #7088: «En antena ahora» en la portada de admira.tv: emisión real del canal en silencio y en bucle · Proyecto admira-tv');
+  assert.equal(fechaEmpezo(inicio), '23-oct-2026 07:19');
+  assert.doesNotMatch(textoPildora({ titulo: 'panel', inicio, ahora }), /TAREA|hace poco/);
+  assert.match(textoPildora({ inicio, ahora }), /^desde 07:19 · 27 min$/);
 });
 
 test('el reloj usa el arranque real y corre en agentes y consejeros', async () => {

@@ -2,7 +2,7 @@
  * Presencia declarada en bot.yokup.com/api/presence.
  * admira.live/api/flota/trabajando no pinta verde un latido mode=trabajando
  * con verified:0 (identity_state declared_surface, sin tokens). Encargos sí.
- * No reenvía el foco ni la cuenta: solo quién acaba de decir que trabaja.
+ * Reenvía foco, tarea y encargo para la píldora. No reenvía la cuenta.
  */
 import { personaClave } from '../assets/misiones-vivas.js';
 
@@ -25,11 +25,16 @@ export function reducirPresencia(data, ahoraS = Math.floor(Date.now() / 1000)) {
     if (!clave) continue;
     const prev = por[clave];
     if (prev && prev.ageS <= ageS) continue;
+    const since = Number(p.since);
     por[clave] = {
       clave,
       mode: 'trabajando',
       ageS,
       proyecto: String(p.project || '').trim(),
+      foco: String(p.focus || '').replace(/\s+/g, ' ').trim().slice(0, 240),
+      tarea: String(p.task || '').replace(/\s+/g, ' ').trim().slice(0, 240),
+      encargo: String(p.encargo ?? '').trim().slice(0, 20),
+      sinceMs: Number.isFinite(since) && since > 1e9 ? (since > 4102444800 ? since : since * 1000) : 0,
       verified: p.verified === 1 || p.verified === true,
     };
   }

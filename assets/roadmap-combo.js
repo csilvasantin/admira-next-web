@@ -68,13 +68,17 @@
     div.addEventListener('click',function(ev){var b=ev.target.closest('.rmc-ley');if(b)elegirPersona(b.dataset.id)});
   }
   function marcaRev(i){var h='';if(i.dec){var ev=String(i.dec.evidencia||'');var cd=colorDe(i.dec.por);h+=' <span class="rmc-dec'+(cd?' rmc-q':'')+'"'+(cd?' style="--q:'+cd+'"':'')+' title="Declarado por '+esc(i.dec.por)+' · '+esc(String(i.dec.en||'').slice(0,16).replace('T',' '))+' UTC">◷ declarado'+(/^https?:\/\//.test(ev)?' · <a href="'+esc(ev)+'" target="_blank" rel="noopener">evidencia</a>':' · '+esc(ev.slice(0,40)))+'</span>'}if(i.sel){var cs=colorDe(i.sel.por)||colorDe(i.sel.nombre);h+=' <span class="rmc-sel rmc-sel-'+esc(i.sel.veredicto)+(cs?' rmc-q':'')+'"'+(cs?' style="--q:'+cs+'"':'')+' title="'+esc(i.sel.nota||'')+'">'+(i.sel.veredicto==='ok'?'✔ sello ':'✗ rechazado · ')+cara(i.sel.por||i.sel.nombre,i.sel.nombre||i.sel.por)+esc(i.sel.nombre||i.sel.por)+'</span>'}else if(i.dec)h+=' <span class="rmc-pend">pendiente de sello</span>';return h}
-    function vista(p,h){
+  function subTexto(x){return typeof x==='string'?x:(x&&(x.texto||x.t))||''}
+  function detBtn(texto){texto=String(texto==null?'':texto).trim();if(!texto)return '';return ' <button type="button" class="rmc-det-btn" aria-expanded="false" aria-label="Ver detalle">detalle</button><span class="rmc-det-txt" hidden>'+esc(texto)+'</span>'}
+  function vista(p,h){
     var editable=puede&&(D.editables||ORDEN).indexOf(h)>=0;
     var l=(p.roadmap[h]||[]).slice(0,3),conAv=h!=='ayer';
     return '<article class="rmc-h"><h3>'+esc(D.etiquetas[h])+(conAv?' <span class="rmc-hp">'+avanceH(p,h)+'%</span>':'')+(editable?'<button type="button" class="rmc-lapiz" data-h="'+h+'" title="Editar '+esc(D.etiquetas[h])+'">✎</button>':'')+'</h3>'+(l.length?'':'<p class="rmc-sr">—</p>')+'<ol class="rmc-123">'+l.map(function(raw,n){
       var i=real(raw);if(!i)return '';var o=raw.ref?byId[items[raw.ref].p].nombre:'';var s=i.s||[];
       var cq=COLOR[raw.ref?dueno(byId[items[raw.ref].p]):dueno(p)]||'';
-      return '<li'+(cq?' class="rmc-q" style="--q:'+cq+'"':'')+'>'+(s.length?'<details><summary>':'<span class="rmc-sr">')+(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+marcaRev(i)+(s.length?'</summary><ul class="rmc-abc">'+s.map(function(x,k){return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(x)+'</li>'}).join('')+'</ul></details>':'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
+      var cabeza=(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+detBtn(i.detalle)+marcaRev(i);
+      var abc=s.length?'<ul class="rmc-abc">'+s.map(function(x,k){var d=(Array.isArray(i.sd)&&i.sd[k])||(x&&typeof x==='object'&&x.detalle)||'';return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(subTexto(x))+detBtn(d)+'</li>'}).join('')+'</ul>':'';
+      return '<li'+(cq?' class="rmc-q" style="--q:'+cq+'"':'')+'>'+(s.length?'<details><summary>'+cabeza+'</summary>'+abc+'</details>':'<span class="rmc-sr">'+cabeza+'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
   }
   function form(p,h){
     var l=JSON.parse(JSON.stringify(p.roadmap[h]||[]));editando={p:p.id,h:h,l:l};return formHtml(p,h,l);
@@ -85,7 +89,7 @@
       if(i.ref){var r=real(i);return '<div class="rmc-ei"><b>'+(n+1)+'</b> '+esc(r?r.t:i.ref)+' <span class="rmc-sr">(se edita en su pilar)</span> <button type="button" data-a="del" data-n="'+n+'">✕</button></div>'}
       var s=i.s||[];while(s.length<3)s.push('');i.s=s;
       return '<div class="rmc-ei" data-n="'+n+'"><div class="rmc-er"><b>'+(n+1)+'</b><input data-f="t" value="'+esc(i.t)+'" maxlength="120" aria-label="Objetivo '+(n+1)+'"><button type="button" data-a="del" data-n="'+n+'" title="Quitar">✕</button></div>'+
-        s.map(function(x,k){return '<div class="rmc-er"><label><input type="checkbox" data-f="hs" data-k="'+k+'"'+((i.hs||[])[k]?' checked':'')+'> '+(n+1)+'abc'[k]+'</label><input data-f="s" data-k="'+k+'" value="'+esc(x)+'" maxlength="200"></div>'}).join('')+
+        s.map(function(x,k){return '<div class="rmc-er"><label><input type="checkbox" data-f="hs" data-k="'+k+'"'+((i.hs||[])[k]?' checked':'')+'> '+(n+1)+'abc'[k]+'</label><input data-f="s" data-k="'+k+'" value="'+esc(subTexto(x))+'" maxlength="200"></div>'}).join('')+
         '<div class="rmc-er"><label>% manual <input type="number" min="0" max="100" data-f="pct" value="'+(i.pct==null?'':i.pct)+'" placeholder="auto" style="width:70px"></label>'+
         (h==='manana'?' <label>Mover a <select data-f="mover"><option value="">—</option><option value="hoy">Hoy</option><option value="semana">Semana</option></select></label>':'')+'</div>'+
         (lower.length?'<div class="rmc-er rmc-links">Suma de: '+lower.map(function(x){return '<label title="'+esc(D.etiquetas[x.h])+'"><input type="checkbox" data-f="de" value="'+x.id+'"'+((i.de||[]).indexOf(x.id)>=0?' checked':'')+'> '+esc(x.t.slice(0,28))+'</label>'}).join('')+'</div>':'')+'</div>'}).join('')+
@@ -96,7 +100,11 @@
       i.t=div.querySelector('[data-f=t]').value.trim();
       i.s=[].map.call(div.querySelectorAll('[data-f=s]'),function(x){return x.value.trim()});
       i.hs=[].map.call(div.querySelectorAll('[data-f=hs]'),function(x){return x.checked});
-      var keep=i.s.map(function(x){return !!x});i.hs=i.hs.filter(function(_,k){return keep[k]});i.s=i.s.filter(Boolean);
+      var sd=(Array.isArray(i.sd)?i.sd:[]).slice();while(sd.length<i.s.length)sd.push('');
+      var keep=i.s.map(function(x){return !!x});i.hs=i.hs.filter(function(_,k){return keep[k]});
+      sd=sd.filter(function(_,k){return keep[k]}).map(function(x){return String(x||'').trim().slice(0,1000)});
+      i.s=i.s.filter(Boolean);
+      if(sd.some(Boolean))i.sd=sd;else delete i.sd;
       var pc=div.querySelector('[data-f=pct]').value;if(pc==='')delete i.pct;else i.pct=Math.max(0,Math.min(100,+pc));
       i.de=[].filter.call(div.querySelectorAll('[data-f=de]'),function(x){return x.checked}).map(function(x){return x.value});if(!i.de.length)delete i.de;
       var mv=div.querySelector('[data-f=mover]');i._mover=mv&&mv.value||'';
@@ -146,8 +154,20 @@
   }
   document.addEventListener('click',function(ev){var b=ev.target.closest('#rmc-hoy [data-id]');if(b)elegirPersona(b.dataset.id)});
   meta.addEventListener('click',function(ev){var b=ev.target.closest('.rmc-aprb');if(!b)return;var p=byId[sel.value];var antes=JSON.stringify(D);p.aprobacion=p.aprobacion==='ok'?'propuesto':'ok';render();enviar(antes)});
+  // Capture: el botón vive dentro del <summary> que abre los subs. Si el clic
+  // sigue, el navegador despliega también los subobjetivos.
   out.addEventListener('click',function(ev){
-    var b=ev.target.closest('button');if(!b)return;
+    var det=ev.target.closest&&ev.target.closest('.rmc-det-btn');
+    if(!det||!out.contains(det))return;
+    ev.preventDefault();ev.stopPropagation();
+    var abierto=det.getAttribute('aria-expanded')==='true';
+    det.setAttribute('aria-expanded',abierto?'false':'true');
+    det.setAttribute('aria-label',abierto?'Ver detalle':'Ocultar detalle');
+    var panel=det.nextElementSibling;
+    if(panel&&panel.classList.contains('rmc-det-txt'))panel.hidden=abierto;
+  },true);
+  out.addEventListener('click',function(ev){
+    var b=ev.target.closest('button');if(!b||b.classList.contains('rmc-det-btn'))return;
     if(b.classList.contains('rmc-lapiz')){aviso='';var p=byId[sel.value];out.innerHTML='';form(p,b.dataset.h);return render()}
     var card=b.closest('.rmc-edit');if(!card||!editando)return;leerForm(card);
     var a=b.dataset.a;

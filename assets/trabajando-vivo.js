@@ -5,7 +5,7 @@
  * estado: verde | amarillo | rojo | gris.
  * Huang y Jensen son la misma fila. Musk, Elon y MuskGrokBot son solo Musk.
  * Una misión (FLT-…) se pinta en una sola persona: la de Misiones. */
-import { epochMs, personaClave } from './misiones-vivas.js';
+import { epochMs, fechaMadrid, personaClave } from './misiones-vivas.js';
 
 export const TRABAJANDO_API = 'https://www.admira.live/api/flota/trabajando';
 
@@ -190,7 +190,100 @@ export function conPresencia(tarjeta, p) {
   if (!tarjeta || !p || p.mode !== 'trabajando') return tarjeta;
   const age = Number(p.ageS);
   if (!Number.isFinite(age) || age < 0 || age > PRESENCIA_FRESCURA_S) return tarjeta;
-  return { ...tarjeta, haceS: age, presenciaTrabajando: true };
+  return {
+    ...tarjeta,
+    haceS: age,
+    presenciaTrabajando: true,
+    proyecto: p.proyecto || tarjeta.proyecto || '',
+    focoPresencia: String(p.foco || ''),
+    tareaPresencia: String(p.tarea || ''),
+    encargoPresencia: String(p.encargo || ''),
+    sincePresencia: Number(p.sinceMs) || 0,
+  };
+}
+
+/** Número de encargo o de misión (4 a 6 cifras). «Hoy #25» y «PR #252» no cuentan. */
+export function numeroDeTrabajo(...fuentes) {
+  const lista = fuentes.flat ? fuentes.flat() : fuentes;
+  for (const raw of lista) {
+    const m = String(raw || '').match(/\b(?:encargo|misi[oó]n)\s*#?\s*(\d{4,6})\b/i);
+    if (m) return m[1];
+  }
+  for (const raw of lista) {
+    const s = String(raw || '').trim();
+    if (/^#?\d{4,6}$/.test(s)) return s.replace(/^#/, '');
+  }
+  return '';
+}
+
+/** Título corto. Si abre con «comillas», se queda la frase de dentro. */
+export function tituloCorto(titulo) {
+  const t = resumenTitulo(titulo);
+  const q = t.match(/«([^»]{2,80})»/);
+  return q ? q[1].trim() : t;
+}
+
+/** «desde HH:MM» en Madrid, también si el arranque es de otro día. */
+export function horaDesde(ms) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const a = partesMadrid(n);
+  if (!a.hour) return '';
+  return `desde ${a.hour}:${a.minute}`;
+}
+
+/** Minutos desde el arranque: «27 min» o «2 h 05 min». */
+export function textoDuracion(ms, ahora = Date.now()) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  let min = Math.floor((Number(ahora) - n) / 60000);
+  if (!Number.isFinite(min) || min < 0) min = 0;
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h} h ${String(m).padStart(2, '0')} min`;
+}
+
+/** «#7088 En antena ahora · desde 07:19 · 27 min». Nunca «TAREA» ni «hace poco». */
+export function textoPildora({ numero = '', titulo = '', inicio = 0, ahora = Date.now() } = {}) {
+  const partes = [];
+  const num = String(numero || '').replace(/^#/, '').trim();
+  const corto = tituloCorto(titulo);
+  if (num && corto) partes.push(`#${num} ${corto}`);
+  else if (num) partes.push(`#${num}`);
+  else if (corto) partes.push(corto);
+  const desde = horaDesde(inicio);
+  if (desde) partes.push(desde);
+  const dur = textoDuracion(inicio, ahora);
+  if (dur) partes.push(dur);
+  return partes.join(' · ');
+}
+
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+/** «23-oct-2026 07:19» en Madrid. */
+export function fechaEmpezo(ms) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const a = partesMadrid(n);
+  const mes = MESES[Number(a.month) - 1];
+  if (!mes || !a.day) return '';
+  return `${Number(a.day)}-${mes}-${a.year} ${a.hour}:${a.minute}`;
+}
+
+/** «Empezó: 23-oct-2026 07:19 · Misión #7088: título · Proyecto admira-tv». */
+export function tooltipPildora({ numero = '', titulo = '', inicio = 0, proyecto = '' } = {}) {
+  const partes = [];
+  const cuando = fechaEmpezo(inicio);
+  if (cuando) partes.push(`Empezó: ${cuando}`);
+  const num = String(numero || '').replace(/^#/, '').trim();
+  const full = String(titulo || '').replace(/\s+/g, ' ').trim();
+  if (num && full) partes.push(`Misión #${num}: ${full}`);
+  else if (num) partes.push(`Misión #${num}`);
+  else if (full) partes.push(`Misión: ${full}`);
+  const proy = String(proyecto || '').trim();
+  if (proy) partes.push(`Proyecto ${proy}`);
+  return partes.join(' · ');
 }
 
 /** Trabaja de verdad: misión en curso, latido fresco, o verde con tarea o encargo propios. */
@@ -244,7 +337,75 @@ export function estadoVisible(tarjeta, mision) {
   return tarjeta;
 }
 
-/** Misión en curso gana. Si no, las abiertas (no las tapa una tarea). Si no, la tarea. */
+const PALABRAS_MAX = 6;
+const COLA = new Set(['de', 'del', 'al', 'a', 'en', 'y', 'e', 'o', 'u', 'con', 'por', 'para', 'el', 'la', 'los', 'las', 'un', 'una', 'que', 'su', 'sus']);
+
+function palabrasDe(s) {
+  return String(s || '').split(/\s+/).filter(Boolean);
+}
+
+function tokenPalabra(w) {
+  return String(w || '').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').toLowerCase();
+}
+
+/** Primera cláusula con cuerpo, como máximo 6 palabras, cortada en un espacio. */
+function recortaPalabras(s) {
+  const ws = palabrasDe(s).slice(0, PALABRAS_MAX);
+  while (ws.length > 1 && COLA.has(tokenPalabra(ws[ws.length - 1]))) ws.pop();
+  return ws.join(' ').replace(/[….]+$/g, '').trim();
+}
+
+/**
+ * Título corto del chip: de qué va la misión o la tarea.
+ * Quita FLT-xxxxxx y el número de encargo. 3 a 6 palabras si el título da para tanto,
+ * siempre en un límite de palabra. El título entero se queda para el tooltip.
+ */
+export function resumenTitulo(titulo) {
+  let t = String(titulo || '').replace(/\s+/g, ' ').trim();
+  if (!t) return '';
+  t = t.replace(/\bFLT-\d+\b/gi, ' ');
+  t = t.replace(/\bencargos?\s*#?\s*\d+\b/gi, ' ');
+  t = t.replace(/#\d+\b/g, ' ');
+  t = t.replace(/\([^)]*\)/g, ' ');
+  t = t.replace(/\s+/g, ' ').trim();
+  t = t.replace(/^[\s·|:;,\-–—()]+|[\s·|:;,\-–—()]+$/g, '').trim();
+  if (!t) return '';
+  const trozos = t.split(/\s*(?:[·:;]|\.(?:\s|$)|\s[a-c]\)\s*)\s*/i)
+    .map((c) => c.replace(/^[\s·|:;,\-–—()]+|[\s·|:;,\-–—()]+$/g, '').trim())
+    .filter(Boolean);
+  for (const c of trozos) {
+    if (palabrasDe(c).length >= 3) return recortaPalabras(c);
+  }
+  return recortaPalabras(trozos.join(' '));
+}
+
+/** Tooltip del chip: código FLT, número de encargo, título entero y hora de inicio. */
+export function tooltipChip({ id = '', numero = '', titulo = '', inicio = 0 } = {}) {
+  const partes = [];
+  const visto = new Set();
+  const push = (s) => {
+    const t = String(s || '').replace(/\s+/g, ' ').trim();
+    if (!t) return;
+    const k = t.toLowerCase();
+    if (visto.has(k)) return;
+    visto.add(k);
+    partes.push(t);
+  };
+  for (const fuente of [id, numero, titulo]) {
+    for (const m of String(fuente || '').matchAll(/\bFLT-\d+\b/gi)) push(m[0].toUpperCase());
+  }
+  const num = String(numero || '').trim();
+  if (num && !/^FLT-\d+$/i.test(num)) push(num);
+  const tituloLimpio = String(titulo || '').replace(/\s+/g, ' ').trim();
+  if (tituloLimpio && resumenTitulo(tituloLimpio)) push(tituloLimpio);
+  else {
+    for (const m of tituloLimpio.matchAll(/\bencargos?\s+#?\d+\b|#\d+\b/gi)) push(m[0].replace(/\s+/g, ' '));
+  }
+  if (Number(inicio) > 0) push(fechaMadrid(inicio));
+  return partes.join(' · ');
+}
+
+/** Misión en curso gana. Si no, las abiertas. Si no, la tarea. */
 export function chipDe(mision, tarjeta, abiertas = 0) {
   if (mision) return { tipo: 'mision', texto: '' };
   const n = Number(abiertas) || 0;
