@@ -72,11 +72,11 @@
   .rm-live.is-ok i{background:#4ae3d1;box-shadow:0 0 10px rgba(74,227,209,.85);animation:rmBeat 1.4s ease-in-out infinite}
   .rm-live.is-bad i{background:#ff6b7a}
   .rm-filtro-activo{margin-left:auto;padding:4px 10px;border:1px dashed rgba(120,243,255,.45);border-radius:999px;font-size:11px;color:#78f3ff}
-  .rm-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:0 0 18px}
+  .rm-kpis{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin:0 0 18px}
   .rm-kpi{padding:12px 12px 10px;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(8,13,23,.78)}
   .rm-kpi b{display:block;font-size:clamp(22px,3.2vw,34px);line-height:1;font-weight:700;color:#f2f6fc;font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(120,243,255,.25)}
   .rm-kpi span{display:block;margin-top:6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
-  .rm-kpi.is-hecho b{color:#4ae3d1}.rm-kpi.is-en_curso b{color:#78f3ff}.rm-kpi.is-confirmado b{color:#5ec8ff}.rm-kpi.is-propuesta b{color:#b8c7da}
+  .rm-kpi.is-hecho b{color:#4ae3d1}.rm-kpi.is-en_curso b{color:#78f3ff}.rm-kpi.is-pendiente b{color:#e7c27a}.rm-kpi.is-confirmado b{color:#5ec8ff}.rm-kpi.is-propuesta b{color:#b8c7da}
   .rm-kpi.is-total{border-color:rgba(74,227,209,.45)}
   .rm-constel{position:relative;margin:0 0 20px}
   .rm-flows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}
@@ -102,7 +102,7 @@
   .rm-chips{display:flex;flex-wrap:wrap;gap:5px}
   .rm-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border:1px solid var(--yk-line2,#314057);border-radius:999px;font-size:10px;letter-spacing:.04em;color:var(--yk-ink,#f2f6fc);white-space:nowrap}
   .rm-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,#78f3ff)}
-  .rm-chip.is-propuesta::before{background:transparent;border:1px dashed var(--c)}
+  .rm-chip.is-propuesta::before,.rm-chip.is-pendiente::before{background:transparent;border:1px dashed var(--c)}
   .rm-rail{display:flex;gap:8px;margin:0 0 12px;overflow-x:auto;padding-bottom:4px}
   .rm-rail button{flex:1 0 110px;display:flex;flex-direction:column;gap:5px;padding:9px 12px;border:1px solid var(--yk-line,#253042);border-radius:12px;background:rgba(8,13,23,.8);color:var(--yk-mut,#92a0b4);text-align:left;transition:border-color .2s,color .2s,background .2s}
   .rm-rail button b{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--yk-ink,#f2f6fc)}
@@ -115,7 +115,7 @@
   .rm-legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
   .rm-legend button{border:1px solid var(--yk-line2,#314057);border-radius:999px;background:transparent;padding:4px 10px;color:var(--yk-ink,#f2f6fc);font-size:11px;display:inline-flex;align-items:center;gap:6px}
   .rm-legend button::before{content:"";width:9px;height:9px;border-radius:3px;background:var(--c)}
-  .rm-legend button.is-propuesta::before{background:transparent;border:1.5px dashed var(--c)}
+  .rm-legend button.is-propuesta::before,.rm-legend button.is-pendiente::before{background:transparent;border:1.5px dashed var(--c)}
   .rm-legend button[aria-pressed="false"]{opacity:.35;text-decoration:line-through}
   .rm-legend .rm-hint{margin-left:auto;font-size:11px;color:var(--yk-dim,#6c7a90)}
   .rm-show-in{min-width:0;max-width:100%}
@@ -158,9 +158,9 @@
   .rm-card .rm-prog i{display:block;height:100%;background:linear-gradient(90deg,#4ae3d1,#78f3ff)}
   .rm-card small{color:var(--yk-dim,#6c7a90);font-size:10px}
   .rm-caption{display:none}
-  .hito.is-hecho strong::before,.hito.is-en_curso strong::before,.hito.is-confirmado strong::before,.hito.is-propuesta strong::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--c);vertical-align:1px}
-  .hito.is-hecho{--c:#4ae3d1}.hito.is-en_curso{--c:#78f3ff}.hito.is-confirmado{--c:#5ec8ff}.hito.is-propuesta{--c:#b8c7da}
-  .hito.is-propuesta strong::before{background:transparent;border:1px dashed var(--c)}
+  .hito.is-hecho strong::before,.hito.is-en_curso strong::before,.hito.is-pendiente strong::before,.hito.is-confirmado strong::before,.hito.is-propuesta strong::before{content:"";display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--c);vertical-align:1px}
+  .hito.is-hecho{--c:#4ae3d1}.hito.is-en_curso{--c:#78f3ff}.hito.is-pendiente{--c:#e7c27a}.hito.is-confirmado{--c:#5ec8ff}.hito.is-propuesta{--c:#b8c7da}
+  .hito.is-propuesta strong::before,.hito.is-pendiente strong::before{background:transparent;border:1px dashed var(--c)}
   .corte-h{margin:0 0 12px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--yk-mut,#92a0b4)}
   /* Presentador (P): la escena llena la pantalla y recorre las patas */
   body.is-presenter .yk-head,body.is-presenter footer,body.is-presenter h1,body.is-presenter #corte,body.is-presenter .corte-h{display:none!important}

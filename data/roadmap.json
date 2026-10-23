@@ -578,5 +578,38 @@
     "responsable": "Elon Musk (consejero) · Jensen Huang (coordina)",
     "fuente": "Carlos 18-oct · todo vía asistente /admirito",
     "idea": "Reproducción y Proof of Play"
+  },
+  {
+    "id": "tv-antena-ahora-23oct",
+    "solucion": "tv",
+    "titulo": "«En antena ahora» en la portada de admira.tv: emisión real del canal en silencio y en bucle, y botón «Pide una demo»",
+    "inicio": "2026-10-23",
+    "fin": "2026-10-23",
+    "estado": "en_curso",
+    "responsable": "Jensen Huang",
+    "fuente": "Carlos 23-oct · misión #7088",
+    "idea": "Reproducción y Proof of Play"
+  },
+  {
+    "id": "tv-demos-dosieres-23oct",
+    "solucion": "tv",
+    "titulo": "Demos y dosieres reales: sustituir los «pronto» por los vídeos de demo de admira.studio/stock (con cortinilla Admira) y un PDF por solución",
+    "inicio": "2026-10-23",
+    "fin": "2026-10-23",
+    "estado": "pendiente",
+    "responsable": "Jensen Huang",
+    "fuente": "Carlos 23-oct · misión #7089",
+    "idea": "Contenidos y Pixeria"
+  },
+  {
+    "id": "tv-playlist-xpacio-23oct",
+    "solucion": "tv",
+    "titulo": "Playlist en vivo por Xpacio: página pública de solo lectura con lo que suena o sale (portada y siguiente en cola); ejemplo cliente.xpacio.hilomusical de Starbucks",
+    "inicio": "2026-10-23",
+    "fin": "2026-10-23",
+    "estado": "pendiente",
+    "responsable": "Jensen Huang",
+    "fuente": "Carlos 23-oct · misión #7090",
+    "idea": "Reproducción y Proof of Play"
   }
 ]

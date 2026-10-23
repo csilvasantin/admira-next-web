@@ -9,8 +9,10 @@ import { DatabaseSync } from 'node:sqlite';
 import { cookieDeSesion, asegurarDirectorio, returnToSeguro } from '../functions/_webmaster-gate.js';
 import { onRequestGet as encargos } from '../functions/roadmap/encargos.js';
 import { SEMILLA, CLAVE_KV, normalizar, totales, parteVigente, htmlParte, dividir } from '../functions/_encargos-matinal.js';
-import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, fechaMadrid, inicioMision, MISIONES_API } from '../assets/misiones-vivas.js';
-import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible, inicioTarea, formatoReloj, resumenTitulo, tooltipChip } from '../assets/trabajando-vivo.js';
+import { personaClave, claveFila, agruparMisiones, clavesEnCurso, consultaMisiones, cuentaAbiertos, misionesSinCurso, fechaMadrid, inicioMision, MISIONES_API } from '../assets/misiones-vivas.js';
+import { claveTrabajando, normalizarTarjetas, ETIQUETA, TRABAJANDO_API, chipDe, contarEnCurso, duenoPorMision, tarjetaPara, estadoVisible, inicioTarea, formatoReloj, formatoDesde, formatoIdle, estaOcupado, ultimaActividadMs, latidoDeclaradoTrabajando, conPresencia, resumenTitulo, tooltipChip, textoPildora, tooltipPildora, numeroDeTrabajo, fechaEmpezo } from '../assets/trabajando-vivo.js';
+import { onRequestGet as presenciaRuta } from '../functions/roadmap/presencia.js';
+import { reducirPresencia } from '../functions/_presencia-flota.js';
 import { parsear } from '../scripts/encargos-matinal.mjs';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -188,9 +190,12 @@ test('Encargos cuelga de RoadMap: subnavegación en /roadmap, ☰ y vuelta tras 
   assert.match(html, /href="\/roadmap\/encargos"/);
   assert.doesNotMatch(html, /<h2 id="enc-h-agentes">|<h2 id="enc-h-consejeros">/);
   assert.match(html, /trabajando/);
-  assert.match(html, /hace poco/);
+  assert.match(html, /desde HH:MM/);
+  assert.doesNotMatch(html, /hace poco/);
   assert.match(html, /&gt;1 h/);
-  assert.match(html, /en espera/);
+  assert.match(html, />idle</);
+  assert.match(html, /\.enc-idle\{/);
+  assert.doesNotMatch(html, /en espera/);
   assert.match(html, /#3ddc84/);
   assert.match(html, /box-shadow:0 0 6px #3ddc84/);
   assert.match(html, /rgba\(61,220,132,\.1\)/);
@@ -247,28 +252,55 @@ test('Trabajando ahora: verde, amarillo, rojo y gris, y Huang es Jensen', () => 
   assert.equal(claveTrabajando('WhiteRabbit'), 'whiterabbit');
   assert.equal(claveTrabajando('Neo'), 'neo');
   assert.equal(claveTrabajando('MuskMerovingio'), 'muskmerovingio');
+  const ahora = Date.parse('2026-10-23T05:00:00.000Z');
   const por = normalizarTarjetas({
     tarjetas: [
       { agente: 'Neo', estado: 'verde', motivo: 'tokens en los últimos 15 min', enCurso: 0 },
-      { agente: 'Huang', estado: 'amarillo', motivo: 'con Carlos', enCurso: 0 },
+      { agente: 'Huang', estado: 'amarillo', motivo: 'con Carlos', enCurso: 0, ultimaActividad: '2026-10-23T04:41:00.000Z' },
       { agente: 'Jobs', estado: 'rojo', motivo: 'sin actividad desde hace más de 1 h (activo hoy)', enCurso: 3 },
       { agente: 'Lucas', estado: 'gris', motivo: 'sin latido', enCurso: 0 },
       { agente: 'Nadie', estado: 'azul', motivo: 'no' },
       { agente: '', estado: 'verde' },
     ],
-  });
+  }, ahora);
   assert.equal(por.neo.estado, 'verde');
   assert.equal(por.neo.etiqueta, ETIQUETA.verde);
   assert.equal(por.neo.etiqueta, 'trabajando');
   assert.equal(por.jensen.estado, 'amarillo');
-  assert.equal(por.jensen.etiqueta, 'hace poco');
+  assert.equal(por.jensen.etiqueta, 'desde 06:41');
+  assert.equal(ETIQUETA.amarillo, 'desde HH:MM');
   assert.equal(por.huang, undefined, 'Huang no abre otra fila: cae en Jensen');
   assert.equal(por.jobs.etiqueta, '>1 h');
-  assert.equal(por.lucas.etiqueta, 'en espera');
+  assert.equal(por.lucas.etiqueta, 'idle');
   assert.equal(por.nadie, undefined);
   assert.deepEqual(Object.keys(por).sort(), ['jensen', 'jobs', 'lucas', 'neo']);
   assert.equal(por.neo.enTarea, true, 'verde es trabajo aunque no traiga tarea');
   assert.equal(por.lucas.enTarea, false);
+});
+
+test('el amarillo dice desde HH:MM en Madrid, y otro día lleva DD/MM', () => {
+  const ahora = Date.parse('2026-10-23T05:00:00.000Z');
+  assert.equal(formatoDesde(Date.parse('2026-10-23T04:41:00.000Z'), ahora), 'desde 06:41');
+  assert.equal(formatoDesde(Date.parse('2026-10-22T16:41:00.000Z'), ahora), 'desde 22/10 18:41');
+  assert.equal(formatoDesde(0, ahora), 'desde —');
+  assert.equal(ultimaActividadMs({ ultimaActividad: '2026-10-23T04:41:00.000Z' }, ahora), Date.parse('2026-10-23T04:41:00.000Z'));
+  assert.equal(ultimaActividadMs({ latidoConsejero: { hasta: 1792731111 } }, ahora), 1792731111000);
+  assert.equal(ultimaActividadMs({ haceS: 90 }, 1_000_000), 910_000);
+  assert.equal(inicioTarea({ ultimaActividad: '2026-10-22T19:59:04.328Z', haceS: 0 }), 0, 'la última actividad no es el inicio');
+  const ayer = normalizarTarjetas({
+    tarjetas: [{ agente: 'Morfeo', estado: 'amarillo', motivo: 'con Carlos', ultimaActividad: '2026-10-22T16:41:00.000Z' }],
+  }, ahora);
+  assert.equal(ayer.morfeo.etiqueta, 'desde 22/10 18:41');
+  const ahoraIdle = Date.parse('2026-10-23T06:00:00.000Z');
+  assert.equal(formatoIdle(ahoraIdle - 12 * 60000, ahoraIdle), 'idle · 12 min');
+  assert.equal(formatoIdle(ahoraIdle - (2 * 60 + 5) * 60000, ahoraIdle), 'idle · 2 h 05 min');
+  assert.equal(formatoIdle(0, ahoraIdle), 'idle');
+  assert.equal(estaOcupado(true, { estado: 'gris' }), true);
+  assert.equal(estaOcupado(false, { estado: 'verde', tarea: 'panel', encargo: '' }), true);
+  assert.equal(estaOcupado(false, { estado: 'verde', tarea: '', encargo: '' }), false);
+  assert.equal(estaOcupado(false, { estado: 'amarillo', enTarea: true, textoTarea: 'admira.store' }), false);
+  assert.equal(estaOcupado(false, { estado: 'gris', etiqueta: 'idle' }), false);
+  assert.equal(estaOcupado(false, null), false);
 });
 
 test('En curso suma misiones y tareas; Morfeo sin misión sale como TAREA', () => {
@@ -340,7 +372,7 @@ test('FLT-102626 es de Musk: no se pinta en Jensen ni en Merovingio, y un gris c
   const vis = estadoVisible(musk, true);
   assert.equal(vis.estado, 'verde');
   assert.equal(vis.etiqueta, 'trabajando');
-  assert.equal(estadoVisible({ estado: 'amarillo', etiqueta: 'hace poco' }, true).estado, 'amarillo');
+  assert.equal(estadoVisible({ estado: 'amarillo', etiqueta: 'desde 06:41' }, true).estado, 'amarillo');
   assert.equal(estadoVisible(null, true).etiqueta, 'trabajando');
   const trinity = tarjetaPara('trinity', por.trinity, indice);
   assert.equal(trinity.textoTarea, 'admira.studio');
@@ -348,6 +380,117 @@ test('FLT-102626 es de Musk: no se pinta en Jensen ni en Merovingio, y un gris c
   const client = await read('../assets/roadmap-encargos.js');
   assert.match(client, /tarjetaPara\(clave, base, indice\)/);
   assert.match(client, /estadoVisible\(tarjeta, mision\)/);
+});
+
+test('las misiones open de Huang cuentan como abiertas y no las tapa la tarea', async () => {
+  const crudas = [
+    { id: 'FLT-102635', persona: 'HuangGrokBot', status: 'open', subject: 'En antena ahora', display_ref: 'Hoy #25', created_at: 1792730506000, project: 'admira-tv' },
+    { id: 'FLT-102636', persona: 'HuangGrokBot', status: 'open', subject: 'Demos y dosieres', display_ref: 'Hoy #24', created_at: 1792730507000, project: 'admira-tv' },
+    { id: 'FLT-102637', persona: 'HuangGrokBot', status: 'open', subject: 'Playlist en vivo', display_ref: 'Hoy #23', created_at: 1792730510000, project: 'admira-tv' },
+    { id: 'FLT-102634', persona: 'MuskGrokBot', status: 'in_progress', subject: 'Usuarios', display_ref: 'Hoy #19', created_at: 1792730233000 },
+  ];
+  const por = agruparMisiones(crudas);
+  assert.equal(por.jensen.length, 3);
+  assert.equal(clavesEnCurso(por).includes('jensen'), false);
+  assert.equal(cuentaAbiertos(por.jensen), 3);
+  assert.equal(misionesSinCurso(por.jensen).length, 3);
+  assert.deepEqual(misionesSinCurso(por.jensen).map((m) => m.numero).sort(), ['Hoy #23', 'Hoy #24', 'Hoy #25']);
+  const tarjetas = normalizarTarjetas({
+    tarjetas: [{ agente: 'Huang', estado: 'verde', encargo: 'FLT-102634', foco: { proyecto: 'admiranext', fuente: 'latido', defecto: false }, latidoConsejero: { desde: 1792730507 } }],
+  });
+  const jensen = tarjetaPara('jensen', tarjetas.jensen, duenoPorMision(por));
+  assert.equal(jensen.encargo, '', 'FLT-102634 es de Musk: no es tarea de Jensen');
+  assert.equal(jensen.enTarea, true, 'verde seguiría pintando una tarea si no hubiera misiones');
+  assert.deepEqual(chipDe(false, jensen, 0), { tipo: 'tarea', texto: 'admiranext' });
+  assert.deepEqual(chipDe(false, jensen, 3), { tipo: 'abierta', texto: '' });
+  assert.deepEqual(contarEnCurso([{ mision: false, tarjeta: jensen, abiertas: 3 }]), { total: 1, misiones: 1, tareas: 0 });
+  assert.equal(estaOcupado(false, jensen), false, 'Jensen sin tarea propia está idle aunque el latido venga verde');
+  const client = await read('../assets/roadmap-encargos.js');
+  assert.match(client, /misionesSinCurso\(lista\)/);
+  assert.match(client, /cuentaAbiertos\(lista\)/);
+  assert.match(client, /chipDe\(mision, tarjeta, sinCurso\.length\)/);
+});
+
+test('el latido «trabajando» fresco pinta trabajando; un open de admira-tv no pasa a en curso', () => {
+  const motivo = 'parado vía Merovingio (sin tokens en la última hora (latido «trabajando»)) · app GrokBot abierta en Mini';
+  const por = normalizarTarjetas({
+    tarjetas: [{
+      agente: 'Huang', estado: 'gris', motivo, haceS: 2, proyecto: 'admira-tv', fuente: 'heartbeat',
+      foco: { proyecto: 'Training', fuente: 'training', defecto: false }, tarea: '', encargo: null,
+    }],
+  });
+  const jensen = por.jensen;
+  assert.equal(jensen.proyecto, 'admira-tv');
+  assert.equal(jensen.haceS, 2);
+  assert.equal(latidoDeclaradoTrabajando(jensen), true);
+  assert.equal(estaOcupado(false, jensen), true);
+  const vis = estadoVisible(jensen, false);
+  assert.equal(vis.estado, 'verde');
+  assert.equal(vis.etiqueta, 'trabajando');
+  assert.equal(latidoDeclaradoTrabajando({ ...jensen, haceS: 1246 }), false, 'un latido de hace 20 min no cuenta');
+  assert.equal(latidoDeclaradoTrabajando({ motivo: 'parado · app GrokBot abierta', haceS: 2 }), false);
+  const m = agruparMisiones([
+    { id: 'FLT-102635', persona: 'HuangGrokBot', status: 'open', subject: 'En antena ahora', display_ref: 'Hoy #25', created_at: 1792730506000, project: 'admira-tv' },
+  ]);
+  assert.equal(m.jensen[0].enCurso, false, 'status open no es en curso: yokup_presencia no cambia el fleet');
+  assert.equal(chipDe(false, jensen, 1).tipo, 'abierta');
+  const amarillo = normalizarTarjetas({
+    tarjetas: [{ agente: 'Huang', estado: 'amarillo', motivo: 'con Carlos: app GrokBot al frente en Mini', haceS: 5, proyecto: 'admira-live' }],
+  }).jensen;
+  assert.equal(latidoDeclaradoTrabajando(amarillo), false, 'sin la cita del latido, el amarillo de admira.live no basta');
+  const declarado = conPresencia(amarillo, { mode: 'trabajando', ageS: 21, proyecto: 'admira-tv', verified: false });
+  assert.equal(latidoDeclaradoTrabajando(declarado), true);
+  assert.equal(estadoVisible(declarado, false).estado, 'verde');
+  assert.equal(estadoVisible(declarado, false).etiqueta, 'trabajando');
+  assert.equal(estaOcupado(false, declarado), true);
+  assert.equal(conPresencia(amarillo, { mode: 'trabajando', ageS: 3535 }), amarillo);
+  const reducido = reducirPresencia({
+    now: 1_792_733_218,
+    presence: [
+      { persona: 'Huang', mode: 'trabajando', project: 'admira-tv', updated: 1_792_733_218 - 21, verified: 0, focus: 'no sale' },
+      { persona: 'Wozniak', mode: 'trabajando', project: 'admira.live', updated: 1_792_733_218 - 3535, verified: 0 },
+      { persona: 'Musk', mode: 'pasivo', updated: 1_792_733_218 - 10, verified: 0 },
+    ],
+  });
+  assert.deepEqual(Object.keys(reducido), ['jensen']);
+  assert.equal(reducido.jensen.verified, false);
+  assert.equal(reducido.jensen.proyecto, 'admira-tv');
+  assert.equal(reducido.jensen.foco, 'no sale');
+  assert.equal(JSON.stringify(reducido).includes('account'), false);
+});
+
+test('GET /roadmap/presencia exige sesión y reenvía el foco sin la cuenta', async () => {
+  const env = await setup();
+  const pideP = (c) => presenciaRuta({
+    request: new Request('https://www.admiranext.com/roadmap/presencia', { headers: c ? { cookie: c } : {} }),
+    env,
+  });
+  assert.equal((await pideP(null)).status, 401);
+  const ahora = 1_792_733_218;
+  const orig = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    assert.match(String(url), /bot\.yokup\.com\/api\/presence/);
+    return new Response(JSON.stringify({
+      ok: true, now: ahora,
+      presence: [{ persona: 'Huang', mode: 'trabajando', project: 'admira-tv', updated: ahora - 21, verified: 0, focus: 'secreto', account: 'no-pasa@admira.com' }],
+    }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  try {
+    const res = await pideP(await cookie(env, 'csilva@admira.com'));
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('cache-control'), 'private, no-store');
+    const body = await res.json();
+    assert.equal(body.ok, true);
+    assert.equal(body.por.jensen.ageS, 21);
+    assert.equal(body.por.jensen.verified, false);
+    assert.equal(body.por.jensen.foco, 'secreto');
+    assert.doesNotMatch(JSON.stringify(body), /no-pasa/);
+  } finally {
+    globalThis.fetch = orig;
+  }
+  const js = await read('../assets/roadmap-encargos.js');
+  assert.match(js, /\/roadmap\/presencia/);
+  assert.match(js, /conPresencia\(tarjeta, presencia && presencia\[clave\]\)/);
 });
 
 test('el chip visible resume el título y el tooltip guarda FLT, número, título y inicio', () => {
@@ -382,6 +525,32 @@ test('el chip visible resume el título y el tooltip guarda FLT, número, títul
   assert.doesNotMatch(corto, /\s$/);
 });
 
+test('la píldora dice número, título corto, desde HH:MM y minutos', () => {
+  const inicio = Date.parse('2026-10-23T05:19:00.000Z');
+  const ahora = Date.parse('2026-10-23T05:46:00.000Z');
+  assert.equal(numeroDeTrabajo('Encargo #7088', 'PR #252'), '7088');
+  assert.equal(numeroDeTrabajo('Hoy #25', 'PR #252'), '');
+  assert.equal(numeroDeTrabajo('#252'), '');
+  assert.equal(numeroDeTrabajo('PR #252', '#252'), '');
+  assert.equal(numeroDeTrabajo('#7088'), '7088');
+  assert.equal(numeroDeTrabajo('encargo 6919'), '6919');
+  assert.equal(textoPildora({
+    numero: '7088',
+    titulo: 'admira.tv 1/3 · «En antena ahora» en portada: emisión real del canal',
+    inicio,
+    ahora,
+  }), '#7088 En antena ahora · desde 07:19 · 27 min');
+  assert.equal(tooltipPildora({
+    numero: '7088',
+    titulo: '«En antena ahora» en la portada de admira.tv: emisión real del canal en silencio y en bucle',
+    inicio,
+    proyecto: 'admira-tv',
+  }), 'Empezó: 23-oct-2026 07:19 · Misión #7088: «En antena ahora» en la portada de admira.tv: emisión real del canal en silencio y en bucle · Proyecto admira-tv');
+  assert.equal(fechaEmpezo(inicio), '23-oct-2026 07:19');
+  assert.doesNotMatch(textoPildora({ titulo: 'panel', inicio, ahora }), /TAREA|hace poco/);
+  assert.match(textoPildora({ inicio, ahora }), /^desde 07:19 · 27 min$/);
+});
+
 test('el reloj usa el arranque real y corre en agentes y consejeros', async () => {
   assert.equal(formatoReloj(0, 65_000), '01:05');
   assert.equal(formatoReloj(0, 3_599_000), '59:59');
@@ -413,5 +582,7 @@ test('el reloj usa el arranque real y corre en agentes y consejeros', async () =
   const js = await read('../assets/roadmap-encargos.js');
   assert.match(js, /table\.enc\[data-ordenable\] tbody tr\[data-persona\]/);
   assert.match(js, /table\.enc \.enc-reloj/);
+  assert.match(js, /table\.enc \.enc-idle/);
+  assert.match(js, /\}, 60000\)/);
   assert.doesNotMatch(js, /#enc-agentes \.enc-reloj/);
 });

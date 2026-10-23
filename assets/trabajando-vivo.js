@@ -13,9 +13,9 @@ const ESTADOS = new Set(['verde', 'amarillo', 'rojo', 'gris']);
 
 export const ETIQUETA = Object.freeze({
   verde: 'trabajando',
-  amarillo: 'hace poco',
+  amarillo: 'desde HH:MM',
   rojo: '>1 h',
-  gris: 'en espera',
+  gris: 'idle',
 });
 
 const fold = (s) => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z]/g, '');
@@ -116,6 +116,184 @@ export function tarjetaPara(clave, tarjeta, indice) {
   return { ...tarjeta, ...trabajo };
 }
 
+function partesMadrid(ms) {
+  const o = {};
+  for (const p of new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(ms))) o[p.type] = p.value;
+  return o;
+}
+
+/** Última actividad, no el arranque. ultimaActividad, si no el hasta del latido, si no haceS. */
+export function ultimaActividadMs(t, ahora = Date.now()) {
+  if (!t || typeof t !== 'object') return 0;
+  const directa = epochMs(t.ultimaActividad || t.ultima_actividad);
+  if (directa) return directa;
+  const latido = t.latidoConsejero || t.latido;
+  if (latido && typeof latido === 'object') {
+    const h = epochMs(latido.hasta || latido.ultima || latido.updated_at);
+    if (h) return h;
+  }
+  const hace = Number(t.haceS);
+  if (Number.isFinite(hace) && hace >= 0 && Number.isFinite(Number(ahora))) return Number(ahora) - hace * 1000;
+  return 0;
+}
+
+/** «desde HH:MM» en Madrid. Otro día: «desde DD/MM HH:MM». */
+export function formatoDesde(ms, ahora = Date.now()) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return 'desde —';
+  const a = partesMadrid(n);
+  const b = partesMadrid(ahora);
+  const hora = `${a.hour}:${a.minute}`;
+  if (a.year === b.year && a.month === b.month && a.day === b.day) return `desde ${hora}`;
+  return `desde ${a.day}/${a.month} ${hora}`;
+}
+
+/** Tiempo sin actividad: «idle · 12 min» o «idle · 2 h 05 min». Sin marca: «idle». */
+export function formatoIdle(ms, ahora = Date.now()) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return 'idle';
+  let min = Math.floor((Number(ahora) - n) / 60000);
+  if (!Number.isFinite(min) || min < 0) min = 0;
+  if (min < 60) return `idle · ${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `idle · ${h} h ${String(m).padStart(2, '0')} min`;
+}
+
+/** Hay que repetir yokup_presencia trabajando:true cada 60 s. Pasado esto, ya no cuenta. */
+export const PRESENCIA_FRESCURA_S = 90;
+
+/**
+ * Trabajando declarado, aunque admira.live lo pinte gris o amarillo.
+ * Vale el motivo que cita el latido, o la presencia reducida (verified no importa:
+ * un consejero sale declared_surface / verified:0 y aun así está trabajando).
+ */
+export function latidoDeclaradoTrabajando(tarjeta) {
+  if (!tarjeta || typeof tarjeta !== 'object') return false;
+  const hace = Number(tarjeta.haceS);
+  const fresco = Number.isFinite(hace) && hace >= 0 && hace <= PRESENCIA_FRESCURA_S;
+  if (!fresco) return false;
+  if (tarjeta.presenciaTrabajando === true) return true;
+  return /latido\s*[«"“']trabajando[»"”']/i.test(String(tarjeta.motivo || ''));
+}
+
+/** Copia la tarjeta con el latido fresco de /roadmap/presencia. Sin presencia, la tarjeta igual. */
+export function conPresencia(tarjeta, p) {
+  if (!tarjeta || !p || p.mode !== 'trabajando') return tarjeta;
+  const age = Number(p.ageS);
+  if (!Number.isFinite(age) || age < 0 || age > PRESENCIA_FRESCURA_S) return tarjeta;
+  return {
+    ...tarjeta,
+    haceS: age,
+    presenciaTrabajando: true,
+    proyecto: p.proyecto || tarjeta.proyecto || '',
+    focoPresencia: String(p.foco || ''),
+    tareaPresencia: String(p.tarea || ''),
+    encargoPresencia: String(p.encargo || ''),
+    sincePresencia: Number(p.sinceMs) || 0,
+  };
+}
+
+/** Número de encargo o de misión (4 a 6 cifras). «Hoy #25» y «PR #252» no cuentan. */
+export function numeroDeTrabajo(...fuentes) {
+  const lista = fuentes.flat ? fuentes.flat() : fuentes;
+  for (const raw of lista) {
+    const m = String(raw || '').match(/\b(?:encargo|misi[oó]n)\s*#?\s*(\d{4,6})\b/i);
+    if (m) return m[1];
+  }
+  for (const raw of lista) {
+    const s = String(raw || '').trim();
+    if (/^#?\d{4,6}$/.test(s)) return s.replace(/^#/, '');
+  }
+  return '';
+}
+
+/** Título corto. Si abre con «comillas», se queda la frase de dentro. */
+export function tituloCorto(titulo) {
+  const t = resumenTitulo(titulo);
+  const q = t.match(/«([^»]{2,80})»/);
+  return q ? q[1].trim() : t;
+}
+
+/** «desde HH:MM» en Madrid, también si el arranque es de otro día. */
+export function horaDesde(ms) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const a = partesMadrid(n);
+  if (!a.hour) return '';
+  return `desde ${a.hour}:${a.minute}`;
+}
+
+/** Minutos desde el arranque: «27 min» o «2 h 05 min». */
+export function textoDuracion(ms, ahora = Date.now()) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  let min = Math.floor((Number(ahora) - n) / 60000);
+  if (!Number.isFinite(min) || min < 0) min = 0;
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h} h ${String(m).padStart(2, '0')} min`;
+}
+
+/** «#7088 En antena ahora · desde 07:19 · 27 min». Nunca «TAREA» ni «hace poco». */
+export function textoPildora({ numero = '', titulo = '', inicio = 0, ahora = Date.now() } = {}) {
+  const partes = [];
+  const num = String(numero || '').replace(/^#/, '').trim();
+  const corto = tituloCorto(titulo);
+  if (num && corto) partes.push(`#${num} ${corto}`);
+  else if (num) partes.push(`#${num}`);
+  else if (corto) partes.push(corto);
+  const desde = horaDesde(inicio);
+  if (desde) partes.push(desde);
+  const dur = textoDuracion(inicio, ahora);
+  if (dur) partes.push(dur);
+  return partes.join(' · ');
+}
+
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+/** «23-oct-2026 07:19» en Madrid. */
+export function fechaEmpezo(ms) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const a = partesMadrid(n);
+  const mes = MESES[Number(a.month) - 1];
+  if (!mes || !a.day) return '';
+  return `${Number(a.day)}-${mes}-${a.year} ${a.hour}:${a.minute}`;
+}
+
+/** «Empezó: 23-oct-2026 07:19 · Misión #7088: título · Proyecto admira-tv». */
+export function tooltipPildora({ numero = '', titulo = '', inicio = 0, proyecto = '' } = {}) {
+  const partes = [];
+  const cuando = fechaEmpezo(inicio);
+  if (cuando) partes.push(`Empezó: ${cuando}`);
+  const num = String(numero || '').replace(/^#/, '').trim();
+  const full = String(titulo || '').replace(/\s+/g, ' ').trim();
+  if (num && full) partes.push(`Misión #${num}: ${full}`);
+  else if (num) partes.push(`Misión #${num}`);
+  else if (full) partes.push(`Misión: ${full}`);
+  const proy = String(proyecto || '').trim();
+  if (proy) partes.push(`Proyecto ${proy}`);
+  return partes.join(' · ');
+}
+
+/** Trabaja de verdad: misión en curso, latido fresco, o verde con tarea o encargo propios. */
+export function estaOcupado(misionEnCurso, tarjeta) {
+  if (misionEnCurso) return true;
+  if (latidoDeclaradoTrabajando(tarjeta)) return true;
+  if (!tarjeta) return false;
+  return tarjeta.estado === 'verde' && !!(tarjeta.tarea || tarjeta.encargo);
+}
+
 /** Arranque que traiga Trabajando ahora. La última actividad no es un inicio. */
 export function inicioTarea(t) {
   if (!t || typeof t !== 'object') return 0;
@@ -146,8 +324,12 @@ export function formatoReloj(inicioMs, ahoraMs) {
   return `${p(mm)}:${p(ss)}`;
 }
 
-/** Quien tiene una misión in_progress está trabajando, aunque la tarjeta venga gris. */
+/** Misión in_progress, o un latido «trabajando» fresco, pintan verde aunque la tarjeta venga gris. */
 export function estadoVisible(tarjeta, mision) {
+  if (latidoDeclaradoTrabajando(tarjeta)) {
+    const base = tarjeta || {};
+    return { ...base, estado: 'verde', etiqueta: ETIQUETA.verde, motivo: base.motivo || '' };
+  }
   if (mision && (!tarjeta || tarjeta.estado === 'gris')) {
     const base = tarjeta || {};
     return { ...base, estado: 'verde', etiqueta: ETIQUETA.verde, motivo: base.motivo || '' };
@@ -223,9 +405,11 @@ export function tooltipChip({ id = '', numero = '', titulo = '', inicio = 0 } = 
   return partes.join(' · ');
 }
 
-/** Misión en curso gana. Si no, la tarea. Si no, nada. */
-export function chipDe(mision, tarjeta) {
+/** Misión en curso gana. Si no, las abiertas. Si no, la tarea. */
+export function chipDe(mision, tarjeta, abiertas = 0) {
   if (mision) return { tipo: 'mision', texto: '' };
+  const n = Number(abiertas) || 0;
+  if (n > 0) return { tipo: 'abierta', texto: '' };
   if (tarjeta && tarjeta.enTarea) return { tipo: 'tarea', texto: tarjeta.textoTarea || '' };
   return { tipo: '', texto: '' };
 }
@@ -235,15 +419,15 @@ export function contarEnCurso(filas) {
   let misiones = 0;
   let tareas = 0;
   for (const f of filas || []) {
-    const c = chipDe(f && f.mision, f && f.tarjeta);
-    if (c.tipo === 'mision') misiones += 1;
+    const c = chipDe(f && f.mision, f && f.tarjeta, f && f.abiertas);
+    if (c.tipo === 'mision' || c.tipo === 'abierta') misiones += 1;
     else if (c.tipo === 'tarea') tareas += 1;
   }
   return { total: misiones + tareas, misiones, tareas };
 }
 
 /** Mapa clave → tarjeta. Ignora tarjetas sin estado conocido. */
-export function normalizarTarjetas(data) {
+export function normalizarTarjetas(data, ahora = Date.now()) {
   const tarjetas = data && Array.isArray(data.tarjetas) ? data.tarjetas : [];
   const por = {};
   for (const t of tarjetas) {
@@ -252,12 +436,16 @@ export function normalizarTarjetas(data) {
     const estado = String(t.estado || '').trim();
     if (!clave || !ESTADOS.has(estado)) continue;
     const trabajo = trabajoDe(t);
+    const actividad = ultimaActividadMs(t, ahora);
     por[clave] = {
       clave,
       agente: String(t.agente || ''),
       estado,
-      etiqueta: ETIQUETA[estado],
+      actividad,
+      etiqueta: estado === 'amarillo' ? formatoDesde(actividad, ahora) : ETIQUETA[estado],
       motivo: String(t.motivo || '').trim(),
+      haceS: Number.isFinite(Number(t.haceS)) ? Number(t.haceS) : null,
+      proyecto: String(t.proyecto || '').trim(),
       foco: focoActual(t.foco),
       tarea: trabajo.tarea,
       encargo: trabajo.encargo,

@@ -141,3 +141,15 @@ export function agruparMisiones(lista) {
 export function clavesEnCurso(por) {
   return Object.keys(por).filter((k) => por[k].some((m) => m.enCurso));
 }
+
+/** Abiertas de verdad: open, en curso, pendientes, acusadas o bloqueadas. Las cerradas no. */
+const CUENTA_ABIERTOS = new Set(['open', 'pending', 'ack', 'in_progress', 'blocked']);
+
+export function cuentaAbiertos(lista) {
+  return (lista || []).filter((m) => m && CUENTA_ABIERTOS.has(m.estado)).length;
+}
+
+/** Las que no van en curso y aun así cuentan (status open y el resto no cerrado). */
+export function misionesSinCurso(lista) {
+  return (lista || []).filter((m) => m && !m.enCurso && CUENTA_ABIERTOS.has(m.estado));
+}

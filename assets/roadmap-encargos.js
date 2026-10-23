@@ -3,14 +3,17 @@
  * Solo se reordena el <tbody>: la fila Total vive en <tfoot> y se queda abajo.
  * El color de la fila sale de Trabajando ahora (admira.live/api/flota/trabajando),
  * releído cada 15 s. Quien tiene una misión in_progress lleva «en curso» y un título corto.
- * Si no, y está trabajando (verde, con Carlos, o con una tarea abierta), lleva «tarea».
+ * Si no, las misiones open salen como «N misiones» y suben la columna Abiertos:
+ * una tarea verde no las tapa. Si no hay ninguna, y está trabajando, lleva «tarea».
  * El chip no enseña el FLT ni el número: eso, el título entero y la hora de inicio van en el tooltip.
  * Una misión FLT solo sale en su asignado. Quien la tiene en curso no queda en gris.
+ * Un latido «trabajando» fresco (aunque admira.live lo pinte gris por falta de tokens)
+ * cuenta como trabajando. Las misiones status=open no pasan a en curso: eso lo decide Yokup.
  * Un texto HECHO, o un encargo cerrado, no cuenta como tarea.
  * Las dos cuentan en En curso. El detalle sale de Misiones
  * (api.yokup.com/fleet/missions), releídas cada 30 s. */
-import { agruparMisiones, claveFila, clavesEnCurso, consultaMisiones, ESTADO_TEXTO } from './misiones-vivas.js?v=20261022-reloj-1';
-import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, formatoReloj, normalizarTarjetas, resumenTitulo, tarjetaPara, tooltipChip, TRABAJANDO_API } from './trabajando-vivo.js?v=20261023-misiones-1';
+import { agruparMisiones, claveFila, clavesEnCurso, consultaMisiones, cuentaAbiertos, ESTADO_TEXTO, misionesSinCurso } from './misiones-vivas.js?v=20261023-pildora-1';
+import { chipDe, claveTrabajando, conPresencia, contarEnCurso, duenoPorMision, estaOcupado, estadoVisible, formatoDesde, formatoIdle, formatoReloj, normalizarTarjetas, numeroDeTrabajo, resumenTitulo, tarjetaPara, textoPildora, tooltipChip, tooltipPildora, TRABAJANDO_API } from './trabajando-vivo.js?v=20261023-pildora-1';
 
 (function () {
   'use strict';
@@ -27,6 +30,16 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
   var aviso = document.getElementById('enc-vivo');
   var avisoTrab = document.getElementById('enc-trab');
   var ESTADOS_FILA = ['verde', 'amarillo', 'rojo', 'gris'];
+
+  function numeroCelda(td) {
+    if (!td) return '';
+    var t = '';
+    for (var i = 0; i < td.childNodes.length; i++) {
+      if (td.childNodes[i].nodeType === 3) t += td.childNodes[i].textContent;
+    }
+    t = t.replace(/\s+/g, ' ').trim();
+    return t || td.textContent.trim();
+  }
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -95,8 +108,8 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
         var num = th.getAttribute('data-t') === 'n';
         var tb = tabla.tBodies[0];
         Array.prototype.slice.call(tb.rows).sort(function (a, b2) {
-          var x = i === 0 ? (a.getAttribute('data-orden') || a.cells[i].textContent.trim()) : a.cells[i].textContent.trim();
-          var y = i === 0 ? (b2.getAttribute('data-orden') || b2.cells[i].textContent.trim()) : b2.cells[i].textContent.trim();
+          var x = i === 0 ? (a.getAttribute('data-orden') || a.cells[i].textContent.trim()) : numeroCelda(a.cells[i]);
+          var y = i === 0 ? (b2.getAttribute('data-orden') || b2.cells[i].textContent.trim()) : numeroCelda(b2.cells[i]);
           var r = num ? (Number(x) - Number(y)) : x.localeCompare(y, 'es');
           if (r === 0) r = (a.getAttribute('data-orden') || '').localeCompare(b2.getAttribute('data-orden') || '', 'es');
           return asc ? r : -r;
@@ -198,26 +211,53 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     padre.appendChild(t);
   }
 
-  function ponerChip(tr, tipo, texto, desde, tooltip) {
+  function ponerChip(tr, tipo, texto, desde, nAbiertas, tooltip, meta) {
     quitarChips(tr);
     var td = tr.cells[0];
-    if (!td || (tipo !== 'mision' && tipo !== 'tarea')) return;
+    if (!td || !texto) return;
     var s = document.createElement('span');
-    s.className = tipo === 'mision' ? 'enc-curso' : 'enc-tarea';
-    var b = document.createElement('b');
-    b.textContent = tipo === 'mision' ? 'en curso' : 'tarea';
-    s.appendChild(b);
-    if (texto) {
-      s.appendChild(document.createTextNode(' · '));
-      var n = document.createElement('span');
-      n.className = 'enc-chip-txt';
-      n.textContent = texto;
-      s.appendChild(n);
-    }
-    if (desde) anadirReloj(s, desde);
-    s.title = tooltip || ((tipo === 'mision' ? 'Misión' : 'Tarea') + (texto ? ' · ' + texto : ''));
+    s.className = 'enc-pildora ' + (tipo === 'tarea' ? 'enc-tarea' : 'enc-curso');
+    if (tipo === 'abierta') s.setAttribute('data-tipo', 'abierta');
+    if (nAbiertas) s.setAttribute('data-abiertas', String(nAbiertas));
+    var datos = meta || {};
+    if (desde) s.setAttribute('data-inicio', String(desde));
+    if (datos.numero) s.setAttribute('data-numero', datos.numero);
+    if (datos.titulo) s.setAttribute('data-titulo', datos.titulo);
+    if (datos.proyecto) s.setAttribute('data-proyecto', datos.proyecto);
+    s.textContent = texto;
+    s.title = tooltip || texto;
+    s.setAttribute('aria-label', tooltip || texto);
     td.appendChild(s);
     componerTitulo(tr);
+  }
+
+  function trabajoDeFila(tarjeta, activa) {
+    var titulo = '';
+    var numero = '';
+    var proyecto = (tarjeta && tarjeta.proyecto) || '';
+    var inicio = 0;
+    if (activa) {
+      titulo = String(activa.titulo || '');
+      numero = numeroDeTrabajo(activa.numero, titulo, tarjeta && tarjeta.encargo);
+      inicio = Number(activa.inicio) || 0;
+    }
+    if (tarjeta && tarjeta.presenciaTrabajando) {
+      var foco = tarjeta.focoPresencia || '';
+      var tareaP = tarjeta.tareaPresencia || '';
+      var enc = tarjeta.encargoPresencia || '';
+      if (foco || tareaP || enc) {
+        titulo = [foco, tareaP].filter(Boolean).join(' · ') || titulo;
+        numero = numeroDeTrabajo(enc, foco, tareaP, titulo) || numero;
+        if (!inicio) inicio = Number(tarjeta.sincePresencia) || 0;
+      }
+    }
+    if (!titulo && tarjeta && (tarjeta.textoTarea || tarjeta.tarea || tarjeta.encargo)) {
+      titulo = String(tarjeta.textoTarea || tarjeta.tarea || '');
+      numero = numero || numeroDeTrabajo(tarjeta.encargo, tarjeta.tarea, titulo);
+      inicio = inicio || Number(tarjeta.inicio) || 0;
+    }
+    if (!inicio && tarjeta) inicio = Number(tarjeta.inicio) || Number(tarjeta.actividad) || 0;
+    return { titulo: titulo, numero: numero, proyecto: proyecto, inicio: inicio };
   }
 
   function textoEnCurso(cuenta) {
@@ -256,6 +296,54 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     return hallada && hallada.titulo ? hallada.titulo : texto;
   }
 
+  function quitarIdle(tr) {
+    var td = tr.cells[tr.cells.length - 1];
+    if (!td) return;
+    var prev = td.querySelector('.enc-idle');
+    if (prev) prev.remove();
+  }
+
+  function ponerIdle(tr, ms) {
+    quitarIdle(tr);
+    var td = tr.cells[tr.cells.length - 1];
+    if (!td) return;
+    var s = document.createElement('span');
+    s.className = 'enc-idle';
+    if (ms) {
+      s.setAttribute('data-desde', String(ms));
+      s.title = formatoDesde(ms, Date.now());
+    }
+    s.textContent = formatoIdle(ms, Date.now());
+    td.appendChild(s);
+  }
+
+  function textoRefs(lista) {
+    return lista.map(function (m) { return String(m.numero || m.id || '').trim(); }).filter(Boolean).join(' · ');
+  }
+
+  function aplicarAbiertos(tr, lista) {
+    var td = tr.cells[1];
+    if (!td) return;
+    if (!td.hasAttribute('data-base')) td.setAttribute('data-base', td.textContent.trim());
+    var base = Number(td.getAttribute('data-base'));
+    if (!Number.isFinite(base) || base < 0) base = 0;
+    td.textContent = String(Math.max(base, cuentaAbiertos(lista)));
+  }
+
+  function refrescarTotales() {
+    Array.prototype.forEach.call(document.querySelectorAll('table.enc[data-ordenable]'), function (tabla) {
+      var tb = tabla.tBodies[0];
+      var pie = tabla.tFoot && tabla.tFoot.rows[0];
+      if (!tb || !pie || !pie.cells[1]) return;
+      var suma = 0;
+      Array.prototype.forEach.call(tb.rows, function (tr) {
+        var n = Number(tr.cells[1] && tr.cells[1].textContent);
+        if (Number.isFinite(n)) suma += n;
+      });
+      pie.cells[1].textContent = String(suma);
+    });
+  }
+
   function pintarFilas() {
     var indice = duenoPorMision(vivas || {});
     var curso = {};
@@ -270,9 +358,15 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
       var clave = claveFila(id);
       var base = trab && trab[claveTrabajando(id)];
       var tarjeta = tarjetaPara(clave, base, indice);
+      tarjeta = conPresencia(tarjeta, presencia && presencia[clave]);
+      var lista = (vivas && vivas[clave]) || [];
+      var sinCurso = misionesSinCurso(lista);
       var activa = misionActiva(clave);
       var mision = !!activa;
+      var ocupado = estaOcupado(mision, tarjeta);
+      if (vivas) aplicarAbiertos(tr, lista);
       var vis = estadoVisible(tarjeta, mision);
+      if (vis) vis = Object.assign({}, vis, { etiqueta: '' });
       if (vis) {
         ponerEstado(tr, vis);
         if (n[vis.estado] != null) n[vis.estado]++;
@@ -281,33 +375,28 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
         tr.classList.remove('enc-activo');
         componerTitulo(tr);
       }
-      var chip = chipDe(mision, tarjeta);
-      var tituloChip = chip.tipo === 'mision' && activa ? String(activa.titulo || '') : tituloDeTarea(chip.texto);
-      var texto = resumenTitulo(tituloChip);
-      var desde = 0;
-      if (chip.tipo === 'mision' && activa) desde = Number(activa.inicio) || 0;
-      else if (chip.tipo === 'tarea' && tarjeta) desde = Number(tarjeta.inicio) || 0;
+      var chip = chipDe(mision, tarjeta, sinCurso.length);
+      var trabajo = trabajoDeFila(tarjeta, chip.tipo === 'mision' ? activa : null);
+      var tituloChip = trabajo.titulo || (chip.tipo === 'tarea' ? tituloDeTarea(chip.texto) : '');
+      if (tituloChip && !trabajo.titulo) trabajo.titulo = tituloChip;
+      var resumenTituloUsado = resumenTitulo(tituloChip);
+      void resumenTituloUsado;
+      var desde = Number(trabajo.inicio) || 0;
       if (chip.tipo && !desde) {
-        var marca = (chip.tipo === 'mision' ? 'm:' : 't:') + (activa && activa.id ? activa.id : clave + ':' + (chip.texto || tituloChip || 'trabajo'));
+        var marca = (chip.tipo === 'mision' ? 'm:' : chip.tipo === 'abierta' ? 'a:' : 't:') + (activa && activa.id ? activa.id : clave + ':' + (chip.texto || tituloChip || 'trabajo'));
         desde = Number(guardados[marca]) || Date.now();
         persistir[marca] = desde;
+        trabajo.inicio = desde;
       }
-      var numeroTip = chip.tipo === 'mision' && activa ? String(activa.numero || '') : '';
-      if (chip.tipo === 'tarea') {
-        var crudo = String(chip.texto || '');
-        var halladoNum = crudo.match(/\bencargos?\s+#?\d+\b|#\d+\b/i);
-        if (halladoNum) numeroTip = halladoNum[0].replace(/\s+/g, ' ');
-        else if (tarjeta && tarjeta.encargo && !/^FLT-\d+$/i.test(String(tarjeta.encargo))) numeroTip = String(tarjeta.encargo);
-      }
-      var tip = chip.tipo ? tooltipChip({
-        id: chip.tipo === 'mision' && activa ? activa.id : (tarjeta && tarjeta.encargo) || '',
-        numero: numeroTip,
-        titulo: tituloChip,
-        inicio: desde,
-      }) : '';
-      if (vivas || trab) ponerChip(tr, chip.tipo, texto, desde, tip);
-      entradas.push({ mision: mision, tarjeta: tarjeta });
+      var texto = textoPildora({ numero: trabajo.numero, titulo: trabajo.titulo, inicio: trabajo.inicio, ahora: Date.now() });
+      var tip = tooltipPildora({ numero: trabajo.numero, titulo: trabajo.titulo, inicio: trabajo.inicio, proyecto: trabajo.proyecto });
+      tooltipChip({ id: activa && activa.id, numero: trabajo.numero, titulo: trabajo.titulo, inicio: trabajo.inicio });
+      if (vivas || trab || presencia) ponerChip(tr, chip.tipo || (texto ? 'abierta' : ''), texto, trabajo.inicio, sinCurso.length, tip, trabajo);
+      if ((vivas || trab) && !ocupado && !texto) ponerIdle(tr, tarjeta && tarjeta.actividad);
+      else quitarIdle(tr);
+      entradas.push({ mision: mision, tarjeta: tarjeta, abiertas: sinCurso.length });
     });
+    if (vivas) refrescarTotales();
     if (vivas || trab) guardarRelojes(persistir);
     var cuenta = contarEnCurso(entradas);
     if (trab) {
@@ -364,7 +453,18 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
   }
 
   var trab = null;
+  var presencia = null;
   var leyendoTrab = false;
+  var leyendoPres = false;
+  function leerPresencia() {
+    if (leyendoPres || typeof fetch !== 'function') return;
+    leyendoPres = true;
+    fetch('/roadmap/presencia', { cache: 'no-store', credentials: 'same-origin', headers: { accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('presencia ' + r.status); return r.json(); })
+      .then(function (d) { presencia = (d && d.por) || {}; pintarFilas(); })
+      .catch(function () { /* Trabajando ahora sigue pintando la fila */ })
+      .then(function () { leyendoPres = false; });
+  }
   function aplicarTrabajando(por) {
     trab = por;
     falloTrab = false;
@@ -387,12 +487,15 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
 
   leer();
   leerTrabajando();
+  leerPresencia();
   setInterval(function () { if (!document.hidden) leer(); }, 30000);
   setInterval(function () { if (!document.hidden) leerTrabajando(); }, 15000);
+  setInterval(function () { if (!document.hidden) leerPresencia(); }, 15000);
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) return;
     leer();
     leerTrabajando();
+    leerPresencia();
   });
   setInterval(function () {
     var ahora = Date.now();
@@ -400,4 +503,24 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
       el.textContent = '⏱ ' + formatoReloj(Number(el.getAttribute('data-desde')), ahora);
     });
   }, 1000);
+  setInterval(function () {
+    var ahora = Date.now();
+    Array.prototype.forEach.call(document.querySelectorAll('table.enc .enc-idle'), function (el) {
+      el.textContent = formatoIdle(Number(el.getAttribute('data-desde')), ahora);
+      var ms = Number(el.getAttribute('data-desde'));
+      if (ms) el.title = formatoDesde(ms, ahora);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('table.enc .enc-pildora'), function (el) {
+      var inicio = Number(el.getAttribute('data-inicio'));
+      var datos = {
+        numero: el.getAttribute('data-numero') || '',
+        titulo: el.getAttribute('data-titulo') || '',
+        inicio: inicio,
+        proyecto: el.getAttribute('data-proyecto') || '',
+        ahora: ahora,
+      };
+      el.textContent = textoPildora(datos);
+      el.title = tooltipPildora(datos);
+    });
+  }, 60000);
 })();
