@@ -64,7 +64,7 @@ test('con sesión pinta la semilla con el Total fijo en tfoot, cache privada y n
   assert.match(body.slice(body.indexOf('id="enc-consejeros"'), body.indexOf('id="enc-agentes"')), /Datos del <b>19-oct-2026 a las 08:01<\/b>/);
   assert.doesNotMatch(body.slice(body.indexOf('id="enc-agentes"')), /Datos del/);
   assert.doesNotMatch(body, /<h1>Encargos abiertos por persona<\/h1>/);
-  assert.match(body, /<title>Misiones · RoadMap/);
+  assert.match(body, /<title>Misiones · Hoja de ruta/);
   assert.match(body, />Misiones<\/a>/);
   const agentes = body.match(/id="enc-agentes"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/)[1];
   const consejeros = body.match(/id="enc-consejeros"[\s\S]*?<tbody>([\s\S]*?)<\/tbody>/)[1];
@@ -85,7 +85,7 @@ test('con sesión pinta la semilla con el Total fijo en tfoot, cache privada y n
   assert.doesNotMatch(body, /<button type="button">Persona<\/button>/);
   assert.doesNotMatch(body, /id="enc-h-agentes"|id="enc-h-consejeros"/);
   for (const col of ['Abiertos', 'Hoy', 'Ayer', 'Anteriores']) assert.match(body, new RegExp(`<button type="button">${col}</button>`));
-  assert.match(body, /<a href="\/roadmap" aria-current="page" data-yk-interno>RoadMap<\/a>/, 'cuelga de RoadMap en la cabecera');
+  assert.match(body, /<a href="\/roadmap" aria-current="page" data-yk-interno>Hoja de ruta<\/a>/, 'cuelga de la hoja de ruta en la cabecera');
 });
 
 test('un parte válido en KV manda sobre la semilla; uno roto se ignora', async () => {

@@ -34,7 +34,7 @@ async function setupAuth(){
 test('RoadMap es entrada interna y la página arranca con el reparto y la visualización', () => {
   const nav = proyectos.match(/<nav aria-label="Navegación del grupo">[\s\S]*?<\/nav>/)[0];
   // RoadMap pasa a data-yk-interno (10-10-2026, #5498), como Organigrama y Presentaciones.
-  assert.match(nav, /<a href="\/roadmap"[^>]*data-yk-interno[^>]*>RoadMap<\/a>/);
+  assert.match(nav, /<a href="\/roadmap"[^>]*data-yk-interno[^>]*>Hoja de ruta<\/a>/);
   assert.match(html, /id="reparto-finde"/);
   assert.match(html, /<h1>RoadMap<\/h1>\s*<section class="rm-show"/);
   assert.doesNotMatch(html, /<p class="(?:aviso|lede)"/);

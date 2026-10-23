@@ -100,7 +100,7 @@ La página conserva SU cabecera y el armazón inserta los iconos en su sitio:
 <header class="yk-head" data-yk-head>
   <a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a>  <!-- único enlace a la home -->
   <nav aria-label="Navegación del grupo">
-    <a href="/analitics" data-yk-admin>Analitics</a><a href="/webmaster">Webmaster</a><a href="/proyectos/">Proyectos</a>
+    <a href="/analitics" data-yk-admin>Analítica</a><a href="/webmaster">Webmaster</a><a href="/proyectos/">Proyectos</a>
     <a href="/usuarios" data-yk-admin data-yk-rail-only>Usuarios</a>      <!-- data-yk-rail-only: sólo en ☰ -->
     …
   </nav>
