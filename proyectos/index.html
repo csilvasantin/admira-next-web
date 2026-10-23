@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Proyectos · AdmiraNeXT</title>
 <meta name="description" content="Proyectos de AdmiraNeXT: censo vivo con número, xpacio, responsable y puertas /help y /mcp, y cómo se declara el principal del día.">
-<meta name="admiranext-version" content="v.23.10.2026.r1.08:05">
+<meta name="admiranext-version" content="v.23.10.2026.r2.08:24">
 <link rel="icon" href="/favicon.ico">
 <style>
 :root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -66,6 +66,20 @@ code{font-family:var(--mono);font-size:.92em}
 .censo-cuerpo .panel{margin:12px 0}
 #censo.panel{margin-top:8px}
 @media(max-width:640px){.censo-nota>summary{row-gap:4px}}
+.btn-eliminar,.btn-restaurar,dialog button{border:1px solid var(--line);background:#121c2c;color:var(--ink);padding:6px 10px;border-radius:8px;font:700 11px var(--mono);cursor:pointer}
+.btn-eliminar{color:var(--warn);border-color:#5a4a26}
+.btn-eliminar:hover,.btn-restaurar:hover,dialog button:hover{border-color:var(--cyan)}
+.btn-eliminar:disabled{opacity:.45;cursor:not-allowed}
+#col-eliminar[hidden]{display:none}
+.papelera-item{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.papelera-item p{margin:0}
+#papelera summary{cursor:pointer;font-weight:700}
+#papelera[hidden]{display:none}
+dialog{border:1px solid var(--line);background:#101724;color:var(--ink);border-radius:16px;padding:18px;max-width:440px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h2{margin:0 0 8px}
+dialog input{width:100%;margin:8px 0;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#09111d;color:var(--ink);font:600 13px var(--mono)}
+dialog menu{display:flex;gap:8px;justify-content:flex-end;padding:0;margin:12px 0 0}
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
@@ -94,7 +108,7 @@ code{font-family:var(--mono);font-size:.92em}
       <span class="censo-modelo" data-en="Model ⓘ">Modelo ⓘ</span>
     </summary>
     <div class="censo-cuerpo">
-      <p class="lede">El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.</p>
+      <p class="lede" data-en="The live census lives in Yokup. Here you see the model (what a project is, which xpacio, how it comes in) and the current inventory. An admin can move a project to the trash for 7 days; then the copy is purged and it does not return to the census. Click a census header to sort.">El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual. Un admin puede mandar un proyecto a la papelera 7 días; después se purga la copia y no vuelve al censo. Pulsa una cabecera del censo para ordenar.</p>
       <section class="panel warn">
         <h2>El censo de la flota está en esta página</h2>
         <p class="meta">El censo se lee con <code>GET https://api.yokup.com/projects</code>. admira.biz es DooH y Retail Media (antes clearchannel.tv). admira.app es instalaciones y mantenimiento. Las misiones se ven en <a href="https://www.yokup.com/misiones">/misiones</a> y el principal del día en <a href="https://www.yokup.com/equipo">/equipo</a>.</p>
@@ -109,7 +123,7 @@ code{font-family:var(--mono);font-size:.92em}
           </article>
           <article class="card">
             <h3>Proyecto</h3>
-            <p class="meta">Obligatorios: <code>id</code> (slug), nombre, xpacio (AdmiraNeXT o Yokup), responsable. Puertas norma 24: <code>/help</code> (humanos) y <code>/mcp</code> (agentes). No se borra el censo: se añade o se retitula.</p>
+            <p class="meta" data-en="Required: &lt;code&gt;id&lt;/code&gt; (slug), name, xpacio (AdmiraNeXT or Yokup), owner. Rule 24 doors: &lt;code&gt;/help&lt;/code&gt; (humans) and &lt;code&gt;/mcp&lt;/code&gt; (agents). Yokup has no DELETE: an admin hides it for 7 days in the trash, with a full copy, and when that ends the copy is purged so it does not return.">Obligatorios: <code>id</code> (slug), nombre, xpacio (AdmiraNeXT o Yokup), responsable. Puertas norma 24: <code>/help</code> (humanos) y <code>/mcp</code> (agentes). Yokup no admite DELETE: un admin lo oculta 7 días en la papelera, con copia, y al vencer se purga la copia para que no vuelva.</p>
           </article>
         </div>
       </section>
@@ -124,11 +138,29 @@ code{font-family:var(--mono);font-size:.92em}
     <p class="meta" id="status">Leyendo api.yokup.com/projects</p>
     <div class="hoja">
       <table id="censo-tabla">
-        <thead><tr><th data-col="num" aria-sort="none" title="Número de proyecto: único en todo el ecosistema Admira"><button type="button">Nº</button></th><th data-col="id" aria-sort="none"><button type="button">Id</button></th><th data-col="nombre" aria-sort="none"><button type="button">Nombre</button></th><th data-col="xpacio" aria-sort="none"><button type="button">Xpacio</button></th><th data-col="responsable" aria-sort="none"><button type="button">Responsable</button></th><th data-col="help" aria-sort="none"><button type="button">/help</button></th><th data-col="mcp" aria-sort="none"><button type="button">/mcp</button></th></tr></thead>
+        <thead><tr><th data-col="num" aria-sort="none" title="Número de proyecto: único en todo el ecosistema Admira"><button type="button">Nº</button></th><th data-col="id" aria-sort="none"><button type="button">Id</button></th><th data-col="nombre" aria-sort="none"><button type="button">Nombre</button></th><th data-col="xpacio" aria-sort="none"><button type="button">Xpacio</button></th><th data-col="responsable" aria-sort="none"><button type="button">Responsable</button></th><th data-col="help" aria-sort="none"><button type="button">/help</button></th><th data-col="mcp" aria-sort="none"><button type="button">/mcp</button></th><th id="col-eliminar" hidden data-en="Delete">Eliminar</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
   </section>
+  <details class="panel" id="papelera" hidden>
+    <summary><span data-en="Trash">Papelera</span> (<b id="papelera-n">0</b>)</summary>
+    <p class="meta" id="papelera-vacio" data-en="Empty. A deleted project stays here for 7 days, with its copy, and can be restored.">Vacía. Un proyecto eliminado permanece aquí 7 días, con su copia, y se puede restaurar.</p>
+    <div id="papelera-lista"></div>
+  </details>
+  <dialog id="dlg-eliminar">
+    <form id="frm-eliminar">
+      <h2 data-en="Move to trash">Enviar a la papelera</h2>
+      <p class="meta"><span data-en="Type the slug">Escribe el slug</span> <code id="dlg-slug"></code> <span data-en="to confirm. A full copy is kept for 7 days and the census stops counting it.">para confirmar. Se guarda una copia 7 días y el censo deja de contarlo.</span></p>
+      <label class="meta" for="dlg-confirm" data-en="Slug">Slug</label>
+      <input id="dlg-confirm" name="confirm" autocomplete="off" spellcheck="false" required>
+      <p class="meta" id="dlg-error" role="alert"></p>
+      <menu>
+        <button type="button" id="dlg-cancel" data-en="Cancel">Cancelar</button>
+        <button type="submit" id="dlg-ok" class="btn-eliminar" disabled data-en="Delete">Eliminar</button>
+      </menu>
+    </form>
+  </dialog>
   <div class="yk-slots" hidden>
     <div data-yk-slot="right" data-yk-label="Ir a"><a href="#modelo">Modelo canónico</a><a href="#censo">Censo vivo</a></div>
     <div data-yk-slot="right" data-yk-label="Acciones"><button type="button" data-pr-action="recargar">↻ Volver a leer el censo</button></div>
@@ -184,7 +216,7 @@ function numeroDe(p){
   }
   return null;
 }
-let censo = [], orden = { col: null, dir: 1 };
+let censo = [], orden = { col: null, dir: 1 }, papelera = { admin: false, csrf: '', hidden: new Set(), items: [] };
 const COLS = {
   num: f => f.num, id: f => f.id, nombre: f => f.nombre, xpacio: f => f.xpacio,
   responsable: f => f.responsable, help: f => f.help, mcp: f => f.mcp,
@@ -196,9 +228,40 @@ function comparar(a, b){
   const c = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), 'es', { sensitivity: 'base', numeric: true });
   return (c || a.pos - b.pos) * orden.dir;
 }
+function cuentaAtras(ms){
+  const min = Math.max(0, Math.floor(Number(ms) / 60000));
+  const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
+  if (d > 0) return 'se purga en ' + d + ' d ' + h + ' h';
+  if (h > 0) return 'se purga en ' + h + ' h ' + m + ' min';
+  return 'se purga en ' + Math.max(1, m) + ' min';
+}
+function aplicarPapelera(estado){
+  if (!estado) return;
+  papelera.admin = !!estado.admin;
+  papelera.csrf = estado.csrf || papelera.csrf;
+  papelera.hidden = new Set(estado.hidden || []);
+  papelera.items = estado.papelera || [];
+  const col = document.getElementById('col-eliminar');
+  if (col) col.hidden = !papelera.admin;
+  const box = document.getElementById('papelera');
+  if (box) box.hidden = !papelera.admin;
+  const n = papelera.items.length;
+  const num = document.getElementById('papelera-n');
+  if (num) num.textContent = String(n);
+  const vacio = document.getElementById('papelera-vacio');
+  if (vacio) vacio.hidden = n > 0;
+  const lista = document.getElementById('papelera-lista');
+  if (lista) lista.innerHTML = papelera.items.map(item => `<div class="papelera-item">
+      <p><strong>${esc(item.name || item.id)}</strong> <code>${esc(item.id)}</code><br><span class="meta">${esc(cuentaAtras(item.remaining_ms))}</span></p>
+      <button type="button" class="btn-restaurar" data-restaurar="${esc(item.id)}">Restaurar</button>
+    </div>`).join('');
+}
 function pintar(){
-  const lista = orden.col ? censo.slice().sort(comparar) : censo;
-  document.getElementById('rows').innerHTML = lista.map(f => `<tr>
+  const lista = (orden.col ? censo.slice().sort(comparar) : censo).filter(f => !papelera.hidden.has(f.id));
+  const celda = papelera.admin
+    ? (f => `<td><button type="button" class="btn-eliminar" data-eliminar="${esc(f.id)}">Eliminar</button></td>`)
+    : (() => '');
+  document.getElementById('rows').innerHTML = lista.map(f => `<tr data-id="${esc(f.id)}">
         <td class="num">${f.num === null ? '—' : esc(f.num)}</td>
         <td><code>${esc(f.id)}</code></td>
         <td><strong>${esc(f.nombre)}</strong><span class="meta">${esc(f.web)}</span></td>
@@ -206,10 +269,14 @@ function pintar(){
         <td>${esc(f.responsable)}</td>
         <td>${f.help ? `<a href="${esc(f.help)}">/help</a>` : '—'}</td>
         <td>${f.mcp ? `<a href="${esc(f.mcp)}">/mcp</a>` : '—'}</td>
+        ${celda(f)}
       </tr>`).join('');
   document.querySelectorAll('#censo-tabla th[data-col]').forEach(th => {
     th.setAttribute('aria-sort', th.dataset.col === orden.col ? (orden.dir > 0 ? 'ascending' : 'descending') : 'none');
   });
+  const next = lista.filter(f => f.xpacio === 'AdmiraNeXT').length;
+  document.getElementById('counts').innerHTML =
+    `<span><b>${lista.length}</b> proyectos</span><span class="xp next"><b>${next}</b> AdmiraNeXT</span><span class="xp yok"><b>${lista.length - next}</b> Yokup</span>`;
 }
 document.querySelector('#censo-tabla thead').addEventListener('click', e => {
   const th = e.target.closest && e.target.closest('th[data-col]');
@@ -217,18 +284,71 @@ document.querySelector('#censo-tabla thead').addEventListener('click', e => {
   orden = orden.col === th.dataset.col ? { col: th.dataset.col, dir: -orden.dir } : { col: th.dataset.col, dir: 1 };
   pintar();
 });
+function abrirEliminar(id){
+  const dlg = document.getElementById('dlg-eliminar');
+  document.getElementById('dlg-slug').textContent = id;
+  const input = document.getElementById('dlg-confirm');
+  input.value = '';
+  document.getElementById('dlg-error').textContent = '';
+  document.getElementById('dlg-ok').disabled = true;
+  dlg.dataset.id = id;
+  if (dlg.showModal) dlg.showModal();
+  input.focus();
+}
+async function papeleraAccion(action, id, confirm){
+  const r = await fetch('/api/censo-papelera', {
+    method: 'POST', credentials: 'same-origin',
+    headers: { 'content-type': 'application/json', Accept: 'application/json', 'X-Admira-CSRF': papelera.csrf },
+    body: JSON.stringify({ action, id, confirm }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || !d.ok) throw new Error(d.error || 'No se pudo completar');
+  aplicarPapelera(d);
+  pintar();
+  if (action === 'delete') document.getElementById('papelera').open = true;
+}
+document.getElementById('rows').addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-eliminar]');
+  if (b) abrirEliminar(b.getAttribute('data-eliminar'));
+});
+document.getElementById('papelera-lista').addEventListener('click', async e => {
+  const b = e.target.closest && e.target.closest('[data-restaurar]');
+  if (!b) return;
+  b.disabled = true;
+  try { await papeleraAccion('restore', b.getAttribute('data-restaurar')); }
+  catch (err) { b.disabled = false; document.getElementById('status').textContent = err.message; }
+});
+document.getElementById('dlg-confirm').addEventListener('input', e => {
+  document.getElementById('dlg-ok').disabled = e.target.value !== document.getElementById('dlg-eliminar').dataset.id;
+});
+document.getElementById('dlg-cancel').addEventListener('click', () => document.getElementById('dlg-eliminar').close());
+document.getElementById('frm-eliminar').addEventListener('submit', async e => {
+  e.preventDefault();
+  const dlg = document.getElementById('dlg-eliminar');
+  const id = dlg.dataset.id;
+  const confirm = document.getElementById('dlg-confirm').value;
+  const ok = document.getElementById('dlg-ok');
+  ok.disabled = true;
+  try {
+    await papeleraAccion('delete', id, confirm);
+    dlg.close();
+  } catch (err) {
+    document.getElementById('dlg-error').textContent = err.message;
+    ok.disabled = confirm !== id;
+  }
+});
 (async () => {
   const status = document.getElementById('status');
     try {
-    const r = await fetch('https://api.yokup.com/projects', { headers: { Accept: 'application/json' } });
+    const [r, pap] = await Promise.all([
+      fetch('https://api.yokup.com/projects', { headers: { Accept: 'application/json' } }),
+      fetch('/api/censo-papelera', { credentials: 'same-origin', headers: { Accept: 'application/json' } }).then(x => x.ok ? x.json() : null).catch(() => null),
+    ]);
     if (!r.ok) throw new Error('Yokup HTTP ' + r.status);
     const d = await r.json();
     const items = d.projects || [];
-    const next = items.filter(p => xpacioDe(p) === 'AdmiraNeXT').length;
-    const yok = items.length - next;
-    document.getElementById('counts').innerHTML =
-      `<span><b>${items.length}</b> proyectos</span><span class="xp next"><b>${next}</b> AdmiraNeXT</span><span class="xp yok"><b>${yok}</b> Yokup</span>`;
-    status.textContent = 'Censo del ' + (d.day || 'día') + ' · no se borra nada desde aquí.';
+    aplicarPapelera(pap);
+    status.textContent = 'Censo del ' + (d.day || 'día') + ' · sin los que están en la papelera.';
     censo = items.map((p, pos) => ({
       pos, num: numeroDe(p), id: String(p.id || ''), nombre: String(p.name || ''), web: String(p.web || ''),
       xpacio: xpacioDe(p), responsable: p.primary_responsible || p.owner || '—',

@@ -71,7 +71,7 @@ test('el texto de /proyectos cabe en una barra cerrada y no pierde el modelo', (
   assert.ok(nota > 0 && cierre > nota && censo > cierre, 'el censo queda debajo de la barra, no entre el texto');
   const cuerpo = page.slice(nota, cierre);
   for (const frase of [
-    'El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.',
+    'El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual. Un admin puede mandar un proyecto a la papelera 7 días; después se purga la copia y no vuelve al censo. Pulsa una cabecera del censo para ordenar.',
     'El censo de la flota está en esta página',
     'GET https://api.yokup.com/projects',
     'admira.biz es DooH y Retail Media (antes clearchannel.tv)',
@@ -85,7 +85,14 @@ test('el texto de /proyectos cabe en una barra cerrada y no pierde el modelo', (
     'POST /projects/principal',
     'id="modelo"',
     'Puertas norma 24',
-  ]) assert.ok(cuerpo.includes(frase), frase);
+    'Yokup no admite DELETE',
+    'id="papelera"',
+    'id="dlg-eliminar"',
+    'id="col-eliminar"',
+  ]) assert.ok(cuerpo.includes(frase) || page.includes(frase), frase);
+  assert.doesNotMatch(page, /sin borrar nada/);
+  assert.doesNotMatch(page, /No se borra el censo/);
+  assert.doesNotMatch(page, /no se borra nada desde aquí/);
 });
 
 test('la página /proyectos y /help nombran el hueco de yokup.com/proyectos', () => {
