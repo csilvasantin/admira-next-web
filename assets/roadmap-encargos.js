@@ -2,14 +2,15 @@
  * y abrir el detalle de la persona al pulsar su fila.
  * Solo se reordena el <tbody>: la fila Total vive en <tfoot> y se queda abajo.
  * El color de la fila sale de Trabajando ahora (admira.live/api/flota/trabajando),
- * releído cada 15 s. Quien tiene una misión in_progress lleva «en curso · misión».
+ * releído cada 15 s. Quien tiene una misión in_progress lleva «en curso» y un título corto.
  * Si no, y está trabajando (verde, con Carlos, o con una tarea abierta), lleva «tarea».
+ * El chip no enseña el FLT ni el número: eso, el título entero y la hora de inicio van en el tooltip.
  * Una misión FLT solo sale en su asignado. Quien la tiene en curso no queda en gris.
  * Un texto HECHO, o un encargo cerrado, no cuenta como tarea.
  * Las dos cuentan en En curso. El detalle sale de Misiones
  * (api.yokup.com/fleet/missions), releídas cada 30 s. */
 import { agruparMisiones, claveFila, clavesEnCurso, consultaMisiones, ESTADO_TEXTO } from './misiones-vivas.js?v=20261022-reloj-1';
-import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, formatoReloj, normalizarTarjetas, tarjetaPara, TRABAJANDO_API } from './trabajando-vivo.js?v=20261022-reloj-1';
+import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, formatoReloj, normalizarTarjetas, resumenTitulo, tarjetaPara, tooltipChip, TRABAJANDO_API } from './trabajando-vivo.js?v=20261023-misiones-1';
 
 (function () {
   'use strict';
@@ -46,7 +47,7 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     var id = tr.getAttribute('data-persona');
     var nombre = tr.getAttribute('data-orden') || id;
     var lista = vivas ? (vivas[claveFila(id)] || []) : (datos[id] || []);
-    if (titulo) titulo.textContent = (vivas ? 'Misiones de ' : 'Encargos de ') + nombre;
+    if (titulo) titulo.textContent = 'Misiones de ' + nombre;
     if (cuerpo) {
       cuerpo.innerHTML = lista.map(function (e) {
         var curso = e.estado === 'in_progress' ? ' class="enc-activo"' : '';
@@ -128,9 +129,9 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
       var motivo = est.getAttribute('data-motivo');
       partes.push(est.textContent + (motivo ? ' · ' + motivo : ''));
     }
-    if (tr.querySelector('.enc-curso')) partes.push('Misión en curso');
-    var tareaChip = tr.querySelector('.enc-tarea');
-    if (tareaChip) partes.push(tareaChip.title || tareaChip.textContent);
+    var chip = tr.querySelector('.enc-curso, .enc-tarea');
+    if (chip && chip.title) partes.push(chip.title);
+    else if (tr.querySelector('.enc-curso')) partes.push('Misión en curso');
     if (partes.length) tr.title = partes.join(' · ');
     else tr.removeAttribute('title');
   }
@@ -197,7 +198,7 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     padre.appendChild(t);
   }
 
-  function ponerChip(tr, tipo, texto, desde) {
+  function ponerChip(tr, tipo, texto, desde, tooltip) {
     quitarChips(tr);
     var td = tr.cells[0];
     if (!td || (tipo !== 'mision' && tipo !== 'tarea')) return;
@@ -214,7 +215,7 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
       s.appendChild(n);
     }
     if (desde) anadirReloj(s, desde);
-    s.title = (tipo === 'mision' ? 'Misión' : 'Tarea') + (texto ? ' · ' + texto : '') + (desde ? ' · ⏱ ' + formatoReloj(desde, Date.now()) : '');
+    s.title = tooltip || ((tipo === 'mision' ? 'Misión' : 'Tarea') + (texto ? ' · ' + texto : ''));
     td.appendChild(s);
     componerTitulo(tr);
   }
@@ -234,10 +235,25 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
     return null;
   }
 
-  function textoMision(m) {
-    var id = String(m.id || m.numero || '').trim();
-    var titulo = String(m.titulo || '').replace(/\s+/g, ' ').trim();
-    return titulo ? (id ? id + ' · ' + titulo : titulo) : id;
+  function misionPorId(id) {
+    if (!vivas || !id) return null;
+    var want = String(id).toUpperCase();
+    var claves = Object.keys(vivas);
+    for (var i = 0; i < claves.length; i++) {
+      var lista = vivas[claves[i]] || [];
+      for (var j = 0; j < lista.length; j++) {
+        if (String(lista[j].id || '').toUpperCase() === want) return lista[j];
+      }
+    }
+    return null;
+  }
+
+  function tituloDeTarea(bruto) {
+    var texto = String(bruto || '').replace(/\s+/g, ' ').trim();
+    if (resumenTitulo(texto)) return texto;
+    var flt = texto.match(/\bFLT-\d+\b/i);
+    var hallada = flt ? misionPorId(flt[0]) : null;
+    return hallada && hallada.titulo ? hallada.titulo : texto;
   }
 
   function pintarFilas() {
@@ -266,16 +282,30 @@ import { chipDe, claveTrabajando, contarEnCurso, duenoPorMision, estadoVisible, 
         componerTitulo(tr);
       }
       var chip = chipDe(mision, tarjeta);
-      var texto = chip.tipo === 'mision' && activa ? textoMision(activa) : chip.texto;
+      var tituloChip = chip.tipo === 'mision' && activa ? String(activa.titulo || '') : tituloDeTarea(chip.texto);
+      var texto = resumenTitulo(tituloChip);
       var desde = 0;
       if (chip.tipo === 'mision' && activa) desde = Number(activa.inicio) || 0;
       else if (chip.tipo === 'tarea' && tarjeta) desde = Number(tarjeta.inicio) || 0;
       if (chip.tipo && !desde) {
-        var marca = (chip.tipo === 'mision' ? 'm:' : 't:') + (activa && activa.id ? activa.id : clave + ':' + (texto || 'trabajo'));
+        var marca = (chip.tipo === 'mision' ? 'm:' : 't:') + (activa && activa.id ? activa.id : clave + ':' + (chip.texto || tituloChip || 'trabajo'));
         desde = Number(guardados[marca]) || Date.now();
         persistir[marca] = desde;
       }
-      if (vivas || trab) ponerChip(tr, chip.tipo, texto, desde);
+      var numeroTip = chip.tipo === 'mision' && activa ? String(activa.numero || '') : '';
+      if (chip.tipo === 'tarea') {
+        var crudo = String(chip.texto || '');
+        var halladoNum = crudo.match(/\bencargos?\s+#?\d+\b|#\d+\b/i);
+        if (halladoNum) numeroTip = halladoNum[0].replace(/\s+/g, ' ');
+        else if (tarjeta && tarjeta.encargo && !/^FLT-\d+$/i.test(String(tarjeta.encargo))) numeroTip = String(tarjeta.encargo);
+      }
+      var tip = chip.tipo ? tooltipChip({
+        id: chip.tipo === 'mision' && activa ? activa.id : (tarjeta && tarjeta.encargo) || '',
+        numero: numeroTip,
+        titulo: tituloChip,
+        inicio: desde,
+      }) : '';
+      if (vivas || trab) ponerChip(tr, chip.tipo, texto, desde, tip);
       entradas.push({ mision: mision, tarjeta: tarjeta });
     });
     if (vivas || trab) guardarRelojes(persistir);

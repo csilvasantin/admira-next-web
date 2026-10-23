@@ -5,7 +5,7 @@
  * estado: verde | amarillo | rojo | gris.
  * Huang y Jensen son la misma fila. Musk, Elon y MuskGrokBot son solo Musk.
  * Una misión (FLT-…) se pinta en una sola persona: la de Misiones. */
-import { epochMs, personaClave } from './misiones-vivas.js';
+import { epochMs, fechaMadrid, personaClave } from './misiones-vivas.js';
 
 export const TRABAJANDO_API = 'https://www.admira.live/api/flota/trabajando';
 
@@ -153,6 +153,74 @@ export function estadoVisible(tarjeta, mision) {
     return { ...base, estado: 'verde', etiqueta: ETIQUETA.verde, motivo: base.motivo || '' };
   }
   return tarjeta;
+}
+
+const PALABRAS_MAX = 6;
+const COLA = new Set(['de', 'del', 'al', 'a', 'en', 'y', 'e', 'o', 'u', 'con', 'por', 'para', 'el', 'la', 'los', 'las', 'un', 'una', 'que', 'su', 'sus']);
+
+function palabrasDe(s) {
+  return String(s || '').split(/\s+/).filter(Boolean);
+}
+
+function tokenPalabra(w) {
+  return String(w || '').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').toLowerCase();
+}
+
+/** Primera cláusula con cuerpo, como máximo 6 palabras, cortada en un espacio. */
+function recortaPalabras(s) {
+  const ws = palabrasDe(s).slice(0, PALABRAS_MAX);
+  while (ws.length > 1 && COLA.has(tokenPalabra(ws[ws.length - 1]))) ws.pop();
+  return ws.join(' ').replace(/[….]+$/g, '').trim();
+}
+
+/**
+ * Título corto del chip: de qué va la misión o la tarea.
+ * Quita FLT-xxxxxx y el número de encargo. 3 a 6 palabras si el título da para tanto,
+ * siempre en un límite de palabra. El título entero se queda para el tooltip.
+ */
+export function resumenTitulo(titulo) {
+  let t = String(titulo || '').replace(/\s+/g, ' ').trim();
+  if (!t) return '';
+  t = t.replace(/\bFLT-\d+\b/gi, ' ');
+  t = t.replace(/\bencargos?\s*#?\s*\d+\b/gi, ' ');
+  t = t.replace(/#\d+\b/g, ' ');
+  t = t.replace(/\([^)]*\)/g, ' ');
+  t = t.replace(/\s+/g, ' ').trim();
+  t = t.replace(/^[\s·|:;,\-–—()]+|[\s·|:;,\-–—()]+$/g, '').trim();
+  if (!t) return '';
+  const trozos = t.split(/\s*(?:[·:;]|\.(?:\s|$)|\s[a-c]\)\s*)\s*/i)
+    .map((c) => c.replace(/^[\s·|:;,\-–—()]+|[\s·|:;,\-–—()]+$/g, '').trim())
+    .filter(Boolean);
+  for (const c of trozos) {
+    if (palabrasDe(c).length >= 3) return recortaPalabras(c);
+  }
+  return recortaPalabras(trozos.join(' '));
+}
+
+/** Tooltip del chip: código FLT, número de encargo, título entero y hora de inicio. */
+export function tooltipChip({ id = '', numero = '', titulo = '', inicio = 0 } = {}) {
+  const partes = [];
+  const visto = new Set();
+  const push = (s) => {
+    const t = String(s || '').replace(/\s+/g, ' ').trim();
+    if (!t) return;
+    const k = t.toLowerCase();
+    if (visto.has(k)) return;
+    visto.add(k);
+    partes.push(t);
+  };
+  for (const fuente of [id, numero, titulo]) {
+    for (const m of String(fuente || '').matchAll(/\bFLT-\d+\b/gi)) push(m[0].toUpperCase());
+  }
+  const num = String(numero || '').trim();
+  if (num && !/^FLT-\d+$/i.test(num)) push(num);
+  const tituloLimpio = String(titulo || '').replace(/\s+/g, ' ').trim();
+  if (tituloLimpio && resumenTitulo(tituloLimpio)) push(tituloLimpio);
+  else {
+    for (const m of tituloLimpio.matchAll(/\bencargos?\s+#?\d+\b|#\d+\b/gi)) push(m[0].replace(/\s+/g, ' '));
+  }
+  if (Number(inicio) > 0) push(fechaMadrid(inicio));
+  return partes.join(' · ');
 }
 
 /** Misión en curso gana. Si no, la tarea. Si no, nada. */
