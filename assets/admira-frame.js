@@ -359,7 +359,7 @@
   var aquí = ruta(location.pathname);
   // Subpáginas que cuelgan de un enlace de la navegación del grupo (☰). En la
   // cabecera el padre queda marcado: la subpágina lo trae con aria-current.
-  var SUBPAGINAS = {'/roadmap': [['/roadmap/encargos', 'Encargos']]};
+  var SUBPAGINAS = {'/roadmap': [['/roadmap/encargos', 'Misiones']]};
 
   var bar;
   var grupo = [];   // enlaces de navegación que ☰ repite (modo cabecera)
@@ -572,7 +572,7 @@
         copia.removeAttribute('data-yk-rail-only');
         copia.className = 'yk-rail-navlink';
         lista.appendChild(copia);
-        // Subpáginas (19-10-2026): «Encargos» cuelga DEBAJO de RoadMap en ☰.
+        // Subpáginas (19-10-2026): «Misiones» cuelga DEBAJO de RoadMap en ☰. La ruta sigue siendo /roadmap/encargos.
         (SUBPAGINAS[ruta(a.getAttribute('href'))] || []).forEach(function (par) {
           // Clase propia (no yk-rail-navlink): la lista del grupo sigue siendo la de la cabecera.
           var sub = texto('a', 'yk-rail-navsub', par[1]);

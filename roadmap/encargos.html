@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Encargos · RoadMap · ADmiraNeXT</title>
-<meta name="description" content="Encargos abiertos por persona: tabla matinal bajo el RoadMap de ADmiraNeXT.">
+<title>Misiones · RoadMap · ADmiraNeXT</title>
+<meta name="description" content="Misiones abiertas por persona: tabla matinal bajo el RoadMap de ADmiraNeXT.">
 <meta name="theme-color" content="#070b12">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -23,13 +23,18 @@
   h1{margin:0 0 10px;font-size:clamp(26px,4.4vw,40px);line-height:1.05;letter-spacing:-.02em}
   .enc-meta{margin:0 0 8px;color:var(--yk-mut,#92a0b4);font-size:13px;line-height:1.35}
   .enc-meta b{color:var(--yk-ink,#f2f6fc)}
-  .enc-par{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+  .enc-par{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
   .enc-caja{display:block;max-width:100%;overflow-x:auto;border:1px solid var(--yk-line,#253042);border-radius:14px;background:rgba(8,13,23,.86)}
   table.enc{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
   .enc th,.enc td{padding:9px 16px;border-bottom:1px solid var(--yk-line,#253042);text-align:right;font-size:13px}
   .enc th:first-child,.enc td:first-child{text-align:left}
+  table.enc[data-ordenable] th:nth-child(n+2),table.enc[data-ordenable] td:nth-child(n+2){width:1%;white-space:nowrap}
   .enc thead th{padding:0;background:rgba(16,23,36,.9);position:sticky;top:0}
   .enc thead button{all:unset;box-sizing:border-box;display:block;width:100%;padding:10px 16px;text-align:inherit;cursor:pointer;user-select:none;font:700 11px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#78f3ff}
+  .enc thead .enc-th-linea{display:flex;align-items:center;gap:10px;min-width:0}
+  .enc thead .enc-th-linea button{width:auto;flex:0 0 auto}
+  .enc-parte{margin-left:auto;padding-right:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;font:500 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:0;text-transform:none;color:var(--yk-mut,#92a0b4);white-space:nowrap}
+  .enc-parte b{color:var(--yk-ink,#f2f6fc);font-weight:600}
   .enc thead button:hover,.enc thead button:focus-visible{background:rgba(74,227,209,.10);color:var(--yk-ink,#f2f6fc)}
   .enc thead th[aria-sort="ascending"] button::after{content:" ▲";color:#4ae3d1}
   .enc thead th[aria-sort="descending"] button::after{content:" ▼";color:#4ae3d1}
@@ -44,7 +49,7 @@
   .enc-curso{border:1px solid rgba(74,227,209,.5);letter-spacing:.12em;text-transform:uppercase;color:#4ae3d1}
   .enc-tarea{border:1px solid rgba(255,208,103,.7);color:#ffe29a}
   .enc-tarea b,.enc-curso b{letter-spacing:.12em;text-transform:uppercase;font-weight:700}
-  .enc-tarea-txt,.enc-chip-txt{font-weight:500;letter-spacing:0;text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:32ch}
+  .enc-tarea-txt,.enc-chip-txt{font-weight:500;letter-spacing:0;text-transform:none;white-space:nowrap}
   .enc-reloj{flex:none;font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none;font-weight:700;white-space:nowrap}
   .enc-est{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:11px;font-weight:700;color:var(--yk-mut,#92a0b4);vertical-align:1px}
   .enc-est i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#6b7b82;flex:none}
@@ -85,7 +90,6 @@
   .enc-detalle h2{margin:0 0 8px;font-size:15px;letter-spacing:.02em}
   .enc-detalle .enc th:nth-child(2),.enc-detalle .enc td:nth-child(2){text-align:left}
   .enc-nota{margin:12px 0 0;color:var(--yk-mut,#92a0b4);font-size:12px}
-  @media (max-width:1100px){.enc-par{grid-template-columns:1fr}}
   footer{margin-top:36px;color:var(--yk-dim,#6c7a90);font-size:12px}
   footer a{color:var(--yk-mut,#92a0b4)}
 </style>
@@ -94,10 +98,9 @@
 <body data-yk-frame="cabecera" data-yk-auto="on">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analitics</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap" aria-current="page" data-yk-interno>RoadMap</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="privado" title="Acceso privado">●<span class="yk-access-txt"> Acceso privado</span></span></header>
 <main data-yk-main>
-  <nav class="rm-sub" aria-label="RoadMap"><a href="/roadmap">Plan</a><a href="/roadmap/encargos" aria-current="page">Encargos</a></nav>
-  <p class="enc-crumb"><a href="/roadmap">RoadMap</a> › Encargos</p>
-  <h1>Encargos abiertos por persona</h1>
-  <p class="enc-meta">Datos del <b><!--ENC_FECHA--></b>, hora de Madrid (<!--ENC_ORIGEN-->). Deepagents a la izquierda y consejeros a la derecha. Pulsa una fila para ver número, título, estado y desde cuándo.</p>
+  <nav class="rm-sub" aria-label="RoadMap"><a href="/roadmap">Plan</a><a href="/roadmap/encargos" aria-current="page">Misiones</a></nav>
+  <p class="enc-crumb"><a href="/roadmap">RoadMap</a> › Misiones</p>
+  <p class="enc-meta">Pulsa una fila para ver número, título, estado y desde cuándo.</p>
   <div class="enc-estado">
     <ul class="enc-leyenda" aria-label="Colores de Trabajando ahora">
       <li title="Verde: trabajando ahora"><i class="enc-sw-verde" aria-hidden="true"></i><b id="enc-n-verde"></b>trabajando</li>
@@ -109,30 +112,11 @@
     <p class="enc-nota" id="enc-trab" role="status">Leyendo Trabajando ahora…</p>
   </div>
   <div class="enc-par">
-    <section class="enc-col" aria-label="Deepagents">
-      <div class="enc-caja">
-        <table class="enc" id="enc-agentes" data-ordenable data-yk-no-traducir>
-          <thead><tr>
-            <th scope="col" data-t="s" aria-sort="none"><button type="button">Deepagent</button></th>
-            <th scope="col" data-t="n" aria-sort="none"><button type="button">Abiertos</button></th>
-            <th scope="col" data-t="n" aria-sort="none"><button type="button">Hoy</button></th>
-            <th scope="col" data-t="n" aria-sort="none"><button type="button">Ayer</button></th>
-            <th scope="col" data-t="n" aria-sort="none"><button type="button">Anteriores</button></th>
-          </tr></thead>
-          <tbody>
-<!--ENC_AGENTES-->
-          </tbody>
-          <tfoot>
-<!--ENC_TOTAL_AGENTES-->
-          </tfoot>
-        </table>
-      </div>
-    </section>
     <section class="enc-col" aria-label="Consejeros">
       <div class="enc-caja">
         <table class="enc" id="enc-consejeros" data-ordenable data-yk-no-traducir>
           <thead><tr>
-            <th scope="col" data-t="s" aria-sort="none"><button type="button">Consejeros</button></th>
+            <th scope="col" data-t="s" aria-sort="none"><div class="enc-th-linea"><button type="button">Consejeros</button><span class="enc-parte">Datos del <b><!--ENC_FECHA--></b> · <!--ENC_ORIGEN--></span></div></th>
             <th scope="col" data-t="n" aria-sort="none"><button type="button">Abiertos</button></th>
             <th scope="col" data-t="n" aria-sort="none"><button type="button">Hoy</button></th>
             <th scope="col" data-t="n" aria-sort="none"><button type="button">Ayer</button></th>
@@ -147,9 +131,28 @@
         </table>
       </div>
     </section>
+    <section class="enc-col" aria-label="Deepagents">
+      <div class="enc-caja">
+        <table class="enc" id="enc-agentes" data-ordenable data-yk-no-traducir>
+          <thead><tr>
+            <th scope="col" data-t="s" aria-sort="none"><div class="enc-th-linea"><button type="button">Deepagent</button><span class="enc-parte">Datos del <b><!--ENC_FECHA--></b> · <!--ENC_ORIGEN--></span></div></th>
+            <th scope="col" data-t="n" aria-sort="none"><button type="button">Abiertos</button></th>
+            <th scope="col" data-t="n" aria-sort="none"><button type="button">Hoy</button></th>
+            <th scope="col" data-t="n" aria-sort="none"><button type="button">Ayer</button></th>
+            <th scope="col" data-t="n" aria-sort="none"><button type="button">Anteriores</button></th>
+          </tr></thead>
+          <tbody>
+<!--ENC_AGENTES-->
+          </tbody>
+          <tfoot>
+<!--ENC_TOTAL_AGENTES-->
+          </tfoot>
+        </table>
+      </div>
+    </section>
   </div>
   <section class="enc-detalle" id="enc-detalle" hidden aria-live="polite">
-    <h2 id="enc-detalle-titulo">Encargos</h2>
+    <h2 id="enc-detalle-titulo">Misiones</h2>
     <div class="enc-caja">
       <table class="enc" id="enc-detalle-tabla">
         <thead><tr>
@@ -166,10 +169,10 @@
   <script type="application/json" id="enc-datos"><!--ENC_DETALLE--></script>
 <!--ENC_NOTAS-->
   <footer>
-    <a href="/">admiranext.com</a> · <a href="/roadmap">RoadMap</a> · Encargos · zona protegida
+    <a href="/">admiranext.com</a> · <a href="/roadmap">RoadMap</a> · Misiones · zona protegida
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script type="module" src="/assets/roadmap-encargos.js?v=20261022-compacto-1"></script>
+<script type="module" src="/assets/roadmap-encargos.js?v=20261023-misiones-1"></script>
 </body>
 </html>
