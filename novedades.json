@@ -648,5 +648,10 @@
   "v.21.10.2026.r1.20:18": [
     "Los asistentes virtuales se abren dentro de Studio, Store, TV, App y Biz, sin saltar de site.",
     "Supervisor verde y Angelito dorado son personajes distintos."
+  ],
+  "v.23.10.2026.r1.22:24": [
+    "Demos de Xpacios: AdmiraXperience sustituye a Sneakers Store en el desplegable.",
+    "Locales de AdmiraXperience: GarageXperience · Santa Rosa 4 y SpaceXperience · Planeta 7 (Barcelona).",
+    "El registro central admite esas dos direcciones para el proyecto AdmiraXperience."
   ]
 }
