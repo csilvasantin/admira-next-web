@@ -7,7 +7,7 @@
  * consejero solo escribe SU plan (la etiqueta del token o el email deben nombrarle);
  * un admin (Carlos) puede escribir cualquiera y es el único que aprueba.
  */
-import { leer, guardar, EDITABLES, HORIZONTES } from '../_roadmap-combo.js';
+import { leer, guardar, EDITABLES, HORIZONTES, recortarDetalle } from '../_roadmap-combo.js';
 
 // Supervisor de cada agente (Carlos, 17-10-2026). Sin entrada: cualquier consejero.
 export const SUPERVISOR = { oraculo: 'elon', morfeo: 'elon' };
@@ -25,6 +25,7 @@ export const REGLAS = `# Roadmap AdmiraNeXT · reglas (Carlos, 16-10-2026)
 7. **Responsables por vertical**: Trinity admira.studio · Neo admira.store · Oráculo admira.app · Morfeo admira.biz · consejero Elon admira.tv + admira.live · Jobs admiranext.
 8. **Hecho declarado + sello del consejero**: el agente trabaja y, cuando lo juzga bien, puede subir/publicar él mismo; entonces declara el ítem hecho con roadmap_declarar_hecho (persona, id_idea, evidencia: URL o fichero). El consejero supervisor lo revisa y confirma con roadmap_sellar (revisor, id_idea, veredicto ok|rechazado, nota): su sello queda junto al ítem en /roadmap. **El consejero Elon supervisa a Oráculo y a Morfeo.** Un rechazo devuelve el ítem al agente (vuelve a declarar tras corregir).
 9. Las ideas enlazadas a un proyecto se marcan/editan en su proyecto; no se inventan números ni fechas.
+10. **Versión corta y detalle**: el título y cada subobjetivo son la versión corta. detalle es opcional (texto, se recorta a 1000 caracteres) en la idea y en cada sub. Sin detalle el plan se guarda y se lee igual que antes. En /roadmap se ve siempre el corto; el detalle se abre al pulsar.
 
 Vista web: https://www.admiranext.com/roadmap (?p=proyecto · ?a=agente · ?c=consejero).`;
 
@@ -33,7 +34,7 @@ export const ROADMAP_HELP = REGLAS + `
 ## Cómo poner tu parte (agentes y consejeros)
 1. Conecta tu asistente a https://www.admiranext.com/mcp con tu token MCP (Authorization: Bearer anmcp_…). La etiqueta del token debe llevar tu nombre (p. ej. "Oráculo", "consejero Elon"): así el MCP sabe qué plan es el tuyo.
 2. roadmap_reglas → roadmap_leer {vista:'agente'|'consejero', id:'<tu id>'}.
-3. Antes de las 7:30: roadmap_plan_diario {persona, horizonte:'hoy', ideas:[{titulo, subs:[a,b,c]} ×3]} (y 'manana').
+3. Antes de las 7:30: roadmap_plan_diario {persona, horizonte:'hoy', ideas:[{titulo, detalle?, subs:[a, b, {texto, detalle?}]} ×3]} (y 'manana'). detalle es opcional en la idea y en cada sub.
 4. Durante el día: roadmap_marcar {persona, id_idea, sub:'a', hecho:true}. Las ideas enlazadas a tu proyecto se marcan igual y su avance sube en el proyecto, en tu plan y en Admira.TV.
 5. roadmap_ayer {persona} para el resumen de ayer. Carlos aprueba con roadmap_aprobar.
 6. Al terminar un ítem (agente): sube/publica si lo juzgas bien y roadmap_declarar_hecho {persona, id_idea, evidencia:'https://…' o ruta del fichero, nota}. En /roadmap sale "◷ declarado".
@@ -41,10 +42,11 @@ export const ROADMAP_HELP = REGLAS + `
 
 const persona = { type: 'string', description: 'id de agente o consejero (p. ej. oraculo, morfeo, elon, jobs). Lista en roadmap_leer.' };
 const horizonte = { type: 'string', enum: ORDEN };
+const detalleCampo = { type: 'string', description: 'Versión detallada opcional. Se recorta el espacio y se corta a 1000 caracteres. Si falta o queda vacía, no se guarda: el plan sigue igual que sin este campo.' };
 export const ROADMAP_TOOLS = [
-  { name: 'roadmap_reglas', description: 'Reglas del roadmap: método 123 y abc, plan diario a las 7:30, aprobado salvo objeción de Carlos, horizontes, progreso en cascada y responsables por vertical. Léelas antes de escribir tu plan.', inputSchema: { type: 'object', properties: {} } },
-  { name: 'roadmap_leer', description: 'Plan con progreso. vista: proyecto | agente | consejero; id (studio, store, app, biz, tv, live, next · trinity, neo, oraculo… · elon, jobs, jensen…). Sin id: lista de ids. horizonte opcional.', inputSchema: { type: 'object', properties: { vista: { type: 'string', enum: ['proyecto', 'agente', 'consejero'] }, id: { type: 'string' }, horizonte: { type: 'string', enum: HORIZONTES } }, required: ['vista'] } },
-  { name: 'roadmap_plan_diario', description: 'Escribe TU plan (o cualquiera si eres admin) para un horizonte editable: hasta 3 ideas en orden de prioridad, cada una con exactamente 3 subobjetivos (a, b, c). Sustituye las ideas propias de ese horizonte. Hazlo antes de las 7:30 (Europe/Madrid).', inputSchema: { type: 'object', properties: { persona, horizonte, ideas: { type: 'array', maxItems: 3, items: { type: 'object', properties: { titulo: { type: 'string' }, subs: { type: 'array', minItems: 3, maxItems: 3, items: { type: 'string' } } }, required: ['titulo', 'subs'] } } }, required: ['persona', 'horizonte', 'ideas'] } },
+  { name: 'roadmap_reglas', description: 'Reglas del roadmap: método 123 y abc, plan diario a las 7:30, aprobado salvo objeción de Carlos, horizontes, progreso en cascada, responsables por vertical y detalle opcional (≤1000) en cada idea y cada sub. Léelas antes de escribir tu plan.', inputSchema: { type: 'object', properties: {} } },
+  { name: 'roadmap_leer', description: 'Plan con progreso. vista: proyecto | agente | consejero; id (studio, store, app, biz, tv, live, next · trinity, neo, oraculo… · elon, jobs, jensen…). Sin id: lista de ids. horizonte opcional. Cada idea trae titulo (corto) y subs[{id,texto,hecho}]; si hay versión detallada, detalle en la idea y en el sub. Sin detalle la respuesta es la de siempre.', inputSchema: { type: 'object', properties: { vista: { type: 'string', enum: ['proyecto', 'agente', 'consejero'] }, id: { type: 'string' }, horizonte: { type: 'string', enum: HORIZONTES } }, required: ['vista'] } },
+  { name: 'roadmap_plan_diario', description: 'Escribe TU plan (o cualquiera si eres admin) para un horizonte editable: hasta 3 ideas en orden de prioridad, cada una con exactamente 3 subobjetivos (a, b, c). titulo y el texto de cada sub son la versión corta. detalle es opcional en la idea y en cada sub (texto, ≤1000 caracteres). Un sub puede ser un texto corto o {texto, detalle?}. Sin detalle se guarda como hasta ahora. Sustituye las ideas propias de ese horizonte. Hazlo antes de las 7:30 (Europe/Madrid).', inputSchema: { type: 'object', properties: { persona, horizonte, ideas: { type: 'array', maxItems: 3, items: { type: 'object', properties: { titulo: { type: 'string', description: 'Versión corta de la idea (≤120).' }, detalle: detalleCampo, subs: { type: 'array', minItems: 3, maxItems: 3, description: 'Exactamente 3 subobjetivos. Cada uno es el texto corto, o un objeto {texto, detalle?}.', items: { anyOf: [{ type: 'string' }, { type: 'object', properties: { texto: { type: 'string', description: 'Versión corta del subobjetivo (≤200).' }, detalle: detalleCampo }, required: ['texto'] }] } } }, required: ['titulo', 'subs'] } } }, required: ['persona', 'horizonte', 'ideas'] } },
   { name: 'roadmap_marcar', description: 'Marca un subobjetivo (a|b|c) como hecho o no, o fija un % manual (pct 0-100, o null para volver a automático) de una idea por su id_idea (ver roadmap_leer). Solo ideas de tu plan (o enlazadas en él) salvo admin. Ayer no se edita.', inputSchema: { type: 'object', properties: { persona: { type: 'string', description: 'tu id (o el proyecto si eres admin)' }, id_idea: { type: 'string' }, sub: { type: 'string', enum: SUBS }, hecho: { type: 'boolean' }, pct: { type: ['number', 'null'] } }, required: ['id_idea'] } },
   { name: 'roadmap_ayer', description: 'Resumen automático de Ayer para una persona o proyecto: hecho / parcial / no hecho / sin registro.', inputSchema: { type: 'object', properties: { persona } , required: ['persona'] } },
   { name: 'roadmap_declarar_hecho', description: 'Agente: declara hecho un ítem de tu plan (o enlazado en él) tras subir/publicar si lo juzgas bien. evidencia: URL o ruta del fichero. Queda "declarado" hasta el sello del consejero supervisor.', inputSchema: { type: 'object', properties: { persona: { type: 'string', description: 'tu id de agente (p. ej. oraculo, morfeo)' }, id_idea: { type: 'string' }, evidencia: { type: 'string', description: 'URL o fichero que lo demuestra' }, nota: { type: 'string' } }, required: ['persona', 'id_idea', 'evidencia'] } },
@@ -54,6 +56,21 @@ export const ROADMAP_TOOLS = [
 export const ROADMAP_READ_ONLY = ['roadmap_reglas', 'roadmap_leer', 'roadmap_ayer'];
 
 const norm = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+function exigirDetalle(v, donde) {
+  if (v == null || v === '') return undefined;
+  if (typeof v !== 'string') throw new Error(`detalle de ${donde} debe ser texto.`);
+  return recortarDetalle(v) || undefined;
+}
+function conDetalle(obj, v) {
+  const d = typeof v === 'string' ? recortarDetalle(v) : '';
+  if (d) obj.detalle = d;
+  return obj;
+}
+function subEntrada(s, donde) {
+  if (typeof s === 'string' || s == null) return { texto: String(s || '').trim(), detalle: undefined };
+  if (typeof s === 'object') return { texto: String(s.texto ?? '').trim(), detalle: exigirDetalle(s.detalle, donde) };
+  return { texto: String(s ?? '').trim(), detalle: undefined };
+}
 function indice(doc) {
   const byId = {}, items = {};
   doc.proyectos.forEach((p) => { byId[p.id] = p; Object.keys(p.roadmap || {}).forEach((h) => (p.roadmap[h] || []).forEach((i) => { if (i.id) items[i.id] = { i, p: p.id, h }; })); });
@@ -90,9 +107,14 @@ function vistaPlan(doc, ix, p, h) {
       etiqueta: doc.etiquetas[hh], avance: hh === 'ayer' ? undefined : avanceH(ix, p, hh), editable: EDITABLES.has(hh),
       ideas: (p.roadmap[hh] || []).map((raw, n) => {
         const i = real(ix, raw); if (!i) return null;
-        return { n: n + 1, id_idea: i.id || null, titulo: i.t, enlazada_de: raw.ref ? ix.items[raw.ref].p : undefined, estado: i.e,
+        const idea = { n: n + 1, id_idea: i.id || null, titulo: i.t, enlazada_de: raw.ref ? ix.items[raw.ref].p : undefined, estado: i.e,
           avance: hh === 'ayer' ? undefined : avance(ix, raw), pct_manual: i.pct,
-          subs: (i.s || []).map((x, k) => ({ id: `${n + 1}${SUBS[k]}`, texto: x, hecho: !!(i.hs || [])[k] })) };
+          subs: (i.s || []).map((x, k) => {
+            const texto = typeof x === 'string' ? x : String((x && (x.texto || x.t)) || '');
+            const sub = { id: `${n + 1}${SUBS[k] || k}`, texto, hecho: !!(i.hs || [])[k] };
+            return conDetalle(sub, (Array.isArray(i.sd) && i.sd[k]) || (x && typeof x === 'object' && x.detalle) || '');
+          }) };
+        return conDetalle(idea, i.detalle);
       }).filter(Boolean),
     };
   });
@@ -133,9 +155,13 @@ export async function callRoadmapTool(ctx, name, a = {}) {
       if (ideas.length > 3) throw new Error('Regla del 123: máximo 3 ideas.');
       const sello = Date.now().toString(36);
       const nuevas = ideas.map((x, n) => {
-        const subs = Array.isArray(x && x.subs) ? x.subs.map((s) => String(s || '').trim()) : [];
-        if (!String(x && x.titulo || '').trim() || subs.length !== 3 || subs.some((s) => !s)) throw new Error('Regla del abc: cada idea necesita título y exactamente 3 subobjetivos.');
-        return { id: `${p.id}-${a.horizonte}-${sello}${n + 1}`, t: String(x.titulo).trim().slice(0, 120), s: subs.map((s) => s.slice(0, 200)), hs: [false, false, false] };
+        const subs = (Array.isArray(x && x.subs) ? x.subs : []).map((s, k) => subEntrada(s, `la idea ${n + 1}, sub ${SUBS[k] || k}`));
+        if (!String(x && x.titulo || '').trim() || subs.length !== 3 || subs.some((s) => !s.texto)) throw new Error('Regla del abc: cada idea necesita título y exactamente 3 subobjetivos.');
+        const item = { id: `${p.id}-${a.horizonte}-${sello}${n + 1}`, t: String(x.titulo).trim().slice(0, 120), s: subs.map((s) => s.texto.slice(0, 200)), hs: [false, false, false] };
+        const d = exigirDetalle(x && x.detalle, `la idea ${n + 1}`);
+        if (d) item.detalle = d;
+        if (subs.some((s) => s.detalle)) item.sd = subs.map((s) => s.detalle || '');
+        return item;
       });
       const enlazadas = (p.roadmap[a.horizonte] || []).filter((i) => i.ref);
       if (nuevas.length + enlazadas.length > 3) enlazadas.splice(3 - nuevas.length);

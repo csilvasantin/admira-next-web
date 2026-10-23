@@ -20,6 +20,12 @@ export function etiquetasHoy(now = new Date()) {
 const conFechas = (doc) => ({ ...doc, etiquetas: { ...(doc.etiquetas || {}), ...etiquetasHoy() } });
 
 const txt = (v, max) => (typeof v === 'string' && v.trim() && v.length <= max ? v.trim() : null);
+/** Versión detallada opcional de una idea o un sub (Carlos, 23-10-2026, #7087). */
+export const DETALLE_MAX = 1000;
+export function recortarDetalle(v) {
+  if (typeof v !== 'string') return '';
+  return v.trim().slice(0, DETALLE_MAX);
+}
 
 export async function leer(env) {
   let doc = null;
@@ -55,10 +61,23 @@ export function validar(entrada, base, confiar = false) {
         if (!t || !id || !/^[a-z0-9-]+$/.test(id)) return null;
         const s = Array.isArray(it.s) ? it.s : [];
         if (s.length > 3) return null;
-        const subs = s.map((x) => txt(x, 200));
-        if (subs.some((x) => !x)) return null;
+        const parsed = s.map((x, k) => {
+          const sd = Array.isArray(it.sd) ? it.sd[k] : '';
+          if (typeof x === 'string') return { texto: txt(x, 200), detalle: recortarDetalle(sd) };
+          if (x && typeof x === 'object') {
+            const corto = typeof x.texto === 'string' ? x.texto : (typeof x.t === 'string' ? x.t : '');
+            return { texto: txt(corto, 200), detalle: recortarDetalle(typeof x.detalle === 'string' ? x.detalle : sd) };
+          }
+          return { texto: null, detalle: '' };
+        });
+        if (parsed.some((x) => !x.texto)) return null;
+        const subs = parsed.map((x) => x.texto);
         const hs = subs.map((_, k) => !!(Array.isArray(it.hs) && it.hs[k]));
         const item = { id, t, s: subs, hs };
+        const ideaDet = recortarDetalle(it.detalle);
+        if (ideaDet) item.detalle = ideaDet;
+        const sd = parsed.map((x) => x.detalle);
+        if (sd.some(Boolean)) item.sd = sd;
         if (it.pct !== undefined && it.pct !== null && it.pct !== '') {
           const n = Number(it.pct); if (!Number.isFinite(n) || n < 0 || n > 100) return null; item.pct = Math.round(n);
         }

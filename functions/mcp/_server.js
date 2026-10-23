@@ -51,8 +51,8 @@ navegable y los entregables, en castellano e inglés como mínimo.
 - update_slide {client, blockId, title?, message?, detail?, language?} — actualiza una lámina del esqueleto sin regenerar.
 - roadmap_reglas {} — reglas del roadmap (método 123 y abc, plan diario a las 7:30, aprobado salvo objeción de Carlos). help tema roadmap.
 - roadmap_declarar_hecho {persona, id_idea, evidencia, nota} — agente: declara hecho (tras subir/publicar si lo juzga bien). roadmap_sellar {revisor, id_idea, veredicto ok|rechazado, nota} — consejero supervisor pone su sello (Elon supervisa a Oráculo y Morfeo).
-- roadmap_leer {vista: proyecto|agente|consejero, id?, horizonte?} — plan con progreso (sin id: lista de ids).
-- roadmap_plan_diario {persona, horizonte, ideas[≤3]{titulo, subs[3]}} — escribe TU plan (admin: cualquiera).
+- roadmap_leer {vista: proyecto|agente|consejero, id?, horizonte?} — plan con progreso (sin id: lista de ids). Devuelve detalle en la idea y en el sub solo si se guardó.
+- roadmap_plan_diario {persona, horizonte, ideas[≤3]{titulo, detalle?, subs[3]}} — escribe TU plan (admin: cualquiera). subs: texto corto o {texto, detalle?}. detalle es opcional (≤1000).
 - roadmap_marcar {persona, id_idea, sub: a|b|c, hecho | pct} — marca subobjetivo o % manual; reajuste en cascada.
 - roadmap_ayer {persona} — resumen de ayer: hecho / parcial / no hecho / sin registro.
 - roadmap_aprobar {persona, ok?} — solo admin (Carlos): "OK Carlos" del plan de un consejero.
