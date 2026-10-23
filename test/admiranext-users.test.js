@@ -273,8 +273,39 @@ test('un alta exige proyectos censados y GET devuelve el censo y los permisos',a
   assert.equal(response.status,422);
   response=await onRequestGet({request:request('GET',cookie,me.csrf),env});
   const body=await response.json();
-  assert.equal(body.ok,true);assert.ok(body.projects.length>=PROYECTOS.length);assert.equal(body.catalog_complete,true);
+  assert.equal(body.ok,true);assert.equal(body.catalog_complete,true);
+  // El stub de Yokup devuelve un censo vacío: el combo no rellena con el catálogo de ACL.
+  assert.deepEqual(body.projects,[]);
+  assert.ok(body.commercial_projects.some((p)=>p.key.startsWith('commercial:')));
+  assert.equal(body.projects.some((p)=>String(p.key).startsWith('commercial:')),false);
   assert.deepEqual(body.users.find((user)=>user.email===me.email).project_keys,['*']);
+});
+
+test('GET con censo Yokup no mezcla claves comerciales y publica la traducción',async()=>{
+  const env=await setup();
+  env.YOKUP_FETCH=async()=>Response.json({ok:true,projects:[
+    {id:'admiranext',name:'admiranext.com',web:'https://www.admiranext.com'},
+    {id:'generador-de-presentaciones',name:'Generador',web:'https://www.admiranext.com/presentaciones/'},
+    {id:'beta',name:'Beta',web:'https://beta.example'},
+  ]});
+  const cookie=await auth(env),me=await current(env,cookie);
+  const body=await (await onRequestGet({request:request('GET',cookie,me.csrf),env})).json();
+  assert.deepEqual(body.projects.map((p)=>p.key),['admiranext','generador-de-presentaciones','beta']);
+  assert.equal(body.projects.some((p)=>p.key.startsWith('commercial:')),false);
+  assert.ok(body.project_grants.generador.includes('admiranext'));
+  assert.ok(body.project_grants.__mcp__.includes('admiranext'));
+  assert.equal(body.project_grants['commercial:starbucks'].includes('admiranext'),false);
+  assert.ok(body.commercial_projects.some((p)=>p.key==='commercial:starbucks'));
+});
+
+test('GET sin Yokup conserva el catálogo de ACL y no inventa grants',async()=>{
+  const env=await setup();
+  env.YOKUP_FETCH=async()=>{throw new Error('offline')};
+  const cookie=await auth(env),me=await current(env,cookie);
+  const body=await (await onRequestGet({request:request('GET',cookie,me.csrf),env})).json();
+  assert.equal(body.catalog_complete,false);
+  assert.ok(body.projects.length>=PROYECTOS.length);
+  assert.deepEqual(body.project_grants,{});
 });
 
 test('Webmaster sólo entrega y permite modificar los proyectos autorizados',async()=>{
