@@ -29,5 +29,5 @@ test('nombre, sello, ideas y leyenda llevan el color', () => {
   assert.match(js, /class=\\?"rmc-q\\?" style=\\?"--q:/);
   assert.match(js, /rmc-leyenda/);
   assert.match(html, /\.rmc-123>li\.rmc-q::before\{[^}]*background:var\(--q\)/);
-  assert.match(html, /roadmap-combo\.js\?v=20261019-colores-\d+/);
+  assert.match(html, /roadmap-combo\.js\?v=20261023-detalle-1/);
 });

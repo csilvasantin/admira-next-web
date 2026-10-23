@@ -208,11 +208,16 @@
   .rmc-h{padding:10px 12px}.rmc-h h3{margin:0 0 6px}.rmc-h ul{list-style:none;padding:0}.rmc-h li{margin:0 0 4px}
   .rmc-h details summary{cursor:pointer;list-style:none;color:#e6edf7}.rmc-h details summary::-webkit-details-marker{display:none}
   .rmc-h details summary::before{content:"▸ ";color:#4ae3d1}.rmc-h details[open] summary::before{content:"▾ "}
+  .rmc-123 details:not([open])::details-content,.rmc-123 details:not([open]) > :not(summary){display:none}
   .rmc-h details p{margin:4px 0 2px 14px;color:#92a0b4;font-size:12px}
   .rmc-h ol.rmc-123{list-style:none;padding:0;margin:0;counter-reset:n}.rmc-123>li{counter-increment:n;position:relative;padding-left:26px}
   .rmc-123>li::before{content:counter(n);position:absolute;left:0;top:1px;width:18px;height:18px;border-radius:50%;background:#4ae3d1;color:#06121a;font:800 11px/18px ui-monospace,Menlo,monospace;text-align:center}
   .rmc-123 details summary::before{content:none!important}
   .rmc-abc{list-style:none;margin:4px 0 2px;padding:0;font-size:12px;color:#92a0b4}.rmc-abc li{margin:0 0 3px}.rmc-abc b{color:#4ae3d1;margin-right:4px}
+  .rmc-det-btn{font:600 10px/1.4 ui-monospace,Menlo,monospace;color:#4ae3d1;background:transparent;border:1px solid #2a4a52;border-radius:8px;padding:0 6px;margin-left:6px;cursor:pointer;vertical-align:1px}
+  .rmc-det-btn:hover,.rmc-det-btn:focus-visible,.rmc-det-btn[aria-expanded="true"]{background:rgba(74,227,209,.14);color:#e6edf7;outline:none}
+  .rmc-det-txt{display:block;margin:4px 0 2px;padding:6px 8px;border-left:2px solid #4ae3d1;color:#c5d0de;font-size:12px;font-weight:400;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+  .rmc-det-txt[hidden]{display:none}
   .rmc-dec{font:600 11px ui-monospace,Menlo,monospace;color:#ffcf6a;margin-left:4px}.rmc-dec a{color:#ffcf6a}.rmc-sel{font:700 11px ui-monospace,Menlo,monospace;margin-left:4px;padding:1px 6px;border-radius:9px;border:1px solid}.rmc-sel-ok{color:#4ae3d1;border-color:#4ae3d1}.rmc-sel-rechazado{color:#ff6b6b;border-color:#ff6b6b}.rmc-pend{font:11px ui-monospace,Menlo,monospace;color:#92a0b4;margin-left:4px}.rmc-e{font-weight:800}.rmc-e-hecho{color:#4ae3d1}.rmc-e-parcial{color:#ffcf6a}.rmc-e-no{color:#ff6b6b}.rmc-sr{color:#6c7a90;font-style:italic}
   .rmc-bar{display:block;height:3px;margin:3px 0 2px;border-radius:2px;background:#1b2636;overflow:hidden}.rmc-bar i{display:block;height:100%;background:linear-gradient(90deg,#4ae3d1,#78f3ff)}
   .rmc-hp{font-size:11px;color:#92a0b4;letter-spacing:0}.rmc-abc li.is-ok{color:#4ae3d1}
@@ -327,7 +332,7 @@
   </footer>
 </main>
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
-<script defer src="/assets/roadmap-combo.js?v=20261019-colores-2"></script>
+<script defer src="/assets/roadmap-combo.js?v=20261023-detalle-1"></script>
 <script defer src="/assets/roadmap-show.js?v=20261006-roadmap-1"></script>
 </body>
 </html>

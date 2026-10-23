@@ -10,8 +10,8 @@ viewer solo lee; editor escribe su propio plan; admin (Carlos) escribe cualquier
 | Tool | Para qué |
 | --- | --- |
 | `roadmap_reglas` | Método 123 y abc, plan diario a las 7:30, aprobado salvo objeción de Carlos, responsables por vertical |
-| `roadmap_leer` | `{vista: proyecto\|agente\|consejero, id?, horizonte?}` → plan con progreso (sin id: lista de ids) |
-| `roadmap_plan_diario` | `{persona, horizonte, ideas:[{titulo, subs:[a,b,c]}]}` → escribe tu plan (≤3 ideas × 3 subs) |
+| `roadmap_leer` | `{vista: proyecto\|agente\|consejero, id?, horizonte?}` → plan con progreso (sin id: lista de ids). Cada idea: `titulo` corto y `subs[{id,texto,hecho}]`; `detalle` solo si existe (idea y sub) |
+| `roadmap_plan_diario` | `{persona, horizonte, ideas:[{titulo, detalle?, subs:[a, b, {texto, detalle?}]}]}` → escribe tu plan (≤3 ideas × 3 subs). `detalle` opcional, ≤1000 caracteres, en la idea y en cada sub. Sin él el plan queda como antes |
 | `roadmap_marcar` | `{persona, id_idea, sub:'a'\|'b'\|'c', hecho}` o `{…, pct}` → avance y reajuste en cascada |
 | `roadmap_ayer` | `{persona}` → hecho / parcial / no hecho / sin registro |
 | `roadmap_declarar_hecho` | `{persona, id_idea, evidencia, nota?}` → agente declara hecho (tras subir/publicar si lo juzga bien) |
