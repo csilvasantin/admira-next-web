@@ -1,6 +1,6 @@
 import { asegurarDirectorio } from '../_webmaster-gate.js';
 import { exigirDmz, jsonDmz } from '../_usuarios-dmz.js';
-import { catalogoProyectos, normalizarPermisos } from '../_project-access.js';
+import { catalogoProyectos, normalizarPermisos, vistaCenso } from '../_project-access.js';
 import { estadoUsuario, leerListaBlanca, cruzarListaBlanca, textoInvitacion, escribirListaBlanca, aclApps, enviarInvitacionEmail } from '../_usuarios-estado.js';
 import { listTokens } from '../mcp/_tokens.js';
 import { APPS, kindDe, esTercero, esOwner, parseApps, parseExpires } from '../_terceros.js';
@@ -84,7 +84,15 @@ export async function onRequestGet({request,env}) {
     }),audit:audit.results||[],
     apps_catalog:APPS,
     mcp:{endpoint:'https://www.admiranext.com/mcp',help:'https://www.admiranext.com/mcp/generador'},
-    projects:catalog.projects,catalog_complete:catalog.complete,catalog_warning:catalog.warning,
+    // El combo cuenta el censo Yokup (el mismo GET que /proyectos). El catálogo
+    // de ACL sigue validando altas: subproyectos, alias y claves viejas se
+    // traducen en project_grants.
+    ...(()=>{const vista=catalog.yokup?vistaCenso(catalog,catalog.yokup):null;return {
+      projects:vista?vista.projects:catalog.projects,
+      project_grants:vista?vista.grants:{},
+      commercial_projects:vista?vista.commercial:catalog.projects.filter((project)=>project.key==='commercial-projects'||project.key.startsWith('commercial:')),
+    };})(),
+    catalog_complete:catalog.complete,catalog_warning:catalog.warning,
     lista_blanca:{complete:lista.complete,warning:lista.warning,total:lista.emails.length,
       solo_en_lista_blanca:cruce.solo_en_lista_blanca,solo_en_directorio:cruce.solo_en_directorio}});
 }
