@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Proyectos · AdmiraNeXT</title>
 <meta name="description" content="Proyectos de AdmiraNeXT: censo vivo con número, xpacio, responsable y puertas /help y /mcp, y cómo se declara el principal del día.">
-<meta name="admiranext-version" content="v.04.10.2026.r8.22:49">
+<meta name="admiranext-version" content="v.23.10.2026.r1.08:05">
 <link rel="icon" href="/favicon.ico">
 <style>
 :root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -48,6 +48,24 @@ code{font-family:var(--mono);font-size:.92em}
 .hoja td.num{font-family:var(--mono);text-align:right;color:var(--dim)}
 .hoja .meta{display:inline;margin-left:6px;font-size:11px}
 @media(max-width:760px){.hoja{max-height:none}.hoja th,.hoja td{white-space:nowrap}.hoja td:nth-child(3){white-space:normal;min-width:220px}}
+/* Barra única bajo el título (Carlos, 23-oct-2026): el lede, el aviso del censo
+   y el modelo canónico viven en un <details> cerrado. La tabla sube. */
+.censo-nota{margin:0 0 8px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--panel) 94%,transparent);min-width:0}
+.censo-nota>summary{list-style:none;cursor:pointer;padding:7px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:0 2px;font:600 13px/1.35 var(--mono);color:var(--dim)}
+.censo-nota>summary::-webkit-details-marker,.censo-nota>summary::marker{display:none;content:""}
+.censo-nota>summary:hover{color:var(--ink)}
+.censo-nota>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.censo-kicker{color:var(--ink);font-weight:700}
+.censo-nota summary a{color:var(--cyan);text-decoration:none}
+.censo-nota summary a:hover{text-decoration:underline}
+.censo-sep{color:#3d516c;user-select:none}
+.censo-modelo{color:var(--warn);font-weight:700}
+.censo-nota[open]>summary{border-bottom:1px solid var(--line)}
+.censo-cuerpo{padding:2px 12px 8px}
+.censo-cuerpo .lede{margin:12px 0 0}
+.censo-cuerpo .panel{margin:12px 0}
+#censo.panel{margin-top:8px}
+@media(max-width:640px){.censo-nota>summary{row-gap:4px}}
 </style>
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261009-demo-5446">
 <script defer src="/assets/admira-frame.js?v=20261009-demo-5446"></script>
@@ -57,7 +75,6 @@ code{font-family:var(--mono);font-size:.92em}
 <main class="shell" data-yk-main>
   <p class="eyebrow">AdmiraNeXT · definición</p>
   <h1>Proyectos</h1>
-  <p class="lede">El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.</p>
   <nav data-yk-slot="left" data-yk-label="Esta página" aria-label="Enlaces de la página">
     <a href="/help/#usuarios-proyectos">/help</a>
     <a href="/mcp/">/mcp</a>
@@ -65,25 +82,39 @@ code{font-family:var(--mono);font-size:.92em}
     <a href="https://www.yokup.com/equipo">Yokup /equipo</a>
   </nav>
 
-  <section class="panel warn">
-    <h2>El censo de la flota está en esta página</h2>
-    <p class="meta">El censo se lee con <code>GET https://api.yokup.com/projects</code>. admira.biz es DooH y Retail Media (antes clearchannel.tv). admira.app es instalaciones y mantenimiento. Las misiones se ven en <a href="https://www.yokup.com/misiones">/misiones</a> y el principal del día en <a href="https://www.yokup.com/equipo">/equipo</a>.</p>
-  </section>
-
-  <section class="panel" id="modelo">
-    <h2>Modelo canónico</h2>
-    <div class="grid">
-      <article class="card">
-        <h3>Agente (silicio)</h3>
-        <p class="meta">Persona + apellido de máquina (<code>SmithMacMini</code>). El alta de trabajo lleva <code>project_id</code> del censo. Si falta, Yokup hereda el principal del día — y se trabaja en el proyecto equivocado.</p>
-        <p class="meta">Principal del día: <code>POST /projects/principal</code> con id + nombre + slug. Se ve en /equipo.</p>
-      </article>
-      <article class="card">
-        <h3>Proyecto</h3>
-        <p class="meta">Obligatorios: <code>id</code> (slug), nombre, xpacio (AdmiraNeXT o Yokup), responsable. Puertas norma 24: <code>/help</code> (humanos) y <code>/mcp</code> (agentes). No se borra el censo: se añade o se retitula.</p>
-      </article>
+  <details class="censo-nota" id="nota-censo">
+    <summary class="censo-linea">
+      <span class="censo-kicker" data-en="Live census:">Censo vivo:</span><span> </span>
+      <a href="https://api.yokup.com/projects">api.yokup.com/projects</a>
+      <span class="censo-sep" aria-hidden="true"> · </span>
+      <a href="https://www.yokup.com/misiones" data-en="Missions">Misiones</a>
+      <span class="censo-sep" aria-hidden="true"> · </span>
+      <a href="https://www.yokup.com/equipo" data-en="Team">Equipo</a>
+      <span class="censo-sep" aria-hidden="true"> · </span>
+      <span class="censo-modelo" data-en="Model ⓘ">Modelo ⓘ</span>
+    </summary>
+    <div class="censo-cuerpo">
+      <p class="lede">El censo vivo está en Yokup. Aquí se ve el modelo (qué es un proyecto, de qué xpacio, por dónde entra) y el inventario actual, sin borrar nada. Pulsa una cabecera del censo para ordenar.</p>
+      <section class="panel warn">
+        <h2>El censo de la flota está en esta página</h2>
+        <p class="meta">El censo se lee con <code>GET https://api.yokup.com/projects</code>. admira.biz es DooH y Retail Media (antes clearchannel.tv). admira.app es instalaciones y mantenimiento. Las misiones se ven en <a href="https://www.yokup.com/misiones">/misiones</a> y el principal del día en <a href="https://www.yokup.com/equipo">/equipo</a>.</p>
+      </section>
+      <section class="panel" id="modelo">
+        <h2>Modelo canónico</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Agente (silicio)</h3>
+            <p class="meta">Persona + apellido de máquina (<code>SmithMacMini</code>). El alta de trabajo lleva <code>project_id</code> del censo. Si falta, Yokup hereda el principal del día — y se trabaja en el proyecto equivocado.</p>
+            <p class="meta">Principal del día: <code>POST /projects/principal</code> con id + nombre + slug. Se ve en /equipo.</p>
+          </article>
+          <article class="card">
+            <h3>Proyecto</h3>
+            <p class="meta">Obligatorios: <code>id</code> (slug), nombre, xpacio (AdmiraNeXT o Yokup), responsable. Puertas norma 24: <code>/help</code> (humanos) y <code>/mcp</code> (agentes). No se borra el censo: se añade o se retitula.</p>
+          </article>
+        </div>
+      </section>
     </div>
-  </section>
+  </details>
 
   <section class="panel" id="censo">
     <div class="dir-head">
@@ -108,9 +139,23 @@ code{font-family:var(--mono);font-size:.92em}
 window.ADMIRA_FRAME_VERBS=(window.ADMIRA_FRAME_VERBS||[]).concat([
   {id:'buscar',aliases:['q'],uso:'<texto>',ayuda:'Filtra el censo vivo (id, nombre, xpacio o responsable)',run:function(a,ctx){var q=a.join(' ').toLowerCase(),n=0;[].forEach.call(document.querySelectorAll('#rows tr'),function(tr){var ok=!q||tr.textContent.toLowerCase().indexOf(q)>=0;tr.hidden=!ok;if(ok)n++;});ctx.imprimir(q?n+' proyectos coinciden con «'+q+'»':'Censo sin filtro');}},
   {id:'censo',aliases:['counts'],ayuda:'Cuenta los proyectos del censo por xpacio',run:function(a,ctx){ctx.imprimir(document.getElementById('counts').textContent.replace(/\s+/g,' ').trim()+' · '+document.getElementById('status').textContent);}},
-  {id:'seccion',aliases:['ver'],uso:'<modelo|censo>',ayuda:'Salta a una sección',run:function(a,ctx){var s=document.getElementById(String(a[0]||'').toLowerCase());if(!s||['modelo','censo'].indexOf(s.id)<0){ctx.error('Uso: /seccion modelo | censo');return;}s.scrollIntoView({behavior:'smooth'});ctx.imprimir(s.querySelector('h2').textContent);}}
+  {id:'seccion',aliases:['ver'],uso:'<modelo|censo>',ayuda:'Salta a una sección',run:function(a,ctx){var s=document.getElementById(String(a[0]||'').toLowerCase());if(!s||['modelo','censo'].indexOf(s.id)<0){ctx.error('Uso: /seccion modelo | censo');return;}var d=s.closest&&s.closest('details');if(d)d.open=true;s.scrollIntoView({behavior:'smooth'});ctx.imprimir(s.querySelector('h2').textContent);}}
 ]);
-document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-pr-action="recargar"]'))location.reload();});
+document.addEventListener('click',function(e){
+  if(e.target.closest&&e.target.closest('[data-pr-action="recargar"]'))location.reload();
+  var nota=document.getElementById('nota-censo');
+  if(!nota)return;
+  var dentro=e.target.closest&&e.target.closest('#nota-censo summary a');
+  if(dentro){
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||dentro.target)return;
+    e.preventDefault();
+    location.assign(dentro.href);
+    return;
+  }
+  if(e.target.closest&&e.target.closest('a[href="#modelo"]'))nota.open=true;
+});
+if(location.hash==='#modelo'){var nota0=document.getElementById('nota-censo');if(nota0)nota0.open=true;}
+if(typeof window.addEventListener==='function')window.addEventListener('hashchange',function(){if(location.hash!=='#modelo')return;var n=document.getElementById('nota-censo');if(n)n.open=true;});
 </script>
 <script>
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
