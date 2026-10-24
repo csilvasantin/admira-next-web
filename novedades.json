@@ -658,5 +658,8 @@
     "AdmiraXperience en las demos con sus tres Xpacios de Gràcia: GarageXperience · Santa Rosa 4, SpaceXperience · Planeta 7 y Sneakers Store · Santa Rosa 19.",
     "La GarageXperience es el local de Santa Rosa 4 (página propia, gemelo pendiente); la tienda de zapatillas vuelve a ser Sneakers Store · Santa Rosa 19.",
     "El registro central admite las tres páginas para AdmiraXperience, cada una con su propio loc."
+  ],
+  "v.24.10.2026.r2.09:31": [
+    "Locales de AdmiraXperience con nombre corto en el desplegable: Garage, Space y Sneakers Store (sin dirección, sin repetir Xperience)."
   ]
 }

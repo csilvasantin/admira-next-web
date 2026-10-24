@@ -12,9 +12,10 @@ export const DEMOS = [
  // AdmiraXperience (Carlos, 23/24-oct-2026) en lugar de Sneakers Store, con sus tres Xpacios de Gràcia: la
  // GarageXperience de Santa Rosa 4 (local propio, gemelo pendiente), la SpaceXperience de Planeta 7 (/Xsuperman/)
  // y la tienda Sneakers Store de Santa Rosa 19 (su loc de render no cambia: lo usan admira.biz, Yokup y las playlists).
- {id:'garage-xperience-santa-rosa-4',project_id:'admiraxperience',name:'GarageXperience · Santa Rosa 4 · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/garagexperience/?project=admiraxperience&circuit=admiraxperience&loc=garage-xperience-santa-rosa-4',enabled:1},
- {id:'space-xperience-planeta-7',project_id:'admiraxperience',name:'SpaceXperience · Planeta 7 · Barcelona',demo:true,xpace_url:'https://www.admira.store/Xsuperman/?project=admiraxperience&circuit=admiraxperience&loc=space-xperience-planeta-7',enabled:1},
- {id:'sneakers-store-santa-rosa-19',project_id:'admiraxperience',name:'Sneakers Store · Santa Rosa 19 · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/sneakerstore/?project=admiraxperience&circuit=admiraxperience&loc=sneakers-store-santa-rosa-19',enabled:1},
+ // Nombres cortos en el combo Local (Carlos, 24-oct-2026): sin dirección y sin repetir «Xperience» (ya lo dice el proyecto).
+ {id:'garage-xperience-santa-rosa-4',project_id:'admiraxperience',name:'Garage',demo:true,xpace_url:'https://www.admira.store/xpacios/garagexperience/?project=admiraxperience&circuit=admiraxperience&loc=garage-xperience-santa-rosa-4',enabled:1},
+ {id:'space-xperience-planeta-7',project_id:'admiraxperience',name:'Space',demo:true,xpace_url:'https://www.admira.store/Xsuperman/?project=admiraxperience&circuit=admiraxperience&loc=space-xperience-planeta-7',enabled:1},
+ {id:'sneakers-store-santa-rosa-19',project_id:'admiraxperience',name:'Sneakers Store',demo:true,xpace_url:'https://www.admira.store/xpacios/sneakerstore/?project=admiraxperience&circuit=admiraxperience&loc=sneakers-store-santa-rosa-19',enabled:1},
  {id:'demo-xtanco',project_id:'estancos',name:'Xtanco · demo',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=xtanco&project=estancos&quality=better'},
  {id:'demo-cafebreria',project_id:'cafebreria',name:'Cafebrería · demo',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=cafeteria&project=cafebreria&quality=better'},
  // Starbucks (15-oct-2026, Carlos): los tres centros en el desplegable. Paseo de Gràcia 103 (alsea-sbux-021)
