@@ -9,10 +9,12 @@ export const aclKey = id => `commercial:${id}`;
 // listar proyectos y locales para montar circuitos de demo (06-10-2026).
 export const CLIENT_ORIGINS = new Set(['https://www.xpaceos.com','https://xpaceos.com','https://www.admira.store','https://admira.store','https://www.admira.app','https://admira.app','https://www.admira.biz','https://admira.biz','https://www.clearchannel.tv','https://clearchannel.tv']);
 export const DEMOS = [
- // AdmiraXperience (Carlos, 23-oct-2026) en lugar de Sneakers Store: la GarageXperience de Santa Rosa 4 es la tienda
- // de /xpacios/sneakerstore/ (el loc del render no cambia) y la SpaceXperience de Planeta 7 es /Xsuperman/.
- {id:'garage-xperience-santa-rosa-4',project_id:'admiraxperience',name:'GarageXperience · Santa Rosa 4 · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/sneakerstore/?project=admiraxperience&circuit=admiraxperience&loc=sneakers-store-santa-rosa-19',enabled:1},
+ // AdmiraXperience (Carlos, 23/24-oct-2026) en lugar de Sneakers Store, con sus tres Xpacios de Gràcia: la
+ // GarageXperience de Santa Rosa 4 (local propio, gemelo pendiente), la SpaceXperience de Planeta 7 (/Xsuperman/)
+ // y la tienda Sneakers Store de Santa Rosa 19 (su loc de render no cambia: lo usan admira.biz, Yokup y las playlists).
+ {id:'garage-xperience-santa-rosa-4',project_id:'admiraxperience',name:'GarageXperience · Santa Rosa 4 · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/garagexperience/?project=admiraxperience&circuit=admiraxperience&loc=garage-xperience-santa-rosa-4',enabled:1},
  {id:'space-xperience-planeta-7',project_id:'admiraxperience',name:'SpaceXperience · Planeta 7 · Barcelona',demo:true,xpace_url:'https://www.admira.store/Xsuperman/?project=admiraxperience&circuit=admiraxperience&loc=space-xperience-planeta-7',enabled:1},
+ {id:'sneakers-store-santa-rosa-19',project_id:'admiraxperience',name:'Sneakers Store · Santa Rosa 19 · Barcelona',demo:true,xpace_url:'https://www.admira.store/xpacios/sneakerstore/?project=admiraxperience&circuit=admiraxperience&loc=sneakers-store-santa-rosa-19',enabled:1},
  {id:'demo-xtanco',project_id:'estancos',name:'Xtanco · demo',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=xtanco&project=estancos&quality=better'},
  {id:'demo-cafebreria',project_id:'cafebreria',name:'Cafebrería · demo',demo:true,xpace_url:'https://www.xpaceos.com/admira-xp/?autostart=cafeteria&project=cafebreria&quality=better'},
  // Starbucks (15-oct-2026, Carlos): los tres centros en el desplegable. Paseo de Gràcia 103 (alsea-sbux-021)
@@ -68,8 +70,8 @@ export function validateVenue(body,knownProjects) {
  if(!/^[a-z0-9][a-z0-9_-]{1,79}$/.test(id)||!knownProjects.some(p=>p.id===project_id)||name.length<2||name.length>160||typeof enabled!=='boolean') throw Error('ID, proyecto, nombre o estado inválido');
  const u=new URL(body.xpace_url);
  const sneakers=project_id==='sneakers-store'&&u.pathname==='/xpacios/sneakerstore/'&&u.searchParams.get('loc')===id;
- // AdmiraXperience: la GarageXperience se pinta con la tienda de Santa Rosa (loc del render) y la SpaceXperience con /Xsuperman/.
- const xperience=project_id==='admiraxperience'&&((u.pathname==='/xpacios/sneakerstore/'&&u.searchParams.get('loc')==='sneakers-store-santa-rosa-19')||(u.pathname==='/Xsuperman/'&&u.searchParams.get('loc')===id));
+ // AdmiraXperience: GarageXperience (/xpacios/garagexperience/), SpaceXperience (/Xsuperman/) y su tienda (/xpacios/sneakerstore/), cada una con su propio loc.
+ const xperience=project_id==='admiraxperience'&&['/xpacios/garagexperience/','/Xsuperman/','/xpacios/sneakerstore/'].includes(u.pathname)&&u.searchParams.get('loc')===id;
  const office=u.pathname==='/xpacios/gran-de-gracia-51/'&&u.searchParams.get('loc')===id;
  // Centros Starbucks con playlists (Diagonal 634…): sólo para Starbucks y con su propio local en la URL.
  const centros=project_id==='starbucks'&&u.pathname==='/xpacios/starbucks-centros/'&&u.searchParams.get('loc')===id;
