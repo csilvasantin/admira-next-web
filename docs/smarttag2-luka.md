@@ -31,7 +31,11 @@ No se ha creado ni rotado ninguna credencial Samsung ni del mapa.
 ```
 
 Es un ejemplo sintético del **contrato propio del puente**, no el esquema de una
-API Samsung. `battery` es opcional (0–100); `accuracy` es obligatoria, en metros.
+API Samsung. `battery` es opcional (0–100); `accuracy` es obligatoria: un número
+en metros o `null` explícito cuando la fuente no facilita precisión. No omitirla
+ni sustituirla por cero o por la precisión de Demo. El feed conserva `null` y la
+tarjeta muestra «Precisión: No disponible», sin dibujar un círculo supuesto.
+Esto no cambia el contrato del iPhone, que sigue exigiendo precisión numérica.
 Las coordenadas son números, no cadenas. `timestamp` debe ser el instante de la
 medición real, ISO con zona o Unix (s/ms), con máximo 24 h de retraso y 5 min de
 adelanto. No sustituir la fecha de la medición por la fecha de consulta.
@@ -65,12 +69,19 @@ Checklist antes de conectar datos reales:
 
 - Confirmar en la cuenta Samsung propietaria que Luka está emparejado y tiene
   una posición y fecha visibles en SmartThings Find.
-- Registrar una integración OAuth con callback HTTPS exacto; validar `state`,
-  canjear el código en servidor y guardar client secret/access/refresh token
-  en la bóveda, nunca en navegador, URL, repositorio o informes.
-- Pedir solo lectura de los dispositivos autorizados. Verificar los permisos
-  y la capacidad concreta que devuelve coordenadas del **tag**; no confundir
-  la localización de una casa SmartThings o del Fold con la de Luka.
+- La API pública de SmartThings no expone la geolocalización de SmartTags,
+  según [su soporte de desarrollo](https://community.smartthings.com/t/smartthings-api-how-to-access-device-locations-for-view-in-map/297805).
+  Un PAT u OAuth genérico no resuelve este acceso. No crear esas credenciales
+  como si fueran una autorización de lectura de Find.
+- En Samsung Find, los SmartTags aparecen bajo «Artículos». La ficha web puede
+  mostrar dirección y fecha sin ofrecer coordenadas o precisión numéricas;
+  «Información del dispositivo» puede limitarse al modelo. El enlace general
+  de Google Maps corresponde al área visible y no prueba la posición del tag.
+- Verificar una fuente autorizada que entregue las coordenadas del **tag**.
+  Un filtro local por identificador no equivale a un permiso Samsung limitado
+  a Luka: las sesiones Find o credenciales de clientes no oficiales pueden
+  acceder a otros dispositivos. Revisar su alcance antes de crear acceso
+  persistente. Conservar los secretos sólo en el Mac, nunca en la web del mapa.
 - Probar refresh, revocación, permisos insuficientes, timeout y respuesta sin
   coordenadas. Si no hay una API documentada habilitada, mantener el stub y
   acordar una fuente autorizada antes de programar sondeos.
@@ -83,7 +94,7 @@ Checklist antes de conectar datos reales:
 
 ## Verificación
 
-31 pruebas: `node --test test/ubicacion.test.mjs test/mapa-ubicacion-ui.test.mjs test/mapa-5612.test.mjs`.
+Pruebas: `node --test test/ubicacion.test.mjs test/mapa-ubicacion-ui.test.mjs test/mapa-5612.test.mjs`.
 Incluyen autenticación por dispositivo, validación, retención, orden temporal,
 lectura con sesión y render de Luka real/mock. Revisión visual local en IAB:
 Luka visible como etiqueta violeta y tarjeta «Dato de prueba», sin cambiar el

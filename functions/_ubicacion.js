@@ -124,6 +124,9 @@ export function validarAviso(input, now = Date.now(), equipoAutorizado = 'iphone
   // La clave del iPhone no autoriza escribir la posición de otro equipo.
   if (input.equipo !== equipoAutorizado) throw new EntradaInvalida('equipo_no_autorizado', 401);
   for (const [key, min, max] of [['lat',-90,90], ['lon',-180,180], ['precision_m',0,100000]]) {
+    // Find puede no proporcionar precisión: null explícito conserva ese desconocimiento.
+    // No permite omitirla ni relaja el contrato del iPhone.
+    if (key === 'precision_m' && equipoAutorizado === 'luka' && input.fuente === 'smartthings-find' && input[key] === null) continue;
     if (typeof input[key] !== 'number' || !Number.isFinite(input[key]) || input[key] < min || input[key] > max) {
       throw new EntradaInvalida(`${key}_invalido`);
     }

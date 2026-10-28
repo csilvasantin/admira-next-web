@@ -272,7 +272,7 @@ test('puente SmartTag2 autentica por separado y solo escribe Luka; feed privado,
     const res = await send(data,key);assert.equal(res.status,401);noStore(res);
   }
   assert.equal(env.UBICACIONES.entries.size,0);
-  for (const bad of [{label:'Other'},{tipo:'movil'},{latitude:'41'},{longitude:181},{accuracy:null},{timestamp:now-25*3600000},{extra:'unexpected'},{battery:101}]) {
+  for (const bad of [{label:'Other'},{tipo:'movil'},{latitude:'41'},{longitude:181},{accuracy:'35'},{accuracy:-1},{timestamp:now-25*3600000},{extra:'unexpected'},{battery:101}]) {
     assert.equal((await send({...data,...bad})).status,400,JSON.stringify(bad));
   }
   assert.equal((await send(data,TAG_KEY,{'content-type':'text/plain'})).status,415);
@@ -289,4 +289,23 @@ test('puente SmartTag2 autentica por separado y solo escribe Luka; feed privado,
   assert.equal((await privateRead.json()).equipos.find(device=>device.equipo==='luka').lat,data.latitude);
   assert.equal((await bridge({request:new Request(URL_API+'/smarttag2'),env})).status,405);
   delete env.UBICACION_KEY_SMARTTAG2;assert.equal((await send()).status,401);
+});
+
+test('Luka conserva precisión desconocida explícita en el feed sin inventar cero ni cambiar la hora', async () => {
+  const {onRequest: bridge} = await import('../functions/api/ubicacion/smarttag2.js');
+  const {env,cookie} = await setup();
+  env.UBICACION_KEY_SMARTTAG2 = 'smarttag-fixture-distinct-key-with-at-least-32-characters';
+  const measured = Date.now()-60000;
+  const data = {label:'Luka',tipo:'smarttag2',latitude:41.398,longitude:2.17,accuracy:null,timestamp:measured};
+  const send = body => bridge({request:new Request(URL_API+'/smarttag2',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+env.UBICACION_KEY_SMARTTAG2},body:JSON.stringify(body)}),env});
+  const {accuracy,...missing} = data;
+  assert.equal((await send(missing)).status,400);
+  assert.equal((await send({...data,latitude:null})).status,400);
+  assert.equal((await send(data)).status,201);
+  const response = await onRequestGet({request:new Request(URL_API,{headers:{cookie}}),env});
+  const luka = (await response.json()).equipos.find(item => item.equipo === 'luka');
+  assert.equal(luka.precision_m,null);
+  assert.equal(luka.lat,data.latitude);
+  assert.equal(luka.ts,new Date(measured).toISOString());
+  assert.throws(() => validarAviso(aviso({precision_m:null})),/precision_m_invalido/);
 });

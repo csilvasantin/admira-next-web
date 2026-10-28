@@ -7,7 +7,7 @@
   var T = function (es, en) { return english() ? en : es; };
   var escape = function (value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
   var state = {demo:false, devices:[], loaded:false, loading:false, lastRead:null, error:null, request:0, controller:null};
-  var map, markers, tiles, pins = new Map(), halos = [], fitNext = true, temaTicket = 0;
+  var map, markers, tiles, pins = new Map(), halos = [], fitNext = true, temaTicket = 0, simulator;
 
   function hasPosition(device) {
     return typeof device.lat === 'number' && Number.isFinite(device.lat) && Math.abs(device.lat) <= 90 &&
@@ -91,6 +91,7 @@
       var info = row(T('Último aviso','Last report'), prueba ? T('Dato de prueba','Test data') : last ? date(last) + ' · ' + ago(last) : T('Sin avisos recibidos','No reports received'));
       if (positioned) info += row(T('Coordenadas','Coordinates'), device.lat.toFixed(5) + ', ' + device.lon.toFixed(5));
       if (typeof device.precision_m === 'number' && Number.isFinite(device.precision_m)) info += row(T('Precisión','Accuracy'), '± ' + Math.round(device.precision_m) + ' m');
+      else if (positioned && device.tipo === 'smarttag2') info += row(T('Precisión','Accuracy'), T('No disponible','Unavailable'));
       if (typeof device.bateria === 'number' && Number.isFinite(device.bateria)) info += row(T('Batería','Battery'), Math.round(device.bateria) + ' %');
       if (device.fuente) info += row(T('Fuente','Source'), prueba ? T('Dato de prueba','Test data') : device.fuente);
       var note = prueba ? T('Dato de prueba. No es un aviso del equipo.','Test data. This is not a device report.') : device.tipo === 'fijo' ? T('Dirección manual. No necesita avisos automáticos.','Manual address. No automatic reports needed.') : key === 'stale' ? T('Más de 2 h sin recibir una posición.','No position received for over 2 h.') : key === 'missing' ? T('Pendiente del primer aviso del equipo.','Waiting for the first report from this device.') : '';
@@ -110,6 +111,7 @@
     map = G.L.map('mapa', {scrollWheelZoom:false}).setView([41.394,2.164], 13);
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
+    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L});
     if (map.on) map.on('zoomend', refrescarHalos);
   }
 
@@ -229,6 +231,7 @@
     renderError();
     renderDevices();
     renderMap();
+    if (simulator) simulator.renderText();
   }
 
   async function refresh() {
@@ -266,6 +269,7 @@
     if (state.controller) state.controller.abort();
     state.controller = null;
     state.demo = demo;
+    if (!demo && simulator) simulator.stop();
     state.loading = false;
     state.error = null;
     state.lastRead = null;
@@ -281,6 +285,12 @@
   byId('modo-demo').addEventListener('click',function () {setMode(true);});
   byId('refrescar').addEventListener('click',refresh);
   byId('centrar').addEventListener('click',fit);
+  byId('simular-player').addEventListener('click',function () {
+    if (!simulator) return;
+    if (simulator.isActive()) {simulator.stop();return;}
+    setMode(true);
+    simulator.start();
+  });
   d.addEventListener('click',function (event) {
     if (!event.target.closest) return;
     var action = event.target.closest('[data-mapa-action]');

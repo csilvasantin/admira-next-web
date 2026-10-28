@@ -19,7 +19,7 @@ class Element {
   click() {if (!this.disabled) (this.listeners.click || []).forEach((callback) => callback({target:this}));}
 }
 
-function mount(fetcher = async () => answer([phone(),mini()])) {
+function mount(fetcher = async () => answer([phone(),mini()]), globals = {}) {
   const elements = new Map(), observers = [], intervals = [], requests = [], pins = [];
   const element = (id) => {if (!elements.has(id)) elements.set(id,new Element());return elements.get(id);};
   const html = new Element();html.lang = 'es';
@@ -33,6 +33,7 @@ function mount(fetcher = async () => answer([phone(),mini()])) {
   };
   class Clock extends Date {constructor(...args) {super(...(args.length ? args : [NOW]));} static now() {return NOW;}}
   const context = vm.createContext({document,L,Date:Clock,Intl,Map,console,AbortController,MutationObserver:class {constructor(callback) {observers.push(callback);} observe() {}},setInterval:(callback,ms) => intervals.push({callback,ms}),fetch:async (url,options) => {requests.push({url,options});return fetcher(url,options);}});
+  Object.assign(context,globals);
   context.window = context;
   vm.runInContext(code,context);
   return {element,requests,pins,circles,intervals,language:(lang) => {html.lang = lang;observers.forEach((callback) => callback());}};
@@ -166,4 +167,34 @@ test('Luka real conserva tipo, etiqueta e icono SmartTag2; sin medición no inve
   assert.equal(empty.pins.length,0);
   assert.match(empty.element('equipos-lista').innerHTML,/Luka/);
   assert.match(empty.element('equipos-lista').innerHTML,/Pendiente del primer aviso/);
+});
+
+test('Luka sin precisión conserva el marcador, muestra el dato ausente y no dibuja un radio supuesto',async () => {
+  const ui = mount(async () => answer([{equipo:'luka',nombre:'Luka',tipo:'smarttag2',lat:41.395,lon:2.172,precision_m:null,fuente:'smartthings-find',ts:iso(3)}]));
+  await flush();
+  assert.equal(ui.pins.length,1);
+  assert.equal(ui.circles.length,0);
+  assert.match(ui.element('equipos-lista').innerHTML,/Precisión<\/dt><dd>No disponible/);
+  assert.doesNotMatch(ui.element('equipos-lista').innerHTML,/± 0 m/);
+  ui.language('en');
+  assert.match(ui.element('equipos-lista').innerHTML,/Accuracy<\/dt><dd>Unavailable/);
+});
+
+test('simular un player pasa a Demo, no envía ubicaciones y se detiene al volver a datos reales',async () => {
+  let active = false, starts = 0, stops = 0;
+  const simulator = {start(){active=true;starts++;},stop(){active=false;stops++;},renderText(){},isActive(){return active;}};
+  const ui = mount(async () => answer([phone()]),{AdmiraMapaSimulador:{create:()=>simulator}});
+  await flush();
+  ui.element('simular-player').click();
+  assert.equal(starts,1);
+  assert.equal(ui.element('demo-aviso').hidden,false);
+  ui.intervals.find(item=>item.ms===60000).callback();
+  assert.equal(ui.requests.length,1);
+  assert.ok(ui.requests.every(item=>item.options.method==='GET'));
+  ui.element('modo-real').click();
+  await flush();
+  assert.equal(stops,1);
+  assert.equal(active,false);
+  assert.equal(ui.element('demo-aviso').hidden,true);
+  assert.equal(ui.pins.length,1);
 });
