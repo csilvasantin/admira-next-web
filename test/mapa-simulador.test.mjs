@@ -7,11 +7,52 @@ const code = await readFile(new URL('../pruebas/mapa/simulador.js',import.meta.u
 const editorCode = await readFile(new URL('../pruebas/mapa/editor-zonas.js',import.meta.url),'utf8');
 const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags:['tecnología','technology']},{type:'video',tags:['creatividad','publicidad']},{type:'link',tags:['pendiente']}]};
 const flush = async () => {await new Promise(setImmediate);};
+const lukaFix=(extra={})=>({equipo:'luka',tipo:'smarttag2',nombre:'Luka',fuente:'smartthings-find',lat:41.4043,lon:2.1582,precision_m:10,ts:new Date().toISOString(),...extra});
+
+test('una lectura real y el arrastre usan la misma zona, con precisión completa y prioridad de solapamiento',()=>{
+  const ui=mount({editor:true}), config=JSON.parse(JSON.stringify(ui.zonesApi.defaults)), now=Date.now();
+  for (const point of [{lat:41.4043,lng:2.1582},{lat:41.389,lng:2.1645},{lat:0,lng:0}]) {
+    const reading=ui.api.resolveReading(lukaFix({lat:point.lat,lon:point.lng}),config,now);
+    assert.equal(reading.status,'ready');assert.equal(reading.zone.id,ui.api.zoneFor(point,config).id);
+  }
+  config.zones[1]={...config.zones[1],lat:config.zones[0].lat,lon:config.zones[0].lon};
+  assert.equal(ui.api.resolveReading(lukaFix(),config,now).zone.id,'gracia');
+  config.zones.reverse();assert.equal(ui.api.resolveReading(lukaFix(),config,now).zone.id,'eixample');
+  // The higher priority circle intersects the accuracy area without containing it.
+  config.zones[0].lat+=440/6371000*180/Math.PI;
+  assert.equal(ui.api.resolveReading(lukaFix({precision_m:20}),config,now).status,'ambiguous');
+});
+
+test('seguimiento no decide oficina con lectura antigua, futura, sintética, de otro equipo o sin precisión',()=>{
+  const ui=mount({editor:true}), config=ui.zonesApi.defaults, now=Date.now();
+  for (const [extra,status] of [[{ts:new Date(now-300001).toISOString()},'stale'],[{ts:new Date(now+60001).toISOString()},'stale'],[{ts:'ayer'},'stale'],[{precision_m:null},'accuracy'],[{precision_m:'10'},'accuracy'],[{precision_m:-1},'accuracy'],[{es_prueba:true},'test'],[{nombre:'Luka mock'},'test'],[{fuente:'demo-smartthings-find'},'missing'],[{equipo:'iphone-carlos'},'missing'],[{tipo:'movil'},'missing'],[{lat:null},'missing']]) assert.equal(ui.api.resolveReading(lukaFix(extra),config,now).status,status);
+  const edge=450/6371000*180/Math.PI;
+  assert.equal(ui.api.resolveReading(lukaFix({lat:41.4043+edge,precision_m:10}),config,now).status,'ambiguous');
+});
+
+test('seguir Luka espera sin coordenadas, aplica avisos fiables y retira el player ante duda o fallo de consulta',()=>{
+  const ui=mount({editor:true}), sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');
+  assert.equal(sim.isFollowing(),true);assert.equal(ui.element('simulador-video').children.length,0);
+  assert.match(ui.element('simulador-lectura').textContent,/Esperando coordenadas/);
+  assert.equal(ui.markers.length,0);assert.equal(ui.mapEvents.click,undefined);
+  sim.updateLuka(lukaFix(),false);
+  const first=ui.element('simulador-video').children[0];assert.equal(new URL(first.src).searchParams.get('tag'),'retail');
+  assert.equal(ui.element('simulador-ir-gracia').disabled,true);
+  sim.move({lat:0,lng:0});ui.element('simulador-ir-eixample').click();assert.equal(ui.element('simulador-video').children[0],first);
+  sim.updateLuka(lukaFix({lat:41.40431}),false);assert.equal(ui.element('simulador-video').children[0],first);
+  sim.updateLuka(lukaFix({lat:41.389,lon:2.1645}),false);assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'tecnologia');
+  sim.updateLuka(lukaFix({precision_m:null}),false);assert.equal(ui.element('simulador-video').children.length,0);assert.match(ui.element('simulador-lectura').textContent,/Precisión no disponible/);
+  sim.updateLuka(lukaFix(),false);assert.equal(ui.element('simulador-video').children.length,1);
+  sim.updateLuka(lukaFix(),true);assert.equal(ui.element('simulador-video').children.length,0);assert.match(ui.element('simulador-lectura').textContent,/No se puede actualizar/);
+  ui.document.documentElement.lang='en';sim.renderText();assert.match(ui.element('simulador-lectura').textContent,/cannot be refreshed/);
+  sim.stop();sim.updateLuka(lukaFix(),false);assert.equal(ui.element('simulador-video').children.length,0);
+  sim.start();assert.equal(sim.isFollowing(),false);assert.equal(ui.markers.at(-1).options.draggable,true);sim.stop();
+});
 function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:async()=>fixtureCatalog}),storageError=false}={}) {
   const elements = new Map(), messages = [], markers = [], timers = new Map(), mapEvents = {}, requests=[], downloads=[], blobs=new Map();
   let serial=0;
   function node() {
-    const el={hidden:true,textContent:'',value:'',attributes:{},children:[],listeners:{},classList:{add(){},remove(){}},contentWindow:{},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this[k];delete this.attributes[k];},appendChild(child){this.children.push(child);child.parent=this;return child;},replaceChildren(...children){this.children=[];children.forEach(child=>this.appendChild(child));},remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},addEventListener(k,fn){this.listeners[k]=fn;},fire(k,value){if(value!==undefined)this.value=value;return this.listeners[k]?.({target:this});},click(){if(this.disabled)return;if(this.download)downloads.push({name:this.download,blob:blobs.get(this.href)});return this.fire('click');}};
+    const el={hidden:true,textContent:'',value:'',attributes:{},children:[],listeners:{},classList:{add(){},remove(){}},contentWindow:{},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this[k];delete this.attributes[k];},appendChild(child){if(child.parent)child.parent.children=child.parent.children.filter(item=>item!==child);this.children.push(child);child.parent=this;return child;},replaceChildren(...children){this.children=[];children.forEach(child=>this.appendChild(child));},remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},addEventListener(k,fn){this.listeners[k]=fn;},fire(k,value){if(value!==undefined)this.value=value;return this.listeners[k]?.({target:this});},click(){if(this.disabled)return;if(this.download)downloads.push({name:this.download,blob:blobs.get(this.href)});return this.fire('click');}};
     Object.defineProperty(el,'id',{get(){return this.nodeId;},set(value){this.nodeId=value;elements.set(value,this);}});
     return el;
   }
@@ -167,6 +208,15 @@ async function editorSession(options) {
 }
 function fileOf(text) {return {size:new TextEncoder().encode(text).length,text:async()=>text};}
 async function importFile(ui,file) {ui.element('simulador-archivo').files=[file];await ui.element('simulador-archivo').fire('change');}
+
+test('importar otro orden sincroniza accesos del mapa y prioridad sin recrear botones en cada lectura',async()=>{
+  const ui=await editorSession(),config=JSON.parse(JSON.stringify(ui.zonesApi.defaults));
+  const first=ui.element('simulador-zonas').children.slice();config.zones.reverse();
+  await importFile(ui,fileOf(JSON.stringify(config)));
+  const controls=ui.element('simulador-zonas');assert.deepEqual(controls.children.map(node=>node.id),['simulador-ir-eixample','simulador-ir-gracia','simulador-ir-exterior']);
+  const reordered=controls.children;ui.sim.renderText();assert.equal(controls.children,reordered);
+  assert.ok(first.every(node=>controls.children.includes(node)));ui.sim.stop();
+});
 
 test('el archivo portable conserva orden, geometría y temas, acepta UTF-8 con BOM y limita bytes antes de parsear',()=>{
   const {zonesApi:api}=mount({editor:true}),config=JSON.parse(JSON.stringify(api.defaults));

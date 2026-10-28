@@ -198,3 +198,20 @@ test('simular un player pasa a Demo, no envía ubicaciones y se detiene al volve
   assert.equal(ui.element('demo-aviso').hidden,true);
   assert.equal(ui.pins.length,1);
 });
+
+test('seguir Luka consulta sólo la fuente real, renueva sus avisos y abandona seguimiento al simular',async()=>{
+  let active=false, following=false, latest=null, feedError=false, starts=[];
+  const simulator={start(mode){active=true;following=mode==='luka';starts.push(mode);},stop(){active=false;following=false;},renderText(){},isActive(){return active;},isFollowing(){return active&&following;},updateLuka(device,error){latest=device;feedError=error;}};
+  let response=answer([{equipo:'luka',tipo:'smarttag2',lat:41.4043,lon:2.1582,fuente:'smartthings-find',ts:iso()}]);
+  const ui=mount(async()=>response,{AdmiraMapaSimulador:{create:()=>simulator}});await flush();
+  ui.element('seguir-luka').click();await flush();
+  assert.equal(starts.at(-1),'luka');assert.equal(latest.equipo,'luka');assert.equal(ui.element('demo-aviso').hidden,true);
+  response=answer([{equipo:'luka',tipo:'smarttag2',lat:41.389,lon:2.1645,fuente:'smartthings-find',ts:iso()}]);
+  ui.intervals.find(item=>item.ms===60000).callback();await flush();assert.equal(latest.lat,41.389);
+  response=answer([],401);ui.intervals.find(item=>item.ms===60000).callback();await flush();assert.equal(latest,undefined);assert.equal(feedError,'session');
+  let complete;response=new Promise(resolve=>complete=resolve);ui.intervals.find(item=>item.ms===60000).callback();await flush();assert.equal(feedError,true);
+  complete(answer([{equipo:'luka',tipo:'smarttag2',lat:41.4043,lon:2.1582,fuente:'smartthings-find',ts:iso()}]));await flush();assert.equal(feedError,false);assert.equal(latest.lat,41.4043);
+  ui.element('simular-player').click();assert.equal(following,false);assert.equal(ui.element('demo-aviso').hidden,false);
+  const before=ui.requests.length;ui.intervals.find(item=>item.ms===60000).callback();await flush();assert.equal(ui.requests.length,before);
+  assert.ok(ui.requests.every(item=>item.options.method==='GET'));
+});

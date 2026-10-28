@@ -6,7 +6,7 @@
   var english = function () { return /^en/i.test(d.documentElement.lang || ''); };
   var T = function (es, en) { return english() ? en : es; };
   var escape = function (value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
-  var state = {demo:false, devices:[], loaded:false, loading:false, lastRead:null, error:null, request:0, controller:null};
+  var state = {demo:false, devices:[], loaded:false, loading:false, lastRead:null, error:null, feedFailed:false, request:0, controller:null};
   var map, markers, tiles, pins = new Map(), halos = [], fitNext = true, temaTicket = 0, simulator;
 
   function hasPosition(device) {
@@ -231,7 +231,10 @@
     renderError();
     renderDevices();
     renderMap();
-    if (simulator) simulator.renderText();
+    if (simulator) {
+      if (!state.demo && simulator.isFollowing && simulator.isFollowing()) simulator.updateLuka(state.devices.find(function (device) {return device.equipo==='luka';}),state.error || state.feedFailed);
+      simulator.renderText();
+    }
   }
 
   async function refresh() {
@@ -246,6 +249,7 @@
       var response = await G.fetch('/api/ubicacion', {method:'GET',cache:'no-store',credentials:'same-origin',headers:{Accept:'application/json'},signal:state.controller.signal});
       if (request !== state.request || state.demo) return;
       if (!response.ok) {
+        state.feedFailed = true;
         state.error = response.status === 401 ? 'session' : response.status === 503 ? 'storage' : 'network';
         if (response.status === 401) {state.devices = [];state.loaded = false;state.lastRead = null;}
         return;
@@ -255,9 +259,10 @@
       if (!data || data.ok !== true || !Array.isArray(data.equipos)) throw new Error('invalid_response');
       state.devices = data.equipos.filter(function (device) { return device && typeof device.equipo === 'string' && (device.tipo === 'fijo' || device.tipo === 'movil' || device.tipo === 'smarttag2'); });
       state.loaded = true;
+      state.feedFailed = false;
       state.lastRead = new Date().toISOString();
     } catch (err) {
-      if (request === state.request && !state.demo && err.name !== 'AbortError') state.error = 'network';
+      if (request === state.request && !state.demo && err.name !== 'AbortError') {state.error = 'network';state.feedFailed = true;}
     } finally {
       if (request === state.request && !state.demo) {state.loading = false;state.controller = null;render();}
     }
@@ -269,9 +274,10 @@
     if (state.controller) state.controller.abort();
     state.controller = null;
     state.demo = demo;
-    if (!demo && simulator) simulator.stop();
+    if (simulator && (!demo || (simulator.isFollowing && simulator.isFollowing()))) simulator.stop();
     state.loading = false;
     state.error = null;
+    state.feedFailed = false;
     state.lastRead = null;
     state.devices = demo ? sample() : [];
     state.loaded = demo;
@@ -287,9 +293,18 @@
   byId('centrar').addEventListener('click',fit);
   byId('simular-player').addEventListener('click',function () {
     if (!simulator) return;
-    if (simulator.isActive()) {simulator.stop();return;}
+    if (simulator.isActive()) {var following=simulator.isFollowing&&simulator.isFollowing();simulator.stop();if (!following) return;}
     setMode(true);
     simulator.start();
+  });
+  byId('seguir-luka').addEventListener('click',function () {
+    if (!simulator) return;
+    if (simulator.isFollowing()) {simulator.stop();return;}
+    simulator.stop();
+    if (state.demo) setMode(false);
+    simulator.start('luka');
+    simulator.updateLuka(state.devices.find(function (device) {return device.equipo==='luka';}),state.error || state.feedFailed);
+    if (!state.loading) refresh();
   });
   d.addEventListener('click',function (event) {
     if (!event.target.closest) return;
