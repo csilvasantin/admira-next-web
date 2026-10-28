@@ -14,7 +14,7 @@
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
   <script defer src="/pruebas/mapa/idioma.js?v=20261029-seguir-1"></script>
-  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-oficinas-1"></script>
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-prioridad-1"></script>
   <script defer src="/pruebas/mapa/simulador.js?v=20261029-oficinas-1"></script>
   <script defer src="/pruebas/mapa/mapa.js?v=20261029-oficinas-1"></script>
 </head>
@@ -64,6 +64,7 @@
             <label><span id="simulador-label-radio">Radio en metros</span><input id="simulador-radio" aria-labelledby="simulador-label-radio" type="number" min="50" max="5000" step="1"></label>
             <label><span id="simulador-label-tema">Contenido de admira.tv</span><select id="simulador-tema" aria-labelledby="simulador-label-tema"></select></label>
           </div>
+          <div class="mapa-zone-actions"><button type="button" id="simulador-subir">Subir prioridad</button><button type="button" id="simulador-bajar">Bajar prioridad</button><span id="simulador-prioridad" role="status" aria-live="polite"></span></div>
           <p id="simulador-direccion"></p>
           <p id="simulador-tema-ayuda">Se reproducen las piezas del catálogo con el tema elegido.</p>
           <p id="simulador-catalogo-estado" role="status" aria-live="polite"></p>

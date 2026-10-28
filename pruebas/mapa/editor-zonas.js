@@ -108,6 +108,10 @@
       byId('simulador-radio').disabled=outside;
       byId('simulador-centro-aqui').disabled=outside;
       byId('simulador-eliminar').disabled=outside;
+      var priority=config.zones.findIndex(function (item) {return item.id===selected;});
+      byId('simulador-subir').disabled=outside || priority<=0;
+      byId('simulador-bajar').disabled=outside || priority<0 || priority>=config.zones.length-1;
+      byId('simulador-prioridad').textContent=outside?T('El exterior se aplica cuando no se entra en ninguna zona.','Outside content applies when no zone is entered.'):T('Prioridad '+(priority+1)+' de '+config.zones.length+'. La primera zona coincidente decide el contenido.','Priority '+(priority+1)+' of '+config.zones.length+'. The first matching zone selects the content.');
       byId('simulador-direccion').textContent=outside?'':zone.address?T('Referencia: ','Reference: ')+zone.address:'';
       byId('simulador-anadir').disabled=config.zones.length>=8;
       byId('simulador-deshacer').disabled=!undo.length;
@@ -133,6 +137,7 @@
         'tema-ayuda':T('Se reproducen las piezas del catálogo con el tema elegido.','Plays catalogue items with the selected topic.'),
         'centro-aqui':T('Situar zona en el simulador','Centre zone on simulator'),'anadir':T('Añadir zona','Add zone'),
         'eliminar':T('Eliminar zona','Delete zone'),'deshacer':T('Deshacer','Undo'),'catalogo':T('Actualizar catálogo','Refresh catalogue'),
+        'subir':T('Subir prioridad','Move priority up'),'bajar':T('Bajar prioridad','Move priority down'),
         'guardar':T('Guardar zonas','Save zones'),'restaurar':T('Restaurar ejemplos','Restore examples'),
         'exportar':T('Exportar zonas','Export zones'),'importar':T('Importar zonas','Import zones'),
         'intercambio-ayuda':T('El archivo conserva las zonas, su orden y los temas asignados. En otro navegador, impórtalo y pulsa Guardar zonas.','The file keeps zones, their order and assigned topics. In another browser, import it and choose Save zones.')
@@ -236,6 +241,13 @@
       });
     });
     byId('simulador-eliminar').addEventListener('click',function () {if (selected!=='exterior') edit(function () {config.zones=config.zones.filter(function (zone) {return zone.id!==selected;});});});
+    function reorder(step) {
+      var from=config.zones.findIndex(function (zone) {return zone.id===selected;}), to=from+step;
+      if (selected==='exterior' || from<0 || to<0 || to>=config.zones.length || !validDraft()) return;
+      edit(function () {var moved=config.zones.splice(from,1)[0];config.zones.splice(to,0,moved);});
+    }
+    byId('simulador-subir').addEventListener('click',function () {reorder(-1);});
+    byId('simulador-bajar').addEventListener('click',function () {reorder(1);});
     byId('simulador-deshacer').addEventListener('click',function () {if (!undo.length) return;config=JSON.parse(undo.pop());transferState='idle';if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';drawShapes();drawHandles();renderText();options.onChange();});
     byId('simulador-restaurar').addEventListener('click',function () {edit(function () {config=copy(defaults);});});
     byId('simulador-oficinas').addEventListener('click',function () {

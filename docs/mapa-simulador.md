@@ -111,6 +111,15 @@ zonas, nombres propios, añadir, eliminar, deshacer y restaurar los ejemplos.
 En un solapamiento manda la primera zona de la lista. El exterior tiene su
 propia asignación de contenido y no tiene centro ni radio.
 
+«Subir prioridad» y «Bajar prioridad» mueven la zona seleccionada una posición
+en la lista. El editor muestra su prioridad actual y desactiva los movimientos
+que exceden la lista; el exterior no se puede reordenar. Se conserva la selección
+y se puede deshacer el cambio. El selector y los accesos del mapa reflejan el
+mismo orden, que se guarda y se incluye en el archivo de exportación. Las
+geometrías, referencias de dirección y contenidos permanecen asociados a su zona.
+Cambiar el orden vuelve a evaluar la ubicación manual o recibida de Luka:
+sólo reinicia el player si cambia la zona ganadora o su tema.
+
 Cambiar un tema actualiza el player aunque el simulador siga en la misma zona.
 Cambiar sólo el nombre no reinicia la reproducción. Las ediciones se aplican
 en la sesión y «Guardar zonas» persiste en este navegador mediante la clave
