@@ -34,7 +34,7 @@
   function esPrueba(device) {
     if (state.demo) return true;
     var blob = [device && device.fuente, device && device.equipo, device && device.nombre].join(' ');
-    return /demo|fixture|prueba|sint[eé]t|ejemplo|\btest\b|sample/i.test(blob);
+    return device.es_prueba === true || /mock|demo|fixture|prueba|sint[eé]t|ejemplo|\btest\b|sample/i.test(blob);
   }
 
   function nombreCorto(device) {
@@ -46,6 +46,7 @@
   }
 
   var GLYPH = {
+    smarttag2: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="7" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 16h6" stroke="currentColor" stroke-width="1.8"/></svg>',
     movil: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="18.2" r="0.8" fill="currentColor"/></svg>',
     fijo: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 20h8M12 16v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
   };
@@ -66,6 +67,7 @@
   function sample() {
     var now = Date.now();
     return [
+      {equipo:'luka',nombre:'Luka',tipo:'smarttag2',lat:41.3955,lon:2.172,precision_m:35,bateria:null,fuente:'mock-smartthings-find',es_prueba:true,ts:null,ultimo_aviso:null},
       {equipo:'iphone-carlos',nombre:T('iPhone 17 Pro Max · ejemplo','iPhone 17 Pro Max · example'),tipo:'movil',lat:41.3918,lon:2.1645,precision_m:14,bateria:78,fuente:'demo',ts:new Date(now - 4 * 60000).toISOString(),ultimo_aviso:new Date(now - 4 * 60000).toISOString()},
       {equipo:'mac-mini',nombre:T('Mac mini · ejemplo','Mac mini · example'),tipo:'fijo',direccion:T('Dirección y coordenadas de ejemplo, Barcelona','Example address and coordinates, Barcelona'),lat:41.4015,lon:2.1582,precision_m:null,bateria:null,fuente:'demo',ts:null,ultimo_aviso:null}
     ];
@@ -93,7 +95,7 @@
       if (device.fuente) info += row(T('Fuente','Source'), prueba ? T('Dato de prueba','Test data') : device.fuente);
       var note = prueba ? T('Dato de prueba. No es un aviso del equipo.','Test data. This is not a device report.') : device.tipo === 'fijo' ? T('Dirección manual. No necesita avisos automáticos.','Manual address. No automatic reports needed.') : key === 'stale' ? T('Más de 2 h sin recibir una posición.','No position received for over 2 h.') : key === 'missing' ? T('Pendiente del primer aviso del equipo.','Waiting for the first report from this device.') : '';
       if (!prueba && device.tipo === 'fijo' && !positioned) note += ' ' + T('Sin coordenadas confirmadas; no se dibuja un punto.','No confirmed coordinates; no point is drawn.');
-      return '<article class="mapa-device' + (prueba ? ' is-prueba' : '') + '" data-equipo="' + escape(device.equipo) + '"><div class="mapa-device-top"><div><h3>' + escape(device.nombre || device.equipo) + '</h3><p class="mapa-device-kind">' + (device.tipo === 'fijo' ? T('Fijo · dirección manual','Fixed · manual address') : T('Móvil · actualización automática','Mobile · automatic reports')) + '</p></div><span class="mapa-status is-' + key + '">' + escape(statusText(key)) + '</span></div>' +
+      return '<article class="mapa-device' + (prueba ? ' is-prueba' : '') + '" data-equipo="' + escape(device.equipo) + '"><div class="mapa-device-top"><div><h3>' + escape(device.nombre || device.equipo) + '</h3><p class="mapa-device-kind">' + (device.tipo === 'smarttag2' ? T('SmartTag2 · SmartThings Find','SmartTag2 · SmartThings Find') : device.tipo === 'fijo' ? T('Fijo · dirección manual','Fixed · manual address') : T('Móvil · actualización automática','Mobile · automatic reports')) + '</p></div><span class="mapa-status is-' + key + '">' + escape(statusText(key)) + '</span></div>' +
         (device.direccion ? '<p class="mapa-address">' + escape(device.direccion) + '</p>' : '') + '<dl>' + info + '</dl>' +
         (note ? '<p class="mapa-device-note">' + escape(note) + '</p>' : '') +
         (positioned ? '<button type="button" data-mapa-focus="' + escape(device.equipo) + '">' + T('Ver en el mapa','Show on map') + '</button>' : '') + '</article>';
@@ -180,10 +182,10 @@
         var circle = G.L.circle([device.lat,device.lon], {radius:radioHalo(device.precision_m, device.lat), color:color, weight:2, fillColor:color, fillOpacity:0.12, interactive:false}).addTo(markers);
         halos.push({circle:circle, metros:device.precision_m, lat:device.lat});
       }
-      var tipo = device.tipo === 'fijo' ? 'fijo' : 'movil';
+      var tipo = device.tipo === 'smarttag2' ? 'smarttag2' : device.tipo === 'fijo' ? 'fijo' : 'movil';
       var icon = G.L.divIcon({
         className:'mapa-marker is-' + tipo + (prueba ? ' is-prueba' : key === 'stale' ? ' is-stale' : ''),
-        html:'<span class="mapa-pin">' + GLYPH[device.tipo === 'fijo' ? 'fijo' : 'movil'] + '</span><span class="mapa-pin-nombre">' + escape(nombreCorto(device)) + '</span>',
+        html:'<span class="mapa-pin">' + GLYPH[tipo] + '</span><span class="mapa-pin-nombre">' + escape(nombreCorto(device)) + '</span>',
         iconSize:[32,32], iconAnchor:[16,16], popupAnchor:[0,-18]
       });
       var pin = G.L.marker([device.lat,device.lon], {icon:icon,alt:nombreCorto(device),title:nombreCorto(device)}).bindPopup(popup).addTo(markers);
@@ -248,7 +250,7 @@
       var data = await response.json();
       if (request !== state.request || state.demo) return;
       if (!data || data.ok !== true || !Array.isArray(data.equipos)) throw new Error('invalid_response');
-      state.devices = data.equipos.filter(function (device) { return device && typeof device.equipo === 'string' && (device.tipo === 'fijo' || device.tipo === 'movil'); });
+      state.devices = data.equipos.filter(function (device) { return device && typeof device.equipo === 'string' && (device.tipo === 'fijo' || device.tipo === 'movil' || device.tipo === 'smarttag2'); });
       state.loaded = true;
       state.lastRead = new Date().toISOString();
     } catch (err) {

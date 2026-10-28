@@ -196,3 +196,11 @@ En esta conexión, las IP `188.114.*` que resuelve `pages.dev` agotaron el plazo
 La comprobación usó otro edge de Cloudflare (`104.21.66.96`), conservando el
 host original y la validación TLS. Esto no garantiza la conectividad del
 dominio desde todas las redes móviles. No se modificó DNS ni producción.
+
+## SmartTag2 · Luka (#7195)
+
+El inventario incorpora Luka con tipo `smarttag2` e icono propio. **Demo** lo
+muestra con coordenadas sintéticas identificadas como «Dato de prueba»; en datos
+reales queda sin posición hasta el primer aviso. El adaptador, endpoint privado
+y checklist OAuth se explican en [docs/smarttag2-luka.md](../../docs/smarttag2-luka.md).
+La adquisición desde Samsung sigue pendiente de acceso y capacidad confirmados.

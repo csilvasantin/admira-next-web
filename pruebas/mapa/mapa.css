@@ -91,3 +91,8 @@ html[data-mapa-tema="claro"] .mapa-notice{background:#fff6e8;color:#6a3d12;borde
 html[data-mapa-tema="claro"] .mapa-tag.is-demo{color:#6a3d12;border-color:#e4c79a;background:#fff6e8}
 html[data-mapa-tema="claro"] .mapa-device.is-linked{background:color-mix(in srgb, var(--cyan) 16%, var(--panel))}
 html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
+
+/* Luka: silueta y color propios, también cuando la medición sea antigua. */
+.mapa-marker.is-smarttag2 .mapa-pin{background:#563474;color:#f3e1ff;border-radius:16px}
+.mapa-marker.is-smarttag2.is-stale:not(.is-prueba) .mapa-pin{border-color:var(--warn)}
+.mapa-dot-smarttag2{background:#bc85ec;border-radius:3px;transform:rotate(45deg)}

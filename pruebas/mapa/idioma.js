@@ -16,6 +16,7 @@
     'Dato de prueba. No es un aviso del equipo.':'Test data. This is not a device report.',
     'Dato de prueba · DEMO':'Test data · DEMO',
     'Los móviles se actualizan desde el equipo. Los fijos utilizan una dirección manual.':'Mobile devices report their location. Fixed devices use a manual address.',
+    'Los móviles se actualizan desde el equipo. Los fijos utilizan una dirección manual. Luka espera una medición de SmartThings Find; Demo muestra una posición sintética.':'Mobile devices report their location. Fixed devices use a manual address. Luka is waiting for a SmartThings Find measurement; Demo shows a synthetic position.',
     'Pruebas':'Testing', 'acceso privado':'private access',
     'Se conserva un máximo de 7 días. El mapa muestra la última posición recibida.':'Data is kept for a maximum of 7 days. The map shows the latest received position.',
     'Lista de equipos':'Device list', 'Mapa':'Map', 'Actualizar ubicaciones':'Refresh locations',
