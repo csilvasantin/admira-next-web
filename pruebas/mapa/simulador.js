@@ -15,12 +15,12 @@
     var h = Math.sin(x/2)**2 + Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(y/2)**2;
     return 6371000 * 2 * Math.atan2(Math.sqrt(h),Math.sqrt(Math.max(0,1-h)));
   }
-  function zoneFor(point) {
+  function zoneFor(point, config) {
     if (!valid(point)) return null;
-    return zones.find(function (zone) {return distance(point,zone) <= zone.radius;}) || outside;
+    return (config ? config.zones : zones).find(function (zone) {return distance(point,zone) <= zone.radius;}) || (config ? {id:'exterior',name:'',tag:config.outside.tag,lat:outside.lat,lon:outside.lon} : outside);
   }
   function playerURL(zone, identity) {
-    if (zones.indexOf(zone) < 0 && zone !== outside) throw new Error('zona_invalida');
+    if (!zone || typeof zone.id !== 'string' || !/^[a-z][a-z0-9-]{0,47}$/.test(zone.id) || typeof zone.tag !== 'string' || !/^[a-z0-9][a-z0-9-]{0,47}$/.test(zone.tag)) throw new Error('zona_invalida');
     if (!/^virtual-mapa-[a-z0-9-]{8,64}$/.test(identity)) throw new Error('identidad_invalida');
     var url = new URL('https://admira.tv/canal.html');
     var params = {embed:'mupi',fit:'screen',screen:identity,circuit:identity,playerType:'virtual',mode:'local',modeLock:'1',sincro:'0',tag:zone.tag,muted:'1',stream:'1',medio:'all',category:'all',audience:'all',age:'all',slot:'all'};
@@ -34,9 +34,12 @@
     var T = function (es,en) {return /^en/i.test(d.documentElement.lang || '') ? en : es;};
     var root = byId('simulador-player'), controls = byId('simulador-controles'), host = byId('simulador-video');
     var identity = 'virtual-mapa-' + (G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
-    var active = false, layer = null, marker = null, current = null, position = null, frame = null, timer = null, connection = 'loading';
+    var active = false, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map();
+    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function () {if (active) move(position,true);}}) : null;
+    function config() {return editor ? editor.getConfig() : {zones:zones,outside:outside};}
+    function allZones() {var c=config();return c.zones.concat([{id:'exterior',name:'',tag:c.outside.tag,lat:outside.lat,lon:outside.lon}]);}
     function zoneName(zone) {return zone.name || T('Fuera de las zonas','Outside the zones');}
-    function label(zone) {return T(zone.es,zone.en);}
+    function label(zone) {var original=zones.concat([outside]).find(function (z) {return z.tag===zone.tag;}) || zone;return editor ? editor.label(zone.tag) : T(original.es || zone.tag,original.en || zone.tag);}
     function statusText() {
       return connection === 'connected' ? T('Player conectado','Player connected') : connection === 'waiting' ? T('Sin confirmación del player. Puedes abrirlo aparte.','No confirmation from the player. You can open it separately.') : T('Conectando con admira.tv…','Connecting to admira.tv…');
     }
@@ -50,12 +53,20 @@
       byId('simulador-badge').textContent = T('SIMULACIÓN','SIMULATION');
       byId('simulador-abrir').textContent = T('Abrir player','Open player');
       byId('simulador-cerrar').textContent = T('Cerrar simulador','Close simulator');
-      zones.concat([outside]).forEach(function (zone) {
-        var button = byId('simulador-ir-' + zone.id);
+      var items=allZones(), ids=items.map(function (zone) {return zone.id;});
+      buttons.forEach(function (button,id) {if (ids.indexOf(id)<0) {button.remove();buttons.delete(id);}});
+      items.forEach(function (zone) {
+        var button = buttons.get(zone.id);
+        if (!button) {
+          button=d.createElement('button');button.type='button';button.id='simulador-ir-'+zone.id;
+          button.addEventListener('click',function () {var next=allZones().find(function (z) {return z.id===zone.id;});if (!next) return;move({lat:next.lat,lng:next.lon},true);map.panTo([next.lat,next.lon],{animate:false});});
+          byId('simulador-zonas').appendChild(button);buttons.set(zone.id,button);
+        }
         button.textContent = zoneName(zone) + ' · ' + label(zone);
-        button.setAttribute('aria-pressed',String(zone === current));
+        button.setAttribute('aria-pressed',String(zone.id === current.id));
       });
       if (frame) frame.title = 'admira.tv · ' + label(current) + ' · ' + T('simulación','simulation');
+      if (editor) editor.renderText();
     }
     function loadPlayer(zone) {
       clearTimeout(timer);
@@ -81,8 +92,9 @@
         byId('simulador-arrastre').textContent = T('Suelta para aplicar la ubicación.','Drop to apply the location.');
         return;
       }
-      var next = zoneFor(position);
-      if (next !== current) {current = next;loadPlayer(current);}
+      var next = zoneFor(position,config()), key=next.id+'|'+next.tag;
+      current=next;
+      if (key !== currentKey) {currentKey=key;loadPlayer(current);}
       renderText();
     }
     function clickMap(event) {if (active && event.latlng) move(event.latlng,true);}
@@ -94,7 +106,8 @@
       frame = null;
       if (layer) map.removeLayer(layer);
       if (map.off) map.off('click',clickMap);
-      layer = null;marker = null;current = null;position = null;
+      if (editor) editor.deactivate();
+      layer = null;marker = null;current = null;currentKey = '';position = null;
       root.hidden = true;controls.hidden = true;
       byId('simular-player').setAttribute('aria-pressed','false');
       byId('mapa').classList.remove('is-simulating');
@@ -106,24 +119,20 @@
       byId('simular-player').setAttribute('aria-pressed','true');
       byId('mapa').classList.add('is-simulating');
       layer = L.layerGroup().addTo(map);
-      zones.forEach(function (zone) {
+      if (editor) editor.activate(layer,function () {return position;});
+      else zones.forEach(function (zone) {
         L.circle([zone.lat,zone.lon],{radius:zone.radius,color:'#bc85ec',weight:1,fillOpacity:0.06,interactive:false}).addTo(layer)
           .bindTooltip(zone.name,{permanent:true,direction:'top',offset:[0,-45],className:'mapa-sim-zone'});
       });
       var icon = L.divIcon({className:'mapa-sim-marker',html:'<span aria-hidden="true">▶</span><span>' + T('Simulador','Simulator') + '</span>',iconSize:[110,36],iconAnchor:[18,18]});
-      marker = L.marker([zones[0].lat,zones[0].lon],{icon:icon,draggable:true,autoPan:true,alt:T('Simulador de ubicación','Location simulator'),title:T('Arrastra para simular otra ubicación','Drag to simulate a new location')}).addTo(layer);
+      var first=config().zones[0] || outside;
+      marker = L.marker([first.lat,first.lon],{icon:icon,draggable:true,autoPan:true,alt:T('Simulador de ubicación','Location simulator'),title:T('Arrastra para simular otra ubicación','Drag to simulate a new location')}).addTo(layer);
       marker.on('drag',function () {move(marker.getLatLng(),false);});
       marker.on('dragend',function () {move(marker.getLatLng(),true);});
       map.on('click',clickMap);
-      move({lat:zones[0].lat,lng:zones[0].lon},true);
-      map.setView([41.3966,2.164],14,{animate:false});
+      move({lat:first.lat,lng:first.lon},true);
+      map.setView([first.lat,first.lon],14,{animate:false});
     }
-    zones.concat([outside]).forEach(function (zone) {
-      byId('simulador-ir-' + zone.id).addEventListener('click',function () {
-        move({lat:zone.lat,lng:zone.lon},true);
-        map.panTo([zone.lat,zone.lon],{animate:false});
-      });
-    });
     byId('simulador-cerrar').addEventListener('click',stop);
     G.addEventListener('message',function (event) {
       if (!active || !frame || event.source !== frame.contentWindow || event.origin !== 'https://admira.tv') return;

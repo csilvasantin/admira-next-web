@@ -1,0 +1,217 @@
+(function (G,d) {
+  'use strict';
+  var KEY = 'admiranext:mapa:zonas:v1';
+  var TAG = /^[a-z0-9][a-z0-9-]{0,47}$/;
+  var defaults = {version:1,zones:[
+    {id:'gracia',name:'Gràcia',tag:'retail',lat:41.4043,lon:2.1582,radius:450},
+    {id:'eixample',name:'Eixample',tag:'tecnologia',lat:41.389,lon:2.1645,radius:450}
+  ],outside:{tag:'creatividad'}};
+  var copy = function (value) {return JSON.parse(JSON.stringify(value));};
+  function validate(value) {
+    if (!value || value.version !== 1 || !Array.isArray(value.zones) || value.zones.length > 8 || !value.outside || typeof value.outside.tag !== 'string' || !TAG.test(value.outside.tag)) return null;
+    var ids = new Set();
+    var zones = [];
+    for (var zone of value.zones) {
+      if (!zone || typeof zone.id !== 'string' || !/^[a-z][a-z0-9-]{0,47}$/.test(zone.id) || zone.id === 'exterior' || ids.has(zone.id) ||
+          typeof zone.name !== 'string' || !zone.name.trim() || zone.name.length > 48 || /[\u0000-\u001f\u007f]/.test(zone.name) ||
+          typeof zone.tag !== 'string' || !TAG.test(zone.tag) || !Number.isFinite(zone.lat) || Math.abs(zone.lat) > 85 ||
+          !Number.isFinite(zone.lon) || Math.abs(zone.lon) > 180 || !Number.isFinite(zone.radius) || zone.radius < 50 || zone.radius > 5000) return null;
+      ids.add(zone.id);
+      zones.push({id:zone.id,name:zone.name.trim(),tag:zone.tag,lat:zone.lat,lon:zone.lon,radius:Math.round(zone.radius)});
+    }
+    return {version:1,zones:zones,outside:{tag:value.outside.tag}};
+  }
+  function catalog(data) {
+    if (!data || !Array.isArray(data.items)) throw new Error('catalogo_invalido');
+    var counts = new Map(), kinds = /^(image|video|animation|audio|music|locucion|interactive|xperiencia)$/;
+    data.items.slice(0,5000).forEach(function (item) {
+      if (!item || !kinds.test(item.type) || !Array.isArray(item.tags)) return;
+      var seen = new Set();
+      item.tags.slice(0,100).forEach(function (tag) {
+        if (typeof tag !== 'string') return;
+        tag = tag.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,'-');
+        tag = ({music:'musica',technology:'tecnologia',tech:'tecnologia',creativity:'creatividad',business:'negocio'})[tag] || tag;
+        if (TAG.test(tag) && !seen.has(tag)) {seen.add(tag);counts.set(tag,(counts.get(tag) || 0)+1);}
+      });
+    });
+    return Array.from(counts,function (entry) {return {tag:entry[0],count:entry[1]};}).sort(function (a,b) {return b.count-a.count || a.tag.localeCompare(b.tag);}).slice(0,300);
+  }
+  function edge(zone) {
+    var rad = Math.PI/180, angle = zone.radius/6371000, lat = zone.lat*rad;
+    var nextLat=Math.asin(Math.sin(lat)*Math.cos(angle));
+    // El tirador queda al oeste para poder usarlo junto al player flotante.
+    return {lat:nextLat/rad,lng:wrap(zone.lon - Math.atan2(Math.sin(angle)*Math.cos(lat),Math.cos(angle)-Math.sin(lat)*Math.sin(nextLat))/rad)};
+  }
+  function wrap(lon) {return ((lon+180)%360+360)%360-180;}
+  function metres(a,b) {
+    var rad = Math.PI/180, h = Math.sin((b.lat-a.lat)*rad/2)**2 + Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin((b.lng-a.lng)*rad/2)**2;
+    return 12742000*Math.atan2(Math.sqrt(Math.min(1,h)),Math.sqrt(Math.max(0,1-h)));
+  }
+  function create(options) {
+    var map = options.map, L = options.L, byId = function (id) {return d.getElementById(id);};
+    var T = function (es,en) {return /^en/i.test(d.documentElement.lang || '') ? en : es;};
+    var config = copy(defaults), selected = config.zones[0].id, saved, undo = [], saveState = 'default';
+    var raw=null;
+    try {raw=G.localStorage.getItem(KEY);} catch (_) {saveState='unavailable';}
+    if (raw) {
+      try {var restored=raw.length<=16384&&validate(JSON.parse(raw));if (restored) {config=restored;saveState='saved';} else saveState='broken';}
+      catch (_) {saveState='broken';}
+    }
+    selected = config.zones[0] ? config.zones[0].id : 'exterior';
+    saved = JSON.stringify(config);
+    var active = false, opened = false, shapes, handles, circles = new Map(), centreHandle, radiusHandle, position;
+    var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'}], catalogState = 'idle', catalogRequest = null;
+    function current() {return selected === 'exterior' ? config.outside : config.zones.find(function (z) {return z.id === selected;});}
+    function label(tag) {
+      var names = {retail:T('Comercio','Retail'),tecnologia:T('Tecnología','Technology'),creatividad:T('Creatividad','Creativity'),negocio:T('Negocio','Business'),musica:T('Música','Music'),publicidad:T('Publicidad','Advertising'),robots:T('Robots','Robots')};
+      return names[tag] || tag.replace(/-/g,' ');
+    }
+    function option(select,value,text) {var node=d.createElement('option');node.value=value;node.textContent=text;select.appendChild(node);}
+    function fields() {
+      var zone=current(), outside=selected==='exterior';
+      var select=byId('simulador-zona-elegida');select.replaceChildren();
+      config.zones.forEach(function (z,i) {option(select,z.id,(i+1)+'. '+z.name);});
+      option(select,'exterior',T('Fuera de las zonas','Outside the zones'));select.value=selected;
+      if (d.activeElement!==byId('simulador-nombre')) byId('simulador-nombre').value=outside?T('Fuera de las zonas','Outside the zones'):zone.name;
+      byId('simulador-nombre').disabled=outside;
+      if (d.activeElement!==byId('simulador-radio')) byId('simulador-radio').value=outside?'':zone.radius;
+      byId('simulador-radio').disabled=outside;
+      byId('simulador-centro-aqui').disabled=outside;
+      byId('simulador-eliminar').disabled=outside;
+      byId('simulador-anadir').disabled=config.zones.length>=8;
+      byId('simulador-deshacer').disabled=!undo.length;
+      var content=byId('simulador-tema');
+      var list=themes.slice();if (!list.some(function (item) {return item.tag===zone.tag;})) list.unshift({tag:zone.tag});
+      if (d.activeElement!==content) {
+        content.replaceChildren();list.forEach(function (item) {option(content,item.tag,label(item.tag)+(item.count == null?'':' · '+item.count+' '+T('piezas','items')));});
+        content.value=zone.tag;
+      }
+      byId('simulador-catalogo').disabled=catalogState==='loading';
+    }
+    function renderText() {
+      if (!active) return;
+      byId('simulador-editar').textContent=opened?T('Terminar edición','Finish editing'):T('Editar zonas y contenido','Edit zones and content');
+      var text={
+        'editor-titulo':T('Zonas y contenido','Zones and content'),
+        'editor-ayuda':T('Arrastra el centro o el borde de la zona seleccionada. Si se solapan, manda la primera de la lista.','Drag the centre or edge of the selected zone. If zones overlap, the first in the list wins.'),
+        'label-zona':T('Zona','Zone'),'label-nombre':T('Nombre','Name'),'label-radio':T('Radio en metros','Radius in metres'),
+        'label-tema':T('Contenido de admira.tv','Content from admira.tv'),
+        'tema-ayuda':T('Se reproducen las piezas del catálogo con el tema elegido.','Plays catalogue items with the selected topic.'),
+        'centro-aqui':T('Situar zona en el simulador','Centre zone on simulator'),'anadir':T('Añadir zona','Add zone'),
+        'eliminar':T('Eliminar zona','Delete zone'),'deshacer':T('Deshacer','Undo'),'catalogo':T('Actualizar catálogo','Refresh catalogue'),
+        'guardar':T('Guardar zonas','Save zones'),'restaurar':T('Restaurar ejemplos','Restore examples')
+      };
+      Object.keys(text).forEach(function (id) {byId('simulador-'+id).textContent=text[id];});
+      var dirty=JSON.stringify(config)!==saved;
+      byId('simulador-guardado').textContent=saveState==='invalid'?T('Revisa el nombre y el radio (50–5000 m).','Check the name and radius (50–5000 m).'):saveState==='error'?T('No se pudo guardar. Los cambios siguen en esta sesión.','Could not save. Changes remain in this session.'):dirty?T('Cambios sin guardar.','Unsaved changes.'):saveState==='saved'?T('Guardado en este navegador.','Saved in this browser.'):saveState==='broken'?T('La configuración guardada no era válida. Se han cargado los ejemplos.','Saved configuration was invalid. Examples were loaded.'):T('Las zonas se guardan sólo en este navegador.','Zones are saved only in this browser.');
+      byId('simulador-catalogo-estado').textContent=catalogState==='loading'?T('Consultando catálogo…','Loading catalogue…'):catalogState==='error'?T('Catálogo no disponible. Puedes usar los temas ya cargados.','Catalogue unavailable. You can use topics already loaded.'):catalogState==='ready'?T('Temas del catálogo actual de admira.tv.','Topics from the current admira.tv catalogue.'):'';
+      if (opened) fields();
+    }
+    function drawShapes() {
+      if (!active) return;
+      shapes.clearLayers();circles.clear();
+      config.zones.forEach(function (zone) {
+        var tooltip=d.createElement('span');tooltip.textContent=zone.name;
+        var circle=L.circle([zone.lat,zone.lon],{radius:zone.radius,color:'#bc85ec',weight:opened&&zone.id===selected?3:1,fillOpacity:0.06,interactive:false}).addTo(shapes).bindTooltip(tooltip,{permanent:true,direction:'top',offset:[0,-45],className:'mapa-sim-zone'});
+        circles.set(zone.id,circle);
+      });
+    }
+    function remember(before) {if (before!==JSON.stringify(config)) {undo.push(before);if (undo.length>20) undo.shift();if (saveState==='error'||saveState==='invalid') saveState='default';}}
+    function changed(before) {remember(before);drawShapes();drawHandles();renderText();options.onChange();}
+    function edit(update) {var before=JSON.stringify(config);update();if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';changed(before);}
+    function geometry(draggingRadius) {
+      var zone=current(), circle=circles.get(selected);
+      if (circle) circle.setLatLng([zone.lat,zone.lon]).setRadius(zone.radius);
+      if (centreHandle) centreHandle.setLatLng([zone.lat,zone.lon]);
+      if (radiusHandle&&!draggingRadius) radiusHandle.setLatLng(edge(zone));
+      byId('simulador-radio').value=zone.radius;
+    }
+    function drawHandles() {
+      if (!active) return;
+      handles.clearLayers();centreHandle=null;radiusHandle=null;
+      if (!opened||selected==='exterior') return;
+      var zone=current();
+      function handle(point,kind,symbol,title) {
+        return L.marker(point,{draggable:true,autoPan:true,bubblingMouseEvents:false,icon:L.divIcon({className:'mapa-zone-handle is-'+kind,html:'<span aria-hidden="true">'+symbol+'</span>',iconSize:[28,28],iconAnchor:[14,14]}),alt:title,title:title}).addTo(handles);
+      }
+      centreHandle=handle([zone.lat,zone.lon],'centre','＋',T('Centro de ','Centre of ')+zone.name);
+      radiusHandle=handle(edge(zone),'radius','↔',T('Borde de ','Edge of ')+zone.name);
+      [centreHandle,radiusHandle].forEach(function (handle) {
+        handle.on('dragstart',function () {dragBefore=JSON.stringify(config);});
+        handle.on('dragend',function () {changed(dragBefore||JSON.stringify(config));dragBefore=null;});
+      });
+      centreHandle.on('drag',function () {var p=centreHandle.getLatLng();if (!Number.isFinite(p.lat)||!Number.isFinite(p.lng)) return;zone.lat=Math.max(-85,Math.min(85,p.lat));zone.lon=wrap(p.lng);geometry(false);});
+      radiusHandle.on('drag',function () {var p=radiusHandle.getLatLng();if (!Number.isFinite(p.lat)||!Number.isFinite(p.lng)) return;zone.radius=Math.max(50,Math.min(5000,Math.round(metres({lat:zone.lat,lng:zone.lon},p))));geometry(true);});
+    }
+    async function loadCatalog() {
+      if (catalogRequest) return;
+      catalogState='loading';renderText();
+      var controller=new AbortController(), timeout=setTimeout(function () {controller.abort();},15000);
+      catalogRequest=controller;
+      try {
+        var response=await G.fetch('https://api.admira.store/stock/list?limit=300',{method:'GET',credentials:'omit',cache:'no-store',signal:controller.signal});
+        if (!response.ok) throw new Error('catalogo_no_disponible');
+        var next=catalog(await response.json());
+        if (!next.length) throw new Error('catalogo_vacio');
+        themes=next;catalogState='ready';
+      } catch (_) {catalogState='error';}
+      finally {clearTimeout(timeout);catalogRequest=null;renderText();}
+    }
+    byId('simulador-editar').addEventListener('click',function () {
+      opened=!opened;byId('simulador-editor').hidden=!opened;byId('simulador-editar').setAttribute('aria-expanded',String(opened));
+      drawShapes();drawHandles();renderText();if (opened&&catalogState==='idle') loadCatalog();
+    });
+    byId('simulador-zona-elegida').addEventListener('change',function (event) {
+      var id=event.target.value;if (id!=='exterior'&&!config.zones.some(function (zone) {return zone.id===id;})) return;
+      selected=id;drawShapes();drawHandles();renderText();
+      if (selected!=='exterior') map.panTo([current().lat,current().lon],{animate:false});
+    });
+    function rename(event) {
+      var name=event.target.value.trim();if (selected==='exterior'||!name||name.length>48||/[\u0000-\u001f\u007f]/.test(name)) return;
+      if (current().name!==name) edit(function () {current().name=name;});
+    }
+    function resize(event) {
+      var radius=Number(event.target.value);if (selected==='exterior'||!Number.isFinite(radius)||radius<50||radius>5000) return;
+      radius=Math.round(radius);if (current().radius!==radius) edit(function () {current().radius=radius;});
+    }
+    byId('simulador-nombre').addEventListener('input',rename);
+    byId('simulador-nombre').addEventListener('change',rename);
+    byId('simulador-radio').addEventListener('input',resize);
+    byId('simulador-radio').addEventListener('change',resize);
+    byId('simulador-tema').addEventListener('change',function (event) {
+      var tag=event.target.value;if (!themes.some(function (item) {return item.tag===tag;})) return;
+      edit(function () {current().tag=tag;});
+    });
+    byId('simulador-tema').addEventListener('blur',renderText);
+    byId('simulador-centro-aqui').addEventListener('click',function () {
+      var point=position();if (selected==='exterior'||!point||!Number.isFinite(point.lat)||Math.abs(point.lat)>85||!Number.isFinite(point.lng)||Math.abs(point.lng)>180) return;
+      edit(function () {current().lat=point.lat;current().lon=point.lng;});
+    });
+    byId('simulador-anadir').addEventListener('click',function () {
+      if (config.zones.length>=8) return;
+      var point=map.getCenter();if (!point||!Number.isFinite(point.lat)||!Number.isFinite(point.lng)) return;
+      edit(function () {
+        var index=1;while (config.zones.some(function (zone) {return zone.id==='zona-'+index;})) index++;
+        selected='zona-'+index;config.zones.push({id:selected,name:T('Zona ','Zone ')+index,tag:'retail',lat:Math.max(-85,Math.min(85,point.lat)),lon:wrap(point.lng),radius:450});
+      });
+    });
+    byId('simulador-eliminar').addEventListener('click',function () {if (selected!=='exterior') edit(function () {config.zones=config.zones.filter(function (zone) {return zone.id!==selected;});});});
+    byId('simulador-deshacer').addEventListener('click',function () {if (!undo.length) return;config=JSON.parse(undo.pop());if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';drawShapes();drawHandles();renderText();options.onChange();});
+    byId('simulador-restaurar').addEventListener('click',function () {edit(function () {config=copy(defaults);});});
+    byId('simulador-guardar').addEventListener('click',function () {
+      if (selected!=='exterior') {
+        var name=byId('simulador-nombre').value.trim(), radius=Number(byId('simulador-radio').value);
+        if (!name||name.length>48||/[\u0000-\u001f\u007f]/.test(name)||!Number.isFinite(radius)||radius<50||radius>5000) {saveState='invalid';renderText();return;}
+      }
+      try {var next=validate(config);if (!next) throw new Error('configuracion_invalida');var raw=JSON.stringify(next);G.localStorage.setItem(KEY,raw);saved=JSON.stringify(config);saveState='saved';}
+      catch (_) {saveState='error';}renderText();
+    });
+    byId('simulador-catalogo').addEventListener('click',loadCatalog);
+    return {
+      getConfig:function () {return copy(config);},label:label,renderText:renderText,
+      activate:function (parent,getPosition) {active=true;position=getPosition;shapes=L.layerGroup().addTo(parent);handles=L.layerGroup().addTo(parent);drawShapes();drawHandles();renderText();},
+      deactivate:function () {active=false;opened=false;if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
+    };
+  }
+  G.AdmiraMapaZonas={create:create,validate:validate,catalog:catalog,edge:edge,defaults:copy(defaults),storageKey:KEY};
+})(window,document);

@@ -30,3 +30,25 @@ La adquisición real desde Samsung permanece pendiente y es independiente de
 esta demostración.
 
 Verificación: `node --test test/ubicacion.test.mjs test/mapa-ubicacion-ui.test.mjs test/mapa-5612.test.mjs test/mapa-simulador.test.mjs`.
+
+## Editor de zonas y contenido
+
+«Editar zonas y contenido» muestra las zonas guardadas y un selector de temas
+del catálogo público de admira.tv. Cada tema reproduce las piezas que llevan
+esa etiqueta; los recuentos corresponden a la respuesta actual del catálogo.
+No es un selector de un vídeo individual ni modifica la programación de otras
+pantallas. Si falla la consulta se conservan los temas ya cargados.
+
+Se pueden mover el centro y el borde de la zona seleccionada directamente en
+el mapa. El radio también se puede escribir (50–5000 m), y «Situar zona en el
+simulador» ofrece una alternativa al arrastre del centro. Admite hasta ocho
+zonas, nombres propios, añadir, eliminar, deshacer y restaurar los ejemplos.
+En un solapamiento manda la primera zona de la lista. El exterior tiene su
+propia asignación de contenido y no tiene centro ni radio.
+
+Cambiar un tema actualiza el player aunque el simulador siga en la misma zona.
+Cambiar sólo el nombre no reinicia la reproducción. Las ediciones se aplican
+en la sesión y «Guardar zonas» persiste en este navegador mediante la clave
+`admiranext:mapa:zonas:v1`. No se sincronizan entre navegadores ni se publican en
+el servidor. Un fallo al guardar muestra el error; una configuración corrupta
+o fuera de límites vuelve al ejemplo sin ejecutar ni cargar destinos ajenos.

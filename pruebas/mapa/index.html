@@ -8,13 +8,14 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.28.10.2026.r2.23:04">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261028-simulador-1">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261028-editor-1">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
-  <script defer src="/pruebas/mapa/idioma.js?v=20261028-simulador-1"></script>
-  <script defer src="/pruebas/mapa/simulador.js?v=20261028-simulador-1"></script>
+  <script defer src="/pruebas/mapa/idioma.js?v=20261028-editor-1"></script>
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261028-editor-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261028-editor-1"></script>
   <script defer src="/pruebas/mapa/mapa.js?v=20261028-simulador-1"></script>
 </head>
 <body data-yk-frame="cabecera">
@@ -49,7 +50,22 @@
       </aside>
       <div id="simulador-controles" class="mapa-sim-controls" hidden>
         <div><p id="simulador-arrastre">Arrastra el marcador o toca el mapa.</p><output id="simulador-coordenadas" aria-label="Coordenadas simuladas">—</output></div>
-        <div class="mapa-sim-zones" role="group" aria-label="Ubicaciones de ejemplo"><button type="button" id="simulador-ir-gracia">Gràcia · Comercio</button><button type="button" id="simulador-ir-eixample">Eixample · Tecnología</button><button type="button" id="simulador-ir-exterior">Fuera de las zonas · Creatividad</button></div>
+        <div id="simulador-zonas" class="mapa-sim-zones" role="group" aria-label="Zonas del simulador"></div>
+        <button type="button" id="simulador-editar" aria-expanded="false" aria-controls="simulador-editor">Editar zonas y contenido</button>
+        <section id="simulador-editor" class="mapa-zone-editor" aria-labelledby="simulador-editor-titulo" hidden>
+          <h3 id="simulador-editor-titulo">Zonas y contenido</h3>
+          <p id="simulador-editor-ayuda">Arrastra el centro o el borde de la zona seleccionada. Si se solapan, manda la primera de la lista.</p>
+          <div class="mapa-zone-fields">
+            <label><span id="simulador-label-zona">Zona</span><select id="simulador-zona-elegida" aria-labelledby="simulador-label-zona"></select></label>
+            <label><span id="simulador-label-nombre">Nombre</span><input id="simulador-nombre" aria-labelledby="simulador-label-nombre" maxlength="48" autocomplete="off"></label>
+            <label><span id="simulador-label-radio">Radio en metros</span><input id="simulador-radio" aria-labelledby="simulador-label-radio" type="number" min="50" max="5000" step="1"></label>
+            <label><span id="simulador-label-tema">Contenido de admira.tv</span><select id="simulador-tema" aria-labelledby="simulador-label-tema"></select></label>
+          </div>
+          <p id="simulador-tema-ayuda">Se reproducen las piezas del catálogo con el tema elegido.</p>
+          <p id="simulador-catalogo-estado" role="status" aria-live="polite"></p>
+          <div class="mapa-zone-actions"><button type="button" id="simulador-centro-aqui">Situar zona en el simulador</button><button type="button" id="simulador-anadir">Añadir zona</button><button type="button" id="simulador-eliminar">Eliminar zona</button><button type="button" id="simulador-deshacer" disabled>Deshacer</button><button type="button" id="simulador-catalogo">Actualizar catálogo</button></div>
+          <div class="mapa-zone-save"><button type="button" id="simulador-guardar">Guardar zonas</button><button type="button" id="simulador-restaurar">Restaurar ejemplos</button><p id="simulador-guardado" role="status" aria-live="polite"></p></div>
+        </section>
         <p class="mapa-sim-note">Ubicaciones y zonas de ejemplo. El movimiento sólo controla este player virtual.</p>
       </div>
     </section>
