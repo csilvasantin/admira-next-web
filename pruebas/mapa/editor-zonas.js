@@ -1,6 +1,7 @@
 (function (G,d) {
   'use strict';
   var KEY = 'admiranext:mapa:zonas:v1';
+  var MAX_FILE_BYTES = 16 * 1024;
   var TAG = /^[a-z0-9][a-z0-9-]{0,47}$/;
   var defaults = {version:1,zones:[
     {id:'gracia',name:'Gràcia',tag:'retail',lat:41.4043,lon:2.1582,radius:450},
@@ -20,6 +21,21 @@
       zones.push({id:zone.id,name:zone.name.trim(),tag:zone.tag,lat:zone.lat,lon:zone.lon,radius:Math.round(zone.radius)});
     }
     return {version:1,zones:zones,outside:{tag:value.outside.tag}};
+  }
+  function parseTransfer(text) {
+    if (typeof text !== 'string') throw new Error('archivo_invalido');
+    if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw new Error('archivo_demasiado_grande');
+    var parsed;
+    try {parsed=validate(JSON.parse(text.replace(/^\uFEFF/,'')));} catch (_) {}
+    if (!parsed) throw new Error('archivo_invalido');
+    return parsed;
+  }
+  function serializeTransfer(value) {
+    var normalized=validate(value);
+    if (!normalized) throw new Error('configuracion_invalida');
+    var text=JSON.stringify(normalized,null,2)+'\n';
+    if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw new Error('archivo_demasiado_grande');
+    return text;
   }
   function catalog(data) {
     if (!data || !Array.isArray(data.items)) throw new Error('catalogo_invalido');
@@ -61,6 +77,7 @@
     saved = JSON.stringify(config);
     var active = false, opened = false, shapes, handles, circles = new Map(), centreHandle, radiusHandle, position;
     var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'}], catalogState = 'idle', catalogRequest = null;
+    var transferState='idle', importBusy=false, importTicket=0, importedCount=0;
     function current() {return selected === 'exterior' ? config.outside : config.zones.find(function (z) {return z.id === selected;});}
     function label(tag) {
       var names = {retail:T('Comercio','Retail'),tecnologia:T('Tecnología','Technology'),creatividad:T('Creatividad','Creativity'),negocio:T('Negocio','Business'),musica:T('Música','Music'),publicidad:T('Publicidad','Advertising'),robots:T('Robots','Robots')};
@@ -87,6 +104,7 @@
         content.value=zone.tag;
       }
       byId('simulador-catalogo').disabled=catalogState==='loading';
+      byId('simulador-importar').disabled=importBusy;
     }
     function renderText() {
       if (!active) return;
@@ -99,12 +117,18 @@
         'tema-ayuda':T('Se reproducen las piezas del catálogo con el tema elegido.','Plays catalogue items with the selected topic.'),
         'centro-aqui':T('Situar zona en el simulador','Centre zone on simulator'),'anadir':T('Añadir zona','Add zone'),
         'eliminar':T('Eliminar zona','Delete zone'),'deshacer':T('Deshacer','Undo'),'catalogo':T('Actualizar catálogo','Refresh catalogue'),
-        'guardar':T('Guardar zonas','Save zones'),'restaurar':T('Restaurar ejemplos','Restore examples')
+        'guardar':T('Guardar zonas','Save zones'),'restaurar':T('Restaurar ejemplos','Restore examples'),
+        'exportar':T('Exportar zonas','Export zones'),'importar':T('Importar zonas','Import zones'),
+        'intercambio-ayuda':T('El archivo conserva las zonas, su orden y los temas asignados. En otro navegador, impórtalo y pulsa Guardar zonas.','The file keeps zones, their order and assigned topics. In another browser, import it and choose Save zones.')
       };
       Object.keys(text).forEach(function (id) {byId('simulador-'+id).textContent=text[id];});
       var dirty=JSON.stringify(config)!==saved;
       byId('simulador-guardado').textContent=saveState==='invalid'?T('Revisa el nombre y el radio (50–5000 m).','Check the name and radius (50–5000 m).'):saveState==='error'?T('No se pudo guardar. Los cambios siguen en esta sesión.','Could not save. Changes remain in this session.'):dirty?T('Cambios sin guardar.','Unsaved changes.'):saveState==='saved'?T('Guardado en este navegador.','Saved in this browser.'):saveState==='broken'?T('La configuración guardada no era válida. Se han cargado los ejemplos.','Saved configuration was invalid. Examples were loaded.'):T('Las zonas se guardan sólo en este navegador.','Zones are saved only in this browser.');
       byId('simulador-catalogo-estado').textContent=catalogState==='loading'?T('Consultando catálogo…','Loading catalogue…'):catalogState==='error'?T('Catálogo no disponible. Puedes usar los temas ya cargados.','Catalogue unavailable. You can use topics already loaded.'):catalogState==='ready'?T('Temas del catálogo actual de admira.tv.','Topics from the current admira.tv catalogue.'):'';
+      var importedText=!dirty&&saveState==='saved'?T('Archivo importado: '+importedCount+' zonas. Guardado en este navegador.','File imported: '+importedCount+' zones. Saved in this browser.'):T('Archivo importado: '+importedCount+' zonas. Revisa el resultado y pulsa Guardar zonas.','File imported: '+importedCount+' zones. Review the result and choose Save zones.');
+      var transferText={idle:'',reading:T('Abriendo archivo…','Opening file…'),download:T('Descarga iniciada. Incluye los cambios de esta sesión.','Download started. Includes changes from this session.'),imported:importedText,large:T('El archivo supera el máximo de 16 KB. La configuración actual se conserva.','The file exceeds 16 KB. Current configuration is unchanged.'),invalid:T('El archivo no contiene una configuración válida. La configuración actual se conserva.','The file does not contain a valid configuration. Current configuration is unchanged.'),readError:T('No se pudo abrir el archivo. La configuración actual se conserva.','Could not open the file. Current configuration is unchanged.'),downloadError:T('No se pudo iniciar la descarga. La configuración actual se conserva.','Could not start the download. Current configuration is unchanged.')};
+      byId('simulador-intercambio-estado').textContent=transferText[transferState] || '';
+      byId('simulador-archivo').setAttribute('aria-label',T('Archivo de zonas','Zone file'));
       if (opened) fields();
     }
     function drawShapes() {
@@ -117,7 +141,7 @@
       });
     }
     function remember(before) {if (before!==JSON.stringify(config)) {undo.push(before);if (undo.length>20) undo.shift();if (saveState==='error'||saveState==='invalid') saveState='default';}}
-    function changed(before) {remember(before);drawShapes();drawHandles();renderText();options.onChange();}
+    function changed(before) {remember(before);if (transferState!=='reading') transferState='idle';drawShapes();drawHandles();renderText();options.onChange();}
     function edit(update) {var before=JSON.stringify(config);update();if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';changed(before);}
     function geometry(draggingRadius) {
       var zone=current(), circle=circles.get(selected);
@@ -196,22 +220,54 @@
       });
     });
     byId('simulador-eliminar').addEventListener('click',function () {if (selected!=='exterior') edit(function () {config.zones=config.zones.filter(function (zone) {return zone.id!==selected;});});});
-    byId('simulador-deshacer').addEventListener('click',function () {if (!undo.length) return;config=JSON.parse(undo.pop());if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';drawShapes();drawHandles();renderText();options.onChange();});
+    byId('simulador-deshacer').addEventListener('click',function () {if (!undo.length) return;config=JSON.parse(undo.pop());transferState='idle';if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';drawShapes();drawHandles();renderText();options.onChange();});
     byId('simulador-restaurar').addEventListener('click',function () {edit(function () {config=copy(defaults);});});
-    byId('simulador-guardar').addEventListener('click',function () {
+    function validDraft() {
       if (selected!=='exterior') {
         var name=byId('simulador-nombre').value.trim(), radius=Number(byId('simulador-radio').value);
-        if (!name||name.length>48||/[\u0000-\u001f\u007f]/.test(name)||!Number.isFinite(radius)||radius<50||radius>5000) {saveState='invalid';renderText();return;}
+        if (!name||name.length>48||/[\u0000-\u001f\u007f]/.test(name)||!Number.isFinite(radius)||radius<50||radius>5000) {saveState='invalid';renderText();return false;}
       }
+      return true;
+    }
+    byId('simulador-guardar').addEventListener('click',function () {
+      if (!validDraft()) return;
       try {var next=validate(config);if (!next) throw new Error('configuracion_invalida');var raw=JSON.stringify(next);G.localStorage.setItem(KEY,raw);saved=JSON.stringify(config);saveState='saved';}
       catch (_) {saveState='error';}renderText();
+    });
+    byId('simulador-exportar').addEventListener('click',function () {
+      if (!validDraft()) return;
+      var url=null, link=null;
+      try {
+        var text=serializeTransfer(config);
+        url=G.URL.createObjectURL(new G.Blob([text],{type:'application/json;charset=utf-8'}));
+        link=d.createElement('a');link.href=url;link.download='admira-zonas.json';link.hidden=true;
+        d.body.appendChild(link);link.click();transferState='download';
+      } catch (_) {transferState='downloadError';}
+      finally {if (link) link.remove();if (url) setTimeout(function () {G.URL.revokeObjectURL(url);},1000);renderText();}
+    });
+    byId('simulador-importar').addEventListener('click',function () {if (!importBusy) byId('simulador-archivo').click();});
+    byId('simulador-archivo').addEventListener('change',async function (event) {
+      var file=event.target.files && event.target.files[0];event.target.value='';if (!file) return;
+      var ticket=++importTicket;importBusy=true;transferState='reading';renderText();
+      try {
+        if (!Number.isFinite(file.size)||file.size>MAX_FILE_BYTES||file.size<1) throw new Error(file.size>MAX_FILE_BYTES?'archivo_demasiado_grande':'archivo_invalido');
+        var text;
+        try {text=await file.text();} catch (_) {throw new Error('lectura_fallida');}
+        if (ticket!==importTicket||!active) return;
+        var next=parseTransfer(text);
+        edit(function () {config=next;selected=config.zones[0]?config.zones[0].id:'exterior';});
+        importedCount=next.zones.length;transferState='imported';
+        if (next.zones[0]) map.panTo([next.zones[0].lat,next.zones[0].lon],{animate:false});
+      } catch (error) {
+        if (ticket===importTicket&&active) transferState=error.message==='archivo_demasiado_grande'?'large':error.message==='lectura_fallida'?'readError':'invalid';
+      } finally {if (ticket===importTicket) {importBusy=false;renderText();}}
     });
     byId('simulador-catalogo').addEventListener('click',loadCatalog);
     return {
       getConfig:function () {return copy(config);},label:label,renderText:renderText,
       activate:function (parent,getPosition) {active=true;position=getPosition;shapes=L.layerGroup().addTo(parent);handles=L.layerGroup().addTo(parent);drawShapes();drawHandles();renderText();},
-      deactivate:function () {active=false;opened=false;if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
+      deactivate:function () {active=false;opened=false;importTicket++;importBusy=false;if (transferState==='reading') transferState='idle';if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
     };
   }
-  G.AdmiraMapaZonas={create:create,validate:validate,catalog:catalog,edge:edge,defaults:copy(defaults),storageKey:KEY};
+  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,edge:edge,defaults:copy(defaults),storageKey:KEY};
 })(window,document);

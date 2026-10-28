@@ -52,3 +52,24 @@ en la sesión y «Guardar zonas» persiste en este navegador mediante la clave
 `admiranext:mapa:zonas:v1`. No se sincronizan entre navegadores ni se publican en
 el servidor. Un fallo al guardar muestra el error; una configuración corrupta
 o fuera de límites vuelve al ejemplo sin ejecutar ni cargar destinos ajenos.
+
+## Llevar las zonas a otro navegador
+
+1. En el editor, «Exportar zonas» descarga `admira-zonas.json` con la configuración
+   actual, incluidos los cambios todavía sin guardar.
+2. En otro navegador, abrir el mapa con sesión y activar Simular player → Editar
+   zonas y contenido → Importar zonas. Elegir el archivo descargado.
+3. Revisar el mapa y pulsar «Guardar zonas» para conservarla en ese navegador.
+
+El archivo conserva el orden y los identificadores de las zonas, nombres,
+centros, radios, temas asignados y tema del exterior. Usa el mismo esquema
+`version:1` que el editor. No copia los archivos multimedia: el player utiliza
+los temas del catálogo vigente de admira.tv. No contiene claves ni identidad
+de pantalla, y no se envía a un servidor al exportar o importar.
+
+La importación admite un máximo de 16 KiB y valida todo antes de sustituir la
+configuración. Un archivo inválido, incompatible, demasiado grande o ilegible
+conserva configuración, almacenamiento e historial anteriores. Una importación
+válida se puede deshacer y no se guarda de forma permanente hasta pulsar
+«Guardar zonas». Una lectura que termina tras cerrar el simulador o tras elegir
+un segundo archivo no sobrescribe la configuración más reciente.

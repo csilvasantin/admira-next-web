@@ -8,13 +8,13 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.28.10.2026.r3.23:26">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261028-editor-1">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261028-zonas-transfer-1">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
   <script defer src="/pruebas/mapa/idioma.js?v=20261028-editor-1"></script>
-  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261028-editor-1"></script>
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261028-zonas-transfer-1"></script>
   <script defer src="/pruebas/mapa/simulador.js?v=20261028-editor-1"></script>
   <script defer src="/pruebas/mapa/mapa.js?v=20261028-simulador-1"></script>
 </head>
@@ -65,6 +65,11 @@
           <p id="simulador-catalogo-estado" role="status" aria-live="polite"></p>
           <div class="mapa-zone-actions"><button type="button" id="simulador-centro-aqui">Situar zona en el simulador</button><button type="button" id="simulador-anadir">Añadir zona</button><button type="button" id="simulador-eliminar">Eliminar zona</button><button type="button" id="simulador-deshacer" disabled>Deshacer</button><button type="button" id="simulador-catalogo">Actualizar catálogo</button></div>
           <div class="mapa-zone-save"><button type="button" id="simulador-guardar">Guardar zonas</button><button type="button" id="simulador-restaurar">Restaurar ejemplos</button><p id="simulador-guardado" role="status" aria-live="polite"></p></div>
+          <div class="mapa-zone-transfer">
+            <div class="mapa-zone-actions"><button type="button" id="simulador-exportar">Exportar zonas</button><button type="button" id="simulador-importar">Importar zonas</button><input type="file" id="simulador-archivo" accept=".json,application/json" aria-label="Archivo de zonas" hidden></div>
+            <p id="simulador-intercambio-ayuda">El archivo conserva las zonas, su orden y los temas asignados. En otro navegador, impórtalo y pulsa Guardar zonas.</p>
+            <p id="simulador-intercambio-estado" role="status" aria-live="polite"></p>
+          </div>
         </section>
         <p class="mapa-sim-note">Ubicaciones y zonas de ejemplo. El movimiento sólo controla este player virtual.</p>
       </div>

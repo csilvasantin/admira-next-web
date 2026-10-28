@@ -136,6 +136,9 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-zone-save{border-top:1px solid var(--line);padding-top:14px}
 .mapa-zone-save #simulador-guardar{border-color:var(--cyan);color:var(--cyan)}
 .mapa-zone-save p{flex:1 1 180px}
+.mapa-zone-transfer{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.mapa-zone-transfer .mapa-zone-actions{margin:0 0 10px}
+.mapa-zone-transfer #simulador-intercambio-estado:not(:empty){margin-top:7px;color:var(--ink)}
 .mapa-zone-handle{display:grid;place-items:center;background:var(--panel);color:var(--cyan);border:2px solid var(--cyan);border-radius:50%;font:600 20px system-ui;box-shadow:0 2px 8px #0005;cursor:grab}
 .mapa-zone-handle.is-radius{color:var(--warn);border-color:var(--warn);border-radius:6px}
 .mapa-zone-handle.leaflet-drag-target{cursor:grabbing}
