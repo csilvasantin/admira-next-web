@@ -1,7 +1,7 @@
 {
-  "version": "v.24.10.2026.r3.10:27",
-  "deployer": "NeoMacStudio",
-  "agent": "NeoMacStudio",
+  "version": "v.28.10.2026.r1.22:05",
+  "deployer": "TrinityMacStudio",
+  "agent": "TrinityMacStudio",
   "machine": "MacStudio",
-  "signature": "NeoMacStudio · MacStudio"
+  "signature": "TrinityMacStudio · MacStudio"
 }

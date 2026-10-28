@@ -664,5 +664,9 @@
   ],
   "v.24.10.2026.r3.10:27": [
     "El proyecto AdmiraXperience se llama «Admira» en el desplegable de Xpacios (sus locales: Garage, Space y Sneakers Store)."
+  ],
+  "v.28.10.2026.r1.22:05": [
+    "Mapa Silicio: Luka aparece en Demo con icono SmartTag2 y coordenadas marcadas como dato de prueba.",
+    "Puente privado preparado para recibir mediciones de SmartThings Find; conexión con Samsung pendiente de acceso autorizado."
   ]
 }
