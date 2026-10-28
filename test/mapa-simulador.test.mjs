@@ -8,23 +8,24 @@ const editorCode = await readFile(new URL('../pruebas/mapa/editor-zonas.js',impo
 const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags:['tecnología','technology']},{type:'video',tags:['creatividad','publicidad']},{type:'link',tags:['pendiente']}]};
 const flush = async () => {await new Promise(setImmediate);};
 function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:async()=>fixtureCatalog}),storageError=false}={}) {
-  const elements = new Map(), messages = [], markers = [], timers = new Map(), mapEvents = {}, requests=[];
+  const elements = new Map(), messages = [], markers = [], timers = new Map(), mapEvents = {}, requests=[], downloads=[], blobs=new Map();
   let serial=0;
   function node() {
-    const el={hidden:true,textContent:'',value:'',attributes:{},children:[],listeners:{},classList:{add(){},remove(){}},contentWindow:{},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this[k];delete this.attributes[k];},appendChild(child){this.children.push(child);child.parent=this;return child;},replaceChildren(...children){this.children=[];children.forEach(child=>this.appendChild(child));},remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},addEventListener(k,fn){this.listeners[k]=fn;},fire(k,value){if(value!==undefined)this.value=value;return this.listeners[k]?.({target:this});},click(){if(!this.disabled)return this.fire('click');}};
+    const el={hidden:true,textContent:'',value:'',attributes:{},children:[],listeners:{},classList:{add(){},remove(){}},contentWindow:{},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this[k];delete this.attributes[k];},appendChild(child){this.children.push(child);child.parent=this;return child;},replaceChildren(...children){this.children=[];children.forEach(child=>this.appendChild(child));},remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},addEventListener(k,fn){this.listeners[k]=fn;},fire(k,value){if(value!==undefined)this.value=value;return this.listeners[k]?.({target:this});},click(){if(this.disabled)return;if(this.download)downloads.push({name:this.download,blob:blobs.get(this.href)});return this.fire('click');}};
     Object.defineProperty(el,'id',{get(){return this.nodeId;},set(value){this.nodeId=value;elements.set(value,this);}});
     return el;
   }
   const element=id=>{if(!elements.has(id)){const el=node();el.id=id;}return elements.get(id);};
-  const document = {documentElement:{lang:'es'},getElementById:element,createElement:node};
+  const document = {documentElement:{lang:'es'},getElementById:element,createElement:node,body:node()};
   const map = {on:(k,fn)=>mapEvents[k]=fn,off:k=>delete mapEvents[k],removeLayer(){},setView(){},panTo(){},getCenter:()=>({lat:41.396,lng:2.164})};
   const toPoint=p=>Array.isArray(p)?{lat:p[0],lng:p[1]}:{...p};
   const L = {layerGroup:()=>({addTo(){return this;},clearLayers(){}}),circle:()=>({addTo(){return this;},bindTooltip(value){this.tooltip=value;return this;},setLatLng(){return this;},setRadius(){return this;}}),divIcon:options=>options,marker:(point,options)=>{
     const marker={point:toPoint(point),options,events:{},addTo(){markers.push(this);return this;},setLatLng(point){this.point=toPoint(point);return this;},getLatLng(){return this.point;},on(k,fn){this.events[k]=fn;return this;}};return marker;
   }};
-  const context = vm.createContext({document,URL,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);},setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
+  class FixtureURL extends URL {static createObjectURL(blob){const key='blob:fixture-'+blobs.size;blobs.set(key,blob);return key;}static revokeObjectURL(key){blobs.delete(key);}}
+  const context = vm.createContext({document,URL:FixtureURL,Blob,TextEncoder,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);},setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
   context.window=context;if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
-  return {api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,mapEvents,storage,requests,message:event=>messages.forEach(fn=>fn(event))};
+  return {api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,mapEvents,storage,requests,downloads,message:event=>messages.forEach(fn=>fn(event))};
 }
 
 test('las zonas usan distancia en metros y un exterior explícito; nunca aceptan coordenadas inválidas',()=>{
@@ -158,4 +159,74 @@ test('configuración corrupta vuelve al ejemplo, los solapamientos tienen priori
   ui.element('simulador-zona-elegida').fire('change','eixample');ui.element('simulador-centro-aqui').click();
   assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'retail');
   sim.stop();
+});
+
+async function editorSession(options) {
+  const ui=mount({editor:true,...options}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();await flush();
+  return {...ui,sim};
+}
+function fileOf(text) {return {size:new TextEncoder().encode(text).length,text:async()=>text};}
+async function importFile(ui,file) {ui.element('simulador-archivo').files=[file];await ui.element('simulador-archivo').fire('change');}
+
+test('el archivo portable conserva orden, geometría y temas, acepta UTF-8 con BOM y limita bytes antes de parsear',()=>{
+  const {zonesApi:api}=mount({editor:true}),config=JSON.parse(JSON.stringify(api.defaults));
+  config.zones.reverse();config.zones[0].name='Zona à · 日本';config.outside.tag='publicidad';config.zones[0].unknown='descartar';
+  const text=api.serializeTransfer(config),expected=api.validate(config);
+  assert.equal(JSON.stringify(api.parseTransfer('\ufeff'+text)),JSON.stringify(expected));
+  assert.equal(text.includes('unknown'),false);
+  const padded=text+' '.repeat(api.maxFileBytes-new TextEncoder().encode(text).length);
+  assert.ok(api.parseTransfer(padded));assert.throws(()=>api.parseTransfer(padded+' '),/demasiado_grande/);
+  for(const value of ['{invalid','null','[]','{"version":2,"zones":[],"outside":{"tag":"retail"}}',JSON.stringify({...config,outside:{tag:'https://evil.example'}})])assert.throws(()=>api.parseTransfer(value),/invalido/);
+});
+
+test('exportar genera una descarga local con los cambios sin guardar y otro navegador restaura todas las asignaciones',async()=>{
+  const source=await editorSession();source.element('simulador-nombre').fire('input','Zona compartida');source.element('simulador-radio').fire('input','800');source.element('simulador-tema').fire('change','tecnologia');
+  source.element('simulador-zona-elegida').fire('change','exterior');source.element('simulador-tema').fire('change','publicidad');
+  source.element('simulador-exportar').click();assert.equal(source.downloads.length,1);assert.equal(source.downloads[0].name,'admira-zonas.json');assert.equal(source.storage.size,0);
+  const text=await source.downloads[0].blob.text();assert.match(source.element('simulador-intercambio-estado').textContent,/Descarga iniciada/);
+  const target=await editorSession();await importFile(target,fileOf(text));assert.equal(target.storage.size,0);
+  assert.equal(target.element('simulador-nombre').value,'Zona compartida');assert.equal(Number(target.element('simulador-radio').value),800);
+  assert.equal(new URL(target.element('simulador-video').children[0].src).searchParams.get('tag'),'tecnologia');
+  target.sim.move({lat:0,lng:0});assert.equal(new URL(target.element('simulador-video').children[0].src).searchParams.get('tag'),'publicidad');
+  target.element('simulador-guardar').click();assert.match(target.element('simulador-intercambio-estado').textContent,/Guardado en este navegador/);
+  const restored=await editorSession({storage:target.storage});restored.element('simulador-exportar').click();
+  assert.equal(await restored.downloads[0].blob.text(),text);
+  assert.ok([...source.requests,...target.requests,...restored.requests].every(r=>r.options.method==='GET'&&!r.options.body));
+  source.sim.stop();target.sim.stop();restored.sim.stop();
+});
+
+test('un archivo inválido, grande o ilegible conserva configuración, player, historial y almacenamiento',async()=>{
+  const ui=await editorSession();ui.element('simulador-guardar').click();const before=ui.storage.get(ui.zonesApi.storageKey),frame=ui.element('simulador-video').children[0];
+  let reads=0;
+  for(const file of [fileOf('{bad'),fileOf(JSON.stringify({version:1,zones:[],outside:{tag:'javascript:alert(1)'}})),{size:16385,text:async()=>{reads++;return '{}';}},{size:20,text:async()=>{throw new Error('read failed');}}]) {
+    await importFile(ui,file);assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.storage.get(ui.zonesApi.storageKey),before);assert.equal(ui.element('simulador-deshacer').disabled,true);
+    assert.match(ui.element('simulador-intercambio-estado').textContent,/configuración actual se conserva/);
+  }
+  assert.equal(reads,0);ui.sim.stop();
+});
+
+test('importar permite deshacer y un error al guardar no anuncia persistencia',async()=>{
+  const ui=await editorSession({storageError:true}),other=JSON.parse(JSON.stringify(ui.zonesApi.defaults));other.zones[0].tag='tecnologia';
+  await importFile(ui,fileOf(JSON.stringify(other)));assert.match(ui.element('simulador-intercambio-estado').textContent,/pulsa Guardar zonas/);
+  ui.element('simulador-guardar').click();assert.match(ui.element('simulador-guardado').textContent,/No se pudo guardar/);assert.doesNotMatch(ui.element('simulador-intercambio-estado').textContent,/Guardado en este navegador/);
+  ui.element('simulador-deshacer').click();assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'retail');assert.equal(ui.element('simulador-intercambio-estado').textContent,'');ui.sim.stop();
+});
+
+test('exportar un campo incompleto no descarga una configuración antigua',async()=>{
+  const ui=await editorSession();ui.element('simulador-radio').fire('input','5');ui.element('simulador-exportar').click();assert.equal(ui.downloads.length,0);assert.match(ui.element('simulador-guardado').textContent,/Revisa/);ui.sim.stop();
+});
+
+test('una lectura de archivo anterior no sobrescribe una importación más reciente',async()=>{
+  const ui=await editorSession();let finish;
+  const pending=importFile(ui,{size:200,text:()=>new Promise(resolve=>finish=resolve)});
+  const newer=JSON.parse(JSON.stringify(ui.zonesApi.defaults));newer.zones[0].name='Más reciente';
+  await importFile(ui,fileOf(JSON.stringify(newer)));finish(JSON.stringify(ui.zonesApi.defaults));await pending;
+  assert.equal(ui.element('simulador-nombre').value,'Más reciente');ui.sim.stop();
+});
+
+test('cerrar la simulación durante la lectura impide una importación tardía',async()=>{
+  const ui=await editorSession();let finish;
+  const pending=importFile(ui,{size:200,text:()=>new Promise(resolve=>finish=resolve)});
+  ui.sim.stop();const changed=JSON.parse(JSON.stringify(ui.zonesApi.defaults));changed.zones[0].name='No debe aplicarse';finish(JSON.stringify(changed));await pending;
+  ui.sim.start();ui.element('simulador-editar').click();assert.equal(ui.element('simulador-nombre').value,'Gràcia');ui.sim.stop();
 });
