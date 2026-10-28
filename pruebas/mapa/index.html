@@ -14,9 +14,9 @@
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
   <script defer src="/pruebas/mapa/idioma.js?v=20261029-seguir-1"></script>
-  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261028-zonas-transfer-1"></script>
-  <script defer src="/pruebas/mapa/simulador.js?v=20261029-seguir-1"></script>
-  <script defer src="/pruebas/mapa/mapa.js?v=20261029-seguir-1"></script>
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-oficinas-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261029-oficinas-1"></script>
+  <script defer src="/pruebas/mapa/mapa.js?v=20261029-oficinas-1"></script>
 </head>
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a><a href="/usuarios" data-yk-admin data-yk-interno>Usuarios</a><a href="/webmaster" data-yk-interno>Webmaster</a><a href="/analitics" data-yk-admin data-yk-interno>Analítica</a><a href="/flota" data-yk-interno>Agentes</a><a href="/organigrama" data-yk-interno>Organigrama</a><a href="/roadmap" data-yk-interno>Hoja de ruta</a><a href="/presentaciones/" data-yk-interno>Presentaciones</a><a href="/xpace/manage" data-yk-admin data-yk-rail-only data-yk-interno>Proyectos y locales</a></nav><span class="private" data-yk-access="privado" title="Acceso privado">●<span class="yk-access-txt"> Acceso privado</span></span></header>
@@ -51,6 +51,8 @@
       <div id="simulador-controles" class="mapa-sim-controls" hidden>
         <div><p id="simulador-arrastre">Arrastra el marcador o toca el mapa.</p><output id="simulador-coordenadas" aria-label="Coordenadas simuladas">—</output></div>
         <p id="simulador-lectura" class="mapa-meta" role="status" aria-live="polite"></p>
+        <button type="button" id="simulador-oficinas">Cargar cinco oficinas</button>
+        <p id="simulador-oficinas-ayuda"></p>
         <div id="simulador-zonas" class="mapa-sim-zones" role="group" aria-label="Zonas del simulador"></div>
         <button type="button" id="simulador-editar" aria-expanded="false" aria-controls="simulador-editor">Editar zonas y contenido</button>
         <section id="simulador-editor" class="mapa-zone-editor" aria-labelledby="simulador-editor-titulo" hidden>
@@ -62,6 +64,7 @@
             <label><span id="simulador-label-radio">Radio en metros</span><input id="simulador-radio" aria-labelledby="simulador-label-radio" type="number" min="50" max="5000" step="1"></label>
             <label><span id="simulador-label-tema">Contenido de admira.tv</span><select id="simulador-tema" aria-labelledby="simulador-label-tema"></select></label>
           </div>
+          <p id="simulador-direccion"></p>
           <p id="simulador-tema-ayuda">Se reproducen las piezas del catálogo con el tema elegido.</p>
           <p id="simulador-catalogo-estado" role="status" aria-live="polite"></p>
           <div class="mapa-zone-actions"><button type="button" id="simulador-centro-aqui">Situar zona en el simulador</button><button type="button" id="simulador-anadir">Añadir zona</button><button type="button" id="simulador-eliminar">Eliminar zona</button><button type="button" id="simulador-deshacer" disabled>Deshacer</button><button type="button" id="simulador-catalogo">Actualizar catálogo</button></div>
@@ -72,7 +75,7 @@
             <p id="simulador-intercambio-estado" role="status" aria-live="polite"></p>
           </div>
         </section>
-        <p class="mapa-sim-note">Ubicaciones y zonas de ejemplo. El movimiento sólo controla este player virtual.</p>
+        <p class="mapa-sim-note">La posición manual es simulada. El movimiento sólo controla este player virtual.</p>
       </div>
     </section>
 
