@@ -678,5 +678,10 @@
     "Mapa Silicio: editor para mover zonas y ajustar su radio directamente sobre el mapa.",
     "Cada zona y el exterior pueden elegir un tema del catálogo actual de admira.tv.",
     "Guardar en este navegador, añadir y eliminar zonas, deshacer y restaurar ejemplos."
+  ],
+  "v.28.10.2026.r4.23:46": [
+    "Mapa Silicio: exportar zonas y temas de admira.tv a un archivo para usarlos en otro navegador.",
+    "Importación validada, reversible y con límite de tamaño; los archivos incompatibles conservan la configuración actual.",
+    "Se mantienen el orden, las geometrías y el contenido asignado a cada zona y al exterior."
   ]
 }
