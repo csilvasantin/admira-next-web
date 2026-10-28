@@ -29,6 +29,32 @@ y las zonas simuladas. El acceso sigue protegido por la sesión de `/pruebas`.
 La adquisición real desde Samsung permanece pendiente y es independiente de
 esta demostración.
 
+## Seguir Luka con las mismas reglas
+
+«Seguir Luka» utiliza Datos reales y consulta el feed privado cada 60 segundos.
+No activa Demo, no permite mover la ubicación recibida, no escribe ubicaciones
+y no accede directamente a la cuenta Samsung. La adquisición desde Samsung
+todavía está pendiente; mientras no haya una lectura válida muestra el motivo
+y mantiene el player en espera.
+
+El arrastre y las lecturas utilizan la misma función de selección de zona y la
+misma configuración del editor, incluidos orden y temas. Para una lectura real
+se exige `equipo:luka`, `tipo:smarttag2`, `fuente:smartthings-find`, coordenadas
+numéricas, fecha con un máximo de cinco minutos de antigüedad (adelanto máximo
+de un minuto) y precisión numérica no negativa. Los avisos de prueba, sin
+precisión, antiguos o sin coordenadas no activan contenido. Esto es más estricto
+que la antigüedad de dos horas del listado general: decidir entre oficinas
+cercanas requiere una lectura reciente.
+
+Además, todo el círculo de precisión debe pertenecer a una sola zona ganadora.
+Si cruza el límite de una zona prioritaria, se espera una lectura más precisa.
+El exterior sólo queda confirmado cuando el círculo no toca ninguna zona.
+Un fallo al consultar o una lectura que deja de cumplir estas condiciones
+retira el iframe. Repetir una lectura dentro de la misma zona no reinicia el
+player. La fecha, precisión y causa de espera aparecen junto a los controles.
+Volver a Simular player recupera el marcador arrastrable, sin modificar los
+datos reales. Los botones de acceso a zonas se desactivan mientras se sigue Luka.
+
 Verificación: `node --test test/ubicacion.test.mjs test/mapa-ubicacion-ui.test.mjs test/mapa-5612.test.mjs test/mapa-simulador.test.mjs`.
 
 ## Editor de zonas y contenido

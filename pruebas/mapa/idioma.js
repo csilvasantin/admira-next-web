@@ -27,6 +27,7 @@
     'Ubicaciones de ejemplo':'Example locations',
     'Ubicaciones y zonas de ejemplo. El movimiento sólo controla este player virtual.':'Example locations and zones. Movement only controls this virtual player.',
     'Coordenadas simuladas':'Simulated coordinates',
+    'Seguir Luka':'Follow Luka',
     'Zonas del simulador':'Simulator zones',
     'Más de 2 h sin aviso: desactualizado. Los equipos sin coordenadas permanecen en la lista.':'Over 2 h without a report: outdated. Devices without coordinates remain in the list.'
   });

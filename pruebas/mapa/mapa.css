@@ -100,7 +100,10 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 /* Player flotante de la simulación: el mapa conserva su tamaño y su posición. */
 .mapa-canvas-panel{position:relative;align-self:start}
 .mapa-panel-head #simular-player{padding:7px 10px}
-#simular-player[aria-pressed="true"]{color:var(--cyan);border-color:var(--cyan)}
+.mapa-player-actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
+.mapa-player-actions #seguir-luka{padding:7px 10px}
+.mapa-sim-zones button:disabled{opacity:.55}
+#simular-player[aria-pressed="true"],#seguir-luka[aria-pressed="true"]{color:var(--cyan);border-color:var(--cyan)}
 .mapa-sim-player{position:absolute;top:78px;right:14px;z-index:600;width:min(300px,45%);padding:12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px #0004}
 .mapa-sim-player[hidden],.mapa-sim-controls[hidden]{display:none!important}
 .mapa-sim-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;flex-wrap:wrap}
