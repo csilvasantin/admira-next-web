@@ -256,6 +256,44 @@ async function editorSession(options) {
 function fileOf(text) {return {size:new TextEncoder().encode(text).length,text:async()=>text};}
 async function importFile(ui,file) {ui.element('simulador-archivo').files=[file];await ui.element('simulador-archivo').fire('change');}
 
+test('subir y bajar prioridad cambia el ganador de un solapamiento y conserva el orden al guardar y transferir',async()=>{
+  const ui=await editorSession();assert.equal(ui.element('simulador-subir').disabled,true);
+  ui.element('simulador-zona-elegida').fire('change','eixample');ui.element('simulador-centro-aqui').click();
+  assert.equal(ui.element('simulador-zona').textContent,'Gràcia');assert.equal(ui.element('simulador-bajar').disabled,true);
+  const first=ui.element('simulador-video').children[0];ui.element('simulador-subir').click();
+  assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.notEqual(ui.element('simulador-video').children[0],first);
+  assert.equal(ui.element('simulador-zona-elegida').value,'eixample');assert.match(ui.element('simulador-prioridad').textContent,/Prioridad 1 de 2/);
+  assert.deepEqual(ui.element('simulador-zonas').children.map(b=>b.id),['simulador-ir-eixample','simulador-ir-gracia','simulador-ir-exterior']);
+  assert.deepEqual(ui.element('simulador-zona-elegida').children.map(o=>o.value),['eixample','gracia','exterior']);
+  const promoted=ui.element('simulador-video').children[0];ui.element('simulador-subir').click();assert.equal(ui.element('simulador-video').children[0],promoted);
+  ui.element('simulador-bajar').click();assert.equal(ui.element('simulador-zona').textContent,'Gràcia');
+  ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.equal(ui.storage.size,0);
+  ui.element('simulador-guardar').click();ui.element('simulador-exportar').click();const exported=await ui.downloads[0].blob.text();
+  const restored=await editorSession({storage:ui.storage});assert.equal(restored.element('simulador-zona').textContent,'Eixample');
+  const target=await editorSession();await importFile(target,fileOf(exported));assert.equal(target.element('simulador-zona').textContent,'Eixample');
+  assert.deepEqual(target.element('simulador-zonas').children.map(b=>b.id),['simulador-ir-eixample','simulador-ir-gracia','simulador-ir-exterior']);
+  target.element('simulador-zona-elegida').fire('change','exterior');assert.equal(target.element('simulador-subir').disabled,true);assert.equal(target.element('simulador-bajar').disabled,true);
+  ui.sim.stop();restored.sim.stop();target.sim.stop();
+});
+
+test('reordenar oficinas ajenas a la ubicación conserva la reproducción, direcciones y geometrías',async()=>{
+  const ui=await editorSession();ui.element('simulador-oficinas').click();
+  const frame=ui.element('simulador-video').children[0];ui.element('simulador-zona-elegida').fire('change','la-nave');ui.element('simulador-subir').click();
+  assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.element('simulador-zona').textContent,'Pixería');
+  ui.element('simulador-guardar').click();const saved=JSON.parse(ui.storage.get(ui.zonesApi.storageKey));
+  assert.deepEqual(saved.zones.map(z=>z.id),['pixeria','university','garage','la-nave','sneaker-store']);
+  for (const zone of saved.zones) assert.deepEqual(zone,JSON.parse(JSON.stringify(ui.zonesApi.officePreset.zones.find(z=>z.id===zone.id))));
+  ui.document.documentElement.lang='en';ui.sim.renderText();assert.match(ui.element('simulador-prioridad').textContent,/Priority 4 of 5/);
+  ui.sim.stop();
+});
+
+test('la prioridad elegida también cambia el contenido al seguir una lectura real fiable',async()=>{
+  const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');sim.updateLuka(lukaFix(),false);ui.element('simulador-editar').click();await flush();
+  ui.element('simulador-zona-elegida').fire('change','eixample');ui.element('simulador-centro-aqui').click();
+  assert.equal(ui.element('simulador-zona').textContent,'Gràcia');ui.element('simulador-subir').click();
+  assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.equal(sim.isFollowing(),true);assert.equal(ui.element('simulador-badge').textContent,'SEGUIR LUKA');sim.stop();
+});
+
 test('importar otro orden sincroniza accesos del mapa y prioridad sin recrear botones en cada lectura',async()=>{
   const ui=await editorSession(),config=JSON.parse(JSON.stringify(ui.zonesApi.defaults));
   const first=ui.element('simulador-zonas').children.slice();config.zones.reverse();
