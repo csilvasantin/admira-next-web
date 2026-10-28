@@ -122,5 +122,5 @@ test('la web muestra el corto y un botón de detalle solo si existe', async () =
   assert.match(html, /\.rmc-det-btn\{/);
   assert.match(html, /\.rmc-det-txt\[hidden\]\{display:none\}/);
   assert.match(html, /\.rmc-123 details:not\(\[open\]\) > :not\(summary\)\{display:none\}/);
-  assert.match(html, /roadmap-combo\.js\?v=20261023-detalle-1/);
+  assert.match(html, /roadmap-combo\.js\?v=20261028-item-1/);
 });
