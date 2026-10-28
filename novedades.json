@@ -668,5 +668,10 @@
   "v.28.10.2026.r1.22:05": [
     "Mapa Silicio: Luka aparece en Demo con icono SmartTag2 y coordenadas marcadas como dato de prueba.",
     "Puente privado preparado para recibir mediciones de SmartThings Find; conexión con Samsung pendiente de acceso autorizado."
+  ],
+  "v.28.10.2026.r2.23:04": [
+    "Mapa Silicio: arrastra el simulador y cambia el contenido del player de admira.tv según la zona.",
+    "Gràcia, Eixample y exterior: Comercio, Tecnología y Creatividad con contenido del catálogo.",
+    "Luka conserva la precisión desconocida sin inventar un radio; la simulación permanece en Demo."
   ]
 }
