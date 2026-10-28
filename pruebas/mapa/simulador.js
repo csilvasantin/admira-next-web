@@ -56,8 +56,13 @@
     var root = byId('simulador-player'), controls = byId('simulador-controles'), host = byId('simulador-video');
     var identity = 'virtual-mapa-' + (G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
     var active = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map();
-    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function () {if (active) {if (source==='luka') updateLuka(latestLuka,feedError);else move(position,true);}}}) : null;
+    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function (change) {if (active) {if (source==='luka') updateLuka(latestLuka,feedError);else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true);}if (change&&change.preset==='offices') fitZones();}}}) : null;
     function config() {return editor ? editor.getConfig() : {zones:zones,outside:outside};}
+    function fitZones() {
+      var points=config().zones.map(function (zone) {return [zone.lat,zone.lon];}), width=map.getSize?map.getSize().x:0;
+      if (points.length && map.fitBounds) map.fitBounds(points,{paddingTopLeft:[55,55],paddingBottomRight:[width>600?Math.min(330,Math.round(width*.45)+30):55,55],maxZoom:17,animate:false});
+      else {var first=config().zones[0]||outside;map.setView([first.lat,first.lon],14,{animate:false});}
+    }
     function allZones() {var c=config();return c.zones.concat([{id:'exterior',name:'',tag:c.outside.tag,lat:outside.lat,lon:outside.lon}]);}
     function zoneName(zone) {return zone.name || T('Fuera de las zonas','Outside the zones');}
     function label(zone) {var original=zones.concat([outside]).find(function (z) {return z.tag===zone.tag;}) || zone;return editor ? editor.label(zone.tag) : T(original.es || zone.tag,original.en || zone.tag);}
@@ -163,6 +168,7 @@
       byId('simular-player').setAttribute('aria-pressed','false');
       byId('seguir-luka').setAttribute('aria-pressed','false');
       byId('mapa').classList.remove('is-simulating');
+      if (options.onStateChange) options.onStateChange();
     }
     function start(mode) {
       if (active) return;
@@ -178,21 +184,23 @@
         L.circle([zone.lat,zone.lon],{radius:zone.radius,color:'#bc85ec',weight:1,fillOpacity:0.06,interactive:false}).addTo(layer)
           .bindTooltip(zone.name,{permanent:true,direction:'top',offset:[0,-45],className:'mapa-sim-zone'});
       });
-      if (source==='luka') {updateLuka(null,false);return;}
-      var icon = L.divIcon({className:'mapa-sim-marker',html:'<span aria-hidden="true">▶</span><span>' + T('Simulador','Simulator') + '</span>',iconSize:[110,36],iconAnchor:[18,18]});
+      if (source==='luka') {updateLuka(null,false);if (options.onStateChange) options.onStateChange();return;}
+      var icon = L.divIcon({className:'mapa-sim-marker',html:'<span aria-hidden="true">◉</span><span>Luka · manual</span>',iconSize:[125,36],iconAnchor:[18,18]});
       var first=config().zones[0] || outside;
-      marker = L.marker([first.lat,first.lon],{icon:icon,draggable:true,autoPan:true,alt:T('Simulador de ubicación','Location simulator'),title:T('Arrastra para simular otra ubicación','Drag to simulate a new location')}).addTo(layer);
+      marker = L.marker([first.lat,first.lon],{icon:icon,draggable:true,autoPan:true,alt:'Luka · manual',title:T('Arrastra Luka para probar otra oficina','Drag Luka to try another office')}).addTo(layer);
       marker.on('drag',function () {move(marker.getLatLng(),false);});
       marker.on('dragend',function () {move(marker.getLatLng(),true);});
       map.on('click',clickMap);
       move({lat:first.lat,lng:first.lon},true);
-      map.setView([first.lat,first.lon],14,{animate:false});
+      fitZones();
+      if (options.onStateChange) options.onStateChange();
     }
     byId('simulador-cerrar').addEventListener('click',stop);
     G.addEventListener('message',function (event) {
       if (!active || !frame || event.source !== frame.contentWindow || event.origin !== 'https://admira.tv') return;
       var data = event.data;
       if (!data || data.source !== 'admira-tv-canal' || data.event !== 'media-state' || !data.id) return;
+      if (typeof data.id==='string' && data.id.length<=160) frame.setAttribute('data-media-id',data.id);
       connection = 'connected';clearTimeout(timer);renderText();
     });
     return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);}};

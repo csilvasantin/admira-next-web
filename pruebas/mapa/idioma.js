@@ -25,7 +25,7 @@
     'Simular player':'Simulate player',
     'Player de ubicación simulada':'Simulated location player',
     'Ubicaciones de ejemplo':'Example locations',
-    'Ubicaciones y zonas de ejemplo. El movimiento sólo controla este player virtual.':'Example locations and zones. Movement only controls this virtual player.',
+    'La posición manual es simulada. El movimiento sólo controla este player virtual.':'The manual location is simulated. Movement only controls this virtual player.',
     'Coordenadas simuladas':'Simulated coordinates',
     'Seguir Luka':'Follow Luka',
     'Zonas del simulador':'Simulator zones',

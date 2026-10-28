@@ -111,7 +111,7 @@
     map = G.L.map('mapa', {scrollWheelZoom:false}).setView([41.394,2.164], 13);
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
-    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L});
+    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,onStateChange:renderMap});
     if (map.on) map.on('zoomend', refrescarHalos);
   }
 
@@ -129,7 +129,7 @@
       : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
     if (tiles && map.removeLayer) map.removeLayer(tiles);
     tiles = G.L.tileLayer(url, {
-      maxZoom:16,
+      maxNativeZoom:16,maxZoom:19,
       attribution:'&copy; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
     }).addTo(map);
   }
@@ -173,6 +173,7 @@
     pins.clear();
     halos = [];
     state.devices.filter(hasPosition).forEach(function (device) {
+      if (state.demo && device.equipo==='luka' && simulator && simulator.isActive() && (!simulator.isFollowing || !simulator.isFollowing())) return;
       var prueba = esPrueba(device), key = prueba ? 'prueba' : status(device), popup = d.createElement('div');
       popup.className = 'mapa-popup';
       popup.setAttribute('data-yk-no-traducir','');

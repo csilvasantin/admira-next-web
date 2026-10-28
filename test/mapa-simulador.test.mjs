@@ -9,6 +9,52 @@ const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags
 const flush = async () => {await new Promise(setImmediate);};
 const lukaFix=(extra={})=>({equipo:'luka',tipo:'smarttag2',nombre:'Luka',fuente:'smartthings-find',lat:41.4043,lon:2.1582,precision_m:10,ts:new Date().toISOString(),...extra});
 
+test('las cinco oficinas tienen centros distintos, temas distintos y la misma selección manual y real',()=>{
+  const ui=mount({editor:true}),config=ui.zonesApi.officePreset,now=Date.now();
+  assert.ok(ui.zonesApi.validate(config));assert.equal(config.zones.length,5);
+  assert.equal(new Set(config.zones.map(z=>z.tag)).size,5);
+  assert.deepEqual(Array.from(config.zones,z=>z.id),['pixeria','university','garage','sneaker-store','la-nave']);
+  for (const zone of config.zones) {
+    assert.equal(zone.radius,50);assert.match(zone.address,/08012/);
+    assert.equal(ui.api.zoneFor({lat:zone.lat,lng:zone.lon},config).id,zone.id);
+    const fix=ui.api.resolveReading(lukaFix({lat:zone.lat,lon:zone.lon,precision_m:10}),config,now);
+    assert.equal(fix.status,'ready');assert.equal(fix.zone.id,zone.id);
+  }
+  assert.equal(JSON.stringify(ui.zonesApi.parseTransfer(ui.zonesApi.serializeTransfer(config))),JSON.stringify(ui.zonesApi.validate(config)));
+  const bad=JSON.parse(JSON.stringify(config));bad.zones[0].address={url:'https://evil.test'};assert.equal(ui.zonesApi.validate(bad),null);
+});
+
+test('cargar oficinas es reversible, no sobrescribe almacenamiento y arrastrar Luka cambia el contenido en las cinco',async()=>{
+  const ui=await editorSession();ui.element('simulador-nombre').fire('input','Mi zona');ui.element('simulador-guardar').click();
+  const original=ui.storage.get(ui.zonesApi.storageKey), oldFrame=ui.element('simulador-video').children[0];
+  ui.element('simulador-oficinas').click();
+  assert.equal(ui.storage.get(ui.zonesApi.storageKey),original);assert.notEqual(ui.element('simulador-video').children[0],oldFrame);
+  assert.match(ui.element('simulador-guardado').textContent,/sin guardar/);assert.equal(ui.element('simulador-nombre').value,'Pixería');
+  const marker=ui.markers.find(m=>m.options.alt==='Luka · manual');let frame=ui.element('simulador-video').children[0];
+  for (const zone of ui.zonesApi.officePreset.zones) {
+    marker.point={lat:zone.lat,lng:zone.lon};marker.events.drag();assert.equal(ui.element('simulador-video').children[0],frame);
+    marker.events.dragend();frame=ui.element('simulador-video').children[0];
+    assert.equal(new URL(frame.src).searchParams.get('tag'),zone.tag);assert.equal(ui.element('simulador-zona').textContent,zone.name);
+  }
+  ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-nombre').value,'Mi zona');
+  ui.element('simulador-oficinas').click();ui.element('simulador-guardar').click();
+  const restored=await editorSession({storage:ui.storage});assert.equal(restored.element('simulador-nombre').value,'Pixería');
+  restored.element('simulador-exportar').click();const text=await restored.downloads[0].blob.text();
+  const other=await editorSession();await importFile(other,fileOf(text));assert.equal(other.element('simulador-direccion').textContent,restored.element('simulador-direccion').textContent);
+  ui.sim.stop();restored.sim.stop();other.sim.stop();
+});
+
+test('cargar oficinas mientras sigue Luka conserva la fuente real y cancela importaciones anteriores pendientes',async()=>{
+  const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');
+  ui.element('simulador-editar').click();await flush();
+  const firstOffice=ui.zonesApi.officePreset.zones[0];sim.updateLuka(lukaFix({lat:firstOffice.lat,lon:firstOffice.lon}),false);
+  let finish;const pending=importFile(ui,{size:200,text:()=>new Promise(resolve=>finish=resolve)});
+  ui.element('simulador-oficinas').click();assert.equal(sim.isFollowing(),true);
+  assert.equal(ui.element('simulador-zona').textContent,firstOffice.name);
+  finish(JSON.stringify(ui.zonesApi.defaults));await pending;
+  assert.equal(ui.element('simulador-zona').textContent,firstOffice.name);assert.equal(ui.element('simulador-importar').disabled,false);sim.stop();
+});
+
 test('una lectura real y el arrastre usan la misma zona, con precisión completa y prioridad de solapamiento',()=>{
   const ui=mount({editor:true}), config=JSON.parse(JSON.stringify(ui.zonesApi.defaults)), now=Date.now();
   for (const point of [{lat:41.4043,lng:2.1582},{lat:41.389,lng:2.1645},{lat:0,lng:0}]) {
@@ -109,6 +155,7 @@ test('soltar en otra zona cambia el iframe, moverse dentro de la misma lo conser
   assert.notEqual(ui.element('simulador-estado').textContent,'Player conectado');
   ui.message({origin:'https://admira.tv',source:second.contentWindow,data});
   assert.equal(ui.element('simulador-estado').textContent,'Player conectado');
+  assert.equal(second.attributes['data-media-id'],'stock-123');
   ui.document.documentElement.lang='en';sim.renderText();assert.equal(ui.element('simulador-contenido').textContent,'Technology');
   ui.mapEvents.click({latlng:{lat:0,lng:0}});assert.equal(ui.element('simulador-contenido').textContent,'Creativity');
   sim.stop();assert.equal(ui.element('simulador-video').children.length,0);assert.equal(sim.isActive(),false);assert.equal(ui.mapEvents.click,undefined);assert.equal(ui.timers.size,0);

@@ -7,6 +7,16 @@
     {id:'gracia',name:'Gràcia',tag:'retail',lat:41.4043,lon:2.1582,radius:450},
     {id:'eixample',name:'Eixample',tag:'tecnologia',lat:41.389,lon:2.1645,radius:450}
   ],outside:{tag:'creatividad'}};
+  // Owner-confirmed offices, all in 08012 Barcelona. Address geocodes, not tag fixes.
+  // ICGC: Aulèstia21, Bretón9, Planeta7. GeoBCN: Rosa Puig-Rodon Pla4/19
+  // (formerly Santa Rosa, city decree S1/D/2024-00332). See docs/mapa-simulador.md.
+  var offices = {version:1,zones:[
+    {id:'pixeria',name:'Pixería',address:'Aulèstia i Pijoan 21 · 08012 Barcelona',tag:'creatividad',lat:41.40300208,lon:2.15095625,radius:50},
+    {id:'university',name:'Admira University',address:'Bretón de los Herreros 9 · 08012 Barcelona',tag:'educacion',lat:41.4023751,lon:2.1519882,radius:50},
+    {id:'garage',name:'Garage',address:'Santa Rosa 4 · actual Rosa Puig-rodon Pla · 08012',tag:'devops',lat:41.40316442,lon:2.15276479,radius:50},
+    {id:'sneaker-store',name:'Sneaker Store',address:'Santa Rosa 19 · actual Rosa Puig-rodon Pla · 08012',tag:'retail',lat:41.40347899,lon:2.15370648,radius:50},
+    {id:'la-nave',name:'La Nave',address:'Planeta 7 · 08012 Barcelona',tag:'emprendimiento',lat:41.40134534,lon:2.1558339,radius:50}
+  ],outside:{tag:'publicidad'}};
   var copy = function (value) {return JSON.parse(JSON.stringify(value));};
   function validate(value) {
     if (!value || value.version !== 1 || !Array.isArray(value.zones) || value.zones.length > 8 || !value.outside || typeof value.outside.tag !== 'string' || !TAG.test(value.outside.tag)) return null;
@@ -15,10 +25,13 @@
     for (var zone of value.zones) {
       if (!zone || typeof zone.id !== 'string' || !/^[a-z][a-z0-9-]{0,47}$/.test(zone.id) || zone.id === 'exterior' || ids.has(zone.id) ||
           typeof zone.name !== 'string' || !zone.name.trim() || zone.name.length > 48 || /[\u0000-\u001f\u007f]/.test(zone.name) ||
+          (zone.address != null && (typeof zone.address !== 'string' || zone.address.length>160 || /[\u0000-\u001f\u007f]/.test(zone.address))) ||
           typeof zone.tag !== 'string' || !TAG.test(zone.tag) || !Number.isFinite(zone.lat) || Math.abs(zone.lat) > 85 ||
           !Number.isFinite(zone.lon) || Math.abs(zone.lon) > 180 || !Number.isFinite(zone.radius) || zone.radius < 50 || zone.radius > 5000) return null;
       ids.add(zone.id);
-      zones.push({id:zone.id,name:zone.name.trim(),tag:zone.tag,lat:zone.lat,lon:zone.lon,radius:Math.round(zone.radius)});
+      var normalized={id:zone.id,name:zone.name.trim(),tag:zone.tag,lat:zone.lat,lon:zone.lon,radius:Math.round(zone.radius)};
+      if (zone.address) normalized.address=zone.address.trim();
+      zones.push(normalized);
     }
     return {version:1,zones:zones,outside:{tag:value.outside.tag}};
   }
@@ -76,11 +89,11 @@
     selected = config.zones[0] ? config.zones[0].id : 'exterior';
     saved = JSON.stringify(config);
     var active = false, opened = false, shapes, handles, circles = new Map(), centreHandle, radiusHandle, position;
-    var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'}], catalogState = 'idle', catalogRequest = null;
+    var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'},{tag:'educacion'},{tag:'devops'},{tag:'emprendimiento'},{tag:'publicidad'}], catalogState = 'idle', catalogRequest = null;
     var transferState='idle', importBusy=false, importTicket=0, importedCount=0;
     function current() {return selected === 'exterior' ? config.outside : config.zones.find(function (z) {return z.id === selected;});}
     function label(tag) {
-      var names = {retail:T('Comercio','Retail'),tecnologia:T('Tecnología','Technology'),creatividad:T('Creatividad','Creativity'),negocio:T('Negocio','Business'),musica:T('Música','Music'),publicidad:T('Publicidad','Advertising'),robots:T('Robots','Robots')};
+      var names = {retail:T('Comercio','Retail'),tecnologia:T('Tecnología','Technology'),creatividad:T('Creatividad','Creativity'),educacion:T('Educación','Education'),devops:T('Desarrollo de software','Software development'),emprendimiento:T('Emprendimiento','Entrepreneurship'),negocio:T('Negocio','Business'),musica:T('Música','Music'),publicidad:T('Publicidad','Advertising'),robots:T('Robots','Robots')};
       return names[tag] || tag.replace(/-/g,' ');
     }
     function option(select,value,text) {var node=d.createElement('option');node.value=value;node.textContent=text;select.appendChild(node);}
@@ -95,6 +108,7 @@
       byId('simulador-radio').disabled=outside;
       byId('simulador-centro-aqui').disabled=outside;
       byId('simulador-eliminar').disabled=outside;
+      byId('simulador-direccion').textContent=outside?'':zone.address?T('Referencia: ','Reference: ')+zone.address:'';
       byId('simulador-anadir').disabled=config.zones.length>=8;
       byId('simulador-deshacer').disabled=!undo.length;
       var content=byId('simulador-tema');
@@ -109,6 +123,8 @@
     function renderText() {
       if (!active) return;
       byId('simulador-editar').textContent=opened?T('Terminar edición','Finish editing'):T('Editar zonas y contenido','Edit zones and content');
+      byId('simulador-oficinas').textContent=T('Cargar cinco oficinas','Load five offices');
+      byId('simulador-oficinas-ayuda').textContent=T('Sedes de 08012 Barcelona, con temas de prueba distintos y radios ajustables de 50 m. Cargar sustituye las zonas de esta sesión; puedes deshacerlo en el editor.','Offices in 08012 Barcelona, with distinct trial topics and adjustable 50 m areas. Loading replaces this session’s zones; you can undo it in the editor.');
       var text={
         'editor-titulo':T('Zonas y contenido','Zones and content'),
         'editor-ayuda':T('Arrastra el centro o el borde de la zona seleccionada. Si se solapan, manda la primera de la lista.','Drag the centre or edge of the selected zone. If zones overlap, the first in the list wins.'),
@@ -141,8 +157,8 @@
       });
     }
     function remember(before) {if (before!==JSON.stringify(config)) {undo.push(before);if (undo.length>20) undo.shift();if (saveState==='error'||saveState==='invalid') saveState='default';}}
-    function changed(before) {remember(before);if (transferState!=='reading') transferState='idle';drawShapes();drawHandles();renderText();options.onChange();}
-    function edit(update) {var before=JSON.stringify(config);update();if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';changed(before);}
+    function changed(before,change) {remember(before);if (transferState!=='reading') transferState='idle';drawShapes();drawHandles();renderText();options.onChange(change);}
+    function edit(update,change) {var before=JSON.stringify(config);update();if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';changed(before,change);}
     function geometry(draggingRadius) {
       var zone=current(), circle=circles.get(selected);
       if (circle) circle.setLatLng([zone.lat,zone.lon]).setRadius(zone.radius);
@@ -222,6 +238,12 @@
     byId('simulador-eliminar').addEventListener('click',function () {if (selected!=='exterior') edit(function () {config.zones=config.zones.filter(function (zone) {return zone.id!==selected;});});});
     byId('simulador-deshacer').addEventListener('click',function () {if (!undo.length) return;config=JSON.parse(undo.pop());transferState='idle';if (!current()) selected=config.zones[0]?config.zones[0].id:'exterior';drawShapes();drawHandles();renderText();options.onChange();});
     byId('simulador-restaurar').addEventListener('click',function () {edit(function () {config=copy(defaults);});});
+    byId('simulador-oficinas').addEventListener('click',function () {
+      if (!active) return;
+      // Cancel a pending file read so it cannot replace an explicitly chosen preset.
+      importTicket++;importBusy=false;transferState='idle';
+      edit(function () {config=copy(offices);selected=config.zones[0].id;},{preset:'offices'});
+    });
     function validDraft() {
       if (selected!=='exterior') {
         var name=byId('simulador-nombre').value.trim(), radius=Number(byId('simulador-radio').value);
@@ -269,5 +291,5 @@
       deactivate:function () {active=false;opened=false;importTicket++;importBusy=false;if (transferState==='reading') transferState='idle';if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
     };
   }
-  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,edge:edge,defaults:copy(defaults),storageKey:KEY};
+  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,edge:edge,defaults:copy(defaults),officePreset:copy(offices),storageKey:KEY};
 })(window,document);

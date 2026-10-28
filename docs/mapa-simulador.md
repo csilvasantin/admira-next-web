@@ -59,6 +59,45 @@ Verificación: `node --test test/ubicacion.test.mjs test/mapa-ubicacion-ui.test.
 
 ## Editor de zonas y contenido
 
+«Cargar cinco oficinas» incorpora las sedes confirmadas por Carlos, todas en
+08012 Barcelona. Es una acción explícita y reversible con Deshacer; al abrir
+la página se conservan las zonas guardadas. Tras cargar, «Guardar zonas» las
+conserva en este navegador. El marcador «Luka · manual» aparece en Pixería y se
+puede arrastrar entre los círculos; los accesos de oficina ofrecen la misma
+prueba con teclado. El pin sintético de Luka se oculta durante el arrastre para
+que haya un único marcador de Luka en el mapa.
+
+| Oficina | Dirección de referencia | Tema inicial |
+| --- | --- | --- |
+| Pixería | Aulèstia i Pijoan 21 | Creatividad |
+| Admira University | Bretón de los Herreros 9 | Educación |
+| Garage | Santa Rosa 4 | Desarrollo de software (`devops`) |
+| Sneaker Store | Santa Rosa 19 | Comercio |
+| La Nave | Planeta 7 | Emprendimiento |
+
+Los temas son asignaciones de prueba editables; el exterior utiliza Publicidad.
+En el catálogo consultado el 29-oct-2026 estos cinco grupos tenían 18, 3, 1, 5 y 5
+piezas respectivamente y no compartían ninguna. El catálogo puede cambiar.
+El radio inicial de 50 m es una aproximación editable a cada sede, no un plano
+del interior. Los cinco centros ganan su propia zona incluso con un margen
+de precisión de 10 m; los límites compartidos se tratan como ambiguos para datos
+reales. Al iniciar se encuadran las zonas, reservando espacio al player flotante.
+
+Procedencia de centros: ICGC para Aulèstia 21 (41.40300208,2.15095625),
+Bretón 9 (41.4023751,2.1519882), Planeta 7 (41.40134534,2.1558339);
+GeoBCN para Santa Rosa 4 (41.40316442,2.15276479) y 19
+(41.40347899,2.15370648). Son posiciones de direcciones, no mediciones del tag.
+Santa Rosa aparece en el callejero actual como Rosa Puig-rodon Pla; se conserva
+el nombre antiguo en la referencia visible. El cambio consta en el
+[decreto municipal de 28-jun-2024](https://w123.bcn.cat/APPS/egaseta/cercaAvancada.do?publicacionsId=28714&reqCode=downloadFile).
+Consultas: [ICGC](https://eines.icgc.cat/geocodificador/cerca?text=Aulestia%20i%20Pijoan%2021%2CBarcelona&layers=address&size=1),
+[GeoBCN](https://geoportal.barcelona.cat/geoBCN/serveis/territori?q=Santa%20Rosa%204&out_proj=EPSG%3A4326).
+Se descartaron expresamente los resultados de Santa Rosalia (otro barrio).
+
+La referencia opcional `address` se valida como texto y se conserva al guardar,
+exportar e importar. Se muestra como referencia original aunque se ajuste el
+centro del círculo, para no presentar una dirección como geocodificación inversa.
+
 «Editar zonas y contenido» muestra las zonas guardadas y un selector de temas
 del catálogo público de admira.tv. Cada tema reproduce las piezas que llevan
 esa etiqueta; los recuentos corresponden a la respuesta actual del catálogo.

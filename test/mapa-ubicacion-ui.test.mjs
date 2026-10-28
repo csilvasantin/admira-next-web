@@ -215,3 +215,11 @@ test('seguir Luka consulta sólo la fuente real, renueva sus avisos y abandona s
   const before=ui.requests.length;ui.intervals.find(item=>item.ms===60000).callback();await flush();assert.equal(ui.requests.length,before);
   assert.ok(ui.requests.every(item=>item.options.method==='GET'));
 });
+
+test('el arrastre usa un único Luka en el mapa y cerrar el simulador recupera el pin de ejemplo',async()=>{
+  let active=false,options;
+  const simulator={start(){active=true;options.onStateChange();},stop(){active=false;options.onStateChange();},renderText(){},isActive(){return active;},isFollowing(){return false;}};
+  const ui=mount(async()=>answer([]),{AdmiraMapaSimulador:{create:opts=>{options=opts;return simulator;}}});await flush();
+  ui.element('simular-player').click();assert.equal(ui.pins.filter(pin=>pin.options.alt==='Luka').length,0);
+  simulator.stop();assert.equal(ui.pins.filter(pin=>pin.options.alt==='Luka').length,1);
+});
