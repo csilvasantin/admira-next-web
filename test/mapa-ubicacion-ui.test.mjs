@@ -167,3 +167,14 @@ test('Luka real conserva tipo, etiqueta e icono SmartTag2; sin medición no inve
   assert.match(empty.element('equipos-lista').innerHTML,/Luka/);
   assert.match(empty.element('equipos-lista').innerHTML,/Pendiente del primer aviso/);
 });
+
+test('Luka sin precisión conserva el marcador, muestra el dato ausente y no dibuja un radio supuesto',async () => {
+  const ui = mount(async () => answer([{equipo:'luka',nombre:'Luka',tipo:'smarttag2',lat:41.395,lon:2.172,precision_m:null,fuente:'smartthings-find',ts:iso(3)}]));
+  await flush();
+  assert.equal(ui.pins.length,1);
+  assert.equal(ui.circles.length,0);
+  assert.match(ui.element('equipos-lista').innerHTML,/Precisión<\/dt><dd>No disponible/);
+  assert.doesNotMatch(ui.element('equipos-lista').innerHTML,/± 0 m/);
+  ui.language('en');
+  assert.match(ui.element('equipos-lista').innerHTML,/Accuracy<\/dt><dd>Unavailable/);
+});

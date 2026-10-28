@@ -91,6 +91,7 @@
       var info = row(T('Último aviso','Last report'), prueba ? T('Dato de prueba','Test data') : last ? date(last) + ' · ' + ago(last) : T('Sin avisos recibidos','No reports received'));
       if (positioned) info += row(T('Coordenadas','Coordinates'), device.lat.toFixed(5) + ', ' + device.lon.toFixed(5));
       if (typeof device.precision_m === 'number' && Number.isFinite(device.precision_m)) info += row(T('Precisión','Accuracy'), '± ' + Math.round(device.precision_m) + ' m');
+      else if (positioned && device.tipo === 'smarttag2') info += row(T('Precisión','Accuracy'), T('No disponible','Unavailable'));
       if (typeof device.bateria === 'number' && Number.isFinite(device.bateria)) info += row(T('Batería','Battery'), Math.round(device.bateria) + ' %');
       if (device.fuente) info += row(T('Fuente','Source'), prueba ? T('Dato de prueba','Test data') : device.fuente);
       var note = prueba ? T('Dato de prueba. No es un aviso del equipo.','Test data. This is not a device report.') : device.tipo === 'fijo' ? T('Dirección manual. No necesita avisos automáticos.','Manual address. No automatic reports needed.') : key === 'stale' ? T('Más de 2 h sin recibir una posición.','No position received for over 2 h.') : key === 'missing' ? T('Pendiente del primer aviso del equipo.','Waiting for the first report from this device.') : '';
