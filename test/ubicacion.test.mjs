@@ -163,7 +163,9 @@ test('paginación KV continúa tras página vacía con cursor y conserva el pref
   const now=Date.now(), value=validarAviso(aviso(),now), calls=[];
   const kv={async list(options){calls.push(options);return calls.length===1 ? {keys:[],list_complete:false,cursor:'next'} : {keys:[{metadata:value}],list_complete:true};}};
   const equipos=await listarEquipos(kv,now);
-  assert.equal(equipos[0].lat,value.lat);assert.equal(calls[1].cursor,'next');assert.equal(calls[1].prefix,calls[0].prefix);
+  assert.equal(equipos[0].lat,value.lat);
+  const phoneCalls = calls.filter(call => call.prefix === 'ubicacion:v1:iphone-carlos:');
+  assert.equal(phoneCalls[1].cursor,'next');assert.equal(phoneCalls[1].prefix,phoneCalls[0].prefix);
 });
 
 test('GET no acepta la clave del iPhone ni cookie falsa: exige la sesión vigente del directorio', async()=>{
@@ -255,4 +257,36 @@ test('GET /api/ubicacion/ultima: solo la clave del parte, devuelve la última po
   assert.ok(data.antiguedad_min >= 9 && data.antiguedad_min <= 11);
   assert.equal(JSON.stringify(data).includes(PARTE), false);
   assert.equal((await ultima({request:new Request(URL_API + '/ultima', {method:'POST'}), env})).status, 405);
+});
+
+
+test('puente SmartTag2 autentica por separado y solo escribe Luka; feed privado, retención y orden compartidos', async () => {
+  const {onRequest: bridge} = await import('../functions/api/ubicacion/smarttag2.js');
+  const {env,cookie} = await setup();
+  const TAG_KEY = 'smarttag-fixture-distinct-key-with-at-least-32-characters';
+  env.UBICACION_KEY_SMARTTAG2 = TAG_KEY;
+  const now = Date.now();
+  const data = {label:'Luka',tipo:'smarttag2',latitude:41.398,longitude:2.17,accuracy:32,timestamp:now};
+  const send = (body=data,key=TAG_KEY,headers={}) => bridge({request:new Request(URL_API+'/smarttag2',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+key,...headers},body:JSON.stringify(body)}),env});
+  for (const key of [DEVICE_KEY,'incorrect-key']) {
+    const res = await send(data,key);assert.equal(res.status,401);noStore(res);
+  }
+  assert.equal(env.UBICACIONES.entries.size,0);
+  for (const bad of [{label:'Other'},{tipo:'movil'},{latitude:'41'},{longitude:181},{accuracy:null},{timestamp:now-25*3600000},{extra:'unexpected'},{battery:101}]) {
+    assert.equal((await send({...data,...bad})).status,400,JSON.stringify(bad));
+  }
+  assert.equal((await send(data,TAG_KEY,{'content-type':'text/plain'})).status,415);
+  const success = await send();assert.equal(success.status,201);noStore(success);
+  assert.equal((await success.json()).tipo,'smarttag2');
+  await send({...data,latitude:40,timestamp:now-60000});
+  const all = await listarEquipos(env.UBICACIONES,now);
+  const luka = all.find(device => device.equipo === 'luka');
+  assert.equal(luka.nombre,'Luka');assert.equal(luka.tipo,'smarttag2');assert.equal(luka.lat,data.latitude);
+  assert.equal(luka.fuente,'smartthings-find');assert.equal(luka.estado,'actualizado');
+  assert.equal((await listarEquipos(env.UBICACIONES,now+RETENCION_MS+1)).find(device => device.equipo === 'luka').lat,null);
+  assert.equal((await onRequestGet({request:new Request(URL_API,{headers:{authorization:'Bearer '+TAG_KEY}}),env})).status,401);
+  const privateRead = await onRequestGet({request:new Request(URL_API,{headers:{cookie}}),env});
+  assert.equal((await privateRead.json()).equipos.find(device=>device.equipo==='luka').lat,data.latitude);
+  assert.equal((await bridge({request:new Request(URL_API+'/smarttag2'),env})).status,405);
+  delete env.UBICACION_KEY_SMARTTAG2;assert.equal((await send()).status,401);
 });

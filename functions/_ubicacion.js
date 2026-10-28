@@ -22,6 +22,7 @@ export const EQUIPOS = Object.freeze([
   // Posición manual de la dirección, verificada en OSM/Nominatim (10-10-2026),
   // nodo11967748167. No es telemetría ni un aviso automático del Mac mini.
   Object.freeze({equipo:'mac-mini', nombre:'Mac mini', tipo:'fijo', direccion:'Gran de Gràcia 51, Barcelona',lat:41.3993419,lon:2.1559172}),
+  Object.freeze({equipo:'luka', nombre:'Luka', tipo:'smarttag2'}),
 ]);
 
 export function respuestaUbicacion(data, status = 200, extraHeaders = {}) {
@@ -49,6 +50,7 @@ async function bearerCoincide(request, expected) {
 }
 
 export const claveUbicacionValida = (request, env) => bearerCoincide(request, env.UBICACION_KEY_IPHONE);
+export const claveSmartTagValida = (request, env) => bearerCoincide(request, env.UBICACION_KEY_SMARTTAG2);
 // Clave propia del parte horario: solo lectura de la última posición.
 export const claveParteValida = (request, env) => bearerCoincide(request, env.UBICACION_KEY_PARTE);
 
@@ -115,12 +117,12 @@ function timestamp(value) {
   return Date.parse(value);
 }
 
-export function validarAviso(input, now = Date.now()) {
+export function validarAviso(input, now = Date.now(), equipoAutorizado = 'iphone-carlos') {
   if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some((key) => !CAMPOS.has(key))) {
     throw new EntradaInvalida('datos_invalidos');
   }
   // La clave del iPhone no autoriza escribir la posición de otro equipo.
-  if (input.equipo !== 'iphone-carlos') throw new EntradaInvalida('equipo_no_autorizado', 401);
+  if (input.equipo !== equipoAutorizado) throw new EntradaInvalida('equipo_no_autorizado', 401);
   for (const [key, min, max] of [['lat',-90,90], ['lon',-180,180], ['precision_m',0,100000]]) {
     if (typeof input[key] !== 'number' || !Number.isFinite(input[key]) || input[key] < min || input[key] > max) {
       throw new EntradaInvalida(`${key}_invalido`);
@@ -135,7 +137,7 @@ export function validarAviso(input, now = Date.now()) {
   const ts = timestamp(input.ts);
   if (!Number.isFinite(ts) || ts < now - MAX_RETRASO_MS || ts > now + MAX_ADELANTO_MS) throw new EntradaInvalida('ts_invalido');
   return {
-    equipo:'iphone-carlos', lat:input.lat, lon:input.lon, precision_m:input.precision_m,
+    equipo:equipoAutorizado, lat:input.lat, lon:input.lon, precision_m:input.precision_m,
     bateria:input.bateria ?? null, fuente:input.fuente.trim(),
     ts:new Date(ts).toISOString(), recibido_en:new Date(now).toISOString(),
   };
@@ -170,8 +172,8 @@ export async function ultimaPosicion(kv, equipo, now = Date.now()) {
 
 export async function listarEquipos(kv, now = Date.now()) {
   return Promise.all(EQUIPOS.map(async (equipo) => {
-    const aviso = equipo.tipo === 'movil' ? await ultimaPosicion(kv, equipo.equipo, now) : null;
-    const desactualizado = equipo.tipo === 'movil' && (!aviso || now - Date.parse(aviso.ts) > DESACTUALIZADO_MS);
+    const aviso = equipo.tipo !== 'fijo' ? await ultimaPosicion(kv, equipo.equipo, now) : null;
+    const desactualizado = equipo.tipo !== 'fijo' && (!aviso || now - Date.parse(aviso.ts) > DESACTUALIZADO_MS);
     return {
       ...equipo, lat:aviso?.lat ?? equipo.lat ?? null, lon:aviso?.lon ?? equipo.lon ?? null,
       precision_m:aviso?.precision_m ?? null, bateria:aviso?.bateria ?? null,

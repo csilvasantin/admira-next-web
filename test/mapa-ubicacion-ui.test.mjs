@@ -83,7 +83,7 @@ test('demo cancels in-flight live response, makes no requests, labels every synt
   assert.equal(ui.requests[0].options.signal.aborted,true);
   assert.equal(ui.element('demo-aviso').hidden,false);
   assert.equal(ui.element('modo-demo').getAttribute('aria-pressed'),'true');
-  assert.equal(ui.pins.length,2);
+  assert.equal(ui.pins.length,3);
   assert.ok(ui.pins.every((pin) => /DEMO/.test(pin.popup.innerHTML)));
   resolveLive(answer([phone({nombre:'SECRET LIVE POSITION'})]));
   await flush();
@@ -145,4 +145,25 @@ test('language changes rerender live metadata, device details, popup text and de
   ui.language('es');
   assert.match(ui.element('mapa-origen').textContent,/Sintético/);
   assert.match(ui.element('equipos-lista').innerHTML,/Último aviso/);
+});
+
+
+test('Luka real conserva tipo, etiqueta e icono SmartTag2; sin medición no inventa coordenadas',async () => {
+  const luka = {equipo:'luka',nombre:'Luka',tipo:'smarttag2',lat:41.395,lon:2.172,precision_m:35,fuente:'smartthings-find',ts:iso(3)};
+  const ui = mount(async () => answer([luka]));
+  await flush();
+  assert.equal(ui.pins.length,1);
+  assert.equal(ui.pins[0].options.icon.className,'mapa-marker is-smarttag2');
+  assert.equal(ui.pins[0].options.alt,'Luka');
+  assert.match(ui.element('equipos-lista').innerHTML,/SmartTag2 · SmartThings Find/);
+  ui.element('modo-demo').click();
+  const mock = ui.pins.find(pin => pin.options.alt === 'Luka');
+  assert.ok(mock);
+  assert.match(mock.options.icon.className,/is-smarttag2 is-prueba/);
+  assert.match(mock.popup.innerHTML,/Dato de prueba/);
+  const empty = mount(async () => answer([{...luka,lat:null,lon:null,ts:null}]));
+  await flush();
+  assert.equal(empty.pins.length,0);
+  assert.match(empty.element('equipos-lista').innerHTML,/Luka/);
+  assert.match(empty.element('equipos-lista').innerHTML,/Pendiente del primer aviso/);
 });
