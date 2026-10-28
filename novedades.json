@@ -673,5 +673,10 @@
     "Mapa Silicio: arrastra el simulador y cambia el contenido del player de admira.tv según la zona.",
     "Gràcia, Eixample y exterior: Comercio, Tecnología y Creatividad con contenido del catálogo.",
     "Luka conserva la precisión desconocida sin inventar un radio; la simulación permanece en Demo."
+  ],
+  "v.28.10.2026.r3.23:26": [
+    "Mapa Silicio: editor para mover zonas y ajustar su radio directamente sobre el mapa.",
+    "Cada zona y el exterior pueden elegir un tema del catálogo actual de admira.tv.",
+    "Guardar en este navegador, añadir y eliminar zonas, deshacer y restaurar ejemplos."
   ]
 }
