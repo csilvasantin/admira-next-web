@@ -7,7 +7,7 @@
   var T = function (es, en) { return english() ? en : es; };
   var escape = function (value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
   var state = {demo:false, devices:[], loaded:false, loading:false, lastRead:null, error:null, request:0, controller:null};
-  var map, markers, tiles, pins = new Map(), halos = [], fitNext = true, temaTicket = 0;
+  var map, markers, tiles, pins = new Map(), halos = [], fitNext = true, temaTicket = 0, simulator;
 
   function hasPosition(device) {
     return typeof device.lat === 'number' && Number.isFinite(device.lat) && Math.abs(device.lat) <= 90 &&
@@ -111,6 +111,7 @@
     map = G.L.map('mapa', {scrollWheelZoom:false}).setView([41.394,2.164], 13);
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
+    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L});
     if (map.on) map.on('zoomend', refrescarHalos);
   }
 
@@ -230,6 +231,7 @@
     renderError();
     renderDevices();
     renderMap();
+    if (simulator) simulator.renderText();
   }
 
   async function refresh() {
@@ -267,6 +269,7 @@
     if (state.controller) state.controller.abort();
     state.controller = null;
     state.demo = demo;
+    if (!demo && simulator) simulator.stop();
     state.loading = false;
     state.error = null;
     state.lastRead = null;
@@ -282,6 +285,12 @@
   byId('modo-demo').addEventListener('click',function () {setMode(true);});
   byId('refrescar').addEventListener('click',refresh);
   byId('centrar').addEventListener('click',fit);
+  byId('simular-player').addEventListener('click',function () {
+    if (!simulator) return;
+    if (simulator.isActive()) {simulator.stop();return;}
+    setMode(true);
+    simulator.start();
+  });
   d.addEventListener('click',function (event) {
     if (!event.target.closest) return;
     var action = event.target.closest('[data-mapa-action]');
