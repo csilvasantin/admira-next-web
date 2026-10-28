@@ -54,7 +54,7 @@
     function url(){var u=new URL(location.href);['p','a','c'].forEach(function(k){u.searchParams.delete(k)});u.searchParams.set(PAR[modo?modo.value:'proyecto'],sel.value);history.replaceState(null,'',u)}
     if(modo)modo.addEventListener('change',function(){editando=null;opciones();url();render()});
     sel.addEventListener('change',function(){editando=null;url();render()});
-    render();
+    render();abrirItem();
     elegirPersona=function(id){var p=byId[id];if(!p||!p.tipo||!modo)return;editando=null;modo.value=p.tipo;opciones();sel.value=id;url();render()};
   }).catch(function(){out.innerHTML='<p class="rmc-err">No se pudo leer el roadmap por proyecto.</p>'});
 
@@ -70,6 +70,13 @@
   function marcaRev(i){var h='';if(i.dec){var ev=String(i.dec.evidencia||'');var cd=colorDe(i.dec.por);h+=' <span class="rmc-dec'+(cd?' rmc-q':'')+'"'+(cd?' style="--q:'+cd+'"':'')+' title="Declarado por '+esc(i.dec.por)+' · '+esc(String(i.dec.en||'').slice(0,16).replace('T',' '))+' UTC">◷ declarado'+(/^https?:\/\//.test(ev)?' · <a href="'+esc(ev)+'" target="_blank" rel="noopener">evidencia</a>':' · '+esc(ev.slice(0,40)))+'</span>'}if(i.sel){var cs=colorDe(i.sel.por)||colorDe(i.sel.nombre);h+=' <span class="rmc-sel rmc-sel-'+esc(i.sel.veredicto)+(cs?' rmc-q':'')+'"'+(cs?' style="--q:'+cs+'"':'')+' title="'+esc(i.sel.nota||'')+'">'+(i.sel.veredicto==='ok'?'✔ sello ':'✗ rechazado · ')+cara(i.sel.por||i.sel.nombre,i.sel.nombre||i.sel.por)+esc(i.sel.nombre||i.sel.por)+'</span>'}else if(i.dec)h+=' <span class="rmc-pend">pendiente de sello</span>';return h}
   function subTexto(x){return typeof x==='string'?x:(x&&(x.texto||x.t))||''}
   function detBtn(texto){texto=String(texto==null?'':texto).trim();if(!texto)return '';return ' <button type="button" class="rmc-det-btn" aria-expanded="false" aria-label="Ver detalle">detalle</button><span class="rmc-det-txt" hidden>'+esc(texto)+'</span>'}
+  // #7189 (28-10-2026): cada ítem tiene ancla propia (?c=…#item-…) y el detalle se abre al entrar por ese enlace.
+  function itemAncla(p,h,i,n){return 'item-'+String(i.id||(p.id+'-'+h+'-'+(n+1))).replace(/[^A-Za-z0-9_-]/g,'-')}
+  function abrirItem(){var id='';try{id=decodeURIComponent(location.hash.slice(1))}catch(e){}if(!/^item-/.test(id))return false;var li=document.getElementById(id);if(!li)return false;
+    for(var a=li.parentElement;a;a=a.parentElement){if(a.tagName==='DETAILS')a.open=true}var d=li.querySelector('details');if(d)d.open=true;
+    li.querySelectorAll('.rmc-det-btn').forEach(function(b){b.setAttribute('aria-expanded','true');b.setAttribute('aria-label','Ocultar detalle');var t=b.nextElementSibling;if(t&&t.classList.contains('rmc-det-txt'))t.hidden=false});
+    document.querySelectorAll('.rmc-foco').forEach(function(x){x.classList.remove('rmc-foco')});li.classList.add('rmc-foco');li.scrollIntoView({block:'center'});return true}
+  window.addEventListener('hashchange',abrirItem);
   function vista(p,h){
     var editable=puede&&(D.editables||ORDEN).indexOf(h)>=0;
     var l=(p.roadmap[h]||[]).slice(0,3),conAv=h!=='ayer';
@@ -78,7 +85,8 @@
       var cq=COLOR[raw.ref?dueno(byId[items[raw.ref].p]):dueno(p)]||'';
       var cabeza=(i.e?'<span class="rmc-e rmc-e-'+i.e+'" title="'+i.e+'">'+(D.estados[i.e]||'')+'</span> ':'')+(o?'<span class="rmc-o">'+esc(o.replace('Admira.',''))+'</span> ':'')+esc(i.t)+detBtn(i.detalle)+marcaRev(i);
       var abc=s.length?'<ul class="rmc-abc">'+s.map(function(x,k){var d=(Array.isArray(i.sd)&&i.sd[k])||(x&&typeof x==='object'&&x.detalle)||'';return '<li class="'+((i.hs||[])[k]?'is-ok':'')+'"><b>'+(n+1)+'abc'[k]+'</b> '+((i.hs||[])[k]?'✓ ':'')+esc(subTexto(x))+detBtn(d)+'</li>'}).join('')+'</ul>':'';
-      return '<li'+(cq?' class="rmc-q" style="--q:'+cq+'"':'')+'>'+(s.length?'<details><summary>'+cabeza+'</summary>'+abc+'</details>':'<span class="rmc-sr">'+cabeza+'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
+      var aid=itemAncla(p,h,i,n);var enl=' <a class="rmc-enl" href="'+esc(location.pathname+location.search+'#'+aid)+'" title="Enlace directo a este ítem" aria-label="Enlace directo a este ítem">#</a>';
+      return '<li id="'+esc(aid)+'"'+(cq?' class="rmc-q" style="--q:'+cq+'"':'')+'>'+(s.length?'<details><summary>'+cabeza+enl+'</summary>'+abc+'</details>':'<span class="rmc-sr">'+cabeza+enl+'</span>')+(conAv?barra(avance(raw)):'')+'</li>'}).join('')+'</ol></article>';
   }
   function form(p,h){
     var l=JSON.parse(JSON.stringify(p.roadmap[h]||[]));editando={p:p.id,h:h,l:l};return formHtml(p,h,l);
