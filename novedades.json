@@ -688,5 +688,10 @@
     "Mapa en pruebas: Seguir Luka utiliza las mismas zonas y contenidos de admira.tv que el arrastre manual.",
     "Sin lectura reciente y precisión suficiente, el player espera; Samsung automático sigue pendiente.",
     "Importar otra prioridad de zonas actualiza también los accesos del mapa."
+  ],
+  "v.29.10.2026.r2.00:39": [
+    "Mapa en pruebas: cinco oficinas de 08012 Barcelona con contenidos distintos de admira.tv.",
+    "Luka manual cambia el player al arrastrarlo entre Pixería, University, Garage, Sneaker Store y La Nave.",
+    "Zonas editables y reversibles, con direcciones conservadas al exportar e importar."
   ]
 }
