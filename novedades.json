@@ -693,5 +693,10 @@
     "Mapa en pruebas: cinco oficinas de 08012 Barcelona con contenidos distintos de admira.tv.",
     "Luka manual cambia el player al arrastrarlo entre Pixería, University, Garage, Sneaker Store y La Nave.",
     "Zonas editables y reversibles, con direcciones conservadas al exportar e importar."
+  ],
+  "v.29.10.2026.r3.00:57": [
+    "Mapa en pruebas: subir y bajar prioridad para decidir el contenido cuando las zonas de oficina se solapan.",
+    "El orden se conserva en el selector, los accesos del mapa y al guardar, exportar e importar.",
+    "Cambiar la prioridad conserva el player cuando la zona ganadora sigue siendo la misma."
   ]
 }
