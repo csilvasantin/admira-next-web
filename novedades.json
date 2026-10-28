@@ -683,5 +683,10 @@
     "Mapa Silicio: exportar zonas y temas de admira.tv a un archivo para usarlos en otro navegador.",
     "Importación validada, reversible y con límite de tamaño; los archivos incompatibles conservan la configuración actual.",
     "Se mantienen el orden, las geometrías y el contenido asignado a cada zona y al exterior."
+  ],
+  "v.29.10.2026.r1.00:02": [
+    "Mapa en pruebas: Seguir Luka utiliza las mismas zonas y contenidos de admira.tv que el arrastre manual.",
+    "Sin lectura reciente y precisión suficiente, el player espera; Samsung automático sigue pendiente.",
+    "Importar otra prioridad de zonas actualiza también los accesos del mapa."
   ]
 }
