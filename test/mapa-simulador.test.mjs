@@ -600,3 +600,56 @@ test('el recorrido respeta la prioridad de solapamientos y no fuerza el contenid
   const empty=mount({editor:true,browser:true}),sim=empty.api.create({map:empty.map,L:empty.L});sim.start();await importFile(empty,fileOf(JSON.stringify({version:1,zones:[],outside:{tag:'publicidad'}})));
   assert.equal(empty.element('simulador-recorrer').disabled,true);empty.element('simulador-recorrer').click();assert.equal(tourTimeout(empty),undefined);sim.stop();
 });
+
+const pieceRows=ui=>ui.element('simulador-piezas-lista').children;
+const pieceTitle=row=>row.children[0].textContent;
+
+test('los metadatos del catálogo son texto acotado sin enlaces, IDs ni etiquetas duplicadas',()=>{
+  const ui=mount({editor:true}),rows=ui.zonesApi.catalogItems({items:[{id:'private-id',url:'javascript:alert(1)',type:'video',title:'  <img src=x>\n '+ 'a'.repeat(200),tags:['Tech','tecnología','technology',null]},{type:'image',title:{html:'bad'},tags:['retail']},{type:'link',title:'no',tags:['retail']},{type:{toString:()=> 'video'},tags:['retail']}]});
+  assert.equal(rows.length,2);assert.equal(rows[0].title.length,160);assert.equal(rows[0].tags.length,1);assert.equal(rows[0].tags[0],'tecnologia');assert.equal(rows[1].title,'');
+  assert.deepEqual(Object.keys(rows[0]).sort(),['tags','title','type']);assert.doesNotMatch(JSON.stringify(rows),/javascript|private-id|url/);
+  assert.throws(()=>ui.zonesApi.catalogItems({items:null}));
+});
+
+test('la oficina elegida muestra hasta cinco títulos/tipos y el alcance parcial sin modificar tema ni player',async()=>{
+  const items=Array.from({length:8},(_,i)=>({type:i%2?'image':'video',title:i===0?'<img src=x onerror=alert(1)>':'Pieza '+i,tags:['retail']}));
+  const ui=await editorSession({fetcher:async()=>({ok:true,json:async()=>({items})})}),frame=ui.element('simulador-video').children[0];
+  assert.equal(pieceRows(ui).length,5);assert.equal(pieceTitle(pieceRows(ui)[0]),'<img src=x onerror=alert(1)>');assert.equal(pieceRows(ui)[0].children.length,2);assert.equal(pieceRows(ui)[0].children[1].textContent,'Vídeo');
+  assert.match(ui.element('simulador-piezas-estado').textContent,/8 coincidencias.*5/);assert.match(ui.element('simulador-piezas-ayuda').textContent,/orientativa.*300.*cinco/);assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(ui.storage.size,0);assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.requests.length,1);
+  ui.document.documentElement.lang='en';ui.sim.renderText();assert.equal(pieceRows(ui)[0].children[1].textContent,'Video');assert.match(ui.element('simulador-piezas-estado').textContent,/8 matches/);ui.sim.stop();
+});
+
+test('una respuesta tardía se aplica a la zona seleccionada en ese momento, no a la de inicio',async()=>{
+  let finish;const ui=mount({editor:true,fetcher:()=>new Promise(resolve=>finish=resolve)}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();
+  assert.equal(pieceRows(ui).length,0);ui.element('simulador-zona-elegida').fire('change','eixample');const frame=ui.element('simulador-video').children[0];
+  finish({ok:true,json:async()=>({items:[{type:'image',title:'Retail',tags:['retail']},{type:'video',title:'Tech',tags:['technology']}]})});await flush();
+  assert.match(ui.element('simulador-piezas-titulo').textContent,/Eixample/);assert.equal(pieceRows(ui).length,1);assert.equal(pieceTitle(pieceRows(ui)[0]),'Tech');assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.requests.length,1);sim.stop();
+});
+
+test('importar durante la consulta conserva asignaciones y usa el tema nuevo para la lista',async()=>{
+  let finish;const ui=mount({editor:true,fetcher:()=>new Promise(resolve=>finish=resolve)}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();
+  await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));
+  finish({ok:true,json:async()=>({items:[{type:'video',title:'Creativa',tags:['creativity']},{type:'image',title:'Retail',tags:['retail']}]})});await flush();
+  assert.match(ui.element('simulador-piezas-titulo').textContent,/Pixería/);assert.equal(pieceTitle(pieceRows(ui)[0]),'Creativa');assert.equal(ui.element('simulador-tema').value,'creatividad');assert.equal(ui.storage.size,0);
+  ui.element('simulador-exportar').click();const text=await ui.downloads[0].blob.text();assert.deepEqual(Object.keys(JSON.parse(text)).sort(),['outside','version','zones']);assert.doesNotMatch(text,/Creativa|catalogItems|piece/);sim.stop();
+});
+
+test('errores y consulta vacía limpian la muestra sin atribuir contenido ni cambiar la configuración',async()=>{
+  let answer={ok:true,json:async()=>({items:[{type:'image',title:'Inicial',tags:['retail']}]})};
+  const ui=await editorSession({fetcher:async()=>answer}),frame=ui.element('simulador-video').children[0];ui.element('simulador-guardar').click();const saved=ui.storage.get(ui.zonesApi.storageKey);
+  answer={ok:false};ui.element('simulador-catalogo').click();await flush();assert.equal(pieceRows(ui).length,0);assert.match(ui.element('simulador-piezas-estado').textContent,/No se pudo consultar/);
+  answer={ok:true,json:async()=>({items:[]})};ui.element('simulador-catalogo').click();await flush();assert.equal(pieceRows(ui).length,0);assert.match(ui.element('simulador-piezas-estado').textContent,/Sin coincidencias en esta consulta/);assert.doesNotMatch(ui.element('simulador-catalogo-estado').textContent,/no disponible/);
+  assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(ui.storage.get(ui.zonesApi.storageKey),saved);assert.equal(ui.element('simulador-video').children[0],frame);assert.ok(ui.requests.every(x=>x.options.method==='GET'&&x.options.credentials==='omit'));ui.sim.stop();
+});
+
+test('un tema personalizado sin coincidencias se conserva al guardar y recargar',async()=>{
+  const ui=await editorSession(),config=JSON.parse(JSON.stringify(ui.zonesApi.defaults));config.zones[0].tag='canal-personal';await importFile(ui,fileOf(JSON.stringify(config)));
+  assert.equal(pieceRows(ui).length,0);assert.match(ui.element('simulador-piezas-estado').textContent,/se conserva/);assert.equal(ui.element('simulador-tema').value,'canal-personal');ui.element('simulador-guardar').click();
+  const restored=await editorSession({storage:ui.storage});assert.equal(restored.element('simulador-tema').value,'canal-personal');assert.equal(pieceRows(restored).length,0);ui.sim.stop();restored.sim.stop();
+});
+
+test('cerrar cancela la consulta; una respuesta anterior no sobrescribe el catálogo de la reapertura',async()=>{
+  const pending=[];const ui=mount({editor:true,fetcher:()=>new Promise(resolve=>pending.push(resolve))}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();sim.stop();assert.equal(ui.requests[0].options.signal.aborted,true);assert.equal(ui.timers.size,0);
+  sim.start();ui.element('simulador-editar').click();assert.equal(pending.length,2);pending[1]({ok:true,json:async()=>({items:[{type:'video',title:'Actual',tags:['retail']}]})});await flush();
+  pending[0]({ok:true,json:async()=>({items:[{type:'image',title:'Anterior',tags:['retail']}]})});await flush();assert.equal(pieceTitle(pieceRows(ui)[0]),'Actual');sim.stop();
+});

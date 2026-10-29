@@ -8,13 +8,13 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.29.10.2026.r8.05:05">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-recorrido-1">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-piezas-1">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
   <script defer src="/pruebas/mapa/idioma.js?v=20261029-historial-1"></script>
-  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-recorrido-1"></script>
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-piezas-1"></script>
   <script defer src="/pruebas/mapa/ubicacion-dispositivo.js?v=20261029-dispositivo-1"></script>
   <script defer src="/pruebas/mapa/simulador.js?v=20261029-recorrido-1"></script>
   <script defer src="/pruebas/mapa/mapa.js?v=20261029-dispositivo-1"></script>
@@ -81,6 +81,12 @@
           <p id="simulador-direccion"></p>
           <p id="simulador-tema-ayuda">Se reproducen las piezas del catálogo con el tema elegido.</p>
           <p id="simulador-catalogo-estado" role="status" aria-live="polite"></p>
+          <section class="mapa-topic-items" aria-labelledby="simulador-piezas-titulo">
+            <h4 id="simulador-piezas-titulo">Piezas del tema</h4>
+            <p id="simulador-piezas-estado" role="status" aria-live="polite"></p>
+            <ul id="simulador-piezas-lista"></ul>
+            <p id="simulador-piezas-ayuda"></p>
+          </section>
           <div class="mapa-zone-actions"><button type="button" id="simulador-centro-aqui">Situar zona en el simulador</button><button type="button" id="simulador-anadir">Añadir zona</button><button type="button" id="simulador-eliminar">Eliminar zona</button><button type="button" id="simulador-deshacer" disabled>Deshacer</button><button type="button" id="simulador-catalogo">Actualizar catálogo</button></div>
           <div class="mapa-zone-save"><button type="button" id="simulador-guardar">Guardar zonas</button><button type="button" id="simulador-restaurar">Restaurar ejemplos</button><p id="simulador-guardado" role="status" aria-live="polite"></p></div>
           <div class="mapa-zone-transfer">
