@@ -708,5 +708,10 @@
     "Mapa en pruebas: ubicación optativa del móvil para probar el player al caminar entre oficinas.",
     "Activación con permiso del navegador, fuente diferenciada y parada al ocultar la página.",
     "Las mismas reglas de zona, precisión y antigüedad; las posiciones no se guardan ni se envían al player."
+  ],
+  "v.29.10.2026.r6.03:10": [
+    "Mapa en pruebas: ubicación optativa del móvil, con activación y permiso del navegador.",
+    "El player queda dentro del mapa y deja visible el aviso de ubicación completo.",
+    "Las mismas zonas y reglas de precisión, sin guardar posiciones ni enviarlas al player."
   ]
 }
