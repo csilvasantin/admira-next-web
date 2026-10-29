@@ -1,0 +1,22 @@
+:root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--bad:#ff6b7a}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif}
+.limpieza{margin:auto;padding:28px 24px 72px;max-width:1100px}
+.limpieza-eyebrow{margin:0 0 8px;color:var(--cyan);font:700 11px ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase}
+.limpieza h1{margin:0;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.035em}
+.limpieza-intro{margin:10px 0 22px;color:var(--dim);font-size:14px;line-height:1.55;max-width:62ch}
+.limpieza-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr);gap:18px}
+.limpieza-panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.limpieza-panel-head{padding:16px 18px;border-bottom:1px solid var(--line)}
+.limpieza-panel-head h2{margin:0;font-size:14px}
+#limpieza-mapa{display:block;width:100%;height:340px;background:#17232e}
+.limpieza-estado{margin:0;padding:12px 18px;color:var(--dim);font:500 13px/1.5 ui-monospace,monospace}
+.limpieza-acciones{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 14px}
+.limpieza-acciones button{border:1px solid var(--line);border-radius:8px;background:#0c121c;color:var(--ink);padding:10px 12px;font:600 12px ui-monospace,monospace;cursor:pointer}
+.limpieza-acciones button:hover,.limpieza-acciones button[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan)}
+.limpieza-acciones button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+#limpieza-parar{border-color:#733444;color:#ffafbb}
+.limpieza-camara{position:relative;min-height:220px;background:#0c1018}
+#limpieza-video{display:block;width:100%;height:280px;object-fit:cover;background:#000}
+.limpieza-aviso{margin:0;padding:28px 18px;color:var(--warn);font-size:16px;line-height:1.45}
+.limpieza-aviso[data-senal="no"]{background:#241d12;border-top:1px solid #796036}
+@media (max-width:800px){.limpieza-layout{grid-template-columns:1fr}}
