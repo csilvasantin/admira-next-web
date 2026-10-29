@@ -780,5 +780,10 @@
     "/robot/limpieza dice que no hay capa de lidar ni visor de cámara: la librería no entrega la nube de puntos ni el vídeo.",
     "El brazo no tiene orden en python-roborock 7.13.0. Sin claves no se lee el mapa ni una foto. El robot no se ha movido.",
     "Vuelta atrás: tag retorno/pre-sensores-7273-20261029 (sello v.29.10.2026.r20.23:23)."
+  ],
+  "v.30.10.2026.r1.00:06": [
+    "/robot/limpieza añade Activar cámara y Mover el brazo. Al pulsarlos dicen que esperan el OK de Carlos y no envían nada.",
+    "start_camera_preview existe en python-roborock 7.13.0 y no se llama. El brazo no tiene orden en esa librería. El robot no se ha movido.",
+    "Vuelta atrás: tag retorno/pre-camara-brazo-ok-7273-20261030 (sello v.29.10.2026.r21.23:29)."
   ]
 }

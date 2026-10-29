@@ -69,7 +69,7 @@ function fakePage() {
     nodes[id] = node;
     return node;
   }
-  ['limpieza-banner', 'limpieza-estado', 'limpieza-senal', 'limpieza-salir', 'limpieza-base', 'limpieza-salir-estado', 'limpieza-base-estado'].forEach(make);
+  ['limpieza-banner', 'limpieza-estado', 'limpieza-senal', 'limpieza-salir', 'limpieza-base', 'limpieza-salir-estado', 'limpieza-base-estado', 'limpieza-camara-orden', 'limpieza-brazo-orden', 'limpieza-camara-orden-estado', 'limpieza-brazo-orden-estado'].forEach(make);
   return {
     nodes,
     root: {
@@ -168,6 +168,49 @@ test('lidar, cámara y brazo se declaran imposibles y no se inventan', () => {
   assert.match(idioma, /Capa de lidar: no disponible/);
   assert.match(idioma, /No hay visor de cámara/);
   assert.doesNotMatch(html, /Yendo a/);
+});
+
+test('cámara y brazo quedan a la espera del OK y no envían', async () => {
+  const camara = html.indexOf('id="limpieza-camara-orden"');
+  const brazo = html.indexOf('id="limpieza-brazo-orden"');
+  const visor = html.indexOf('id="limpieza-camara"');
+  assert.ok(camara > 0 && brazo > camara && visor > brazo);
+  assert.equal(html.split('data-orden="hold"').length - 1, 2);
+  assert.match(html, /Activar cámara · pendiente de tu OK/);
+  assert.match(html, /Mover el brazo · pendiente de tu OK/);
+  assert.match(html, /no llama a start_camera_preview/);
+  assert.doesNotMatch(html, /<video|<canvas|getUserMedia/);
+  assert.doesNotMatch(pageCode, /start_camera_preview|stop_camera_preview|get_photo|app_rc_|app_stop_grasp|send_sdp|send_ice/);
+  const holdFn = pageCode.slice(pageCode.indexOf('function wireHold'), pageCode.indexOf('function wire('));
+  assert.match(holdFn, /holdOrder/);
+  assert.doesNotMatch(holdFn, /ask\(|fetch\(/);
+  assert.match(idioma, /Pendiente del OK de Carlos. Activar cámara no se ha enviado./);
+  assert.match(idioma, /Pendiente del OK de Carlos. Mover el brazo no se ha enviado./);
+  const api = load('es');
+  assert.equal(api.holdOrder('camera').sent, false);
+  assert.equal(api.holdOrder('camera').reason, 'ok_pendiente');
+  assert.equal(api.holdOrder('arm').sent, false);
+  assert.equal(api.holdOrder('arm').kind, 'arm');
+  assert.equal(api.holdOrder('start').sent, false);
+  assert.equal(api.holdLabel('camera'), 'Activar cámara · pendiente de tu OK');
+  assert.equal(api.holdStatus('arm'), 'Pendiente del OK de Carlos. Mover el brazo no se ha enviado.');
+  let fetches = 0;
+  const page = fakePage();
+  api.mount(page.root, {connected: false, fetch: async () => {fetches += 1; throw new Error('no debe llamar');}});
+  assert.equal(page.nodes['limpieza-camara-orden'].textContent, 'Activar cámara · pendiente de tu OK');
+  assert.equal(page.nodes['limpieza-brazo-orden'].textContent, 'Mover el brazo · pendiente de tu OK');
+  assert.equal(page.nodes['limpieza-camara-orden-estado'].textContent, '');
+  page.nodes['limpieza-camara-orden'].listeners.click[0]({preventDefault() {}});
+  page.nodes['limpieza-brazo-orden'].listeners.click[0]({preventDefault() {}});
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(fetches, 0);
+  assert.equal(page.nodes['limpieza-camara-orden-estado'].textContent, 'Pendiente del OK de Carlos. Activar cámara no se ha enviado.');
+  assert.equal(page.nodes['limpieza-brazo-orden-estado'].textContent, 'Pendiente del OK de Carlos. Mover el brazo no se ha enviado.');
+  assert.equal(page.nodes['limpieza-banner'].textContent, 'SIMULACIÓN / SIN CONEXIÓN');
+  assert.equal(page.nodes['limpieza-senal'].textContent, 'Cámara no conectada');
+  const en = load('en');
+  assert.equal(en.holdStatus('camera'), 'Waiting for Carlos OK. Turn the camera on was not sent.');
+  assert.equal(en.holdLabel('arm'), 'Move the arm · waiting for your OK');
 });
 
 test('una pose solo se muestra si viene marcada como conectada', () => {

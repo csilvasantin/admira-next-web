@@ -78,6 +78,23 @@
     return line;
   }
 
+  function holdOrder(kind) {
+    var known = kind === 'camera' || kind === 'arm';
+    return known ? {sent: false, reason: 'ok_pendiente', kind: kind} : {sent: false, reason: 'ok_pendiente'};
+  }
+
+  function holdLabel(kind) {
+    return kind === 'arm'
+      ? t('Mover el brazo · pendiente de tu OK', 'Move the arm · waiting for your OK')
+      : t('Activar cámara · pendiente de tu OK', 'Turn the camera on · waiting for your OK');
+  }
+
+  function holdStatus(kind) {
+    return kind === 'arm'
+      ? t('Pendiente del OK de Carlos. Mover el brazo no se ha enviado.', 'Waiting for Carlos OK. Move the arm was not sent.')
+      : t('Pendiente del OK de Carlos. Activar cámara no se ha enviado.', 'Waiting for Carlos OK. Turn the camera on was not sent.');
+  }
+
   function ask(kind, fetchImpl) {
     var path = kind === 'charge' ? '/charge' : '/start';
     var fetcher = fetchImpl || G.fetch;
@@ -108,8 +125,13 @@
     var base = root.querySelector('#limpieza-base');
     var salirEstado = root.querySelector('#limpieza-salir-estado');
     var baseEstado = root.querySelector('#limpieza-base-estado');
+    var camaraOrden = root.querySelector('#limpieza-camara-orden');
+    var brazoOrden = root.querySelector('#limpieza-brazo-orden');
+    var camaraOrdenEstado = root.querySelector('#limpieza-camara-orden-estado');
+    var brazoOrdenEstado = root.querySelector('#limpieza-brazo-orden-estado');
     var last = {start: null, charge: null};
     var tried = {start: false, charge: false};
+    var held = {camera: false, arm: false};
 
     function paint() {
       var view = api.view();
@@ -121,6 +143,21 @@
       if (base) base.textContent = buttonLabel('charge', last.charge);
       if (salirEstado) salirEstado.textContent = last.start ? outcomeStatus(last.start) : (tried.start ? failureStatus('start') : '');
       if (baseEstado) baseEstado.textContent = last.charge ? outcomeStatus(last.charge) : (tried.charge ? failureStatus('charge') : '');
+      if (camaraOrden) camaraOrden.textContent = holdLabel('camera');
+      if (brazoOrden) brazoOrden.textContent = holdLabel('arm');
+      if (camaraOrdenEstado) camaraOrdenEstado.textContent = held.camera ? holdStatus('camera') : '';
+      if (brazoOrdenEstado) brazoOrdenEstado.textContent = held.arm ? holdStatus('arm') : '';
+    }
+
+    function wireHold(button, kind) {
+      if (!button) return;
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        var order = holdOrder(kind);
+        if (order.sent !== false) return;
+        held[kind] = true;
+        paint();
+      });
     }
 
     function wire(button, kind) {
@@ -148,6 +185,8 @@
     });
     wire(salir, 'start');
     wire(base, 'charge');
+    wireHold(camaraOrden, 'camera');
+    wireHold(brazoOrden, 'arm');
     if (G.addEventListener) G.addEventListener('admira:languagechange', paint);
     paint();
     return api;
@@ -164,6 +203,9 @@
     readOutcome: readOutcome,
     outcomeStatus: outcomeStatus,
     ask: ask,
+    holdOrder: holdOrder,
+    holdLabel: holdLabel,
+    holdStatus: holdStatus,
     mount: mount,
     t: t
   };

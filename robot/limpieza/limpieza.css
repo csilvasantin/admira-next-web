@@ -24,6 +24,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
 .limpieza-mando button{width:100%;min-height:72px;border:1px solid var(--cyan);border-radius:12px;background:#0c121c;color:var(--ink);padding:12px 16px;font:800 clamp(18px,2.4vw,22px)/1.2 system-ui,sans-serif;cursor:pointer}
 .limpieza-mando button:disabled{opacity:.7;cursor:wait}
 .limpieza-mando button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.limpieza-espera{padding-top:8px}
+.limpieza-espera button{border-color:var(--warn);background:#3a2412;color:var(--warn)}
+.limpieza-espera button:focus-visible{outline-color:var(--warn)}
 .limpieza-orden-estado{margin:0;color:var(--warn);font:600 14px/1.4 ui-monospace,monospace}
 .limpieza-orden-estado:empty{display:none}
 .limpieza-camara{position:relative;min-height:220px;background:#0c1018}

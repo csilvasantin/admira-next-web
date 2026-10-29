@@ -32,7 +32,12 @@
     'RESPUESTA LEÍDA / SIN POSE': 'RESPONSE READ / NO POSE',
     'Capa de lidar: no disponible. La librería no entrega la nube de puntos y, sin claves, esta página no dibuja una capa.': 'Lidar layer: not available. The library does not provide the point cloud and, without keys, this page does not draw a layer.',
     'No hay visor de cámara. La librería nombra la vista previa y no trae el vídeo. Sin claves no hay imagen del robot.': 'There is no camera viewer. The library names the preview and does not include the video. Without keys there is no image from the robot.',
-    'Brazo: la librería no trae una orden para moverlo. Esta página no envía ninguna.': 'Arm: the library has no command to move it. This page does not send one.'
+    'Brazo: la librería no trae una orden para moverlo. Esta página no envía ninguna.': 'Arm: the library has no command to move it. This page does not send one.',
+    'Activar cámara · pendiente de tu OK': 'Turn the camera on · waiting for your OK',
+    'Mover el brazo · pendiente de tu OK': 'Move the arm · waiting for your OK',
+    'Pendiente del OK de Carlos. Activar cámara no se ha enviado.': 'Waiting for Carlos OK. Turn the camera on was not sent.',
+    'Pendiente del OK de Carlos. Mover el brazo no se ha enviado.': 'Waiting for Carlos OK. Move the arm was not sent.',
+    'Prueba preparada, sin enviar. Activar cámara no llama a start_camera_preview. Mover el brazo no tiene orden en python-roborock 7.13.0 y esta página no inventa una.': 'Test prepared, nothing sent. Turn the camera on does not call start_camera_preview. Move the arm has no command in python-roborock 7.13.0 and this page does not invent one.'
   });
   if (A.aplicar) A.aplicar();
 })(typeof window !== 'undefined' ? window : globalThis);
