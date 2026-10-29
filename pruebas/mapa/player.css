@@ -1,0 +1,32 @@
+/* Player por ubicación (misión DCL-fb1c7a60): pantalla completa en vertical u horizontal,
+   barra de estado abajo y portada de inicio encima del player. Mismos tokens que mapa.css. */
+:root{color-scheme:dark;--bg:#070b12;--panel:#101724;--line:#25344b;--ink:#eef6ff;--dim:#8ea0b8;--cyan:#63e6d5;--warn:#ffbd69;--bad:#ff6b7a;--ok:#7ff0a1;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}
+html,body{height:100%}
+.mp [hidden]{display:none!important}
+body.mp{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+.mp-player{position:fixed;inset:0;display:flex;flex-direction:column}
+.mp-pantalla{position:relative;flex:1;min-height:0;background:#000}
+.mp-pantalla iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.mp-barra{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:10px max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:var(--panel);border-top:1px solid var(--line)}
+.mp-zona-linea,.mp-estado-linea{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-width:0}
+.mp-zona-linea{flex:1 1 220px}
+.mp-zona-linea strong{font-size:16px;letter-spacing:-.01em}
+.mp-tema{color:var(--cyan);font:600 12px var(--mono)}
+.mp-desde,.mp-zonas{color:var(--dim);font:500 11px var(--mono)}
+.mp-estado-linea{flex:1 1 260px}
+.mp-gps{font:600 11px var(--mono);color:var(--dim)}
+.mp-gps::before{content:"";display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:currentColor;vertical-align:1px}
+.mp-gps[data-tono="ok"]{color:var(--ok)}.mp-gps[data-tono="wait"]{color:var(--warn)}.mp-gps[data-tono="bad"]{color:var(--bad)}
+.mp-encendida{color:var(--dim);font:500 11px var(--mono)}
+.mp-acciones{display:flex;align-items:center;gap:8px;margin-left:auto}
+.mp button,.mp-mapa{border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:9px 12px;font:600 12px var(--mono);cursor:pointer;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
+.mp button:focus-visible,.mp-mapa:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.mp-inicio{position:absolute;left:0;right:0;top:0;bottom:var(--mp-barra,0px);display:flex;flex-direction:column;justify-content:center;gap:14px;padding:32px max(20px,env(safe-area-inset-left));background:radial-gradient(circle at 50% 30%,#122236,var(--bg) 70%);overflow:auto}
+.mp-inicio[hidden]{display:none}
+.mp-inicio>*{max-width:520px;margin-left:auto;margin-right:auto;width:100%}
+.mp-eyebrow{margin:0;color:var(--cyan);font:700 11px var(--mono);letter-spacing:.15em;text-transform:uppercase}
+.mp-inicio h1{margin:0;font-size:clamp(28px,8vw,40px);line-height:1.1;letter-spacing:-.03em}
+.mp-inicio p{margin:0;color:var(--dim);font-size:15px;line-height:1.6}
+.mp .mp-empezar{justify-content:center;min-height:56px;font-size:16px;color:#06201c;background:var(--cyan);border-color:var(--cyan);border-radius:12px}
+.mp-inicio .mp-nota{font-size:12px}

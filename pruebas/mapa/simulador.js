@@ -65,13 +65,24 @@
     Object.keys(params).forEach(function (key) {url.searchParams.set(key,params[key]);});
     return url.href;
   }
+  // One identity per browser and kind. admira.tv registers every screen it sees,
+  // and a fresh UUID per visit left a virtual-mapa project per session in the
+  // Yokup census (31 by 29-oct-2026).
+  function stableIdentity(kind) {
+    var prefix='virtual-mapa-'+(kind?kind+'-':''), key='admiranext:mapa:identidad:v1:'+(kind||'simulador'), value=null;
+    try {value=G.localStorage.getItem(key);} catch (_) {}
+    if (typeof value==='string' && value.indexOf(prefix)===0 && /^virtual-mapa-[a-z0-9-]{8,64}$/.test(value)) return value;
+    value=prefix+(G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+    try {G.localStorage.setItem(key,value);} catch (_) {}
+    return value;
+  }
 
   function create(options) {
     var map = options.map, L = options.L;
     var byId = function (id) {return d.getElementById(id);};
     var T = function (es,en) {return /^en/i.test(d.documentElement.lang || '') ? en : es;};
     var root = byId('simulador-player'), controls = byId('simulador-controles'), host = byId('simulador-video');
-    var identity = 'virtual-mapa-' + (G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+    var identity = stableIdentity('');
     var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map(), browserState=null, deviceLayer=null, deviceMarker=null, deviceHalo=null;
     var history=[], lastHistoryKey='', lastHistoryState=null, historyOpen=false;
     var tourStatus='idle',tourStops=[],tourIndex=-1,tourTimer=null,tourTicket=0,tourDue=0,tourRemaining=12000,tourReason='';
@@ -395,5 +406,5 @@
     return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isBrowser:function () {return active&&source==='browser';},isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);}};
   }
 
-  G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,resolveBrowserReading:resolveBrowserReading,playerURL:playerURL,zones:zones,outside:outside};
+  G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,resolveBrowserReading:resolveBrowserReading,playerURL:playerURL,stableIdentity:stableIdentity,zones:zones,outside:outside};
 })(window,document);

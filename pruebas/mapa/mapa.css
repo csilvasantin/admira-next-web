@@ -140,6 +140,16 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-zone-save{border-top:1px solid var(--line);padding-top:14px}
 .mapa-zone-save #simulador-guardar{border-color:var(--cyan);color:var(--cyan)}
 .mapa-zone-save p{flex:1 1 180px}
+.mapa-zone-publish{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.mapa-zone-publish .mapa-zone-actions{margin:0 0 10px}
+.mapa-zone-publish #simulador-publicar{border-color:var(--cyan);color:var(--cyan)}
+.mapa-zone-publish #simulador-publicado:not(:empty){margin-top:7px;color:var(--ink)}
+.mapa-movil{margin:0 0 14px}
+.mapa-movil-panel{display:flex;align-items:flex-start;gap:14px;margin-top:10px;flex-wrap:wrap}
+.mapa-movil-panel img{flex:none;width:168px;height:168px;padding:10px;background:#fff;border-radius:10px;image-rendering:pixelated}
+.mapa-movil-panel>div{flex:1 1 180px;min-width:0}
+.mapa-movil-panel p{margin:0 0 8px;color:var(--dim);font-size:12px;line-height:1.6}
+.mapa-movil-panel a{color:var(--cyan);font:500 12px var(--mono);overflow-wrap:anywhere}
 .mapa-zone-transfer{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .mapa-zone-transfer .mapa-zone-actions{margin:0 0 10px}
 .mapa-zone-transfer #simulador-intercambio-estado:not(:empty){margin-top:7px;color:var(--ink)}

@@ -8,15 +8,15 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.29.10.2026.r11.07:08">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-piezas-1">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-player-1">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
   <script defer src="/pruebas/mapa/idioma.js?v=20261029-historial-1"></script>
-  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-qa-1"></script>
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-player-1"></script>
   <script defer src="/pruebas/mapa/ubicacion-dispositivo.js?v=20261029-dispositivo-1"></script>
-  <script defer src="/pruebas/mapa/simulador.js?v=20261029-qa-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261029-player-1"></script>
   <script defer src="/pruebas/mapa/mapa.js?v=20261029-dispositivo-1"></script>
 </head>
 <body data-yk-frame="cabecera">
@@ -67,6 +67,13 @@
           <p id="simulador-recorrido-estado" role="status" aria-live="polite"></p>
           <p id="simulador-recorrido-ayuda"></p>
         </div>
+        <div class="mapa-movil">
+          <button type="button" id="simulador-movil" aria-expanded="false" aria-controls="simulador-movil-panel">Abrir player en el móvil</button>
+          <div id="simulador-movil-panel" class="mapa-movil-panel" hidden>
+            <img id="simulador-movil-qr" alt="QR del player por ubicación" width="168" height="168">
+            <div><p id="simulador-movil-ayuda">Escanéalo con el móvil y entra con tu cuenta de Google. El player usa las zonas publicadas; sin ellas, las cinco oficinas de ejemplo.</p><a id="simulador-movil-enlace" href="/pruebas/mapa/player/" target="_blank" rel="noopener">/pruebas/mapa/player/</a></div>
+          </div>
+        </div>
         <button type="button" id="simulador-editar" aria-expanded="false" aria-controls="simulador-editor">Editar zonas y contenido</button>
         <section id="simulador-editor" class="mapa-zone-editor" aria-labelledby="simulador-editor-titulo" hidden>
           <h3 id="simulador-editor-titulo">Zonas y contenido</h3>
@@ -89,6 +96,11 @@
           </section>
           <div class="mapa-zone-actions"><button type="button" id="simulador-centro-aqui">Situar zona en el simulador</button><button type="button" id="simulador-anadir">Añadir zona</button><button type="button" id="simulador-eliminar">Eliminar zona</button><button type="button" id="simulador-deshacer" disabled>Deshacer</button><button type="button" id="simulador-catalogo">Actualizar catálogo</button></div>
           <div class="mapa-zone-save"><button type="button" id="simulador-guardar">Guardar zonas</button><button type="button" id="simulador-restaurar">Restaurar ejemplos</button><p id="simulador-guardado" role="status" aria-live="polite"></p></div>
+          <div class="mapa-zone-publish">
+            <div class="mapa-zone-actions"><button type="button" id="simulador-publicar">Publicar para el player</button><button type="button" id="simulador-traer">Traer zonas publicadas</button></div>
+            <p id="simulador-publicar-ayuda">El player del móvil usa las zonas publicadas. Guardar zonas solo las conserva en este navegador.</p>
+            <p id="simulador-publicado" role="status" aria-live="polite"></p>
+          </div>
           <div class="mapa-zone-transfer">
             <div class="mapa-zone-actions"><button type="button" id="simulador-exportar">Exportar zonas</button><button type="button" id="simulador-importar">Importar zonas</button><input type="file" id="simulador-archivo" accept=".json,application/json" aria-label="Archivo de zonas" hidden></div>
             <p id="simulador-intercambio-ayuda">El archivo conserva las zonas, su orden y los temas asignados. En otro navegador, impórtalo y pulsa Guardar zonas.</p>
