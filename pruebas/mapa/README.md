@@ -237,6 +237,13 @@ sesión de Google que el mapa (no hay enlaces firmados ni claves en la página).
   comparten `par-<id>` o `externalRef` y cuentan una vez; primero las horizontales.
   Van al canal de admira.tv con `?ids=` (admira-tv, parámetro nuevo); sin Stock, el
   canal sigue con `tag` + `max=3`.
+- **Locución de `/demo luka`.** Una frase en castellano por parada, de 5 a 9 s para
+  caber en los 12 s de cada oficina (`locucion-demo.js`); la primera vuelta empieza
+  presentando a Luka. Si hay grabación de la voz de la casa en
+  `/pruebas/mapa/locucion/<id>.mp3` (lista `RECORDED`) suena esa; si no, la voz en
+  castellano del navegador (en Chrome, la de Google). Sin un gesto previo el
+  navegador no deja hablar: el botón «🔊 Activar locución» del player la arranca, y
+  después sirve para silenciarla.
 - **Privacidad.** La posición no sale del dispositivo ni se guarda. A admira.tv solo
   le llega el tema y la pantalla virtual de la Xperiencia, nunca coordenadas.
   Antes cada visita estrenaba una pantalla `virtual-mapa-<uuid>` y admira.tv daba

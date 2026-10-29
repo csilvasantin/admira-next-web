@@ -753,3 +753,13 @@ test('con el Stock, cada Xperiencia del simulador fija sus piezas y solo se reca
   assert.equal(activeFrame(ui).attributes['data-xperiencia'],'pixeria');
   sim.stop();
 });
+
+test('/demo luka avisa al locutor en cada parada con su vuelta, para que la primera sea la presentación',()=>{
+  const stops=[];const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L,onTourStop:stop=>stops.push(stop)});
+  sim.start();ui.element('simulador-oficinas').click();sim.startLoopTour();
+  const zones=ui.zonesApi.officePreset.zones;
+  for(let i=0;i<zones.length+1;i++)tickTour(ui);
+  assert.deepEqual(JSON.parse(JSON.stringify(stops.slice(0,2))),[{id:'pixeria',index:0,lap:0},{id:'university',index:1,lap:0}]);
+  assert.deepEqual(JSON.parse(JSON.stringify(stops.at(-1))),{id:'university',index:1,lap:1},'la segunda vuelta lleva lap 1');
+  sim.stop();
+});

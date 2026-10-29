@@ -104,7 +104,7 @@
   }
 
   // The Stock, once per page: each Xperiencia's player pins three pieces of its topic (players-xperiencias.js).
-  var stockReady = false;
+  var stockReady = false, narrator = null;
   var stock = G.AdmiraMapaXperiencias && G.fetch ? G.AdmiraMapaXperiencias.loadStock(G.fetch.bind(G)).then(function (items) {stockReady=true;return items;}) : {then:function () {}};
   function initializeMap() {
     if (!G.L) {
@@ -115,7 +115,7 @@
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
     var remote = G.AdmiraMapaLukaRemoto ? G.AdmiraMapaLukaRemoto.create() : null;
-    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,stock:stock,onStateChange:renderMap,onManualPosition:function (point) {if (remote) remote.publish(point);}});
+    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,stock:stock,onStateChange:renderMap,onManualPosition:function (point) {if (remote) remote.publish(point);},onTourStop:function (stop) {if (narrator) narrator.onStop(stop);}});
     if (map.on) map.on('zoomend', refrescarHalos);
   }
 
@@ -487,6 +487,9 @@
     simulator.start();
     byId('simulador-oficinas').click();
     d.documentElement.classList.add('mapa-demo-luka');
+    // Spanish voice-over, one line per office. Without a recent gesture the button asks to turn it on.
+    if (!narrator && G.AdmiraMapaLocucion) narrator = G.AdmiraMapaLocucion.create({button:byId('simulador-locucion'),T:T,
+      activated:!!(G.navigator && G.navigator.userActivation && G.navigator.userActivation.isActive)});
     var walking = simulator.startLoopTour();
     var player = byId('simulador-player');
     if (player && player.scrollIntoView) player.scrollIntoView({block:'center'});
