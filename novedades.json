@@ -728,5 +728,10 @@
     "Mapa en pruebas: consultar hasta cinco títulos y tipos de piezas que coinciden con el tema de cada oficina.",
     "La muestra indica el alcance parcial y distingue carga, error y ausencia de coincidencias.",
     "Conserva temas personalizados y configuración; las respuestas canceladas no sobrescriben la consulta actual."
+  ],
+  "v.29.10.2026.r10.06:05": [
+    "Mapa en pruebas: muestra de hasta cinco piezas por tema de oficina, con títulos y tipos.",
+    "Coincidencias orientativas de la consulta parcial; conserva la programación por tema y las zonas guardadas.",
+    "Resumen en singular cuando la consulta sólo encuentra una pieza."
   ]
 }
