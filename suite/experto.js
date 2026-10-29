@@ -1277,11 +1277,18 @@
     log = log || (panel && panel.querySelector('.ax-cli-out')) || {appendChild: function () {}, children: [], removeChild: function () {}};
     return execute(text, log, {echo:false});
   }
-  verb({name: 'demo', args: 'starbucks 180 | android [Fold8|watch] [playlist|#tag] | ios [iphone|watch] [playlist|#tag] | dooh [starbucks|altadis] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
+  verb({name: 'demo', args: 'starbucks 180 | luka | android [Fold8|watch] [playlist|#tag] | ios [iphone|watch] [playlist|#tag] | dooh [starbucks|altadis] | [alsea|global|help|hoy|today|proyectos|projects|idioma|language|marcas|brands|roadmap|editor|número|nombre|auto|pausa|reanudar|stop|studio|store|tv|app|biz|siguiente]', desc: ['enseña una demo o encadena los ensayos locales sin operaciones reales (sin argumento: lista)', 'show a demo or run local rehearsals without real operations (no argument: list)'], run: function (a, log) {
     if(norm(a.join(' '))==='starbucks 180'){
       var url='https://admira.studio/campanas/starbucks-180/?lang='+lang()+'&start=1';
       out(log,T('Starbucks 180: MacStudio V–H–V → MacBookPro16 H → MacStudio.','Starbucks 180: MacStudio V–H–V → MacBookPro16 H → MacStudio.'));
       setTimeout(function(){location.assign(url);},600);return {ok:true,navigating:true,url:url,screens:4};
+    }
+    // /demo luka (Carlos, 29-oct-2026): the map opens its player and Luka walks the five offices;
+    // admira.tv changes content at each one. Same launch from every suite host.
+    if(norm(a.join(' '))==='luka'){
+      var lukaUrl='https://www.admiranext.com/pruebas/mapa/?demo=luka&lang='+lang();
+      out(log,T('Luka: abre el mapa con su player; Luka recorre las cinco oficinas y el contenido cambia en cada una.','Luka: opens the map with its player; Luka walks the five offices and the content changes at each one.'));
+      setTimeout(function(){location.assign(lukaUrl);},600);return {ok:true,navigating:true,url:lukaUrl};
     }
     var localAction=localDemoAction(a,log); if(localAction)return localAction.result;
     if (!catalogReady && !/^(?:alsea|android|ios|dooh|pausa|pause|reanudar|resume|stop|off|estado|status)(?:\s|$)/i.test(a.join(' '))) return localListo.then(function(){return execute('/demo '+a.join(' '),log,{echo:false,record:false});});

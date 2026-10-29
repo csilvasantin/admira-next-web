@@ -1,9 +1,14 @@
 /* The page registers its verbs before admira-frame.js; the canonical frame
    supplies /marca and /idioma through experto-admiranext.js. */
 window.ADMIRA_FRAME_VERBS = (window.ADMIRA_FRAME_VERBS || []).concat([
-  {id:'demo',uso:'mapa|off',ayuda:'Abre el mapa con datos sintéticos; off vuelve a datos reales',ayudaEn:'Open the map with synthetic data; off returns to real data',run:function(args,ctx){
+  {id:'demo',uso:'mapa|luka|off',ayuda:'Abre el mapa con datos sintéticos; luka recorre las oficinas con el player; off vuelve a datos reales',ayudaEn:'Open the map with synthetic data; luka walks the offices with the player; off returns to real data',run:function(args,ctx){
     var modo = String(args[0] || 'mapa').toLowerCase();
-    if (!/^(mapa|map|off|real)$/.test(modo)) {ctx.error('Uso: /demo mapa | /demo off');return;}
+    if (modo === 'luka') {
+      if (window.AdmiraMapaDemoLuka && window.AdmiraMapaDemoLuka()) ctx.imprimir('DEMO LUKA · Luka recorre las cinco oficinas; el player cambia de contenido en cada una.');
+      else ctx.error('No se ha podido arrancar la demo de Luka.');
+      return;
+    }
+    if (!/^(mapa|map|off|real)$/.test(modo)) {ctx.error('Uso: /demo mapa | /demo luka | /demo off');return;}
     var demo = modo === 'mapa' || modo === 'map';
     document.getElementById(demo ? 'modo-demo' : 'modo-real').click();
     ctx.imprimir(demo ? 'DEMO · Datos sintéticos; ninguna ubicación real.' : 'Consultando ubicaciones reales…');

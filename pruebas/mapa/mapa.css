@@ -128,6 +128,7 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-sim-marker>span:last-child{padding:4px 7px;background:var(--panel);border-radius:5px}
 .leaflet-tooltip.mapa-sim-zone{background:var(--panel);color:var(--ink);border:1px solid var(--line);box-shadow:none;font-size:11px}
 .leaflet-tooltip.mapa-sim-zone:before{display:none}
+.mapa-demo-luka .mapa-sim-player{width:min(440px,58%)}
 @media(max-width:600px){.mapa-sim-player{position:static;width:auto;margin:12px;box-shadow:none}.mapa-sim-controls{padding:14px}.mapa-sim-video{max-height:220px}.mapa-sim-zones button{flex:1 1 130px;min-height:44px}.mapa-sim-head #simulador-cerrar{min-height:36px}}
 .mapa-zone-editor{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
 .mapa-zone-editor h3{margin:0 0 8px;font-size:15px}

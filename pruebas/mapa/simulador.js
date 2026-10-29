@@ -85,7 +85,7 @@
     var identity = stableIdentity('');
     var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map(), browserState=null, deviceLayer=null, deviceMarker=null, deviceHalo=null;
     var history=[], lastHistoryKey='', lastHistoryState=null, historyOpen=false;
-    var tourStatus='idle',tourStops=[],tourIndex=-1,tourTimer=null,tourTicket=0,tourDue=0,tourRemaining=12000,tourReason='';
+    var tourStatus='idle',tourStops=[],tourIndex=-1,tourTimer=null,tourTicket=0,tourDue=0,tourRemaining=12000,tourReason='',tourLoop=false;
     var browserSource=G.AdmiraMapaUbicacionDispositivo?G.AdmiraMapaUbicacionDispositivo.create({onChange:function (state) {if (state.status==='stopped') {if (active&&source==='browser') stop();}else updateBrowser(state);}}):null;
     var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onInteraction:function () {stopTour('config');renderTour();},onChange:function (change) {stopTour('config');if (active) {if (source==='luka') updateLuka(latestLuka,feedError,'config');else if (source==='browser') updateBrowser(browserState,'config');else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true,'config');}if (change&&change.preset==='offices') fitZones();}}}) : null;
     function config() {return editor ? editor.getConfig() : {zones:zones,outside:outside};}
@@ -132,7 +132,8 @@
         if (ticket!==tourTicket||!active||source!=='manual'||tourStatus!=='running') return;
         tourTimer=null;
         if (d.hidden) {stopTour('hidden');return;}
-        if (tourIndex>=tourStops.length-1) {tourStatus='complete';renderText();return;}
+        // /demo luka keeps walking; the button tour ends after the last office.
+        if (tourIndex>=tourStops.length-1) {if (!tourLoop) {tourStatus='complete';renderText();return;}tourIndex=-1;}
         ++tourIndex;visitTourStop();
       },delay);
     }
@@ -391,7 +392,7 @@
       if (options.onStateChange) options.onStateChange();
     }
     byId('simulador-cerrar').addEventListener('click',stop);
-    byId('simulador-recorrer').addEventListener('click',startTour);
+    byId('simulador-recorrer').addEventListener('click',function () {tourLoop=false;startTour();});
     byId('simulador-recorrido-pausa').addEventListener('click',pauseTour);
     byId('simulador-recorrido-detener').addEventListener('click',function () {stopTour('user');renderText();});
     d.addEventListener('visibilitychange',function () {if (d.hidden) {stopTour('hidden');renderText();}});
@@ -405,7 +406,7 @@
       if (typeof data.id==='string' && data.id.length<=160) frame.setAttribute('data-media-id',data.id);
       connection = 'connected';clearTimeout(timer);renderText();
     });
-    return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isBrowser:function () {return active&&source==='browser';},isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);}};
+    return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isBrowser:function () {return active&&source==='browser';},isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);},startLoopTour:function () {tourLoop=true;startTour();return touring();}};
   }
 
   G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,resolveBrowserReading:resolveBrowserReading,playerURL:playerURL,stableIdentity:stableIdentity,zones:zones,outside:outside};

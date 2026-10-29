@@ -243,5 +243,12 @@ sesión de Google que el mapa (no hay enlaces firmados ni claves en la página).
   histórico de `UBICACIONES` ni en el feed real del SmartTag2. Apagado, el mapa no
   hace ninguna petición.
 
+- **`/demo luka`.** En el modo experto de cualquier web de la suite (admira.tv,
+  admira.studio, admira.app, admira.biz, admira.store) abre
+  `/pruebas/mapa/?demo=luka`: datos de demo, el player abierto y más grande, las cinco
+  oficinas cargadas y Luka recorriéndolas en bucle, 12 s en cada una. El contenido de
+  admira.tv cambia con cada oficina. Dentro del mapa, `/demo luka` hace lo mismo sin
+  recargar. Arrastrar a Luka o pulsar «Detener recorrido» toma el control.
+
 Pruebas: `test/mapa-player.test.mjs` (API, validación, rev, CSRF, QR, player y Luka simulado) y el
 caso de publicación del editor en `test/mapa-simulador.test.mjs`.
