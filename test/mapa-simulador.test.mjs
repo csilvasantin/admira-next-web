@@ -5,6 +5,7 @@ import vm from 'node:vm';
 
 const code = await readFile(new URL('../pruebas/mapa/players-xperiencias.js',import.meta.url),'utf8') + '\n' + await readFile(new URL('../pruebas/mapa/simulador.js',import.meta.url),'utf8');
 const editorCode = await readFile(new URL('../pruebas/mapa/editor-zonas.js',import.meta.url),'utf8');
+const salasCode = await readFile(new URL('../pruebas/mapa/salas-reales.js',import.meta.url),'utf8');
 const browserCode = await readFile(new URL('../pruebas/mapa/ubicacion-dispositivo.js',import.meta.url),'utf8');
 const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags:['tecnología','technology']},{type:'video',tags:['creatividad','publicidad']},{type:'link',tags:['pendiente']}]};
 const flush = async () => {await new Promise(setImmediate);};
@@ -94,6 +95,46 @@ test('cargar oficinas es reversible, no sobrescribe almacenamiento y arrastrar L
   ui.sim.stop();restored.sim.stop();other.sim.stop();
 });
 
+test('la casa Saros separa Pasillo, Cocina y Terraza y deja el player real vacío',async()=>{
+  const ui=await editorSession();
+  const config=ui.zonesApi.casaPreset;
+  assert.ok(ui.zonesApi.validate(config));
+  assert.deepEqual(Array.from(config.zones,z=>z.id),['pasillo','cocina','terraza']);
+  assert.deepEqual(Array.from(config.zones,z=>z.name),['Pasillo','Cocina','Terraza']);
+  assert.deepEqual(Array.from(config.zones,z=>z.tag),['robots','negocio','creatividad']);
+  for (const zone of config.zones) {
+    assert.equal(zone.radius,12);
+    assert.equal(ui.api.zoneFor({lat:zone.lat,lng:zone.lon},config).id,zone.id);
+  }
+  const tiny=JSON.parse(JSON.stringify(config));tiny.zones[0].radius=7;assert.equal(ui.zonesApi.validate(tiny),null);
+  const edge=JSON.parse(JSON.stringify(config));edge.zones[0].radius=8;assert.ok(ui.zonesApi.validate(edge));
+  ui.element('simulador-nombre').fire('input','Mi zona');ui.element('simulador-guardar').click();
+  const original=ui.storage.get(ui.zonesApi.storageKey);
+  ui.element('simulador-casa').click();
+  assert.equal(ui.storage.get(ui.zonesApi.storageKey),original);
+  assert.equal(ui.element('simulador-nombre').value,'Pasillo');
+  assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'robots');
+  assert.match(ui.element('simulador-player-real').textContent,/vacío/);
+  const marker=ui.markers.find(m=>m.options.alt==='Luka · manual');
+  for (const zone of config.zones) {
+    marker.point={lat:zone.lat,lng:zone.lon};marker.events.drag();marker.events.dragend();
+    assert.equal(ui.element('simulador-zona').textContent,zone.name);
+    assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),zone.tag);
+    assert.match(ui.element('simulador-player-real').textContent,/vacío/);
+  }
+  ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-nombre').value,'Mi zona');
+  ui.sim.stop();
+});
+
+test('el player real de Cocina, Terraza y Pasillo no inventa un id',()=>{
+  const ctx=vm.createContext({});ctx.window=ctx;vm.runInContext(salasCode,ctx);
+  assert.equal(ctx.AdmiraSalasReales.playerFor('cocina'),null);
+  assert.equal(ctx.AdmiraSalasReales.playerFor('terraza'),null);
+  assert.equal(ctx.AdmiraSalasReales.playerFor('pasillo'),null);
+  assert.equal(ctx.AdmiraSalasReales.playerFor('gracia'),null);
+  assert.deepEqual(Array.from(ctx.AdmiraSalasReales.salas,item=>String(item)),['cocina','terraza','pasillo']);
+});
+
 test('cargar oficinas mientras sigue Luka conserva la fuente real y cancela importaciones anteriores pendientes',async()=>{
   const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');
   ui.element('simulador-editar').click();await flush();
@@ -164,7 +205,7 @@ function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:a
   class FixtureURL extends URL {static createObjectURL(blob){const key='blob:fixture-'+blobs.size;blobs.set(key,blob);return key;}static revokeObjectURL(key){blobs.delete(key);}}
   const context = vm.createContext({document,URL:FixtureURL,Blob,TextEncoder,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);else {const old=lifecycle[event];lifecycle[event]=(...args)=>{if(old)old(...args);fn(...args);};}},setTimeout:(fn,ms)=>{const id=++serial;timers.set(id,fn);timerDelays.set(id,ms);return id;},clearTimeout:id=>{timers.delete(id);timerDelays.delete(id);}});
   if(browser)Object.assign(context,{navigator:{geolocation:geo},isSecureContext:true,Date:Clock,setInterval:fn=>{const id=++serial;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)});
-  context.window=context;if(rutas)context.AdmiraMapaRutas=rutas;if(browser)vm.runInContext(browserCode,context);if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
+  context.window=context;if(rutas)context.AdmiraMapaRutas=rutas;vm.runInContext(salasCode,context);if(browser)vm.runInContext(browserCode,context);if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
   return {geo,intervals,lifecycle,hide:()=>{document.hidden=true;docEvents.visibilitychange();},advance:ms=>clockNow+=ms,api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,timerDelays,mapEvents,storage,requests,downloads,message:event=>messages.forEach(fn=>fn(event))};
 }
 

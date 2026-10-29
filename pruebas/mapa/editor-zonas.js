@@ -18,6 +18,13 @@
     {id:'sneaker-store',name:'Sneaker Store',address:'Santa Rosa 19 · actual Rosa Puig-rodon Pla · 08012',tag:'retail',lat:41.40347899,lon:2.15370648,radius:50},
     {id:'la-nave',name:'La Nave',address:'Planeta 7 · 08012 Barcelona',tag:'tecnologia',lat:41.40134534,lon:2.1558339,radius:50}
   ],outside:{tag:'publicidad'}};
+  // Esquema de la casa Saros Z70 (encargo 7273). Tres salas de la app, separadas
+  // 40 m para que quepan en el mapa de calles. No es el plano del robot en mm.
+  var casa = {version:1,zones:[
+    {id:'pasillo',name:'Pasillo',address:'Casa Saros Z70 · esquema, no es el plano en mm',tag:'robots',lat:41.3993419,lon:2.1559172,radius:12},
+    {id:'cocina',name:'Cocina',address:'Casa Saros Z70 · esquema, no es el plano en mm',tag:'negocio',lat:41.3997038,lon:2.1559172,radius:12},
+    {id:'terraza',name:'Terraza',address:'Casa Saros Z70 · esquema, no es el plano en mm',tag:'creatividad',lat:41.3993419,lon:2.1563962,radius:12}
+  ],outside:{tag:'publicidad'}};
   var copy = function (value) {return JSON.parse(JSON.stringify(value));};
   function validate(value) {
     if (!value || value.version !== 1 || !Array.isArray(value.zones) || value.zones.length > 8 || !value.outside || typeof value.outside.tag !== 'string' || !TAG.test(value.outside.tag)) return null;
@@ -28,7 +35,7 @@
           typeof zone.name !== 'string' || !zone.name.trim() || zone.name.length > 48 || /[\u0000-\u001f\u007f]/.test(zone.name) ||
           (zone.address != null && (typeof zone.address !== 'string' || zone.address.length>160 || /[\u0000-\u001f\u007f]/.test(zone.address))) ||
           typeof zone.tag !== 'string' || !TAG.test(zone.tag) || !Number.isFinite(zone.lat) || Math.abs(zone.lat) > 85 ||
-          !Number.isFinite(zone.lon) || Math.abs(zone.lon) > 180 || !Number.isFinite(zone.radius) || zone.radius < 50 || zone.radius > 5000) return null;
+          !Number.isFinite(zone.lon) || Math.abs(zone.lon) > 180 || !Number.isFinite(zone.radius) || zone.radius < 8 || zone.radius > 5000) return null;
       ids.add(zone.id);
       var normalized={id:zone.id,name:zone.name.trim(),tag:zone.tag,lat:zone.lat,lon:zone.lon,radius:Math.round(zone.radius)};
       if (zone.address) normalized.address=zone.address.trim();
@@ -159,6 +166,7 @@
       byId('simulador-editar').textContent=opened?T('Terminar edición','Finish editing'):T('Editar zonas y contenido','Edit zones and content');
       byId('simulador-oficinas').textContent=T('Cargar cinco oficinas','Load five offices');
       byId('simulador-oficinas-ayuda').textContent=T('Sedes de 08012 Barcelona, con temas de prueba distintos y radios ajustables de 50 m. Cargar sustituye las zonas de esta sesión; puedes deshacerlo en el editor.','Offices in 08012 Barcelona, with distinct trial topics and adjustable 50 m areas. Loading replaces this session’s zones; you can undo it in the editor.');
+      byId('simulador-casa-ayuda').textContent=T('Cocina, Terraza y Pasillo, como en la app del Saros Z70. Es un esquema: el player virtual cambia al entrar. El player real de cada sala sigue vacío hasta que Carlos diga cuál es.','Kitchen, Terrace and Hallway, as in the Saros Z70 app. This is a sketch: the virtual player changes on entry. The real player for each room stays empty until Carlos names it.');
       var text={
         'editor-titulo':T('Zonas y contenido','Zones and content'),
         'editor-ayuda':T('Arrastra el centro o el borde de la zona seleccionada. Si se solapan, manda la primera de la lista.','Drag the centre or edge of the selected zone. If zones overlap, the first in the list wins.'),
@@ -178,7 +186,7 @@
       };
       Object.keys(text).forEach(function (id) {byId('simulador-'+id).textContent=text[id];});
       var dirty=JSON.stringify(config)!==saved;
-      byId('simulador-guardado').textContent=saveState==='invalid'?T('Revisa el nombre y el radio (50–5000 m).','Check the name and radius (50–5000 m).'):saveState==='error'?T('No se pudo guardar. Los cambios siguen en esta sesión.','Could not save. Changes remain in this session.'):dirty?T('Cambios sin guardar.','Unsaved changes.'):saveState==='saved'?T('Guardado en este navegador.','Saved in this browser.'):saveState==='broken'?T('La configuración guardada no era válida. Se han cargado los ejemplos.','Saved configuration was invalid. Examples were loaded.'):T('Las zonas se guardan sólo en este navegador.','Zones are saved only in this browser.');
+      byId('simulador-guardado').textContent=saveState==='invalid'?T('Revisa el nombre y el radio (8–5000 m).','Check the name and radius (8–5000 m).'):saveState==='error'?T('No se pudo guardar. Los cambios siguen en esta sesión.','Could not save. Changes remain in this session.'):dirty?T('Cambios sin guardar.','Unsaved changes.'):saveState==='saved'?T('Guardado en este navegador.','Saved in this browser.'):saveState==='broken'?T('La configuración guardada no era válida. Se han cargado los ejemplos.','Saved configuration was invalid. Examples were loaded.'):T('Las zonas se guardan sólo en este navegador.','Zones are saved only in this browser.');
       byId('simulador-catalogo-estado').textContent=catalogState==='loading'?T('Consultando catálogo…','Loading catalogue…'):catalogState==='error'?T('Catálogo no disponible. Puedes usar los temas ya cargados.','Catalogue unavailable. You can use topics already loaded.'):catalogState==='ready'?T('Temas encontrados en la consulta actual de admira.tv.','Topics found in the current admira.tv query.'):'';
       var importedText=!dirty&&saveState==='saved'?T('Archivo importado: '+importedCount+' zonas. Guardado en este navegador.','File imported: '+importedCount+' zones. Saved in this browser.'):T('Archivo importado: '+importedCount+' zonas. Revisa el resultado y pulsa Guardar zonas.','File imported: '+importedCount+' zones. Review the result and choose Save zones.');
       var transferText={idle:'',reading:T('Abriendo archivo…','Opening file…'),download:T('Descarga iniciada. Incluye los cambios de esta sesión.','Download started. Includes changes from this session.'),imported:importedText,large:T('El archivo supera el máximo de 16 KB. La configuración actual se conserva.','The file exceeds 16 KB. Current configuration is unchanged.'),invalid:T('El archivo no contiene una configuración válida. La configuración actual se conserva.','The file does not contain a valid configuration. Current configuration is unchanged.'),readError:T('No se pudo abrir el archivo. La configuración actual se conserva.','Could not open the file. Current configuration is unchanged.'),downloadError:T('No se pudo iniciar la descarga. La configuración actual se conserva.','Could not start the download. Current configuration is unchanged.')};
@@ -233,7 +241,7 @@
         handle.on('dragend',function () {changed(dragBefore||JSON.stringify(config));dragBefore=null;});
       });
       centreHandle.on('drag',function () {var p=centreHandle.getLatLng();if (!Number.isFinite(p.lat)||!Number.isFinite(p.lng)) return;zone.lat=Math.max(-85,Math.min(85,p.lat));zone.lon=wrap(p.lng);geometry(false);});
-      radiusHandle.on('drag',function () {var p=radiusHandle.getLatLng();if (!Number.isFinite(p.lat)||!Number.isFinite(p.lng)) return;zone.radius=Math.max(50,Math.min(5000,Math.round(metres({lat:zone.lat,lng:zone.lon},p))));geometry(true);});
+      radiusHandle.on('drag',function () {var p=radiusHandle.getLatLng();if (!Number.isFinite(p.lat)||!Number.isFinite(p.lng)) return;zone.radius=Math.max(8,Math.min(5000,Math.round(metres({lat:zone.lat,lng:zone.lon},p))));geometry(true);});
     }
     async function loadCatalog() {
       if (catalogRequest) return;
@@ -264,7 +272,7 @@
       if (current().name!==name) edit(function () {current().name=name;});
     }
     function resize(event) {
-      var radius=Number(event.target.value);if (selected==='exterior'||!Number.isFinite(radius)||radius<50||radius>5000) return;
+      var radius=Number(event.target.value);if (selected==='exterior'||!Number.isFinite(radius)||radius<8||radius>5000) return;
       radius=Math.round(radius);if (current().radius!==radius) edit(function () {current().radius=radius;});
     }
     byId('simulador-nombre').addEventListener('input',rename);
@@ -304,10 +312,15 @@
       importTicket++;importBusy=false;transferState='idle';
       edit(function () {config=copy(offices);selected=config.zones[0].id;},{preset:'offices'});
     });
+    byId('simulador-casa').addEventListener('click',function () {
+      if (!active) return;
+      importTicket++;importBusy=false;transferState='idle';
+      edit(function () {config=copy(casa);selected=config.zones[0].id;},{preset:'casa'});
+    });
     function validDraft() {
       if (selected!=='exterior') {
         var name=byId('simulador-nombre').value.trim(), radius=Number(byId('simulador-radio').value);
-        if (!name||name.length>48||/[\u0000-\u001f\u007f]/.test(name)||!Number.isFinite(radius)||radius<50||radius>5000) {saveState='invalid';renderText();return false;}
+        if (!name||name.length>48||/[\u0000-\u001f\u007f]/.test(name)||!Number.isFinite(radius)||radius<8||radius>5000) {saveState='invalid';renderText();return false;}
       }
       return true;
     }
@@ -395,5 +408,5 @@
       deactivate:function () {active=false;opened=false;if (catalogRequest) {catalogRequest.abort();catalogRequest=null;clearTimeout(catalogTimer);catalogTimer=null;catalogState=catalogLoaded?'ready':'idle';}importTicket++;importBusy=false;if (transferState==='reading') transferState='idle';if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
     };
   }
-  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,catalogItems:catalogItems,themeName:themeName,edge:edge,defaults:copy(defaults),officePreset:copy(offices),storageKey:KEY};
+  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,catalogItems:catalogItems,themeName:themeName,edge:edge,defaults:copy(defaults),officePreset:copy(offices),casaPreset:copy(casa),storageKey:KEY};
 })(window,document);

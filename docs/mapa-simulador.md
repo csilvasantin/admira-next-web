@@ -120,7 +120,7 @@ No es un selector de un vídeo individual ni modifica la programación de otras
 pantallas. Si falla la consulta se conservan los temas ya cargados.
 
 Se pueden mover el centro y el borde de la zona seleccionada directamente en
-el mapa. El radio también se puede escribir (50–5000 m), y «Situar zona en el
+el mapa. El radio también se puede escribir (8–5000 m), y «Situar zona en el
 simulador» ofrece una alternativa al arrastre del centro. Admite hasta ocho
 zonas, nombres propios, añadir, eliminar, deshacer y restaurar los ejemplos.
 En un solapamiento manda la primera zona de la lista. El exterior tiene su

@@ -285,3 +285,15 @@ Interfaz para el Roborock real (driver): `goTo(point,{from})`, `stop()`, `onPose
 - `GET {base}/camera.mjpg` (opcional; si no, cámara simulada).
 
 Se activa guardando en `localStorage['admiranext:mapa:robot']` `{"base":"https://…","pairs":[{"geo":{"lat":…,"lng":…},"robot":{"x":…,"y":…}},{…}],"mirror":true}`. Los dos pares calibran mapa ↔ plano (giro, escala y espejo). El puente debe servirse por HTTPS (p. ej. túnel) porque la página es HTTPS.
+
+## Casa Saros Z70 (encargo 7273)
+
+«Cargar casa Saros» pone tres salas con los nombres de la app: **Pasillo**, **Cocina** y **Terraza**. Están separadas 40 m junto a la dirección fija del Mac mini para que el mapa de calles las distinga. Es un esquema, no el plano en milímetros del robot. El player virtual de admira.tv cambia al entrar (robots, negocio, creatividad). El player real de cada sala está vacío a propósito: Carlos aún no ha dicho cuál corresponde. `?casa=1` abre el simulador ya con esas tres salas.
+
+El puente local es `python3 pruebas/mapa/bridge/roborock_bridge.py`. Escucha solo en `127.0.0.1:8765`.
+
+- `POST /goto` con `{"x":mm,"y":mm}` llama a `app_goto_target`.
+- `POST /stop` llama a `stop_goto_target`. No lo manda a la base ni arranca una limpieza.
+- `GET /pose` devuelve `{x,y,heading,state,battery}` cuando el robot contesta.
+
+Las credenciales son las claves de bóveda `ROBOROCK_USERNAME` y `ROBOROCK_PASSWORD`. Si no están, el proceso arranca igual y `/goto` responde 503 `boveda_sin_credenciales`. No se imprimen ni se guardan en el repo. La sesión que deja python-roborock queda en `~/.cache/admiranext-roborock/`, fuera del repositorio. Punto de retorno de este corte: el commit padre `4f84997`. No publica el sitio entero.

@@ -503,6 +503,16 @@
   G.AdmiraMapaDemoLuka = demoLuka;
   initializeMap();
   aplicarTema().then(function () { aplicarCapa(); });
+  function abrirCasa() {
+    if (!simulator) return false;
+    if (simulator.isActive()) simulator.stop();
+    setMode(true);
+    simulator.start();
+    var button=byId('simulador-casa');
+    if (button) button.click();
+    return true;
+  }
   if (/[?&]demo=luka(?:&|$)/.test((G.location && G.location.search) || '')) demoLuka();
+  else if (/[?&]casa=1(?:&|$)/.test((G.location && G.location.search) || '')) abrirCasa();
   else refresh();
 })(window,document);

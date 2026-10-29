@@ -95,7 +95,7 @@
     function speed() {return (SPEEDS[tourMode]||SPEEDS.paseo)*speedMult;}
     function stopPoints() {return tourStops.map(function (stop) {return {lat:stop.lat,lng:stop.lon};});}
     var browserSource=G.AdmiraMapaUbicacionDispositivo?G.AdmiraMapaUbicacionDispositivo.create({onChange:function (state) {if (state.status==='stopped') {if (active&&source==='browser') stop();}else updateBrowser(state);}}):null;
-    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onInteraction:function () {stopTour('config');renderTour();},onChange:function (change) {stopTour('config');if (active) {if (source==='luka') updateLuka(latestLuka,feedError,'config');else if (source==='browser') updateBrowser(browserState,'config');else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true,'config');}if (change&&change.preset==='offices') fitZones();}}}) : null;
+    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onInteraction:function () {stopTour('config');renderTour();},onChange:function (change) {stopTour('config');if (active) {if (source==='luka') updateLuka(latestLuka,feedError,'config');else if (source==='browser') updateBrowser(browserState,'config');else {var first=config().zones[0];var home=change&&(change.preset==='offices'||change.preset==='casa');move(home?{lat:first.lat,lng:first.lon}:position,true,'config');}if (change&&(change.preset==='offices'||change.preset==='casa')) fitZones();}}}) : null;
     function config() {return editor ? editor.getConfig() : {zones:zones,outside:outside};}
     function fitZones() {
       var points=config().zones.map(function (zone) {return [zone.lat,zone.lon];}), width=map.getSize?map.getSize().x:0;
@@ -333,6 +333,8 @@
       if (options.robot&&options.robot.render) options.robot.render();
       if (!active) return;
       byId('simulador-zona').textContent = current?zoneName(current):T('Sin oficina confirmada','No confirmed office');
+      var realHook=G.AdmiraSalasReales, realId=current&&current.id, realPlayer=realHook&&realId?realHook.playerFor(realId):null, realLine=byId('simulador-player-real');
+      if (realLine) realLine.textContent=!current?'':realPlayer?T('Player real: ','Real player: ')+realPlayer:(realHook&&realHook.salas.indexOf(realId)>=0?T('Player real de esta sala: vacío. Carlos aún no ha dicho cuál es.','Real player for this room: empty. Carlos has not named it yet.'):T('Player real: no asignado a esta zona.','Real player: not assigned to this zone.'));
       byId('simulador-contenido').textContent = current?label(current):T('Esperando ubicación','Waiting for location');
       byId('simulador-coordenadas').textContent = position?position.lat.toFixed(5) + ', ' + position.lng.toFixed(5):'—';
       byId('simulador-coordenadas').setAttribute('aria-label',source==='manual'?T('Coordenadas simuladas','Simulated coordinates'):source==='browser'?T('Coordenadas de este dispositivo','This device’s coordinates'):T('Últimas coordenadas recibidas de Luka','Last received Luka coordinates'));
