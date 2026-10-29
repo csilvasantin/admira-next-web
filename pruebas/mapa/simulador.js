@@ -333,8 +333,8 @@
       if (options.robot&&options.robot.render) options.robot.render();
       if (!active) return;
       byId('simulador-zona').textContent = current?zoneName(current):T('Sin oficina confirmada','No confirmed office');
-      var realHook=G.AdmiraSalasReales, realId=current&&current.id, realPlayer=realHook&&realId?realHook.playerFor(realId):null, realLine=byId('simulador-player-real');
-      if (realLine) realLine.textContent=!current?'':realPlayer?T('Player real: ','Real player: ')+realPlayer:(realHook&&realHook.salas.indexOf(realId)>=0?T('Player real de esta sala: vacío. Carlos aún no ha dicho cuál es.','Real player for this room: empty. Carlos has not named it yet.'):T('Player real: no asignado a esta zona.','Real player: not assigned to this zone.'));
+      var realHook=G.AdmiraSalasReales, realId=current&&current.id, xpacio=realHook&&realId&&realHook.playlistFor?realHook.playlistFor(realId):null, realLine=byId('simulador-player-real');
+      if (realLine) realLine.textContent=!current?'':xpacio?T('Playlist del Xpacio: ','Xpacio playlist: ')+xpacio.name+' · '+xpacio.address:(realHook&&realHook.salas&&realHook.salas.indexOf(realId)>=0?T('Esta sala todavía no tiene playlist de Xpacio.','This room has no Xpacio playlist yet.'):'');
       byId('simulador-contenido').textContent = current?label(current):T('Esperando ubicación','Waiting for location');
       byId('simulador-coordenadas').textContent = position?position.lat.toFixed(5) + ', ' + position.lng.toFixed(5):'—';
       byId('simulador-coordenadas').setAttribute('aria-label',source==='manual'?T('Coordenadas simuladas','Simulated coordinates'):source==='browser'?T('Coordenadas de este dispositivo','This device’s coordinates'):T('Últimas coordenadas recibidas de Luka','Last received Luka coordinates'));

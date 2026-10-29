@@ -1,12 +1,35 @@
 (function (G) {
   'use strict';
-  // Players reales por sala de la app del Saros Z70. Vacíos a propósito:
-  // Carlos aún no ha dicho qué player corresponde a cada sala. No inventar ids.
-  var REAL = {cocina: null, terraza: null, pasillo: null};
-  function playerFor(id) {
-    if (!Object.prototype.hasOwnProperty.call(REAL, id)) return null;
-    var value = REAL[id];
-    return typeof value === 'string' && value ? value : null;
+  // Playlists de los Xpacios, en el orden que pidió Carlos (encargo 7273).
+  // La casa del Saros hoy tiene tres salas: Cocina, Terraza y Pasillo.
+  // Si aparecen más, la siguiente coge Sneaker Store y la otra La Nave.
+  var XPACIOS = [
+    {id:'pixeria',name:'Pixería',address:'Aulèstia i Pijoan 21',tag:'creatividad'},
+    {id:'university',name:'Admira University',address:'Bretón de los Herreros 9',tag:'negocio'},
+    {id:'garage',name:'El Garage',address:'Santa Rosa 4',tag:'devops'},
+    {id:'sneaker-store',name:'Sneaker Store',address:'Santa Rosa 19',tag:'retail'},
+    {id:'la-nave',name:'La Nave',address:'Planeta 7',tag:'tecnologia'}
+  ];
+  var SALAS = ['cocina','terraza','pasillo'];
+  function copy(xp) {return xp?{id:xp.id,name:xp.name,address:xp.address,tag:xp.tag}:null;}
+  function playlistAt(index) {
+    return copy(XPACIOS[index] || null);
   }
-  G.AdmiraSalasReales = {playerFor: playerFor, salas: Object.keys(REAL)};
+  function playlistFor(id) {
+    var index = SALAS.indexOf(id);
+    return index < 0 ? null : playlistAt(index);
+  }
+  function assign(roomIds) {
+    var ids = Array.isArray(roomIds) ? roomIds : SALAS;
+    return ids.map(function (id, index) {return {sala:id,xpacio:playlistAt(index)};});
+  }
+  G.AdmiraSalasReales = {
+    playlistFor:playlistFor,
+    playlistAt:playlistAt,
+    assign:assign,
+    xpacios:XPACIOS.map(copy),
+    salas:SALAS.slice(),
+    // Id del Xpacio cuya playlist suena en esa sala. No es un número de player físico.
+    playerFor:function (id) {var xp=playlistFor(id);return xp?xp.id:null;}
+  };
 })(typeof window !== 'undefined' ? window : globalThis);

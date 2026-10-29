@@ -288,7 +288,15 @@ Se activa guardando en `localStorage['admiranext:mapa:robot']` `{"base":"https:/
 
 ## Casa Saros Z70 (encargo 7273)
 
-«Cargar casa Saros» pone tres salas con los nombres de la app: **Pasillo**, **Cocina** y **Terraza**. Están separadas 40 m junto a la dirección fija del Mac mini para que el mapa de calles las distinga. Es un esquema, no el plano en milímetros del robot. El player virtual de admira.tv cambia al entrar (robots, negocio, creatividad). El player real de cada sala está vacío a propósito: Carlos aún no ha dicho cuál corresponde. `?casa=1` abre el simulador ya con esas tres salas.
+«Cargar casa Saros» pone las salas de la app en el orden de Carlos: **Cocina**, **Terraza** y **Pasillo**. Están separadas 40 m junto a la dirección fija del Mac mini. Es un esquema, no el plano en milímetros del robot. Cada sala suena con la playlist del Xpacio del mismo número:
+
+1. Cocina → Pixería (Aulèstia i Pijoan), tema creatividad.
+2. Terraza → Admira University (Bretón de los Herreros 9), tema negocio.
+3. Pasillo → El Garage (Santa Rosa 4), tema devops.
+4. La siguiente sala, cuando exista → Sneaker Store (Santa Rosa 19), tema retail.
+5. La otra → La Nave (Planeta 7), tema tecnología.
+
+`?casa=1` abre el simulador ya con las tres salas. El player virtual de admira.tv cambia al entrar.
 
 El puente local es `python3 pruebas/mapa/bridge/roborock_bridge.py`. Escucha solo en `127.0.0.1:8765`.
 

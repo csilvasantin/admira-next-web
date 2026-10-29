@@ -18,13 +18,23 @@
     {id:'sneaker-store',name:'Sneaker Store',address:'Santa Rosa 19 · actual Rosa Puig-rodon Pla · 08012',tag:'retail',lat:41.40347899,lon:2.15370648,radius:50},
     {id:'la-nave',name:'La Nave',address:'Planeta 7 · 08012 Barcelona',tag:'tecnologia',lat:41.40134534,lon:2.1558339,radius:50}
   ],outside:{tag:'publicidad'}};
-  // Esquema de la casa Saros Z70 (encargo 7273). Tres salas de la app, separadas
-  // 40 m para que quepan en el mapa de calles. No es el plano del robot en mm.
-  var casa = {version:1,zones:[
-    {id:'pasillo',name:'Pasillo',address:'Casa Saros Z70 · esquema, no es el plano en mm',tag:'robots',lat:41.3993419,lon:2.1559172,radius:12},
-    {id:'cocina',name:'Cocina',address:'Casa Saros Z70 · esquema, no es el plano en mm',tag:'negocio',lat:41.3997038,lon:2.1559172,radius:12},
-    {id:'terraza',name:'Terraza',address:'Casa Saros Z70 · esquema, no es el plano en mm',tag:'creatividad',lat:41.3993419,lon:2.1563962,radius:12}
-  ],outside:{tag:'publicidad'}};
+  // Esquema de la casa Saros Z70 (encargo 7273). Las salas de la app, en el orden
+  // de Carlos: Cocina, Terraza, Pasillo. Cada una lleva la playlist del Xpacio
+  // del mismo número. No es el plano del robot en mm.
+  var casaSalas = [
+    {id:'cocina',name:'Cocina',lat:41.3997038,lon:2.1559172},
+    {id:'terraza',name:'Terraza',lat:41.3993419,lon:2.1563962},
+    {id:'pasillo',name:'Pasillo',lat:41.3993419,lon:2.1559172}
+  ];
+  var casaPlaylists = (G.AdmiraSalasReales && G.AdmiraSalasReales.xpacios) || [
+    {name:'Pixería',address:'Aulèstia i Pijoan 21',tag:'creatividad'},
+    {name:'Admira University',address:'Bretón de los Herreros 9',tag:'negocio'},
+    {name:'El Garage',address:'Santa Rosa 4',tag:'devops'}
+  ];
+  var casa = {version:1,zones:casaSalas.map(function (sala, index) {
+    var xp = casaPlaylists[index] || {name:'',address:'',tag:'publicidad'};
+    return {id:sala.id,name:sala.name,address:'Playlist '+xp.name+' · '+xp.address,tag:xp.tag,lat:sala.lat,lon:sala.lon,radius:12};
+  }),outside:{tag:'publicidad'}};
   var copy = function (value) {return JSON.parse(JSON.stringify(value));};
   function validate(value) {
     if (!value || value.version !== 1 || !Array.isArray(value.zones) || value.zones.length > 8 || !value.outside || typeof value.outside.tag !== 'string' || !TAG.test(value.outside.tag)) return null;
@@ -166,7 +176,7 @@
       byId('simulador-editar').textContent=opened?T('Terminar edición','Finish editing'):T('Editar zonas y contenido','Edit zones and content');
       byId('simulador-oficinas').textContent=T('Cargar cinco oficinas','Load five offices');
       byId('simulador-oficinas-ayuda').textContent=T('Sedes de 08012 Barcelona, con temas de prueba distintos y radios ajustables de 50 m. Cargar sustituye las zonas de esta sesión; puedes deshacerlo en el editor.','Offices in 08012 Barcelona, with distinct trial topics and adjustable 50 m areas. Loading replaces this session’s zones; you can undo it in the editor.');
-      byId('simulador-casa-ayuda').textContent=T('Cocina, Terraza y Pasillo, como en la app del Saros Z70. Es un esquema: el player virtual cambia al entrar. El player real de cada sala sigue vacío hasta que Carlos diga cuál es.','Kitchen, Terrace and Hallway, as in the Saros Z70 app. This is a sketch: the virtual player changes on entry. The real player for each room stays empty until Carlos names it.');
+      byId('simulador-casa-ayuda').textContent=T('Cocina, Terraza y Pasillo, en ese orden, con la playlist de Pixería, Admira University y El Garage. Sneaker Store y La Nave esperan a que la casa tenga más salas.','Kitchen, Terrace and Hallway, in that order, with the Pixería, Admira University and Garage playlists. Sneaker Store and La Nave wait until the house has more rooms.');
       var text={
         'editor-titulo':T('Zonas y contenido','Zones and content'),
         'editor-ayuda':T('Arrastra el centro o el borde de la zona seleccionada. Si se solapan, manda la primera de la lista.','Drag the centre or edge of the selected zone. If zones overlap, the first in the list wins.'),

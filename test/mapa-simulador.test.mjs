@@ -95,44 +95,53 @@ test('cargar oficinas es reversible, no sobrescribe almacenamiento y arrastrar L
   ui.sim.stop();restored.sim.stop();other.sim.stop();
 });
 
-test('la casa Saros separa Pasillo, Cocina y Terraza y deja el player real vacío',async()=>{
+test('la casa Saros asigna Cocina, Terraza y Pasillo a las tres primeras playlists',async()=>{
   const ui=await editorSession();
   const config=ui.zonesApi.casaPreset;
+  const want=[['cocina','Cocina','creatividad','Pixería','Aulèstia'],['terraza','Terraza','negocio','Admira University','Bretón'],['pasillo','Pasillo','devops','Garage','Santa Rosa 4']];
   assert.ok(ui.zonesApi.validate(config));
-  assert.deepEqual(Array.from(config.zones,z=>z.id),['pasillo','cocina','terraza']);
-  assert.deepEqual(Array.from(config.zones,z=>z.name),['Pasillo','Cocina','Terraza']);
-  assert.deepEqual(Array.from(config.zones,z=>z.tag),['robots','negocio','creatividad']);
-  for (const zone of config.zones) {
+  assert.deepEqual(Array.from(config.zones,z=>z.id),want.map(row=>row[0]));
+  assert.deepEqual(Array.from(config.zones,z=>z.name),want.map(row=>row[1]));
+  assert.deepEqual(Array.from(config.zones,z=>z.tag),want.map(row=>row[2]));
+  config.zones.forEach((zone,index)=>{
     assert.equal(zone.radius,12);
+    assert.match(zone.address,new RegExp(want[index][3]));
     assert.equal(ui.api.zoneFor({lat:zone.lat,lng:zone.lon},config).id,zone.id);
-  }
+  });
   const tiny=JSON.parse(JSON.stringify(config));tiny.zones[0].radius=7;assert.equal(ui.zonesApi.validate(tiny),null);
   const edge=JSON.parse(JSON.stringify(config));edge.zones[0].radius=8;assert.ok(ui.zonesApi.validate(edge));
   ui.element('simulador-nombre').fire('input','Mi zona');ui.element('simulador-guardar').click();
   const original=ui.storage.get(ui.zonesApi.storageKey);
   ui.element('simulador-casa').click();
   assert.equal(ui.storage.get(ui.zonesApi.storageKey),original);
-  assert.equal(ui.element('simulador-nombre').value,'Pasillo');
-  assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'robots');
-  assert.match(ui.element('simulador-player-real').textContent,/vacío/);
+  assert.equal(ui.element('simulador-nombre').value,'Cocina');
+  assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'creatividad');
+  assert.match(ui.element('simulador-player-real').textContent,/Pixería · Aulèstia/);
   const marker=ui.markers.find(m=>m.options.alt==='Luka · manual');
-  for (const zone of config.zones) {
+  for (const [index,zone] of config.zones.entries()) {
     marker.point={lat:zone.lat,lng:zone.lon};marker.events.drag();marker.events.dragend();
     assert.equal(ui.element('simulador-zona').textContent,zone.name);
     assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),zone.tag);
-    assert.match(ui.element('simulador-player-real').textContent,/vacío/);
+    assert.match(ui.element('simulador-player-real').textContent,new RegExp(want[index][4]));
   }
   ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-nombre').value,'Mi zona');
   ui.sim.stop();
 });
 
-test('el player real de Cocina, Terraza y Pasillo no inventa un id',()=>{
+test('las playlists sobrantes esperan a las salas que aún no existen',()=>{
   const ctx=vm.createContext({});ctx.window=ctx;vm.runInContext(salasCode,ctx);
-  assert.equal(ctx.AdmiraSalasReales.playerFor('cocina'),null);
-  assert.equal(ctx.AdmiraSalasReales.playerFor('terraza'),null);
-  assert.equal(ctx.AdmiraSalasReales.playerFor('pasillo'),null);
-  assert.equal(ctx.AdmiraSalasReales.playerFor('gracia'),null);
-  assert.deepEqual(Array.from(ctx.AdmiraSalasReales.salas,item=>String(item)),['cocina','terraza','pasillo']);
+  const api=ctx.AdmiraSalasReales;
+  assert.equal(String(api.playerFor('cocina')),'pixeria');
+  assert.equal(String(api.playerFor('terraza')),'university');
+  assert.equal(String(api.playerFor('pasillo')),'garage');
+  assert.equal(api.playerFor('gracia'),null);
+  assert.deepEqual(Array.from(api.salas,item=>String(item)),['cocina','terraza','pasillo']);
+  const extra=api.assign(['cocina','terraza','pasillo','comedor','estudio','otra']);
+  assert.equal(String(extra[3].xpacio.id),'sneaker-store');
+  assert.equal(String(extra[3].xpacio.tag),'retail');
+  assert.equal(String(extra[4].xpacio.id),'la-nave');
+  assert.equal(String(extra[4].xpacio.address),'Planeta 7');
+  assert.equal(extra[5].xpacio,null);
 });
 
 test('cargar oficinas mientras sigue Luka conserva la fuente real y cancela importaciones anteriores pendientes',async()=>{
