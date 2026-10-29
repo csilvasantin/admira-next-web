@@ -63,7 +63,8 @@
       if (!item || typeof item.type!=='string' || !kinds.test(item.type) || !Array.isArray(item.tags)) return [];
       var tags=Array.from(new Set(item.tags.slice(0,100).map(normalizeTag).filter(Boolean)));
       if (!tags.length) return [];
-      var title=typeof item.title==='string'?item.title.replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,160):'';
+      var title=typeof item.title==='string'?item.title.replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim():'';
+      if (title.length>160) title=title.slice(0,159).replace(/[\uD800-\uDBFF]$/,'')+'…';
       // Text metadata only: no media URLs, identifiers or untrusted markup.
       return [{title:title,type:item.type,tags:tags}];
     });

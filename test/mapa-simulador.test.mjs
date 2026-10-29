@@ -146,7 +146,7 @@ function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:a
   const intervals=new Map(),lifecycle={},docEvents={},geo={calls:0,cleared:[],watchPosition(success,error,options){this.calls++;this.success=success;this.error=error;this.options=options;return 7;},clearWatch(id){this.cleared.push(id);}};
   class Clock extends Date {constructor(...args){super(...(args.length?args:[clockNow]));}static now(){return clockNow;}}
   function node() {
-    const el={hidden:true,textContent:'',value:'',attributes:{},children:[],listeners:{},classList:{add(){},remove(){}},contentWindow:{},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this[k];delete this.attributes[k];},appendChild(child){if(child.parent)child.parent.children=child.parent.children.filter(item=>item!==child);this.children.push(child);child.parent=this;return child;},replaceChildren(...children){this.children=[];children.forEach(child=>this.appendChild(child));},remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},addEventListener(k,fn){this.listeners[k]=fn;},fire(k,value){if(value!==undefined)this.value=value;return this.listeners[k]?.({target:this});},click(){if(this.disabled)return;if(this.download)downloads.push({name:this.download,blob:blobs.get(this.href)});return this.fire('click');}};
+    const el={hidden:true,textContent:'',value:'',attributes:{},children:[],listeners:{},classList:{add(){},remove(){}},contentWindow:{},focus(options){document.activeElement=this;this.focusOptions=options;},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this[k];delete this.attributes[k];},appendChild(child){if(child.parent)child.parent.children=child.parent.children.filter(item=>item!==child);this.children.push(child);child.parent=this;return child;},replaceChildren(...children){this.children=[];children.forEach(child=>this.appendChild(child));},remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},addEventListener(k,fn){this.listeners[k]=fn;},fire(k,value){if(value!==undefined)this.value=value;return this.listeners[k]?.({target:this});},click(){if(this.disabled)return;if(this.download)downloads.push({name:this.download,blob:blobs.get(this.href)});return this.fire('click');}};
     Object.defineProperty(el,'id',{get(){return this.nodeId;},set(value){this.nodeId=value;elements.set(value,this);}});
     return el;
   }
@@ -606,7 +606,7 @@ const pieceTitle=row=>row.children[0].textContent;
 
 test('los metadatos del catálogo son texto acotado sin enlaces, IDs ni etiquetas duplicadas',()=>{
   const ui=mount({editor:true}),rows=ui.zonesApi.catalogItems({items:[{id:'private-id',url:'javascript:alert(1)',type:'video',title:'  <img src=x>\n '+ 'a'.repeat(200),tags:['Tech','tecnología','technology',null]},{type:'image',title:{html:'bad'},tags:['retail']},{type:'link',title:'no',tags:['retail']},{type:{toString:()=> 'video'},tags:['retail']}]});
-  assert.equal(rows.length,2);assert.equal(rows[0].title.length,160);assert.equal(rows[0].tags.length,1);assert.equal(rows[0].tags[0],'tecnologia');assert.equal(rows[1].title,'');
+  assert.equal(rows.length,2);assert.equal(rows[0].title.length,160);assert.equal(rows[0].title.endsWith('…'),true);assert.equal(rows[0].tags.length,1);assert.equal(rows[0].tags[0],'tecnologia');assert.equal(rows[1].title,'');
   assert.deepEqual(Object.keys(rows[0]).sort(),['tags','title','type']);assert.doesNotMatch(JSON.stringify(rows),/javascript|private-id|url/);
   assert.throws(()=>ui.zonesApi.catalogItems({items:null}));
 });
@@ -652,4 +652,18 @@ test('cerrar cancela la consulta; una respuesta anterior no sobrescribe el catá
   const pending=[];const ui=mount({editor:true,fetcher:()=>new Promise(resolve=>pending.push(resolve))}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();sim.stop();assert.equal(ui.requests[0].options.signal.aborted,true);assert.equal(ui.timers.size,0);
   sim.start();ui.element('simulador-editar').click();assert.equal(pending.length,2);pending[1]({ok:true,json:async()=>({items:[{type:'video',title:'Actual',tags:['retail']}]})});await flush();
   pending[0]({ok:true,json:async()=>({items:[{type:'image',title:'Anterior',tags:['retail']}]})});await flush();assert.equal(pieceTitle(pieceRows(ui)[0]),'Actual');sim.stop();
+});
+
+test('el teclado mantiene foco en pausa al iniciar y en iniciar al detener o completar el recorrido',()=>{
+  const ui=tourSession(),start=ui.element('simulador-recorrer'),pause=ui.element('simulador-recorrido-pausa'),stop=ui.element('simulador-recorrido-detener');
+  start.focus();start.click();assert.equal(ui.document.activeElement,pause);assert.equal(pause.focusOptions.preventScroll,true);
+  pause.click();assert.equal(ui.document.activeElement,pause);stop.focus();stop.click();assert.equal(ui.document.activeElement,start);assert.equal(start.focusOptions.preventScroll,true);
+  start.click();assert.equal(ui.document.activeElement,pause);for(let i=0;i<5;i++)tickTour(ui);
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/completado/);assert.equal(ui.document.activeElement,start);ui.sim.stop();
+});
+
+test('las actualizaciones del recorrido no arrebatan el foco de otro control',()=>{
+  const ui=tourSession(),other=ui.element('centrar');ui.element('simulador-recorrer').click();other.focus();
+  ui.sim.renderText();tickTour(ui);ui.sim.renderText();assert.equal(ui.document.activeElement,other);
+  ui.element('simulador-recorrido-detener').click();assert.equal(ui.document.activeElement,other);ui.sim.stop();
 });

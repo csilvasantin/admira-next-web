@@ -88,6 +88,7 @@
     function label(zone) {var original=zones.concat([outside]).find(function (z) {return z.tag===zone.tag;}) || zone;return editor ? editor.label(zone.tag) : T(original.es || zone.tag,original.en || zone.tag);}
     function touring() {return tourStatus==='running'||tourStatus==='paused';}
     function renderTour() {
+      var focused=d.activeElement, startButton=byId('simulador-recorrer'), pauseButton=byId('simulador-recorrido-pausa'), stopButton=byId('simulador-recorrido-detener');
       var available=active&&source==='manual', target=tourStops[tourIndex], editing=editor&&editor.isEditing&&editor.isEditing();
       byId('simulador-recorrer').textContent=tourStatus==='complete'?T('Repetir recorrido Demo','Repeat Demo tour'):T('Iniciar recorrido Demo','Start Demo tour');
       byId('simulador-recorrer').disabled=!available||!config().zones.length||touring()||!!editing;
@@ -104,6 +105,11 @@
       var reasons={manual:T('Movimiento manual.','Manual movement.'),config:T('Edición o importación de zonas.','Zone editing or import.'),hidden:T('La página ha quedado oculta.','The page was hidden.'),source:T('Cambio o cierre del modo.','Mode changed or closed.'),user:T('Parada solicitada.','Stopped by user.')};
       if (tourStatus==='stopped'&&available&&reasons[tourReason]) text+=' '+reasons[tourReason];
       byId('simulador-recorrido-estado').textContent=text;
+      // Keep keyboard focus usable when its tour control becomes disabled or
+      // hidden. Polling never takes focus from another control or hidden page.
+      var nextFocus=available&&focused===startButton&&startButton.disabled&&touring()?pauseButton:
+        available&&(focused===pauseButton||focused===stopButton)&&focused.hidden&&!startButton.disabled?startButton:null;
+      if (nextFocus&&!d.hidden&&nextFocus.focus) nextFocus.focus({preventScroll:true});
     }
     function stopTour(reason) {
       if (tourStatus==='idle'||tourStatus==='stopped') return;
