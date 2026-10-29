@@ -195,3 +195,11 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-topic-items li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:12px;overflow-wrap:anywhere}
 .mapa-topic-items li>span:last-child{color:var(--dim);flex:none}
 .mapa-topic-items li>span:first-child{min-width:0}
+/* Ventana de previo movible y redimensionable (ventana-previo.js). */
+.mapa-sim-player.is-movible .mapa-sim-head{cursor:grab;user-select:none;touch-action:none}
+.mapa-sim-player.is-moviendo .mapa-sim-head{cursor:grabbing}
+.mapa-sim-player.is-moviendo,.mapa-sim-player.is-redimensionando{box-shadow:0 14px 36px #0007;user-select:none}
+.mapa-sim-player.is-moviendo iframe,.mapa-sim-player.is-redimensionando iframe{pointer-events:none!important}
+.mapa-sim-grip{position:absolute;right:2px;bottom:2px;width:16px;height:16px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 50%,var(--dim) 50%,var(--dim) 58%,transparent 58%,transparent 70%,var(--dim) 70%,var(--dim) 78%,transparent 78%);opacity:.7}
+.mapa-sim-grip:hover{opacity:1}
+@media(max-width:600px){.mapa-sim-grip{display:none}.mapa-sim-player.is-movible .mapa-sim-head{cursor:auto}}
