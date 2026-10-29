@@ -733,5 +733,9 @@
     "Mapa en pruebas: muestra de hasta cinco piezas por tema de oficina, con títulos y tipos.",
     "Coincidencias orientativas de la consulta parcial; conserva la programación por tema y las zonas guardadas.",
     "Resumen en singular cuando la consulta sólo encuentra una pieza."
+  ],
+  "v.29.10.2026.r11.07:08": [
+    "Mapa: el recorrido conserva el foco del teclado al iniciar, pausar y detener, sin desplazar la página.",
+    "El editor indica con puntos suspensivos los títulos largos de la muestra de piezas."
   ]
 }
