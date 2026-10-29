@@ -739,3 +739,17 @@ test('un player precargado por Xperiencia: Luka solo cambia cuál se ve, sin rec
   assert.equal(frames().filter(f=>f.attributes['data-activo']==='1').length,1);
   ui.sim.stop();assert.equal(frames().length,0);
 });
+
+test('con el Stock, cada Xperiencia del simulador fija sus piezas y solo se recargan los players que cambian',async()=>{
+  let resolve;const stock=new Promise(r=>{resolve=r;});
+  const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L,stock});sim.start();ui.element('simulador-oficinas').click();
+  const before=Object.fromEntries(ui.element('simulador-video').children.map(f=>[f.attributes['data-xperiencia'],f]));
+  resolve([{id:'neg-1',type:'video',url:'u',tags:['negocio'],createdAt:'2026-10-28T10:00:00Z'},{id:'neg-2',type:'video',url:'u',tags:['negocio'],createdAt:'2026-10-27T10:00:00Z'}]);
+  await flush();
+  const after=Object.fromEntries(ui.element('simulador-video').children.map(f=>[f.attributes['data-xperiencia'],f]));
+  assert.equal(new URL(after.university.src).searchParams.get('ids'),'neg-1,neg-2');
+  assert.notEqual(after.university,before.university,'University se recarga una vez con sus piezas');
+  assert.equal(after.garage,before.garage,'el resto sigue reproduciendo sin recargar');
+  assert.equal(activeFrame(ui).attributes['data-xperiencia'],'pixeria');
+  sim.stop();
+});

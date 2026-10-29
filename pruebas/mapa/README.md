@@ -229,6 +229,14 @@ sesión de Google que el mapa (no hay enlaces firmados ni claves en la página).
   cuando Luka llega solo cambia cuál se ve, sin descargar nada en ese momento
   (`players-xperiencias.js`). El móvil enseña «players listos N/6». Mover un
   iframe lo recarga, así que nunca se reordenan: el visible lleva `data-activo="1"`.
+- **Tres piezas distintas por Xperiencia.** Admira University reproduce negocio,
+  Pixería creatividad y La Nave tecnología. La página lee una vez el Stock de
+  admira.studio (`api.admira.store/stock/list?limit=300`, el mismo grupo que usa el
+  canal) y cada Xperiencia fija las 3 piezas más recientes de su tema que sean de
+  familias distintas: las versiones de un mismo vídeo (16:9, 9:16, subtitulado)
+  comparten `par-<id>` o `externalRef` y cuentan una vez; primero las horizontales.
+  Van al canal de admira.tv con `?ids=` (admira-tv, parámetro nuevo); sin Stock, el
+  canal sigue con `tag` + `max=3`.
 - **Privacidad.** La posición no sale del dispositivo ni se guarda. A admira.tv solo
   le llega el tema y la pantalla virtual de la Xperiencia, nunca coordenadas.
   Antes cada visita estrenaba una pantalla `virtual-mapa-<uuid>` y admira.tv daba

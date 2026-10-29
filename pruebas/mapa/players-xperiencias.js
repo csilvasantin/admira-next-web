@@ -12,13 +12,67 @@
 (function (G, d) {
   'use strict';
   var PREFIX = 'virtual-mapa-xperiencia-';
+  // Same pool as the admira.tv channel (its INDEX): the picked pieces are always in its catalogue.
+  var STOCK = 'https://api.admira.store/stock/list?limit=300';
+  var PIECES = 3;
+  var ALIAS = {technology:'tecnologia',tech:'tecnologia',business:'negocio',creativity:'creatividad',music:'musica'};
 
   function screenFor(zone) {return PREFIX + zone.id;}
   function zonesOf(config) {return config.zones.concat([{id:'exterior',name:'',tag:config.outside.tag}]);}
+  function canon(tag) {
+    var t = String(tag || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+    return ALIAS[t] || t;
+  }
+  // Three DIFFERENT pieces per topic (Carlos, 29-oct-2026). An adaptation (16:9, 9:16, subtitled…)
+  // shares a par-<id> tag or its externalRef with the piece it comes from, so pieces that share any
+  // key form one family, even through a third version. Each family is represented by its newest
+  // landscape version (the player is a 16:9 screen); landscape families first, newest first.
+  function pickIds(items, tag, n) {
+    var want = canon(tag), byKey = new Map(), families = [];
+    var newest = function (a, b) {return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));};
+    (Array.isArray(items) ? items : []).filter(function (it) {
+      return it && typeof it.id === 'string' && /^[A-Za-z0-9-]{1,80}$/.test(it.id) && /^(video|animation|image)$/.test(it.type) &&
+        typeof it.url === 'string' && it.url && it.quality !== 'bad' && Array.isArray(it.tags) && it.tags.map(canon).indexOf(want) >= 0;
+    }).forEach(function (it) {
+      var keys = [it.id, it.externalRef].concat(it.tags.map(canon).filter(function (t) {return t.indexOf('par-') === 0;})
+        .map(function (t) {return t.slice(4);})).filter(Boolean);
+      var found = [];
+      keys.forEach(function (k) {var f = byKey.get(k);if (f && found.indexOf(f) < 0) found.push(f);});
+      var family = found[0] || {members:[]};
+      if (!found.length) families.push(family);
+      found.slice(1).forEach(function (other) {
+        other.members.forEach(function (m) {family.members.push(m);});
+        byKey.forEach(function (f, k) {if (f === other) byKey.set(k, family);});
+        families.splice(families.indexOf(other), 1);
+      });
+      family.members.push(it);
+      keys.forEach(function (k) {byKey.set(k, family);});
+    });
+    var reps = families.map(function (family) {
+      var members = family.members.slice().sort(newest);
+      var rep = members.filter(function (m) {return m.orientacion !== 'vertical';})[0] || members[0];
+      return {id:rep.id, createdAt:members[0].createdAt, wide:rep.orientacion !== 'vertical'};
+    }).sort(newest);
+    return reps.filter(function (r) {return r.wide;}).concat(reps.filter(function (r) {return !r.wide;}))
+      .map(function (r) {return r.id;}).slice(0, n || PIECES);
+  }
+  // One catalogue request per page. On failure there are no pinned pieces and each channel
+  // plays the newest pieces of its tag (max=3).
+  function loadStock(fetchImpl) {
+    return fetchImpl(STOCK, {method:'GET', credentials:'omit', cache:'no-store'}).then(function (response) {
+      if (!response.ok) throw new Error('stock');
+      return response.json();
+    }).then(function (data) {return Array.isArray(data && data.items) ? data.items : [];}).catch(function () {return [];});
+  }
 
   function create(options) {
-    var host = options.host, frames = new Map(), ready = new Set(), active = null;
-    function key(zone) {return zone.id + '|' + zone.tag;}
+    var host = options.host, frames = new Map(), ready = new Set(), active = null, stock = [], picks = new Map();
+    function idsFor(zone) {
+      var t = canon(zone.tag);
+      if (!picks.has(t)) picks.set(t, pickIds(stock, t));
+      return picks.get(t);
+    }
+    function key(zone) {return zone.id + '|' + zone.tag + '|' + idsFor(zone).join('+');}
     function hide(frame) {
       frame.setAttribute('data-activo','0');frame.setAttribute('aria-hidden','true');frame.setAttribute('tabindex','-1');
     }
@@ -32,7 +86,7 @@
       frame.setAttribute('data-xperiencia', zone.id);
       hide(frame);
       frame.title = options.title(zone);
-      frame.src = options.playerURL(zone, screenFor(zone));
+      frame.src = options.playerURL(zone, screenFor(zone), idsFor(zone));
       host.appendChild(frame);
       return frame;
     }
@@ -74,8 +128,11 @@
       if (typeof id === 'string' && id.length <= 160) frame.setAttribute('data-media-id', id);
       return frame;
     }
+    // A new catalogue changes the key of the players whose pieces change: those reload once.
+    function setStock(items) {stock = Array.isArray(items) ? items : [];picks.clear();}
     return {
-      sync:sync, show:show, clear:clear, frameFor:frameFor, markReady:markReady,
+      sync:sync, show:show, clear:clear, frameFor:frameFor, markReady:markReady, setStock:setStock,
+      pieces:function (zone) {return idsFor(zone).slice();},
       active:function () {return active;},
       isReady:function (frame) {return ready.has(frame);},
       size:function () {return frames.size;},
@@ -83,5 +140,5 @@
     };
   }
 
-  G.AdmiraMapaXperiencias = {create:create, screenFor:screenFor, prefix:PREFIX};
+  G.AdmiraMapaXperiencias = {create:create, screenFor:screenFor, prefix:PREFIX, pickIds:pickIds, loadStock:loadStock, stock:STOCK};
 })(window, document);
