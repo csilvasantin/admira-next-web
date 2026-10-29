@@ -7,10 +7,10 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Limpieza · AdmiraNeXT</title>
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
-  <link rel="stylesheet" href="/robot/limpieza/limpieza.css?v=20261029-limpieza-3">
+  <link rel="stylesheet" href="/robot/limpieza/limpieza.css?v=20261029-limpieza-4">
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
-  <script defer src="/robot/limpieza/idioma.js?v=20261029-limpieza-3"></script>
-  <script defer src="/robot/limpieza/limpieza.js?v=20261029-limpieza-3"></script>
+  <script defer src="/robot/limpieza/idioma.js?v=20261029-limpieza-4"></script>
+  <script defer src="/robot/limpieza/limpieza.js?v=20261029-limpieza-4"></script>
 </head>
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a></nav></header>
@@ -24,6 +24,7 @@
       <div class="limpieza-panel-head"><h2 id="limpieza-mapa-titulo">Mapa1 · vista 3D</h2></div>
       <figure class="limpieza-figura">
         <img id="limpieza-plano" class="limpieza-plano" src="/robot/limpieza/mapa1.jpg?v=20261029-limpieza-2" alt="Captura 3D de Mapa1 en la app Roborock" width="2320" height="1780">
+        <p id="limpieza-lidar" class="limpieza-capa">Capa de lidar: no disponible. La librería no entrega la nube de puntos y, sin claves, esta página no dibuja una capa.</p>
         <figcaption id="limpieza-pie">El disco que se ve dentro del plano es el de esa captura. No es una pose leída ahora, así que no se dibuja otro robot.</figcaption>
       </figure>
       <p id="limpieza-salas" class="limpieza-nota">La app nombró Cocina, Terraza y Pasillo. En esta captura 3D no se leen los nombres sobre el plano, así que no se marcan.</p>
@@ -46,7 +47,9 @@
       </div>
       <div id="limpieza-camara" class="limpieza-camara">
         <p id="limpieza-senal" class="limpieza-aviso" data-senal="no">Cámara no conectada</p>
+        <p id="limpieza-visor" class="limpieza-aviso">No hay visor de cámara. La librería nombra la vista previa y no trae el vídeo. Sin claves no hay imagen del robot.</p>
       </div>
+      <p id="limpieza-brazo" class="limpieza-nota">Brazo: la librería no trae una orden para moverlo. Esta página no envía ninguna.</p>
     </section>
   </div>
 </main>

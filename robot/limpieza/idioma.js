@@ -29,7 +29,10 @@
     'Sin conexión. Volver a la base no se ha enviado.': 'No connection. Return to dock was not sent.',
     'Estado leído: ': 'State read: ',
     '. Batería: ': '. Battery: ',
-    'RESPUESTA LEÍDA / SIN POSE': 'RESPONSE READ / NO POSE'
+    'RESPUESTA LEÍDA / SIN POSE': 'RESPONSE READ / NO POSE',
+    'Capa de lidar: no disponible. La librería no entrega la nube de puntos y, sin claves, esta página no dibuja una capa.': 'Lidar layer: not available. The library does not provide the point cloud and, without keys, this page does not draw a layer.',
+    'No hay visor de cámara. La librería nombra la vista previa y no trae el vídeo. Sin claves no hay imagen del robot.': 'There is no camera viewer. The library names the preview and does not include the video. Without keys there is no image from the robot.',
+    'Brazo: la librería no trae una orden para moverlo. Esta página no envía ninguna.': 'Arm: the library has no command to move it. This page does not send one.'
   });
   if (A.aplicar) A.aplicar();
 })(typeof window !== 'undefined' ? window : globalThis);

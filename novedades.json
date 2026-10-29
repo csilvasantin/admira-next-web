@@ -775,5 +775,10 @@
     "/robot/limpieza: dos botones grandes encima de la cámara, Salir y Volver a la base. Sin conexión el botón lo dice y no finge el movimiento.",
     "Con el puente de este Mac y las claves, Salir manda app_start y Volver a la base manda app_charge, y la página muestra el estado leído.",
     "Vuelta atrás: tag retorno/pre-salir-base-7273-20261029 (sello v.29.10.2026.r19.23:12)."
+  ],
+  "v.29.10.2026.r21.23:29": [
+    "/robot/limpieza dice que no hay capa de lidar ni visor de cámara: la librería no entrega la nube de puntos ni el vídeo.",
+    "El brazo no tiene orden en python-roborock 7.13.0. Sin claves no se lee el mapa ni una foto. El robot no se ha movido.",
+    "Vuelta atrás: tag retorno/pre-sensores-7273-20261029 (sello v.29.10.2026.r20.23:23)."
   ]
 }

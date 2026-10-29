@@ -152,6 +152,24 @@ test('una respuesta real enseña el estado leído y no lo traduce', async () => 
   assert.doesNotMatch(page.nodes['limpieza-base-estado'].textContent, /base|Yendo/);
 });
 
+test('lidar, cámara y brazo se declaran imposibles y no se inventan', () => {
+  const plano = html.indexOf('id="limpieza-plano"');
+  const lidar = html.indexOf('id="limpieza-lidar"');
+  const senal = html.indexOf('id="limpieza-senal"');
+  const visor = html.indexOf('id="limpieza-visor"');
+  const brazo = html.indexOf('id="limpieza-brazo"');
+  assert.ok(plano > 0 && lidar > plano);
+  assert.ok(senal > 0 && visor > senal && brazo > visor);
+  assert.match(html, /Capa de lidar: no disponible/);
+  assert.match(html, /No hay visor de cámara/);
+  assert.match(html, /Brazo: la librería no trae una orden para moverlo/);
+  assert.doesNotMatch(html, /<video|<canvas|getUserMedia/);
+  assert.doesNotMatch(pageCode, /getUserMedia|<video|nube de puntos/);
+  assert.match(idioma, /Capa de lidar: no disponible/);
+  assert.match(idioma, /No hay visor de cámara/);
+  assert.doesNotMatch(html, /Yendo a/);
+});
+
 test('una pose solo se muestra si viene marcada como conectada', () => {
   const api = load('es');
   const lied = api.create({connected: false, pose: {x: 1, y: 2}});
