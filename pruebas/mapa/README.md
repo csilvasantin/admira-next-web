@@ -272,3 +272,16 @@ sesión de Google que el mapa (no hay enlaces firmados ni claves en la página).
 
 Pruebas: `test/mapa-player.test.mjs` (API, validación, rev, CSRF, QR, player y Luka simulado) y el
 caso de publicación del editor en `test/mapa-simulador.test.mjs`.
+
+## Robot limpiador en lugar de Luka (29-oct-2026)
+
+Modo **Robot 🤖 0,3 m/s** en el simulador (`robot.js`). Con el modo activo, un clic en el mapa o en la barra de Xperiencias marca el destino; el robot conduce hasta allí, la vista de su cámara (simulada, con brazo articulado) muestra la pantalla de la Xperiencia creciendo al acercarse y el player cambia solo al entrar en la zona. El recorrido Demo también funciona a velocidad de robot.
+
+Interfaz para el Roborock real (driver): `goTo(point,{from})`, `stop()`, `onPose(fn)`, `onArrive(fn)`, `cameraURL()`. El driver `createRoborockDriver` habla con un puente HTTP en la red local:
+
+- `POST {base}/goto {x,y}` · coordenadas del plano del robot en mm (el puente llama a `app_goto_target`).
+- `POST {base}/stop`
+- `GET {base}/pose` → `{x,y,heading?,state}`
+- `GET {base}/camera.mjpg` (opcional; si no, cámara simulada).
+
+Se activa guardando en `localStorage['admiranext:mapa:robot']` `{"base":"https://…","pairs":[{"geo":{"lat":…,"lng":…},"robot":{"x":…,"y":…}},{…}],"mirror":true}`. Los dos pares calibran mapa ↔ plano (giro, escala y espejo). El puente debe servirse por HTTPS (p. ej. túnel) porque la página es HTTPS.
