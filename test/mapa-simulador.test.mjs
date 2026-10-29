@@ -9,6 +9,51 @@ const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags
 const flush = async () => {await new Promise(setImmediate);};
 const lukaFix=(extra={})=>({equipo:'luka',tipo:'smarttag2',nombre:'Luka',fuente:'smartthings-find',lat:41.4043,lon:2.1582,precision_m:10,ts:new Date().toISOString(),...extra});
 
+test('la explicación comparte ganador, prioridades y distancias a ambos lados del límite',()=>{
+  const {api}=mount(),config={zones:[{id:'alfa',name:'Alfa',tag:'retail',lat:0,lon:0,radius:100}],outside:{tag:'publicidad'}};
+  const north=metres=>({lat:metres/6371000*180/Math.PI,lng:0});
+  const inside=api.decisionFor(north(99.99),config),outside=api.decisionFor(north(100.01),config);
+  assert.equal(inside.zone.id,api.zoneFor(north(99.99),config).id);assert.equal(inside.priority,1);assert.ok(Math.abs(inside.margin-.01)<.00001);
+  assert.equal(outside.zone.id,'exterior');assert.ok(Math.abs(outside.nearest.metres-.01)<.00001);
+  config.zones.push({...config.zones[0],id:'beta',name:'Beta',radius:200});
+  const overlap=api.decisionFor(north(50),config);assert.equal(overlap.zone.id,'alfa');assert.equal(overlap.matches.length,2);
+  config.zones.reverse();assert.equal(api.decisionFor(north(50),config).zone.id,'beta');
+  assert.equal(api.decisionFor(north(250),config).nearest.zone.id,'beta');
+  assert.equal(api.decisionFor(north(50),{zones:[],outside:{tag:'retail'}}).nearest,null);
+  assert.equal(api.decisionFor({lat:NaN,lng:0},config),null);
+});
+
+test('el círculo de precisión debe quedar a un lado del límite para confirmar entrada o salida',()=>{
+  const {api}=mount(),config={zones:[{id:'alfa',name:'Alfa',tag:'retail',lat:0,lon:0,radius:100}],outside:{tag:'publicidad'}},now=Date.now();
+  const fix=metres=>lukaFix({lat:metres/6371000*180/Math.PI,lon:0,precision_m:10});
+  assert.equal(api.resolveReading(fix(89.99),config,now).status,'ready');
+  assert.equal(api.resolveReading(fix(90.01),config,now).status,'ambiguous');
+  assert.equal(api.resolveReading(fix(109.99),config,now).status,'ambiguous');
+  const exit=api.resolveReading(fix(110.01),config,now);assert.equal(exit.status,'ready');assert.equal(exit.zone.id,'exterior');
+});
+
+test('la vista previa anuncia destino durante el arrastre y aplica el player sólo al soltar',()=>{
+  const ui=mount(),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();const marker=ui.markers[0],first=ui.element('simulador-video').children[0];
+  marker.point={lat:41.389,lng:2.1645};marker.events.drag();
+  assert.match(ui.element('simulador-decision').textContent,/Al soltar: Eixample · Tecnología/);assert.equal(ui.element('simulador-decision').attributes['aria-live'],'off');
+  assert.equal(ui.element('simulador-zona').textContent,'Gràcia');assert.equal(ui.element('simulador-video').children[0],first);
+  sim.renderText();assert.match(ui.element('simulador-arrastre').textContent,/Suelta/);assert.match(ui.element('simulador-decision').textContent,/Al soltar/);
+  marker.events.dragend();const second=ui.element('simulador-video').children[0];assert.notEqual(second,first);assert.equal(ui.element('simulador-decision').attributes['aria-live'],'polite');
+  assert.match(ui.element('simulador-decision').textContent,/Dentro de Eixample/);assert.doesNotMatch(ui.element('simulador-decision').textContent,/Al soltar/);
+  sim.move({lat:41.38901,lng:2.1645});assert.equal(ui.element('simulador-video').children[0],second);
+  sim.move({lat:41.389+449.5/6371000*180/Math.PI,lng:2.1645});assert.equal(ui.element('simulador-video').children[0],second);assert.match(ui.element('simulador-decision').textContent,/menos de 1 m.*Cerca del límite/);
+  sim.move({lat:0,lng:0});assert.match(ui.element('simulador-decision').textContent,/Fuera de las zonas.*La más cercana/);
+  ui.document.documentElement.lang='en';sim.renderText();assert.match(ui.element('simulador-decision').textContent,/Outside the zones.*Nearest/);sim.stop();
+});
+
+test('una lectura real dudosa no muestra una oficina confirmada; repetir el mismo aviso fiable conserva el iframe',()=>{
+  const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');
+  const fix=lukaFix();sim.updateLuka(fix,false);const frame=ui.element('simulador-video').children[0];
+  assert.match(ui.element('simulador-decision').textContent,/Margen de precisión hasta el límite: 440 m/);
+  sim.updateLuka(fix,false);assert.equal(ui.element('simulador-video').children[0],frame);
+  sim.updateLuka({...fix,precision_m:500},false);assert.equal(ui.element('simulador-decision').hidden,true);assert.equal(ui.element('simulador-decision').textContent,'');assert.match(ui.element('simulador-lectura').textContent,/cruza un límite/);sim.stop();
+});
+
 test('las cinco oficinas tienen centros distintos, temas distintos y la misma selección manual y real',()=>{
   const ui=mount({editor:true}),config=ui.zonesApi.officePreset,now=Date.now();
   assert.ok(ui.zonesApi.validate(config));assert.equal(config.zones.length,5);
@@ -262,6 +307,7 @@ test('subir y bajar prioridad cambia el ganador de un solapamiento y conserva el
   assert.equal(ui.element('simulador-zona').textContent,'Gràcia');assert.equal(ui.element('simulador-bajar').disabled,true);
   const first=ui.element('simulador-video').children[0];ui.element('simulador-subir').click();
   assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.notEqual(ui.element('simulador-video').children[0],first);
+  assert.match(ui.element('simulador-decision').textContent,/Coinciden: Eixample, Gràcia. Gana Eixample por prioridad 1/);
   assert.equal(ui.element('simulador-zona-elegida').value,'eixample');assert.match(ui.element('simulador-prioridad').textContent,/Prioridad 1 de 2/);
   assert.deepEqual(ui.element('simulador-zonas').children.map(b=>b.id),['simulador-ir-eixample','simulador-ir-gracia','simulador-ir-exterior']);
   assert.deepEqual(ui.element('simulador-zona-elegida').children.map(o=>o.value),['eixample','gracia','exterior']);

@@ -29,6 +29,21 @@ y las zonas simuladas. El acceso sigue protegido por la sesión de `/pruebas`.
 La adquisición real desde Samsung permanece pendiente y es independiente de
 esta demostración.
 
+La explicación bajo las coordenadas indica por qué se elige la zona: estar
+dentro del círculo, ganar por prioridad en un solapamiento o estar fuera de
+todas las zonas. Muestra la distancia al límite o a la zona más cercana.
+Durante el arrastre aparece «Al soltar» con oficina y tema previstos; el player
+actual se conserva hasta soltar. La vista previa no hace avisos de lector de
+pantalla por cada movimiento. Al soltar se actualiza el resultado y sólo se
+reinicia el iframe si cambian la zona ganadora o su tema.
+
+Para una lectura real confirmada, la explicación descuenta la precisión de la
+distancia al límite: muestra el margen que queda para todo el círculo de
+precisión, no sólo para su centro. Una lectura dudosa no presenta la oficina
+del punto central como confirmada; conserva el motivo de espera. No se añaden
+confirmaciones por repetición: consultar varias veces el mismo aviso no cuenta
+como recibir mediciones nuevas y no reinicia una reproducción que sigue válida.
+
 ## Seguir Luka con las mismas reglas
 
 «Seguir Luka» utiliza Datos reales y consulta el feed privado cada 60 segundos.
