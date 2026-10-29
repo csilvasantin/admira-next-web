@@ -698,5 +698,10 @@
     "Mapa en pruebas: subir y bajar prioridad para decidir el contenido cuando las zonas de oficina se solapan.",
     "El orden se conserva en el selector, los accesos del mapa y al guardar, exportar e importar.",
     "Cambiar la prioridad conserva el player cuando la zona ganadora sigue siendo la misma."
+  ],
+  "v.29.10.2026.r4.01:59": [
+    "Mapa en pruebas: explica la oficina ganadora, los solapamientos y la distancia al límite.",
+    "Al arrastrar Luka anticipa la oficina y el contenido que se aplicarán al soltar.",
+    "La precisión real se descuenta del margen mostrado; moverse dentro de la misma zona conserva la reproducción."
   ]
 }
