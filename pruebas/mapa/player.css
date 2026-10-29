@@ -7,7 +7,9 @@ html,body{height:100%}
 body.mp{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
 .mp-player{position:fixed;inset:0;display:flex;flex-direction:column}
 .mp-pantalla{position:relative;flex:1;min-height:0;background:#000}
-.mp-pantalla iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+/* Un player precargado por Xperiencia: todos suenan, solo se ve el activo. */
+.mp-pantalla iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;opacity:0;pointer-events:none}
+.mp-pantalla iframe[data-activo="1"]{opacity:1;pointer-events:auto}
 .mp-barra{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:10px max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:var(--panel);border-top:1px solid var(--line)}
 .mp-zona-linea,.mp-estado-linea{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-width:0}
 .mp-zona-linea{flex:1 1 220px}

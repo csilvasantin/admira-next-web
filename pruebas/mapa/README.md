@@ -222,12 +222,17 @@ sesión de Google que el mapa (no hay enlaces firmados ni claves en la página).
   gana cuando todo el círculo de precisión cae dentro; si la lectura es ambigua,
   vieja (más de 5 min) o sin precisión, sigue sonando lo que ya suena. Antes del
   primer GPS suena el tema de «fuera de las zonas».
+- **Un player precargado por Xperiencia.** Cada oficina (y «fuera de las zonas»)
+  tiene su propio canal de admira.tv con su pantalla virtual fija
+  (`virtual-mapa-xperiencia-<zona>`) y su tema, que es su playlist. Los seis se
+  cargan al abrir la página y siguen reproduciendo en silencio aunque no se vean;
+  cuando Luka llega solo cambia cuál se ve, sin descargar nada en ese momento
+  (`players-xperiencias.js`). El móvil enseña «players listos N/6». Mover un
+  iframe lo recarga, así que nunca se reordenan: el visible lleva `data-activo="1"`.
 - **Privacidad.** La posición no sale del dispositivo ni se guarda. A admira.tv solo
-  le llega el tema y una identidad estable de ese navegador
-  (`virtual-mapa-movil-<uuid>`, en `localStorage`).
-- **Identidad estable.** El simulador también conserva ya su identidad
-  (`virtual-mapa-<uuid>`). Antes estrenaba una por visita y admira.tv daba de alta
-  un proyecto `virtual-mapa-…` en el censo de Yokup en cada sesión (31 a 29-oct).
+  le llega el tema y la pantalla virtual de la Xperiencia, nunca coordenadas.
+  Antes cada visita estrenaba una pantalla `virtual-mapa-<uuid>` y admira.tv daba
+  de alta un proyecto en el censo de Yokup por sesión; ahora son seis fijas.
 - **Pantalla.** Pide mantener la pantalla encendida (Wake Lock) y, donde el
   navegador lo permite, pantalla completa. Al ocultar la página el GPS se pausa y
   vuelve solo al regresar; «Detener» lo apaga.

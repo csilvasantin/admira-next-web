@@ -7,7 +7,8 @@
  * contenido que ya suena. Las zonas son las publicadas desde el editor del mapa
  * (/api/ubicacion/zonas); sin ellas, las cinco oficinas de ejemplo.
  *
- * A admira.tv solo le llega el tema y una identidad estable de este navegador.
+ * A admira.tv solo le llega el tema y la pantalla virtual de cada Xperiencia
+ * (virtual-mapa-xperiencia-<zona>), con un player precargado por oficina.
  * La posición no sale del dispositivo ni se guarda.
  */
 (function (G, d) {
@@ -27,30 +28,21 @@
     var byId = function (id) {return d.getElementById(id);};
     var T = function (es,en) {return /^en/i.test(d.documentElement.lang || '') ? en : es;};
     var now = options.now || function () {return Date.now();};
-    var identity = S.stableIdentity('movil');
     var config = Z.officePreset, origin = 'example', rev = 0, zonesState = 'loading';
-    var zone = null, frame = null, frameURL = '', started = false, gps = {status:'off'}, lastPosition = null, since = null, lock = null;
+    var zone = null, frameURL = '', started = false, gps = {status:'off'}, lastPosition = null, since = null, lock = null;
     // mode: 'gps' follows this phone; 'luka' follows the Luka moved in the map simulator.
     var mode = 'gps', luka = null, lukaState = 'waiting', lukaTimer = null, polling = false;
     var device = G.AdmiraMapaUbicacionDispositivo.create({onChange:onLocation});
 
+    // One preloaded admira.tv player per Xperiencia (players-xperiencias.js), loaded with the page.
+    var bank = G.AdmiraMapaXperiencias.create({host:byId('mp-pantalla'), playerURL:S.playerURL, title:function (z) {return 'admira.tv · ' + Z.themeName(z.tag, T);}});
+    bank.sync(config);
+
     function show(next) {
       if (!sameZone(zone, next)) since = now();
       zone = next;
-      var url = S.playerURL(next, identity);
-      if (url !== frameURL) {
-        frameURL = url;
-        if (!frame) {
-          frame = d.createElement('iframe');
-          frame.setAttribute('allow','autoplay; fullscreen; geolocation \'none\'; camera \'none\'; microphone \'none\'');
-          frame.setAttribute('sandbox','allow-scripts allow-same-origin');
-          frame.setAttribute('referrerpolicy','no-referrer');
-          frame.setAttribute('allowfullscreen','');
-          byId('mp-pantalla').replaceChildren(frame);
-        }
-        frame.title = 'admira.tv · ' + Z.themeName(next.tag, T);
-        frame.src = url;
-      }
+      bank.sync(config);
+      frameURL = bank.show(next).src;
       render();
     }
     function apply() {
@@ -91,7 +83,7 @@
         var valid = data.zonas && Z.validate(data.zonas);
         zonesState = 'ok';
         if (valid && (origin !== 'published' || data.rev !== rev)) {
-          config = valid;origin = 'published';rev = data.rev;
+          config = valid;origin = 'published';rev = data.rev;bank.sync(config);
           // A zone edited or removed on the desk applies here on the next reading.
           if (zone) zone = config.zones.find(function (z) {return z.id === zone.id;}) || exterior(config);
           return apply();
@@ -165,6 +157,7 @@
       byId('mp-zonas').textContent = origin === 'published'
         ? T('Zonas publicadas · rev ','Published zones · rev ') + rev + ' · ' + config.zones.length
         : (zonesState === 'session' ? T('Sin sesión: ','Not signed in: ') : zonesState === 'error' ? T('Sin conexión con el mapa: ','Map unreachable: ') : '') + T('zonas de ejemplo (cinco oficinas)','example zones (five offices)');
+      byId('mp-zonas').textContent += T(' · players listos ',' · players ready ') + bank.readyCount() + '/' + bank.size();
       byId('mp-encendida').hidden = !lock;
       byId('mp-inicio').hidden = started;
       byId('mp-detener').hidden = !started;
@@ -183,6 +176,11 @@
     byId('mp-empezar-luka').addEventListener('click', function () {start('luka');});
     byId('mp-fuente').addEventListener('click', function () {if (started) follow(mode === 'luka' ? 'gps' : 'luka');});
     byId('mp-detener').addEventListener('click', stop);
+    G.addEventListener('message', function (event) {
+      var data = event.data;
+      if (event.origin !== 'https://admira.tv' || !data || data.source !== 'admira-tv-canal' || data.event !== 'media-state' || !data.id) return;
+      if (bank.markReady(event.source, data.id)) render();
+    });
     d.addEventListener('visibilitychange', function () {
       // The location module pauses itself while hidden; resume what the user started.
       if (d.hidden || !started) return;
@@ -190,7 +188,7 @@
       keepAwake();
     });
     render();
-    return {start:start,stop:stop,follow:follow,pollLuka:pollLuka,loadZones:loadZones,state:function () {return {zone:zone,gps:gps,mode:mode,luka:luka,lukaState:lukaState,origin:origin,rev:rev,frameURL:frameURL,identity:identity,started:started,zonesState:zonesState,awake:!!lock};}};
+    return {start:start,stop:stop,follow:follow,pollLuka:pollLuka,loadZones:loadZones,state:function () {return {zone:zone,gps:gps,mode:mode,luka:luka,lukaState:lukaState,origin:origin,rev:rev,frameURL:frameURL,players:bank.size(),ready:bank.readyCount(),started:started,zonesState:zonesState,awake:!!lock};}};
   }
 
   G.AdmiraMapaPlayer = {create:create,decide:decide};
