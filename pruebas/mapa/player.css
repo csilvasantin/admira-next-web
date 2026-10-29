@@ -30,3 +30,4 @@ body.mp{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-ap
 .mp-inicio p{margin:0;color:var(--dim);font-size:15px;line-height:1.6}
 .mp .mp-empezar{justify-content:center;min-height:56px;font-size:16px;color:#06201c;background:var(--cyan);border-color:var(--cyan);border-radius:12px}
 .mp-inicio .mp-nota{font-size:12px}
+.mp .mp-empezar-luka{justify-content:center;min-height:52px;font-size:15px;color:var(--cyan);border-color:var(--cyan);border-radius:12px}

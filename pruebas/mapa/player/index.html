@@ -9,11 +9,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="admiranext-version" content="AdmiraNeXT v.29.10.2026.r12.12:27">
   <title>Player por ubicación · AdmiraNeXT</title>
-  <link rel="stylesheet" href="/pruebas/mapa/player.css?v=20261029-player-1">
-  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-player-1"></script>
+  <link rel="stylesheet" href="/pruebas/mapa/player.css?v=20261029-luka-1">
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-luka-1"></script>
   <script defer src="/pruebas/mapa/ubicacion-dispositivo.js?v=20261029-dispositivo-1"></script>
-  <script defer src="/pruebas/mapa/simulador.js?v=20261029-player-1"></script>
-  <script defer src="/pruebas/mapa/player.js?v=20261029-player-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261029-luka-1"></script>
+  <script defer src="/pruebas/mapa/player.js?v=20261029-luka-1"></script>
 </head>
 <body class="mp">
 <main class="mp-player">
@@ -22,6 +22,7 @@
     <div class="mp-zona-linea"><strong id="mp-zona">—</strong><span id="mp-tema" class="mp-tema"></span><span id="mp-desde" class="mp-desde"></span></div>
     <div class="mp-estado-linea"><span id="mp-gps" class="mp-gps" data-tono="off">GPS apagado</span><span id="mp-encendida" class="mp-encendida" hidden>Pantalla encendida</span><span id="mp-zonas" class="mp-zonas">Cargando zonas…</span></div>
     <div class="mp-acciones">
+      <button type="button" id="mp-fuente" hidden>Seguir a Luka</button>
       <button type="button" id="mp-detener" hidden>Detener</button>
       <button type="button" id="mp-completa" hidden aria-label="Pantalla completa">⛶</button>
       <a href="/pruebas/mapa/" id="mp-mapa" class="mp-mapa">Mapa</a>
@@ -31,7 +32,9 @@
     <p class="mp-eyebrow">AdmiraNeXT · Pruebas</p>
     <h1 id="mp-titulo">Player por ubicación</h1>
     <p id="mp-intro">El contenido cambia según la zona en la que esté este móvil. Camina entre las zonas y mira cómo cambia.</p>
-    <button type="button" id="mp-empezar" class="mp-empezar">Empezar</button>
+    <button type="button" id="mp-empezar" class="mp-empezar">Empezar con el GPS del móvil</button>
+    <button type="button" id="mp-empezar-luka" class="mp-empezar-luka">Seguir a Luka del mapa</button>
+    <p id="mp-luka-nota" class="mp-nota">Con «Seguir a Luka», el contenido cambia cuando alguien mueve a Luka en el simulador del mapa con «Mover también el móvil». No usa el GPS.</p>
     <p id="mp-nota" class="mp-nota">Usa el GPS de este dispositivo solo mientras la página está abierta. La posición no se guarda ni se envía: a admira.tv solo le llega el tema de la zona.</p>
   </section>
 </main>

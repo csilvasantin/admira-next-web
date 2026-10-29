@@ -8,6 +8,8 @@ import {onRequestGet, onRequestPut, onRequestPost} from '../functions/api/ubicac
 import {onRequestGet as qrGet} from '../functions/api/ubicacion/player-qr.js';
 import {asegurarDirectorio, cookieDeSesion} from '../functions/_webmaster-gate.js';
 import {validarZonas, guardarZonas, leerZonas, CLAVE_ZONAS} from '../functions/_mapa-zonas.js';
+import {onRequestGet as simGet, onRequestPut as simPut} from '../functions/api/ubicacion/simulacion.js';
+import {validarSimulacion, guardarSimulacion, leerSimulacion, CADUCA_SIMULACION_MS} from '../functions/_mapa-simulacion.js';
 
 const URL_ZONAS = 'https://www.admiranext.com/api/ubicacion/zonas';
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
@@ -116,7 +118,7 @@ test('el QR del player exige sesión y solo codifica la página del player', asy
 });
 
 // ── Player del móvil (navegador simulado) ──────────────────────────────────────
-function mountPlayer({storage = new Map(), zonesResponse = {status:401, body:{ok:false}}} = {}) {
+function mountPlayer({storage = new Map(), zonesResponse = {status:401, body:{ok:false}}, simResponse = {status:200, body:{ok:true, luka:null}}} = {}) {
   const elements = new Map(), requests = [], docEvents = {};
   let clock = Date.now();
   const geo = {watchPosition(success, error){this.success = success;this.error = error;return 3;}, clearWatch(){}};
@@ -129,14 +131,14 @@ function mountPlayer({storage = new Map(), zonesResponse = {status:401, body:{ok
   const context = vm.createContext({document, URL, console, Date:Clock, isSecureContext:true, navigator:{geolocation:geo},
     localStorage:{getItem:k => storage.get(k) ?? null, setItem:(k, v) => storage.set(k, v)},
     crypto:{randomUUID:() => 'aaaaaaaa-bbbb-cccc-dddd-' + String(storage.size).padStart(12, '0')},
-    fetch:async (url, options) => {requests.push({url, options});return {ok:zonesResponse.status === 200, status:zonesResponse.status, json:async () => zonesResponse.body};},
+    fetch:async (url, options) => {requests.push({url, options});const r = url === '/api/ubicacion/simulacion' ? (typeof simResponse === 'function' ? simResponse() : simResponse) : zonesResponse;return {ok:r.status === 200, status:r.status, json:async () => r.body};},
     addEventListener(){}, setInterval:() => 1, clearInterval(){}, setTimeout, clearTimeout});
   context.window = context;
   for (const code of [editorCode, browserCode, simCode, playerCode]) vm.runInContext(code, context);
   const player = context.AdmiraMapaPlayer.create({now:() => clock});
   // Each reading is a new measurement: the location module drops repeated timestamps.
   const fix = (lat, lon, accuracy = 5) => {clock += 1000;geo.success({timestamp:clock, coords:{latitude:lat, longitude:lon, accuracy}});};
-  return {player, element, requests, storage, fix, geo, advance:ms => {clock += ms;}, api:context};
+  return {player, element, requests, storage, fix, geo, advance:ms => {clock += ms;}, now:() => clock, api:context};
 }
 const PIXERIA = [41.40300208, 2.15095625], NAVE = [41.40134534, 2.1558339];
 const tagOf = ui => new URL(ui.player.state().frameURL).searchParams.get('tag');
@@ -204,4 +206,88 @@ test('Detener apaga el GPS y vuelve a la portada sin borrar el contenido', () =>
   assert.equal(ui.player.state().started, false);assert.equal(ui.element('mp-inicio').hidden, false);assert.equal(ui.element('mp-gps').textContent, 'GPS apagado');
   ui.fix(...NAVE);
   assert.equal(tagOf(ui), 'creatividad', 'tras detener, las lecturas tardías no mueven el player');
+});
+
+// ── Luka simulado: del simulador del mapa al player del móvil ─────────────────
+const SIM_URL = 'https://www.admiranext.com/api/ubicacion/simulacion';
+const simReq = (cookie, body, {csrf, origin='https://www.admiranext.com'}={}) => new Request(SIM_URL, {method:'PUT', headers:{cookie, origin, 'content-type':'application/json', ...(csrf ? {'x-admira-csrf':csrf} : {})}, body:typeof body === 'string' ? body : JSON.stringify(body)});
+const SNEAKER = [41.40347899, 2.15370648];
+
+test('la simulación de Luka exige sesión, rol y CSRF, y solo admite a Luka con coordenadas', async () => {
+  const {env, cookie, role} = await setup();
+  assert.equal((await simGet({request:new Request(SIM_URL), env})).status, 401);
+  const first = await (await simGet({request:new Request(SIM_URL, {headers:{cookie}}), env})).json();
+  assert.equal(first.luka, null);assert.equal(first.simulacion, true);assert.equal(typeof first.csrf, 'string');
+  const csrf = first.csrf;
+  assert.equal((await simPut({request:simReq(cookie, {equipo:'luka', lat:SNEAKER[0], lon:SNEAKER[1]}), env})).status, 403, 'sin CSRF');
+  assert.equal((await simPut({request:simReq(cookie, {equipo:'luka', lat:SNEAKER[0], lon:SNEAKER[1]}, {csrf, origin:'https://evil.example'}), env})).status, 403);
+  for (const bad of [{equipo:'iphone-carlos', lat:41, lon:2}, {equipo:'luka', lat:'41', lon:2}, {equipo:'luka', lat:91, lon:2}, {equipo:'luka', lat:41, lon:2, precision_m:3}, [1]]) {
+    assert.equal((await simPut({request:simReq(cookie, bad, {csrf}), env})).status, 400, JSON.stringify(bad));
+  }
+  assert.equal((await simPut({request:simReq(cookie, 'x'.repeat(600), {csrf}), env})).status, 413);
+  const ok = await (await simPut({request:simReq(cookie, {equipo:'luka', lat:SNEAKER[0], lon:SNEAKER[1]}, {csrf}), env})).json();
+  assert.equal(ok.ok, true);assert.equal(ok.luka.lat, SNEAKER[0]);
+  const read = await (await simGet({request:new Request(SIM_URL, {headers:{cookie}}), env})).json();
+  assert.deepEqual([read.luka.lat, read.luka.lon], SNEAKER, 'D1 lo devuelve en la lectura siguiente');
+  assert.equal(env.UBICACIONES.entries.size, 0, 'no entra en el histórico real de ubicaciones');
+  role('viewer');
+  assert.equal((await simPut({request:simReq(cookie, {equipo:'luka', lat:41, lon:2}, {csrf}), env})).status, 403);
+  const viewer = await (await simGet({request:new Request(SIM_URL, {headers:{cookie}}), env})).json();
+  assert.equal(viewer.puede_publicar, false);assert.equal('csrf' in viewer, false);assert.ok(viewer.luka, 'un viewer la sigue desde el móvil');
+});
+
+test('la posición simulada caduca a las dos horas y se sobrescribe en una sola fila', async () => {
+  const {env} = await setup();
+  assert.equal(validarSimulacion({equipo:'luka', lat:41, lon:2, ts:1}), null);
+  await guardarSimulacion(env.AUTH_DB, {equipo:'luka', lat:41.1, lon:2.1}, 'a@admira.com', 1000);
+  await guardarSimulacion(env.AUTH_DB, {equipo:'luka', lat:41.2, lon:2.2}, 'a@admira.com', 2000);
+  assert.equal((await leerSimulacion(env.AUTH_DB, 'luka', 3000)).lat, 41.2);
+  assert.equal(env.AUTH_DB.prepare('SELECT COUNT(*) AS n FROM mapa_simulacion').first().n, 1);
+  assert.equal(await leerSimulacion(env.AUTH_DB, 'luka', 2000 + CADUCA_SIMULACION_MS + 1), null);
+});
+
+test('«Seguir a Luka» no pide GPS y cambia el contenido cuando Luka se mueve en el mapa', async () => {
+  let luka = null;
+  const ui = mountPlayer({simResponse:() => ({status:200, body:{ok:true, luka}})});
+  ui.element('mp-empezar-luka').click();await new Promise(setImmediate);
+  assert.equal(ui.geo.success, undefined, 'no se pide la ubicación del teléfono');
+  assert.equal(ui.player.state().mode, 'luka');assert.equal(tagOf(ui), 'publicidad');
+  assert.match(ui.element('mp-gps').textContent, /Esperando a Luka/);
+  luka = {equipo:'luka', lat:SNEAKER[0], lon:SNEAKER[1], ts:new Date(ui.now() - 4000).toISOString()};
+  await ui.player.pollLuka();
+  assert.equal(tagOf(ui), 'retail');assert.equal(ui.element('mp-zona').textContent, 'Sneaker Store');
+  assert.match(ui.element('mp-gps').textContent, /Luka del simulador · movido hace 4 s/);
+  assert.equal(ui.element('mp-gps').attributes['data-tono'], 'ok');
+  luka = {...luka, lat:NAVE[0], lon:NAVE[1]};
+  await ui.player.pollLuka();
+  assert.equal(tagOf(ui), 'emprendimiento');
+  assert.ok(ui.requests.every(r => !r.options.method || r.options.method === 'GET'), 'el móvil solo lee');
+  assert.equal(ui.element('mp-fuente').textContent, 'Usar GPS');
+  ui.element('mp-fuente').click();
+  assert.equal(ui.player.state().mode, 'gps');assert.equal(typeof ui.geo.success, 'function');
+  ui.fix(...PIXERIA);assert.equal(tagOf(ui), 'creatividad');
+});
+
+test('el interruptor del mapa no hace peticiones apagado y, encendido, envía solo el último Luka con CSRF', async () => {
+  const requests = [], elements = new Map();
+  const node = () => ({textContent:'', attributes:{}, listeners:{}, setAttribute(k, v){this.attributes[k] = v;}, addEventListener(k, fn){this.listeners[k] = fn;}, click(){return this.listeners.click?.();}});
+  const document = {documentElement:{lang:'es'}, getElementById:id => {if (!elements.has(id)) elements.set(id, node());return elements.get(id);}, addEventListener(){}};
+  const context = vm.createContext({document, console, Date, fetch:async (url, options = {}) => {requests.push({url, options});
+    return options.method === 'PUT' ? {ok:true, status:200, json:async () => ({ok:true})} : {ok:true, status:200, json:async () => ({ok:true, puede_publicar:true, csrf:'csrf-fixture', luka:null})};}});
+  context.window = context;
+  vm.runInContext(await read('../pruebas/mapa/luka-remoto.js'), context);
+  const remote = context.AdmiraMapaLukaRemoto.create();
+  remote.publish({lat:1, lng:2});
+  assert.equal(requests.length, 0, 'apagado no sale nada');
+  document.getElementById('simulador-remoto').click();
+  await new Promise(setImmediate);await new Promise(setImmediate);
+  const put = requests.find(r => r.options.method === 'PUT');
+  assert.deepEqual(JSON.parse(put.options.body), {equipo:'luka', lat:1, lon:2}, 'al encender manda el último Luka');
+  assert.equal(put.options.headers['X-Admira-CSRF'], 'csrf-fixture');
+  remote.publish({lat:3, lng:4});remote.publish({lat:5, lng:6});
+  await new Promise(setImmediate);await new Promise(setImmediate);
+  const puts = requests.filter(r => r.options.method === 'PUT').map(r => JSON.parse(r.options.body).lat);
+  assert.equal(puts.at(-1), 5);assert.ok(puts.length <= 3);
+  assert.match(document.getElementById('simulador-remoto-estado').textContent, /Luka enviado al móvil/);
+  assert.equal(document.getElementById('simulador-remoto').attributes['aria-pressed'], 'true');
 });
