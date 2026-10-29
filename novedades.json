@@ -718,5 +718,10 @@
     "Mapa en pruebas: historial local de cambios de oficina, contenido y estados de espera.",
     "Muestra hora, fuente y motivo; conserva sólo los últimos 20 cambios de esta página, sin coordenadas.",
     "Las lecturas repetidas y el movimiento dentro de una misma oficina no duplican filas ni reinician el player."
+  ],
+  "v.29.10.2026.r8.05:05": [
+    "Mapa en pruebas: recorrido Demo opcional por las zonas configuradas, con progreso, pausa y parada.",
+    "Visita cada centro durante 12 segundos y aplica la misma prioridad y contenido que el arrastre manual.",
+    "Editar, importar, arrastrar, cambiar de fuente u ocultar la página detiene el recorrido; recargar nunca lo reinicia."
   ]
 }
