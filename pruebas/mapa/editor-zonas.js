@@ -203,7 +203,7 @@
       finally {clearTimeout(timeout);catalogRequest=null;renderText();}
     }
     byId('simulador-editar').addEventListener('click',function () {
-      opened=!opened;byId('simulador-editor').hidden=!opened;byId('simulador-editar').setAttribute('aria-expanded',String(opened));
+      opened=!opened;if (options.onInteraction) options.onInteraction();byId('simulador-editor').hidden=!opened;byId('simulador-editar').setAttribute('aria-expanded',String(opened));
       drawShapes();drawHandles();renderText();if (opened&&catalogState==='idle') loadCatalog();
     });
     byId('simulador-zona-elegida').addEventListener('change',function (event) {
@@ -279,10 +279,10 @@
       } catch (_) {transferState='downloadError';}
       finally {if (link) link.remove();if (url) setTimeout(function () {G.URL.revokeObjectURL(url);},1000);renderText();}
     });
-    byId('simulador-importar').addEventListener('click',function () {if (!importBusy) byId('simulador-archivo').click();});
+    byId('simulador-importar').addEventListener('click',function () {if (!importBusy) {if (options.onInteraction) options.onInteraction();byId('simulador-archivo').click();}});
     byId('simulador-archivo').addEventListener('change',async function (event) {
       var file=event.target.files && event.target.files[0];event.target.value='';if (!file) return;
-      var ticket=++importTicket;importBusy=true;transferState='reading';renderText();
+      var ticket=++importTicket;importBusy=true;transferState='reading';if (options.onInteraction) options.onInteraction();renderText();
       try {
         if (!Number.isFinite(file.size)||file.size>MAX_FILE_BYTES||file.size<1) throw new Error(file.size>MAX_FILE_BYTES?'archivo_demasiado_grande':'archivo_invalido');
         var text;
@@ -294,11 +294,11 @@
         if (next.zones[0]) map.panTo([next.zones[0].lat,next.zones[0].lon],{animate:false});
       } catch (error) {
         if (ticket===importTicket&&active) transferState=error.message==='archivo_demasiado_grande'?'large':error.message==='lectura_fallida'?'readError':'invalid';
-      } finally {if (ticket===importTicket) {importBusy=false;renderText();}}
+      } finally {if (ticket===importTicket) {importBusy=false;if (options.onInteraction) options.onInteraction();renderText();}}
     });
     byId('simulador-catalogo').addEventListener('click',loadCatalog);
     return {
-      getConfig:function () {return copy(config);},label:label,renderText:renderText,
+      getConfig:function () {return copy(config);},isEditing:function () {return active&&(opened||importBusy);},label:label,renderText:renderText,
       activate:function (parent,getPosition) {active=true;position=getPosition;shapes=L.layerGroup().addTo(parent);handles=L.layerGroup().addTo(parent);drawShapes();drawHandles();renderText();},
       deactivate:function () {active=false;opened=false;importTicket++;importBusy=false;if (transferState==='reading') transferState='idle';if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
     };

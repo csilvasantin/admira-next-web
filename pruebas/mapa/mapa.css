@@ -163,3 +163,8 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-history time{font-variant-numeric:tabular-nums}
 .mapa-history li strong{font-size:13px}
 .mapa-history li p{margin:5px 0 0;font-size:12px;line-height:1.6;color:var(--dim)}
+
+.mapa-tour{margin:14px 0;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mapa-tour .mapa-zone-actions{margin:0 0 10px}
+#simulador-recorrido-estado{color:var(--ink)}
+.mapa-tour button[hidden]{display:none!important}
