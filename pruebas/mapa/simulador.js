@@ -87,8 +87,11 @@
     var history=[], lastHistoryKey='', lastHistoryState=null, historyOpen=false;
     var tourStatus='idle',tourStops=[],tourIndex=-1,tourTimer=null,tourTicket=0,tourDue=0,tourRemaining=12000,tourReason='',tourLoop=false,tourLap=0,tourMode='salto',walk=null;
     // Velocidad de Luka entre Xperiencias (m/s): perro paseando y trotando. 'salto' llega al instante.
-    var SPEEDS={paseo:1.5,trote:4},WALK_TICK=250,speedMult=1,trail=null,chips=new Map();
+    var SPEEDS={paseo:1.5,trote:4,robot:0.3},WALK_TICK=250,speedMult=1,trail=null,chips=new Map();
     var rutas=G.AdmiraMapaRutas||null;
+    // Robot limpiador (robot.js): en modo robot, clic o Xperiencia le marcan destino y él conduce.
+    function robotOn() {return tourMode==='robot'&&!!options.robot&&!touring();}
+    function markerLabel() {return tourMode==='robot'?'🤖 Robot':'Luka · manual';}
     function speed() {return (SPEEDS[tourMode]||SPEEDS.paseo)*speedMult;}
     function stopPoints() {return tourStops.map(function (stop) {return {lat:stop.lat,lng:stop.lon};});}
     var browserSource=G.AdmiraMapaUbicacionDispositivo?G.AdmiraMapaUbicacionDispositivo.create({onChange:function (state) {if (state.status==='stopped') {if (active&&source==='browser') stop();}else updateBrowser(state);}}):null;
@@ -117,7 +120,7 @@
       byId('simulador-velocidad-valor').textContent='×'+speedMult;
       var progress=byId('simulador-progreso');progress.hidden=!walk;progress.value=walk&&walk.dist?Math.round(100*walk.done/walk.dist):0;
       if (walk) progress.setAttribute('aria-label',T('Camino a ','Walking to ')+walk.to.name);
-      [['salto',T('Saltar','Jump')],['paseo',T('Paseo 🐕 1,5 m/s','Walk 🐕 1.5 m/s')],['trote',T('Trote 🐕 4 m/s','Trot 🐕 4 m/s')]].forEach(function (m) {
+      [['salto',T('Saltar','Jump')],['paseo',T('Paseo 🐕 1,5 m/s','Walk 🐕 1.5 m/s')],['trote',T('Trote 🐕 4 m/s','Trot 🐕 4 m/s')],['robot',T('Robot 🤖 0,3 m/s','Robot 🤖 0.3 m/s')]].forEach(function (m) {
         var b=byId('simulador-modo-'+m[0]);b.textContent=m[1];b.setAttribute('aria-pressed',String(tourMode===m[0]));b.disabled=!available;
       });
       byId('simulador-recorrido-detener').hidden=!available||!touring();
@@ -125,7 +128,7 @@
       var text=!available?T('Disponible en Simular player.','Available in Simulate player.'):editing?T('Termina la edición para iniciar un recorrido.','Finish editing before starting a tour.'):!config().zones.length?T('Añade una zona para iniciar el recorrido.','Add a zone to start the tour.'):tourStatus==='idle'?T('Recorrido preparado; se inicia sólo al pulsar el botón.','Tour ready; starts only when you press the button.'):tourStatus==='stopped'?T('Recorrido detenido.','Tour stopped.'):tourStatus==='complete'?T('Recorrido completado.','Tour completed.'):tourStatus==='paused'?T('Recorrido en pausa.','Tour paused.'):T('Recorrido Demo en marcha.','Demo tour running.');
       if (target && tourStatus!=='idle'&&tourStatus!=='stopped') {
         text+=' '+(tourIndex+1)+' / '+tourStops.length+' · '+target.name+'.';
-        if (walk) text+=' '+T('Luka camina hacia ','Luka walking to ')+walk.to.name+' · '+Math.max(0,Math.round(walk.dist-walk.done))+' m '+T('restantes','left')+' · '+String(SPEEDS[tourMode]||SPEEDS.paseo).replace('.',T(',','.'))+' m/s'+(speedMult>1?' ×'+speedMult:'')+(walk.street?' · '+T('por la calle','along the street'):'')+'.';
+        if (walk) text+=' '+(tourMode==='robot'?T('El robot va hacia ','Robot heading to '):T('Luka camina hacia ','Luka walking to '))+walk.to.name+' · '+Math.max(0,Math.round(walk.dist-walk.done))+' m '+T('restantes','left')+' · '+String(SPEEDS[tourMode]||SPEEDS.paseo).replace('.',T(',','.'))+' m/s'+(speedMult>1?' ×'+speedMult:'')+(walk.street?' · '+T('por la calle','along the street'):'')+'.';
         if (current&&current.id!==target.id) text+=' '+T('Gana ','Winner: ')+zoneName(current)+T(' por prioridad.',' by priority.');
       }
       var reasons={manual:T('Movimiento manual.','Manual movement.'),config:T('Edición o importación de zonas.','Zone editing or import.'),hidden:T('La página ha quedado oculta.','The page was hidden.'),source:T('Cambio o cierre del modo.','Mode changed or closed.'),user:T('Parada solicitada.','Stopped by user.')};
@@ -208,6 +211,7 @@
       var zone=config().zones.find(function (z) {return z.id===id;});
       if (!zone) return;
       var index=touring()?tourStops.findIndex(function (stop) {return stop.id===id;}):-1;
+      if (index<0&&robotOn()) {options.robot.goTo({lat:zone.lat,lng:zone.lon},zone.name);return;}
       if (index<0) {move({lat:zone.lat,lng:zone.lon},true);return;}
       // En recorrido, Luka va (saltando o paseando) a la Xperiencia elegida y sigue desde ahí.
       clearTimeout(tourTimer);tourTimer=null;++tourTicket;walk=null;tourStatus='running';
@@ -219,6 +223,8 @@
     function setTourMode(mode) {
       if (!SPEEDS[mode]&&mode!=='salto') return;
       tourMode=mode;
+      if (marker&&marker.setIcon) marker.setIcon(L.divIcon({className:'mapa-sim-marker',html:'<span aria-hidden="true">◉</span><span>'+markerLabel()+'</span>',iconSize:[125,36],iconAnchor:[18,18]}));
+      if (mode!=='robot'&&options.robot) options.robot.cancel();
       if (mode!=='salto'&&rutas&&tourStops.length) rutas.prefetch(stopPoints(),true);
       // Cambiar a salto en pleno paseo llega ya a la Xperiencia de destino.
       if (mode==='salto'&&walk&&tourStatus==='running') {clearTimeout(tourTimer);++tourTicket;walk=null;visitTourStop();return;}
@@ -235,6 +241,7 @@
       if (!active||source!=='manual'||d.hidden||touring()||(editor&&editor.isEditing&&editor.isEditing())) return;
       tourStops=config().zones.map(function (zone) {return {id:zone.id,name:zone.name,lat:zone.lat,lon:zone.lon};});
       if (!tourStops.length) return;
+      if (options.robot) options.robot.cancel();
       if (rutas) rutas.prefetch(stopPoints(),true);
       if (layer&&L.polyline) {if (trail) layer.removeLayer(trail);trail=L.polyline([],{color:'#63e6d5',weight:3,opacity:.75,dashArray:'2 7',interactive:false}).addTo(layer);}
       tourStatus='running';tourReason='';tourIndex=0;tourLap=0;fitZones();visitTourStop();
@@ -323,6 +330,7 @@
     function renderText() {
       renderHistory();
       renderTour();
+      if (options.robot&&options.robot.render) options.robot.render();
       if (!active) return;
       byId('simulador-zona').textContent = current?zoneName(current):T('Sin oficina confirmada','No confirmed office');
       byId('simulador-contenido').textContent = current?label(current):T('Esperando ubicación','Waiting for location');
@@ -425,6 +433,7 @@
       if (source!=='manual') return;
       if (!active || !valid(point)) return;
       if (reason!=='tour') stopTour('manual');
+      if (reason!=='tour'&&options.robot) options.robot.cancel();
       position = {lat:point.lat,lng:point.lng};
       if (marker) marker.setLatLng(position);
       byId('simulador-coordenadas').textContent = position.lat.toFixed(5) + ', ' + position.lng.toFixed(5);
@@ -440,9 +449,23 @@
       // Only dropped positions leave the page (luka-remoto.js, when its switch is on).
       if (options.onManualPosition) options.onManualPosition({lat:position.lat,lng:position.lng});
     }
-    function clickMap(event) {if (active && source==='manual' && event.latlng) move(event.latlng,true);}
+    function clickMap(event) {
+      if (!active||source!=='manual'||!event.latlng) return;
+      if (robotOn()) {options.robot.goTo({lat:event.latlng.lat,lng:event.latlng.lng},null);return;}
+      move(event.latlng,true);
+    }
+    function place(point) {
+      // Posición informada por el robot: igual que un paso del paseo, sin teletransporte.
+      if (!active||source!=='manual'||!valid(point)) return;
+      walkTo(point);renderText();
+    }
+    function state() {
+      return {active:active,robot:active&&source==='manual'&&tourMode==='robot',mode:tourMode,touring:touring(),speedMult:speedMult,position:position&&{lat:position.lat,lng:position.lng},
+        zone:current&&{id:current.id,name:current.name||'',tag:current.tag,label:label(current)},walk:walk&&{to:{id:walk.to.id,name:walk.to.name},remaining:Math.max(0,walk.dist-walk.done)}};
+    }
     function stop() {
       stopTour('source');
+      if (options.robot) options.robot.cancel();
       if (active) recordChange('stopped');
       active = false;
       if (browserSource) browserSource.stop();
@@ -483,7 +506,7 @@
         if (options.onStateChange) options.onStateChange();return;
       }
       if (source==='luka') {updateLuka(null,false);if (options.onStateChange) options.onStateChange();return;}
-      var icon = L.divIcon({className:'mapa-sim-marker',html:'<span aria-hidden="true">◉</span><span>Luka · manual</span>',iconSize:[125,36],iconAnchor:[18,18]});
+      var icon = L.divIcon({className:'mapa-sim-marker',html:'<span aria-hidden="true">◉</span><span>'+markerLabel()+'</span>',iconSize:[125,36],iconAnchor:[18,18]});
       var first=config().zones[0] || outside;
       marker = L.marker([first.lat,first.lon],{icon:icon,draggable:true,autoPan:true,alt:'Luka · manual',title:T('Arrastra Luka para probar otra oficina','Drag Luka to try another office')}).addTo(layer);
       marker.on('drag',function () {move(marker.getLatLng(),false);});
@@ -498,7 +521,7 @@
     byId('simulador-recorrido-pausa').addEventListener('click',pauseTour);
     byId('simulador-recorrido-saltar').addEventListener('click',skipTour);
     byId('simulador-velocidad').addEventListener('input',function (event) {setSpeed(event&&event.target?event.target.value:byId('simulador-velocidad').value);});
-    ['salto','paseo','trote'].forEach(function (mode) {byId('simulador-modo-'+mode).addEventListener('click',function () {setTourMode(mode);});});
+    ['salto','paseo','trote','robot'].forEach(function (mode) {byId('simulador-modo-'+mode).addEventListener('click',function () {setTourMode(mode);});});
     byId('simulador-recorrido-detener').addEventListener('click',function () {stopTour('user');renderText();});
     d.addEventListener('visibilitychange',function () {if (d.hidden) {stopTour('hidden');renderText();}});
     G.addEventListener('pagehide',function () {stopTour('hidden');});
@@ -512,7 +535,7 @@
       if (!sender || sender !== frame) return;
       connection = 'connected';clearTimeout(timer);renderText();
     });
-    return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isBrowser:function () {return active&&source==='browser';},isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);},startLoopTour:function (mode) {if (mode) tourMode=mode;tourLoop=true;startTour();return touring();},setTourMode:setTourMode,setSpeed:setSpeed,goTo:goToXperiencia};
+    return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isBrowser:function () {return active&&source==='browser';},isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);},startLoopTour:function (mode) {if (mode) tourMode=mode;tourLoop=true;startTour();return touring();},setTourMode:setTourMode,setSpeed:setSpeed,goTo:goToXperiencia,place:place,state:state};
   }
 
   G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,resolveBrowserReading:resolveBrowserReading,playerURL:playerURL,zones:zones,outside:outside};

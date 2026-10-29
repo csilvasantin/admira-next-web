@@ -803,3 +803,54 @@ test('velocidad ×N, barra de Xperiencias en el previo y paseo por la calle',()=
   assert.equal(ui.element('simulador-tira-la-nave').attributes['data-destino'],'true');
   sim.stop();
 });
+
+const robotCode = await readFile(new URL('../pruebas/mapa/robot.js',import.meta.url),'utf8');
+function robotModule(document={getElementById:()=>null}) {const ctx=vm.createContext({document,setTimeout,clearTimeout,setInterval,clearInterval,fetch:async()=>({json:async()=>({})})});ctx.window=ctx;vm.runInContext(robotCode,ctx);return ctx.AdmiraMapaRobot;}
+
+test('la calibración del Roborock va y vuelve entre mapa y plano del robot',()=>{
+  const R=robotModule(),a={lat:41.403,lng:2.151},b={lat:41.4024,lng:2.152};
+  for (const mirror of [false,true]) {
+    const cal=R.calibrate([{geo:a,robot:{x:25000,y:25000}},{geo:b,robot:{x:31000,y:32000}}],mirror);
+    const ra=cal.toRobot(a);assert.ok(Math.abs(ra.x-25000)<1e-6&&Math.abs(ra.y-25000)<1e-6);
+    const mid={lat:41.4027,lng:2.1515},back=cal.toMap(cal.toRobot(mid));
+    assert.ok(R.metres(mid,back)<0.001,'ida y vuelta');
+  }
+  assert.throws(()=>R.calibrate([{geo:a,robot:{x:0,y:0}}]));
+});
+
+test('el driver real envía goto en mm al puente y llega al leer la pose',async()=>{
+  const R=robotModule(),calls=[],a={lat:41.403,lng:2.151},b={lat:41.4024,lng:2.152};
+  const cal=R.calibrate([{geo:a,robot:{x:25000,y:25000}},{geo:b,robot:{x:31000,y:32000}}],true);
+  let pose={x:25000,y:25000};const intervals=[];
+  const driver=R.createRoborockDriver({base:'https://robot.local/',calibration:cal,fetch:async(url,o)=>{calls.push([url,o&&o.body]);return {json:async()=>pose};},setInterval:fn=>{intervals.push(fn);return 1;},clearInterval:()=>intervals.pop()});
+  let arrived=null;driver.onArrive(p=>arrived=p);
+  driver.goTo(b);assert.equal(calls[0][0],'https://robot.local/goto');assert.deepEqual(JSON.parse(calls[0][1]),{x:31000,y:32000});
+  pose={x:31000,y:32000};await driver.readPose();assert.ok(arrived&&R.metres(arrived,b)<0.01);
+  assert.equal(driver.cameraURL(),'https://robot.local/camera.mjpg');
+  assert.throws(()=>R.createRoborockDriver({base:'javascript:x',calibration:cal}));
+  assert.equal(R.driverFromConfig({getItem:()=>'{"base":"x"}'}),null,'configuración inválida = simulado');
+});
+
+test('modo robot: clic marca destino, el robot conduce, la cámara lo cuenta y el player cambia al llegar',()=>{
+  const ui=mount({editor:true}),R=robotModule(ui.document),timers=[];
+  let robot=null;const hook={goTo:(p,n)=>robot.goTo(p,n),cancel:()=>robot&&robot.cancel(),render:()=>robot&&robot.render()};
+  const sim=ui.api.create({map:ui.map,L:ui.L,robot:hook});
+  const driver=R.createSimDriver({multiplier:()=>sim.state().speedMult,setTimeout:fn=>{timers.push(fn);return timers.length;},clearTimeout:()=>{timers.length=0;}});
+  robot=R.create({sim,driver,host:ui.element('robot-camara')});
+  sim.start();ui.element('simulador-oficinas').click();
+  const zones=ui.zonesApi.officePreset.zones;ui.element('simulador-tira-'+zones[0].id).click();
+  ui.element('simulador-modo-robot').click();assert.equal(ui.element('simulador-modo-robot').attributes['aria-pressed'],'true');
+  assert.equal(ui.element('robot-camara').hidden,false);assert.equal(sim.state().robot,true);
+  ui.element('simulador-velocidad').listeners.input({target:{value:'20'}});
+  const before=activeFrame(ui);ui.element('simulador-tira-'+zones[1].id).click();
+  assert.equal(ui.element('simulador-zona').textContent,zones[0].name,'no teletransporta');
+  assert.match(ui.element('robot-camara-estado').textContent,new RegExp('Rumbo a '+zones[1].name));
+  let steps=0;while(timers.length&&steps<5000){timers.shift()();steps++;}
+  assert.ok(steps>2,'conduce en varios pasos');
+  assert.equal(ui.element('simulador-zona').textContent,zones[1].name);assert.notEqual(activeFrame(ui),before);
+  assert.match(ui.element('robot-camara-estado').textContent,new RegExp('Llegada · '+zones[1].name));
+  ui.mapEvents.click({latlng:{lat:zones[2].lat,lng:zones[2].lon}});assert.equal(ui.element('simulador-zona').textContent,zones[1].name);assert.ok(timers.length);
+  ui.element('simulador-modo-paseo').click();assert.equal(timers.length,0,'salir del modo detiene el robot');
+  assert.equal(ui.element('robot-camara').hidden,true);
+  sim.stop();
+});

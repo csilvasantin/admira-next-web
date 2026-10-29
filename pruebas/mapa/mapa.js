@@ -115,7 +115,10 @@
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
     var remote = G.AdmiraMapaLukaRemoto ? G.AdmiraMapaLukaRemoto.create() : null;
-    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,stock:stock,onStateChange:renderMap,onManualPosition:function (point) {if (remote) remote.publish(point);},onTourStop:function (stop) {if (narrator) narrator.onStop(stop);}});
+    // El robot se crea después del simulador; el gancho le pasa destinos cuando existe.
+    var robot=null, robotHook={goTo:function (p,n) {if (robot) robot.goTo(p,n);},cancel:function () {if (robot) robot.cancel();},render:function () {if (robot) robot.render();}};
+    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,stock:stock,robot:G.AdmiraMapaRobot?robotHook:null,onStateChange:renderMap,onManualPosition:function (point) {if (remote) remote.publish(point);},onTourStop:function (stop) {if (narrator) narrator.onStop(stop);}});
+    if (simulator&&G.AdmiraMapaRobot) robot=G.AdmiraMapaRobot.create({sim:simulator,host:byId('robot-camara'),T:T,driver:G.AdmiraMapaRobot.driverFromConfig?G.AdmiraMapaRobot.driverFromConfig():null});
     if (map.on) map.on('zoomend', refrescarHalos);
   }
 

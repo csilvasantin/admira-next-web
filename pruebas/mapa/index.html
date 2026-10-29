@@ -18,10 +18,11 @@
   <script defer src="/pruebas/mapa/ubicacion-dispositivo.js?v=20261029-dispositivo-1"></script>
   <script defer src="/pruebas/mapa/players-xperiencias.js?v=20261029-ids-1"></script>
   <script defer src="/pruebas/mapa/rutas-luka.js?v=20261029-ruta-1"></script>
-  <script defer src="/pruebas/mapa/simulador.js?v=20261029-ruta-1"></script>
+  <script defer src="/pruebas/mapa/robot.js?v=20261029-robot-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261029-robot-1"></script>
   <script defer src="/pruebas/mapa/luka-remoto.js?v=20261029-luka-1"></script>
   <script defer src="/pruebas/mapa/locucion-demo.js?v=20261029-locucion-1"></script>
-  <script defer src="/pruebas/mapa/mapa.js?v=20261029-paseo-1"></script>
+  <script defer src="/pruebas/mapa/mapa.js?v=20261029-robot-1"></script>
   <script defer src="/pruebas/mapa/ventana-previo.js?v=20261029-previo-1"></script>
 </head>
 <body data-yk-frame="cabecera">
@@ -55,6 +56,7 @@
       <aside id="simulador-player" class="mapa-sim-player" aria-label="Player de ubicación simulada" hidden>
         <div class="mapa-sim-head"><span id="simulador-badge" class="mapa-tag is-demo">SIMULACIÓN</span><strong>admira.tv</strong><button type="button" id="simulador-locucion" aria-pressed="false" hidden>🔊 Locución</button><button type="button" id="simulador-cerrar">Cerrar simulador</button></div>
         <div id="simulador-video" class="mapa-sim-video"></div>
+        <div id="robot-camara" class="mapa-robot-camara" hidden><p id="robot-camara-estado" role="status" aria-live="polite"></p></div>
         <progress id="simulador-progreso" class="mapa-sim-progreso" max="100" value="0" hidden></progress>
         <div id="simulador-tira" class="mapa-tira" role="group" aria-label="Xperiencias" hidden></div>
         <div class="mapa-sim-caption"><strong id="simulador-contenido">—</strong><span id="simulador-zona">—</span></div>
@@ -71,7 +73,7 @@
         <div id="simulador-zonas" class="mapa-sim-zones" role="group" aria-label="Zonas del simulador"></div>
         <div class="mapa-tour">
           <div class="mapa-zone-actions"><button type="button" id="simulador-recorrer">Iniciar recorrido Demo</button><button type="button" id="simulador-recorrido-pausa" hidden>Pausar recorrido</button><button type="button" id="simulador-recorrido-saltar" hidden>Siguiente Xperiencia ⏭</button><button type="button" id="simulador-recorrido-detener" hidden>Detener recorrido</button></div>
-          <div class="mapa-zone-actions mapa-tour-modo" role="group" aria-label="Cómo va Luka de una Xperiencia a otra"><button type="button" id="simulador-modo-salto" aria-pressed="true">Saltar</button><button type="button" id="simulador-modo-paseo" aria-pressed="false">Paseo 🐕 1,5 m/s</button><button type="button" id="simulador-modo-trote" aria-pressed="false">Trote 🐕 4 m/s</button></div>
+          <div class="mapa-zone-actions mapa-tour-modo" role="group" aria-label="Cómo va Luka de una Xperiencia a otra"><button type="button" id="simulador-modo-salto" aria-pressed="true">Saltar</button><button type="button" id="simulador-modo-paseo" aria-pressed="false">Paseo 🐕 1,5 m/s</button><button type="button" id="simulador-modo-trote" aria-pressed="false">Trote 🐕 4 m/s</button><button type="button" id="simulador-modo-robot" aria-pressed="false">Robot 🤖 0,3 m/s</button></div>
           <label class="mapa-tour-velocidad">Velocidad <input type="range" id="simulador-velocidad" min="1" max="20" step="1" value="1"> <output id="simulador-velocidad-valor">×1</output></label>
           <p id="simulador-recorrido-estado" role="status" aria-live="polite"></p>
           <p id="simulador-recorrido-ayuda"></p>
