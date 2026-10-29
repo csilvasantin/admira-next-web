@@ -763,3 +763,21 @@ test('/demo luka avisa al locutor en cada parada con su vuelta, para que la prim
   assert.deepEqual(JSON.parse(JSON.stringify(stops.at(-1))),{id:'university',index:1,lap:1},'la segunda vuelta lleva lap 1');
   sim.stop();
 });
+
+test('el paseo lleva a Luka a velocidad de perro de una Xperiencia a otra y Siguiente salta',()=>{
+  const ui=tourSession(),zones=ui.zonesApi.officePreset.zones;
+  ui.element('simulador-modo-trote').click();assert.equal(ui.element('simulador-modo-trote').attributes['aria-pressed'],'true');
+  ui.element('simulador-recorrer').click();assert.equal(ui.element('simulador-zona').textContent,zones[0].name);
+  tickTour(ui);
+  assert.match(ui.element('simulador-recorrido-estado').textContent,new RegExp('camina hacia '+zones[1].name+'.*4 m/s'));
+  const before=ui.element('simulador-coordenadas').textContent;let steps=0;
+  while(/camina hacia/.test(ui.element('simulador-recorrido-estado').textContent)&&steps<20000){tickTour(ui);steps++;}
+  assert.ok(steps>4,'trotting takes several ticks');assert.notEqual(ui.element('simulador-coordenadas').textContent,before);
+  assert.equal(ui.element('simulador-zona').textContent,zones[1].name);assert.match(ui.element('simulador-recorrido-estado').textContent,/2 \/ 5/);
+  tickTour(ui);ui.element('simulador-recorrido-pausa').click();assert.equal(tourTimeout(ui),undefined);
+  ui.element('simulador-recorrido-pausa').click();assert.ok(tourTimeout(ui),'resuming keeps walking');
+  ui.element('simulador-recorrido-saltar').click();assert.equal(ui.element('simulador-zona').textContent,zones[2].name);assert.match(ui.element('simulador-recorrido-estado').textContent,/3 \/ 5/);
+  ui.element('simulador-recorrido-saltar').click();assert.equal(ui.element('simulador-zona').textContent,zones[3].name);
+  ui.element('simulador-modo-salto').click();tickTour(ui);assert.equal(ui.element('simulador-zona').textContent,zones[4].name);
+  ui.sim.stop();
+});

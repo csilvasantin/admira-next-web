@@ -490,7 +490,9 @@
     // Spanish voice-over, one line per office. Without a recent gesture the button asks to turn it on.
     if (!narrator && G.AdmiraMapaLocucion) narrator = G.AdmiraMapaLocucion.create({button:byId('simulador-locucion'),T:T,
       activated:!!(G.navigator && G.navigator.userActivation && G.navigator.userActivation.isActive)});
-    var walking = simulator.startLoopTour();
+    // ?demo=luka&paso=paseo|trote: Luka camina de una Xperiencia a otra en vez de saltar.
+    var paso = new URLSearchParams(G.location.search || '').get('paso');
+    var walking = simulator.startLoopTour(paso==='paseo'||paso==='trote'?paso:undefined);
     var player = byId('simulador-player');
     if (player && player.scrollIntoView) player.scrollIntoView({block:'center'});
     return walking;

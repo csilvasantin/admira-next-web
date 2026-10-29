@@ -203,3 +203,4 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-sim-grip{position:absolute;right:2px;bottom:2px;width:16px;height:16px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 50%,var(--dim) 50%,var(--dim) 58%,transparent 58%,transparent 70%,var(--dim) 70%,var(--dim) 78%,transparent 78%);opacity:.7}
 .mapa-sim-grip:hover{opacity:1}
 @media(max-width:600px){.mapa-sim-grip{display:none}.mapa-sim-player.is-movible .mapa-sim-head{cursor:auto}}
+.mapa-tour-modo button[aria-pressed="true"]{color:var(--cyan);border-color:var(--cyan);background:#17332f}
