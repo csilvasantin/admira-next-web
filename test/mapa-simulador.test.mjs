@@ -144,7 +144,7 @@ test('seguir Luka espera sin coordenadas, aplica avisos fiables y retira el play
   sim.stop();sim.updateLuka(lukaFix(),false);assert.equal(ui.element('simulador-video').children.length,0);
   sim.start();assert.equal(sim.isFollowing(),false);assert.equal(ui.markers.at(-1).options.draggable,true);sim.stop();
 });
-function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:async()=>fixtureCatalog}),storageError=false,browser=false}={}) {
+function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:async()=>fixtureCatalog}),storageError=false,browser=false,rutas=null}={}) {
   const elements = new Map(), messages = [], markers = [], timers = new Map(), timerDelays = new Map(), mapEvents = {}, requests=[], downloads=[], blobs=new Map();
   let serial=0,clockNow=Date.now();
   const intervals=new Map(),lifecycle={},docEvents={},geo={calls:0,cleared:[],watchPosition(success,error,options){this.calls++;this.success=success;this.error=error;this.options=options;return 7;},clearWatch(id){this.cleared.push(id);}};
@@ -164,7 +164,7 @@ function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:a
   class FixtureURL extends URL {static createObjectURL(blob){const key='blob:fixture-'+blobs.size;blobs.set(key,blob);return key;}static revokeObjectURL(key){blobs.delete(key);}}
   const context = vm.createContext({document,URL:FixtureURL,Blob,TextEncoder,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);else {const old=lifecycle[event];lifecycle[event]=(...args)=>{if(old)old(...args);fn(...args);};}},setTimeout:(fn,ms)=>{const id=++serial;timers.set(id,fn);timerDelays.set(id,ms);return id;},clearTimeout:id=>{timers.delete(id);timerDelays.delete(id);}});
   if(browser)Object.assign(context,{navigator:{geolocation:geo},isSecureContext:true,Date:Clock,setInterval:fn=>{const id=++serial;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)});
-  context.window=context;if(browser)vm.runInContext(browserCode,context);if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
+  context.window=context;if(rutas)context.AdmiraMapaRutas=rutas;if(browser)vm.runInContext(browserCode,context);if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
   return {geo,intervals,lifecycle,hide:()=>{document.hidden=true;docEvents.visibilitychange();},advance:ms=>clockNow+=ms,api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,timerDelays,mapEvents,storage,requests,downloads,message:event=>messages.forEach(fn=>fn(event))};
 }
 
@@ -780,4 +780,26 @@ test('el paseo lleva a Luka a velocidad de perro de una Xperiencia a otra y Sigu
   ui.element('simulador-recorrido-saltar').click();assert.equal(ui.element('simulador-zona').textContent,zones[3].name);
   ui.element('simulador-modo-salto').click();tickTour(ui);assert.equal(ui.element('simulador-zona').textContent,zones[4].name);
   ui.sim.stop();
+});
+
+test('velocidad ×N, barra de Xperiencias en el previo y paseo por la calle',()=>{
+  const zones=[{name:'Pixería',lat:41.40300208,lon:2.15095625},{name:'Admira University',lat:41.4023751,lon:2.1519882}];
+  const route=[{lat:zones[0].lat,lng:zones[0].lon},{lat:zones[0].lat+0.0004,lng:zones[0].lon+0.0002},{lat:zones[1].lat,lng:zones[1].lon}],asked=[];
+  const rutas={get:(a,b)=>{asked.push([a,b]);return Math.abs(b.lat-zones[1].lat)<1e-9?route:null;},prefetch:()=>{}};
+  const ui=mount({editor:true,browser:true,rutas}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-oficinas').click();
+  const strip=ui.element('simulador-tira');assert.equal(strip.hidden,false);assert.equal(strip.children.length,5);
+  ui.element('simulador-tira-garage').click();assert.equal(ui.element('simulador-zona').textContent,'Garage','sin recorrido, la tira salta');
+  ui.element('simulador-tira-pixeria').click();
+  ui.element('simulador-modo-paseo').click();ui.element('simulador-recorrer').click();tickTour(ui);
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/por la calle/);assert.equal(ui.element('simulador-progreso').hidden,false);
+  const slow=ui.element('simulador-recorrido-estado').textContent.match(/(\d+) m restantes/)[1];
+  ui.element('simulador-velocidad').value='10';ui.element('simulador-velocidad').listeners.input({target:{value:'10'}});
+  assert.equal(ui.element('simulador-velocidad-valor').textContent,'×10');
+  tickTour(ui);const fast=ui.element('simulador-recorrido-estado').textContent.match(/(\d+) m restantes/)[1];
+  assert.ok(Number(slow)-Number(fast)>=3,'×10 is faster than walking');
+  let steps=0;while(/camina hacia/.test(ui.element('simulador-recorrido-estado').textContent)&&steps<5000){tickTour(ui);steps++;}
+  assert.equal(ui.element('simulador-zona').textContent,zones[1].name);assert.equal(ui.element('simulador-progreso').hidden,true);
+  tickTour(ui);ui.element('simulador-tira-la-nave').click();assert.match(ui.element('simulador-recorrido-estado').textContent,/5 \/ 5/);
+  assert.equal(ui.element('simulador-tira-la-nave').attributes['data-destino'],'true');
+  sim.stop();
 });
