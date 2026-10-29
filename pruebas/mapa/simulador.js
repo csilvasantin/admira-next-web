@@ -73,8 +73,9 @@
     var root = byId('simulador-player'), controls = byId('simulador-controles'), host = byId('simulador-video');
     var identity = 'virtual-mapa-' + (G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
     var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map(), browserState=null, deviceLayer=null, deviceMarker=null, deviceHalo=null;
+    var history=[], lastHistoryKey='', lastHistoryState=null, historyOpen=false;
     var browserSource=G.AdmiraMapaUbicacionDispositivo?G.AdmiraMapaUbicacionDispositivo.create({onChange:function (state) {if (state.status==='stopped') {if (active&&source==='browser') stop();}else updateBrowser(state);}}):null;
-    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function (change) {if (active) {if (source==='luka') updateLuka(latestLuka,feedError);else if (source==='browser') updateBrowser(browserState);else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true);}if (change&&change.preset==='offices') fitZones();}}}) : null;
+    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function (change) {if (active) {if (source==='luka') updateLuka(latestLuka,feedError,'config');else if (source==='browser') updateBrowser(browserState,'config');else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true,'config');}if (change&&change.preset==='offices') fitZones();}}}) : null;
     function config() {return editor ? editor.getConfig() : {zones:zones,outside:outside};}
     function fitZones() {
       var points=config().zones.map(function (zone) {return [zone.lat,zone.lon];}), width=map.getSize?map.getSize().x:0;
@@ -87,11 +88,57 @@
     function statusText() {
       return connection === 'connected' ? T('Player conectado','Player connected') : connection === 'waiting' ? T('Sin confirmación del player. Puedes abrirlo aparte.','No confirmation from the player. You can open it separately.') : T('Conectando con admira.tv…','Connecting to admira.tv…');
     }
-    function readingText() {
+    function readingReason(status,origin) {
       var reasons={missing:T('Esperando coordenadas de Luka desde Samsung. El puente aún no aporta una lectura válida.','Waiting for Luka coordinates from Samsung. The bridge has not supplied a valid reading yet.'),test:T('La lectura es de prueba y no activa el player real.','A test reading cannot activate the real player.'),stale:T('La ubicación debe tener menos de cinco minutos y una fecha válida.','The location must be less than five minutes old and have a valid time.'),accuracy:T('Precisión no disponible. No se puede confirmar la oficina.','Accuracy unavailable. The office cannot be confirmed.'),ambiguous:T('El margen de precisión cruza un límite. Esperando una ubicación más precisa.','The accuracy area crosses a boundary. Waiting for a more precise location.'),network:T('No se puede actualizar la ubicación. Player detenido hasta recuperar la consulta.','The location cannot be refreshed. Player stopped until updates recover.')};
-      if (source==='browser') Object.assign(reasons,{missing:T('Esperando una posición de este dispositivo.','Waiting for this device’s location.'),locating:T('Esperando el permiso y la primera ubicación del navegador.','Waiting for browser permission and the first location.'),denied:T('Permiso de ubicación denegado. Detén este modo antes de volver a activarlo con permiso.','Location permission denied. Stop this mode before enabling it again with permission.'),timeout:T('No llega una ubicación a tiempo. Esperando una nueva medición.','Location request timed out. Waiting for a new measurement.'),unavailable:T('Ubicación no disponible. Esperando una nueva medición.','Location unavailable. Waiting for a new measurement.'),unsupported:T('Este navegador no ofrece ubicación. Prueba desde el navegador del móvil.','This browser does not offer location. Try your phone browser.'),insecure:T('La ubicación requiere una conexión HTTPS segura.','Location requires a secure HTTPS connection.'),policy:T('La política del navegador impide acceder a la ubicación.','Browser policy blocks location access.'),hidden:T('Vuelve a esta página y activa la ubicación de nuevo.','Return to this page and enable location again.')});
+      if (origin==='browser') Object.assign(reasons,{missing:T('Esperando una posición de este dispositivo.','Waiting for this device’s location.'),locating:T('Esperando el permiso y la primera ubicación del navegador.','Waiting for browser permission and the first location.'),denied:T('Permiso de ubicación denegado. Detén este modo antes de volver a activarlo con permiso.','Location permission denied. Stop this mode before enabling it again with permission.'),timeout:T('No llega una ubicación a tiempo. Esperando una nueva medición.','Location request timed out. Waiting for a new measurement.'),unavailable:T('Ubicación no disponible. Esperando una nueva medición.','Location unavailable. Waiting for a new measurement.'),unsupported:T('Este navegador no ofrece ubicación. Prueba desde el navegador del móvil.','This browser does not offer location. Try your phone browser.'),insecure:T('La ubicación requiere una conexión HTTPS segura.','Location requires a secure HTTPS connection.'),policy:T('La política del navegador impide acceder a la ubicación.','Browser policy blocks location access.'),hidden:T('Vuelve a esta página y activa la ubicación de nuevo.','Return to this page and enable location again.')});
+      return reasons[status] || T('Esperando una ubicación válida.','Waiting for a valid location.');
+    }
+    function readingText() {
       var detail=reading&&Number.isFinite(reading.time)?new Date(reading.time).toLocaleString(/^en/i.test(d.documentElement.lang||'')?'en-GB':'es-ES')+(Number.isFinite(reading.accuracy)?' · ± '+reading.accuracy+' m':'')+' · ':'';
-      return detail+(reading&&reading.status==='ready'?T('Oficina decidida con el mismo criterio que el arrastre.','Office selected with the same rule as dragging.'):reasons[reading?reading.status:'missing']);
+      return detail+(reading&&reading.status==='ready'?T('Oficina decidida con el mismo criterio que el arrastre.','Office selected with the same rule as dragging.'):readingReason(reading?reading.status:'missing',source));
+    }
+    function sourceName(origin) {
+      return origin==='manual'?T('Manual · simulado','Manual · simulated'):origin==='browser'?T('Mi dispositivo','My device'):T('Luka · puente Samsung','Luka · Samsung bridge');
+    }
+    function historyReason(item) {
+      if (item.status==='stopped') return T('Se ha detenido este modo.','This mode was stopped.');
+      if (item.status!=='ready') return readingReason(item.status,item.source);
+      if (item.source==='manual'&&item.reason==='confirmed') return T('Ubicación manual aplicada.','Manual location applied.');
+      var reasons={start:T('Inicio del simulador manual.','Manual simulator started.'),config:T('La configuración de zonas o contenido ha cambiado.','Zone or content settings changed.'),confirmed:T('Ubicación confirmada; se aplica el contenido de la zona.','Location confirmed; zone content applied.'),outside:T('La ubicación ha salido de las zonas.','Location moved outside the zones.'),office:T('La ubicación ha cambiado de oficina.','Location moved to another office.')};
+      return reasons[item.reason] || reasons.confirmed;
+    }
+    function renderHistory() {
+      var section=byId('simulador-historial');
+      if (!lastHistoryState) {section.hidden=true;return;}
+      section.hidden=false;
+      byId('simulador-historial-toggle').textContent=T('Historial de cambios','Change history')+' ('+history.length+')';
+      byId('simulador-historial-toggle').setAttribute('aria-expanded',String(historyOpen));
+      byId('simulador-historial-body').hidden=!historyOpen;
+      byId('simulador-historial-ayuda').textContent=T('Últimos 20 cambios · hora local · más reciente primero. Sólo en esta página: se borran al recargar y no se exportan con las zonas. No incluye coordenadas.','Last 20 changes · local time · newest first. Only on this page: cleared on reload and not exported with zones. No coordinates included.');
+      byId('simulador-historial-vaciar').textContent=T('Vaciar historial','Clear history');
+      byId('simulador-historial-vaciar').disabled=!history.length;
+      byId('simulador-historial-vacio').hidden=!!history.length;
+      byId('simulador-historial-vacio').textContent=T('El próximo cambio aparecerá aquí.','The next change will appear here.');
+      var list=byId('simulador-historial-lista');list.replaceChildren();
+      history.forEach(function (item) {
+        var row=d.createElement('li'), meta=d.createElement('div'), time=d.createElement('time'), origin=d.createElement('span'), title=d.createElement('strong'), reason=d.createElement('p');
+        time.setAttribute('datetime',new Date(item.time).toISOString());
+        time.textContent=new Date(item.time).toLocaleTimeString(/^en/i.test(d.documentElement.lang||'')?'en-GB':'es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        origin.textContent=sourceName(item.source);meta.appendChild(time);meta.appendChild(origin);
+        title.textContent=item.status==='ready'?zoneName(item.zone)+' · '+label(item.zone):item.status==='stopped'?T('Player detenido','Player stopped'):T('Player en espera','Player waiting');
+        reason.textContent=historyReason(item);row.setAttribute('data-source',item.source);row.setAttribute('data-status',item.status);
+        row.appendChild(meta);row.appendChild(title);row.appendChild(reason);list.appendChild(row);
+      });
+    }
+    function recordChange(status,reason) {
+      // History describes player decisions, not measurements. Keep no raw fix,
+      // coordinates, precision, address, credentials or media identifiers.
+      var zone=status==='ready'&&current?{id:current.id,name:current.name||'',tag:current.tag}:null;
+      var key=JSON.stringify([source,status,zone&&zone.id,zone&&zone.tag]);
+      if (key===lastHistoryKey) return;
+      if (!reason && status==='ready') reason=!lastHistoryState&&source==='manual'?'start':!lastHistoryState||lastHistoryState.source!==source||lastHistoryState.status!=='ready'?'confirmed':zone.id==='exterior'?'outside':'office';
+      var item={time:Date.now(),source:source,status:status,zone:zone,reason:reason||status};
+      lastHistoryKey=key;lastHistoryState=item;history.unshift(item);history=history.slice(0,20);renderHistory();
     }
     function renderDecision() {
       var output=byId('simulador-decision');
@@ -113,6 +160,7 @@
       output.textContent=(dragging?T('Al soltar: ','On drop: ')+zoneName(target)+' · '+label(target)+'. ':'')+text;
     }
     function renderText() {
+      renderHistory();
       if (!active) return;
       byId('simulador-zona').textContent = current?zoneName(current):T('Sin oficina confirmada','No confirmed office');
       byId('simulador-contenido').textContent = current?label(current):T('Esperando ubicación','Waiting for location');
@@ -161,30 +209,31 @@
       byId('simulador-abrir').href = frame.src;
       timer = setTimeout(function () {if (!active) return;connection = 'waiting';renderText();},20000);
     }
-    function applyZone(next) {
+    function applyZone(next,reason) {
       var key=next.id+'|'+next.tag;
       current=next;
       if (key !== currentKey) {currentKey=key;loadPlayer(current);}
+      recordChange('ready',reason);
     }
     function clearPlayer() {
       clearTimeout(timer);
       if (frame) frame.removeAttribute('src');
       host.replaceChildren();frame=null;current=null;currentKey='';
     }
-    function updateLuka(device,error) {
+    function updateLuka(device,error,reason) {
       if (!active || source!=='luka') return;
       latestLuka=device;feedError=!!error;
       reading=feedError?{status:'network'}:resolveReading(device,config(),Date.now());
       position=reading.point || null;
-      if (reading.status==='ready') applyZone(reading.zone);else clearPlayer();
+      if (reading.status==='ready') applyZone(reading.zone,reason);else {clearPlayer();recordChange(reading.status,reason);}
       renderText();
     }
-    function updateBrowser(state) {
+    function updateBrowser(state,reason) {
       if (!active || source!=='browser') return;
       browserState=state || {status:'unsupported'};
       reading=browserState.status==='position'?resolveBrowserReading(browserState.position,config(),Date.now()):{status:browserState.status};
       position=reading.point || null;
-      if (reading.status==='ready') applyZone(reading.zone);else clearPlayer();
+      if (reading.status==='ready') applyZone(reading.zone,reason);else {clearPlayer();recordChange(reading.status,reason);}
       if (deviceLayer) {
         // Only the current valid-time fix is drawn; errors/staleness clear it.
         if (position && reading.status!=='stale') {
@@ -198,7 +247,7 @@
       }
       renderText();
     }
-    function move(point, commit) {
+    function move(point, commit, reason) {
       if (source!=='manual') return;
       if (!active || !valid(point)) return;
       position = {lat:point.lat,lng:point.lng};
@@ -211,11 +260,12 @@
         return;
       }
       dragging=false;
-      applyZone(zoneFor(position,config()));
+      applyZone(zoneFor(position,config()),reason);
       renderText();
     }
     function clickMap(event) {if (active && source==='manual' && event.latlng) move(event.latlng,true);}
     function stop() {
+      if (active) recordChange('stopped');
       active = false;
       if (browserSource) browserSource.stop();
       browserState=null;deviceLayer=null;deviceMarker=null;deviceHalo=null;
@@ -267,6 +317,8 @@
       if (options.onStateChange) options.onStateChange();
     }
     byId('simulador-cerrar').addEventListener('click',stop);
+    byId('simulador-historial-toggle').addEventListener('click',function () {historyOpen=!historyOpen;renderHistory();});
+    byId('simulador-historial-vaciar').addEventListener('click',function () {history=[];renderHistory();});
     G.addEventListener('message',function (event) {
       if (!active || !frame || event.source !== frame.contentWindow || event.origin !== 'https://admira.tv') return;
       var data = event.data;

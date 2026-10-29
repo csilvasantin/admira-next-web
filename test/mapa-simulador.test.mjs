@@ -470,3 +470,66 @@ test('importar zonas durante ubicación de dispositivo conserva la fuente y no i
   ui.element('simulador-exportar').click();const saved=JSON.parse(await ui.downloads[0].blob.text());
   assert.deepEqual(Object.keys(saved).sort(),['outside','version','zones']);assert.equal(saved.zones.length,5);sim.stop();
 });
+
+const historyRows=ui=>ui.element('simulador-historial-lista').children;
+const historyTitle=row=>row.children[1].textContent;
+const historyReason=row=>row.children[2].textContent;
+const historySource=row=>row.children[0].children[1].textContent;
+
+test('historial manual: sólo al soltar, sin duplicar la misma oficina ni reiniciar el player',()=>{
+  const ui=mount(),sim=ui.api.create({map:ui.map,L:ui.L});sim.renderText();assert.equal(ui.element('simulador-historial').hidden,true);sim.start();
+  assert.equal(historyRows(ui).length,1);assert.match(historyTitle(historyRows(ui)[0]),/Gràcia.*Comercio/);assert.match(historySource(historyRows(ui)[0]),/Manual.*simulado/);
+  assert.match(historyRows(ui)[0].children[0].children[0].attributes.datetime,/^\d{4}-\d\d-\d\dT/);
+  const marker=ui.markers[0],first=ui.element('simulador-video').children[0];marker.point={lat:41.389,lng:2.1645};marker.events.drag();sim.renderText();
+  assert.equal(historyRows(ui).length,1);assert.equal(ui.element('simulador-video').children[0],first);
+  marker.events.dragend();assert.equal(historyRows(ui).length,2);assert.match(historyTitle(historyRows(ui)[0]),/Eixample/);assert.match(historyReason(historyRows(ui)[0]),/cambiado de oficina/);
+  const next=ui.element('simulador-video').children[0];sim.move({lat:41.38901,lng:2.1645});sim.renderText();assert.equal(historyRows(ui).length,2);assert.equal(ui.element('simulador-video').children[0],next);
+  sim.move({lat:0,lng:0});assert.equal(historyRows(ui).length,3);assert.match(historyReason(historyRows(ui)[0]),/salido de las zonas/);
+  ui.element('simulador-historial-toggle').click();assert.equal(ui.element('simulador-historial-body').hidden,false);
+  sim.stop();assert.equal(ui.element('simulador-historial').hidden,false);assert.equal(historyRows(ui).length,4);assert.equal(historyRows(ui)[0].attributes['data-status'],'stopped');
+  ui.document.documentElement.lang='en';sim.renderText();assert.equal(historyTitle(historyRows(ui)[0]),'Player stopped');assert.equal(historySource(historyRows(ui)[1]),'Manual · simulated');
+});
+
+test('historial Samsung: polling idéntico, espera, recuperación, precisión y caducidad',()=>{
+  const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');assert.equal(historyRows(ui).length,1);
+  assert.match(historySource(historyRows(ui)[0]),/Luka.*Samsung/);assert.match(historyReason(historyRows(ui)[0]),/puente aún no/);
+  sim.updateLuka(null,false);assert.equal(historyRows(ui).length,1);
+  const fix=lukaFix();sim.updateLuka(fix,false);const frame=ui.element('simulador-video').children[0];
+  for(let i=0;i<5;i++){sim.updateLuka(fix,false);sim.renderText();}assert.equal(historyRows(ui).length,2);assert.equal(ui.element('simulador-video').children[0],frame);
+  sim.updateLuka(fix,true);sim.updateLuka(fix,true);assert.equal(historyRows(ui).length,3);assert.match(historyReason(historyRows(ui)[0]),/No se puede actualizar/);assert.equal(ui.element('simulador-video').children.length,0);
+  sim.updateLuka(fix,false);assert.equal(historyRows(ui).length,4);assert.match(historyReason(historyRows(ui)[0]),/Ubicación confirmada/);
+  sim.updateLuka({...fix,precision_m:null},false);assert.equal(historyRows(ui).length,5);assert.match(historyReason(historyRows(ui)[0]),/Precisión no disponible/);
+  sim.updateLuka({...fix,precision_m:500},false);assert.equal(historyRows(ui).length,6);assert.match(historyReason(historyRows(ui)[0]),/cruza un límite/);
+  sim.updateLuka({...fix,ts:new Date(Date.now()-300100).toISOString()},false);assert.equal(historyRows(ui).length,7);assert.match(historyReason(historyRows(ui)[0]),/cinco minutos/);
+  sim.stop();
+});
+
+test('historial del dispositivo: los callbacks repetidos no suman y la espera se identifica por su fuente',()=>{
+  const ui=mount({browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});assert.equal(ui.geo.calls,0);sim.start('browser');
+  const stamp=Date.now(),fix={timestamp:stamp,coords:{latitude:41.4043,longitude:2.1582,accuracy:10}};
+  assert.equal(historyRows(ui).length,1);assert.equal(historySource(historyRows(ui)[0]),'Mi dispositivo');
+  ui.geo.success(fix);const n=historyRows(ui).length,frame=ui.element('simulador-video').children[0];
+  ui.geo.success(fix);for(const tick of ui.intervals.values())tick();assert.equal(historyRows(ui).length,n);assert.equal(ui.element('simulador-video').children[0],frame);
+  ui.geo.error({code:3});for(const tick of ui.intervals.values())tick();assert.equal(historyRows(ui).length,n+1);assert.match(historyReason(historyRows(ui)[0]),/a tiempo/);assert.equal(historySource(historyRows(ui)[0]),'Mi dispositivo');
+  ui.advance(300100);ui.geo.success({timestamp:stamp+1,coords:fix.coords});assert.match(historyReason(historyRows(ui)[0]),/cinco minutos/);sim.stop();
+});
+
+test('el historial limita a 20, vaciar no recrea el estado actual y recargar empieza vacío',()=>{
+  const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');const fix=lukaFix();
+  for(let i=0;i<25;i++)sim.updateLuka({...fix,ts:new Date(Date.now()+i).toISOString(),lat:i%2?0:41.4043,lon:i%2?0:2.1582},false);
+  assert.equal(historyRows(ui).length,20);assert.match(historyTitle(historyRows(ui)[0]),/Gràcia/);
+  ui.element('simulador-historial-vaciar').click();assert.equal(historyRows(ui).length,0);assert.equal(ui.element('simulador-historial-vaciar').disabled,true);
+  sim.renderText();sim.updateLuka(fix,false);assert.equal(historyRows(ui).length,0);assert.equal(ui.element('simulador-historial-vacio').hidden,false);
+  sim.updateLuka({...fix,lat:0,lon:0},false);assert.equal(historyRows(ui).length,1);
+  const fresh=mount({editor:true,storage:ui.storage}),other=fresh.api.create({map:fresh.map,L:fresh.L});other.renderText();assert.equal(fresh.element('simulador-historial').hidden,true);assert.equal(historyRows(fresh).length,0);sim.stop();
+});
+
+test('historial de edición e importación: conserva nombres previos, indica configuración y no exporta lecturas',async()=>{
+  const ui=await editorSession(),initialFrame=ui.element('simulador-video').children[0];
+  ui.element('simulador-nombre').fire('input','<b>Mi oficina</b>');assert.equal(historyRows(ui).length,1,'typing a name does not change office or content');assert.equal(ui.element('simulador-video').children[0],initialFrame);
+  ui.element('simulador-tema').fire('change','creatividad');assert.match(historyTitle(historyRows(ui)[0]),/<b>Mi oficina<\/b>/);assert.match(historyReason(historyRows(ui)[0]),/configuración/);
+  assert.match(historyTitle(historyRows(ui).at(-1)),/Gràcia/);assert.notEqual(ui.element('simulador-video').children[0],initialFrame);
+  await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));assert.match(historyTitle(historyRows(ui)[0]),/Fuera de las zonas/);assert.match(historyReason(historyRows(ui)[0]),/configuración/);
+  ui.element('simulador-exportar').click();const serialized=await ui.downloads[0].blob.text(),transfer=JSON.parse(serialized);
+  assert.deepEqual(Object.keys(transfer).sort(),['outside','version','zones']);assert.doesNotMatch(serialized,/history|historial|smartthings-find|timestamp/);assert.equal(ui.storage.size,0);ui.sim.stop();
+});
