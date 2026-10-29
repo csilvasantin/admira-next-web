@@ -234,5 +234,14 @@ sesión de Google que el mapa (no hay enlaces firmados ni claves en la página).
 - **Abrir en el móvil.** «Abrir player en el móvil» en el mapa enseña un QR
   (`GET /api/ubicacion/player-qr`, con sesión) que solo codifica la URL de la página.
 
-Pruebas: `test/mapa-player.test.mjs` (API, validación, rev, CSRF, QR y player) y el
+- **Seguir a Luka del mapa.** El player tiene dos fuentes: el GPS del móvil o el Luka
+  del simulador. Con «Mover también el móvil» encendido en el mapa, cada vez que se
+  suelta a Luka su posición va a `PUT /api/ubicacion/simulacion` (rol admin/editor +
+  CSRF) y el móvil la lee cada 2 s con `GET` (cualquier sesión). Se guarda en D1
+  (`AUTH_DB`, tabla `mapa_simulacion`, una fila, caduca a las 2 h) y no en KV, que
+  tarda hasta 60 s en propagar a otra ubicación. Es una simulación: no entra en el
+  histórico de `UBICACIONES` ni en el feed real del SmartTag2. Apagado, el mapa no
+  hace ninguna petición.
+
+Pruebas: `test/mapa-player.test.mjs` (API, validación, rev, CSRF, QR, player y Luka simulado) y el
 caso de publicación del editor en `test/mapa-simulador.test.mjs`.

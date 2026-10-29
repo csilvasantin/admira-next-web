@@ -30,7 +30,9 @@
     var identity = S.stableIdentity('movil');
     var config = Z.officePreset, origin = 'example', rev = 0, zonesState = 'loading';
     var zone = null, frame = null, frameURL = '', started = false, gps = {status:'off'}, lastPosition = null, since = null, lock = null;
-    var source = G.AdmiraMapaUbicacionDispositivo.create({onChange:onLocation});
+    // mode: 'gps' follows this phone; 'luka' follows the Luka moved in the map simulator.
+    var mode = 'gps', luka = null, lukaState = 'waiting', lukaTimer = null, polling = false;
+    var device = G.AdmiraMapaUbicacionDispositivo.create({onChange:onLocation});
 
     function show(next) {
       if (!sameZone(zone, next)) since = now();
@@ -53,11 +55,28 @@
     }
     function apply() {
       if (!started) return render();
+      // The simulated Luka is an exact point, like the manual marker on the map.
+      if (mode === 'luka') return luka ? show(S.zoneFor({lat:luka.lat,lng:luka.lon}, config)) : render();
       var reading = lastPosition ? S.resolveBrowserReading(lastPosition, config, now()) : null;
       if (reading) gps = {status:reading.status, accuracy:lastPosition.coords.accuracy};
       show(decide(zone || exterior(config), reading));
     }
+    async function pollLuka() {
+      if (!started || mode !== 'luka' || polling || d.hidden) return;
+      polling = true;
+      try {
+        var response = await G.fetch('/api/ubicacion/simulacion', {method:'GET',cache:'no-store',credentials:'same-origin',headers:{Accept:'application/json'}});
+        if (response.status === 401) {lukaState = 'session';return;}
+        var data = await response.json();
+        if (!response.ok || !data || data.ok !== true) throw new Error('simulacion');
+        var next = data.luka;
+        if (next && Number.isFinite(next.lat) && Number.isFinite(next.lon)) {luka = next;lukaState = 'ok';}
+        else {luka = null;lukaState = 'waiting';}
+      } catch (_) {lukaState = 'error';}
+      finally {polling = false;if (started && mode === 'luka') apply();}
+    }
     function onLocation(state) {
+      if (mode !== 'gps') return;
       if (state.status === 'stopped') {gps = {status:'paused'};return render();}
       if (state.status !== 'position') {gps = {status:state.status};return render();}
       lastPosition = state.position;
@@ -88,20 +107,39 @@
       } catch (_) {lock = null;}
       render();
     }
-    function start() {
+    function follow(next) {
+      mode = next === 'luka' ? 'luka' : 'gps';
+      if (mode === 'luka') {
+        device.stop();lastPosition = null;gps = {status:'off'};lukaState = 'waiting';
+        G.clearInterval(lukaTimer);lukaTimer = G.setInterval(pollLuka, 2000);pollLuka();
+      } else {
+        G.clearInterval(lukaTimer);lukaTimer = null;luka = null;
+        gps = {status:'locating'};device.start();
+      }
+      render();
+    }
+    function start(kind) {
       if (started) return;
       started = true;
       show(zone || exterior(config));
-      gps = {status:'locating'};
-      source.start();keepAwake();render();
+      follow(kind);keepAwake();
     }
     function stop() {
       if (!started) return;
-      started = false;source.stop();lastPosition = null;gps = {status:'off'};
+      started = false;device.stop();G.clearInterval(lukaTimer);lukaTimer = null;lastPosition = null;luka = null;gps = {status:'off'};
       if (lock) {var held = lock;lock = null;held.release().catch(function () {});}
       render();
     }
+    function lukaText() {
+      if (lukaState === 'session') return T('Sin sesión: entra con Google para seguir a Luka','Not signed in: sign in with Google to follow Luka');
+      if (lukaState === 'error') return T('Sin conexión con el mapa; reintentando','Map unreachable; retrying');
+      if (!luka) return T('Esperando a Luka: muévelo en el mapa con «Mover también el móvil»','Waiting for Luka: move it on the map with “Also move the phone”');
+      var seconds = Math.max(0, Math.round((now() - Date.parse(luka.ts)) / 1000));
+      var ago = seconds < 60 ? seconds + ' s' : Math.round(seconds / 60) + ' min';
+      return T('Luka del simulador · movido hace ','Simulated Luka · moved ') + ago + T('',' ago');
+    }
     function gpsText() {
+      if (mode === 'luka' && started) return lukaText();
       var metres = Number.isFinite(gps.accuracy) ? ' · ±' + Math.round(gps.accuracy) + ' m' : '';
       switch (gps.status) {
         case 'ready': return T('Ubicación confirmada','Location confirmed') + metres;
@@ -117,7 +155,8 @@
       }
     }
     function render() {
-      var tone = {ready:'ok',locating:'wait',ambiguous:'wait',stale:'wait',timeout:'wait',paused:'wait',accuracy:'wait'}[gps.status] || (gps.status === 'off' ? 'off' : 'bad');
+      var tone = mode === 'luka' && started ? ({ok:'ok',waiting:'wait'}[lukaState] || 'bad')
+        : {ready:'ok',locating:'wait',ambiguous:'wait',stale:'wait',timeout:'wait',paused:'wait',accuracy:'wait'}[gps.status] || (gps.status === 'off' ? 'off' : 'bad');
       byId('mp-zona').textContent = !zone ? '—' : zone.id === 'exterior' ? T('Fuera de zona','Outside the zones') : zone.name;
       byId('mp-tema').textContent = zone ? Z.themeName(zone.tag, T) : '';
       byId('mp-gps').textContent = gpsText();
@@ -129,21 +168,29 @@
       byId('mp-encendida').hidden = !lock;
       byId('mp-inicio').hidden = started;
       byId('mp-detener').hidden = !started;
+      byId('mp-fuente').hidden = !started;
+      byId('mp-fuente').textContent = mode === 'luka' ? T('Usar GPS','Use GPS') : T('Seguir a Luka','Follow Luka');
     }
 
     [['mp-titulo','Player por ubicación','Location player'],
      ['mp-intro','El contenido cambia según la zona en la que esté este móvil. Camina entre las zonas y mira cómo cambia.','Content changes with the zone this phone is in. Walk between zones and watch it change.'],
      ['mp-nota','Usa el GPS de este dispositivo solo mientras la página está abierta. La posición no se guarda ni se envía: a admira.tv solo le llega el tema de la zona.','It uses this device’s GPS only while the page is open. The position is not saved or sent: admira.tv only receives the zone’s theme.'],
-     ['mp-empezar','Empezar','Start'],['mp-detener','Detener','Stop'],['mp-mapa','Mapa','Map'],['mp-encendida','Pantalla encendida','Screen kept on']
+     ['mp-empezar','Empezar con el GPS del móvil','Start with this phone’s GPS'],['mp-empezar-luka','Seguir a Luka del mapa','Follow Luka from the map'],
+     ['mp-luka-nota','Con «Seguir a Luka», el contenido cambia cuando alguien mueve a Luka en el simulador del mapa con «Mover también el móvil». No usa el GPS.','With “Follow Luka”, content changes when someone moves Luka in the map simulator with “Also move the phone”. GPS is not used.'],
+     ['mp-detener','Detener','Stop'],['mp-mapa','Mapa','Map'],['mp-encendida','Pantalla encendida','Screen kept on']
     ].forEach(function (item) {byId(item[0]).textContent = T(item[1], item[2]);});
-    byId('mp-empezar').addEventListener('click', start);
+    byId('mp-empezar').addEventListener('click', function () {start('gps');});
+    byId('mp-empezar-luka').addEventListener('click', function () {start('luka');});
+    byId('mp-fuente').addEventListener('click', function () {if (started) follow(mode === 'luka' ? 'gps' : 'luka');});
     byId('mp-detener').addEventListener('click', stop);
     d.addEventListener('visibilitychange', function () {
       // The location module pauses itself while hidden; resume what the user started.
-      if (!d.hidden && started) {source.start();keepAwake();}
+      if (d.hidden || !started) return;
+      if (mode === 'gps') device.start();else pollLuka();
+      keepAwake();
     });
     render();
-    return {start:start,stop:stop,loadZones:loadZones,state:function () {return {zone:zone,gps:gps,origin:origin,rev:rev,frameURL:frameURL,identity:identity,started:started,zonesState:zonesState,awake:!!lock};}};
+    return {start:start,stop:stop,follow:follow,pollLuka:pollLuka,loadZones:loadZones,state:function () {return {zone:zone,gps:gps,mode:mode,luka:luka,lukaState:lukaState,origin:origin,rev:rev,frameURL:frameURL,identity:identity,started:started,zonesState:zonesState,awake:!!lock};}};
   }
 
   G.AdmiraMapaPlayer = {create:create,decide:decide};

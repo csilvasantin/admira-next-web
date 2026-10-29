@@ -111,7 +111,8 @@
     map = G.L.map('mapa', {scrollWheelZoom:false}).setView([41.394,2.164], 13);
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
-    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,onStateChange:renderMap});
+    var remote = G.AdmiraMapaLukaRemoto ? G.AdmiraMapaLukaRemoto.create() : null;
+    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,onStateChange:renderMap,onManualPosition:function (point) {if (remote) remote.publish(point);}});
     if (map.on) map.on('zoomend', refrescarHalos);
   }
 

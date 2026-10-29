@@ -145,6 +145,9 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-zone-publish #simulador-publicar{border-color:var(--cyan);color:var(--cyan)}
 .mapa-zone-publish #simulador-publicado:not(:empty){margin-top:7px;color:var(--ink)}
 .mapa-movil{margin:0 0 14px}
+.mapa-movil>button+button{margin-left:8px}
+.mapa-movil #simulador-remoto[aria-pressed="true"]{color:var(--cyan);border-color:var(--cyan);background:#17332f}
+.mapa-movil #simulador-remoto-estado{margin-top:8px}
 .mapa-movil-panel{display:flex;align-items:flex-start;gap:14px;margin-top:10px;flex-wrap:wrap}
 .mapa-movil-panel img{flex:none;width:168px;height:168px;padding:10px;background:#fff;border-radius:10px;image-rendering:pixelated}
 .mapa-movil-panel>div{flex:1 1 180px;min-width:0}

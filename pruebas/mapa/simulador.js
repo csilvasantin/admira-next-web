@@ -333,6 +333,8 @@
       dragging=false;
       applyZone(zoneFor(position,config()),reason);
       renderText();
+      // Only dropped positions leave the page (luka-remoto.js, when its switch is on).
+      if (options.onManualPosition) options.onManualPosition({lat:position.lat,lng:position.lng});
     }
     function clickMap(event) {if (active && source==='manual' && event.latlng) move(event.latlng,true);}
     function stop() {
