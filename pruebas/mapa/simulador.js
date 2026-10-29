@@ -57,12 +57,15 @@
     var c=fix&&fix.coords;
     return resolveFix({lat:c&&c.latitude,lng:c&&c.longitude},fix&&fix.timestamp,c&&c.accuracy,config,now);
   }
-  function playerURL(zone, identity) {
+  function playerURL(zone, identity, ids) {
     if (!zone || typeof zone.id !== 'string' || !/^[a-z][a-z0-9-]{0,47}$/.test(zone.id) || typeof zone.tag !== 'string' || !/^[a-z0-9][a-z0-9-]{0,47}$/.test(zone.tag)) throw new Error('zona_invalida');
     if (!/^virtual-mapa-[a-z0-9-]{8,64}$/.test(identity)) throw new Error('identidad_invalida');
     var url = new URL('https://admira.tv/canal.html');
     var params = {embed:'mupi',fit:'screen',screen:identity,circuit:identity,playerType:'virtual',mode:'local',modeLock:'1',sincro:'0',tag:zone.tag,max:'3',muted:'1',stream:'1',medio:'all',category:'all',audience:'all',age:'all',slot:'all'};
     Object.keys(params).forEach(function (key) {url.searchParams.set(key,params[key]);});
+    // The Xperiencia's own list of pieces (admira.tv ?ids=); without it, the newest of the tag.
+    var pinned=(Array.isArray(ids)?ids:[]).filter(function (id) {return typeof id==='string'&&/^[A-Za-z0-9-]{1,80}$/.test(id);}).slice(0,12);
+    if (pinned.length) url.searchParams.set('ids',pinned.join(','));
     return url.href;
   }
   function create(options) {
@@ -74,6 +77,12 @@
     var bank = G.AdmiraMapaXperiencias.create({host:host,playerURL:playerURL,title:function (zone) {
       return 'admira.tv · ' + label(zone) + ' · ' + (source==='manual'?T('simulación','simulation'):source==='browser'?T('mi dispositivo','my device'):'Luka');
     }});
+    // The page loads the Stock once (mapa.js) and each Xperiencia pins three pieces of its topic;
+    // players already open reload once with them.
+    if (options.stock && options.stock.then) options.stock.then(function (items) {
+      bank.setStock(items);
+      if (active && current) {currentKey='';applyZone(current,'config');}
+    });
     var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map(), browserState=null, deviceLayer=null, deviceMarker=null, deviceHalo=null;
     var history=[], lastHistoryKey='', lastHistoryState=null, historyOpen=false;
     var tourStatus='idle',tourStops=[],tourIndex=-1,tourTimer=null,tourTicket=0,tourDue=0,tourRemaining=12000,tourReason='',tourLoop=false;

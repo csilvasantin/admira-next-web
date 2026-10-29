@@ -309,3 +309,55 @@ test('cada Xperiencia reproduce 3 piezas de su tema: University negocio, Pixerí
   assert.equal(bySite['la-nave'].get('tag'), 'tecnologia');
   for (const params of Object.values(bySite)) assert.equal(params.get('max'), '3', 'lista de 3 piezas por player');
 });
+
+// ── Tres piezas distintas por Xperiencia (canal de admira.tv con ?ids=) ─────────
+const STOCK_FIXTURE = [
+  // La familia «PART 2»: original y tres adaptaciones (comparten par-<id> o externalRef).
+  {id:'p2-916', type:'video', url:'u', tags:['negocio','par-p2-169'], externalRef:'p2-169', orientacion:'vertical', createdAt:'2026-10-27T21:30:00Z'},
+  {id:'p2-169', type:'video', url:'u', tags:['negocio','par-p2-orig','par-p2-169'], externalRef:'p2-orig', orientacion:'horizontal', createdAt:'2026-10-27T21:27:00Z'},
+  {id:'p2-sub', type:'video', url:'u', tags:['Negocio','par-p2-orig'], externalRef:'p2-orig', orientacion:'horizontal', createdAt:'2026-10-27T21:25:00Z'},
+  {id:'ai-tasks', type:'video', url:'u', tags:['business'], createdAt:'2026-10-27T10:00:00Z'},
+  {id:'rauch', type:'video', url:'u', tags:['negocio'], orientacion:'vertical', createdAt:'2026-10-26T10:00:00Z'},
+  {id:'alvin', type:'video', url:'u', tags:['negocio'], orientacion:'horizontal', createdAt:'2026-10-24T10:00:00Z'},
+  {id:'malo', type:'video', url:'u', tags:['negocio'], quality:'bad', createdAt:'2026-10-28T10:00:00Z'},
+  {id:'audio', type:'audio', url:'u', tags:['negocio'], createdAt:'2026-10-28T11:00:00Z'},
+  {id:'sin-url', type:'video', tags:['negocio'], createdAt:'2026-10-28T12:00:00Z'},
+  {id:'tec-1', type:'video', url:'u', tags:['tecnología'], createdAt:'2026-10-28T09:00:00Z'},
+  {id:'crea-1', type:'image', url:'u', tags:['creatividad'], createdAt:'2026-10-26T09:00:00Z'},
+];
+
+test('elige 3 piezas DISTINTAS por tema: una por familia de versiones, horizontales primero y sin malas ni audio', () => {
+  const {api} = mountPlayer(), pick = (tag) => JSON.parse(JSON.stringify(api.AdmiraMapaXperiencias.pickIds(STOCK_FIXTURE, tag)));
+  assert.deepEqual(pick('negocio'), ['p2-169', 'ai-tasks', 'alvin'], 'la familia PART 2 cuenta una vez; la vertical, solo si faltan');
+  const shuffled = JSON.parse(JSON.stringify(api.AdmiraMapaXperiencias.pickIds(STOCK_FIXTURE.slice().reverse(), 'negocio')));
+  assert.deepEqual(shuffled, ['p2-169', 'ai-tasks', 'alvin'], 'el orden del catálogo no cambia la elección');
+  assert.deepEqual(pick('tecnologia'), ['tec-1'], 'sin acentos');
+  assert.deepEqual(pick('business'), pick('negocio'), 'alias en inglés');
+  assert.deepEqual(pick('robots'), []);
+  assert.equal(JSON.parse(JSON.stringify(api.AdmiraMapaXperiencias.pickIds(STOCK_FIXTURE.concat(['x', null, {id:'<b>', type:'video', url:'u', tags:['negocio']}]), 'negocio'))).length, 3);
+});
+
+test('el player de cada Xperiencia lleva sus piezas en ?ids= y, sin Stock, se queda con el tag', () => {
+  const {api} = mountPlayer(), S = api.AdmiraMapaSimulador, zone = {id:'university', name:'U', tag:'negocio'};
+  const url = new URL(S.playerURL(zone, 'virtual-mapa-xperiencia-university', ['p2-169', 'ai-tasks', 'alvin']));
+  assert.equal(url.searchParams.get('ids'), 'p2-169,ai-tasks,alvin');assert.equal(url.searchParams.get('tag'), 'negocio');assert.equal(url.searchParams.get('max'), '3');
+  assert.equal(new URL(S.playerURL(zone, 'virtual-mapa-xperiencia-university', ['ok', '<x>', '../y'])).searchParams.get('ids'), 'ok');
+  assert.equal(new URL(S.playerURL(zone, 'virtual-mapa-xperiencia-university')).searchParams.has('ids'), false);
+});
+
+test('el móvil espera al Stock para precargar: cada Xperiencia abre ya con sus 3 piezas', async () => {
+  const storage = new Map();
+  let resolve;const stock = new Promise(r => {resolve = r;});
+  const ui = mountPlayer({storage});
+  // mountPlayer crea el player sin Stock; uno nuevo con la promesa espera sin cargar nada.
+  const P = ui.api.AdmiraMapaPlayer;ui.element('mp-pantalla').children = [];
+  const player = P.create({stock, now:() => Date.now()});
+  assert.equal(ui.element('mp-pantalla').children.length, 0, 'nada se carga antes de conocer las piezas');
+  resolve(STOCK_FIXTURE);await new Promise(setImmediate);
+  const bySite = Object.fromEntries(ui.element('mp-pantalla').children.map(f => [f.attributes['data-xperiencia'], new URL(f.src).searchParams]));
+  assert.equal(bySite.university.get('ids'), 'p2-169,ai-tasks,alvin');
+  assert.equal(bySite['la-nave'].get('ids'), 'tec-1');
+  assert.equal(bySite.pixeria.get('ids'), 'crea-1');
+  assert.equal(bySite.garage.has('ids'), false, 'sin piezas de su tema, el canal sigue con el tag');
+  assert.equal(player.state().players, 6);
+});

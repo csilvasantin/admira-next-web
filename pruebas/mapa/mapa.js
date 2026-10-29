@@ -103,6 +103,9 @@
     }).join('') : '<p class="mapa-loading">' + T('No hay equipos disponibles.','No devices available.') + '</p>';
   }
 
+  // The Stock, once per page: each Xperiencia's player pins three pieces of its topic (players-xperiencias.js).
+  var stockReady = false;
+  var stock = G.AdmiraMapaXperiencias && G.fetch ? G.AdmiraMapaXperiencias.loadStock(G.fetch.bind(G)).then(function (items) {stockReady=true;return items;}) : {then:function () {}};
   function initializeMap() {
     if (!G.L) {
       byId('mapa').textContent = T('No se ha podido cargar el mapa. La lista de equipos sigue disponible.','The map could not load. The device list is still available.');
@@ -112,7 +115,7 @@
     aplicarCapa();
     markers = G.L.layerGroup().addTo(map);
     var remote = G.AdmiraMapaLukaRemoto ? G.AdmiraMapaLukaRemoto.create() : null;
-    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,onStateChange:renderMap,onManualPosition:function (point) {if (remote) remote.publish(point);}});
+    if (G.AdmiraMapaSimulador) simulator = G.AdmiraMapaSimulador.create({map:map,L:G.L,stock:stock,onStateChange:renderMap,onManualPosition:function (point) {if (remote) remote.publish(point);}});
     if (map.on) map.on('zoomend', refrescarHalos);
   }
 
@@ -473,6 +476,12 @@
   // the player opens, the five offices load and Luka walks them in a loop, 12 s each.
   function demoLuka() {
     if (!simulator) return false;
+    if (!stockReady) {
+      // Give the three pieces per Xperiencia a moment so the players open with them (max 3 s).
+      var started=false, go=function () {if (!started) {started=true;stockReady=true;demoLuka();}};
+      stock.then(go);G.setTimeout(go,3000);
+      return true;
+    }
     if (simulator.isActive()) simulator.stop();
     setMode(true);
     simulator.start();

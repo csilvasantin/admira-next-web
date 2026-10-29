@@ -36,7 +36,12 @@
 
     // One preloaded admira.tv player per Xperiencia (players-xperiencias.js), loaded with the page.
     var bank = G.AdmiraMapaXperiencias.create({host:byId('mp-pantalla'), playerURL:S.playerURL, title:function (z) {return 'admira.tv · ' + Z.themeName(z.tag, T);}});
-    bank.sync(config);
+    // Each Xperiencia pins three pieces of its topic from the Stock. Preload once they are known
+    // (or after 3 s without them), so no player has to load twice.
+    if (options.stock && options.stock.then) {
+      options.stock.then(function (items) {bank.setStock(items);bank.sync(config);if (zone) show(zone);else render();});
+      G.setTimeout(function () {if (!bank.size()) {bank.sync(config);render();}}, 3000);
+    } else bank.sync(config);
 
     function show(next) {
       if (!sameZone(zone, next)) since = now();
@@ -198,7 +203,7 @@
     var bar = d.querySelector('.mp-barra');
     var fitBar = function () {d.documentElement.style.setProperty('--mp-barra', bar.offsetHeight + 'px');};
     fitBar();G.addEventListener('resize', fitBar);
-    var player = create();
+    var player = create({stock:G.AdmiraMapaXperiencias.loadStock(G.fetch.bind(G))});
     player.loadZones();
     G.setInterval(function () {if (!d.hidden) player.loadZones();}, ZONES_REFRESH_MS);
     var full = d.getElementById('mp-completa'), root = d.documentElement;
