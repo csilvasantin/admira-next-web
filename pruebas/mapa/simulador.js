@@ -31,16 +31,11 @@
     return {zone:zone,matches:matches,priority:c.zones.findIndex(function (item) {return item.id===zone.id;})+1,
       margin:zone.id==='exterior'?null:Math.max(0,zone.radius-distance(point,zone)),nearest:nearest};
   }
-  // Both sources use zoneFor. A real fix must also locate its entire accuracy
-  // circle in one winning zone; a point alone cannot distinguish nearby offices.
-  function resolveReading(device, config, now) {
-    if (!device || device.equipo !== 'luka' || device.tipo !== 'smarttag2' || device.fuente !== 'smartthings-find') return {status:'missing'};
-    if (device.es_prueba === true || /mock|demo|fixture|prueba|sint[eé]t|ejemplo|\btest\b|sample/i.test([device.fuente,device.nombre].join(' '))) return {status:'test'};
-    var point={lat:device.lat,lng:device.lon};
+  // Manual, Samsung and browser fixes share the same winning-zone rule.
+  // Measured positions must fit their whole accuracy circle in that zone.
+  function resolveFix(point,time,accuracy,config,now) {
     if (!valid(point)) return {status:'missing'};
-    var stamp=device.ultimo_aviso || device.ts, time=typeof stamp==='string'?Date.parse(stamp):NaN;
     if (!Number.isFinite(time) || time>now+60000 || now-time>300000) return {status:'stale',point:point,time:time};
-    var accuracy=device.precision_m;
     if (!Number.isFinite(accuracy)||accuracy<0) return {status:'accuracy',point:point,time:time};
     var result={status:'ready',point:point,time:time,accuracy:accuracy,zone:zoneFor(point,config)};
     for (var zone of config.zones) {
@@ -51,6 +46,16 @@
       }
     }
     return result;
+  }
+  function resolveReading(device, config, now) {
+    if (!device || device.equipo !== 'luka' || device.tipo !== 'smarttag2' || device.fuente !== 'smartthings-find') return {status:'missing'};
+    if (device.es_prueba === true || /mock|demo|fixture|prueba|sint[eé]t|ejemplo|\btest\b|sample/i.test([device.fuente,device.nombre].join(' '))) return {status:'test'};
+    var stamp=device.ultimo_aviso || device.ts;
+    return resolveFix({lat:device.lat,lng:device.lon},typeof stamp==='string'?Date.parse(stamp):NaN,device.precision_m,config,now);
+  }
+  function resolveBrowserReading(fix,config,now) {
+    var c=fix&&fix.coords;
+    return resolveFix({lat:c&&c.latitude,lng:c&&c.longitude},fix&&fix.timestamp,c&&c.accuracy,config,now);
   }
   function playerURL(zone, identity) {
     if (!zone || typeof zone.id !== 'string' || !/^[a-z][a-z0-9-]{0,47}$/.test(zone.id) || typeof zone.tag !== 'string' || !/^[a-z0-9][a-z0-9-]{0,47}$/.test(zone.tag)) throw new Error('zona_invalida');
@@ -67,8 +72,9 @@
     var T = function (es,en) {return /^en/i.test(d.documentElement.lang || '') ? en : es;};
     var root = byId('simulador-player'), controls = byId('simulador-controles'), host = byId('simulador-video');
     var identity = 'virtual-mapa-' + (G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
-    var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map();
-    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function (change) {if (active) {if (source==='luka') updateLuka(latestLuka,feedError);else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true);}if (change&&change.preset==='offices') fitZones();}}}) : null;
+    var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map(), browserState=null, deviceLayer=null, deviceMarker=null, deviceHalo=null;
+    var browserSource=G.AdmiraMapaUbicacionDispositivo?G.AdmiraMapaUbicacionDispositivo.create({onChange:function (state) {if (state.status==='stopped') {if (active&&source==='browser') stop();}else updateBrowser(state);}}):null;
+    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function (change) {if (active) {if (source==='luka') updateLuka(latestLuka,feedError);else if (source==='browser') updateBrowser(browserState);else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true);}if (change&&change.preset==='offices') fitZones();}}}) : null;
     function config() {return editor ? editor.getConfig() : {zones:zones,outside:outside};}
     function fitZones() {
       var points=config().zones.map(function (zone) {return [zone.lat,zone.lon];}), width=map.getSize?map.getSize().x:0;
@@ -83,6 +89,7 @@
     }
     function readingText() {
       var reasons={missing:T('Esperando coordenadas de Luka desde Samsung. El puente aún no aporta una lectura válida.','Waiting for Luka coordinates from Samsung. The bridge has not supplied a valid reading yet.'),test:T('La lectura es de prueba y no activa el player real.','A test reading cannot activate the real player.'),stale:T('La ubicación debe tener menos de cinco minutos y una fecha válida.','The location must be less than five minutes old and have a valid time.'),accuracy:T('Precisión no disponible. No se puede confirmar la oficina.','Accuracy unavailable. The office cannot be confirmed.'),ambiguous:T('El margen de precisión cruza un límite. Esperando una ubicación más precisa.','The accuracy area crosses a boundary. Waiting for a more precise location.'),network:T('No se puede actualizar la ubicación. Player detenido hasta recuperar la consulta.','The location cannot be refreshed. Player stopped until updates recover.')};
+      if (source==='browser') Object.assign(reasons,{missing:T('Esperando una posición de este dispositivo.','Waiting for this device’s location.'),locating:T('Esperando el permiso y la primera ubicación del navegador.','Waiting for browser permission and the first location.'),denied:T('Permiso de ubicación denegado. Detén este modo antes de volver a activarlo con permiso.','Location permission denied. Stop this mode before enabling it again with permission.'),timeout:T('No llega una ubicación a tiempo. Esperando una nueva medición.','Location request timed out. Waiting for a new measurement.'),unavailable:T('Ubicación no disponible. Esperando una nueva medición.','Location unavailable. Waiting for a new measurement.'),unsupported:T('Este navegador no ofrece ubicación. Prueba desde el navegador del móvil.','This browser does not offer location. Try your phone browser.'),insecure:T('La ubicación requiere una conexión HTTPS segura.','Location requires a secure HTTPS connection.'),policy:T('La política del navegador impide acceder a la ubicación.','Browser policy blocks location access.'),hidden:T('Vuelve a esta página y activa la ubicación de nuevo.','Return to this page and enable location again.')});
       var detail=reading&&Number.isFinite(reading.time)?new Date(reading.time).toLocaleString(/^en/i.test(d.documentElement.lang||'')?'en-GB':'es-ES')+(Number.isFinite(reading.accuracy)?' · ± '+reading.accuracy+' m':'')+' · ':'';
       return detail+(reading&&reading.status==='ready'?T('Oficina decidida con el mismo criterio que el arrastre.','Office selected with the same rule as dragging.'):reasons[reading?reading.status:'missing']);
     }
@@ -92,15 +99,15 @@
       var decision=position && (source==='manual' || reading&&reading.status==='ready')?decisionFor(position,config()):null;
       output.hidden=!decision;if (!decision) {output.textContent='';return;}
       function metres(value) {return value<1?T('menos de 1 m','less than 1 m'):Math.round(value)+' m';}
-      var target=decision.zone, text='', margin=source==='luka'?reading.accuracy:0;
+      var target=decision.zone, text='', margin=source!=='manual'?reading.accuracy:0;
       if (target.id==='exterior') {
         text=T('Fuera de las zonas.','Outside the zones.');
-        if (decision.nearest) text+=' '+T('La más cercana: ','Nearest: ')+zoneName(decision.nearest.zone)+', '+(source==='luka'?metres(Math.max(0,decision.nearest.metres-margin))+T(' desde el margen de precisión.',' from the accuracy area.'):T('a ','at ')+metres(decision.nearest.metres)+'.');
+        if (decision.nearest) text+=' '+T('La más cercana: ','Nearest: ')+zoneName(decision.nearest.zone)+', '+(source!=='manual'?metres(Math.max(0,decision.nearest.metres-margin))+T(' desde el margen de precisión.',' from the accuracy area.'):T('a ','at ')+metres(decision.nearest.metres)+'.');
       } else {
         if (decision.matches.length>1) text=T('Coinciden: ','Matching zones: ')+decision.matches.map(zoneName).join(', ')+'. '+T('Gana ','Winner: ')+zoneName(target)+T(' por prioridad ',' at priority ')+decision.priority+'.';
         else text=T('Dentro de ','Inside ')+zoneName(target)+'.';
         var remaining=Math.max(0,decision.margin-margin);
-        text+=' '+(source==='luka'?T('Margen de precisión hasta el límite: ','Accuracy margin to the boundary: '):T('Distancia al límite: ','Distance to the boundary: '))+metres(remaining)+'.';
+        text+=' '+(source!=='manual'?T('Margen de precisión hasta el límite: ','Accuracy margin to the boundary: '):T('Distancia al límite: ','Distance to the boundary: '))+metres(remaining)+'.';
         if (source==='manual'&&remaining<=10) text+=' '+T('Cerca del límite.','Near the boundary.');
       }
       output.textContent=(dragging?T('Al soltar: ','On drop: ')+zoneName(target)+' · '+label(target)+'. ':'')+text;
@@ -110,16 +117,16 @@
       byId('simulador-zona').textContent = current?zoneName(current):T('Sin oficina confirmada','No confirmed office');
       byId('simulador-contenido').textContent = current?label(current):T('Esperando ubicación','Waiting for location');
       byId('simulador-coordenadas').textContent = position?position.lat.toFixed(5) + ', ' + position.lng.toFixed(5):'—';
-      byId('simulador-coordenadas').setAttribute('aria-label',source==='manual'?T('Coordenadas simuladas','Simulated coordinates'):T('Últimas coordenadas recibidas de Luka','Last received Luka coordinates'));
+      byId('simulador-coordenadas').setAttribute('aria-label',source==='manual'?T('Coordenadas simuladas','Simulated coordinates'):source==='browser'?T('Coordenadas de este dispositivo','This device’s coordinates'):T('Últimas coordenadas recibidas de Luka','Last received Luka coordinates'));
       byId('simulador-estado').textContent = frame?statusText():T('Player en espera','Player waiting');
-      byId('simulador-arrastre').textContent = source==='manual'?(dragging?T('Suelta para aplicar la ubicación.','Drop to apply the location.'):T('Arrastra el marcador o toca el mapa.','Drag the marker or tap the map.')):T('Siguiendo Luka · actualización cada 60 segundos.','Following Luka · updates every 60 seconds.');
-      byId('simulador-lectura').textContent = source==='luka'?readingText():T('Arrastre manual · no modifica la ubicación real de Luka.','Manual drag · does not change Luka’s real location.');
-      byId('simulador-badge').textContent = source==='manual'?T('SIMULACIÓN','SIMULATION'):T('SEGUIR LUKA','FOLLOW LUKA');
-      root.setAttribute('aria-label',source==='manual'?T('Player de ubicación simulada','Simulated location player'):T('Player según ubicación de Luka','Player following Luka location'));
+      byId('simulador-arrastre').textContent = source==='manual'?(dragging?T('Suelta para aplicar la ubicación.','Drop to apply the location.'):T('Arrastra el marcador o toca el mapa.','Drag the marker or tap the map.')):source==='browser'?T('Mi dispositivo · ubicación del navegador. No es el SmartTag2 de Luka.','My device · browser location. This is not Luka’s SmartTag2.'):T('Siguiendo Luka · actualización cada 60 segundos.','Following Luka · updates every 60 seconds.');
+      byId('simulador-lectura').textContent = source!=='manual'?readingText():T('Arrastre manual · no modifica la ubicación real de Luka.','Manual drag · does not change Luka’s real location.');
+      byId('simulador-badge').textContent = source==='manual'?T('SIMULACIÓN','SIMULATION'):source==='browser'?T('MI UBICACIÓN','MY LOCATION'):T('SEGUIR LUKA','FOLLOW LUKA');
+      root.setAttribute('aria-label',source==='manual'?T('Player de ubicación simulada','Simulated location player'):source==='browser'?T('Player según ubicación de este dispositivo','Player following this device’s location'):T('Player según ubicación de Luka','Player following Luka location'));
       byId('simulador-abrir').textContent = T('Abrir player','Open player');
       byId('simulador-abrir').hidden = !frame;
       byId('simulador-zonas').setAttribute('aria-label',T('Zonas y contenido','Zones and content'));
-      byId('simulador-cerrar').textContent = source==='manual'?T('Cerrar simulador','Close simulator'):T('Dejar de seguir','Stop following');
+      byId('simulador-cerrar').textContent = source==='manual'?T('Cerrar simulador','Close simulator'):source==='browser'?T('Detener mi ubicación','Stop my location'):T('Dejar de seguir','Stop following');
       renderDecision();
       var items=allZones(), ids=items.map(function (zone) {return zone.id;});
       buttons.forEach(function (button,id) {if (ids.indexOf(id)<0) {button.remove();buttons.delete(id);}});
@@ -136,7 +143,7 @@
       });
       var zoneControls=byId('simulador-zonas'), ordered=items.map(function (zone) {return buttons.get(zone.id);});
       if (ordered.length!==zoneControls.children.length || ordered.some(function (button,index) {return zoneControls.children[index]!==button;})) zoneControls.replaceChildren.apply(zoneControls,ordered);
-      if (frame) frame.title = 'admira.tv · ' + label(current) + ' · ' + (source==='manual'?T('simulación','simulation'):'Luka');
+      if (frame) frame.title = 'admira.tv · ' + label(current) + ' · ' + (source==='manual'?T('simulación','simulation'):source==='browser'?T('mi dispositivo','my device'):'Luka');
       if (editor) editor.renderText();
     }
     function loadPlayer(zone) {
@@ -144,7 +151,7 @@
       if (frame) frame.removeAttribute('src');
       connection = 'loading';
       frame = d.createElement('iframe');
-      frame.title = 'admira.tv · ' + label(zone) + ' · ' + (source==='manual'?T('simulación','simulation'):'Luka');
+      frame.title = 'admira.tv · ' + label(zone) + ' · ' + (source==='manual'?T('simulación','simulation'):source==='browser'?T('mi dispositivo','my device'):'Luka');
       frame.setAttribute('allow','autoplay; fullscreen; geolocation \'none\'; camera \'none\'; microphone \'none\'');
       frame.setAttribute('sandbox','allow-scripts allow-same-origin');
       frame.setAttribute('referrerpolicy','no-referrer');
@@ -172,6 +179,25 @@
       if (reading.status==='ready') applyZone(reading.zone);else clearPlayer();
       renderText();
     }
+    function updateBrowser(state) {
+      if (!active || source!=='browser') return;
+      browserState=state || {status:'unsupported'};
+      reading=browserState.status==='position'?resolveBrowserReading(browserState.position,config(),Date.now()):{status:browserState.status};
+      position=reading.point || null;
+      if (reading.status==='ready') applyZone(reading.zone);else clearPlayer();
+      if (deviceLayer) {
+        // Only the current valid-time fix is drawn; errors/staleness clear it.
+        if (position && reading.status!=='stale') {
+          if (!deviceMarker) {
+            var icon=L.divIcon({className:'mapa-sim-marker mapa-device-location',html:'<span aria-hidden="true">◉</span><span>'+T('Mi dispositivo','My device')+'</span>',iconSize:[145,36],iconAnchor:[18,18]});
+            deviceMarker=L.marker([position.lat,position.lng],{icon:icon,draggable:false,alt:T('Mi dispositivo','My device')}).addTo(deviceLayer);
+            deviceHalo=L.circle([position.lat,position.lng],{radius:0,color:'#63e6d5',weight:1,fillOpacity:.12,interactive:false}).addTo(deviceLayer);
+          }
+          deviceMarker.setLatLng(position);deviceHalo.setLatLng(position).setRadius(Number.isFinite(reading.accuracy)?reading.accuracy:0);
+        } else {deviceLayer.clearLayers();deviceMarker=null;deviceHalo=null;}
+      }
+      renderText();
+    }
     function move(point, commit) {
       if (source!=='manual') return;
       if (!active || !valid(point)) return;
@@ -191,6 +217,9 @@
     function clickMap(event) {if (active && source==='manual' && event.latlng) move(event.latlng,true);}
     function stop() {
       active = false;
+      if (browserSource) browserSource.stop();
+      browserState=null;deviceLayer=null;deviceMarker=null;deviceHalo=null;
+      byId('ubicacion-activar').disabled=false;byId('ubicacion-detener').hidden=true;
       dragging = false;
       clearTimeout(timer);
       if (frame) frame.removeAttribute('src');
@@ -208,7 +237,7 @@
     }
     function start(mode) {
       if (active) return;
-      source=mode==='luka'?'luka':'manual';
+      source=mode==='luka'?'luka':mode==='browser'?'browser':'manual';
       active = true;
       root.hidden = false;controls.hidden = false;
       byId('simular-player').setAttribute('aria-pressed',String(source==='manual'));
@@ -220,6 +249,12 @@
         L.circle([zone.lat,zone.lon],{radius:zone.radius,color:'#bc85ec',weight:1,fillOpacity:0.06,interactive:false}).addTo(layer)
           .bindTooltip(zone.name,{permanent:true,direction:'top',offset:[0,-45],className:'mapa-sim-zone'});
       });
+      if (source==='browser') {
+        byId('ubicacion-activar').disabled=true;byId('ubicacion-detener').hidden=false;
+        deviceLayer=L.layerGroup().addTo(layer);fitZones();updateBrowser({status:'locating'});
+        if (browserSource) browserSource.start();else updateBrowser({status:'unsupported'});
+        if (options.onStateChange) options.onStateChange();return;
+      }
       if (source==='luka') {updateLuka(null,false);if (options.onStateChange) options.onStateChange();return;}
       var icon = L.divIcon({className:'mapa-sim-marker',html:'<span aria-hidden="true">◉</span><span>Luka · manual</span>',iconSize:[125,36],iconAnchor:[18,18]});
       var first=config().zones[0] || outside;
@@ -239,8 +274,8 @@
       if (typeof data.id==='string' && data.id.length<=160) frame.setAttribute('data-media-id',data.id);
       connection = 'connected';clearTimeout(timer);renderText();
     });
-    return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);}};
+    return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isBrowser:function () {return active&&source==='browser';},isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);}};
   }
 
-  G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,playerURL:playerURL,zones:zones,outside:outside};
+  G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,resolveBrowserReading:resolveBrowserReading,playerURL:playerURL,zones:zones,outside:outside};
 })(window,document);

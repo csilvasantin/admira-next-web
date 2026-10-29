@@ -167,7 +167,7 @@
   }
 
   function renderMap() {
-    byId('mapa-vacio').hidden = !state.loaded || state.devices.some(hasPosition);
+    byId('mapa-vacio').hidden = !state.loaded || state.devices.some(hasPosition) || !!(simulator && simulator.isActive());
     if (!map) return;
     markers.clearLayers();
     pins.clear();
@@ -275,7 +275,7 @@
     if (state.controller) state.controller.abort();
     state.controller = null;
     state.demo = demo;
-    if (simulator && (!demo || (simulator.isFollowing && simulator.isFollowing()))) simulator.stop();
+    if (simulator && (!demo || (simulator.isFollowing && simulator.isFollowing()) || (simulator.isBrowser && simulator.isBrowser()))) simulator.stop();
     state.loading = false;
     state.error = null;
     state.feedFailed = false;
@@ -288,16 +288,28 @@
     if (!demo) refresh();
   }
 
-  byId('modo-real').addEventListener('click',function () {setMode(false);});
-  byId('modo-demo').addEventListener('click',function () {setMode(true);});
+  byId('modo-real').addEventListener('click',function () {if (simulator && simulator.isBrowser && simulator.isBrowser()) simulator.stop();setMode(false);});
+  byId('modo-demo').addEventListener('click',function () {if (simulator && simulator.isBrowser && simulator.isBrowser()) simulator.stop();setMode(true);});
   byId('refrescar').addEventListener('click',refresh);
   byId('centrar').addEventListener('click',fit);
   byId('simular-player').addEventListener('click',function () {
     if (!simulator) return;
-    if (simulator.isActive()) {var following=simulator.isFollowing&&simulator.isFollowing();simulator.stop();if (!following) return;}
+    if (simulator.isActive()) {var following=(simulator.isFollowing&&simulator.isFollowing()) || (simulator.isBrowser&&simulator.isBrowser());simulator.stop();if (!following) return;}
     setMode(true);
     simulator.start();
   });
+  byId('ubicacion-ayuda').addEventListener('click',function () {
+    var open=byId('ubicacion-aviso').hidden;
+    byId('ubicacion-aviso').hidden=!open;
+    byId('ubicacion-ayuda').setAttribute('aria-expanded',String(open));
+  });
+  byId('ubicacion-activar').addEventListener('click',function () {
+    if (!simulator) return;
+    simulator.stop();
+    if (state.demo) setMode(false);
+    simulator.start('browser');
+  });
+  byId('ubicacion-detener').addEventListener('click',function () {if (simulator && simulator.isBrowser && simulator.isBrowser()) simulator.stop();});
   byId('seguir-luka').addEventListener('click',function () {
     if (!simulator) return;
     if (simulator.isFollowing()) {simulator.stop();return;}
