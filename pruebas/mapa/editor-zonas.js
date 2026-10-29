@@ -8,14 +8,15 @@
     {id:'eixample',name:'Eixample',tag:'tecnologia',lat:41.389,lon:2.1645,radius:450}
   ],outside:{tag:'creatividad'}};
   // Owner-confirmed offices, all in 08012 Barcelona. Address geocodes, not tag fixes.
+  // Topics per Xperiencia (Carlos, 29-oct-2026): University business, Pixería creativity, La Nave technology.
   // ICGC: Aulèstia21, Bretón9, Planeta7. GeoBCN: Rosa Puig-Rodon Pla4/19
   // (formerly Santa Rosa, city decree S1/D/2024-00332). See docs/mapa-simulador.md.
   var offices = {version:1,zones:[
     {id:'pixeria',name:'Pixería',address:'Aulèstia i Pijoan 21 · 08012 Barcelona',tag:'creatividad',lat:41.40300208,lon:2.15095625,radius:50},
-    {id:'university',name:'Admira University',address:'Bretón de los Herreros 9 · 08012 Barcelona',tag:'educacion',lat:41.4023751,lon:2.1519882,radius:50},
+    {id:'university',name:'Admira University',address:'Bretón de los Herreros 9 · 08012 Barcelona',tag:'negocio',lat:41.4023751,lon:2.1519882,radius:50},
     {id:'garage',name:'Garage',address:'Santa Rosa 4 · actual Rosa Puig-rodon Pla · 08012',tag:'devops',lat:41.40316442,lon:2.15276479,radius:50},
     {id:'sneaker-store',name:'Sneaker Store',address:'Santa Rosa 19 · actual Rosa Puig-rodon Pla · 08012',tag:'retail',lat:41.40347899,lon:2.15370648,radius:50},
-    {id:'la-nave',name:'La Nave',address:'Planeta 7 · 08012 Barcelona',tag:'emprendimiento',lat:41.40134534,lon:2.1558339,radius:50}
+    {id:'la-nave',name:'La Nave',address:'Planeta 7 · 08012 Barcelona',tag:'tecnologia',lat:41.40134534,lon:2.1558339,radius:50}
   ],outside:{tag:'publicidad'}};
   var copy = function (value) {return JSON.parse(JSON.stringify(value));};
   function validate(value) {
@@ -104,7 +105,7 @@
     selected = config.zones[0] ? config.zones[0].id : 'exterior';
     saved = JSON.stringify(config);
     var active = false, opened = false, shapes, handles, circles = new Map(), centreHandle, radiusHandle, position;
-    var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'},{tag:'educacion'},{tag:'devops'},{tag:'emprendimiento'},{tag:'publicidad'}], catalogState = 'idle', catalogRequest = null, catalogTimer=null, pieces=[], catalogLoaded=false;
+    var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'},{tag:'negocio'},{tag:'educacion'},{tag:'devops'},{tag:'emprendimiento'},{tag:'publicidad'}], catalogState = 'idle', catalogRequest = null, catalogTimer=null, pieces=[], catalogLoaded=false;
     var transferState='idle', importBusy=false, importTicket=0, importedCount=0;
     // Server copy for the phone player (/api/ubicacion/zonas). Read only on demand.
     var published={loaded:false,rev:0,can:false,csrf:'',zones:null,at:null}, publishState='idle', publishBusy=false, phoneOpen=false, qrRequested=false;

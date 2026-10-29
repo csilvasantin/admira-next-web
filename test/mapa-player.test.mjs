@@ -165,7 +165,7 @@ test('cambia de contenido solo con lecturas confirmadas y nunca envía coordenad
   ui.fix(...NAVE, 500);
   assert.equal(tagOf(ui), 'creatividad', 'una lectura ambigua mantiene el contenido');assert.match(ui.element('mp-gps').textContent, /límite/);
   ui.fix(...NAVE, 8);
-  assert.equal(tagOf(ui), 'emprendimiento');assert.equal(ui.element('mp-zona').textContent, 'La Nave');
+  assert.equal(tagOf(ui), 'tecnologia');assert.equal(ui.element('mp-zona').textContent, 'La Nave');
   const url = new URL(ui.player.state().frameURL);
   for (const key of ['lat', 'lon', 'lng', 'latitude', 'longitude', 'accuracy']) assert.equal(url.searchParams.has(key), false);
   assert.ok(![...url.searchParams.values()].some(value => value.includes('41.40')));
@@ -269,7 +269,7 @@ test('«Seguir a Luka» no pide GPS y cambia el contenido cuando Luka se mueve e
   assert.equal(ui.element('mp-gps').attributes['data-tono'], 'ok');
   luka = {...luka, lat:NAVE[0], lon:NAVE[1]};
   await ui.player.pollLuka();
-  assert.equal(tagOf(ui), 'emprendimiento');
+  assert.equal(tagOf(ui), 'tecnologia');
   assert.ok(ui.requests.every(r => !r.options.method || r.options.method === 'GET'), 'el móvil solo lee');
   assert.equal(ui.element('mp-fuente').textContent, 'Usar GPS');
   ui.element('mp-fuente').click();
@@ -299,4 +299,13 @@ test('el interruptor del mapa no hace peticiones apagado y, encendido, envía so
   assert.equal(puts.at(-1), 5);assert.ok(puts.length <= 3);
   assert.match(document.getElementById('simulador-remoto-estado').textContent, /Luka enviado al móvil/);
   assert.equal(document.getElementById('simulador-remoto').attributes['aria-pressed'], 'true');
+});
+
+test('cada Xperiencia reproduce 3 piezas de su tema: University negocio, Pixería creatividad, La Nave tecnología', () => {
+  const ui = mountPlayer();
+  const bySite = Object.fromEntries(ui.frames().map(f => [f.attributes['data-xperiencia'], new URL(f.src).searchParams]));
+  assert.equal(bySite.university.get('tag'), 'negocio');
+  assert.equal(bySite.pixeria.get('tag'), 'creatividad');
+  assert.equal(bySite['la-nave'].get('tag'), 'tecnologia');
+  for (const params of Object.values(bySite)) assert.equal(params.get('max'), '3', 'lista de 3 piezas por player');
 });
