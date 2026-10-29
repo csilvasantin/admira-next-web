@@ -298,7 +298,7 @@ Se activa guardando en `localStorage['admiranext:mapa:robot']` `{"base":"https:/
 
 `?casa=1` abre el simulador ya con las cinco salas. El player virtual de admira.tv cambia al entrar.
 
-`/robot/limpieza/` es la pantalla de limpieza: mapa de la casa, ir a sala, parar y cámara. Usa el robot simulado (`cameraURL` vacío) y, si no hay imagen, muestra «No hay señal de cámara». No llama al puente. El texto nace en castellano y el armazón lo pasa a inglés con el idioma del sitio. Para quitar esta pantalla: `git checkout retorno/pre-robot-limpieza-20261029 -- robot/limpieza test/robot-limpieza.test.mjs`.
+`/robot/limpieza/` es la pantalla de limpieza: mapa de la casa, ir a sala, parar y cámara. Usa el robot simulado (`cameraURL` vacío) y, si no hay imagen, muestra «No hay señal de cámara». No llama al puente. El texto nace en castellano y el armazón lo pasa a inglés con el idioma del sitio. El tag `retorno/pre-robot-limpieza-20261029` (`1fc26ef`) es el commit anterior: esas rutas no existían, así que un checkout de la carpeta falla. Para quitarla: `git rm -r robot/limpieza test/robot-limpieza.test.mjs` y `git checkout retorno/pre-robot-limpieza-20261029 -- pruebas/mapa/README.md`.
 
 El puente local es `python3 pruebas/mapa/bridge/roborock_bridge.py`. Escucha solo en `127.0.0.1:8765`.
 
