@@ -8,15 +8,15 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.29.10.2026.r6.03:10">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-dispositivo-2">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-historial-1">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
-  <script defer src="/pruebas/mapa/idioma.js?v=20261029-dispositivo-1"></script>
+  <script defer src="/pruebas/mapa/idioma.js?v=20261029-historial-1"></script>
   <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-prioridad-1"></script>
   <script defer src="/pruebas/mapa/ubicacion-dispositivo.js?v=20261029-dispositivo-1"></script>
-  <script defer src="/pruebas/mapa/simulador.js?v=20261029-dispositivo-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261029-historial-1"></script>
   <script defer src="/pruebas/mapa/mapa.js?v=20261029-dispositivo-1"></script>
 </head>
 <body data-yk-frame="cabecera">
@@ -86,6 +86,15 @@
         </section>
         <p class="mapa-sim-note">La ubicación sólo controla este player virtual.</p>
       </div>
+      <section id="simulador-historial" class="mapa-history" aria-label="Historial de cambios del player" hidden>
+        <button type="button" id="simulador-historial-toggle" aria-expanded="false" aria-controls="simulador-historial-body">Historial de cambios</button>
+        <div id="simulador-historial-body" hidden>
+          <p id="simulador-historial-ayuda" class="mapa-meta"></p>
+          <button type="button" id="simulador-historial-vaciar">Vaciar historial</button>
+          <p id="simulador-historial-vacio" class="mapa-meta" hidden></p>
+          <ol id="simulador-historial-lista" aria-live="off"></ol>
+        </div>
+      </section>
     </section>
 
     <section class="mapa-panel mapa-devices-panel" aria-labelledby="equipos-titulo">
