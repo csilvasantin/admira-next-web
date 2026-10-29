@@ -8,7 +8,7 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.29.10.2026.r5.03:07">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-dispositivo-1">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-dispositivo-2">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
@@ -45,6 +45,7 @@
         <p id="ubicacion-explicacion">Prueba el cambio de contenido al caminar con este dispositivo. Usa su ubicación, no la del SmartTag2. Sólo comienza al activar y conceder el permiso del navegador. No se guarda ni se envía al puente Samsung o a admira.tv. Se detiene al ocultar esta página; para continuar tendrás que activarla de nuevo.</p>
         <div class="mapa-actions"><button type="button" id="ubicacion-activar">Activar en este dispositivo</button><button type="button" id="ubicacion-detener" hidden>Detener mi ubicación</button></div>
       </div>
+      <div class="mapa-player-stage">
       <div class="mapa-canvas-wrap"><div id="mapa" aria-label="Mapa de ubicaciones de los equipos"></div><p id="mapa-vacio" class="mapa-empty" hidden>Aún no hay posiciones confirmadas. Los equipos sin ubicación se muestran en la lista.</p><div class="mapa-legend" aria-label="Leyenda"><button type="button" class="mapa-legend-toggle" aria-expanded="false" aria-controls="mapa-legend-body">Leyenda</button><div class="mapa-legend-body" id="mapa-legend-body"><span><i class="mapa-dot mapa-dot-mobile"></i>Móvil</span><span><i class="mapa-dot mapa-dot-fixed"></i>Fijo</span><span><i class="mapa-dot mapa-dot-smarttag2"></i>SmartTag2 · Luka</span><span><i class="mapa-dot mapa-dot-stale"></i>Desactualizado · más de 2 h</span><span><i class="mapa-dot mapa-dot-prueba"></i>Dato de prueba</span></div></div></div>
       <aside id="simulador-player" class="mapa-sim-player" aria-label="Player de ubicación simulada" hidden>
         <div class="mapa-sim-head"><span id="simulador-badge" class="mapa-tag is-demo">SIMULACIÓN</span><strong>admira.tv</strong><button type="button" id="simulador-cerrar">Cerrar simulador</button></div>
@@ -53,6 +54,7 @@
         <p id="simulador-estado" class="mapa-meta" role="status" aria-live="polite"></p>
         <a id="simulador-abrir" href="https://admira.tv/canal.html" target="_blank" rel="noopener noreferrer">Abrir player</a>
       </aside>
+      </div>
       <div id="simulador-controles" class="mapa-sim-controls" hidden>
         <div><p id="simulador-arrastre">Arrastra el marcador o toca el mapa.</p><output id="simulador-coordenadas" aria-label="Coordenadas simuladas">—</output></div>
         <p id="simulador-lectura" class="mapa-meta" role="status" aria-live="polite"></p>
