@@ -321,6 +321,8 @@ export function returnToSeguro(value) {
   const path = String(value || '');
   // Sólo el destino privado exacto, sin abrir redirecciones a rutas arbitrarias.
   if (['/pruebas/mapa', '/pruebas/mapa/', '/pruebas/mapa/index.html'].includes(path)) return '/pruebas/mapa/';
+  // /robot/limpieza (29-10-2026): la pantalla del robot usa el mismo login y vuelve a su página.
+  if (['/robot/limpieza', '/robot/limpieza/', '/robot/limpieza/index.html'].includes(path)) return '/robot/limpieza/';
   // /github (zona militarizada, 06-09-2026) vuelve a su sitio tras el login, como /usuarios.
   // Zona protegida (06-10-2026): Style Book, Agentes, Organigrama y RoadMap (10-10-2026) también vuelven a su página.
   // /roadmap/encargos (19-10-2026): la tabla de encargos bajo RoadMap vuelve a su página.

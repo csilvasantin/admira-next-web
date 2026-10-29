@@ -760,5 +760,10 @@
   ],
   "v.29.10.2026.r17.14:15": [
     "/demo luka: locución en castellano, una frase por oficina; el botón «🔊 Activar locución» la arranca y luego la silencia."
+  ],
+  "v.29.10.2026.r18.23:15": [
+    "Limpieza del robot en /robot/limpieza: mapa de la casa, ir a sala, parar y aviso si no hay cámara. Mismo login que /pruebas.",
+    "Casa Saros en /pruebas/mapa: Pixería, Universidad, Garage, Store y Planeta, como ya estaban. Esta publicación no mueve el robot.",
+    "Vuelta atrás: tag retorno/pre-publicar-robot-7273-20261029 (sello v.29.10.2026.r17.14:15)."
   ]
 }

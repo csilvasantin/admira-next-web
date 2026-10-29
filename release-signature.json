@@ -1,7 +1,7 @@
 {
-  "version": "v.29.10.2026.r17.14:15",
-  "deployer": "NeoMBP14",
-  "agent": "NeoMBP14",
-  "machine": "MacBookProNegro14",
-  "signature": "NeoMBP14 · MacBookProNegro14"
+  "version": "v.29.10.2026.r18.23:15",
+  "deployer": "SmithMacMini",
+  "agent": "SmithMacMini",
+  "machine": "MacMini",
+  "signature": "SmithMacMini · MacMini"
 }
