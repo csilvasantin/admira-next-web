@@ -746,5 +746,8 @@
   "v.29.10.2026.r13.12:55": [
     "Mapa: «Mover también el móvil» envía a Luka al player del móvil cada vez que se suelta en el simulador.",
     "Player del móvil: nueva fuente «Seguir a Luka del mapa», que cambia de oficina en unos 2 s sin usar el GPS."
+  ],
+  "v.29.10.2026.r14.13:19": [
+    "Modo experto: /demo luka, desde admira.tv y el resto de la suite, abre el mapa con el player y Luka recorre las cinco oficinas en bucle; el contenido cambia en cada una."
   ]
 }
