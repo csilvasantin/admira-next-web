@@ -749,5 +749,9 @@
   ],
   "v.29.10.2026.r14.13:19": [
     "Modo experto: /demo luka, desde admira.tv y el resto de la suite, abre el mapa con el player y Luka recorre las cinco oficinas en bucle; el contenido cambia en cada una."
+  ],
+  "v.29.10.2026.r15.13:27": [
+    "Mapa y player del móvil: un player de admira.tv precargado por Xperiencia (Pixería, Admira University, Garage, Sneaker Store, La Nave y fuera de zona), cada uno con su playlist; al llegar Luka solo cambia cuál se ve.",
+    "El player del móvil muestra «players listos N/6»."
   ]
 }
