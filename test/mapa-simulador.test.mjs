@@ -141,7 +141,7 @@ test('seguir Luka espera sin coordenadas, aplica avisos fiables y retira el play
   sim.start();assert.equal(sim.isFollowing(),false);assert.equal(ui.markers.at(-1).options.draggable,true);sim.stop();
 });
 function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:async()=>fixtureCatalog}),storageError=false,browser=false}={}) {
-  const elements = new Map(), messages = [], markers = [], timers = new Map(), mapEvents = {}, requests=[], downloads=[], blobs=new Map();
+  const elements = new Map(), messages = [], markers = [], timers = new Map(), timerDelays = new Map(), mapEvents = {}, requests=[], downloads=[], blobs=new Map();
   let serial=0,clockNow=Date.now();
   const intervals=new Map(),lifecycle={},docEvents={},geo={calls:0,cleared:[],watchPosition(success,error,options){this.calls++;this.success=success;this.error=error;this.options=options;return 7;},clearWatch(id){this.cleared.push(id);}};
   class Clock extends Date {constructor(...args){super(...(args.length?args:[clockNow]));}static now(){return clockNow;}}
@@ -151,17 +151,17 @@ function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:a
     return el;
   }
   const element=id=>{if(!elements.has(id)){const el=node();el.id=id;}return elements.get(id);};
-  const document = {documentElement:{lang:'es'},getElementById:element,createElement:node,body:node(),addEventListener:(k,fn)=>docEvents[k]=fn};
+  const document = {documentElement:{lang:'es'},getElementById:element,createElement:node,body:node(),addEventListener:(k,fn)=>{const old=docEvents[k];docEvents[k]=(...args)=>{if(old)old(...args);fn(...args);};}};
   const map = {on:(k,fn)=>mapEvents[k]=fn,off:k=>delete mapEvents[k],removeLayer(){},setView(){},panTo(){},getCenter:()=>({lat:41.396,lng:2.164})};
   const toPoint=p=>Array.isArray(p)?{lat:p[0],lng:p[1]}:{...p};
   const L = {layerGroup:()=>({addTo(){return this;},clearLayers(){}}),circle:()=>({addTo(){return this;},bindTooltip(value){this.tooltip=value;return this;},setLatLng(){return this;},setRadius(){return this;}}),divIcon:options=>options,marker:(point,options)=>{
     const marker={point:toPoint(point),options,events:{},addTo(){markers.push(this);return this;},setLatLng(point){this.point=toPoint(point);return this;},getLatLng(){return this.point;},on(k,fn){this.events[k]=fn;return this;}};return marker;
   }};
   class FixtureURL extends URL {static createObjectURL(blob){const key='blob:fixture-'+blobs.size;blobs.set(key,blob);return key;}static revokeObjectURL(key){blobs.delete(key);}}
-  const context = vm.createContext({document,URL:FixtureURL,Blob,TextEncoder,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);else lifecycle[event]=fn;},setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
+  const context = vm.createContext({document,URL:FixtureURL,Blob,TextEncoder,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);else {const old=lifecycle[event];lifecycle[event]=(...args)=>{if(old)old(...args);fn(...args);};}},setTimeout:(fn,ms)=>{const id=++serial;timers.set(id,fn);timerDelays.set(id,ms);return id;},clearTimeout:id=>{timers.delete(id);timerDelays.delete(id);}});
   if(browser)Object.assign(context,{navigator:{geolocation:geo},isSecureContext:true,Date:Clock,setInterval:fn=>{const id=++serial;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)});
   context.window=context;if(browser)vm.runInContext(browserCode,context);if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
-  return {geo,intervals,lifecycle,hide:()=>{document.hidden=true;docEvents.visibilitychange();},advance:ms=>clockNow+=ms,api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,mapEvents,storage,requests,downloads,message:event=>messages.forEach(fn=>fn(event))};
+  return {geo,intervals,lifecycle,hide:()=>{document.hidden=true;docEvents.visibilitychange();},advance:ms=>clockNow+=ms,api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,timerDelays,mapEvents,storage,requests,downloads,message:event=>messages.forEach(fn=>fn(event))};
 }
 
 test('las zonas usan distancia en metros y un exterior explícito; nunca aceptan coordenadas inválidas',()=>{
@@ -532,4 +532,71 @@ test('historial de edición e importación: conserva nombres previos, indica con
   await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));assert.match(historyTitle(historyRows(ui)[0]),/Fuera de las zonas/);assert.match(historyReason(historyRows(ui)[0]),/configuración/);
   ui.element('simulador-exportar').click();const serialized=await ui.downloads[0].blob.text(),transfer=JSON.parse(serialized);
   assert.deepEqual(Object.keys(transfer).sort(),['outside','version','zones']);assert.doesNotMatch(serialized,/history|historial|smartthings-find|timestamp/);assert.equal(ui.storage.size,0);ui.sim.stop();
+});
+
+const tourTimeout=ui=>Array.from(ui.timers).find(([id])=>ui.timerDelays.get(id)>0&&ui.timerDelays.get(id)<=12000);
+const tickTour=ui=>{const pair=tourTimeout(ui);assert.ok(pair,'a tour step should be scheduled');ui.timers.delete(pair[0]);ui.timerDelays.delete(pair[0]);pair[1]();};
+function tourSession(){const ui=mount({editor:true,browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-oficinas').click();return {...ui,sim};}
+
+test('el recorrido Demo visita las cinco zonas por la misma selección, completa y conserva la configuración',()=>{
+  const ui=tourSession();ui.element('simulador-guardar').click();const original=ui.storage.get(ui.zonesApi.storageKey),first=ui.element('simulador-video').children[0];
+  assert.equal(tourTimeout(ui),undefined,'loading a preset never starts a tour');ui.element('simulador-recorrer').click();
+  assert.equal(ui.element('simulador-video').children[0],first,'starting at the same office preserves playback');
+  for(const [i,zone] of ui.zonesApi.officePreset.zones.entries()){
+    assert.match(ui.element('simulador-badge').textContent,/DEMO/);assert.equal(ui.element('simulador-zona').textContent,zone.name);
+    assert.match(ui.element('simulador-recorrido-estado').textContent,new RegExp((i+1)+' / 5'));assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),zone.tag);
+    tickTour(ui);
+  }
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/completado.*5 \/ 5/);assert.equal(tourTimeout(ui),undefined);
+  assert.equal(ui.element('simulador-recorrido-pausa').hidden,true);assert.equal(ui.element('simulador-recorrer').disabled,false);
+  assert.equal(ui.storage.get(ui.zonesApi.storageKey),original);assert.equal(ui.geo.calls,0);
+  ui.sim.stop();
+});
+
+test('pausar conserva paso y vídeo; reanudar espera lo que faltaba y descarta callbacks antiguos',()=>{
+  const ui=tourSession();ui.element('simulador-recorrer').click();const frame=ui.element('simulador-video').children[0],late=tourTimeout(ui)[1];
+  ui.advance(4000);ui.element('simulador-recorrido-pausa').click();ui.advance(20000);
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/pausa.*1 \/ 5/);assert.equal(tourTimeout(ui),undefined);late();assert.equal(ui.element('simulador-video').children[0],frame);
+  ui.element('simulador-recorrido-pausa').click();assert.equal(ui.timerDelays.get(tourTimeout(ui)[0]),8000);assert.equal(ui.element('simulador-video').children[0],frame);
+  tickTour(ui);assert.equal(ui.element('simulador-zona').textContent,'Admira University');const next=ui.element('simulador-video').children[0],lateNext=tourTimeout(ui)[1];
+  ui.element('simulador-recorrido-detener').click();assert.equal(tourTimeout(ui),undefined);lateNext();assert.equal(ui.element('simulador-video').children[0],next);assert.match(ui.element('simulador-recorrido-estado').textContent,/Parada solicitada/);ui.sim.stop();
+});
+
+test('tomar el control por arrastre, mapa o acceso de zona cancela el recorrido sin reaparición tardía',()=>{
+  for(const action of ['drag','map','jump','move']){
+    const ui=tourSession();ui.element('simulador-recorrer').click();const late=tourTimeout(ui)[1];
+    if(action==='drag'){const marker=ui.markers.find(x=>x.options.alt==='Luka · manual');marker.point={lat:41.4023751,lng:2.1519882};marker.events.drag();assert.equal(tourTimeout(ui),undefined);marker.events.dragend();}
+    if(action==='map')ui.mapEvents.click({latlng:{lat:41.4023751,lng:2.1519882}});
+    if(action==='jump')ui.element('simulador-ir-university').click();
+    if(action==='move')ui.sim.move({lat:41.4023751,lng:2.1519882});
+    assert.equal(tourTimeout(ui),undefined);assert.equal(ui.element('simulador-zona').textContent,'Admira University');late();assert.equal(ui.element('simulador-zona').textContent,'Admira University');assert.match(ui.element('simulador-recorrido-estado').textContent,/Movimiento manual/);ui.sim.stop();
+  }
+});
+
+test('editar e importar detiene antes de esperar el archivo y nunca reinicia automáticamente',async()=>{
+  const ui=tourSession();ui.element('simulador-recorrer').click();ui.element('simulador-editar').click();await flush();
+  assert.equal(tourTimeout(ui),undefined);assert.equal(ui.element('simulador-recorrer').disabled,true);
+  ui.element('simulador-editar').click();assert.equal(ui.element('simulador-recorrer').disabled,false);assert.equal(tourTimeout(ui),undefined);
+  ui.element('simulador-recorrer').click();let finish;const pending=importFile(ui,{size:100,text:()=>new Promise(resolve=>finish=resolve)});
+  assert.equal(tourTimeout(ui),undefined);assert.equal(ui.element('simulador-recorrer').disabled,true);
+  finish(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset));await pending;assert.equal(tourTimeout(ui),undefined);assert.equal(ui.element('simulador-recorrer').disabled,false);
+  ui.element('simulador-editar').click();await flush();ui.element('simulador-exportar').click();const config=JSON.parse(await ui.downloads[0].blob.text());assert.deepEqual(Object.keys(config).sort(),['outside','version','zones']);assert.doesNotMatch(JSON.stringify(config),/tour|recorrido|running|paused/);ui.sim.stop();
+});
+
+test('ocultar, abandonar o cambiar fuente cancela; volver o recargar no reanuda ni pide ubicación',()=>{
+  for(const action of ['hidden','pagehide','source']){
+    const ui=tourSession();ui.element('simulador-recorrer').click();const late=tourTimeout(ui)[1];
+    if(action==='hidden')ui.hide();if(action==='pagehide')ui.lifecycle.pagehide();if(action==='source'){ui.sim.stop();ui.sim.start('luka');}
+    assert.equal(tourTimeout(ui),undefined);ui.document.hidden=false;late();ui.sim.renderText();assert.equal(tourTimeout(ui),undefined);assert.equal(ui.geo.calls,0);
+    if(action==='source'){assert.equal(ui.element('simulador-recorrer').disabled,true);ui.element('simulador-recorrer').click();assert.equal(tourTimeout(ui),undefined);}
+    const fresh=mount({editor:true,browser:true,storage:ui.storage}),sim=fresh.api.create({map:fresh.map,L:fresh.L});sim.start();assert.equal(tourTimeout(fresh),undefined);assert.equal(fresh.geo.calls,0);sim.stop();ui.sim.stop();
+  }
+});
+
+test('el recorrido respeta la prioridad de solapamientos y no fuerza el contenido de la zona visitada',async()=>{
+  const ui=tourSession(),config=JSON.parse(JSON.stringify(ui.zonesApi.officePreset));config.zones=[config.zones[0],{...config.zones[1],lat:config.zones[0].lat,lon:config.zones[0].lon}];
+  await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(config)));ui.element('simulador-recorrer').click();const frame=ui.element('simulador-video').children[0];tickTour(ui);
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/2 \/ 2.*Admira University.*Gana Pixería por prioridad/);assert.equal(ui.element('simulador-video').children[0],frame);ui.sim.stop();
+  const empty=mount({editor:true,browser:true}),sim=empty.api.create({map:empty.map,L:empty.L});sim.start();await importFile(empty,fileOf(JSON.stringify({version:1,zones:[],outside:{tag:'publicidad'}})));
+  assert.equal(empty.element('simulador-recorrer').disabled,true);empty.element('simulador-recorrer').click();assert.equal(tourTimeout(empty),undefined);sim.stop();
 });

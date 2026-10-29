@@ -74,8 +74,9 @@
     var identity = 'virtual-mapa-' + (G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
     var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map(), browserState=null, deviceLayer=null, deviceMarker=null, deviceHalo=null;
     var history=[], lastHistoryKey='', lastHistoryState=null, historyOpen=false;
+    var tourStatus='idle',tourStops=[],tourIndex=-1,tourTimer=null,tourTicket=0,tourDue=0,tourRemaining=12000,tourReason='';
     var browserSource=G.AdmiraMapaUbicacionDispositivo?G.AdmiraMapaUbicacionDispositivo.create({onChange:function (state) {if (state.status==='stopped') {if (active&&source==='browser') stop();}else updateBrowser(state);}}):null;
-    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onChange:function (change) {if (active) {if (source==='luka') updateLuka(latestLuka,feedError,'config');else if (source==='browser') updateBrowser(browserState,'config');else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true,'config');}if (change&&change.preset==='offices') fitZones();}}}) : null;
+    var editor = G.AdmiraMapaZonas ? G.AdmiraMapaZonas.create({map:map,L:L,onInteraction:function () {stopTour('config');renderTour();},onChange:function (change) {stopTour('config');if (active) {if (source==='luka') updateLuka(latestLuka,feedError,'config');else if (source==='browser') updateBrowser(browserState,'config');else {var first=config().zones[0];move(change&&change.preset==='offices'?{lat:first.lat,lng:first.lon}:position,true,'config');}if (change&&change.preset==='offices') fitZones();}}}) : null;
     function config() {return editor ? editor.getConfig() : {zones:zones,outside:outside};}
     function fitZones() {
       var points=config().zones.map(function (zone) {return [zone.lat,zone.lon];}), width=map.getSize?map.getSize().x:0;
@@ -85,6 +86,57 @@
     function allZones() {var c=config();return c.zones.concat([{id:'exterior',name:'',tag:c.outside.tag,lat:outside.lat,lon:outside.lon}]);}
     function zoneName(zone) {return zone.name || T('Fuera de las zonas','Outside the zones');}
     function label(zone) {var original=zones.concat([outside]).find(function (z) {return z.tag===zone.tag;}) || zone;return editor ? editor.label(zone.tag) : T(original.es || zone.tag,original.en || zone.tag);}
+    function touring() {return tourStatus==='running'||tourStatus==='paused';}
+    function renderTour() {
+      var available=active&&source==='manual', target=tourStops[tourIndex], editing=editor&&editor.isEditing&&editor.isEditing();
+      byId('simulador-recorrer').textContent=tourStatus==='complete'?T('Repetir recorrido Demo','Repeat Demo tour'):T('Iniciar recorrido Demo','Start Demo tour');
+      byId('simulador-recorrer').disabled=!available||!config().zones.length||touring()||!!editing;
+      byId('simulador-recorrido-pausa').textContent=tourStatus==='paused'?T('Reanudar recorrido','Resume tour'):T('Pausar recorrido','Pause tour');
+      byId('simulador-recorrido-pausa').hidden=!available||!touring();
+      byId('simulador-recorrido-detener').textContent=T('Detener recorrido','Stop tour');
+      byId('simulador-recorrido-detener').hidden=!available||!touring();
+      byId('simulador-recorrido-ayuda').textContent=T('Demo · visita el centro de cada zona durante 12 s, con la misma decisión que al soltar Luka. Respeta la prioridad de solapamientos y sólo controla este player virtual.','Demo · visits each zone centre for 12 s, using the same decision as dropping Luka. Overlap priority applies; only this virtual player is controlled.');
+      var text=!available?T('Disponible en Simular player.','Available in Simulate player.'):editing?T('Termina la edición para iniciar un recorrido.','Finish editing before starting a tour.'):!config().zones.length?T('Añade una zona para iniciar el recorrido.','Add a zone to start the tour.'):tourStatus==='idle'?T('Recorrido preparado; se inicia sólo al pulsar el botón.','Tour ready; starts only when you press the button.'):tourStatus==='stopped'?T('Recorrido detenido.','Tour stopped.'):tourStatus==='complete'?T('Recorrido completado.','Tour completed.'):tourStatus==='paused'?T('Recorrido en pausa.','Tour paused.'):T('Recorrido Demo en marcha.','Demo tour running.');
+      if (target && tourStatus!=='idle'&&tourStatus!=='stopped') {
+        text+=' '+(tourIndex+1)+' / '+tourStops.length+' · '+target.name+'.';
+        if (current&&current.id!==target.id) text+=' '+T('Gana ','Winner: ')+zoneName(current)+T(' por prioridad.',' by priority.');
+      }
+      var reasons={manual:T('Movimiento manual.','Manual movement.'),config:T('Edición o importación de zonas.','Zone editing or import.'),hidden:T('La página ha quedado oculta.','The page was hidden.'),source:T('Cambio o cierre del modo.','Mode changed or closed.'),user:T('Parada solicitada.','Stopped by user.')};
+      if (tourStatus==='stopped'&&available&&reasons[tourReason]) text+=' '+reasons[tourReason];
+      byId('simulador-recorrido-estado').textContent=text;
+    }
+    function stopTour(reason) {
+      if (tourStatus==='idle'||tourStatus==='stopped') return;
+      clearTimeout(tourTimer);tourTimer=null;++tourTicket;tourStatus='stopped';tourReason=reason||'user';renderText();
+    }
+    function armTour(delay) {
+      clearTimeout(tourTimer);var ticket=++tourTicket;tourDue=Date.now()+delay;
+      tourTimer=setTimeout(function () {
+        if (ticket!==tourTicket||!active||source!=='manual'||tourStatus!=='running') return;
+        tourTimer=null;
+        if (d.hidden) {stopTour('hidden');return;}
+        if (tourIndex>=tourStops.length-1) {tourStatus='complete';renderText();return;}
+        ++tourIndex;visitTourStop();
+      },delay);
+    }
+    function visitTourStop() {
+      var target=tourStops[tourIndex];
+      move({lat:target.lat,lng:target.lon},true,'tour');
+      tourRemaining=12000;armTour(tourRemaining);
+    }
+    function startTour() {
+      if (!active||source!=='manual'||d.hidden||touring()||(editor&&editor.isEditing&&editor.isEditing())) return;
+      tourStops=config().zones.map(function (zone) {return {id:zone.id,name:zone.name,lat:zone.lat,lon:zone.lon};});
+      if (!tourStops.length) return;
+      tourStatus='running';tourReason='';tourIndex=0;fitZones();visitTourStop();
+    }
+    function pauseTour() {
+      if (!active||source!=='manual'||!touring()) return;
+      if (d.hidden) {stopTour('hidden');return;}
+      if (tourStatus==='running') {tourRemaining=Math.max(0,tourDue-Date.now());clearTimeout(tourTimer);tourTimer=null;++tourTicket;tourStatus='paused';}
+      else {tourStatus='running';armTour(tourRemaining);}
+      renderText();
+    }
     function statusText() {
       return connection === 'connected' ? T('Player conectado','Player connected') : connection === 'waiting' ? T('Sin confirmación del player. Puedes abrirlo aparte.','No confirmation from the player. You can open it separately.') : T('Conectando con admira.tv…','Connecting to admira.tv…');
     }
@@ -104,7 +156,7 @@
       if (item.status==='stopped') return T('Se ha detenido este modo.','This mode was stopped.');
       if (item.status!=='ready') return readingReason(item.status,item.source);
       if (item.source==='manual'&&item.reason==='confirmed') return T('Ubicación manual aplicada.','Manual location applied.');
-      var reasons={start:T('Inicio del simulador manual.','Manual simulator started.'),config:T('La configuración de zonas o contenido ha cambiado.','Zone or content settings changed.'),confirmed:T('Ubicación confirmada; se aplica el contenido de la zona.','Location confirmed; zone content applied.'),outside:T('La ubicación ha salido de las zonas.','Location moved outside the zones.'),office:T('La ubicación ha cambiado de oficina.','Location moved to another office.')};
+      var reasons={tour:T('Paso del recorrido Demo.','Demo tour step.'),start:T('Inicio del simulador manual.','Manual simulator started.'),config:T('La configuración de zonas o contenido ha cambiado.','Zone or content settings changed.'),confirmed:T('Ubicación confirmada; se aplica el contenido de la zona.','Location confirmed; zone content applied.'),outside:T('La ubicación ha salido de las zonas.','Location moved outside the zones.'),office:T('La ubicación ha cambiado de oficina.','Location moved to another office.')};
       return reasons[item.reason] || reasons.confirmed;
     }
     function renderHistory() {
@@ -161,15 +213,16 @@
     }
     function renderText() {
       renderHistory();
+      renderTour();
       if (!active) return;
       byId('simulador-zona').textContent = current?zoneName(current):T('Sin oficina confirmada','No confirmed office');
       byId('simulador-contenido').textContent = current?label(current):T('Esperando ubicación','Waiting for location');
       byId('simulador-coordenadas').textContent = position?position.lat.toFixed(5) + ', ' + position.lng.toFixed(5):'—';
       byId('simulador-coordenadas').setAttribute('aria-label',source==='manual'?T('Coordenadas simuladas','Simulated coordinates'):source==='browser'?T('Coordenadas de este dispositivo','This device’s coordinates'):T('Últimas coordenadas recibidas de Luka','Last received Luka coordinates'));
       byId('simulador-estado').textContent = frame?statusText():T('Player en espera','Player waiting');
-      byId('simulador-arrastre').textContent = source==='manual'?(dragging?T('Suelta para aplicar la ubicación.','Drop to apply the location.'):T('Arrastra el marcador o toca el mapa.','Drag the marker or tap the map.')):source==='browser'?T('Mi dispositivo · ubicación del navegador. No es el SmartTag2 de Luka.','My device · browser location. This is not Luka’s SmartTag2.'):T('Siguiendo Luka · actualización cada 60 segundos.','Following Luka · updates every 60 seconds.');
+      byId('simulador-arrastre').textContent = source==='manual'?(touring()?T('Recorrido Demo · puedes pausarlo o arrastrar para tomar el control.','Demo tour · pause it or drag to take control.'):dragging?T('Suelta para aplicar la ubicación.','Drop to apply the location.'):T('Arrastra el marcador o toca el mapa.','Drag the marker or tap the map.')):source==='browser'?T('Mi dispositivo · ubicación del navegador. No es el SmartTag2 de Luka.','My device · browser location. This is not Luka’s SmartTag2.'):T('Siguiendo Luka · actualización cada 60 segundos.','Following Luka · updates every 60 seconds.');
       byId('simulador-lectura').textContent = source!=='manual'?readingText():T('Arrastre manual · no modifica la ubicación real de Luka.','Manual drag · does not change Luka’s real location.');
-      byId('simulador-badge').textContent = source==='manual'?T('SIMULACIÓN','SIMULATION'):source==='browser'?T('MI UBICACIÓN','MY LOCATION'):T('SEGUIR LUKA','FOLLOW LUKA');
+      byId('simulador-badge').textContent = source==='manual'?(touring()?T('DEMO · RECORRIDO','DEMO · TOUR'):T('SIMULACIÓN','SIMULATION')):source==='browser'?T('MI UBICACIÓN','MY LOCATION'):T('SEGUIR LUKA','FOLLOW LUKA');
       root.setAttribute('aria-label',source==='manual'?T('Player de ubicación simulada','Simulated location player'):source==='browser'?T('Player según ubicación de este dispositivo','Player following this device’s location'):T('Player según ubicación de Luka','Player following Luka location'));
       byId('simulador-abrir').textContent = T('Abrir player','Open player');
       byId('simulador-abrir').hidden = !frame;
@@ -250,6 +303,7 @@
     function move(point, commit, reason) {
       if (source!=='manual') return;
       if (!active || !valid(point)) return;
+      if (reason!=='tour') stopTour('manual');
       position = {lat:point.lat,lng:point.lng};
       if (marker) marker.setLatLng(position);
       byId('simulador-coordenadas').textContent = position.lat.toFixed(5) + ', ' + position.lng.toFixed(5);
@@ -265,6 +319,7 @@
     }
     function clickMap(event) {if (active && source==='manual' && event.latlng) move(event.latlng,true);}
     function stop() {
+      stopTour('source');
       if (active) recordChange('stopped');
       active = false;
       if (browserSource) browserSource.stop();
@@ -317,6 +372,11 @@
       if (options.onStateChange) options.onStateChange();
     }
     byId('simulador-cerrar').addEventListener('click',stop);
+    byId('simulador-recorrer').addEventListener('click',startTour);
+    byId('simulador-recorrido-pausa').addEventListener('click',pauseTour);
+    byId('simulador-recorrido-detener').addEventListener('click',function () {stopTour('user');renderText();});
+    d.addEventListener('visibilitychange',function () {if (d.hidden) {stopTour('hidden');renderText();}});
+    G.addEventListener('pagehide',function () {stopTour('hidden');});
     byId('simulador-historial-toggle').addEventListener('click',function () {historyOpen=!historyOpen;renderHistory();});
     byId('simulador-historial-vaciar').addEventListener('click',function () {history=[];renderHistory();});
     G.addEventListener('message',function (event) {

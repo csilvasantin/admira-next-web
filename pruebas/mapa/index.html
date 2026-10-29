@@ -8,15 +8,15 @@
   <meta name="admiranext-version" content="AdmiraNeXT v.29.10.2026.r7.04:00">
   <title>Mapa de equipos · AdmiraNeXT</title>
   <link rel="stylesheet" href="/pruebas/mapa/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-historial-1">
+  <link rel="stylesheet" href="/pruebas/mapa/mapa.css?v=20261029-recorrido-1">
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
   <script defer src="/pruebas/mapa/vendor/leaflet/leaflet.js"></script>
   <script defer src="/pruebas/mapa/experto.js?v=20261010-1"></script>
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
   <script defer src="/pruebas/mapa/idioma.js?v=20261029-historial-1"></script>
-  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-prioridad-1"></script>
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-recorrido-1"></script>
   <script defer src="/pruebas/mapa/ubicacion-dispositivo.js?v=20261029-dispositivo-1"></script>
-  <script defer src="/pruebas/mapa/simulador.js?v=20261029-historial-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261029-recorrido-1"></script>
   <script defer src="/pruebas/mapa/mapa.js?v=20261029-dispositivo-1"></script>
 </head>
 <body data-yk-frame="cabecera">
@@ -62,6 +62,11 @@
         <button type="button" id="simulador-oficinas">Cargar cinco oficinas</button>
         <p id="simulador-oficinas-ayuda"></p>
         <div id="simulador-zonas" class="mapa-sim-zones" role="group" aria-label="Zonas del simulador"></div>
+        <div class="mapa-tour">
+          <div class="mapa-zone-actions"><button type="button" id="simulador-recorrer">Iniciar recorrido Demo</button><button type="button" id="simulador-recorrido-pausa" hidden>Pausar recorrido</button><button type="button" id="simulador-recorrido-detener" hidden>Detener recorrido</button></div>
+          <p id="simulador-recorrido-estado" role="status" aria-live="polite"></p>
+          <p id="simulador-recorrido-ayuda"></p>
+        </div>
         <button type="button" id="simulador-editar" aria-expanded="false" aria-controls="simulador-editor">Editar zonas y contenido</button>
         <section id="simulador-editor" class="mapa-zone-editor" aria-labelledby="simulador-editor-titulo" hidden>
           <h3 id="simulador-editor-titulo">Zonas y contenido</h3>
