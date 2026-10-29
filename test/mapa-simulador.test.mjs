@@ -95,10 +95,10 @@ test('cargar oficinas es reversible, no sobrescribe almacenamiento y arrastrar L
   ui.sim.stop();restored.sim.stop();other.sim.stop();
 });
 
-test('la casa Saros asigna Cocina, Terraza y Pasillo a las tres primeras playlists',async()=>{
+test('la casa Saros asigna las cinco salas a las cinco playlists',async()=>{
   const ui=await editorSession();
   const config=ui.zonesApi.casaPreset;
-  const want=[['cocina','Cocina','creatividad','Pixería','Aulèstia'],['terraza','Terraza','negocio','Admira University','Bretón'],['pasillo','Pasillo','devops','Garage','Santa Rosa 4']];
+  const want=[['cocina','Cocina','creatividad','Pixería','Aulèstia'],['terraza','Terraza','negocio','Admira University','Bretón'],['pasillo','Pasillo','devops','Garage','Santa Rosa 4'],['sneaker-store','Sneaker Store','retail','Sneaker Store','Santa Rosa 19'],['la-nave','La Nave','tecnologia','La Nave','Planeta']];
   assert.ok(ui.zonesApi.validate(config));
   assert.deepEqual(Array.from(config.zones,z=>z.id),want.map(row=>row[0]));
   assert.deepEqual(Array.from(config.zones,z=>z.name),want.map(row=>row[1]));
@@ -128,20 +128,23 @@ test('la casa Saros asigna Cocina, Terraza y Pasillo a las tres primeras playlis
   ui.sim.stop();
 });
 
-test('las playlists sobrantes esperan a las salas que aún no existen',()=>{
+test('Sneaker Store y La Nave tienen playlist en la casa',()=>{
   const ctx=vm.createContext({});ctx.window=ctx;vm.runInContext(salasCode,ctx);
   const api=ctx.AdmiraSalasReales;
   assert.equal(String(api.playerFor('cocina')),'pixeria');
   assert.equal(String(api.playerFor('terraza')),'university');
   assert.equal(String(api.playerFor('pasillo')),'garage');
+  assert.equal(String(api.playerFor('sneaker-store')),'sneaker-store');
+  assert.equal(String(api.playerFor('la-nave')),'la-nave');
   assert.equal(api.playerFor('gracia'),null);
-  assert.deepEqual(Array.from(api.salas,item=>String(item)),['cocina','terraza','pasillo']);
-  const extra=api.assign(['cocina','terraza','pasillo','comedor','estudio','otra']);
+  assert.deepEqual(Array.from(api.salas,item=>String(item)),['cocina','terraza','pasillo','sneaker-store','la-nave']);
+  const extra=api.assign();
   assert.equal(String(extra[3].xpacio.id),'sneaker-store');
   assert.equal(String(extra[3].xpacio.tag),'retail');
+  assert.equal(String(extra[3].xpacio.address),'Santa Rosa 19');
   assert.equal(String(extra[4].xpacio.id),'la-nave');
   assert.equal(String(extra[4].xpacio.address),'Planeta 7');
-  assert.equal(extra[5].xpacio,null);
+  assert.equal(api.assign(['cocina','terraza','pasillo','sneaker-store','la-nave','otra'])[5].xpacio,null);
 });
 
 test('cargar oficinas mientras sigue Luka conserva la fuente real y cancela importaciones anteriores pendientes',async()=>{

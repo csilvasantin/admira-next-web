@@ -1,8 +1,7 @@
 (function (G) {
   'use strict';
   // Playlists de los Xpacios, en el orden que pidió Carlos (encargo 7273).
-  // La casa del Saros hoy tiene tres salas: Cocina, Terraza y Pasillo.
-  // Si aparecen más, la siguiente coge Sneaker Store y la otra La Nave.
+  // La casa del mapa tiene cinco salas, en ese mismo orden.
   var XPACIOS = [
     {id:'pixeria',name:'Pixería',address:'Aulèstia i Pijoan 21',tag:'creatividad'},
     {id:'university',name:'Admira University',address:'Bretón de los Herreros 9',tag:'negocio'},
@@ -10,7 +9,7 @@
     {id:'sneaker-store',name:'Sneaker Store',address:'Santa Rosa 19',tag:'retail'},
     {id:'la-nave',name:'La Nave',address:'Planeta 7',tag:'tecnologia'}
   ];
-  var SALAS = ['cocina','terraza','pasillo'];
+  var SALAS = ['cocina','terraza','pasillo','sneaker-store','la-nave'];
   function copy(xp) {return xp?{id:xp.id,name:xp.name,address:xp.address,tag:xp.tag}:null;}
   function playlistAt(index) {
     return copy(XPACIOS[index] || null);

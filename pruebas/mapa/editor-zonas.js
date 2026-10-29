@@ -18,18 +18,22 @@
     {id:'sneaker-store',name:'Sneaker Store',address:'Santa Rosa 19 · actual Rosa Puig-rodon Pla · 08012',tag:'retail',lat:41.40347899,lon:2.15370648,radius:50},
     {id:'la-nave',name:'La Nave',address:'Planeta 7 · 08012 Barcelona',tag:'tecnologia',lat:41.40134534,lon:2.1558339,radius:50}
   ],outside:{tag:'publicidad'}};
-  // Esquema de la casa Saros Z70 (encargo 7273). Las salas de la app, en el orden
-  // de Carlos: Cocina, Terraza, Pasillo. Cada una lleva la playlist del Xpacio
-  // del mismo número. No es el plano del robot en mm.
+  // Esquema de la casa Saros Z70 (encargo 7273). Orden de Carlos:
+  // Cocina, Terraza, Pasillo, Sneaker Store y La Nave. Cada una lleva la
+  // playlist del Xpacio del mismo número. Separación ~40 m. No es el plano en mm.
   var casaSalas = [
     {id:'cocina',name:'Cocina',lat:41.3997038,lon:2.1559172},
     {id:'terraza',name:'Terraza',lat:41.3993419,lon:2.1563962},
-    {id:'pasillo',name:'Pasillo',lat:41.3993419,lon:2.1559172}
+    {id:'pasillo',name:'Pasillo',lat:41.3993419,lon:2.1559172},
+    {id:'sneaker-store',name:'Sneaker Store',lat:41.39898,lon:2.1559172},
+    {id:'la-nave',name:'La Nave',lat:41.39898,lon:2.1563962}
   ];
   var casaPlaylists = (G.AdmiraSalasReales && G.AdmiraSalasReales.xpacios) || [
     {name:'Pixería',address:'Aulèstia i Pijoan 21',tag:'creatividad'},
     {name:'Admira University',address:'Bretón de los Herreros 9',tag:'negocio'},
-    {name:'El Garage',address:'Santa Rosa 4',tag:'devops'}
+    {name:'El Garage',address:'Santa Rosa 4',tag:'devops'},
+    {name:'Sneaker Store',address:'Santa Rosa 19',tag:'retail'},
+    {name:'La Nave',address:'Planeta 7',tag:'tecnologia'}
   ];
   var casa = {version:1,zones:casaSalas.map(function (sala, index) {
     var xp = casaPlaylists[index] || {name:'',address:'',tag:'publicidad'};
@@ -176,7 +180,7 @@
       byId('simulador-editar').textContent=opened?T('Terminar edición','Finish editing'):T('Editar zonas y contenido','Edit zones and content');
       byId('simulador-oficinas').textContent=T('Cargar cinco oficinas','Load five offices');
       byId('simulador-oficinas-ayuda').textContent=T('Sedes de 08012 Barcelona, con temas de prueba distintos y radios ajustables de 50 m. Cargar sustituye las zonas de esta sesión; puedes deshacerlo en el editor.','Offices in 08012 Barcelona, with distinct trial topics and adjustable 50 m areas. Loading replaces this session’s zones; you can undo it in the editor.');
-      byId('simulador-casa-ayuda').textContent=T('Cocina, Terraza y Pasillo, en ese orden, con la playlist de Pixería, Admira University y El Garage. Sneaker Store y La Nave esperan a que la casa tenga más salas.','Kitchen, Terrace and Hallway, in that order, with the Pixería, Admira University and Garage playlists. Sneaker Store and La Nave wait until the house has more rooms.');
+      byId('simulador-casa-ayuda').textContent=T('Cocina, Terraza, Pasillo, Sneaker Store y La Nave, en ese orden, con Pixería, Admira University, El Garage, Sneaker Store y La Nave.','Kitchen, Terrace, Hallway, Sneaker Store and La Nave, in that order, with Pixería, Admira University, Garage, Sneaker Store and La Nave.');
       var text={
         'editor-titulo':T('Zonas y contenido','Zones and content'),
         'editor-ayuda':T('Arrastra el centro o el borde de la zona seleccionada. Si se solapan, manda la primera de la lista.','Drag the centre or edge of the selected zone. If zones overlap, the first in the list wins.'),
