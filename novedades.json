@@ -753,5 +753,9 @@
   "v.29.10.2026.r15.13:27": [
     "Mapa y player del móvil: un player de admira.tv precargado por Xperiencia (Pixería, Admira University, Garage, Sneaker Store, La Nave y fuera de zona), cada uno con su playlist; al llegar Luka solo cambia cuál se ve.",
     "El player del móvil muestra «players listos N/6»."
+  ],
+  "v.29.10.2026.r16.14:10": [
+    "Mapa: Admira University reproduce negocio, Pixería creatividad y La Nave tecnología.",
+    "Cada Xperiencia fija 3 piezas distintas de su tema del Stock (una por familia de versiones) con el nuevo ?ids= de admira.tv."
   ]
 }
