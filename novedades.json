@@ -737,5 +737,10 @@
   "v.29.10.2026.r11.07:08": [
     "Mapa: el recorrido conserva el foco del teclado al iniciar, pausar y detener, sin desplazar la página.",
     "El editor indica con puntos suspensivos los títulos largos de la muestra de piezas."
+  ],
+  "v.29.10.2026.r12.12:27": [
+    "Mapa: player real en el móvil (/pruebas/mapa/player/): el GPS del teléfono elige la zona y admira.tv pone su tema; la posición no sale del dispositivo.",
+    "El editor publica las zonas para el player y las trae de vuelta; «Abrir player en el móvil» enseña un QR.",
+    "El simulador y el móvil conservan su identidad: ya no se crea un proyecto virtual-mapa nuevo en Yokup por visita."
   ]
 }
