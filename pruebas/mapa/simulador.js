@@ -65,24 +65,15 @@
     Object.keys(params).forEach(function (key) {url.searchParams.set(key,params[key]);});
     return url.href;
   }
-  // One identity per browser and kind. admira.tv registers every screen it sees,
-  // and a fresh UUID per visit left a virtual-mapa project per session in the
-  // Yokup census (31 by 29-oct-2026).
-  function stableIdentity(kind) {
-    var prefix='virtual-mapa-'+(kind?kind+'-':''), key='admiranext:mapa:identidad:v1:'+(kind||'simulador'), value=null;
-    try {value=G.localStorage.getItem(key);} catch (_) {}
-    if (typeof value==='string' && value.indexOf(prefix)===0 && /^virtual-mapa-[a-z0-9-]{8,64}$/.test(value)) return value;
-    value=prefix+(G.crypto && G.crypto.randomUUID ? G.crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
-    try {G.localStorage.setItem(key,value);} catch (_) {}
-    return value;
-  }
-
   function create(options) {
     var map = options.map, L = options.L;
     var byId = function (id) {return d.getElementById(id);};
     var T = function (es,en) {return /^en/i.test(d.documentElement.lang || '') ? en : es;};
     var root = byId('simulador-player'), controls = byId('simulador-controles'), host = byId('simulador-video');
-    var identity = stableIdentity('');
+    // One preloaded admira.tv player per Xperiencia (players-xperiencias.js); Luka only switches which one shows.
+    var bank = G.AdmiraMapaXperiencias.create({host:host,playerURL:playerURL,title:function (zone) {
+      return 'admira.tv · ' + label(zone) + ' · ' + (source==='manual'?T('simulación','simulation'):source==='browser'?T('mi dispositivo','my device'):'Luka');
+    }});
     var active = false, dragging = false, source = 'manual', latestLuka = null, feedError = false, reading = null, layer = null, marker = null, current = null, currentKey = '', position = null, frame = null, timer = null, connection = 'loading', buttons = new Map(), browserState=null, deviceLayer=null, deviceMarker=null, deviceHalo=null;
     var history=[], lastHistoryKey='', lastHistoryState=null, historyOpen=false;
     var tourStatus='idle',tourStops=[],tourIndex=-1,tourTimer=null,tourTicket=0,tourDue=0,tourRemaining=12000,tourReason='',tourLoop=false;
@@ -267,29 +258,24 @@
     }
     function loadPlayer(zone) {
       clearTimeout(timer);
-      if (frame) frame.removeAttribute('src');
-      connection = 'loading';
-      frame = d.createElement('iframe');
-      frame.title = 'admira.tv · ' + label(zone) + ' · ' + (source==='manual'?T('simulación','simulation'):source==='browser'?T('mi dispositivo','my device'):'Luka');
-      frame.setAttribute('allow','autoplay; fullscreen; geolocation \'none\'; camera \'none\'; microphone \'none\'');
-      frame.setAttribute('sandbox','allow-scripts allow-same-origin');
-      frame.setAttribute('referrerpolicy','no-referrer');
-      frame.setAttribute('allowfullscreen','');
-      frame.src = playerURL(zone,identity);
-      host.replaceChildren(frame);
+      bank.sync(config());
+      frame = bank.show(zone);
       byId('simulador-abrir').href = frame.src;
-      timer = setTimeout(function () {if (!active) return;connection = 'waiting';renderText();},20000);
+      // A preloaded player that already reported media is connected the moment Luka arrives.
+      connection = bank.isReady(frame) ? 'connected' : 'loading';
+      if (connection !== 'connected') timer = setTimeout(function () {if (!active) return;connection = 'waiting';renderText();},20000);
     }
     function applyZone(next,reason) {
       var key=next.id+'|'+next.tag;
       current=next;
+      // Edited zones get their player before Luka reaches them.
+      if (bank.size()) bank.sync(config());
       if (key !== currentKey) {currentKey=key;loadPlayer(current);}
       recordChange('ready',reason);
     }
     function clearPlayer() {
       clearTimeout(timer);
-      if (frame) frame.removeAttribute('src');
-      host.replaceChildren();frame=null;current=null;currentKey='';
+      bank.clear();frame=null;current=null;currentKey='';
     }
     function updateLuka(device,error,reason) {
       if (!active || source!=='luka') return;
@@ -347,8 +333,7 @@
       byId('ubicacion-activar').disabled=false;byId('ubicacion-detener').hidden=true;
       dragging = false;
       clearTimeout(timer);
-      if (frame) frame.removeAttribute('src');
-      host.replaceChildren();
+      bank.clear();
       frame = null;
       if (layer) map.removeLayer(layer);
       if (map.off) map.off('click',clickMap);
@@ -400,14 +385,15 @@
     byId('simulador-historial-toggle').addEventListener('click',function () {historyOpen=!historyOpen;renderHistory();});
     byId('simulador-historial-vaciar').addEventListener('click',function () {history=[];renderHistory();});
     G.addEventListener('message',function (event) {
-      if (!active || !frame || event.source !== frame.contentWindow || event.origin !== 'https://admira.tv') return;
+      if (!active || event.origin !== 'https://admira.tv') return;
       var data = event.data;
       if (!data || data.source !== 'admira-tv-canal' || data.event !== 'media-state' || !data.id) return;
-      if (typeof data.id==='string' && data.id.length<=160) frame.setAttribute('data-media-id',data.id);
+      var sender = bank.markReady(event.source, data.id);
+      if (!sender || sender !== frame) return;
       connection = 'connected';clearTimeout(timer);renderText();
     });
     return {start:start,stop:stop,renderText:renderText,updateLuka:updateLuka,isBrowser:function () {return active&&source==='browser';},isFollowing:function () {return active&&source==='luka';},isActive:function () {return active;},move:function (point) {move(point,true);},startLoopTour:function () {tourLoop=true;startTour();return touring();}};
   }
 
-  G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,resolveBrowserReading:resolveBrowserReading,playerURL:playerURL,stableIdentity:stableIdentity,zones:zones,outside:outside};
+  G.AdmiraMapaSimulador = {create:create,zoneFor:zoneFor,decisionFor:decisionFor,resolveReading:resolveReading,resolveBrowserReading:resolveBrowserReading,playerURL:playerURL,zones:zones,outside:outside};
 })(window,document);

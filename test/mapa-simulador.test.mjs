@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 
-const code = await readFile(new URL('../pruebas/mapa/simulador.js',import.meta.url),'utf8');
+const code = await readFile(new URL('../pruebas/mapa/players-xperiencias.js',import.meta.url),'utf8') + '\n' + await readFile(new URL('../pruebas/mapa/simulador.js',import.meta.url),'utf8');
 const editorCode = await readFile(new URL('../pruebas/mapa/editor-zonas.js',import.meta.url),'utf8');
 const browserCode = await readFile(new URL('../pruebas/mapa/ubicacion-dispositivo.js',import.meta.url),'utf8');
 const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags:['tecnología','technology']},{type:'video',tags:['creatividad','publicidad']},{type:'link',tags:['pendiente']}]};
 const flush = async () => {await new Promise(setImmediate);};
 // The stable player identity (simulador.js) is not user data; these checks are about zones and readings.
+// One preloaded player per Xperiencia: the visible one is marked data-activo="1".
+const activeFrame = ui => ui.element('simulador-video').children.find(frame => frame.attributes['data-activo'] === '1');
 const savedKeys = ui => [...ui.storage.keys()].filter(key => !key.startsWith('admiranext:mapa:identidad:'));
 const lukaFix=(extra={})=>({equipo:'luka',tipo:'smarttag2',nombre:'Luka',fuente:'smartthings-find',lat:41.4043,lon:2.1582,precision_m:10,ts:new Date().toISOString(),...extra});
 
@@ -36,24 +38,24 @@ test('el círculo de precisión debe quedar a un lado del límite para confirmar
 });
 
 test('la vista previa anuncia destino durante el arrastre y aplica el player sólo al soltar',()=>{
-  const ui=mount(),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();const marker=ui.markers[0],first=ui.element('simulador-video').children[0];
+  const ui=mount(),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();const marker=ui.markers[0],first=activeFrame(ui);
   marker.point={lat:41.389,lng:2.1645};marker.events.drag();
   assert.match(ui.element('simulador-decision').textContent,/Al soltar: Eixample · Tecnología/);assert.equal(ui.element('simulador-decision').attributes['aria-live'],'off');
-  assert.equal(ui.element('simulador-zona').textContent,'Gràcia');assert.equal(ui.element('simulador-video').children[0],first);
+  assert.equal(ui.element('simulador-zona').textContent,'Gràcia');assert.equal(activeFrame(ui),first);
   sim.renderText();assert.match(ui.element('simulador-arrastre').textContent,/Suelta/);assert.match(ui.element('simulador-decision').textContent,/Al soltar/);
-  marker.events.dragend();const second=ui.element('simulador-video').children[0];assert.notEqual(second,first);assert.equal(ui.element('simulador-decision').attributes['aria-live'],'polite');
+  marker.events.dragend();const second=activeFrame(ui);assert.notEqual(second,first);assert.equal(ui.element('simulador-decision').attributes['aria-live'],'polite');
   assert.match(ui.element('simulador-decision').textContent,/Dentro de Eixample/);assert.doesNotMatch(ui.element('simulador-decision').textContent,/Al soltar/);
-  sim.move({lat:41.38901,lng:2.1645});assert.equal(ui.element('simulador-video').children[0],second);
-  sim.move({lat:41.389+449.5/6371000*180/Math.PI,lng:2.1645});assert.equal(ui.element('simulador-video').children[0],second);assert.match(ui.element('simulador-decision').textContent,/menos de 1 m.*Cerca del límite/);
+  sim.move({lat:41.38901,lng:2.1645});assert.equal(activeFrame(ui),second);
+  sim.move({lat:41.389+449.5/6371000*180/Math.PI,lng:2.1645});assert.equal(activeFrame(ui),second);assert.match(ui.element('simulador-decision').textContent,/menos de 1 m.*Cerca del límite/);
   sim.move({lat:0,lng:0});assert.match(ui.element('simulador-decision').textContent,/Fuera de las zonas.*La más cercana/);
   ui.document.documentElement.lang='en';sim.renderText();assert.match(ui.element('simulador-decision').textContent,/Outside the zones.*Nearest/);sim.stop();
 });
 
 test('una lectura real dudosa no muestra una oficina confirmada; repetir el mismo aviso fiable conserva el iframe',()=>{
   const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');
-  const fix=lukaFix();sim.updateLuka(fix,false);const frame=ui.element('simulador-video').children[0];
+  const fix=lukaFix();sim.updateLuka(fix,false);const frame=activeFrame(ui);
   assert.match(ui.element('simulador-decision').textContent,/Margen de precisión hasta el límite: 440 m/);
-  sim.updateLuka(fix,false);assert.equal(ui.element('simulador-video').children[0],frame);
+  sim.updateLuka(fix,false);assert.equal(activeFrame(ui),frame);
   sim.updateLuka({...fix,precision_m:500},false);assert.equal(ui.element('simulador-decision').hidden,true);assert.equal(ui.element('simulador-decision').textContent,'');assert.match(ui.element('simulador-lectura').textContent,/cruza un límite/);sim.stop();
 });
 
@@ -74,14 +76,14 @@ test('las cinco oficinas tienen centros distintos, temas distintos y la misma se
 
 test('cargar oficinas es reversible, no sobrescribe almacenamiento y arrastrar Luka cambia el contenido en las cinco',async()=>{
   const ui=await editorSession();ui.element('simulador-nombre').fire('input','Mi zona');ui.element('simulador-guardar').click();
-  const original=ui.storage.get(ui.zonesApi.storageKey), oldFrame=ui.element('simulador-video').children[0];
+  const original=ui.storage.get(ui.zonesApi.storageKey), oldFrame=activeFrame(ui);
   ui.element('simulador-oficinas').click();
-  assert.equal(ui.storage.get(ui.zonesApi.storageKey),original);assert.notEqual(ui.element('simulador-video').children[0],oldFrame);
+  assert.equal(ui.storage.get(ui.zonesApi.storageKey),original);assert.notEqual(activeFrame(ui),oldFrame);
   assert.match(ui.element('simulador-guardado').textContent,/sin guardar/);assert.equal(ui.element('simulador-nombre').value,'Pixería');
-  const marker=ui.markers.find(m=>m.options.alt==='Luka · manual');let frame=ui.element('simulador-video').children[0];
+  const marker=ui.markers.find(m=>m.options.alt==='Luka · manual');let frame=activeFrame(ui);
   for (const zone of ui.zonesApi.officePreset.zones) {
-    marker.point={lat:zone.lat,lng:zone.lon};marker.events.drag();assert.equal(ui.element('simulador-video').children[0],frame);
-    marker.events.dragend();frame=ui.element('simulador-video').children[0];
+    marker.point={lat:zone.lat,lng:zone.lon};marker.events.drag();assert.equal(activeFrame(ui),frame);
+    marker.events.dragend();frame=activeFrame(ui);
     assert.equal(new URL(frame.src).searchParams.get('tag'),zone.tag);assert.equal(ui.element('simulador-zona').textContent,zone.name);
   }
   ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-nombre').value,'Mi zona');
@@ -130,13 +132,13 @@ test('seguir Luka espera sin coordenadas, aplica avisos fiables y retira el play
   assert.match(ui.element('simulador-lectura').textContent,/Esperando coordenadas/);
   assert.equal(ui.markers.length,0);assert.equal(ui.mapEvents.click,undefined);
   sim.updateLuka(lukaFix(),false);
-  const first=ui.element('simulador-video').children[0];assert.equal(new URL(first.src).searchParams.get('tag'),'retail');
+  const first=activeFrame(ui);assert.equal(new URL(first.src).searchParams.get('tag'),'retail');
   assert.equal(ui.element('simulador-ir-gracia').disabled,true);
-  sim.move({lat:0,lng:0});ui.element('simulador-ir-eixample').click();assert.equal(ui.element('simulador-video').children[0],first);
-  sim.updateLuka(lukaFix({lat:41.40431}),false);assert.equal(ui.element('simulador-video').children[0],first);
-  sim.updateLuka(lukaFix({lat:41.389,lon:2.1645}),false);assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'tecnologia');
+  sim.move({lat:0,lng:0});ui.element('simulador-ir-eixample').click();assert.equal(activeFrame(ui),first);
+  sim.updateLuka(lukaFix({lat:41.40431}),false);assert.equal(activeFrame(ui),first);
+  sim.updateLuka(lukaFix({lat:41.389,lon:2.1645}),false);assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'tecnologia');
   sim.updateLuka(lukaFix({precision_m:null}),false);assert.equal(ui.element('simulador-video').children.length,0);assert.match(ui.element('simulador-lectura').textContent,/Precisión no disponible/);
-  sim.updateLuka(lukaFix(),false);assert.equal(ui.element('simulador-video').children.length,1);
+  sim.updateLuka(lukaFix(),false);assert.equal(ui.element('simulador-video').children.length,3,'Gràcia, Eixample y fuera de zona, precargados');assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'retail');
   sim.updateLuka(lukaFix(),true);assert.equal(ui.element('simulador-video').children.length,0);assert.match(ui.element('simulador-lectura').textContent,/No se puede actualizar/);
   ui.document.documentElement.lang='en';sim.renderText();assert.match(ui.element('simulador-lectura').textContent,/cannot be refreshed/);
   sim.stop();sim.updateLuka(lukaFix(),false);assert.equal(ui.element('simulador-video').children.length,0);
@@ -192,14 +194,14 @@ test('el player usa el contrato oficial, una identidad virtual y sólo una etiqu
 test('soltar en otra zona cambia el iframe, moverse dentro de la misma lo conserva y los mensajes se verifican',()=>{
   const ui=mount(), sim=ui.api.create({map:ui.map,L:ui.L});
   sim.start();
-  const marker=ui.markers[0], first=ui.element('simulador-video').children[0];
+  const marker=ui.markers[0], first=activeFrame(ui);
   assert.equal(marker.options.draggable,true);
   marker.point={lat:41.389,lng:2.1645};marker.events.drag();
-  assert.equal(ui.element('simulador-video').children[0],first);
+  assert.equal(activeFrame(ui),first);
   marker.events.dragend();
-  const second=ui.element('simulador-video').children[0];
+  const second=activeFrame(ui);
   assert.notEqual(second,first);assert.equal(new URL(second.src).searchParams.get('tag'),'tecnologia');
-  sim.move({lat:41.3891,lng:2.1645});assert.equal(ui.element('simulador-video').children[0],second);
+  sim.move({lat:41.3891,lng:2.1645});assert.equal(activeFrame(ui),second);
   const data={source:'admira-tv-canal',event:'media-state',id:'stock-123'};
   ui.message({origin:'https://evil.example',source:second.contentWindow,data});
   ui.message({origin:'https://admira.tv',source:first.contentWindow,data});
@@ -235,9 +237,9 @@ test('editar contenido de la zona actual recarga el player y guardar restaura el
   const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();
   ui.element('simulador-editar').click();await flush();
   assert.equal(ui.requests[0].options.method,'GET');assert.equal(ui.requests[0].options.credentials,'omit');
-  const first=ui.element('simulador-video').children[0];
+  const first=activeFrame(ui);
   ui.element('simulador-tema').fire('change','tecnologia');
-  const next=ui.element('simulador-video').children[0];
+  const next=activeFrame(ui);
   assert.notEqual(next,first);assert.equal(new URL(next.src).searchParams.get('tag'),'tecnologia');
   ui.element('simulador-radio').fire('input','650');ui.element('simulador-nombre').fire('input','Mi zona');
   assert.equal(savedKeys(ui).length,0);assert.match(ui.element('simulador-guardado').textContent,/sin guardar/);
@@ -245,7 +247,7 @@ test('editar contenido de la zona actual recarga el player y guardar restaura el
   assert.match(ui.element('simulador-guardado').textContent,/Guardado en este navegador/);
   const saved=JSON.parse(ui.storage.get(ui.zonesApi.storageKey));assert.equal(saved.zones[0].radius,650);assert.equal(saved.zones[0].name,'Mi zona');
   const restored=mount({editor:true,storage:ui.storage}),second=restored.api.create({map:restored.map,L:restored.L});second.start();
-  assert.equal(new URL(restored.element('simulador-video').children[0].src).searchParams.get('tag'),'tecnologia');
+  assert.equal(new URL(activeFrame(restored).src).searchParams.get('tag'),'tecnologia');
   sim.stop();second.stop();
 });
 
@@ -253,24 +255,24 @@ test('arrastrar centro y borde cambia la geocerca y el player; deshacer recupera
   const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();await flush();
   let centre=ui.markers.filter(m=>m.options.alt?.startsWith('Centro')).at(-1);
   centre.events.dragstart();centre.point={lat:41.42,lng:2.16};centre.events.drag();centre.events.dragend();
-  assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'creatividad');
+  assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'creatividad');
   let border=ui.markers.filter(m=>m.options.alt?.startsWith('Borde')).at(-1);
   border.events.dragstart();border.point={lat:41.42,lng:2.171};border.events.drag();border.events.dragend();
   assert.ok(Number(ui.element('simulador-radio').value)>900);
   ui.element('simulador-deshacer').click();assert.equal(Number(ui.element('simulador-radio').value),450);
-  ui.element('simulador-deshacer').click();assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'retail');
+  ui.element('simulador-deshacer').click();assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'retail');
   sim.stop();
 });
 
 test('añadir, eliminar, deshacer y asignar el exterior conservan reglas y respetan un máximo de ocho zonas',async()=>{
   const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();await flush();
-  ui.element('simulador-eliminar').click();assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'creatividad');
-  ui.element('simulador-deshacer').click();assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'retail');
+  ui.element('simulador-eliminar').click();assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'creatividad');
+  ui.element('simulador-deshacer').click();assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'retail');
   for(let i=0;i<10;i++)ui.element('simulador-anadir').click();
   ui.element('simulador-guardar').click();assert.equal(JSON.parse(ui.storage.get(ui.zonesApi.storageKey)).zones.length,8);
   ui.element('simulador-zona-elegida').fire('change','exterior');assert.equal(ui.element('simulador-radio').disabled,true);
   ui.element('simulador-tema').fire('change','tecnologia');sim.move({lat:0,lng:0});
-  assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'tecnologia');
+  assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'tecnologia');
   sim.stop();
 });
 
@@ -296,7 +298,7 @@ test('configuración corrupta vuelve al ejemplo, los solapamientos tienen priori
   ui.document.activeElement=ui.element('simulador-nombre');ui.document.activeElement.value='Borrador sin terminar';sim.renderText();
   assert.equal(ui.element('simulador-nombre').value,'Borrador sin terminar');ui.document.activeElement=null;
   ui.element('simulador-zona-elegida').fire('change','eixample');ui.element('simulador-centro-aqui').click();
-  assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'retail');
+  assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'retail');
   sim.stop();
 });
 
@@ -311,13 +313,13 @@ test('subir y bajar prioridad cambia el ganador de un solapamiento y conserva el
   const ui=await editorSession();assert.equal(ui.element('simulador-subir').disabled,true);
   ui.element('simulador-zona-elegida').fire('change','eixample');ui.element('simulador-centro-aqui').click();
   assert.equal(ui.element('simulador-zona').textContent,'Gràcia');assert.equal(ui.element('simulador-bajar').disabled,true);
-  const first=ui.element('simulador-video').children[0];ui.element('simulador-subir').click();
-  assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.notEqual(ui.element('simulador-video').children[0],first);
+  const first=activeFrame(ui);ui.element('simulador-subir').click();
+  assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.notEqual(activeFrame(ui),first);
   assert.match(ui.element('simulador-decision').textContent,/Coinciden: Eixample, Gràcia. Gana Eixample por prioridad 1/);
   assert.equal(ui.element('simulador-zona-elegida').value,'eixample');assert.match(ui.element('simulador-prioridad').textContent,/Prioridad 1 de 2/);
   assert.deepEqual(ui.element('simulador-zonas').children.map(b=>b.id),['simulador-ir-eixample','simulador-ir-gracia','simulador-ir-exterior']);
   assert.deepEqual(ui.element('simulador-zona-elegida').children.map(o=>o.value),['eixample','gracia','exterior']);
-  const promoted=ui.element('simulador-video').children[0];ui.element('simulador-subir').click();assert.equal(ui.element('simulador-video').children[0],promoted);
+  const promoted=activeFrame(ui);ui.element('simulador-subir').click();assert.equal(activeFrame(ui),promoted);
   ui.element('simulador-bajar').click();assert.equal(ui.element('simulador-zona').textContent,'Gràcia');
   ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.equal(savedKeys(ui).length,0);
   ui.element('simulador-guardar').click();ui.element('simulador-exportar').click();const exported=await ui.downloads[0].blob.text();
@@ -330,8 +332,8 @@ test('subir y bajar prioridad cambia el ganador de un solapamiento y conserva el
 
 test('reordenar oficinas ajenas a la ubicación conserva la reproducción, direcciones y geometrías',async()=>{
   const ui=await editorSession();ui.element('simulador-oficinas').click();
-  const frame=ui.element('simulador-video').children[0];ui.element('simulador-zona-elegida').fire('change','la-nave');ui.element('simulador-subir').click();
-  assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.element('simulador-zona').textContent,'Pixería');
+  const frame=activeFrame(ui);ui.element('simulador-zona-elegida').fire('change','la-nave');ui.element('simulador-subir').click();
+  assert.equal(activeFrame(ui),frame);assert.equal(ui.element('simulador-zona').textContent,'Pixería');
   ui.element('simulador-guardar').click();const saved=JSON.parse(ui.storage.get(ui.zonesApi.storageKey));
   assert.deepEqual(saved.zones.map(z=>z.id),['pixeria','university','garage','la-nave','sneaker-store']);
   for (const zone of saved.zones) assert.deepEqual(zone,JSON.parse(JSON.stringify(ui.zonesApi.officePreset.zones.find(z=>z.id===zone.id))));
@@ -373,8 +375,8 @@ test('exportar genera una descarga local con los cambios sin guardar y otro nave
   const text=await source.downloads[0].blob.text();assert.match(source.element('simulador-intercambio-estado').textContent,/Descarga iniciada/);
   const target=await editorSession();await importFile(target,fileOf(text));assert.equal(savedKeys(target).length,0);
   assert.equal(target.element('simulador-nombre').value,'Zona compartida');assert.equal(Number(target.element('simulador-radio').value),800);
-  assert.equal(new URL(target.element('simulador-video').children[0].src).searchParams.get('tag'),'tecnologia');
-  target.sim.move({lat:0,lng:0});assert.equal(new URL(target.element('simulador-video').children[0].src).searchParams.get('tag'),'publicidad');
+  assert.equal(new URL(activeFrame(target).src).searchParams.get('tag'),'tecnologia');
+  target.sim.move({lat:0,lng:0});assert.equal(new URL(activeFrame(target).src).searchParams.get('tag'),'publicidad');
   target.element('simulador-guardar').click();assert.match(target.element('simulador-intercambio-estado').textContent,/Guardado en este navegador/);
   const restored=await editorSession({storage:target.storage});restored.element('simulador-exportar').click();
   assert.equal(await restored.downloads[0].blob.text(),text);
@@ -383,10 +385,10 @@ test('exportar genera una descarga local con los cambios sin guardar y otro nave
 });
 
 test('un archivo inválido, grande o ilegible conserva configuración, player, historial y almacenamiento',async()=>{
-  const ui=await editorSession();ui.element('simulador-guardar').click();const before=ui.storage.get(ui.zonesApi.storageKey),frame=ui.element('simulador-video').children[0];
+  const ui=await editorSession();ui.element('simulador-guardar').click();const before=ui.storage.get(ui.zonesApi.storageKey),frame=activeFrame(ui);
   let reads=0;
   for(const file of [fileOf('{bad'),fileOf(JSON.stringify({version:1,zones:[],outside:{tag:'javascript:alert(1)'}})),{size:16385,text:async()=>{reads++;return '{}';}},{size:20,text:async()=>{throw new Error('read failed');}}]) {
-    await importFile(ui,file);assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.storage.get(ui.zonesApi.storageKey),before);assert.equal(ui.element('simulador-deshacer').disabled,true);
+    await importFile(ui,file);assert.equal(activeFrame(ui),frame);assert.equal(ui.storage.get(ui.zonesApi.storageKey),before);assert.equal(ui.element('simulador-deshacer').disabled,true);
     assert.match(ui.element('simulador-intercambio-estado').textContent,/configuración actual se conserva/);
   }
   assert.equal(reads,0);ui.sim.stop();
@@ -396,7 +398,7 @@ test('importar permite deshacer y un error al guardar no anuncia persistencia',a
   const ui=await editorSession({storageError:true}),other=JSON.parse(JSON.stringify(ui.zonesApi.defaults));other.zones[0].tag='tecnologia';
   await importFile(ui,fileOf(JSON.stringify(other)));assert.match(ui.element('simulador-intercambio-estado').textContent,/pulsa Guardar zonas/);
   ui.element('simulador-guardar').click();assert.match(ui.element('simulador-guardado').textContent,/No se pudo guardar/);assert.doesNotMatch(ui.element('simulador-intercambio-estado').textContent,/Guardado en este navegador/);
-  ui.element('simulador-deshacer').click();assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),'retail');assert.equal(ui.element('simulador-intercambio-estado').textContent,'');ui.sim.stop();
+  ui.element('simulador-deshacer').click();assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),'retail');assert.equal(ui.element('simulador-intercambio-estado').textContent,'');ui.sim.stop();
 });
 
 test('exportar un campo incompleto no descarga una configuración antigua',async()=>{
@@ -428,10 +430,10 @@ test('ubicación del dispositivo optativa: cinco sedes, precisión, parada y rec
   let stamp=Date.now(),frame;
   for(const zone of ui.zonesApi.officePreset.zones){
     stamp+=1;const fix={timestamp:stamp,coords:{latitude:zone.lat,longitude:zone.lon,accuracy:10}};
-    ui.geo.success(fix);frame=ui.element('simulador-video').children[0];
+    ui.geo.success(fix);frame=activeFrame(ui);
     assert.equal(new URL(frame.src).searchParams.get('tag'),zone.tag);assert.equal(ui.element('simulador-zona').textContent,zone.name);
     assert.match(frame.attributes.allow,/geolocation 'none'/);assert.doesNotMatch(frame.src,/latitude|longitude|precision|41\./);
-    ui.geo.success({...fix,coords:{latitude:0,longitude:0,accuracy:10}});assert.equal(ui.element('simulador-video').children[0],frame,'same timestamp cannot move the player');
+    ui.geo.success({...fix,coords:{latitude:0,longitude:0,accuracy:10}});assert.equal(activeFrame(ui),frame,'same timestamp cannot move the player');
     assert.equal(ui.markers.at(-1).options.draggable,false);assert.equal(ui.markers.at(-1).options.alt,'Mi dispositivo');
   }
   ui.geo.success({timestamp:++stamp,coords:{latitude:41.40134534,longitude:2.1558339,accuracy:100}});
@@ -448,7 +450,7 @@ test('ubicación del dispositivo optativa: cinco sedes, precisión, parada y rec
 test('el dispositivo se detiene al ocultar la página, no se reactiva ni confunde avisos Samsung',()=>{
   const ui=mount({browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('browser');
   ui.geo.success({timestamp:Date.now(),coords:{latitude:41.4043,longitude:2.1582,accuracy:10}});
-  const frame=ui.element('simulador-video').children[0];sim.updateLuka(lukaFix({lat:0,lon:0}),false);assert.equal(ui.element('simulador-video').children[0],frame);
+  const frame=activeFrame(ui);sim.updateLuka(lukaFix({lat:0,lon:0}),false);assert.equal(activeFrame(ui),frame);
   ui.hide();assert.equal(sim.isActive(),false);assert.equal(ui.geo.calls,1);assert.equal(ui.element('simulador-video').children.length,0);
   sim.start('luka');assert.equal(ui.geo.calls,1);assert.equal(ui.element('simulador-video').children.length,0);sim.stop();
 });
@@ -482,10 +484,10 @@ test('historial manual: sólo al soltar, sin duplicar la misma oficina ni reinic
   const ui=mount(),sim=ui.api.create({map:ui.map,L:ui.L});sim.renderText();assert.equal(ui.element('simulador-historial').hidden,true);sim.start();
   assert.equal(historyRows(ui).length,1);assert.match(historyTitle(historyRows(ui)[0]),/Gràcia.*Comercio/);assert.match(historySource(historyRows(ui)[0]),/Manual.*simulado/);
   assert.match(historyRows(ui)[0].children[0].children[0].attributes.datetime,/^\d{4}-\d\d-\d\dT/);
-  const marker=ui.markers[0],first=ui.element('simulador-video').children[0];marker.point={lat:41.389,lng:2.1645};marker.events.drag();sim.renderText();
-  assert.equal(historyRows(ui).length,1);assert.equal(ui.element('simulador-video').children[0],first);
+  const marker=ui.markers[0],first=activeFrame(ui);marker.point={lat:41.389,lng:2.1645};marker.events.drag();sim.renderText();
+  assert.equal(historyRows(ui).length,1);assert.equal(activeFrame(ui),first);
   marker.events.dragend();assert.equal(historyRows(ui).length,2);assert.match(historyTitle(historyRows(ui)[0]),/Eixample/);assert.match(historyReason(historyRows(ui)[0]),/cambiado de oficina/);
-  const next=ui.element('simulador-video').children[0];sim.move({lat:41.38901,lng:2.1645});sim.renderText();assert.equal(historyRows(ui).length,2);assert.equal(ui.element('simulador-video').children[0],next);
+  const next=activeFrame(ui);sim.move({lat:41.38901,lng:2.1645});sim.renderText();assert.equal(historyRows(ui).length,2);assert.equal(activeFrame(ui),next);
   sim.move({lat:0,lng:0});assert.equal(historyRows(ui).length,3);assert.match(historyReason(historyRows(ui)[0]),/salido de las zonas/);
   ui.element('simulador-historial-toggle').click();assert.equal(ui.element('simulador-historial-body').hidden,false);
   sim.stop();assert.equal(ui.element('simulador-historial').hidden,false);assert.equal(historyRows(ui).length,4);assert.equal(historyRows(ui)[0].attributes['data-status'],'stopped');
@@ -496,8 +498,8 @@ test('historial Samsung: polling idéntico, espera, recuperación, precisión y 
   const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('luka');assert.equal(historyRows(ui).length,1);
   assert.match(historySource(historyRows(ui)[0]),/Luka.*Samsung/);assert.match(historyReason(historyRows(ui)[0]),/puente aún no/);
   sim.updateLuka(null,false);assert.equal(historyRows(ui).length,1);
-  const fix=lukaFix();sim.updateLuka(fix,false);const frame=ui.element('simulador-video').children[0];
-  for(let i=0;i<5;i++){sim.updateLuka(fix,false);sim.renderText();}assert.equal(historyRows(ui).length,2);assert.equal(ui.element('simulador-video').children[0],frame);
+  const fix=lukaFix();sim.updateLuka(fix,false);const frame=activeFrame(ui);
+  for(let i=0;i<5;i++){sim.updateLuka(fix,false);sim.renderText();}assert.equal(historyRows(ui).length,2);assert.equal(activeFrame(ui),frame);
   sim.updateLuka(fix,true);sim.updateLuka(fix,true);assert.equal(historyRows(ui).length,3);assert.match(historyReason(historyRows(ui)[0]),/No se puede actualizar/);assert.equal(ui.element('simulador-video').children.length,0);
   sim.updateLuka(fix,false);assert.equal(historyRows(ui).length,4);assert.match(historyReason(historyRows(ui)[0]),/Ubicación confirmada/);
   sim.updateLuka({...fix,precision_m:null},false);assert.equal(historyRows(ui).length,5);assert.match(historyReason(historyRows(ui)[0]),/Precisión no disponible/);
@@ -510,8 +512,8 @@ test('historial del dispositivo: los callbacks repetidos no suman y la espera se
   const ui=mount({browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});assert.equal(ui.geo.calls,0);sim.start('browser');
   const stamp=Date.now(),fix={timestamp:stamp,coords:{latitude:41.4043,longitude:2.1582,accuracy:10}};
   assert.equal(historyRows(ui).length,1);assert.equal(historySource(historyRows(ui)[0]),'Mi dispositivo');
-  ui.geo.success(fix);const n=historyRows(ui).length,frame=ui.element('simulador-video').children[0];
-  ui.geo.success(fix);for(const tick of ui.intervals.values())tick();assert.equal(historyRows(ui).length,n);assert.equal(ui.element('simulador-video').children[0],frame);
+  ui.geo.success(fix);const n=historyRows(ui).length,frame=activeFrame(ui);
+  ui.geo.success(fix);for(const tick of ui.intervals.values())tick();assert.equal(historyRows(ui).length,n);assert.equal(activeFrame(ui),frame);
   ui.geo.error({code:3});for(const tick of ui.intervals.values())tick();assert.equal(historyRows(ui).length,n+1);assert.match(historyReason(historyRows(ui)[0]),/a tiempo/);assert.equal(historySource(historyRows(ui)[0]),'Mi dispositivo');
   ui.advance(300100);ui.geo.success({timestamp:stamp+1,coords:fix.coords});assert.match(historyReason(historyRows(ui)[0]),/cinco minutos/);sim.stop();
 });
@@ -527,10 +529,10 @@ test('el historial limita a 20, vaciar no recrea el estado actual y recargar emp
 });
 
 test('historial de edición e importación: conserva nombres previos, indica configuración y no exporta lecturas',async()=>{
-  const ui=await editorSession(),initialFrame=ui.element('simulador-video').children[0];
-  ui.element('simulador-nombre').fire('input','<b>Mi oficina</b>');assert.equal(historyRows(ui).length,1,'typing a name does not change office or content');assert.equal(ui.element('simulador-video').children[0],initialFrame);
+  const ui=await editorSession(),initialFrame=activeFrame(ui);
+  ui.element('simulador-nombre').fire('input','<b>Mi oficina</b>');assert.equal(historyRows(ui).length,1,'typing a name does not change office or content');assert.equal(activeFrame(ui),initialFrame);
   ui.element('simulador-tema').fire('change','creatividad');assert.match(historyTitle(historyRows(ui)[0]),/<b>Mi oficina<\/b>/);assert.match(historyReason(historyRows(ui)[0]),/configuración/);
-  assert.match(historyTitle(historyRows(ui).at(-1)),/Gràcia/);assert.notEqual(ui.element('simulador-video').children[0],initialFrame);
+  assert.match(historyTitle(historyRows(ui).at(-1)),/Gràcia/);assert.notEqual(activeFrame(ui),initialFrame);
   await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));assert.match(historyTitle(historyRows(ui)[0]),/Fuera de las zonas/);assert.match(historyReason(historyRows(ui)[0]),/configuración/);
   ui.element('simulador-exportar').click();const serialized=await ui.downloads[0].blob.text(),transfer=JSON.parse(serialized);
   assert.deepEqual(Object.keys(transfer).sort(),['outside','version','zones']);assert.doesNotMatch(serialized,/history|historial|smartthings-find|timestamp/);assert.equal(savedKeys(ui).length,0);ui.sim.stop();
@@ -541,12 +543,12 @@ const tickTour=ui=>{const pair=tourTimeout(ui);assert.ok(pair,'a tour step shoul
 function tourSession(){const ui=mount({editor:true,browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-oficinas').click();return {...ui,sim};}
 
 test('el recorrido Demo visita las cinco zonas por la misma selección, completa y conserva la configuración',()=>{
-  const ui=tourSession();ui.element('simulador-guardar').click();const original=ui.storage.get(ui.zonesApi.storageKey),first=ui.element('simulador-video').children[0];
+  const ui=tourSession();ui.element('simulador-guardar').click();const original=ui.storage.get(ui.zonesApi.storageKey),first=activeFrame(ui);
   assert.equal(tourTimeout(ui),undefined,'loading a preset never starts a tour');ui.element('simulador-recorrer').click();
-  assert.equal(ui.element('simulador-video').children[0],first,'starting at the same office preserves playback');
+  assert.equal(activeFrame(ui),first,'starting at the same office preserves playback');
   for(const [i,zone] of ui.zonesApi.officePreset.zones.entries()){
     assert.match(ui.element('simulador-badge').textContent,/DEMO/);assert.equal(ui.element('simulador-zona').textContent,zone.name);
-    assert.match(ui.element('simulador-recorrido-estado').textContent,new RegExp((i+1)+' / 5'));assert.equal(new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'),zone.tag);
+    assert.match(ui.element('simulador-recorrido-estado').textContent,new RegExp((i+1)+' / 5'));assert.equal(new URL(activeFrame(ui).src).searchParams.get('tag'),zone.tag);
     tickTour(ui);
   }
   assert.match(ui.element('simulador-recorrido-estado').textContent,/completado.*5 \/ 5/);assert.equal(tourTimeout(ui),undefined);
@@ -556,12 +558,12 @@ test('el recorrido Demo visita las cinco zonas por la misma selección, completa
 });
 
 test('pausar conserva paso y vídeo; reanudar espera lo que faltaba y descarta callbacks antiguos',()=>{
-  const ui=tourSession();ui.element('simulador-recorrer').click();const frame=ui.element('simulador-video').children[0],late=tourTimeout(ui)[1];
+  const ui=tourSession();ui.element('simulador-recorrer').click();const frame=activeFrame(ui),late=tourTimeout(ui)[1];
   ui.advance(4000);ui.element('simulador-recorrido-pausa').click();ui.advance(20000);
-  assert.match(ui.element('simulador-recorrido-estado').textContent,/pausa.*1 \/ 5/);assert.equal(tourTimeout(ui),undefined);late();assert.equal(ui.element('simulador-video').children[0],frame);
-  ui.element('simulador-recorrido-pausa').click();assert.equal(ui.timerDelays.get(tourTimeout(ui)[0]),8000);assert.equal(ui.element('simulador-video').children[0],frame);
-  tickTour(ui);assert.equal(ui.element('simulador-zona').textContent,'Admira University');const next=ui.element('simulador-video').children[0],lateNext=tourTimeout(ui)[1];
-  ui.element('simulador-recorrido-detener').click();assert.equal(tourTimeout(ui),undefined);lateNext();assert.equal(ui.element('simulador-video').children[0],next);assert.match(ui.element('simulador-recorrido-estado').textContent,/Parada solicitada/);ui.sim.stop();
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/pausa.*1 \/ 5/);assert.equal(tourTimeout(ui),undefined);late();assert.equal(activeFrame(ui),frame);
+  ui.element('simulador-recorrido-pausa').click();assert.equal(ui.timerDelays.get(tourTimeout(ui)[0]),8000);assert.equal(activeFrame(ui),frame);
+  tickTour(ui);assert.equal(ui.element('simulador-zona').textContent,'Admira University');const next=activeFrame(ui),lateNext=tourTimeout(ui)[1];
+  ui.element('simulador-recorrido-detener').click();assert.equal(tourTimeout(ui),undefined);lateNext();assert.equal(activeFrame(ui),next);assert.match(ui.element('simulador-recorrido-estado').textContent,/Parada solicitada/);ui.sim.stop();
 });
 
 test('tomar el control por arrastre, mapa o acceso de zona cancela el recorrido sin reaparición tardía',()=>{
@@ -597,8 +599,8 @@ test('ocultar, abandonar o cambiar fuente cancela; volver o recargar no reanuda 
 
 test('el recorrido respeta la prioridad de solapamientos y no fuerza el contenido de la zona visitada',async()=>{
   const ui=tourSession(),config=JSON.parse(JSON.stringify(ui.zonesApi.officePreset));config.zones=[config.zones[0],{...config.zones[1],lat:config.zones[0].lat,lon:config.zones[0].lon}];
-  await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(config)));ui.element('simulador-recorrer').click();const frame=ui.element('simulador-video').children[0];tickTour(ui);
-  assert.match(ui.element('simulador-recorrido-estado').textContent,/2 \/ 2.*Admira University.*Gana Pixería por prioridad/);assert.equal(ui.element('simulador-video').children[0],frame);ui.sim.stop();
+  await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(config)));ui.element('simulador-recorrer').click();const frame=activeFrame(ui);tickTour(ui);
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/2 \/ 2.*Admira University.*Gana Pixería por prioridad/);assert.equal(activeFrame(ui),frame);ui.sim.stop();
   const empty=mount({editor:true,browser:true}),sim=empty.api.create({map:empty.map,L:empty.L});sim.start();await importFile(empty,fileOf(JSON.stringify({version:1,zones:[],outside:{tag:'publicidad'}})));
   assert.equal(empty.element('simulador-recorrer').disabled,true);empty.element('simulador-recorrer').click();assert.equal(tourTimeout(empty),undefined);sim.stop();
 });
@@ -615,17 +617,17 @@ test('los metadatos del catálogo son texto acotado sin enlaces, IDs ni etiqueta
 
 test('la oficina elegida muestra hasta cinco títulos/tipos y el alcance parcial sin modificar tema ni player',async()=>{
   const items=Array.from({length:8},(_,i)=>({type:i%2?'image':'video',title:i===0?'<img src=x onerror=alert(1)>':'Pieza '+i,tags:['retail']}));
-  const ui=await editorSession({fetcher:async()=>({ok:true,json:async()=>({items})})}),frame=ui.element('simulador-video').children[0];
+  const ui=await editorSession({fetcher:async()=>({ok:true,json:async()=>({items})})}),frame=activeFrame(ui);
   assert.equal(pieceRows(ui).length,5);assert.equal(pieceTitle(pieceRows(ui)[0]),'<img src=x onerror=alert(1)>');assert.equal(pieceRows(ui)[0].children.length,2);assert.equal(pieceRows(ui)[0].children[1].textContent,'Vídeo');
-  assert.match(ui.element('simulador-piezas-estado').textContent,/8 coincidencias.*5/);assert.match(ui.element('simulador-piezas-ayuda').textContent,/orientativa.*300.*cinco/);assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(savedKeys(ui).length,0);assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.requests.length,1);
+  assert.match(ui.element('simulador-piezas-estado').textContent,/8 coincidencias.*5/);assert.match(ui.element('simulador-piezas-ayuda').textContent,/orientativa.*300.*cinco/);assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(savedKeys(ui).length,0);assert.equal(activeFrame(ui),frame);assert.equal(ui.requests.length,1);
   ui.document.documentElement.lang='en';ui.sim.renderText();assert.equal(pieceRows(ui)[0].children[1].textContent,'Video');assert.match(ui.element('simulador-piezas-estado').textContent,/8 matches/);ui.sim.stop();
 });
 
 test('una respuesta tardía se aplica a la zona seleccionada en ese momento, no a la de inicio',async()=>{
   let finish;const ui=mount({editor:true,fetcher:()=>new Promise(resolve=>finish=resolve)}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();
-  assert.equal(pieceRows(ui).length,0);ui.element('simulador-zona-elegida').fire('change','eixample');const frame=ui.element('simulador-video').children[0];
+  assert.equal(pieceRows(ui).length,0);ui.element('simulador-zona-elegida').fire('change','eixample');const frame=activeFrame(ui);
   finish({ok:true,json:async()=>({items:[{type:'image',title:'Retail',tags:['retail']},{type:'video',title:'Tech',tags:['technology']}]})});await flush();
-  assert.match(ui.element('simulador-piezas-titulo').textContent,/Eixample/);assert.equal(pieceRows(ui).length,1);assert.equal(pieceTitle(pieceRows(ui)[0]),'Tech');assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.requests.length,1);sim.stop();
+  assert.match(ui.element('simulador-piezas-titulo').textContent,/Eixample/);assert.equal(pieceRows(ui).length,1);assert.equal(pieceTitle(pieceRows(ui)[0]),'Tech');assert.equal(activeFrame(ui),frame);assert.equal(ui.requests.length,1);sim.stop();
 });
 
 test('importar durante la consulta conserva asignaciones y usa el tema nuevo para la lista',async()=>{
@@ -638,10 +640,10 @@ test('importar durante la consulta conserva asignaciones y usa el tema nuevo par
 
 test('errores y consulta vacía limpian la muestra sin atribuir contenido ni cambiar la configuración',async()=>{
   let answer={ok:true,json:async()=>({items:[{type:'image',title:'Inicial',tags:['retail']}]})};
-  const ui=await editorSession({fetcher:async()=>answer}),frame=ui.element('simulador-video').children[0];ui.element('simulador-guardar').click();const saved=ui.storage.get(ui.zonesApi.storageKey);
+  const ui=await editorSession({fetcher:async()=>answer}),frame=activeFrame(ui);ui.element('simulador-guardar').click();const saved=ui.storage.get(ui.zonesApi.storageKey);
   answer={ok:false};ui.element('simulador-catalogo').click();await flush();assert.equal(pieceRows(ui).length,0);assert.match(ui.element('simulador-piezas-estado').textContent,/No se pudo consultar/);
   answer={ok:true,json:async()=>({items:[]})};ui.element('simulador-catalogo').click();await flush();assert.equal(pieceRows(ui).length,0);assert.match(ui.element('simulador-piezas-estado').textContent,/Sin coincidencias en esta consulta/);assert.doesNotMatch(ui.element('simulador-catalogo-estado').textContent,/no disponible/);
-  assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(ui.storage.get(ui.zonesApi.storageKey),saved);assert.equal(ui.element('simulador-video').children[0],frame);assert.ok(ui.requests.every(x=>x.options.method==='GET'&&x.options.credentials==='omit'));ui.sim.stop();
+  assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(ui.storage.get(ui.zonesApi.storageKey),saved);assert.equal(activeFrame(ui),frame);assert.ok(ui.requests.every(x=>x.options.method==='GET'&&x.options.credentials==='omit'));ui.sim.stop();
 });
 
 test('un tema personalizado sin coincidencias se conserva al guardar y recargar',async()=>{
@@ -703,7 +705,7 @@ test('/demo luka: el recorrido en bucle vuelve a la primera oficina y cambia el 
   const ui=tourSession(),zones=ui.zonesApi.officePreset.zones;
   assert.equal(ui.sim.startLoopTour(),true);
   const seen=[];
-  for(let i=0;i<zones.length+2;i++){seen.push(ui.element('simulador-zona').textContent+'|'+new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'));tickTour(ui);}
+  for(let i=0;i<zones.length+2;i++){seen.push(ui.element('simulador-zona').textContent+'|'+new URL(activeFrame(ui).src).searchParams.get('tag'));tickTour(ui);}
   assert.deepEqual(seen,[...zones,zones[0],zones[1]].map(zone=>zone.name+'|'+zone.tag));
   assert.ok(tourTimeout(ui),'sigue programado tras la última oficina');
   ui.element('simulador-recorrer').click();
@@ -716,4 +718,24 @@ test('el recorrido del botón sigue terminando aunque antes se usara /demo luka'
   for(let i=0;i<ui.zonesApi.officePreset.zones.length;i++)tickTour(ui);
   assert.match(ui.element('simulador-recorrido-estado').textContent,/completado/);assert.equal(tourTimeout(ui),undefined);
   ui.sim.stop();
+});
+
+test('un player precargado por Xperiencia: Luka solo cambia cuál se ve, sin recargar ni volver a descargar',()=>{
+  const ui=tourSession(),zones=ui.zonesApi.officePreset.zones,frames=()=>ui.element('simulador-video').children;
+  assert.equal(frames().length,zones.length+1,'cinco Xperiencias y fuera de zona');
+  const byZone=Object.fromEntries(frames().map(f=>[f.attributes['data-xperiencia'],f]));
+  for(const zone of zones){
+    const url=new URL(byZone[zone.id].src);
+    assert.equal(url.searchParams.get('screen'),'virtual-mapa-xperiencia-'+zone.id,'pantalla virtual fija por Xperiencia');
+    assert.equal(url.searchParams.get('tag'),zone.tag,'cada una con su playlist');
+  }
+  assert.equal(new Set(frames().map(f=>new URL(f.src).searchParams.get('tag'))).size,zones.length+1,'playlists distintas');
+  const srcs=frames().map(f=>f.src);
+  ui.message({origin:'https://admira.tv',source:byZone['la-nave'].contentWindow,data:{source:'admira-tv-canal',event:'media-state',id:'nave-1'}});
+  ui.sim.move({lat:zones.at(-1).lat,lng:zones.at(-1).lon});
+  assert.equal(activeFrame(ui),byZone['la-nave']);
+  assert.equal(ui.element('simulador-estado').textContent,'Player conectado','ya estaba reproduciendo al llegar');
+  assert.deepEqual(frames().map(f=>f.src),srcs,'ningún player se recarga al moverse');
+  assert.equal(frames().filter(f=>f.attributes['data-activo']==='1').length,1);
+  ui.sim.stop();assert.equal(frames().length,0);
 });

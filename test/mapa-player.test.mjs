@@ -13,7 +13,7 @@ import {validarSimulacion, guardarSimulacion, leerSimulacion, CADUCA_SIMULACION_
 
 const URL_ZONAS = 'https://www.admiranext.com/api/ubicacion/zonas';
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
-const [editorCode, browserCode, simCode, playerCode] = await Promise.all(['../pruebas/mapa/editor-zonas.js','../pruebas/mapa/ubicacion-dispositivo.js','../pruebas/mapa/simulador.js','../pruebas/mapa/player.js'].map(read));
+const [editorCode, browserCode, bankCode, simCode, playerCode] = await Promise.all(['../pruebas/mapa/editor-zonas.js','../pruebas/mapa/ubicacion-dispositivo.js','../pruebas/mapa/players-xperiencias.js','../pruebas/mapa/simulador.js','../pruebas/mapa/player.js'].map(read));
 
 class KV {
   entries = new Map();
@@ -119,11 +119,11 @@ test('el QR del player exige sesión y solo codifica la página del player', asy
 
 // ── Player del móvil (navegador simulado) ──────────────────────────────────────
 function mountPlayer({storage = new Map(), zonesResponse = {status:401, body:{ok:false}}, simResponse = {status:200, body:{ok:true, luka:null}}} = {}) {
-  const elements = new Map(), requests = [], docEvents = {};
+  const elements = new Map(), requests = [], docEvents = {}, messages = [];
   let clock = Date.now();
   const geo = {watchPosition(success, error){this.success = success;this.error = error;return 3;}, clearWatch(){}};
   function node() {
-    return {hidden:false, textContent:'', attributes:{}, children:[], listeners:{}, setAttribute(k, v){this.attributes[k] = v;}, replaceChildren(...c){this.children = c;}, addEventListener(k, fn){this.listeners[k] = fn;}, click(){return this.listeners.click?.();}};
+    return {hidden:false, textContent:'', attributes:{}, children:[], listeners:{}, contentWindow:{}, setAttribute(k, v){this.attributes[k] = v;}, removeAttribute(k){delete this.attributes[k];}, appendChild(c){c.parent = this;this.children.push(c);return c;}, remove(){if (this.parent) this.parent.children = this.parent.children.filter(c => c !== this);}, replaceChildren(...c){this.children = c;}, addEventListener(k, fn){this.listeners[k] = fn;}, click(){return this.listeners.click?.();}};
   }
   const element = id => {if (!elements.has(id)) elements.set(id, node());return elements.get(id);};
   const document = {documentElement:{lang:'es'}, hidden:false, getElementById:element, createElement:node, addEventListener:(k, fn) => {const old = docEvents[k];docEvents[k] = () => {old?.();fn();};}};
@@ -132,20 +132,23 @@ function mountPlayer({storage = new Map(), zonesResponse = {status:401, body:{ok
     localStorage:{getItem:k => storage.get(k) ?? null, setItem:(k, v) => storage.set(k, v)},
     crypto:{randomUUID:() => 'aaaaaaaa-bbbb-cccc-dddd-' + String(storage.size).padStart(12, '0')},
     fetch:async (url, options) => {requests.push({url, options});const r = url === '/api/ubicacion/simulacion' ? (typeof simResponse === 'function' ? simResponse() : simResponse) : zonesResponse;return {ok:r.status === 200, status:r.status, json:async () => r.body};},
-    addEventListener(){}, setInterval:() => 1, clearInterval(){}, setTimeout, clearTimeout});
+    addEventListener(k, fn){if (k === 'message') messages.push(fn);}, setInterval:() => 1, clearInterval(){}, setTimeout, clearTimeout});
   context.window = context;
-  for (const code of [editorCode, browserCode, simCode, playerCode]) vm.runInContext(code, context);
+  for (const code of [editorCode, browserCode, bankCode, simCode, playerCode]) vm.runInContext(code, context);
   const player = context.AdmiraMapaPlayer.create({now:() => clock});
   // Each reading is a new measurement: the location module drops repeated timestamps.
   const fix = (lat, lon, accuracy = 5) => {clock += 1000;geo.success({timestamp:clock, coords:{latitude:lat, longitude:lon, accuracy}});};
-  return {player, element, requests, storage, fix, geo, advance:ms => {clock += ms;}, now:() => clock, api:context};
+  const frames = () => element('mp-pantalla').children;
+  return {player, element, requests, storage, fix, geo, frames, message:event => messages.forEach(fn => fn(event)), advance:ms => {clock += ms;}, now:() => clock, api:context};
 }
 const PIXERIA = [41.40300208, 2.15095625], NAVE = [41.40134534, 2.1558339];
 const tagOf = ui => new URL(ui.player.state().frameURL).searchParams.get('tag');
 
-test('el player no pide ubicación ni carga admira.tv hasta pulsar Empezar', () => {
+test('el player precarga un player por Xperiencia al abrir, pero no pide ubicación hasta pulsar Empezar', () => {
   const ui = mountPlayer();
-  assert.equal(ui.geo.success, undefined);assert.equal(ui.player.state().frameURL, '');
+  assert.equal(ui.geo.success, undefined);assert.equal(ui.player.state().frameURL, '', 'ninguno visible antes de empezar');
+  assert.equal(ui.frames().length, 6, 'cinco Xperiencias y fuera de zona, ya cargando');
+  assert.ok(ui.frames().every(f => f.attributes['data-activo'] === '0'));
   assert.equal(ui.element('mp-inicio').hidden, false);assert.equal(ui.element('mp-gps').textContent, 'GPS apagado');
   ui.element('mp-empezar').click();
   assert.equal(typeof ui.geo.success, 'function');assert.equal(ui.element('mp-inicio').hidden, true);
@@ -170,13 +173,19 @@ test('cambia de contenido solo con lecturas confirmadas y nunca envía coordenad
   assert.equal(tagOf(ui), 'publicidad');assert.equal(ui.element('mp-zona').textContent, 'Fuera de zona');
 });
 
-test('la identidad del móvil es estable en el navegador y distinta de la del simulador', () => {
-  const storage = new Map();
-  const first = mountPlayer({storage}).player.state().identity, again = mountPlayer({storage}).player.state().identity;
-  assert.match(first, /^virtual-mapa-movil-[a-z0-9-]+$/);assert.equal(again, first);
-  const sim = mountPlayer({storage}).api.AdmiraMapaSimulador.stableIdentity('');
-  assert.match(sim, /^virtual-mapa-(?!movil-)[a-z0-9-]+$/);
-  assert.equal(mountPlayer({storage}).api.AdmiraMapaSimulador.stableIdentity(''), sim);
+test('cada Xperiencia tiene su pantalla virtual y su playlist; al cambiar de oficina no se recarga ninguna', () => {
+  const ui = mountPlayer();
+  const bySite = Object.fromEntries(ui.frames().map(f => [f.attributes['data-xperiencia'], f]));
+  assert.deepEqual(Object.keys(bySite).sort(), ['exterior', 'garage', 'la-nave', 'pixeria', 'sneaker-store', 'university']);
+  for (const [id, frame] of Object.entries(bySite)) assert.equal(new URL(frame.src).searchParams.get('screen'), 'virtual-mapa-xperiencia-' + id);
+  assert.equal(new Set(ui.frames().map(f => new URL(f.src).searchParams.get('tag'))).size, 6, 'seis playlists distintas');
+  const srcs = ui.frames().map(f => f.src);
+  ui.message({origin:'https://admira.tv', source:bySite['la-nave'].contentWindow, data:{source:'admira-tv-canal', event:'media-state', id:'nave-1'}});
+  ui.message({origin:'https://evil.example', source:bySite.pixeria.contentWindow, data:{source:'admira-tv-canal', event:'media-state', id:'x'}});
+  assert.equal(ui.player.state().ready, 1);assert.match(ui.element('mp-zonas').textContent, /players listos 1\/6/);
+  ui.element('mp-empezar').click();ui.fix(...PIXERIA);ui.fix(...NAVE, 8);
+  assert.equal(ui.frames().find(f => f.attributes['data-activo'] === '1'), bySite['la-nave']);
+  assert.deepEqual(ui.frames().map(f => f.src), srcs, 'ningún player se recarga al moverse');
 });
 
 test('usa las zonas publicadas y, sin sesión o sin publicar, las cinco oficinas de ejemplo', async () => {
