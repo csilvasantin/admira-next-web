@@ -5,6 +5,7 @@ import vm from 'node:vm';
 
 const code = await readFile(new URL('../pruebas/mapa/simulador.js',import.meta.url),'utf8');
 const editorCode = await readFile(new URL('../pruebas/mapa/editor-zonas.js',import.meta.url),'utf8');
+const browserCode = await readFile(new URL('../pruebas/mapa/ubicacion-dispositivo.js',import.meta.url),'utf8');
 const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags:['tecnología','technology']},{type:'video',tags:['creatividad','publicidad']},{type:'link',tags:['pendiente']}]};
 const flush = async () => {await new Promise(setImmediate);};
 const lukaFix=(extra={})=>({equipo:'luka',tipo:'smarttag2',nombre:'Luka',fuente:'smartthings-find',lat:41.4043,lon:2.1582,precision_m:10,ts:new Date().toISOString(),...extra});
@@ -139,25 +140,28 @@ test('seguir Luka espera sin coordenadas, aplica avisos fiables y retira el play
   sim.stop();sim.updateLuka(lukaFix(),false);assert.equal(ui.element('simulador-video').children.length,0);
   sim.start();assert.equal(sim.isFollowing(),false);assert.equal(ui.markers.at(-1).options.draggable,true);sim.stop();
 });
-function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:async()=>fixtureCatalog}),storageError=false}={}) {
+function mount({editor=false,storage=new Map(),fetcher=async()=>({ok:true,json:async()=>fixtureCatalog}),storageError=false,browser=false}={}) {
   const elements = new Map(), messages = [], markers = [], timers = new Map(), mapEvents = {}, requests=[], downloads=[], blobs=new Map();
-  let serial=0;
+  let serial=0,clockNow=Date.now();
+  const intervals=new Map(),lifecycle={},docEvents={},geo={calls:0,cleared:[],watchPosition(success,error,options){this.calls++;this.success=success;this.error=error;this.options=options;return 7;},clearWatch(id){this.cleared.push(id);}};
+  class Clock extends Date {constructor(...args){super(...(args.length?args:[clockNow]));}static now(){return clockNow;}}
   function node() {
     const el={hidden:true,textContent:'',value:'',attributes:{},children:[],listeners:{},classList:{add(){},remove(){}},contentWindow:{},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this[k];delete this.attributes[k];},appendChild(child){if(child.parent)child.parent.children=child.parent.children.filter(item=>item!==child);this.children.push(child);child.parent=this;return child;},replaceChildren(...children){this.children=[];children.forEach(child=>this.appendChild(child));},remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);},addEventListener(k,fn){this.listeners[k]=fn;},fire(k,value){if(value!==undefined)this.value=value;return this.listeners[k]?.({target:this});},click(){if(this.disabled)return;if(this.download)downloads.push({name:this.download,blob:blobs.get(this.href)});return this.fire('click');}};
     Object.defineProperty(el,'id',{get(){return this.nodeId;},set(value){this.nodeId=value;elements.set(value,this);}});
     return el;
   }
   const element=id=>{if(!elements.has(id)){const el=node();el.id=id;}return elements.get(id);};
-  const document = {documentElement:{lang:'es'},getElementById:element,createElement:node,body:node()};
+  const document = {documentElement:{lang:'es'},getElementById:element,createElement:node,body:node(),addEventListener:(k,fn)=>docEvents[k]=fn};
   const map = {on:(k,fn)=>mapEvents[k]=fn,off:k=>delete mapEvents[k],removeLayer(){},setView(){},panTo(){},getCenter:()=>({lat:41.396,lng:2.164})};
   const toPoint=p=>Array.isArray(p)?{lat:p[0],lng:p[1]}:{...p};
   const L = {layerGroup:()=>({addTo(){return this;},clearLayers(){}}),circle:()=>({addTo(){return this;},bindTooltip(value){this.tooltip=value;return this;},setLatLng(){return this;},setRadius(){return this;}}),divIcon:options=>options,marker:(point,options)=>{
     const marker={point:toPoint(point),options,events:{},addTo(){markers.push(this);return this;},setLatLng(point){this.point=toPoint(point);return this;},getLatLng(){return this.point;},on(k,fn){this.events[k]=fn;return this;}};return marker;
   }};
   class FixtureURL extends URL {static createObjectURL(blob){const key='blob:fixture-'+blobs.size;blobs.set(key,blob);return key;}static revokeObjectURL(key){blobs.delete(key);}}
-  const context = vm.createContext({document,URL:FixtureURL,Blob,TextEncoder,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);},setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
-  context.window=context;if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
-  return {api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,mapEvents,storage,requests,downloads,message:event=>messages.forEach(fn=>fn(event))};
+  const context = vm.createContext({document,URL:FixtureURL,Blob,TextEncoder,console,AbortController,localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>{if(storageError)throw new Error('quota');storage.set(key,value);}},fetch:async(url,options)=>{requests.push({url,options});return fetcher(url,options);},crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},addEventListener:(event,fn)=>{if(event==='message')messages.push(fn);else lifecycle[event]=fn;},setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
+  if(browser)Object.assign(context,{navigator:{geolocation:geo},isSecureContext:true,Date:Clock,setInterval:fn=>{const id=++serial;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)});
+  context.window=context;if(browser)vm.runInContext(browserCode,context);if(editor)vm.runInContext(editorCode,context);vm.runInContext(code,context);
+  return {geo,intervals,lifecycle,hide:()=>{document.hidden=true;docEvents.visibilitychange();},advance:ms=>clockNow+=ms,api:context.AdmiraMapaSimulador,zonesApi:context.AdmiraMapaZonas,element,document,map,L,markers,timers,mapEvents,storage,requests,downloads,message:event=>messages.forEach(fn=>fn(event))};
 }
 
 test('las zonas usan distancia en metros y un exterior explícito; nunca aceptan coordenadas inválidas',()=>{
@@ -410,4 +414,59 @@ test('cerrar la simulación durante la lectura impide una importación tardía',
   const pending=importFile(ui,{size:200,text:()=>new Promise(resolve=>finish=resolve)});
   ui.sim.stop();const changed=JSON.parse(JSON.stringify(ui.zonesApi.defaults));changed.zones[0].name='No debe aplicarse';finish(JSON.stringify(changed));await pending;
   ui.sim.start();ui.element('simulador-editar').click();assert.equal(ui.element('simulador-nombre').value,'Gràcia');ui.sim.stop();
+});
+
+
+test('ubicación del dispositivo optativa: cinco sedes, precisión, parada y recarga sin reactivar',async()=>{
+  const ui=mount({editor:true,browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});
+  assert.equal(ui.geo.calls,0);sim.start();ui.element('simulador-oficinas').click();ui.element('simulador-guardar').click();sim.stop();
+  assert.equal(ui.geo.calls,0,'manual and office imports do not acquire a device location');
+  sim.start('browser');assert.equal(ui.geo.calls,1);assert.equal(sim.isBrowser(),true);assert.equal(sim.isFollowing(),false);
+  assert.equal(ui.element('simulador-video').children.length,0);assert.equal(ui.element('simulador-badge').textContent,'MI UBICACIÓN');
+  let stamp=Date.now(),frame;
+  for(const zone of ui.zonesApi.officePreset.zones){
+    stamp+=1;const fix={timestamp:stamp,coords:{latitude:zone.lat,longitude:zone.lon,accuracy:10}};
+    ui.geo.success(fix);frame=ui.element('simulador-video').children[0];
+    assert.equal(new URL(frame.src).searchParams.get('tag'),zone.tag);assert.equal(ui.element('simulador-zona').textContent,zone.name);
+    assert.match(frame.attributes.allow,/geolocation 'none'/);assert.doesNotMatch(frame.src,/latitude|longitude|precision|41\./);
+    ui.geo.success({...fix,coords:{latitude:0,longitude:0,accuracy:10}});assert.equal(ui.element('simulador-video').children[0],frame,'same timestamp cannot move the player');
+    assert.equal(ui.markers.at(-1).options.draggable,false);assert.equal(ui.markers.at(-1).options.alt,'Mi dispositivo');
+  }
+  ui.geo.success({timestamp:++stamp,coords:{latitude:41.40134534,longitude:2.1558339,accuracy:100}});
+  assert.equal(ui.element('simulador-video').children.length,0);assert.match(ui.element('simulador-lectura').textContent,/cruza un límite/);
+  ui.geo.success({timestamp:++stamp,coords:{latitude:41.40134534,longitude:2.1558339,accuracy:10}});
+  ui.advance(300100);for(const tick of ui.intervals.values())tick();
+  assert.equal(ui.element('simulador-video').children.length,0);assert.match(ui.element('simulador-lectura').textContent,/menos de cinco minutos/);
+  sim.stop();assert.deepEqual(ui.geo.cleared,[7]);assert.equal(ui.intervals.size,0);
+  ui.geo.success({timestamp:++stamp,coords:{latitude:0,longitude:0,accuracy:1}});assert.equal(ui.element('simulador-video').children.length,0);
+  const reloaded=mount({editor:true,browser:true,storage:ui.storage});reloaded.api.create({map:reloaded.map,L:reloaded.L});assert.equal(reloaded.geo.calls,0);
+  assert.ok(ui.requests.every(r=>!r.options.method||r.options.method==='GET'));
+});
+
+test('el dispositivo se detiene al ocultar la página, no se reactiva ni confunde avisos Samsung',()=>{
+  const ui=mount({browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('browser');
+  ui.geo.success({timestamp:Date.now(),coords:{latitude:41.4043,longitude:2.1582,accuracy:10}});
+  const frame=ui.element('simulador-video').children[0];sim.updateLuka(lukaFix({lat:0,lon:0}),false);assert.equal(ui.element('simulador-video').children[0],frame);
+  ui.hide();assert.equal(sim.isActive(),false);assert.equal(ui.geo.calls,1);assert.equal(ui.element('simulador-video').children.length,0);
+  sim.start('luka');assert.equal(ui.geo.calls,1);assert.equal(ui.element('simulador-video').children.length,0);sim.stop();
+});
+
+test('la posición del navegador usa la misma fecha y círculo de precisión que Samsung',()=>{
+  const ui=mount({editor:true}),config=ui.zonesApi.officePreset,now=Date.now();
+  for(const [accuracy,stamp] of [[10,now],[100,now],[null,now],[10,now-300001],[10,now+60001]]){
+    const z=config.zones[0],browser=ui.api.resolveBrowserReading({timestamp:stamp,coords:{latitude:z.lat,longitude:z.lon,accuracy}},config,now);
+    const samsung=ui.api.resolveReading(lukaFix({lat:z.lat,lon:z.lon,precision_m:accuracy,ts:new Date(stamp).toISOString()}),config,now);
+    assert.equal(browser.status,samsung.status);assert.equal(browser.zone?.id,samsung.zone?.id);
+  }
+});
+
+test('importar zonas durante ubicación de dispositivo conserva la fuente y no inicia otra adquisición',async()=>{
+  const ui=mount({editor:true,browser:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start('browser');
+  ui.element('simulador-editar').click();await flush();
+  ui.geo.success({timestamp:Date.now(),coords:{latitude:41.40300208,longitude:2.15095625,accuracy:10}});
+  await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));
+  assert.equal(ui.geo.calls,1);assert.equal(sim.isBrowser(),true);assert.equal(ui.element('simulador-zona').textContent,'Pixería');
+  assert.equal(ui.storage.size,0,'device coordinates are not saved automatically');
+  ui.element('simulador-exportar').click();const saved=JSON.parse(await ui.downloads[0].blob.text());
+  assert.deepEqual(Object.keys(saved).sort(),['outside','version','zones']);assert.equal(saved.zones.length,5);sim.stop();
 });

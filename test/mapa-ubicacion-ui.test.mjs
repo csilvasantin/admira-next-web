@@ -223,3 +223,18 @@ test('el arrastre usa un único Luka en el mapa y cerrar el simulador recupera e
   ui.element('simular-player').click();assert.equal(ui.pins.filter(pin=>pin.options.alt==='Luka').length,0);
   simulator.stop();assert.equal(ui.pins.filter(pin=>pin.options.alt==='Luka').length,1);
 });
+
+test('abrir la explicación no activa ubicación; sólo el botón explícito inicia y cambiar modo la detiene',async()=>{
+  let active=false,source='',starts=[];
+  const simulator={start(mode){active=true;source=mode;starts.push(mode);},stop(){active=false;source='';},renderText(){},isActive:()=>active,isFollowing:()=>active&&source==='luka',isBrowser:()=>active&&source==='browser',updateLuka(){}};
+  const ui=mount(async()=>answer([]),{AdmiraMapaSimulador:{create:()=>simulator}});await flush();
+  assert.deepEqual(starts,[]);ui.element('ubicacion-aviso').hidden=true;
+  ui.element('ubicacion-ayuda').click();assert.equal(ui.element('ubicacion-aviso').hidden,false);assert.deepEqual(starts,[]);
+  ui.element('ubicacion-activar').click();assert.equal(starts.at(-1),'browser');assert.equal(ui.element('demo-aviso').hidden,true);
+  ui.element('simular-player').click();assert.equal(starts.at(-1),undefined);assert.equal(ui.element('demo-aviso').hidden,false);
+  ui.element('ubicacion-activar').click();assert.equal(source,'browser');assert.equal(ui.element('demo-aviso').hidden,true);
+  ui.element('modo-demo').click();assert.equal(active,false);
+  ui.element('ubicacion-activar').click();ui.element('modo-real').click();assert.equal(active,false);
+  ui.element('ubicacion-activar').click();ui.element('ubicacion-detener').click();assert.equal(active,false);
+  assert.ok(ui.requests.every(r=>r.options.method==='GET'));
+});

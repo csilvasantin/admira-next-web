@@ -146,3 +146,9 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-zone-handle.is-radius{color:var(--warn);border-color:var(--warn);border-radius:6px}
 .mapa-zone-handle.leaflet-drag-target{cursor:grabbing}
 @media(max-width:600px){.mapa-zone-fields{grid-template-columns:minmax(0,1fr)}.mapa-zone-fields input,.mapa-zone-fields select{font-size:16px;min-height:44px}.mapa-zone-actions button,.mapa-zone-save button{min-height:44px}}
+
+.mapa-location-help{padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.mapa-location-help p{margin:0 0 10px;font-size:13px;line-height:1.55}
+.mapa-device-location>span:first-child{cursor:default;border-radius:50%;border-color:var(--cyan)}
+.mapa-player-actions #ubicacion-ayuda{padding:7px 10px}
+@media(max-width:550px){.mapa-panel-head{flex-wrap:wrap}.mapa-player-actions{justify-content:flex-start}}
