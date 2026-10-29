@@ -698,3 +698,22 @@ test('publicar envía las zonas con CSRF y rev; un 409 avisa sin pisar y traer c
   assert.ok(ui.element('simulador-zona-elegida').children.some(option=>/Pixería/.test(option.textContent)));
   sim.stop();
 });
+
+test('/demo luka: el recorrido en bucle vuelve a la primera oficina y cambia el tema en cada una',()=>{
+  const ui=tourSession(),zones=ui.zonesApi.officePreset.zones;
+  assert.equal(ui.sim.startLoopTour(),true);
+  const seen=[];
+  for(let i=0;i<zones.length+2;i++){seen.push(ui.element('simulador-zona').textContent+'|'+new URL(ui.element('simulador-video').children[0].src).searchParams.get('tag'));tickTour(ui);}
+  assert.deepEqual(seen,[...zones,zones[0],zones[1]].map(zone=>zone.name+'|'+zone.tag));
+  assert.ok(tourTimeout(ui),'sigue programado tras la última oficina');
+  ui.element('simulador-recorrer').click();
+  ui.sim.stop();
+});
+
+test('el recorrido del botón sigue terminando aunque antes se usara /demo luka',()=>{
+  const ui=tourSession();ui.sim.startLoopTour();ui.element('simulador-recorrido-detener').click();
+  ui.element('simulador-recorrer').click();
+  for(let i=0;i<ui.zonesApi.officePreset.zones.length;i++)tickTour(ui);
+  assert.match(ui.element('simulador-recorrido-estado').textContent,/completado/);assert.equal(tourTimeout(ui),undefined);
+  ui.sim.stop();
+});

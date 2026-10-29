@@ -469,7 +469,23 @@
   }).observe(d.documentElement,{attributes:true,attributeFilter:['lang','data-mb-marca','data-mb-modo']});
   G.setInterval(function () {if (state.loaded && !state.loading) render();},30000);
   G.setInterval(function () {if (!state.demo && !d.hidden) refresh();},60000);
+  // /demo luka (Carlos, 29-oct-2026; launched from any suite host as ?demo=luka): synthetic data,
+  // the player opens, the five offices load and Luka walks them in a loop, 12 s each.
+  function demoLuka() {
+    if (!simulator) return false;
+    if (simulator.isActive()) simulator.stop();
+    setMode(true);
+    simulator.start();
+    byId('simulador-oficinas').click();
+    d.documentElement.classList.add('mapa-demo-luka');
+    var walking = simulator.startLoopTour();
+    var player = byId('simulador-player');
+    if (player && player.scrollIntoView) player.scrollIntoView({block:'center'});
+    return walking;
+  }
+  G.AdmiraMapaDemoLuka = demoLuka;
   initializeMap();
   aplicarTema().then(function () { aplicarCapa(); });
-  refresh();
+  if (/[?&]demo=luka(?:&|$)/.test((G.location && G.location.search) || '')) demoLuka();
+  else refresh();
 })(window,document);
