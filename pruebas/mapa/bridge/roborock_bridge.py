@@ -12,12 +12,16 @@ Contrato:
   POST /goto   {"x": mm, "y": mm}  -> app_goto_target
   POST /stop                        -> stop_goto_target
 
-Las credenciales salen de la bóveda (ROBOROCK_USERNAME, ROBOROCK_PASSWORD)
-con vault-get.sh. No se imprimen ni se guardan en el repo. La sesión queda
-en ~/.cache/admiranext-roborock/session.json (0600).
+Las credenciales salen de un archivo local, fuera del repo:
+  ~/.config/admiranext/roborock.json
+con modo 0600 y este JSON, en UTF-8:
+  {"username":"correo de la cuenta","password":"contraseña de la cuenta"}
+No se imprime ni se copia al repo. La sesión queda en
+~/.cache/admiranext-roborock/session.json (0600).
 
-Requiere python-roborock==7.13.0. Sin las claves, el proceso arranca y
-/goto, /stop y /pose responden 503 boveda_sin_credenciales.
+Requiere python-roborock==7.13.0. Sin ese archivo, o si el modo no es 0600,
+el proceso arranca y /goto, /stop y /pose responden 503
+boveda_sin_credenciales.
 """
 
 from __future__ import annotations
@@ -39,6 +43,9 @@ MM_LIMIT = 100_000
 MAP_CACHE_S = 15
 ERROR_CODES = frozenset({"boveda_sin_credenciales", "robot_no_conectado"})
 VAULT_SCRIPT = Path.home() / "Claude/admira-vault/vault-get.sh"
+CREDENTIALS_PATH = Path.home() / ".config/admiranext/roborock.json"
+CREDENTIALS_MODE = 0o600
+CREDENTIALS_MAX_BYTES = 8192
 SESSION_PATH = Path.home() / ".cache/admiranext-roborock/session.json"
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -136,6 +143,41 @@ def vault_get(name: str, script: Path = VAULT_SCRIPT) -> str:
     return value
 
 
+def load_local_credentials(path: Path = CREDENTIALS_PATH, repo_root: Path = REPO_ROOT) -> tuple[str, str]:
+    """Lee username y password. Si el archivo no es privado, no devuelve nada."""
+    try:
+        info = path.lstat()
+    except OSError:
+        raise Unavailable("boveda_sin_credenciales") from None
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
+        raise Unavailable("boveda_sin_credenciales")
+    if stat.S_IMODE(info.st_mode) != CREDENTIALS_MODE or info.st_uid != os.getuid():
+        raise Unavailable("boveda_sin_credenciales")
+    if info.st_size <= 0 or info.st_size > CREDENTIALS_MAX_BYTES:
+        raise Unavailable("boveda_sin_credenciales")
+    try:
+        resolved = path.resolve()
+        root = repo_root.resolve()
+    except OSError:
+        raise Unavailable("boveda_sin_credenciales") from None
+    if resolved == root or root in resolved.parents:
+        raise Unavailable("boveda_sin_credenciales")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        raise Unavailable("boveda_sin_credenciales") from None
+    if not isinstance(data, dict):
+        raise Unavailable("boveda_sin_credenciales")
+    username = data.get("username")
+    password = data.get("password")
+    if not isinstance(username, str) or not isinstance(password, str):
+        raise Unavailable("boveda_sin_credenciales")
+    username = username.strip()
+    if not username or not password or any(ch in username or ch in password for ch in "\r\n\x00"):
+        raise Unavailable("boveda_sin_credenciales")
+    return username, password
+
+
 def save_session(payload: dict, path: Path = SESSION_PATH) -> None:
     path.parent.mkdir(mode=0o700, exist_ok=True)
     os.chmod(path.parent, 0o700)
@@ -196,8 +238,8 @@ def _plain_state(value: object) -> str:
 class SarosRobot:
     """Robot real. connect() es perezoso y solo lo llama main()."""
 
-    def __init__(self, vault_script: Path = VAULT_SCRIPT, session_path: Path = SESSION_PATH) -> None:
-        self._vault = vault_script
+    def __init__(self, credentials_path: Path = CREDENTIALS_PATH, session_path: Path = SESSION_PATH) -> None:
+        self._credentials = credentials_path
         self._session = session_path
         self._device = None
         self._error = "boveda_sin_credenciales"
@@ -249,8 +291,8 @@ class SarosRobot:
             except Exception:
                 user = None
         if user is None or not username:
-            username = vault_get("ROBOROCK_USERNAME", self._vault)
-            password = vault_get("ROBOROCK_PASSWORD", self._vault)
+            password = ""
+            username, password = load_local_credentials(self._credentials)
             try:
                 from roborock.web_api import RoborockApiClient
 

@@ -11,3 +11,6 @@ version.json
 
 # dependencias locales de tests
 /node_modules/
+
+# Credenciales del robot. La copia viva está en ~/.config/admiranext/roborock.json
+roborock.json

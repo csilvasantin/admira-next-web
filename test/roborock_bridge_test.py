@@ -166,6 +166,35 @@ class BridgeTest(unittest.TestCase):
             os.chmod(path, 0o644)
             self.assertIsNone(bridge.load_session(path))
 
+    def test_local_credentials_require_mode_600_outside_the_repo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            path = folder / "roborock.json"
+            payload = {"username": " persona@example ", "password": "clave=de prueba"}
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            os.chmod(path, 0o644)
+            with self.assertRaises(bridge.Unavailable) as loose:
+                bridge.load_local_credentials(path, repo_root=folder / "repo")
+            self.assertEqual(loose.exception.code, "boveda_sin_credenciales")
+            self.assertNotIn("clave", str(loose.exception))
+            os.chmod(path, 0o600)
+            username, password = bridge.load_local_credentials(path, repo_root=folder / "repo")
+            self.assertEqual(username, "persona@example")
+            self.assertEqual(password, "clave=de prueba")
+            link = folder / "enlace.json"
+            link.symlink_to(path)
+            with self.assertRaises(bridge.Unavailable) as linked:
+                bridge.load_local_credentials(link, repo_root=folder / "repo")
+            self.assertEqual(linked.exception.code, "boveda_sin_credenciales")
+            repo = folder / "repo"
+            repo.mkdir()
+            inside = repo / "roborock.json"
+            inside.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+            os.chmod(inside, 0o600)
+            with self.assertRaises(bridge.Unavailable) as leaked:
+                bridge.load_local_credentials(inside, repo_root=repo)
+            self.assertEqual(leaked.exception.code, "boveda_sin_credenciales")
+
     def test_vault_without_script_fails_closed(self):
         with self.assertRaises(bridge.Unavailable) as caught:
             bridge.vault_get("ROBOROCK_PASSWORD", Path("/no/existe/vault-get.sh"))
