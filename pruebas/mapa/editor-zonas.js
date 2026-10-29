@@ -50,6 +50,11 @@
     if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw new Error('archivo_demasiado_grande');
     return text;
   }
+  // Shared with the phone player (player.js), which has no editor instance.
+  function themeName(tag,T) {
+    var names = {retail:T('Comercio','Retail'),tecnologia:T('Tecnología','Technology'),creatividad:T('Creatividad','Creativity'),educacion:T('Educación','Education'),devops:T('Desarrollo de software','Software development'),emprendimiento:T('Emprendimiento','Entrepreneurship'),negocio:T('Negocio','Business'),musica:T('Música','Music'),publicidad:T('Publicidad','Advertising'),robots:T('Robots','Robots')};
+    return names[tag] || tag.replace(/-/g,' ');
+  }
   function normalizeTag(tag) {
     if (typeof tag!=='string') return null;
     tag=tag.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,'-');
@@ -101,11 +106,10 @@
     var active = false, opened = false, shapes, handles, circles = new Map(), centreHandle, radiusHandle, position;
     var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'},{tag:'educacion'},{tag:'devops'},{tag:'emprendimiento'},{tag:'publicidad'}], catalogState = 'idle', catalogRequest = null, catalogTimer=null, pieces=[], catalogLoaded=false;
     var transferState='idle', importBusy=false, importTicket=0, importedCount=0;
+    // Server copy for the phone player (/api/ubicacion/zonas). Read only on demand.
+    var published={loaded:false,rev:0,can:false,csrf:'',zones:null,at:null}, publishState='idle', publishBusy=false, phoneOpen=false, qrRequested=false;
     function current() {return selected === 'exterior' ? config.outside : config.zones.find(function (z) {return z.id === selected;});}
-    function label(tag) {
-      var names = {retail:T('Comercio','Retail'),tecnologia:T('Tecnología','Technology'),creatividad:T('Creatividad','Creativity'),educacion:T('Educación','Education'),devops:T('Desarrollo de software','Software development'),emprendimiento:T('Emprendimiento','Entrepreneurship'),negocio:T('Negocio','Business'),musica:T('Música','Music'),publicidad:T('Publicidad','Advertising'),robots:T('Robots','Robots')};
-      return names[tag] || tag.replace(/-/g,' ');
-    }
+    function label(tag) {return themeName(tag,T);}
     function option(select,value,text) {var node=d.createElement('option');node.value=value;node.textContent=text;select.appendChild(node);}
     function renderPieces() {
       var zone=current(), tag=normalizeTag(zone.tag), matches=pieces.filter(function (item) {return item.tags.indexOf(tag)>=0;});
@@ -165,7 +169,11 @@
         'subir':T('Subir prioridad','Move priority up'),'bajar':T('Bajar prioridad','Move priority down'),
         'guardar':T('Guardar zonas','Save zones'),'restaurar':T('Restaurar ejemplos','Restore examples'),
         'exportar':T('Exportar zonas','Export zones'),'importar':T('Importar zonas','Import zones'),
-        'intercambio-ayuda':T('El archivo conserva las zonas, su orden y los temas asignados. En otro navegador, impórtalo y pulsa Guardar zonas.','The file keeps zones, their order and assigned topics. In another browser, import it and choose Save zones.')
+        'intercambio-ayuda':T('El archivo conserva las zonas, su orden y los temas asignados. En otro navegador, impórtalo y pulsa Guardar zonas.','The file keeps zones, their order and assigned topics. In another browser, import it and choose Save zones.'),
+        'publicar':T('Publicar para el player','Publish for the player'),'traer':T('Traer zonas publicadas','Load published zones'),
+        'publicar-ayuda':T('El player del móvil usa las zonas publicadas. Guardar zonas solo las conserva en este navegador.','The phone player uses the published zones. Save zones only keeps them in this browser.'),
+        'movil':T('Abrir player en el móvil','Open player on a phone'),
+        'movil-ayuda':T('Escanéalo con el móvil y entra con tu cuenta de Google. El player usa las zonas publicadas; sin ellas, las cinco oficinas de ejemplo.','Scan it with a phone and sign in with your Google account. The player uses the published zones; without them, the five example offices.')
       };
       Object.keys(text).forEach(function (id) {byId('simulador-'+id).textContent=text[id];});
       var dirty=JSON.stringify(config)!==saved;
@@ -175,6 +183,19 @@
       var transferText={idle:'',reading:T('Abriendo archivo…','Opening file…'),download:T('Descarga iniciada. Incluye los cambios de esta sesión.','Download started. Includes changes from this session.'),imported:importedText,large:T('El archivo supera el máximo de 16 KB. La configuración actual se conserva.','The file exceeds 16 KB. Current configuration is unchanged.'),invalid:T('El archivo no contiene una configuración válida. La configuración actual se conserva.','The file does not contain a valid configuration. Current configuration is unchanged.'),readError:T('No se pudo abrir el archivo. La configuración actual se conserva.','Could not open the file. Current configuration is unchanged.'),downloadError:T('No se pudo iniciar la descarga. La configuración actual se conserva.','Could not start the download. Current configuration is unchanged.')};
       byId('simulador-intercambio-estado').textContent=transferText[transferState] || '';
       byId('simulador-archivo').setAttribute('aria-label',T('Archivo de zonas','Zone file'));
+      var rev=published.rev, at=published.at?new Date(published.at).toLocaleString(T('es-ES','en-GB'),{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+      var publishText={
+        idle:'',publishing:T('Publicando…','Publishing…'),fetching:T('Consultando las zonas publicadas…','Looking up published zones…'),
+        published:T('Publicadas (rev '+rev+'). Los móviles las aplican en menos de un minuto.','Published (rev '+rev+'). Phones apply them within a minute.'),
+        fetched:T('Cargadas las zonas publicadas (rev '+rev+(at?', '+at:'')+'). Pulsa Guardar zonas para conservarlas en este navegador.','Published zones loaded (rev '+rev+(at?', '+at:'')+'). Choose Save zones to keep them in this browser.'),
+        none:T('Aún no hay zonas publicadas: el player usa las cinco oficinas de ejemplo.','No zones published yet: the player uses the five example offices.'),
+        conflict:T('Otra persona publicó la rev '+rev+' mientras editabas. Trae las zonas publicadas para verlas o pulsa Publicar otra vez para sustituirlas.','Someone published rev '+rev+' while you were editing. Load the published zones to see them, or publish again to replace them.'),
+        forbidden:T('Tu rol no permite publicar zonas: hace falta editor o admin.','Your role cannot publish zones: editor or admin is required.'),
+        session:T('La sesión ha caducado. Vuelve a entrar para publicar.','Your session has expired. Sign in again to publish.'),
+        error:T('El servidor de zonas no responde. No ha cambiado nada.','The zone server is not responding. Nothing changed.')
+      };
+      byId('simulador-publicado').textContent=publishText[publishState] || '';
+      byId('simulador-publicar').disabled=publishBusy;byId('simulador-traer').disabled=publishBusy;
       if (opened) fields();
     }
     function drawShapes() {
@@ -323,11 +344,55 @@
       } finally {if (ticket===importTicket) {importBusy=false;if (options.onInteraction) options.onInteraction();renderText();}}
     });
     byId('simulador-catalogo').addEventListener('click',loadCatalog);
+    async function readPublished() {
+      var response=await G.fetch('/api/ubicacion/zonas',{method:'GET',cache:'no-store',credentials:'same-origin',headers:{Accept:'application/json'}});
+      if (response.status===401) throw new Error('sesion');
+      var data=null;try {data=await response.json();} catch (_) {}
+      if (!response.ok||!data||data.ok!==true||!Number.isSafeInteger(data.rev)) throw new Error('no_disponible');
+      published={loaded:true,rev:data.rev,can:data.puede_publicar===true,csrf:typeof data.csrf==='string'?data.csrf:'',zones:data.zonas?validate(data.zonas):null,at:data.actualizado_en||null};
+    }
+    async function publish() {
+      if (publishBusy||!validDraft()) return;
+      var next=validate(config);if (!next) return;
+      publishBusy=true;publishState='publishing';renderText();
+      try {
+        if (!published.loaded) await readPublished();
+        if (!published.can) {publishState='forbidden';return;}
+        var response=await G.fetch('/api/ubicacion/zonas',{method:'PUT',cache:'no-store',credentials:'same-origin',headers:{'Content-Type':'application/json',Accept:'application/json','X-Admira-CSRF':published.csrf},body:JSON.stringify({zonas:next,rev:published.rev})});
+        var data=null;try {data=await response.json();} catch (_) {}
+        // A newer revision is kept and reported; publishing again is an explicit choice.
+        if (response.status===409&&data&&Number.isSafeInteger(data.rev)) {published.rev=data.rev;publishState='conflict';return;}
+        if (response.status===401) {publishState='session';return;}
+        if (response.status===403) {published.loaded=false;publishState=data&&data.error==='sin_permiso'?'forbidden':'session';return;}
+        if (!response.ok||!data||data.ok!==true) throw new Error('no_disponible');
+        published.rev=data.rev;published.zones=validate(data.zonas);published.at=data.actualizado_en||null;publishState='published';
+      } catch (error) {publishState=error.message==='sesion'?'session':'error';}
+      finally {publishBusy=false;renderText();}
+    }
+    async function fetchPublished() {
+      if (publishBusy) return;
+      publishBusy=true;publishState='fetching';renderText();
+      try {
+        await readPublished();
+        if (!published.zones) {publishState='none';return;}
+        var zones=published.zones;publishState='fetched';
+        edit(function () {config=copy(zones);selected=config.zones[0]?config.zones[0].id:'exterior';});
+        if (config.zones[0]) map.panTo([config.zones[0].lat,config.zones[0].lon],{animate:false});
+      } catch (error) {publishState=error.message==='sesion'?'session':'error';}
+      finally {publishBusy=false;renderText();}
+    }
+    byId('simulador-publicar').addEventListener('click',function () {if (options.onInteraction) options.onInteraction();publish();});
+    byId('simulador-traer').addEventListener('click',function () {if (options.onInteraction) options.onInteraction();fetchPublished();});
+    byId('simulador-movil').addEventListener('click',function () {
+      phoneOpen=!phoneOpen;byId('simulador-movil-panel').hidden=!phoneOpen;byId('simulador-movil').setAttribute('aria-expanded',String(phoneOpen));
+      // The QR is a same-origin image behind the session; it only encodes the page URL.
+      if (phoneOpen&&!qrRequested) {qrRequested=true;byId('simulador-movil-qr').setAttribute('src','/api/ubicacion/player-qr');}
+    });
     return {
       getConfig:function () {return copy(config);},isEditing:function () {return active&&(opened||importBusy);},label:label,renderText:renderText,
       activate:function (parent,getPosition) {active=true;position=getPosition;shapes=L.layerGroup().addTo(parent);handles=L.layerGroup().addTo(parent);drawShapes();drawHandles();renderText();},
       deactivate:function () {active=false;opened=false;if (catalogRequest) {catalogRequest.abort();catalogRequest=null;clearTimeout(catalogTimer);catalogTimer=null;catalogState=catalogLoaded?'ready':'idle';}importTicket++;importBusy=false;if (transferState==='reading') transferState='idle';if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
     };
   }
-  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,catalogItems:catalogItems,edge:edge,defaults:copy(defaults),officePreset:copy(offices),storageKey:KEY};
+  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,catalogItems:catalogItems,themeName:themeName,edge:edge,defaults:copy(defaults),officePreset:copy(offices),storageKey:KEY};
 })(window,document);

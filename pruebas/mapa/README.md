@@ -204,3 +204,35 @@ muestra con coordenadas sintéticas identificadas como «Dato de prueba»; en da
 reales queda sin posición hasta el primer aviso. El adaptador, endpoint privado
 y checklist OAuth se explican en [docs/smarttag2-luka.md](../../docs/smarttag2-luka.md).
 La adquisición desde Samsung sigue pendiente de acceso y capacidad confirmados.
+
+## Player por ubicación en móvil (misión DCL-fb1c7a60, 29-oct-2026)
+
+`/pruebas/mapa/player/` es un player a pantalla completa para el móvil: el GPS del
+propio dispositivo elige la zona y admira.tv reproduce su tema. Entra con la misma
+sesión de Google que el mapa (no hay enlaces firmados ni claves en la página).
+
+- **Zonas compartidas.** El editor del mapa tiene «Publicar para el player» y
+  «Traer zonas publicadas». Las zonas viven en el KV `UBICACIONES`, clave
+  `mapa-zonas:v1`, sin caducidad: solo zonas y temas, nunca posiciones.
+  `GET /api/ubicacion/zonas` exige sesión; `PUT` exige rol admin/editor y el CSRF
+  de la sesión, y lleva `rev`: con una rev vieja responde `409` y no pisa a nadie.
+  Sin zonas publicadas (o sin sesión) el player usa las cinco oficinas de ejemplo.
+  El móvil vuelve a leerlas cada minuto.
+- **Decisión.** Las mismas reglas del simulador (`resolveBrowserReading`): una zona
+  gana cuando todo el círculo de precisión cae dentro; si la lectura es ambigua,
+  vieja (más de 5 min) o sin precisión, sigue sonando lo que ya suena. Antes del
+  primer GPS suena el tema de «fuera de las zonas».
+- **Privacidad.** La posición no sale del dispositivo ni se guarda. A admira.tv solo
+  le llega el tema y una identidad estable de ese navegador
+  (`virtual-mapa-movil-<uuid>`, en `localStorage`).
+- **Identidad estable.** El simulador también conserva ya su identidad
+  (`virtual-mapa-<uuid>`). Antes estrenaba una por visita y admira.tv daba de alta
+  un proyecto `virtual-mapa-…` en el censo de Yokup en cada sesión (31 a 29-oct).
+- **Pantalla.** Pide mantener la pantalla encendida (Wake Lock) y, donde el
+  navegador lo permite, pantalla completa. Al ocultar la página el GPS se pausa y
+  vuelve solo al regresar; «Detener» lo apaga.
+- **Abrir en el móvil.** «Abrir player en el móvil» en el mapa enseña un QR
+  (`GET /api/ubicacion/player-qr`, con sesión) que solo codifica la URL de la página.
+
+Pruebas: `test/mapa-player.test.mjs` (API, validación, rev, CSRF, QR y player) y el
+caso de publicación del editor en `test/mapa-simulador.test.mjs`.

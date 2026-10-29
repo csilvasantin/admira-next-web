@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es" data-mapa-player="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#070b12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="admiranext-version" content="AdmiraNeXT v.29.10.2026.r12.12:58">
+  <title>Player por ubicación · AdmiraNeXT</title>
+  <link rel="stylesheet" href="/pruebas/mapa/player.css?v=20261029-player-1">
+  <script defer src="/pruebas/mapa/editor-zonas.js?v=20261029-player-1"></script>
+  <script defer src="/pruebas/mapa/ubicacion-dispositivo.js?v=20261029-dispositivo-1"></script>
+  <script defer src="/pruebas/mapa/simulador.js?v=20261029-player-1"></script>
+  <script defer src="/pruebas/mapa/player.js?v=20261029-player-1"></script>
+</head>
+<body class="mp">
+<main class="mp-player">
+  <div id="mp-pantalla" class="mp-pantalla" aria-label="Contenido de admira.tv"></div>
+  <div class="mp-barra" role="status" aria-live="polite">
+    <div class="mp-zona-linea"><strong id="mp-zona">—</strong><span id="mp-tema" class="mp-tema"></span><span id="mp-desde" class="mp-desde"></span></div>
+    <div class="mp-estado-linea"><span id="mp-gps" class="mp-gps" data-tono="off">GPS apagado</span><span id="mp-encendida" class="mp-encendida" hidden>Pantalla encendida</span><span id="mp-zonas" class="mp-zonas">Cargando zonas…</span></div>
+    <div class="mp-acciones">
+      <button type="button" id="mp-detener" hidden>Detener</button>
+      <button type="button" id="mp-completa" hidden aria-label="Pantalla completa">⛶</button>
+      <a href="/pruebas/mapa/" id="mp-mapa" class="mp-mapa">Mapa</a>
+    </div>
+  </div>
+  <section id="mp-inicio" class="mp-inicio" aria-labelledby="mp-titulo">
+    <p class="mp-eyebrow">AdmiraNeXT · Pruebas</p>
+    <h1 id="mp-titulo">Player por ubicación</h1>
+    <p id="mp-intro">El contenido cambia según la zona en la que esté este móvil. Camina entre las zonas y mira cómo cambia.</p>
+    <button type="button" id="mp-empezar" class="mp-empezar">Empezar</button>
+    <p id="mp-nota" class="mp-nota">Usa el GPS de este dispositivo solo mientras la página está abierta. La posición no se guarda ni se envía: a admira.tv solo le llega el tema de la zona.</p>
+  </section>
+</main>
+</body>
+</html>

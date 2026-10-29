@@ -8,6 +8,8 @@ const editorCode = await readFile(new URL('../pruebas/mapa/editor-zonas.js',impo
 const browserCode = await readFile(new URL('../pruebas/mapa/ubicacion-dispositivo.js',import.meta.url),'utf8');
 const fixtureCatalog = {items:[{type:'image',tags:['retail']},{type:'video',tags:['tecnología','technology']},{type:'video',tags:['creatividad','publicidad']},{type:'link',tags:['pendiente']}]};
 const flush = async () => {await new Promise(setImmediate);};
+// The stable player identity (simulador.js) is not user data; these checks are about zones and readings.
+const savedKeys = ui => [...ui.storage.keys()].filter(key => !key.startsWith('admiranext:mapa:identidad:'));
 const lukaFix=(extra={})=>({equipo:'luka',tipo:'smarttag2',nombre:'Luka',fuente:'smartthings-find',lat:41.4043,lon:2.1582,precision_m:10,ts:new Date().toISOString(),...extra});
 
 test('la explicación comparte ganador, prioridades y distancias a ambos lados del límite',()=>{
@@ -238,7 +240,7 @@ test('editar contenido de la zona actual recarga el player y guardar restaura el
   const next=ui.element('simulador-video').children[0];
   assert.notEqual(next,first);assert.equal(new URL(next.src).searchParams.get('tag'),'tecnologia');
   ui.element('simulador-radio').fire('input','650');ui.element('simulador-nombre').fire('input','Mi zona');
-  assert.equal(ui.storage.size,0);assert.match(ui.element('simulador-guardado').textContent,/sin guardar/);
+  assert.equal(savedKeys(ui).length,0);assert.match(ui.element('simulador-guardado').textContent,/sin guardar/);
   ui.element('simulador-guardar').click();
   assert.match(ui.element('simulador-guardado').textContent,/Guardado en este navegador/);
   const saved=JSON.parse(ui.storage.get(ui.zonesApi.storageKey));assert.equal(saved.zones[0].radius,650);assert.equal(saved.zones[0].name,'Mi zona');
@@ -276,15 +278,15 @@ test('errores de almacenamiento y catálogo no fingen guardado ni impiden editar
   const ui=mount({editor:true,storageError:true,fetcher:async()=>({ok:false})}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();await flush();
   assert.match(ui.element('simulador-catalogo-estado').textContent,/no disponible/);
   ui.element('simulador-tema').fire('change','tecnologia');ui.element('simulador-guardar').click();
-  assert.match(ui.element('simulador-guardado').textContent,/No se pudo guardar/);assert.equal(ui.storage.size,0);
+  assert.match(ui.element('simulador-guardado').textContent,/No se pudo guardar/);assert.equal(savedKeys(ui).length,0);
   sim.stop();
 });
 
 test('guardar un campo incompleto o un radio fuera de límites no sobrescribe la configuración guardada',async()=>{
   const ui=mount({editor:true}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();await flush();
   ui.element('simulador-radio').fire('input','5');ui.element('simulador-guardar').click();
-  assert.equal(ui.storage.size,0);assert.match(ui.element('simulador-guardado').textContent,/Revisa/);
-  ui.element('simulador-nombre').fire('input','');ui.element('simulador-guardar').click();assert.equal(ui.storage.size,0);
+  assert.equal(savedKeys(ui).length,0);assert.match(ui.element('simulador-guardado').textContent,/Revisa/);
+  ui.element('simulador-nombre').fire('input','');ui.element('simulador-guardar').click();assert.equal(savedKeys(ui).length,0);
   sim.stop();
 });
 
@@ -317,7 +319,7 @@ test('subir y bajar prioridad cambia el ganador de un solapamiento y conserva el
   assert.deepEqual(ui.element('simulador-zona-elegida').children.map(o=>o.value),['eixample','gracia','exterior']);
   const promoted=ui.element('simulador-video').children[0];ui.element('simulador-subir').click();assert.equal(ui.element('simulador-video').children[0],promoted);
   ui.element('simulador-bajar').click();assert.equal(ui.element('simulador-zona').textContent,'Gràcia');
-  ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.equal(ui.storage.size,0);
+  ui.element('simulador-deshacer').click();assert.equal(ui.element('simulador-zona').textContent,'Eixample');assert.equal(savedKeys(ui).length,0);
   ui.element('simulador-guardar').click();ui.element('simulador-exportar').click();const exported=await ui.downloads[0].blob.text();
   const restored=await editorSession({storage:ui.storage});assert.equal(restored.element('simulador-zona').textContent,'Eixample');
   const target=await editorSession();await importFile(target,fileOf(exported));assert.equal(target.element('simulador-zona').textContent,'Eixample');
@@ -367,9 +369,9 @@ test('el archivo portable conserva orden, geometría y temas, acepta UTF-8 con B
 test('exportar genera una descarga local con los cambios sin guardar y otro navegador restaura todas las asignaciones',async()=>{
   const source=await editorSession();source.element('simulador-nombre').fire('input','Zona compartida');source.element('simulador-radio').fire('input','800');source.element('simulador-tema').fire('change','tecnologia');
   source.element('simulador-zona-elegida').fire('change','exterior');source.element('simulador-tema').fire('change','publicidad');
-  source.element('simulador-exportar').click();assert.equal(source.downloads.length,1);assert.equal(source.downloads[0].name,'admira-zonas.json');assert.equal(source.storage.size,0);
+  source.element('simulador-exportar').click();assert.equal(source.downloads.length,1);assert.equal(source.downloads[0].name,'admira-zonas.json');assert.equal(savedKeys(source).length,0);
   const text=await source.downloads[0].blob.text();assert.match(source.element('simulador-intercambio-estado').textContent,/Descarga iniciada/);
-  const target=await editorSession();await importFile(target,fileOf(text));assert.equal(target.storage.size,0);
+  const target=await editorSession();await importFile(target,fileOf(text));assert.equal(savedKeys(target).length,0);
   assert.equal(target.element('simulador-nombre').value,'Zona compartida');assert.equal(Number(target.element('simulador-radio').value),800);
   assert.equal(new URL(target.element('simulador-video').children[0].src).searchParams.get('tag'),'tecnologia');
   target.sim.move({lat:0,lng:0});assert.equal(new URL(target.element('simulador-video').children[0].src).searchParams.get('tag'),'publicidad');
@@ -466,7 +468,7 @@ test('importar zonas durante ubicación de dispositivo conserva la fuente y no i
   ui.geo.success({timestamp:Date.now(),coords:{latitude:41.40300208,longitude:2.15095625,accuracy:10}});
   await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));
   assert.equal(ui.geo.calls,1);assert.equal(sim.isBrowser(),true);assert.equal(ui.element('simulador-zona').textContent,'Pixería');
-  assert.equal(ui.storage.size,0,'device coordinates are not saved automatically');
+  assert.equal(savedKeys(ui).length,0,'device coordinates are not saved automatically');
   ui.element('simulador-exportar').click();const saved=JSON.parse(await ui.downloads[0].blob.text());
   assert.deepEqual(Object.keys(saved).sort(),['outside','version','zones']);assert.equal(saved.zones.length,5);sim.stop();
 });
@@ -531,7 +533,7 @@ test('historial de edición e importación: conserva nombres previos, indica con
   assert.match(historyTitle(historyRows(ui).at(-1)),/Gràcia/);assert.notEqual(ui.element('simulador-video').children[0],initialFrame);
   await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));assert.match(historyTitle(historyRows(ui)[0]),/Fuera de las zonas/);assert.match(historyReason(historyRows(ui)[0]),/configuración/);
   ui.element('simulador-exportar').click();const serialized=await ui.downloads[0].blob.text(),transfer=JSON.parse(serialized);
-  assert.deepEqual(Object.keys(transfer).sort(),['outside','version','zones']);assert.doesNotMatch(serialized,/history|historial|smartthings-find|timestamp/);assert.equal(ui.storage.size,0);ui.sim.stop();
+  assert.deepEqual(Object.keys(transfer).sort(),['outside','version','zones']);assert.doesNotMatch(serialized,/history|historial|smartthings-find|timestamp/);assert.equal(savedKeys(ui).length,0);ui.sim.stop();
 });
 
 const tourTimeout=ui=>Array.from(ui.timers).find(([id])=>ui.timerDelays.get(id)>0&&ui.timerDelays.get(id)<=12000);
@@ -615,7 +617,7 @@ test('la oficina elegida muestra hasta cinco títulos/tipos y el alcance parcial
   const items=Array.from({length:8},(_,i)=>({type:i%2?'image':'video',title:i===0?'<img src=x onerror=alert(1)>':'Pieza '+i,tags:['retail']}));
   const ui=await editorSession({fetcher:async()=>({ok:true,json:async()=>({items})})}),frame=ui.element('simulador-video').children[0];
   assert.equal(pieceRows(ui).length,5);assert.equal(pieceTitle(pieceRows(ui)[0]),'<img src=x onerror=alert(1)>');assert.equal(pieceRows(ui)[0].children.length,2);assert.equal(pieceRows(ui)[0].children[1].textContent,'Vídeo');
-  assert.match(ui.element('simulador-piezas-estado').textContent,/8 coincidencias.*5/);assert.match(ui.element('simulador-piezas-ayuda').textContent,/orientativa.*300.*cinco/);assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(ui.storage.size,0);assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.requests.length,1);
+  assert.match(ui.element('simulador-piezas-estado').textContent,/8 coincidencias.*5/);assert.match(ui.element('simulador-piezas-ayuda').textContent,/orientativa.*300.*cinco/);assert.equal(ui.element('simulador-tema').value,'retail');assert.equal(savedKeys(ui).length,0);assert.equal(ui.element('simulador-video').children[0],frame);assert.equal(ui.requests.length,1);
   ui.document.documentElement.lang='en';ui.sim.renderText();assert.equal(pieceRows(ui)[0].children[1].textContent,'Video');assert.match(ui.element('simulador-piezas-estado').textContent,/8 matches/);ui.sim.stop();
 });
 
@@ -630,7 +632,7 @@ test('importar durante la consulta conserva asignaciones y usa el tema nuevo par
   let finish;const ui=mount({editor:true,fetcher:()=>new Promise(resolve=>finish=resolve)}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();
   await importFile(ui,fileOf(ui.zonesApi.serializeTransfer(ui.zonesApi.officePreset)));
   finish({ok:true,json:async()=>({items:[{type:'video',title:'Creativa',tags:['creativity']},{type:'image',title:'Retail',tags:['retail']}]})});await flush();
-  assert.match(ui.element('simulador-piezas-titulo').textContent,/Pixería/);assert.equal(pieceTitle(pieceRows(ui)[0]),'Creativa');assert.equal(ui.element('simulador-tema').value,'creatividad');assert.equal(ui.storage.size,0);
+  assert.match(ui.element('simulador-piezas-titulo').textContent,/Pixería/);assert.equal(pieceTitle(pieceRows(ui)[0]),'Creativa');assert.equal(ui.element('simulador-tema').value,'creatividad');assert.equal(savedKeys(ui).length,0);
   ui.element('simulador-exportar').click();const text=await ui.downloads[0].blob.text();assert.deepEqual(Object.keys(JSON.parse(text)).sort(),['outside','version','zones']);assert.doesNotMatch(text,/Creativa|catalogItems|piece/);sim.stop();
 });
 
@@ -666,4 +668,33 @@ test('las actualizaciones del recorrido no arrebatan el foco de otro control',()
   const ui=tourSession(),other=ui.element('centrar');ui.element('simulador-recorrer').click();other.focus();
   ui.sim.renderText();tickTour(ui);ui.sim.renderText();assert.equal(ui.document.activeElement,other);
   ui.element('simulador-recorrido-detener').click();assert.equal(ui.document.activeElement,other);ui.sim.stop();
+});
+
+test('publicar envía las zonas con CSRF y rev; un 409 avisa sin pisar y traer carga las publicadas',async()=>{
+  let stored=null,rev=0;
+  const fetcher=async(url,options={})=>{
+    if(url!=='/api/ubicacion/zonas')return {ok:true,status:200,json:async()=>fixtureCatalog};
+    if(options.method==='PUT'){
+      const body=JSON.parse(options.body);
+      if(body.rev!==rev)return {ok:false,status:409,json:async()=>({ok:false,error:'rev_desfasada',rev})};
+      rev++;stored=body.zonas;return {ok:true,status:200,json:async()=>({ok:true,rev,zonas:stored,actualizado_en:'2026-10-29T12:00:00.000Z'})};
+    }
+    return {ok:true,status:200,json:async()=>({ok:true,rev,zonas:stored,puede_publicar:true,csrf:'csrf-fixture'})};
+  };
+  const ui=mount({editor:true,fetcher}),sim=ui.api.create({map:ui.map,L:ui.L});sim.start();ui.element('simulador-editar').click();await flush();
+  ui.element('simulador-oficinas').click();
+  ui.element('simulador-publicar').click();await flush();await flush();
+  const put=ui.requests.find(r=>r.options.method==='PUT');
+  assert.equal(put.options.headers['X-Admira-CSRF'],'csrf-fixture');assert.equal(put.options.credentials,'same-origin');
+  assert.equal(JSON.parse(put.options.body).rev,0);assert.equal(stored.zones.length,5);assert.equal(stored.zones[0].name,'Pixería');
+  assert.match(ui.element('simulador-publicado').textContent,/Publicadas \(rev 1\)/);
+  assert.equal(savedKeys(ui).length,0,'publicar no guarda zonas en el navegador');
+  rev=7;
+  ui.element('simulador-publicar').click();await flush();await flush();
+  assert.match(ui.element('simulador-publicado').textContent,/Otra persona publicó la rev 7/);assert.equal(stored.zones.length,5,'el 409 no sustituye lo publicado');
+  ui.element('simulador-restaurar').click();
+  ui.element('simulador-traer').click();await flush();await flush();
+  assert.match(ui.element('simulador-publicado').textContent,/Cargadas las zonas publicadas \(rev 7/);
+  assert.ok(ui.element('simulador-zona-elegida').children.some(option=>/Pixería/.test(option.textContent)));
+  sim.stop();
 });
