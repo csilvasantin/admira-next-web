@@ -713,5 +713,10 @@
     "Mapa en pruebas: ubicación optativa del móvil, con activación y permiso del navegador.",
     "El player queda dentro del mapa y deja visible el aviso de ubicación completo.",
     "Las mismas zonas y reglas de precisión, sin guardar posiciones ni enviarlas al player."
+  ],
+  "v.29.10.2026.r7.04:00": [
+    "Mapa en pruebas: historial local de cambios de oficina, contenido y estados de espera.",
+    "Muestra hora, fuente y motivo; conserva sólo los últimos 20 cambios de esta página, sin coordenadas.",
+    "Las lecturas repetidas y el movimiento dentro de una misma oficina no duplican filas ni reinician el player."
   ]
 }
