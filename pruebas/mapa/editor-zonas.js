@@ -50,21 +50,30 @@
     if (new TextEncoder().encode(text).byteLength > MAX_FILE_BYTES) throw new Error('archivo_demasiado_grande');
     return text;
   }
-  function catalog(data) {
+  function normalizeTag(tag) {
+    if (typeof tag!=='string') return null;
+    tag=tag.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,'-');
+    tag=({music:'musica',technology:'tecnologia',tech:'tecnologia',creativity:'creatividad',business:'negocio'})[tag] || tag;
+    return TAG.test(tag)?tag:null;
+  }
+  function catalogItems(data) {
     if (!data || !Array.isArray(data.items)) throw new Error('catalogo_invalido');
-    var counts = new Map(), kinds = /^(image|video|animation|audio|music|locucion|interactive|xperiencia)$/;
-    data.items.slice(0,5000).forEach(function (item) {
-      if (!item || !kinds.test(item.type) || !Array.isArray(item.tags)) return;
-      var seen = new Set();
-      item.tags.slice(0,100).forEach(function (tag) {
-        if (typeof tag !== 'string') return;
-        tag = tag.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,'-');
-        tag = ({music:'musica',technology:'tecnologia',tech:'tecnologia',creativity:'creatividad',business:'negocio'})[tag] || tag;
-        if (TAG.test(tag) && !seen.has(tag)) {seen.add(tag);counts.set(tag,(counts.get(tag) || 0)+1);}
-      });
+    var kinds=/^(image|video|animation|audio|music|locucion|interactive|xperiencia)$/;
+    return data.items.slice(0,5000).flatMap(function (item) {
+      if (!item || typeof item.type!=='string' || !kinds.test(item.type) || !Array.isArray(item.tags)) return [];
+      var tags=Array.from(new Set(item.tags.slice(0,100).map(normalizeTag).filter(Boolean)));
+      if (!tags.length) return [];
+      var title=typeof item.title==='string'?item.title.replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,160):'';
+      // Text metadata only: no media URLs, identifiers or untrusted markup.
+      return [{title:title,type:item.type,tags:tags}];
     });
+  }
+  function catalogThemes(items) {
+    var counts=new Map();
+    items.forEach(function (item) {item.tags.forEach(function (tag) {counts.set(tag,(counts.get(tag)||0)+1);});});
     return Array.from(counts,function (entry) {return {tag:entry[0],count:entry[1]};}).sort(function (a,b) {return b.count-a.count || a.tag.localeCompare(b.tag);}).slice(0,300);
   }
+  function catalog(data) {return catalogThemes(catalogItems(data));}
   function edge(zone) {
     var rad = Math.PI/180, angle = zone.radius/6371000, lat = zone.lat*rad;
     var nextLat=Math.asin(Math.sin(lat)*Math.cos(angle));
@@ -89,7 +98,7 @@
     selected = config.zones[0] ? config.zones[0].id : 'exterior';
     saved = JSON.stringify(config);
     var active = false, opened = false, shapes, handles, circles = new Map(), centreHandle, radiusHandle, position;
-    var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'},{tag:'educacion'},{tag:'devops'},{tag:'emprendimiento'},{tag:'publicidad'}], catalogState = 'idle', catalogRequest = null;
+    var dragBefore = null, themes = [{tag:'retail'},{tag:'tecnologia'},{tag:'creatividad'},{tag:'educacion'},{tag:'devops'},{tag:'emprendimiento'},{tag:'publicidad'}], catalogState = 'idle', catalogRequest = null, catalogTimer=null, pieces=[], catalogLoaded=false;
     var transferState='idle', importBusy=false, importTicket=0, importedCount=0;
     function current() {return selected === 'exterior' ? config.outside : config.zones.find(function (z) {return z.id === selected;});}
     function label(tag) {
@@ -97,6 +106,20 @@
       return names[tag] || tag.replace(/-/g,' ');
     }
     function option(select,value,text) {var node=d.createElement('option');node.value=value;node.textContent=text;select.appendChild(node);}
+    function renderPieces() {
+      var zone=current(), tag=normalizeTag(zone.tag), matches=pieces.filter(function (item) {return item.tags.indexOf(tag)>=0;});
+      var names={image:T('Imagen','Image'),video:T('Vídeo','Video'),animation:T('Animación','Animation'),audio:T('Audio','Audio'),music:T('Música','Music'),locucion:T('Locución','Voice-over'),interactive:T('Interactivo','Interactive'),xperiencia:T('Experiencia','Experience')};
+      byId('simulador-piezas-titulo').textContent=T('Piezas encontradas · ','Matching items · ')+(selected==='exterior'?T('Fuera de las zonas','Outside the zones'):zone.name)+' · '+label(zone.tag);
+      byId('simulador-piezas-ayuda').textContent=T('Muestra orientativa del catálogo: se solicitan hasta 300 piezas y aquí se muestran como máximo cinco coincidencias. El player decide la selección y el orden dentro del tema.','Indicative catalogue sample: up to 300 items requested, with at most five matches shown here. The player decides selection and order within the topic.');
+      byId('simulador-piezas-estado').textContent=catalogState==='loading'?T('Consultando las piezas de este tema…','Looking up items for this topic…'):catalogState==='error'?T('No se pudo consultar. Conserva el tema elegido y vuelve a actualizar el catálogo.','Could not load the query. Keep the selected topic and refresh the catalogue again.'):catalogState!=='ready'?T('Abre o actualiza el catálogo para consultar las piezas.','Open or refresh the catalogue to query items.'):!matches.length?T('Sin coincidencias en esta consulta. El tema elegido se conserva.','No matches in this query. The selected topic is kept.'):T(matches.length+' coincidencias en esta consulta · se muestran '+Math.min(5,matches.length)+'.',matches.length+' matches in this query · showing '+Math.min(5,matches.length)+'.');
+      var list=byId('simulador-piezas-lista');list.replaceChildren();
+      if (catalogState!=='ready') return;
+      matches.slice(0,5).forEach(function (item) {
+        var row=d.createElement('li'),title=d.createElement('span'),kind=d.createElement('span');
+        title.textContent=item.title || T('Sin título disponible','No title available');kind.textContent=names[item.type];
+        row.appendChild(title);row.appendChild(kind);list.appendChild(row);
+      });
+    }
     function fields() {
       var zone=current(), outside=selected==='exterior';
       var select=byId('simulador-zona-elegida');select.replaceChildren();
@@ -123,6 +146,7 @@
       }
       byId('simulador-catalogo').disabled=catalogState==='loading';
       byId('simulador-importar').disabled=importBusy;
+      renderPieces();
     }
     function renderText() {
       if (!active) return;
@@ -145,7 +169,7 @@
       Object.keys(text).forEach(function (id) {byId('simulador-'+id).textContent=text[id];});
       var dirty=JSON.stringify(config)!==saved;
       byId('simulador-guardado').textContent=saveState==='invalid'?T('Revisa el nombre y el radio (50–5000 m).','Check the name and radius (50–5000 m).'):saveState==='error'?T('No se pudo guardar. Los cambios siguen en esta sesión.','Could not save. Changes remain in this session.'):dirty?T('Cambios sin guardar.','Unsaved changes.'):saveState==='saved'?T('Guardado en este navegador.','Saved in this browser.'):saveState==='broken'?T('La configuración guardada no era válida. Se han cargado los ejemplos.','Saved configuration was invalid. Examples were loaded.'):T('Las zonas se guardan sólo en este navegador.','Zones are saved only in this browser.');
-      byId('simulador-catalogo-estado').textContent=catalogState==='loading'?T('Consultando catálogo…','Loading catalogue…'):catalogState==='error'?T('Catálogo no disponible. Puedes usar los temas ya cargados.','Catalogue unavailable. You can use topics already loaded.'):catalogState==='ready'?T('Temas del catálogo actual de admira.tv.','Topics from the current admira.tv catalogue.'):'';
+      byId('simulador-catalogo-estado').textContent=catalogState==='loading'?T('Consultando catálogo…','Loading catalogue…'):catalogState==='error'?T('Catálogo no disponible. Puedes usar los temas ya cargados.','Catalogue unavailable. You can use topics already loaded.'):catalogState==='ready'?T('Temas encontrados en la consulta actual de admira.tv.','Topics found in the current admira.tv query.'):'';
       var importedText=!dirty&&saveState==='saved'?T('Archivo importado: '+importedCount+' zonas. Guardado en este navegador.','File imported: '+importedCount+' zones. Saved in this browser.'):T('Archivo importado: '+importedCount+' zonas. Revisa el resultado y pulsa Guardar zonas.','File imported: '+importedCount+' zones. Review the result and choose Save zones.');
       var transferText={idle:'',reading:T('Abriendo archivo…','Opening file…'),download:T('Descarga iniciada. Incluye los cambios de esta sesión.','Download started. Includes changes from this session.'),imported:importedText,large:T('El archivo supera el máximo de 16 KB. La configuración actual se conserva.','The file exceeds 16 KB. Current configuration is unchanged.'),invalid:T('El archivo no contiene una configuración válida. La configuración actual se conserva.','The file does not contain a valid configuration. Current configuration is unchanged.'),readError:T('No se pudo abrir el archivo. La configuración actual se conserva.','Could not open the file. Current configuration is unchanged.'),downloadError:T('No se pudo iniciar la descarga. La configuración actual se conserva.','Could not start the download. Current configuration is unchanged.')};
       byId('simulador-intercambio-estado').textContent=transferText[transferState] || '';
@@ -192,15 +216,16 @@
       if (catalogRequest) return;
       catalogState='loading';renderText();
       var controller=new AbortController(), timeout=setTimeout(function () {controller.abort();},15000);
-      catalogRequest=controller;
+      catalogRequest=controller;catalogTimer=timeout;
       try {
         var response=await G.fetch('https://api.admira.store/stock/list?limit=300',{method:'GET',credentials:'omit',cache:'no-store',signal:controller.signal});
+        if (catalogRequest!==controller) return;
         if (!response.ok) throw new Error('catalogo_no_disponible');
-        var next=catalog(await response.json());
-        if (!next.length) throw new Error('catalogo_vacio');
-        themes=next;catalogState='ready';
-      } catch (_) {catalogState='error';}
-      finally {clearTimeout(timeout);catalogRequest=null;renderText();}
+        var next=catalogItems(await response.json());
+        if (catalogRequest!==controller) return;
+        pieces=next;themes=catalogThemes(next);catalogLoaded=true;catalogState='ready';
+      } catch (_) {if (catalogRequest===controller) catalogState='error';}
+      finally {clearTimeout(timeout);if (catalogRequest===controller) {catalogRequest=null;catalogTimer=null;renderText();}}
     }
     byId('simulador-editar').addEventListener('click',function () {
       opened=!opened;if (options.onInteraction) options.onInteraction();byId('simulador-editor').hidden=!opened;byId('simulador-editar').setAttribute('aria-expanded',String(opened));
@@ -300,8 +325,8 @@
     return {
       getConfig:function () {return copy(config);},isEditing:function () {return active&&(opened||importBusy);},label:label,renderText:renderText,
       activate:function (parent,getPosition) {active=true;position=getPosition;shapes=L.layerGroup().addTo(parent);handles=L.layerGroup().addTo(parent);drawShapes();drawHandles();renderText();},
-      deactivate:function () {active=false;opened=false;importTicket++;importBusy=false;if (transferState==='reading') transferState='idle';if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
+      deactivate:function () {active=false;opened=false;if (catalogRequest) {catalogRequest.abort();catalogRequest=null;clearTimeout(catalogTimer);catalogTimer=null;catalogState=catalogLoaded?'ready':'idle';}importTicket++;importBusy=false;if (transferState==='reading') transferState='idle';if (shapes) shapes.clearLayers();if (handles) handles.clearLayers();circles.clear();centreHandle=null;radiusHandle=null;byId('simulador-editor').hidden=true;byId('simulador-editar').setAttribute('aria-expanded','false');}
     };
   }
-  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,edge:edge,defaults:copy(defaults),officePreset:copy(offices),storageKey:KEY};
+  G.AdmiraMapaZonas={create:create,validate:validate,parseTransfer:parseTransfer,serializeTransfer:serializeTransfer,maxFileBytes:MAX_FILE_BYTES,catalog:catalog,catalogItems:catalogItems,edge:edge,defaults:copy(defaults),officePreset:copy(offices),storageKey:KEY};
 })(window,document);

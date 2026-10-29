@@ -168,3 +168,10 @@ html[data-mapa-tema="claro"] #mapa{background:#e6e1d8}
 .mapa-tour .mapa-zone-actions{margin:0 0 10px}
 #simulador-recorrido-estado{color:var(--ink)}
 .mapa-tour button[hidden]{display:none!important}
+
+.mapa-topic-items{margin:14px 0;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mapa-topic-items h4{font-size:13px;margin:0 0 8px}
+.mapa-topic-items ul{list-style:none;padding:0;margin:10px 0}
+.mapa-topic-items li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:12px;overflow-wrap:anywhere}
+.mapa-topic-items li>span:last-child{color:var(--dim);flex:none}
+.mapa-topic-items li>span:first-child{min-width:0}
