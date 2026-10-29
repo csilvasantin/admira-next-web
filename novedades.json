@@ -723,5 +723,10 @@
     "Mapa en pruebas: recorrido Demo opcional por las zonas configuradas, con progreso, pausa y parada.",
     "Visita cada centro durante 12 segundos y aplica la misma prioridad y contenido que el arrastre manual.",
     "Editar, importar, arrastrar, cambiar de fuente u ocultar la página detiene el recorrido; recargar nunca lo reinicia."
+  ],
+  "v.29.10.2026.r9.06:01": [
+    "Mapa en pruebas: consultar hasta cinco títulos y tipos de piezas que coinciden con el tema de cada oficina.",
+    "La muestra indica el alcance parcial y distingue carga, error y ausencia de coincidencias.",
+    "Conserva temas personalizados y configuración; las respuestas canceladas no sobrescriben la consulta actual."
   ]
 }
