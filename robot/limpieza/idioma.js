@@ -20,7 +20,16 @@
     'Parar': 'Stop',
     'Cámara': 'Camera',
     'Cámara no conectada': 'Camera not connected',
-    'Cámara conectada': 'Camera connected'
+    'Cámara conectada': 'Camera connected',
+    'Salir · sin conexión': 'Leave dock · no connection',
+    'Volver a la base · sin conexión': 'Return to dock · no connection',
+    'Salir': 'Leave dock',
+    'Volver a la base': 'Return to dock',
+    'Sin conexión. Salir no se ha enviado.': 'No connection. Leave dock was not sent.',
+    'Sin conexión. Volver a la base no se ha enviado.': 'No connection. Return to dock was not sent.',
+    'Estado leído: ': 'State read: ',
+    '. Batería: ': '. Battery: ',
+    'RESPUESTA LEÍDA / SIN POSE': 'RESPONSE READ / NO POSE'
   });
   if (A.aplicar) A.aplicar();
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Puente local del Saros Z70 para el mapa de pruebas.
 
-Escucha solo en 127.0.0.1. El mapa (HTTPS) no puede mandarle órdenes: hace
-falta abrir el mapa en este mismo origen, por ejemplo
-http://127.0.0.1:8765/pruebas/mapa/?casa=1
+Escucha solo en 127.0.0.1. Desde otro ordenador el puerto no existe.
+El navegador de este Mac, en https://www.admiranext.com o
+https://admiranext.com, sí puede llamarlo (CORS y red privada).
+Cualquier otro origen recibe 403 y no se ejecuta la orden.
 
 Contrato:
   GET  /health
@@ -11,6 +12,8 @@ Contrato:
   GET  /rooms  -> {rooms: [{name}]}
   POST /goto   {"x": mm, "y": mm}  -> app_goto_target
   POST /stop                        -> stop_goto_target
+  POST /start                       -> app_start
+  POST /charge                      -> app_charge
 
 Las credenciales salen de un archivo local, fuera del repo:
   ~/.config/admiranext/roborock.json
@@ -20,7 +23,7 @@ No se imprime ni se copia al repo. La sesión queda en
 ~/.cache/admiranext-roborock/session.json (0600).
 
 Requiere python-roborock==7.13.0. Sin ese archivo, o si el modo no es 0600,
-el proceso arranca y /goto, /stop y /pose responden 503
+el proceso arranca y /goto, /stop, /start, /charge y /pose responden 503
 boveda_sin_credenciales.
 """
 
@@ -113,6 +116,16 @@ class MemoryRobot:
         self.calls.append("stop")
         self.state = "idle"
         return {"ok": True}
+
+    def start(self) -> dict:
+        self.calls.append("app_start")
+        self.state = "cleaning"
+        return {"ok": True, "command": "app_start", "state": self.state, "battery": self.battery}
+
+    def charge(self) -> dict:
+        self.calls.append("app_charge")
+        self.state = "charging"
+        return {"ok": True, "command": "app_charge", "state": self.state, "battery": self.battery}
 
     def health(self) -> tuple[int, dict]:
         return 200, {"ok": True, "mode": "memory"}
@@ -393,12 +406,61 @@ class SarosRobot:
         await device.v1_properties.command.send(RoborockCommand.STOP_GOTO_TARGET)
         return {"ok": True}
 
+    def start(self) -> dict:
+        return self._call(self._start())
+
+    async def _start(self) -> dict:
+        device = self._require()
+        from roborock import RoborockCommand
+
+        await device.v1_properties.command.send(RoborockCommand.APP_START)
+        return await self._after_command(device, "app_start")
+
+    def charge(self) -> dict:
+        return self._call(self._charge())
+
+    async def _charge(self) -> dict:
+        device = self._require()
+        from roborock import RoborockCommand
+
+        await device.v1_properties.command.send(RoborockCommand.APP_CHARGE)
+        return await self._after_command(device, "app_charge")
+
+    async def _after_command(self, device, command: str) -> dict:
+        state, battery = "unknown", None
+        try:
+            await device.v1_properties.status.refresh()
+            state = _plain_state(getattr(device.v1_properties.status, "state", None))
+            level = getattr(device.v1_properties.status, "battery", None)
+            if type(level) is int and 0 <= level <= 100:
+                battery = level
+        except Exception:
+            pass
+        payload = {"ok": True, "command": command, "state": state}
+        if battery is not None:
+            payload["battery"] = battery
+        return payload
+
 
 def origin_allowed(origin: str | None) -> bool:
     if not origin:
         return True
+    if any(ch in origin for ch in "\r\n\x00 "):
+        return False
     parsed = urllib.parse.urlparse(origin)
-    return parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost"}
+    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+        return False
+    host = parsed.hostname
+    if parsed.scheme == "http" and host in {"127.0.0.1", "localhost"}:
+        return True
+    if (
+        parsed.scheme == "https"
+        and host in {"www.admiranext.com", "admiranext.com"}
+        and parsed.port in (None, 443)
+        and parsed.path in ("", "/")
+    ):
+        return True
+    return False
 
 
 def parse_xy(raw: bytes) -> tuple[int, int]:
@@ -484,6 +546,7 @@ def make_handler(robot, static_root: Path | None = None):
             if origin and origin_allowed(origin):
                 self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Vary", "Origin")
+                self.send_header("Access-Control-Allow-Private-Network", "true")
             if extra:
                 for key, value in extra.items():
                     self.send_header(key, value)
@@ -533,6 +596,14 @@ def make_handler(robot, static_root: Path | None = None):
                 if path == "/stop" and method == "POST":
                     self._read()
                     self._send(200, robot.stop(), origin)
+                    return
+                if path == "/start" and method == "POST":
+                    self._read()
+                    self._send(200, robot.start(), origin)
+                    return
+                if path == "/charge" and method == "POST":
+                    self._read()
+                    self._send(200, robot.charge(), origin)
                     return
             except BadRequest:
                 self._send(400, {"error": "cuerpo_invalido"}, origin)

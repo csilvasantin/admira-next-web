@@ -7,10 +7,10 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Limpieza · AdmiraNeXT</title>
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
-  <link rel="stylesheet" href="/robot/limpieza/limpieza.css?v=20261029-limpieza-2">
+  <link rel="stylesheet" href="/robot/limpieza/limpieza.css?v=20261029-limpieza-3">
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
-  <script defer src="/robot/limpieza/idioma.js?v=20261029-limpieza-2"></script>
-  <script defer src="/robot/limpieza/limpieza.js?v=20261029-limpieza-2"></script>
+  <script defer src="/robot/limpieza/idioma.js?v=20261029-limpieza-3"></script>
+  <script defer src="/robot/limpieza/limpieza.js?v=20261029-limpieza-3"></script>
 </head>
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a></nav></header>
@@ -38,6 +38,12 @@
     </section>
     <section class="limpieza-panel" aria-labelledby="limpieza-camara-titulo">
       <div class="limpieza-panel-head"><h2 id="limpieza-camara-titulo">Cámara</h2></div>
+      <div class="limpieza-mando">
+        <button type="button" id="limpieza-salir" data-orden="start">Salir · sin conexión</button>
+        <p id="limpieza-salir-estado" class="limpieza-orden-estado" role="status"></p>
+        <button type="button" id="limpieza-base" data-orden="charge">Volver a la base · sin conexión</button>
+        <p id="limpieza-base-estado" class="limpieza-orden-estado" role="status"></p>
+      </div>
       <div id="limpieza-camara" class="limpieza-camara">
         <p id="limpieza-senal" class="limpieza-aviso" data-senal="no">Cámara no conectada</p>
       </div>

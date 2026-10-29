@@ -37,6 +37,12 @@ class Closed(bridge.MemoryRobot):
     def goto(self, x, y):
         raise bridge.Unavailable("boveda_sin_credenciales")
 
+    def start(self):
+        raise bridge.Unavailable("boveda_sin_credenciales")
+
+    def charge(self):
+        raise bridge.Unavailable("boveda_sin_credenciales")
+
     def health(self):
         return 503, {"ok": False, "error": "boveda_sin_credenciales"}
 
@@ -123,16 +129,60 @@ class BridgeTest(unittest.TestCase):
         robot = bridge.MemoryRobot()
         server = start(robot)
         self.addCleanup(server.shutdown)
-        status, raw, headers = call(
-            server, "POST", "/goto", b'{"x":3,"y":4}', origin="https://www.admiranext.com"
-        )
-        self.assertEqual(status, 403)
-        self.assertEqual(json.loads(raw)["error"], "origen_no_permitido")
-        self.assertNotIn("Access-Control-Allow-Origin", headers)
-        self.assertEqual(robot.x, 0)
+        for origin in (
+            "https://evil.example",
+            "https://www.admiranext.com.evil.example",
+            "http://www.admiranext.com",
+            "https://www.admiranext.com:8443",
+        ):
+            status, raw, headers = call(server, "POST", "/start", b"{}", origin=origin)
+            self.assertEqual(status, 403, origin)
+            self.assertEqual(json.loads(raw)["error"], "origen_no_permitido")
+            self.assertNotIn("Access-Control-Allow-Origin", headers)
+        self.assertNotIn("app_start", robot.calls)
         local, _, local_headers = call(server, "GET", "/health", origin="http://127.0.0.1:8765")
         self.assertEqual(local, 200)
         self.assertEqual(local_headers.get("Access-Control-Allow-Origin"), "http://127.0.0.1:8765")
+
+    def test_admiranext_on_this_mac_can_start_and_charge(self):
+        robot = bridge.MemoryRobot()
+        server = start(robot)
+        self.addCleanup(server.shutdown)
+        preflight, _, pre_headers = call(server, "OPTIONS", "/start", origin="https://www.admiranext.com")
+        self.assertEqual(preflight, 204)
+        self.assertEqual(pre_headers.get("Access-Control-Allow-Origin"), "https://www.admiranext.com")
+        self.assertEqual(pre_headers.get("Access-Control-Allow-Private-Network"), "true")
+        status, raw, headers = call(server, "POST", "/start", b"{}", origin="https://www.admiranext.com")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(raw)["command"], "app_start")
+        self.assertEqual(json.loads(raw)["state"], "cleaning")
+        self.assertEqual(headers.get("Access-Control-Allow-Origin"), "https://www.admiranext.com")
+        self.assertEqual(headers.get("Access-Control-Allow-Private-Network"), "true")
+        status, raw, headers = call(server, "POST", "/charge", b"{}", origin="https://admiranext.com")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(raw)["command"], "app_charge")
+        self.assertEqual(json.loads(raw)["state"], "charging")
+        self.assertEqual(headers.get("Access-Control-Allow-Origin"), "https://admiranext.com")
+        self.assertEqual(robot.calls, ["app_start", "app_charge"])
+
+    def test_start_and_charge_without_device_do_not_send(self):
+        robot = bridge.SarosRobot(credentials_path=Path("/no/existe/roborock.json"))
+        server = start(robot)
+        self.addCleanup(server.shutdown)
+        for path in ("/start", "/charge"):
+            status, raw, _ = call(server, "POST", path, b"{}")
+            self.assertEqual(status, 503, path)
+            self.assertEqual(json.loads(raw), {"error": "boveda_sin_credenciales"})
+            self.assertNotIn(b"password", raw)
+            self.assertNotIn(b"username", raw)
+
+    def test_closed_start_and_charge_stay_503(self):
+        server = start(Closed())
+        self.addCleanup(server.shutdown)
+        for path in ("/start", "/charge"):
+            status, raw, _ = call(server, "POST", path, b"{}")
+            self.assertEqual(status, 503, path)
+            self.assertEqual(json.loads(raw), {"error": "boveda_sin_credenciales"})
 
     def test_static_stays_inside_the_repo(self):
         with tempfile.TemporaryDirectory() as tmp:

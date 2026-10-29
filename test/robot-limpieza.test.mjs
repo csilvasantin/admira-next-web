@@ -52,6 +52,106 @@ test('sin pose no hay movimiento ni robot dibujado', () => {
   assert.equal(en.statusMessage(offEn.view()), 'No connection. No pose has been read.');
 });
 
+function fakePage() {
+  const nodes = {};
+  function make(id) {
+    const node = {
+      id,
+      disabled: false,
+      textContent: '',
+      listeners: {},
+      addEventListener(type, fn) {
+        this.listeners[type] = this.listeners[type] || [];
+        this.listeners[type].push(fn);
+      },
+      getAttribute() {return null;}
+    };
+    nodes[id] = node;
+    return node;
+  }
+  ['limpieza-banner', 'limpieza-estado', 'limpieza-senal', 'limpieza-salir', 'limpieza-base', 'limpieza-salir-estado', 'limpieza-base-estado'].forEach(make);
+  return {
+    nodes,
+    root: {
+      querySelector(sel) {return nodes[sel.slice(1)] || null;},
+      querySelectorAll() {return [];}
+    }
+  };
+}
+
+test('los dos botones están encima de la cámara y nacen sin conexión', () => {
+  const salir = html.indexOf('id="limpieza-salir"');
+  const base = html.indexOf('id="limpieza-base"');
+  const camara = html.indexOf('id="limpieza-camara"');
+  assert.ok(salir > 0 && base > salir && camara > base);
+  assert.match(html, /Salir · sin conexión/);
+  assert.match(html, /Volver a la base · sin conexión/);
+  assert.doesNotMatch(html, /Saliendo|Volviendo/);
+  assert.doesNotMatch(pageCode, /Saliendo|Volviendo|Yendo a/);
+  assert.doesNotMatch(idioma, /Saliendo|Volviendo|Yendo a/);
+  assert.match(idioma, /Salir · sin conexión/);
+  assert.match(idioma, /Estado leído: /);
+  const api = load('es');
+  assert.equal(api.buttonLabel('start', null), 'Salir · sin conexión');
+  assert.equal(api.buttonLabel('charge', null), 'Volver a la base · sin conexión');
+  assert.equal(api.failureStatus('start'), 'Sin conexión. Salir no se ha enviado.');
+  assert.equal(api.failureStatus('charge'), 'Sin conexión. Volver a la base no se ha enviado.');
+  assert.equal(api.readOutcome('start', null), null);
+  assert.equal(api.readOutcome('start', {status: 503, body: {ok: false, error: 'boveda_sin_credenciales'}}), null);
+  assert.equal(api.readOutcome('start', {status: 200, body: {ok: true, command: 'app_charge', state: 'charging'}}), null);
+  assert.equal(api.readOutcome('start', {status: 200, body: {ok: true, command: 'app_start', state: '<script>'}}), null);
+  assert.equal(api.readOutcome('charge', {status: 200, body: {ok: true, command: 'app_start', state: 'cleaning'}}), null);
+  const en = load('en');
+  assert.equal(en.buttonLabel('start', null), 'Leave dock · no connection');
+  assert.equal(en.failureStatus('charge'), 'No connection. Return to dock was not sent.');
+});
+
+test('un fallo de puente no dice que la orden salió', async () => {
+  const api = load('es');
+  const page = fakePage();
+  api.mount(page.root, {connected: false, fetch: async () => {throw new Error('sin puente');}});
+  assert.equal(page.nodes['limpieza-salir'].textContent, 'Salir · sin conexión');
+  assert.equal(page.nodes['limpieza-base'].textContent, 'Volver a la base · sin conexión');
+  assert.equal(page.nodes['limpieza-banner'].textContent, 'SIMULACIÓN / SIN CONEXIÓN');
+  page.nodes['limpieza-salir'].listeners.click[0]({preventDefault() {}});
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(page.nodes['limpieza-salir'].textContent, 'Salir · sin conexión');
+  assert.equal(page.nodes['limpieza-salir-estado'].textContent, 'Sin conexión. Salir no se ha enviado.');
+  assert.equal(page.nodes['limpieza-banner'].textContent, 'SIMULACIÓN / SIN CONEXIÓN');
+  assert.doesNotMatch(page.nodes['limpieza-salir'].textContent + page.nodes['limpieza-salir-estado'].textContent, /Saliendo|Yendo/);
+});
+
+test('una respuesta real enseña el estado leído y no lo traduce', async () => {
+  const api = load('es');
+  const seen = [];
+  const outcome = await api.ask('start', async (url) => {
+    seen.push(url);
+    return {status: 200, json: async () => ({ok: true, command: 'app_start', state: 'cleaning', battery: 80})};
+  });
+  assert.deepEqual(seen, ['http://127.0.0.1:8765/start']);
+  assert.equal(outcome.ok, true);
+  assert.equal(outcome.command, 'app_start');
+  assert.equal(outcome.state, 'cleaning');
+  assert.equal(outcome.battery, 80);
+  assert.equal(api.outcomeStatus(outcome), 'Estado leído: cleaning. Batería: 80');
+  assert.equal(api.buttonLabel('start', outcome), 'Salir');
+  assert.doesNotMatch(api.outcomeStatus(outcome), /Yendo|Saliendo|Volviendo/);
+  const page = fakePage();
+  api.mount(page.root, {
+    fetch: async (url) => {
+      assert.equal(url, 'http://127.0.0.1:8765/charge');
+      return {status: 200, json: async () => ({ok: true, command: 'app_charge', state: 'charging', battery: '80'})};
+    }
+  });
+  page.nodes['limpieza-base'].listeners.click[0]({preventDefault() {}});
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(page.nodes['limpieza-base'].textContent, 'Volver a la base');
+  assert.equal(page.nodes['limpieza-base-estado'].textContent, 'Estado leído: charging');
+  assert.equal(page.nodes['limpieza-banner'].textContent, 'RESPUESTA LEÍDA / SIN POSE');
+  assert.equal(page.nodes['limpieza-senal'].textContent, 'Cámara no conectada');
+  assert.doesNotMatch(page.nodes['limpieza-base-estado'].textContent, /base|Yendo/);
+});
+
 test('una pose solo se muestra si viene marcada como conectada', () => {
   const api = load('es');
   const lied = api.create({connected: false, pose: {x: 1, y: 2}});

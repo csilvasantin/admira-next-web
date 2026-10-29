@@ -770,5 +770,10 @@
     "/robot/limpieza deja los cinco círculos y muestra la captura 3D de Mapa1. Sin pose leída no dibuja otro robot y no dice que va a una sala.",
     "Banner SIMULACIÓN / SIN CONEXIÓN. La cámara dice que no está conectada. Mismo login que /pruebas.",
     "Vuelta atrás: tag retorno/pre-plano-mapa1-7273-20261029 (sello v.29.10.2026.r18.23:15)."
+  ],
+  "v.29.10.2026.r20.23:23": [
+    "/robot/limpieza: dos botones grandes encima de la cámara, Salir y Volver a la base. Sin conexión el botón lo dice y no finge el movimiento.",
+    "Con el puente de este Mac y las claves, Salir manda app_start y Volver a la base manda app_charge, y la página muestra el estado leído.",
+    "Vuelta atrás: tag retorno/pre-salir-base-7273-20261029 (sello v.29.10.2026.r19.23:12)."
   ]
 }
