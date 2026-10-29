@@ -298,7 +298,7 @@ Se activa guardando en `localStorage['admiranext:mapa:robot']` `{"base":"https:/
 
 `?casa=1` abre el simulador ya con las cinco salas. El player virtual de admira.tv cambia al entrar.
 
-`/robot/limpieza/` es la pantalla de limpieza: mapa de la casa, ir a sala, parar y cámara. Usa el robot simulado (`cameraURL` vacío) y, si no hay imagen, muestra «No hay señal de cámara». No llama al puente. El texto nace en castellano y el armazón lo pasa a inglés con el idioma del sitio. En producción la protege el mismo login que `/pruebas` (`functions/robot/limpieza/_middleware.js`): sin sesión responde 401 y no salen el HTML ni los assets. El tag `retorno/pre-robot-limpieza-20261029` (`1fc26ef`) es el commit anterior a la pantalla. El tag `retorno/pre-publicar-robot-7273-20261029` es `main` antes de publicarla (sello `v.29.10.2026.r17.14:15`). Para volver a ese sitio: `git revert --no-commit retorno/pre-publicar-robot-7273-20261029..HEAD`, un commit y push a `main`.
+`/robot/limpieza/` muestra la captura 3D de Mapa1 (app Roborock, 29 oct 2026, 19:45). Sin pose leída no dibuja otro robot y no dice que va a una sala. El banner es «SIMULACIÓN / SIN CONEXIÓN» y la cámara dice «Cámara no conectada». La app nombró Cocina, Terraza y Pasillo; esa captura no los rotula. En producción la protege el mismo login que `/pruebas`. Volver al sello anterior a esta corrección: tag `retorno/pre-plano-mapa1-7273-20261029`. Volver a antes de publicar el robot: `git revert --no-commit retorno/pre-publicar-robot-7273-20261029..HEAD`, un commit y push a `main`.
 
 El puente local es `python3 pruebas/mapa/bridge/roborock_bridge.py`. Escucha solo en `127.0.0.1:8765`.
 

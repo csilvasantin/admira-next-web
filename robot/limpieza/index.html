@@ -7,37 +7,39 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Limpieza · AdmiraNeXT</title>
   <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
-  <link rel="stylesheet" href="/robot/limpieza/limpieza.css?v=20261029-limpieza-1">
+  <link rel="stylesheet" href="/robot/limpieza/limpieza.css?v=20261029-limpieza-2">
   <script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
-  <script defer src="/robot/limpieza/idioma.js?v=20261029-limpieza-1"></script>
-  <script defer src="/pruebas/mapa/robot.js?v=20261029-robot-1"></script>
-  <script defer src="/robot/limpieza/limpieza.js?v=20261029-limpieza-1"></script>
+  <script defer src="/robot/limpieza/idioma.js?v=20261029-limpieza-2"></script>
+  <script defer src="/robot/limpieza/limpieza.js?v=20261029-limpieza-2"></script>
 </head>
 <body data-yk-frame="cabecera">
 <header class="yk-head" data-yk-head><a class="brand" href="/" aria-label="ADmiraNeXT · Inicio"><span class="yk-wm-admira">ADmira</span><span class="yk-wm-next"><span class="yk-wm-n">N</span><span class="yk-wm-e">e</span><span class="yk-wm-x">X</span><span class="yk-wm-t">T</span></span></a><nav aria-label="Navegación del grupo"><a href="/proyectos/">Proyectos</a></nav></header>
 <main id="limpieza" class="limpieza" data-yk-main>
+  <p id="limpieza-banner" class="limpieza-banner">SIMULACIÓN / SIN CONEXIÓN</p>
   <p class="limpieza-eyebrow">Robot</p>
   <h1>Limpieza</h1>
-  <p class="limpieza-intro">Mapa de la casa, con ir a sala y parar. El movimiento es simulado hasta que el puente tenga claves.</p>
+  <p id="limpieza-intro" class="limpieza-intro">Esta imagen es la captura 3D de Mapa1 en la app Roborock, a las 19:45 del 29 de octubre de 2026. Sin claves del puente no hay pose leída y esta página no mueve el robot.</p>
   <div class="limpieza-layout">
     <section class="limpieza-panel" aria-labelledby="limpieza-mapa-titulo">
-      <div class="limpieza-panel-head"><h2 id="limpieza-mapa-titulo">Mapa de la casa</h2></div>
-      <p id="limpieza-estado" class="limpieza-estado" role="status">Elige una sala</p>
+      <div class="limpieza-panel-head"><h2 id="limpieza-mapa-titulo">Mapa1 · vista 3D</h2></div>
+      <figure class="limpieza-figura">
+        <img id="limpieza-plano" class="limpieza-plano" src="/robot/limpieza/mapa1.jpg?v=20261029-limpieza-2" alt="Captura 3D de Mapa1 en la app Roborock" width="2320" height="1780">
+        <figcaption id="limpieza-pie">El disco que se ve dentro del plano es el de esa captura. No es una pose leída ahora, así que no se dibuja otro robot.</figcaption>
+      </figure>
+      <p id="limpieza-salas" class="limpieza-nota">La app nombró Cocina, Terraza y Pasillo. En esta captura 3D no se leen los nombres sobre el plano, así que no se marcan.</p>
+      <p id="limpieza-estado" class="limpieza-estado" role="status">Sin conexión. No hay pose leída.</p>
+      <p id="limpieza-controles" class="limpieza-nota">No mueven el robot: no hay conexión.</p>
       <div class="limpieza-acciones">
-        <button type="button" data-sala="cocina">Ir a Cocina</button>
-        <button type="button" data-sala="terraza">Ir a Terraza</button>
-        <button type="button" data-sala="pasillo">Ir a Pasillo</button>
-        <button type="button" data-sala="sneaker-store">Ir a Sneaker Store</button>
-        <button type="button" data-sala="la-nave">Ir a La Nave</button>
-        <button type="button" id="limpieza-parar">Parar</button>
+        <button type="button" data-sala="cocina" disabled>Cocina</button>
+        <button type="button" data-sala="terraza" disabled>Terraza</button>
+        <button type="button" data-sala="pasillo" disabled>Pasillo</button>
+        <button type="button" id="limpieza-parar" disabled>Parar</button>
       </div>
-      <svg id="limpieza-mapa" viewBox="0 0 100 100" role="img" aria-label="Mapa de la casa"></svg>
     </section>
     <section class="limpieza-panel" aria-labelledby="limpieza-camara-titulo">
       <div class="limpieza-panel-head"><h2 id="limpieza-camara-titulo">Cámara</h2></div>
       <div id="limpieza-camara" class="limpieza-camara">
-        <p id="limpieza-senal">No hay señal de cámara</p>
-        <img id="limpieza-video" alt="Cámara del robot" hidden>
+        <p id="limpieza-senal" class="limpieza-aviso" data-senal="no">Cámara no conectada</p>
       </div>
     </section>
   </div>

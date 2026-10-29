@@ -3,15 +3,19 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
 .limpieza{margin:auto;padding:28px 24px 72px;max-width:1100px}
 .limpieza-eyebrow{margin:0 0 8px;color:var(--cyan);font:700 11px ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase}
 .limpieza h1{margin:0;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.035em}
-.limpieza-intro{margin:10px 0 22px;color:var(--dim);font-size:14px;line-height:1.55;max-width:62ch}
+.limpieza-intro{margin:10px 0 22px;color:var(--dim);font-size:14px;line-height:1.55;max-width:68ch}
+.limpieza-banner{margin:0 0 18px;padding:14px 16px;border:1px solid var(--warn);border-radius:10px;background:#3a2412;color:var(--warn);font:800 18px/1.3 ui-monospace,monospace;letter-spacing:.04em}
 .limpieza-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr);gap:18px}
 .limpieza-panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .limpieza-panel-head{padding:16px 18px;border-bottom:1px solid var(--line)}
 .limpieza-panel-head h2{margin:0;font-size:14px}
-#limpieza-mapa{display:block;width:100%;height:340px;background:#17232e}
-.limpieza-estado{margin:0;padding:12px 18px;color:var(--dim);font:500 13px/1.5 ui-monospace,monospace}
-.limpieza-acciones{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 14px}
+.limpieza-figura{margin:0}
+.limpieza-plano{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#070b12}
+.limpieza-figura figcaption,.limpieza-nota{margin:0;padding:12px 18px 0;color:var(--dim);font-size:13px;line-height:1.5}
+.limpieza-estado{margin:0;padding:12px 18px;color:var(--ink);font:600 14px/1.5 ui-monospace,monospace}
+.limpieza-acciones{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 16px}
 .limpieza-acciones button{border:1px solid var(--line);border-radius:8px;background:#0c121c;color:var(--ink);padding:10px 12px;font:600 12px ui-monospace,monospace;cursor:pointer}
+.limpieza-acciones button:disabled{opacity:.45;cursor:not-allowed}
 .limpieza-acciones button:hover,.limpieza-acciones button[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan)}
 .limpieza-acciones button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #limpieza-parar{border-color:#733444;color:#ffafbb}

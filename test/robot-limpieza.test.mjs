@@ -1,98 +1,65 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile, stat} from 'node:fs/promises';
 import vm from 'node:vm';
 
-const robotCode = await readFile(new URL('../pruebas/mapa/robot.js', import.meta.url), 'utf8');
 const pageCode = await readFile(new URL('../robot/limpieza/limpieza.js', import.meta.url), 'utf8');
 const html = await readFile(new URL('../robot/limpieza/index.html', import.meta.url), 'utf8');
+const idioma = await readFile(new URL('../robot/limpieza/idioma.js', import.meta.url), 'utf8');
 
 function load(lang) {
-  const timers = [];
-  const context = {
-    setTimeout(fn) {const id = timers.push(fn); return id;},
-    clearTimeout(id) {timers[id - 1] = null;},
-    document: {documentElement: {getAttribute() {return lang;}}}
-  };
+  const context = {document: {documentElement: {getAttribute() {return lang;}}}};
   context.window = context;
   const ctx = vm.createContext(context);
-  vm.runInContext(robotCode, ctx);
   vm.runInContext(pageCode, ctx);
-  function flush(limit = 30) {
-    let guard = 0;
-    while (timers.some(Boolean) && guard < limit) {
-      const i = timers.findIndex(Boolean);
-      const fn = timers[i];
-      timers[i] = null;
-      fn();
-      guard += 1;
-    }
-    return guard;
-  }
-  return {api: ctx.AdmiraLimpieza, robot: ctx.AdmiraMapaRobot, flush};
+  return ctx.AdmiraLimpieza;
 }
 
-test('la página muestra salas, parar y el aviso de cámara', () => {
-  assert.match(html, /Ir a Cocina/);
-  assert.match(html, /Ir a Terraza/);
-  assert.match(html, /Ir a Pasillo/);
-  assert.match(html, /Ir a Sneaker Store/);
-  assert.match(html, /Ir a La Nave/);
-  assert.match(html, /id="limpieza-parar"/);
-  assert.match(html, /No hay señal de cámara/);
+test('la página enseña Mapa1, el banner y la cámara desconectada', async () => {
+  assert.match(html, /SIMULACIÓN \/ SIN CONEXIÓN/);
+  assert.match(html, /Cámara no conectada/);
+  assert.match(html, /mapa1\.jpg/);
+  assert.match(html, /Sin conexión\. No hay pose leída\./);
+  assert.match(html, /Cocina/);
+  assert.match(html, /Terraza/);
+  assert.match(html, /Pasillo/);
+  assert.doesNotMatch(html, /Yendo a/);
+  assert.doesNotMatch(html, /Sneaker Store/);
+  assert.doesNotMatch(html, /La Nave/);
+  assert.match(html, /disabled/);
   assert.match(html, /lang="es"/);
+  assert.doesNotMatch(pageCode, /Yendo a/);
+  assert.doesNotMatch(idioma, /Yendo a/);
+  const image = await stat(new URL('../robot/limpieza/mapa1.jpg', import.meta.url));
+  assert.ok(image.size > 10000);
 });
 
-test('ir a una sala mueve el simulado y parar lo deja a medias', () => {
-  const {api, robot, flush} = load('es');
-  const slow = api.create({driver: robot.createSimDriver({multiplier: () => 1})});
-  // El driver de arriba usa los temporizadores del contexto porque no se los pasamos.
-  assert.equal(slow.goToRoom('no-existe'), false);
-  assert.equal(slow.view().status, 'idle');
-  assert.equal(slow.goToRoom('cocina'), true);
-  assert.equal(slow.view().status, 'driving');
-  assert.equal(slow.view().roomName, 'Cocina');
-  flush(1);
-  const mid = slow.view().pose;
-  slow.stop();
-  const steps = flush(5);
-  assert.equal(steps, 0);
-  assert.equal(slow.view().status, 'stopped');
-  assert.equal(slow.view().pose.lat, mid.lat);
-  assert.equal(api.statusMessage(slow.view()), 'Robot parado');
-  assert.equal(api.cameraMessage(slow.view()), 'No hay señal de cámara');
-});
-
-test('el simulado llega y la cámara avisa en el idioma de la página', () => {
-  const es = load('es');
+test('sin pose no hay movimiento ni robot dibujado', () => {
+  const api = load('es');
+  const off = api.create({connected: false});
+  assert.equal(off.goToRoom('cocina'), false);
+  assert.equal(off.goToRoom('terraza'), false);
+  assert.equal(off.view().connected, false);
+  assert.equal(off.view().pose, null);
+  assert.equal(api.statusMessage(off.view()), 'Sin conexión. No hay pose leída.');
+  assert.equal(api.bannerMessage(off.view()), 'SIMULACIÓN / SIN CONEXIÓN');
+  assert.equal(api.cameraMessage(off.view()), 'Cámara no conectada');
+  assert.doesNotMatch(api.statusMessage(off.view()), /Yendo/);
   const en = load('en');
-  const fast = es.api.create({
-    driver: es.robot.createSimDriver({
-      multiplier: () => 10000,
-      setTimeout(fn) {fn(); return 1;},
-      clearTimeout() {}
-    })
-  });
-  assert.equal(fast.goToRoom('la-nave'), true);
-  const arrived = fast.view();
-  assert.equal(arrived.status, 'arrived');
-  assert.equal(arrived.roomName, 'La Nave');
-  assert.ok(Math.abs(arrived.pose.lat - 41.39898) < 0.0002);
-  assert.equal(arrived.camera.signal, false);
-  assert.equal(es.api.cameraMessage(arrived), 'No hay señal de cámara');
-  assert.equal(es.api.statusMessage(arrived), 'En La Nave');
-  const withCamera = en.api.create({
-    driver: {
-      goTo() {},
-      stop() {},
-      onPose() {},
-      onArrive() {},
-      cameraURL() {return 'https://robot.local/camera.mjpg';}
-    }
-  });
-  assert.equal(withCamera.view().camera.signal, true);
-  assert.equal(en.api.cameraMessage(withCamera.view()), 'Live camera');
-  withCamera.failCamera();
-  assert.equal(withCamera.view().camera.signal, false);
-  assert.equal(en.api.cameraMessage(withCamera.view()), 'No camera signal');
+  const offEn = en.create();
+  assert.equal(en.bannerMessage(offEn.view()), 'SIMULATION / NO CONNECTION');
+  assert.equal(en.cameraMessage(offEn.view()), 'Camera not connected');
+  assert.equal(en.statusMessage(offEn.view()), 'No connection. No pose has been read.');
+});
+
+test('una pose solo se muestra si viene marcada como conectada', () => {
+  const api = load('es');
+  const lied = api.create({connected: false, pose: {x: 1, y: 2}});
+  assert.equal(lied.view().pose, null);
+  const live = api.create({connected: true, pose: {x: 1200, y: 800}});
+  assert.equal(live.view().connected, true);
+  assert.equal(live.view().pose.x, 1200);
+  assert.equal(api.statusMessage(live.view()), 'Pose leída.');
+  assert.equal(live.goToRoom('cocina'), false);
+  assert.equal(api.cameraMessage(live.view()), 'Cámara no conectada');
 });

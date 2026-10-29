@@ -765,5 +765,10 @@
     "Limpieza del robot en /robot/limpieza: mapa de la casa, ir a sala, parar y aviso si no hay cámara. Mismo login que /pruebas.",
     "Casa Saros en /pruebas/mapa: Pixería, Universidad, Garage, Store y Planeta, como ya estaban. Esta publicación no mueve el robot.",
     "Vuelta atrás: tag retorno/pre-publicar-robot-7273-20261029 (sello v.29.10.2026.r17.14:15)."
+  ],
+  "v.29.10.2026.r19.23:12": [
+    "/robot/limpieza deja los cinco círculos y muestra la captura 3D de Mapa1. Sin pose leída no dibuja otro robot y no dice que va a una sala.",
+    "Banner SIMULACIÓN / SIN CONEXIÓN. La cámara dice que no está conectada. Mismo login que /pruebas.",
+    "Vuelta atrás: tag retorno/pre-plano-mapa1-7273-20261029 (sello v.29.10.2026.r18.23:15)."
   ]
 }
