@@ -1,18 +1,25 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ThinkPad · Admira MCP</title><link rel="stylesheet" href="style.css"></head>
+<title>Tiny · Admira MCP</title><link rel="stylesheet" href="style.css"></head>
 <body>
-<main class="laptop">
-  <section class="lid"><div class="bezel"><div class="crt" id="crt">
-    <div class="bar"><span>ADMIRA-DOS 1.0</span><span id="estado">● sin conexión</span></div>
+<section id="vitrina" hidden>
+  <header><h1>TINY · ADMIRA</h1><p>10 ordenadores retro conectados a Admira por MCP. Elige uno.</p></header>
+  <div id="grid" class="grid"></div>
+  <footer>Servidor MCP: <input id="urlv" spellcheck="false"> <button id="urlok">Guardar</button></footer>
+</section>
+<main id="maquina" class="laptop" hidden>
+  <section class="lid"><div class="bezel"><div class="scr" id="scr">
+    <div class="bar"><a href="./" id="volver">◄ vitrina</a><span id="titulo"></span><span id="estado">● sin conexión</span></div>
+    <div id="wins" class="wins"></div>
     <pre id="out"></pre>
-    <form id="f"><span class="prompt">C:\ADMIRA&gt;</span><input id="cmd" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus></form>
-  </div></div><div class="logo">ThinkPad<i class="dot"></i></div></section>
+    <form id="f"><span class="prompt" id="prompt"></span><input id="cmd" autocomplete="off" autocapitalize="off" spellcheck="false"></form>
+    <div id="bsod" class="bsod" hidden></div>
+  </div></div><div class="logo" id="logo"></div></section>
   <section class="base">
     <div class="keys" id="keys"></div>
-    <div class="nub"></div>
-    <div class="track"><button data-c="tools">TOOLS</button><button data-c="players">PLAYERS</button><button data-c="encargos">ENCARGOS</button></div>
+    <div class="track" id="track"></div>
   </section>
 </main>
+<script src="modelos.js"></script>
 <script src="app.js"></script></body></html>
