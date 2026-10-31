@@ -135,3 +135,22 @@ form{display:flex;gap:6px;font-size:clamp(11px,2.4vw,15px)}#cmd{flex:1;min-width
 @media (max-width:520px) and (orientation:portrait){.scr{aspect-ratio:3/4}.lid{padding:16px 14px 40px}.base{padding:14px 12px 18px;transform:rotateX(8deg)}.keys{gap:4px;padding:6px}.keys button{padding:8px 0 10px;font-size:12px}.pill{display:none}.m-ibookg3 .lid,.m-ibookg3 .base{border-width:8px}.base::before{display:none}}
 @media (orientation:landscape) and (max-height:500px){.base{display:none}.scr{max-height:80dvh}}
 @media (prefers-reduced-motion:reduce){.crt .scr::after{animation:none}.card{transition:none}}
+
+/* ---------- v3: acabado "Duo" también en escritorio + flechas ‹ › ---------- */
+/* La vista móvil se veía mejor porque la máquina cabía entera (sombras visibles), la base apenas se inclinaba y todo estaba a escala. */
+.lid,.base{width:min(96vw,780px,calc((100dvh - 70px) / 1.3))}
+.base{transform:rotateX(8deg);box-shadow:inset 0 -6px 10px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.3),inset 4px 0 6px rgba(255,255,255,.12),inset -4px 0 8px rgba(0,0,0,.18),0 26px 30px -14px rgba(0,0,0,.75)}
+.laptop::after{content:"";position:absolute;left:50%;bottom:max(4px,env(safe-area-inset-bottom));width:min(92vw,820px,calc((100dvh - 40px) / 1.2));height:46px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,.25) 60%,transparent);filter:blur(4px);pointer-events:none;z-index:0}
+.lid,.base{z-index:1}
+.bezel{box-shadow:inset 0 4px 10px rgba(0,0,0,.7),inset 0 -1px 2px rgba(255,255,255,.12),0 1px 0 rgba(255,255,255,.4),0 -1px 0 rgba(0,0,0,.3)}
+.scr{box-shadow:inset 0 6px 14px rgba(0,0,0,.35)}
+.keys button,.track button{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -4px 0 color-mix(in srgb,var(--teclas) 62%,#000),0 2px 3px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.12)}
+/* flechas en la barra de la pantalla y en la píldora */
+#titulo{display:flex;align-items:center;gap:6px;justify-content:center;flex:1}
+.nav{font:700 15px/1 var(--fuente);color:var(--texto);background:transparent;border:1px solid currentColor;border-radius:6px;padding:1px 8px 3px;cursor:pointer;opacity:.85}
+.nav:hover,.nav:focus-visible{opacity:1;background:color-mix(in srgb,var(--texto) 15%,transparent)}
+.pill button[data-ir]{font-weight:700;font-size:20px;line-height:1}
+@media (max-width:520px) and (orientation:portrait){.nav{padding:4px 10px 6px;font-size:17px}}
+@media (vertical-viewport-segments:2){.lid,.base{width:100vw;transform:none}.laptop::after{display:none}}
+@media (horizontal-viewport-segments:2){.lid,.base{width:50vw;transform:none}.laptop::after{display:none}}
+@media (max-width:600px){.pill{display:none}}
