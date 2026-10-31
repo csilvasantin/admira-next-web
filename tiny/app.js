@@ -8,17 +8,18 @@ if (!m) {
   $("vitrina").hidden = false; $("urlv").value = cfg.url;
   $("urlok").onclick = () => { cfg.url = $("urlv").value.trim(); localStorage.setItem("mcp_url", cfg.url); $("urlok").textContent = "OK"; };
   M.forEach((x) => {
-    const a = document.createElement("a"); a.className = "card"; a.href = "?m=" + x.id; tema(a, x.t);
-    a.innerHTML = `<div class="mini"><div class="s"></div><div class="k"></div></div><b></b><small></small><br><span class="tag${x.pendiente ? " p" : ""}">${x.pendiente ? "pendiente" : "real"} · ${x.modulo}</span>`;
+    const a = document.createElement("a"); a.className = "card m-" + x.id; a.href = "?m=" + x.id; tema(a, x.t);
+    a.innerHTML = `<div class="escena"><div class="mini"><div class="s"></div><i class="pl"></i></div><div class="k"></div></div><b></b><small></small><br><span class="tag${x.pendiente ? " p" : ""}">${x.pendiente ? "pendiente" : "real"} · ${x.modulo}</span>`;
     a.querySelector(".s").textContent = x.intro.split("\n").slice(0, 5).join("\n");
-    a.querySelector("b").textContent = x.nombre; a.querySelector("small").textContent = x.epoca;
+    a.querySelector(".pl").textContent = x.placa || x.nombre; a.querySelector("b").textContent = x.nombre; a.querySelector("small").textContent = x.epoca;
     $("grid").appendChild(a);
   });
 } else {
   document.title = m.nombre + " · Admira MCP";
-  const root = $("maquina"); root.hidden = false; root.classList.add(m.efecto); tema(document.body, m.t); tema(root, m.t);
+  const root = $("maquina"); root.hidden = false; root.classList.add(m.efecto, "m-" + m.id); tema(document.body, m.t); tema(root, m.t);
   document.body.style.background = "radial-gradient(" + m.t.borde + ",#111)";
-  $("titulo").textContent = m.nombre.toUpperCase() + " · " + m.modulo.toUpperCase(); $("logo").textContent = m.nombre; $("prompt").textContent = m.prompt;
+  $("titulo").textContent = m.nombre.toUpperCase() + " · " + m.modulo.toUpperCase(); $("logo").textContent = m.placa || m.nombre;
+  const pill = document.createElement("nav"); pill.className = "pill"; pill.innerHTML = '<button data-v="lid" title="Pantalla">▭</button><button data-v="base" title="Teclado">⌨</button>'; pill.onclick = (e) => { const v = e.target.dataset.v; if (v) document.querySelector("." + v).scrollIntoView({ behavior: "smooth", block: "center" }); }; root.appendChild(pill); $("prompt").textContent = m.prompt;
   const out = $("out"), estado = $("estado"); let id = 0, player = "";
   const print = (t) => { out.textContent += t + "\n"; out.scrollTop = out.scrollHeight; };
   async function rpc(method, params) {
