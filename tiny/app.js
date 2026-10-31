@@ -18,8 +18,13 @@ if (!m) {
   document.title = m.nombre + " · Admira MCP";
   const root = $("maquina"); root.hidden = false; root.classList.add(m.efecto, "m-" + m.id); tema(document.body, m.t); tema(root, m.t);
   document.body.style.background = "radial-gradient(" + m.t.borde + ",#111)";
-  $("titulo").textContent = m.nombre.toUpperCase() + " · " + m.modulo.toUpperCase(); $("logo").textContent = m.placa || m.nombre;
-  const pill = document.createElement("nav"); pill.className = "pill"; pill.innerHTML = '<button data-v="lid" title="Pantalla">▭</button><button data-v="base" title="Teclado">⌨</button>'; pill.onclick = (e) => { const v = e.target.dataset.v; if (v) document.querySelector("." + v).scrollIntoView({ behavior: "smooth", block: "center" }); }; root.appendChild(pill); $("prompt").textContent = m.prompt;
+  $("titulo").innerHTML = "<span></span>"; $("titulo").firstChild.textContent = m.nombre.toUpperCase() + " · " + m.modulo.toUpperCase(); $("logo").textContent = m.placa || m.nombre;
+  const pill = document.createElement("nav"); pill.className = "pill"; pill.innerHTML = '<button data-ir="-1" title="Anterior" aria-label="Ordenador anterior">‹</button><button data-v="lid" title="Pantalla">▭</button><button data-v="base" title="Teclado">⌨</button><button data-ir="1" title="Siguiente" aria-label="Ordenador siguiente">›</button>'; pill.onclick = (e) => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.ir) return ir(+b.dataset.ir); const v = b.dataset.v; if (v) document.querySelector("." + v).scrollIntoView({ behavior: "smooth", block: "center" }); }; root.appendChild(pill); $("prompt").textContent = m.prompt;
+  // ‹ › : ordenador anterior / siguiente con vuelta circular; la URL/token del MCP siguen en storage y se reconecta si estaba conectado.
+  const idx = M.indexOf(m), vecino = (d) => M[(idx + d + M.length) % M.length];
+  function ir(d) { location.href = "?m=" + vecino(d).id; }
+  [[-1, "‹", "afterbegin"], [1, "›", "beforeend"]].forEach(([d, t, pos]) => { const b = document.createElement("button"); b.type = "button"; b.className = "nav"; b.dataset.ir = d; b.textContent = t; b.title = (d < 0 ? "Anterior: " : "Siguiente: ") + vecino(d).nombre; b.setAttribute("aria-label", b.title); b.onclick = () => ir(d); $("titulo").insertAdjacentElement(pos, b); });
+  document.addEventListener("keydown", (e) => { if (document.activeElement === $("cmd") && $("cmd").value) return; if (e.key === "ArrowLeft") ir(-1); else if (e.key === "ArrowRight") ir(1); });
   const out = $("out"), estado = $("estado"); let id = 0, player = "";
   const print = (t) => { out.textContent += t + "\n"; out.scrollTop = out.scrollHeight; };
   async function rpc(method, params) {
@@ -65,7 +70,7 @@ if (!m) {
         case "vitrina": location.href = "./"; break;
         case "url": cfg.url = a[0]; localStorage.setItem("mcp_url", cfg.url); print("OK " + cfg.url); break;
         case "token": cfg.token = a[0] || ""; sessionStorage.setItem("mcp_token", cfg.token); print("token guardado en la sesión"); break;
-        case "conectar": { const r = await rpc("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "tiny-" + m.id, version: "0.2" } }); estado.textContent = "● " + r.serverInfo.name; print("Conectado a " + r.serverInfo.name + " v" + r.serverInfo.version); break; }
+        case "conectar": { const r = await rpc("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "tiny-" + m.id, version: "0.2" } }); estado.textContent = "● " + r.serverInfo.name; sessionStorage.setItem("mcp_on", "1"); print("Conectado a " + r.serverInfo.name + " v" + r.serverInfo.version); break; }
         case "tools": (await rpc("tools/list")).tools.forEach((t) => print(" - " + t.name.padEnd(20) + t.description)); break;
         case "encargos": print((await call("listar_encargos", a[0] ? { estado: a[0] } : {})).t); break;
         case "players": print((await call("estado_players", a[0] ? { player_id: a[0] } : {})).t); break;
@@ -73,7 +78,7 @@ if (!m) {
         case "modulo": case m.modulo: await modulo(); break;
         default: print(m.id === "c64" ? "?SYNTAX  ERROR\nREADY." : "Comando no válido. Escribe HELP.");
       }
-    } catch (e) { if (e.pend) pendiente(e.message.replace(/.*MCP /, "")); else { print("ERROR: " + e.message); estado.textContent = "● sin conexión"; } }
+    } catch (e) { if (e.pend) pendiente(e.message.replace(/.*MCP /, "")); else { print("ERROR: " + e.message); estado.textContent = "● sin conexión"; if (C === "conectar") sessionStorage.removeItem("mcp_on"); } }
   }
   $("f").onsubmit = (e) => { e.preventDefault(); ejecutar($("cmd").value); $("cmd").value = ""; };
   [["CONECTAR", "conectar"], [m.modulo.toUpperCase(), "modulo"], ["HELP", "help"]].forEach(([n, c]) => { const b = document.createElement("button"); b.textContent = n; b.onclick = () => ejecutar(c); $("track").appendChild(b); });
@@ -85,4 +90,5 @@ if (!m) {
   print(m.intro + "\n");
   if (m.pendiente) pendiente(m.tool);
   print("MCP: " + cfg.url + "  (cambia con: url <...>)\n");
+  if (sessionStorage.getItem("mcp_on")) ejecutar("conectar");
 }
