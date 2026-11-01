@@ -17,7 +17,7 @@
  */
 import { sesionCompleta, respuestaLogin, paginaLogin, respuestaHtml } from '../_webmaster-gate.js';
 import { accesoVisor, esRutaVisor, RUTA_ALTA_VISOR } from './_visor-enlace.js';
-import {agentBrowserSessionFromRequest,AGENT_LAUNCH_COOKIE} from '../presentaciones/_agent-token.js';
+import {agentBrowserSessionFromRequest,AGENT_LAUNCH_COOKIE,REFINEMENT_AGENT_COOKIE} from '../presentaciones/_agent-token.js';
 import {PLAYLIST_PERMISSION_PATH,playlistServiceAuthorized} from '../_xpace-playlist-grant.js';
 
 export const PREFIJO_PRUEBAS = '/pruebas';
@@ -97,7 +97,9 @@ export async function onRequest(context) {
   if (!env.AUTH_DB && pagina) return respuestaHtml(paginaLogin('Zona de pruebas: identifícate para entrar.', pagina, ''), 401);
   if (!env.WEBMASTER_SIGNING_KEY) return pagina ? respuestaLogin(env, 'Acceso no disponible ahora mismo.', pagina, 503) : texto('Acceso no disponible ahora mismo.', 503);
   const current = await sesionCompleta(request, env) || (metodoOk && /^\/pruebas\/alsea\/?$/.test(url.pathname)
-    ? await agentBrowserSessionFromRequest(env,request,AGENT_LAUNCH_COOKIE) : null);
+    ? await agentBrowserSessionFromRequest(env,request,AGENT_LAUNCH_COOKIE) : null) ||
+    (metodoOk && /^\/pruebas\/ainimation-presentaciones(?:\/|$)/.test(url.pathname)
+      ? await agentBrowserSessionFromRequest(env,request,REFINEMENT_AGENT_COOKIE) : null);
   if (!current) return pagina ? loginDePagina(env, 'Zona de pruebas: identifícate para entrar.', pagina, 401) : texto('Sin sesión.', 401);
   if (url.pathname === PREFIJO_PRUEBAS) return Response.redirect(url.origin + '/pruebas/' + url.search, 302);
   const respuesta = await next();

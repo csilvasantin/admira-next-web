@@ -178,6 +178,7 @@ export async function onRequest(context){
     console.error(JSON.stringify({message:'inline translation failed',client,language,error:String(error?.message||error)}));
     return response({error:error.message||'No se pudieron sincronizar los idiomas.'},error.code==='timeout'?504:502);
   }
+  const beforeIdeas=clone(ideas);
   try{
     const source=localeContent(ideas,language); edits.forEach(edit=>applyEdit(source,edit));
     for(const targetLanguage of targetLanguages){
@@ -185,8 +186,18 @@ export async function onRequest(context){
       edits.forEach((edit,index)=>applyEdit(target,edit,translated[targetLanguage][index]));
     }
   }catch(error){ return response({error:error.message||'No se pudo aplicar la edición.'},409); }
+  // Translation may take a minute. Recheck the source after that wait, before writing.
+  if(payload.revision){
+    const latest=await context.env.PRESENTATION_IDEAS.get(`ideas:${client}`,{type:'json'});
+    if(latest?.updatedAt!==payload.revision)return response({error:'La presentación cambió mientras se preparaban los ajustes. Tu borrador se conserva.',conflict:true},409);
+  }
+  const previousVersion=payload.refinement===true?await captureVersion(context.env,client,'antes de afinar en AINimation',{presentation,ideas:beforeIdeas}):null;
+  if(payload.revision&&payload.refinement===true){
+    const latest=await context.env.PRESENTATION_IDEAS.get(`ideas:${client}`,{type:'json'});
+    if(latest?.updatedAt!==payload.revision)return response({error:'La revisión del origen cambió. Conserva el borrador y recarga.',conflict:true},409);
+  }
   ideas.updatedAt=new Date().toISOString();
   await context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas));
-  await captureVersion(context.env,client,`textos ${language.toUpperCase()} guardados`,{presentation,ideas});
-  return response({ok:true,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages),translated:targetLanguages});
+  const version=await captureVersion(context.env,client,`textos ${language.toUpperCase()} guardados`,{presentation,ideas});
+  return response({ok:true,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages),translated:targetLanguages,...(payload.refinement===true?{versionId:version?.id||null,previousVersionId:previousVersion?.id||null}:{})});
 }

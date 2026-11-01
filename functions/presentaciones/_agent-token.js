@@ -39,6 +39,7 @@ export async function agentSessionFromRequest(env, request, waitUntil){
 // Only its ID is signed; the original credential never becomes a cookie.
 export const AGENT_BROWSER_COOKIE = 'pres_agent';
 export const AGENT_LAUNCH_COOKIE = 'alsea_agent';
+export const REFINEMENT_AGENT_COOKIE = 'refinement_agent';
 export const AGENT_BROWSER_MAXAGE = 3600;
 const encoder = new TextEncoder();
 async function browserSignature(key, body){
@@ -59,7 +60,8 @@ export async function makeAgentBrowserToken(env, session){
 export function agentBrowserCookies(token){
   const attributes='; Max-Age='+AGENT_BROWSER_MAXAGE+'; HttpOnly; Secure; SameSite=Lax';
   return [AGENT_BROWSER_COOKIE+'='+token+'; Path=/presentaciones'+attributes,
-    AGENT_LAUNCH_COOKIE+'='+token+'; Path=/pruebas/alsea'+attributes];
+    AGENT_LAUNCH_COOKIE+'='+token+'; Path=/pruebas/alsea'+attributes,
+    REFINEMENT_AGENT_COOKIE+'='+token+'; Path=/pruebas/ainimation-presentaciones'+attributes];
 }
 export async function agentBrowserSessionFromRequest(env, request, name=AGENT_BROWSER_COOKIE){
   if(!env.PRES_SIGNING_KEY || !env.AUTH_DB)return null;
