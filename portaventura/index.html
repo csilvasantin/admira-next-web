@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <title>PortAventuraNeXT · Preview</title>
 <link rel="icon" href="/favicon-32.png">
+<link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
 <style>
 :root{--bg:#0b0b10;--fg:#fff;--a1:#FF3366;--a2:#FFCC00;--a3:#33FF99;--a4:#FF33CC;--card:#15151d}
 [data-skin=netflix]{--bg:#0a0000;--a1:#E50914;--a2:#ff6b6b;--a3:#b20710;--a4:#ffd1d1;--card:#1a0606}
@@ -13,7 +14,6 @@
 [data-skin=sony]{--bg:#05060f;--a1:#2d6bff;--a2:#ff2d55;--a3:#00d5ff;--a4:#b6c3ff;--card:#0e1124}
 [data-skin=skydance]{--bg:#0d0b07;--a1:#ff8a00;--a2:#ffd27a;--a3:#9fb3c8;--a4:#ffffff;--card:#1c1710}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--fg);transition:background .4s}
-header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px}
 .logo{font-weight:800;letter-spacing:.5px}.logo b:nth-child(1){color:var(--a1)}.logo b:nth-child(2){color:var(--a2)}.logo b:nth-child(3){color:var(--a3)}.logo b:nth-child(4){color:var(--a4)}
 .lang button,.skins button{background:transparent;border:1px solid #fff4;color:#fff;border-radius:999px;padding:4px 10px;cursor:pointer;margin-left:4px}
 .lang button.on,.skins button.on{background:var(--a1);border-color:var(--a1)}
@@ -30,19 +30,14 @@ main{max-width:1100px;margin:auto;padding:0 24px 48px;display:grid;grid-template
 .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2rem}
 .avatar{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3rem;background:conic-gradient(var(--a1),var(--a2),var(--a3),var(--a4),var(--a1));box-shadow:0 0 30px var(--a1)}
 .bubble{margin-top:14px;background:#ffffff10;border-radius:14px;padding:12px;font-size:.95rem}
-#cli{position:fixed;right:16px;bottom:16px;font-family:ui-monospace,Menlo,monospace;color:#00e5ff}
-#cli summary{cursor:pointer;background:#000c;border:1px solid #00e5ff66;border-radius:8px;padding:6px 10px;list-style:none}
-#cli form{background:#000e;border:1px solid #00e5ff66;border-radius:8px;padding:8px;margin-top:6px;width:300px}
-#cli input{width:100%;background:transparent;border:0;color:#00e5ff;font:inherit;outline:none}
-#cli pre{margin:6px 0 0;white-space:pre-wrap;font-size:.8rem;color:#9ff}
+a.pa-login{font-weight:700}
+html.admira-con-sesion a.pa-login{display:none!important}
 footer{max-width:1100px;margin:auto;padding:24px;font-size:.8rem;opacity:.65;border-top:1px solid #ffffff14}
 </style>
 </head>
-<body data-skin="default">
-<header>
-  <div class="logo"><b>N</b><b>e</b><b>X</b><b>T</b> · PortAventura<span style="opacity:.6">NeXT</span> <small style="opacity:.5">PREVIEW</small></div>
-  <div class="lang"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
-</header>
+<body data-skin="default" data-yk-title="PORTAVENTURA" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO">
+<nav data-yk-slot="nav"><a class="pa-login" href="/webmaster?return_to=/portaventura/">Login</a></nav>
+<div data-yk-slot="left" data-yk-label="Marca / Brand" id="paSkinsRail"></div>
 <section class="hero">
   <h1 id="title"></h1>
   <p id="pitch"></p>
@@ -59,9 +54,6 @@ footer{max-width:1100px;margin:auto;padding:24px;font-size:.8rem;opacity:.65;bor
   </div>
 </main>
 <footer id="disclaimer"></footer>
-<details id="cli"><summary>&gt;_</summary>
-  <form id="cliForm"><input id="cliIn" placeholder="/marca netflix · /idioma en" autocomplete="off"><pre id="cliOut"></pre></form>
-</details>
 <script>
 const SKINS={
  default:{emoji:'🤖',host:'Admirito Park',
@@ -91,14 +83,22 @@ function render(){const s=SKINS[skin],c=s[lang];document.body.dataset.skin=skin;
  $('avatar').textContent=s.emoji;$('hostName').textContent=s.host;$('hostLine').textContent=c.l;$('disclaimer').innerHTML=UI.es.disc+'<br>'+UI.en.disc;
  const m=$('map');m.querySelectorAll('.zone').forEach(e=>e.remove());c.z.forEach((z,i)=>{const d=document.createElement('div');d.className='zone z'+i;d.textContent=z;m.appendChild(d)});
  $('skins').innerHTML=Object.keys(SKINS).map(k=>`<button data-skin="${k}" class="${k===skin?'on':''}">${k}</button>`).join('');
- document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang===lang));}
+ const r=$('paSkinsRail');if(r)r.innerHTML=Object.keys(SKINS).map(k=>`<button data-skin="${k}" class="${k===skin?'on':''}">${k}</button>`).join(' ');}
 function setSkin(k){if(!SKINS[k])return false;skin=k;localStorage.setItem('pa_skin',k);render();return true}
-function setLang(l){if(!UI[l])return false;lang=l;localStorage.setItem('admiranext_lang',l);localStorage.setItem('admiranext_expert_lang',l);dispatchEvent(new CustomEvent('admira:languagechange',{detail:{lang:l}}));render();return true}
-document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.skin)setSkin(b.dataset.skin);if(b.dataset.lang)setLang(b.dataset.lang)});
-$('cliForm').addEventListener('submit',e=>{e.preventDefault();const [cmd,arg]=$('cliIn').value.trim().toLowerCase().split(/\s+/);let ok=false;
- if(cmd==='/marca'||cmd==='/brand')ok=setSkin(arg);else if(cmd==='/idioma'||cmd==='/language')ok=setLang(arg);
- $('cliOut').textContent=ok?'✓ '+cmd+' '+arg:UI[lang].help;$('cliIn').value=''});
+function setLang(l){if(!UI[l])return false;lang=l;try{localStorage.setItem('admiranext_lang',l);localStorage.setItem('admiranext_expert_lang',l)}catch(e){}render();return true}
+window.setLang=setLang;
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-skin]');if(b)setSkin(b.dataset.skin)});
+// /marca /brand con las pieles PortAventura en el ⌘ Experto real (y en el CLI del armazón).
+function paMarca(a,out){const k=String((a&&a[0])||'').toLowerCase();const ok=setSkin(k);const t=ok?'✓ PortAventura · '+k:UI[lang].help;
+ if(out&&out.appendChild){const d=document.createElement('div');d.className='yk-cli-line';d.textContent=t;out.appendChild(d)}return {ok:ok}}
+function paFrame(){const F=window.AdmiraFrame;if(F&&F.verbo)F.verbo({id:'marca',aliases:['brand'],uso:Object.keys(SKINS).join('|'),ayuda:'Piel PortAventura',ayudaEn:'PortAventura skin',run:(a,ctx)=>{const r=paMarca(a);ctx.imprimir(r.ok?'✓ '+skin:UI[lang].help)}});
+ if(F&&F.verbo)F.verbo({id:'idioma',aliases:['language','lang'],uso:'es|en',ayuda:'Idioma de la página',ayudaEn:'Page language',run:(a,ctx)=>{const l=String((a&&a[0])||'').toLowerCase();if(!setLang(l))return ctx.imprimir(UI[lang].help);const X=window.AdmiraExperto;try{if(X&&X.setLanguage)X.setLanguage(l)}catch(e){}document.documentElement.lang=l;ctx.imprimir(l==='en'?'Language: English':'Idioma: español')}})}
+function paLogin(){const a=document.querySelector('a.pa-login'),l=document.getElementById('ykLangPre');if(a&&l&&a.nextSibling!==l)l.parentNode.insertBefore(a,l)}
+document.addEventListener('admira-frame:ready',()=>{paFrame();paLogin()});
+new MutationObserver(()=>{const l=(document.documentElement.lang||'es').slice(0,2);if(UI[l]&&l!==lang)setLang(l)}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+let paN=0;const paT=setInterval(()=>{const X=window.AdmiraExperto;if(X&&X.verb){X.verb({name:'marca',alias:['brand'],args:Object.keys(SKINS).join('|'),desc:['piel PortAventura: '+Object.keys(SKINS).join(', '),'PortAventura skin: '+Object.keys(SKINS).join(', ')],run:(a,log)=>paMarca(a,log)});clearInterval(paT)}else if(++paN>60)clearInterval(paT)},250);
 render();
 </script>
+<script defer src="/assets/admira-frame.js?v=20261023-idioma-1"></script>
 </body>
 </html>
