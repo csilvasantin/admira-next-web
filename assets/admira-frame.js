@@ -226,7 +226,7 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261101-modo-1';
+  var IDIOMA_STAMP = '20261101-modo-2';
   function traducirTitulo(en) {
     var t = doc.querySelector && doc.querySelector('title');
     var n = t && t.firstChild;
@@ -924,6 +924,8 @@
     }
     return null;
   }
+  // Verbos ocultos (/modo de PortAventura, zona protegida): no salen en /help ni en el autocompletado fuera de /portaventura.
+  function visibleVerbo(v) { return !v.oculto || !!G.PortAventura; }
   function verbo(def) {
     if (!def || !def.id || typeof def.run !== 'function') return;
     var id = normal(def.id);
@@ -933,7 +935,7 @@
       var par = parDe(n);
       if (par && par !== id && aliases.indexOf(par) < 0 && !buscarVerbo(par)) aliases.push(par);
     });
-    verbos.push({id: id, aliases: aliases, uso: def.uso || '', ayuda: def.ayuda || '', ayudaEn: def.ayudaEn || '', run: def.run, piel: !!def.piel});
+    verbos.push({id: id, aliases: aliases, uso: def.uso || '', ayuda: def.ayuda || '', ayudaEn: def.ayudaEn || '', run: def.run, piel: !!def.piel, oculto: !!def.oculto});
   }
   function ponerIdioma(l) {
     if (!l || (enIngles() ? 'en' : 'es') === l) return;
@@ -976,7 +978,7 @@
   // Verbos comunes. /help se genera del registro: un verbo nuevo aparece en la
   // ayuda sin tocarla.
   verbo({id: 'help', aliases: ['ayuda', '?'], ayuda: 'Lista los verbos de esta página', ayudaEn: 'Lists the verbs of this page', run: function () {
-    verbos.slice().sort(function (a, b) { return a.id < b.id ? -1 : 1; }).forEach(function (v) {
+    verbos.filter(visibleVerbo).slice().sort(function (a, b) { return a.id < b.id ? -1 : 1; }).forEach(function (v) {
       imprimir('/' + v.id + (v.uso ? ' ' + v.uso : '') + ' — ' + ((enIngles() && v.ayudaEn) || v.ayuda) +
         (v.aliases.length ? ' (alias: ' + v.aliases.map(function (a) { return '/' + a; }).join(' ') + ')' : ''));
     });
@@ -1000,7 +1002,7 @@
     location.href = '/portaventura/?marca=' + k;
     return {ok: true, t: T('Abriendo PortAventura · ', 'Opening PortAventura · ') + k + '…'};
   }
-  verbo({id: 'modo', aliases: ['mode'], uso: 'netflix|universal|sony|skydance|next', ayuda: 'Look & feel de estudio en PortAventura NeXT', ayudaEn: 'Studio look & feel in PortAventura NeXT', run: function (a) { var r = modoPA(a); imprimir(r.t, r.ok ? '' : 'err'); }});
+  verbo({id: 'modo', oculto: true, aliases: ['mode'], uso: 'netflix|universal|sony|skydance|next', ayuda: 'Look & feel de estudio en PortAventura NeXT', ayudaEn: 'Studio look & feel in PortAventura NeXT', run: function (a) { var r = modoPA(a); imprimir(r.t, r.ok ? '' : 'err'); }});
   verbo({id: 'limpiar', aliases: ['clear', 'cls'], ayuda: 'Vacía la salida del CLI', ayudaEn: 'Clears the CLI output', run: function () { ctx.limpiar(); }});
   if (grupo.length) {
     var clavesGrupo = grupo.map(function (a) { return ruta(a.getAttribute('href')).replace(/^\//, '').split('/').pop(); });
@@ -1060,7 +1062,7 @@
         var pre = normal(input.value);
         // Nombres y alias (castellano e inglés): gana la forma que se está escribiendo.
         var cand = [];
-        verbos.forEach(function (v) {
+        verbos.filter(visibleVerbo).forEach(function (v) {
           var n = [v.id].concat(v.aliases).filter(function (x) { return x.indexOf(pre) === 0 && /^[a-z0-9]/.test(x); })[0];
           if (n) cand.push({v: v, n: n});
         });
@@ -1142,7 +1144,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261101-modo-1';
+  script.src = '/assets/experto-admiranext.js?v=20261101-modo-2';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);

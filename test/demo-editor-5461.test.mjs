@@ -101,8 +101,8 @@ test('la página lleva el marco cuadrático, los dos idiomas y sustituye a /subd
   assert.match(html, /data-yk-rail-left="OPCIONES"/);
   assert.match(html, /data-yk-rail-right="AVANZADO"/);
   assert.match(html, /data-yk-cli="on"/);
-  assert.match(html, /admira-frame\.js\?v=20261101-modo-1/);
-  assert.match(html, /admira-frame\.css\?v=20261101-modo-1/);
+  assert.match(html, /admira-frame\.js\?v=20261101-modo-2/);
+  assert.match(html, /admira-frame\.css\?v=20261101-modo-2/);
   for (const id of ['titulo', 'guardar', 'publicar', 'ejecutar', 'mas-acciones', 'buscar', 'arbol', 'h-biblioteca', 'h-macro', 'h-pasos', 'h-inspector', 'h-macros', 'lista-macros', 'mas-demo', 'mas-sub', 'mas-macro', 'duplicar', 'borrar', 'fila', 'soltar', 'resumen', 'pastilla', 'lista-pasos', 'anadir-paso', 'paso-form', 'probar', 'desde', 'borrar-paso', 'voz', 'dialogo', 'tab-biblioteca', 'tab-macro', 'tab-inspector']) {
     assert.match(html, new RegExp('id="' + id + '"'), id);
   }
