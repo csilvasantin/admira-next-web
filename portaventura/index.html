@@ -6,13 +6,11 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <title>PortAventuraNeXT · Preview</title>
 <link rel="icon" href="/favicon-32.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@600;800&family=Inter:wght@200;300;600&family=Saira+Condensed:ital,wght@1,700;1,800&display=swap">
 <link rel="stylesheet" href="/assets/admira-frame.css?v=20261023-idioma-1">
 <style>
 :root{--bg:#0b0b10;--fg:#fff;--a1:#FF3366;--a2:#FFCC00;--a3:#33FF99;--a4:#FF33CC;--card:#15151d}
-[data-skin=netflix]{--bg:#0a0000;--a1:#E50914;--a2:#ff6b6b;--a3:#b20710;--a4:#ffd1d1;--card:#1a0606}
-[data-skin=universal]{--bg:#03101f;--a1:#3aa0ff;--a2:#ffd34d;--a3:#7fd1ff;--a4:#ffffff;--card:#0a1b30}
-[data-skin=sony]{--bg:#05060f;--a1:#2d6bff;--a2:#ff2d55;--a3:#00d5ff;--a4:#b6c3ff;--card:#0e1124}
-[data-skin=skydance]{--bg:#0d0b07;--a1:#ff8a00;--a2:#ffd27a;--a3:#9fb3c8;--a4:#ffffff;--card:#1c1710}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--fg);transition:background .4s}
 .logo{font-weight:800;letter-spacing:.5px}.logo b:nth-child(1){color:var(--a1)}.logo b:nth-child(2){color:var(--a2)}.logo b:nth-child(3){color:var(--a3)}.logo b:nth-child(4){color:var(--a4)}
 .lang button,.skins button{background:transparent;border:1px solid #fff4;color:#fff;border-radius:999px;padding:4px 10px;cursor:pointer;margin-left:4px}
@@ -33,6 +31,54 @@ main{max-width:1100px;margin:auto;padding:0 24px 48px;display:grid;grid-template
 a.pa-login{font-weight:700}
 html.admira-con-sesion a.pa-login{display:none!important}
 footer{max-width:1100px;margin:auto;padding:24px;font-size:.8rem;opacity:.65;border-top:1px solid #ffffff14}
+
+/* ===== Looks & feel (estética evocadora, sin logos ni assets de marca) ===== */
+:root{--font:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;--font-h:var(--font);--r:18px;--rz:22px;--bd:#ffffff14;--hero-bg:none;--h-tt:none;--h-ls:0}
+body{font-family:var(--font);background:var(--hero-bg),var(--bg);background-attachment:fixed}
+.hero h1{font-family:var(--font-h);text-transform:var(--h-tt);letter-spacing:var(--h-ls)}
+.card,.map{border-radius:var(--r)}.card{border-color:var(--bd);transition:transform .3s,box-shadow .3s,border-radius .4s}
+.zone{border-radius:var(--rz);transition:all .4s}
+.skins button{font-family:var(--font);text-transform:capitalize}
+/* Streaming: negro cine, rojo intenso, títulos condensados, filas de miniaturas */
+[data-skin=netflix]{--bg:#000;--a1:#E50914;--a2:#E50914;--a3:#b20710;--a4:#f5f5f1;--card:#141414;--font:Inter,Helvetica,Arial,sans-serif;--font-h:'Bebas Neue',Impact,sans-serif;--r:4px;--rz:4px;--h-tt:uppercase;--h-ls:2px;--bd:transparent;
+ --hero-bg:linear-gradient(180deg,#000 0,#0000 30%),radial-gradient(ellipse at 70% 0,#e5091433,#0000 60%)}
+[data-skin=netflix] .hero h1{background:none;color:#E50914;font-size:clamp(3rem,9vw,6.5rem);line-height:.9;text-shadow:0 4px 30px #000}
+[data-skin=netflix] .hero p{font-weight:300}
+[data-skin=netflix] .card:hover{transform:scale(1.03);box-shadow:0 12px 40px #000c}
+[data-skin=netflix] .zone{background:linear-gradient(0deg,#000d,#0003),#2a2a2a;border:0;border-bottom:3px solid var(--a1);align-items:flex-end;justify-content:flex-start;text-align:left;text-transform:uppercase;letter-spacing:1px}
+[data-skin=netflix] .zone:hover{transform:scale(1.07);z-index:2}
+[data-skin=netflix] .avatar{border-radius:4px;background:#E50914;box-shadow:none}
+[data-skin=netflix] .skins button{border-radius:2px;border-color:#fff3}
+/* Estudio clásico: cielo nocturno azul profundo, globo de luz, dorado y serif monumental */
+[data-skin=universal]{--bg:#020a18;--a1:#2f7dd8;--a2:#f2c14e;--a3:#8fc8ff;--a4:#fff3cf;--card:#0a1a33cc;--font:Inter,system-ui,sans-serif;--font-h:Cinzel,Georgia,serif;--r:22px;--rz:50%;--h-tt:uppercase;--h-ls:6px;--bd:#f2c14e40;
+ --hero-bg:radial-gradient(circle at 50% -20%,#2f7dd855,#0000 55%),radial-gradient(1px 1px at 20% 30%,#fff9,#0000),radial-gradient(1px 1px at 80% 20%,#fff8,#0000),radial-gradient(1px 1px at 60% 70%,#fff6,#0000),radial-gradient(1.5px 1.5px at 35% 85%,#fff7,#0000)}
+[data-skin=universal] .hero{text-align:center}[data-skin=universal] .hero p{margin:auto}
+[data-skin=universal] .hero h1{background:linear-gradient(180deg,#fff3cf,#f2c14e 60%,#b8862b);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 18px #f2c14e55)}
+[data-skin=universal] .map{background:radial-gradient(circle,#2f7dd833 0 30%,#0000 31%),radial-gradient(circle,#0000 0 44%,#8fc8ff22 45% 46%,#0000 47%)}
+[data-skin=universal] .zone{width:28%;height:auto;aspect-ratio:1;border-width:1px;background:#020a18cc;font-family:Cinzel,serif;box-shadow:0 0 24px #2f7dd844}
+[data-skin=universal] .avatar{background:radial-gradient(circle at 35% 30%,#8fc8ff,#2f7dd8 50%,#0a1a33);box-shadow:0 0 40px #2f7dd8,0 0 0 3px #f2c14e}
+[data-skin=universal] .skins{text-align:center}[data-skin=universal] .skins button.on{background:#f2c14e;border-color:#f2c14e;color:#020a18}
+/* Electrónica premium: monocromo, tipografía ligera, líneas finas, acento azul eléctrico */
+[data-skin=sony]{--bg:#000;--a1:#0070d1;--a2:#fff;--a3:#00a3ff;--a4:#9aa4b2;--card:#0b0b0f;--font:Inter,Helvetica,sans-serif;--font-h:Inter,Helvetica,sans-serif;--r:0;--rz:0;--h-tt:uppercase;--h-ls:.35em;--bd:#ffffff26;
+ --hero-bg:linear-gradient(90deg,#ffffff08 1px,#0000 1px) 0 0/80px 80px}
+[data-skin=sony] .hero h1{font-weight:200;background:none;color:#fff;font-size:clamp(1.8rem,5vw,3.4rem)}
+[data-skin=sony] .hero h1::after{content:'';display:block;width:64px;height:2px;background:var(--a1);margin-top:18px}
+[data-skin=sony] .hero p{font-weight:300;letter-spacing:.05em}
+[data-skin=sony] h2,[data-skin=sony] h3{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:.9rem}
+[data-skin=sony] .zone{border-width:1px;border-color:#ffffff40;font-weight:300;letter-spacing:.15em;text-transform:uppercase;font-size:.75rem}
+[data-skin=sony] .zone:hover{border-color:var(--a1);background:#0070d122}
+[data-skin=sony] .avatar{border-radius:0;background:#000;border:1px solid #fff;box-shadow:inset 0 -3px 0 var(--a1)}
+[data-skin=sony] .bubble{border-radius:0;border-left:2px solid var(--a1);background:#ffffff08}
+[data-skin=sony] .skins button{border-radius:0;letter-spacing:.15em;text-transform:uppercase;font-size:.7rem}
+/* Acción aérea: atardecer, cielo dorado, cursivas veloces, cortes en diagonal */
+[data-skin=skydance]{--bg:#120c08;--a1:#ff7a00;--a2:#ffc15e;--a3:#5d7fa3;--a4:#ffe9c7;--card:#1e150dcc;--font:Inter,system-ui,sans-serif;--font-h:'Saira Condensed',Impact,sans-serif;--r:0;--rz:0;--h-tt:uppercase;--h-ls:1px;--bd:#ff7a0040;
+ --hero-bg:linear-gradient(180deg,#1b2a40 0,#7a3d1a 38%,#ff7a0033 55%,#0000 75%)}
+[data-skin=skydance] .hero h1{font-style:italic;font-weight:800;font-size:clamp(2.6rem,8vw,5.5rem);background:linear-gradient(100deg,#ffe9c7,#ffc15e 40%,#ff7a00);-webkit-background-clip:text;background-clip:text;color:transparent;transform:skewX(-6deg)}
+[data-skin=skydance] .card{clip-path:polygon(0 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,0 100%)}
+[data-skin=skydance] .zone{clip-path:polygon(10% 0,100% 0,90% 100%,0 100%);border:0;background:linear-gradient(100deg,#ff7a00cc,#7a3d1acc);font-family:'Saira Condensed',sans-serif;font-style:italic;font-size:1.15rem;text-transform:uppercase}
+[data-skin=skydance] .z1,[data-skin=skydance] .z2{background:linear-gradient(100deg,#5d7fa3cc,#1b2a40cc)}
+[data-skin=skydance] .avatar{border-radius:0;clip-path:polygon(50% 0,100% 100%,50% 78%,0 100%);background:linear-gradient(180deg,#ffc15e,#ff7a00);box-shadow:none}
+[data-skin=skydance] .skins button{border-radius:0;transform:skewX(-12deg);font-style:italic}
 </style>
 </head>
 <body data-skin="default" data-yk-cli="on" data-yk-title="PORTAVENTURA" data-yk-rail-left="OPCIONES" data-yk-rail-right="AVANZADO">
@@ -72,6 +118,7 @@ const SKINS={
   es:{t:'PortAventura × Skydance',p:'Misión: velocidad, adrenalina y máquinas.',z:['Top Gun','Mission Impossible','Transformers','Tomorrow Zone'],l:'Aquí operaciones. Tu misión, si decides aceptarla: todas las atracciones antes de comer.'},
   en:{t:'PortAventura × Skydance',p:'Mission: speed, adrenaline and machines.',z:['Top Gun','Mission Impossible','Transformers','Tomorrow Zone'],l:'Ops here. Your mission, should you choose to accept it: every ride before lunch.'}}
 };
+const LABEL={default:'NeXT',universal:'Universal',sony:'Sony',skydance:'Skydance',netflix:'Netflix'};
 const UI={es:{map:'Mapa del parque (esquema)',host:'Tu anfitrión',disc:'Conceptos ilustrativos. No existe acuerdo con los titulares de las marcas o propiedades intelectuales mostradas. Preview interna de AdmiraNeXT.',help:'Comandos: /marca|/brand <default|netflix|universal|sony|skydance> · /idioma|/language <es|en>'},
  en:{map:'Park map (schematic)',host:'Your host',disc:'Illustrative concepts. No agreement exists with the owners of the brands or IP shown. AdmiraNeXT internal preview.',help:'Commands: /marca|/brand <default|netflix|universal|sony|skydance> · /idioma|/language <es|en>'}};
 const q=new URLSearchParams(location.search);
@@ -82,8 +129,8 @@ function render(){const s=SKINS[skin],c=s[lang];document.body.dataset.skin=skin;
  $('title').textContent=c.t;$('pitch').textContent=c.p;$('mapTitle').textContent=UI[lang].map;$('hostTitle').textContent=UI[lang].host;
  $('avatar').textContent=s.emoji;$('hostName').textContent=s.host;$('hostLine').textContent=c.l;$('disclaimer').innerHTML=UI.es.disc+'<br>'+UI.en.disc;
  const m=$('map');m.querySelectorAll('.zone').forEach(e=>e.remove());c.z.forEach((z,i)=>{const d=document.createElement('div');d.className='zone z'+i;d.textContent=z;m.appendChild(d)});
- $('skins').innerHTML=Object.keys(SKINS).map(k=>`<button data-skin="${k}" class="${k===skin?'on':''}">${k}</button>`).join('');
- const r=$('paSkinsRail');if(r)r.innerHTML=Object.keys(SKINS).map(k=>`<button data-skin="${k}" class="${k===skin?'on':''}">${k}</button>`).join(' ');}
+ $('skins').innerHTML=Object.keys(SKINS).map(k=>`<button data-skin="${k}" class="${k===skin?'on':''}">${LABEL[k]||k}</button>`).join('');
+ const r=$('paSkinsRail');if(r)r.innerHTML=Object.keys(SKINS).map(k=>`<button data-skin="${k}" class="${k===skin?'on':''}">${LABEL[k]||k}</button>`).join(' ');}
 function setSkin(k){if(!SKINS[k])return false;skin=k;localStorage.setItem('pa_skin',k);render();return true}
 function setLang(l){if(!UI[l])return false;lang=l;try{localStorage.setItem('admiranext_lang',l);localStorage.setItem('admiranext_expert_lang',l)}catch(e){}render();return true}
 window.setLang=setLang;
