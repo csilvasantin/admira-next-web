@@ -19,7 +19,7 @@ main{display:grid;gap:1rem;padding:1rem;grid-template-columns:minmax(0,1fr) 340p
 .pad button{font-size:1.3rem;padding:0;touch-action:none;user-select:none;-webkit-user-select:none}
 #presets{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 .pre{border:1px solid var(--li);border-radius:10px;overflow:hidden;background:#0f1218}.pre img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;display:block}
-.pre div{padding:.4rem;display:flex;gap:.3rem;align-items:center}.pre b{flex:1;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pre button{min-height:34px;padding:.3rem .5rem}
+.pre{cursor:pointer}.pre.sel{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}.pre div{padding:.4rem;display:flex;gap:.3rem;align-items:center}.pre b{flex:1;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pre button{min-height:34px;padding:.3rem .5rem}
 #log{font:12px ui-monospace,monospace;color:var(--mu);white-space:pre-wrap;max-height:120px;overflow:auto}.err{color:var(--er)}
 details summary{cursor:pointer;color:var(--mu)}label{display:block;font-size:.8rem;color:var(--mu);margin:.5rem 0 .2rem}
 </style></head><body>
@@ -45,6 +45,10 @@ details summary{cursor:pointer;color:var(--mu)}label{display:block;font-size:.8r
   <h2 style="font-size:1rem;margin:1rem 0 .4rem">Presets</h2>
   <div class="fila"><input id="nombre" placeholder="nombre (p. ej. arcade)" maxlength="40" style="flex:1"><button class="pri" id="guardar">Guardar</button></div>
   <div id="presets" style="margin-top:.6rem"></div>
+  <div id="edita" class="card" style="display:none;margin-top:.6rem;padding:.6rem"><div class="mu">Preset seleccionado</div>
+    <div class="fila" style="margin-top:.3rem"><input id="enombre" maxlength="40" style="flex:1"><button id="erenombrar">Renombrar</button></div>
+    <div class="fila" style="margin-top:.4rem"><button id="eir" class="pri" style="flex:1">Ir</button><button id="eregrabar" style="flex:2" title="Guarda aquí la posición actual (pan/tilt/zoom) y una miniatura nueva">📍 Guardar posición actual aquí</button><button id="eborrar" title="Borrar">🗑</button></div>
+    <div class="mu" id="epos" style="margin-top:.3rem"></div></div>
   <h2 style="font-size:1rem;margin:1rem 0 .4rem">Luz de la sala (Hue)</h2>
   <div class="fila"><span>💡</span><input id="luzPct" type="range" min="0" max="100" step="1" value="100" style="flex:1;min-height:auto"><b id="luzVal" style="min-width:3.6em;text-align:right">—</b><button id="luzRest">↺ Restaurar</button></div>
   <p class="mu" id="luzEst">0 = apagada. «Restaurar» vuelve a lo que pidan los agentes (Admirito 50 %, Bugito 25 %…).</p>
@@ -90,13 +94,22 @@ $('#zmas').onclick=()=>mover({dzoom:+$('#paso').value*2});$('#zmenos').onclick=(
 let zT=null,zUlt=0;$('#zoom').oninput=()=>{const v=+$('#zoom').value;$('#zval').textContent=(v/100).toFixed(1)+'×';clearTimeout(zT);
   const go=()=>{if(enVuelo){zT=setTimeout(go,100);return}zUlt=Date.now();mover({zoom:+$('#zoom').value})};if(Date.now()-zUlt>150&&!enVuelo)go();else zT=setTimeout(go,160)};
 $('#mirar').onclick=mirar;$('#auto').onchange=()=>{clearInterval(timer);if($('#auto').checked)timer=setInterval(()=>!ocupado&&mirar(),$('#cada').value*1000)};
-async function presets(){const box=$('#presets');box.innerHTML='';if(!CAMS[cam].mueve){box.innerHTML='<span class="mu">Sin presets: cámara fija.</span>';return}
-  try{const l=await (await api('/preset/lista/'+cam)).json();const ks=Object.keys(l);if(!ks.length)box.innerHTML='<span class="mu">Aún no hay presets.</span>';
-  for(const k of ks){const d=document.createElement('div');d.className='pre';d.innerHTML=`<img alt=""><div><b></b><button title="Ir">Ir</button><button title="Borrar">🗑</button></div>`;d.querySelector('b').textContent=k;
-    const [ir,bo]=d.querySelectorAll('button');ir.onclick=async()=>{if(!mirado)return log('Mira primero antes de mover',1);ocupado=true;habilita();try{const e=await post('/preset/ir',{cam,nombre:k});log('Preset «'+k+'»');if(cam==='link'){pintaPos(e);ocupado=false;habilita();vivo(5)}else{await estadoPtz();ocupado=false;await mirar()}}catch(e){log(e.message,1)}ocupado=false;habilita()};
-    bo.onclick=async()=>{if(!confirm('¿Borrar «'+k+'»?'))return;try{await post('/preset/borrar',{cam,nombre:k});presets()}catch(e){log(e.message,1)}};
-    box.append(d);if(l[k].miniatura)try{const b=await (await api('/preset/foto/'+cam+'/'+encodeURIComponent(k))).blob();d.querySelector('img').src=URL.createObjectURL(b)}catch{}}}
-  catch(e){box.innerHTML='';log('Presets: '+e.message,1)}}
+let sel=null,lp={};
+async function irA(k){if(!mirado)return log('Mira primero antes de mover',1);ocupado=true;habilita();try{const e=await post('/preset/ir',{cam,nombre:k});log('Preset «'+k+'»');if(cam==='link'){pintaPos(e);ocupado=false;habilita();vivo(5)}else{await estadoPtz();ocupado=false;await mirar()}}catch(e){log(e.message,1)}ocupado=false;habilita()}
+function selecciona(k){sel=k;document.querySelectorAll('#presets .pre').forEach(d=>d.classList.toggle('sel',d.dataset.k===k));$('#edita').style.display=k?'':'none';if(!k)return;
+  $('#enombre').value=k;const e=(lp[k]||{}).estado||{};$('#epos').textContent=cam==='link'&&e.pan!=null?`pan ${Math.round(e.pan/3600)}° · tilt ${Math.round(e.tilt/3600)}° · zoom ${(e.zoom/100).toFixed(1)}×`:''}
+async function presets(){const box=$('#presets');box.innerHTML='';if(!CAMS[cam].mueve){box.innerHTML='<span class="mu">Sin presets: cámara fija.</span>';selecciona(null);return}
+  try{lp=await (await api('/preset/lista/'+cam)).json();const ks=Object.keys(lp);if(!ks.length)box.innerHTML='<span class="mu">Aún no hay presets.</span>';if(!ks.includes(sel))sel=null;
+  for(const k of ks){const d=document.createElement('div');d.className='pre';d.dataset.k=k;d.innerHTML=`<img alt=""><div><b></b><button title="Ir">Ir</button></div>`;d.querySelector('b').textContent=k;
+    d.querySelector('button').onclick=ev=>{ev.stopPropagation();irA(k)};d.onclick=()=>selecciona(sel===k?null:k);box.append(d)}
+  selecciona(sel);
+  for(const d of box.querySelectorAll('.pre')){const k=d.dataset.k;if(lp[k].miniatura)try{const b=await (await api('/preset/foto/'+cam+'/'+encodeURIComponent(k)+'?t='+Date.now())).blob();d.querySelector('img').src=URL.createObjectURL(b)}catch{}}}
+  catch(e){box.innerHTML='<span class="mu">No se pudieron cargar los presets.</span> <button id="reintPre">Reintentar</button>';$('#reintPre').onclick=presets;log('Presets: '+e.message,1)}}
+$('#eir').onclick=()=>sel&&irA(sel);
+$('#erenombrar').onclick=async()=>{const n=$('#enombre').value.trim();if(!sel||!n||n===sel)return;try{await post('/preset/renombrar',{cam,nombre:sel,nuevo:n});log('Renombrado «'+sel+'» → «'+n+'»');sel=n;presets()}catch(e){log(e.message,1)}};
+$('#eregrabar').onclick=async()=>{if(!sel||!confirm('¿Guardar la posición actual de la cámara en «'+sel+'»? Se sustituye la posición y la miniatura.'))return;ocupado=true;habilita();log('Regrabando «'+sel+'» (con miniatura, puede tardar)…');
+  try{await post('/preset/guardar',{cam,nombre:sel});log('«'+sel+'» actualizado');presets()}catch(e){log(e.message,1)}ocupado=false;habilita()};
+$('#eborrar').onclick=async()=>{if(!sel||!confirm('¿Borrar «'+sel+'»?'))return;try{await post('/preset/borrar',{cam,nombre:sel});log('Borrado «'+sel+'»');sel=null;presets()}catch(e){log(e.message,1)}};
 $('#guardar').onclick=async()=>{const n=$('#nombre').value.trim();if(!n)return;ocupado=true;habilita();log('Guardando «'+n+'» (con miniatura, puede tardar)…');
   try{await post('/preset/guardar',{cam,nombre:n});$('#nombre').value='';presets()}catch(e){log(e.message,1)}ocupado=false;habilita()};
 async function luzReq(b,int=3){const n=nodo('link');if(!n.tok)throw new Error('Falta el token del Mac Mini (abre «Conexión»)');
