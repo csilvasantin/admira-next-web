@@ -390,6 +390,26 @@
       '\n' + T('Cada verbo vale en castellano o en inglés: el castellano pone la web en castellano y el inglés en inglés. /marca84 = /marca 84.',
         'Every verb works in Spanish or English: the Spanish one switches the site to Spanish, the English one to English. /brand84 = /brand 84.'));
   }});
+  function estudioPA(t) { // /modo: estudio PortAventura (tolera mayúsculas y erratas tipo «neftlix»)
+    var L = ['netflix', 'universal', 'sony', 'skydance', 'default'], s = String(t || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (/^(next|off|normal|admira)$/.test(s)) return 'default';
+    if (!s) return '';
+    var best = '', bd = 9;
+    L.forEach(function (k) { if (k.indexOf(s) === 0 && s.length >= 2) { if (bd > 0) { best = k; bd = 0; } return; }
+      var p = [], i, j; for (j = 0; j <= k.length; j++) p[j] = j;
+      for (i = 1; i <= s.length; i++) { var c = [i]; for (j = 1; j <= k.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (s[i - 1] === k[j - 1] ? 0 : 1)); p = c; }
+      if (p[k.length] < bd) { bd = p[k.length]; best = k; } });
+    return bd <= 2 ? best : '';
+  }
+  function modoPA(a) { // → texto de resultado; aplica la piel aquí o lleva a /portaventura
+    var k = estudioPA(a.join(' '));
+    if (!k) return {ok: false, t: T('Uso: /modo netflix|universal|sony|skydance|next', 'Usage: /mode netflix|universal|sony|skydance|next')};
+    var P = root.PortAventura;
+    if (P && typeof P.setSkin === 'function' && P.setSkin(k)) return {ok: true, t: '✓ PortAventura · ' + k};
+    location.href = '/portaventura/?marca=' + k;
+    return {ok: true, t: T('Abriendo PortAventura · ', 'Opening PortAventura · ') + k + '…'};
+  }
+  verb({name: 'modo', alias: ['mode'], args: 'netflix|universal|sony|skydance|next', desc: ['look & feel de estudio en PortAventura NeXT', 'studio look & feel in PortAventura NeXT'], run: function (a, log) { var r = modoPA(a); out(log, r.t, r.ok ? '' : 'err'); return {ok: r.ok}; }});
   verb({name: 'marca', alias: ['brand', 'marcablanca'], args: '<id>|off|lista', desc: ['marca blanca del catálogo de admiranext.com (cliente de la ficha)', 'white label from the admiranext.com catalogue'], run: function (a, log) {
     var id = (a[0] || '').toLowerCase();
     var M = root.AdmiraMarca;
