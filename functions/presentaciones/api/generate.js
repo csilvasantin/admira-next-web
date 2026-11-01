@@ -420,6 +420,11 @@ export async function onRequestPut(context){
     ...authorFields(context.data?.presentationAccess,existing),
     createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
   };
+  async function retainThumbnailDesigns(){
+    const saved=await context.env.PRESENTATION_IDEAS.get(`ideas:${slug}`,{type:'json'});
+    if(saved?.thumbnails)ideas.thumbnails=saved.thumbnails;
+  }
+  await retainThumbnailDesigns();
   await Promise.all([
     context.env.PRESENTATION_IDEAS.put(`presentation:${slug}`,JSON.stringify(presentation)),
     context.env.PRESENTATION_IDEAS.put(`ideas:${slug}`,JSON.stringify(ideas)),
@@ -438,6 +443,7 @@ export async function onRequestPut(context){
     const env=context.env;
     context.waitUntil((async()=>{
       await applyTranslations();
+      await retainThumbnailDesigns();
       ideas.updatedAt=new Date().toISOString();
       await Promise.all([
         env.PRESENTATION_IDEAS.put(`ideas:${slug}`,JSON.stringify(ideas)),

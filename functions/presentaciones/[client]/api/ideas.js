@@ -163,6 +163,9 @@ export async function onRequest(context){
   let data;
   try { data = normalize(payload, client); }
   catch (error) { return response({ error: error.message || 'Contenido no válido.' }, 400); }
+  // A normal script save retains the separately edited thumbnail designs.
+  const previous=await context.env.PRESENTATION_IDEAS.get(key,{type:'json'});
+  if(previous?.thumbnails)data.thumbnails=previous.thumbnails;
 
   const generation = buildGeneration({...data, sourceText:buildSource(data)});
   const writes = [
