@@ -24,3 +24,18 @@ prepara una comparación de lectura: la resolución manual queda pendiente.
 Los ensayos y las capturas de este incremento sólo usan datos ficticios.
 La respuesta de conflicto va seguida del error convencional para inspectores
 anteriores; el inspector actual conserva la comparación y sus imágenes tardías.
+
+Manual resolution follow-up (draft)
+-----------------------------------
+The source retains the canonical project returned with a conflict as its pending
+context. A later explicit save may therefore target that revision after the
+inspector prepares a resolved draft. `saveRefinement` still reads again, builds
+fields/bindings from canonical source and checks revision and before-values.
+Another source change returns another conflict before any native write; no save
+is triggered by choosing values or by preparing a draft.
+
+Fixture browser QA uses the real native inline-edit handler backed only by an
+in-memory store. Two source advances produce zero native writes, then one explicit
+save records before/after versions and confirms the chosen thumbnail by reread.
+No production client data is used. Read-only comparison and resolution remain in
+the paired draft PRs until separately published.

@@ -55,12 +55,15 @@ window.addEventListener('message',async event=>{
     reply('admiranext:refinement:saved',{requestId:data.requestId,...result});$('connection').textContent='GUARDADO CONFIRMADO';status('Ajustes guardados y releídos. La versión anterior está conservada en el generador.');
   }catch(error){
     if(error.code==='source_conflict'&&error.current){
+      // The editor can explicitly resolve onto this canonical revision. A later
+      // save still rereads the source and checks its revision and field values.
+      pending=error.current;pendingAssets={};
       reply('admiranext:refinement:conflict',{requestId:data.requestId,project:error.current,phase:error.phase});
       // Older inspectors still receive their normal error; current ones already own the richer conflict.
       reply('admiranext:refinement:error',{requestId:data.requestId,error:error.message});
       $('connection').textContent='REVISIÓN DIFERENTE';status('El origen cambió. AINimation conserva el borrador y muestra la comparación.');
       // Send comparison immediately; image reads must not hold up the save response.
-      loadThumbnailAssets(error.current).then(assets=>reply('admiranext:refinement:conflict-assets',{requestId:data.requestId,source:error.current.source,assets})).catch(()=>{});
+      loadThumbnailAssets(error.current).then(assets=>{if(channel===requestChannel&&['id','adapter','revision'].every(key=>pending?.source[key]===error.current.source[key]))pendingAssets=assets;reply('admiranext:refinement:conflict-assets',{requestId:data.requestId,source:error.current.source,assets});}).catch(()=>{});
     }else{reply('admiranext:refinement:error',{requestId:data.requestId,error:error.message});status(error.message+' El borrador permanece en AINimation.');}
   }
   finally{lock(false);$('connect').disabled=!$('client').value;$('download').disabled=!pending;}

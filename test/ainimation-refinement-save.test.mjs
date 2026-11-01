@@ -42,3 +42,12 @@ test('an OK response alone cannot confirm a save whose reread does not contain t
   const ideas=source(),project=generatorProject(ideas),changeset=changesBetween(project,editField(project,'closing-title','Nuevo'));
   await assert.rejects(saveRefinement({project,changeset,read:async()=>ideas,write:async()=>{ideas.updatedAt='r2';return {ok:true,revision:'r2'};}}),/no coincide/);
 });
+test('an explicitly resolved draft saves against current, but another change still stops it before writing',async()=>{
+  let ideas=source(),writes=0;const original=generatorProject(ideas),draft=editField(original,'thumbnail-title','Nuestra elección');ideas.updatedAt='r2';ideas.hero.summary='Texto actual que se conserva';
+  let current;try{await saveRefinement({project:original,changeset:changesBetween(original,draft),read:async()=>ideas,write:async()=>{writes++;}});}catch(error){assert.equal(error.code,'source_conflict');current=error.current;}
+  let resolved=editField(current,'thumbnail-title','Nuestra elección');ideas.updatedAt='r3';
+  try{await saveRefinement({project:current,changeset:changesBetween(current,resolved),read:async()=>ideas,write:async()=>{writes++;}});assert.fail('Expected another conflict');}catch(error){assert.equal(error.code,'source_conflict');current=error.current;}
+  assert.equal(writes,0);resolved=editField(current,'thumbnail-title','Nuestra elección');
+  const result=await saveRefinement({project:current,changeset:changesBetween(current,resolved),read:async()=>structuredClone(ideas),write:async(_,payload)=>{writes++;assert.equal(payload.revision,'r3');assert.equal(payload.edits.length,0);ideas.thumbnails={es:payload.thumbnail};ideas.updatedAt='r4';return {ok:true,revision:'r4'};}});
+  assert.equal(writes,1);assert.equal(result.project.document.components.thumbnail.title,'Nuestra elección');assert.equal(ideas.hero.summary,'Texto actual que se conserva');assert.equal(ideas.notes,'private');
+});
