@@ -13,7 +13,7 @@ function lock(value){saving=value;for(const id of ['catalog','client','language'
 async function readJson(url,options={}){
   const response=await fetch(url,{credentials:'same-origin',headers:{Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{})},signal:AbortSignal.timeout(options.body?80000:15000),...options});
   if(!response.headers.get('content-type')?.includes('application/json'))throw Error('Inicia sesión en el generador y vuelve a cargar el catálogo.');
-  const data=await response.json();if(!response.ok)throw Error(data.error||'El generador no ha confirmado la operación.');return data;
+  const data=await response.json();if(!response.ok)throw Object.assign(Error(data.error||'El generador no ha confirmado la operación.'),{status:response.status,conflict:data.conflict===true});return data;
 }
 const read=async slug=>{const [ideas,images,media]=await Promise.all([readJson(`/presentaciones/${encodeURIComponent(slug)}/api/ideas`),readJson(`/presentaciones/${encodeURIComponent(slug)}/api/images`).catch(()=>null),readJson(`/presentaciones/api/media-library?client=${encodeURIComponent(slug)}`).catch(()=>null)]);return withThumbnailMedia(ideas,images?.imageSet,media?.assets||[]);};
 const write=(slug,payload)=>readJson(`/presentaciones/${encodeURIComponent(slug)}/api/inline-edit`,{method:'PUT',body:JSON.stringify(payload)});
@@ -46,12 +46,21 @@ window.addEventListener('message',async event=>{
   if(data.type==='ainimation:refinement:loaded'){$('connection').textContent='CONECTADO';status('Presentación cargada. La miniatura se guarda por idioma; los textos de las escenas sincronizan sus idiomas.');}
   if(data.type==='ainimation:refinement:load-error'){status(data.error||'Conserva los ajustes antes de abrir otra presentación.');}
   if(data.type!=='ainimation:refinement:save'||!pending||!validChannel(data.requestId)||saving)return;
+  const recipient=targetWindow||$('player').contentWindow,requestChannel=channel;
+  const reply=(type,extra={})=>recipient.postMessage({type,channel:requestChannel,...extra},playerOrigin);
   lock(true);status('Guardando en el generador y comprobando la nueva revisión…');
   try{
     const result=await saveRefinement({project:pending,changeset:data.changeset,read,write});pending=result.project;
     card(result.project,pendingAssets).catch(()=>{});
-    send('admiranext:refinement:saved',{requestId:data.requestId,...result});$('connection').textContent='GUARDADO CONFIRMADO';status('Ajustes guardados y releídos. La versión anterior está conservada en el generador.');
-  }catch(error){send('admiranext:refinement:error',{requestId:data.requestId,error:error.message});status(error.message+' El borrador permanece en AINimation.');}
+    reply('admiranext:refinement:saved',{requestId:data.requestId,...result});$('connection').textContent='GUARDADO CONFIRMADO';status('Ajustes guardados y releídos. La versión anterior está conservada en el generador.');
+  }catch(error){
+    if(error.code==='source_conflict'&&error.current){
+      reply('admiranext:refinement:conflict',{requestId:data.requestId,project:error.current,phase:error.phase});
+      $('connection').textContent='REVISIÓN DIFERENTE';status('El origen cambió. AINimation conserva el borrador y muestra la comparación.');
+      // Send comparison immediately; image reads must not hold up the save response.
+      loadThumbnailAssets(error.current).then(assets=>reply('admiranext:refinement:conflict-assets',{requestId:data.requestId,source:error.current.source,assets})).catch(()=>{});
+    }else{reply('admiranext:refinement:error',{requestId:data.requestId,error:error.message});status(error.message+' El borrador permanece en AINimation.');}
+  }
   finally{lock(false);$('connect').disabled=!$('client').value;$('download').disabled=!pending;}
 });
 const playerUrl=new URL('/presentaciones/',playerOrigin);playerUrl.searchParams.set('origin',location.origin);playerUrl.searchParams.set('channel',channel);$('player').src=playerUrl.href;
