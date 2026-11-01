@@ -226,7 +226,7 @@
     s.onload = function () { if (enIngles()) aplicarIdioma(true); };
     (doc.head || root).appendChild(s);
   }
-  var IDIOMA_STAMP = '20261023-idioma-1';
+  var IDIOMA_STAMP = '20261101-modo-1';
   function traducirTitulo(en) {
     var t = doc.querySelector && doc.querySelector('title');
     var n = t && t.firstChild;
@@ -981,6 +981,26 @@
         (v.aliases.length ? ' (alias: ' + v.aliases.map(function (a) { return '/' + a; }).join(' ') + ')' : ''));
     });
   }});
+  function estudioPA(t) { // /modo: estudio PortAventura (tolera mayúsculas y erratas tipo «neftlix»)
+    var L = ['netflix', 'universal', 'sony', 'skydance', 'default'], s = String(t || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (/^(next|off|normal|admira)$/.test(s)) return 'default';
+    if (!s) return '';
+    var best = '', bd = 9;
+    L.forEach(function (k) { if (k.indexOf(s) === 0 && s.length >= 2) { if (bd > 0) { best = k; bd = 0; } return; }
+      var p = [], i, j; for (j = 0; j <= k.length; j++) p[j] = j;
+      for (i = 1; i <= s.length; i++) { var c = [i]; for (j = 1; j <= k.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (s[i - 1] === k[j - 1] ? 0 : 1)); p = c; }
+      if (p[k.length] < bd) { bd = p[k.length]; best = k; } });
+    return bd <= 2 ? best : '';
+  }
+  function modoPA(a) { // → texto de resultado; aplica la piel aquí o lleva a /portaventura
+    var k = estudioPA(a.join(' '));
+    if (!k) return {ok: false, t: T('Uso: /modo netflix|universal|sony|skydance|next', 'Usage: /mode netflix|universal|sony|skydance|next')};
+    var P = G.PortAventura;
+    if (P && typeof P.setSkin === 'function' && P.setSkin(k)) return {ok: true, t: '✓ PortAventura · ' + k};
+    location.href = '/portaventura/?marca=' + k;
+    return {ok: true, t: T('Abriendo PortAventura · ', 'Opening PortAventura · ') + k + '…'};
+  }
+  verbo({id: 'modo', aliases: ['mode'], uso: 'netflix|universal|sony|skydance|next', ayuda: 'Look & feel de estudio en PortAventura NeXT', ayudaEn: 'Studio look & feel in PortAventura NeXT', run: function (a) { var r = modoPA(a); imprimir(r.t, r.ok ? '' : 'err'); }});
   verbo({id: 'limpiar', aliases: ['clear', 'cls'], ayuda: 'Vacía la salida del CLI', ayudaEn: 'Clears the CLI output', run: function () { ctx.limpiar(); }});
   if (grupo.length) {
     var clavesGrupo = grupo.map(function (a) { return ruta(a.getAttribute('href')).replace(/^\//, '').split('/').pop(); });
@@ -1122,7 +1142,7 @@
   try { if (window.self !== window.top) return; } catch (e) { return; }
   if (document.querySelector('script[data-ax-admiranext-loader]')) return;
   var script = document.createElement('script');
-  script.src = '/assets/experto-admiranext.js?v=20261023-idioma-1';
+  script.src = '/assets/experto-admiranext.js?v=20261101-modo-1';
   script.defer = true;
   script.setAttribute('data-ax-admiranext-loader', '');
   (document.head || document.documentElement).appendChild(script);
