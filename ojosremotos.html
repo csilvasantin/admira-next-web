@@ -95,7 +95,8 @@ let zT=null,zUlt=0;$('#zoom').oninput=()=>{const v=+$('#zoom').value;$('#zval').
   const go=()=>{if(enVuelo){zT=setTimeout(go,100);return}zUlt=Date.now();mover({zoom:+$('#zoom').value})};if(Date.now()-zUlt>150&&!enVuelo)go();else zT=setTimeout(go,160)};
 $('#mirar').onclick=mirar;$('#auto').onchange=()=>{clearInterval(timer);if($('#auto').checked)timer=setInterval(()=>!ocupado&&mirar(),$('#cada').value*1000)};
 let sel=null,lp={};
-async function irA(k){if(!mirado)return log('Mira primero antes de mover',1);ocupado=true;habilita();try{const e=await post('/preset/ir',{cam,nombre:k});log('Preset «'+k+'»');if(cam==='link'){pintaPos(e);ocupado=false;habilita();vivo(5)}else{await estadoPtz();ocupado=false;await mirar()}}catch(e){log(e.message,1)}ocupado=false;habilita()}
+async function irA(k){if(!mirado&&cam!=='link')return log('Mira primero antes de mover (📷)',1);// Link 2: «Ir» mueve siempre y enseña la vista en vivo
+  if(cam==='link')mirado=true;ocupado=true;habilita();try{const e=await post('/preset/ir',{cam,nombre:k});log('Preset «'+k+'»');if(cam==='link'){pintaPos(e);ocupado=false;habilita();vivo(5)}else{await estadoPtz();ocupado=false;await mirar()}}catch(e){log(e.message,1)}ocupado=false;habilita()}
 function selecciona(k){sel=k;document.querySelectorAll('#presets .pre').forEach(d=>d.classList.toggle('sel',d.dataset.k===k));$('#edita').style.display=k?'':'none';if(!k)return;
   $('#enombre').value=k;const e=(lp[k]||{}).estado||{};$('#epos').textContent=cam==='link'&&e.pan!=null?`pan ${Math.round(e.pan/3600)}° · tilt ${Math.round(e.tilt/3600)}° · zoom ${(e.zoom/100).toFixed(1)}×`:''}
 async function presets(){const box=$('#presets');box.innerHTML='';if(!CAMS[cam].mueve){box.innerHTML='<span class="mu">Sin presets: cámara fija.</span>';selecciona(null);return}
