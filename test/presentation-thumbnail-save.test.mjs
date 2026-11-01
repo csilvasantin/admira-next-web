@@ -31,6 +31,17 @@ test('a regular script save preserves the previously adjusted thumbnail design',
   const s=setup(),thumbnail={title:'Una gran idea',kicker:'ÓRBITA',image:'builtin:orbita',accent:'#c3ff6b',layout:'impact'};s.values.get('ideas:sample-proposal').thumbnails={es:thumbnail};
   const response=await writeIdeas(s.context({...s.ideas,hero:{title:'Nuevo guion'}}));assert.equal(response.status,200);assert.deepEqual(s.values.get('ideas:sample-proposal').thumbnails,{es:thumbnail});
 });
+test('approved library artwork and a separate logo save without assigning either to a slide',async()=>{
+  const s=setup(),art='/presentaciones/sample-proposal/media/library-es-1234567890123456.png',logo='/presentaciones/sample-proposal/media/library-es-1234567890123457.png';
+  s.values.set('media-library:sample-proposal',[{kind:'image',url:art,acceptedByCarlos:true},{kind:'image',url:logo,acceptedByCarlos:true}]);
+  const project=generatorProject(s.ideas);let draft=project;for(const [field,value]of Object.entries({image:art,logo,font:'fira-sans',logoStyle:'white'}))draft=editField(draft,'thumbnail-'+field,value);
+  const result=await saveRefinement({project,changeset:changesBetween(project,draft),read:async()=>structuredClone(s.values.get('ideas:sample-proposal')),write:async(_,payload)=>{const response=await writeNative(s.context(payload));assert.equal(response.status,200);return response.json();}});
+  assert.equal(result.project.document.components.thumbnail.logo,logo);assert.equal(result.project.document.components.thumbnail.font,'fira-sans');assert.equal(s.values.get('presentation:sample-proposal').slideMedia,undefined);
+});
+test('unapproved and foreign library resources cannot become thumbnail logos',async()=>{
+  const s=setup(),logo='/presentaciones/sample-proposal/media/library-es-1234567890123457.png';s.values.set('media-library:sample-proposal',[{kind:'image',url:logo,acceptedByCarlos:false}]);
+  const thumbnail={...generatorProject(s.ideas).document.components.thumbnail,logo};const response=await writeNative(s.context({language:'es',revision:'r1',refinement:true,edits:[],thumbnail}));assert.equal(response.status,400);assert.equal(s.values.get('ideas:sample-proposal').thumbnails,undefined);
+});
 test('regenerating a proposal and finishing its deferred languages retain an adjusted thumbnail',async()=>{
   const s=setup(),thumbnail={title:'Un diseño ajustado',kicker:'ÓRBITA',image:'builtin:orbita',accent:'#c3ff6b',layout:'editorial'};s.values.get('ideas:sample-proposal').thumbnails={es:thumbnail};
   s.env.PRES_SIGNING_KEY='fixture-key';s.env.PRESENTATION_IDEAS.list=async()=>({keys:[]});s.env.PRESENTATION_MEDIA={put:async()=>{}};const work=[];const originalFetch=globalThis.fetch;globalThis.fetch=async()=>new Response(new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,0]),{headers:{'content-type':'image/png'}});try{
