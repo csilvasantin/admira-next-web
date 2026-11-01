@@ -1,4 +1,5 @@
 import {PROJECT,validateProject,applyChanges} from './project.mjs';
+import {sourceThumbnail,thumbnailMedia,thumbnailFields,validateThumbnail} from './thumbnail-model.mjs';
 const LANGUAGES=['es','ca','en'];
 const limits={eyebrow:120,title:220,summary:900,objective:1200,blockTitle:180,message:900,detail:1600,closingTitle:220,action:700};
 const text=value=>typeof value==='string'?value:'';
@@ -8,6 +9,7 @@ export function generatorProject(ideas,language='es') {
   const content=language==='es'?ideas:ideas.translations?.[language];
   if(!content||!Array.isArray(content.skeleton))throw Error('No hay contenido guardado en este idioma.');
   const components={},order=[],fields=[],bindings={};
+  components.thumbnail={label:'Miniatura',...sourceThumbnail(ideas,language)};order.push('thumbnail');fields.push(...thumbnailFields());
   const add=(id,label,values)=>{components[id]={label};order.push(id);for(const [key,value,native,limit,blockId]of values){
     components[id][key]=text(value);const fid=id+'-'+key;
     fields.push({id:fid,label:native==='hero.title'?'Titular de portada':native==='closing.title'?'Título del cierre':key==='title'?'Título':key==='message'?'Mensaje':key==='detail'?'Desarrollo':key==='eyebrow'?'Antetítulo':key==='summary'?'Entradilla':key==='action'?'Siguiente acción':'Objetivo',type:'text',path:['components',id,key],maxLength:limit});
@@ -30,13 +32,14 @@ export function generatorProject(ideas,language='es') {
   add('closing','Cierre',[['title',content.closing?.title,'closing.title',limits.closingTitle],['action',content.closing?.action,'closing.action',limits.action]]);
   return validateProject({format:PROJECT,version:1,kind:'presentation',title:text(content.hero?.title)||text(ideas.displayName)||ideas.client,
     source:{adapter:'admiranext-presentation:'+language,id:ideas.client,revision:ideas.updatedAt},
-    document:{brand:text(ideas.displayName)||ideas.client,language,components,order,bindings},fields});
+    document:{brand:text(ideas.displayName)||ideas.client,language,components,order,bindings,thumbnailMedia:thumbnailMedia(ideas)},fields});
 }
 export function nativeEdits(project,changeset) {
-  const canonical=validateProject(project);applyChanges(canonical,changeset);
+  const canonical=validateProject(project),draft=applyChanges(canonical,changeset);
   if(!changeset.changes.length||changeset.changes.length>20)throw Error('Guarda entre 1 y 20 ajustes por vez.');
   return {language:canonical.document.language,revision:canonical.source.revision,refinement:true,
-    edits:changeset.changes.map(change=>{
+    ...(changeset.changes.some(c=>c.field.startsWith('thumbnail-'))?{thumbnail:validateThumbnail(draft.document.components.thumbnail,canonical.source.id)}:{}),
+    edits:changeset.changes.filter(c=>!c.field.startsWith('thumbnail-')).map(change=>{
       const binding=canonical.document.bindings[change.field];if(!binding)throw Error('Campo sin vínculo de origen.');
       if(change.after!==change.after.replace(/\r\n?/g,'\n').trim())throw Error('El texto contiene espacios exteriores o saltos no compatibles con el generador.');
       return {...binding,value:change.after};
@@ -54,7 +57,7 @@ export function confirmSaved(project,changeset,ack,ideas) {
   return actual;
 }
 export function generatorComponents(project) {
-  return project.document.order.map(id=>({id,label:project.document.components[id].label,description:id==='cover'?'Textos de portada':id==='closing'?'Cierre y siguiente acción':'Textos de la diapositiva'}));
+  return project.document.order.map(id=>({id,label:project.document.components[id].label,description:id==='thumbnail'?'Imagen, titular y composición':id==='cover'?'Textos de portada':id==='closing'?'Cierre y siguiente acción':'Textos de la diapositiva'}));
 }
 export function isGeneratorProject(project){return /^admiranext-presentation:(es|ca|en)$/.test(project?.source?.adapter||'');}
 export function generatorOrigin(origin){return ['https://www.admiranext.com','https://admiranext.com'].includes(origin)||/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin||'');}

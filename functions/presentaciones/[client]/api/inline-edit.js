@@ -21,6 +21,7 @@ const LIMITS = {
   'closing.title':220, 'closing.action':700, 'labels.objective':80, 'labels.next':80
 };
 import {captureVersion} from '../../_versions.js';
+import {validateThumbnail,THUMBNAIL_ART} from '../../../../pruebas/ainimation-presentaciones/refinement/thumbnail-model.mjs';
 
 function response(body, status = 200){
   return new Response(JSON.stringify(body), {status, headers:{
@@ -56,8 +57,8 @@ function localeContent(ideas, language){
   ideas.translations[language].labels ||= clone(DEFAULT_LABELS[language]||DEFAULT_LABELS.es);
   return ideas.translations[language];
 }
-function normalizedEdits(raw){
-  if(!Array.isArray(raw)||!raw.length||raw.length>MAX_EDITS) throw new Error('Indica entre 1 y 20 textos para actualizar.');
+function normalizedEdits(raw,allowEmpty=false){
+  if(!Array.isArray(raw)||(!raw.length&&!allowEmpty)||raw.length>MAX_EDITS) throw new Error('Indica entre 1 y 20 textos para actualizar.');
   const seen=new Set();
   return raw.map((item,index)=>{
     const field=String(item?.field||''),limit=LIMITS[field];
@@ -166,8 +167,19 @@ export async function onRequest(context){
     await captureVersion(context.env,client,`lámina ${deleted} eliminada`,{presentation,ideas});
     return response({ok:true,deleted,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages)});
   }
-  let edits; try{edits=normalizedEdits(payload?.edits);}catch(error){return response({error:error.message},400);}
-  const targetLanguages=languages.filter(item=>item!==language);
+  let edits,thumbnail;
+  try{
+    if(payload.thumbnail!==undefined){
+      if(payload.refinement!==true||typeof payload.revision!=='string'||!payload.revision)throw Error('La miniatura necesita la revisión de origen.');
+      thumbnail=validateThumbnail(payload.thumbnail,client);
+      if(thumbnail.image!==THUMBNAIL_ART&&thumbnail.image!==ideas.thumbnails?.[language]?.image){
+        const images=await context.env.PRESENTATION_IDEAS.get(`image-set:${client}`,{type:'json'});
+        if(!images?.slides?.some(slide=>slide.status==='ready'&&slide.url===thumbnail.image))throw Error('La imagen no pertenece a esta presentación.');
+      }
+    }
+    edits=normalizedEdits(payload?.edits,Boolean(thumbnail));
+  }catch(error){return response({error:error.message},400);}
+  const targetLanguages=edits.length?languages.filter(item=>item!==language):[];
   let translated;
   const terminology=presentation.terminology||ideas.terminology||[];
   try{
@@ -179,6 +191,7 @@ export async function onRequest(context){
     return response({error:error.message||'No se pudieron sincronizar los idiomas.'},error.code==='timeout'?504:502);
   }
   const beforeIdeas=clone(ideas);
+  if(thumbnail)ideas.thumbnails={...(ideas.thumbnails||{}),[language]:thumbnail};
   try{
     const source=localeContent(ideas,language); edits.forEach(edit=>applyEdit(source,edit));
     for(const targetLanguage of targetLanguages){
@@ -198,6 +211,6 @@ export async function onRequest(context){
   }
   ideas.updatedAt=new Date().toISOString();
   await context.env.PRESENTATION_IDEAS.put(`ideas:${client}`,JSON.stringify(ideas));
-  const version=await captureVersion(context.env,client,`textos ${language.toUpperCase()} guardados`,{presentation,ideas});
+  const version=await captureVersion(context.env,client,`${thumbnail?'miniatura y ajustes':'textos'} ${language.toUpperCase()} guardados`,{presentation,ideas});
   return response({ok:true,revision:ideas.updatedAt,language,languages,locales:publicLocales(ideas,languages),translated:targetLanguages,...(payload.refinement===true?{versionId:version?.id||null,previousVersionId:previousVersion?.id||null}:{})});
 }
