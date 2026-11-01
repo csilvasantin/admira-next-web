@@ -61,7 +61,8 @@ const LS='ojosremotos.v1';let cfg=JSON.parse(localStorage.getItem(LS)||'{}');let
 const $=s=>document.querySelector(s);const log=(t,e)=>{const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString()+' '+t;if(e)d.className='err';$('#log').prepend(d)};
 function nodo(c){const n=CAMS[c].nodo;return {url:(cfg[n+'_url']||NODOS[n].url).replace(/\/$/,''),tok:cfg[n+'_tok']||''}}
 async function api(p,opt={}){const n=nodo(cam);if(!n.tok)throw new Error('Falta el token del nodo (abre «Conexión»)');
-  const r=await fetch(n.url+p,{...opt,headers:{Authorization:'Bearer '+n.tok,...(opt.body?{'Content-Type':'application/json'}:{})}});
+  let r;for(let i=0;;i++){try{r=await fetch(n.url+p,{...opt,headers:{Authorization:'Bearer '+n.tok,...(opt.body?{'Content-Type':'application/json'}:{})}});break}
+    catch(e){if(opt.method==='POST'||i>=2)throw e;await new Promise(z=>setTimeout(z,600*(i+1)))}} // GET: reintenta fallos de red puntuales (tailscale serve)
   if(!r.ok){let m=r.status;try{m=(await r.json()).error||m}catch{}throw new Error(m)}return r}
 const post=(p,b)=>api(p,{method:'POST',body:JSON.stringify(b)}).then(r=>r.json());
 function pintaCfg(){$('#cfg').innerHTML=Object.entries(NODOS).map(([k,n])=>`<label>${n.t}</label><input id="u_${k}" value="${cfg[k+'_url']||n.url}"><input id="t_${k}" type="password" placeholder="token" autocomplete="off" value="${cfg[k+'_tok']?'••••••':''}" style="margin-top:.3rem">`).join('')}
