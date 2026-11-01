@@ -1,0 +1,90 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ojos remotos · AdmiraNeXT</title><meta name="robots" content="noindex,nofollow"><link rel="icon" href="/favicon-32.png">
+<style>
+:root{--bg:#0b0d12;--pa:#151922;--li:#262c38;--tx:#e8ecf3;--mu:#8b93a5;--ac:#d4ff3a;--er:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif}
+header{display:flex;gap:.6rem;align-items:center;justify-content:space-between;padding:.8rem 1rem;border-bottom:1px solid var(--li);position:sticky;top:0;background:var(--bg);z-index:2}
+h1{font-size:1.05rem;margin:0}h1 b{color:var(--ac)}button,input,select{font:inherit;color:inherit}
+button{background:var(--pa);border:1px solid var(--li);border-radius:10px;padding:.55rem .8rem;cursor:pointer;min-height:42px}
+button:hover:not(:disabled){border-color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}button.pri{background:var(--ac);color:#111;border-color:var(--ac);font-weight:600}
+input,select{background:#0f1218;border:1px solid var(--li);border-radius:10px;padding:.55rem .7rem;min-height:42px;width:100%}
+main{display:grid;gap:1rem;padding:1rem;grid-template-columns:minmax(0,1fr) 340px;max-width:1400px;margin:auto}
+@media(max-width:900px){main{grid-template-columns:1fr;padding:.6rem}}
+.card{background:var(--pa);border:1px solid var(--li);border-radius:14px;padding:.8rem}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap}.tabs button[aria-pressed=true]{background:var(--ac);color:#111}
+.vista{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center;margin:.7rem 0}
+.vista img{width:100%;height:100%;object-fit:contain}.vista .msg{position:absolute;inset:auto .6rem .6rem .6rem;color:var(--mu);font-size:.85rem;text-shadow:0 1px 2px #000}
+.fila{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.mu{color:var(--mu);font-size:.85rem}
+.pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:.4rem;justify-content:center}
+.pad button{font-size:1.3rem;padding:0}
+#presets{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.pre{border:1px solid var(--li);border-radius:10px;overflow:hidden;background:#0f1218}.pre img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;display:block}
+.pre div{padding:.4rem;display:flex;gap:.3rem;align-items:center}.pre b{flex:1;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pre button{min-height:34px;padding:.3rem .5rem}
+#log{font:12px ui-monospace,monospace;color:var(--mu);white-space:pre-wrap;max-height:120px;overflow:auto}.err{color:var(--er)}
+details summary{cursor:pointer;color:var(--mu)}label{display:block;font-size:.8rem;color:var(--mu);margin:.5rem 0 .2rem}
+</style></head><body>
+<header><h1>👁️ Ojos <b>remotos</b></h1><span class="mu" id="estadoTop">sin conectar</span></header>
+<main>
+<section class="card">
+  <div class="tabs" id="tabs"></div>
+  <div class="vista"><img id="foto" alt=""><span class="msg" id="msg">Pulsa «Mirar» para ver hacia dónde apunta antes de mover.</span></div>
+  <div class="fila"><button class="pri" id="mirar">📷 Mirar</button>
+    <label class="fila mu" style="margin:0"><input type="checkbox" id="auto" style="width:auto;min-height:auto"> auto cada</label>
+    <select id="cada" style="width:auto"><option>5</option><option selected>10</option><option>30</option></select><span class="mu">s</span>
+    <span class="mu" id="pos"></span></div>
+</section>
+<aside class="card" id="mandos">
+  <h2 style="font-size:1rem;margin:.2rem 0 .6rem">Cabezal y zoom</h2>
+  <p class="mu" id="nota"></p>
+  <div class="pad"><span></span><button data-m="0,1" title="Arriba">▲</button><span></span>
+    <button data-m="-1,0" title="Izquierda">◀</button><button id="centro" title="Centrar">◎</button><button data-m="1,0" title="Derecha">▶</button>
+    <span></span><button data-m="0,-1" title="Abajo">▼</button><span></span></div>
+  <label>Paso</label><select id="paso"><option value="2">fino</option><option value="8" selected>medio</option><option value="25">grande</option></select>
+  <div class="fila" style="margin-top:.6rem"><button id="zmenos" style="flex:1">− zoom</button><button id="zmas" style="flex:1">+ zoom</button></div>
+  <h2 style="font-size:1rem;margin:1rem 0 .4rem">Presets</h2>
+  <div class="fila"><input id="nombre" placeholder="nombre (p. ej. arcade)" maxlength="40" style="flex:1"><button class="pri" id="guardar">Guardar</button></div>
+  <div id="presets" style="margin-top:.6rem"></div>
+  <details style="margin-top:1rem"><summary>Conexión (solo en tu tailnet)</summary>
+    <p class="mu">Las cámaras no están en internet: este dispositivo debe estar en Tailscale. El token de cada nodo se guarda solo en este navegador.</p>
+    <div id="cfg"></div><button id="guardarCfg" style="margin-top:.5rem">Guardar conexión</button></details>
+  <div id="log" style="margin-top:.6rem"></div>
+</aside>
+</main>
+<script>
+const CAMS={link:{t:'Link 2',nodo:'mm',mueve:true,zoom:true},luna:{t:'Luna Ultra',nodo:'ms',mueve:true,zoom:false},studio:{t:'Studio Display',nodo:'ms',mueve:false,zoom:false}};
+const NODOS={mm:{t:'Mac Mini (Link 2)',url:'https://macmini.tail48b61c.ts.net:9443'},ms:{t:'Mac Studio (Luna, Studio Display)',url:'https://macstudio.tail48b61c.ts.net:9443'}};
+const LS='ojosremotos.v1';let cfg=JSON.parse(localStorage.getItem(LS)||'{}');let cam=cfg.cam||'link',mirado=false,timer=null,ocupado=false;
+const $=s=>document.querySelector(s);const log=(t,e)=>{const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString()+' '+t;if(e)d.className='err';$('#log').prepend(d)};
+function nodo(c){const n=CAMS[c].nodo;return {url:(cfg[n+'_url']||NODOS[n].url).replace(/\/$/,''),tok:cfg[n+'_tok']||''}}
+async function api(p,opt={}){const n=nodo(cam);if(!n.tok)throw new Error('Falta el token del nodo (abre «Conexión»)');
+  const r=await fetch(n.url+p,{...opt,headers:{Authorization:'Bearer '+n.tok,...(opt.body?{'Content-Type':'application/json'}:{})}});
+  if(!r.ok){let m=r.status;try{m=(await r.json()).error||m}catch{}throw new Error(m)}return r}
+const post=(p,b)=>api(p,{method:'POST',body:JSON.stringify(b)}).then(r=>r.json());
+function pintaCfg(){$('#cfg').innerHTML=Object.entries(NODOS).map(([k,n])=>`<label>${n.t}</label><input id="u_${k}" value="${cfg[k+'_url']||n.url}"><input id="t_${k}" type="password" placeholder="token" autocomplete="off" value="${cfg[k+'_tok']?'••••••':''}" style="margin-top:.3rem">`).join('')}
+$('#guardarCfg').onclick=()=>{for(const k in NODOS){cfg[k+'_url']=$('#u_'+k).value.trim();const t=$('#t_'+k).value.trim();if(t&&t!=='••••••')cfg[k+'_tok']=t}localStorage.setItem(LS,JSON.stringify(cfg));pintaCfg();log('Conexión guardada');elegir(cam)};
+function tabs(){$('#tabs').innerHTML=Object.entries(CAMS).map(([k,c])=>`<button aria-pressed="${k===cam}" data-c="${k}">${c.t}</button>`).join('');$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>elegir(b.dataset.c))}
+function habilita(){const c=CAMS[cam];document.querySelectorAll('#mandos .pad button,#zmas,#zmenos,#guardar').forEach(b=>b.disabled=!c.mueve||!mirado||ocupado);
+  if(!c.zoom){$('#zmas').disabled=$('#zmenos').disabled=true}
+  $('#nota').textContent=!c.mueve?'Esta cámara no tiene movimiento: solo foto.':cam==='luna'?'Luna: gimbal por velocidad (sin posición absoluta), sin zoom. Cierra Luna Ultra Desktop. No probado todavía.':mirado?'':'Mira primero (📷) para ver hacia dónde apunta; luego se activan los mandos.'}
+async function elegir(c){cam=c;cfg.cam=c;localStorage.setItem(LS,JSON.stringify(cfg));mirado=false;$('#foto').removeAttribute('src');$('#msg').textContent='Pulsa «Mirar» para ver hacia dónde apunta antes de mover.';tabs();habilita();estadoPtz();presets()}
+async function mirar(){if(ocupado)return;ocupado=true;habilita();$('#msg').textContent='Tomando foto… (puede tardar)';
+  try{const b=await (await api('/foto/'+cam)).blob();const u=URL.createObjectURL(b);const old=$('#foto').src;$('#foto').src=u;if(old)URL.revokeObjectURL(old);mirado=true;$('#msg').textContent='Foto '+new Date().toLocaleTimeString();$('#estadoTop').textContent='conectado'}
+  catch(e){$('#msg').textContent='Sin foto: '+e.message;log('Foto: '+e.message,1)}ocupado=false;habilita()}
+async function estadoPtz(){if(!CAMS[cam].mueve){$('#pos').textContent='';return}try{const e=await (await api('/ptz/'+cam)).json();$('#pos').textContent=cam==='link'?`pan ${Math.round(e.pan/3600)}° · tilt ${Math.round(e.tilt/3600)}° · zoom ${(e.zoom/100).toFixed(1)}×`:`${(e.secuencia||[]).length} mov. desde centro`}catch(e){$('#pos').textContent=''}}
+async function mover(b){if(!mirado)return;ocupado=true;habilita();try{await post('/ptz/'+cam,b);log('Movido '+JSON.stringify(b));await estadoPtz();ocupado=false;await mirar()}catch(e){log('Mover: '+e.message,1)}ocupado=false;habilita()}
+document.querySelectorAll('.pad [data-m]').forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.m.split(',').map(Number),p=+$('#paso').value;
+  mover(cam==='luna'?{h:x*30,v:y*30,seg:Math.min(5,p/10)}:{dpan:x*p,dtilt:y*p})});
+$('#centro').onclick=()=>mover(cam==='luna'?{centrar:true}:{pan:0,tilt:0});
+$('#zmas').onclick=()=>mover({dzoom:+$('#paso').value*2});$('#zmenos').onclick=()=>mover({dzoom:-$('#paso').value*2});
+$('#mirar').onclick=mirar;$('#auto').onchange=()=>{clearInterval(timer);if($('#auto').checked)timer=setInterval(()=>!ocupado&&mirar(),$('#cada').value*1000)};
+async function presets(){const box=$('#presets');box.innerHTML='';if(!CAMS[cam].mueve){box.innerHTML='<span class="mu">Sin presets: cámara fija.</span>';return}
+  try{const l=await (await api('/preset/lista/'+cam)).json();const ks=Object.keys(l);if(!ks.length)box.innerHTML='<span class="mu">Aún no hay presets.</span>';
+  for(const k of ks){const d=document.createElement('div');d.className='pre';d.innerHTML=`<img alt=""><div><b></b><button title="Ir">Ir</button><button title="Borrar">🗑</button></div>`;d.querySelector('b').textContent=k;
+    const [ir,bo]=d.querySelectorAll('button');ir.onclick=async()=>{if(!mirado)return log('Mira primero antes de mover',1);ocupado=true;habilita();try{await post('/preset/ir',{cam,nombre:k});log('Preset «'+k+'»');await estadoPtz();ocupado=false;await mirar()}catch(e){log(e.message,1)}ocupado=false;habilita()};
+    bo.onclick=async()=>{if(!confirm('¿Borrar «'+k+'»?'))return;try{await post('/preset/borrar',{cam,nombre:k});presets()}catch(e){log(e.message,1)}};
+    if(l[k].miniatura)api('/preset/foto/'+cam+'/'+encodeURIComponent(k)).then(r=>r.blob()).then(b=>d.querySelector('img').src=URL.createObjectURL(b)).catch(()=>{});box.append(d)}}
+  catch(e){box.innerHTML='';log('Presets: '+e.message,1)}}
+$('#guardar').onclick=async()=>{const n=$('#nombre').value.trim();if(!n)return;ocupado=true;habilita();log('Guardando «'+n+'» (con miniatura, puede tardar)…');
+  try{await post('/preset/guardar',{cam,nombre:n});$('#nombre').value='';presets()}catch(e){log(e.message,1)}ocupado=false;habilita()};
+pintaCfg();elegir(cam);
+</script></body></html>

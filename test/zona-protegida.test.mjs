@@ -12,6 +12,7 @@ import { ZONA_PROTEGIDA } from '../functions/_zona-protegida.js';
 import { onRequest as libro } from '../functions/libro-de-estilo.js';
 import { onRequest as flota } from '../functions/flota.js';
 import { onRequest as organigrama } from '../functions/organigrama.js';
+import { onRequest as ojosremotos } from '../functions/ojosremotos.js';
 import { onRequestGet as roadmap } from '../functions/roadmap.js';
 
 const read = (p) => readFile(new URL(p, import.meta.url), 'utf8');
@@ -37,7 +38,7 @@ async function cookie(env,email){
   const user=await env.AUTH_DB.prepare('SELECT * FROM admiranext_users WHERE email=?').bind(email).first();
   return (await cookieDeSesion(env,user)).split(';')[0];
 }
-const PAGINAS = [['/libro-de-estilo', libro], ['/flota', flota], ['/organigrama', organigrama]];
+const PAGINAS = [['/libro-de-estilo', libro], ['/flota', flota], ['/organigrama', organigrama], ['/ojosremotos', ojosremotos]];
 const SECRETO = '<html>contenido interno de la página</html>';
 function pide(handler, ruta, env, cookieValue){
   let servida = false;

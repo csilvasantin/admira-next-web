@@ -18,6 +18,7 @@ export const ZONA_PROTEGIDA = Object.freeze([
   Object.freeze({ ruta: '/libro-de-estilo', titulo: 'Style Book', descripcion: 'Libro de estilo: quiénes somos y cómo nos gustan las cosas' }),
   Object.freeze({ ruta: '/flota', titulo: 'Agentes', descripcion: 'Marcador y misiones de los agentes' }),
   Object.freeze({ ruta: '/organigrama', titulo: 'Organigrama', descripcion: 'Organigrama de ADmiraNeXT' }),
+  Object.freeze({ ruta: '/ojosremotos', titulo: 'Ojos remotos', descripcion: 'Cámaras de los consejeros: mirar, mover y presets' }),
   Object.freeze({ ruta: '/roadmap', titulo: 'RoadMap', descripcion: 'RoadMap de ADmiraNeXT' }),
 ]);
 
