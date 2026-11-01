@@ -15,7 +15,7 @@ async function readJson(url,options={}){
   if(!response.headers.get('content-type')?.includes('application/json'))throw Error('Inicia sesión en el generador y vuelve a cargar el catálogo.');
   const data=await response.json();if(!response.ok)throw Error(data.error||'El generador no ha confirmado la operación.');return data;
 }
-const read=async slug=>{const [ideas,images]=await Promise.all([readJson(`/presentaciones/${encodeURIComponent(slug)}/api/ideas`),readJson(`/presentaciones/${encodeURIComponent(slug)}/api/images`).catch(()=>null)]);return withThumbnailMedia(ideas,images?.imageSet);};
+const read=async slug=>{const [ideas,images,media]=await Promise.all([readJson(`/presentaciones/${encodeURIComponent(slug)}/api/ideas`),readJson(`/presentaciones/${encodeURIComponent(slug)}/api/images`).catch(()=>null),readJson(`/presentaciones/api/media-library?client=${encodeURIComponent(slug)}`).catch(()=>null)]);return withThumbnailMedia(ideas,images?.imageSet,media?.assets||[]);};
 const write=(slug,payload)=>readJson(`/presentaciones/${encodeURIComponent(slug)}/api/inline-edit`,{method:'PUT',body:JSON.stringify(payload)});
 async function card(project,assets={}){
   const existing=[...$('proposals').querySelectorAll('button')].find(button=>button.dataset.client===project.source.id);

@@ -172,9 +172,12 @@ export async function onRequest(context){
     if(payload.thumbnail!==undefined){
       if(payload.refinement!==true||typeof payload.revision!=='string'||!payload.revision)throw Error('La miniatura necesita la revisión de origen.');
       thumbnail=validateThumbnail(payload.thumbnail,client);
-      if(thumbnail.image!==THUMBNAIL_ART&&thumbnail.image!==ideas.thumbnails?.[language]?.image){
-        const images=await context.env.PRESENTATION_IDEAS.get(`image-set:${client}`,{type:'json'});
-        if(!images?.slides?.some(slide=>slide.status==='ready'&&slide.url===thumbnail.image))throw Error('La imagen no pertenece a esta presentación.');
+      const [images,library]=await Promise.all([context.env.PRESENTATION_IDEAS.get(`image-set:${client}`,{type:'json'}),context.env.PRESENTATION_IDEAS.get(`media-library:${client}`,{type:'json'})]);
+      for(const reference of [thumbnail.image,thumbnail.logo].filter(Boolean)){
+        if(reference===THUMBNAIL_ART)continue;
+        const slideImage=images?.slides?.some(slide=>slide.status==='ready'&&slide.url===reference),asset=Array.isArray(library)&&library.some(item=>item.kind==='image'&&item.acceptedByCarlos===true&&item.url===reference);
+        const retained=Object.values(ideas.thumbnails||{}).some(t=>[t?.image,t?.logo].includes(reference));
+        if(!slideImage&&!asset&&!retained)throw Error('La imagen o el logotipo no pertenecen a esta presentación.');
       }
     }
     edits=normalizedEdits(payload?.edits,Boolean(thumbnail));
