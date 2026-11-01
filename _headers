@@ -57,7 +57,7 @@
 /api/demo
   Cache-Control: no-store
 
-# PortAventuraNeXT (preview oculta, 1-nov-2026): sin enlaces ni buscadores.
+# PortAventuraNeXT (preview oculta, 1-nov-2026): sin enlaces ni buscadores. Zona protegida: functions/portaventura/[[path]].js
 /portaventura
   X-Robots-Tag: noindex, nofollow
 /portaventura/*
