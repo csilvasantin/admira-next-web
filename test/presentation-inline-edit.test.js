@@ -165,3 +165,27 @@ test('inline-edit action deleteSlide persists the remaining skeleton and capture
   assert.deepEqual(saved.skeleton.map(item=>item.id),['momento']);
   assert.notEqual(saved.updatedAt,ideas.updatedAt);
 });
+
+test('refinement preserves a before version and returns a confirmed after-version identity',async()=>{
+  const values=new Map([['presentation:cliente-demo',JSON.stringify({...presentation,languages:['es','en']})],['ideas:cliente-demo',JSON.stringify({...ideas,languages:['es','en'],notes:'keep private notes'})]]);
+  const previous=globalThis.fetch;globalThis.fetch=async()=>Response.json({output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({translations:{en:['Agree the pilot']}})}]}]});
+  try{
+    const request=new Request('https://admiranext.test/presentaciones/cliente-demo/api/inline-edit',{method:'PUT',headers:{Origin:'https://admiranext.test','Content-Type':'application/json'},body:JSON.stringify({language:'es',revision:ideas.updatedAt,refinement:true,edits:[{field:'closing.title',value:'Acordar el piloto'}]})});
+    const response=await handleInlineEdit({request,env:{PRESENTATION_IDEAS:kv(values),XAI_API_KEY:'test'},params:{client:'cliente-demo'}}),ack=await response.json();
+    assert.equal(response.status,200);assert.ok(ack.previousVersionId);assert.ok(ack.versionId);assert.notEqual(ack.previousVersionId,ack.versionId);
+    const before=JSON.parse(values.get('version:cliente-demo:'+ack.previousVersionId));assert.equal(before.values.ideas.closing.title,ideas.closing.title);
+    const after=JSON.parse(values.get('ideas:cliente-demo'));assert.equal(after.closing.title,'Acordar el piloto');assert.equal(after.translations.en.closing.title,'Agree the pilot');assert.equal(after.notes,'keep private notes');assert.equal(after.updatedAt,ack.revision);
+  }finally{globalThis.fetch=previous;}
+});
+test('a source edit during translation rejects the pending save without overwriting it',async()=>{
+  const values=new Map([['presentation:cliente-demo',JSON.stringify({...presentation,languages:['es','en']})],['ideas:cliente-demo',JSON.stringify(ideas)]]);
+  const previous=globalThis.fetch;globalThis.fetch=async()=>{
+    const newer={...ideas,updatedAt:'another-revision',objective:'Otro editor'};values.set('ideas:cliente-demo',JSON.stringify(newer));
+    return Response.json({output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({translations:{en:['A new title']}})}]}]});
+  };
+  try{
+    const request=new Request('https://admiranext.test/presentaciones/cliente-demo/api/inline-edit',{method:'PUT',headers:{Origin:'https://admiranext.test','Content-Type':'application/json'},body:JSON.stringify({language:'es',revision:ideas.updatedAt,refinement:true,edits:[{field:'hero.title',value:'Un título nuevo'}]})});
+    const response=await handleInlineEdit({request,env:{PRESENTATION_IDEAS:kv(values),XAI_API_KEY:'test'},params:{client:'cliente-demo'}});
+    assert.equal(response.status,409);const after=JSON.parse(values.get('ideas:cliente-demo'));assert.equal(after.hero.title,ideas.hero.title);assert.equal(after.objective,'Otro editor');assert.equal(after.updatedAt,'another-revision');
+  }finally{globalThis.fetch=previous;}
+});

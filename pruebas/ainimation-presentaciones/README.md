@@ -1,30 +1,33 @@
-# Laboratorio de conexión con AINimation
+# Editor conectado de AINimation
 
-Nueva funcionalidad confinada a `/pruebas/ainimation-presentaciones/`, bajo la
-verja de sesión existente de `/pruebas`. Los GET del catálogo y del guion pasan
-por sus rutas privadas originales y sus permisos de `/presentaciones`.
-La página no añade un acceso ni modifica presentaciones guardadas.
+La interfaz permanece bajo `/pruebas/ainimation-presentaciones/`. Reutiliza la
+sesión de directorio y, para agentes, una cookie de una hora limitada a este
+laboratorio. Cada petición comprueba la revocación y los permisos de edición.
+Las APIs de lectura y escritura conservan el perímetro original del generador.
 
-Con sesión en el generador: Cargar mis presentaciones → elegir presentación e
-idioma → Ver en AINimation. No crea un cliente nuevo. Lee el catálogo antes de
-elegir y transfiere solo el guion de audiencia del idioma guardado; una
-traducción ausente produce un error, sin recurrir silenciosamente al español.
-La demo es ficticia. Puede descargarse el paquete para abrirlo en AINimation.
+Cargar catálogo → elegir presentación e idioma → Abrir para afinar abre el
+inspector en AINimation. Las muestras y el contenido real se identifican por
+separado. El origen mantiene las credenciales; al inspector sólo se envía una
+proyección de textos visibles y referencias de revisión, mediante origen,
+ventana y canal exactos. Una URL sola no concede acceso ni edición.
 
-No exporta notas, brief, claves, medios, decks, embeds ni control remoto.
-La película de Director es independiente: no hay guardado de vuelta al generador.
-La vista cinematográfica y la película nativa mantienen el texto, pero no
-prometen reproducir el diseño de los decks adjuntos.
+Guardar en el generador relee el origen, reconstruye los campos admitidos y
+convierte el changeset a la API original `inline-edit`. Esta API sincroniza los
+idiomas y captura una versión anterior y posterior para las peticiones del
+conector. La confirmación requiere una segunda lectura con la nueva revisión
+y todos los valores guardados. Un error o conflicto conserva el borrador.
+El control de concurrencia es optimista sobre la revisión de KV; no se promete
+una transacción distribuida ni una escritura CAS.
 
-Se necesita primero el receptor `/presentaciones/` de AINimation. La comunicación
-valida origen, iframe y canal. El laboratorio avisa tras 15 segundos si no hay
-confirmación; una descarga sigue estando disponible. La copia de contract.mjs
-debe mantenerse compatible con la versión del receptor.
+El conector real guarda textos (hasta 20 ajustes por operación). Color y posición
+siguen siendo campos de las muestras; no se anuncian como ajustes guardables del
+generador. El preview es de contenido y no sustituye el diseño original ni sus
+medios, decks, notas o comportamientos. Ningún dato real está en el repositorio.
 
-Prueba local: servir este checkout en 127.0.0.1:9135 y AINimation en
-127.0.0.1:9134; abrir `/pruebas/ainimation-presentaciones/?localPlayer=1`.
-Ese parámetro solo cambia el reproductor en loopback; producción usa siempre
-https://www.ainimation.studio. Un servidor estático local muestra la demo pero
-no emula la sesión ni las APIs privadas del generador.
+`refinement/project.mjs` y `refinement/generator.mjs` se mantienen idénticos al
+núcleo y al adaptador del repositorio AINimation. Las pruebas cubren proyección,
+identidades, confirmación por relectura, conflictos y alcance de la sesión.
 
-Pruebas: `node --test test/ainimation-presentations.test.mjs test/pruebas-zona.test.mjs`.
+Prueba local: servir AINimation en 127.0.0.1:9134 y este checkout con sus APIs
+ficticias en 127.0.0.1:9135; `?localPlayer=1` sólo funciona en loopback. La prueba
+real utiliza los endpoints privados y permisos existentes, sin crear clientes.

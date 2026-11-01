@@ -35,11 +35,15 @@ test('existing MCP editor token opens a short browser session without exposing t
   const {env,token}=await setup();const {response,cookies}=await session(env,token);
   assert.equal(response.status,200);assert.equal((await response.json()).expiresIn,3600);
   assert.doesNotMatch(cookies,new RegExp(token));
-  const headers=response.headers.getSetCookie();assert.equal(headers.length,2);
+  const headers=response.headers.getSetCookie();assert.equal(headers.length,3);
   for(const value of headers)assert.match(value,/HttpOnly; Secure; SameSite=Lax/);
   assert.match(headers[0],/Path=\/presentaciones;/);assert.match(headers[1],/Path=\/pruebas\/alsea;/);
+  assert.match(headers[2],/Path=\/pruebas\/ainimation-presentaciones;/);
   assert.equal((await protectedRequest(gate,env,'/presentaciones/galeria',cookies)).status,200);
   assert.equal((await protectedRequest(staging,env,'/pruebas/alsea/',cookies)).status,200);
+  assert.equal((await protectedRequest(staging,env,'/pruebas/ainimation-presentaciones/',cookies)).status,200);
+  assert.equal((await protectedRequest(staging,env,'/pruebas/ainimation-presentaciones/lab.mjs',cookies)).status,200);
+  assert.equal((await protectedRequest(staging,env,'/pruebas/ainimation-presentaciones-foreign/',cookies)).status,401);
   assert.equal((await protectedRequest(staging,env,'/pruebas/frontier/',cookies)).status,401);
   assert.equal((await protectedRequest(gate,env,'/presentaciones/control/',cookies)).status,401);
 });
@@ -60,6 +64,7 @@ test('revocation, role downgrade and account deactivation terminate a browser se
     if(change==='inactive')await env.AUTH_DB.prepare("UPDATE admiranext_users SET status='suspended' WHERE email=?").bind(row.email).run();
     assert.equal(await agentBrowserSessionFromRequest(env,request('/presentaciones/galeria',{headers:{cookie:cookies}})),null,change);
     assert.equal((await protectedRequest(staging,env,'/pruebas/alsea/',cookies)).status,401,change);
+    assert.equal((await protectedRequest(staging,env,'/pruebas/ainimation-presentaciones/',cookies)).status,401,change);
   }
 });
 test('tampering or extending the signed expiry cannot create a session',async()=>{
