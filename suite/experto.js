@@ -338,6 +338,8 @@
   var MARCAS = 'https://www.admiranext.com/marcablanca/api/marcas';
   var marcaSel = null;
   try { marcaSel = JSON.parse(sessionStorage.getItem('ax-experto-marca') || 'null'); } catch (_) {}
+  // Verbos ocultos (/modo de PortAventura, zona protegida): fuera de /portaventura no se listan.
+  function visibleVerb(v) { return !v.hidden || !!root.PortAventura; }
   function verb(v) { var names=[v.name].concat(v.alias||[]);verbs = verbs.filter(function(x){return x.name!==v.name&&names.indexOf(x.name)<0;}).map(function(x){return Object.assign({},x,{alias:(x.alias||[]).filter(function(a){return names.indexOf(a)<0;})});});verbs.push(v); }
   // ─── Verbos bilingües (Carlos, 06-10-2026 10:58) ───
   // Cada verbo vale en castellano y en inglés (/marca = /brand, /ayuda = /help, /limpiar = /clear…).
@@ -386,7 +388,7 @@
     if (/^(admirito|default|creativo)$/i.test(a.join(' ').trim())) return root.AdmiraExperto.assistantHelp(log);
     if (/^bugito$/i.test(a.join(' ').trim())) { out(log, bugitoHelp()); return; }
     if (/^(?:demo\s+)?ios$/i.test(a.join(' ').trim())) { out(log, iosHelp()); return; }
-    out(log, verbs.map(function (v) { var par = parDe(v.name); return '/' + v.name + (par ? ' · /' + par : '') + (v.args ? ' ' + v.args : '') + ' — ' + T(v.desc[0], v.desc[1]); }).join('\n') +
+    out(log, verbs.filter(visibleVerb).map(function (v) { var par = parDe(v.name); return '/' + v.name + (par ? ' · /' + par : '') + (v.args ? ' ' + v.args : '') + ' — ' + T(v.desc[0], v.desc[1]); }).join('\n') +
       '\n' + T('Cada verbo vale en castellano o en inglés: el castellano pone la web en castellano y el inglés en inglés. /marca84 = /marca 84.',
         'Every verb works in Spanish or English: the Spanish one switches the site to Spanish, the English one to English. /brand84 = /brand 84.'));
   }});
@@ -409,7 +411,7 @@
     location.href = '/portaventura/?marca=' + k;
     return {ok: true, t: T('Abriendo PortAventura · ', 'Opening PortAventura · ') + k + '…'};
   }
-  verb({name: 'modo', alias: ['mode'], args: 'netflix|universal|sony|skydance|next', desc: ['look & feel de estudio en PortAventura NeXT', 'studio look & feel in PortAventura NeXT'], run: function (a, log) { var r = modoPA(a); out(log, r.t, r.ok ? '' : 'err'); return {ok: r.ok}; }});
+  verb({name: 'modo', hidden: true, alias: ['mode'], args: 'netflix|universal|sony|skydance|next', desc: ['look & feel de estudio en PortAventura NeXT', 'studio look & feel in PortAventura NeXT'], run: function (a, log) { var r = modoPA(a); out(log, r.t, r.ok ? '' : 'err'); return {ok: r.ok}; }});
   verb({name: 'marca', alias: ['brand', 'marcablanca'], args: '<id>|off|lista', desc: ['marca blanca del catálogo de admiranext.com (cliente de la ficha)', 'white label from the admiranext.com catalogue'], run: function (a, log) {
     var id = (a[0] || '').toLowerCase();
     var M = root.AdmiraMarca;
@@ -1705,7 +1707,7 @@
         var pre = input.value.trim().replace(/^\//, '').toLowerCase();
         // Autocompleta nombres y alias (castellano e inglés): gana la forma que se está escribiendo.
         var cand = [];
-        verbs.forEach(function (v) { [v.name].concat(v.alias || []).forEach(function (n) { if (n.indexOf(pre) === 0 && /^[a-z0-9]/.test(n)) cand.push({v: v, n: n}); }); });
+        verbs.filter(visibleVerb).forEach(function (v) { [v.name].concat(v.alias || []).forEach(function (n) { if (n.indexOf(pre) === 0 && /^[a-z0-9]/.test(n)) cand.push({v: v, n: n}); }); });
         var distintos = cand.filter(function (x, i) { return cand.findIndex(function (y) { return y.v === x.v; }) === i; });
         if (distintos.length === 1) { e.preventDefault(); input.value = '/' + distintos[0].n + ' '; }
       }
@@ -1978,7 +1980,7 @@
     isOpen: isOpen,
     // admiranext.com (06-10-2026): el CLI del armazón (admira-frame.js) delega en estos verbos.
     // Añadidos compatibles: las cinco patas no los usan.
-    list: function () { return verbs.map(function (v) { return {name: v.name, alias: (v.alias || []).slice(), args: v.args || '', desc: (v.desc || []).slice()}; }); },
+    list: function () { return verbs.filter(visibleVerb).map(function (v) { return {name: v.name, alias: (v.alias || []).slice(), args: v.args || '', desc: (v.desc || []).slice()}; }); },
     has: function (n) { n = String(n || '').replace(/^\//, '').toLowerCase(); return verbs.some(function (v) { return v.name === n || (v.alias || []).indexOf(n) >= 0; }); },
     idiomaDeVerbo: idiomaDeVerbo,
     pares: function () { return PARES_ES_EN.map(function (p) { return p.slice(); }); },
