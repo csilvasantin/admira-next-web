@@ -53,7 +53,7 @@ details summary{cursor:pointer;color:var(--mu)}label{display:block;font-size:.8r
   <div class="fila"><span>💡</span><input id="luzPct" type="range" min="0" max="100" step="1" value="100" style="flex:1;min-height:auto"><b id="luzVal" style="min-width:3.6em;text-align:right">—</b><button id="luzRest">↺ Restaurar</button></div>
   <p class="mu" id="luzEst">0 = apagada. «Restaurar» vuelve a lo que pidan los agentes (Admirito 50 %, Bugito 25 %…).</p>
   <details style="margin-top:1rem"><summary>Conexión (solo en tu tailnet)</summary>
-    <p class="mu">Las cámaras no están en internet: este dispositivo debe estar en Tailscale. El token de cada nodo se guarda solo en este navegador.</p>
+    <p class="mu">Las cámaras no están en internet: este dispositivo debe estar en Tailscale. El acceso llega solo con tu sesión de admiranext.com; pegar un token aquí es el respaldo manual (se guarda solo en este navegador).</p>
     <div id="cfg"></div><button id="guardarCfg" style="margin-top:.5rem">Guardar conexión</button></details>
   <div id="log" style="margin-top:.6rem"></div>
 </aside>
@@ -63,7 +63,7 @@ const CAMS={link:{t:'Link 2',nodo:'mm',mueve:true,zoom:true},luna:{t:'Luna Ultra
 const NODOS={mm:{t:'Mac Mini (Link 2)',url:'https://macmini.tail48b61c.ts.net:9443'},ms:{t:'Mac Studio (Luna, Studio Display)',url:'https://macstudio.tail48b61c.ts.net:9443'}};
 const LS='ojosremotos.v1';let cfg=JSON.parse(localStorage.getItem(LS)||'{}');let cam=cfg.cam||'link',mirado=false,timer=null,ocupado=false;
 const $=s=>document.querySelector(s);const log=(t,e)=>{const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString()+' '+t;if(e)d.className='err';$('#log').prepend(d)};
-function nodo(c){const n=CAMS[c].nodo;return {url:(cfg[n+'_url']||NODOS[n].url).replace(/\/$/,''),tok:cfg[n+'_tok']||''}}
+function nodo(c){const n=CAMS[c].nodo;return {url:(cfg[n+'_url']||NODOS[n].url).replace(/\/$/,''),tok:cfg[n+'_tok']||auto[n]||''}}
 async function api(p,opt={}){const n=nodo(cam);if(!n.tok)throw new Error('Falta el token del nodo (abre «Conexión»)');
   let r;for(let i=0;;i++){try{r=await fetch(n.url+p,{...opt,headers:{Authorization:'Bearer '+n.tok,...(opt.body?{'Content-Type':'application/json'}:{})}});break}
     catch(e){if(opt.method==='POST'||i>=2)throw e;await new Promise(z=>setTimeout(z,600*(i+1)))}} // GET: reintenta fallos de red puntuales (tailscale serve)
@@ -120,5 +120,8 @@ async function luz(b){try{pintaLuz(await luzReq(b));if(b)log('Luz '+(b.accion||b
 let luzT=null;$('#luzPct').oninput=()=>{const v=+$('#luzPct').value;$('#luzVal').textContent=v?v+' %':'apagada'};
 $('#luzPct').onchange=()=>{clearTimeout(luzT);luzT=setTimeout(()=>luz({porcentaje:+$('#luzPct').value}),120)};
 $('#luzRest').onclick=()=>luz({accion:'restaurar'});
-pintaCfg();elegir(cam);setTimeout(()=>luz(),1500);
+let auto={};// tokens entregados por la sesión de admiranext.com (no se guardan en localStorage); el pegado manual tiene prioridad
+async function cargaAuto(){try{const r=await fetch('/ojosremotos/config',{credentials:'same-origin',cache:'no-store'});if(!r.ok)throw new Error(r.status);const j=await r.json();auto={};for(const k in (j.nodos||{}))auto[k]=j.nodos[k].tok;
+  const n=Object.keys(auto).length;if(n)log('Acceso automático por tu sesión ('+n+' nodo'+(n>1?'s':'')+')');}catch(e){log('Sin acceso automático ('+e.message+'): usa «Conexión»',1)}}
+pintaCfg();cargaAuto().finally(()=>{elegir(cam);setTimeout(()=>luz(),1500)});
 </script></body></html>
