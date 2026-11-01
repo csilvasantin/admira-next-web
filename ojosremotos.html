@@ -44,6 +44,9 @@ details summary{cursor:pointer;color:var(--mu)}label{display:block;font-size:.8r
   <h2 style="font-size:1rem;margin:1rem 0 .4rem">Presets</h2>
   <div class="fila"><input id="nombre" placeholder="nombre (p. ej. arcade)" maxlength="40" style="flex:1"><button class="pri" id="guardar">Guardar</button></div>
   <div id="presets" style="margin-top:.6rem"></div>
+  <h2 style="font-size:1rem;margin:1rem 0 .4rem">Luz de la sala (Hue)</h2>
+  <div class="fila"><button id="luzClara" style="flex:1">💡 Luz más clara</button><button id="luzRest" style="flex:1">↺ Restaurar</button></div>
+  <p class="mu" id="luzEst">«Restaurar» vuelve a lo que pidan los agentes (Admirito 50 %, Bugito 25 %…).</p>
   <details style="margin-top:1rem"><summary>Conexión (solo en tu tailnet)</summary>
     <p class="mu">Las cámaras no están en internet: este dispositivo debe estar en Tailscale. El token de cada nodo se guarda solo en este navegador.</p>
     <div id="cfg"></div><button id="guardarCfg" style="margin-top:.5rem">Guardar conexión</button></details>
@@ -86,5 +89,12 @@ async function presets(){const box=$('#presets');box.innerHTML='';if(!CAMS[cam].
   catch(e){box.innerHTML='';log('Presets: '+e.message,1)}}
 $('#guardar').onclick=async()=>{const n=$('#nombre').value.trim();if(!n)return;ocupado=true;habilita();log('Guardando «'+n+'» (con miniatura, puede tardar)…');
   try{await post('/preset/guardar',{cam,nombre:n});$('#nombre').value='';presets()}catch(e){log(e.message,1)}ocupado=false;habilita()};
-pintaCfg();elegir(cam);
+async function luz(b){const n=nodo('link');if(!n.tok)return log('Falta el token del Mac Mini (abre «Conexión»)',1);
+  $('#luzClara').disabled=$('#luzRest').disabled=true;$('#luzEst').textContent='Cambiando la luz…';
+  try{const r=await fetch(n.url+'/luz',b?{method:'POST',headers:{Authorization:'Bearer '+n.tok,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:{Authorization:'Bearer '+n.tok}});
+    const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);const e=Object.values(j.estado||{})[0]||{};
+    $('#luzEst').textContent=`Luz: ${e.on?Math.round((e.bri||0)/254*100)+' %':'apagada'}`+(b?' · '+b.accion:'');if(b){log('Luz '+b.accion);if(cam==='link'&&mirado)mirar()}}
+  catch(e){$('#luzEst').textContent='Luz no disponible';log('Luz: '+e.message,1)}$('#luzClara').disabled=$('#luzRest').disabled=false}
+$('#luzClara').onclick=()=>luz({accion:'clara'});$('#luzRest').onclick=()=>luz({accion:'restaurar'});
+pintaCfg();elegir(cam);luz();
 </script></body></html>
