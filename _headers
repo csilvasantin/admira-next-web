@@ -56,3 +56,9 @@
   Access-Control-Allow-Origin: *
 /api/demo
   Cache-Control: no-store
+
+# PortAventuraNeXT (preview oculta, 1-nov-2026): sin enlaces ni buscadores.
+/portaventura
+  X-Robots-Tag: noindex, nofollow
+/portaventura/*
+  X-Robots-Tag: noindex, nofollow
