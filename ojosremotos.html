@@ -16,7 +16,7 @@ main{display:grid;gap:1rem;padding:1rem;grid-template-columns:minmax(0,1fr) 340p
 .vista img{width:100%;height:100%;object-fit:contain}.vista .msg{position:absolute;inset:auto .6rem .6rem .6rem;color:var(--mu);font-size:.85rem;text-shadow:0 1px 2px #000}
 .fila{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.mu{color:var(--mu);font-size:.85rem}
 .pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:.4rem;justify-content:center}
-.pad button{font-size:1.3rem;padding:0}
+.pad button{font-size:1.3rem;padding:0;touch-action:none;user-select:none;-webkit-user-select:none}
 #presets{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 .pre{border:1px solid var(--li);border-radius:10px;overflow:hidden;background:#0f1218}.pre img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;display:block}
 .pre div{padding:.4rem;display:flex;gap:.3rem;align-items:center}.pre b{flex:1;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pre button{min-height:34px;padding:.3rem .5rem}
@@ -40,13 +40,14 @@ details summary{cursor:pointer;color:var(--mu)}label{display:block;font-size:.8r
     <button data-m="-1,0" title="Izquierda">◀</button><button id="centro" title="Centrar">◎</button><button data-m="1,0" title="Derecha">▶</button>
     <span></span><button data-m="0,-1" title="Abajo">▼</button><span></span></div>
   <label>Paso</label><select id="paso"><option value="2">fino</option><option value="8" selected>medio</option><option value="25">grande</option></select>
-  <div class="fila" style="margin-top:.6rem"><button id="zmenos" style="flex:1">− zoom</button><button id="zmas" style="flex:1">+ zoom</button></div>
+  <div class="fila" style="margin-top:.6rem"><button id="zmenos">−</button><input id="zoom" type="range" min="100" max="400" step="5" value="100" style="flex:1;min-height:auto"><button id="zmas">+</button><b id="zval" style="min-width:3.2em;text-align:right">1.0×</b></div>
+  <p class="mu" style="margin:.3rem 0 0">Mantén pulsada una flecha para mover sin parar; la vista se actualiza en vivo (baja resolución) mientras mueves.</p>
   <h2 style="font-size:1rem;margin:1rem 0 .4rem">Presets</h2>
   <div class="fila"><input id="nombre" placeholder="nombre (p. ej. arcade)" maxlength="40" style="flex:1"><button class="pri" id="guardar">Guardar</button></div>
   <div id="presets" style="margin-top:.6rem"></div>
   <h2 style="font-size:1rem;margin:1rem 0 .4rem">Luz de la sala (Hue)</h2>
-  <div class="fila"><button id="luzClara" style="flex:1">💡 Luz más clara</button><button id="luzRest" style="flex:1">↺ Restaurar</button></div>
-  <p class="mu" id="luzEst">«Restaurar» vuelve a lo que pidan los agentes (Admirito 50 %, Bugito 25 %…).</p>
+  <div class="fila"><span>💡</span><input id="luzPct" type="range" min="0" max="100" step="1" value="100" style="flex:1;min-height:auto"><b id="luzVal" style="min-width:3.6em;text-align:right">—</b><button id="luzRest">↺ Restaurar</button></div>
+  <p class="mu" id="luzEst">0 = apagada. «Restaurar» vuelve a lo que pidan los agentes (Admirito 50 %, Bugito 25 %…).</p>
   <details style="margin-top:1rem"><summary>Conexión (solo en tu tailnet)</summary>
     <p class="mu">Las cámaras no están en internet: este dispositivo debe estar en Tailscale. El token de cada nodo se guarda solo en este navegador.</p>
     <div id="cfg"></div><button id="guardarCfg" style="margin-top:.5rem">Guardar conexión</button></details>
@@ -67,34 +68,43 @@ function pintaCfg(){$('#cfg').innerHTML=Object.entries(NODOS).map(([k,n])=>`<lab
 $('#guardarCfg').onclick=()=>{for(const k in NODOS){cfg[k+'_url']=$('#u_'+k).value.trim();const t=$('#t_'+k).value.trim();if(t&&t!=='••••••')cfg[k+'_tok']=t}localStorage.setItem(LS,JSON.stringify(cfg));pintaCfg();log('Conexión guardada');elegir(cam)};
 function tabs(){$('#tabs').innerHTML=Object.entries(CAMS).map(([k,c])=>`<button aria-pressed="${k===cam}" data-c="${k}">${c.t}</button>`).join('');$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>elegir(b.dataset.c))}
 function habilita(){const c=CAMS[cam];document.querySelectorAll('#mandos .pad button,#zmas,#zmenos,#guardar').forEach(b=>b.disabled=!c.mueve||!mirado||ocupado);
-  if(!c.zoom){$('#zmas').disabled=$('#zmenos').disabled=true}
+  if(!c.zoom){$('#zmas').disabled=$('#zmenos').disabled=$('#zoom').disabled=true}else $('#zoom').disabled=!mirado
   $('#nota').textContent=!c.mueve?'Esta cámara no tiene movimiento: solo foto.':cam==='luna'?'Luna: gimbal por velocidad (sin posición absoluta), sin zoom. Cierra Luna Ultra Desktop. No probado todavía.':mirado?'':'Mira primero (📷) para ver hacia dónde apunta; luego se activan los mandos.'}
 async function elegir(c){cam=c;cfg.cam=c;localStorage.setItem(LS,JSON.stringify(cfg));mirado=false;$('#foto').removeAttribute('src');$('#msg').textContent='Pulsa «Mirar» para ver hacia dónde apunta antes de mover.';tabs();habilita();estadoPtz();presets()}
 async function mirar(){if(ocupado)return;ocupado=true;habilita();$('#msg').textContent='Tomando foto… (puede tardar)';
   try{const b=await (await api('/foto/'+cam)).blob();const u=URL.createObjectURL(b);const old=$('#foto').src;$('#foto').src=u;if(old)URL.revokeObjectURL(old);mirado=true;$('#msg').textContent='Foto '+new Date().toLocaleTimeString();$('#estadoTop').textContent='conectado'}
   catch(e){$('#msg').textContent='Sin foto: '+e.message;log('Foto: '+e.message,1)}ocupado=false;habilita()}
-async function estadoPtz(){if(!CAMS[cam].mueve){$('#pos').textContent='';return}try{const e=await (await api('/ptz/'+cam)).json();$('#pos').textContent=cam==='link'?`pan ${Math.round(e.pan/3600)}° · tilt ${Math.round(e.tilt/3600)}° · zoom ${(e.zoom/100).toFixed(1)}×`:`${(e.secuencia||[]).length} mov. desde centro`}catch(e){$('#pos').textContent=''}}
-async function mover(b){if(!mirado)return;ocupado=true;habilita();try{await post('/ptz/'+cam,b);log('Movido '+JSON.stringify(b));await estadoPtz();ocupado=false;await mirar()}catch(e){log('Mover: '+e.message,1)}ocupado=false;habilita()}
-document.querySelectorAll('.pad [data-m]').forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.m.split(',').map(Number),p=+$('#paso').value;
-  mover(cam==='luna'?{h:x*30,v:y*30,seg:Math.min(5,p/10)}:{dpan:x*p,dtilt:y*p})});
+async function estadoPtz(){if(!CAMS[cam].mueve){$('#pos').textContent='';return}try{const e=await (await api('/ptz/'+cam)).json();if(cam==='link')pintaPos(e);else $('#pos').textContent=`${(e.secuencia||[]).length} mov. desde centro`}catch(e){$('#pos').textContent=''}}
+let enVuelo=false,vivoHasta=0,vivoOn=false;
+function pintaPos(e){if(cam==='link'&&e&&e.pan!=null){$('#pos').textContent=`pan ${Math.round(e.pan/3600)}° · tilt ${Math.round(e.tilt/3600)}° · zoom ${(e.zoom/100).toFixed(1)}×`;if(document.activeElement!==$('#zoom')){$('#zoom').value=e.zoom;$('#zval').textContent=(e.zoom/100).toFixed(1)+'×'}}}
+async function vivo(seg=4){vivoHasta=Math.max(vivoHasta,Date.now()+seg*1000);if(vivoOn||cam!=='link')return;vivoOn=true;
+  while(Date.now()<vivoHasta&&cam==='link'){try{const b=await (await api('/vista/link')).blob();const u=URL.createObjectURL(b);const old=$('#foto').src;$('#foto').src=u;if(old)URL.revokeObjectURL(old);$('#msg').textContent='En vivo (baja resolución) · pulsa 📷 para foto nítida'}catch(e){}await new Promise(r=>setTimeout(r,180))}vivoOn=false}
+async function mover(b){if(!mirado||enVuelo)return;enVuelo=true;try{const e=await post('/ptz/'+cam,b);if(cam==='link'){pintaPos(e);vivo()}else{log('Movido '+JSON.stringify(b));await estadoPtz();ocupado=false;await mirar()}}catch(e){log('Mover: '+e.message,1)}enVuelo=false;habilita()}
+let rep=null;const paso1=b=>{const [x,y]=b.dataset.m.split(',').map(Number),p=+$('#paso').value;return cam==='luna'?{h:x*30,v:y*30,seg:Math.min(5,p/10)}:{dpan:x*p,dtilt:y*p}};
+const para=()=>{clearInterval(rep);rep=null};
+document.querySelectorAll('.pad [data-m]').forEach(b=>{b.onpointerdown=ev=>{ev.preventDefault();if(b.disabled)return;mover(paso1(b));if(cam==='link'){para();rep=setInterval(()=>mover(paso1(b)),220)}};
+  b.onpointerup=b.onpointerleave=b.onpointercancel=para;b.oncontextmenu=e=>e.preventDefault()});
 $('#centro').onclick=()=>mover(cam==='luna'?{centrar:true}:{pan:0,tilt:0});
 $('#zmas').onclick=()=>mover({dzoom:+$('#paso').value*2});$('#zmenos').onclick=()=>mover({dzoom:-$('#paso').value*2});
+let zT=null,zUlt=0;$('#zoom').oninput=()=>{const v=+$('#zoom').value;$('#zval').textContent=(v/100).toFixed(1)+'×';clearTimeout(zT);
+  const go=()=>{if(enVuelo){zT=setTimeout(go,100);return}zUlt=Date.now();mover({zoom:+$('#zoom').value})};if(Date.now()-zUlt>150&&!enVuelo)go();else zT=setTimeout(go,160)};
 $('#mirar').onclick=mirar;$('#auto').onchange=()=>{clearInterval(timer);if($('#auto').checked)timer=setInterval(()=>!ocupado&&mirar(),$('#cada').value*1000)};
 async function presets(){const box=$('#presets');box.innerHTML='';if(!CAMS[cam].mueve){box.innerHTML='<span class="mu">Sin presets: cámara fija.</span>';return}
   try{const l=await (await api('/preset/lista/'+cam)).json();const ks=Object.keys(l);if(!ks.length)box.innerHTML='<span class="mu">Aún no hay presets.</span>';
   for(const k of ks){const d=document.createElement('div');d.className='pre';d.innerHTML=`<img alt=""><div><b></b><button title="Ir">Ir</button><button title="Borrar">🗑</button></div>`;d.querySelector('b').textContent=k;
-    const [ir,bo]=d.querySelectorAll('button');ir.onclick=async()=>{if(!mirado)return log('Mira primero antes de mover',1);ocupado=true;habilita();try{await post('/preset/ir',{cam,nombre:k});log('Preset «'+k+'»');await estadoPtz();ocupado=false;await mirar()}catch(e){log(e.message,1)}ocupado=false;habilita()};
+    const [ir,bo]=d.querySelectorAll('button');ir.onclick=async()=>{if(!mirado)return log('Mira primero antes de mover',1);ocupado=true;habilita();try{const e=await post('/preset/ir',{cam,nombre:k});log('Preset «'+k+'»');if(cam==='link'){pintaPos(e);ocupado=false;habilita();vivo(5)}else{await estadoPtz();ocupado=false;await mirar()}}catch(e){log(e.message,1)}ocupado=false;habilita()};
     bo.onclick=async()=>{if(!confirm('¿Borrar «'+k+'»?'))return;try{await post('/preset/borrar',{cam,nombre:k});presets()}catch(e){log(e.message,1)}};
-    if(l[k].miniatura)api('/preset/foto/'+cam+'/'+encodeURIComponent(k)).then(r=>r.blob()).then(b=>d.querySelector('img').src=URL.createObjectURL(b)).catch(()=>{});box.append(d)}}
+    box.append(d);if(l[k].miniatura)try{const b=await (await api('/preset/foto/'+cam+'/'+encodeURIComponent(k))).blob();d.querySelector('img').src=URL.createObjectURL(b)}catch{}}}
   catch(e){box.innerHTML='';log('Presets: '+e.message,1)}}
 $('#guardar').onclick=async()=>{const n=$('#nombre').value.trim();if(!n)return;ocupado=true;habilita();log('Guardando «'+n+'» (con miniatura, puede tardar)…');
   try{await post('/preset/guardar',{cam,nombre:n});$('#nombre').value='';presets()}catch(e){log(e.message,1)}ocupado=false;habilita()};
-async function luz(b){const n=nodo('link');if(!n.tok)return log('Falta el token del Mac Mini (abre «Conexión»)',1);
-  $('#luzClara').disabled=$('#luzRest').disabled=true;$('#luzEst').textContent='Cambiando la luz…';
-  try{const r=await fetch(n.url+'/luz',b?{method:'POST',headers:{Authorization:'Bearer '+n.tok,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:{Authorization:'Bearer '+n.tok}});
-    const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);const e=Object.values(j.estado||{})[0]||{};
-    $('#luzEst').textContent=`Luz: ${e.on?Math.round((e.bri||0)/254*100)+' %':'apagada'}`+(b?' · '+b.accion:'');if(b){log('Luz '+b.accion);if(cam==='link'&&mirado)mirar()}}
-  catch(e){$('#luzEst').textContent='Luz no disponible';log('Luz: '+e.message,1)}$('#luzClara').disabled=$('#luzRest').disabled=false}
-$('#luzClara').onclick=()=>luz({accion:'clara'});$('#luzRest').onclick=()=>luz({accion:'restaurar'});
-pintaCfg();elegir(cam);luz();
+async function luzReq(b,int=3){const n=nodo('link');if(!n.tok)throw new Error('Falta el token del Mac Mini (abre «Conexión»)');
+  for(let i=0;;i++){try{const r=await fetch(n.url+'/luz',b?{method:'POST',headers:{Authorization:'Bearer '+n.tok,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:{Authorization:'Bearer '+n.tok}});
+    const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}catch(e){if(i>=int-1)throw e;await new Promise(r=>setTimeout(r,800*(i+1)))}}}
+function pintaLuz(j){const e=Object.values(j.estado||{})[0]||{};const p=e.on?Math.round((e.bri||0)/254*100):0;$('#luzPct').value=p;$('#luzVal').textContent=e.on?p+' %':'apagada';$('#luzEst').textContent='Luz leída: '+(e.on?p+' %':'apagada')+(j.accion?' · '+j.accion:'')}
+async function luz(b){try{pintaLuz(await luzReq(b));if(b)log('Luz '+(b.accion||b.porcentaje+' %'))}catch(e){$('#luzEst').textContent='Luz no disponible: '+e.message;log('Luz: '+e.message,1)}}
+let luzT=null;$('#luzPct').oninput=()=>{const v=+$('#luzPct').value;$('#luzVal').textContent=v?v+' %':'apagada'};
+$('#luzPct').onchange=()=>{clearTimeout(luzT);luzT=setTimeout(()=>luz({porcentaje:+$('#luzPct').value}),120)};
+$('#luzRest').onclick=()=>luz({accion:'restaurar'});
+pintaCfg();elegir(cam);setTimeout(()=>luz(),1500);
 </script></body></html>
