@@ -56,6 +56,8 @@ window.addEventListener('message',async event=>{
   }catch(error){
     if(error.code==='source_conflict'&&error.current){
       reply('admiranext:refinement:conflict',{requestId:data.requestId,project:error.current,phase:error.phase});
+      // Older inspectors still receive their normal error; current ones already own the richer conflict.
+      reply('admiranext:refinement:error',{requestId:data.requestId,error:error.message});
       $('connection').textContent='REVISIÓN DIFERENTE';status('El origen cambió. AINimation conserva el borrador y muestra la comparación.');
       // Send comparison immediately; image reads must not hold up the save response.
       loadThumbnailAssets(error.current).then(assets=>reply('admiranext:refinement:conflict-assets',{requestId:data.requestId,source:error.current.source,assets})).catch(()=>{});

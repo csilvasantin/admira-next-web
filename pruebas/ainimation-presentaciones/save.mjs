@@ -1,6 +1,6 @@
 import {generatorProject,nativeEdits,confirmSaved} from './refinement/generator.mjs';
 export class RefinementConflict extends Error{
-  constructor(current,phase='before-save'){super('El origen tiene otra revisión. Compara los cambios antes de guardar.');this.code='source_conflict';this.current=current;this.phase=phase;}
+  constructor(current,phase='before-save'){super(phase==='after-save'?'La lectura posterior no coincide con la confirmación. Revisa el historial antes de volver a guardar.':'El origen tiene otra revisión. Compara los cambios antes de guardar.');this.code='source_conflict';this.current=current;this.phase=phase;}
 }
 export async function saveRefinement({project,changeset,read,write}){
   const fromSource=ideas=>{const value=generatorProject(ideas,project.document.language);if(value.source.id!==project.source.id||value.source.adapter!==project.source.adapter)throw Error('La lectura pertenece a otro origen.');return value;};

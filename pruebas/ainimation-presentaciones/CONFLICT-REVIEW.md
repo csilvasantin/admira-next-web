@@ -22,3 +22,5 @@ no redirige una respuesta antigua al proyecto nuevo.
 El consumidor valida esas identidades y mantiene su borrador. Esta versión
 prepara una comparación de lectura: la resolución manual queda pendiente.
 Los ensayos y las capturas de este incremento sólo usan datos ficticios.
+La respuesta de conflicto va seguida del error convencional para inspectores
+anteriores; el inspector actual conserva la comparación y sus imágenes tardías.
