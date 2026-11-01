@@ -331,7 +331,7 @@ export function returnToSeguro(value) {
   // /pruebas/… (10-10-2026): la zona de pruebas vuelve a la carpeta pedida (solo [a-z0-9-], sin «//» ni «..»).
   // /proyectos/<clave>/ (20-10-2026): el detalle de cada proyecto vuelve a su ficha (solo [a-z0-9-]).
   // /documentacion/ (20-10-2026): el material de la presentación pasa a la zona con sesión.
-  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/roadmap' || path === '/roadmap/encargos' || path === '/avatar-metricas' || path === '/neo58/' || path === '/clientes/' || path === '/documentacion/' || /^\/pruebas\/(?:[a-z0-9-]+\/)*$/.test(path) || /^\/proyectos\/[a-z0-9-]+\/$/.test(path) ? path : safeConnection(path) || '/webmaster';
+  return path === '/analitics' || path === '/usuarios' || path === '/webmaster' || path === '/github' || path === '/xpace/manage' || path === '/libro-de-estilo' || path === '/flota' || path === '/organigrama' || path === '/roadmap' || path === '/roadmap/encargos' || path === '/avatar-metricas' || path === '/neo58/' || path === '/clientes/' || path === '/documentacion/' || path === '/portaventura/' || /^\/pruebas\/(?:[a-z0-9-]+\/)*$/.test(path) || /^\/proyectos\/[a-z0-9-]+\/$/.test(path) ? path : safeConnection(path) || '/webmaster';
 }
 
 export async function crearDesafioLogin(env, returnTo = '/webmaster', now = Date.now()) {
